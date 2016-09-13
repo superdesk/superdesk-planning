@@ -5,6 +5,8 @@ bower
 dist
 templates-cache.generated.js
 .tmp
+__pycache__
+env
 test-server/env
 test-server/__pycache__
 e2e-test-results
