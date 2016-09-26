@@ -1,4 +1,4 @@
-# Superdesk-planning
+# Superdesk-planning [![Build Status](https://travis-ci.org/vied12/superdesk-planning.svg?branch=master)](https://travis-ci.org/vied12/superdesk-planning)
 _Sept 2016, Berlin_
 
 ## Overview
@@ -27,22 +27,20 @@ For instance, as these lines are written, there is no proper way to add an icon 
 
 ### Development setup
 
-Download and install using npm
+Download and install
 ```
 git clone git@github.com:vied12/superdesk-planning.git
-cd superdesk-planning
-npm install
-sudo npm link
+make install
 ```
-Connect the downloaded repository to `superdesk-client-core`
+Run the tests
 ```
+source backend/env/bin/activate
+make test
+```
+
+Connect the repository to `superdesk-client-core`
+```
+npm link
 cd /path/to/superdesk-client-core
 npm link superdesk-planning
-```
-Install Python dependencies
-```
-cd backend
-virtualenv  -p python3  env
-source env/bin/activate
-pip install -r requirements.txt
 ```

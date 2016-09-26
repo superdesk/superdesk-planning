@@ -2,8 +2,8 @@
 BACKEND_DIR = backend
 VENV = `pwd`/${BACKEND_DIR}/env/bin/activate
 test:
-	. ${VENV} ; flake8 ${BACKEND_DIR}
-	. ${VENV} ; nosetests ${BACKEND_DIR} -v --with-timer
+	flake8 ${BACKEND_DIR}
+	nosetests ${BACKEND_DIR} -v --with-timer
 	npm test
 install:
 	virtualenv  -p python3  ${BACKEND_DIR}/env

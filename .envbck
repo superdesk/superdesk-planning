@@ -1,2 +1,0 @@
-export PATH=$PATH:node_modules/.bin
-source backend/env/bin/activate
