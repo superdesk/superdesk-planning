@@ -2,10 +2,9 @@
 import './src/styles/planning.less';
 
 // scripts
-import * as ctrl from './src/controllers';
+import planningModule from './src';
 
-angular.module('superdesk.planning', [])
-    .config(configurePlanning);
+import * as ctrl from './src/controllers';
 
 configurePlanning.$inject = ['superdeskProvider'];
 function configurePlanning(superdesk) {
@@ -16,17 +15,17 @@ function configurePlanning(superdesk) {
             priority: 100,
             category: superdesk.MENU_MAIN,
             adminTools: false,
-            privileges: {planning: 1},
             template: require('./src/views/planning.html'),
             topTemplateUrl: 'scripts/superdesk-dashboard/views/workspace-topnav.html',
             sideTemplateUrl: 'scripts/superdesk-workspace/views/workspace-sidenav.html'
         })
-        .activity('/settings/Planning', {
+        .activity('/settings/planning', {
             label: gettext('Planning'),
             template: require('./src/views/settings.html'),
             controller: ctrl.PlanningSettingsController,
             category: superdesk.MENU_SETTINGS,
-            privileges: {planning: 1},
             priority: 2000
         });
 }
+
+export default planningModule.config(configurePlanning);

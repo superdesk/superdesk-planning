@@ -13,6 +13,7 @@ e2e-test-results
 templates-cache.generated.js
 .env
 npm-debug.log
+dist/
 
 # VIM related files
 *.swo

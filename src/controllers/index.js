@@ -1,1 +1,1 @@
-export {PlanningSettingsController} from './PlanningSettingsController';
+export { PlanningSettingsController } from './PlanningSettingsController';

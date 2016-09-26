@@ -1,0 +1,3 @@
+nose
+nose-timer
+-e git://github.com/superdesk/superdesk-core.git@a5fa622de31362822672508414d27358e789cade#egg=Superdesk_Core

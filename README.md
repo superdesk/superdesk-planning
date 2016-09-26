@@ -39,3 +39,10 @@ Connect the downloaded repository to `superdesk-client-core`
 cd /path/to/superdesk-client-core
 npm link superdesk-planning
 ```
+Install Python dependencies
+```
+cd backend
+virtualenv  -p python3  env
+source env/bin/activate
+pip install -r requirements.txt
+```
