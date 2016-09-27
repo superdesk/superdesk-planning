@@ -1,10 +1,10 @@
 // styles
-import './src/styles/planning.less';
+import './client/styles/planning.less';
 
 // scripts
-import planningModule from './src';
+import planningModule from './client';
 
-import * as ctrl from './src/controllers';
+import * as ctrl from './client/controllers';
 
 configurePlanning.$inject = ['superdeskProvider'];
 function configurePlanning(superdesk) {
@@ -15,13 +15,13 @@ function configurePlanning(superdesk) {
             priority: 100,
             category: superdesk.MENU_MAIN,
             adminTools: false,
-            template: require('./src/views/planning.html'),
+            template: require('./client/views/planning.html'),
             topTemplateUrl: 'scripts/superdesk-dashboard/views/workspace-topnav.html',
             sideTemplateUrl: 'scripts/superdesk-workspace/views/workspace-sidenav.html'
         })
         .activity('/settings/planning', {
             label: gettext('Planning'),
-            template: require('./src/views/settings.html'),
+            template: require('./client/views/settings.html'),
             controller: ctrl.PlanningSettingsController,
             category: superdesk.MENU_SETTINGS,
             priority: 2000

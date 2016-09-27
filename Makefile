@@ -1,5 +1,5 @@
 
-BACKEND_DIR = backend
+BACKEND_DIR = server
 VENV = `pwd`/${BACKEND_DIR}/env/bin/activate
 test:
 	flake8 ${BACKEND_DIR}

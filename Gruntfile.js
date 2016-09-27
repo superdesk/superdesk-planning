@@ -11,7 +11,7 @@ module.exports = function(grunt) {
 
     var config = {
         pkg: grunt.file.readJSON(path.join(__dirname, 'package.json')),
-        appDir: 'src',
+        appDir: 'client',
         tasksDir: 'tasks',
         livereloadPort: 35729
     };
