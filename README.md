@@ -1,19 +1,28 @@
-# Superdesk-planning [![Build Status](https://travis-ci.org/superdesk/superdesk-planning.svg?branch=master)](https://travis-ci.org/superdesk/superdesk-planning)
-_Sept 2016, Berlin_
-
+# Superdesk Planning
+_Sept 2016, Berlin_  
+[![Build Status](https://travis-ci.org/superdesk/superdesk-planning.svg?branch=master)](https://travis-ci.org/superdesk/superdesk-planning)
 ## Overview
-This is a plugin for [superdesk-client-core](https://github.com/superdesk/superdesk-client-core). It adds a planning application page and a new tab in the settings.
+This is a plugin for [superdesk-client-core](https://github.com/superdesk/superdesk-client-core) and [superdesk-core](https://github.com/superdesk/superdesk-core). It adds a planning application page and a new tab in the settings with its API endpoints.
 
 ## Installation
+
 The `superdesk-planning` node module is already included in `superdesk-core-client`.
 But in order to see the planning feature in the application, you need to enable it.
 
-### Enable the superdesk-planning module
+### Client: Enable the superdesk-planning module
 In `client/superdesk.config.js` from `superdesk`, add this line
 ```js
 features : {planning: true},
 ```
 This will import the `superdesk-planning` node module and load the `superdesk.planning` angular module in the main angular application.
+### Server: Load the superdesk-planning module
+```diff
+--- a/server/settings.py
++++ b/server/settings.py
+@@ -132,7 +131,8 @@ INSTALLED_APPS.extend([
++    'planning',
+ ])
+```
 
 ## Development
 
