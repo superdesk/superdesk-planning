@@ -53,3 +53,10 @@ npm link
 cd /path/to/superdesk-client-core
 npm link superdesk-planning
 ```
+
+Connect the repository to `superdesk-core`
+```
+cd /path/to/superdesk-core
+source env/bin/activate
+pip install -e /path/to/superdesk-planning
+```
