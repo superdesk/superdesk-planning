@@ -1,7 +1,7 @@
 {
-    'eorol:artAgent':  'Artistic agent',
-    'eorol:general':  'General organiser',
-    'eorol:tech':  'Technical organiser',
-    'eorol:travAgent':  'Travel agent',
-    'eorol:venue':  'Venue organiser'
+    'eorol\:artAgent':  'Artistic agent',
+    'eorol\:general':  'General organiser',
+    'eorol\:tech':  'Technical organiser',
+    'eorol\:travAgent':  'Travel agent',
+    'eorol\:venue':  'Venue organiser'
 }
