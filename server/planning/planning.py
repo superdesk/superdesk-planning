@@ -12,6 +12,9 @@ import superdesk
 from superdesk.metadata.utils import item_url
 
 
+not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
+
+
 class PlanningService(superdesk.Service):
     pass
 
@@ -75,6 +78,7 @@ planning_schema = {
     }  # end planning_details
 }  # end planning_schema
 
+
 class PlanningResource(superdesk.Resource):
     """Resource for planning data model
 
@@ -82,7 +86,7 @@ class PlanningResource(superdesk.Resource):
     """
 
     url = 'events'
-    schema = events_schema
+    schema = planning_schema
     resource_methods = ['GET']
     item_methods = ['GET']
     public_methods = ['GET']
