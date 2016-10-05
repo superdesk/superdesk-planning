@@ -6,15 +6,18 @@ module.exports = {
         path: path.join(process.cwd(), 'dist'),
         filename: 'app.bundle.js',
     },
+    resolve: {
+        extensions: ['', '.js', '.jsx']
+    },
     module: {
         loaders: [
             {
-                test: /\.js$/,
+                test: /\.jsx?$/,
                 exclude: /node_modules/,
                 loader: 'babel',
                 query: {
                     cacheDirectory: true,
-                    presets: ['es2015']
+                    presets: ['es2015', 'react']
                 }
             },
             {

@@ -1,0 +1,7 @@
+{
+	"preset": "airbnb",
+	"requireSpacesInAnonymousFunctionExpression": false,
+	"validateIndentation": 4,
+	"fileExtensions": [".js", ".jsx"],
+	"requireTrailingComma": false
+}
