@@ -15,6 +15,7 @@ function configurePlanning(superdesk) {
             priority: 100,
             category: superdesk.MENU_MAIN,
             adminTools: false,
+            controller: ctrl.PlanningController,
             template: require('./client/views/planning.html'),
             topTemplateUrl: 'scripts/superdesk-dashboard/views/workspace-topnav.html',
             sideTemplateUrl: 'scripts/superdesk-workspace/views/workspace-sidenav.html'
