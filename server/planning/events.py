@@ -262,7 +262,7 @@ class EventsResource(superdesk.Resource):
 
     url = 'events'
     schema = events_schema
-    resource_methods = ['GET', 'POST', 'PATCH', 'DELETE']
-    item_methods = ['GET', 'POST', 'PATCH', 'DELETE']
+    resource_methods = ['GET', 'POST']
+    item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
     item_url = item_url
