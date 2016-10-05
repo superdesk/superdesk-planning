@@ -87,7 +87,7 @@ class PlanningResource(superdesk.Resource):
 
     url = 'events'
     schema = planning_schema
-    resource_methods = ['GET']
-    item_methods = ['GET']
+    resource_methods = ['GET', 'POST']
+    item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
     item_url = item_url
