@@ -16,6 +16,8 @@ not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
 
 
 class PlanningService(superdesk.Service):
+    """Service class for the planning model."""
+
     pass
 
 planning_schema = {
@@ -67,7 +69,7 @@ planning_schema = {
         'mapping': not_analyzed
     },
 
-    # Event Details
+    # Planning Details
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16.5.1
     # probably can skip this subsection, although its documented in iptc impl guide this way
     'planning_details': {

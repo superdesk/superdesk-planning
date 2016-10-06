@@ -37,6 +37,8 @@ occurrence_statuses = {
 
 
 class EventsService(superdesk.Service):
+    """Service class for the events model."""
+
     pass
 
 
@@ -112,6 +114,7 @@ events_schema = {
                     'related': {'type': 'string'}
                 },
             },
+            # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.4.3
             'dates': {
                 'type': 'dict',
                 'schema': {

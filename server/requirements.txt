@@ -1,4 +1,6 @@
 nose
 nose-timer
+pep8
 flake8
+flake8-docstrings
 -e git://github.com/superdesk/superdesk-core.git@a5fa622de31362822672508414d27358e789cade#egg=Superdesk_Core
