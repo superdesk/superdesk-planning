@@ -137,10 +137,10 @@ location_schema = {
 class LocationsResource(superdesk.Resource):
     """Resource for locations data model
 
-    See IPTC-G2-Implementation_Guide (version 2.21) Section 15.4 for schema details
+    See IPTC-G2-Implementation_Guide (version 2.21) Section 12.6.1.2 for schema details
     """
 
-    url = 'events'
+    url = 'locations'
     schema = events_schema
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
