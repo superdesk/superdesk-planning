@@ -11,7 +11,7 @@
 """Superdesk Planning Plugin."""
 
 import superdesk
-from .events import EventsResource, EventsService
+from .events import EventsResource, EventsService, EVENT_PRIVILEGE
 from .planning import PlanningResource, PlanningService
 
 
@@ -24,3 +24,4 @@ def init_app(app):
     PlanningResource('planning', app=app, service=planning_search_service)
     events_search_service = EventsService('events', backend=superdesk.get_backend())
     EventsResource('events', app=app, service=events_search_service)
+    superdesk.privilege(name=EVENT_PRIVILEGE, label='Events', description='Create events')
