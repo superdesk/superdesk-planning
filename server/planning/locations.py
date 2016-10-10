@@ -21,13 +21,14 @@ not_indexed = {'type': 'string', 'index': 'no'}
 venue_types = {
 }
 
+
 class LocationsService(superdesk.Service):
     """Service class for the events model."""
 
     pass
 
 
-location_schema = {
+locations_schema = {
     # Identifiers
     'guid': {
         'type': 'string',
@@ -77,7 +78,8 @@ location_schema = {
     },
 
     # Location Details
-    # NewsML-G2 Event properties See https://iptc.org/std/NewsML-G2/2.23/specification/XML-Schema-Doc-Core/ConceptItem.html#LinkC5
+    # NewsML-G2 Event properties See:
+    #    https://iptc.org/std/NewsML-G2/2.23/specification/XML-Schema-Doc-Core/ConceptItem.html#LinkC5
     # probably can skip this subsection, although its documented in iptc impl guide this way
     'location_details': {
         'type': 'dict',
@@ -90,7 +92,7 @@ location_schema = {
                     'name': {'type': 'string'}
                 }
             },
-            # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 12.6.3 
+            # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 12.6.3
             # or https://iptc.org/std/NewsML-G2/2.23/specification/XML-Schema-Doc-Power/ConceptItem.html#LinkAA
             'poi_details': {
                 'type': 'dict',
@@ -102,7 +104,7 @@ location_schema = {
                             'longitude': {'type': 'float'},
                             'altitude': {'type': 'integer'},
                             'gps_datum': {'type': 'string'},
-                        }        
+                        }
                     },
                     'address': {
                         'type': 'dict',
@@ -156,7 +158,7 @@ class LocationsResource(superdesk.Resource):
     """
 
     url = 'locations'
-    schema = events_schema
+    schema = locations_schema
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
