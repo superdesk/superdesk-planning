@@ -5,6 +5,8 @@ import { DayPickerInput, InputText } from './index';
 export class AddEventForm extends React.Component {
     constructor(props) {
         super(props);
+        // resource to connect to API
+        this.eventsResource = props.eventsResource;
         this.state = {
             date: { from: null, to: null },
             canSubmit: false,
@@ -20,7 +22,7 @@ export class AddEventForm extends React.Component {
     disableButton() { this.setState({ canSubmit: false }); }
 
     handleSubmit(model) {
-        // TODO: implement
+        this.eventsResource.save(model);
         return model;
     }
 
@@ -39,7 +41,9 @@ export class AddEventForm extends React.Component {
                 <label>Where</label>
                 <InputText name="location"/>
                 <label>When</label>
-                <DayPickerInput name="date"/>
+                <div>
+                    <DayPickerInput name="date.from"/> to <DayPickerInput name="date.to"/>
+                </div>
                 <button type="submit" disabled={!this.state.canSubmit}>Submit</button>
             </Formsy.Form>
         );

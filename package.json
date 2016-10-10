@@ -27,7 +27,7 @@
     "load-grunt-config": "^0.19.2",
     "load-grunt-tasks": "^3.5.2",
     "react": "^15.3.2",
-    "react-day-picker": "^2.5.0",
+    "react-date-picker": "^5.3.28",
     "react-dom": "^15.3.2",
     "style-loader": "^0.13.1"
   },
