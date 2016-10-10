@@ -23,8 +23,6 @@
     "grunt-jscs": "^3.0.1",
     "grunt-template": "^1.0.0",
     "html-loader": "^0.4.3",
-    "less": "^2.7.1",
-    "less-loader": "^2.2.3",
     "load-grunt-config": "^0.19.2",
     "load-grunt-tasks": "^3.5.2",
     "react": "^15.3.2",
@@ -42,6 +40,8 @@
     "karma-junit-reporter": "^1.1.0",
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^1.8.0",
+    "node-sass": "^3.10.1",
+    "sass-loader": "^4.0.2",
     "superdesk-core": "^1.2.0-rc.1",
     "webpack": "^1.13.2"
   }

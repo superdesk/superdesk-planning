@@ -29,9 +29,9 @@ module.exports = {
                 loader: 'style!css'
             },
             {
-                test: /\.less$/,
-                loader: 'style!css!less'
-            },
+                test: /\.scss$/,
+                loader: 'style!css!sass'
+            }
         ]
     }
 };
