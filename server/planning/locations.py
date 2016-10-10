@@ -90,18 +90,33 @@ location_schema = {
                     'name': {'type': 'string'}
                 }
             },
-            # NewsML-G2 Event properties See https://iptc.org/std/NewsML-G2/2.23/specification/XML-Schema-Doc-Power/ConceptItem.html#LinkAA
+            # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 12.6.3 
+            # or https://iptc.org/std/NewsML-G2/2.23/specification/XML-Schema-Doc-Power/ConceptItem.html#LinkAA
             'poi_details': {
                 'type': 'dict',
                 'schema': {
                     'position': {
                         'type': 'dict',
                         'schema': {
-                            'latitude': {'type': 'string'},
-                            'longitude': {'type': 'string'}
+                            'latitude': {'type': 'float'},
+                            'longitude': {'type': 'float'},
+                            'altitude': {'type': 'integer'},
+                            'gps_datum': {'type': 'string'},
                         }        
                     },
-                    'address': {'type': 'string'},
+                    'address': {
+                        'type': 'dict',
+                        'schema': {
+                            'line': {
+                                'type': 'list',
+                                'mapping': {'type': 'string'}
+                            }
+                        },
+                        'locality': {'type': 'string'},
+                        'area': {'type': 'string'},
+                        'country': {'type': 'string'},
+                        'postal_code': {'type': 'string'}
+                    },
                     'open_hours': {'type': 'string'},
                     'capacity': {'type': 'string'},
                     'contact_info': {
