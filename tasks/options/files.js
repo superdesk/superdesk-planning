@@ -1,4 +1,4 @@
 
 exports.scripts = [
     '<%= appDir %>/**/*.js'
-];
+]
