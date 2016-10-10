@@ -1,3 +1,4 @@
 export { PlanningSettingsController } from './PlanningSettingsController';
 export { PlanningController } from './PlanningController';
-export { EventDirectiveController } from './EventDirectiveController';
+export { EventsListDirectiveController } from './EventsListDirectiveController';
+export { AddEventController } from './AddEventController';

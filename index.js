@@ -16,14 +16,15 @@ function configurePlanning(superdesk) {
             category: superdesk.MENU_MAIN,
             adminTools: false,
             controller: ctrl.PlanningController,
+            controllerAs: 'vm',
             template: require('./client/views/planning.html'),
             topTemplateUrl: 'scripts/superdesk-dashboard/views/workspace-topnav.html',
-            sideTemplateUrl: 'scripts/superdesk-workspace/views/workspace-sidenav.html'
         })
         .activity('/settings/planning', {
             label: gettext('Planning'),
             template: require('./client/views/settings.html'),
             controller: ctrl.PlanningSettingsController,
+            controllerAs: 'vm',
             category: superdesk.MENU_SETTINGS,
             priority: 2000
         });

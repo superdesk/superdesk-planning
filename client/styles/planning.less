@@ -2,9 +2,32 @@
 @import '~mixins.less';
 @import '~variables.less';
 
-.planning {
+@EVENTS_LIST_WIDTH: 400px;
+
+.Planning {
+    .absolute0;
+}
+.Planning__events-list {
+    .absolute0;
+    padding-top: @nav-height * 2;
+    width: @EVENTS_LIST_WIDTH;
+    border-right: 3px solid #666;
+    box-shadow: 2px 0 10px 0 rgba(0,0,0,.3);
+    .navbtn { // fix the (+) button. Needed because it's not a dropdown
+        overflow: hidden;
+        padding: 0;
+        button {border: 0;}
+    }
+}
+.Planning__coverage {
+    .absolute0;
+    padding-top: @nav-height * 2;
+    left: @EVENTS_LIST_WIDTH;
+}
+
+.absolute0 {
     position: absolute;
-    top: @nav-height;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;

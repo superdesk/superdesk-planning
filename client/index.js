@@ -1,14 +1,13 @@
 import * as ctrl from './controllers';
+import * as services from './services';
 
 export default angular.module('superdesk.planning', [])
-    .directive('sdEvent', [
-        function() {
-            return {
-                scope: {},
-                template: require('./views/event.html'),
-                controller: ctrl.EventDirectiveController
-            };
-        }
-    ])
+    .directive('sdEventsList',
+        () => ({ scope: {}, controller: ctrl.EventsListDirectiveController })
+    )
+    .directive('sdAddEvent',
+        () => ({ scope: {}, controller: ctrl.AddEventController })
+    )
     .controller('PlanningController', ctrl.PlanningController)
-    .controller('PlanningSettingsController', ctrl.PlanningSettingsController);
+    .controller('PlanningSettingsController', ctrl.PlanningSettingsController)
+    .service('planningApi', services.PlanningApiService);
