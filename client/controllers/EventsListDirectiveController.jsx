@@ -1,26 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import { EventsList } from '../components';
 
-EventsListDirectiveController.$inject = ['$element'];
-export function EventsListDirectiveController($element) {
-    let events = [{ id: 1, title: 'qwe' }, { id: 2, title: 'ert' }];
-    ReactDOM.render(<EventsList events={events} />, $element.get(0));
-}
+EventsListDirectiveController.$inject = ['$element', 'api'];
+export function EventsListDirectiveController($element, api) {
+    let events;
+    api('events').query().then(function(e) {
+        events = e._items;
+        ReactDOM.render(<EventsList events={events} />, $element.get(0));
+    });
 
-class EventsList extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
-    render() {
-        return (
-            <ul>
-            {
-                this.props.events.map(function(event) {
-                    return <li key={event.id}>{event.title}</li>;
-                })
-            }
-            </ul>
-        );
-    }
 }

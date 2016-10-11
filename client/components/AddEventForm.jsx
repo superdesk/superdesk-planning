@@ -8,9 +8,7 @@ export class AddEventForm extends React.Component {
         // resource to connect to API
         this.eventsResource = props.eventsResource;
         this.state = {
-            date: { from: null, to: null },
-            canSubmit: false,
-            selectedDay: new Date(),
+            canSubmit: false
         };
         Formsy.addValidationRule('isUniqueName', this.isUniqueNameValidator);
     }
@@ -22,7 +20,25 @@ export class AddEventForm extends React.Component {
     disableButton() { this.setState({ canSubmit: false }); }
 
     handleSubmit(model) {
-        this.eventsResource.save({}, model);
+        let event = {
+            unique_name: model.uniqueName,
+            event_details: {
+                description: {
+                    definition_short: model.description
+                },
+                dates: {
+                    start: model.dates.from,
+                    end: model.dates.to
+                },
+                location: [
+                    {
+                        qcode: 'FIXME',
+                        name: model.location
+                    }
+                ]
+            }
+        };
+        this.eventsResource.save({}, event);
         return model;
     }
 
@@ -42,7 +58,7 @@ export class AddEventForm extends React.Component {
                 <InputText name="location"/>
                 <label>When</label>
                 <div>
-                    <DayPickerInput name="date.from"/> to <DayPickerInput name="date.to"/>
+                    <DayPickerInput name="dates.from"/> to <DayPickerInput name="dates.to"/>
                 </div>
                 <button type="submit" disabled={!this.state.canSubmit}>Submit</button>
             </Formsy.Form>

@@ -1,6 +1,7 @@
 
 @import '~mixins.scss';
 @import '~variables.scss';
+@import './events-list.scss';
 
 $EVENTS_LIST_WIDTH: 400px;
 
@@ -16,7 +17,7 @@ $EVENTS_LIST_WIDTH: 400px;
 }
 .Planning__events-list {
     @include absolute0;
-    padding-top: $nav-height * 2;
+    padding: $nav-height * 2 20px 0 20px;
     width: $EVENTS_LIST_WIDTH;
     border-right: 3px solid #666;
     box-shadow: 2px 0 10px 0 rgba(0,0,0,.3);
