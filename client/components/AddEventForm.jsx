@@ -22,7 +22,7 @@ export class AddEventForm extends React.Component {
     disableButton() { this.setState({ canSubmit: false }); }
 
     handleSubmit(model) {
-        this.eventsResource.save(model);
+        this.eventsResource.save({}, model);
         return model;
     }
 
