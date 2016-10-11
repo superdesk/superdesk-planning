@@ -15,6 +15,7 @@ from .events import EventsResource, EventsService
 from .planning import PlanningResource, PlanningService
 from .locations import LocationsResource, LocationsService
 
+
 def init_app(app):
     """Initialize planning plugin.
 
@@ -29,4 +30,8 @@ def init_app(app):
     locations_search_service = LocationsService('events', backend=superdesk.get_backend())
     LocationsResource('locations', app=app, service=locations_search_service)
 
-    superdesk.privilege(name='planning', label='Events', description='Create, update, and delete  events, planning items, and coverages')
+    superdesk.privilege(
+        name='planning',
+        label='Events',
+        description='Create, update, and delete  events, planning items, and coverages'
+    )
