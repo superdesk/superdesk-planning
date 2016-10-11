@@ -87,7 +87,7 @@ class PlanningResource(superdesk.Resource):
     See IPTC-G2-Implementation_Guide (version 2.21) Section 16.5 for schema details
     """
 
-    url = 'events'
+    url = 'planning'
     schema = planning_schema
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
