@@ -14,8 +14,6 @@ import superdesk
 from superdesk.metadata.utils import item_url
 
 
-EVENT_PRIVILEGE = 'events'
-
 not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
 not_indexed = {'type': 'string', 'index': 'no'}
 
@@ -271,6 +269,6 @@ class EventsResource(superdesk.Resource):
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
     item_url = item_url
-    privileges = {'POST': EVENT_PRIVILEGE,
-                  'PATCH': EVENT_PRIVILEGE,
-                  'DELETE': EVENT_PRIVILEGE}
+    privileges = {'POST': 'planning',
+                  'PATCH': 'planning',
+                  'DELETE': 'planning'}

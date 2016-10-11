@@ -13,11 +13,8 @@
 import superdesk
 from superdesk.metadata.utils import item_url
 
-
 not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
 not_indexed = {'type': 'string', 'index': 'no'}
-
-
 venue_types = {
 }
 
@@ -163,3 +160,6 @@ class LocationsResource(superdesk.Resource):
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
     item_url = item_url
+    privileges = {'POST': 'planning',
+                  'PATCH': 'planning',
+                  'DELETE': 'planning'}
