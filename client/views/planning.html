@@ -1,38 +1,3 @@
 <div class="Planning">
-    <div class="Planning__events-list">
-        <div class="subnav">
-            <div class="flat-searchbar monitoring-flat-searchbar" ng-class="{extended: aggregate.monitoringSearch}">
-                <div class="search-handler">
-                    <label for="search-input" class="trigger-icon" ng-click="aggregate.monitoringSearch = !aggregate.monitoringSearch">
-                        <i class="icon-search"></i>
-                    </label>
-                    <input id="search-input" placeholder="Search" ng-model="query" ng-keyup="aggregate.searchOnEnter($event, query)" type="text">
-                    <button class="search-close" ng-click="aggregate.search(query = null)" ng-class="{visible: query}">
-                        <i class="icon-remove-sign"></i>
-                    </button>
-                    <button class="search-close" ng-click="aggregate.search(query);" ng-class="{visible: query}">
-                        <i class="svg-icon-right"></i>
-                    </button>
-                </div>
-            </div>
-            <h3 class="subnav__page-title">
-                <span translate>
-                    <span>Events calendar</span>
-                </span>
-            </h3>
-            <div class="subnav__button-stack--square-buttons">
-                <div class="refresh-box pull-right"></div>
-                <div class="navbtn" title="Create">
-                    <button class="sd-create-btn" ng-click="vm.openAddEventForm()">
-                        <i class="svg-icon-plus"></i><span class="circle"></span>
-                    </button>
-                </div>
-            </div>
-        </div>
-        <sd-events-list></sd-events-list>
-    </div>
-        <div class="Planning__coverage">
-        <header>
-        </header>
-    </div>
+    <sd-planning></sd-planning>
 </div>

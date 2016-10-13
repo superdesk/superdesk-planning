@@ -8,9 +8,6 @@ export class AddEventForm extends React.Component {
         super(props);
         // resource to connect to API
         this.eventsResource = props.eventsResource;
-        this.state = {
-            canSubmit: false
-        };
         Formsy.addValidationRule('isUniqueName', this.isUniqueNameValidator);
     }
 
@@ -18,10 +15,10 @@ export class AddEventForm extends React.Component {
     * Represents a book.
     * @constructor
     * @param {object} obj - the object to convert
-    * @param {boolean} serialize - the way to convert.
+    * @param {boolean} leftToRight - the way to convert.
     * False by default, it convert from right to left (ex: `unique_name` to `uniqueName`)
     */
-    mapping(obj, serialize) {
+    mapping(obj, leftToRight) {
         var mapping = {
             uniqueName: 'unique_name',
             description: 'event_details.description.definition_short',
@@ -32,8 +29,8 @@ export class AddEventForm extends React.Component {
         var newEvent = {};
         for (var name in mapping) {
             if (mapping.hasOwnProperty(name)) {
-                var from = serialize ? name : mapping[name];
-                var to = serialize ? mapping[name] : name;
+                var from = leftToRight ? name : mapping[name];
+                var to = leftToRight ? mapping[name] : name;
                 lodash.set(newEvent, to, lodash.get(obj, from));
             }
         }
@@ -42,10 +39,6 @@ export class AddEventForm extends React.Component {
     }
 
     isUniqueNameValidator() { return true; }
-
-    enableButton() { this.setState({ canSubmit: true }); }
-
-    disableButton() { this.setState({ canSubmit: false }); }
 
     handleSubmit(model) {
         let newEvent = this.mapping(model, true);
@@ -58,8 +51,9 @@ export class AddEventForm extends React.Component {
         let event = this.mapping(this.props.event);
         return (
             <Formsy.Form onValidSubmit={this.handleSubmit.bind(this)}
-                         onValid={this.enableButton.bind(this)}
-                         onInvalid={this.disableButton.bind(this)}>
+                         ref="form"
+                         onValid={this.props.onValid}
+                         onInvalid={this.props.onInvalid}>
                 <label>What</label>
                 <InputText value={event.uniqueName} name="uniqueName"
                        validations="isUniqueName"
@@ -74,7 +68,6 @@ export class AddEventForm extends React.Component {
                     <DayPickerInput defaultValue={event.dates.from} name="dates.from"/> to
                     <DayPickerInput defaultValue={event.dates.to} name="dates.to"/>
                 </div>
-                <button type="submit" disabled={!this.state.canSubmit}>Submit</button>
             </Formsy.Form>
         );
     }
