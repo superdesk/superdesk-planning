@@ -5,8 +5,8 @@ export const InputText = React.createClass({
     // Add the Formsy Mixin
     mixins: [Formsy.Mixin],
 
-    changeValue(event) {
-        this.setValue(event.currentTarget.value);
+    changeValue(e) {
+        this.setValue(e.currentTarget.value);
     },
 
     render() {

@@ -4,6 +4,7 @@ import moment from 'moment';
 export class EventsList extends React.Component {
     constructor(props) {
         super(props);
+        this.addEventFormService = props.addEventFormService;
         var days = {};
         props.events.forEach(function(event) {
             let eventDate = moment(event.event_details.dates.start);
@@ -16,8 +17,7 @@ export class EventsList extends React.Component {
         });
 
         let sortable = [];
-        for (let day in days)
-        sortable.push([day, days[day]]);
+        for (let day in days) sortable.push([day, days[day]]);
         sortable.sort(
             function(a, b) {
                 return a[1] - b[1];
@@ -29,7 +29,12 @@ export class EventsList extends React.Component {
         };
     }
 
+    onEventClick(event) {
+        this.addEventFormService.openForm(event);
+    }
+
     render() {
+        var self = this;
         function renderEvents(events) {
             return events.map(function(event) {
                 let description = event.event_details
@@ -37,7 +42,9 @@ export class EventsList extends React.Component {
                 let date = moment(event.event_details.dates.start);
                 let time = date.format('HH:mm');
                 return (
-                    <li key={event._id} className="event__list-item">
+                    <li key={event._id}
+                        className="event__list-item"
+                        onClick={self.onEventClick.bind(self, event)}>
                         <div className="event__wrapper">
                             <div className="event__unique-name">{event.unique_name}</div>
                             <div className="event__time">{time}</div>
@@ -54,7 +61,7 @@ export class EventsList extends React.Component {
                 this.state.days.map(function([day, events]) {
                     let date = moment(day).format('dddd LL');
                     return (
-                        <div>
+                        <div key={date}>
                             <div className="events-list__title">{date}</div>
                             <ul className="events-list__list">{renderEvents(events)}</ul>
                         </div>

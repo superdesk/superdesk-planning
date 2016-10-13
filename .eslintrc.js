@@ -16,7 +16,6 @@ module.exports = {
         element: false,
         gettext: false,
         inject: false,
-        moment: false,
         protractor: false,
         requirejs: false
     },

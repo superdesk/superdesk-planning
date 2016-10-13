@@ -6,8 +6,14 @@ export default angular.module('superdesk.planning', [])
         () => ({ scope: {}, controller: ctrl.EventsListDirectiveController })
     )
     .directive('sdAddEvent',
-        () => ({ scope: {}, controller: ctrl.AddEventController })
+        () => ({
+            scope: { event: '=' },
+            bindToController: true,
+            controllerAs: 'vm',
+            controller: ctrl.AddEventController
+        })
     )
     .controller('PlanningController', ctrl.PlanningController)
     .controller('PlanningSettingsController', ctrl.PlanningSettingsController)
+    .service('addEventForm', services.addEventForm)
     .service('planningApi', services.PlanningApiService);

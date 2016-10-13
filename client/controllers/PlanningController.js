@@ -1,11 +1,7 @@
-PlanningController.$inject = ['$modal'];
-export function PlanningController($modal) {
+PlanningController.$inject = ['addEventForm'];
+export function PlanningController(addEventForm) {
     var vm = this;
     angular.extend(vm, {
-        openAddEventForm: function openAddEventForm() {
-            $modal.open({
-                template: require('../views/addEventModal.html')
-            });
-        }
+        openAddEventForm: addEventForm.openForm
     });
 }
