@@ -18,7 +18,8 @@ export class Planning extends React.Component {
     /** Load the events from API and display them */
     loadEvents() {
         return this.props.api('events')
-        .query()
+        // order by date (ASC)
+        .query({ sort: '[("event_details.dates.start",1)]' })
         .then((e) => this.setState({ events: e._items }));
     }
 

@@ -47,6 +47,7 @@ export class EventsList extends React.Component {
                     );
                 })
             }
+            { this.props.events.length === 0 && <p>There is no event yet</p>}
             </div>
         );
     }
