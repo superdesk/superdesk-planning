@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "angular-mocks": "^1.5.8",
+    "enzyme": "^2.4.1",
     "eslint": "^3.7.1",
     "eslint-plugin-react": "^6.4.0",
     "jasmine": "^2.5.1",
@@ -47,6 +48,7 @@
     "karma-sourcemap-loader": "^0.3.7",
     "karma-webpack": "^1.8.0",
     "node-sass": "^3.10.1",
+    "react-addons-test-utils": "^15.3.2",
     "sass-loader": "^4.0.2",
     "superdesk-core": "^1.2.0-rc.1",
     "webpack": "^1.13.2"
