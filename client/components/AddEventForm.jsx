@@ -1,22 +1,59 @@
 import React from 'react';
 import Formsy from 'formsy-react';
 import { DayPickerInput, InputText } from './index';
-import lodash from 'lodash';
+import { set, get } from 'lodash';
 
 export class AddEventForm extends React.Component {
     constructor(props) {
         super(props);
-        // resource to connect to API
-        this.eventsResource = props.eventsResource;
         Formsy.addValidationRule('isUniqueName', this.isUniqueNameValidator);
     }
 
+    render() {
+        let event = this.mapping(this.props.event);
+        return (
+            <Formsy.Form ref="form"
+                         onValid={this.props.onValid}
+                         onInvalid={this.props.onInvalid}>
+                <label>What</label>
+                <InputText value={event.uniqueName} name="uniqueName"
+                       validations="isUniqueName"
+                       validationError="This is not an unique name"
+                       required/>
+                <label>Description</label>
+                <InputText value={event.description} name="description"/>
+                <label>Where</label>
+                <InputText value={event.location} name="location"/>
+                <label>When</label>
+                <div>
+                    <DayPickerInput defaultValue={event.dates.from} name="dates.from" required/> to
+                    <DayPickerInput defaultValue={event.dates.to} name="dates.to"/>
+                </div>
+            </Formsy.Form>
+        );
+    }
+
+    // Validators
+    isUniqueNameValidator() { return true; }
+
+    /** Save the event with the API and notify its parent afterward */
+    save() {
+        let model = this.refs.form.getModel();
+        // Clone the original event (immutable props rocks!)
+        let original = this.props.event ? Object.assign({}, this.props.event) :  {};
+        return this.props.api('events')
+            // Map the field names and save through the API
+            .save(original, this.mapping(model, true))
+            // Notify the parent the event has been saved
+            .then((r) => this.props.onSave(r));
+    }
+
     /**
-    * Represents a book.
-    * @constructor
+    * Map the event fields both way between names of API and form fields
     * @param {object} obj - the object to convert
     * @param {boolean} leftToRight - the way to convert.
     * False by default, it convert from right to left (ex: `unique_name` to `uniqueName`)
+    * @return {object} newEvent - the new mapped event
     */
     mapping(obj, leftToRight) {
         var mapping = {
@@ -31,44 +68,10 @@ export class AddEventForm extends React.Component {
             if (mapping.hasOwnProperty(name)) {
                 var from = leftToRight ? name : mapping[name];
                 var to = leftToRight ? mapping[name] : name;
-                lodash.set(newEvent, to, lodash.get(obj, from));
+                set(newEvent, to, get(obj, from));
             }
         }
 
         return newEvent;
-    }
-
-    isUniqueNameValidator() { return true; }
-
-    handleSubmit(model) {
-        let newEvent = this.mapping(model, true);
-        let original = this.props.event ? this.props.event : {};
-        this.eventsResource.save(original, newEvent);
-        return model;
-    }
-
-    render() {
-        let event = this.mapping(this.props.event);
-        return (
-            <Formsy.Form onValidSubmit={this.handleSubmit.bind(this)}
-                         ref="form"
-                         onValid={this.props.onValid}
-                         onInvalid={this.props.onInvalid}>
-                <label>What</label>
-                <InputText value={event.uniqueName} name="uniqueName"
-                       validations="isUniqueName"
-                       validationError="This is not an unique name"
-                       required/>
-                <label>Description</label>
-                <InputText value={event.description} name="description"/>
-                <label>Where</label>
-                <InputText value={event.location} name="location"/>
-                <label>When</label>
-                <div>
-                    <DayPickerInput defaultValue={event.dates.from} name="dates.from"/> to
-                    <DayPickerInput defaultValue={event.dates.to} name="dates.to"/>
-                </div>
-            </Formsy.Form>
-        );
     }
 }
