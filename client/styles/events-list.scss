@@ -12,6 +12,7 @@
 }
 .event {
     &__list-item {
+        cursor: pointer;
         box-shadow: 1px 8px 3px -7px rgba(0, 0, 0, 0.2);
         margin-bottom: 5px;
         background-color: white;

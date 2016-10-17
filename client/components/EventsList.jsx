@@ -47,7 +47,7 @@ export class EventsList extends React.Component {
                     );
                 })
             }
-            { this.props.events.length === 0 && <p>There is no event yet</p>}
+            { !this.props.events || this.props.events.length === 0 && <p>There is no event yet</p>}
             </div>
         );
     }
@@ -58,6 +58,7 @@ export class EventsList extends React.Component {
     * @param {Array} events - List of events
     */
     orderEventsByDay(events) {
+        if (!events) return [];
         var days = {};
         events.forEach((event) => {
             let eventDate = moment(event.event_details.dates.start);

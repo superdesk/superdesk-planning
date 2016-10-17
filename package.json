@@ -50,6 +50,7 @@
     "node-sass": "^3.10.1",
     "react-addons-test-utils": "^15.3.2",
     "sass-loader": "^4.0.2",
+    "sinon": "^2.0.0-pre.2",
     "superdesk-core": "^1.2.0-rc.1",
     "webpack": "^1.13.2"
   }
