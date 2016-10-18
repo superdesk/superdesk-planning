@@ -14,7 +14,8 @@ export const DayPickerInput = React.createClass({
 
     getInitialState() {
         // get the date
-        const selectedDate = this.props.defaultValue ? moment(this.props.defaultValue) : undefined;
+        const selectedDate = this.props.defaultValue ?
+            moment.utc(this.props.defaultValue) : undefined;
         // get the time in a different variable (different field)
         const selectedTime = selectedDate ? selectedDate.format('h:mm A') : undefined;
         // remove the time from the date

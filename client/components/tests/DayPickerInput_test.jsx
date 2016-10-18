@@ -3,6 +3,7 @@ import { mount } from 'enzyme';
 import { DayPickerInput } from '../index';
 import Formsy from 'formsy-react';
 import sinon from 'sinon';
+import moment from 'moment';
 
 const TestForm = React.createClass({
     render() {
@@ -22,7 +23,7 @@ describe('<DayPickerInput />', () => {
         const wrapper = mount(<TestForm withTime={true} />);
         const dayPickerState = wrapper.ref('dayPicker').get(0).state;
         expect(dayPickerState.selectedTime).toBe('1:43 PM');
-        expect(dayPickerState.selectedDate.isSame('1989-12-12')).toBe(true);
+        expect(dayPickerState.selectedDate.isSame(moment.utc('1989-12-12'))).toBe(true);
     });
     it('hide the time when needed', () => {
         var wrapper;
