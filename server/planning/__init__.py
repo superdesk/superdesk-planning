@@ -27,7 +27,7 @@ def init_app(app):
     events_search_service = EventsService('events', backend=superdesk.get_backend())
     EventsResource('events', app=app, service=events_search_service)
 
-    locations_search_service = LocationsService('events', backend=superdesk.get_backend())
+    locations_search_service = LocationsService('locations', backend=superdesk.get_backend())
     LocationsResource('locations', app=app, service=locations_search_service)
 
     superdesk.privilege(
