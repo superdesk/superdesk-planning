@@ -7,6 +7,11 @@ export class AddEventForm extends React.Component {
     constructor(props) {
         super(props);
         Formsy.addValidationRule('isUniqueName', this.isUniqueNameValidator);
+        this.state = { fullDay: false };
+    }
+
+    onFullDayChange(e) {
+        this.setState({ fullDay: e.target.checked });
     }
 
     render() {
@@ -26,9 +31,16 @@ export class AddEventForm extends React.Component {
                 <InputText value={event.location} name="location"/>
                 <label>When</label>
                 <div>
-                    <DayPickerInput defaultValue={event.dates.from} name="dates.from" required/> to
-                    <DayPickerInput defaultValue={event.dates.to} name="dates.to"/>
+                    <DayPickerInput defaultValue={event.dates.from}
+                                    name="dates.from"
+                                    withTime={!this.state.fullDay}
+                                    required/> to
+                    <DayPickerInput defaultValue={event.dates.to}
+                                    name="dates.to"
+                                    withTime={!this.state.fullDay}/>
                 </div>
+                <label>Full day</label>
+                <input type="checkbox" onChange={this.onFullDayChange.bind(this)}/>
             </Formsy.Form>
         );
     }

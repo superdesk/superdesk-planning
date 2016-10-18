@@ -67,7 +67,10 @@ export const DayPickerInput = React.createClass({
                     selected={this.state.selectedDate}
                     onChange={this.onDayChange} />
                 { this.props.withTime &&
-                <select name="time" value={this.state.selectedTime} onChange={this.onTimeChange}>
+                <select style={STYLE.time}
+                        name="time"
+                        value={this.state.selectedTime}
+                        onChange={this.onTimeChange}>
                     { TIMES.map((t) =>
                         <option key={t} value={t}>{t}</option>
                     )}
@@ -77,6 +80,9 @@ export const DayPickerInput = React.createClass({
         );
     }
 });
+const STYLE = {
+    time: { width: 100 },
+};
 
 const TIMES = [
     '12:00 AM',
