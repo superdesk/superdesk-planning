@@ -8,7 +8,7 @@ const TestForm = React.createClass({
     render() {
         return (
             <Formsy.Form onSubmit={this.props.onSubmit}>
-                <DayPickerInput defaultValue={'1989-12-12T13:43:00+01:00'}
+                <DayPickerInput defaultValue={'1989-12-12T13:43:00+00:00'}
                 name="datetime"
                 ref='dayPicker'
                 withTime={this.props.withTime} />
@@ -33,7 +33,7 @@ describe('<DayPickerInput />', () => {
     });
     it('return the right date', () => {
         const onSubmit = sinon.spy((form) =>
-            expect(form.datetime.isSame('1989-12-12T13:43:00+01:00')).toBe(true)
+            expect(form.datetime.isSame('1989-12-12T13:43:00+00:00')).toBe(true)
         );
         const wrapper = mount(<TestForm withTime={true} onSubmit={onSubmit}/>);
         wrapper.find('form').simulate('submit');
