@@ -11,7 +11,7 @@
 """Superdesk Events"""
 
 import superdesk
-from superdesk.metadata.utils import item_url
+from superdesk.metadata.utils import generate_guid
 
 
 not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
@@ -268,7 +268,6 @@ class EventsResource(superdesk.Resource):
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
-    item_url = item_url
     privileges = {'POST': 'planning',
                   'PATCH': 'planning',
                   'DELETE': 'planning'}

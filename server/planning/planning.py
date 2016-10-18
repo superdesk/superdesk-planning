@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import superdesk
-from superdesk.metadata.utils import item_url
+from superdesk.metadata.utils import generate_guid
 
 not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
 
@@ -71,10 +71,26 @@ planning_schema = {
     # Planning Details
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16.5.1
     # probably can skip this subsection, although its documented in iptc impl guide this way
-    'planning_details': {
+    'planning_item': {
         'type': 'dict',
         'schema': {
             # TODO: fill in from NewsML-G2 version 2.21 spec
+            'item_meta': {
+                'type': 'dict',
+                'schema': {
+                    'item_class': 'plinat:newscoverage'
+                }
+            },
+            'content_meta': {
+                'type': 'dict',
+                'schema': {
+                }
+            },
+            'news_coverage_set': {
+                'type': 'dict',
+                'schema': {
+                }
+            }
         }
     }  # end planning_details
 }  # end planning_schema
@@ -91,7 +107,6 @@ class PlanningResource(superdesk.Resource):
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
-    item_url = item_url
     privileges = {'POST': 'planning',
                   'PATCH': 'planning',
                   'DELETE': 'planning'}
