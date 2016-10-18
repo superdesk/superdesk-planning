@@ -1,7 +1,7 @@
 import React from 'react';
 import { shallow } from 'enzyme';
 import sinon from 'sinon';
-import { EventsList } from './index';
+import { EventsList } from '../index';
 
 const events = [
     {
@@ -46,9 +46,9 @@ describe('<EventsList />', () => {
         expect(wrapper.find('li').length).toEqual(3);
         // only two groups, because two share the same date
         expect(wrapper.find('ul').length).toEqual(2);
-        // // check order
-        // let dates = wrapper.find('.events-list__title').map((e) => moment(e.text()));
-        // expect(dates[1] > dates[0]).toBe(true);
+        // check order
+        expect(wrapper.find('.events-list__title').map((e) => e.text()))
+        .toEqual(['Saturday October 15, 2016', 'Monday October 17, 2016']);
     });
     it('trigger an event click', () => {
         const onButtonClick = sinon.spy();

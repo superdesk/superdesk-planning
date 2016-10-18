@@ -1,8 +1,10 @@
 import React from 'react';
 import Formsy from 'formsy-react';
-import { DateField, DatePicker } from 'react-date-picker';
-import 'react-date-picker/index.css';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import moment from 'moment';
+
+const timeRegex = /(\d{1,2}):(\d{1,2}) (\w{2})/g;
 
 // We don't use the ES6 class because we need here support for mixins
 // see: https://facebook.github.io/react/docs/reusable-components.html#mixins
@@ -11,39 +13,118 @@ export const DayPickerInput = React.createClass({
     mixins: [Formsy.Mixin],
 
     getInitialState() {
-        let defaultDate = this.props.defaultValue ? moment(this.props.defaultValue) : undefined;
-        return { defaultDate };
+        // get the date
+        const selectedDate = this.props.defaultValue ? moment(this.props.defaultValue) : undefined;
+        // get the time in a different variable (different field)
+        const selectedTime = selectedDate ? selectedDate.format('h:mm A') : undefined;
+        // remove the time from the date
+        if (selectedDate) selectedDate.startOf('day');
+        return {
+            selectedTime,
+            selectedDate,
+
+        };
     },
 
-    onChange(dateString, { dateMoment }) {
-        this.setValue(dateMoment ? dateMoment : undefined);
+    getDefaultProps() {
+        return { withTime: true };
+    },
+
+    onDayChange(dateMoment) {
+        this.setState({ selectedDate: dateMoment }, this.updateValueFromState);
+    },
+
+    updateValueFromState() {
+        if (this.state.selectedDate) {
+            let datetime = this.state.selectedDate.clone();
+            // set the time if required
+            if (this.props.withTime) {
+                var m;
+                while ((m = timeRegex.exec(this.state.selectedTime)) !== null) {
+                    if (m.index === timeRegex.lastIndex) timeRegex.lastIndex++;
+                    let a = m[3] === 'AM' ? 0 : 12;
+                    datetime.hour(parseInt(m[1]) + a).minute(parseInt(m[2]));
+                }
+            }
+
+            this.setValue(datetime ? datetime : undefined);
+        }
+    },
+
+    onTimeChange(event) {
+        this.setState({ selectedTime: event.target.value }, this.updateValueFromState);
     },
 
     componentDidMount() {
         // after first render, set value of the form input
-        if (this.state.defaultDate) {
-            this.setValue(this.state.defaultDate);
-        }
+        this.updateValueFromState();
     },
 
     render() {
         return (
-            <DateField
-                onChange={this.onChange}
-                updateOnDateClick={true}
-                collapseOnDateClick={true}
-                defaultValue={this.state.defaultDate}
-                dateFormat="YYYY-MM-DD HH:mm a">
+            <span>
                 <DatePicker
-                    navigation={true}
-                    locale="en"
-                    forceValidDate={true}
-                    highlightWeekends={true}
-                    highlightToday={true}
-                    weekNumbers={true}
-                    weekStartDay={1}
-                />
-            </DateField>
+                    selected={this.state.selectedDate}
+                    onChange={this.onDayChange} />
+                { this.props.withTime &&
+                <select name="time" value={this.state.selectedTime} onChange={this.onTimeChange}>
+                    { TIMES.map((t) =>
+                        <option key={t} value={t}>{t}</option>
+                    )}
+                </select>
+                }
+            </span>
         );
     }
 });
+
+const TIMES = [
+    '12:00 AM',
+    '12:30 AM',
+    '1:00 AM',
+    '1:30 AM',
+    '2:00 AM',
+    '2:30 AM',
+    '3:00 AM',
+    '3:30 AM',
+    '4:00 AM',
+    '4:30 AM',
+    '5:00 AM',
+    '5:30 AM',
+    '6:00 AM',
+    '6:30 AM',
+    '7:00 AM',
+    '7:30 AM',
+    '8:00 AM',
+    '8:30 AM',
+    '9:00 AM',
+    '9:30 AM',
+    '10:00 AM',
+    '10:30 AM',
+    '11:00 AM',
+    '11:30 AM',
+    '12:00 PM',
+    '12:30 PM',
+    '1:00 PM',
+    '1:30 PM',
+    '2:00 PM',
+    '2:30 PM',
+    '3:00 PM',
+    '3:30 PM',
+    '4:00 PM',
+    '4:30 PM',
+    '5:00 PM',
+    '5:30 PM',
+    '6:00 PM',
+    '6:30 PM',
+    '7:00 PM',
+    '7:30 PM',
+    '8:00 PM',
+    '8:30 PM',
+    '9:00 PM',
+    '9:30 PM',
+    '10:00 PM',
+    '10:30 PM',
+    '11:00 PM',
+    '11:30 PM',
+];

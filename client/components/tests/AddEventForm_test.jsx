@@ -1,6 +1,6 @@
 import React from 'react';
 import { mount } from 'enzyme';
-import { AddEventForm } from './index';
+import { AddEventForm } from '../index';
 
 const event = {
     _id: '5800d71930627218866f1e80',

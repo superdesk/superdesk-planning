@@ -1,6 +1,6 @@
 import React from 'react';
 import { mount } from 'enzyme';
-import { AddEventModal } from './index';
+import { AddEventModal } from '../index';
 
 const event = {
     _id: '5800d71930627218866f1e80',
@@ -13,7 +13,7 @@ const event = {
 };
 
 describe('<AddEventModal />', () => {
-    fit('open the modal', () => {
+    it('open the modal', () => {
         let wrapper;
         wrapper = mount(<AddEventModal show={false} />);
         expect(wrapper.state('canSubmit')).toBe(false);

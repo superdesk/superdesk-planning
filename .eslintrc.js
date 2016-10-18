@@ -5,7 +5,7 @@ module.exports = {
         jasmine: true,
         es6: true
     },
-    extends: 'eslint:recommended',
+    extends: ['eslint:recommended', 'plugin:jasmine/recommended'],
     globals: {
         $: false,
         $$: false,
@@ -27,7 +27,8 @@ module.exports = {
         sourceType: 'module'
     },
     plugins: [
-        'react'
+        'react',
+        'jasmine'
     ],
     rules: {
         'react/jsx-uses-react': 'error',
