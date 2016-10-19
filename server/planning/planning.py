@@ -69,29 +69,161 @@ planning_schema = {
     },
 
     # Planning Details
-    # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16.5.1
+    # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16
     # probably can skip this subsection, although its documented in iptc impl guide this way
     'planning_item': {
         'type': 'dict',
         'schema': {
-            # TODO: fill in from NewsML-G2 version 2.21 spec
+            # See IPTC-G2-Implementation_Guide 16.1
             'item_meta': {
                 'type': 'dict',
                 'schema': {
-                    'item_class': 'plinat:newscoverage'
+                    'item_class': {'type': 'string'}
                 }
             },
+            # See IPTC-G2-Implementation_Guide 16.2
             'content_meta': {
                 'type': 'dict',
                 'schema': {
+                    'qcode': {'type': 'string'},
+                    'name': {'type': 'string'}
                 }
             },
+            # See IPTC-G2-Implementation_Guide 16.3
             'news_coverage_set': {
-                'type': 'dict',
+                'type': 'list',
+                # See IPTC-G2-Implementation_Guide 16.4 (newsCoverage)
                 'schema': {
-                }
-            }
-        }
+                    'type': 'dict',
+                    'schema': {
+                        # See IPTC-G2-Implementation_Guide 16.5
+                        'planning': {
+                            'type': 'dict',
+                            'schema': {
+                                'ed_note': {'type': 'string'},
+                                'g2_content_type': {'type': 'string'},
+                                'item_class': {'type': 'string'},
+                                'item_count': {'type': 'string'},
+                                'scheduled': {'type': 'datetime'},
+                                'service': {
+                                    'type': 'list',
+                                    'mapping': {
+                                        'properties': {
+                                            'qcode': not_analyzed,
+                                            'name': not_analyzed
+                                        }
+                                    }
+                                },
+                                'assigned_to': {'type': 'string'},
+                                'news_content_characteristics': {
+                                    'type': 'list',
+                                    'mapping': {
+                                        'properties': {
+                                            'name': not_analyzed,
+                                            'value': not_analyzed
+                                        }
+                                    }
+                                },
+                                'planning_ext_property': {
+                                    'type': 'list',
+                                    'mapping': {
+                                        'properties': {
+                                            'qcode': not_analyzed,
+                                            'name': not_analyzed
+                                        }
+                                    }
+                                },
+                                # Metadata hints.  See IPTC-G2-Implementation_Guide 16.5.1.1
+                                'by': {'type': 'string'},
+                                'credit_line': {'type': 'string'},
+                                'dateline': {
+                                    'type': 'list',
+                                    'mapping': {
+                                        'type': 'string'
+                                    }
+                                },
+                                'description': {
+                                    'type': 'list',
+                                    'mapping': {
+                                        'type': 'string'
+                                    }
+                                },
+                                'genre': {
+                                    'type': 'list',
+                                    'mapping': {
+                                        'properties': {
+                                            'qcode': not_analyzed,
+                                            'name': not_analyzed
+                                        }
+                                    }
+                                },
+                                'headline': {
+                                    'type': 'list',
+                                    'mapping': {
+                                        'type': 'string'
+                                    }
+                                },
+                                'keyword': {
+                                    'type': 'list',
+                                    'mapping': {
+                                        'type': 'string'
+                                    }
+                                },
+                                'language': {
+                                    'type': 'list',
+                                    'mapping': {
+                                        'type': 'string'
+                                    }
+                                },
+                                'slugline': {
+                                    'type': 'list',
+                                    'mapping': {
+                                        'type': 'string'
+                                    }
+                                },
+                                'subject': {
+                                    'type': 'list',
+                                    'mapping': {
+                                        'properties': {
+                                            'qcode': not_analyzed,
+                                            'name': not_analyzed
+                                        }
+                                    }
+                                }
+                            } # end planning dict schema
+                        }, # end planning
+
+                        # See IPTC-G2-Implementation_Guide 16.6
+                        'delivery': {
+                            'type': 'list',
+                            'schema': {
+                                'type': 'dict',
+                                'schema': {
+                                    # Delivered Item Ref See IPTC-G2-Implementation_Guide 16.7
+                                    'rel': {'type': 'string'},
+                                    'href': {'type': 'string'},
+                                    'residref': {'type': 'string'},
+                                    'version': {'type': 'string'},
+                                    'content_type': {'type': 'string'},
+                                    'format': {'type': 'string'},
+                                    'size': {'type': 'string'},
+                                    'persistent_id_ref': {'type': 'string'},
+                                    'valid_from': {'type': 'datetime'},
+                                    'valid_to': {'type': 'datetime'},
+                                    'creator': {'type': 'string'},
+                                    'modified': {'type': 'datetime'},
+                                    'xml_lang': {'type': 'string'},
+                                    'dir': {'type': 'string'},
+                                    'rank': {'type': 'integer'}
+                                    
+                                }
+                            }
+                        }
+                    }
+                } # end news_coverage schema 
+            } # end news_coverage_set list
+        } # end news_coverage_set
+
     }  # end planning_details
 }  # end planning_schema
 
