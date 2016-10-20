@@ -1,11 +1,34 @@
 
 @import '~mixins.scss';
 @import '~variables.scss';
+@import './events-list.scss';
 
-.planning {
+$EVENTS_LIST_WIDTH: 400px;
+
+@mixin absolute0 {
     position: absolute;
-    top: $nav-height;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
+}
+.Planning {
+    @include absolute0;
+}
+.Planning__events-list {
+    @include absolute0;
+    padding: $nav-height * 2 20px 0 20px;
+    width: $EVENTS_LIST_WIDTH;
+    border-right: 3px solid #666;
+    box-shadow: 2px 0 10px 0 rgba(0,0,0,.3);
+    .navbtn { // fix the (+) button. Needed because it's not a dropdown
+        overflow: hidden;
+        padding: 0;
+        button {border: 0;}
+    }
+}
+.Planning__coverage {
+    @include absolute0;
+    padding-top: $nav-height * 2;
+    left: $EVENTS_LIST_WIDTH;
 }

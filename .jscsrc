@@ -1,7 +1,10 @@
 {
 	"preset": "airbnb",
 	"requireSpacesInAnonymousFunctionExpression": false,
+	"requirePaddingNewLinesBeforeLineComments": false,
 	"validateIndentation": 4,
+	"disallowUnusedVariables": true,
+	"safeContextKeyword": false,
 	"fileExtensions": [".js", ".jsx"],
 	"requireTrailingComma": false
 }

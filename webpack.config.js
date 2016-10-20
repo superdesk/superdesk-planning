@@ -2,6 +2,7 @@ var path = require('path');
 
 module.exports = {
     entry: './index.js',
+    devtool: 'inline-source-map', //just do inline source maps instead of the default
     output: {
         path: path.join(process.cwd(), 'dist'),
         filename: 'app.bundle.js',
@@ -33,5 +34,11 @@ module.exports = {
                 loader: 'style!css!sass'
             }
         ]
+    },
+    externals: {
+        cheerio: 'window',
+        'react/addons': true,
+        'react/lib/ExecutionEnvironment': true,
+        'react/lib/ReactContext': true
     }
 };
