@@ -11,7 +11,11 @@
 """Superdesk Planning"""
 
 import superdesk
+import logging
 from superdesk.metadata.utils import generate_guid
+from superdesk.metadata.item import GUID_NEWSML
+
+logger = logging.getLogger(__name__)
 
 not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
 not_indexed = {'type': 'string', 'index': 'no'}
@@ -24,7 +28,7 @@ class PlanningService(superdesk.Service):
         """Set default metadata."""
 
         for doc in docs:
-            # TODO: generate GUID here
+            doc['guid'] = generate_guid(type=GUID_NEWSML)
 
 planning_schema = {
     # Identifiers
@@ -197,8 +201,8 @@ planning_schema = {
                                         }
                                     }
                                 }
-                            } # end planning dict schema
-                        }, # end planning
+                            }  # end planning dict schema
+                        },  # end planning
                         # See IPTC-G2-Implementation_Guide 16.6
                         'delivery': {
                             'type': 'list',
@@ -225,9 +229,9 @@ planning_schema = {
                             }
                         }
                     }
-                } # end news_coverage schema 
-            } # end news_coverage_set list
-        } # end news_coverage_set
+                }  # end news_coverage schema
+            }  # end news_coverage_set list
+        }  # end news_coverage_set
     }  # end planning_details
 }  # end planning_schema
 

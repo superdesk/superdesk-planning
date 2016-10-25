@@ -11,6 +11,7 @@
 import superdesk
 import logging
 from superdesk.metadata.utils import generate_guid
+from superdesk.metadata.item import GUID_NEWSML
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +28,7 @@ class LocationsService(superdesk.Service):
         """Set default metadata."""
 
         for doc in docs:
-            # TODO: generate GUID here
+            doc['guid'] = generate_guid(type=GUID_NEWSML)
 
 
 locations_schema = {
@@ -151,6 +152,7 @@ locations_schema = {
         },
     },
 }
+
 
 class LocationsResource(superdesk.Resource):
     """Resource for locations data model
