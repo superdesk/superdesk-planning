@@ -29,6 +29,7 @@ export const saveEvent = (newEvent) => (
         original = original ? Object.assign({}, original) : {}
         return api('events').save(original, newEvent)
         .then(data => dispatch(addEvent(data)))
+        .then(data => dispatch({ type: 'EVENT_SAVE_SUCCESS' }))
         .then(dispatch(hideModal()))
     }
 )

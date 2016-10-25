@@ -4,6 +4,17 @@ import { connect } from 'react-redux'
 import * as actions from '../actions'
 import { DayPickerInput } from './index'
 import { Field, reduxForm } from 'redux-form'
+import { set, get } from 'lodash'
+
+const renderInputField = ({ input, label, type, meta: { touched, error, warning } }) => (
+    <div>
+        {label && <label>{label}</label>}
+        <div>
+            <input {...input} placeholder={label} type={type}/>
+            {touched && ((error && <span>{error}</span>) || (warning && <span>{warning}</span>))}
+        </div>
+    </div>
+)
 
 /**
 * Modal for adding/editing an event
@@ -37,22 +48,22 @@ class Component extends React.Component {
                     </Modal.Header>
                     <Modal.Body>
                         <div>
-                            <label htmlFor="unique_name">What</label>
-                            <Field name="unique_name" component="input" type="text"/>
+                            <Field name="unique_name"
+                                   component={renderInputField}
+                                   type="text"
+                                   label="What"/>
                         </div>
                         <div>
-                            <label htmlFor="description.definition_short">
-                                Description
-                            </label>
                             <Field name="description.definition_short"
-                                   component="input"
-                                   type="text"/>
+                                   component={renderInputField}
+                                   type="text"
+                                   label="Description"/>
                         </div>
                         <div>
-                            <label htmlFor="location[0].name">Where</label>
                             <Field name="location[0].name"
-                                   component="input"
-                                   type="text"/>
+                                   component={renderInputField}
+                                   type="text"
+                                   label="Where"/>
                         </div>
                         <div>
                             <label htmlFor="dates.start">When</label>
@@ -71,7 +82,9 @@ class Component extends React.Component {
                     </Modal.Body>
                     <Modal.Footer>
                         <Button onClick={this.props.onHide}>Close</Button>
-                        <Button type="submit">Save</Button>
+                        <Button type="submit"
+                                disabled={this.props.pristine ||
+                                    this.props.submitting}>Save</Button>
                     </Modal.Footer>
                 </form>
             </Modal>
@@ -79,16 +92,30 @@ class Component extends React.Component {
     }
 }
 
+const requiredFields = ['unique_name', 'dates.start'];
+
+const validate = values => {
+    const errors = {}
+    requiredFields.forEach((field) => {
+        if (!get(values, field)) {
+            set(errors, field, 'Required')
+        }
+    })
+
+    return errors
+}
+
 // Decorate the form component
 export const FormComponent = reduxForm({
     form: 'addEvent', // a unique name for this form
+    validate,
     enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
 const mapStateToProps = (state) => ({
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
-    initialValues: state.modal.modalProps.event
+    initialValues: state.modal.modalProps.event || {}
 })
 
 const mapDispatchToProps = (dispatch) => ({

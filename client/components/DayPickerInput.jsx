@@ -53,6 +53,7 @@ export class DayPickerInput extends React.Component {
     }
 
     render() {
+        const { touched, error, warning } = this.props.meta
         return (
             <span>
                 <DatePicker
@@ -67,6 +68,10 @@ export class DayPickerInput extends React.Component {
                         <option key={t} value={t}>{t}</option>
                     )}
                 </select>
+                }
+                {
+                    touched && ((error && <span>{error}</span>) ||
+                    (warning && <span>{warning}</span>))
                 }
             </span>
         )
