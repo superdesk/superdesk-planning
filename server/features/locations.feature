@@ -19,31 +19,19 @@ Feature: Locations
         """
         {"_id": "#users._id#", "invisible_stages": []}
         """
-        When we post to "/locations"
+        When we post to "/locations" with success
         """
-        {
-            "unique_name": "Test Location",
-            "location_details": {
-                "name": "Test Location",
-                "related": {
-                    "qcode": "test_qcode"
-                    "name": "test_name"
-                },
-                "poi_details": {},
-                
+        [
+            {
+                "guid": "123",
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "location_details": {
+                    "name": "Test Location",
+                    "poi_details": {}
+                }
             }
-        }
+        ]
         """
-        And we get "/locations/#locations._id#"
-        Then we get existing resource
-        """
-        {
-            "unique_name": "Test Location",
-            "location_details": {
-                "name": "Test Location",
-                "related": {"test_qcode": "test_name"},
-                "poi_details": {},
-                
-            }
-        }
-        """
+        When we get "/locations"
+        Then we get list with 1 items

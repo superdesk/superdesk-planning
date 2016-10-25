@@ -8,16 +8,23 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+"""Superdesk Planning"""
+
 import superdesk
 from superdesk.metadata.utils import generate_guid
 
 not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
+not_indexed = {'type': 'string', 'index': 'no'}
 
 
 class PlanningService(superdesk.Service):
     """Service class for the planning model."""
 
-    pass
+    def on_create(self, docs):
+        """Set default metadata."""
+
+        for doc in docs:
+            # TODO: generate GUID here
 
 planning_schema = {
     # Identifiers
@@ -192,7 +199,6 @@ planning_schema = {
                                 }
                             } # end planning dict schema
                         }, # end planning
-
                         # See IPTC-G2-Implementation_Guide 16.6
                         'delivery': {
                             'type': 'list',
@@ -215,7 +221,6 @@ planning_schema = {
                                     'xml_lang': {'type': 'string'},
                                     'dir': {'type': 'string'},
                                     'rank': {'type': 'integer'}
-                                    
                                 }
                             }
                         }
@@ -223,7 +228,6 @@ planning_schema = {
                 } # end news_coverage schema 
             } # end news_coverage_set list
         } # end news_coverage_set
-
     }  # end planning_details
 }  # end planning_schema
 

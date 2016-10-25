@@ -39,7 +39,11 @@ occurrence_statuses = {
 class EventsService(superdesk.Service):
     """Service class for the events model."""
 
-    pass
+    def on_create(self, docs):
+        """Set default metadata."""
+
+        for doc in docs:
+            # TODO: generate GUID here
 
 
 events_schema = {

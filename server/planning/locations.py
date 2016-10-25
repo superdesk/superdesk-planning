@@ -9,7 +9,10 @@
 """Superdesk Locations"""
 
 import superdesk
+import logging
 from superdesk.metadata.utils import generate_guid
+
+logger = logging.getLogger(__name__)
 
 not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
 not_indexed = {'type': 'string', 'index': 'no'}
@@ -20,7 +23,11 @@ venue_types = {
 class LocationsService(superdesk.Service):
     """Service class for the events model."""
 
-    pass
+    def on_create(self, docs):
+        """Set default metadata."""
+
+        for doc in docs:
+            # TODO: generate GUID here
 
 
 locations_schema = {
@@ -144,7 +151,6 @@ locations_schema = {
         },
     },
 }
-
 
 class LocationsResource(superdesk.Resource):
     """Resource for locations data model
