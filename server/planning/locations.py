@@ -83,21 +83,29 @@ locations_schema = {
     # Location Details
     # NewsML-G2 Event properties See:
     #    https://iptc.org/std/NewsML-G2/2.23/specification/XML-Schema-Doc-Core/ConceptItem.html#LinkC5
-    # probably can skip this subsection, although its documented in iptc impl guide this way
-    'location_details': {
+    'name': {'type': 'string'},
+    'related': {
         'type': 'dict',
         'schema': {
-            'name': {'type': 'string'},
-            'related': {
+            'qcode': {'type': 'string'},
+            'name': {'type': 'string'}
+        }
+    },
+    # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 12.6.3
+    # or https://iptc.org/std/NewsML-G2/2.23/specification/XML-Schema-Doc-Power/ConceptItem.html#LinkAA
+    'poi_details': {
+        'type': 'dict',
+        'schema': {
+            'position': {
                 'type': 'dict',
                 'schema': {
-                    'qcode': {'type': 'string'},
-                    'name': {'type': 'string'}
+                    'latitude': {'type': 'float'},
+                    'longitude': {'type': 'float'},
+                    'altitude': {'type': 'integer'},
+                    'gps_datum': {'type': 'string'},
                 }
             },
-            # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 12.6.3
-            # or https://iptc.org/std/NewsML-G2/2.23/specification/XML-Schema-Doc-Power/ConceptItem.html#LinkAA
-            'poi_details': {
+            'address': {
                 'type': 'dict',
                 'schema': {
                     'position': {
@@ -148,7 +156,36 @@ locations_schema = {
                     'created': {'type': 'datetime'},
                     'ceased_to_exist': {'type': 'datetime'}
                 },
+                'locality': {'type': 'string'},
+                'area': {'type': 'string'},
+                'country': {'type': 'string'},
+                'postal_code': {'type': 'string'}
             },
+            'open_hours': {'type': 'string'},
+            'capacity': {'type': 'string'},
+            'contact_info': {
+                'type': 'list',
+                'nullable': True,
+                'mapping': {
+                    'type': 'string'
+                }
+            },
+            'access': {
+                'type': 'list',
+                'nullable': True,
+                'mapping': {
+                    'type': 'string'
+                }
+            },
+            'details': {
+                'type': 'list',
+                'nullable': True,
+                'mapping': {
+                    'type': 'string'
+                }
+            },
+            'created': {'type': 'datestring'},
+            'ceased_to_exist': {'type': 'datestring'}
         },
     },
 }
