@@ -12,7 +12,6 @@
 
 import superdesk
 import logging
-from superdesk.resource import Resource
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 
