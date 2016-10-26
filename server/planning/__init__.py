@@ -13,6 +13,7 @@
 import superdesk
 from .events import EventsResource, EventsService
 from .planning import PlanningResource, PlanningService
+from .coverage import CoverageResource, CoverageService
 from .locations import LocationsResource, LocationsService
 
 
@@ -24,6 +25,9 @@ def init_app(app):
     planning_search_service = PlanningService('planning', backend=superdesk.get_backend())
     PlanningResource('planning', app=app, service=planning_search_service)
 
+    coverage_search_service = CoverageService('coverage', backend=superdesk.get_backend())
+    CoverageResource('coverage', app=app, service=coverage_search_service)
+
     events_search_service = EventsService('events', backend=superdesk.get_backend())
     EventsResource('events', app=app, service=events_search_service)
 
@@ -32,6 +36,6 @@ def init_app(app):
 
     superdesk.privilege(
         name='planning',
-        label='Events',
+        label='Planning',
         description='Create, update, and delete  events, planning items, and coverages'
     )

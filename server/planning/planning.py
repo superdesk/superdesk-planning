@@ -8,16 +8,27 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+"""Superdesk Planning"""
+
 import superdesk
-from superdesk.metadata.utils import item_url
+import logging
+from superdesk.metadata.utils import generate_guid
+from superdesk.metadata.item import GUID_NEWSML
+
+logger = logging.getLogger(__name__)
 
 not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
+not_indexed = {'type': 'string', 'index': 'no'}
 
 
 class PlanningService(superdesk.Service):
     """Service class for the planning model."""
 
-    pass
+    def on_create(self, docs):
+        """Set default metadata."""
+
+        for doc in docs:
+            doc['guid'] = generate_guid(type=GUID_NEWSML)
 
 planning_schema = {
     # Identifiers
@@ -68,15 +79,120 @@ planning_schema = {
         'mapping': not_analyzed
     },
 
+    # Event Item
+    'event_item': superdesk.Resource.rel('events'),
+
     # Planning Details
-    # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16.5.1
-    # probably can skip this subsection, although its documented in iptc impl guide this way
-    'planning_details': {
-        'type': 'dict',
-        'schema': {
-            # TODO: fill in from NewsML-G2 version 2.21 spec
+    # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16
+
+    # Item Metadata - See IPTC-G2-Implementation_Guide 16.1
+    'item_class': {
+        'type': 'string',
+        'default': 'plinat:newscoverage'
+    },
+    'ednote': {
+        'type': 'string',
+        'nullable': True,
+    },
+    'description_text': {
+        'type': 'string',
+        'nullable': True
+    },
+    'anpa_category': {
+        'type': 'list',
+        'nullable': True,
+        'mapping': {
+            'type': 'object',
+            'properties': {
+                'qcode': not_analyzed,
+                'name': not_analyzed,
+            }
         }
-    }  # end planning_details
+    },
+    'subject': {
+        'type': 'list',
+        'mapping': {
+            'properties': {
+                'qcode': not_analyzed,
+                'name': not_analyzed
+            }
+        }
+    },
+    'genre': {
+        'type': 'list',
+        'nullable': True,
+        'mapping': {
+            'type': 'object',
+            'properties': {
+                'name': not_analyzed,
+                'qcode': not_analyzed
+            }
+        }
+    },
+    'company_codes': {
+        'type': 'list',
+        'mapping': {
+            'type': 'object',
+            'properties': {
+                'qcode': not_analyzed,
+                'name': not_analyzed,
+                'security_exchange': not_analyzed
+            }
+        }
+    },
+
+    # Content Metadata - See IPTC-G2-Implementation_Guide 16.2
+    'language': {
+        'type': 'string',
+        'mapping': not_analyzed,
+        'nullable': True,
+    },
+    'abstract': {
+        'type': 'string',
+        'nullable': True,
+    },
+    'headline': {
+        'type': 'string'
+    },
+    'slugline': {
+        'type': 'string',
+        'mapping': {
+            'type': 'string',
+            'fields': {
+                'phrase': {
+                    'type': 'string',
+                    'analyzer': 'phrase_prefix_analyzer',
+                    'search_analyzer': 'phrase_prefix_analyzer'
+                }
+            }
+        }
+    },
+    'keywords': {
+        'type': 'list',
+        'mapping': {
+            'type': 'string'
+        }
+    },
+    'word_count': {
+        'type': 'integer'
+    },
+    'priority': {
+        'type': 'integer',
+        'nullable': True
+    },
+    'urgency': {
+        'type': 'integer',
+        'nullable': True
+    },
+    'profile': {
+        'type': 'string',
+        'nullable': True
+    },
+    'description_text': {
+        'type': 'string',
+        'nullable': True
+    }
+
 }  # end planning_schema
 
 
@@ -91,7 +207,6 @@ class PlanningResource(superdesk.Resource):
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
-    item_url = item_url
     privileges = {'POST': 'planning',
                   'PATCH': 'planning',
                   'DELETE': 'planning'}
