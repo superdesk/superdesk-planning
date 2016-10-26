@@ -100,167 +100,162 @@ events_schema = {
 
     # Event Details
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.2
-    # probably can skip this subsection, although its documented in iptc impl guide this way
-    'event_details': {
+    'description': {
         'type': 'dict',
         'schema': {
-            'description': {
+            'definition_short': {'type': 'string'},
+            'definition_long': {'type': 'string'},
+            'related': {'type': 'string'},
+            'note': {'type': 'string'}
+        },
+    },
+    'relationships': {
+        'type': 'dict',
+        'schema': {
+            'broader': {'type': 'string'},
+            'narrower': {'type': 'string'},
+            'related': {'type': 'string'}
+        },
+    },
+
+    # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.4.3
+    'dates': {
+        'type': 'dict',
+        'schema': {
+            'start': {'type': 'datetime'},
+            'end': {'type': 'datetime'},
+            'duration': {'type': 'string'},
+            'confirmation': {'type': 'string'},
+            'recurring_date': {
+                'type': 'list',
+                'nullable': True,
+                'mapping': {
+                    'type': 'datetime'
+                }
+            },
+            'recurring_rule': {
                 'type': 'dict',
                 'schema': {
-                    'definition_short': {'type': 'string'},
-                    'definition_long': {'type': 'string'},
-                    'related': {'type': 'string'},
-                    'note': {'type': 'string'}
-                },
+                    'frequency': {'type': 'string'},
+                    'interval': {'type': 'string'},
+                    'until': {'type': 'datetime'},
+                    'count': {'type': 'integer'},
+                    'bymonth': {'type': 'string'},
+                    'byday': {'type': 'string'},
+                    'byhour': {'type': 'string'},
+                    'byminute': {'type': 'string'}
+                }
             },
-            'relationships': {
+            'ex_date': {
+                'type': 'list',
+                'mapping': {
+                    'type': 'datetime'
+                }
+            },
+            'ex_rule': {
                 'type': 'dict',
                 'schema': {
-                    'broader': {'type': 'string'},
-                    'narrower': {'type': 'string'},
-                    'related': {'type': 'string'}
-                },
-            },
-            # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.4.3
-            'dates': {
-                'type': 'dict',
-                'schema': {
-                    'start': {'type': 'datetime'},
-                    'end': {'type': 'datetime'},
-                    'duration': {'type': 'string'},
-                    'confirmation': {'type': 'string'},
-                    'recurring_date': {
-                        'type': 'list',
-                        'nullable': True,
-                        'mapping': {
-                            'type': 'datetime'
-                        }
-                    },
-                    'recurring_rule': {
-                        'type': 'dict',
-                        'schema': {
-                            'frequency': {'type': 'string'},
-                            'interval': {'type': 'string'},
-                            'until': {'type': 'datetime'},
-                            'count': {'type': 'integer'},
-                            'bymonth': {'type': 'string'},
-                            'byday': {'type': 'string'},
-                            'byhour': {'type': 'string'},
-                            'byminute': {'type': 'string'}
-                        }
-                    },
-                    'ex_date': {
-                        'type': 'list',
-                        'mapping': {
-                            'type': 'datetime'
-                        }
-                    },
-                    'ex_rule': {
-                        'type': 'dict',
-                        'schema': {
-                            'frequency': {'type': 'string'},
-                            'interval': {'type': 'string'},
-                            'until': {'type': 'datetime'},
-                            'count': {'type': 'integer'},
-                            'bymonth': {'type': 'string'},
-                            'byday': {'type': 'string'},
-                            'byhour': {'type': 'string'},
-                            'byminute': {'type': 'string'}
-                        }
-                    }
-                }
-            },  # end dates
-            'occur_status': {
-                'type': 'dict',
-                'schema': {
-                    'qcode': {'type': 'string'},
-                    'name': {'type': 'string'}
-                }
-            },
-            'news_coverage_status': {
-                'type': 'dict',
-                'schema': {
-                    'qcode': {'type': 'string'},
-                    'name': {'type': 'string'}
-                }
-            },
-            'registration': {
-                'type': 'string'
-            },
-            'access_status': {
-                'type': 'list',
-                'mapping': {
-                    'properties': {
-                        'qcode': not_analyzed,
-                        'name': not_analyzed
-                    }
-                }
-            },
-            'subject': {
-                'type': 'list',
-                'mapping': {
-                    'properties': {
-                        'qcode': not_analyzed,
-                        'name': not_analyzed
-                    }
-                }
-            },
-            'location': {  # TODO: this is only placeholder schema
-                'type': 'list',
-                'mapping': {
-                    'properties': {
-                        'qcode': not_analyzed,
-                        'name': not_analyzed
-                    }
-                }
-            },
-            'participant': {
-                'type': 'list',
-                'mapping': {
-                    'properties': {
-                        'qcode': not_analyzed,
-                        'name': not_analyzed
-                    }
-                }
-            },
-            'participant_requirement': {
-                'type': 'list',
-                'mapping': {
-                    'properties': {
-                        'qcode': not_analyzed,
-                        'name': not_analyzed
-                    }
-                }
-            },
-            'organizer': {  # TODO: this is only placeholder schema
-                'type': 'list',
-                'mapping': {
-                    'properties': {
-                        'qcode': not_analyzed,
-                        'name': not_analyzed
-                    }
-                }
-            },
-            'contact_info': {  # TODO: this is only placeholder schema
-                'type': 'list',
-                'mapping': {
-                    'properties': {
-                        'qcode': not_analyzed,
-                        'name': not_analyzed
-                    }
-                }
-            },
-            'language': {  # TODO: this is only placeholder schema
-                'type': 'list',
-                'mapping': {
-                    'properties': {
-                        'qcode': not_analyzed,
-                        'name': not_analyzed
-                    }
+                    'frequency': {'type': 'string'},
+                    'interval': {'type': 'string'},
+                    'until': {'type': 'datetime'},
+                    'count': {'type': 'integer'},
+                    'bymonth': {'type': 'string'},
+                    'byday': {'type': 'string'},
+                    'byhour': {'type': 'string'},
+                    'byminute': {'type': 'string'}
                 }
             }
-        }  # end event_details schema
-    }  # end event_details
+        }
+    },  # end dates
+    'occur_status': {
+        'type': 'dict',
+        'schema': {
+            'qcode': {'type': 'string'},
+            'name': {'type': 'string'}
+        }
+    },
+    'news_coverage_status': {
+        'type': 'dict',
+        'schema': {
+            'qcode': {'type': 'string'},
+            'name': {'type': 'string'}
+        }
+    },
+    'registration': {
+        'type': 'string'
+    },
+    'access_status': {
+        'type': 'list',
+        'mapping': {
+            'properties': {
+                'qcode': not_analyzed,
+                'name': not_analyzed
+            }
+        }
+    },
+    'subject': {
+        'type': 'list',
+        'mapping': {
+            'properties': {
+                'qcode': not_analyzed,
+                'name': not_analyzed
+            }
+        }
+    },
+    'location': {  # TODO: this is only placeholder schema
+        'type': 'list',
+        'mapping': {
+            'properties': {
+                'qcode': not_analyzed,
+                'name': not_analyzed
+            }
+        }
+    },
+    'participant': {
+        'type': 'list',
+        'mapping': {
+            'properties': {
+                'qcode': not_analyzed,
+                'name': not_analyzed
+            }
+        }
+    },
+    'participant_requirement': {
+        'type': 'list',
+        'mapping': {
+            'properties': {
+                'qcode': not_analyzed,
+                'name': not_analyzed
+            }
+        }
+    },
+    'organizer': {  # TODO: this is only placeholder schema
+        'type': 'list',
+        'mapping': {
+            'properties': {
+                'qcode': not_analyzed,
+                'name': not_analyzed
+            }
+        }
+    },
+    'contact_info': {  # TODO: this is only placeholder schema
+        'type': 'list',
+        'mapping': {
+            'properties': {
+                'qcode': not_analyzed,
+                'name': not_analyzed
+            }
+        }
+    },
+    'language': {  # TODO: this is only placeholder schema
+        'type': 'list',
+        'mapping': {
+            'properties': {
+                'qcode': not_analyzed,
+                'name': not_analyzed
+            }
+        }
+    }
 }  # end events_schema
 
 
