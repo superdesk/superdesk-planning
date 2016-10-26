@@ -1,5 +1,3 @@
-# -*- coding: utf-8; -*-
-#
 # This file is part of Superdesk.
 #
 # Copyright 2013, 2014 Sourcefabric z.u. and contributors.
@@ -11,7 +9,11 @@
 """Superdesk Locations"""
 
 import superdesk
-from superdesk.metadata.utils import item_url
+import logging
+from superdesk.metadata.utils import generate_guid
+from superdesk.metadata.item import GUID_NEWSML
+
+logger = logging.getLogger(__name__)
 
 not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
 not_indexed = {'type': 'string', 'index': 'no'}
@@ -22,7 +24,11 @@ venue_types = {
 class LocationsService(superdesk.Service):
     """Service class for the events model."""
 
-    pass
+    def on_create(self, docs):
+        """Set default metadata."""
+
+        for doc in docs:
+            doc['guid'] = generate_guid(type=GUID_NEWSML)
 
 
 locations_schema = {
@@ -109,12 +115,12 @@ locations_schema = {
                             'line': {
                                 'type': 'list',
                                 'mapping': {'type': 'string'}
-                            }
+                            },
+                            'locality': {'type': 'string'},
+                            'area': {'type': 'string'},
+                            'country': {'type': 'string'},
+                            'postal_code': {'type': 'string'}
                         },
-                        'locality': {'type': 'string'},
-                        'area': {'type': 'string'},
-                        'country': {'type': 'string'},
-                        'postal_code': {'type': 'string'}
                     },
                     'open_hours': {'type': 'string'},
                     'capacity': {'type': 'string'},
@@ -139,8 +145,8 @@ locations_schema = {
                             'type': 'string'
                         }
                     },
-                    'created': {'type': 'datestring'},
-                    'ceased_to_exist': {'type': 'datestring'}
+                    'created': {'type': 'datetime'},
+                    'ceased_to_exist': {'type': 'datetime'}
                 },
             },
         },
@@ -159,7 +165,6 @@ class LocationsResource(superdesk.Resource):
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
-    item_url = item_url
     privileges = {'POST': 'planning',
                   'PATCH': 'planning',
                   'DELETE': 'planning'}

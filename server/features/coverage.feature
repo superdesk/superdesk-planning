@@ -1,16 +1,16 @@
-Feature: Locations
+Feature: Coverage 
 
     @auth
-    Scenario: Empty locations list
-        Given empty "locations"
-        When we get "/locations"
+    Scenario: Empty coverage list
+        Given empty "coverage"
+        When we get "/coverage"
         Then we get list with 0 items
 
     @auth
     @notification
-    Scenario: Create new location
+    Scenario: Create new coverage item
         Given empty "users"
-        Given empty "locations"
+        Given empty "coverage"
         When we post to "users"
         """
         {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
@@ -19,19 +19,20 @@ Feature: Locations
         """
         {"_id": "#users._id#", "invisible_stages": []}
         """
-        When we post to "/locations" with success
+        When we post to "/coverage" with success
         """
         [
             {
                 "guid": "123",
                 "unique_id": "123",
                 "unique_name": "123 name",
-                "location_details": {
-                    "name": "Test Location",
-                    "poi_details": {}
-                }
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "assigned_to": "whoever wants to do it"
+                },
+                "delivery": []
             }
         ]
         """
-        When we get "/locations"
+        When we get "/coverage"
         Then we get list with 1 items
