@@ -8,7 +8,7 @@ const events = [
         _id: '5800d71930627218866f1e80',
         dates: { start: '2016-10-15T13:01:11+0000' },
         description: { definition_short: 'definition_short 1' },
-        location: [{ name: 'location1' }]
+        location: [{ name: 'location1' }],
         unique_name: 'name1'
     },
     {
@@ -18,7 +18,7 @@ const events = [
             start: '2016-10-17T13:01:34+0000'
         },
         description: { definition_short: '' },
-        location: [{ name: 'location1' }]
+        location: [{ name: 'location1' }],
         unique_name: 'name2'
     },
     {
@@ -28,7 +28,7 @@ const events = [
             start: '2016-10-17T13:01:34+0000'
         },
         description: { definition_short: '' },
-        location: [{ name: 'location2' }]
+        location: [{ name: 'location2' }],
         unique_name: 'name3'
     }
 ]

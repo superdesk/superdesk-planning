@@ -6,7 +6,7 @@ const event = {
     _id: '5800d71930627218866f1e80',
     dates: { start: '2016-10-15T13:01:11+0000', ends: '2016-10-15T13:01:11+0000' },
     description: { definition_short: 'definition_short 1' },
-    location: [{ name: 'location1' }]
+    location: [{ name: 'location1' }],
     unique_name: 'name1'
 }
 
