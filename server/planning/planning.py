@@ -80,6 +80,9 @@ planning_schema = {
         'mapping': not_analyzed
     },
 
+    # Event Item
+    'event_item': superdesk.Resource.rel('events'),
+
     # Planning Details
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16
 
@@ -189,14 +192,7 @@ planning_schema = {
     'description_text': {
         'type': 'string',
         'nullable': True
-    },
-
-    # See IPTC-G2-Implementation_Guide 16.3
-    'news_coverage_set': {
-        'type': 'list',
-        # See IPTC-G2-Implementation_Guide 16.4 (newsCoverage)
-        'schema': Resource.rel('coverage', True)
-    }  # end news_coverage_set
+    }
 
 }  # end planning_schema
 

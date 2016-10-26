@@ -27,8 +27,7 @@ Feature: Planning
                 "unique_id": "123",
                 "unique_name": "123 name",
                 "item_class": "item class value",
-                "headline": "test headline",
-                "news_coverage_set": []
+                "headline": "test headline"
             }
         ]
         """
