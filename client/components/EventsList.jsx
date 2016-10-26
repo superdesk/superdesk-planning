@@ -42,10 +42,10 @@ export class EventsList extends React.Component {
     orderEventsByDay(events) {
         if (!events) return []
         // order by date
-        events = events.sort((a, b) => a.event_details.dates.start - b.event_details.dates.start)
+        events = events.sort((a, b) => a.dates.start - b.dates.start)
         var days = {}
         events.forEach((event) => {
-            let eventDate = moment(event.event_details.dates.start)
+            let eventDate = moment(event.dates.start)
             let eventDay = eventDate.format('YYYY-MM-DD')
             if (!days[eventDay]) {
                 days[eventDay] = []

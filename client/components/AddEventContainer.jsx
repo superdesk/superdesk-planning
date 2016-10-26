@@ -41,28 +41,28 @@ class Component extends React.Component {
                             <Field name="unique_name" component="input" type="text"/>
                         </div>
                         <div>
-                            <label htmlFor="event_details.description.definition_short">
+                            <label htmlFor="description.definition_short">
                                 Description
                             </label>
-                            <Field name="event_details.description.definition_short"
+                            <Field name="description.definition_short"
                                    component="input"
                                    type="text"/>
                         </div>
                         <div>
-                            <label htmlFor="event_details.location[0].name">Where</label>
-                            <Field name="event_details.location[0].name"
+                            <label htmlFor="location[0].name">Where</label>
+                            <Field name="location[0].name"
                                    component="input"
                                    type="text"/>
                         </div>
                         <div>
-                            <label htmlFor="event_details.dates.start">When</label>
+                            <label htmlFor="dates.start">When</label>
                         </div>
                         <div>
-                            <Field name="event_details.dates.start"
+                            <Field name="dates.start"
                                    component={DayPickerInput}
                                    withTime={!this.isFullDay}/>
                             to
-                            <Field name="event_details.dates.end"
+                            <Field name="dates.end"
                                    component={DayPickerInput}
                                    withTime={!this.isFullDay}/>
                         </div>

@@ -35,7 +35,7 @@ export const saveEvent = (newEvent) => (
 export const fetchEvents = () => (
     (dispatch) => {
         dispatch(requestEvents())
-        return api('events').query({ sort: '[("event_details.dates.start",1)]' })
+        return api('events').query({ sort: '[("dates.start",1)]' })
         .then(data => dispatch(receiveEvents(data._items)))
     }
 )
