@@ -9,12 +9,16 @@ import createLogger from 'redux-logger'
 
 const loggerMiddleware = createLogger()
 
-PlanningModalController.$inject = ['$element']
-export function PlanningModalController($element) {
+PlanningModalController.$inject = ['$element', 'api']
+export function PlanningModalController($element, api) {
     let store = createStore(
         planningApp,
         undefined,
-        applyMiddleware(thunkMiddleware, loggerMiddleware)
+        applyMiddleware(
+            // include angular services in available actions paramaters
+            thunkMiddleware.withExtraArgument({ api }),
+            loggerMiddleware
+        )
     )
     ReactDOM.render(
         <Provider store={store}>

@@ -1,15 +1,3 @@
-var api
-
-// Invoke api and load it into the context
-// in a try-catch because of the unit tests
-try {
-    angular.module('superdesk.core.api').run(['api', (_api) => {
-        api = _api
-    }])
-} catch (e) {
-    api = (() => undefined)
-}
-
 const receiveEvents = (events) => ({
     type: 'RECEIVE_EVENTS',
     events,
@@ -22,7 +10,7 @@ const addEvent = (event) => ({
     type: 'ADD_EVENT', event
 })
 export const saveEvent = (newEvent) => (
-    (dispatch, getState) => {
+    (dispatch, getState, { api }) => {
         let events = getState().events
         // retrieve original
         let original = events.find((e) => e._id === newEvent._id)
@@ -34,7 +22,7 @@ export const saveEvent = (newEvent) => (
     }
 )
 export const fetchEvents = () => (
-    (dispatch) => {
+    (dispatch, getState, { api }) => {
         dispatch(requestEvents())
         return api('events').query({ sort: '[("dates.start",1)]' })
         .then(data => dispatch(receiveEvents(data._items)))
