@@ -1,6 +1,6 @@
 import React from 'react'
-import { EventsListPanelContainer, AddEventContainer } from './index'
-
+import { EventsListPanelContainer } from './index'
+import AddEventContainer from './AddEventContainer'
 export const Planning = () => (
     <div>
         <AddEventContainer />
