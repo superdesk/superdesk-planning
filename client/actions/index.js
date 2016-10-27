@@ -6,7 +6,7 @@ const receiveEvents = (events) => ({
 const requestEvents = () => ({
     type: 'REQUEST_EVENTS'
 })
-const addEvent = (event) => ({
+export const addEvent = (event) => ({
     type: 'ADD_EVENT', event
 })
 export const saveEvent = (newEvent) => (
