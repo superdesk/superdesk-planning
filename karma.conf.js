@@ -1,11 +1,11 @@
 // Karma configuration
 // Generated on Mon Sep 26 2016 12:33:25 GMT+0200 (CEST)
-var webpackConfig = require('./webpack.config.js');
+var webpackConfig = require('./webpack.config.js')
 
 module.exports = function(config) {
     // in karma, entry is read from files prop
-    // webpackConfig.entry = {};
-    // webpackConfig.devtool = 'inline-source-map';
+    // webpackConfig.entry = {}
+    // webpackConfig.devtool = 'inline-source-map'
     config.set({
 
         // base path that will be used to resolve all patterns (eg. files, exclude)
@@ -48,5 +48,5 @@ module.exports = function(config) {
         // how many browser should be started simultaneous
         concurrency: Infinity,
         webpack: webpackConfig,
-    });
-};
+    })
+}

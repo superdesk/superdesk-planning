@@ -3,4 +3,4 @@ module.exports = {
         jshintrc: '.jshintrc'
     },
     all: require('./files').scripts
-};
+}

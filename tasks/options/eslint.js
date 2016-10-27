@@ -1,6 +1,6 @@
 
-var path = require('path');
-var root = path.dirname(path.dirname(__dirname));
+var path = require('path')
+var root = path.dirname(path.dirname(__dirname))
 
 module.exports = {
     options: {configFile: path.join(root, '.eslintrc')},
@@ -16,4 +16,4 @@ module.exports = {
         src: path.join(root, '*.js'),
         envs: ['node']
     }
-};
+}
