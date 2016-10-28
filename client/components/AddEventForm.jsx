@@ -2,7 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
 import { DayPickerInput } from './index'
-import { Field, reduxForm } from 'redux-form'
+import { Field, reduxForm, SubmissionError } from 'redux-form'
 import { set, get } from 'lodash'
 
 export const renderInputField = ({ input, label, type, meta: { touched, error, warning } }) => (
@@ -68,6 +68,7 @@ export class Component extends React.Component {
                 </div>
                 <label htmlFor="isFullDay">Is full day</label>
                 <input type="checkbox" onChange={this.handleIsFullDayChange.bind(this)}/>
+                {this.props.error && <div><strong>{this.props.error}</strong></div>}
             </form>
         )
     }
@@ -94,7 +95,21 @@ export const FormComponent = reduxForm({
 })(Component)
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => dispatch(actions.saveEvent(event)),
+    // `handleSubmit` will call `onSubmit` after validation
+    onSubmit: (event) => (
+        dispatch(actions.saveEvent(event))
+        .then((()=> (undefined)), (error) => {
+            // in case of API error
+            if (error.data._error) {
+                if (error.data._issues.unique_name && error.data._issues.unique_name.unique === 1) {
+                    throw new SubmissionError({
+                        unique_name: 'Name must be unique',
+                        _error: 'Name must be unique'
+                    })
+                }
+            }
+        })
+    ),
 })
 
 const AddEventForm = connect(null, mapDispatchToProps, null, { withRef: true })(FormComponent)

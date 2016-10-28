@@ -14,11 +14,17 @@ export const saveEvent = (newEvent) => (
         let events = getState().events
         // retrieve original
         let original = events.find((e) => e._id === newEvent._id)
+        // clone the original because `save` will modify it
         original = original ? Object.assign({}, original) : {}
         return api('events').save(original, newEvent)
-        .then(data => dispatch(addEvent(data)))
-        .then(() => dispatch({ type: 'EVENT_SAVE_SUCCESS' }))
-        .then(dispatch(hideModal()))
+        // add the event to the store
+        .then(data => {
+            dispatch(addEvent(data))
+            // notify the end of the action and reset the form
+            dispatch({ type: 'EVENT_SAVE_SUCCESS' })
+            // hide the modal
+            return dispatch(hideModal())
+        })
     }
 )
 export const fetchEvents = () => (
