@@ -29,8 +29,7 @@ before_install:
     - npm install -g npm@latest
     - npm config set loglevel warn
 node_js:
-    - '0.11'
-    - '0.10'
+    - '6'
 install:
     - npm install --python=python2.7
     - cd server && pip install -q -r requirements.txt && cd ..
