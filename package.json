@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "angular-mocks": "^1.5.8",
+    "babel-plugin-transform-object-assign": "^6.8.0",
     "enzyme": "^2.4.1",
     "eslint": "^3.7.1",
     "eslint-plugin-jasmine": "^1.8.1",
