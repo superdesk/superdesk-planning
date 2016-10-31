@@ -32,7 +32,8 @@ export const saveEvent = (newEvent) => (
 export const fetchEvents = () => (
     (dispatch, getState, { api }) => {
         dispatch(requestEvents())
-        return api('events').query({ sort: '[("dates.start",1)]' })
+        let futureEvent = { query: { range: { 'dates.start': { gte: 'now/d' } } } }
+        return api('events').query({ source: JSON.stringify(futureEvent) })
         .then(data => dispatch(receiveEvents(data._items)))
     }
 )
