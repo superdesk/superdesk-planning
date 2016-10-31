@@ -26,9 +26,16 @@ Feature: Locations
                 "guid": "123",
                 "unique_id": "123",
                 "unique_name": "123 name",
-                "location_details": {
-                    "name": "Test Location",
-                    "poi_details": {}
+                "name": "Test Location",
+                "address": {
+                    "line": [
+                        "street 123",
+                        "apt 1"
+                    ],
+                    "locality": "some locality",
+                    "area": "some area",
+                    "country": "some country",
+                    "postal_code": "some postal code"
                 }
             }
         ]
