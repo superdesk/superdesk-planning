@@ -1,3 +1,5 @@
+import { hideModal } from './modal'
+
 const receiveEvents = (events) => ({
     type: 'RECEIVE_EVENTS',
     events,
