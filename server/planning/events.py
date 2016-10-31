@@ -273,7 +273,6 @@ class EventsResource(superdesk.Resource):
     datasource = {
         'source': 'events',
         'search_backend': 'elastic',
-        'default_sort': [('dates.start', 1)]
     }
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
