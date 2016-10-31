@@ -20,15 +20,15 @@ describe('<DayPickerInput />', () => {
     it('parse the defaultValue', () => {
         const wrapper = mount(<TestForm withTime={true} onChange={(x) => x} />)
         const dayPickerState = wrapper.ref('dayPicker').get(0).state
-        expect(dayPickerState.selectedTime).toBe('1:43 PM')
+        expect(dayPickerState.selectedTime.format('h:mm A')).toBe('1:43 PM')
         expect(dayPickerState.selectedDate.isSame(moment.utc('1989-12-12'))).toBe(true)
     })
     it('hide the time when needed', () => {
         var wrapper
         wrapper = mount(<TestForm withTime={false}  onChange={(x) => x}/>)
-        expect(wrapper.find('[name="time"]').length).toBe(0)
+        expect(wrapper.find('.rc-time-picker-input').length).toBe(0)
         wrapper = mount(<TestForm withTime={true}  onChange={(x) => x}/>)
-        expect(wrapper.find('[name="time"]').length).toBe(1)
+        expect(wrapper.find('.rc-time-picker-input').length).toBe(1)
     })
     it('return the right date', () => {
         const onSubmit = sinon.spy((date) => (
