@@ -1,12 +1,12 @@
 import { combineReducers } from 'redux'
 import events from './events'
 import modal from './modal'
-import { reducer as formReducer } from 'redux-form'
+import forms from './forms'
 
 const planningApp = combineReducers({
     modal,
     events,
-    form: formReducer
+    form: forms
 })
 
 export default planningApp

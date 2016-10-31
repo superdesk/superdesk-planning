@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react'
 import moment from 'moment'
 
 export const Event = ({ event, onClick }) => {
-    let description = event.description.definition_short
+    let description = event.description && event.description.definition_short
     let date = moment.utc(event.dates.start)
     let time = date.format('HH:mm')
     return (

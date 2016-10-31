@@ -53,31 +53,31 @@ export class DayPickerInput extends React.Component {
     }
 
     render() {
+        const { touched, error, warning } = this.props.meta
         return (
-            <span>
+            <span className="day-picker-input">
+                {
+                    touched && ((error && <div>{error}</div>) ||
+                    (warning && <div>{warning}</div>))
+                }
                 <DatePicker
                     selected={this.state.selectedDate}
                     onChange={this.onDayChange.bind(this)} />
-                { this.props.withTime &&
-                <select style={STYLE.time}
-                        name="time"
-                        value={this.state.selectedTime}
-                        onChange={this.onTimeChange.bind(this)}>
-                    { TIMES.map((t) =>
-                        <option key={t} value={t}>{t}</option>
-                    )}
-                </select>
-                }
+                {(this.props.withTime === true) && (
+                    <select name="time"
+                            value={this.state.selectedTime}
+                            onChange={this.onTimeChange.bind(this)}>
+                        {TIMES.map((t) =>
+                            <option key={t} value={t}>{t}</option>
+                        )}
+                    </select>
+                )}
             </span>
         )
     }
 }
-DayPickerInput.propTypes = { withTime: PropTypes.bool.isRequired }
-DayPickerInput.defaultProps = { withTime: true }
-
-const STYLE = {
-    time: { width: 100 },
-}
+DayPickerInput.propTypes = { withTime: PropTypes.bool }
+DayPickerInput.defaultProps = { withTime: true, meta: {} }
 
 const TIMES = [
     '12:00 AM',
