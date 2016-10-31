@@ -129,9 +129,10 @@ events_schema = {
             'recurring_date': {
                 'type': 'list',
                 'nullable': True,
-                'mapping': {
-                    'type': 'datetime'
-                }
+                # FIXME: this raise an error
+                # 'mapping': {
+                #     'type': 'datetime'
+                # }
             },
             'recurring_rule': {
                 'type': 'dict',
@@ -148,9 +149,10 @@ events_schema = {
             },
             'ex_date': {
                 'type': 'list',
-                'mapping': {
-                    'type': 'datetime'
-                }
+                # FIXME: this raise an error
+                # 'mapping': {
+                #     'type': 'datetime'
+                # }
             },
             'ex_rule': {
                 'type': 'dict',
@@ -268,6 +270,11 @@ class EventsResource(superdesk.Resource):
     url = 'events'
     schema = events_schema
     resource_methods = ['GET', 'POST']
+    datasource = {
+        'source': 'events',
+        'search_backend': 'elastic',
+        'default_sort': [('dates.start', 1)]
+    }
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
     privileges = {'POST': 'planning',
