@@ -91,103 +91,56 @@ locations_schema = {
             'name': {'type': 'string'}
         }
     },
-    # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 12.6.3
+
+    # NewsML-G2 poiDetails properties See IPTC-G2-Implementation_Guide 12.6.3
     # or https://iptc.org/std/NewsML-G2/2.23/specification/XML-Schema-Doc-Power/ConceptItem.html#LinkAA
-    'poi_details': {
+    'position': {
         'type': 'dict',
         'schema': {
-            'position': {
-                'type': 'dict',
-                'schema': {
-                    'latitude': {'type': 'float'},
-                    'longitude': {'type': 'float'},
-                    'altitude': {'type': 'integer'},
-                    'gps_datum': {'type': 'string'},
-                }
-            },
-            'address': {
-                'type': 'dict',
-                'schema': {
-                    'position': {
-                        'type': 'dict',
-                        'schema': {
-                            'latitude': {'type': 'float'},
-                            'longitude': {'type': 'float'},
-                            'altitude': {'type': 'integer'},
-                            'gps_datum': {'type': 'string'},
-                        }
-                    },
-                    'address': {
-                        'type': 'dict',
-                        'schema': {
-                            'line': {
-                                'type': 'list',
-                                'mapping': {'type': 'string'}
-                            },
-                            'locality': {'type': 'string'},
-                            'area': {'type': 'string'},
-                            'country': {'type': 'string'},
-                            'postal_code': {'type': 'string'}
-                        },
-                    },
-                    'open_hours': {'type': 'string'},
-                    'capacity': {'type': 'string'},
-                    'contact_info': {
-                        'type': 'list',
-                        'nullable': True,
-                        'mapping': {
-                            'type': 'string'
-                        }
-                    },
-                    'access': {
-                        'type': 'list',
-                        'nullable': True,
-                        'mapping': {
-                            'type': 'string'
-                        }
-                    },
-                    'details': {
-                        'type': 'list',
-                        'nullable': True,
-                        'mapping': {
-                            'type': 'string'
-                        }
-                    },
-                    'created': {'type': 'datetime'},
-                    'ceased_to_exist': {'type': 'datetime'}
-                },
-                'locality': {'type': 'string'},
-                'area': {'type': 'string'},
-                'country': {'type': 'string'},
-                'postal_code': {'type': 'string'}
-            },
-            'open_hours': {'type': 'string'},
-            'capacity': {'type': 'string'},
-            'contact_info': {
+            'latitude': {'type': 'float'},
+            'longitude': {'type': 'float'},
+            'altitude': {'type': 'integer'},
+            'gps_datum': {'type': 'string'},
+        }
+    },
+    'address': {
+        'type': 'dict',
+        'schema': {
+            'line': {
                 'type': 'list',
-                'nullable': True,
-                'mapping': {
-                    'type': 'string'
-                }
+                'mapping': {'type': 'string'}
             },
-            'access': {
-                'type': 'list',
-                'nullable': True,
-                'mapping': {
-                    'type': 'string'
-                }
-            },
-            'details': {
-                'type': 'list',
-                'nullable': True,
-                'mapping': {
-                    'type': 'string'
-                }
-            },
-            'created': {'type': 'datestring'},
-            'ceased_to_exist': {'type': 'datestring'}
+            'locality': {'type': 'string'},
+            'area': {'type': 'string'},
+            'country': {'type': 'string'},
+            'postal_code': {'type': 'string'}
         },
     },
+    'access': {
+        'type': 'list',
+        'nullable': True,
+        'mapping': {
+            'type': 'string'
+        }
+    },
+    'details': {
+        'type': 'list',
+        'nullable': True,
+        'mapping': {
+            'type': 'string'
+        }
+    },
+    'created': {'type': 'datetime'},
+    'ceased_to_exist': {'type': 'datetime'},
+    'open_hours': {'type': 'string'},
+    'capacity': {'type': 'string'},
+    'contact_info': {
+        'type': 'list',
+        'nullable': True,
+        'mapping': {
+            'type': 'string'
+        }
+    }
 }
 
 
