@@ -52,7 +52,6 @@ Audit Information
     When current version was created.
 
 Ingest Details
----------------
 
 ``ingest_provider`` *id*
 
