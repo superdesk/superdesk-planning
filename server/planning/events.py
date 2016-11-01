@@ -129,10 +129,9 @@ events_schema = {
             'recurring_date': {
                 'type': 'list',
                 'nullable': True,
-                # FIXME: this raise an error
-                # 'mapping': {
-                #     'type': 'datetime'
-                # }
+                'mapping': {
+                    'type': 'date'
+                }
             },
             'recurring_rule': {
                 'type': 'dict',
@@ -149,10 +148,9 @@ events_schema = {
             },
             'ex_date': {
                 'type': 'list',
-                # FIXME: this raise an error
-                # 'mapping': {
-                #     'type': 'datetime'
-                # }
+                'mapping': {
+                    'type': 'date'
+                }
             },
             'ex_rule': {
                 'type': 'dict',
