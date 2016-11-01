@@ -2,6 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
 import { DayPickerInput } from './index'
+import { GeoSuggestInput } from './index'
 import { Field, reduxForm, SubmissionError } from 'redux-form'
 import { set, get } from 'lodash'
 
@@ -16,6 +17,17 @@ export const renderInputField = ({ input, label, type, meta: { touched, error, w
     </div>
 )
 
+export const renderGeoSuggestInput = ({ input, label, meta: { touched, error, warning } }) => (
+    <div>
+        {label && <label>{label}</label>}
+        <div>
+            <GeoSuggestInput onChange={input.onChange} />
+            {touched && ((error && <span className="help-block">{error}</span>) ||
+            (warning && <span className="help-block">{warning}</span>))}
+        </div>
+    </div>
+)
+        
 /**
 * Form for adding/editing an event
 * @constructor Init the state
@@ -50,9 +62,8 @@ export class Component extends React.Component {
                 </div>
                 <div>
                     <Field name="location[0].name"
-                           component={renderInputField}
-                           type="text"
-                           label="Where"/>
+                           component={renderGeoSuggestInput}
+                            label="Location"/>
                 </div>
                 <div>
                     <label htmlFor="dates.start">When</label>
