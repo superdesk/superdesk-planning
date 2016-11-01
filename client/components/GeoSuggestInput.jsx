@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { PropTypes } from 'react'
 import ReactDOM from 'react-dom'
 import Geosuggest from 'react-geosuggest'
 import loadGoogleMapsAPI from 'load-google-maps-api'
@@ -17,8 +17,7 @@ export class GeoSuggestInput extends React.Component {
 
     componentDidMount() {
         let opts = {
-            //'client': '585254746787-r2e7020r522g9k2ole9s5g8djre2rdal.apps.googleusercontent.com',
-            //'key': 'AIzaSyCuGlrZ298m7QL1TIVYsoYN6MqygSXPjRk',
+            'key': this.props.googleApiKey,
             'libraries': [
                 'places'
             ]
@@ -58,4 +57,4 @@ export class GeoSuggestInput extends React.Component {
         console.log(suggest)
     }
 }
-
+GeoSuggestInput.propTypes = { googleApiKey: PropTypes.string } 
