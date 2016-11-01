@@ -130,7 +130,7 @@ events_schema = {
                 'type': 'list',
                 'nullable': True,
                 'mapping': {
-                    'type': 'datetime'
+                    'type': 'date'
                 }
             },
             'recurring_rule': {
@@ -149,7 +149,7 @@ events_schema = {
             'ex_date': {
                 'type': 'list',
                 'mapping': {
-                    'type': 'datetime'
+                    'type': 'date'
                 }
             },
             'ex_rule': {
@@ -268,6 +268,10 @@ class EventsResource(superdesk.Resource):
     url = 'events'
     schema = events_schema
     resource_methods = ['GET', 'POST']
+    datasource = {
+        'source': 'events',
+        'search_backend': 'elastic',
+    }
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
     privileges = {'POST': 'planning',

@@ -1,4 +1,5 @@
 import { hideModal } from './modal'
+import { pickBy } from 'lodash'
 
 const receiveEvents = (events) => ({
     type: 'RECEIVE_EVENTS',
@@ -18,6 +19,9 @@ export const saveEvent = (newEvent) => (
         let original = events.find((e) => e._id === newEvent._id)
         // clone the original because `save` will modify it
         original = original ? Object.assign({}, original) : {}
+        // remove all properties starting with _,
+        // otherwise it will fail for "unknown field" with `_type`
+        newEvent = pickBy(newEvent, (v, k) => (!k.startsWith('_')))
         return api('events').save(original, newEvent)
         // add the event to the store
         .then(data => {
@@ -32,7 +36,11 @@ export const saveEvent = (newEvent) => (
 export const fetchEvents = () => (
     (dispatch, getState, { api }) => {
         dispatch(requestEvents())
-        return api('events').query({ sort: '[("dates.start",1)]' })
+        let futureEvent = { query: { range: { 'dates.start': { gte: 'now/d' } } } }
+        return api('events').query({
+            sort: '[("dates.start",1)]',
+            source: JSON.stringify(futureEvent)
+        })
         .then(data => dispatch(receiveEvents(data._items)))
     }
 )

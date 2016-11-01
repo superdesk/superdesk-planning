@@ -1,5 +1,5 @@
 // styles
-import './client/styles/planning.scss'
+import './client/styles/index.scss'
 
 // scripts
 import planningModule from './client'
