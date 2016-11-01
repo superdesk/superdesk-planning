@@ -84,13 +84,6 @@ locations_schema = {
     # NewsML-G2 Event properties See:
     #    https://iptc.org/std/NewsML-G2/2.23/specification/XML-Schema-Doc-Core/ConceptItem.html#LinkC5
     'name': {'type': 'string'},
-    'related': {
-        'type': 'dict',
-        'schema': {
-            'qcode': {'type': 'string'},
-            'name': {'type': 'string'}
-        }
-    },
 
     # NewsML-G2 poiDetails properties See IPTC-G2-Implementation_Guide 12.6.3
     # or https://iptc.org/std/NewsML-G2/2.23/specification/XML-Schema-Doc-Power/ConceptItem.html#LinkAA

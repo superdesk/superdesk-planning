@@ -116,6 +116,7 @@ coverage_schema = {
                 'mapping': {
                     'properties': {
                         'qcode': not_analyzed,
+                        'value': not_analyzed,
                         'name': not_analyzed
                     }
                 }

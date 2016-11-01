@@ -22,3 +22,5 @@ dist/
 *.swp
 *.swn
 *.swm
+_build
+_build_html

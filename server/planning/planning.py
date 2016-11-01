@@ -187,10 +187,6 @@ planning_schema = {
     'profile': {
         'type': 'string',
         'nullable': True
-    },
-    'description_text': {
-        'type': 'string',
-        'nullable': True
     }
 
 }  # end planning_schema
