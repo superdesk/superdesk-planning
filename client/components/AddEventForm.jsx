@@ -107,7 +107,7 @@ export const FormComponent = reduxForm({
 })(Component)
 
 const mapStateToProps = (state) => ({
-    googleApiKey: state.config.googleApiKey
+    googleApiKey: state.config.google.key
 })
 
 const mapDispatchToProps = (dispatch) => ({
