@@ -33,7 +33,6 @@ export class GeoSuggestInput extends React.Component {
 
     render() {
         if (this.state.googleMaps) {
-            console.log('MAPS', this.state.googleMaps)
             return (
               <div>
                 <Geosuggest
