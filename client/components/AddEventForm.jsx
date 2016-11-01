@@ -17,11 +17,11 @@ export const renderInputField = ({ input, label, type, meta: { touched, error, w
     </div>
 )
 
-export const renderGeoSuggestInput = ({ input, label, meta: { touched, error, warning } }) => (
+export const renderGeoSuggestInput = ({ input, label, googleApiKey, meta: { touched, error, warning } }) => (
     <div>
         {label && <label>{label}</label>}
         <div>
-            <GeoSuggestInput onChange={input.onChange} />
+            <GeoSuggestInput onChange={input.onChange} googleApiKey={googleApiKey} />
             {touched && ((error && <span className="help-block">{error}</span>) ||
             (warning && <span className="help-block">{warning}</span>))}
         </div>
@@ -63,7 +63,8 @@ export class Component extends React.Component {
                 <div>
                     <Field name="location[0].name"
                            component={renderGeoSuggestInput}
-                            label="Location"/>
+                           googleApiKey={this.props.googleApiKey}
+                           label="Location"/>
                 </div>
                 <div>
                     <label htmlFor="dates.start">When</label>
@@ -105,6 +106,10 @@ export const FormComponent = reduxForm({
     enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
+const mapStateToProps = (state) => ({
+    googleApiKey: state.config.googleApiKey
+})
+
 const mapDispatchToProps = (dispatch) => ({
     // `handleSubmit` will call `onSubmit` after validation
     onSubmit: (event) => (
@@ -123,5 +128,5 @@ const mapDispatchToProps = (dispatch) => ({
     ),
 })
 
-const AddEventForm = connect(null, mapDispatchToProps, null, { withRef: true })(FormComponent)
+const AddEventForm = connect(mapStateToProps, mapDispatchToProps, null, { withRef: true })(FormComponent)
 export default AddEventForm
