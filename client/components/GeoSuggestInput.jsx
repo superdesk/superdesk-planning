@@ -29,6 +29,10 @@ export class GeoSuggestInput extends React.Component {
         }).catch((err) => {
             console.error('COULD NOT LOAD GOOGLE MAPS API', err)
         })
+
+        // TODO: load fixtures (internal locations) to set in Geosuggest
+        // render function below, to ensure we do not attempt to re-save
+        // existing locations
     }
 
     render() {
@@ -38,6 +42,7 @@ export class GeoSuggestInput extends React.Component {
                 <Geosuggest
                     googleMaps={this.state.googleMaps}
                     placeholder="Start typing"
+                    initialValue={this.props.initialValue}
                     onSuggestSelect={this.onSuggestSelect.bind(this)}
                 />
               </div>
@@ -53,7 +58,7 @@ export class GeoSuggestInput extends React.Component {
      */
     onSuggestSelect(suggest) {
         this.props.onChange(suggest)
-        console.log(suggest)
     }
 }
 GeoSuggestInput.propTypes = { googleApiKey: PropTypes.string } 
+GeoSuggestInput.propTypes = { initialValue: PropTypes.string } 

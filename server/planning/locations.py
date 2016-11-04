@@ -106,7 +106,8 @@ locations_schema = {
             'locality': {'type': 'string'},
             'area': {'type': 'string'},
             'country': {'type': 'string'},
-            'postal_code': {'type': 'string'}
+            'postal_code': {'type': 'string'},
+            'external': {'type': 'dict'}
         },
     },
     'access': {

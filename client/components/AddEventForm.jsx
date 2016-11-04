@@ -17,11 +17,14 @@ export const renderInputField = ({ input, label, type, meta: { touched, error, w
     </div>
 )
 
+// TODO: there is an issue using input.value as initialValue here when onChange runs
+// and sets the value to an object (gmaps address object)
+// gotta fix this
 export const renderGeoSuggestInput = ({ input, label, googleApiKey, meta: { touched, error, warning } }) => (
     <div>
         {label && <label>{label}</label>}
         <div>
-            <GeoSuggestInput onChange={input.onChange} googleApiKey={googleApiKey} />
+            <GeoSuggestInput onChange={input.onChange} googleApiKey={googleApiKey} initialValue={input.value}/>
             {touched && ((error && <span className="help-block">{error}</span>) ||
             (warning && <span className="help-block">{warning}</span>))}
         </div>
