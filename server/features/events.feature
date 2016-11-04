@@ -41,14 +41,59 @@ Feature: Events
                     "end": "2016-01-03"
                 },
                 "subject": [{"qcode": "test qcaode", "name": "test name"}],
-                "location": [{"qcode": "test qcaode", "name": "test name"}], 
-                "contact_info": [{"qcode": "test qcaode", "name": "test name"}]  
+                "location": [{"qcode": "test qcaode", "name": "test name"}],
+                "contact_info": [{"qcode": "test qcaode", "name": "test name"}]
             }
         ]
         """
         When we get "/events"
         Then we get list with 1 items
-        When we get "/events?sort=[(%22dates.start%22,1)]&source={%22query%22:{%22range%22:{%22dates.start%22:{%22lte%22:%222015-01-01T00:00:00.000Z%22}}}}"
+        When we get "/events?sort=[("dates.start",1)]&source={"query":{"range":{"dates.start":{"lte":"2015-01-01T00:00:00.000Z"}}}}"
         Then we get list with 0 items
-        When we get "/events?sort=[(%22dates.start%22,1)]&source={%22query%22:{%22range%22:{%22dates.start%22:{%22gte%22:%222016-01-02T00:00:00.000Z%22}}}}"
+        When we get "/events?sort=[("dates.start",1)]&source={"query":{"range":{"dates.start":{"gte":"2016-01-02T00:00:00.000Z"}}}}"
         Then we get list with 1 items
+
+    @auth
+    @notification
+    Scenario: Generate dates from recurring rules
+        When we post to "/events" with success
+        """
+        [
+            {
+                "unique_id": "123",
+                "unique_name": "JO",
+                "dates": {
+                    "start": "2016-01-02",
+                    "end": "2016-01-18",
+                    "recurring_rule": {
+                        "frequency": "YEARLY",
+                        "interval": 4,
+                        "count": 4
+                    }
+                }
+            }
+        ]
+        """
+        Then we get existing resource
+        """
+        {"_items": [
+            {
+                "unique_name": "JO",
+                "dates": {"start": "2016-01-02T00:00:00+0000", "end": "2016-01-18T00:00:00+0000"}
+            },
+            {
+                "unique_name": "JO",
+                "dates": {"start": "2020-01-02T00:00:00+0000", "end": "2020-01-18T00:00:00+0000"}
+            },
+            {
+                "unique_name": "JO",
+                "dates": {"start": "2024-01-02T00:00:00+0000", "end": "2024-01-18T00:00:00+0000"}
+                },
+            {
+                "unique_name": "JO",
+                "dates": {"start": "2028-01-02T00:00:00+0000", "end": "2028-01-18T00:00:00+0000"}
+            }
+        ]}
+        """
+        When we get "/events?source={"query": {"term": {"unique_name": "JO"}}}"
+        Then we get list with 4 items

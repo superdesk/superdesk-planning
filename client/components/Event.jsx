@@ -1,10 +1,11 @@
 import React, { PropTypes } from 'react'
 import moment from 'moment'
+import { eventIsAllDayLong } from '../utils'
 
 export const Event = ({ event, onClick }) => {
     let description = event.description && event.description.definition_short
-    let date = moment.utc(event.dates.start)
-    let time = date.format('HH:mm')
+    // shows the time only if not an "all day long" event
+    let time = eventIsAllDayLong(event.dates) ? '' : moment(event.dates.start).format('HH:mm')
     return (
         <li
             className="event__list-item"

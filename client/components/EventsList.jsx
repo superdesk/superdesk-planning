@@ -56,7 +56,7 @@ export class EventsList extends React.Component {
 
         let sortable = []
         for (let day in days) sortable.push({ date: day, events: days[day] })
-        sortable.sort((a, b) => a[1] - b[1])
+        sortable.sort((a, b) => a.date > b.date)
         return sortable
     }
 }

@@ -1,9 +1,10 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
-import { DayPickerInput } from './index'
-import { Field, reduxForm, SubmissionError } from 'redux-form'
-import { set, get } from 'lodash'
+import { DayPickerInput, RepeatEventForm } from './index'
+import { Field, reduxForm, SubmissionError, formValueSelector } from 'redux-form'
+import { set, get, isNil } from 'lodash'
+import moment from 'moment'
 
 export const renderInputField = ({ input, label, type, meta: { touched, error, warning } }) => (
     <div>
@@ -25,12 +26,31 @@ export class Component extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            isFullDay: false
+            doesRepeat: false,
         }
     }
 
-    handleIsFullDayChange(e) {
-        this.setState({ isFullDay: e.target.checked })
+    componentWillReceiveProps(props) {
+        if (props.doesRepeat) {
+            this.setState({ doesRepeat: true })
+        }
+    }
+
+    theDayAfterStartingDate() {
+        let nextDay
+        if (this.props.startingDate) {
+            nextDay = moment(this.props.startingDate).add(1, 'd')
+        }
+
+        return nextDay
+    }
+
+    handleDoesRepeatChange(event) {
+        if (!event.target.checked) {
+            this.props.change('dates.recurring_rule', null)
+        }
+        // update the state to hide the recurrent date form
+        this.setState({ doesRepeat: event.target.checked })
     }
 
     render() {
@@ -60,14 +80,28 @@ export class Component extends React.Component {
                 <div>
                     <Field name="dates.start"
                            component={DayPickerInput}
-                           withTime={!this.state.isFullDay}/>
+                           withTime={true}/>
                     &nbsp;to&nbsp;
                     <Field name="dates.end"
+                           defaultDate={this.theDayAfterStartingDate()}
                            component={DayPickerInput}
-                           withTime={!this.state.isFullDay}/>
+                           withTime={true}/>
                 </div>
-                <label htmlFor="isFullDay">Is full day</label>
-                <input type="checkbox" onChange={this.handleIsFullDayChange.bind(this)}/>
+                <div>
+                    <label htmlFor="repeat">Repeat ...</label>
+                    <input
+                        name="doesRepeat"
+                        type="checkbox"
+                        value={true}
+                        checked={this.state.doesRepeat}
+                        onChange={this.handleDoesRepeatChange.bind(this)}/>
+                    {
+                        this.state.doesRepeat &&
+                        // as <RepeatEventForm/> contains fields, we provide the props in this form
+                        // see http://redux-form.com/6.2.0/docs/api/Props.md
+                        <RepeatEventForm {...this.props} />
+                    }
+                </div>
                 {this.props.error && <div><strong>{this.props.error}</strong></div>}
             </form>
         )
@@ -94,9 +128,17 @@ export const FormComponent = reduxForm({
     enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
+const selector = formValueSelector('addEvent') // same as form name
+const mapStateToProps = (state) => ({
+    startingDate: selector(state, 'dates.start'),
+    endingDate: selector(state, 'dates.end'),
+    doesRepeat: !isNil(selector(state, 'dates.recurring_rule')),
+})
+
 const mapDispatchToProps = (dispatch) => ({
-    // `handleSubmit` will call `onSubmit` after validation
-    onSubmit: (event) => (
+    /** `handleSubmit` will call `onSubmit` after validation */
+    onSubmit: (event) => {
+        // save the event through the API
         dispatch(actions.saveEvent(event))
         .then((()=> (undefined)), (error) => {
             // in case of API error
@@ -109,8 +151,12 @@ const mapDispatchToProps = (dispatch) => ({
                 }
             }
         })
-    ),
+    }
 })
 
-const AddEventForm = connect(null, mapDispatchToProps, null, { withRef: true })(FormComponent)
+const AddEventForm = connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    null,
+    { withRef: true })(FormComponent)
 export default AddEventForm

@@ -1,5 +1,6 @@
 import { hideModal } from './modal'
 import { pickBy } from 'lodash'
+import moment from 'moment'
 
 const receiveEvents = (events) => ({
     type: 'RECEIVE_EVENTS',
@@ -19,9 +20,13 @@ export const saveEvent = (newEvent) => (
         let original = events.find((e) => e._id === newEvent._id)
         // clone the original because `save` will modify it
         original = original ? Object.assign({}, original) : {}
+        newEvent = newEvent ? Object.assign({}, newEvent) : {}
         // remove all properties starting with _,
         // otherwise it will fail for "unknown field" with `_type`
         newEvent = pickBy(newEvent, (v, k) => (!k.startsWith('_')))
+        // save UTC time zone
+        newEvent.dates.start = moment.utc(newEvent.dates.start)
+        newEvent.dates.end = moment.utc(newEvent.dates.end)
         return api('events').save(original, newEvent)
         // add the event to the store
         .then(data => {
