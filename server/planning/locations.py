@@ -148,7 +148,7 @@ class LocationsResource(superdesk.Resource):
     schema = locations_schema
     resource_methods = ['GET', 'POST']
     datasource = {
-        'source': 'events',
+        'source': 'locations',
         'search_backend': 'elastic'
     }
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
