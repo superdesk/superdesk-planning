@@ -13,12 +13,8 @@ const requestEvents = () => ({
 export const addEvents = (events) => ({
     type: 'ADD_EVENTS', events
 })
-export const saveLocation = (newLocation) => (
+export const saveNewLocation = (newLocation) => (
     (dispatch, getState, { api }) => {
-        // check if the newLocation is already saved in internal
-        // locations resources, if so just return the name and
-        // guid (but should be a promise)
-            
         // Map location.gmaps fields to formattedLocation
         // TODO: refactor with a loop or map function
         let addressComponents = newLocation.gmaps.address_components
@@ -82,6 +78,25 @@ export const saveLocation = (newLocation) => (
         return api('locations').save({}, formattedLocation)
         
     }
+)
+export const saveLocation = (newLocation) => (
+    (dispatch, getState, { api }) => {
+        // TODO: check if the newLocation is already saved in internal
+        // locations resources, if so just return the name and
+        // guid (but should be a promise)
+        api('locations').query({
+            unique_name: newLocation.gmaps.formatted_address
+        })
+        .then(data => {
+            if (data._items) {
+                // we have this location stored already
+                return new Promise(() => data._items[0]) 
+            } else {
+                // this is a new location
+                return dispatch(saveNewLocation(newLocation))
+            } 
+        })
+    }            
 )
 export const saveEvent = (newEvent) => (
     (dispatch, getState, { api }) => {
