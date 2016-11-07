@@ -2,7 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
 import { DayPickerInput } from './index'
-import { GeoSuggestInput } from './index'
+import { AddGeoSuggestInput } from './index'
 import { Field, reduxForm, SubmissionError } from 'redux-form'
 import { set, get } from 'lodash'
 
@@ -24,7 +24,7 @@ export const renderGeoSuggestInput = ({ input, label, googleApiKey, meta: { touc
     <div>
         {label && <label>{label}</label>}
         <div>
-            <GeoSuggestInput onChange={input.onChange} googleApiKey={googleApiKey} initialValue={input.value}/>
+            <AddGeoSuggestInput onChange={input.onChange} googleApiKey={googleApiKey} initialValue={input.value}/>
             {touched && ((error && <span className="help-block">{error}</span>) ||
             (warning && <span className="help-block">{warning}</span>))}
         </div>
