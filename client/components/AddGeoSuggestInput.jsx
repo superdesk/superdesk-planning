@@ -1,4 +1,6 @@
 import React, { PropTypes } from 'react'
+import { connect } from 'react-redux'
+import * as actions from '../actions'
 import ReactDOM from 'react-dom'
 import Geosuggest from 'react-geosuggest'
 import loadGoogleMapsAPI from 'load-google-maps-api'
@@ -60,5 +62,20 @@ export class GeoSuggestInput extends React.Component {
         this.props.onChange(suggest)
     }
 }
+
 GeoSuggestInput.propTypes = { googleApiKey: PropTypes.string } 
-GeoSuggestInput.propTypes = { initialValue: PropTypes.string } 
+GeoSuggestInput.propTypes = { initialValue: PropTypes.string }
+
+const mapDispatchToProps = (dispatch) => ({
+    onChange: (suggest) => {
+        // save (or get) location from suggesti$a
+        dispatch(actions.saveLocation(suggest))
+        .then((newLocation) => {
+            console.log('NEW LOCATION', newLocation)
+        }, (error) => {
+            console.log('ERROR', error)
+        })
+    }
+})
+
+export const AddGeoSuggestInput = connect(undefined, mapDispatchToProps, null, { withRef: true })(GeoSuggestInput)
