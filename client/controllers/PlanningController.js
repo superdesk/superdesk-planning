@@ -9,8 +9,8 @@ import createLogger from 'redux-logger'
 
 const loggerMiddleware = createLogger()
 
-PlanningModalController.$inject = ['$element', 'api', 'config']
-export function PlanningModalController($element, api, config) {
+PlanningController.$inject = ['$element', 'api', 'config']
+export function PlanningController($element, api, config) {
     let store = createStore(
         planningApp,
         { 'config': config },
