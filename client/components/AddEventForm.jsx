@@ -7,7 +7,12 @@ import { Field, reduxForm, SubmissionError, formValueSelector } from 'redux-form
 import { set, get, isNil } from 'lodash'
 import moment from 'moment'
 
-export const renderInputField = ({ input, label, type, meta: { touched, error, warning } }) => (
+export const renderInputField = ({
+    input,
+    label,
+    type,
+    meta: { touched, error, warning }
+}) => (
     <div>
         {label && <label>{label}</label>}
         <div>
@@ -21,17 +26,25 @@ export const renderInputField = ({ input, label, type, meta: { touched, error, w
 // TODO: there is an issue using input.value as initialValue here when onChange runs
 // and sets the value to an object (gmaps address object)
 // gotta fix this
-export const renderGeoSuggestInput = ({ input, label, googleApiKey, meta: { touched, error, warning } }) => (
+export const renderGeoSuggestInput = ({
+    input,
+    label,
+    googleApiKey,
+    meta: { touched, error, warning }
+}) => (
     <div>
         {label && <label>{label}</label>}
         <div>
-            <AddGeoSuggestInput onChange={input.onChange} googleApiKey={googleApiKey} initialValue={input.value}/>
+            <AddGeoSuggestInput
+                onChange={input.onChange}
+                googleApiKey={googleApiKey}
+                initialValue={input.value || {}}/>
             {touched && ((error && <span className="help-block">{error}</span>) ||
             (warning && <span className="help-block">{warning}</span>))}
         </div>
     </div>
 )
-        
+
 /**
 * Form for adding/editing an event
 * @constructor Init the state
@@ -85,10 +98,13 @@ export class Component extends React.Component {
                            label="Description"/>
                 </div>
                 <div>
-                    <Field name="location[0].name"
+                    <Field name="location[0]"
                            component={renderGeoSuggestInput}
                            googleApiKey={this.props.googleApiKey}
                            label="Location"/>
+                    <Field name="location[0].qcode"
+                           component={renderInputField}
+                           type="hidden"/>
                 </div>
                 <div>
                     <label htmlFor="dates.start">When</label>

@@ -6,7 +6,7 @@ import forms from './forms'
 const planningApp = combineReducers({
     modal,
     events,
-    config: (state) => ( state || {} ),
+    config: (state) => (state || {}),
     form: forms
 })
 

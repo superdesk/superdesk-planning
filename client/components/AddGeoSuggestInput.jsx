@@ -1,7 +1,6 @@
 import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
-import ReactDOM from 'react-dom'
 import Geosuggest from 'react-geosuggest'
 import loadGoogleMapsAPI from 'load-google-maps-api'
 
@@ -19,22 +18,14 @@ export class GeoSuggestInput extends React.Component {
 
     componentDidMount() {
         let opts = {
-            'key': this.props.googleApiKey,
-            'libraries': [
-                'places'
-            ]
+            key: this.props.googleApiKey,
+            libraries: ['places']
         }
-        loadGoogleMapsAPI(opts).then((googleMaps) => { 
-            this.setState({
-                googleMaps: googleMaps
-            })
-        }).catch((err) => {
-            console.error('COULD NOT LOAD GOOGLE MAPS API', err)
+        loadGoogleMapsAPI(opts).then((googleMaps) => {
+            this.setState({ googleMaps: googleMaps })
+        }).catch((e) => {
+            throw new Error('Could not load Google Maps API: ' + e.message)
         })
-
-        // TODO: load fixtures (internal locations) to set in Geosuggest
-        // render function below, to ensure we do not attempt to re-save
-        // existing locations
     }
 
     render() {
@@ -44,7 +35,7 @@ export class GeoSuggestInput extends React.Component {
                 <Geosuggest
                     googleMaps={this.state.googleMaps}
                     placeholder="Start typing"
-                    initialValue={this.props.initialValue}
+                    initialValue={this.props.initialValue.name}
                     onSuggestSelect={this.onSuggestSelect.bind(this)}
                 />
               </div>
@@ -63,19 +54,26 @@ export class GeoSuggestInput extends React.Component {
     }
 }
 
-GeoSuggestInput.propTypes = { googleApiKey: PropTypes.string } 
+GeoSuggestInput.propTypes = { googleApiKey: PropTypes.string }
 GeoSuggestInput.propTypes = { initialValue: PropTypes.string }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapStateToProps = (state) => ({
+    googleApiKey: state.config.google.key
+})
+
+const mapDispatchToProps = (dispatch, ownProps) => ({
     onChange: (suggest) => {
         // save (or get) location from suggesti$a
         dispatch(actions.saveLocation(suggest))
         .then((newLocation) => {
-            console.log('NEW LOCATION', newLocation)
-        }, (error) => {
-            console.log('ERROR', error)
+            ownProps.onChange(newLocation)
+        }, (e) => {
+            throw new Error('Could not load Google Maps API: ' + e.message)
         })
     }
 })
 
-export const AddGeoSuggestInput = connect(undefined, mapDispatchToProps, null, { withRef: true })(GeoSuggestInput)
+export const AddGeoSuggestInput = connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(GeoSuggestInput)

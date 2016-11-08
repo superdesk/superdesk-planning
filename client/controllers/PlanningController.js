@@ -13,7 +13,7 @@ PlanningController.$inject = ['$element', 'api', 'config']
 export function PlanningController($element, api, config) {
     let store = createStore(
         planningApp,
-        { 'config': config },
+        { config: config },
         applyMiddleware(
             // include angular services in available actions paramaters
             thunkMiddleware.withExtraArgument({ api }),
