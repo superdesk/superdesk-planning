@@ -22,7 +22,6 @@ export const saveEvent = (newEvent) => (
         // remove all properties starting with _,
         // otherwise it will fail for "unknown field" with `_type`
         newEvent = pickBy(newEvent, (v, k) => (!k.startsWith('_')))
-
         return api('events').save(original, newEvent)
         // add the event to the store
         .then(data => {

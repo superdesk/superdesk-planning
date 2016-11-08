@@ -6,7 +6,12 @@ import { AddGeoSuggestInput } from './index'
 import { Field, reduxForm, SubmissionError } from 'redux-form'
 import { set, get } from 'lodash'
 
-export const renderInputField = ({ input, label, type, meta: { touched, error, warning } }) => (
+export const renderInputField = ({
+    input,
+    label,
+    type,
+    meta: { touched, error, warning }
+}) => (
     <div>
         {label && <label>{label}</label>}
         <div>
@@ -20,17 +25,25 @@ export const renderInputField = ({ input, label, type, meta: { touched, error, w
 // TODO: there is an issue using input.value as initialValue here when onChange runs
 // and sets the value to an object (gmaps address object)
 // gotta fix this
-export const renderGeoSuggestInput = ({ input, label, googleApiKey, meta: { touched, error, warning } }) => (
+export const renderGeoSuggestInput = ({
+    input,
+    label,
+    googleApiKey,
+    meta: { touched, error, warning }
+}) => (
     <div>
         {label && <label>{label}</label>}
         <div>
-            <AddGeoSuggestInput onChange={input.onChange} googleApiKey={googleApiKey} initialValue={input.value}/>
+            <AddGeoSuggestInput
+                onChange={input.onChange}
+                googleApiKey={googleApiKey}
+                initialValue={input.value || {}}/>
             {touched && ((error && <span className="help-block">{error}</span>) ||
             (warning && <span className="help-block">{warning}</span>))}
         </div>
     </div>
 )
-        
+
 /**
 * Form for adding/editing an event
 * @constructor Init the state
@@ -64,10 +77,13 @@ export class Component extends React.Component {
                            label="Description"/>
                 </div>
                 <div>
-                    <Field name="location[0].name"
+                    <Field name="location[0]"
                            component={renderGeoSuggestInput}
                            googleApiKey={this.props.googleApiKey}
                            label="Location"/>
+                    <Field name="location[0].qcode"
+                           component={renderInputField}
+                           type="hidden"/>
                 </div>
                 <div>
                     <label htmlFor="dates.start">When</label>
@@ -109,10 +125,6 @@ export const FormComponent = reduxForm({
     enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
-const mapStateToProps = (state) => ({
-    googleApiKey: state.config.google.key
-})
-
 const mapDispatchToProps = (dispatch) => ({
     // `handleSubmit` will call `onSubmit` after validation
     onSubmit: (event) => (
@@ -131,5 +143,10 @@ const mapDispatchToProps = (dispatch) => ({
     ),
 })
 
-const AddEventForm = connect(mapStateToProps, mapDispatchToProps, null, { withRef: true })(FormComponent)
+const AddEventForm = connect(
+    undefined,
+    mapDispatchToProps,
+    null,
+    { withRef: true }
+)(FormComponent)
 export default AddEventForm
