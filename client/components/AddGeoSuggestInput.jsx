@@ -24,7 +24,7 @@ export class GeoSuggestInput extends React.Component {
                 'places'
             ]
         }
-        loadGoogleMapsAPI(opts).then((googleMaps) => { 
+        loadGoogleMapsAPI(opts).then((googleMaps) => {
             this.setState({
                 googleMaps: googleMaps
             })
@@ -44,7 +44,7 @@ export class GeoSuggestInput extends React.Component {
                 <Geosuggest
                     googleMaps={this.state.googleMaps}
                     placeholder="Start typing"
-                    initialValue={this.props.initialValue}
+                    initialValue={this.props.initialValue.name}
                     onSuggestSelect={this.onSuggestSelect.bind(this)}
                 />
               </div>
@@ -63,19 +63,21 @@ export class GeoSuggestInput extends React.Component {
     }
 }
 
-GeoSuggestInput.propTypes = { googleApiKey: PropTypes.string } 
-GeoSuggestInput.propTypes = { initialValue: PropTypes.string }
+GeoSuggestInput.propTypes = { googleApiKey: PropTypes.string }
+GeoSuggestInput.propTypes = { initialValue: PropTypes.object }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
     onChange: (suggest) => {
         // save (or get) location from suggesti$a
         dispatch(actions.saveLocation(suggest))
         .then((newLocation) => {
             console.log('NEW LOCATION', newLocation)
+            // update the value of the field with the object
+            ownProps.onChange(newLocation)
         }, (error) => {
             console.log('ERROR', error)
         })
     }
 })
 
-export const AddGeoSuggestInput = connect(undefined, mapDispatchToProps, null, { withRef: true })(GeoSuggestInput)
+export const AddGeoSuggestInput = connect(undefined, mapDispatchToProps)(GeoSuggestInput)
