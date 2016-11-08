@@ -24,13 +24,13 @@ export const renderGeoSuggestInput = ({ input, label, googleApiKey, meta: { touc
     <div>
         {label && <label>{label}</label>}
         <div>
-            <AddGeoSuggestInput onChange={input.onChange} googleApiKey={googleApiKey} initialValue={input.value}/>
+            <AddGeoSuggestInput onChange={input.onChange} googleApiKey={googleApiKey} initialValue={input.value || {}} />
             {touched && ((error && <span className="help-block">{error}</span>) ||
             (warning && <span className="help-block">{warning}</span>))}
         </div>
     </div>
 )
-        
+
 /**
 * Form for adding/editing an event
 * @constructor Init the state
@@ -64,7 +64,7 @@ export class Component extends React.Component {
                            label="Description"/>
                 </div>
                 <div>
-                    <Field name="location[0].name"
+                    <Field name="location[0]"
                            component={renderGeoSuggestInput}
                            googleApiKey={this.props.googleApiKey}
                            label="Location"/>
