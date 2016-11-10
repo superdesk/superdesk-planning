@@ -58,7 +58,7 @@ GeoSuggestInput.propTypes = { googleApiKey: PropTypes.string }
 GeoSuggestInput.propTypes = { initialValue: PropTypes.string }
 
 const mapStateToProps = (state) => ({
-    googleApiKey: state.config.google.key
+    googleApiKey: state.config.google ? state.config.google.key : ''
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
