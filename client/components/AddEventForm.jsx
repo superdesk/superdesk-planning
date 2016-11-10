@@ -29,7 +29,6 @@ export const renderInputField = ({
 export const renderGeoSuggestInput = ({
     input,
     label,
-    googleApiKey,
     meta: { touched, error, warning }
 }) => (
     <div>
@@ -37,7 +36,6 @@ export const renderGeoSuggestInput = ({
         <div>
             <AddGeoSuggestInput
                 onChange={input.onChange}
-                googleApiKey={googleApiKey}
                 initialValue={input.value || {}}/>
             {touched && ((error && <span className="help-block">{error}</span>) ||
             (warning && <span className="help-block">{warning}</span>))}
@@ -100,7 +98,6 @@ export class Component extends React.Component {
                 <div>
                     <Field name="location[0]"
                            component={renderGeoSuggestInput}
-                           googleApiKey={this.props.googleApiKey}
                            label="Location"/>
                     <Field name="location[0].qcode"
                            component={renderInputField}
