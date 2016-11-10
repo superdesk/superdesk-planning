@@ -55,7 +55,7 @@ export class GeoSuggestInput extends React.Component {
 }
 
 GeoSuggestInput.propTypes = { googleApiKey: PropTypes.string }
-GeoSuggestInput.propTypes = { initialValue: PropTypes.string }
+GeoSuggestInput.propTypes = { initialValue: PropTypes.object }
 
 const mapStateToProps = (state) => ({
     googleApiKey: state.config.google ? state.config.google.key : ''
