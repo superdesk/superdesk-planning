@@ -61,14 +61,15 @@ Feature: Events
         [
             {
                 "unique_id": "123",
-                "unique_name": "JO",
+                "unique_name": "Friday Club",
                 "dates": {
-                    "start": "2016-01-02",
-                    "end": "2016-01-18",
+                    "start": "2016-11-17T23:00:00.000Z",
+                    "end": "2016-11-18T00:00:00.000Z",
+                    "tz": "Europe/Berlin",
                     "recurring_rule": {
-                        "frequency": "YEARLY",
-                        "interval": 4,
-                        "count": 4
+                        "frequency": "WEEKLY",
+                        "byday": "FR",
+                        "count": 3
                     }
                 }
             }
@@ -78,22 +79,47 @@ Feature: Events
         """
         {"_items": [
             {
-                "unique_name": "JO",
-                "dates": {"start": "2016-01-02T00:00:00+0000", "end": "2016-01-18T00:00:00+0000"}
+                "unique_name": "Friday Club",
+                "dates": {"start": "2016-11-17T23:00:00+0000", "end": "2016-11-18T00:00:00+0000"}
             },
             {
-                "unique_name": "JO",
-                "dates": {"start": "2020-01-02T00:00:00+0000", "end": "2020-01-18T00:00:00+0000"}
+                "unique_name": "Friday Club",
+                "dates": {"start": "2016-11-24T23:00:00+0000", "end": "2016-11-25T00:00:00+0000"}
             },
             {
-                "unique_name": "JO",
-                "dates": {"start": "2024-01-02T00:00:00+0000", "end": "2024-01-18T00:00:00+0000"}
-                },
-            {
-                "unique_name": "JO",
-                "dates": {"start": "2028-01-02T00:00:00+0000", "end": "2028-01-18T00:00:00+0000"}
+                "unique_name": "Friday Club",
+                "dates": {"start": "2016-12-01T23:00:00+0000", "end": "2016-12-02T00:00:00+0000"}
             }
         ]}
         """
-        When we get "/events?source={"query": {"term": {"unique_name": "JO"}}}"
-        Then we get list with 4 items
+        When we get "/events?source={"query": {"term": {"unique_name": "Friday Club"}}}"
+        Then we get list with 3 items
+
+    @auth
+    @notification
+    Scenario: Prevent to save an event with an existing unique_name
+    When we post to "/events" with success
+    """
+    [
+        {
+            "unique_name": "JO",
+            "dates": {
+                "start": "2016-01-02",
+                "end": "2016-01-18"
+            }
+        }
+    ]
+    """
+    And we post to "/events"
+    """
+    [
+        {
+            "unique_name": "JO",
+            "dates": {
+                "start": "2016-01-10",
+                "end": "2016-01-18"
+            }
+        }
+    ]
+    """
+    Then we get error 400

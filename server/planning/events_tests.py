@@ -1,18 +1,19 @@
 import unittest
 from planning.events import generate_recurring_dates
 import datetime
+import pytz
 
 
 class EventTestCase(unittest.TestCase):
     def test_recurring_dates_generation(self):
         # Every other thurdsay and friday afternoon on January 2016
-        self.assertEquals(generate_recurring_dates(
+        self.assertEquals(list(generate_recurring_dates(
             start=datetime.datetime(2016, 1, 1, 15, 0),
             frequency='WEEKLY',
             byday='TH FR',
             interval=2,
             until=datetime.datetime(2016, 2, 1),
-        ), [
+        )), [
             datetime.datetime(2016, 1, 1, 15, 0),  # friday 1st
             datetime.datetime(2016, 1, 14, 15, 0),  # thursday 14th
             datetime.datetime(2016, 1, 15, 15, 0),  # friday 15th
@@ -20,12 +21,12 @@ class EventTestCase(unittest.TestCase):
             datetime.datetime(2016, 1, 29, 15, 0),  # friday 29th
         ])
         # Every working day
-        self.assertEquals(generate_recurring_dates(
+        self.assertEquals(list(generate_recurring_dates(
             start=datetime.datetime(2016, 1, 1),
             frequency='WEEKLY',
             byday='MO TU WE TH FR',
             count=5,
-        ), [
+        )), [
             datetime.datetime(2016, 1, 1),  # friday
             datetime.datetime(2016, 1, 4),  # monday
             datetime.datetime(2016, 1, 5),
@@ -33,12 +34,12 @@ class EventTestCase(unittest.TestCase):
             datetime.datetime(2016, 1, 7),
         ])
         # Next 4 Summer Olympics
-        self.assertEquals(generate_recurring_dates(
+        self.assertEquals(list(generate_recurring_dates(
             start=datetime.datetime(2016, 1, 2),
             frequency='YEARLY',
             interval=4,
             count=4,
-        ), [
+        )), [
             datetime.datetime(2016, 1, 2),
             datetime.datetime(2020, 1, 2),
             datetime.datetime(2024, 1, 2),
@@ -52,6 +53,18 @@ class EventTestCase(unittest.TestCase):
         self.assertTrue(datetime.datetime(1989, 12, 13) in my_birthdays)
         self.assertTrue(datetime.datetime(2016, 12, 13) in my_birthdays)
         self.assertTrue(datetime.datetime(9999, 12, 13) in my_birthdays)
+        # Time zone
+        self.assertEquals(list(generate_recurring_dates(
+            start=datetime.datetime(2016, 11, 17, 23, 00),
+            frequency='WEEKLY',
+            byday='FR',
+            count=3,
+            tz=pytz.timezone('Europe/Berlin')
+        )), [
+            datetime.datetime(2016, 11, 17, 23, 00),  # it's friday in Berlin
+            datetime.datetime(2016, 11, 24, 23, 00),  # it's friday in Berlin
+            datetime.datetime(2016, 12, 1, 23, 00),  # it's friday in Berlin
+        ])
 
 
 if __name__ == '__main__':

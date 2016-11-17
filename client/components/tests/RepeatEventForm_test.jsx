@@ -22,7 +22,7 @@ describe('<RepeatEventForm />', () => {
     })
 
     it('generates interval options', () => {
-        expect(wrapper.find('.interval option').length).toBe(30 + 1)
+        expect(wrapper.find('.recurring__interval option').length).toBe(30)
     })
 
     it('checks well radio btn for end of recurring dates', () => {

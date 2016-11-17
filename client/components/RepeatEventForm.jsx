@@ -19,26 +19,33 @@ class RepeatEventFormComponent extends React.Component {
     }
 
     render() {
+        const frequences = {
+            YEARLY: 'years',
+            MONTHLY: 'months',
+            WEEKLY: 'weeks',
+            DAILY: 'days',
+        }
         return (
             <div>
                 <div>
                     <label>Repeats</label>
                     <Field name="dates.recurring_rule.frequency" component="select">
                         <option></option>
-                        {/* values come from http://tinyurl.com/hqol55p  */}
+                        {/* values come from http://tinyurl.com/hqol55p */}
                         <option value="YEARLY">Yearly</option>
                         <option value="MONTHLY">Monthly</option>
                         <option value="WEEKLY">Weekly</option>
                         <option value="DAILY">Daily</option>
                     </Field>
                 </div>
-                <div className="interval">
+                <div className="recurring__interval">
                     <label>Repeat Every</label>
                     <Field name="dates.recurring_rule.interval" component="select">
-                        <option></option>
                         {/* Create 30 options with 1...30 values */}
                         {Array.apply(null, { length: 30 }).map(Number.call, Number).map((n) => (
-                            <option key={n + 1} value={n + 1}>{n + 1}</option>
+                            <option key={n + 1} value={n + 1}>
+                                {n + 1} {frequences[this.props.frequency]}
+                            </option>
                         ))}
                     </Field>
                 </div>
@@ -48,7 +55,7 @@ class RepeatEventFormComponent extends React.Component {
                         <Field name="dates.recurring_rule.byday" component={DaysOfWeek} />
                     </div>
                 }
-                <div>
+                <div className="recurring__ends">
                     <label>Ends</label>
                     <label>
                         <input
@@ -73,14 +80,14 @@ class RepeatEventFormComponent extends React.Component {
                     </label>
                     <label>
                         <input
-                            name="doesRepeatEnd"
-                            checked={this.props.doesRepeatEnd === 'until'}
-                            readOnly={true}
-                            value="until"
-                            type="radio"/>
+                        name="doesRepeatEnd"
+                        checked={this.props.doesRepeatEnd === 'until'}
+                        readOnly={true}
+                        value="until"
+                        type="radio"/>
+                        Until
                         <Field name="dates.recurring_rule.until"
                                component={DayPickerInput} />
-                        Until
                     </label>
                 </div>
             </div>

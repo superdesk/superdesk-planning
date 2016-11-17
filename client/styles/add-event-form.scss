@@ -1,0 +1,14 @@
+.AddEventForm {
+    label { margin-top: 10px; }
+    // sub form to define a recurring date
+    .recurring {
+        &__ends {
+            label { display: block }
+            input[type="radio"] { margin-right: 10px; }
+            input[type="text"],input[type="number"] {
+                margin: 0 10px;
+                width: 100px;
+            }
+        }
+    }
+}

@@ -1,8 +1,17 @@
 import { reducer as formReducer } from 'redux-form'
 
+const initialEvent = {
+    values: {
+        dates: {
+            recurring_rule: {
+                interval: 1
+            }
+        }
+    }
+}
 const forms = formReducer.plugin({
     // 'addEvent' is name of form given to reduxForm()
-    addEvent: (state, action) => {
+    addEvent: (state=initialEvent, action) => {
         switch (action.type) {
             case 'EVENT_SAVE_SUCCESS':
                 return undefined // blow away form data

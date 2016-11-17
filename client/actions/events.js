@@ -1,6 +1,6 @@
 import { hideModal } from './modal'
 import { pickBy } from 'lodash'
-import moment from 'moment'
+import moment from 'moment-timezone'
 
 const receiveEvents = (events) => ({
     type: 'RECEIVE_EVENTS',
@@ -10,8 +10,8 @@ const receiveEvents = (events) => ({
 const requestEvents = () => ({
     type: 'REQUEST_EVENTS'
 })
-export const addEvent = (event) => ({
-    type: 'ADD_EVENT', event
+export const addEvents = (events) => ({
+    type: 'ADD_EVENTS', events
 })
 export const saveEvent = (newEvent) => (
     (dispatch, getState, { api }) => {
@@ -19,18 +19,18 @@ export const saveEvent = (newEvent) => (
         // retrieve original
         let original = events.find((e) => e._id === newEvent._id)
         // clone the original because `save` will modify it
-        original = original ? Object.assign({}, original) : {}
-        newEvent = newEvent ? Object.assign({}, newEvent) : {}
+        original = original ? JSON.parse(JSON.stringify(original)) : {}
+        newEvent = newEvent ? JSON.parse(JSON.stringify(newEvent)) : {}
         // remove all properties starting with _,
         // otherwise it will fail for "unknown field" with `_type`
         newEvent = pickBy(newEvent, (v, k) => (!k.startsWith('_')))
-        // save UTC time zone
-        newEvent.dates.start = moment.utc(newEvent.dates.start)
-        newEvent.dates.end = moment.utc(newEvent.dates.end)
+        // save the timezone. This is useful for recurring events
+        newEvent.dates.tz = moment.tz.guess()
+        // send the event on the backend
         return api('events').save(original, newEvent)
         // add the event to the store
         .then(data => {
-            dispatch(addEvent(data))
+            dispatch(addEvents(data._items || [data]))
             // notify the end of the action and reset the form
             dispatch({ type: 'EVENT_SAVE_SUCCESS' })
             // hide the modal

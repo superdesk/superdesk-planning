@@ -8,7 +8,7 @@ module.exports = {
         filename: 'app.bundle.js',
     },
     resolve: {
-        extensions: ['', '.js', '.jsx']
+        extensions: ['', '.js', '.jsx', '.json']
     },
     module: {
         loaders: [
@@ -33,6 +33,10 @@ module.exports = {
             {
                 test: /\.scss$/,
                 loader: 'style!css!sass'
+            },
+            {
+                include: /\.json$/,
+                loaders: ['json-loader']
             }
         ]
     },

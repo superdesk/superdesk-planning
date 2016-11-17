@@ -36,7 +36,7 @@ export class AddEvent extends React.Component {
 const mapStateToProps = (state) => ({
     show: state.modal.modalType === 'EDIT_EVENT',
     modalProps: state.modal.modalProps,
-    initialValues: state.modal.modalProps.event || {}
+    initialValues: state.modal.modalProps.event
 })
 
 const mapDispatchToProps = (dispatch) => ({
