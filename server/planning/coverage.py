@@ -30,6 +30,7 @@ class CoverageService(superdesk.Service):
         for doc in docs:
             doc['guid'] = generate_guid(type=GUID_NEWSML)
 
+
 coverage_schema = {
     # Identifiers
     'guid': {

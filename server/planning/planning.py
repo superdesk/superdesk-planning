@@ -30,6 +30,7 @@ class PlanningService(superdesk.Service):
         for doc in docs:
             doc['guid'] = generate_guid(type=GUID_NEWSML)
 
+
 planning_schema = {
     # Identifiers
     'guid': {

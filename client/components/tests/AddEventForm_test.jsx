@@ -1,6 +1,6 @@
 import React from 'react'
 import { mount, shallow } from 'enzyme'
-import { renderInputField, FormComponent, Component } from '../AddEventForm'
+import AddEventForm, { renderInputField, FormComponent, Component } from '../AddEventForm'
 import sinon from 'sinon'
 import { createStore } from 'redux'
 import { Provider } from 'react-redux'
@@ -8,36 +8,42 @@ import planningApp from '../../reducers'
 
 const event = {
     _id: '5800d71930627218866f1e80',
-    dates: { start: '2016-10-15T00:00:00+0000', ends: '2016-10-16T00:00:00+0000' },
+    dates: { start: '2016-10-15T14:30+0000', end: '2016-10-20T15:00+0000' },
     description: { definition_short: 'definition_short 1' },
     location: [{ name: 'location1' }],
     unique_name: 'name1'
 }
 
 describe('<FormComponent />', () => {
-    let subject = null
-    let submitting
-    let onSaveResponse
-    let handleSubmit
-    beforeEach(() => {
-        submitting = false
-        onSaveResponse = Promise.resolve()
-        handleSubmit = fn => fn
-    })
-    const buildSubject = () => {
-        handleSubmit = sinon.stub().returns(onSaveResponse)
+    it('submit the form', () => {
+        let submitting = false
+        let onSaveResponse = Promise.resolve()
+        let handleSubmit = sinon.stub().returns(onSaveResponse)
         const props = {
             modalType: 'EDIT_EVENT',
             submitting: submitting,
             handleSubmit,
         }
-        return shallow(<Component {...props}/>)
-    }
-
-    it('submit the form', () => {
-        subject = buildSubject()
+        let subject = shallow(<Component {...props}/>)
         subject.find('form').simulate('submit')
         expect(handleSubmit.callCount).toBe(1)
+    })
+    it('compute right dates', () => {
+        const expectDatesInStoreToBe = (expectedDates) => {
+            let { start, end } = store.getState().form.addEvent.values.dates
+            expect(start.isSame(expectedDates.start)).toBe(true)
+            expect(end.isSame(expectedDates.end)).toBe(true)
+        }
+
+        let store = createStore(planningApp, {})
+        const initialValues = event
+        mount(
+            <Provider store={store}>
+                <AddEventForm initialValues={initialValues} />
+            </Provider>
+        )
+        let originalDates = event.dates
+        expectDatesInStoreToBe(originalDates)
     })
     it('fill the form', () => {
         let store = createStore(planningApp, {})
