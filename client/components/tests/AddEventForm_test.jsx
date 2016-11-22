@@ -11,9 +11,9 @@ import thunkMiddleware from 'redux-thunk'
 const event = {
     _id: '5800d71930627218866f1e80',
     dates: { start: '2016-10-15T14:30+0000', end: '2016-10-20T15:00+0000' },
-    description: { definition_short: 'definition_short 1' },
+    definition_short: 'definition_short 1',
     location: [{ name: 'location1' }],
-    unique_name: 'name1'
+    name: 'name1'
 }
 
 describe('<FormComponent />', () => {
@@ -90,7 +90,7 @@ describe('<FormComponent />', () => {
                 <FormComponent initialValues={initialValues} />
             </Provider>
         )
-        expect(wrapper.find('[name="unique_name"]').props().value).toBe(initialValues.unique_name)
+        expect(wrapper.find('[name="name"]').props().value).toBe(initialValues.name)
     })
     it('detects a recurring event', () => {
         let store = createStore(planningApp, {})
