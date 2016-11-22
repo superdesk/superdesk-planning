@@ -47,7 +47,8 @@ export class Component extends React.Component {
 
     handleDoesRepeatChange(event) {
         if (!event.target.checked) {
-            this.props.change('dates.recurring_rule', null)
+            // if unchecked, remove the recurring rules
+            this.props.change('dates.recurring_rule', {})
         }
         // update the state to hide the recurrent date form
         this.setState({ doesRepeat: event.target.checked })
@@ -55,7 +56,7 @@ export class Component extends React.Component {
 
     render() {
         return (
-            <form onSubmit={this.props.handleSubmit}>
+            <form onSubmit={this.props.handleSubmit} className="AddEventForm">
                 <div>
                     <Field name="unique_name"
                            component={renderInputField}
@@ -108,9 +109,8 @@ export class Component extends React.Component {
     }
 }
 
-const requiredFields = ['unique_name', 'dates.start']
-
 const validate = values => {
+    const requiredFields = ['unique_name', 'dates.start']
     const errors = {}
     requiredFields.forEach((field) => {
         if (!get(values, field)) {
@@ -132,26 +132,24 @@ const selector = formValueSelector('addEvent') // same as form name
 const mapStateToProps = (state) => ({
     startingDate: selector(state, 'dates.start'),
     endingDate: selector(state, 'dates.end'),
-    doesRepeat: !isNil(selector(state, 'dates.recurring_rule')),
+    doesRepeat: !isNil(selector(state, 'dates.recurring_rule.frequency')),
 })
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event) => {
+    onSubmit: (event) => (
         // save the event through the API
         dispatch(actions.saveEvent(event))
         .then((()=> (undefined)), (error) => {
             // in case of API error
-            if (error.data._error) {
-                if (error.data._issues.unique_name && error.data._issues.unique_name.unique === 1) {
-                    throw new SubmissionError({
-                        unique_name: 'Name must be unique',
-                        _error: 'Name must be unique'
-                    })
-                }
+            if (error.data._issues.unique_name && error.data._issues.unique_name.unique === 1) {
+                throw new SubmissionError({
+                    unique_name: 'Name must be unique',
+                    _error: 'Name must be unique'
+                })
             }
         })
-    }
+    )
 })
 
 const AddEventForm = connect(

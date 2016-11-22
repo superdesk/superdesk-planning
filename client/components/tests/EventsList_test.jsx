@@ -75,11 +75,11 @@ describe('<EventsList />', () => {
             location: [{ name: 'location3' }],
             unique_name: 'name4'
         }
-        store.dispatch(actions.addEvent(newEvent))
+        store.dispatch(actions.addEvents([newEvent]))
         expect(wrapper.find('li').length).toEqual(4)
         // update an item
         const updatedEvent = Object.assign({}, newEvent, { unique_name: 'new name' })
-        store.dispatch(actions.addEvent(updatedEvent))
+        store.dispatch(actions.addEvents([updatedEvent]))
         expect(wrapper.find('li').length).toEqual(4)
         expect(wrapper.find('li').last().find('.event__unique-name').text()).toBe('new name')
     })
