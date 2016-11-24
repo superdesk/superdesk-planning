@@ -2,7 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
 import { DayPickerInput, RepeatEventForm } from './index'
-import { Field, reduxForm, SubmissionError, formValueSelector } from 'redux-form'
+import { Field, reduxForm, formValueSelector } from 'redux-form'
 import { set, get, isNil } from 'lodash'
 import moment from 'moment'
 
@@ -58,13 +58,13 @@ export class Component extends React.Component {
         return (
             <form onSubmit={this.props.handleSubmit} className="AddEventForm">
                 <div>
-                    <Field name="unique_name"
+                    <Field name="name"
                            component={renderInputField}
                            type="text"
                            label="What"/>
                 </div>
                 <div>
-                    <Field name="description.definition_short"
+                    <Field name="definition_short"
                            component={renderInputField}
                            type="text"
                            label="Description"/>
@@ -110,7 +110,7 @@ export class Component extends React.Component {
 }
 
 const validate = values => {
-    const requiredFields = ['unique_name', 'dates.start']
+    const requiredFields = ['name', 'dates.start']
     const errors = {}
     requiredFields.forEach((field) => {
         if (!get(values, field)) {
@@ -140,15 +140,6 @@ const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event) => (
         // save the event through the API
         dispatch(actions.saveEvent(event))
-        .then((()=> (undefined)), (error) => {
-            // in case of API error
-            if (error.data._issues.unique_name && error.data._issues.unique_name.unique === 1) {
-                throw new SubmissionError({
-                    unique_name: 'Name must be unique',
-                    _error: 'Name must be unique'
-                })
-            }
-        })
     )
 })
 

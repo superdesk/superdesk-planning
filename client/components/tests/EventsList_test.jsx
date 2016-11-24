@@ -12,9 +12,9 @@ const events = [
     {
         _id: '5800d71930627218866f1e80',
         dates: { start: '2016-10-15T13:01:11+0000' },
-        description: { definition_short: 'definition_short 1' },
+        definition_short: 'definition_short 1',
         location: [{ name: 'location1' }],
-        unique_name: 'name1'
+        name: 'name1'
     },
     {
         _id: '5800d73230627218866f1e82',
@@ -22,9 +22,9 @@ const events = [
             end: '2016-10-19T13:01:50+0000',
             start: '2016-10-17T13:01:34+0000'
         },
-        description: { definition_short: '' },
+        definition_short: '',
         location: [{ name: 'location1' }],
-        unique_name: 'name2'
+        name: 'name2'
     },
     {
         _id: '5800d73230627218866f1d82',
@@ -32,9 +32,9 @@ const events = [
             end: '2016-10-19T13:01:50+0000',
             start: '2016-10-17T13:01:34+0000'
         },
-        description: { definition_short: '' },
+        definition_short: '',
         location: [{ name: 'location2' }],
-        unique_name: 'name3'
+        name: 'name3'
     }
 ]
 
@@ -71,14 +71,14 @@ describe('<EventsList />', () => {
                 end: '2016-11-19T13:01:50+0000',
                 start: '2016-10-17T13:01:34+0000'
             },
-            description: { definition_short: '' },
+            definition_short: '',
             location: [{ name: 'location3' }],
-            unique_name: 'name4'
+            name: 'name4'
         }
         store.dispatch(actions.addEvents([newEvent]))
         expect(wrapper.find('li').length).toEqual(4)
         // update an item
-        const updatedEvent = Object.assign({}, newEvent, { unique_name: 'new name' })
+        const updatedEvent = Object.assign({}, newEvent, { name: 'new name' })
         store.dispatch(actions.addEvents([updatedEvent]))
         expect(wrapper.find('li').length).toEqual(4)
         expect(wrapper.find('li').last().find('.event__unique-name').text()).toBe('new name')
