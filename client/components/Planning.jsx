@@ -1,9 +1,15 @@
 import React from 'react'
-import { EventsListPanelContainer } from './index'
-import AddEventContainer from './AddEventContainer'
+import {
+    EventsListPanelContainer,
+    PlanningPanelContainer,
+    AddEventContainer,
+    CreateAgendaContainer } from './index'
+
 export const Planning = () => (
     <div>
+        <CreateAgendaContainer />
         <AddEventContainer />
         <EventsListPanelContainer />
+        <PlanningPanelContainer />
     </div>
 )

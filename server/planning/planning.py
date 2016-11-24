@@ -80,6 +80,10 @@ planning_schema = {
         'mapping': not_analyzed
     },
 
+    # Agenda details
+    'planning_type': {'type': 'string'},
+    'name': {'type': 'string'},
+
     # Event Item
     'event_item': superdesk.Resource.rel('events'),
 

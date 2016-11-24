@@ -1,7 +1,7 @@
 import React from 'react'
-import { mount } from 'enzyme'
+import { mount, shallow } from 'enzyme'
 import sinon from 'sinon'
-import { EventsList, EventsListPanelContainer } from '../index'
+import { EventsList, EventsListPanelContainer, Event } from '../index'
 import { createStore, applyMiddleware } from 'redux'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
@@ -58,9 +58,9 @@ describe('<EventsList />', () => {
             </Provider>
         )
         // there is three events to show
-        expect(wrapper.find('li').length).toEqual(3)
+        expect(wrapper.find('.event__list-item').length).toEqual(3)
         // only two groups, because two share the same date
-        expect(wrapper.find('ul').length).toEqual(2)
+        expect(wrapper.find('.events-list__list').length).toEqual(2)
         // check order
         expect(wrapper.find('.events-list__title').map((e) => e.text()))
         .toEqual(['Saturday October 15, 2016', 'Monday October 17, 2016'])
@@ -76,18 +76,21 @@ describe('<EventsList />', () => {
             name: 'name4'
         }
         store.dispatch(actions.addEvents([newEvent]))
-        expect(wrapper.find('li').length).toEqual(4)
+        expect(wrapper.find('.event__list-item').length).toEqual(4)
         // update an item
         const updatedEvent = Object.assign({}, newEvent, { name: 'new name' })
         store.dispatch(actions.addEvents([updatedEvent]))
-        expect(wrapper.find('li').length).toEqual(4)
-        expect(wrapper.find('li').last().find('.event__unique-name').text()).toBe('new name')
+        expect(wrapper.find('.event__list-item').length).toEqual(4)
+        expect(
+            wrapper.find('.event__list-item').last()
+            .find('.event__unique-name').text())
+        .toBe('new name')
     })
     it('trigger an event click', () => {
         const onButtonClick = sinon.spy()
-        const wrapper = mount(<EventsList events={events} onEventClick={onButtonClick} />)
+        const wrapper = shallow(<EventsList events={events} onEventClick={onButtonClick} />)
         // simulate a click
-        wrapper.find('li').first().simulate('click')
+        wrapper.find(Event).first().simulate('click')
         expect(onButtonClick.calledOnce).toBe(true)
     })
 })

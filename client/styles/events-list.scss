@@ -1,3 +1,5 @@
+@import '~variables.scss';
+
 .events-list {
     overflow: auto;
     height: 100%;
@@ -12,20 +14,47 @@
     &__list {
     }
 }
+$PADDING-ITEM :5px 20px;
+$BACKGROUND-ITEM: lighten($sd-blue, 30%);
 .event {
     &__list-item {
+        position: relative;
         cursor: pointer;
         box-shadow: 1px 8px 3px -7px rgba(0, 0, 0, 0.2);
         margin-bottom: 5px;
         background-color: white;
         border: 1px solid rgba(0, 0, 0, 0.08);
-        padding: 5px 20px;
+        &:hover {
+            background-color: $BACKGROUND-ITEM;
+            .event__more-actions {
+                display: block;
+            }
+        }
     }
-    &__wrapper {position: relative;}
+    &__more-actions {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        button.dropdown__toggle {
+            background-color: $BACKGROUND-ITEM;
+            border-radius: unset;
+            height: 100%;
+            &:hover {
+                background-color: $BACKGROUND-ITEM;
+            }
+        }
+        .dropdown__menu {  left: auto; right: 0; } // flip alignment of the menu to right
+    }
+    &__wrapper {
+        padding: $PADDING-ITEM;
+    }
     &__time {
         position: absolute;
         right: 0;
         top: 0;
+        padding: $PADDING-ITEM;
     }
     &__unique-name {padding-right: 40px;}
 }

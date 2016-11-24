@@ -1,44 +1,11 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
-import { DayPickerInput, RepeatEventForm } from './index'
-import { AddGeoSuggestInput } from './index'
+import { DayPickerInput, RepeatEventForm, InputField, GeoSuggestInput } from './index'
 import { Field, reduxForm, formValueSelector } from 'redux-form'
-import { set, get, isNil } from 'lodash'
+import { isNil } from 'lodash'
 import moment from 'moment'
-
-export const renderInputField = ({
-    input,
-    label,
-    type,
-    meta: { touched, error, warning }
-}) => (
-    <div>
-        {label && <label>{label}</label>}
-        <div>
-            <input {...input} placeholder={label} type={type}/>
-            {touched && ((error && <span className="help-block">{error}</span>) ||
-            (warning && <span className="help-block">{warning}</span>))}
-        </div>
-    </div>
-)
-
-export const renderGeoSuggestInput = ({
-    input,
-    label,
-    meta: { touched, error, warning }
-}) => (
-    <div>
-        {label && <label>{label}</label>}
-        <div>
-            <AddGeoSuggestInput
-                onChange={input.onChange}
-                initialValue={input.value || {}}/>
-            {touched && ((error && <span className="help-block">{error}</span>) ||
-            (warning && <span className="help-block">{warning}</span>))}
-        </div>
-    </div>
-)
+import { RequiredFieldsValidator } from '../utils'
 
 /**
 * Form for adding/editing an event
@@ -82,19 +49,19 @@ export class Component extends React.Component {
             <form onSubmit={this.props.handleSubmit} className="AddEventForm">
                 <div>
                     <Field name="name"
-                           component={renderInputField}
+                           component={InputField}
                            type="text"
                            label="What"/>
                 </div>
                 <div>
                     <Field name="definition_short"
-                           component={renderInputField}
+                           component={InputField}
                            type="text"
                            label="Description"/>
                 </div>
                 <div>
                     <Field name="location[0]"
-                           component={renderGeoSuggestInput}
+                           component={GeoSuggestInput}
                            label="Location"/>
                 </div>
                 <div>
@@ -131,22 +98,10 @@ export class Component extends React.Component {
     }
 }
 
-const validate = values => {
-    const requiredFields = ['name', 'dates.start']
-    const errors = {}
-    requiredFields.forEach((field) => {
-        if (!get(values, field)) {
-            set(errors, field, 'Required')
-        }
-    })
-
-    return errors
-}
-
 // Decorate the form component
 export const FormComponent = reduxForm({
     form: 'addEvent', // a unique name for this form
-    validate,
+    validate: RequiredFieldsValidator(['name', 'dates.start']),
     enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
