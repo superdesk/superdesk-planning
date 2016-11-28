@@ -83,7 +83,15 @@ locations_schema = {
     # Location Details
     # NewsML-G2 Event properties See:
     #    https://iptc.org/std/NewsML-G2/2.23/specification/XML-Schema-Doc-Core/ConceptItem.html#LinkC5
-    'name': {'type': 'string'},
+    #
+    # IMPORTANT: name needs to be unqiue to ensure we don't save duplicate addresses, however this is also
+    # the field where we store the formatted address, which can have variations (street number vs number street)
+    # for the same address
+    'name': {
+        'type': 'string',
+        'unique': True,
+        'mapping': not_analyzed
+    },
 
     # NewsML-G2 poiDetails properties See IPTC-G2-Implementation_Guide 12.6.3
     # or https://iptc.org/std/NewsML-G2/2.23/specification/XML-Schema-Doc-Power/ConceptItem.html#LinkAA
@@ -106,7 +114,8 @@ locations_schema = {
             'locality': {'type': 'string'},
             'area': {'type': 'string'},
             'country': {'type': 'string'},
-            'postal_code': {'type': 'string'}
+            'postal_code': {'type': 'string'},
+            'external': {'type': 'dict'}
         },
     },
     'access': {
@@ -146,6 +155,10 @@ class LocationsResource(superdesk.Resource):
     url = 'locations'
     schema = locations_schema
     resource_methods = ['GET', 'POST']
+    datasource = {
+        'source': 'locations',
+        'search_backend': 'elastic'
+    }
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
     privileges = {'POST': 'planning',

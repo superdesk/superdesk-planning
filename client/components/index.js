@@ -1,4 +1,5 @@
 export { DayPickerInput } from './DayPickerInput'
+export { AddGeoSuggestInput } from './AddGeoSuggestInput'
 export { EventsList } from './EventsList'
 export { Event } from './Event'
 export { EventsListPanelContainer } from './EventsListPanelContainer'

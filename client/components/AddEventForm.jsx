@@ -2,15 +2,38 @@ import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
 import { DayPickerInput, RepeatEventForm } from './index'
+import { AddGeoSuggestInput } from './index'
 import { Field, reduxForm, formValueSelector } from 'redux-form'
 import { set, get, isNil } from 'lodash'
 import moment from 'moment'
 
-export const renderInputField = ({ input, label, type, meta: { touched, error, warning } }) => (
+export const renderInputField = ({
+    input,
+    label,
+    type,
+    meta: { touched, error, warning }
+}) => (
     <div>
         {label && <label>{label}</label>}
         <div>
             <input {...input} placeholder={label} type={type}/>
+            {touched && ((error && <span className="help-block">{error}</span>) ||
+            (warning && <span className="help-block">{warning}</span>))}
+        </div>
+    </div>
+)
+
+export const renderGeoSuggestInput = ({
+    input,
+    label,
+    meta: { touched, error, warning }
+}) => (
+    <div>
+        {label && <label>{label}</label>}
+        <div>
+            <AddGeoSuggestInput
+                onChange={input.onChange}
+                initialValue={input.value || {}}/>
             {touched && ((error && <span className="help-block">{error}</span>) ||
             (warning && <span className="help-block">{warning}</span>))}
         </div>
@@ -70,10 +93,9 @@ export class Component extends React.Component {
                            label="Description"/>
                 </div>
                 <div>
-                    <Field name="location[0].name"
-                           component={renderInputField}
-                           type="text"
-                           label="Where"/>
+                    <Field name="location[0]"
+                           component={renderGeoSuggestInput}
+                           label="Location"/>
                 </div>
                 <div>
                     <label htmlFor="dates.start">When</label>

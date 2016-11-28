@@ -1,2 +1,2 @@
 export { PlanningSettingsController } from './PlanningSettingsController'
-export { PlanningModalController } from './PlanningModalController'
+export { PlanningController } from './PlanningController'

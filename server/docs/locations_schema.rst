@@ -98,8 +98,14 @@ Location Details
             'locality': 'string',
             'area': 'string',
             'country': 'string',
-            'postal_code': 'string'
+            'postal_code': 'string',
+            'external': 'dict'
         }
+
+``external``
+ 
+    field is used to hold the raw response returned from any location lookup service, such as google places or foursquare.
+    
 
 ``access`` *list*
 
