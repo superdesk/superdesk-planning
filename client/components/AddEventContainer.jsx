@@ -15,8 +15,11 @@ export class AddEvent extends React.Component {
     render() {
         return (
             <Modal show={this.props.show} onHide={this.props.handleHide}>
-                <Modal.Header closeButton>
-                    <Modal.Title>Add/Edit an event</Modal.Title>
+                <Modal.Header>
+                    <a className="close" onClick={this.props.handleHide}>
+                        <i className="icon-close-small"></i>
+                    </a>
+                    <h3>Add/Edit an event</h3>
                 </Modal.Header>
                 <Modal.Body>
                     <AddEventForm initialValues={this.props.initialValues} ref="form" />

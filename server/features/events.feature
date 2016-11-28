@@ -26,11 +26,9 @@ Feature: Events
                 "guid": "123",
                 "unique_id": "123",
                 "unique_name": "123 name",
-                "description": {
-                    "definition_short": "short value",
-                    "definition_long": "long value",
-                    "note": "note value"
-                },
+                "name": "event 123",
+                "definition_short": "short value",
+                "definition_long": "long value",
                 "relationships":{
                     "broader": "broader value",
                     "narrower": "narrower value",
@@ -55,13 +53,13 @@ Feature: Events
 
     @auth
     @notification
-    Scenario: Generate dates from recurring rules
+    Scenario: Generate events from recurring rules
         When we post to "/events" with success
         """
         [
             {
                 "unique_id": "123",
-                "unique_name": "Friday Club",
+                "name": "Friday Club",
                 "dates": {
                     "start": "2016-11-17T23:00:00.000Z",
                     "end": "2016-11-18T00:00:00.000Z",
@@ -75,24 +73,24 @@ Feature: Events
             }
         ]
         """
-        Then we get existing resource
+        Then we get a list with 3 items
         """
         {"_items": [
             {
-                "unique_name": "Friday Club",
+                "name": "Friday Club",
                 "dates": {"start": "2016-11-17T23:00:00+0000", "end": "2016-11-18T00:00:00+0000"}
             },
             {
-                "unique_name": "Friday Club",
+                "name": "Friday Club",
                 "dates": {"start": "2016-11-24T23:00:00+0000", "end": "2016-11-25T00:00:00+0000"}
             },
             {
-                "unique_name": "Friday Club",
+                "name": "Friday Club",
                 "dates": {"start": "2016-12-01T23:00:00+0000", "end": "2016-12-02T00:00:00+0000"}
             }
         ]}
         """
-        When we get "/events?source={"query": {"term": {"unique_name": "Friday Club"}}}"
+        When we get "/events?where={"recurrence_id": "#events.recurrence_id#"}"
         Then we get list with 3 items
 
     @auth
@@ -103,6 +101,7 @@ Feature: Events
     [
         {
             "unique_name": "JO",
+            "name": "JO",
             "dates": {
                 "start": "2016-01-02",
                 "end": "2016-01-18"
@@ -115,6 +114,7 @@ Feature: Events
     [
         {
             "unique_name": "JO",
+            "name": "JO 2022",
             "dates": {
                 "start": "2016-01-10",
                 "end": "2016-01-18"

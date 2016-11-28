@@ -9,3 +9,11 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from superdesk.tests.steps import *  # noqa
+from superdesk.tests.steps import then, step_impl_then_get_existing, get_json_data
+
+
+@then('we get a list with {total_count} items')
+def step_impl_list(context, total_count):
+    step_impl_then_get_existing(context)
+    data = get_json_data(context.response)
+    assert len(data['_items']) == int(total_count), len(data['_items'])
