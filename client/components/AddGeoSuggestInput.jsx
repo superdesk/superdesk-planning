@@ -4,7 +4,7 @@ import * as actions from '../actions'
 import Geosuggest from 'react-geosuggest'
 
 /**
-* Modal for adding/editing a location with nominatim search 
+* Modal for adding/editing a location with nominatim search
 */
 export class GeoSuggestInput extends React.Component {
 

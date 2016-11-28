@@ -3,7 +3,7 @@ export const saveNewLocation = (newLocation) => (
         // Map location.nominatim fields to formattedLocation
 
         let address = {
-            line: [ newLocation.nominatim.address.house_number
+            line: [newLocation.nominatim.address.house_number
                 + ' ' + newLocation.nominatim.address.road],
             locality: newLocation.nominatim.address.state,
             area: newLocation.nominatim.address.city_district
