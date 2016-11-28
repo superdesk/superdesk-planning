@@ -23,9 +23,6 @@ export const renderInputField = ({
     </div>
 )
 
-// TODO: there is an issue using input.value as initialValue here when onChange runs
-// and sets the value to an object (gmaps address object)
-// gotta fix this
 export const renderGeoSuggestInput = ({
     input,
     label,
@@ -158,7 +155,6 @@ export const FormComponent = reduxForm({
 
 const selector = formValueSelector('addEvent') // same as form name
 const mapStateToProps = (state) => ({
-    googleApiKey: state.config.googleApiKey,
     startingDate: selector(state, 'dates.start'),
     endingDate: selector(state, 'dates.end'),
     doesRepeat: !isNil(selector(state, 'dates.recurring_rule.frequency')),

@@ -26,27 +26,15 @@ export const saveEvent = (newEvent) => (
         newEvent = pickBy(newEvent, (v, k) => (!k.startsWith('_')))
         // save the timezone. This is useful for recurring events
         newEvent.dates.tz = moment.tz.guess()
-        // save location before saving event
-        dispatch(saveLocation(newEvent.location[0].name))
-        .then(newLocation => {
-            // map location fields
-            newEvent.location = [
-                { 
-                    name: newLocation.name,
-                    qcode: newLocation.guid
-                }
-            ]
-
-            // send the event on the backend
-            return api('events').save(original, newEvent)
-            // add the event to the store
-            .then(data => {
-                dispatch(addEvents(data._items || [data]))
-                // notify the end of the action and reset the form
-                dispatch({ type: 'EVENT_SAVE_SUCCESS' })
-                // hide the modal
-                return dispatch(hideModal())
-            })
+        // send the event on the backend
+        return api('events').save(original, newEvent)
+        // add the event to the store
+        .then(data => {
+            dispatch(addEvents(data._items || [data]))
+            // notify the end of the action and reset the form
+            dispatch({ type: 'EVENT_SAVE_SUCCESS' })
+            // hide the modal
+            return dispatch(hideModal())
         })
     }
 )
