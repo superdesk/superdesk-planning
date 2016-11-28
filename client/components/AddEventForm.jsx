@@ -96,9 +96,6 @@ export class Component extends React.Component {
                     <Field name="location[0]"
                            component={renderGeoSuggestInput}
                            label="Location"/>
-                    <Field name="location[0].qcode"
-                           component={renderInputField}
-                           type="hidden"/>
                 </div>
                 <div>
                     <label htmlFor="dates.start">When</label>
