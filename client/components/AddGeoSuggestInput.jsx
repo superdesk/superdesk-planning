@@ -2,7 +2,6 @@ import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
 import Geosuggest from 'react-geosuggest'
-import loadGoogleMapsAPI from 'load-google-maps-api'
 
 /**
 * Modal for adding/editing a location with google place autocomplete
@@ -21,11 +20,6 @@ export class GeoSuggestInput extends React.Component {
             key: this.props.googleApiKey,
             libraries: ['places']
         }
-        loadGoogleMapsAPI(opts).then((googleMaps) => {
-            this.setState({ googleMaps: googleMaps })
-        }).catch((e) => {
-            throw new Error('Could not load Google Maps API: ' + e.message)
-        })
     }
 
     render() {
@@ -34,7 +28,9 @@ export class GeoSuggestInput extends React.Component {
               <div>
                 <Geosuggest
                     googleMaps={this.state.googleMaps}
-                    placeholder="Start typing"
+                    useNominatim={true}
+                    placeholder='Address, City'
+                    buttonClassName='btn btn-default geosuggest__button'
                     initialValue={this.props.initialValue.name}
                     onSuggestSelect={this.onSuggestSelect.bind(this)}
                 />
@@ -63,7 +59,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
     onChange: (suggest) => {
-        // save (or get) location from suggesti$a
+        // save (or get) location from suggestions
         dispatch(actions.saveLocation(suggest))
         .then((newLocation) => {
             ownProps.onChange(newLocation)
