@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import * as actions from '../actions'
 import { DayPickerInput, RepeatEventForm } from './index'
 import { AddGeoSuggestInput } from './index'
-import { Field, reduxForm, SubmissionError, formValueSelector } from 'redux-form'
+import { Field, reduxForm, formValueSelector } from 'redux-form'
 import { set, get, isNil } from 'lodash'
 import moment from 'moment'
 
