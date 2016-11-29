@@ -36,6 +36,7 @@ $EVENTS_LIST_WIDTH: 400px;
     left: $EVENTS_LIST_WIDTH;
     &__empty-message {
         font-size: 1.75em;
+        line-height: 1.2em;
         text-align: center;
         margin-top: 40px;
     }
