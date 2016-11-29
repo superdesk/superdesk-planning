@@ -1,4 +1,5 @@
 import { hideModal } from './modal'
+import * as selectors from '../selectors'
 
 export const createAgenda = ({ name }) => (
     (dispatch, getState, { api }) => {
@@ -6,31 +7,91 @@ export const createAgenda = ({ name }) => (
             planning_type: 'agenda',
             name: name
         })
-        .then(() => (
+        .then((agenda) => {
             dispatch(hideModal())
-        ))
+            dispatch(addOrReplaceAgenda(agenda))
+        })
+    }
+)
+
+const createPlanning = ({ event }) => (
+    (dispatch, getState, { api }) => (
+        api('planning').save({}, {
+            event_item: event._id,
+            slugline: event.name,
+            headline: event.definition_short,
+            subject: event.subject,
+        })
+    )
+)
+
+const addOrReplaceAgenda = (agenda) => (
+    { type: 'ADD_OR_REPLACE_AGENDA', payload: agenda }
+)
+
+const addPlanningToAgenda = ({ planning, agenda }) => (
+    (dispatch, getState, { api }) => {
+        // clone agenda
+        agenda = agenda ? JSON.parse(JSON.stringify(agenda)) : {}
+        let planningItems = agenda.planning_items || []
+        planningItems.push(planning._id)
+        return api('planning').save(agenda, {
+            planning_items: planningItems
+        }).then((agenda) => {
+            // replace the agenda in the store
+            dispatch(addOrReplaceAgenda(agenda))
+            // reload the plannings of the current calendar
+            return dispatch(fetchSelectedAgendaPlannings(agenda))
+        })
     }
 )
 
 export const addEventToCurrentAgenda = (event) => (
-    (dispatch) => {
-        dispatch({ type: 'ADD_EVENT_TO_CURRENT_AGENDA', payload: event })
+    (dispatch, getState) => {
+        const agenda = selectors.getSelectedAgenda(getState())
+        if (agenda) {
+            return dispatch(createPlanning({ event: event }))
+            .then((planning) => (
+                dispatch(addPlanningToAgenda({ planning, agenda }))
+            ))
+        }
     }
 )
 
-export const setAgendas = (agendas) => (
+const setAgendas = (agendas) => (
     { type: 'SET_AGENDAS', payload: agendas }
 )
 
-export const loadAgendas = () => (
+const addPlannings = (plannings) => (
+    { type: 'ADD_PLANNINGS', payload: plannings }
+)
+
+export const fetchAgendas = () => (
     (dispatch, getState, { api }) => (
-        api('planning').query({
-            source: { query: { term: { planning_type: 'agenda' } } }
+        api('planning').query({ where: { planning_type: 'agenda' } })
+        .then((data) => {
+            dispatch(setAgendas(data._items))
         })
-        .then((data) => (dispatch(setAgendas(data._items))))
     )
 )
 
-export const selectAgenda = (agenda) => (
-    { type: 'SELECT_AGENDA', payload: agenda }
+const fetchSelectedAgendaPlannings = () => (
+    (dispatch, getState, { api }) => {
+        const agenda = selectors.getSelectedAgenda(getState())
+        if (!agenda || !agenda.planning_items) return
+        const query = {
+            source: { filter: { bool: {
+                should: agenda.planning_items.map((pid) => ({ term: { _id: pid } }))
+            } } }
+        }
+        return api('planning').query(query)
+        .then((data) => (dispatch(addPlannings(data._items))))
+    }
+)
+
+export const selectAgenda = (agendaId) => (
+    (dispatch) => {
+        dispatch({ type: 'SELECT_AGENDA', payload: agendaId })
+        dispatch(fetchSelectedAgendaPlannings())
+    }
 )

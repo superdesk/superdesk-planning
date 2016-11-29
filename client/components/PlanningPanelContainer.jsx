@@ -2,31 +2,20 @@ import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
 import { SelectAgenda } from './index'
-import { getSelectedAgenda } from '../selectors'
+import * as selectors from '../selectors'
 
 const Item = ({ item }) => (
-    <li>{item}</li>
-)
-
-const List = ({ items }) => (
-    <ul>
-        {items.map((item) => (
-            <Item key={item} item={item} />
-        ))}
-    </ul>
+    <li>{item.slugline}, {item.headline}</li>
 )
 
 class PlanningPanel extends React.Component {
 
     constructor(props) {
         super(props)
-        this.state = {
-            planningList: []
-        }
     }
 
     componentDidMount() {
-        this.props.loadAgendas()
+        this.props.fetchAgendas()
     }
 
     render() {
@@ -51,13 +40,13 @@ class PlanningPanel extends React.Component {
                     </div>
                 </div>
                 {
-                    // When an item is selected, show the planning list
-                    this.props.selectedEvent &&
-                    <List items={this.state.planningList} />
+                    (this.props.planningList && this.props.planningList.length > 0) &&
+                    this.props.planningList.map((planning) => (
+                        <Item key={planning._id} item={planning} />
+                    ))
                 }
                 {
-                    // When no item is selected, show a message
-                    !this.props.selectedEvent &&
+                    (!this.props.currentAgenda || this.props.currentAgenda.length < 1) &&
                     <div className="Planning__planning__empty-message">
                         There is no planning yet
                         {this.props.currentAgenda &&
@@ -75,13 +64,13 @@ class PlanningPanel extends React.Component {
 }
 
 const mapStateToProps = (state) => ({
-    currentAgenda: getSelectedAgenda(state),
-    selectedEvent: state.planning.selectedEvent,
+    currentAgenda: selectors.getSelectedAgenda(state),
+    planningList: selectors.getCurrentAgendaPlannings(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
     openCreateAgenda: () => dispatch(actions.showModal({ modalType: 'CREATE_AGENDA' })),
-    loadAgendas: () => dispatch(actions.loadAgendas()),
+    fetchAgendas: () => dispatch(actions.fetchAgendas()),
 })
 
 export const PlanningPanelContainer = connect(

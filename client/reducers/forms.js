@@ -1,4 +1,5 @@
-import { reducer as formReducer } from 'redux-form'
+import { reducer as formReducer, actionTypes } from 'redux-form'
+import { cloneDeep } from 'lodash'
 
 const initialEvent = {
     values: {
@@ -15,10 +16,10 @@ const forms = formReducer.plugin({
         switch (action.type) {
             case 'EVENT_SAVE_SUCCESS':
                 return undefined // blow away form data
-            case 'redux-form/CHANGE':
+            case actionTypes.CHANGE:
                 // if count or until is set, reset the other field
                 if (action.payload) {
-                    var newState = Object.assign({}, state)
+                    var newState = cloneDeep(state)
                     if (action.meta.field === 'dates.recurring_rule.count') {
                         newState.values.dates.recurring_rule.until = undefined
                         return newState
