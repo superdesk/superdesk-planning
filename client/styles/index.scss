@@ -16,21 +16,27 @@ $EVENTS_LIST_WIDTH: 400px;
 }
 .Planning {
     @include absolute0;
-}
-.Planning__events-list {
-    @include absolute0;
-    padding: $nav-height * 2 20px 0 20px;
-    width: $EVENTS_LIST_WIDTH;
-    border-right: 3px solid #666;
-    box-shadow: 2px 0 10px 0 rgba(0,0,0,.3);
     .navbtn { // fix the (+) button. Needed because it's not a dropdown
         overflow: hidden;
         padding: 0;
         button {border: 0;}
     }
 }
-.Planning__coverage {
+.Planning__events-list {
+    @include absolute0;
+    padding: $nav-height * 2 20px 0 20px;
+    width: $EVENTS_LIST_WIDTH;
+    box-sizing: border-box;
+    border-right: 3px solid #666;
+    box-shadow: 2px 0 10px 0 rgba(0,0,0,.3);
+}
+.Planning__planning {
     @include absolute0;
     padding-top: $nav-height * 2;
     left: $EVENTS_LIST_WIDTH;
+    &__empty-message {
+        font-size: 1.75em;
+        text-align: center;
+        margin-top: 40px;
+    }
 }

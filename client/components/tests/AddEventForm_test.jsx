@@ -1,6 +1,6 @@
 import React from 'react'
 import { mount, shallow } from 'enzyme'
-import AddEventForm, { renderInputField, FormComponent, Component } from '../AddEventForm'
+import AddEventForm, { FormComponent, Component } from '../AddEventForm'
 import sinon from 'sinon'
 import { createStore, applyMiddleware } from 'redux'
 import { Provider } from 'react-redux'
@@ -111,17 +111,5 @@ describe('<FormComponent />', () => {
         expect(mount(<Provider store={store}><AddEventForm initialValues={recEvent} /></Provider>)
             .find(FormComponent).props().doesRepeat
         ).toBe(true)
-    })
-})
-describe('renderInputField', () => {
-    it('renders an error when an input is in an error state', () => {
-        const input = { name: 'uniqueName', value: '' }
-        const label = 'Label'
-        const meta = { touched: true, error: 'Required' }
-        const element = renderInputField({ input, label, meta })
-        const subject = shallow(element)
-        const uniqueNameHelpBlock = subject.find('.help-block')
-        expect(uniqueNameHelpBlock.length).toBe(1)
-        expect(uniqueNameHelpBlock.first().text()).toBe('Required')
     })
 })

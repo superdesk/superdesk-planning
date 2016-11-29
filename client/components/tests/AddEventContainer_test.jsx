@@ -1,6 +1,6 @@
 import React from 'react'
 import { mount } from 'enzyme'
-import AddEventContainer, { AddEvent } from '../AddEventContainer'
+import { AddEventContainer, AddEvent } from '../AddEventContainer'
 import { createStore } from 'redux'
 import { Provider } from 'react-redux'
 import planningApp from '../../reducers'
