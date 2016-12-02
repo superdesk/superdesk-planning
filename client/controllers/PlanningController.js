@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { Planning } from '../components'
+import { PlanningApp } from '../components'
 import { Provider } from 'react-redux'
 import { createStore, applyMiddleware } from 'redux'
 import planningApp from '../reducers'
@@ -22,7 +22,7 @@ export function PlanningController($element, api, config) {
     )
     ReactDOM.render(
         <Provider store={store}>
-            <Planning />
+            <PlanningApp />
         </Provider>,
         $element.get(0)
     )
