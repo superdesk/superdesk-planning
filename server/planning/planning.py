@@ -87,6 +87,8 @@ planning_schema = {
     # Event Item
     'event_item': superdesk.Resource.rel('events'),
 
+    'planning_items': {'type': 'list', 'nullable': True},
+
     # Planning Details
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16
 
@@ -205,6 +207,10 @@ class PlanningResource(superdesk.Resource):
 
     url = 'planning'
     schema = planning_schema
+    datasource = {
+        'source': 'planning',
+        'search_backend': 'elastic',
+    }
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
