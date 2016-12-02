@@ -34,6 +34,13 @@ $EVENTS_LIST_WIDTH: 400px;
     @include absolute0;
     padding-top: $nav-height * 2;
     left: $EVENTS_LIST_WIDTH;
+    .subnav {
+        .subnav__page-title { width: 100px; }
+        select {
+            top: 10px;
+            position: relative;
+        }
+    }
     &__empty-message {
         font-size: 1.75em;
         line-height: 1.2em;

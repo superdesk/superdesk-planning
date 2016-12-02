@@ -18,7 +18,7 @@ export class EventsList extends React.Component {
                     return (
                         <div key={dateStr}>
                             <div className="events-list__title">{dateStr}</div>
-                            <ul className="events-list__list">
+                            <ul className="events-list__list list-view compact-view">
                                 {events.map((event) => (
                                     <Event event={event}
                                            key={event._id}

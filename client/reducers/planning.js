@@ -14,6 +14,7 @@ const replaceOrAddInAgendas = (agendas, agenda) => {
 const initialPlanning = {
     currentAgendaId: null,
     agendas: [],
+    agendasAreLoading: false,
     plannings: {}, // plannings stored by _id
 }
 
@@ -30,8 +31,10 @@ const planning = (state = initialPlanning, action) => {
             return Object.assign({}, state, { plannings: plannings })
         case 'SELECT_AGENDA':
             return Object.assign({}, state, { currentAgendaId: action.payload })
-        case 'SET_AGENDAS':
-            return Object.assign({}, state, { agendas: action.payload })
+        case 'REQUEST_AGENDAS':
+            return Object.assign({}, state, { agendasAreLoading: true })
+        case 'RECEIVE_AGENDAS':
+            return Object.assign({}, state, { agendasAreLoading: false, agendas: action.payload })
         case 'ADD_OR_REPLACE_AGENDA':
             return Object.assign({}, state, {
                 agendas: replaceOrAddInAgendas(state.agendas.slice(), action.payload)
