@@ -1,12 +1,8 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
-import { SelectAgenda } from './index'
+import { SelectAgenda, PlanningItem } from './index'
 import * as selectors from '../selectors'
-
-const Item = ({ item }) => (
-    <li>{item.slugline}, {item.headline}</li>
-)
 
 class PlanningPanel extends React.Component {
 
@@ -39,24 +35,31 @@ class PlanningPanel extends React.Component {
                         </div>
                     </div>
                 </div>
-                {
-                    (this.props.planningList && this.props.planningList.length > 0) &&
-                    this.props.planningList.map((planning) => (
-                        <Item key={planning._id} item={planning} />
-                    ))
-                }
+                <ul className="list-view compact-view">
+                    {
+                        (this.props.planningList && this.props.planningList.length > 0) &&
+                        this.props.planningList.map((planning) => (
+                            <PlanningItem key={planning._id} item={planning} />
+                        ))
+                    }
+                </ul>
                 {
                     (!this.props.currentAgenda || this.props.currentAgenda.length < 1) &&
                     <div className="Planning__planning__empty-message">
-                        There is no planning yet
-                        {this.props.currentAgenda &&
-                            <div>
-                                in the agenda&nbsp;
-                                <strong>{this.props.currentAgenda.name}</strong>.
-                            </div>
-                        }
-                        <div>Drag and drop an event here to start a planning</div>
+                        There is no selected calendar.<br/>
+                        Choose one in the above dropdown.
                     </div>
+                    || (this.props.planningList && this.props.planningList.length < 1) &&
+                        <div className="Planning__planning__empty-message">
+                            There is no planning yet
+                            {this.props.currentAgenda &&
+                                <div>
+                                    in the agenda&nbsp;
+                                    <strong>{this.props.currentAgenda.name}</strong>.
+                                </div>
+                            }
+                            <div>Drag and drop an event here to start a planning</div>
+                        </div>
                 }
             </div>
         )

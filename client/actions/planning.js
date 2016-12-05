@@ -58,21 +58,26 @@ export const addEventToCurrentAgenda = (event) => (
     }
 )
 
-const setAgendas = (agendas) => (
-    { type: 'SET_AGENDAS', payload: agendas }
+const receiveAgendas = (agendas) => (
+    { type: 'RECEIVE_AGENDAS', payload: agendas }
 )
 
 const addPlannings = (plannings) => (
     { type: 'ADD_PLANNINGS', payload: plannings }
 )
 
+const requestAgendas = () => (
+    { type: 'REQUEST_AGENDAS' }
+)
+
 export const fetchAgendas = () => (
-    (dispatch, getState, { api }) => (
-        api('planning').query({ where: { planning_type: 'agenda' } })
+    (dispatch, getState, { api }) => {
+        dispatch(requestAgendas())
+        return api('planning').query({ where: { planning_type: 'agenda' } })
         .then((data) => {
-            dispatch(setAgendas(data._items))
+            dispatch(receiveAgendas(data._items))
         })
-    )
+    }
 )
 
 const fetchSelectedAgendaPlannings = () => (

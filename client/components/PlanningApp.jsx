@@ -5,7 +5,7 @@ import {
     AddEventContainer,
     CreateAgendaContainer } from './index'
 
-export const Planning = () => (
+export const PlanningApp = () => (
     <div>
         <CreateAgendaContainer />
         <AddEventContainer />

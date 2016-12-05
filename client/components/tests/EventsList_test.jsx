@@ -83,7 +83,7 @@ describe('<EventsList />', () => {
         expect(wrapper.find('.event__list-item').length).toEqual(4)
         expect(
             wrapper.find('.event__list-item').last()
-            .find('.event__unique-name').text())
+            .find('.keyword').text())
         .toBe('new name')
     })
     it('trigger an event click', () => {

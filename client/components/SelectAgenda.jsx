@@ -2,9 +2,11 @@ import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
 
-export const SelectAgendaComponent = ({ agendas, onChange, currentAgendaId }) => (
+export const SelectAgendaComponent = ({ agendas, onChange, currentAgendaId, isLoading }) => (
     <select onChange={onChange} value={currentAgendaId}>
-        <option></option>
+        <option>
+            {isLoading && 'Loading...'}
+        </option>
         {agendas.map((agenda) => (
             <option
                 key={agenda._id}
@@ -18,11 +20,13 @@ SelectAgendaComponent.propTypes = {
     agendas: PropTypes.array.isRequired,
     onChange: PropTypes.func.isRequired,
     currentAgendaId: PropTypes.string,
+    isLoading: PropTypes.bool,
 }
 
 const mapStateToProps = (state) => ({
     currentAgenda: state.planning.currentAgendaId,
     agendas: state.planning.agendas,
+    isLoading: state.planning.agendasAreLoading,
 })
 
 const mapDispatchToProps = (dispatch) => ({
