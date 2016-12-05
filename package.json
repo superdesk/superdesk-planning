@@ -6,8 +6,9 @@
   "main": "index.js",
   "scripts": {
     "hint": "jscs client && eslint client --ext=jsx --ext=js",
-    "test": "karma start karma.conf.js --log-level debug --display-error-details --single-run  --browsers Firefox",
-    "test_all": "npm run hint && npm run test"
+    "unit_test": "karma start karma.conf.js --log-level debug --display-error-details --single-run  --browsers Firefox",
+    "karma": "karma start karma.conf.js",
+    "test": "npm run hint && npm run unit_test"
   },
   "author": "Edouard Richard",
   "dependencies": {

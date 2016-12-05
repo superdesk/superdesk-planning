@@ -13,6 +13,7 @@ const replaceOrAddInAgendas = (agendas, agenda) => {
 
 const initialPlanning = {
     currentAgendaId: null,
+    editorOpened: false,
     agendas: [],
     agendasAreLoading: false,
     plannings: {}, // plannings stored by _id
@@ -39,6 +40,10 @@ const planning = (state = initialPlanning, action) => {
             return Object.assign({}, state, {
                 agendas: replaceOrAddInAgendas(state.agendas.slice(), action.payload)
             })
+        case 'OPEN_PLANNING_EDITOR':
+            return Object.assign({}, state, { editorOpened: true })
+        case 'CLOSE_PLANNING_EDITOR':
+            return Object.assign({}, state, { editorOpened: false })
         default:
             return state
     }

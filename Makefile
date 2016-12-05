@@ -5,7 +5,7 @@ test:
 	flake8 ${BACKEND_DIR}
 	cd ${BACKEND_DIR} ; nosetests -v
 	cd ${BACKEND_DIR} ; behave
-	npm run test_all
+	npm run test
 install:
 	virtualenv  -p python3  ${BACKEND_DIR}/env
 	. ${VENV} ; pip install --upgrade pip

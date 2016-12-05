@@ -1,11 +1,12 @@
 import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
 import moment from 'moment'
+import * as actions from '../actions'
 
-export const PlanningItemComponent = ({ item }) => {
+export const PlanningItemComponent = ({ item, onPlanningClick }) => {
     const time = moment(item._updated).format('LL HH:mm')
     return (
-        <li className="list-item-view">
+        <li className="list-item-view" onClick={onPlanningClick.bind(null, item._id)}>
             <div className="media-box media-text">
                 <div className="list-field type-icon">
                     <i className="filetype-icon-text"></i>
@@ -31,7 +32,12 @@ export const PlanningItemComponent = ({ item }) => {
 }
 
 PlanningItemComponent.propTypes = {
-    item: PropTypes.object.isRequired
+    item: PropTypes.object.isRequired,
+    onPlanningClick: PropTypes.func.isRequired
 }
 
-export const PlanningItem = connect(null, null)(PlanningItemComponent)
+const mapDispatchToProps = (dispatch) => ({
+    onPlanningClick: (planning) => (dispatch(actions.openPlanningEditor(planning)))
+})
+
+export const PlanningItem = connect(null, mapDispatchToProps)(PlanningItemComponent)

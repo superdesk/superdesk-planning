@@ -100,3 +100,11 @@ export const selectAgenda = (agendaId) => (
         dispatch(fetchSelectedAgendaPlannings())
     }
 )
+
+export const openPlanningEditor = (planning) => (
+    { type: 'OPEN_PLANNING_EDITOR', payload: planning }
+)
+
+export const closePlanningEditor = () => (
+    { type: 'CLOSE_PLANNING_EDITOR' }
+)
