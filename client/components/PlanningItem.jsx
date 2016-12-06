@@ -2,9 +2,12 @@ import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
 import moment from 'moment'
 import * as actions from '../actions'
+import { get } from 'lodash'
 
 export const PlanningItemComponent = ({ item, onPlanningClick }) => {
-    const time = moment(item._updated).format('LL HH:mm')
+    const location = get(item, 'event_item.location[0].name')
+    const eventTime = get(item, 'event_item.dates.start') ?
+        moment(get(item, 'event_item.dates.start')).format('LL HH:mm') : null
     return (
         <li className="list-item-view" onClick={onPlanningClick.bind(null, item._id)}>
             <div className="media-box media-text">
@@ -16,14 +19,14 @@ export const PlanningItemComponent = ({ item, onPlanningClick }) => {
                         <div className="highlights-box"></div>
                         <span className="keyword">{item.slugline}</span>
                         <span className="item-heading">{item.headline}</span>
-                        <time title={time}>
-                            {time}
-                        </time>
+                        <time title={eventTime}>{eventTime}</time>
                     </div>
                     <div className="line">
-                        <span className="container" title="location: workspace">
-                            <span className="location-desk-label">location:</span>
-                        </span>
+                        {location &&
+                            <span className="container">
+                                <span className="location">location: {location}</span>
+                            </span>
+                        }
                     </div>
                 </div>
             </div>
