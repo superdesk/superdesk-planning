@@ -14,15 +14,14 @@ export class GeoSuggestInput extends React.Component {
 
     render() {
         return (
-          <div>
             <Geosuggest
                 useNominatim={true}
                 placeholder='Address, City'
+                inputClassName="line-input"
                 buttonClassName='btn btn-default geosuggest__button'
                 initialValue={this.props.initialValue.name}
                 onSuggestSelect={this.onSuggestSelect.bind(this)}
             />
-          </div>
         )
     }
 
