@@ -53,7 +53,7 @@ $EDIT_PLANNING_WIDTH: 450px;
 }
 .Planning__edit-planning {
     @include absolute0;
-    padding: $nav-height 10px 0 10px;
+    padding: $nav-height * 2 10px 0 10px;
     box-sizing: border-box;
     transition-property: width;
     transition-duration: .25s;

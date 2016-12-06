@@ -2,25 +2,21 @@ import { AddGeoSuggestInput } from './index'
 import React from 'react'
 
 export const InputField = ({ input, label, type, meta: { touched, error, warning } }) => (
-    <div>
+    <div className="field">
         {label && <label>{label}</label>}
-        <div>
-            <input {...input} placeholder={label} type={type}/>
-            {touched && ((error && <span className="help-block">{error}</span>) ||
-            (warning && <span className="help-block">{warning}</span>))}
-        </div>
+        <input {...input} type={type} className="line-input"/>
+        {touched && ((error && <span className="help-block">{error}</span>) ||
+        (warning && <span className="help-block">{warning}</span>))}
     </div>
 )
 
 export const GeoSuggestInput = ({ input, label, meta: { touched, error, warning } }) => (
-    <div>
+    <div className="field">
         {label && <label>{label}</label>}
-        <div>
-            <AddGeoSuggestInput
-                onChange={input.onChange}
-                initialValue={input.value || {}}/>
-            {touched && ((error && <span className="help-block">{error}</span>) ||
-            (warning && <span className="help-block">{warning}</span>))}
-        </div>
+        <AddGeoSuggestInput
+            onChange={input.onChange}
+            initialValue={input.value || {}}/>
+        {touched && ((error && <span className="help-block">{error}</span>) ||
+        (warning && <span className="help-block">{warning}</span>))}
     </div>
 )

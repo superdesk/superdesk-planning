@@ -92,6 +92,7 @@ export class DayPickerInput extends React.Component {
                 }
                 <DatePicker
                     disabled={this.props.disabled}
+                    className="line-input"
                     selected={this.state.selectedDate}
                     onChange={this.onDayChange.bind(this)} />
                 {(this.props.withTime === true) && (
