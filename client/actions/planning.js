@@ -87,7 +87,8 @@ const fetchSelectedAgendaPlannings = () => (
         const query = {
             source: { filter: { bool: {
                 should: agenda.planning_items.map((pid) => ({ term: { _id: pid } }))
-            } } }
+            } } },
+            embedded: { event_item: 1 }, // nest event to planning
         }
         return api('planning').query(query)
         .then((data) => (dispatch(addPlannings(data._items))))
