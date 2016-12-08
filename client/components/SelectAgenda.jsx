@@ -2,8 +2,8 @@ import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
 
-export const SelectAgendaComponent = ({ agendas, onChange, currentAgendaId, isLoading }) => (
-    <select onChange={onChange} value={currentAgendaId}>
+export const SelectAgendaComponent = ({ agendas, onChange, currentAgenda, isLoading }) => (
+    <select onChange={onChange} value={currentAgenda || ''}>
         <option>
             {isLoading && 'Loading...'}
         </option>
@@ -19,7 +19,7 @@ export const SelectAgendaComponent = ({ agendas, onChange, currentAgendaId, isLo
 SelectAgendaComponent.propTypes = {
     agendas: PropTypes.array.isRequired,
     onChange: PropTypes.func.isRequired,
-    currentAgendaId: PropTypes.string,
+    currentAgenda: PropTypes.string,
     isLoading: PropTypes.bool,
 }
 

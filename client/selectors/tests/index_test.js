@@ -2,18 +2,18 @@ import * as selectors from '../index'
 import { cloneDeep } from 'lodash'
 
 describe('selectors', () => {
-    it('getSelectedAgenda', () => {
+    it('getCurrentAgenda', () => {
         let result
         let state = {
             planning: {
                 agendas: [{ _id: '1', name: 'name' }],
             }
         }
-        result = selectors.getSelectedAgenda(state)
+        result = selectors.getCurrentAgenda(state)
         expect(result).toEqual(undefined)
         state = cloneDeep(state)
         state.planning.currentAgendaId = '1'
-        result = selectors.getSelectedAgenda(state)
+        result = selectors.getCurrentAgenda(state)
         expect(result).toEqual(state.planning.agendas[0])
     })
     it('getCurrentAgendaPlannings', () => {

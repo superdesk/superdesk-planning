@@ -67,7 +67,7 @@ class PlanningPanel extends React.Component {
 }
 
 const mapStateToProps = (state) => ({
-    currentAgenda: selectors.getSelectedAgenda(state),
+    currentAgenda: selectors.getCurrentAgenda(state),
     planningList: selectors.getCurrentAgendaPlannings(state),
 })
 

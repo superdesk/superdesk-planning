@@ -1,5 +1,6 @@
 import { hideModal } from './modal'
 import * as selectors from '../selectors'
+import { pickBy, cloneDeep } from 'lodash'
 
 export const createAgenda = ({ name }) => (
     (dispatch, getState, { api }) => {
@@ -10,19 +11,50 @@ export const createAgenda = ({ name }) => (
         .then((agenda) => {
             dispatch(hideModal())
             dispatch(addOrReplaceAgenda(agenda))
+            dispatch(selectAgenda(agenda._id))
         })
     }
 )
 
-const createPlanning = ({ event }) => (
-    (dispatch, getState, { api }) => (
-        api('planning').save({}, {
+/** Create a planning from an event */
+const createPlanningFromEvent = (event) => (
+    (dispatch) => (
+        dispatch(savePlanning({
             event_item: event._id,
             slugline: event.name,
             headline: event.definition_short,
             subject: event.subject,
-        })
+        }))
     )
+)
+
+export const savePlanningAndReloadCurrentAgenda = (planning) => (
+    (dispatch) => (
+        dispatch(savePlanning(planning))
+        .then(() => (
+            dispatch(fetchSelectedAgendaPlannings())
+        ))
+    )
+)
+
+export const savePlanning = (planning) => (
+    (dispatch, getState, { api }) => {
+        // find original
+        let original = {}
+        if (planning._id) {
+            const plannings = selectors.getStoredPlannings(getState())
+            original = cloneDeep(plannings[planning._id])
+        }
+        // remove all properties starting with _,
+        // otherwise it will fail for "unknown field" with `_type`
+        planning = pickBy(planning, (v, k) => (!k.startsWith('_')))
+        // remove nested event, replace by its reference
+        if (planning.event_item && planning.event_item._id) {
+            planning.event_item = planning.event_item._id
+        }
+        // save through the api
+        return api('planning').save(original, planning)
+    }
 )
 
 const addOrReplaceAgenda = (agenda) => (
@@ -32,27 +64,34 @@ const addOrReplaceAgenda = (agenda) => (
 const addPlanningToAgenda = ({ planning, agenda }) => (
     (dispatch, getState, { api }) => {
         // clone agenda
-        agenda = agenda ? JSON.parse(JSON.stringify(agenda)) : {}
+        agenda = cloneDeep(agenda)
+        // init planning_items array if does not exist yet
         let planningItems = agenda.planning_items || []
+        // add planning to planning_items
         planningItems.push(planning._id)
+        // update the agenda
         return api('planning').save(agenda, {
             planning_items: planningItems
-        }).then((agenda) => {
+        }).then((agenda) => (
             // replace the agenda in the store
             dispatch(addOrReplaceAgenda(agenda))
-            // reload the plannings of the current calendar
-            return dispatch(fetchSelectedAgendaPlannings(agenda))
-        })
+        ))
     }
 )
 
 export const addEventToCurrentAgenda = (event) => (
     (dispatch, getState) => {
-        const agenda = selectors.getSelectedAgenda(getState())
+        const agenda = selectors.getCurrentAgenda(getState())
         if (agenda) {
-            return dispatch(createPlanning({ event: event }))
+            // create a planning item from the given event
+            return dispatch(createPlanningFromEvent(event))
             .then((planning) => (
+                // insert and save the planning into the agenda
                 dispatch(addPlanningToAgenda({ planning, agenda }))
+            ))
+            .then(() => (
+                // reload the plannings of the current calendar
+                dispatch(fetchSelectedAgendaPlannings())
             ))
         }
     }
@@ -82,7 +121,7 @@ export const fetchAgendas = () => (
 
 const fetchSelectedAgendaPlannings = () => (
     (dispatch, getState, { api }) => {
-        const agenda = selectors.getSelectedAgenda(getState())
+        const agenda = selectors.getCurrentAgenda(getState())
         if (!agenda || !agenda.planning_items) return
         const query = {
             source: { filter: { bool: {

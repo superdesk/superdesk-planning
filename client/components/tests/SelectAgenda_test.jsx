@@ -13,7 +13,7 @@ describe('<SelectAgendaComponent />', () => {
         const wrapper = shallow(
             <SelectAgendaComponent
                 agendas={agendas}
-                currentAgendaId="1"
+                currentAgenda="1"
                 onChange={handleOnChange} />
         )
         expect(wrapper.find('select').props().value).toBe('1')
