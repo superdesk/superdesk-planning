@@ -11,16 +11,7 @@ const replaceOrAddInAgendas = (agendas, agenda) => {
     return agendas
 }
 
-const initialPlanning = {
-    currentAgendaId: null,
-    editorOpened: false,
-    currentPlanningId: null,
-    agendas: [],
-    agendasAreLoading: false,
-    plannings: {}, // plannings stored by _id
-}
-
-const planning = (state = initialPlanning, action) => {
+const planning = (state={}, action) => {
     switch (action.type) {
         case 'ADD_PLANNINGS':
             // payload must be an array. If not, we transform

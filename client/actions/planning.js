@@ -111,10 +111,19 @@ const requestAgendas = () => (
 
 export const fetchAgendas = () => (
     (dispatch, getState, { api }) => {
+        // annonce that we are loading agendas
         dispatch(requestAgendas())
+        // fetch the agenda through the api
         return api('planning').query({ where: { planning_type: 'agenda' } })
+        // annonce that we received the agendas
         .then((data) => {
             dispatch(receiveAgendas(data._items))
+        })
+        // loads the agenda plannings if an agenda is selected
+        .then(() => {
+            if (selectors.getCurrentAgenda(getState())) {
+                dispatch(fetchSelectedAgendaPlannings())
+            }
         })
     }
 )
@@ -135,8 +144,9 @@ const fetchSelectedAgendaPlannings = () => (
 )
 
 export const selectAgenda = (agendaId) => (
-    (dispatch) => {
+    (dispatch, getState, { $scope, $location }) => {
         dispatch({ type: 'SELECT_AGENDA', payload: agendaId })
+        $scope.$apply(() => $location.search('agenda', agendaId))
         return dispatch(fetchSelectedAgendaPlannings())
     }
 )
