@@ -16,6 +16,9 @@ from .planning import PlanningResource, PlanningService
 from .coverage import CoverageResource, CoverageService
 from .locations import LocationsResource, LocationsService
 
+# import feed parsers
+from .feed_parsers.ics_2_0 import IcsTwoFeedParser  # NOQA
+
 
 def init_app(app):
     """Initialize planning plugin.

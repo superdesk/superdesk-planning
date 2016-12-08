@@ -8,8 +8,8 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from superdesk.io import register_feed_parser
-from superdesk.io.feed_parsers import XMLFeedParser
+from superdesk.io.registry import register_feed_parser
+from superdesk.io.feed_parsers import FileFeedParser
 from superdesk.utc import utcnow
 from pytz import utc
 
@@ -23,7 +23,7 @@ class IcsTwoFeedParser(FileFeedParser):
 
     NAME = 'ics20'
 
-    LABEL = 'iCalendar v2.0'
+    label  = 'iCalendar v2.0'
 
     def can_parse(self, file_path):
         return True
