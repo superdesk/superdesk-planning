@@ -2,9 +2,10 @@ import { createSelector } from 'reselect'
 
 const getCurrentAgendaId = (state) => state.planning.currentAgendaId
 const getAgendas = (state) => state.planning.agendas
-const getStoredPlannings = (state) => state.planning.plannings
+const getCurrentPlanningId = (state) => state.planning.currentPlanningId
+export const getStoredPlannings = (state) => state.planning.plannings
 
-export const getSelectedAgenda = createSelector(
+export const getCurrentAgenda = createSelector(
     [getCurrentAgendaId, getAgendas],
     (currentAgendaId, agendas) => {
         if (agendas) {
@@ -14,12 +15,21 @@ export const getSelectedAgenda = createSelector(
 )
 
 export const getCurrentAgendaPlannings = createSelector(
-    [getSelectedAgenda, getStoredPlannings],
+    [getCurrentAgenda, getStoredPlannings],
     (currentAgenda, storedPlanningsObjects) => {
         const planningsIds = currentAgenda ? currentAgenda.planning_items || [] : []
         // from ids, return the actual plannings objects
         return planningsIds.map(
             (pid) => (storedPlanningsObjects[pid])
         ).filter((d) => d !== undefined) // remove undefined
+    }
+)
+
+export const getCurrentPlanning = createSelector(
+    [getCurrentPlanningId, getStoredPlannings],
+    (currentPlanningId, storedPlannings) => {
+        if (currentPlanningId) {
+            return storedPlannings[currentPlanningId]
+        }
     }
 )

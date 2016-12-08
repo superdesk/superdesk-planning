@@ -1,6 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
+import { PlanningForm } from './index'
 
 class EditPlanningPanel extends React.Component {
 
@@ -17,6 +18,7 @@ class EditPlanningPanel extends React.Component {
                         <i className="icon-close-small"></i>
                     </a>
                 </header>
+                <PlanningForm />
             </div>
         )
     }
