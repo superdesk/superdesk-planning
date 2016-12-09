@@ -40,10 +40,10 @@ export const savePlanningAndReloadCurrentAgenda = (planning) => (
 export const savePlanning = (planning) => (
     (dispatch, getState, { api }) => {
         // find original
-        let original = {}
+        let originalPlanning = {}
         if (planning._id) {
             const plannings = selectors.getStoredPlannings(getState())
-            original = cloneDeep(plannings[planning._id])
+            originalPlanning = cloneDeep(plannings[planning._id])
         }
         // remove all properties starting with _,
         // otherwise it will fail for "unknown field" with `_type`
@@ -52,8 +52,27 @@ export const savePlanning = (planning) => (
         if (planning.event_item && planning.event_item._id) {
             planning.event_item = planning.event_item._id
         }
+        // clone and remove the nested coverages to save them later
+        const coverages = cloneDeep(planning.coverages)
+        delete planning.coverages
         // save through the api
-        return api('planning').save(original, planning)
+        return api('planning').save(originalPlanning, planning)
+        .then((planning) => {
+            // if coverages are included, we save them and return the planning
+            if (coverages) {
+                return Promise.all(
+                    coverages.map((coverage) => {
+                        coverage.planning_item = planning._id
+                        // patch or post ? look for an original coverage
+                        const originalCoverage = cloneDeep(originalPlanning.coverages
+                            .find((c) => (c._id === coverage._id))) || {}
+                        return api('coverage').save(originalCoverage, coverage)
+                    })
+                ).then(() => (planning))
+            } else {
+                return planning
+            }
+        })
     }
 )
 
@@ -139,7 +158,7 @@ const fetchSelectedAgendaPlannings = () => (
             embedded: { event_item: 1 }, // nest event to planning
         }
         return api('planning').query(query)
-        .then((data) => (dispatch(addPlannings(data._items))))
+        .then((response) => (dispatch(addPlannings(response._items))))
     }
 )
 
@@ -152,7 +171,7 @@ export const selectAgenda = (agendaId) => (
 )
 
 export const openPlanningEditor = (planning) => (
-    { type: 'OPEN_PLANNING_EDITOR', payload: planning }
+    (dispatch) => (dispatch({ type: 'OPEN_PLANNING_EDITOR', payload: planning }))
 )
 
 export const closePlanningEditor = () => (

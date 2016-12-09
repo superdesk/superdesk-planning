@@ -31,10 +31,10 @@ export const createStore = (params) => {
         extraArguments = {
             $scope: { $apply: (cb) => (cb()) },
             $location: { search: () => (undefined) },
-            api: () => ({
+            api: (resource) => ({
                 query: (q) =>  {
                     if (testMode.apiQuery) {
-                        return Promise.resolve(testMode.apiQuery(q))
+                        return Promise.resolve(testMode.apiQuery(resource, q))
                     } else {
                         return Promise.resolve({ _items: [] })
                     }

@@ -21,7 +21,7 @@ Identifiers
     Internally unique id.
 
 ``unique_name`` *string*
-    
+
     Internally unique name. By default same as ``unique_id``.
 
 ``version`` *integer*
@@ -87,9 +87,9 @@ Planning Metadata Hints
 
 ``planning.g2_content_type``
 
-   Optional, non-repeatable element to indicate the MIME type of the intended coverage.      
+   Optional, non-repeatable element to indicate the MIME type of the intended coverage.
 
-``planning.ìtem_class`` *string*
+``planning.item_class`` *string*
 
    Optional, non-repeatable element indicates the type of content to be delivered, using the IPTC News Item Nature NewsCodes. 
 
@@ -100,15 +100,15 @@ Planning Metadata Hints
 ``planning.scheduled`` *dateimte*
 
     Optional, non-repeatable. Indicates the scheduled time of delivery, and may be truncated if the precise date and time is not known.
-    
+
 ``planning.service`` *list*
 
     Optional, repeatable. The editorial service to which the content has been assigned by the provider and on which the receiver should expect to receive the planned content.
-    
+
 ``planning.assigned_to`` *string*
 
     Optional, non-repeatable element that holds the details of a person or organisation who has been assigned to create the announced content.
-    
+
 ``planning.news_content_characteristics`` *list*
 
     Optional, repeatable,enables providers to express physical properties of the planned item using attributes from the News Content Characteristics group.
@@ -183,5 +183,3 @@ Delivery Metadata
                 'rank': 'integer'
             }
         ]
-
-
