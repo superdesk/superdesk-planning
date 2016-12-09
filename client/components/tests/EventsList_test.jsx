@@ -2,11 +2,9 @@ import React from 'react'
 import { mount, shallow } from 'enzyme'
 import sinon from 'sinon'
 import { EventsList, EventsListPanelContainer, Event } from '../index'
-import { createStore, applyMiddleware } from 'redux'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
-import planningApp from '../../reducers'
-import thunkMiddleware from 'redux-thunk'
+import { createStore } from '../../utils'
 
 const events = [
     {
@@ -41,17 +39,7 @@ const events = [
 describe('<EventsList />', () => {
     it('renders events', () => {
         const initialState = { events }
-        const store = createStore(
-            planningApp,
-            initialState,
-            applyMiddleware(thunkMiddleware.withExtraArgument(
-                {
-                    api: () => ({
-                        query: () => (Promise.resolve({ _items: events }))
-                    })
-                }
-            ))
-        )
+        const store = createStore({ initialState, testMode: true })
         const wrapper = mount(
             <Provider store={store}>
                 <EventsListPanelContainer />
