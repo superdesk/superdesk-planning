@@ -1,7 +1,5 @@
-import { createStore, applyMiddleware } from 'redux'
-import planningApp from '../../reducers'
+import { createStore } from '../../utils'
 import * as actions from '../../actions'
-import thunkMiddleware from 'redux-thunk'
 
 describe('<PlanningPanelContainer />', () => {
     it('addEventToCurrentAgenda', (done) => {
@@ -19,29 +17,10 @@ describe('<PlanningPanelContainer />', () => {
             _id: '2',
             name: 'event'
         }
-        const store = createStore(
-            planningApp,
+        const store = createStore({
+            testMode: { apiQuery: () => ({ _items: [EVENT] }) },
             initialState,
-            applyMiddleware(thunkMiddleware.withExtraArgument(
-                {
-                    api: () => ({
-                        query: () => (Promise.resolve({ _items: [EVENT] })),
-                        save: (ori, item) => {
-                            let response = {}
-                            Object.assign(response, ori, item)
-                            // if there is no id we add one
-                            if (!response._id) {
-                                const randId =  Math.random().toString(36).substr(2, 10)
-                                Object.assign(response, item, { _id: randId })
-                            }
-                            // reponse as a promise
-                            return Promise.resolve(response)
-                        },
-                    })
-                }
-            ))
-        )
-
+        })
         store.dispatch(actions.addEventToCurrentAgenda(EVENT)).then(() => {
             expect(store.getState().planning.plannings).toEqual({ 2: EVENT })
             done()

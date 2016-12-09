@@ -122,7 +122,7 @@ export const fetchAgendas = () => (
 const fetchSelectedAgendaPlannings = () => (
     (dispatch, getState, { api }) => {
         const agenda = selectors.getCurrentAgenda(getState())
-        if (!agenda || !agenda.planning_items) return
+        if (!agenda || !agenda.planning_items) return Promise.resolve()
         const query = {
             source: { filter: { bool: {
                 should: agenda.planning_items.map((pid) => ({ term: { _id: pid } }))
