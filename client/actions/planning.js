@@ -137,7 +137,7 @@ const fetchSelectedAgendaPlannings = () => (
 export const selectAgenda = (agendaId) => (
     (dispatch) => {
         dispatch({ type: 'SELECT_AGENDA', payload: agendaId })
-        dispatch(fetchSelectedAgendaPlannings())
+        return dispatch(fetchSelectedAgendaPlannings())
     }
 )
 
