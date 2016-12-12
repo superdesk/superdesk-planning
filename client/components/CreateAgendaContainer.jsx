@@ -12,6 +12,10 @@ export const CreateAgenda = ({ show }) => (
         show={show} />
 )
 
+CreateAgenda.propTypes = {
+    show: React.PropTypes.bool
+}
+
 const mapStateToProps = (state) => ({
     show: state.modal.modalType === 'CREATE_AGENDA',
 })

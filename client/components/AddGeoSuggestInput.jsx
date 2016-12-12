@@ -6,7 +6,7 @@ import Geosuggest from 'react-geosuggest'
 /**
 * Modal for adding/editing a location with nominatim search
 */
-export class GeoSuggestInput extends React.Component {
+class GeoSuggestInput extends React.Component {
 
     constructor(props) {
         super(props)
@@ -34,7 +34,10 @@ export class GeoSuggestInput extends React.Component {
     }
 }
 
-GeoSuggestInput.propTypes = { initialValue: PropTypes.object }
+GeoSuggestInput.propTypes = {
+    initialValue: PropTypes.object,
+    onChange: PropTypes.func,
+}
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
     onChange: (suggest) => {

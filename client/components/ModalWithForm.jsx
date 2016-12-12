@@ -21,7 +21,7 @@ class ModalWithFormComponent extends React.Component {
             <Modal show={this.props.show} onHide={this.props.handleHide}>
                 <Modal.Header>
                     <a className="close" onClick={this.props.handleHide}>
-                        <i className="icon-close-small"></i>
+                        <i className="icon-close-small" />
                     </a>
                     <h3>{ this.props.title }</h3>
                 </Modal.Header>
@@ -40,6 +40,16 @@ class ModalWithFormComponent extends React.Component {
     }
 }
 
+ModalWithFormComponent.propTypes = {
+    form: React.PropTypes.func,
+    initialValues: React.PropTypes.object,
+    title: React.PropTypes.string,
+    show: React.PropTypes.bool,
+    handleHide: React.PropTypes.func,
+    pristine: React.PropTypes.bool,
+    submitting: React.PropTypes.func,
+
+}
 const mapDispatchToProps = (dispatch) => ({
     handleHide: () => dispatch(actions.hideModal())
 })

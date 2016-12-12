@@ -1,5 +1,5 @@
 import React from 'react'
-import { InputField } from './index'
+import { fields } from './index'
 import { connect } from 'react-redux'
 import { Field, reduxForm } from 'redux-form'
 import * as actions from '../actions'
@@ -15,7 +15,7 @@ export class Component extends React.Component {
         return (
             <form onSubmit={this.handleSubmit} className="CreateAgendaForm">
                 <Field name="name"
-                       component={InputField}
+                       component={fields.InputField}
                        type="text"
                        label="Name"/>
             </form>

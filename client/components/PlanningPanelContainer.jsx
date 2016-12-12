@@ -25,12 +25,12 @@ class PlanningPanel extends React.Component {
                     </h3>
                     <SelectAgenda />
                     <div className="subnav__button-stack--square-buttons">
-                        <div className="refresh-box pull-right"></div>
+                        <div className="refresh-box pull-right" />
                         <div className="navbtn" title="Create">
                             <button className="sd-create-btn"
                                     onClick={this.props.openCreateAgenda.bind(null, null)}>
-                                <i className="svg-icon-plus"></i>
-                                <span className="circle"></span>
+                                <i className="svg-icon-plus" />
+                                <span className="circle" />
                             </button>
                         </div>
                     </div>
@@ -64,6 +64,13 @@ class PlanningPanel extends React.Component {
             </div>
         )
     }
+}
+
+PlanningPanel.propTypes = {
+    currentAgenda: React.PropTypes.object,
+    fetchAgendas: React.PropTypes.func.isRequired,
+    openCreateAgenda: React.PropTypes.func.isRequired,
+    planningList: React.PropTypes.array.isRequired,
 }
 
 const mapStateToProps = (state) => ({

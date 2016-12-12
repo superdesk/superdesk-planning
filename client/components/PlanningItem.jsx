@@ -12,11 +12,11 @@ export const PlanningItemComponent = ({ item, onPlanningClick }) => {
         <li className="list-item-view" onClick={onPlanningClick.bind(null, item._id)}>
             <div className="media-box media-text">
                 <div className="list-field type-icon">
-                    <i className="filetype-icon-text"></i>
+                    <i className="filetype-icon-text" />
                 </div>
                 <div className="item-info">
                     <div className="line">
-                        <div className="highlights-box"></div>
+                        <div className="highlights-box" />
                         <span className="keyword">{item.slugline}</span>
                         <span className="item-heading">{item.headline}</span>
                         <time title={eventTime}>{eventTime}</time>

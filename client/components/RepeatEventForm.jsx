@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react'
 import { Field, formValueSelector } from 'redux-form'
-import { DayPickerInput, DaysOfWeek } from './index'
+import { fields } from './index'
 import { connect } from 'react-redux'
 import { isNil } from 'lodash'
 
@@ -30,7 +30,7 @@ class RepeatEventFormComponent extends React.Component {
                 <div>
                     <label>Repeats</label>
                     <Field name="dates.recurring_rule.frequency" component="select">
-                        <option></option>
+                        <option />
                         {/* values come from http://tinyurl.com/hqol55p */}
                         <option value="YEARLY">Yearly</option>
                         <option value="MONTHLY">Monthly</option>
@@ -52,7 +52,7 @@ class RepeatEventFormComponent extends React.Component {
                 { this.props.frequency === 'WEEKLY' &&
                     <div>
                         <label>Repeat on</label>
-                        <Field name="dates.recurring_rule.byday" component={DaysOfWeek} />
+                        <Field name="dates.recurring_rule.byday" component={fields.DaysOfWeek} />
                     </div>
                 }
                 <div className="recurring__ends">
@@ -87,7 +87,7 @@ class RepeatEventFormComponent extends React.Component {
                         type="radio"/>
                         Until
                         <Field name="dates.recurring_rule.until"
-                               component={DayPickerInput} />
+                               component={fields.DayPickerInput} />
                     </label>
                 </div>
             </div>
@@ -95,7 +95,9 @@ class RepeatEventFormComponent extends React.Component {
     }
 }
 RepeatEventFormComponent.propTypes = {
-    change: PropTypes.func
+    change: PropTypes.func.isRequired,
+    doesRepeatEnd: PropTypes.oneOf([false, 'count', 'until']),
+    frequency: PropTypes.oneOf(['YEARLY', 'MONTHLY', 'WEEKLY', 'DAILY']),
 }
 
 // This is the same name defined in AddEventForm.jsx because it is just a sub form

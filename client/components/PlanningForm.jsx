@@ -1,26 +1,10 @@
 import React from 'react'
-import { InputField, Coverage } from './index'
+import { fields } from './index'
 import { connect } from 'react-redux'
-import { Field, FieldArray, reduxForm } from 'redux-form'
+import { Field, FieldArray, reduxForm, propTypes } from 'redux-form'
 import * as actions from '../actions'
 import { RequiredFieldsValidator } from '../utils'
 import * as selectors from '../selectors'
-
-const renderCoverages = ({ fields }) => (
-    <ul>
-        {fields.map((coverage, index) => (
-            <li key={index}>
-                <Coverage coverage={coverage} />
-            </li>
-        ))}
-        <li>
-            <button
-                className="btn btn-default"
-                onClick={() => fields.push({})}
-                type="button">Add</button>
-        </li>
-    </ul>
-)
 
 class Component extends React.Component {
 
@@ -33,11 +17,19 @@ class Component extends React.Component {
         return (
             <form onSubmit={handleSubmit} className="PlanningForm">
                 <fieldset>
-                    <Field name="slugline" component={InputField} type="text" label="Slugline"/>
-                    <Field name="headline" component={InputField} type="text" label="Headline"/>
+                    <Field
+                        name="slugline"
+                        component={fields.InputField}
+                        type="text"
+                        label="Slugline"/>
+                    <Field
+                        name="headline"
+                        component={fields.InputField}
+                        type="text"
+                        label="Headline"/>
                 </fieldset>
                 <h3>Coverages</h3>
-                <FieldArray name="coverages" component={renderCoverages} />
+                <FieldArray name="coverages" component={fields.CoveragesFieldArray} />
                 <button
                     className="btn btn-default"
                     type="submit"
@@ -46,6 +38,8 @@ class Component extends React.Component {
         )
     }
 }
+
+Component.propTypes = propTypes
 
 // Decorate the form component
 const PlanningReduxForm = reduxForm({
