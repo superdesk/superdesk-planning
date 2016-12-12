@@ -4,12 +4,12 @@ import { PlanningApp } from '../components'
 import { Provider } from 'react-redux'
 import { createStore } from '../utils'
 
-PlanningController.$inject = ['$element', 'api', 'config']
-export function PlanningController($element, api, config) {
+PlanningController.$inject = ['$element', '$scope', 'api', 'config', '$location']
+export function PlanningController($element, $scope, api, config, $location) {
     let store = createStore({
         initialState: {
             planning: {
-                currentAgendaId: undefined,
+                currentAgendaId: $location.search().agenda,
                 editorOpened: false,
                 currentPlanningId: null,
                 agendas: [],
@@ -18,7 +18,7 @@ export function PlanningController($element, api, config) {
             },
             config: config
         },
-        extraArguments: { api }
+        extraArguments: { api, $location, $scope }
     })
     ReactDOM.render(
         <Provider store={store}>

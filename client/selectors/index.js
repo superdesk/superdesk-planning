@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect'
 
-const getCurrentAgendaId = (state) => state.planning.currentAgendaId
 const getAgendas = (state) => state.planning.agendas
 const getCurrentPlanningId = (state) => state.planning.currentPlanningId
+export const getCurrentAgendaId = (state) => state.planning.currentAgendaId
 export const getStoredPlannings = (state) => state.planning.plannings
 
 export const getCurrentAgenda = createSelector(
