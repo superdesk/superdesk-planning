@@ -18,7 +18,9 @@ describe('<PlanningPanelContainer />', () => {
             name: 'event'
         }
         const store = createStore({
-            testMode: { apiQuery: () => ({ _items: [EVENT] }) },
+            testMode: {
+                apiQuery: () => ({ _items: [EVENT] })
+            },
             initialState,
         })
         store.dispatch(actions.addEventToCurrentAgenda(EVENT)).then(() => {

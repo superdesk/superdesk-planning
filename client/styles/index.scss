@@ -4,6 +4,7 @@
 @import './add-event-container.scss';
 @import './add-event-form.scss';
 @import './react-geosuggest.scss';
+@import './coverage.scss';
 
 $EVENTS_LIST_WIDTH: 500px;
 $EDIT_PLANNING_WIDTH: 450px;
@@ -58,6 +59,7 @@ $EDIT_PLANNING_WIDTH: 450px;
     transition-property: width;
     transition-duration: .25s;
     box-sizing: border-box;
+    overflow: auto;
     width: 0;
     visibility: hidden;
     left: auto;

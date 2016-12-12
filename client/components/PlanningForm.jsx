@@ -1,10 +1,26 @@
 import React from 'react'
-import { InputField } from './index'
+import { InputField, Coverage } from './index'
 import { connect } from 'react-redux'
-import { Field, reduxForm } from 'redux-form'
+import { Field, FieldArray, reduxForm } from 'redux-form'
 import * as actions from '../actions'
 import { RequiredFieldsValidator } from '../utils'
 import * as selectors from '../selectors'
+
+const renderCoverages = ({ fields }) => (
+    <ul>
+        {fields.map((coverage, index) => (
+            <li key={index}>
+                <Coverage coverage={coverage} />
+            </li>
+        ))}
+        <li>
+            <button
+                className="btn btn-default"
+                onClick={() => fields.push({})}
+                type="button">Add</button>
+        </li>
+    </ul>
+)
 
 class Component extends React.Component {
 
@@ -20,6 +36,8 @@ class Component extends React.Component {
                     <Field name="slugline" component={InputField} type="text" label="Slugline"/>
                     <Field name="headline" component={InputField} type="text" label="Headline"/>
                 </fieldset>
+                <h3>Coverages</h3>
+                <FieldArray name="coverages" component={renderCoverages} />
                 <button
                     className="btn btn-default"
                     type="submit"

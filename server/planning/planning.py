@@ -14,6 +14,8 @@ import superdesk
 import logging
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
+from superdesk import get_resource_service
+from superdesk.resource import build_custom_hateoas
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +25,20 @@ not_indexed = {'type': 'string', 'index': 'no'}
 
 class PlanningService(superdesk.Service):
     """Service class for the planning model."""
+
+    custom_coverage_hateoas = {'self': {'title': 'Coverage', 'href': '/coverage/{_id}'}}
+
+    def generate_related_coverages(self, planning):
+        for coverage in get_resource_service('coverage').find(where={'planning_item': planning['_id']}):
+            build_custom_hateoas(self.custom_coverage_hateoas, coverage)
+            yield coverage
+
+    def get(self, req, lookup):
+        docs = super().get(req, lookup)
+        # nest coverages
+        for doc in docs:
+            doc['coverages'] = list(self.generate_related_coverages(doc))
+        return docs
 
     def on_create(self, docs):
         """Set default metadata."""
