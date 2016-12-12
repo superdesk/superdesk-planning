@@ -60,3 +60,8 @@ export class EventsList extends React.Component {
         return sortable
     }
 }
+
+EventsList.propTypes = {
+    onEventClick: React.PropTypes.func,
+    events: React.PropTypes.array.isRequired,
+}

@@ -15,14 +15,14 @@ class EventsListPanel extends React.Component {
                     <div className="flat-searchbar monitoring-flat-searchbar">
                         <div className="search-handler">
                             <label htmlFor="search-input" className="trigger-icon">
-                                <i className="icon-search"></i>
+                                <i className="icon-search" />
                             </label>
                             <input id="search-input" placeholder="Search" type="text"/>
                             <button className="search-close" >
-                                <i className="icon-remove-sign"></i>
+                                <i className="icon-remove-sign" />
                             </button>
                             <button className="search-close">
-                                <i className="svg-icon-right"></i>
+                                <i className="svg-icon-right" />
                             </button>
                         </div>
                     </div>
@@ -32,12 +32,12 @@ class EventsListPanel extends React.Component {
                         </span>
                     </h3>
                     <div className="subnav__button-stack--square-buttons">
-                        <div className="refresh-box pull-right"></div>
+                        <div className="refresh-box pull-right" />
                         <div className="navbtn" title="Create">
                             <button className="sd-create-btn"
                                     onClick={this.props.openAddEvent.bind(null, null)}>
-                                <i className="svg-icon-plus"></i>
-                                <span className="circle"></span>
+                                <i className="svg-icon-plus" />
+                                <span className="circle" />
                             </button>
                         </div>
                     </div>
@@ -47,6 +47,12 @@ class EventsListPanel extends React.Component {
             </div>
         )
     }
+}
+
+EventsListPanel.propTypes = {
+    openAddEvent: React.PropTypes.func,
+    loadEvents: React.PropTypes.func,
+    events: React.PropTypes.array,
 }
 
 const mapStateToProps = (state) => ({ events: state.events })

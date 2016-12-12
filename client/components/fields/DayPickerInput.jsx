@@ -110,6 +110,9 @@ export class DayPickerInput extends React.Component {
 }
 DayPickerInput.propTypes = {
     withTime: PropTypes.bool,
-    defaultDate: PropTypes.object
+    defaultDate: PropTypes.object,
+    input: PropTypes.object,
+    meta: PropTypes.object,
+    disabled: PropTypes.bool,
 }
 DayPickerInput.defaultProps = { withTime: false, meta: {} }

@@ -1,5 +1,5 @@
 import React from 'react'
-import { InputField, DayPickerInput } from './index'
+import { fields } from './index'
 import { Field } from 'redux-form'
 
 export class Coverage extends React.Component {
@@ -13,22 +13,26 @@ export class Coverage extends React.Component {
             <fieldset className="Coverage">
                 <Field
                     name={`${this.props.coverage}.planning.ednote`}
-                    component={InputField}
+                    component={fields.InputField}
                     type="text"
                     label="Description"/>
                 <Field
                     name={`${this.props.coverage}.planning.g2_content_type`}
                     component="select">
-                    <option></option>
+                    <option />
                     <option value="text">Story</option>
                     <option value="picture">Picture</option>
                 </Field>
                 <label>Due</label>
                 <Field
                     name={`${this.props.coverage}.planning.scheduled`}
-                    component={DayPickerInput}
+                    component={fields.DayPickerInput}
                     withTime={true} />
             </fieldset>
         )
     }
+}
+
+Coverage.propTypes = {
+    coverage: React.PropTypes.string.isRequired,
 }

@@ -15,7 +15,7 @@ class EditPlanningPanel extends React.Component {
                 <header className="subnav">
                     <h3 className="subnav__page-title">Created 5min ago by Edouard</h3>
                     <a onClick={this.props.closePlanningEditor} className="close">
-                        <i className="icon-close-small"></i>
+                        <i className="icon-close-small" />
                     </a>
                 </header>
                 <PlanningForm />

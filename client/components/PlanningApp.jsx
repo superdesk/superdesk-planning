@@ -24,6 +24,10 @@ const PlanningAppComponent = ({ editPlanningViewOpen }) => {
     )
 }
 
+PlanningAppComponent.propTypes = {
+    editPlanningViewOpen: React.PropTypes.bool,
+}
+
 const mapStateToProps = (state) => ({
     editPlanningViewOpen: state.planning.editorOpened
 })
