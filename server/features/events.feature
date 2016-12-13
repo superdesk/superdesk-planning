@@ -46,6 +46,15 @@ Feature: Events
         """
         When we get "/events"
         Then we get list with 1 items
+        """
+            {"_items": [{
+                "guid": "__any_value__",
+                "original_creator": "__any_value__",
+                "name": "event 123",
+                "definition_short": "short value",
+                "definition_long": "long value"
+            }]}
+        """
         When we get "/events?sort=[("dates.start",1)]&source={"query":{"range":{"dates.start":{"lte":"2015-01-01T00:00:00.000Z"}}}}"
         Then we get list with 0 items
         When we get "/events?sort=[("dates.start",1)]&source={"query":{"range":{"dates.start":{"gte":"2016-01-02T00:00:00.000Z"}}}}"
