@@ -24,12 +24,13 @@ export const RequiredFieldsValidator = (fields) => (
 
 export const createStore = (params) => {
     params = params || {}
-    let { initialState={}, testMode=false, extraArguments={} } = params
+    let { initialState={}, testMode, extraArguments={} } = params
     let middlewares = []
     // Mock the extra arguments
     if (testMode) {
         extraArguments = {
-            $scope: { $apply: (cb) => (cb()) },
+            $timeout: (cb) => (cb && cb()),
+            $scope: { $apply: (cb) => (cb && cb()) },
             $location: { search: () => (undefined) },
             api: (resource) => ({
                 query: (q) =>  {
@@ -40,16 +41,28 @@ export const createStore = (params) => {
                     }
                 },
 
-                save: (ori, item) => {
-                    let response = {}
-                    Object.assign(response, ori, item)
-                    // if there is no id we add one
-                    if (!response._id) {
-                        const randId =  Math.random().toString(36).substr(2, 10)
-                        Object.assign(response, item, { _id: randId })
+                remove: (item) => {
+                    if (testMode.apiRemove) {
+                        return Promise.resolve(testMode.apiRemove(resource, item))
+                    } else {
+                        Promise.resolve()
                     }
-                    // reponse as a promise
-                    return Promise.resolve(response)
+                },
+
+                save: (ori, item) => {
+                    if (testMode.apiSave) {
+                        return Promise.resolve(testMode.apiSave(resource, ori, item))
+                    } else {
+                        let response = {}
+                        Object.assign(response, ori, item)
+                        // if there is no id we add one
+                        if (!response._id) {
+                            const randId =  Math.random().toString(36).substr(2, 10)
+                            Object.assign(response, item, { _id: randId })
+                        }
+                        // reponse as a promise
+                        return Promise.resolve(response)
+                    }
                 },
             })
         }

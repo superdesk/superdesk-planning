@@ -4,8 +4,8 @@ import { PlanningApp } from '../components'
 import { Provider } from 'react-redux'
 import { createStore } from '../utils'
 
-PlanningController.$inject = ['$element', '$scope', 'api', 'config', '$location']
-export function PlanningController($element, $scope, api, config, $location) {
+PlanningController.$inject = ['$element', '$scope', 'api', 'config', '$location', '$timeout']
+export function PlanningController($element, $scope, api, config, $location, $timeout) {
     let store = createStore({
         initialState: {
             planning: {
@@ -18,7 +18,7 @@ export function PlanningController($element, $scope, api, config, $location) {
             },
             config: config
         },
-        extraArguments: { api, $location, $scope }
+        extraArguments: { api, $location, $scope, $timeout }
     })
     ReactDOM.render(
         <Provider store={store}>

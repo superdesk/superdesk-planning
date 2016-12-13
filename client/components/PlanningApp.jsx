@@ -19,7 +19,7 @@ const PlanningAppComponent = ({ editPlanningViewOpen }) => {
             <AddEventContainer />
             <EventsListPanelContainer />
             <PlanningPanelContainer />
-            <EditPlanningPanelContainer />
+            {editPlanningViewOpen && <EditPlanningPanelContainer />}
         </div>
     )
 }

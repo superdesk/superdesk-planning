@@ -4,15 +4,23 @@ import React from 'react'
 export const CoveragesFieldArray = ({ fields }) => (
     <ul>
         {fields.map((coverage, index) => (
-            <li key={index}>
+            <li key={index} className="Coverage">
+                <button
+                    onClick={()=>fields.remove(index)}
+                    title="Remove coverage"
+                    className="Coverage__remove">
+                    <i className="icon-trash" />
+                </button>
                 <Coverage coverage={coverage} />
             </li>
         ))}
         <li>
             <button
-                className="btn btn-default"
+                className="Coverage__add-btn btn btn-default"
                 onClick={() => fields.push({})}
-                type="button">Add</button>
+                type="button">
+                <i className="icon-plus-large"/>
+            </button>
         </li>
     </ul>
 )
