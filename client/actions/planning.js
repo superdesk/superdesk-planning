@@ -55,6 +55,8 @@ export const savePlanning = (planning) => (
         // clone and remove the nested coverages to save them later
         const coverages = cloneDeep(planning.coverages)
         delete planning.coverages
+        // remove nested original creator
+        delete planning.original_creator
         // save through the api
         return api('planning').save(originalPlanning, planning)
         .then((planning) => {
@@ -155,7 +157,7 @@ const fetchSelectedAgendaPlannings = () => (
             source: { filter: { bool: {
                 should: agenda.planning_items.map((pid) => ({ term: { _id: pid } }))
             } } },
-            embedded: { event_item: 1 }, // nest event to planning
+            embedded: { event_item: 1, original_creator: 1 }, // nest event and creator to planning
         }
         return api('planning').query(query)
         .then((response) => (dispatch(addPlannings(response._items))))
