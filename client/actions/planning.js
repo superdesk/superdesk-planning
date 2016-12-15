@@ -120,12 +120,16 @@ const receiveAgendas = (agendas) => (
     { type: 'RECEIVE_AGENDAS', payload: agendas }
 )
 
-const addPlannings = (plannings) => (
-    { type: 'ADD_PLANNINGS', payload: plannings }
+const receivePlannings = (plannings) => (
+    { type: 'RECEIVE_PLANNINGS', payload: plannings }
 )
 
 const requestAgendas = () => (
     { type: 'REQUEST_AGENDAS' }
+)
+
+const requestAgendaPlannings = () => (
+    { type: 'REQUEST_AGENDA_PLANNNGS' }
 )
 
 export const fetchAgendas = () => (
@@ -151,6 +155,7 @@ const fetchSelectedAgendaPlannings = () => (
     (dispatch, getState, { api }) => {
         const agenda = selectors.getCurrentAgenda(getState())
         if (!agenda || !agenda.planning_items) return Promise.resolve()
+        dispatch(requestAgendaPlannings())
         const query = {
             source: { filter: { bool: {
                 should: agenda.planning_items.map((pid) => ({ term: { _id: pid } }))
@@ -158,7 +163,7 @@ const fetchSelectedAgendaPlannings = () => (
             embedded: { event_item: 1 }, // nest event to planning
         }
         return api('planning').query(query)
-        .then((response) => (dispatch(addPlannings(response._items))))
+        .then((response) => (dispatch(receivePlannings(response._items))))
     }
 )
 

@@ -44,7 +44,11 @@ class PlanningPanel extends React.Component {
                     }
                 </ul>
                 {
-                    (!this.props.currentAgenda || this.props.currentAgenda.length < 1) &&
+                    this.props.planningsAreLoading &&
+                    <div className="Planning__planning__empty-message">
+                        Loading
+                    </div>
+                    || (!this.props.currentAgenda || this.props.currentAgenda.length < 1) &&
                     <div className="Planning__planning__empty-message">
                         There is no selected calendar.<br/>
                         Choose one in the above dropdown.
@@ -76,6 +80,7 @@ PlanningPanel.propTypes = {
 const mapStateToProps = (state) => ({
     currentAgenda: selectors.getCurrentAgenda(state),
     planningList: selectors.getCurrentAgendaPlannings(state),
+    planningsAreLoading: state.planning.planningsAreLoading
 })
 
 const mapDispatchToProps = (dispatch) => ({

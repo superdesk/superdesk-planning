@@ -13,7 +13,7 @@ const replaceOrAddInAgendas = (agendas, agenda) => {
 
 const planning = (state={}, action) => {
     switch (action.type) {
-        case 'ADD_PLANNINGS':
+        case 'RECEIVE_PLANNINGS':
             // payload must be an array. If not, we transform
             action.payload = Array.isArray(action.payload) ? action.payload : [action.payload]
             // clone plannings
@@ -21,11 +21,13 @@ const planning = (state={}, action) => {
             // add to state.plannings, use _id as key
             action.payload.forEach((planning) => plannings[planning._id] = planning)
             // return new state
-            return Object.assign({}, state, { plannings: plannings })
+            return Object.assign({}, state, { plannings: plannings, planningsAreLoading: false })
         case 'SELECT_AGENDA':
             return Object.assign({}, state, { currentAgendaId: action.payload })
         case 'REQUEST_AGENDAS':
             return Object.assign({}, state, { agendasAreLoading: true })
+        case 'REQUEST_AGENDA_PLANNNGS':
+            return Object.assign({}, state, { planningsAreLoading: true })
         case 'RECEIVE_AGENDAS':
             return Object.assign({}, state, { agendasAreLoading: false, agendas: action.payload })
         case 'ADD_OR_REPLACE_AGENDA':
