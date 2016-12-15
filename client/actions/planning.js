@@ -59,21 +59,28 @@ export const savePlanning = (planning) => (
         delete planning.original_creator
         // save through the api
         return api('planning').save(originalPlanning, planning)
+        // save/delete coverages, and return the planning
         .then((planning) => {
-            // if coverages are included, we save them and return the planning
-            if (coverages) {
-                return Promise.all(
-                    coverages.map((coverage) => {
-                        coverage.planning_item = planning._id
-                        // patch or post ? look for an original coverage
-                        const originalCoverage = cloneDeep(originalPlanning.coverages
-                            .find((c) => (c._id === coverage._id))) || {}
-                        return api('coverage').save(originalCoverage, coverage)
-                    })
-                ).then(() => (planning))
-            } else {
-                return planning
-            }
+            const promises = []
+            // saves coverages
+            promises.concat(coverages.map((coverage) => {
+                coverage.planning_item = planning._id
+                // patch or post ? look for an original coverage
+                const originalCoverage = cloneDeep(originalPlanning.coverages
+                    .find((c) => (c._id === coverage._id))) || {}
+                return api('coverage').save(originalCoverage, coverage)
+            }))
+            // deletes coverages
+            originalPlanning.coverages.forEach((originalCoverage) => {
+                // if there is a coverage in the original planning that is not anymore
+                // in the saved planning, we delete it
+                if (coverages.findIndex((c) => (c._id && c._id === originalCoverage._id)) === -1) {
+                    promises.push(
+                        api('coverage').remove(originalCoverage)
+                    )
+                }
+            })
+            return Promise.all(promises).then(() => (planning))
         })
     }
 )
@@ -170,9 +177,12 @@ const fetchSelectedAgendaPlannings = () => (
 )
 
 export const selectAgenda = (agendaId) => (
-    (dispatch, getState, { $scope, $location }) => {
+    (dispatch, getState, { $timeout, $location }) => {
+        // save in store selected agenda
         dispatch({ type: 'SELECT_AGENDA', payload: agendaId })
-        $scope.$apply(() => $location.search('agenda', agendaId))
+        // update the url (deep linking)
+        $timeout(() => ($location.search('agenda', agendaId)))
+        // reload the plannings list
         return dispatch(fetchSelectedAgendaPlannings())
     }
 )

@@ -16,6 +16,7 @@ export class Coverage extends React.Component {
                     component={fields.InputField}
                     type="text"
                     label="Description"/>
+                <label>Type</label>
                 <Field
                     name={`${this.props.coverage}.planning.g2_content_type`}
                     component="select">

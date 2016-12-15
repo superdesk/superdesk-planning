@@ -2,7 +2,7 @@ import { createStore } from '../../utils'
 import * as actions from '../../actions'
 
 describe('<PlanningPanelContainer />', () => {
-    it('addEventToCurrentAgenda', (done) => {
+    it('addEventToCurrentAgenda', () => {
         const initialState = {
             planning: {
                 plannings: {},
@@ -25,7 +25,6 @@ describe('<PlanningPanelContainer />', () => {
         })
         store.dispatch(actions.addEventToCurrentAgenda(EVENT)).then(() => {
             expect(store.getState().planning.plannings).toEqual({ 2: EVENT })
-            done()
         })
     })
 })
