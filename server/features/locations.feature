@@ -42,3 +42,20 @@ Feature: Locations
         """
         When we get "/locations"
         Then we get list with 1 items
+        """
+            {"_items": [{
+                "guid": "__any_value__",
+                "original_creator": "__any_value__",
+                "name": "Test Location",
+                "address": {
+                    "line": [
+                        "street 123",
+                        "apt 1"
+                    ],
+                    "locality": "some locality",
+                    "area": "some area",
+                    "country": "some country",
+                    "postal_code": "some postal code"
+                }
+            }]}
+        """

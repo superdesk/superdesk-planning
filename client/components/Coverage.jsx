@@ -10,7 +10,7 @@ export class Coverage extends React.Component {
 
     render() {
         return (
-            <fieldset className="Coverage">
+            <fieldset>
                 <Field
                     name={`${this.props.coverage}.planning.ednote`}
                     component={fields.InputField}

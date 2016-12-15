@@ -14,6 +14,7 @@ import superdesk
 import logging
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
+from apps.archive.common import set_original_creator
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 import itertools
 import copy
@@ -53,6 +54,8 @@ class EventsService(superdesk.Service):
         for event in docs:
             # generates an unique id
             event['guid'] = generate_guid(type=GUID_NEWSML)
+            # set the author
+            set_original_creator(event)
             # generates events based on recurring rules
             if event['dates'].get('recurring_rule', {}).get('frequency'):
                 # generate a common id for all the events we will generate

@@ -16,6 +16,7 @@ from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk import get_resource_service
 from superdesk.resource import build_custom_hateoas
+from apps.archive.common import set_original_creator
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,7 @@ class PlanningService(superdesk.Service):
 
         for doc in docs:
             doc['guid'] = generate_guid(type=GUID_NEWSML)
+            set_original_creator(doc)
 
 
 planning_schema = {

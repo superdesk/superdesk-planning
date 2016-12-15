@@ -23,7 +23,6 @@ Feature: Planning
         """
         [
             {
-                "guid": "123",
                 "unique_id": "123",
                 "unique_name": "123 name",
                 "item_class": "item class value",
@@ -33,6 +32,14 @@ Feature: Planning
         """
         When we get "/planning"
         Then we get list with 1 items
+        """
+            {"_items": [{
+                "guid": "__any_value__",
+                "original_creator": "__any_value__",
+                "item_class": "item class value",
+                "headline": "test headline"
+            }]}
+        """
 
     @auth
     @notification
