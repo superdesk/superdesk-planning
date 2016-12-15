@@ -13,6 +13,7 @@ export function PlanningController($element, $scope, api, config, $location) {
                 editorOpened: false,
                 currentPlanningId: null,
                 agendas: [],
+                planningsAreLoading: false,
                 agendasAreLoading: false,
                 plannings: {}, // plannings stored by _id
             },
