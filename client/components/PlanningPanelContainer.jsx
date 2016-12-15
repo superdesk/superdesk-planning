@@ -75,6 +75,7 @@ PlanningPanel.propTypes = {
     fetchAgendas: React.PropTypes.func.isRequired,
     openCreateAgenda: React.PropTypes.func.isRequired,
     planningList: React.PropTypes.array.isRequired,
+    planningsAreLoading: React.PropTypes.bool.isRequired,
 }
 
 const mapStateToProps = (state) => ({
