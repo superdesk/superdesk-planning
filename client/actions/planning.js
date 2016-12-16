@@ -58,28 +58,36 @@ export const savePlanning = (planning) => (
         // remove nested original creator
         delete planning.original_creator
         // save through the api
-        return api('planning').save(originalPlanning, planning)
+        return api('planning').save(cloneDeep(originalPlanning), planning)
         // save/delete coverages, and return the planning
         .then((planning) => {
             const promises = []
             // saves coverages
-            promises.concat(coverages.map((coverage) => {
-                coverage.planning_item = planning._id
-                // patch or post ? look for an original coverage
-                const originalCoverage = cloneDeep(originalPlanning.coverages
-                    .find((c) => (c._id === coverage._id))) || {}
-                return api('coverage').save(originalCoverage, coverage)
-            }))
+            if (coverages && coverages.length > 0) {
+                promises.concat(coverages.map((coverage) => {
+                    coverage.planning_item = planning._id
+                    // patch or post ? look for an original coverage
+                    const originalCoverage = (originalPlanning.coverages || []).find((c) => (
+                        c._id === coverage._id
+                    ))
+                    return api('coverage').save(cloneDeep(originalCoverage || {}), coverage)
+                }))
+            }
             // deletes coverages
-            originalPlanning.coverages.forEach((originalCoverage) => {
-                // if there is a coverage in the original planning that is not anymore
-                // in the saved planning, we delete it
-                if (coverages.findIndex((c) => (c._id && c._id === originalCoverage._id)) === -1) {
-                    promises.push(
-                        api('coverage').remove(originalCoverage)
-                    )
-                }
-            })
+            if (originalPlanning.coverages && originalPlanning.coverages.length > 0) {
+                originalPlanning.coverages.forEach((originalCoverage) => {
+                    // if there is a coverage in the original planning that is not anymore
+                    // in the saved planning, we delete it
+                    if (coverages.findIndex((c) => (
+                        c._id && c._id === originalCoverage._id
+                    )) === -1) {
+                        promises.push(
+                            api('coverage').remove(originalCoverage)
+                        )
+                    }
+                })
+            }
+
             return Promise.all(promises).then(() => (planning))
         })
     }

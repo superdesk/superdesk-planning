@@ -67,7 +67,7 @@ $EDIT_PLANNING_WIDTH: 450px;
     box-shadow: inset 2px 0 3px -1px #d8d8d8;
     .subnav {
         .close { padding: 12px 12px 0 0; }
-        background-color: white;
+        background-color: $sd-background;
     }
 }
 .Planning--edit-planning-view { // when the planning editor is open
