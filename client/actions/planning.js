@@ -22,13 +22,16 @@ export const savePlanningAndReloadCurrentAgenda = (planning) => (
             // if event is new (there is no _id), adds to current agenda
             addToCurrentAgenda: isNil(planning) || isNil(planning._id)
         }))
-        .then(() => (
-            dispatch(fetchSelectedAgendaPlannings())
-        ))
+        .then((planning) => {
+            // ensure that the opened planning is up to date
+            dispatch(openPlanningEditor(planning._id))
+            // update the planning list
+            return dispatch(fetchSelectedAgendaPlannings())
+        })
     )
 )
 
-export const savePlanning = (planning, opts) => (
+const savePlanning = (planning, opts) => (
     (dispatch, getState, { api }) => {
         // find original
         let originalPlanning = {}
