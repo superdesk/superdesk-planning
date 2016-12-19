@@ -15,6 +15,13 @@ class PlanningPanel extends React.Component {
     }
 
     render() {
+        const {
+            openCreateAgenda,
+            planningList,
+            openPlanningEditor,
+            currentAgenda,
+            planningsAreLoading
+        } = this.props
         return (
             <div className="Planning__planning">
                 <div className="subnav">
@@ -28,38 +35,46 @@ class PlanningPanel extends React.Component {
                         <div className="refresh-box pull-right" />
                         <div className="navbtn" title="Create">
                             <button className="sd-create-btn"
-                                    onClick={this.props.openCreateAgenda.bind(null, null)}>
+                                    onClick={openCreateAgenda.bind(null, null)}>
                                 <i className="svg-icon-plus" />
                                 <span className="circle" />
                             </button>
                         </div>
                     </div>
                 </div>
-                <ul className="list-view compact-view">
+                <ul className="Planning__planning__list list-view compact-view">
+                    <li
+                        className="Planning__planning__add"
+                        onClick={openPlanningEditor.bind(null, null)}>
+                        <i className="svg-icon-plus" /> Create a planning
+                    </li>
                     {
-                        (this.props.planningList && this.props.planningList.length > 0) &&
-                        this.props.planningList.map((planning) => (
-                            <PlanningItem key={planning._id} item={planning} />
+                        (planningList && planningList.length > 0) &&
+                        planningList.map((planning) => (
+                            <PlanningItem
+                                key={planning._id}
+                                item={planning}
+                                onClick={openPlanningEditor.bind(null, planning._id)} />
                         ))
                     }
                 </ul>
                 {
-                    this.props.planningsAreLoading &&
-                    <div className="Planning__planning__empty-message">
-                        Loading
-                    </div>
-                    || (!this.props.currentAgenda || this.props.currentAgenda.length < 1) &&
-                    <div className="Planning__planning__empty-message">
-                        There is no selected calendar.<br/>
-                        Choose one in the above dropdown.
-                    </div>
-                    || (this.props.planningList && this.props.planningList.length < 1) &&
+                    planningsAreLoading &&
+                        <div className="Planning__planning__empty-message">
+                            Loading
+                        </div>
+                    || (!currentAgenda || currentAgenda.length < 1) &&
+                        <div className="Planning__planning__empty-message">
+                            There is no selected calendar.<br/>
+                            Choose one in the above dropdown.
+                        </div>
+                    || (planningList && planningList.length < 1) &&
                         <div className="Planning__planning__empty-message">
                             There is no planning yet
-                            {this.props.currentAgenda &&
+                            {currentAgenda &&
                                 <div>
                                     in the agenda&nbsp;
-                                    <strong>{this.props.currentAgenda.name}</strong>.
+                                    <strong>{currentAgenda.name}</strong>.
                                 </div>
                             }
                             <div>Drag and drop an event here to start a planning</div>
@@ -75,7 +90,8 @@ PlanningPanel.propTypes = {
     fetchAgendas: React.PropTypes.func.isRequired,
     openCreateAgenda: React.PropTypes.func.isRequired,
     planningList: React.PropTypes.array.isRequired,
-    planningsAreLoading: React.PropTypes.bool.isRequired,
+    planningsAreLoading: React.PropTypes.bool,
+    openPlanningEditor: React.PropTypes.func.isRequired,
 }
 
 const mapStateToProps = (state) => ({
@@ -87,6 +103,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
     openCreateAgenda: () => dispatch(actions.showModal({ modalType: 'CREATE_AGENDA' })),
     fetchAgendas: () => dispatch(actions.fetchAgendas()),
+    openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning)))
 })
 
 export const PlanningPanelContainer = connect(

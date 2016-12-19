@@ -1,6 +1,6 @@
 import { hideModal } from './modal'
 import * as selectors from '../selectors'
-import { pickBy, cloneDeep } from 'lodash'
+import { pickBy, cloneDeep, isNil } from 'lodash'
 
 export const createAgenda = ({ name }) => (
     (dispatch, getState, { api }) => {
@@ -39,6 +39,8 @@ export const savePlanningAndReloadCurrentAgenda = (planning) => (
 
 export const savePlanning = (planning) => (
     (dispatch, getState, { api }) => {
+        // if there is no _id, this is a new planning
+        const isANewPlanning = isNil(planning) || isNil(planning._id)
         // find original
         let originalPlanning = {}
         if (planning._id) {
@@ -62,6 +64,14 @@ export const savePlanning = (planning) => (
         // save/delete coverages, and return the planning
         .then((planning) => {
             const promises = []
+            // if it's a new planning, we need to add it to the current agenda
+            if (isANewPlanning) {
+                const currentAgenda = selectors.getCurrentAgenda(getState())
+                promises.push(dispatch(addPlanningToAgenda({
+                    planning: planning,
+                    agenda: currentAgenda
+                })))
+            }
             // saves coverages
             if (coverages && coverages.length > 0) {
                 promises.concat(coverages.map((coverage) => {
@@ -87,7 +97,7 @@ export const savePlanning = (planning) => (
                     }
                 })
             }
-
+            // returns the up to date planning when all is done
             return Promise.all(promises).then(() => (planning))
         })
     }
