@@ -39,6 +39,7 @@ $EDIT_PLANNING_WIDTH: 450px;
     padding-top: $nav-height * 2;
     transition-property: right;
     transition-duration: .25s;
+    overflow: auto;
 }
 .Planning__edit-planning {
     @include absolute0;

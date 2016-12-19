@@ -16,31 +16,20 @@ export const createAgenda = ({ name }) => (
     }
 )
 
-/** Create a planning from an event */
-const createPlanningFromEvent = (event) => (
-    (dispatch) => (
-        dispatch(savePlanning({
-            event_item: event._id,
-            slugline: event.name,
-            headline: event.definition_short,
-            subject: event.subject,
-        }))
-    )
-)
-
 export const savePlanningAndReloadCurrentAgenda = (planning) => (
     (dispatch) => (
-        dispatch(savePlanning(planning))
+        dispatch(savePlanning(planning, {
+            // if event is new (there is no _id), adds to current agenda
+            addToCurrentAgenda: isNil(planning) || isNil(planning._id)
+        }))
         .then(() => (
             dispatch(fetchSelectedAgendaPlannings())
         ))
     )
 )
 
-export const savePlanning = (planning) => (
+export const savePlanning = (planning, opts) => (
     (dispatch, getState, { api }) => {
-        // if there is no _id, this is a new planning
-        const isANewPlanning = isNil(planning) || isNil(planning._id)
         // find original
         let originalPlanning = {}
         if (planning._id) {
@@ -65,8 +54,10 @@ export const savePlanning = (planning) => (
         .then((planning) => {
             const promises = []
             // if it's a new planning, we need to add it to the current agenda
-            if (isANewPlanning) {
+            if (opts && opts.addToCurrentAgenda) {
                 const currentAgenda = selectors.getCurrentAgenda(getState())
+                if (!currentAgenda) throw 'unable to find the current agenda'
+                // add the planning to the agenda
                 promises.push(dispatch(addPlanningToAgenda({
                     planning: planning,
                     agenda: currentAgenda
@@ -126,21 +117,19 @@ const addPlanningToAgenda = ({ planning, agenda }) => (
 )
 
 export const addEventToCurrentAgenda = (event) => (
-    (dispatch, getState) => {
-        const agenda = selectors.getCurrentAgenda(getState())
-        if (agenda) {
-            // create a planning item from the given event
-            return dispatch(createPlanningFromEvent(event))
-            .then((planning) => (
-                // insert and save the planning into the agenda
-                dispatch(addPlanningToAgenda({ planning, agenda }))
-            ))
-            .then(() => (
-                // reload the plannings of the current calendar
-                dispatch(fetchSelectedAgendaPlannings())
-            ))
-        }
-    }
+    (dispatch) => (
+        // create a planning item from the given event
+        dispatch(savePlanning({
+            event_item: event._id,
+            slugline: event.name,
+            headline: event.definition_short,
+            subject: event.subject,
+        }, { addToCurrentAgenda: true }))
+        .then(() => (
+            // reload the plannings of the current calendar
+            dispatch(fetchSelectedAgendaPlannings())
+        ))
+    )
 )
 
 const receiveAgendas = (agendas) => (
