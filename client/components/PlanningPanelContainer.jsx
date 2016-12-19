@@ -43,27 +43,26 @@ class PlanningPanel extends React.Component {
                     </div>
                 </div>
                 <ul className="Planning__planning__list list-view compact-view">
-                    <li
-                        className="Planning__planning__add"
-                        onClick={openPlanningEditor.bind(null, null)}>
-                        <i className="svg-icon-plus" /> Create a planning
-                    </li>
-                    {
-                        (planningList && planningList.length > 0) &&
-                        planningList.map((planning) => (
-                            <PlanningItem
-                                key={planning._id}
-                                item={planning}
-                                onClick={openPlanningEditor.bind(null, planning._id)} />
-                        ))
+                    {currentAgenda &&
+                        <li
+                            className="Planning__planning__add"
+                            onClick={openPlanningEditor.bind(null, null)}>
+                            <i className="svg-icon-plus" /> Create a planning
+                        </li>
                     }
+                    {(planningList && planningList.length > 0) && planningList.map((planning) => (
+                        <PlanningItem
+                            key={planning._id}
+                            item={planning}
+                            onClick={openPlanningEditor.bind(null, planning._id)} />
+                    ))}
                 </ul>
                 {
                     planningsAreLoading &&
                         <div className="Planning__planning__empty-message">
                             Loading
                         </div>
-                    || (!currentAgenda || currentAgenda.length < 1) &&
+                    || !currentAgenda &&
                         <div className="Planning__planning__empty-message">
                             There is no selected calendar.<br/>
                             Choose one in the above dropdown.
