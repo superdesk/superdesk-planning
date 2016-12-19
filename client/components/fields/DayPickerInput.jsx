@@ -23,6 +23,11 @@ export class DayPickerInput extends React.Component {
         }
     }
 
+    /** open the date picker */
+    focus() {
+        this.refs.datePicker.handleFocus()
+    }
+
     setStateFromDate(_date, cb) {
         // if there is no date, reset the state
         if (!_date) {
@@ -91,6 +96,7 @@ export class DayPickerInput extends React.Component {
                     (warning && <div>{warning}</div>))
                 }
                 <DatePicker
+                    ref="datePicker"
                     disabled={this.props.disabled}
                     className="line-input"
                     selected={this.state.selectedDate}
