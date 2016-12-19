@@ -47,7 +47,7 @@ export const EventComponent = ({ event, onClick, actions }) => {
                         <MenuItem divider />
                         {actions.onAddToAgendaClick &&
                             <li onClick={actions.onAddToAgendaClick.bind(null, event)}>
-                                <a>Add to the calendar</a>
+                                <a>Add to the current agenda</a>
                             </li>
                         }
                     </Dropdown.Menu>

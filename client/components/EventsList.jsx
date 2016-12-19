@@ -29,7 +29,9 @@ export class EventsList extends React.Component {
                     )
                 })
             }
-            { !this.props.events || this.props.events.length === 0 && <p>There is no event yet</p>}
+            { !this.props.events || this.props.events.length === 0 &&
+                <p className="events-list__empty-msg">There is no event yet</p>
+            }
             </div>
         )
     }

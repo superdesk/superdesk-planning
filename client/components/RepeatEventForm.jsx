@@ -8,13 +8,32 @@ class RepeatEventFormComponent extends React.Component {
 
     constructor(props) {
         super(props)
+        this.state = { doesRepeatEnd: false }
     }
 
-    /** clear 'until' and 'count' when "never ends" is selected */
+    componentWillReceiveProps(nextProps) {
+        const { doesRepeatEnd } = nextProps
+        // set the internal state for doesRepeatEnd checkboxes based on fields values
+        if (doesRepeatEnd !== this.state.doesRepeatEnd) {
+            this.setState({ doesRepeatEnd: doesRepeatEnd })
+        }
+    }
+
     handleDoesRepeatEndChange(e) {
+        const choicesWithInput = ['count', 'until']
+        // if the clicked checkbox belongs to an input field
+        if (choicesWithInput.indexOf(e.target.value) > -1) {
+            // update state to select the checkbox
+            this.setState({ doesRepeatEnd: e.target.value })
+            // focus the field
+            this.refs['recurring_rule--' + e.target.value].getRenderedComponent().focus()
+        }
+        // if "false" is clicked, we clear the other fields
         if (e.target.value === 'false') {
-            this.props.change('dates.recurring_rule.until', null)
-            this.props.change('dates.recurring_rule.count', null)
+            this.setState({ doesRepeatEnd: false })
+            choicesWithInput.forEach((fieldName) =>
+                this.props.change('dates.recurring_rule.' + fieldName, null)
+            )
         }
     }
 
@@ -60,7 +79,7 @@ class RepeatEventFormComponent extends React.Component {
                     <label>
                         <input
                             name="doesRepeatEnd"
-                            checked={!this.props.doesRepeatEnd}
+                            checked={!this.state.doesRepeatEnd}
                             onChange={this.handleDoesRepeatEndChange.bind(this)}
                             value={false}
                             type="radio"/>
@@ -69,24 +88,28 @@ class RepeatEventFormComponent extends React.Component {
                     <label>
                         <input
                             name="doesRepeatEnd"
-                            checked={this.props.doesRepeatEnd === 'count'}
-                            readOnly={true}
+                            checked={this.state.doesRepeatEnd === 'count'}
+                            onChange={this.handleDoesRepeatEndChange.bind(this)}
                             value="count"
                             type="radio"/>
                         After
                         <Field name="dates.recurring_rule.count"
+                               withRef={true}
+                               ref="recurring_rule--count"
                                component="input" type="number" />
                         occurrences
                     </label>
                     <label>
                         <input
                         name="doesRepeatEnd"
-                        checked={this.props.doesRepeatEnd === 'until'}
-                        readOnly={true}
+                        checked={this.state.doesRepeatEnd === 'until'}
+                        onChange={this.handleDoesRepeatEndChange.bind(this)}
                         value="until"
                         type="radio"/>
                         Until
-                        <Field name="dates.recurring_rule.until"
+                               <Field name="dates.recurring_rule.until"
+                               withRef={true}
+                               ref="recurring_rule--until"
                                component={fields.DayPickerInput} />
                     </label>
                 </div>
