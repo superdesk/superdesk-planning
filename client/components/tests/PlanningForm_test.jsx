@@ -37,10 +37,10 @@ describe('<PlanningForm />', () => {
                 <PlanningForm />
             </Provider>
         )
-        expect(wrapper.mount().find('CoveragesFieldArray').find('.Coverage').length).toBe(1)
+        expect(wrapper.mount().find('CoveragesFieldArray').find('.Coverage__item').length).toBe(1)
         wrapper.find('CoveragesFieldArray').find('.Coverage__remove').simulate('click')
-        expect(wrapper.mount().find('CoveragesFieldArray').find('.Coverage').length).toBe(0)
+        expect(wrapper.mount().find('CoveragesFieldArray').find('.Coverage__item').length).toBe(0)
         wrapper.find('form').simulate('submit')
-        expect(wrapper.mount().find('CoveragesFieldArray').find('.Coverage').length).toBe(0)
+        expect(wrapper.mount().find('CoveragesFieldArray').find('.Coverage__item').length).toBe(0)
     })
 })
