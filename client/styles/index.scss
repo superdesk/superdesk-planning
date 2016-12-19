@@ -5,6 +5,7 @@
 @import './add-event-form.scss';
 @import './react-geosuggest.scss';
 @import './coverage.scss';
+@import './plannings.scss';
 
 $EVENTS_LIST_WIDTH: 500px;
 $EDIT_PLANNING_WIDTH: 450px;
@@ -38,19 +39,6 @@ $EDIT_PLANNING_WIDTH: 450px;
     padding-top: $nav-height * 2;
     transition-property: right;
     transition-duration: .25s;
-    .subnav {
-        .subnav__page-title { width: 100px; }
-        select {
-            top: 10px;
-            position: relative;
-        }
-    }
-    &__empty-message {
-        font-size: 1.75em;
-        line-height: 1.2em;
-        text-align: center;
-        margin-top: 40px;
-    }
 }
 .Planning__edit-planning {
     @include absolute0;
@@ -65,10 +53,6 @@ $EDIT_PLANNING_WIDTH: 450px;
     left: auto;
     background-color: white;
     box-shadow: inset 2px 0 3px -1px #d8d8d8;
-    .subnav {
-        .close { padding: 12px 12px 0 0; }
-        background-color: $sd-background;
-    }
 }
 .Planning--edit-planning-view { // when the planning editor is open
     .Planning__edit-planning { width: $EDIT_PLANNING_WIDTH; visibility: visible; }

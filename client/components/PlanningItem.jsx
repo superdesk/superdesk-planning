@@ -1,15 +1,13 @@
 import React, { PropTypes } from 'react'
-import { connect } from 'react-redux'
 import moment from 'moment'
-import * as actions from '../actions'
 import { get } from 'lodash'
 
-export const PlanningItemComponent = ({ item, onPlanningClick }) => {
+export const PlanningItem = ({ item, onClick }) => {
     const location = get(item, 'event_item.location[0].name')
     const eventTime = get(item, 'event_item.dates.start') ?
         moment(get(item, 'event_item.dates.start')).format('LL HH:mm') : null
     return (
-        <li className="list-item-view" onClick={onPlanningClick.bind(null, item._id)}>
+        <li className="list-item-view" onClick={onClick.bind(null, item)}>
             <div className="media-box media-text">
                 <div className="list-field type-icon">
                     <i className="filetype-icon-text" />
@@ -34,13 +32,7 @@ export const PlanningItemComponent = ({ item, onPlanningClick }) => {
     )
 }
 
-PlanningItemComponent.propTypes = {
+PlanningItem.propTypes = {
     item: PropTypes.object.isRequired,
-    onPlanningClick: PropTypes.func.isRequired
+    onClick: PropTypes.func,
 }
-
-const mapDispatchToProps = (dispatch) => ({
-    onPlanningClick: (planning) => (dispatch(actions.openPlanningEditor(planning)))
-})
-
-export const PlanningItem = connect(null, mapDispatchToProps)(PlanningItemComponent)
