@@ -27,6 +27,7 @@ export const savePlanningAndReloadCurrentAgenda = (planning) => (
             dispatch(openPlanningEditor(planning._id))
             // update the planning list
             return dispatch(fetchSelectedAgendaPlannings())
+            .then(() => (planning))
         })
     )
 )
