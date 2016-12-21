@@ -157,7 +157,7 @@ export const fetchAgendas = () => (
         // annonce that we are loading agendas
         dispatch(requestAgendas())
         // fetch the agenda through the api
-        return api('planning').query({ where: { planning_type: 'agenda' } })
+        return api('planning').query({ where: { planning_type: 'agenda' }, timestamp: new Date() })
         // annonce that we received the agendas
         .then((data) => {
             dispatch(receiveAgendas(data._items))
@@ -181,6 +181,7 @@ const fetchSelectedAgendaPlannings = () => (
                 should: agenda.planning_items.map((pid) => ({ term: { _id: pid } }))
             } } },
             embedded: { event_item: 1, original_creator: 1 }, // nest event and creator to planning
+            timestamp: new Date(),
         }
         return api('planning').query(query)
         .then((response) => (dispatch(receivePlannings(response._items))))
