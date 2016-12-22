@@ -32,6 +32,14 @@ export const createStore = (params) => {
             $timeout: (cb) => (cb && cb()),
             $scope: { $apply: (cb) => (cb && cb()) },
             $location: { search: () => (undefined) },
+            vocabularies: {
+                getAllActiveVocabularies: () => (
+                    Promise.resolve([
+                        { qname: 'test:sport', name: 'Sport' },
+                        { qname: 'test:news', name: 'News' },
+                    ])
+                )
+            },
             api: (resource) => ({
                 query: (q) =>  {
                     if (testMode.apiQuery) {
