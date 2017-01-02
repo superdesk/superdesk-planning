@@ -27,6 +27,10 @@ class Component extends React.Component {
                         component={fields.InputField}
                         type="text"
                         label="Headline"/>
+                    <Field
+                        name="anpa_category"
+                        component={fields.CategoryField}
+                        label="Category"/>
                 </fieldset>
                 <h3>Coverages</h3>
                 <FieldArray name="coverages" component={fields.CoveragesFieldArray} />
