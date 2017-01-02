@@ -20,6 +20,7 @@ class PlanningPanel extends React.Component {
             planningList,
             openPlanningEditor,
             currentAgenda,
+            currentPlanning,
             planningsAreLoading
         } = this.props
         return (
@@ -53,6 +54,7 @@ class PlanningPanel extends React.Component {
                     {(planningList && planningList.length > 0) && planningList.map((planning) => (
                         <PlanningItem
                             key={planning._id}
+                            active={currentPlanning && currentPlanning._id === planning._id}
                             item={planning}
                             onClick={openPlanningEditor.bind(null, planning._id)} />
                     ))}
@@ -86,6 +88,7 @@ class PlanningPanel extends React.Component {
 
 PlanningPanel.propTypes = {
     currentAgenda: React.PropTypes.object,
+    currentPlanning: React.PropTypes.object,
     fetchAgendas: React.PropTypes.func.isRequired,
     openCreateAgenda: React.PropTypes.func.isRequired,
     planningList: React.PropTypes.array.isRequired,
@@ -95,6 +98,7 @@ PlanningPanel.propTypes = {
 
 const mapStateToProps = (state) => ({
     currentAgenda: selectors.getCurrentAgenda(state),
+    currentPlanning: selectors.getCurrentPlanning(state),
     planningList: selectors.getCurrentAgendaPlannings(state),
     planningsAreLoading: state.planning.planningsAreLoading
 })

@@ -2,12 +2,13 @@ import React, { PropTypes } from 'react'
 import moment from 'moment'
 import { get } from 'lodash'
 
-export const PlanningItem = ({ item, onClick }) => {
+export const PlanningItem = ({ item, onClick, active }) => {
     const location = get(item, 'event_item.location[0].name')
     const eventTime = get(item, 'event_item.dates.start') ?
         moment(get(item, 'event_item.dates.start')).format('LL HH:mm') : null
+    const classes = ['list-item-view', (active ? 'active' : null)].join(' ')
     return (
-        <li className="list-item-view" onClick={onClick.bind(null, item)}>
+        <li className={classes} onClick={onClick.bind(null, item)}>
             <div className="media-box media-text">
                 <div className="list-field type-icon">
                     <i className="filetype-icon-text" />
@@ -34,5 +35,6 @@ export const PlanningItem = ({ item, onClick }) => {
 
 PlanningItem.propTypes = {
     item: PropTypes.object.isRequired,
+    active: PropTypes.bool,
     onClick: PropTypes.func,
 }

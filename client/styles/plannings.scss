@@ -7,10 +7,7 @@
         }
     }
     &__list {
-        > li {
-
-            margin: 10px 0;
-        }
+        > .list-item-view { margin: 10px 0 }
     }
     &__add {
         background-color: $grayLight;
