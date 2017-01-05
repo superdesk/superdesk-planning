@@ -2,23 +2,61 @@ import React from 'react'
 import { EventsList } from './index'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
+import DebounceInput from 'react-debounce-input'
 
 class EventsListPanel extends React.Component {
+    constructor(props) {
+        super(props)
+        this.state = {
+            searchBarExtended: false
+        }
+    }
+
     componentWillMount() {
         this.props.loadEvents()
     }
 
+    toggleSearchBar() {
+        this.setState({ searchBarExtended: !this.state.searchBarExtended })
+    }
+
+    /** Reset the field value, close the search bar and load events */
+    resetSearch() {
+        this.setState({ searchBarExtended: false, searchInputValue: '' })
+        this.props.loadEvents()
+    }
+
+    /** Search events by keywords */
+    onSearchChange(event) {
+        this.props.loadEvents(event.target.value)
+        // update the input value since we are using the DebounceInput `value` prop
+        this.setState({ searchInputValue: event.target.value })
+    }
+
     render() {
+        const { searchBarExtended } = this.state
         return (
             <div className="Planning__events-list">
                 <div className="subnav">
-                    <div className="flat-searchbar monitoring-flat-searchbar">
+                    <div className={'flat-searchbar' + (searchBarExtended ? ' extended' : '')}>
                         <div className="search-handler">
-                            <label htmlFor="search-input" className="trigger-icon">
+                            <label
+                                htmlFor="search-input"
+                                className="trigger-icon"
+                                onClick={this.toggleSearchBar.bind(this)}>
                                 <i className="icon-search" />
                             </label>
-                            <input id="search-input" placeholder="Search" type="text"/>
-                            <button className="search-close" >
+                            <DebounceInput
+                                minLength={2}
+                                debounceTimeout={500}
+                                value={this.state.searchInputValue}
+                                onChange={this.onSearchChange.bind(this)}
+                                id="search-input"
+                                placeholder="Search"
+                                type="text"/>
+                            <button
+                                className="search-close visible"
+                                onClick={this.resetSearch.bind(this)}>
                                 <i className="icon-remove-sign" />
                             </button>
                             <button className="search-close">
@@ -62,7 +100,7 @@ const mapDispatchToProps = (dispatch) => ({
         modalType: 'EDIT_EVENT',
         modalProps: { event: event }
     })),
-    loadEvents: () => dispatch(actions.fetchEvents())
+    loadEvents: (query) => dispatch(actions.fetchEvents(query)),
 })
 
 export const EventsListPanelContainer = connect(
