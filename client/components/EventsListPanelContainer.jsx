@@ -2,18 +2,24 @@ import React from 'react'
 import { EventsList } from './index'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
+import * as selectors from '../selectors'
 import DebounceInput from 'react-debounce-input'
+import { isNil } from 'lodash'
 
 class EventsListPanel extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            searchBarExtended: false
+            // initialize state from props
+            searchBarExtended: !isNil(props.initialFilterKeyword),
+            // initialFilterKeyword is not intended to change
+            searchInputValue: props.initialFilterKeyword
         }
     }
 
     componentWillMount() {
-        this.props.loadEvents()
+        // load events for the first time
+        this.props.loadEvents(this.props.initialFilterKeyword)
     }
 
     toggleSearchBar() {
@@ -91,9 +97,13 @@ EventsListPanel.propTypes = {
     openAddEvent: React.PropTypes.func,
     loadEvents: React.PropTypes.func,
     events: React.PropTypes.array,
+    initialFilterKeyword: React.PropTypes.array,
 }
 
-const mapStateToProps = (state) => ({ events: state.events })
+const mapStateToProps = (state) => ({
+    events: selectors.getEvents(state),
+    initialFilterKeyword: state.events.initialFilterKeyword,
+})
 
 const mapDispatchToProps = (dispatch) => ({
     openAddEvent: (event) => dispatch(actions.showModal({

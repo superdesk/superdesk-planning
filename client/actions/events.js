@@ -1,21 +1,22 @@
 import { hideModal } from './modal'
 import { pickBy } from 'lodash'
 import moment from 'moment-timezone'
+import * as selectors from '../selectors'
 
 const receiveEvents = (events) => ({
     type: 'RECEIVE_EVENTS',
-    events,
+    payload: events,
     receivedAt: Date.now()
 })
 
 export function addEvents(events) {
-    return { type: 'ADD_EVENTS', events }
+    return { type: 'ADD_EVENTS', payload: events }
 }
 
 /** Add the user timezone, save the event, notify the form (to reset) and hide the modal */
 export function saveEvent(newEvent) {
     return (dispatch, getState, { api }) => {
-        let events = getState().events
+        let events = selectors.getEvents(getState())
         // retrieve original
         let original = events.find((e) => e._id === newEvent._id)
         // clone the original because `save` will modify it
@@ -40,7 +41,7 @@ export function saveEvent(newEvent) {
 }
 
 export function fetchEvents(keyword) {
-    return (dispatch, getState, { api }) => {
+    return (dispatch, getState, { api,  $timeout, $location }) => {
         dispatch({ type: 'REQUEST_EVENTS' })
         const query = {}
         // If there is a keyword, search by term
@@ -59,5 +60,7 @@ export function fetchEvents(keyword) {
             source: JSON.stringify({ query: query })
         })
         .then(data => dispatch(receiveEvents(data._items)))
+        // update the url (deep linking)
+        .then(() => $timeout(() => ($location.search('searchEvent', keyword))))
     }
 }

@@ -38,7 +38,7 @@ const events = [
 
 describe('<EventsList />', () => {
     it('renders events', () => {
-        const initialState = { events }
+        const initialState = { events: { events: events } }
         const store = createStore({ initialState, testMode: true })
         const wrapper = mount(
             <Provider store={store}>
