@@ -122,12 +122,13 @@ const addPlanningToAgenda = ({ planning, agenda }) => (
 
 export const addEventToCurrentAgenda = (event) => (
     (dispatch) => (
-        // create a planning item from the given event
+        // planning inherits some fields from the given event
         dispatch(savePlanning({
             event_item: event._id,
             slugline: event.name,
             headline: event.definition_short,
             subject: event.subject,
+            anpa_category: event.anpa_category,
         }, { addToCurrentAgenda: true }))
         .then(() => (
             // reload the plannings of the current calendar

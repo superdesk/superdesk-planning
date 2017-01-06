@@ -54,6 +54,11 @@ export class Component extends React.Component {
                            label="What"/>
                 </div>
                 <div>
+                    <Field name="anpa_category"
+                           component={fields.CategoryField}
+                           label="Categories"/>
+                </div>
+                <div>
                     <Field name="definition_short"
                            component={fields.InputField}
                            type="text"

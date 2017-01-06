@@ -144,6 +144,17 @@ events_schema = {
     },
     'definition_short': {'type': 'string'},
     'definition_long': {'type': 'string'},
+    'anpa_category': {
+        'type': 'list',
+        'nullable': True,
+        'mapping': {
+            'type': 'object',
+            'properties': {
+                'qcode': not_analyzed,
+                'name': not_analyzed,
+            }
+        }
+    },
     'relationships': {
         'type': 'dict',
         'schema': {
