@@ -6,7 +6,7 @@ import { Provider } from 'react-redux'
 import * as actions from '../../actions'
 
 describe('<EditPlanningPanelContainer />', () => {
-    it('open', () => {
+    it('open the panel', () => {
         let store = createStore({ testMode: true })
         const wrapper = mount(
             <Provider store={store}>

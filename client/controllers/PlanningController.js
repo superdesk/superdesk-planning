@@ -10,6 +10,10 @@ export function PlanningController($element, $scope, api, config, $location, $ti
     vocabularies) {
     let store = createStore({
         initialState: {
+            events: {
+                events: [],
+                initialFilterKeyword: $location.search().searchEvent,
+            },
             planning: {
                 currentAgendaId: $location.search().agenda,
                 editorOpened: false,

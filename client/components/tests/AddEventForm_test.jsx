@@ -29,7 +29,7 @@ describe('<FormComponent />', () => {
         expect(handleSubmit.callCount).toBe(1)
     })
     it('save the event', () => {
-        const getState = () => ({ events: [] })
+        const getState = () => ({ events: { events: [] } })
         const dispatch = sinon.spy()
         const api = () => ({
             save: sinon.spy((original, newEvent) => {
