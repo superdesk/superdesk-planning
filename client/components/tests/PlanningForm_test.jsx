@@ -1,4 +1,4 @@
-import { createStore } from '../../utils'
+import { createTestStore } from '../../utils'
 import { mount } from 'enzyme'
 import { PlanningForm } from '../index'
 import React from 'react'
@@ -28,9 +28,9 @@ describe('<PlanningForm />', () => {
             expect(item._id).toBe('coverage1')
             expect(spyRemove.callCount).toBe(1)
         })
-        const store = createStore({
+        const store = createTestStore({
             initialState,
-            testMode: { apiRemove: spyRemove },
+            extraArguments: { apiRemove: spyRemove },
         })
         const wrapper = mount(
             <Provider store={store}>

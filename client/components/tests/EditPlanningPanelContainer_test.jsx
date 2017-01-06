@@ -1,13 +1,13 @@
 import React from 'react'
 import { mount } from 'enzyme'
 import { EditPlanningPanelContainer } from '../index'
-import { createStore } from '../../utils'
+import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
 
 describe('<EditPlanningPanelContainer />', () => {
     it('open the panel', () => {
-        let store = createStore({ testMode: true })
+        let store = createTestStore()
         const wrapper = mount(
             <Provider store={store}>
                 <EditPlanningPanelContainer />

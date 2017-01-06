@@ -1,13 +1,12 @@
 import React from 'react'
 import { mount } from 'enzyme'
 import { ModalWithForm, CreateAgendaForm } from '../index'
-import { createStore } from 'redux'
+import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
-import planningApp from '../../reducers'
 
 describe('<ModalWithForm />', () => {
     it('open the modal', () => {
-        let store = createStore(planningApp, {})
+        let store = createTestStore()
         const wrapper = mount(
             <Provider store={store}>
                 <ModalWithForm

@@ -1,4 +1,4 @@
-import { createStore } from '../../utils'
+import { createTestStore } from '../../utils'
 import * as actions from '../../actions'
 
 describe('<PlanningPanelContainer />', () => {
@@ -17,8 +17,8 @@ describe('<PlanningPanelContainer />', () => {
             _id: '2',
             name: 'event'
         }
-        const store = createStore({
-            testMode: {
+        const store = createTestStore({
+            extraArguments: {
                 apiQuery: () => ({ _items: [EVENT] })
             },
             initialState,
@@ -38,8 +38,8 @@ describe('<PlanningPanelContainer />', () => {
                 currentAgendaId: 'agenda1',
             }
         }
-        const store = createStore({
-            testMode: {
+        const store = createTestStore({
+            extraArguments: {
                 // Mock what the api will return when the planning list will be refreshed
                 apiQuery: () => ({ _items: [{ _id: 'RefreshedplanningId', slugline: 'coucou' }] }),
             },

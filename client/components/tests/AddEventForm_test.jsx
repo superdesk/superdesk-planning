@@ -2,7 +2,7 @@ import React from 'react'
 import { mount, shallow } from 'enzyme'
 import AddEventForm, { FormComponent, Component } from '../AddEventForm'
 import sinon from 'sinon'
-import { createStore } from '../../utils'
+import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
 
@@ -48,7 +48,7 @@ describe('<FormComponent />', () => {
             expect(end.isSame(expectedDates.end)).toBe(true)
         }
 
-        let store = createStore({ testMode: true })
+        let store = createTestStore()
         const initialValues = event
         mount(
             <Provider store={store}>
@@ -59,7 +59,7 @@ describe('<FormComponent />', () => {
         expectDatesInStoreToBe(originalDates)
     })
     it('calls onSubmit() and ensure that modal is closed', (done) => {
-        const store = createStore({ testMode: true })
+        const store = createTestStore()
         const wrapper = mount(<Provider store={store}><AddEventForm /></Provider>)
         // open the modal (in store)
         store.dispatch(actions.showModal({ modalType: 'EDIT_EVENT', modalProps: { event: {} } }))
@@ -71,7 +71,7 @@ describe('<FormComponent />', () => {
         })
     })
     it('fill the form', () => {
-        let store = createStore({ testMode: true })
+        let store = createTestStore()
         const initialValues = event
         const wrapper = mount(
             <Provider store={store}>
@@ -81,13 +81,13 @@ describe('<FormComponent />', () => {
         expect(wrapper.find('[name="name"]').props().value).toBe(initialValues.name)
     })
     it('detects a recurring event', () => {
-        let store = createStore({ testMode: true })
+        const store = createTestStore()
         // check with default values if doesRepeat is false
         expect(mount(<Provider store={store}><AddEventForm /></Provider>)
             .find(FormComponent).props().doesRepeat
         ).toBe(false)
         // check with a recurring event if doesRepeat is true
-        let recEvent = Object.assign({}, event, {
+        const recEvent = Object.assign({}, event, {
             dates: {
                 start: '2016-10-15T14:30+0000',
                 end: '2016-10-20T15:00+0000',

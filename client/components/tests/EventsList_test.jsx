@@ -4,7 +4,7 @@ import sinon from 'sinon'
 import { EventsList, EventsListPanelContainer, Event } from '../index'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
-import { createStore } from '../../utils'
+import { createTestStore } from '../../utils'
 
 const events = [
     {
@@ -39,7 +39,7 @@ const events = [
 describe('<EventsList />', () => {
     it('renders events', () => {
         const initialState = { events: { events: events } }
-        const store = createStore({ initialState, testMode: true })
+        const store = createTestStore({ initialState })
         const wrapper = mount(
             <Provider store={store}>
                 <EventsListPanelContainer />

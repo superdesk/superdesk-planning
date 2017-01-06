@@ -4,7 +4,7 @@ import { SelectAgendaComponent } from '../SelectAgenda'
 import sinon from 'sinon'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
-import { createStore } from '../../utils'
+import { createTestStore } from '../../utils'
 
 describe('<SelectAgendaComponent />', () => {
     const agendas = [
@@ -37,10 +37,7 @@ describe('<SelectAgendaComponent />', () => {
                 currentAgendaId: '1',
             }
         }
-        const store = createStore({
-            initialState: initialState,
-            testMode: true
-        })
+        const store = createTestStore({ initialState: initialState })
         // must be empty first
         expect(selectors.getCurrentAgendaPlannings(store.getState()))
         .toEqual([])

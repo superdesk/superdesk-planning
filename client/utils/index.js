@@ -22,65 +22,74 @@ export const RequiredFieldsValidator = (fields) => (
     }
 )
 
-export const createStore = (params) => {
-    params = params || {}
-    let { initialState={}, testMode, extraArguments={} } = params
-    let middlewares = []
-    // Mock the extra arguments
-    if (testMode) {
-        extraArguments = {
-            $timeout: (cb) => (cb && cb()),
-            $scope: { $apply: (cb) => (cb && cb()) },
-            $location: { search: () => (undefined) },
-            vocabularies: {
-                getAllActiveVocabularies: () => (
-                    Promise.resolve([
-                        { qname: 'test:sport', name: 'Sport' },
-                        { qname: 'test:news', name: 'News' },
-                    ])
-                )
+export const createTestStore = (params={}) => {
+    const { initialState={}, extraArguments={} } = params
+    const mockedExtraArguments = {
+        $timeout: (cb) => (cb && cb()),
+        $scope: { $apply: (cb) => (cb && cb()) },
+        $location: { search: () => (undefined) },
+        vocabularies: {
+            getAllActiveVocabularies: () => (
+                Promise.resolve([
+                    { qname: 'test:sport', name: 'Sport' },
+                    { qname: 'test:news', name: 'News' },
+                ])
+            )
+        },
+        api: (resource) => ({
+            query: (q) =>  {
+                if (extraArguments.apiQuery) {
+                    return Promise.resolve(extraArguments.apiQuery(resource, q))
+                } else {
+                    return Promise.resolve({ _items: [] })
+                }
             },
-            api: (resource) => ({
-                query: (q) =>  {
-                    if (testMode.apiQuery) {
-                        return Promise.resolve(testMode.apiQuery(resource, q))
-                    } else {
-                        return Promise.resolve({ _items: [] })
-                    }
-                },
 
-                remove: (item) => {
-                    if (testMode.apiRemove) {
-                        return Promise.resolve(testMode.apiRemove(resource, item))
-                    } else {
-                        Promise.resolve()
-                    }
-                },
+            remove: (item) => {
+                if (extraArguments.apiRemove) {
+                    return Promise.resolve(extraArguments.apiRemove(resource, item))
+                } else {
+                    Promise.resolve()
+                }
+            },
 
-                save: (ori, item) => {
-                    if (testMode.apiSave) {
-                        return Promise.resolve(testMode.apiSave(resource, ori, item))
-                    } else {
-                        let response = {}
-                        Object.assign(response, ori, item)
-                        // if there is no id we add one
-                        if (!response._id) {
-                            const randId =  Math.random().toString(36).substr(2, 10)
-                            Object.assign(response, item, { _id: randId })
-                        }
-                        // reponse as a promise
-                        return Promise.resolve(response)
+            save: (ori, item) => {
+                if (extraArguments.apiSave) {
+                    return Promise.resolve(extraArguments.apiSave(resource, ori, item))
+                } else {
+                    let response = {}
+                    Object.assign(response, ori, item)
+                    // if there is no id we add one
+                    if (!response._id) {
+                        const randId =  Math.random().toString(36).substr(2, 10)
+                        Object.assign(response, item, { _id: randId })
                     }
-                },
-            })
-        }
-    } else {
-        // add a logger when it's not the test mode
-        middlewares.push(createLogger())
+                    // reponse as a promise
+                    return Promise.resolve(response)
+                }
+            },
+        })
     }
+    const middlewares = [
+        // adds the mocked extra arguments to actions
+        thunkMiddleware.withExtraArgument(Object.assign({}, mockedExtraArguments, extraArguments))
+    ]
+    // return the store
+    return _createStore(
+        planningApp,
+        initialState,
+        applyMiddleware.apply(null, middlewares)
+    )
+}
 
-    // add the extra arguments
-    middlewares.push(thunkMiddleware.withExtraArgument(extraArguments))
+export const createStore = (params={}) => {
+    const { initialState={}, extraArguments={} } = params
+    const middlewares = [
+        // logs actions
+        createLogger(),
+        // adds the extra arguments to actions
+        thunkMiddleware.withExtraArgument(extraArguments)
+    ]
     // return the store
     return _createStore(
         planningApp,
