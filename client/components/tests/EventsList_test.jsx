@@ -46,7 +46,7 @@ describe('<EventsList />', () => {
             </Provider>
         )
         // there is three events to show
-        expect(wrapper.find('.event__list-item').length).toEqual(3)
+        expect(wrapper.find('.ListItem__list-item').length).toEqual(3)
         // only two groups, because two share the same date
         expect(wrapper.find('.events-list__list').length).toEqual(2)
         // check order
@@ -64,13 +64,13 @@ describe('<EventsList />', () => {
             name: 'name4'
         }
         store.dispatch(actions.addEvents([newEvent]))
-        expect(wrapper.find('.event__list-item').length).toEqual(4)
+        expect(wrapper.find('.ListItem__list-item').length).toEqual(4)
         // update an item
         const updatedEvent = Object.assign({}, newEvent, { name: 'new name' })
         store.dispatch(actions.addEvents([updatedEvent]))
-        expect(wrapper.find('.event__list-item').length).toEqual(4)
+        expect(wrapper.find('.ListItem__list-item').length).toEqual(4)
         expect(
-            wrapper.find('.event__list-item').last()
+            wrapper.find('.ListItem__list-item').last()
             .find('.keyword').text())
         .toBe('new name')
     })

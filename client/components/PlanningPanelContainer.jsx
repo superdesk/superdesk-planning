@@ -20,6 +20,7 @@ class PlanningPanel extends React.Component {
             planningList,
             openPlanningEditor,
             currentAgenda,
+            handlePlanningDeletion,
             currentPlanning,
             planningsAreLoading
         } = this.props
@@ -56,6 +57,7 @@ class PlanningPanel extends React.Component {
                             key={planning._id}
                             active={currentPlanning && currentPlanning._id === planning._id}
                             item={planning}
+                            onDelete={handlePlanningDeletion}
                             onClick={openPlanningEditor.bind(null, planning._id)} />
                     ))}
                 </ul>
@@ -94,6 +96,7 @@ PlanningPanel.propTypes = {
     planningList: React.PropTypes.array.isRequired,
     planningsAreLoading: React.PropTypes.bool,
     openPlanningEditor: React.PropTypes.func.isRequired,
+    handlePlanningDeletion: React.PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -104,6 +107,7 @@ const mapStateToProps = (state) => ({
 })
 
 const mapDispatchToProps = (dispatch) => ({
+    handlePlanningDeletion: (planning) => dispatch(actions.deletePlanning(planning)),
     openCreateAgenda: () => dispatch(actions.showModal({ modalType: 'CREATE_AGENDA' })),
     fetchAgendas: () => dispatch(actions.fetchAgendas()),
     openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning)))

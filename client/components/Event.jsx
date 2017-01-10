@@ -11,7 +11,7 @@ export const EventComponent = ({ event, onClick, actions }) => {
     const time = eventIsAllDayLong(event.dates) ? '' : moment(event.dates.start).format('HH:mm')
     const location = get(event, 'location[0].name')
     return (
-        <li className="event__list-item list-item-view">
+        <li className="ListItem__list-item list-item-view">
             <div className="media-box media-text">
                 <div className="item-info" onClick={onClick.bind(this, event)}>
                     <div className="line">
@@ -28,7 +28,7 @@ export const EventComponent = ({ event, onClick, actions }) => {
                         </div>
                     }
                 </div>
-                <Dropdown className="event__more-actions" id={`dropdownMenuFor${event._id}`}>
+                <Dropdown className="ListItem__more-actions" id={`dropdownMenuFor${event._id}`}>
                     <Dropdown.Toggle noCaret className="dropdown__toggle">
                         <i className="icon-dots-vertical" />
                     </Dropdown.Toggle>

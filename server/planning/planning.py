@@ -17,7 +17,6 @@ from superdesk.metadata.item import GUID_NEWSML
 from superdesk import get_resource_service
 from superdesk.resource import build_custom_hateoas
 from apps.archive.common import set_original_creator
-
 logger = logging.getLogger(__name__)
 
 not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
@@ -27,18 +26,17 @@ not_indexed = {'type': 'string', 'index': 'no'}
 class PlanningService(superdesk.Service):
     """Service class for the planning model."""
 
-    custom_coverage_hateoas = {'self': {'title': 'Coverage', 'href': '/coverage/{_id}'}}
-
-    def generate_related_coverages(self, planning):
+    def __generate_related_coverages(self, planning):
+        custom_coverage_hateoas = {'self': {'title': 'Coverage', 'href': '/coverage/{_id}'}}
         for coverage in get_resource_service('coverage').find(where={'planning_item': planning['_id']}):
-            build_custom_hateoas(self.custom_coverage_hateoas, coverage)
+            build_custom_hateoas(custom_coverage_hateoas, coverage)
             yield coverage
 
     def get(self, req, lookup):
         docs = super().get(req, lookup)
         # nest coverages
         for doc in docs:
-            doc['coverages'] = list(self.generate_related_coverages(doc))
+            doc['coverages'] = list(self.__generate_related_coverages(doc))
         return docs
 
     def on_create(self, docs):
@@ -47,6 +45,12 @@ class PlanningService(superdesk.Service):
         for doc in docs:
             doc['guid'] = generate_guid(type=GUID_NEWSML)
             set_original_creator(doc)
+
+    def on_deleted(self, doc):
+        # remove the planning from agendas
+        for agenda in self.find(where={'planning_items': doc['_id']}):
+            diff = {'planning_items': [_ for _ in agenda['planning_items'] if _ != doc['_id']]}
+            self.update(agenda['_id'], diff, agenda)
 
 
 planning_schema = {
@@ -105,7 +109,10 @@ planning_schema = {
     # Event Item
     'event_item': superdesk.Resource.rel('events'),
 
-    'planning_items': {'type': 'list', 'nullable': True},
+    'planning_items': {
+        'type': 'list',
+        'schema': superdesk.Resource.rel('planning'),
+    },
 
     # Planning Details
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16

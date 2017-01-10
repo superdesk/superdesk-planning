@@ -1,5 +1,9 @@
 import { createTestStore } from '../../utils'
 import * as actions from '../../actions'
+import { Provider } from 'react-redux'
+import { mount } from 'enzyme'
+import React from 'react'
+import { PlanningPanelContainer, PlanningItem } from '../index'
 
 describe('<PlanningPanelContainer />', () => {
     it('addEventToCurrentAgenda', () => {
@@ -59,5 +63,30 @@ describe('<PlanningPanelContainer />', () => {
                 .toEqual({ _id: 'RefreshedplanningId', slugline: 'coucou' })
             done()
         })
+    })
+    it('loads plannings when agenda is selected', () => {
+        const initialState = {
+            planning: {
+                plannings: {
+                    planning1: { _id: 'planning1' },
+                    planning2: { _id: 'planning2' },
+                    planning3: { _id: 'planning3' },
+                },
+                agendas: [{
+                    _id: 'agenda1',
+                    planning_items: ['planning1', 'planning2'],
+                }],
+            }
+        }
+        const store = createTestStore({ initialState })
+        const wrapper = mount(
+            <Provider store={store}>
+                <PlanningPanelContainer />
+            </Provider>
+        )
+        expect(wrapper.find(PlanningItem).length).toBe(0)
+        store.dispatch(actions.selectAgenda('agenda1'))
+        expect(wrapper.find(PlanningItem).length)
+        .toBe(initialState.planning.agendas[0].planning_items.length)
     })
 })

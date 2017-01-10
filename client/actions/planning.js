@@ -2,7 +2,7 @@ import { hideModal } from './modal'
 import * as selectors from '../selectors'
 import { pickBy, cloneDeep, isNil } from 'lodash'
 
-export const createAgenda = ({ name }) => (
+const createAgenda = ({ name }) => (
     (dispatch, getState, { api }) => {
         api('planning').save({}, {
             planning_type: 'agenda',
@@ -16,23 +16,49 @@ export const createAgenda = ({ name }) => (
     }
 )
 
-export const savePlanningAndReloadCurrentAgenda = (planning) => (
-    (dispatch) => (
-        dispatch(savePlanning(planning, {
-            // if event is new (there is no _id), adds to current agenda
-            addToCurrentAgenda: isNil(planning) || isNil(planning._id)
-        }))
-        .then((planning) => {
-            // ensure that the opened planning is up to date
-            dispatch(openPlanningEditor(planning._id))
-            // update the planning list
-            return dispatch(fetchSelectedAgendaPlannings())
-            .then(() => (planning))
-        })
+const deletePlanning = (planning) => (
+    (dispatch, getState, { api }) => (
+        api('planning').remove(planning)
+        .then(() => (dispatch(fetchAgendas())))
+        .then(() => (dispatch(fetchSelectedAgendaPlannings())))
     )
 )
 
-const savePlanning = (planning, opts) => (
+const savePlanningAndReloadCurrentAgenda = (originalPlanning) => (
+    (dispatch) => (
+        dispatch(savePlanning(originalPlanning))
+        .then((planning) => (
+            Promise.resolve((() => {
+                // if event is new (there is no _id), adds to current agenda
+                if (isNil(originalPlanning) || isNil(originalPlanning._id)) {
+                    return dispatch(addToCurrentAgenda(planning))
+                }
+            })()).then(() => {
+                // ensure that the opened planning is up to date
+                dispatch(openPlanningEditor(planning._id))
+                // update the planning list
+                return dispatch(fetchSelectedAgendaPlannings())
+                .then(() => (planning))
+            })
+        ))
+    )
+)
+
+const addToCurrentAgenda = (planning) => (
+    (dispatch, getState) => {
+        const currentAgenda = selectors.getCurrentAgenda(getState())
+        if (!currentAgenda) throw 'unable to find the current agenda'
+        // add the planning to the agenda
+        return dispatch(addPlanningToAgenda({
+            planning: planning,
+            agenda: currentAgenda
+        }))
+        // returns the planning to chain well with planning savings actions
+        .then(() => (planning))
+    }
+)
+
+const savePlanning = (planning) => (
     (dispatch, getState, { api }) => {
         // find original
         let originalPlanning = {}
@@ -54,47 +80,45 @@ const savePlanning = (planning, opts) => (
         delete planning.original_creator
         // save through the api
         return api('planning').save(cloneDeep(originalPlanning), planning)
-        // save/delete coverages, and return the planning
-        .then((planning) => {
-            const promises = []
-            // if it's a new planning, we need to add it to the current agenda
-            if (opts && opts.addToCurrentAgenda) {
-                const currentAgenda = selectors.getCurrentAgenda(getState())
-                if (!currentAgenda) throw 'unable to find the current agenda'
-                // add the planning to the agenda
-                promises.push(dispatch(addPlanningToAgenda({
-                    planning: planning,
-                    agenda: currentAgenda
-                })))
-            }
-            // saves coverages
-            if (coverages && coverages.length > 0) {
-                promises.concat(coverages.map((coverage) => {
-                    coverage.planning_item = planning._id
-                    // patch or post ? look for an original coverage
-                    const originalCoverage = (originalPlanning.coverages || []).find((c) => (
-                        c._id === coverage._id
-                    ))
-                    return api('coverage').save(cloneDeep(originalCoverage || {}), coverage)
-                }))
-            }
-            // deletes coverages
-            if (originalPlanning.coverages && originalPlanning.coverages.length > 0) {
-                originalPlanning.coverages.forEach((originalCoverage) => {
-                    // if there is a coverage in the original planning that is not anymore
-                    // in the saved planning, we delete it
-                    if (coverages.findIndex((c) => (
-                        c._id && c._id === originalCoverage._id
-                    )) === -1) {
-                        promises.push(
-                            api('coverage').remove(originalCoverage)
-                        )
-                    }
-                })
-            }
-            // returns the up to date planning when all is done
-            return Promise.all(promises).then(() => (planning))
-        })
+        // save/delete coverages
+        .then((planning) => (
+            dispatch(saveAndDeleteCoverages(coverages, planning, originalPlanning))
+            // returns the planning
+            .then(() => (planning))
+        ))
+    }
+)
+
+const saveAndDeleteCoverages = (coverages, planning, originalPlanning) => (
+    (dispatch, getState, { api }) => {
+        const promises = []
+        // saves coverages
+        if (coverages && coverages.length > 0) {
+            promises.concat(coverages.map((coverage) => {
+                coverage.planning_item = planning._id
+                // patch or post ? look for an original coverage
+                const originalCoverage = (originalPlanning.coverages || []).find((c) => (
+                    c._id === coverage._id
+                ))
+                return api('coverage').save(cloneDeep(originalCoverage || {}), coverage)
+            }))
+        }
+        // deletes coverages
+        if (originalPlanning.coverages && originalPlanning.coverages.length > 0) {
+            originalPlanning.coverages.forEach((originalCoverage) => {
+                // if there is a coverage in the original planning that is not anymore
+                // in the saved planning, we delete it
+                if (coverages.findIndex((c) => (
+                    c._id && c._id === originalCoverage._id
+                )) === -1) {
+                    promises.push(
+                        api('coverage').remove(originalCoverage)
+                    )
+                }
+            })
+        }
+        // returns the up to date planning when all is done
+        return Promise.all(promises)
     }
 )
 
@@ -120,7 +144,7 @@ const addPlanningToAgenda = ({ planning, agenda }) => (
     }
 )
 
-export const addEventToCurrentAgenda = (event) => (
+const addEventToCurrentAgenda = (event) => (
     (dispatch) => (
         // planning inherits some fields from the given event
         dispatch(savePlanning({
@@ -129,7 +153,10 @@ export const addEventToCurrentAgenda = (event) => (
             headline: event.definition_short,
             subject: event.subject,
             anpa_category: event.anpa_category,
-        }, { addToCurrentAgenda: true }))
+        }))
+        .then((planning) => (
+            dispatch(addToCurrentAgenda(planning))
+        ))
         .then(() => (
             // reload the plannings of the current calendar
             dispatch(fetchSelectedAgendaPlannings())
@@ -153,7 +180,7 @@ const requestAgendaPlannings = () => (
     { type: 'REQUEST_AGENDA_PLANNNGS' }
 )
 
-export const fetchAgendas = () => (
+const fetchAgendas = () => (
     (dispatch, getState, { api }) => {
         // annonce that we are loading agendas
         dispatch(requestAgendas())
@@ -189,7 +216,7 @@ const fetchSelectedAgendaPlannings = () => (
     }
 )
 
-export const selectAgenda = (agendaId) => (
+const selectAgenda = (agendaId) => (
     (dispatch, getState, { $timeout, $location }) => {
         // save in store selected agenda
         dispatch({ type: 'SELECT_AGENDA', payload: agendaId })
@@ -200,10 +227,21 @@ export const selectAgenda = (agendaId) => (
     }
 )
 
-export const openPlanningEditor = (planning) => (
+const openPlanningEditor = (planning) => (
     (dispatch) => (dispatch({ type: 'OPEN_PLANNING_EDITOR', payload: planning }))
 )
 
-export const closePlanningEditor = () => (
+const closePlanningEditor = () => (
     { type: 'CLOSE_PLANNING_EDITOR' }
 )
+
+export {
+    createAgenda,
+    deletePlanning,
+    savePlanningAndReloadCurrentAgenda,
+    addEventToCurrentAgenda,
+    fetchAgendas,
+    selectAgenda,
+    openPlanningEditor,
+    closePlanningEditor,
+}
