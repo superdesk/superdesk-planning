@@ -63,7 +63,7 @@ Feature: Events
     @auth
     @notification
     Scenario: Generate events from recurring rules
-        When we post to "/events" with success
+        When we post to "events"
         """
         [
             {
@@ -82,6 +82,8 @@ Feature: Events
             }
         ]
         """
+        Then we get response code 201
+        Then we store "EVENT" with first item
         Then we get a list with 3 items
         """
         {"_items": [
@@ -99,7 +101,7 @@ Feature: Events
             }
         ]}
         """
-        When we get "/events?where={"recurrence_id": "#events.recurrence_id#"}"
+        When we get "/events?source={"query":{"match":{"recurrence_id": "#EVENT.recurrence_id#"}}}"
         Then we get list with 3 items
 
     @auth

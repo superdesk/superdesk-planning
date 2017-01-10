@@ -6,4 +6,4 @@ flake8-docstrings
 wooper
 requests
 requests-mock
--e git://github.com/superdesk/superdesk-core.git@v1.3.2#egg=Superdesk_Core
+-e git://github.com/superdesk/superdesk-core.git@v1.5.1#egg=Superdesk_Core

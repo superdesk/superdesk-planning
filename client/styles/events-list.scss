@@ -16,21 +16,24 @@
         margin-top: 20px;
         padding-bottom: 5px;
     }
-    .mlist-view .media-box, .compact-view .media-box {
-        overflow: visible;  // let the dropdown visible
-        // adapt to event (remove left padding)
-        padding-left: 0;
-        .item-info {
-            .line { margin-left: 0; }
-            .highlights-box { margin-right: 0; }
-        }
+    .media-box {
+        padding-left: 0; // adapt to event (remove left padding)
     }
 }
 
-.event {
+.ListItem {
     &__list-item {
-        position: relative;
-        &:hover .event__more-actions { display: block; }
+        .media-box {
+            overflow: visible;  // let the dropdown visible
+            .item-info {
+                .line { margin-left: 0; }
+                .highlights-box { margin-right: 0; }
+            }
+            &:hover {
+                .item-info { padding-right: 50px; }
+            }
+        }
+        &:hover .ListItem__more-actions { display: block; }
     }
     &__more-actions {
         display: none;

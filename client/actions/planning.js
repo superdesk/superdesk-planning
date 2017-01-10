@@ -16,6 +16,14 @@ export const createAgenda = ({ name }) => (
     }
 )
 
+export const deletePlanning = (planning) => (
+    (dispatch, getState, { api }) => (
+        api('planning').remove(planning)
+        .then(() => (dispatch(fetchAgendas())))
+        .then(() => (dispatch(fetchSelectedAgendaPlannings())))
+    )
+)
+
 export const savePlanningAndReloadCurrentAgenda = (planning) => (
     (dispatch) => (
         dispatch(savePlanning(planning, {
