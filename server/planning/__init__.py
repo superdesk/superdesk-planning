@@ -16,8 +16,9 @@ from .planning import PlanningResource, PlanningService
 from .coverage import CoverageResource, CoverageService
 from .locations import LocationsResource, LocationsService
 
-# import feed parsers
+# import feed parsers and services
 from .feed_parsers.ics_2_0 import IcsTwoFeedParser  # NOQA
+from .feeding_services.event_file_service import EventFileFeedingService  # NOQA
 
 
 def init_app(app):
