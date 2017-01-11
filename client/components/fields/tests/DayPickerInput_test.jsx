@@ -4,21 +4,29 @@ import { DayPickerInput } from '../index'
 import sinon from 'sinon'
 import moment from 'moment'
 
-const TestForm = React.createClass({
+class TestForm extends React.Component {
     render() {
-        var input = {
-            value: this.props.value,
-            onChange: this.props.onChange || ((x) => x)
+        const { value, onChange, withTime, defaultDate } = this.props
+        const input = {
+            value: value,
+            onChange: onChange || ((x) => x)
         }
         return (
             <DayPickerInput input={input}
-            defaultDate={this.props.defaultDate}
+            defaultDate={defaultDate}
             name="datetime"
             ref='dayPicker'
-            withTime={this.props.withTime} />
+            withTime={withTime} />
         )
     }
-})
+}
+
+TestForm.propTypes = {
+    value: React.PropTypes.oneOfType([React.PropTypes.object, React.PropTypes.string]),
+    onChange: React.PropTypes.func,
+    withTime: React.PropTypes.bool,
+    defaultDate: React.PropTypes.object,
+}
 
 describe('<DayPickerInput />', () => {
     it('parse the default value', () => {

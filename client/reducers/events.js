@@ -21,14 +21,19 @@ const addToEvents = ({ newEvents, toEvents }) => {
     return toEvents.sort((a, b) => (a.dates.start > b.dates.start))
 }
 
-const events = (state = [], action) => {
+const initialState = {
+    events: [],
+    initialFilterKeyword: undefined,
+}
+
+const events = (state=initialState, action) => {
     switch (action.type) {
         case 'ADD_EVENTS':
-            return addToEvents({ newEvents: action.events, toEvents: state.slice() })
+            return Object.assign({}, state, {
+                events: addToEvents({ newEvents: action.payload, toEvents: state.events.slice() })
+            })
         case 'RECEIVE_EVENTS':
-            return action.events
-        case 'REQUEST_EVENTS':
-            return state
+            return Object.assign({}, state, { events: action.payload })
         default:
             return state
     }

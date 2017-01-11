@@ -19,9 +19,13 @@ const PlanningAppComponent = ({ editPlanningViewOpen }) => {
             <AddEventContainer />
             <EventsListPanelContainer />
             <PlanningPanelContainer />
-            <EditPlanningPanelContainer />
+            {editPlanningViewOpen && <EditPlanningPanelContainer />}
         </div>
     )
+}
+
+PlanningAppComponent.propTypes = {
+    editPlanningViewOpen: React.PropTypes.bool,
 }
 
 const mapStateToProps = (state) => ({

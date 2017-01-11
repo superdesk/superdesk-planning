@@ -1,0 +1,32 @@
+.Planning__planning {
+    .subnav {
+        .subnav__page-title { width: 100px; }
+        select {
+            top: 10px;
+            position: relative;
+        }
+    }
+    &__list {
+        > .list-item-view { margin: 10px 0 }
+    }
+    &__add {
+        background-color: $grayLight;
+        padding: 10px;
+        font-size: 1.2em;
+        text-align: center;
+        color: $white;
+        cursor: pointer;
+    }
+    &__empty-message {
+        font-size: 1.75em;
+        line-height: 1.2em;
+        text-align: center;
+        margin-top: 40px;
+    }
+}
+.Planning__edit-planning {
+    .subnav {
+        .close { padding: 12px 12px 0 0; }
+        background-color: $sd-background;
+    }
+}

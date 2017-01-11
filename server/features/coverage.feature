@@ -1,4 +1,4 @@
-Feature: Coverage 
+Feature: Coverage
 
     @auth
     Scenario: Empty coverage list
@@ -36,3 +36,14 @@ Feature: Coverage
         """
         When we get "/coverage"
         Then we get list with 1 items
+        """
+            {"_items": [{
+                "guid": "__any_value__",
+                "original_creator": "__any_value__",
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "assigned_to": "whoever wants to do it"
+                },
+                "delivery": []
+            }]}
+        """

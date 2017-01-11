@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
-import { DayPickerInput, RepeatEventForm, InputField, GeoSuggestInput } from './index'
+import { fields, RepeatEventForm } from './index'
 import { Field, reduxForm, formValueSelector } from 'redux-form'
 import { isNil } from 'lodash'
 import moment from 'moment'
@@ -49,19 +49,24 @@ export class Component extends React.Component {
             <form onSubmit={this.props.handleSubmit} className="AddEventForm">
                 <div>
                     <Field name="name"
-                           component={InputField}
+                           component={fields.InputField}
                            type="text"
                            label="What"/>
                 </div>
                 <div>
+                    <Field name="anpa_category"
+                           component={fields.CategoryField}
+                           label="Categories"/>
+                </div>
+                <div>
                     <Field name="definition_short"
-                           component={InputField}
+                           component={fields.InputField}
                            type="text"
                            label="Description"/>
                 </div>
                 <div>
                     <Field name="location[0]"
-                           component={GeoSuggestInput}
+                           component={fields.GeoSuggestInput}
                            label="Location"/>
                 </div>
                 <div>
@@ -69,12 +74,12 @@ export class Component extends React.Component {
                 </div>
                 <div>
                     <Field name="dates.start"
-                           component={DayPickerInput}
+                           component={fields.DayPickerInput}
                            withTime={true}/>
                     &nbsp;to&nbsp;
                     <Field name="dates.end"
                            defaultDate={this.theDayAfterStartingDate()}
-                           component={DayPickerInput}
+                           component={fields.DayPickerInput}
                            withTime={true}/>
                 </div>
                 <div>
@@ -96,6 +101,13 @@ export class Component extends React.Component {
             </form>
         )
     }
+}
+
+Component.propTypes = {
+    startingDate: React.PropTypes.object,
+    error: React.PropTypes.object,
+    handleSubmit: React.PropTypes.func,
+    change: React.PropTypes.func,
 }
 
 // Decorate the form component

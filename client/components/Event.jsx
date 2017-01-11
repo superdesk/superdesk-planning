@@ -11,11 +11,11 @@ export const EventComponent = ({ event, onClick, actions }) => {
     const time = eventIsAllDayLong(event.dates) ? '' : moment(event.dates.start).format('HH:mm')
     const location = get(event, 'location[0].name')
     return (
-        <li className="event__list-item list-item-view">
+        <li className="ListItem__list-item list-item-view">
             <div className="media-box media-text">
                 <div className="item-info" onClick={onClick.bind(this, event)}>
                     <div className="line">
-                        <div className="highlights-box"></div>
+                        <div className="highlights-box" />
                         <span className="keyword">{event.name}</span>
                         <span className="item-heading">{event.definition_short}</span>
                         <time title={time}>{time}</time>
@@ -28,16 +28,16 @@ export const EventComponent = ({ event, onClick, actions }) => {
                         </div>
                     }
                 </div>
-                <Dropdown className="event__more-actions" id={`dropdownMenuFor${event._id}`}>
+                <Dropdown className="ListItem__more-actions" id={`dropdownMenuFor${event._id}`}>
                     <Dropdown.Toggle noCaret className="dropdown__toggle">
-                        <i className="icon-dots-vertical"></i>
+                        <i className="icon-dots-vertical" />
                     </Dropdown.Toggle>
                     <Dropdown.Menu className="dropdown dropdown__menu more-activity-menu">
                         <li>
                             <div className="dropdown__menu-label">
                                 Actions
                                 <button className="dropdown__menu-close">
-                                    <i className="icon-close-small"></i>
+                                    <i className="icon-close-small" />
                                 </button>
                             </div>
                         </li>
@@ -47,7 +47,7 @@ export const EventComponent = ({ event, onClick, actions }) => {
                         <MenuItem divider />
                         {actions.onAddToAgendaClick &&
                             <li onClick={actions.onAddToAgendaClick.bind(null, event)}>
-                                <a>Add to the calendar</a>
+                                <a>Add to the current agenda</a>
                             </li>
                         }
                     </Dropdown.Menu>

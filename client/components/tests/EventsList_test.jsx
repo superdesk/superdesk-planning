@@ -2,11 +2,9 @@ import React from 'react'
 import { mount, shallow } from 'enzyme'
 import sinon from 'sinon'
 import { EventsList, EventsListPanelContainer, Event } from '../index'
-import { createStore, applyMiddleware } from 'redux'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
-import planningApp from '../../reducers'
-import thunkMiddleware from 'redux-thunk'
+import { createTestStore } from '../../utils'
 
 const events = [
     {
@@ -40,25 +38,15 @@ const events = [
 
 describe('<EventsList />', () => {
     it('renders events', () => {
-        const initialState = { events }
-        const store = createStore(
-            planningApp,
-            initialState,
-            applyMiddleware(thunkMiddleware.withExtraArgument(
-                {
-                    api: () => ({
-                        query: () => (Promise.resolve({ _items: events }))
-                    })
-                }
-            ))
-        )
+        const initialState = { events: { events: events } }
+        const store = createTestStore({ initialState })
         const wrapper = mount(
             <Provider store={store}>
                 <EventsListPanelContainer />
             </Provider>
         )
         // there is three events to show
-        expect(wrapper.find('.event__list-item').length).toEqual(3)
+        expect(wrapper.find('.ListItem__list-item').length).toEqual(3)
         // only two groups, because two share the same date
         expect(wrapper.find('.events-list__list').length).toEqual(2)
         // check order
@@ -76,13 +64,13 @@ describe('<EventsList />', () => {
             name: 'name4'
         }
         store.dispatch(actions.addEvents([newEvent]))
-        expect(wrapper.find('.event__list-item').length).toEqual(4)
+        expect(wrapper.find('.ListItem__list-item').length).toEqual(4)
         // update an item
         const updatedEvent = Object.assign({}, newEvent, { name: 'new name' })
         store.dispatch(actions.addEvents([updatedEvent]))
-        expect(wrapper.find('.event__list-item').length).toEqual(4)
+        expect(wrapper.find('.ListItem__list-item').length).toEqual(4)
         expect(
-            wrapper.find('.event__list-item').last()
+            wrapper.find('.ListItem__list-item').last()
             .find('.keyword').text())
         .toBe('new name')
     })

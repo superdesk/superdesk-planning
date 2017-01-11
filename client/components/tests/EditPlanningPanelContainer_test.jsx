@@ -1,15 +1,13 @@
 import React from 'react'
 import { mount } from 'enzyme'
 import { EditPlanningPanelContainer } from '../index'
-import { createStore } from 'redux'
+import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
-import planningApp from '../../reducers'
 import * as actions from '../../actions'
 
 describe('<EditPlanningPanelContainer />', () => {
-    it('open', () => {
-        // const handleClose = sinon.spy()
-        let store = createStore(planningApp, {})
+    it('open the panel', () => {
+        let store = createTestStore()
         const wrapper = mount(
             <Provider store={store}>
                 <EditPlanningPanelContainer />

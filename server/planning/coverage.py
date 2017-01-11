@@ -14,6 +14,7 @@ import superdesk
 import logging
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
+from apps.archive.common import set_original_creator
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,7 @@ class CoverageService(superdesk.Service):
 
         for doc in docs:
             doc['guid'] = generate_guid(type=GUID_NEWSML)
+            set_original_creator(doc)
 
 
 coverage_schema = {

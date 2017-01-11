@@ -2,24 +2,31 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { PlanningApp } from '../components'
 import { Provider } from 'react-redux'
-import { createStore, applyMiddleware } from 'redux'
-import planningApp from '../reducers'
-import thunkMiddleware from 'redux-thunk'
-import createLogger from 'redux-logger'
+import { createStore } from '../utils'
 
-const loggerMiddleware = createLogger()
-
-PlanningController.$inject = ['$element', 'api', 'config']
-export function PlanningController($element, api, config) {
-    let store = createStore(
-        planningApp,
-        { config: config },
-        applyMiddleware(
-            // include angular services in available actions paramaters
-            thunkMiddleware.withExtraArgument({ api }),
-            loggerMiddleware
-        )
-    )
+PlanningController.$inject = ['$element', '$scope', 'api', 'config', '$location', '$timeout',
+    'vocabularies']
+export function PlanningController($element, $scope, api, config, $location, $timeout,
+    vocabularies) {
+    let store = createStore({
+        initialState: {
+            events: {
+                events: [],
+                initialFilterKeyword: $location.search().searchEvent,
+            },
+            planning: {
+                currentAgendaId: $location.search().agenda,
+                editorOpened: false,
+                currentPlanningId: null,
+                agendas: [],
+                planningsAreLoading: false,
+                agendasAreLoading: false,
+                plannings: {}, // plannings stored by _id
+            },
+            config: config
+        },
+        extraArguments: { api, $location, $scope, $timeout, vocabularies }
+    })
     ReactDOM.render(
         <Provider store={store}>
             <PlanningApp />

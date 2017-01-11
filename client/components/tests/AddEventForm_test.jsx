@@ -2,11 +2,9 @@ import React from 'react'
 import { mount, shallow } from 'enzyme'
 import AddEventForm, { FormComponent, Component } from '../AddEventForm'
 import sinon from 'sinon'
-import { createStore, applyMiddleware } from 'redux'
+import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
-import planningApp from '../../reducers'
 import * as actions from '../../actions'
-import thunkMiddleware from 'redux-thunk'
 
 const event = {
     _id: '5800d71930627218866f1e80',
@@ -31,7 +29,7 @@ describe('<FormComponent />', () => {
         expect(handleSubmit.callCount).toBe(1)
     })
     it('save the event', () => {
-        const getState = () => ({ events: [] })
+        const getState = () => ({ events: { events: [] } })
         const dispatch = sinon.spy()
         const api = () => ({
             save: sinon.spy((original, newEvent) => {
@@ -50,7 +48,7 @@ describe('<FormComponent />', () => {
             expect(end.isSame(expectedDates.end)).toBe(true)
         }
 
-        let store = createStore(planningApp, {})
+        let store = createTestStore()
         const initialValues = event
         mount(
             <Provider store={store}>
@@ -61,17 +59,7 @@ describe('<FormComponent />', () => {
         expectDatesInStoreToBe(originalDates)
     })
     it('calls onSubmit() and ensure that modal is closed', (done) => {
-        const store = createStore(
-            planningApp,
-            {},
-            applyMiddleware(thunkMiddleware.withExtraArgument(
-                {
-                    api: () => ({
-                        save: () => (Promise.resolve({ _items: [event] })),
-                    })
-                }
-            ))
-        )
+        const store = createTestStore()
         const wrapper = mount(<Provider store={store}><AddEventForm /></Provider>)
         // open the modal (in store)
         store.dispatch(actions.showModal({ modalType: 'EDIT_EVENT', modalProps: { event: {} } }))
@@ -83,7 +71,7 @@ describe('<FormComponent />', () => {
         })
     })
     it('fill the form', () => {
-        let store = createStore(planningApp, {})
+        let store = createTestStore()
         const initialValues = event
         const wrapper = mount(
             <Provider store={store}>
@@ -93,13 +81,13 @@ describe('<FormComponent />', () => {
         expect(wrapper.find('[name="name"]').props().value).toBe(initialValues.name)
     })
     it('detects a recurring event', () => {
-        let store = createStore(planningApp, {})
+        const store = createTestStore()
         // check with default values if doesRepeat is false
         expect(mount(<Provider store={store}><AddEventForm /></Provider>)
             .find(FormComponent).props().doesRepeat
         ).toBe(false)
         // check with a recurring event if doesRepeat is true
-        let recEvent = Object.assign({}, event, {
+        const recEvent = Object.assign({}, event, {
             dates: {
                 start: '2016-10-15T14:30+0000',
                 end: '2016-10-20T15:00+0000',

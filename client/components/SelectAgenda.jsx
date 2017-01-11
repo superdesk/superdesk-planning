@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
+import * as selectors from '../selectors'
 
 export const SelectAgendaComponent = ({ agendas, onChange, currentAgenda, isLoading }) => (
     <select onChange={onChange} value={currentAgenda || ''}>
@@ -24,7 +25,7 @@ SelectAgendaComponent.propTypes = {
 }
 
 const mapStateToProps = (state) => ({
-    currentAgenda: state.planning.currentAgendaId,
+    currentAgenda: selectors.getCurrentAgendaId(state),
     agendas: state.planning.agendas,
     isLoading: state.planning.agendasAreLoading,
 })

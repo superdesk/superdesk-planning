@@ -1,9 +1,8 @@
 import React from 'react'
 import { mount } from 'enzyme'
 import { change, reduxForm } from 'redux-form'
-import { createStore } from 'redux'
+import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
-import planningApp from '../../reducers'
 import { RepeatEventForm } from '../index'
 import moment from 'moment'
 
@@ -13,7 +12,7 @@ describe('<RepeatEventForm />', () => {
     let store
     beforeEach(() => {
         const FormComponent = reduxForm({ form })(RepeatEventForm)
-        store = createStore(planningApp)
+        store = createTestStore()
         wrapper = mount(
             <Provider store={store}>
                 <FormComponent/>

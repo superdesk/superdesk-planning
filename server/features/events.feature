@@ -46,6 +46,15 @@ Feature: Events
         """
         When we get "/events"
         Then we get list with 1 items
+        """
+            {"_items": [{
+                "guid": "__any_value__",
+                "original_creator": "__any_value__",
+                "name": "event 123",
+                "definition_short": "short value",
+                "definition_long": "long value"
+            }]}
+        """
         When we get "/events?sort=[("dates.start",1)]&source={"query":{"range":{"dates.start":{"lte":"2015-01-01T00:00:00.000Z"}}}}"
         Then we get list with 0 items
         When we get "/events?sort=[("dates.start",1)]&source={"query":{"range":{"dates.start":{"gte":"2016-01-02T00:00:00.000Z"}}}}"
@@ -54,7 +63,7 @@ Feature: Events
     @auth
     @notification
     Scenario: Generate events from recurring rules
-        When we post to "/events" with success
+        When we post to "events"
         """
         [
             {
@@ -73,6 +82,8 @@ Feature: Events
             }
         ]
         """
+        Then we get response code 201
+        Then we store "EVENT" with first item
         Then we get a list with 3 items
         """
         {"_items": [
@@ -90,7 +101,7 @@ Feature: Events
             }
         ]}
         """
-        When we get "/events?where={"recurrence_id": "#events.recurrence_id#"}"
+        When we get "/events?source={"query":{"match":{"recurrence_id": "#EVENT.recurrence_id#"}}}"
         Then we get list with 3 items
 
     @auth
