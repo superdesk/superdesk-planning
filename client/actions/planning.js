@@ -19,7 +19,15 @@ const createAgenda = ({ name }) => (
 const deletePlanning = (planning) => (
     (dispatch, getState, { api }) => (
         api('planning').remove(planning)
+        // close the editor if the removed planning was opened
+        .then(() => {
+            if (selectors.getCurrentPlanningId(getState()) === planning._id) {
+                dispatch(closePlanningEditor())
+            }
+        })
+        // reloads agendas because they contains the list of the plannings to show
         .then(() => (dispatch(fetchAgendas())))
+        // reloads the plannings to show
         .then(() => (dispatch(fetchSelectedAgendaPlannings())))
     )
 )
