@@ -15,10 +15,9 @@ from .events import EventsResource, EventsService
 from .planning import PlanningResource, PlanningService
 from .coverage import CoverageResource, CoverageService
 from .locations import LocationsResource, LocationsService
-
-# import feed parsers and services
-from .feed_parsers.ics_2_0 import IcsTwoFeedParser  # NOQA
-from .feeding_services.event_file_service import EventFileFeedingService  # NOQA
+from superdesk.io.registry import register_feeding_service, register_feed_parser
+from .feed_parsers.ics_2_0 import IcsTwoFeedParser
+from .feeding_services.event_file_service import EventFileFeedingService
 
 
 def init_app(app):
@@ -43,3 +42,12 @@ def init_app(app):
         label='Planning',
         description='Create, update, and delete  events, planning items, and coverages'
     )
+
+
+register_feeding_service(
+    EventFileFeedingService.NAME,
+    EventFileFeedingService(),
+    EventFileFeedingService.ERRORS
+)
+
+register_feed_parser(IcsTwoFeedParser.NAME, IcsTwoFeedParser())

@@ -386,7 +386,7 @@ def generate_recurring_dates(start, frequency, interval=1, until=None, byday=Non
             until = until.astimezone(tz).replace(tzinfo=None)
 
     # check format of the recurring_rule byday value
-    if re.match(r'^-?[1-5]+.*', byday):
+    if byday and re.match(r'^-?[1-5]+.*', byday):
         # byday uses monthly or yearly frequency rule with day of week and
         # preceeding day of month intenger byday value
         # examples:

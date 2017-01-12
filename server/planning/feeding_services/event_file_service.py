@@ -10,7 +10,6 @@
 
 
 from superdesk.errors import ParserError, ProviderError
-from superdesk.io.registry import register_feeding_service
 from superdesk.io.feeding_services.file_service import FileFeedingService
 
 
@@ -34,10 +33,3 @@ class EventFileFeedingService(FileFeedingService):
     Defines the collection service to be used with this ingest feeding service.
     """
     service = 'events'
-
-
-register_feeding_service(
-    EventFileFeedingService.NAME,
-    EventFileFeedingService(),
-    EventFileFeedingService.ERRORS
-)

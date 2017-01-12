@@ -28,4 +28,19 @@ function configurePlanning(superdesk) {
         })
 }
 
-export default planningModule.config(configurePlanning)
+runPlanning.$inject = ['ingestSources', '$templateCache']
+function runPlanning(ingestSources, $templateCache) {
+    // register new ingest feeding service and custom settings template
+    $templateCache.put(
+        'superdesk-planning/views/eventFileConfig.html',
+        require('./client/views/eventFileConfig.html')
+    )
+    ingestSources.registerFeedingService('event_file', {
+        label: 'Event File Feed',
+        templateUrl: 'superdesk-planning/views/eventFileConfig.html'
+    })
+}
+
+export default planningModule
+    .config(configurePlanning)
+    .run(runPlanning)

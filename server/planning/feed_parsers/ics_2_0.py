@@ -12,7 +12,6 @@ import logging
 import datetime
 
 from superdesk.errors import ParserError
-from superdesk.io.registry import register_feed_parser
 from superdesk.io.feed_parsers import FileFeedParser
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE, GUID_FIELD, GUID_NEWSML, FORMAT, FORMATS
@@ -136,6 +135,3 @@ class IcsTwoFeedParser(FileFeedParser):
             return items
         except Exception as ex:
             raise ParserError.parseMessageError(ex, provider)
-
-
-register_feed_parser(IcsTwoFeedParser.NAME, IcsTwoFeedParser())
