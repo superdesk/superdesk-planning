@@ -6,6 +6,6 @@
 	"requireSemicolons": false,
 	"disallowUnusedVariables": true,
 	"safeContextKeyword": false,
-	"fileExtensions": [".js", ".jsx"],
+	"fileExtensions": [".js"],
 	"requireTrailingComma": false
 }
