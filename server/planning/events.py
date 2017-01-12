@@ -281,12 +281,13 @@ events_schema = {
             }
         }
     },
-    'location': {  # TODO: this is only placeholder schema
+    'location': {
         'type': 'list',
         'mapping': {
             'properties': {
                 'qcode': not_analyzed,
-                'name': not_analyzed
+                'name': not_analyzed,
+                'geo': not_analyzed
             }
         }
     },
@@ -308,7 +309,7 @@ events_schema = {
             }
         }
     },
-    'organizer': {  # TODO: this is only placeholder schema
+    'organizer': {
         'type': 'list',
         'mapping': {
             'properties': {
@@ -317,7 +318,7 @@ events_schema = {
             }
         }
     },
-    'contact_info': {  # TODO: this is only placeholder schema
+    'contact_info': {
         'type': 'list',
         'mapping': {
             'properties': {

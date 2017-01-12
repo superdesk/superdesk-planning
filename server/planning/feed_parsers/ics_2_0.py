@@ -17,7 +17,7 @@ from superdesk.io.feed_parsers import FileFeedParser
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE, GUID_FIELD, GUID_NEWSML, FORMAT, FORMATS
 from superdesk.utc import utcnow
-from icalendar import Calendar, vRecur, vCalAddress
+from icalendar import Calendar, vRecur, vCalAddress, vGeo
 from icalendar.parser import tzid_from_dt
 
 logger = logging.getLogger(__name__)
@@ -57,9 +57,16 @@ class IcsTwoFeedParser(FileFeedParser):
                     item['definition_long'] = component.get('description')
 
                     # add dates
+                    # check if component .dt return date instead of datetime, if so, convert to datetime
+                    dtstart = component.get('dtstart').dt
+                    dtend = component.get('dtend').dt
+                    dates_start = dtstart if isinstance(dtstart, datetime.datetime) \
+                        else datetime.datetime.combine(dtstart, datetime.datetime.min.time())
+                    dates_end = dtend if isinstance(dtend, datetime.datetime) \
+                        else datetime.datetime.combine(dtend, datetime.datetime.min.time())
                     item['dates'] = {
-                        'start': component.get('dtstart').dt,
-                        'end': component.get('dtend').dt,
+                        'start': dates_start,
+                        'end': dates_end,
                         'tz': '',
                         'recurring_rule': {}
                     }
@@ -107,8 +114,11 @@ class IcsTwoFeedParser(FileFeedParser):
                     # add location
                     item['location'] = [{
                         'name': component.get('location', ''),
-                        'qcode': ''
+                        'qcode': '',
+                        'geo': ''
                     }]
+                    if component.get('geo'):
+                        item['location'][0]['geo'] = vGeo.from_ical(component.get('geo').to_ical())
 
                     # IMPORTANT: firstcreated must be less than 2 days past
                     # we must preserve the original event created and updated in some other fields
