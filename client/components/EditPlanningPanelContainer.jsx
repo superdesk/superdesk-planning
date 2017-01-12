@@ -18,7 +18,12 @@ class EditPlanningPanel extends React.Component {
             <div className="Planning__edit-planning">
                 <header className="subnav">
                     <h3 className="subnav__page-title">
-                        Created {moment(creationDate).fromNow()} by {author}
+                        {creationDate && author &&
+                            <span>Created {moment(creationDate).fromNow()} by {author}</span>
+                        }
+                        {(!creationDate || !author) &&
+                            <span>Create a new planning</span>
+                        }
                     </h3>
                     <a onClick={closePlanningEditor} className="close">
                         <i className="icon-close-small" />
@@ -32,8 +37,8 @@ class EditPlanningPanel extends React.Component {
 
 EditPlanningPanel.propTypes = {
     closePlanningEditor: React.PropTypes.func.isRequired,
-    creationDate: React.PropTypes.string.isRequired,
-    author: React.PropTypes.string.isRequired,
+    creationDate: React.PropTypes.string,
+    author: React.PropTypes.string,
 }
 
 const mapStateToProps = (state) => ({

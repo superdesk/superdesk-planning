@@ -19,7 +19,15 @@ const createAgenda = ({ name }) => (
 const deletePlanning = (planning) => (
     (dispatch, getState, { api }) => (
         api('planning').remove(planning)
+        // close the editor if the removed planning was opened
+        .then(() => {
+            if (selectors.getCurrentPlanningId(getState()) === planning._id) {
+                dispatch(closePlanningEditor())
+            }
+        })
+        // reloads agendas because they contains the list of the plannings to show
         .then(() => (dispatch(fetchAgendas())))
+        // reloads the plannings to show
         .then(() => (dispatch(fetchSelectedAgendaPlannings())))
     )
 )
@@ -82,32 +90,38 @@ const savePlanning = (planning) => (
         return api('planning').save(cloneDeep(originalPlanning), planning)
         // save/delete coverages
         .then((planning) => (
-            dispatch(saveAndDeleteCoverages(coverages, planning, originalPlanning))
+            dispatch(saveAndDeleteCoverages(coverages, planning, originalPlanning.coverages))
             // returns the planning
             .then(() => (planning))
         ))
     }
 )
 
-const saveAndDeleteCoverages = (coverages, planning, originalPlanning) => (
+/**
+*   This will save or delete coverages through the API to
+*   the given planning based on the origial coverages
+*/
+const saveAndDeleteCoverages = (coverages=[], planning, originalCoverages=[]) => (
     (dispatch, getState, { api }) => {
         const promises = []
         // saves coverages
-        if (coverages && coverages.length > 0) {
-            promises.concat(coverages.map((coverage) => {
+        if (coverages.length > 0) {
+            coverages.forEach((coverage) => {
                 coverage.planning_item = planning._id
                 // patch or post ? look for an original coverage
-                const originalCoverage = (originalPlanning.coverages || []).find((c) => (
+                const originalCoverage = originalCoverages.find((c) => (
                     c._id === coverage._id
                 ))
-                return api('coverage').save(cloneDeep(originalCoverage || {}), coverage)
-            }))
+                promises.push(
+                    api('coverage').save(cloneDeep(originalCoverage || {}), coverage)
+                )
+            })
         }
         // deletes coverages
-        if (originalPlanning.coverages && originalPlanning.coverages.length > 0) {
-            originalPlanning.coverages.forEach((originalCoverage) => {
+        if (originalCoverages.length > 0) {
+            originalCoverages.forEach((originalCoverage) => {
                 // if there is a coverage in the original planning that is not anymore
-                // in the saved planning, we delete it
+                // in the planning, we delete it
                 if (coverages.findIndex((c) => (
                     c._id && c._id === originalCoverage._id
                 )) === -1) {
