@@ -7,5 +7,8 @@ setup(
     author='Edouard Richard',
     author_email='edouard.richard@sourcefabric.org',
     license='MIT',
+    install_requires=[
+        'icalendar==3.11.1'
+    ],
     url='',
 )
