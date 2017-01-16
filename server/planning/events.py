@@ -171,7 +171,6 @@ events_schema = {
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.2
     'name': {
         'type': 'string',
-        'mapping': not_analyzed,
         'required': True,
     },
     'definition_short': {'type': 'string'},

@@ -92,7 +92,6 @@ locations_schema = {
     'name': {
         'type': 'string',
         'unique': True,
-        'mapping': not_analyzed
     },
 
     # NewsML-G2 poiDetails properties See IPTC-G2-Implementation_Guide 12.6.3
