@@ -66,8 +66,6 @@ class NTBEventXMLFeedParser(XMLFeedParser):
             item['versioncreated'] = utcnow()
             items.append(item)
 
-            logger.warn('\n\n\n INGESTING EVENT: %s\n\n\n', item)
-
             return items
         except Exception as ex:
             raise ParserError.parseMessageError(ex, provider)
