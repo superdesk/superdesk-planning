@@ -37,9 +37,14 @@ class NTBEventXMLFeedParser(XMLFeedParser):
         items = []
         try:
             # parse xml file, only expecting one event per file
+            if not ET.iselement(xml.find('guid')):
+                guid = generate_guid(type=GUID_NEWSML)
+            else:
+                guid = xml.find('guid').text
+
             item = {
                 ITEM_TYPE: CONTENT_TYPE.TEXT,
-                GUID_FIELD: generate_guid(type=GUID_NEWSML),
+                GUID_FIELD: guid,
                 FORMAT: FORMATS.PRESERVED
             }
             item['name'] = xml.find('title').text
@@ -59,7 +64,7 @@ class NTBEventXMLFeedParser(XMLFeedParser):
             }]
             if ET.iselement(xml.find('geo')):
                 geo = xml.find('geo')
-                item['location'][0]['geo'] = '%s, %s' % (geo.get('latitude', ''), geo.get('longitude', ''))
+                item['location'][0]['geo'] = '%s, %s' % (geo.find('latitude').text, geo.find('longitude').text)
             # IMPORTANT: firstcreated must be less than 2 days past
             # we must preserve the original event created and updated in some other fields
             item['firstcreated'] = utcnow()
@@ -69,6 +74,3 @@ class NTBEventXMLFeedParser(XMLFeedParser):
             return items
         except Exception as ex:
             raise ParserError.parseMessageError(ex, provider)
-
-    def get_elem_content(self, elem):
-        return elem.text if elem is not None else ''
