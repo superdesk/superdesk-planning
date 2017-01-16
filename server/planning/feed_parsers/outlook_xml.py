@@ -11,7 +11,6 @@
 import logging
 
 from superdesk.errors import ParserError
-from superdesk.io.registry import register_feed_parser
 from superdesk.io.feed_parsers import XMLFeedParser
 
 logger = logging.getLogger(__name__)
@@ -46,6 +45,3 @@ class OutlookXMLFeedParser(XMLFeedParser):
 
     def get_elem_content(self, elem):
         return elem.text if elem is not None else ''
-
-
-register_feed_parser(OutlookXMLFeedParser.NAME, OutlookXMLFeedParser())
