@@ -29,11 +29,12 @@ const initialState = {
 const events = (state=initialState, action) => {
     switch (action.type) {
         case 'ADD_EVENTS':
-            return Object.assign({}, state, {
+            return {
+                ...state,
                 events: addToEvents({ newEvents: action.payload, toEvents: state.events.slice() })
-            })
+            }
         case 'RECEIVE_EVENTS':
-            return Object.assign({}, state, { events: action.payload })
+            return { ...state, events: action.payload }
         default:
             return state
     }

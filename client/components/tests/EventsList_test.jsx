@@ -66,7 +66,7 @@ describe('<EventsList />', () => {
         store.dispatch(actions.addEvents([newEvent]))
         expect(wrapper.find('.ListItem__list-item').length).toEqual(4)
         // update an item
-        const updatedEvent = Object.assign({}, newEvent, { name: 'new name' })
+        const updatedEvent = { ...newEvent, name: 'new name' }
         store.dispatch(actions.addEvents([updatedEvent]))
         expect(wrapper.find('.ListItem__list-item').length).toEqual(4)
         expect(
