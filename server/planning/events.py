@@ -104,6 +104,8 @@ class EventsService(superdesk.Service):
                     new_event = copy.deepcopy(event)
                     new_event['dates']['start'] = date
                     new_event['dates']['end'] = date + time_delta
+                    # set a unique guid
+                    new_event['guid'] = generate_guid(type=GUID_NEWSML)
                     # set the recurrence id
                     new_event['recurrence_id'] = recurrence_id
                     generatedEvents.append(new_event)
@@ -138,7 +140,6 @@ events_schema = {
     },
     'recurrence_id': {
         'type': 'string',
-        'unique': True,
         'mapping': not_analyzed
     },
 
