@@ -9,10 +9,15 @@
             cursor: default; // is readonly but we don't want the forbidden cursor
         }
     }
-    .geosuggest { display: table }
-    .geosuggest__input-wrapper {
-        display: table-cell;
-        width: 100%;
+    .geosuggest {
+        display: table;
+        &__input-wrapper {
+            display: table-cell;
+            width: 100%;
+        }
+        &__suggests-wrapper {
+            display: table-row;
+        }
     }
     .rc-time-picker-input { @extend .line-input; }
     // sub form to define a recurring date
