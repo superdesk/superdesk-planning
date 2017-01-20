@@ -2,6 +2,7 @@ import { hideModal } from './modal'
 import { pickBy } from 'lodash'
 import moment from 'moment-timezone'
 import * as selectors from '../selectors'
+import { SubmissionError } from 'redux-form'
 
 const receiveEvents = (events) => ({
     type: 'RECEIVE_EVENTS',
@@ -36,6 +37,8 @@ export function saveEvent(newEvent) {
             dispatch({ type: 'EVENT_SAVE_SUCCESS' })
             // hide the modal
             return dispatch(hideModal())
+        }, (error) => {
+            throw new SubmissionError({ _error: error.statusText })
         })
     }
 }
