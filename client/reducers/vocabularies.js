@@ -5,7 +5,7 @@ const initialState = {
 const vocabularies = (state=initialState, action) => {
     switch (action.type) {
         case 'RECEIVE_ANPA_CATEGORIES':
-            return Object.assign({}, state, { anpaCategories: action.payload })
+            return { ...state, anpaCategories: action.payload }
         default:
             return state
     }

@@ -57,12 +57,10 @@ export const createTestStore = (params={}) => {
                 if (extraArguments.apiSave) {
                     return Promise.resolve(extraArguments.apiSave(resource, ori, item))
                 } else {
-                    let response = {}
-                    Object.assign(response, ori, item)
+                    const response = { ...ori, ...item }
                     // if there is no id we add one
                     if (!response._id) {
-                        const randId =  Math.random().toString(36).substr(2, 10)
-                        Object.assign(response, item, { _id: randId })
+                        response._id = Math.random().toString(36).substr(2, 10)
                     }
                     // reponse as a promise
                     return Promise.resolve(response)
@@ -72,7 +70,7 @@ export const createTestStore = (params={}) => {
     }
     const middlewares = [
         // adds the mocked extra arguments to actions
-        thunkMiddleware.withExtraArgument(Object.assign({}, mockedExtraArguments, extraArguments))
+        thunkMiddleware.withExtraArgument({ ...mockedExtraArguments, extraArguments })
     ]
     // return the store
     return _createStore(

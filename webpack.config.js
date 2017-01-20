@@ -17,9 +17,9 @@ module.exports = {
                 exclude: /node_modules/,
                 loader: 'babel',
                 query: {
-                    plugins: ['transform-object-assign'],
+                    plugins: ['transform-object-rest-spread'],
                     cacheDirectory: true,
-                    presets: ['es2015', 'react']
+                    presets: ['es2015', 'react'],
                 }
             },
             {

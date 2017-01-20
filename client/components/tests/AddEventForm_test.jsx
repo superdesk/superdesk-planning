@@ -87,7 +87,8 @@ describe('<FormComponent />', () => {
             .find(FormComponent).props().doesRepeat
         ).toBe(false)
         // check with a recurring event if doesRepeat is true
-        const recEvent = Object.assign({}, event, {
+        const recEvent = {
+            ...event,
             dates: {
                 start: '2016-10-15T14:30+0000',
                 end: '2016-10-20T15:00+0000',
@@ -95,7 +96,7 @@ describe('<FormComponent />', () => {
                     frequency: 'YEARLY'
                 }
             }
-        })
+        }
         expect(mount(<Provider store={store}><AddEventForm initialValues={recEvent} /></Provider>)
             .find(FormComponent).props().doesRepeat
         ).toBe(true)
