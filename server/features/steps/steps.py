@@ -9,7 +9,9 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from superdesk.tests.steps import *  # noqa
-from superdesk.tests.steps import then, step_impl_then_get_existing, get_json_data
+from superdesk.tests.steps import (then, step_impl_then_get_existing, get_json_data,
+                                   assert_200, unique_headers, get_prefixed_url,
+                                   if_match, assert_404)
 import json
 
 
@@ -38,3 +40,28 @@ def steip_impl_store_first_item_to_ctx(context, tag):
     data = get_json_data(context.response)
     first_item = data['_items'][0]
     setattr(context, tag, first_item)
+
+
+@then('we get an event file reference')
+def step_impl_then_get_event_file(context):
+    assert_200(context.response)
+    data = get_json_data(context.response)
+    url = '/upload/%s/raw' % data['filemeta']['media_id']
+    headers = [('Accept', 'application/json')]
+    headers = unique_headers(headers, context.headers)
+    response = context.client.get(get_prefixed_url(context.app, url), headers=headers)
+    assert_200(response)
+    assert len(response.get_data()), response
+    fetched_data = get_json_data(context.response)
+    context.fetched_data = fetched_data
+
+
+@then('we can delete that event file')
+def step_impl_we_delete_event_file(context):
+    url = '/events_files/%s' % context.fetched_data['_id']
+    context.headers.append(('Accept', 'application/json'))
+    headers = if_match(context, context.fetched_data.get('_etag'))
+    response = context.client.delete(get_prefixed_url(context.app, url), headers=headers)
+    assert_200(response)
+    response = context.client.get(get_prefixed_url(context.app, url), headers=headers)
+    assert_404(response)

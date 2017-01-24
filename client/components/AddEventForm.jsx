@@ -2,7 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
 import { fields, RepeatEventForm } from './index'
-import { Field, reduxForm, formValueSelector } from 'redux-form'
+import { Field, FieldArray, reduxForm, formValueSelector } from 'redux-form'
 import { isNil } from 'lodash'
 import moment from 'moment'
 import { RequiredFieldsValidator } from '../utils'
@@ -97,6 +97,10 @@ export class Component extends React.Component {
                         <RepeatEventForm {...this.props} />
                     }
                 </div>
+                <div>
+                    <label htmlFor="files">Attached files</label>
+                    <FieldArray name="files" component={fields.FilesFieldArray} />
+                </div>
                 {this.props.error && <div><strong>{this.props.error}</strong></div>}
             </form>
         )
@@ -128,7 +132,7 @@ const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (event) => (
         // save the event through the API
-        dispatch(actions.saveEvent(event))
+        dispatch(actions.uploadFilesAndSaveEvent(event))
     )
 })
 

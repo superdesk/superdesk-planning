@@ -24,6 +24,9 @@ export const RequiredFieldsValidator = (fields) => (
 
 export const createTestStore = (params={}) => {
     const { initialState={}, extraArguments={} } = params
+    const mockedInitialState = {
+        config: { server: { url: 'http://server.com' } }
+    }
     const mockedExtraArguments = {
         $timeout: (cb) => (cb && cb()),
         $scope: { $apply: (cb) => (cb && cb()) },
@@ -35,6 +38,9 @@ export const createTestStore = (params={}) => {
                     { qname: 'test:news', name: 'News' },
                 ])
             )
+        },
+        upload: {
+            start: (d) => (Promise.resolve(d))
         },
         api: (resource) => ({
             query: (q) =>  {
@@ -75,7 +81,7 @@ export const createTestStore = (params={}) => {
     // return the store
     return _createStore(
         planningApp,
-        initialState,
+        { ...mockedInitialState, ...initialState },
         applyMiddleware.apply(null, middlewares)
     )
 }
