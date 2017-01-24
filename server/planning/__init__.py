@@ -13,6 +13,7 @@
 import superdesk
 from .events import EventsResource, EventsService
 from .planning import PlanningResource, PlanningService
+from .files import FilesResource, FilesService
 from .coverage import CoverageResource, CoverageService
 from .locations import LocationsResource, LocationsService
 from superdesk.io.registry import register_feeding_service, register_feed_parser
@@ -37,6 +38,9 @@ def init_app(app):
 
     locations_search_service = LocationsService('locations', backend=superdesk.get_backend())
     LocationsResource('locations', app=app, service=locations_search_service)
+
+    files_service = FilesService('events_files', backend=superdesk.get_backend())
+    FilesResource('events_files', app=app, service=files_service)
 
     superdesk.privilege(
         name='planning',

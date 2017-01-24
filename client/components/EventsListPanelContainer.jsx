@@ -110,7 +110,7 @@ const mapDispatchToProps = (dispatch) => ({
         modalType: 'EDIT_EVENT',
         modalProps: { event: event }
     })),
-    loadEvents: (query) => dispatch(actions.fetchEvents(query)),
+    loadEvents: (keyword) => dispatch(actions.fetchEvents({keyword})),
 })
 
 export const EventsListPanelContainer = connect(

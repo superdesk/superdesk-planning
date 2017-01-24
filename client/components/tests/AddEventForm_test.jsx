@@ -38,7 +38,7 @@ describe('<FormComponent />', () => {
                 return Promise.resolve()
             })
         })
-        const action = actions.saveEvent(event)
+        const action = actions.uploadFilesAndSaveEvent(event)
         action(dispatch, getState, { api })
     })
     it('compute right dates', () => {
