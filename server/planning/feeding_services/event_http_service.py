@@ -9,14 +9,16 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 import datetime
+import requests
 
 from superdesk.io.feeding_services.http_service import HTTPFeedingService
 from superdesk.errors import IngestApiError
+from superdesk.logging import logger
 from superdesk.utc import utcnow
 from flask import current_app as app
 
 
-class EventFileFeedingService(HTTPFeedingService):
+class EventHTTPFeedingService(HTTPFeedingService):
     """
     Feeding Service class which can read events using HTTP
     """
@@ -29,14 +31,14 @@ class EventFileFeedingService(HTTPFeedingService):
               IngestApiError.apiParseError().get_error_description(),
               IngestApiError.apiGeneralError().get_error_description()]
 
-    label = 'Event HTTP  Feed'
+    label = 'Event HTTP Feed'
 
     """
     Defines the collection service to be used with this ingest feeding service.
     """
     service = 'events'
 
-    def _updated(self, provider, update):
+    def _update(self, provider, update):
         updated = utcnow()
 
         last_updated = provider.get('last_updated')
@@ -51,3 +53,36 @@ class EventFileFeedingService(HTTPFeedingService):
             provider['config'] = provider_config
 
         self.URL = provider_config.get('url')
+        payload = {}
+
+        try:
+            response = requests.get(self.URL, params=payload, timeout=15)
+            # TODO: check if file has been updated since provider last_updated
+            # although some ptovider do not include 'Last-Modified' in headers
+            # so unsure how to do this
+            logger.info('Http Headers: %s', response.headers)
+        except requests.exceptions.Timeout as ex:
+            # Maybe set up for a retry, or continue in a retry loop
+            raise IngestApiError.apiTimeoutError(ex, self.provider)
+        except requests.exceptions.TooManyRedirects as ex:
+            # Tell the user their URL was bad and try a different one
+            raise IngestApiError.apiRedirectError(ex, self.provider)
+        except requests.exceptions.RequestException as ex:
+            # catastrophic error. bail.
+            raise IngestApiError.apiRequestError(ex, self.provider)
+        except Exception as error:
+            traceback.print_exc()
+            raise IngestApiError.apiGeneralError(error, self.provider)
+
+        if response.status_code == 404:
+            raise LookupError('Not found %s' % payload)
+
+        logger.info('Ingesting: %s', str(response.content))
+
+        parser = self.get_feed_parser(provider, response.content)
+        items = parser.parse('http', provider, response.content)
+
+        if isinstance(items, list):
+            yield items
+        else:
+            yield [items]

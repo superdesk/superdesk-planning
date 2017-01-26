@@ -35,9 +35,17 @@ function runPlanning(ingestSources, $templateCache) {
         'superdesk-planning/views/eventFileConfig.html',
         require('./client/views/eventFileConfig.html')
     )
+    $templateCache.put(
+        'superdesk-planning/views/eventHttpConfig.html',
+        require('./client/views/eventHttpConfig.html')
+    )
     ingestSources.registerFeedingService('event_file', {
         label: 'Event File Feed',
         templateUrl: 'superdesk-planning/views/eventFileConfig.html'
+    })
+    ingestSources.registerFeedingService('event_http', {
+        label: 'Event HTTP Feed',
+        templateUrl: 'superdesk-planning/views/eventHttpConfig.html'
     })
 }
 

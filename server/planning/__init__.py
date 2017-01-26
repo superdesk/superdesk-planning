@@ -19,6 +19,7 @@ from superdesk.io.registry import register_feeding_service, register_feed_parser
 from .feed_parsers.ics_2_0 import IcsTwoFeedParser
 from .feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
 from .feeding_services.event_file_service import EventFileFeedingService
+from .feeding_services.event_http_service import EventHTTPFeedingService
 
 
 def init_app(app):
@@ -49,6 +50,11 @@ register_feeding_service(
     EventFileFeedingService.NAME,
     EventFileFeedingService(),
     EventFileFeedingService.ERRORS
+)
+register_feeding_service(
+    EventHTTPFeedingService.NAME,
+    EventHTTPFeedingService(),
+    EventHTTPFeedingService.ERRORS
 )
 
 register_feed_parser(IcsTwoFeedParser.NAME, IcsTwoFeedParser())
