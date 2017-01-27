@@ -16,7 +16,7 @@ from superdesk.io.feed_parsers import FileFeedParser
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE, GUID_FIELD, GUID_NEWSML, FORMAT, FORMATS
 from superdesk.utc import utcnow
-from icalendar import Calendar, vRecur, vCalAddress, vGeo
+from icalendar import vRecur, vCalAddress, vGeo
 from icalendar.parser import tzid_from_dt
 
 logger = logging.getLogger(__name__)
@@ -33,17 +33,14 @@ class IcsTwoFeedParser(FileFeedParser):
 
     label = 'iCalendar v2.0'
 
-    def can_parse(self, file_path):
+    def can_parse(self, cal):
         return True
 
-    def parse(self, file_path, provider=None):
+    def parse(self, cal, provider=None):
 
         try:
             items = []
 
-            # parse ics file
-            ics_file = open(file_path, 'rb')
-            cal = Calendar.from_ical(ics_file.read())
             for component in cal.walk():
                 if component.name == "VEVENT":
                     item = {
@@ -128,9 +125,8 @@ class IcsTwoFeedParser(FileFeedParser):
                     item['firstcreated'] = utcnow()
                     item['versioncreated'] = utcnow()
 
-                    logger.warn("\n\n INGESTING EVENT: %s\n\n", item)
+                    logger.info("Ingesting Event: %sn", item)
                     items.append(item)
-            ics_file.close()
 
             return items
         except Exception as ex:

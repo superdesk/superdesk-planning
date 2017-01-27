@@ -33,7 +33,7 @@ class NTBEventXMLFeedParser(XMLFeedParser):
     def can_parse(self, xml):
         return True
 
-    def parse(self, xml, provider=None):
+    def parse(self, xml, provider=None, content=None):
         items = []
         try:
             # parse xml file, only expecting one event per file
