@@ -10,6 +10,7 @@
 
 import datetime
 import requests
+import traceback
 
 from superdesk.io.feeding_services.http_service import HTTPFeedingService
 from superdesk.errors import IngestApiError

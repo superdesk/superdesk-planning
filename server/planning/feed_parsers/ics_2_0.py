@@ -10,7 +10,6 @@
 
 import logging
 import datetime
-import re
 
 from superdesk.errors import ParserError
 from superdesk.io.feed_parsers import FileFeedParser
@@ -43,12 +42,11 @@ class IcsTwoFeedParser(FileFeedParser):
             items = []
 
             # test if source is filepath or string
-            if file_path == 'http': 
+            if file_path == 'http':
                 cal = Calendar.from_ical(content)
             else:
                 ics_file = open(file_path, 'rb')
                 cal = Calendar.from_ical(ics_file.read())
-
 
             for component in cal.walk():
                 if component.name == "VEVENT":
