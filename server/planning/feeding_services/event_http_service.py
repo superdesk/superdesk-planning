@@ -12,11 +12,15 @@ import datetime
 import requests
 import traceback
 
+from xml.etree import ElementTree
 from superdesk.io.feeding_services.http_service import HTTPFeedingService
 from superdesk.errors import IngestApiError
 from superdesk.logging import logger
 from superdesk.utc import utcnow
+from planning.feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
+from planning.feed_parsers.ics_2_0 import IcsTwoFeedParser
 from flask import current_app as app
+from icalendar import Calendar
 
 
 class EventHTTPFeedingService(HTTPFeedingService):
@@ -56,6 +60,8 @@ class EventHTTPFeedingService(HTTPFeedingService):
         self.URL = provider_config.get('url')
         payload = {}
 
+        parser = self.get_feed_parser(provider)
+
         try:
             response = requests.get(self.URL, params=payload, timeout=15)
             # TODO: check if file has been updated since provider last_updated
@@ -80,8 +86,14 @@ class EventHTTPFeedingService(HTTPFeedingService):
 
         logger.info('Ingesting: %s', str(response.content))
 
-        parser = self.get_feed_parser(provider, response.content)
-        items = parser.parse('http', provider, response.content)
+        if isinstance(parser, NTBEventXMLFeedParser):
+            xml = ElementTree.parse(response.content)
+            items = parser.parse(xml, provider)
+        elif isinstance(parser, IcsTwoFeedParser):
+            cal = Calendar.from_ical(response.content)
+            items = parser.parse(cal, provider)
+        else:
+            items = parser.parser(response.content)
 
         if isinstance(items, list):
             yield items
