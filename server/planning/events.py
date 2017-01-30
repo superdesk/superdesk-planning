@@ -187,6 +187,12 @@ events_schema = {
             }
         }
     },
+    'files': {
+        'type': 'list',
+        'nullable': True,
+        'schema': superdesk.Resource.rel('events_files'),
+        'mapping': not_analyzed,
+    },
     'relationships': {
         'type': 'dict',
         'schema': {

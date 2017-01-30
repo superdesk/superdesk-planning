@@ -11,7 +11,14 @@ const event = {
     dates: { start: '2016-10-15T14:30+0000', end: '2016-10-20T15:00+0000' },
     definition_short: 'definition_short 1',
     location: [{ name: 'location1' }],
-    name: 'name1'
+    name: 'name1',
+    files: [{
+        media: {
+            name: 'file.pdf',
+            length: 1000
+        },
+        filemeta: { media_id: 'media1' },
+    }]
 }
 
 describe('<FormComponent />', () => {
@@ -30,7 +37,7 @@ describe('<FormComponent />', () => {
     })
     it('save the event', () => {
         const getState = () => ({ events: { events: [] } })
-        const dispatch = sinon.spy()
+        const dispatch = sinon.spy(() => (Promise.resolve()))
         const api = () => ({
             save: sinon.spy((original, newEvent) => {
                 expect(newEvent.dates.tz).toEqual(jasmine.any(String))
@@ -38,7 +45,7 @@ describe('<FormComponent />', () => {
                 return Promise.resolve()
             })
         })
-        const action = actions.saveEvent(event)
+        const action = actions.uploadFilesAndSaveEvent(event)
         action(dispatch, getState, { api })
     })
     it('compute right dates', () => {
@@ -100,5 +107,18 @@ describe('<FormComponent />', () => {
         expect(mount(<Provider store={store}><AddEventForm initialValues={recEvent} /></Provider>)
             .find(FormComponent).props().doesRepeat
         ).toBe(true)
+    })
+    it('supports files', () => {
+        const store = createTestStore()
+        const wrapper = mount(<Provider store={store}><AddEventForm initialValues={event} /></Provider>)
+        const field = wrapper.find('FileFieldComponent')
+        const file = field.props().file
+        expect(field.props().fieldName).toBe('files[0]')
+        expect(file).toEqual(event.files[0])
+        expect(field.props().createLink(file)).toBe('http://server.com/upload/media1/raw')
+        // add a file
+        expect(wrapper.find('FileFieldComponent').length).toBe(1)
+        wrapper.find('FilesFieldArray').find('.File__add-btn').simulate('click')
+        expect(wrapper.find('FileFieldComponent').length).toBe(2)
     })
 })

@@ -5,6 +5,7 @@ export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
 export const getEvents = (state) => state.events.events
 export const getCurrentAgendaId = (state) => state.planning.currentAgendaId
 export const getStoredPlannings = (state) => state.planning.plannings
+export const getServerUrl = (state) => state.config.server.url
 
 export const getCurrentAgenda = createSelector(
     [getCurrentAgendaId, getAgendas],
