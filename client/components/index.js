@@ -1,4 +1,4 @@
-export { AddGeoSuggestInput } from './AddGeoSuggestInput'
+export { AddGeoLookupInput } from './AddGeoLookupInput'
 export { EventsList } from './EventsList'
 export { Event } from './Event'
 export { PlanningItem } from './PlanningItem'

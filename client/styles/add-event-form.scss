@@ -9,7 +9,7 @@
             cursor: default; // is readonly but we don't want the forbidden cursor
         }
     }
-    .geosuggest {
+    .geolookup {
         display: table;
         &__input-wrapper {
             display: table-cell;
