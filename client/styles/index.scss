@@ -61,3 +61,7 @@ $EDIT_PLANNING_WIDTH: 450px;
     .Planning__edit-planning { width: $EDIT_PLANNING_WIDTH; visibility: visible; }
     .Planning__planning { right: $EDIT_PLANNING_WIDTH }
 }
+
+// a vertical align on this class ensure an aligned icon with text.
+// It's isolated to this plugin to avoid unwanted effect on the rest of the app
+.Planning, .AddEventForm { .icon-desk-attach { vertical-align: middle; } }

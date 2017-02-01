@@ -28,6 +28,8 @@
             .item-info {
                 .line { margin-left: 0; }
                 .highlights-box { margin-right: 0; }
+                // second line, with location and icons
+                .line:nth-child(2) { .container { flex-grow: 1 } }
             }
             &:hover {
                 .item-info { padding-right: 50px; }

@@ -10,6 +10,7 @@ export const EventComponent = ({ event, onClick, actions }) => {
     // shows the time only if not an "all day long" event
     const time = eventIsAllDayLong(event.dates) ? '' : moment(event.dates.start).format('HH:mm')
     const location = get(event, 'location[0].name')
+    const filesAttachedCount = get(event, 'files', []).length
     return (
         <li className="ListItem__list-item list-item-view">
             <div className="media-box media-text">
@@ -20,13 +21,19 @@ export const EventComponent = ({ event, onClick, actions }) => {
                         <span className="item-heading">{event.definition_short}</span>
                         <time title={time}>{time}</time>
                     </div>
-                    {location &&
-                        <div className="line">
-                            <span className="container">
+                    <div className="line">
+                        <span className="container">
+                            {location &&
                                 <span className="location">location: {location}</span>
-                            </span>
-                        </div>
-                    }
+                            }
+                        </span>
+                        <dl className="counts">
+                            {filesAttachedCount > 0 && [
+                                <dt key="1" className="files-attached-count"><i className={'icon-desk-attach'}/></dt>,
+                                <dd key="2" className="files-attached-count">{filesAttachedCount}</dd>,
+                            ]}
+                        </dl>
+                    </div>
                 </div>
                 <Dropdown className="ListItem__more-actions" id={`dropdownMenuFor${event._id}`}>
                     <Dropdown.Toggle noCaret className="dropdown__toggle">
