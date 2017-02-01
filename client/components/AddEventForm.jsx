@@ -66,7 +66,7 @@ export class Component extends React.Component {
                 </div>
                 <div>
                     <Field name="location[0]"
-                           component={fields.GeoSuggestInput}
+                           component={fields.GeoLookupInput}
                            label="Location"/>
                 </div>
                 <div>
