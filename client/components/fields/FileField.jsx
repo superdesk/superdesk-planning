@@ -5,15 +5,9 @@ import * as selectors from '../../selectors'
 
 const FileFieldComponent = ({ onRemove, file, createLink, fieldName }) => (
     <li className="File__item">
-        <button
-            onClick={onRemove}
-            title="Remove file"
-            type="button"
-            className="File__remove">
-            <i className="icon-trash" />
-        </button>
+        <i className="icon-desk-attach"/>
         {file.media &&
-            <a href={createLink(file)}>
+            <a href={createLink(file)} target="_blank">
                 {file.media.name}&nbsp;
                 ({Math.round(file.media.length / 1024)}kB)
             </a>
@@ -24,6 +18,13 @@ const FileFieldComponent = ({ onRemove, file, createLink, fieldName }) => (
             component="input"
             type="file"/>
         }
+        <button
+            onClick={onRemove}
+            title="Remove file"
+            type="button"
+            className="File__remove">
+            <i className="icon-trash" />
+        </button>
     </li>
 )
 

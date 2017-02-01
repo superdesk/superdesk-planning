@@ -12,7 +12,8 @@ const events = [
         dates: { start: '2016-10-15T13:01:11+0000' },
         definition_short: 'definition_short 1',
         location: [{ name: 'location1' }],
-        name: 'name1'
+        name: 'name1',
+        files: [{}, {}]
     },
     {
         _id: '5800d73230627218866f1e82',
@@ -73,6 +74,15 @@ describe('<EventsList />', () => {
             wrapper.find('.ListItem__list-item').last()
             .find('.keyword').text())
         .toBe('new name')
+        // check attached file count
+        expect(
+            wrapper.find('.ListItem__list-item').first()
+            .find('.counts dd.files-attached-count').text())
+        .toBe(events[0].files.length.toString())
+        expect(
+            wrapper.find('.ListItem__list-item').last()
+            .find('.counts dd.files-attached-count').length)
+        .toBe(0)
     })
     it('trigger an event click', () => {
         const onButtonClick = sinon.spy()
