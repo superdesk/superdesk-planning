@@ -1,5 +1,5 @@
 import React from 'react'
-import { fields } from './index'
+import { fields } from '../components'
 import { Field } from 'redux-form'
 import { connect } from 'react-redux'
 

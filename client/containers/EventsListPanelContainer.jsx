@@ -1,5 +1,5 @@
 import React from 'react'
-import { EventsList } from './index'
+import { EventsList } from '../components'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
 import * as selectors from '../selectors'

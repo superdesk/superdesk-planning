@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react'
 import { Field, formValueSelector } from 'redux-form'
-import { fields } from './index'
+import { fields } from '../components'
 import { connect } from 'react-redux'
 import { isNil } from 'lodash'
 

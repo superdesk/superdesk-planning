@@ -1,6 +1,6 @@
 import React from 'react'
 import moment from 'moment'
-import { Event } from './index'
+import { Event } from '../containers'
 
 export class EventsList extends React.Component {
     constructor(props) {

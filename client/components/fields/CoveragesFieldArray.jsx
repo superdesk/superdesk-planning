@@ -1,4 +1,4 @@
-import { Coverage } from '../index'
+import { Coverage } from '../../containers'
 import React from 'react'
 
 export const CoveragesFieldArray = ({ fields }) => (

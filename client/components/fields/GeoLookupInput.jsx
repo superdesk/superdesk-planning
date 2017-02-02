@@ -1,4 +1,4 @@
-import { AddGeoLookupInput } from '../index'
+import { AddGeoLookupInput } from '../../containers'
 import React from 'react'
 
 export const GeoLookupInput = ({ input, label, meta: { touched, error, warning } }) => (
