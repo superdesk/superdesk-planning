@@ -3,10 +3,8 @@ import moment from 'moment'
 import { eventIsAllDayLong } from '../utils'
 import { Dropdown, MenuItem } from 'react-bootstrap'
 import { get } from 'lodash'
-import { connect } from 'react-redux'
-import * as actions from '../actions'
 
-export const EventComponent = ({ event, onClick, actions }) => {
+export const Event = ({ event, onClick, actions }) => {
     // shows the time only if not an "all day long" event
     const time = eventIsAllDayLong(event.dates) ? '' : moment(event.dates.start).format('HH:mm')
     const location = get(event, 'location[0].name')
@@ -64,16 +62,8 @@ export const EventComponent = ({ event, onClick, actions }) => {
     )
 }
 
-EventComponent.propTypes = {
+Event.propTypes = {
     onClick: PropTypes.func.isRequired,
     event: PropTypes.object.isRequired,
-    actions: PropTypes.object,
+    actions: PropTypes.object.isRequired,
 }
-
-const mapDispatchToProps = (dispatch) => ({
-    actions: {
-        onAddToAgendaClick: (event) => dispatch(actions.addEventToCurrentAgenda(event))
-    }
-})
-
-export const Event = connect(null, mapDispatchToProps)(EventComponent)

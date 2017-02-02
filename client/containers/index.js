@@ -1,5 +1,4 @@
 export { AddGeoLookupInput } from './AddGeoLookupInput'
-export { Event } from './Event'
 export { EventsListPanelContainer } from './EventsListPanelContainer'
 export { PlanningPanelContainer } from './PlanningPanelContainer'
 export { PlanningApp } from './PlanningApp'
