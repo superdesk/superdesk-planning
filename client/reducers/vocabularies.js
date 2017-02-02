@@ -1,11 +1,20 @@
+import { zipObject } from 'lodash'
+
 const initialState = {
-    anpaCategories: [],
+    categories: [],
+    g2_content_type: [],
 }
 
 const vocabularies = (state=initialState, action) => {
     switch (action.type) {
-        case 'RECEIVE_ANPA_CATEGORIES':
-            return { ...state, anpaCategories: action.payload }
+        case 'RECEIVE_VOCABULARIES':
+            return {
+                ...initialState,
+                ...zipObject(
+                    action.payload.map((cv) => cv._id),
+                    action.payload.map((cv) => cv.items)
+                )
+            }
         default:
             return state
     }

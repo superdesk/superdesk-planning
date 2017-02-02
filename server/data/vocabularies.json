@@ -1,0 +1,13 @@
+[
+    {
+        "_id": "g2_content_type",
+        "display_name": "Coverage content types",
+        "type": "manageable",
+        "unique_field": "qcode",
+        "items": [
+            {"is_active": true, "name": "Story", "qcode": "text"},
+            {"is_active": true, "name": "Picture", "qcode": "picture"},
+            {"is_active": true, "name": "Video", "qcode": "video"}
+        ]
+    }
+]

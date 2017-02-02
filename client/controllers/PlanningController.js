@@ -3,12 +3,14 @@ import ReactDOM from 'react-dom'
 import { PlanningApp } from '../components'
 import { Provider } from 'react-redux'
 import { createStore } from '../utils'
+import * as actions from '../actions'
 
 PlanningController.$inject = ['$element', '$scope', 'api', 'config', '$location', '$timeout',
     'vocabularies', 'superdesk', 'upload']
 export function PlanningController($element, $scope, api, config, $location, $timeout,
     vocabularies, superdesk, upload) {
-    let store = createStore({
+    // create the application store
+    const store = createStore({
         initialState: {
             events: {
                 events: [],
@@ -35,6 +37,9 @@ export function PlanningController($element, $scope, api, config, $location, $ti
             upload,
         }
     })
+    // load data in the store
+    store.dispatch(actions.loadCVocabularies())
+    // render the planning application
     ReactDOM.render(
         <Provider store={store}>
             <PlanningApp />
