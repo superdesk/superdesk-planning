@@ -5,9 +5,15 @@
         "type": "manageable",
         "unique_field": "qcode",
         "items": [
-            {"is_active": true, "name": "Story", "qcode": "text"},
-            {"is_active": true, "name": "Picture", "qcode": "picture"},
-            {"is_active": true, "name": "Video", "qcode": "video"}
+            {"is_active": true, "name": "Text", "qcode": "text"},
+            {"is_active": true, "name": "Photo", "qcode": "photo"},
+            {"is_active": true, "name": "Video", "qcode": "video"},
+            {"is_active": true, "name": "Audio", "qcode": "audio"},
+            {"is_active": true, "name": "Video", "qcode": "video"},
+            {"is_active": true, "name": "Infographics", "qcode": "infographics"},
+            {"is_active": true, "name": "Live video", "qcode": "live_video"},
+            {"is_active": true, "name": "Live blog", "qcode": "live_blog"}
+
         ]
     }
 ]
