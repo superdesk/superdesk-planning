@@ -41,7 +41,9 @@ class GeoLookupInput extends React.Component {
     onSuggestsLookup(userInput) {
         return Nominatim.geocode({
             q: userInput,
-            addressdetails: true
+            addressdetails: true,
+            extratags: true,
+            namedetails: true
         })
     }
 
@@ -78,7 +80,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         .then((newLocation) => {
             ownProps.onChange(newLocation)
         }, (e) => {
-            throw new Error('Could not load Google Maps API: ' + e.message)
+            throw new Error('There was a problem loading or saving the location: ' + e.message)
         })
     }
 })
