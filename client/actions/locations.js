@@ -1,73 +1,63 @@
-export const saveNewLocation = (newLocation) => (
-    (dispatch, getState, { api }) => {
-        // Map nominatim fields to NewML Locality
-        let formatLocality = (address) => {
-            let localityHierarchy = [
-                'state',
-                'state_district',
-                'region',
-                'county',
-                'island',
-                'town',
-                'moor',
-                'waterways',
-                'village',
-                'district',
-                'borough'
-            ]
-            localityHierarchy.some((locality) => { 
-                if (address.hasOwnProperty(locality)) {
-                    return address[locality]
-                }
-            })
-        }
-        // Convert nominatim fields to NewsML area
-        let formatArea = (address) => {
-            let areaHierarchy = [
-                'island',
-                'town',
-                'moor',
-                'waterways',
-                'village',
-                'hamlet',
-                'municipality',
-                'district',
-                'borough',
-                'airport',
-                'national_park',
-                'suburb',
-                'croft',
-                'subdivision',
-                'farm',
-                'locality',
-                'islet'
-            ]
-            areaHierarchy.some((area) => { 
-                if (address.ocation.hasOwnProperty(area)) {
-                    return address[area]
-                }
-            })
-        }
-
+export function saveNewLocation(newLocation) {
+    return (dispatch, getState, { api }) => {
+        // Map nominatim fields to NewsML locality
+        let localityHierarchy = [
+            'state',
+            'state_district',
+            'region',
+            'county',
+            'island',
+            'town',
+            'moor',
+            'waterways',
+            'village',
+            'district',
+            'borough'
+        ]
+        let localityField = localityHierarchy.find((locality) =>
+            newLocation.nominatim.address.hasOwnProperty(locality)
+        )
+        // Map nominatim fields to NewsML area
+        let areaHierarchy = [
+            'island',
+            'town',
+            'moor',
+            'waterways',
+            'village',
+            'hamlet',
+            'municipality',
+            'district',
+            'borough',
+            'airport',
+            'national_park',
+            'suburb',
+            'croft',
+            'subdivision',
+            'farm',
+            'locality',
+            'islet'
+        ]
+        let areaField = areaHierarchy.find((area) =>
+            newLocation.nominatim.address.hasOwnProperty(area)
+        )
         let address = {
             line: [newLocation.nominatim.address.house_number
                 + ' ' + newLocation.nominatim.address.road],
-            locality: formatLocality(newLocation.nominatim.address),
-            area: formatArea(newLocation.nominatim.address),
+            locality: newLocation.nominatim.address[localityField],
+            area: newLocation.nominatim.address[areaField],
             country: newLocation.nominatim.address.country,
             postal_code: newLocation.nominatim.address.postcode,
             external: {
                 nominatim: newLocation.nominatim
             }
         }
-        let short_name = (address.hasOwnProperty('line') ? address.line[0] : '') +
-            + (address.hasOwnProperty('locality') ? ', '+address.locality : '') +
-            + (address.hasOwnProperty('state') ? ', '+address.state : '') +
-            + (address.hasOwnProperty('postal_code') ? ', '+address.postal_code : '') +
-            + (address.hasOwnProperty('country') ? ', '+address.country : '')
+        let shortName = (address.hasOwnProperty('line') ? address.line[0] : '')
+            + (address.hasOwnProperty('locality') ? ', ' + address.locality : '')
+            + (address.hasOwnProperty('postal_code') ? ', ' + address.postal_code : '')
+            + (address.hasOwnProperty('country') ? ', ' + address.country : '')
         let formattedLocation = {
             unique_name: newLocation.nominatim.display_name,
-            name: short_name,
+            name: shortName,
             address: address,
             position: {
                 latitude: newLocation.nominatim.lat,
@@ -77,9 +67,10 @@ export const saveNewLocation = (newLocation) => (
 
         return api('locations').save({}, formattedLocation)
     }
-)
-export const saveLocation = (newLocation) => (
-    (dispatch, getState, { api }) => (
+}
+
+export function saveLocation(newLocation) {
+    return (dispatch, getState, { api }) => (
         // Check if the newLocation is already saved in internal
         // locations resources, if so just return the name and guid as qcode
         api('locations').query({
@@ -98,4 +89,4 @@ export const saveLocation = (newLocation) => (
             }
         })
     )
-)
+}
