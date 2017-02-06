@@ -1,5 +1,6 @@
 import React from 'react'
 import { Modal, Button } from 'react-bootstrap'
+import './style.scss'
 
 export class ModalWithForm extends React.Component {
     constructor(props) {
@@ -39,7 +40,7 @@ export class ModalWithForm extends React.Component {
 }
 
 ModalWithForm.propTypes = {
-    form: React.PropTypes.func,
+    form: React.PropTypes.func.isRequired,
     initialValues: React.PropTypes.object,
     title: React.PropTypes.string,
     show: React.PropTypes.bool,

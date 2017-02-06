@@ -1,12 +1,13 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import * as actions from '../actions'
-import { fields } from '../components'
-import { RepeatEventForm } from './index'
+import * as actions from '../../actions'
+import { fields } from '../../components'
+import { RepeatEventForm } from '../index'
 import { Field, FieldArray, reduxForm, formValueSelector } from 'redux-form'
 import { isNil } from 'lodash'
 import moment from 'moment'
-import { RequiredFieldsValidator } from '../utils'
+import { RequiredFieldsValidator } from '../../utils'
+import './style.scss'
 
 /**
 * Form for adding/editing an event
@@ -137,9 +138,8 @@ const mapDispatchToProps = (dispatch) => ({
     )
 })
 
-const AddEventForm = connect(
+export const AddEventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
     { withRef: true })(FormComponent)
-export default AddEventForm

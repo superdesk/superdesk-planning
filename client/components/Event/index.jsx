@@ -1,8 +1,9 @@
 import React, { PropTypes } from 'react'
 import moment from 'moment'
-import { eventIsAllDayLong } from '../utils'
+import { eventIsAllDayLong } from '../../utils'
 import { Dropdown, MenuItem } from 'react-bootstrap'
 import { get } from 'lodash'
+import './style.scss'
 
 export const Event = ({ event, onClick, actions }) => {
     // shows the time only if not an "all day long" event

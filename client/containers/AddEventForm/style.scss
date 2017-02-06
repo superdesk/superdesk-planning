@@ -1,4 +1,6 @@
-@import '~forms.scss';
+@import '~superdesk-core/styles/sass/mixins.scss';
+@import '~superdesk-core/styles/sass/variables.scss';
+@import '~superdesk-core/styles/sass/forms.scss';
 
 .AddEventForm {
     label { margin-top: 10px; }

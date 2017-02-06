@@ -1,7 +1,7 @@
 import React from 'react'
 import { ModalWithForm } from '../components'
 import { connect } from 'react-redux'
-import AddEventForm from './AddEventForm'
+import { AddEventForm } from './index'
 import * as actions from '../actions'
 
 /**
