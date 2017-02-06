@@ -74,7 +74,7 @@ export function saveLocation(newLocation) {
         // Check if the newLocation is already saved in internal
         // locations resources, if so just return the name and guid as qcode
         api('locations').query({
-            source: { query: { term: { name: newLocation.nominatim.display_name } } }
+            source: { query: { term: { unique_name: newLocation.nominatim.display_name } } }
         })
         .then(data => {
             if (data._items.length) {
