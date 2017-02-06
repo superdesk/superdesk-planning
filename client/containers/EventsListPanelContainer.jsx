@@ -87,7 +87,7 @@ class EventsListPanel extends React.Component {
                     </div>
                 </div>
                 <EventsList events={this.props.events}
-                            actions={this.props.actions}
+                            onAddToAgendaClick={this.props.onAddToAgendaClick}
                             onEventClick={this.props.openAddEvent} />
             </div>
         )
@@ -99,7 +99,7 @@ EventsListPanel.propTypes = {
     loadEvents: React.PropTypes.func,
     events: React.PropTypes.array,
     initialFilterKeyword: React.PropTypes.array,
-    actions: React.PropTypes.object.isRequired,
+    onAddToAgendaClick: React.PropTypes.func.isRequired,
 }
 
 const mapStateToProps = (state) => ({
@@ -113,9 +113,7 @@ const mapDispatchToProps = (dispatch) => ({
         modalProps: { event: event }
     })),
     loadEvents: (keyword) => dispatch(actions.fetchEvents({keyword})),
-    actions: {
-        onAddToAgendaClick: (event) => dispatch(actions.addEventToCurrentAgenda(event))
-    },
+    onAddToAgendaClick: (event) => dispatch(actions.addEventToCurrentAgenda(event))
 })
 
 export const EventsListPanelContainer = connect(
