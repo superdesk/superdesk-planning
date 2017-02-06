@@ -1,6 +1,6 @@
 import React from 'react'
 import { mount, shallow } from 'enzyme'
-import AddEventForm, { FormComponent, Component } from '../AddEventForm'
+import { AddEventForm, FormComponent, Component } from '../AddEventForm/index'
 import sinon from 'sinon'
 import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
@@ -23,15 +23,15 @@ const event = {
 
 describe('<FormComponent />', () => {
     it('submit the form', () => {
-        let submitting = false
-        let onSaveResponse = Promise.resolve()
-        let handleSubmit = sinon.stub().returns(onSaveResponse)
+        const submitting = false
+        const onSaveResponse = Promise.resolve()
+        const handleSubmit = sinon.stub().returns(onSaveResponse)
         const props = {
             modalType: 'EDIT_EVENT',
             submitting: submitting,
             handleSubmit,
         }
-        let subject = shallow(<Component {...props}/>)
+        const subject = shallow(<Component {...props}/>)
         subject.find('form').simulate('submit')
         expect(handleSubmit.callCount).toBe(1)
     })

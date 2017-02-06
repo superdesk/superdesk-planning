@@ -1,8 +1,9 @@
 import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
-import * as actions from '../actions'
+import * as actions from '../../actions'
 import Geolookup from 'react-geolookup'
 import * as Nominatim from 'nominatim-browser'
+import './style.scss'
 
 /**
 * Modal for adding/editing a location with nominatim search
