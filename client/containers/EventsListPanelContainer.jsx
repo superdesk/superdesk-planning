@@ -1,5 +1,5 @@
 import React from 'react'
-import { EventsList } from './index'
+import { EventsList } from '../components'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
 import * as selectors from '../selectors'
@@ -87,6 +87,7 @@ class EventsListPanel extends React.Component {
                     </div>
                 </div>
                 <EventsList events={this.props.events}
+                            actions={this.props.actions}
                             onEventClick={this.props.openAddEvent} />
             </div>
         )
@@ -98,6 +99,7 @@ EventsListPanel.propTypes = {
     loadEvents: React.PropTypes.func,
     events: React.PropTypes.array,
     initialFilterKeyword: React.PropTypes.array,
+    actions: React.PropTypes.object.isRequired,
 }
 
 const mapStateToProps = (state) => ({
@@ -111,6 +113,9 @@ const mapDispatchToProps = (dispatch) => ({
         modalProps: { event: event }
     })),
     loadEvents: (keyword) => dispatch(actions.fetchEvents({keyword})),
+    actions: {
+        onAddToAgendaClick: (event) => dispatch(actions.addEventToCurrentAgenda(event))
+    },
 })
 
 export const EventsListPanelContainer = connect(

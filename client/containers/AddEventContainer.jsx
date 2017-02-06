@@ -1,15 +1,17 @@
 import React from 'react'
-import { ModalWithForm } from './index'
+import { ModalWithForm } from '../components'
 import { connect } from 'react-redux'
 import AddEventForm from './AddEventForm'
+import * as actions from '../actions'
 
 /**
 * Modal for adding/editing an event
 */
-export const AddEvent = ({ show, initialValues }) => (
+export const AddEvent = ({ show, initialValues, handleHide }) => (
     <ModalWithForm
         title="Add/Edit an event"
         form={AddEventForm}
+        onHide={handleHide}
         initialValues={initialValues}
         show={show} />
 )
@@ -17,6 +19,7 @@ export const AddEvent = ({ show, initialValues }) => (
 AddEvent.propTypes = {
     show: React.PropTypes.bool,
     initialValues: React.PropTypes.object,
+    handleHide: React.PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -24,4 +27,8 @@ const mapStateToProps = (state) => ({
     initialValues: state.modal.modalProps && state.modal.modalProps.event
 })
 
-export const AddEventContainer = connect(mapStateToProps, null)(AddEvent)
+const mapDispatchToProps = (dispatch) => ({
+    handleHide: () => dispatch(actions.hideModal())
+})
+
+export const AddEventContainer = connect(mapStateToProps, mapDispatchToProps)(AddEvent)

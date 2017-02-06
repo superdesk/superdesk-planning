@@ -1,7 +1,8 @@
 import React from 'react'
-import { fields } from './index'
+import { fields } from '../../components'
 import { Field } from 'redux-form'
 import { connect } from 'react-redux'
+import './style.scss'
 
 function CoverageComponent({ g2_content_type, coverage }) {
     return (

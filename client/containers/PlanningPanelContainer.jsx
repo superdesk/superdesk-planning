@@ -1,7 +1,8 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
-import { SelectAgenda, PlanningItem } from './index'
+import { SelectAgenda } from './index'
+import { PlanningItem } from '../components'
 import * as selectors from '../selectors'
 
 class PlanningPanel extends React.Component {

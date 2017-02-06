@@ -3,7 +3,8 @@ import * as actions from '../../actions'
 import { Provider } from 'react-redux'
 import { mount } from 'enzyme'
 import React from 'react'
-import { PlanningPanelContainer, PlanningItem } from '../index'
+import { PlanningItem } from '../../components'
+import { PlanningPanelContainer } from '../index'
 
 describe('<PlanningPanelContainer />', () => {
     it('addEventToCurrentAgenda', () => {

@@ -1,6 +1,7 @@
 import React from 'react'
 import { mount } from 'enzyme'
-import { ModalWithForm, CreateAgendaForm } from '../index'
+import { ModalWithForm } from '../index'
+import { CreateAgendaForm } from '../../containers'
 import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
 
@@ -16,9 +17,9 @@ describe('<ModalWithForm />', () => {
                     show={true} />
             </Provider>
         )
-        expect(wrapper.find('ModalWithFormComponent').props().title).toBe('Title')
-        expect(wrapper.find('ModalWithFormComponent').props().show).toBe(true)
-        expect(wrapper.find('ModalWithFormComponent').props().initialValues)
+        expect(wrapper.find('ModalWithForm').props().title).toBe('Title')
+        expect(wrapper.find('ModalWithForm').props().show).toBe(true)
+        expect(wrapper.find('ModalWithForm').props().initialValues)
         .toEqual({ field: 'value' })
     })
 })
