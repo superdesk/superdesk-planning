@@ -2,7 +2,7 @@ import React from 'react'
 import { mount, shallow } from 'enzyme'
 import sinon from 'sinon'
 import { EventsListPanelContainer } from '../../containers'
-import { EventsList, Event } from '../index'
+import { EventsList, EventItem } from '../index'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
 import { createTestStore } from '../../utils'
@@ -87,9 +87,9 @@ describe('<EventsList />', () => {
     })
     it('trigger an event click', () => {
         const onButtonClick = sinon.spy()
-        const wrapper = shallow(<EventsList events={events} onEventClick={onButtonClick} actions={{}} />)
+        const wrapper = shallow(<EventsList events={events} onEventClick={onButtonClick} onAddToAgendaClick={()=>({})} />)
         // simulate a click
-        wrapper.find(Event).first().simulate('click')
+        wrapper.find(EventItem).first().simulate('click')
         expect(onButtonClick.calledOnce).toBe(true)
     })
 })

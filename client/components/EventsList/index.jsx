@@ -1,6 +1,6 @@
 import React from 'react'
 import moment from 'moment'
-import { Event } from '../index'
+import { EventItem } from '../index'
 import './style.scss'
 
 export class EventsList extends React.Component {
@@ -21,8 +21,8 @@ export class EventsList extends React.Component {
                             <div className="events-list__title">{dateStr}</div>
                             <ul className="events-list__list list-view compact-view">
                                 {events.map((event) => (
-                                    <Event event={event}
-                                           actions={this.props.actions}
+                                    <EventItem event={event}
+                                           onAddToAgendaClick={this.props.onAddToAgendaClick}
                                            key={event._id}
                                            onClick={this.onEventClick.bind(this, event)} />
                                 ))}
@@ -68,5 +68,5 @@ export class EventsList extends React.Component {
 EventsList.propTypes = {
     onEventClick: React.PropTypes.func,
     events: React.PropTypes.array.isRequired,
-    actions: React.PropTypes.object.isRequired,
+    onAddToAgendaClick: React.PropTypes.func.isRequired,
 }
