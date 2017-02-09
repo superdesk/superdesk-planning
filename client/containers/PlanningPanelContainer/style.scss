@@ -8,8 +8,10 @@
             position: relative;
         }
     }
-    &__list {
-        > .list-item-view { margin: 10px 0 }
+    &__list { box-shadow: inherit; }
+    .ListItem__list-item {
+        width: auto; // otherwise it overflow on the right because of the margin
+        margin: 10px 20px;
     }
     &__add {
         background-color: $grayLight;

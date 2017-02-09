@@ -22,7 +22,7 @@ $EDIT_PLANNING_WIDTH: 450px;
 }
 .Planning__events-list {
     @include absolute0;
-    padding: $nav-height * 2 20px 0 20px;
+    padding-top: $nav-height * 2;
     width: $EVENTS_LIST_WIDTH;
     box-sizing: border-box;
     border-right: 3px solid #666;
