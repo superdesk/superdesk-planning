@@ -17,6 +17,7 @@ function configurePlanning(superdesk) {
             adminTools: false,
             template: require('./client/views/planning.html'),
             topTemplateUrl: 'scripts/superdesk-dashboard/views/workspace-topnav.html',
+            sideTemplateUrl: 'scripts/apps/workspace/views/workspace-sidenav.html',
         })
         .activity('/settings/planning', {
             label: gettext('Planning'),
@@ -28,8 +29,15 @@ function configurePlanning(superdesk) {
         })
 }
 
-runPlanning.$inject = ['ingestSources', '$templateCache']
-function runPlanning(ingestSources, $templateCache) {
+runPlanning.$inject = ['ingestSources', '$templateCache', 'workspaces', '$rootScope']
+function runPlanning(ingestSources, $templateCache, workspaces, $rootScope) {
+    workspaces.registerExtraItem({
+        title: 'Planning',
+        route: 'planning',
+        iconClass: 'icon-calendar',
+        // this event is listen on the planning controller
+        onClick: () => ($rootScope.$broadcast('PlanningMenuItemClicked'))
+    })
     // register new ingest feeding service and custom settings template
     $templateCache.put(
         'superdesk-planning/views/eventFileConfig.html',

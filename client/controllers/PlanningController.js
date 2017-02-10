@@ -14,6 +14,7 @@ export function PlanningController($element, $scope, api, config, $location, $ti
         initialState: {
             events: {
                 events: [],
+                show: true,
                 initialFilterKeyword: $location.search().searchEvent,
             },
             planning: {
@@ -46,4 +47,8 @@ export function PlanningController($element, $scope, api, config, $location, $ti
         </Provider>,
         $element.get(0)
     )
+    // listen events
+    $scope.$on('PlanningMenuItemClicked', () => {
+        store.dispatch(actions.toggleEventsList())
+    })
 }
