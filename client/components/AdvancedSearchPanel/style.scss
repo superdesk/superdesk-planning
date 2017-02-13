@@ -1,0 +1,25 @@
+@import '~superdesk-core/styles/sass/mixins.scss';
+@import '~superdesk-core/styles/sass/variables.scss';
+
+$ADVANCED_SEARCH_WIDTH: 200px;
+
+@mixin absolute0 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.Planning__advanced-search {
+    @include absolute0;
+    padding: $nav-height * 2 10px 0 10px;
+    box-sizing: border-box;
+    transition-property: width;
+    transition-duration: .25s;
+    overflow: auto;
+    box-shadow: inset 2px 0 3px -1px #d8d8d8;
+    /* visibility: hidden; */
+    visibility: visible;
+    width: $ADVANCED_SEARCH_WIDTH;
+}

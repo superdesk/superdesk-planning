@@ -1,5 +1,5 @@
 import React from 'react'
-import { EventsList } from '../components'
+import { EventsList, AdvancedSearchPanel } from '../components'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
 import * as selectors from '../selectors'
@@ -12,6 +12,7 @@ class EventsListPanel extends React.Component {
         this.state = {
             // initialize state from props
             searchBarExtended: !isNil(props.initialFilterKeyword),
+            advancedSearchExtended: !isNil(props.initialAdvancedSearchExtended),
             // initialFilterKeyword is not intended to change
             searchInputValue: props.initialFilterKeyword
         }
@@ -32,6 +33,11 @@ class EventsListPanel extends React.Component {
         this.props.loadEvents()
     }
 
+    /** Open advanced search filter dialog */
+    toggleAdvancedSearch() {
+        this.setState({ advancedSearchExtended: !this.state.advancedSearchExtended })
+    }
+
     /** Search events by keywords */
     onSearchChange(event) {
         this.props.loadEvents(event.target.value)
@@ -41,11 +47,19 @@ class EventsListPanel extends React.Component {
 
     render() {
         const { searchBarExtended } = this.state
+        const { advancedSearchExtended } = this.state
         return (
             <div className="Planning__events-list">
+                <AdvancedSearchPanel 
+                    className={(advancedSearchExtended ? ' extended': '')} />
                 <div className="subnav">
                     <div className={'flat-searchbar' + (searchBarExtended ? ' extended' : '')}>
                         <div className="search-handler">
+                            <label
+                                className="trigger-icon advanced-search-open"
+                                onClick={this.toggleAdvancedSearch.bind(this)}>
+                                <i className="icon-filter-large" />
+                            </label>
                             <label
                                 htmlFor="search-input"
                                 className="trigger-icon"
@@ -98,13 +112,19 @@ EventsListPanel.propTypes = {
     openAddEvent: React.PropTypes.func,
     loadEvents: React.PropTypes.func,
     events: React.PropTypes.array,
+    initialAdvancedSearchExtended: React.PropTypes.bool,
     initialFilterKeyword: React.PropTypes.array,
+    initialFilterStartDate: React.PropTypes.string,
+    initialFilterEndDate: React.PropTypes.string,
     onAddToAgendaClick: React.PropTypes.func.isRequired,
 }
 
 const mapStateToProps = (state) => ({
     events: selectors.getEvents(state),
+    initialAdvancedSearchExtended: state.events.initialAdvancedSearchExtended,
     initialFilterKeyword: state.events.initialFilterKeyword,
+    initialFilterStartDate: state.events.initialFilterStartDate,
+    initialFilterEndDate: state.events.initialFilterEndDate,
 })
 
 const mapDispatchToProps = (dispatch) => ({

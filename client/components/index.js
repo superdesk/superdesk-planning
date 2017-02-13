@@ -5,3 +5,4 @@ export { ListItem } from './ListItem/index'
 export { EventItem } from './EventItem/index'
 import * as fields from './fields'
 export { fields }
+export { AdvancedSearchPanel } from './AdvancedSearchPanel/index' 
