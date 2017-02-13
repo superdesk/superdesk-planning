@@ -4,7 +4,6 @@ import {
     EventsListPanelContainer,
     PlanningPanelContainer,
     AddEventContainer,
-    EditPlanningPanelContainer,
     CreateAgendaContainer } from './index'
 
 const PlanningAppComponent = ({ editPlanningViewOpen, showEvents }) => {
@@ -19,7 +18,6 @@ const PlanningAppComponent = ({ editPlanningViewOpen, showEvents }) => {
             <AddEventContainer />
             <EventsListPanelContainer />
             <PlanningPanelContainer />
-            <EditPlanningPanelContainer />
         </div>
     )
 }

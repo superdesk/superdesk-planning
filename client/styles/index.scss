@@ -3,7 +3,6 @@
 @import './typeahead.scss';
 
 $EVENTS_LIST_WIDTH: 500px;
-$EDIT_PLANNING_WIDTH: 450px;
 
 @mixin absolute0 {
     position: absolute;
@@ -40,19 +39,6 @@ $EDIT_PLANNING_WIDTH: 450px;
     transition-property: width;
     transition-duration: .25s;
     overflow: auto;
-}
-.Planning__edit-planning {
-    position: relative;
-    transition-property: width;
-    transition-duration: .25s;
-    box-sizing: border-box;
-    overflow: auto;
-    width: 0;
-    background-color: white;
-    box-shadow: inset 2px 0 3px -1px #d8d8d8;
-}
-.Planning--edit-planning-view { // when the planning editor is open
-    .Planning__edit-planning { width: $EDIT_PLANNING_WIDTH; padding: 0 10px; }
 }
 .Planning--show-events {
     .Planning__events-list { width: $EVENTS_LIST_WIDTH; }
