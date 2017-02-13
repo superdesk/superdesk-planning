@@ -4,31 +4,31 @@ import {
     EventsListPanelContainer,
     PlanningPanelContainer,
     AddEventContainer,
-    EditPlanningPanelContainer,
     CreateAgendaContainer } from './index'
 
-const PlanningAppComponent = ({ editPlanningViewOpen }) => {
-    let classes = ['Planning']
-    if (editPlanningViewOpen) {
-        classes.push('Planning--edit-planning-view')
-    }
-
+const PlanningAppComponent = ({ editPlanningViewOpen, showEvents }) => {
+    const classes = [
+        'Planning',
+        editPlanningViewOpen ? 'Planning--edit-planning-view' : null,
+        showEvents ? 'Planning--show-events' : null,
+    ]
     return (
         <div className={classes.join(' ')}>
             <CreateAgendaContainer />
             <AddEventContainer />
             <EventsListPanelContainer />
             <PlanningPanelContainer />
-            {editPlanningViewOpen && <EditPlanningPanelContainer />}
         </div>
     )
 }
 
 PlanningAppComponent.propTypes = {
     editPlanningViewOpen: React.PropTypes.bool,
+    showEvents: React.PropTypes.bool,
 }
 
 const mapStateToProps = (state) => ({
+    showEvents: state.events.show,
     editPlanningViewOpen: state.planning.editorOpened
 })
 

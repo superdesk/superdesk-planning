@@ -24,10 +24,16 @@ const addToEvents = ({ newEvents, toEvents }) => {
 const initialState = {
     events: [],
     initialFilterKeyword: undefined,
+    show: true,
 }
 
 const events = (state=initialState, action) => {
     switch (action.type) {
+        case 'TOGGLE_EVENT_LIST':
+            return {
+                ...state,
+                show: !state.show,
+            }
         case 'ADD_EVENTS':
             return {
                 ...state,

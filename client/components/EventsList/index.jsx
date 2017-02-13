@@ -17,7 +17,7 @@ export class EventsList extends React.Component {
                 this.orderEventsByDay(this.props.events).map(({ date, events }) => {
                     let dateStr = moment(date).format('dddd LL')
                     return (
-                        <div key={dateStr}>
+                        <div className="events-list__group" key={dateStr}>
                             <div className="events-list__title">{dateStr}</div>
                             <ul className="events-list__list list-view compact-view">
                                 {events.map((event) => (

@@ -1,6 +1,7 @@
 @import '~superdesk-core/styles/sass/variables.scss';
 
 .Planning__planning {
+    display: flex;
     .subnav {
         .subnav__page-title { width: 100px; }
         select {
@@ -9,15 +10,20 @@
         }
     }
     &__list {
-        > .list-item-view { margin: 10px 0 }
+        flex-grow: 1;
+        .list-view { box-shadow: inherit; }
     }
-    &__add {
-        background-color: $grayLight;
-        padding: 10px;
-        font-size: 1.2em;
-        text-align: center;
-        color: $white;
-        cursor: pointer;
+    .ListItem__list-item {
+        width: auto; // otherwise it overflow on the right because of the margin
+        margin: 10px 20px;
+        &--add {
+            background-color: $grayLight;
+            padding: 10px;
+            font-size: 1.2em;
+            text-align: center;
+            color: $white;
+            cursor: pointer;
+        }
     }
     &__empty-message {
         font-size: 1.75em;
@@ -25,10 +31,25 @@
         text-align: center;
         margin-top: 40px;
     }
+    .Planning__edit-planning {
+        position: relative;
+        transition-property: width;
+        transition-duration: .25s;
+        box-sizing: border-box;
+        overflow: auto;
+        width: 0;
+        background-color: white;
+        box-shadow: inset 2px 0 3px -1px #d8d8d8;
+    }
+}
+$EDIT_PLANNING_WIDTH: 450px;
+
+.Planning--edit-planning-view { // when the planning editor is open
+    .Planning__edit-planning { width: $EDIT_PLANNING_WIDTH; padding: 0 10px; }
 }
 .Planning__edit-planning {
     .subnav {
         .close { padding: 12px 12px 0 0; }
-        background-color: $sd-background;
+        background-color: white;
     }
 }

@@ -10,6 +10,10 @@ const receiveEvents = (events) => ({
     receivedAt: Date.now()
 })
 
+export function toggleEventsList() {
+    return { type: 'TOGGLE_EVENT_LIST' }
+}
+
 export function addEvents(events) {
     return (dispatch) => {
         const incompleteEvents = events.filter((e) => (
