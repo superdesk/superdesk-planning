@@ -41,13 +41,11 @@ const savePlanningAndReloadCurrentAgenda = (originalPlanning) => (
                 if (isNil(originalPlanning) || isNil(originalPlanning._id)) {
                     return dispatch(addToCurrentAgenda(planning))
                 }
-            })()).then(() => {
-                // ensure that the opened planning is up to date
-                dispatch(openPlanningEditor(planning._id))
+            })()).then(() => (
                 // update the planning list
-                return dispatch(fetchSelectedAgendaPlannings())
+                dispatch(fetchSelectedAgendaPlannings())
                 .then(() => (planning))
-            })
+            ))
         ))
     )
 )

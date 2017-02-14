@@ -2,7 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { SelectAgenda, EditPlanningPanelContainer } from '../index'
-import { PlanningItem } from '../../components'
+import { PlanningItem, QuickAddPlanning } from '../../components'
 import * as selectors from '../../selectors'
 import './style.scss'
 
@@ -23,6 +23,7 @@ class PlanningPanel extends React.Component {
             openPlanningEditor,
             currentAgenda,
             handlePlanningDeletion,
+            createPlanning,
             currentPlanning,
             planningsAreLoading
         } = this.props
@@ -49,11 +50,7 @@ class PlanningPanel extends React.Component {
                     </div>
                     <ul className="list-view compact-view">
                         {currentAgenda &&
-                            <li
-                                className="ListItem__list-item ListItem__list-item--add"
-                                onClick={openPlanningEditor.bind(null, null)}>
-                                <i className="svg-icon-plus" /> Create a planning
-                            </li>
+                            <QuickAddPlanning className="ListItem__list-item" onPlanningCreation={createPlanning}/>
                         }
                         {(planningList && planningList.length > 0) && planningList.map((planning) => (
                             <PlanningItem
@@ -102,6 +99,7 @@ PlanningPanel.propTypes = {
     planningsAreLoading: React.PropTypes.bool,
     openPlanningEditor: React.PropTypes.func.isRequired,
     handlePlanningDeletion: React.PropTypes.func,
+    createPlanning: React.PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -115,6 +113,7 @@ const mapDispatchToProps = (dispatch) => ({
     handlePlanningDeletion: (planning) => dispatch(actions.deletePlanning(planning)),
     openCreateAgenda: () => dispatch(actions.showModal({ modalType: 'CREATE_AGENDA' })),
     fetchAgendas: () => dispatch(actions.fetchAgendas()),
+    createPlanning: (planning) => dispatch(actions.savePlanningAndReloadCurrentAgenda(planning)),
     openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning)))
 })
 
