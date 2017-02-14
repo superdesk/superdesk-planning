@@ -1,0 +1,12 @@
+@import '~superdesk-core/styles/sass/variables.scss';
+
+.quick-add-planning {
+    background-color: $grayLight;
+    padding: 10px;
+    font-size: 1.2em;
+    text-align: center;
+    color: $white;
+    cursor: pointer;
+    &--enabled { background-color: white; }
+    &__field { display: flex; text-align: left;}
+}
