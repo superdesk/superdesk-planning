@@ -24,7 +24,9 @@ $EVENTS_LIST_WIDTH: 500px;
 }
 .Planning__events-list {
     position: relative;
-    width: 0;
+    display: flex;
+    flex-grow: 2;
+    /* width: 0; */
     transition-property: width;
     transition-duration: .25s;
     padding-top: $nav-height;

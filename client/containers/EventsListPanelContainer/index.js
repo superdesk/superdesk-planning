@@ -1,8 +1,9 @@
 import React from 'react'
-import { EventsList, AdvancedSearchPanel } from '../components'
+import { EventsList } from '../../components'
+import { AdvancedSearchPanelContainer } from '../index'
 import { connect } from 'react-redux'
-import * as actions from '../actions'
-import * as selectors from '../selectors'
+import * as actions from '../../actions'
+import * as selectors from '../../selectors'
 import DebounceInput from 'react-debounce-input'
 import { isNil } from 'lodash'
 
@@ -12,7 +13,6 @@ class EventsListPanel extends React.Component {
         this.state = {
             // initialize state from props
             searchBarExtended: !isNil(props.initialFilterKeyword),
-            advancedSearchExtended: !isNil(props.initialAdvancedSearchExtended),
             // initialFilterKeyword is not intended to change
             searchInputValue: props.initialFilterKeyword
         }
@@ -33,11 +33,6 @@ class EventsListPanel extends React.Component {
         this.props.loadEvents()
     }
 
-    /** Open advanced search filter dialog */
-    toggleAdvancedSearch() {
-        this.setState({ advancedSearchExtended: !this.state.advancedSearchExtended })
-    }
-
     /** Search events by keywords */
     onSearchChange(event) {
         this.props.loadEvents(event.target.value)
@@ -45,13 +40,21 @@ class EventsListPanel extends React.Component {
         this.setState({ searchInputValue: event.target.value })
     }
 
+    toggleAdvancedSearch() {
+        if (this.state.advancedSearchOpened) {
+            this.props.closeAdvancedSearch()
+        } else {
+            this.props.openAdvancedSearch()
+        }
+
+        this.setState({ advancedSearchOpened: !this.state.advancedSearchOpened })
+    }
+
     render() {
         const { searchBarExtended } = this.state
-        const { advancedSearchExtended } = this.state
         return (
             <div className="Planning__events-list">
-                <AdvancedSearchPanel 
-                    className={(advancedSearchExtended ? ' extended': '')} />
+                <AdvancedSearchPanelContainer  />
                 <div className="subnav">
                     <div className={'flat-searchbar' + (searchBarExtended ? ' extended' : '')}>
                         <div className="search-handler">
@@ -112,19 +115,15 @@ EventsListPanel.propTypes = {
     openAddEvent: React.PropTypes.func,
     loadEvents: React.PropTypes.func,
     events: React.PropTypes.array,
-    initialAdvancedSearchExtended: React.PropTypes.bool,
     initialFilterKeyword: React.PropTypes.array,
-    initialFilterStartDate: React.PropTypes.string,
-    initialFilterEndDate: React.PropTypes.string,
     onAddToAgendaClick: React.PropTypes.func.isRequired,
+    openAdvancedSearch: React.PropTypes.func.isRequired,
+    closeAdvancedSearch: React.PropTypes.func.isRequired,
 }
 
 const mapStateToProps = (state) => ({
     events: selectors.getEvents(state),
-    initialAdvancedSearchExtended: state.events.initialAdvancedSearchExtended,
     initialFilterKeyword: state.events.initialFilterKeyword,
-    initialFilterStartDate: state.events.initialFilterStartDate,
-    initialFilterEndDate: state.events.initialFilterEndDate,
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -132,8 +131,10 @@ const mapDispatchToProps = (dispatch) => ({
         modalType: 'EDIT_EVENT',
         modalProps: { event: event }
     })),
-    loadEvents: (keyword) => dispatch(actions.fetchEvents({keyword})),
-    onAddToAgendaClick: (event) => dispatch(actions.addEventToCurrentAgenda(event))
+    loadEvents: (keyword) => dispatch(actions.fetchEvents({ keyword })),
+    onAddToAgendaClick: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
+    openAdvancedSearch: () => (dispatch(actions.openAdvancedSearch())),
+    closeAdvancedSearch: () => (dispatch(actions.closeAdvancedSearch()))
 })
 
 export const EventsListPanelContainer = connect(

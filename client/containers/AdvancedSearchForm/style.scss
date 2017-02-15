@@ -3,5 +3,14 @@
 @import '~superdesk-core/styles/sass/forms.scss';
 
 .AdvancedSearchForm {
-
+    label { margin-top: 10px; }
+    .day-picker-input {
+        .react-datepicker__input-container {width: 100px;} // day selector
+        .rc-time-picker-input {  // time selector
+            width: 100px;
+            cursor: default; // is readonly but we don't want the forbidden cursor
+        }
+    }
+    .rc-time-picker-input { @extend .line-input; }
+    button { margin-top: 10px; }
 }

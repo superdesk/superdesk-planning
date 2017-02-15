@@ -291,9 +291,9 @@ events_schema = {
         'type': 'list',
         'mapping': {
             'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed,
-                'geo': not_analyzed
+                'qcode': {'type': 'string'},
+                'name': {'type': 'string'},
+                'geo': {'type': 'string'} 
             }
         }
     },

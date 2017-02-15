@@ -20,6 +20,7 @@ export function PlanningController($element, $scope, api, config, $location, $ti
             planning: {
                 currentAgendaId: $location.search().agenda,
                 editorOpened: false,
+                advancedSearchOpened: false,
                 currentPlanningId: null,
                 agendas: [],
                 planningsAreLoading: false,
