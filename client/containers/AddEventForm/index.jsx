@@ -23,7 +23,8 @@ export class Component extends React.Component {
     }
 
     componentWillReceiveProps(props) {
-        if (props.doesRepeat) {
+        const { doesRepeat } = props
+        if (doesRepeat) {
             this.setState({ doesRepeat: true })
         }
     }
@@ -114,6 +115,7 @@ Component.propTypes = {
     error: React.PropTypes.object,
     handleSubmit: React.PropTypes.func,
     change: React.PropTypes.func,
+    doesRepeat: React.PropTypes.bool,
 }
 
 // Decorate the form component
@@ -126,7 +128,6 @@ export const FormComponent = reduxForm({
 const selector = formValueSelector('addEvent') // same as form name
 const mapStateToProps = (state) => ({
     startingDate: selector(state, 'dates.start'),
-    endingDate: selector(state, 'dates.end'),
     doesRepeat: !isNil(selector(state, 'dates.recurring_rule.frequency')),
 })
 
