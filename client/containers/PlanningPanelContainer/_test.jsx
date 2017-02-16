@@ -56,6 +56,8 @@ describe('<PlanningPanelContainer />', () => {
             // the planning has been added to the current agenda
             expect(store.getState().planning.agendas[0].planning_items[0])
                 .toEqual(planningCreated._id)
+            // open the planning
+            store.dispatch(actions.openPlanningEditor(planningCreated._id))
             // the planning editor has been opened with the saved planning
             expect(store.getState().planning.editorOpened).toBe(true)
             expect(store.getState().planning.currentPlanningId).toEqual(planningCreated._id)
