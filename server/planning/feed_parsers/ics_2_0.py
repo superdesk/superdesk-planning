@@ -18,7 +18,10 @@ from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE, GUID_FIELD, GUID_NE
 from superdesk.utc import utcnow
 from icalendar import vRecur, vCalAddress, vGeo
 from icalendar.parser import tzid_from_dt
+from superdesk import get_resource_service
+import pytz
 
+utc = pytz.UTC
 logger = logging.getLogger(__name__)
 
 
@@ -51,15 +54,23 @@ class IcsTwoFeedParser(FileFeedParser):
                     item['name'] = component.get('summary')
                     item['definition_short'] = component.get('summary')
                     item['definition_long'] = component.get('description')
+                    item['original_source'] = component.get('uid')
 
                     # add dates
                     # check if component .dt return date instead of datetime, if so, convert to datetime
                     dtstart = component.get('dtstart').dt
-                    dtend = component.get('dtend').dt
                     dates_start = dtstart if isinstance(dtstart, datetime.datetime) \
                         else datetime.datetime.combine(dtstart, datetime.datetime.min.time())
-                    dates_end = dtend if isinstance(dtend, datetime.datetime) \
-                        else datetime.datetime.combine(dtend, datetime.datetime.min.time())
+                    if not dates_start.tzinfo:
+                        dates_start = utc.localize(dates_start)
+                    try:
+                        dtend = component.get('dtend').dt
+                        dates_end = dtend if isinstance(dtend, datetime.datetime) \
+                            else datetime.datetime.combine(dtend, datetime.datetime.min.time())
+                        if not dates_end.tzinfo:
+                            dates_end = utc.localize(dates_end)
+                    except AttributeError as e:
+                        dates_end = None
                     item['dates'] = {
                         'start': dates_start,
                         'end': dates_end,
@@ -125,9 +136,30 @@ class IcsTwoFeedParser(FileFeedParser):
                     item['firstcreated'] = utcnow()
                     item['versioncreated'] = utcnow()
 
-                    logger.info("Ingesting Event: %sn", item)
                     items.append(item)
+            original_source_ids = [_['original_source'] for _ in items if _.get('original_source', None)]
+            # existing_items = []
+            existing_items = list(get_resource_service('events').get_from_mongo(req=None, lookup={
+                'original_source': {'$in': original_source_ids}
+            }))
 
+            def original_source_exists(item):
+                """Return true if the item exists in `existing_items`"""
+                for c in existing_items:
+                    if c['original_source'] == item['original_source']:
+                        if c['dates']['start'] == item['dates']['start']:
+                            return True
+                return False
+
+            def is_future(item):
+                """Return true if the item is reccuring or in the future"""
+                if not item['dates'].get('recurring_rule'):
+                    if item['dates']['start'] < utcnow() - datetime.timedelta(days=1):
+                        return False
+                return True
+
+            items = [_ for _ in items if is_future(_)]
+            items = [_ for _ in items if not original_source_exists(_)]
             return items
         except Exception as ex:
             raise ParserError.parseMessageError(ex, provider)

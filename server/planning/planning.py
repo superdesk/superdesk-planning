@@ -107,7 +107,7 @@ planning_schema = {
     'name': {'type': 'string'},
 
     # Event Item
-    'event_item': superdesk.Resource.rel('events'),
+    'event_item': superdesk.Resource.rel('events', type='string'),
 
     'planning_items': {
         'type': 'list',
