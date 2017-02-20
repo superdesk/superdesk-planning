@@ -247,14 +247,6 @@ const closePlanningEditor = () => (
     { type: 'CLOSE_PLANNING_EDITOR' }
 )
 
-const openAdvancedSearch = () => (
-    (dispatch) => (dispatch({ type: 'OPEN_ADVANCED_SEARCH' }))
-)
-
-const closeAdvancedSearch = () => (
-    { type: 'CLOSE_ADVANCED_SEARCH' }
-)
-
 export {
     createAgenda,
     deletePlanning,

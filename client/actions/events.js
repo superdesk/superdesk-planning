@@ -142,3 +142,11 @@ export function fetchEvents({ keyword }) {
         .then(() => $timeout(() => ($location.search('searchEvent', keyword))))
     }
 }
+
+const openAdvancedSearch = () => (
+    (dispatch) => (dispatch({ type: 'OPEN_ADVANCED_SEARCH' }))
+)
+
+const closeAdvancedSearch = () => (
+    { type: 'CLOSE_ADVANCED_SEARCH' }
+)
