@@ -13,14 +13,19 @@ export class Component extends React.Component {
 
     render() {
         return (
-            <form onSubmit={this.handleSubmit} className="CreateAgendaForm">
+            <form onSubmit={this.props.handleSubmit} className="CreateAgendaForm">
                 <Field name="name"
                        component={fields.InputField}
                        type="text"
                        label="Name"/>
+                <button type="submit" style={{visibility: 'hidden'}}>Submit</button>
             </form>
         )
     }
+}
+
+Component.propTypes = {
+    handleSubmit: React.PropTypes.func.isRequired,
 }
 
 // Decorate the form component
