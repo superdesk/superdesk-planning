@@ -13,12 +13,17 @@ export class Component extends React.Component {
         this.state = {}
     }
 
+    onSearchChange() {
+        this.setState({ searchInputValue: 'mark test'})
+    }
+
     render() {
-        const { handleSubmit, pristine, submitting } = this.props
+        const { handleSubmit, pristine, reset, submitting } = this.props
         return (
             <form onSubmit={handleSubmit} className="AdvancedSearchForm">
                 <fieldset>
                     <Field name="name"
+                           onChange={this.onSearchChange.bind(this)}
                            component={fields.InputField}
                            type="text"
                            label="What"/>
@@ -29,7 +34,7 @@ export class Component extends React.Component {
                     <Field name="dates.start"
                            component={fields.DayPickerInput}
                            withTime={true}/>
-                    &nbsp;to&nbsp;
+                    <br/>&nbsp;to&nbsp;<br/>
                     <Field name="dates.end"
                            component={fields.DayPickerInput}
                            withTime={true}/>
@@ -38,6 +43,12 @@ export class Component extends React.Component {
                     className="btn btn-default"
                     type="submit"
                     disabled={pristine || submitting}>Submit</button>
+                &nbsp;
+                <button
+                    className="btn btn-default"
+                    onClick={reset}
+                    type="button"
+                    disabled={pristine || submitting}>Clear</button>
                 {this.props.error && <div><strong>{this.props.error}</strong></div>}
             </form>
         )

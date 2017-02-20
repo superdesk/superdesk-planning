@@ -23,7 +23,10 @@ const addToEvents = ({ newEvents, toEvents }) => {
 
 const initialState = {
     events: [],
-    initialFilterKeyword: undefined,
+    search: {
+        initialFilterKeyword: undefined,
+        currentSearch: undefined
+    },
     show: true,
 }
 
@@ -38,6 +41,14 @@ const events = (state=initialState, action) => {
             return {
                 ...state,
                 events: addToEvents({ newEvents: action.payload, toEvents: state.events.slice() })
+            }
+        case 'REQUEST_EVENTS':
+            return { 
+                ...state,
+                search: {
+                    initialFilterKeyword: state.search.initialFilterKeyword,
+                    currentSearch: action.payload
+                }
             }
         case 'RECEIVE_EVENTS':
             return { ...state, events: action.payload }

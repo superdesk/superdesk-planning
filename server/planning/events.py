@@ -324,7 +324,7 @@ events_schema = {
             }
         }
     },
-    'contact_info': {
+    'event_contact_info': {
         'type': 'list',
         'mapping': {
             'properties': {
@@ -333,7 +333,7 @@ events_schema = {
             }
         }
     },
-    'language': {  # TODO: this is only placeholder schema
+    'event_language': {  # TODO: this is only placeholder schema
         'type': 'list',
         'mapping': {
             'properties': {

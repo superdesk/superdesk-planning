@@ -7,6 +7,11 @@ import './style.scss'
 export class AdvancedSearchPanel extends React.Component {
     constructor(props) {
         super(props)
+        this.state = {}
+    }
+
+    onCloseSearch() {
+        this.props.closeAdvancedSearch()
     }
 
     render() {
@@ -17,7 +22,7 @@ export class AdvancedSearchPanel extends React.Component {
                     <h3 className="subnav__page-title">
                         <span>Advanced Search</span>
                     </h3>
-                    <a onClick={closeAdvancedSearch} className="close">
+                    <a onClick={this.onCloseSearch.bind(this)} className="close">
                         <i className="icon-close-small" />
                     </a>
                 </header>
@@ -29,8 +34,9 @@ export class AdvancedSearchPanel extends React.Component {
 
 AdvancedSearchPanel.propTypes = {
     className: React.PropTypes.string,
-    closeAdvancedSearch: React.PropTypes.func.isRequired,
+    closeAdvancedSearch: React.PropTypes.func.isRequired
 }
+
 const mapDispatchToProps = (dispatch) => ({
     closeAdvancedSearch: () => (dispatch(actions.closeAdvancedSearch()))
 })

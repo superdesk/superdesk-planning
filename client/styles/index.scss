@@ -22,18 +22,6 @@ $EVENTS_LIST_WIDTH: 500px;
     }
     .subnav { top: 0; }
 }
-.Planning__events-list {
-    position: relative;
-    display: flex;
-    flex-grow: 2;
-    /* width: 0; */
-    transition-property: width;
-    transition-duration: .25s;
-    padding-top: $nav-height;
-    box-sizing: border-box;
-    border-right: 3px solid #666;
-    box-shadow: 2px 0 10px 0 rgba(0,0,0,.3);
-}
 .Planning__planning {
     position: relative;
     flex-grow: 1;
