@@ -5,23 +5,17 @@ import { get } from 'lodash'
 import { ListItem } from '../index'
 import './style.scss'
 
-export const EventItem = ({ event, onClick, onAddToAgendaClick }) => {
+export const EventItem = ({ event, onClick }) => {
     // shows the time only if not an "all day long" event
     const time = eventIsAllDayLong(event.dates) ? '' : moment(event.dates.start).format('HH:mm')
     const location = get(event, 'location[0].name')
     const filesAttachedCount = get(event, 'files', []).length
-    const actions = [
-        {
-            label: 'Add to the current agenda',
-            action: onAddToAgendaClick.bind(null, event),
-        }
-    ]
     const classes = [
         'event',
         event._hasPlanning ? 'event__has-planning' : null,
     ].join(' ')
     return (
-        <ListItem item={event} onClick={onClick.bind(this, event)} actions={actions} className={classes}>
+        <ListItem item={event} onClick={onClick.bind(this, event)} draggable={true} className={classes}>
             <div className="line">
                 <span className="keyword">{event.name}</span>
                 <span className="item-heading">{event.definition_short}</span>
@@ -47,5 +41,4 @@ export const EventItem = ({ event, onClick, onAddToAgendaClick }) => {
 EventItem.propTypes = {
     onClick: PropTypes.func.isRequired,
     event: PropTypes.object.isRequired,
-    onAddToAgendaClick: PropTypes.func.isRequired,
 }

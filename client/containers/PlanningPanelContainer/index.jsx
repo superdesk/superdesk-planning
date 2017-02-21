@@ -16,6 +16,17 @@ class PlanningPanel extends React.Component {
         this.props.fetchAgendas()
     }
 
+    handleDragOver(e) {
+        e.preventDefault()
+    }
+
+    handleEventDrop(e) {
+        const event = JSON.parse(e.dataTransfer.getData('application/superdesk.item.events'))
+        if (event) {
+            this.props.addEventToCurrentAgenda(event)
+        }
+    }
+
     render() {
         const {
             openCreateAgenda,
@@ -25,11 +36,13 @@ class PlanningPanel extends React.Component {
             handlePlanningDeletion,
             createPlanning,
             currentPlanning,
-            planningsAreLoading
+            planningsAreLoading,
         } = this.props
         return (
             <div className="Planning__planning">
-                <div className="Planning__planning__list">
+                <div className="Planning__planning__list"
+                     onDrop={this.handleEventDrop.bind(this)}
+                     onDragOver={this.handleDragOver.bind(this)}>
                     <div className="subnav">
                         <h3 className="subnav__page-title">
                             <span>
@@ -100,6 +113,7 @@ PlanningPanel.propTypes = {
     openPlanningEditor: React.PropTypes.func.isRequired,
     handlePlanningDeletion: React.PropTypes.func,
     createPlanning: React.PropTypes.func,
+    addEventToCurrentAgenda: React.PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -114,7 +128,8 @@ const mapDispatchToProps = (dispatch) => ({
     openCreateAgenda: () => dispatch(actions.showModal({ modalType: 'CREATE_AGENDA' })),
     fetchAgendas: () => dispatch(actions.fetchAgendas()),
     createPlanning: (planning) => dispatch(actions.savePlanningAndReloadCurrentAgenda(planning)),
-    openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning)))
+    openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning))),
+    addEventToCurrentAgenda: (event) => (dispatch(actions.addEventToCurrentAgenda(event))),
 })
 
 export const PlanningPanelContainer = connect(
