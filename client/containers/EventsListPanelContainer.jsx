@@ -103,7 +103,7 @@ EventsListPanel.propTypes = {
 }
 
 const mapStateToProps = (state) => ({
-    events: selectors.getEvents(state),
+    events: selectors.getEventsWithMoreInfo(state),
     initialFilterKeyword: state.events.initialFilterKeyword,
 })
 

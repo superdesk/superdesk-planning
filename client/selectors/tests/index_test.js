@@ -42,4 +42,26 @@ describe('selectors', () => {
         result = selectors.getCurrentAgendaPlannings(state)
         expect(result).toEqual([])
     })
+    it('getEventsWithMoreInfo', () => {
+        const state = {
+            events: {
+                events: [
+                    { _id: 'event1' },
+                    { _id: 'event2' },
+                ]
+            },
+            planning: {
+                plannings: {
+                    a: { name: 'name a', event_item: { _id: 'event1' } },
+                    b: { name: 'name b' },
+                },
+                currentAgendaId: '1',
+                agendas: [{ _id: '1', name: 'name', planning_items: ['a', 'b'] }],
+            }
+        }
+        const events = selectors.getEventsWithMoreInfo(state)
+        expect(events.length).toBe(2)
+        expect(events.find((e) => e._id === 'event1')._hasPlanning).toBe(true)
+        expect(events.find((e) => e._id === 'event2')._hasPlanning).toBe(false)
+    })
 })
