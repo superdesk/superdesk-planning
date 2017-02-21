@@ -40,7 +40,14 @@ const events = [
 
 describe('<EventsList />', () => {
     it('renders events', () => {
-        const initialState = { events: { events: events } }
+        const initialState = {
+            events: { events },
+            planning: {
+                plannings: {
+                    planning1: { _id: 'planning1', event_item: { _id: '5800d71930627218866f1e80' }}
+                }
+            }
+        }
         const store = createTestStore({ initialState })
         const wrapper = mount(
             <Provider store={store}>
@@ -54,6 +61,9 @@ describe('<EventsList />', () => {
         // check order
         expect(wrapper.find('.events-list__title').map((e) => e.text()))
         .toEqual(['Saturday October 15, 2016', 'Monday October 17, 2016'])
+        // check classes
+        expect(wrapper.find('.ListItem__list-item').first().hasClass('event__has-planning')).toBe(true)
+        expect(wrapper.find('.ListItem__list-item').last().hasClass('event__has-planning')).toBe(false)
         // add a new item
         const newEvent = {
             _id: '123',

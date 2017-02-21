@@ -3,6 +3,7 @@ import moment from 'moment'
 import { eventIsAllDayLong } from '../../utils'
 import { get } from 'lodash'
 import { ListItem } from '../index'
+import './style.scss'
 
 export const EventItem = ({ event, onClick, onAddToAgendaClick }) => {
     // shows the time only if not an "all day long" event
@@ -15,10 +16,13 @@ export const EventItem = ({ event, onClick, onAddToAgendaClick }) => {
             action: onAddToAgendaClick.bind(null, event),
         }
     ]
+    const classes = [
+        'event',
+        event._hasPlanning ? 'event__has-planning' : null,
+    ].join(' ')
     return (
-        <ListItem item={event} onClick={onClick.bind(this, event)} actions={actions}>
+        <ListItem item={event} onClick={onClick.bind(this, event)} actions={actions} className={classes}>
             <div className="line">
-                <div className="highlights-box" />
                 <span className="keyword">{event.name}</span>
                 <span className="item-heading">{event.definition_short}</span>
                 <time title={time}>{time}</time>

@@ -1,0 +1,10 @@
+.event {
+    border-left: 4px solid #bababa;
+    box-sizing: border-box;
+    &__has-planning {
+        border-left: 4px solid #00aa4d;
+    }
+    &__has-been-canceled {
+        border-left: 4px solid #DC0026;
+    }
+}

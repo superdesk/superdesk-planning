@@ -2,8 +2,13 @@ import React from 'react'
 import { Dropdown, MenuItem } from 'react-bootstrap'
 import './style.scss'
 
-export const ListItem = ({ item, onClick, actions, children, active }) => {
-    const classes = ['ListItem__list-item', 'list-item-view', (active ? 'active' : null)].join(' ')
+export const ListItem = ({ item, onClick, actions, children, active, className }) => {
+    const classes = [
+        'ListItem__list-item',
+        'list-item-view',
+        (active ? 'active' : null),
+        className,
+    ].join(' ')
     return (
         <li className={classes}>
             <div className="media-box media-text">
@@ -42,5 +47,6 @@ ListItem.propTypes = {
     item: React.PropTypes.object.isRequired,
     active: React.PropTypes.bool,
     children: React.PropTypes.node.isRequired,
+    className: React.PropTypes.string,
 
 }
