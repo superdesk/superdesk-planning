@@ -1,10 +1,11 @@
 import React from 'react'
-import { EventsList } from '../components'
+import { EventsList } from '../../components'
 import { connect } from 'react-redux'
-import * as actions from '../actions'
-import * as selectors from '../selectors'
+import * as actions from '../../actions'
+import * as selectors from '../../selectors'
 import DebounceInput from 'react-debounce-input'
 import { isNil } from 'lodash'
+import './style.scss'
 
 class EventsListPanel extends React.Component {
     constructor(props) {
@@ -75,16 +76,10 @@ class EventsListPanel extends React.Component {
                             <span>Events calendar</span>
                         </span>
                     </h3>
-                    <div className="subnav__button-stack--square-buttons">
-                        <div className="refresh-box pull-right" />
-                        <div className="navbtn" title="Create">
-                            <button className="sd-create-btn"
-                                    onClick={this.props.openAddEvent.bind(null, null)}>
-                                <i className="svg-icon-plus" />
-                                <span className="circle" />
-                            </button>
-                        </div>
-                    </div>
+                    <button className="btn btn--primary"
+                            onClick={this.props.openAddEvent.bind(null, null)}>
+                        Add an event
+                    </button>
                 </div>
                 <EventsList events={this.props.events}
                             onEventClick={this.props.openAddEvent} />

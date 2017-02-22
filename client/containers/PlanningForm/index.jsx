@@ -1,10 +1,11 @@
 import React from 'react'
-import { fields } from '../components'
+import { fields } from '../../components'
 import { connect } from 'react-redux'
 import { Field, FieldArray, reduxForm, propTypes } from 'redux-form'
-import * as actions from '../actions'
-import { RequiredFieldsValidator } from '../utils'
-import * as selectors from '../selectors'
+import * as actions from '../../actions'
+import { RequiredFieldsValidator } from '../../utils'
+import * as selectors from '../../selectors'
+import './style.scss'
 
 class Component extends React.Component {
 
