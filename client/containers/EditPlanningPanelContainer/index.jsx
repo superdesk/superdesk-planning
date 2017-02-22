@@ -1,10 +1,11 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import * as actions from '../actions'
-import { PlanningForm } from './index'
-import * as selectors from '../selectors'
+import * as actions from '../../actions'
+import { PlanningForm } from '../index'
+import * as selectors from '../../selectors'
 import { get } from 'lodash'
 import moment from 'moment'
+import './style.scss'
 
 class EditPlanningPanel extends React.Component {
 
@@ -16,15 +17,15 @@ class EditPlanningPanel extends React.Component {
         const { creationDate, closePlanningEditor, author } = this.props
         return (
             <div className="Planning__edit-planning">
-                <header className="subnav">
-                    <h3 className="subnav__page-title">
+                <header>
+                    <div>
                         {creationDate && author &&
                             <span>Created {moment(creationDate).fromNow()} by {author}</span>
                         }
                         {(!creationDate || !author) &&
                             <span>Create a new planning</span>
                         }
-                    </h3>
+                    </div>
                     <a onClick={closePlanningEditor} className="close">
                         <i className="icon-close-small" />
                     </a>

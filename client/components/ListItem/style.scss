@@ -1,5 +1,6 @@
 .ListItem__list-item {
     .media-box {
+        border-right: 0 solid black;
         .item-info {
             .line { margin-left: 0; }
             .highlights-box { margin-right: 0; }
@@ -7,6 +8,7 @@
             .line:nth-child(2) { .container { flex-grow: 1 } }
         }
         &:hover {
+            border-right: 0 solid black;
             .item-info { padding: 10px 10px 10px 10px; }
             .ListItem__actions { visibility: visible; }
         }
