@@ -14,7 +14,7 @@ export const PlanningItem = ({ item, onClick, active, onDelete }) => {
         }
     ]
     return (
-        <ListItem item={item} onClick={onClick.bind(this, item)} actions={actions} active={active}>
+        <ListItem item={item} onClick={onClick.bind(this, item)} actions={actions} active={active} draggable={true}>
             <div className="line">
                 <span className="keyword">{item.slugline}</span>
                 <span className="item-heading">{item.headline}</span>

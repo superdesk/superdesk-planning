@@ -97,7 +97,7 @@ describe('<EventsList />', () => {
     })
     it('trigger an event click', () => {
         const onButtonClick = sinon.spy()
-        const wrapper = shallow(<EventsList events={events} onEventClick={onButtonClick} onAddToAgendaClick={()=>({})} />)
+        const wrapper = shallow(<EventsList events={events} onEventClick={onButtonClick} />)
         // simulate a click
         wrapper.find(EventItem).first().simulate('click')
         expect(onButtonClick.calledOnce).toBe(true)

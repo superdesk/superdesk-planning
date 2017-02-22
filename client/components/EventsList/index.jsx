@@ -22,7 +22,6 @@ export class EventsList extends React.Component {
                             <ul className="events-list__list list-view compact-view">
                                 {events.map((event) => (
                                     <EventItem event={event}
-                                           onAddToAgendaClick={this.props.onAddToAgendaClick}
                                            key={event._id}
                                            onClick={this.onEventClick.bind(this, event)} />
                                 ))}
@@ -68,5 +67,4 @@ export class EventsList extends React.Component {
 EventsList.propTypes = {
     onEventClick: React.PropTypes.func,
     events: React.PropTypes.array.isRequired,
-    onAddToAgendaClick: React.PropTypes.func.isRequired,
 }

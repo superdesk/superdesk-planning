@@ -49,6 +49,7 @@ export const getEventsWithMoreInfo = createSelector(
         return events.map((event) => ({
             ...event,
             _hasPlanning: hasPlanning(event),
+            _type: 'events', // _type can disapear in the object, like in a POST response
         }))
     }
 )

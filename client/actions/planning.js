@@ -158,9 +158,11 @@ const addPlanningToAgenda = ({ planning, agenda }) => (
 )
 
 const addEventToCurrentAgenda = (event) => (
-    (dispatch) => (
+    (dispatch, getState) => {
+        // check if there is a current agenda, throw an error if not
+        selectors.getCurrentAgenda(getState())
         // planning inherits some fields from the given event
-        dispatch(savePlanning({
+        return dispatch(savePlanning({
             event_item: event._id,
             slugline: event.name,
             headline: event.definition_short,
@@ -174,7 +176,7 @@ const addEventToCurrentAgenda = (event) => (
             // reload the plannings of the current calendar
             dispatch(fetchSelectedAgendaPlannings())
         ))
-    )
+    }
 )
 
 const receiveAgendas = (agendas) => (
