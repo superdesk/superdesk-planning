@@ -10,6 +10,7 @@ class PlanningPanel extends React.Component {
 
     constructor(props) {
         super(props)
+        this.state = { draggingOver: false }
     }
 
     componentDidMount() {
@@ -18,6 +19,13 @@ class PlanningPanel extends React.Component {
 
     handleDragOver(e) {
         e.preventDefault()
+        this.setState({ draggingOver: true })
+    }
+    handleDragEnter(e) {
+        e.dataTransfer.dropEffect = 'copy'
+    }
+    handleDragLeave() {
+        this.setState({ draggingOver: false })
     }
 
     handleEventDrop(e) {
@@ -28,6 +36,7 @@ class PlanningPanel extends React.Component {
     }
 
     render() {
+        const { draggingOver } = this.state
         const {
             openCreateAgenda,
             planningList,
@@ -38,11 +47,17 @@ class PlanningPanel extends React.Component {
             currentPlanning,
             planningsAreLoading,
         } = this.props
+        const listClasses = [
+            'Planning__planning__list',
+            draggingOver ? 'Planning__planning__list--draggingOver' : null
+        ].join(' ')
         return (
             <div className="Planning__planning">
-                <div className="Planning__planning__list"
+                <div className={listClasses}
                      onDrop={this.handleEventDrop.bind(this)}
-                     onDragOver={this.handleDragOver.bind(this)}>
+                     onDragOver={this.handleDragOver.bind(this)}
+                     onDragEnter={this.handleDragEnter.bind(this)}
+                     onDragLeave={this.handleDragLeave.bind(this)}>
                     <div className="subnav">
                         <h3 className="subnav__page-title">
                             <span>
@@ -81,6 +96,7 @@ class PlanningPanel extends React.Component {
                             </div>
                         || !currentAgenda &&
                             <div className="Planning__planning__empty-message">
+                                <i className="icon-chevron-up-thin"/><br/>
                                 There is no selected calendar.<br/>
                                 Choose one in the above dropdown.
                             </div>

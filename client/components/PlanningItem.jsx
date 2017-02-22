@@ -8,7 +8,7 @@ export const PlanningItem = ({ item, onClick, active, onDelete }) => {
     const eventTime = get(item, 'event_item.dates.start') ?
         moment(get(item, 'event_item.dates.start')).format('LL HH:mm') : null
     return (
-        <ListItem item={item} onClick={onClick.bind(null, item)} active={active} draggable={true}>
+        <ListItem item={item} onClick={onClick.bind(null, item)} active={active}>
             <div className="line">
                 <span className="keyword">{item.slugline}</span>
                 <span className="item-heading">{item.headline}</span>
