@@ -34,7 +34,7 @@ function runPlanning(ingestSources, $templateCache, workspaces, $rootScope) {
     workspaces.registerExtraItem({
         title: 'Planning',
         route: 'planning',
-        iconClass: 'icon-calendar',
+        iconClass: 'big-icon-tasks main-icon',
         // this event is listen on the planning controller
         onClick: () => ($rootScope.$broadcast('PlanningMenuItemClicked'))
     })
