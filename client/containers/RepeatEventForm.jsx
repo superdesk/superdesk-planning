@@ -106,7 +106,7 @@ class RepeatEventFormComponent extends React.Component {
                         onChange={this.handleDoesRepeatEndChange.bind(this)}
                         value="until"
                         type="radio"/>
-                        Until
+                        On
                                <Field name="dates.recurring_rule.until"
                                withRef={true}
                                ref="recurring_rule--until"
