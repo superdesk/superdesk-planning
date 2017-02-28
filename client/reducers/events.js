@@ -43,7 +43,7 @@ const events = (state=initialState, action) => {
                 events: addToEvents({ newEvents: action.payload, toEvents: state.events.slice() })
             }
         case 'REQUEST_EVENTS':
-            return { 
+            return {
                 ...state,
                 search: {
                     initialFilterKeyword: state.search.initialFilterKeyword,

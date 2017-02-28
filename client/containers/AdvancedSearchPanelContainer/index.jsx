@@ -15,7 +15,6 @@ export class AdvancedSearchPanel extends React.Component {
     }
 
     render() {
-        const { closeAdvancedSearch } = this.props
         return (
             <div className={'Planning__advanced-search ' + this.props.className }>
                 <header className="subnav">
