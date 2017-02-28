@@ -15,8 +15,12 @@ export class AdvancedSearchPanel extends React.Component {
     }
 
     render() {
+        const classes = [
+            'Planning__advanced-search',
+            this.props.className,
+        ].join(' ')
         return (
-            <div className={'Planning__advanced-search ' + this.props.className }>
+            <div className={classes}>
                 <header className="subnav">
                     <h3 className="subnav__page-title">
                         <span>Advanced Search</span>
