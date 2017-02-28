@@ -13,18 +13,21 @@
             }
         }
         &__list {
+            width: 100%;
             flex-grow: 1;
             .list-view { box-shadow: inherit; }
         }
         .ListItem__list-item {
             width: auto; // otherwise it overflow on the right because of the margin
             margin: 10px 20px;
+            box-shadow: 0px 1px 4px 0 rgba(0, 0, 0, 0.2);
         }
         &__empty-message {
             font-size: 1.75em;
             line-height: 1.2em;
             text-align: center;
             margin-top: 40px;
+            > i { font-size: 2em }
         }
     }
     .Planning__edit-planning {

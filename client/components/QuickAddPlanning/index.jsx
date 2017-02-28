@@ -1,27 +1,11 @@
 import React from 'react'
 import './style.scss'
 
-const COMPONENT_CLASS_NAME = 'quick-add-planning'
-
 export class QuickAddPlanning extends React.Component {
 
     constructor(props) {
         super(props)
-        this.state = {
-            editMode: false,
-            slugline: ''
-        }
-    }
-
-    disable() {
-        this.setState({
-            editMode: false,
-            slugline: '',
-        })
-    }
-
-    enable() {
-        this.setState({ editMode: true })
+        this.state = { slugline: '' }
     }
 
     handleChange(event) {
@@ -36,26 +20,17 @@ export class QuickAddPlanning extends React.Component {
 
     render() {
         const { className } = this.props
-        const { editMode, slugline } = this.state
+        const { slugline } = this.state
         const classes = [
-            COMPONENT_CLASS_NAME,
-            editMode ?  `${COMPONENT_CLASS_NAME}--enabled` : null,
+            'quick-add-planning',
             className,
         ].join(' ')
         return (
-            <li className={classes} onClick={this.enable.bind(this)}>
-                {!editMode &&
-                    <span><i className="svg-icon-plus" /> Add a planning</span>
-                }
-                {editMode &&
-                    <form onSubmit={this.handleSubmit.bind(this)}>
-                        <label>Add a planning</label>
-                        <div className={`${COMPONENT_CLASS_NAME}__field`}>
-                            <input type="text" className="line-input" placeholder="Slugline" autoFocus value={slugline} onChange={this.handleChange.bind(this)}/>
-                            <i className="icon-close-small" onClick={(e)=>{e.stopPropagation(); this.disable()}} />
-                        </div>
-                    </form>
-                }
+            <li className={classes}>
+                <i className="icon-plus-sign" onClick={this.handleSubmit.bind(this)}/>
+                <form onSubmit={this.handleSubmit.bind(this)}>
+                    <input type="text" className="line-input" placeholder="Add" value={slugline} onChange={this.handleChange.bind(this)}/>
+                </form>
             </li>
         )
     }

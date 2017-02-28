@@ -47,7 +47,6 @@ class EventsListPanel extends React.Component {
         } else {
             this.props.openAdvancedSearch()
         }
-        console.log('MARKS STATE', this.state)
     }
 
     render() {
@@ -98,19 +97,12 @@ class EventsListPanel extends React.Component {
                                 <span>Events calendar</span>
                             </span>
                         </h3>
-                        <div className="subnav__button-stack--square-buttons">
-                            <div className="refresh-box pull-right" />
-                            <div className="navbtn" title="Create">
-                                <button className="sd-create-btn"
-                                        onClick={this.props.openAddEvent.bind(null, null)}>
-                                    <i className="svg-icon-plus" />
-                                    <span className="circle" />
-                                </button>
-                            </div>
-                        </div>
+                        <button className="btn btn--primary"
+                                onClick={this.props.openAddEvent.bind(null, null)}>
+                            Add an event
+                        </button>
                     </div>
                     <EventsList events={this.props.events}
-                                onAddToAgendaClick={this.props.onAddToAgendaClick}
                                 onEventClick={this.props.openAddEvent} />
                 </div>
             </div>
@@ -123,15 +115,14 @@ EventsListPanel.propTypes = {
     loadEvents: React.PropTypes.func,
     events: React.PropTypes.array,
     initialFilterKeyword: React.PropTypes.array,
-    onAddToAgendaClick: React.PropTypes.func.isRequired,
     advancedSearchOpened: React.PropTypes.bool,
     openAdvancedSearch: React.PropTypes.func.isRequired,
     closeAdvancedSearch: React.PropTypes.func.isRequired
 }
 
 const mapStateToProps = (state) => ({
-    events: selectors.getEvents(state),
-    initialFilterKeyword: state.events.search.initialFilterKeyword,
+    events: selectors.getEventsWithMoreInfo(state),
+    initialFilterKeyword: state.events.initialFilterKeyword,
     advancedSearchOpened: state.planning.advancedSearchOpened
 })
 
@@ -140,8 +131,7 @@ const mapDispatchToProps = (dispatch) => ({
         modalType: 'EDIT_EVENT',
         modalProps: { event: event }
     })),
-    loadEvents: (keyword) => dispatch(actions.fetchEvents({ keyword })),
-    onAddToAgendaClick: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
+    loadEvents: (keyword) => dispatch(actions.fetchEvents({keyword})),
     openAdvancedSearch: () => (dispatch(actions.openAdvancedSearch())),
     closeAdvancedSearch: () => (dispatch(actions.closeAdvancedSearch()))
 })

@@ -5,6 +5,7 @@
 }
 
 .Planning__events-list {
+    width: 0;
     position: relative;
     display: flex;
     transition-property: width;
@@ -14,4 +15,8 @@
     border-right: 3px solid #666;
     box-shadow: 2px 0 10px 0 rgba(0,0,0,.3);
     height: 100%;
+    .subnav > button {
+        margin-top: 10px;
+        margin-right: 10px;
+    }
 }

@@ -35,3 +35,21 @@ export const getCurrentPlanning = createSelector(
         }
     }
 )
+
+export const getEventsWithMoreInfo = createSelector(
+    [getEvents, getStoredPlannings],
+    (events, storedPlannings) => {
+        function hasPlanning(event) {
+            return storedPlannings && Object.keys(storedPlannings).some((planningKey) => (
+                storedPlannings[planningKey].event_item &&
+                storedPlannings[planningKey].event_item._id === event._id
+            ))
+        }
+
+        return events.map((event) => ({
+            ...event,
+            _hasPlanning: hasPlanning(event),
+            _type: 'events', // _type can disapear in the object, like in a POST response
+        }))
+    }
+)

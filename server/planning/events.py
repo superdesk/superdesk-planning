@@ -106,6 +106,7 @@ class EventsService(superdesk.Service):
                     new_event['dates']['end'] = date + time_delta
                     # set a unique guid
                     new_event['guid'] = generate_guid(type=GUID_NEWSML)
+                    new_event['_id'] = new_event['guid']
                     # set the recurrence id
                     new_event['recurrence_id'] = recurrence_id
                     generatedEvents.append(new_event)
@@ -117,6 +118,7 @@ class EventsService(superdesk.Service):
 
 events_schema = {
     # Identifiers
+    '_id': {'type': 'string', 'unique': True},
     'guid': {
         'type': 'string',
         'unique': True,
@@ -353,6 +355,7 @@ class EventsResource(superdesk.Resource):
 
     url = 'events'
     schema = events_schema
+    item_url = 'regex("[\w,.:-]+")'
     resource_methods = ['GET', 'POST']
     datasource = {
         'source': 'events',

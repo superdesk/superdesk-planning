@@ -10,13 +10,33 @@ class PlanningPanel extends React.Component {
 
     constructor(props) {
         super(props)
+        this.state = { draggingOver: false }
     }
 
     componentDidMount() {
         this.props.fetchAgendas()
     }
 
+    handleDragOver(e) {
+        e.preventDefault()
+        this.setState({ draggingOver: true })
+    }
+    handleDragEnter(e) {
+        e.dataTransfer.dropEffect = 'copy'
+    }
+    handleDragLeave() {
+        this.setState({ draggingOver: false })
+    }
+
+    handleEventDrop(e) {
+        const event = JSON.parse(e.dataTransfer.getData('application/superdesk.item.events'))
+        if (event) {
+            this.props.addEventToCurrentAgenda(event)
+        }
+    }
+
     render() {
+        const { draggingOver } = this.state
         const {
             openCreateAgenda,
             planningList,
@@ -28,12 +48,17 @@ class PlanningPanel extends React.Component {
             planningsAreLoading,
             editPlanningViewOpen
         } = this.props
-        const classes = [
+        const listClasses = [
             'Planning--edit-planning-container',
+            draggingOver ? 'Planning__planning__list--draggingOver' : null,
             editPlanningViewOpen ? 'Planning--edit-planning-view' : null
-        ]
+        ].join(' ')
         return (
-            <div className={classes.join(' ')}>
+            <div className={listClasses}
+                 onDrop={this.handleEventDrop.bind(this)}
+                 onDragOver={this.handleDragOver.bind(this)}
+                 onDragEnter={this.handleDragEnter.bind(this)}
+                 onDragLeave={this.handleDragLeave.bind(this)}>
                 <div className="Planning__planning">
                     <div className="Planning__planning__list">
                         <div className="subnav">
@@ -107,7 +132,8 @@ PlanningPanel.propTypes = {
     openPlanningEditor: React.PropTypes.func.isRequired,
     handlePlanningDeletion: React.PropTypes.func,
     createPlanning: React.PropTypes.func,
-    editPlanningViewOpen: React.PropTypes.bool
+    editPlanningViewOpen: React.PropTypes.bool,
+    addEventToCurrentAgenda: React.PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -123,7 +149,8 @@ const mapDispatchToProps = (dispatch) => ({
     openCreateAgenda: () => dispatch(actions.showModal({ modalType: 'CREATE_AGENDA' })),
     fetchAgendas: () => dispatch(actions.fetchAgendas()),
     createPlanning: (planning) => dispatch(actions.savePlanningAndReloadCurrentAgenda(planning)),
-    openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning)))
+    openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning))),
+    addEventToCurrentAgenda: (event) => (dispatch(actions.addEventToCurrentAgenda(event))),
 })
 
 export const PlanningPanelContainer = connect(

@@ -29,6 +29,7 @@ const deletePlanning = (planning) => (
         .then(() => (dispatch(fetchAgendas())))
         // reloads the plannings to show
         .then(() => (dispatch(fetchSelectedAgendaPlannings())))
+        .then(() => (dispatch({ type: 'DELETE_PLANNING', payload: planning._id })))
     )
 )
 
@@ -157,9 +158,11 @@ const addPlanningToAgenda = ({ planning, agenda }) => (
 )
 
 const addEventToCurrentAgenda = (event) => (
-    (dispatch) => (
+    (dispatch, getState) => {
+        // check if there is a current agenda, throw an error if not
+        selectors.getCurrentAgenda(getState())
         // planning inherits some fields from the given event
-        dispatch(savePlanning({
+        return dispatch(savePlanning({
             event_item: event._id,
             slugline: event.name,
             headline: event.definition_short,
@@ -173,7 +176,7 @@ const addEventToCurrentAgenda = (event) => (
             // reload the plannings of the current calendar
             dispatch(fetchSelectedAgendaPlannings())
         ))
-    )
+    }
 )
 
 const receiveAgendas = (agendas) => (
@@ -194,19 +197,18 @@ const requestAgendaPlannings = () => (
 
 const fetchAgendas = () => (
     (dispatch, getState, { api }) => {
-        // annonce that we are loading agendas
+        // annonce that we are loading plannings
         dispatch(requestAgendas())
-        // fetch the agenda through the api
-        return api('planning').query({ where: { planning_type: 'agenda' }, timestamp: new Date() })
-        // annonce that we received the agendas
-        .then((data) => {
-            dispatch(receiveAgendas(data._items))
+        // fetch the plannings through the api
+        return api('planning').query({
+            embedded: { event_item: 1, original_creator: 1 }, // nest event and creator to planning
+            max_results: 10000,
+            timestamp: new Date(),
         })
-        // loads the agenda plannings if an agenda is selected
-        .then(() => {
-            if (selectors.getCurrentAgenda(getState())) {
-                dispatch(fetchSelectedAgendaPlannings())
-            }
+        // annonce that we received the plannings
+        .then((data) => {
+            dispatch(receiveAgendas(data._items.filter((i) => i.planning_type === 'agenda')))
+            dispatch(receivePlannings(data._items.filter((i) => i.planning_type !== 'agenda')))
         })
     }
 )
@@ -255,7 +257,5 @@ export {
     fetchAgendas,
     selectAgenda,
     openPlanningEditor,
-    closePlanningEditor,
-    openAdvancedSearch,
-    closeAdvancedSearch,
+    closePlanningEditor
 }

@@ -1,29 +1,33 @@
-.ListItem {
-    &__list-item {
-        .media-box {
-            overflow: visible;  // let the dropdown visible
-            .item-info {
-                .line { margin-left: 0; }
-                .highlights-box { margin-right: 0; }
-                // second line, with location and icons
-                .line:nth-child(2) { .container { flex-grow: 1 } }
-            }
-            &:hover {
-                .item-info { padding-right: 50px; }
-            }
+.ListItem__list-item {
+    .media-box {
+        border-right: 0 solid black;
+        .item-info {
+            .line { margin-left: 0; }
+            .highlights-box { margin-right: 0; }
+            // second line, with location and icons
+            .line:nth-child(2) { .container { flex-grow: 1 } }
         }
-        &:hover .ListItem__more-actions { display: block; }
-    }
-    &__more-actions {
-        display: none;
-        position: absolute;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        button.dropdown__toggle {
-            border-radius: unset;
-            height: 100%;
+        &:hover {
+            border-right: 0 solid black;
+            .item-info { padding: 10px 10px 10px 10px; }
+            .ListItem__actions { visibility: visible; }
         }
-        .dropdown__menu {  left: auto; right: 0; } // flip alignment of the menu to right
     }
 }
+
+.ListItem__actions {
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    visibility: hidden;
+    height: 60px;
+    padding-top: 20px;
+    padding-left: 17px;
+    padding-right: 15px;
+    &:hover {
+        i { color: #436278 }
+    }
+}
+
+.ListItem__list-item:not(.active) .ListItem__actions { background-color: rgba(222, 222, 222, .6) }
+.ListItem__list-item.active .ListItem__actions { background-color: rgba(200, 228, 238, .6) }

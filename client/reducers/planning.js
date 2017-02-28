@@ -11,8 +11,18 @@ const replaceOrAddInAgendas = (agendas, agenda) => {
     return agendas
 }
 
+const deletePlanningId = (pid, state) => {
+    // clone plannings
+    let plannings = cloneDeep(state.plannings)
+    delete plannings[pid]
+    return { ...state, plannings }
+}
+
+/*eslint-disable complexity*/
 const planning = (state={}, action) => {
     switch (action.type) {
+        case 'DELETE_PLANNING':
+            return deletePlanningId(action.payload, state)
         case 'RECEIVE_PLANNINGS':
             // payload must be an array. If not, we transform
             action.payload = Array.isArray(action.payload) ? action.payload : [action.payload]
@@ -21,7 +31,7 @@ const planning = (state={}, action) => {
             // add to state.plannings, use _id as key
             action.payload.forEach((planning) => plannings[planning._id] = planning)
             // return new state
-            return { ...state, plannings: plannings, planningsAreLoading: false }
+            return { ...state, plannings, planningsAreLoading: false }
         case 'SELECT_AGENDA':
             return { ...state, currentAgendaId: action.payload }
         case 'REQUEST_AGENDAS':
@@ -51,5 +61,6 @@ const planning = (state={}, action) => {
             return state
     }
 }
+/*eslint-enable*/
 
 export default planning

@@ -143,10 +143,10 @@ export function fetchEvents({ keyword }) {
     }
 }
 
-const openAdvancedSearch = () => (
+export const openAdvancedSearch = () => (
     (dispatch) => (dispatch({ type: 'OPEN_ADVANCED_SEARCH' }))
 )
 
-const closeAdvancedSearch = () => (
+export const closeAdvancedSearch = () => (
     { type: 'CLOSE_ADVANCED_SEARCH' }
 )
