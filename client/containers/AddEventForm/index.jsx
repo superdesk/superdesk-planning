@@ -59,7 +59,7 @@ export class Component extends React.Component {
                 <div>
                     <Field name="anpa_category"
                            component={fields.CategoryField}
-                           label="Categories"/>
+                           label="Category"/>
                 </div>
                 <div>
                     <Field name="definition_short"
