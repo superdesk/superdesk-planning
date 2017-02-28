@@ -295,7 +295,7 @@ events_schema = {
             'properties': {
                 'qcode': {'type': 'string'},
                 'name': {'type': 'string'},
-                'geo': {'type': 'string'} 
+                'geo': {'type': 'string'}
             }
         }
     },
