@@ -53,10 +53,6 @@ const planning = (state={}, action) => {
             }
         case 'CLOSE_PLANNING_EDITOR':
             return { ...state, editorOpened: false, currentPlanningId: null }
-        case 'OPEN_ADVANCED_SEARCH':
-            return { ...state, advancedSearchOpened: true }
-        case 'CLOSE_ADVANCED_SEARCH':
-            return { ...state, advancedSearchOpened: false }
         default:
             return state
     }
