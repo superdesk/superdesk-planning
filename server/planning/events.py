@@ -146,7 +146,7 @@ events_schema = {
     },
 
     # Audit Information
-    'original_creator': superdesk.Resource.rel('users'),
+    'original_creator': superdesk.Resource.rel('users', nullable=True),
     'version_creator': superdesk.Resource.rel('users'),
     'firstcreated': {
         'type': 'datetime'
