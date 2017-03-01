@@ -6,63 +6,49 @@ import { Field, reduxForm, formValueSelector, propTypes } from 'redux-form'
 import { fields } from '../../components'
 import './style.scss'
 
-export class Component extends React.Component {
-
-    constructor(props) {
-        super(props)
-        this.state = {}
-    }
-
-    onSearchChange() {
-        this.setState({ searchInputValue: 'mark test'})
-    }
-
-    render() {
-        const { handleSubmit, pristine, reset, submitting } = this.props
-        return (
-            <form onSubmit={handleSubmit} className="AdvancedSearchForm">
-                <fieldset>
-                    <Field name="name"
-                           onChange={this.onSearchChange.bind(this)}
-                           component={fields.InputField}
-                           type="text"
-                           label="What"/>
-                    <Field name="location"
-                           component={fields.InputField}
-                           type="text"
-                           label="Location"/>
-                    <Field name="dates.start"
-                           component={fields.DayPickerInput}
-                           withTime={true}/>
-                    <br/>&nbsp;to&nbsp;<br/>
-                    <Field name="dates.end"
-                           component={fields.DayPickerInput}
-                           withTime={true}/>
-                </fieldset>
-                <button
-                    className="btn btn-default"
-                    type="submit"
-                    disabled={pristine || submitting}>Submit</button>
-                &nbsp;
-                <button
-                    className="btn btn-default"
-                    onClick={reset}
-                    type="button"
-                    disabled={pristine || submitting}>Clear</button>
-                {this.props.error && <div><strong>{this.props.error}</strong></div>}
-            </form>
-        )
-    }
+function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting, error }) {
+    return (
+        <form onSubmit={handleSubmit} className="AdvancedSearchForm">
+            <fieldset>
+                <Field name="name"
+                       component={fields.InputField}
+                       type="text"
+                       label="What"/>
+                <Field name="location"
+                       component={fields.InputField}
+                       type="text"
+                       label="Location"/>
+                <Field name="dates.start"
+                       component={fields.DayPickerInput}
+                       withTime={true}/>
+                <br/>&nbsp;to&nbsp;<br/>
+                <Field name="dates.end"
+                       component={fields.DayPickerInput}
+                       withTime={true}/>
+            </fieldset>
+            <button
+                className="btn btn-default"
+                type="submit"
+                disabled={pristine || submitting}>Submit</button>
+            &nbsp;
+            <button
+                className="btn btn-default"
+                onClick={reset}
+                type="button"
+                disabled={pristine || submitting}>Clear</button>
+            {error && <div><strong>{error}</strong></div>}
+        </form>
+    )
 }
 
-Component.propTypes = propTypes
+AdvancedSearchFormComponent.propTypes = propTypes
 
 // Decorate the form component
-export const FormComponent = reduxForm({
+const FormComponent = reduxForm({
     form: 'advanced-search', // a unique name for this form
     validate: RequiredFieldsValidator([]),
     enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
-})(Component)
+})(AdvancedSearchFormComponent)
 
 const selector = formValueSelector('advanced-search') // same as form name
 const mapStateToProps = (state) => ({
@@ -81,4 +67,5 @@ export const AdvancedSearchForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    { withRef: true })(FormComponent)
+    { withRef: true }
+)(FormComponent)
