@@ -174,7 +174,9 @@ export function fetchEvents(params={}) {
         dispatch(_fetchEvents(params))
         .then(data => dispatch(receiveEvents(data._items)))
         // update the url (deep linking)
-        .then(() => $timeout(() => ($location.search('searchEvent', JSON.stringify(params)))))
+        .then(() => $timeout(() => (
+            $location.search('searchEvent', JSON.stringify(params)), 0, false)
+        ))
     }
 }
 
