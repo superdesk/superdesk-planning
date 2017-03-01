@@ -41,7 +41,13 @@ const events = [
 describe('<EventsList />', () => {
     it('renders events', () => {
         const initialState = {
-            events: { events },
+            events: { 
+                events: events,
+                search: {
+                    currentSearch: {},
+                    initialFilterKeyword: null
+                },
+            },
             planning: {
                 plannings: {
                     planning1: { _id: 'planning1', event_item: { _id: '5800d71930627218866f1e80' }}

@@ -4,7 +4,7 @@ import moment from 'moment-timezone'
 import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
 
-const receiveEvents = (events) => ({
+export const receiveEvents = (events) => ({
     type: 'RECEIVE_EVENTS',
     payload: events,
     receivedAt: Date.now()
@@ -135,10 +135,18 @@ function _fetchEvents({ keyword, ids }) {
 
 export function fetchEvents({ keyword }) {
     return (dispatch, getState, { $timeout, $location }) => {
-        dispatch({ type: 'REQUEST_EVENTS' })
+        dispatch({ type: 'REQUEST_EVENTS', payload: { name: keyword } })
         dispatch(_fetchEvents({ keyword }))
         .then(data => dispatch(receiveEvents(data._items)))
         // update the url (deep linking)
         .then(() => $timeout(() => ($location.search('searchEvent', keyword))))
     }
 }
+
+export const openAdvancedSearch = () => (
+    (dispatch) => (dispatch({ type: 'OPEN_ADVANCED_SEARCH' }))
+)
+
+export const closeAdvancedSearch = () => (
+    { type: 'CLOSE_ADVANCED_SEARCH' }
+)

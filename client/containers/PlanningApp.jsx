@@ -6,10 +6,9 @@ import {
     AddEventContainer,
     CreateAgendaContainer } from './index'
 
-const PlanningAppComponent = ({ editPlanningViewOpen, showEvents }) => {
+const PlanningAppComponent = ({ showEvents }) => {
     const classes = [
         'Planning',
-        editPlanningViewOpen ? 'Planning--edit-planning-view' : null,
         showEvents ? 'Planning--show-events' : null,
     ]
     return (
@@ -23,13 +22,11 @@ const PlanningAppComponent = ({ editPlanningViewOpen, showEvents }) => {
 }
 
 PlanningAppComponent.propTypes = {
-    editPlanningViewOpen: React.PropTypes.bool,
-    showEvents: React.PropTypes.bool,
+    showEvents: React.PropTypes.bool
 }
 
 const mapStateToProps = (state) => ({
     showEvents: state.events.show,
-    editPlanningViewOpen: state.planning.editorOpened
 })
 
 export const PlanningApp = connect(mapStateToProps)(PlanningAppComponent)

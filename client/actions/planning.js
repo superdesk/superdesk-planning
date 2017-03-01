@@ -257,5 +257,5 @@ export {
     fetchAgendas,
     selectAgenda,
     openPlanningEditor,
-    closePlanningEditor,
+    closePlanningEditor
 }

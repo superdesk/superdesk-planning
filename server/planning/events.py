@@ -293,9 +293,9 @@ events_schema = {
         'type': 'list',
         'mapping': {
             'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed,
-                'geo': not_analyzed
+                'qcode': {'type': 'string'},
+                'name': {'type': 'string'},
+                'geo': {'type': 'string'} 
             }
         }
     },
@@ -326,7 +326,7 @@ events_schema = {
             }
         }
     },
-    'contact_info': {
+    'event_contact_info': {
         'type': 'list',
         'mapping': {
             'properties': {
@@ -335,7 +335,7 @@ events_schema = {
             }
         }
     },
-    'language': {  # TODO: this is only placeholder schema
+    'event_language': {  # TODO: this is only placeholder schema
         'type': 'list',
         'mapping': {
             'properties': {
