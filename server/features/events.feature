@@ -40,7 +40,7 @@ Feature: Events
                 },
                 "subject": [{"qcode": "test qcaode", "name": "test name"}],
                 "location": [{"qcode": "test qcaode", "name": "test name"}],
-                "contact_info": [{"qcode": "test qcaode", "name": "test name"}]
+                "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}]
             }
         ]
         """

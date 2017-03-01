@@ -4,7 +4,7 @@ import moment from 'moment-timezone'
 import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
 
-const receiveEvents = (events) => ({
+export const receiveEvents = (events) => ({
     type: 'RECEIVE_EVENTS',
     payload: events,
     receivedAt: Date.now()
@@ -106,19 +106,54 @@ function saveEvent(newEvent) {
     }
 }
 
-function _fetchEvents({ keyword, ids }) {
+function _fetchEvents({ advancedSearch, fulltext, ids }) {
     return (dispatch, getState, { api }) => {
         const query = {}
         const filter = {}
-        // If there is a keyword, search by term
-        if (keyword) {
+        // If there is a fulltext, search by term
+        if (fulltext) {
             query.bool = { should: [
-                { match: { name: keyword } },
-                { match: { definition_short: keyword } },
+                { match: { name: fulltext } },
+                { match: { definition_short: fulltext } },
             ] }
+        // search by ids
         } else if (ids) {
             filter.bool = {
                 should: ids.map((i) => ({ term: { _id: i } }))
+            }
+        // advanced search
+        } else if (advancedSearch) {
+            const should = []
+            const range = {}
+            // by name
+            if (advancedSearch.name) {
+                should.push(
+                    { match: { name: advancedSearch.name } },
+                    { match: { definition_short: advancedSearch.name } }
+                )
+            }
+            // by location
+            if (advancedSearch.location) {
+                should.push(
+                    { match: { 'location.name': advancedSearch.location } },
+                    { match: { 'location.qcode': advancedSearch.location } }
+                )
+            }
+            // by dates
+            if (advancedSearch.dates) {
+                if (advancedSearch.dates.start) {
+                    range['dates.start'] = { gte: advancedSearch.dates.start }
+                }
+
+                if (advancedSearch.dates.end) {
+                    range['dates.end'] = { lte: advancedSearch.dates.end }
+                }
+
+                filter.range = range
+            }
+            // build the query
+            if (should.length > 0) {
+                query.bool = { should }
             }
         // Otherwise fetch only future events
         } else {
@@ -133,12 +168,20 @@ function _fetchEvents({ keyword, ids }) {
     }
 }
 
-export function fetchEvents({ keyword }) {
+export function fetchEvents(params={}) {
     return (dispatch, getState, { $timeout, $location }) => {
-        dispatch({ type: 'REQUEST_EVENTS' })
-        dispatch(_fetchEvents({ keyword }))
+        dispatch({ type: 'REQUEST_EVENTS', payload: params })
+        dispatch(_fetchEvents(params))
         .then(data => dispatch(receiveEvents(data._items)))
         // update the url (deep linking)
-        .then(() => $timeout(() => ($location.search('searchEvent', keyword))))
+        .then(() => $timeout(() => ($location.search('searchEvent', JSON.stringify(params)))))
     }
 }
+
+export const openAdvancedSearch = () => (
+    { type: 'OPEN_ADVANCED_SEARCH' }
+)
+
+export const closeAdvancedSearch = () => (
+    { type: 'CLOSE_ADVANCED_SEARCH' }
+)

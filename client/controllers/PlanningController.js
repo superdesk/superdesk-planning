@@ -15,7 +15,11 @@ export function PlanningController($element, $scope, api, config, $location, $ti
             events: {
                 events: [],
                 show: true,
-                initialFilterKeyword: $location.search().searchEvent,
+                search: {
+                    currentSearch: $location.search().searchEvent &&
+                        JSON.parse($location.search().searchEvent),
+                    advancedSearchOpened: false,
+                },
             },
             planning: {
                 currentAgendaId: $location.search().agenda,

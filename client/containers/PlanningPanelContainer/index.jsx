@@ -47,74 +47,77 @@ class PlanningPanel extends React.Component {
             createPlanning,
             currentPlanning,
             planningsAreLoading,
+            editPlanningViewOpen
         } = this.props
         const listClasses = [
-            'Planning__planning__list',
-            draggingOver ? 'Planning__planning__list--draggingOver' : null
+            'Planning--edit-planning-container',
+            draggingOver ? 'Planning__planning__list--draggingOver' : null,
+            editPlanningViewOpen ? 'Planning--edit-planning-view' : null
         ].join(' ')
         return (
-            <div className="Planning__planning">
-                <div className={listClasses}
-                     onDrop={this.handleEventDrop.bind(this)}
-                     onDragOver={this.handleDragOver.bind(this)}
-                     onDragEnter={this.handleDragEnter.bind(this)}
-                     onDragLeave={this.handleDragLeave.bind(this)}>
-                    <div className="subnav">
-                        <h3 className="subnav__page-title">
-                            <span>
-                                <span>Planning</span>
-                            </span>
-                        </h3>
-                        <SelectAgenda />
-                        <div className="subnav__button-stack--square-buttons">
-                            <div className="refresh-box pull-right" />
-                            <div className="navbtn" title="Create">
-                                <button className="sd-create-btn"
-                                        onClick={openCreateAgenda.bind(null, null)}>
-                                    <i className="svg-icon-plus" />
-                                    <span className="circle" />
-                                </button>
+            <div className={listClasses}
+                 onDrop={this.handleEventDrop.bind(this)}
+                 onDragOver={this.handleDragOver.bind(this)}
+                 onDragEnter={this.handleDragEnter.bind(this)}
+                 onDragLeave={this.handleDragLeave.bind(this)}>
+                <div className="Planning__planning">
+                    <div className="Planning__planning__list">
+                        <div className="subnav">
+                            <h3 className="subnav__page-title">
+                                <span>
+                                    <span>Planning</span>
+                                </span>
+                            </h3>
+                            <SelectAgenda />
+                            <div className="subnav__button-stack--square-buttons">
+                                <div className="refresh-box pull-right" />
+                                <div className="navbtn" title="Create">
+                                    <button className="sd-create-btn"
+                                            onClick={openCreateAgenda.bind(null, null)}>
+                                        <i className="svg-icon-plus" />
+                                        <span className="circle" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <ul className="list-view compact-view">
-                        {currentAgenda &&
-                            <QuickAddPlanning className="ListItem__list-item" onPlanningCreation={createPlanning}/>
+                        <ul className="list-view compact-view">
+                            {currentAgenda &&
+                                <QuickAddPlanning className="ListItem__list-item" onPlanningCreation={createPlanning}/>
+                            }
+                            {(planningList && planningList.length > 0) && planningList.map((planning) => (
+                                <PlanningItem
+                                    key={planning._id}
+                                    active={currentPlanning && currentPlanning._id === planning._id}
+                                    item={planning}
+                                    onDelete={handlePlanningDeletion}
+                                    onClick={openPlanningEditor.bind(null, planning._id)} />
+                            ))}
+                        </ul>
+                        {
+                            planningsAreLoading &&
+                                <div className="Planning__planning__empty-message">
+                                    Loading
+                                </div>
+                            || !currentAgenda &&
+                                <div className="Planning__planning__empty-message">
+                                    There is no selected calendar.<br/>
+                                    Choose one in the above dropdown.
+                                </div>
+                            || (planningList && planningList.length < 1) &&
+                                <div className="Planning__planning__empty-message">
+                                    There is no planning yet
+                                    {currentAgenda &&
+                                        <div>
+                                            in the agenda&nbsp;
+                                            <strong>{currentAgenda.name}</strong>.
+                                        </div>
+                                    }
+                                    <div>Drag and drop an event here to start a planning</div>
+                                </div>
                         }
-                        {(planningList && planningList.length > 0) && planningList.map((planning) => (
-                            <PlanningItem
-                                key={planning._id}
-                                active={currentPlanning && currentPlanning._id === planning._id}
-                                item={planning}
-                                onDelete={handlePlanningDeletion}
-                                onClick={openPlanningEditor.bind(null, planning._id)} />
-                        ))}
-                    </ul>
-                    {
-                        planningsAreLoading &&
-                            <div className="Planning__planning__empty-message">
-                                Loading
-                            </div>
-                        || !currentAgenda &&
-                            <div className="Planning__planning__empty-message">
-                                <i className="icon-chevron-up-thin"/><br/>
-                                There is no selected calendar.<br/>
-                                Choose one in the above dropdown.
-                            </div>
-                        || (planningList && planningList.length < 1) &&
-                            <div className="Planning__planning__empty-message">
-                                There is no planning yet
-                                {currentAgenda &&
-                                    <div>
-                                        in the agenda&nbsp;
-                                        <strong>{currentAgenda.name}</strong>.
-                                    </div>
-                                }
-                                <div>Drag and drop an event here to start a planning</div>
-                            </div>
-                    }
+                    </div>
+                    <EditPlanningPanelContainer />
                 </div>
-                <EditPlanningPanelContainer />
             </div>
         )
     }
@@ -130,6 +133,7 @@ PlanningPanel.propTypes = {
     openPlanningEditor: React.PropTypes.func.isRequired,
     handlePlanningDeletion: React.PropTypes.func,
     createPlanning: React.PropTypes.func,
+    editPlanningViewOpen: React.PropTypes.bool,
     addEventToCurrentAgenda: React.PropTypes.func,
 }
 
@@ -137,7 +141,8 @@ const mapStateToProps = (state) => ({
     currentAgenda: selectors.getCurrentAgenda(state),
     currentPlanning: selectors.getCurrentPlanning(state),
     planningList: selectors.getCurrentAgendaPlannings(state),
-    planningsAreLoading: state.planning.agendasAreLoading || state.planning.planningsAreLoading
+    planningsAreLoading: state.planning.agendasAreLoading || state.planning.planningsAreLoading,
+    editPlanningViewOpen: state.planning.editorOpened
 })
 
 const mapDispatchToProps = (dispatch) => ({

@@ -23,7 +23,10 @@ const addToEvents = ({ newEvents, toEvents }) => {
 
 const initialState = {
     events: [],
-    initialFilterKeyword: undefined,
+    search: {
+        currentSearch: undefined,
+        advancedSearchOpened: false,
+    },
     show: true,
 }
 
@@ -39,8 +42,32 @@ const events = (state=initialState, action) => {
                 ...state,
                 events: addToEvents({ newEvents: action.payload, toEvents: state.events.slice() })
             }
+        case 'REQUEST_EVENTS':
+            return {
+                ...state,
+                search: {
+                    ...state.search,
+                    currentSearch: action.payload
+                }
+            }
         case 'RECEIVE_EVENTS':
             return { ...state, events: action.payload }
+        case 'OPEN_ADVANCED_SEARCH':
+            return {
+                ...state,
+                search: {
+                    ...state.search,
+                    advancedSearchOpened: true
+                },
+            }
+        case 'CLOSE_ADVANCED_SEARCH':
+            return {
+                ...state,
+                search: {
+                    ...state.search,
+                    advancedSearchOpened: false
+                },
+            }
         default:
             return state
     }
