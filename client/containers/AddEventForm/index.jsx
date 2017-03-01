@@ -29,13 +29,10 @@ export class Component extends React.Component {
         }
     }
 
-    theDayAfterStartingDate() {
-        let nextDay
+    oneHourAfterStartingDate() {
         if (this.props.startingDate) {
-            nextDay = moment(this.props.startingDate).add(1, 'd')
+            return moment(this.props.startingDate).add(1, 'h')
         }
-
-        return nextDay
     }
 
     handleDoesRepeatChange(event) {
@@ -81,7 +78,7 @@ export class Component extends React.Component {
                            withTime={true}/>
                     &nbsp;to&nbsp;
                     <Field name="dates.end"
-                           defaultDate={this.theDayAfterStartingDate()}
+                           defaultDate={this.oneHourAfterStartingDate()}
                            component={fields.DayPickerInput}
                            withTime={true}/>
                 </div>

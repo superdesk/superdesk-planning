@@ -28,31 +28,35 @@ export class DayPickerInput extends React.Component {
         this.refs.datePicker.handleFocus()
     }
 
-    setStateFromDate(_date, cb) {
-        // if there is no date, reset the state
-        if (!_date) {
-            return this.setState({ selectedTime: undefined, selectedDate: undefined }, cb)
-        }
-        // otherwise compute the value of date and time fields
-        let date = moment(_date)
-        // get the time in a different variable (different field)
-        const selectedTime = date ? moment(date) : undefined
-        // remove the time from the date
-        if (date) date.startOf('day')
-        this.setState({
-            selectedTime,
-            selectedDate: date,
-        }, cb)
+    setStateFromDate(_date) {
+        return new Promise((resolve) => {
+            // if there is no date, reset the state
+            if (!_date) {
+                return this.setState({ selectedTime: undefined, selectedDate: undefined }, resolve())
+            }
+            // otherwise compute the value of date and time fields
+            let date = moment(_date)
+            // get the time in a different variable (different field)
+            const selectedTime = date ? moment(date) : undefined
+            // remove the time from the date
+            if (date) date.startOf('day')
+            this.setState({
+                selectedTime,
+                selectedDate: date,
+            }, resolve())
+        })
     }
 
     /** Update the state when the props change */
     componentWillReceiveProps(nextProps) {
         if (nextProps.defaultDate !== this.props.defaultDate) {
-            this.setStateFromDate(nextProps.defaultDate, this.updateValueFromState)
+            this.setStateFromDate(nextProps.defaultDate)
+            .then(() => this.updateValueFromState())
         }
 
         if (nextProps.input.value !== this.props.input.value) {
-            this.setStateFromDate(nextProps.input.value, this.updateValueFromState)
+            this.setStateFromDate(nextProps.input.value)
+            .then(() => this.updateValueFromState())
         }
     }
 
@@ -88,7 +92,9 @@ export class DayPickerInput extends React.Component {
     }
 
     render() {
+        const { disabled, withTime } = this.props
         const { touched, error, warning } = this.props.meta
+        const { selectedDate, selectedTime } = this.state
         return (
             <span className="day-picker-input">
                 {
@@ -97,15 +103,15 @@ export class DayPickerInput extends React.Component {
                 }
                 <DatePicker
                     ref="datePicker"
-                    disabled={this.props.disabled}
+                    disabled={disabled}
                     className="line-input"
-                    selected={this.state.selectedDate}
+                    selected={selectedDate}
                     onChange={this.onDayChange.bind(this)} />
-                {(this.props.withTime === true) && (
+                {(withTime === true) && (
                     <TimePicker
-                        disabled={this.props.disabled}
+                        disabled={disabled}
                         placeholder="Time"
-                        defaultValue={this.state.selectedTime}
+                        value={selectedTime}
                         showSecond={false}
                         hideDisabledOptions={true}
                         onChange={this.onTimeChange.bind(this)} />
