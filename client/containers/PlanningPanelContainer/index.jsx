@@ -29,6 +29,7 @@ class PlanningPanel extends React.Component {
     }
 
     handleEventDrop(e) {
+        e.preventDefault()
         const event = JSON.parse(e.dataTransfer.getData('application/superdesk.item.events'))
         if (event) {
             this.props.addEventToCurrentAgenda(event)

@@ -6,7 +6,7 @@ export class ListItem extends React.Component {
         super(props)
     }
     handleDragStart(e) {
-        e.dataTransfer.effectAllowed = 'link'
+        e.dataTransfer.effectAllowed = 'copy'
         e.dataTransfer.setData(
             `application/superdesk.item.${this.props.item._type}`,
             JSON.stringify(this.props.item)
