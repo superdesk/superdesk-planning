@@ -36,9 +36,11 @@ class EventsListPanel extends React.Component {
 
     /** Search events by keywords */
     onSearchChange(event) {
-        this.props.loadEvents(event.target.value)
-        // update the input value since we are using the DebounceInput `value` prop
-        this.setState({ searchInputValue: event.target.value })
+        this.setState(
+            { searchInputValue: event.target.value },
+            // update the input value since we are using the DebounceInput `value` prop
+            () => this.props.loadEvents(event.target.value)
+        )
     }
 
     toggleAdvancedSearch() {
