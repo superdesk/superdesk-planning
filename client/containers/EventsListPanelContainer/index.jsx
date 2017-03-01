@@ -5,23 +5,23 @@ import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
 import DebounceInput from 'react-debounce-input'
-import { isNil } from 'lodash'
+import { isNil, get } from 'lodash'
 import './style.scss'
 
 class EventsListPanel extends React.Component {
     constructor(props) {
         super(props)
+        const currentKeyword = get(props, 'currentSearch.fulltext')
         this.state = {
             // initialize state from props
-            searchBarExtended: !isNil(props.initialFilterKeyword),
-            // initialFilterKeyword is not intended to change
-            searchInputValue: props.initialFilterKeyword
+            searchBarExtended: !isNil(currentKeyword),
+            searchInputValue: currentKeyword,
         }
     }
 
     componentWillMount() {
         // load events for the first time
-        this.props.loadEvents(this.props.initialFilterKeyword)
+        this.props.loadEvents(this.props.currentSearch && this.props.currentSearch.fulltext)
     }
 
     toggleSearchBar() {
@@ -114,7 +114,7 @@ EventsListPanel.propTypes = {
     openAddEvent: React.PropTypes.func,
     loadEvents: React.PropTypes.func,
     events: React.PropTypes.array,
-    initialFilterKeyword: React.PropTypes.array,
+    currentSearch: React.PropTypes.string,
     advancedSearchOpened: React.PropTypes.bool,
     openAdvancedSearch: React.PropTypes.func.isRequired,
     closeAdvancedSearch: React.PropTypes.func.isRequired
@@ -122,8 +122,8 @@ EventsListPanel.propTypes = {
 
 const mapStateToProps = (state) => ({
     events: selectors.getEventsWithMoreInfo(state),
-    initialFilterKeyword: state.events.initialFilterKeyword,
-    advancedSearchOpened: state.planning.advancedSearchOpened
+    currentSearch: state.events.search.currentSearch,
+    advancedSearchOpened: state.events.search.advancedSearchOpened
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -131,7 +131,7 @@ const mapDispatchToProps = (dispatch) => ({
         modalType: 'EDIT_EVENT',
         modalProps: { event: event }
     })),
-    loadEvents: (keyword) => dispatch(actions.fetchEvents({keyword})),
+    loadEvents: (keyword) => dispatch(actions.fetchEvents({ fulltext: keyword })),
     openAdvancedSearch: () => (dispatch(actions.openAdvancedSearch())),
     closeAdvancedSearch: () => (dispatch(actions.closeAdvancedSearch()))
 })

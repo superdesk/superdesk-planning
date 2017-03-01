@@ -6,7 +6,7 @@ import { Field, reduxForm, formValueSelector, propTypes } from 'redux-form'
 import { fields } from '../../components'
 import './style.scss'
 
-function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting, error }) {
+function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting, error, resetSearch }) {
     return (
         <form onSubmit={handleSubmit} className="AdvancedSearchForm">
             <fieldset>
@@ -33,7 +33,7 @@ function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting
             &nbsp;
             <button
                 className="btn btn-default"
-                onClick={reset}
+                onClick={()=>{reset(); resetSearch()}}
                 type="button"
                 disabled={pristine || submitting}>Clear</button>
             {error && <div><strong>{error}</strong></div>}
@@ -59,8 +59,9 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (form) => (
-        dispatch(actions.searchEvents({form}))
-    )
+        dispatch(actions.fetchEvents({ advancedSearch: form }))
+    ),
+    resetSearch: () => (dispatch(actions.fetchEvents())),
 })
 
 export const AdvancedSearchForm = connect(
