@@ -6,7 +6,7 @@ import { RepeatEventForm } from '../index'
 import { Field, FieldArray, reduxForm, formValueSelector } from 'redux-form'
 import { isNil } from 'lodash'
 import moment from 'moment'
-import { RequiredFieldsValidator } from '../../utils'
+import { ChainValidators, EndDateAfterStartDate, RequiredFieldsValidatorFactory } from '../../validators'
 import './style.scss'
 
 /**
@@ -75,11 +75,17 @@ export class Component extends React.Component {
                 <div>
                     <Field name="dates.start"
                            component={fields.DayPickerInput}
+                           selectsStart={true}
+                           startDate={this.props.startingDate}
+                           endDate={this.props.endingDate}
                            withTime={true}/>
                     &nbsp;to&nbsp;
                     <Field name="dates.end"
                            defaultDate={this.oneHourAfterStartingDate()}
                            component={fields.DayPickerInput}
+                           selectsEnd={true}
+                           startDate={this.props.startingDate}
+                           endDate={this.props.endingDate}
                            withTime={true}/>
                 </div>
                 <div>
@@ -109,6 +115,7 @@ export class Component extends React.Component {
 
 Component.propTypes = {
     startingDate: React.PropTypes.object,
+    endingDate: React.PropTypes.object,
     error: React.PropTypes.object,
     handleSubmit: React.PropTypes.func,
     change: React.PropTypes.func,
@@ -118,13 +125,14 @@ Component.propTypes = {
 // Decorate the form component
 export const FormComponent = reduxForm({
     form: 'addEvent', // a unique name for this form
-    validate: RequiredFieldsValidator(['name', 'dates.start']),
+    validate: ChainValidators([EndDateAfterStartDate, RequiredFieldsValidatorFactory(['name', 'dates.start'])]),
     enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
 const selector = formValueSelector('addEvent') // same as form name
 const mapStateToProps = (state) => ({
     startingDate: selector(state, 'dates.start'),
+    endingDate: selector(state, 'dates.end'),
     doesRepeat: !isNil(selector(state, 'dates.recurring_rule.frequency')),
 })
 

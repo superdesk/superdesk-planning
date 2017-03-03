@@ -11,8 +11,10 @@ class TestForm extends React.Component {
             value: value,
             onChange: onChange || ((x) => x)
         }
+        const meta = { dispatch: () => {} }
         return (
             <DayPickerInput input={input}
+            meta={meta}
             defaultDate={defaultDate}
             name="datetime"
             ref='dayPicker'

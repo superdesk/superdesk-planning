@@ -3,7 +3,6 @@ import { fields } from '../../components'
 import { connect } from 'react-redux'
 import { Field, FieldArray, reduxForm, propTypes } from 'redux-form'
 import * as actions from '../../actions'
-import { RequiredFieldsValidator } from '../../utils'
 import * as selectors from '../../selectors'
 import './style.scss'
 
@@ -49,7 +48,6 @@ Component.propTypes = propTypes
 // Decorate the form component
 const PlanningReduxForm = reduxForm({
     form: 'planning', // a unique name for this form
-    validate: RequiredFieldsValidator([]),
     enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
 })(Component)
 

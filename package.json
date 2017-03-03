@@ -35,7 +35,7 @@
     "react": "^15.3.2",
     "react-addons-shallow-compare": "^15.3.2",
     "react-bootstrap": "^0.30.5",
-    "react-datepicker": "^0.40.0",
+    "react-datepicker": "^0.41.1",
     "react-debounce-input": "^2.4.2",
     "react-dom": "^15.3.2",
     "react-form-input": "^0.3.0",
