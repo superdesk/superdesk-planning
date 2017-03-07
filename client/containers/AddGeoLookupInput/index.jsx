@@ -1,9 +1,9 @@
 import React, { PropTypes } from 'react'
-import { connect } from 'react-redux'
-import * as actions from '../../actions'
 import Geolookup from 'react-geolookup'
 import * as Nominatim from 'nominatim-browser'
 import './style.scss'
+import { formatAddress } from '../../utils'
+import { get, has } from 'lodash'
 
 /**
 * Modal for adding/editing a location with nominatim search
@@ -22,6 +22,7 @@ class GeoLookupInput extends React.Component {
                 buttonClassName='btn btn-default geolookup__button'
                 initialValue={this.props.initialValue.name}
                 disableAutoLookup={true}
+                onChange={this.handleChange.bind(this)}
                 onSuggestSelect={this.onSuggestSelect.bind(this)}
                 onSuggestsLookup={this.onSuggestsLookup}
                 onGeocodeSuggest={this.onGeocodeSuggest}
@@ -30,10 +31,14 @@ class GeoLookupInput extends React.Component {
         )
     }
 
+    handleChange(value) {
+        this.props.onChange({ name: value })
+    }
+
     /**
-     * When a suggest got selected
-     *    @param  {Object} suggest The suggest
-     */
+    * When a suggest got selected
+    *    @param  {Object} suggest The suggest
+    */
     onSuggestSelect(suggest) {
         this.props.onChange(suggest)
     }
@@ -48,22 +53,23 @@ class GeoLookupInput extends React.Component {
     }
 
     onGeocodeSuggest(suggest) {
-        let geocoded = {}
-        if (suggest) {
-            geocoded.nominatim = suggest.raw || {}
-            geocoded.location = {
-                lat: suggest.raw ? suggest.raw.lat : '',
-                lon: suggest.raw ? suggest.raw.lon : ''
-            }
-            geocoded.placeId = suggest.placeId
-            geocoded.isFixture = suggest.isFixture
-            geocoded.label = suggest.raw ? suggest.raw.display_name : ''
+        const { shortName } = has(suggest, 'raw') ? formatAddress(suggest.raw) : {}
+
+        return {
+            nominatim: get(suggest, 'raw', {}),
+            location: {
+                lat: get(suggest, 'raw.lat'),
+                lon: get(suggest, 'raw.lon'),
+            },
+            placeId: get(suggest, 'placeId'),
+            label: shortName,
+            // used for the field value
+            name: shortName,
         }
-        return geocoded
     }
 
     getSuggestLabel(suggest) {
-        return suggest.display_name
+        return formatAddress(suggest).shortName
     }
 
 }
@@ -73,19 +79,4 @@ GeoLookupInput.propTypes = {
     onChange: PropTypes.func,
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
-    onChange: (suggest) => {
-        // save (or get) location from suggestions
-        dispatch(actions.saveLocation(suggest))
-        .then((newLocation) => {
-            ownProps.onChange(newLocation)
-        }, (e) => {
-            throw new Error('There was a problem loading or saving the location: ' + e.message)
-        })
-    }
-})
-
-export const AddGeoLookupInput = connect(
-    null,
-    mapDispatchToProps
-)(GeoLookupInput)
+export const AddGeoLookupInput = GeoLookupInput

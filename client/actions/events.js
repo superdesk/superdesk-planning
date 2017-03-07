@@ -1,8 +1,9 @@
 import { hideModal } from './modal'
-import { pickBy, cloneDeep } from 'lodash'
+import { pickBy, cloneDeep, get } from 'lodash'
 import moment from 'moment-timezone'
 import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
+import { saveLocation } from './index'
 
 export const receiveEvents = (events) => ({
     type: 'RECEIVE_EVENTS',
@@ -52,10 +53,21 @@ function uploadFiles(files) {
 export function uploadFilesAndSaveEvent(newEvent) {
     const getId = (e) => (e._id)
     const getIds = (e) => (e.map(getId))
+    newEvent = cloneDeep(newEvent) || {}
     return (dispatch) => (
-        // upload files and link them to the event
         Promise.resolve((() => {
-            newEvent = cloneDeep(newEvent) || {}
+            if (get(newEvent, 'location[0]') && !newEvent.location[0].name) {
+                return dispatch(saveLocation(newEvent.location[0]))
+                .then((location) => {
+                    newEvent.location[0] = location
+                    return newEvent
+                })
+            } else {
+                return newEvent
+            }
+        })())
+        .then((newEvent) => {
+            // upload files and link them to the event
             if ((newEvent.files || []).length > 0) {
                 const fileFiles = newEvent.files.filter(
                     (f) => (f instanceof FileList || f instanceof Array)
@@ -70,10 +82,13 @@ export function uploadFilesAndSaveEvent(newEvent) {
                             fileFiles.indexOf(f) === -1
                         ))),
                     ]
+                    return newEvent
                 })
+            } else {
+                return newEvent
             }
-        })())
-        .then(() => dispatch(saveEvent(newEvent)))
+        })
+        .then((newEvent) => dispatch(saveEvent(newEvent)))
     )
 }
 

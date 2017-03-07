@@ -3,6 +3,7 @@ import { createStore as _createStore, applyMiddleware } from 'redux'
 import planningApp from '../reducers'
 import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
+import { get } from 'lodash'
 
 export const eventIsAllDayLong = (dates) => (
     // is a multiple of 24h
@@ -87,4 +88,67 @@ export const createStore = (params={}) => {
         initialState,
         applyMiddleware.apply(null, middlewares)
     )
+}
+
+export const formatAddress = (nominatim) => {
+    const localityHierarchy = [
+        'city',
+        'state',
+        'state_district',
+        'region',
+        'county',
+        'island',
+        'town',
+        'moor',
+        'waterways',
+        'village',
+        'district',
+        'borough'
+    ]
+
+    const localityField = localityHierarchy.find((locality) =>
+        nominatim.address.hasOwnProperty(locality)
+    )
+    // Map nominatim fields to NewsML area
+    const areaHierarchy = [
+        'island',
+        'town',
+        'moor',
+        'waterways',
+        'village',
+        'hamlet',
+        'municipality',
+        'district',
+        'borough',
+        'airport',
+        'national_park',
+        'suburb',
+        'croft',
+        'subdivision',
+        'farm',
+        'locality',
+        'islet'
+    ]
+    const areaField = areaHierarchy.find((area) =>
+        nominatim.address.hasOwnProperty(area)
+    )
+
+    const address = {
+        line: [
+            `${get(nominatim.address, 'house_number', '')} ${get(nominatim.address, 'road', '')}`
+            .trim()
+        ],
+        locality: get(nominatim.address, localityField),
+        area: get(nominatim.address, areaField),
+        country: nominatim.address.country,
+        postal_code: nominatim.address.postcode,
+        external: { nominatim },
+    }
+    const shortName = [
+        get(address, 'line[0]'),
+        get(address, 'locality'),
+        get(address, 'postal_code'),
+        get(address, 'country'),
+    ].filter(d => d).join(', ')
+    return { address, shortName }
 }
