@@ -2,8 +2,6 @@
 @import '~superdesk-core/styles/sass/variables.scss';
 @import './typeahead.scss';
 
-$EVENTS_LIST_WIDTH: 500px;
-
 @mixin absolute0 {
     position: absolute;
     top: 0;
@@ -30,10 +28,9 @@ $EVENTS_LIST_WIDTH: 500px;
     transition-duration: .25s;
     overflow: auto;
 }
-.Planning--show-events {
-    .Planning__events-list { width: $EVENTS_LIST_WIDTH; }
-}
 
 // a vertical align on this class ensure an aligned icon with text.
 // It's isolated to this plugin to avoid unwanted effect on the rest of the app
 .Planning, .AddEventForm { .icon-desk-attach { vertical-align: middle; } }
+
+
