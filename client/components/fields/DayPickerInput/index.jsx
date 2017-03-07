@@ -18,13 +18,16 @@ export class DayPickerInput extends React.Component {
         const selectedTime = selectedDate ? moment(selectedDate) : undefined
         // remove the time from the date
         if (selectedDate) selectedDate.startOf('day')
-        // set as touched if there is an initial value. This prevent the default value
-        // to take over in componentWillReceiveProps
-        if (this.props.input.value) this.touch()
         this.state = {
             selectedTime,
             selectedDate,
         }
+    }
+
+    componentWillMount() {
+        // set as touched if there is an initial value. This prevent the default value
+        // to take over in componentWillReceiveProps
+        if (this.props.input.value) this.touch()
     }
 
     /** open the date picker */
