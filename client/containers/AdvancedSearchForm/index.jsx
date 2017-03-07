@@ -1,7 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
-import { RequiredFieldsValidator } from '../../utils'
 import { Field, reduxForm, formValueSelector, propTypes } from 'redux-form'
 import { fields } from '../../components'
 import './style.scss'
@@ -46,7 +45,6 @@ AdvancedSearchFormComponent.propTypes = propTypes
 // Decorate the form component
 const FormComponent = reduxForm({
     form: 'advanced-search', // a unique name for this form
-    validate: RequiredFieldsValidator([]),
     enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
 })(AdvancedSearchFormComponent)
 

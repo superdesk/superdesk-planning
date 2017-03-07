@@ -3,7 +3,7 @@ import { fields } from '../components'
 import { connect } from 'react-redux'
 import { Field, reduxForm } from 'redux-form'
 import * as actions from '../actions'
-import { RequiredFieldsValidator } from '../utils'
+import { RequiredFieldsValidatorFactory } from '../validators'
 
 export class Component extends React.Component {
 
@@ -31,7 +31,7 @@ Component.propTypes = {
 // Decorate the form component
 export const CreateAgenda = reduxForm({
     form: 'createAgenda', // a unique name for this form
-    validate: RequiredFieldsValidator(['name']),
+    validate: RequiredFieldsValidatorFactory(['name']),
     enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
