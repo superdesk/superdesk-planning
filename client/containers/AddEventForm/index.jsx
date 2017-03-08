@@ -60,8 +60,7 @@ export class Component extends React.Component {
                 </div>
                 <div>
                     <Field name="definition_short"
-                           component={fields.InputField}
-                           type="text"
+                           component={fields.InputTextAreaField}
                            label="Description"/>
                 </div>
                 <div>
