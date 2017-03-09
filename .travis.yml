@@ -38,3 +38,5 @@ before_script:
     - sh -e /etc/init.d/xvfb start
 script:
     - make test
+after_success:
+    - 'npm run coveralls'
