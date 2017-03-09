@@ -18,6 +18,7 @@ function configurePlanning(superdesk) {
             template: require('./client/views/planning.html'),
             topTemplateUrl: 'scripts/superdesk-dashboard/views/workspace-topnav.html',
             sideTemplateUrl: 'scripts/apps/workspace/views/workspace-sidenav.html',
+            privileges: {planning: 1}
         })
         .activity('/settings/planning', {
             label: gettext('Planning'),
@@ -25,7 +26,8 @@ function configurePlanning(superdesk) {
             controller: ctrl.PlanningSettingsController,
             controllerAs: 'vm',
             category: superdesk.MENU_SETTINGS,
-            priority: 2000
+            priority: 2000,
+	    privileges: {planning: 1}
         })
 }
 
@@ -36,7 +38,8 @@ function runPlanning(ingestSources, $templateCache, workspaces, $rootScope) {
         route: 'planning',
         iconClass: 'big-icon-tasks main-icon',
         // this event is listen on the planning controller
-        onClick: () => ($rootScope.$broadcast('PlanningMenuItemClicked'))
+        onClick: () => ($rootScope.$broadcast('PlanningMenuItemClicked')),
+	privilege: {planning: 1}
     })
     // register new ingest feeding service and custom settings template
     $templateCache.put(
