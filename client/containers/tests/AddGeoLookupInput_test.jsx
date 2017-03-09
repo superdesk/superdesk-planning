@@ -34,7 +34,7 @@ const formattedLocation = {
         postal_code: 'postcode',
         position: {
             latitude: 'lat',
-            longitude: 'lon' 
+            longitude: 'lon'
         },
         external: nominatimLocation,
     }
@@ -57,7 +57,7 @@ describe('<AddGeoLookupInput />', () => {
                 return Promise.resolve()
             })
         })
-        const action = actions.saveNewLocation(nominatimLocation)
+        const action = actions.saveNominatim(nominatimLocation.nominatim)
         action(dispatch, getState, { api })
     })
 
@@ -79,5 +79,33 @@ describe('<AddGeoLookupInput />', () => {
                 name: '123 road, state, postcode, country'
             })
         })
+    })
+
+    it('makes a right display name', () => {
+        const getState = () => ({ events: { events: [] } })
+        const dispatch = sinon.spy(() => (Promise.resolve()))
+        const api = () => ({
+            save: sinon.spy((original, newLocation) => {
+                expect(newLocation.unique_name).toEqual('Paris, Ile-de-France, France')
+                expect(newLocation.name).toEqual('Paris, France')
+                return Promise.resolve()
+            })
+        })
+        const action = actions.saveNominatim({
+            place_id: '158768940',
+            lat: '48.8566101',
+            lon: '2.3514992',
+            display_name: 'Paris, Ile-de-France, France',
+            class: 'place',
+            type: 'city',
+            address: {
+                city: 'Paris',
+                county: 'Paris',
+                state: 'Ile-de-France',
+                country: 'France',
+                country_code: 'fr'
+            }
+        })
+        action(dispatch, getState, { api })
     })
 })

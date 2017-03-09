@@ -86,7 +86,7 @@ locations_schema = {
     # NewsML-G2 Event properties See:
     #    https://iptc.org/std/NewsML-G2/2.23/specification/XML-Schema-Doc-Core/ConceptItem.html#LinkC5
     #
-    # IMPORTANT: name needs to be unqiue to ensure we don't save duplicate addresses, however this is also
+    # IMPORTANT: name needs to be unique to ensure we don't save duplicate addresses, however this is also
     # the field where we store the formatted address, which can have variations (street number vs number street)
     # for the same address
     'name': {

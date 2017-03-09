@@ -87,13 +87,15 @@ describe('<FormComponent />', () => {
         )
         expect(wrapper.find('[name="name"]').props().value).toBe(initialValues.name)
     })
-    it('detects a recurring event', () => {
+    it('detects a non recurring event', () => {
         const store = createTestStore()
         // check with default values if doesRepeat is false
         expect(mount(<Provider store={store}><AddEventForm /></Provider>)
             .find(FormComponent).props().doesRepeat
         ).toBe(false)
-        // check with a recurring event if doesRepeat is true
+    })
+    it('detects a recurring event', () => {
+        const store = createTestStore()
         const recEvent = {
             ...event,
             dates: {

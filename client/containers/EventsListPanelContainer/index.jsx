@@ -116,7 +116,7 @@ EventsListPanel.propTypes = {
     openAddEvent: React.PropTypes.func,
     loadEvents: React.PropTypes.func,
     events: React.PropTypes.array,
-    currentSearch: React.PropTypes.string,
+    currentSearch: React.PropTypes.object,
     advancedSearchOpened: React.PropTypes.bool,
     openAdvancedSearch: React.PropTypes.func.isRequired,
     closeAdvancedSearch: React.PropTypes.func.isRequired
