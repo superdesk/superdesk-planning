@@ -9,6 +9,12 @@
         width: 100px;
         cursor: default; // is readonly but we don't want the forbidden cursor
     }
+    .day-picker-input__error {
+    	color: #E51C23;
+    	text-transform: none;
+    	font-size: 13px;
+    	font-weight: normal;
+    }
 }
 
 .rc-time-picker-input { @extend .line-input; }

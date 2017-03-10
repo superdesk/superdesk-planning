@@ -118,7 +118,7 @@ export class DayPickerInput extends React.Component {
         return (
             <span className="day-picker-input">
                 {
-                    touched && ((error && <div>{error}</div>) ||
+                    touched && ((error && <div className="day-picker-input__error">{error}</div>) ||
                     (warning && <div className="day-picker-input__error">{warning}</div>))
                 }
                 <DatePicker
