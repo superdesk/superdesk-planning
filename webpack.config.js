@@ -38,7 +38,18 @@ module.exports = {
                 include: /\.json$/,
                 loaders: ['json-loader']
             }
-        ]
+        ],
+        postLoaders: [{
+            test: /\.jsx?/,
+            exclude: [
+                /node_modules\//,
+                /client\/index\.js/,
+                /_test\.jsx?/,
+                /tests\.js/,
+                /client\/controllers\//,
+            ],
+            loader: 'istanbul-instrumenter'
+        }]
     },
     externals: {
         cheerio: 'window',

@@ -1,6 +1,8 @@
 # Superdesk Planning
 _Sept 2016, Berlin_  
 [![Build Status](https://travis-ci.org/superdesk/superdesk-planning.svg?branch=master)](https://travis-ci.org/superdesk/superdesk-planning)
+[![Coverage Status](https://coveralls.io/repos/github/superdesk/superdesk-planning/badge.svg?branch=master)](https://coveralls.io/github/superdesk/superdesk-planning?branch=master)
+
 ## Overview
 This is a plugin for [superdesk](https://github.com/superdesk/superdesk).  
 It allows to ingest and manage events, to create planning within agenda, and to link coverages to them.

@@ -21,10 +21,15 @@ export const createTestStore = (params={}) => {
         $location: { search: () => (undefined) },
         vocabularies: {
             getAllActiveVocabularies: () => (
-                Promise.resolve([
-                    { qname: 'test:sport', name: 'Sport' },
-                    { qname: 'test:news', name: 'News' },
-                ])
+                Promise.resolve({ _items: [
+                    {
+                        _id: 'categories',
+                        items: [
+                            { qname: 'test:sport', name: 'Sport' },
+                            { qname: 'test:news', name: 'News' },
+                        ]
+                    }
+                ] })
             )
         },
         upload: {
