@@ -6,7 +6,7 @@ import { RepeatEventForm } from '../index'
 import { Field, FieldArray, reduxForm, formValueSelector } from 'redux-form'
 import { isNil } from 'lodash'
 import moment from 'moment'
-import { ChainValidators, EndDateAfterStartDate, RequiredFieldsValidatorFactory } from '../../validators'
+import { ChainValidators, EndDateAfterStartDate, RequiredFieldsValidatorFactory, UntilDateAfterStartDate} from '../../validators'
 import './style.scss'
 
 /**
@@ -125,7 +125,8 @@ Component.propTypes = {
 // Decorate the form component
 export const FormComponent = reduxForm({
     form: 'addEvent', // a unique name for this form
-    validate: ChainValidators([EndDateAfterStartDate, RequiredFieldsValidatorFactory(['name', 'dates.start'])]),
+    validate: ChainValidators([EndDateAfterStartDate, RequiredFieldsValidatorFactory(['name', 'dates.start']),
+        UntilDateAfterStartDate]),
     enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
