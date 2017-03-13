@@ -100,19 +100,12 @@ class PlanningPanel extends React.Component {
                                 </div>
                             || !currentAgenda &&
                                 <div className="Planning__planning__empty-message">
-                                    There is no selected calendar.<br/>
-                                    Choose one in the above dropdown.
+                                    Choose an agenda from the drop-down list above.
                                 </div>
                             || (planningList && planningList.length < 1) &&
                                 <div className="Planning__planning__empty-message">
-                                    There is no planning yet
-                                    {currentAgenda &&
-                                        <div>
-                                            in the agenda&nbsp;
-                                            <strong>{currentAgenda.name}</strong>.
-                                        </div>
-                                    }
-                                    <div>Drag and drop an event here to start a planning</div>
+                                    There are no planning items in this agenda.<br/>
+                                    Drag an event here to start one.
                                 </div>
                         }
                     </div>
