@@ -17,6 +17,9 @@ function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting
                        component={fields.InputField}
                        type="text"
                        label="Location"/>
+               <Field name="anpa_category"
+                       component={fields.CategoryField}
+                       label="Category"/>
                 <Field name="dates.start"
                        component={fields.DayPickerInput}
                        withTime={true}/>
@@ -34,7 +37,7 @@ function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting
                 className="btn btn-default"
                 onClick={()=>{reset(); resetSearch()}}
                 type="button"
-                disabled={pristine || submitting}>Clear</button>
+                disabled={submitting}>Clear</button>
             {error && <div><strong>{error}</strong></div>}
         </form>
     )

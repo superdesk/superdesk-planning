@@ -56,7 +56,7 @@ export function uploadFilesAndSaveEvent(newEvent) {
     newEvent = cloneDeep(newEvent) || {}
     return (dispatch) => (
         Promise.resolve((() => {
-            if (get(newEvent, 'location[0]') && !newEvent.location[0].name) {
+            if (get(newEvent, 'location[0]') && !newEvent.location[0].qcode) {
                 return dispatch(saveLocation(newEvent.location[0]))
                 .then((location) => {
                     newEvent.location[0] = location
@@ -138,34 +138,57 @@ function _fetchEvents({ advancedSearch, fulltext, ids }) {
             }
         // advanced search
         } else if (advancedSearch) {
-            const should = []
-            const range = {}
-            // by name
-            if (advancedSearch.name) {
-                should.push(
-                    { match: { name: advancedSearch.name } },
-                    { match: { definition_short: advancedSearch.name } }
-                )
-            }
-            // by location
-            if (advancedSearch.location) {
-                should.push(
-                    { match: { 'location.name': advancedSearch.location } },
-                    { match: { 'location.qcode': advancedSearch.location } }
-                )
-            }
-            // by dates
-            if (advancedSearch.dates) {
-                if (advancedSearch.dates.start) {
-                    range['dates.start'] = { gte: advancedSearch.dates.start }
-                }
+            const should = [];
+            [
+                {
+                    condition: () => (advancedSearch.name),
+                    do: () => {
+                        should.push(
+                            { match: { name: advancedSearch.name } },
+                            { match: { definition_short: advancedSearch.name } }
+                        )
+                    }
+                },
+                {
+                    condition: () => (advancedSearch.location),
+                    do: () => {
+                        should.push(
+                            { match: { 'location.name': advancedSearch.location } }
+                        )
+                    }
+                },
+                {
+                    condition: () => (advancedSearch.anpa_category),
+                    do: () => {
+                        const codes = advancedSearch.anpa_category.map((cat) => cat.qcode)
+                        const queries = codes.map((code) => (
+                            { match: { 'anpa_category.qcode': code } }
+                        ))
+                        should.push(...queries)
+                    }
+                },
+                {
+                    condition: () => (advancedSearch.dates),
+                    do: () => {
+                        const range = {}
 
-                if (advancedSearch.dates.end) {
-                    range['dates.end'] = { lte: advancedSearch.dates.end }
-                }
+                        if (advancedSearch.dates.start) {
+                            range['dates.start'] = { gte: advancedSearch.dates.start }
+                        }
 
-                filter.range = range
-            }
+                        if (advancedSearch.dates.end) {
+                            range['dates.end'] = { lte: advancedSearch.dates.end }
+                        }
+
+                        filter.range = range
+                    }
+                }
+            // loop over actions and performs if conditions are met
+            ].forEach((action) => {
+                if (action.condition()) {
+                    action.do()
+                }
+            })
             // build the query
             if (should.length > 0) {
                 query.bool = { should }
