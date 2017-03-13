@@ -1,4 +1,5 @@
 import { createSelector } from 'reselect'
+import { sortBy } from 'lodash'
 
 const getAgendas = (state) => state.planning.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
@@ -21,9 +22,12 @@ export const getCurrentAgendaPlannings = createSelector(
     (currentAgenda, storedPlanningsObjects) => {
         const planningsIds = currentAgenda ? currentAgenda.planning_items || [] : []
         // from ids, return the actual plannings objects
-        return planningsIds.map(
-            (pid) => (storedPlanningsObjects[pid])
-        ).filter((d) => d !== undefined) // remove undefined
+        return sortBy(
+            planningsIds.map(
+                (pid) => (storedPlanningsObjects[pid])
+            )
+            .filter((d) => d !== undefined), // remove undefined
+        [(p) => (-p._created)]) // sort by new created first, or by name
     }
 )
 
