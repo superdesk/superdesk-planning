@@ -129,8 +129,11 @@ Component.propTypes = {
 // Decorate the form component
 export const FormComponent = reduxForm({
     form: 'addEvent', // a unique name for this form
-    validate: ChainValidators([EndDateAfterStartDate, RequiredFieldsValidatorFactory(['name', 'dates.start']),
-        UntilDateAfterStartDate]),
+    validate: ChainValidators([
+        EndDateAfterStartDate,
+        RequiredFieldsValidatorFactory(['name', 'dates.start']),
+        UntilDateAfterStartDate,
+    ]),
     enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
