@@ -103,6 +103,11 @@ export class Component extends React.Component {
                     }
                 </div>
                 <div>
+                    <Field name="occur_status"
+                           component={fields.OccurStatusField}
+                           label="Event Occurence Status"/>
+                </div>
+                <div>
                     <label htmlFor="files">Attached files</label>
                     <FieldArray name="files" component={fields.FilesFieldArray} />
                 </div>

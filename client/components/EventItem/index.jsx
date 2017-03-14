@@ -10,14 +10,16 @@ export const EventItem = ({ event, onClick }) => {
     const time = eventIsAllDayLong(event.dates) ? '' : moment(event.dates.start).format('HH:mm')
     const location = get(event, 'location[0].name')
     const filesAttachedCount = get(event, 'files', []).length
+    const hasBeenCanceled = get(event, 'occur_status.qcode') === 'eocstat:eos6'
     const classes = [
         'event',
-        event._hasPlanning ? 'event__has-planning' : null,
+        event._hasPlanning ? 'event--has-planning' : null,
+        hasBeenCanceled ? 'event--has-been-canceled' : null,
     ].join(' ')
     return (
         <ListItem item={event} onClick={onClick.bind(this, event)} draggable={true} className={classes}>
             <div className="line">
-                <span className="keyword">{event.name}</span>
+                <span className="event__title keyword">{event.name}</span>
                 <span className="item-heading">{event.definition_short}</span>
                 <time title={time}>{time}</time>
             </div>
