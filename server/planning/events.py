@@ -42,15 +42,6 @@ organizer_roles = {
     'eorol:venue': 'Venue organiser'
 }
 
-occurrence_statuses = {
-    'eocstat:eos0': 'Unplanned event',
-    'eocstat:eos1': 'Planned, occurence planned only',
-    'eocstat:eos2': 'Planned, occurence highly uncertain',
-    'eocstat:eos3': 'Planned, May occur',
-    'eocstat:eos4': 'Planned, occurence highly likely',
-    'eocstat:eos5': 'Planned, occurs certainly'
-}
-
 
 class EventsService(superdesk.Service):
     """Service class for the events model."""
@@ -231,6 +222,20 @@ events_schema = {
                     'byday': {'type': 'string'},
                     'byhour': {'type': 'string'},
                     'byminute': {'type': 'string'}
+                }
+            },
+            'occur_status': {
+                'nullable': True,
+                'type': 'dict',
+                'mapping': {
+                    'properties': {
+                        'qcode': not_analyzed,
+                        'name': not_analyzed
+                    }
+                },
+                'schema': {
+                    'qcode': {'type': 'string'},
+                    'name': {'type': 'string'},
                 }
             },
             'ex_date': {
