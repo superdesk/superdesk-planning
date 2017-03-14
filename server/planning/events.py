@@ -203,6 +203,10 @@ events_schema = {
             'related': {'type': 'string'}
         },
     },
+    'links': {
+        'type': 'list',
+        'nullable': True
+    },
 
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.4.3
     'dates': {

@@ -106,6 +106,10 @@ export class Component extends React.Component {
                     <label htmlFor="files">Attached files</label>
                     <FieldArray name="files" component={fields.FilesFieldArray} />
                 </div>
+                <div>
+                    <label htmlFor="links">Event Links</label>
+                    <FieldArray name="links" component={fields.LinksFieldArray} />
+                </div>
                 {this.props.error && <div><strong>{this.props.error}</strong></div>}
             </form>
         )
