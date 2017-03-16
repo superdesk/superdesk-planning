@@ -1,12 +1,10 @@
-import { merge } from 'lodash'
+import { merge, reduce } from 'lodash'
 
 export const ChainValidators = (validators) => (
     (values) => {
-        const errors = {}
-        validators.forEach((v) => {
-            const e = v(values)
-            merge(errors, e)
-        })
+        const errors = reduce(validators, (result, v) => (
+            merge(result, v(values))
+        ), {})
         return errors
     }
 )

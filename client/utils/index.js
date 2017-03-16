@@ -25,8 +25,15 @@ export const createTestStore = (params={}) => {
                     {
                         _id: 'categories',
                         items: [
-                            { qname: 'test:sport', name: 'Sport' },
-                            { qname: 'test:news', name: 'News' },
+                            { qcode: 'test:sport', name: 'Sport' },
+                            { qcode: 'test:news', name: 'News' },
+                        ]
+                    },
+                    {
+                        _id: 'eventoccurstatus',
+                        items: [
+                            { qcode: 'eocstat:eos0', name: 'Unplanned event' },
+                            { qcode: 'eocstat:eos1', name: 'Planned, occurence planned only' },
                         ]
                     }
                 ] })

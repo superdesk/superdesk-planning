@@ -46,5 +46,11 @@ describe('<RepeatEventForm />', () => {
         store.dispatch(change(form, 'dates.recurring_rule.count', 2))
         // check radio buttons new state
         expectEventToEnd('count')
+        wrapper.find({ name: 'doesRepeatEnd', value: 'until' })
+        .simulate('change', { target: { value: 'until' } })
+        expectEventToEnd('until')
+        wrapper.find({ name: 'doesRepeatEnd', value: false })
+        .simulate('change', { target: { value: 'false' } })
+        expectEventToEnd(false)
     })
 })

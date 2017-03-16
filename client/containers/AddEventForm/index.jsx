@@ -103,6 +103,11 @@ export class Component extends React.Component {
                     }
                 </div>
                 <div>
+                    <Field name="occur_status"
+                           component={fields.OccurStatusField}
+                           label="Event Occurence Status"/>
+                </div>
+                <div>
                     <label htmlFor="files">Attached files</label>
                     <FieldArray name="files" component={fields.FilesFieldArray} />
                 </div>
@@ -124,8 +129,11 @@ Component.propTypes = {
 // Decorate the form component
 export const FormComponent = reduxForm({
     form: 'addEvent', // a unique name for this form
-    validate: ChainValidators([EndDateAfterStartDate, RequiredFieldsValidatorFactory(['name', 'dates.start']),
-        UntilDateAfterStartDate]),
+    validate: ChainValidators([
+        EndDateAfterStartDate,
+        RequiredFieldsValidatorFactory(['name', 'dates.start']),
+        UntilDateAfterStartDate,
+    ]),
     enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
