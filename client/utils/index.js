@@ -13,7 +13,7 @@ export const eventIsAllDayLong = (dates) => (
 export const createTestStore = (params={}) => {
     const { initialState={}, extraArguments={} } = params
     const mockedInitialState = {
-        config: { server: { url: 'http://server.com' } }
+        config: { server: { url: 'http://server.com' }, iframely: { key: '123' } }
     }
     const mockedExtraArguments = {
         $timeout: (cb) => (cb && cb()),

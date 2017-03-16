@@ -56,6 +56,11 @@ export function uploadFilesAndSaveEvent(newEvent) {
     newEvent = cloneDeep(newEvent) || {}
     return (dispatch) => (
         Promise.resolve((() => {
+            // Remove empty event links
+            if (newEvent.links && newEvent.links.length > 0) {
+                newEvent.links = newEvent.links.filter((l) => (l))
+            }
+
             if (get(newEvent, 'location[0]') && !newEvent.location[0].qcode) {
                 return dispatch(saveLocation(newEvent.location[0]))
                 .then((location) => {

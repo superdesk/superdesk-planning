@@ -18,7 +18,8 @@ const event = {
             length: 1000
         },
         filemeta: { media_id: 'media1' },
-    }]
+    }],
+    links: ['http://www.google.com'],
 }
 
 describe('<FormComponent />', () => {
@@ -122,5 +123,20 @@ describe('<FormComponent />', () => {
         expect(wrapper.find('FileFieldComponent').length).toBe(1)
         wrapper.find('FilesFieldArray').find('.File__add-btn').simulate('click')
         expect(wrapper.find('FileFieldComponent').length).toBe(2)
+    })
+    it('supports links', () => {
+        const store = createTestStore()
+        const wrapper = mount(<Provider store={store}><AddEventForm initialValues={event} /></Provider>)
+        const field = wrapper.find('LinkFieldComponent')
+        const link = field.props().link
+        expect(field.props().fieldName).toBe('links[0]')
+        expect(link).toEqual(event.links[0])
+        const titleNode = field.find('.line-input').last()
+        expect(titleNode.text()).toBe('http://www.google.com ')
+        
+        // add a link
+        expect(wrapper.find('LinkFieldComponent').length).toBe(1)
+        wrapper.find('LinksFieldArray').find('.Link__add-btn').simulate('click')
+        expect(wrapper.find('LinkFieldComponent').length).toBe(2)
     })
 })
