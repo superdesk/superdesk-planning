@@ -65,8 +65,8 @@ describe('<EventsList />', () => {
         expect(wrapper.find('.events-list__title').map((e) => e.text()))
         .toEqual(['Saturday October 15, 2016', 'Monday October 17, 2016'])
         // check classes
-        expect(wrapper.find('.ListItem__list-item').first().hasClass('event__has-planning')).toBe(true)
-        expect(wrapper.find('.ListItem__list-item').last().hasClass('event__has-planning')).toBe(false)
+        expect(wrapper.find('.ListItem__list-item').first().hasClass('event--has-planning')).toBe(true)
+        expect(wrapper.find('.ListItem__list-item').last().hasClass('event--has-planning')).toBe(false)
         // add a new item
         const newEvent = {
             _id: '123',

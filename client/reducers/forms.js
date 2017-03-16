@@ -1,18 +1,9 @@
 import { reducer as formReducer, actionTypes } from 'redux-form'
 import { cloneDeep } from 'lodash'
 
-const initialEvent = {
-    values: {
-        dates: {
-            recurring_rule: {
-                interval: 1
-            }
-        }
-    }
-}
 const forms = formReducer.plugin({
     // 'addEvent' is name of form given to reduxForm()
-    addEvent: (state=initialEvent, action) => {
+    addEvent: (state={}, action) => {
         switch (action.type) {
             case 'EVENT_SAVE_SUCCESS':
                 return undefined // blow away form data
