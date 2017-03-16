@@ -8,6 +8,7 @@ export const getCurrentAgendaId = (state) => state.planning.currentAgendaId
 export const getStoredPlannings = (state) => state.planning.plannings
 export const getServerUrl = (state) => state.config.server.url
 export const getIframelyKey = (state) => state.config.iframely ? state.config.iframely.key : null
+export const getShowEventDetails = (state) => state.events.showEventDetails
 
 export const getCurrentAgenda = createSelector(
     [getCurrentAgendaId, getAgendas],
@@ -57,4 +58,11 @@ export const getEventsWithMoreInfo = createSelector(
             _type: 'events', // _type can disapear in the object, like in a POST response
         }))
     }
+)
+
+export const getEventToDetail = createSelector(
+    [getShowEventDetails, getEvents],
+    (showEventDetails, events) => (
+        events.find((e) => e._id === showEventDetails)
+    )
 )

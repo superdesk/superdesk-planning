@@ -5,8 +5,6 @@ const forms = formReducer.plugin({
     // 'addEvent' is name of form given to reduxForm()
     addEvent: (state={}, action) => {
         switch (action.type) {
-            case 'EVENT_SAVE_SUCCESS':
-                return undefined // blow away form data
             case actionTypes.CHANGE:
                 // if count or until is set, reset the other field
                 if (action.payload) {

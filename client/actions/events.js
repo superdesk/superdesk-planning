@@ -1,5 +1,4 @@
-import { hideModal } from './modal'
-import { pickBy, cloneDeep, get, isEmpty } from 'lodash'
+import { pickBy, cloneDeep, get, isEmpty, isNil } from 'lodash'
 import moment from 'moment-timezone'
 import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
@@ -64,7 +63,7 @@ export function uploadFilesAndSaveEvent(newEvent) {
                 }
             }
 
-            if (get(newEvent, 'location[0]') && !newEvent.location[0].qcode) {
+            if (get(newEvent, 'location[0]') && isNil(newEvent.location[0].qcode)) {
                 return dispatch(saveLocation(newEvent.location[0]))
                 .then((location) => {
                     newEvent.location[0] = location
@@ -124,10 +123,6 @@ function saveEvent(newEvent) {
         // add the event to the store
         .then(data => {
             dispatch(addEvents(data._items || [data]))
-            // notify the end of the action and reset the form
-            dispatch({ type: 'EVENT_SAVE_SUCCESS' })
-            // hide the modal
-            dispatch(hideModal())
             return data
         }, (error) => {
             throw new SubmissionError({ _error: error.statusText })
@@ -238,4 +233,12 @@ export const openAdvancedSearch = () => (
 
 export const closeAdvancedSearch = () => (
     { type: 'CLOSE_ADVANCED_SEARCH' }
+)
+
+export const openEventDetails = (event) => (
+    { type: 'OPEN_EVENT_DETAILS', payload: event && event._id || true }
+)
+
+export const closeEventDetails = () => (
+    { type: 'CLOSE_EVENT_DETAILS' }
 )

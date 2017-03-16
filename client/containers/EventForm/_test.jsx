@@ -1,6 +1,6 @@
 import React from 'react'
 import { mount, shallow } from 'enzyme'
-import { AddEventForm, FormComponent, Component } from '../AddEventForm/index'
+import { EventForm, FormComponent, Component } from '../EventForm/index'
 import sinon from 'sinon'
 import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
@@ -28,7 +28,6 @@ describe('<FormComponent />', () => {
         const onSaveResponse = Promise.resolve()
         const handleSubmit = sinon.stub().returns(onSaveResponse)
         const props = {
-            modalType: 'EDIT_EVENT',
             submitting: submitting,
             handleSubmit,
         }
@@ -60,7 +59,7 @@ describe('<FormComponent />', () => {
         const initialValues = event
         mount(
             <Provider store={store}>
-                <AddEventForm initialValues={initialValues} />
+                <EventForm initialValues={initialValues} />
             </Provider>
         )
         let originalDates = event.dates
@@ -68,10 +67,7 @@ describe('<FormComponent />', () => {
     })
     it('calls onSubmit() and ensure that modal is closed', (done) => {
         const store = createTestStore()
-        const wrapper = mount(<Provider store={store}><AddEventForm /></Provider>)
-        // open the modal (in store)
-        store.dispatch(actions.showModal({ modalType: 'EDIT_EVENT', modalProps: { event: {} } }))
-        expect(store.getState().modal.modalType).toBe('EDIT_EVENT')
+        const wrapper = mount(<Provider store={store}><EventForm /></Provider>)
         wrapper.find(FormComponent).props().onSubmit(event).then(() => {
             // modal is closed
             expect(store.getState().modal.modalType).toBe(null)
@@ -91,7 +87,7 @@ describe('<FormComponent />', () => {
     it('detects a non recurring event', () => {
         const store = createTestStore()
         // check with default values if doesRepeat is false
-        expect(mount(<Provider store={store}><AddEventForm /></Provider>)
+        expect(mount(<Provider store={store}><EventForm /></Provider>)
             .find(FormComponent).props().doesRepeat
         ).toBe(false)
     })
@@ -107,13 +103,13 @@ describe('<FormComponent />', () => {
                 }
             }
         }
-        expect(mount(<Provider store={store}><AddEventForm initialValues={recEvent} /></Provider>)
+        expect(mount(<Provider store={store}><EventForm initialValues={recEvent} /></Provider>)
             .find(FormComponent).props().doesRepeat
         ).toBe(true)
     })
     it('supports files', () => {
         const store = createTestStore()
-        const wrapper = mount(<Provider store={store}><AddEventForm initialValues={event} /></Provider>)
+        const wrapper = mount(<Provider store={store}><EventForm initialValues={event} /></Provider>)
         const field = wrapper.find('FileFieldComponent')
         const file = field.props().file
         expect(field.props().fieldName).toBe('files[0]')
@@ -126,14 +122,14 @@ describe('<FormComponent />', () => {
     })
     it('supports links', () => {
         const store = createTestStore()
-        const wrapper = mount(<Provider store={store}><AddEventForm initialValues={event} /></Provider>)
+        const wrapper = mount(<Provider store={store}><EventForm initialValues={event} /></Provider>)
         const field = wrapper.find('LinkFieldComponent')
         const link = field.props().link
         expect(field.props().fieldName).toBe('links[0]')
         expect(link).toEqual(event.links[0])
         const titleNode = field.find('.line-input').last()
         expect(titleNode.text()).toBe('http://www.google.com ')
-        
+
         // add a link
         expect(wrapper.find('LinkFieldComponent').length).toBe(1)
         wrapper.find('LinksFieldArray').find('.Link__add-btn').simulate('click')

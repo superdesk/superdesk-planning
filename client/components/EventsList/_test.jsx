@@ -1,7 +1,7 @@
 import React from 'react'
 import { mount, shallow } from 'enzyme'
 import sinon from 'sinon'
-import { EventsListPanelContainer } from '../../containers'
+import { EventsListContainer } from '../../containers'
 import { EventsList, EventItem } from '../index'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
@@ -54,7 +54,7 @@ describe('<EventsList />', () => {
         const store = createTestStore({ initialState })
         const wrapper = mount(
             <Provider store={store}>
-                <EventsListPanelContainer />
+                <EventsListContainer />
             </Provider>
         )
         // there is three events to show

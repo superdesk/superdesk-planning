@@ -8,7 +8,7 @@ import DebounceInput from 'react-debounce-input'
 import { isNil, get } from 'lodash'
 import './style.scss'
 
-class EventsListPanel extends React.Component {
+class EventsListComponent extends React.Component {
     constructor(props) {
         super(props)
         const currentKeyword = get(props, 'currentSearch.fulltext')
@@ -100,20 +100,20 @@ class EventsListPanel extends React.Component {
                             </span>
                         </h3>
                         <button className="btn btn--primary"
-                                onClick={this.props.openAddEvent.bind(null, null)}>
+                                onClick={this.props.openEventDetails.bind(null, null)}>
                             Add an event
                         </button>
                     </div>
                     <EventsList events={this.props.events}
-                                onEventClick={this.props.openAddEvent} />
+                                onEventClick={this.props.openEventDetails} />
                 </div>
             </div>
         )
     }
 }
 
-EventsListPanel.propTypes = {
-    openAddEvent: React.PropTypes.func,
+EventsListComponent.propTypes = {
+    openEventDetails: React.PropTypes.func,
     loadEvents: React.PropTypes.func,
     events: React.PropTypes.array,
     currentSearch: React.PropTypes.object,
@@ -129,16 +129,13 @@ const mapStateToProps = (state) => ({
 })
 
 const mapDispatchToProps = (dispatch) => ({
-    openAddEvent: (event) => dispatch(actions.showModal({
-        modalType: 'EDIT_EVENT',
-        modalProps: { event: event }
-    })),
+    openEventDetails: (event) => dispatch(actions.openEventDetails(event)),
     loadEvents: (keyword) => dispatch(actions.fetchEvents({ fulltext: keyword })),
     openAdvancedSearch: () => (dispatch(actions.openAdvancedSearch())),
     closeAdvancedSearch: () => (dispatch(actions.closeAdvancedSearch()))
 })
 
-export const EventsListPanelContainer = connect(
+export const EventsListContainer = connect(
     mapStateToProps,
     mapDispatchToProps
-)(EventsListPanel)
+)(EventsListComponent)
