@@ -160,7 +160,8 @@ const addPlanningToAgenda = ({ planning, agenda }) => (
 const addEventToCurrentAgenda = (event) => (
     (dispatch, getState) => {
         // check if there is a current agenda, throw an error if not
-        selectors.getCurrentAgenda(getState())
+        const currentAgenda = selectors.getCurrentAgenda(getState())
+        if (!currentAgenda) throw 'unable to find the current agenda'
         // planning inherits some fields from the given event
         return dispatch(savePlanning({
             event_item: event._id,
