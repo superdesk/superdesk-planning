@@ -130,7 +130,8 @@ export class DayPickerInput extends React.Component {
                     startDate={startDate}
                     endDate={endDate}
                     selected={selectedDate}
-                    onChange={this.onDayChange.bind(this)} />
+                    onChange={this.onDayChange.bind(this)}
+                    fixedHeight />
                 {(withTime === true) && (
                     <TimePicker
                         disabled={disabled}
