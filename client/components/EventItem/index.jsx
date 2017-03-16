@@ -21,7 +21,8 @@ export const EventItem = ({ event, onClick }) => {
             <div className="line">
                 <span className="event__title keyword">{event.name}</span>
                 <span className="item-heading">{event.definition_short}</span>
-                <time className="time__short" title={time}>{time}</time>
+                <time className="time--short" title={time}>{time}</time>
+
             </div>
             <div className="line">
                 <span className="container">
