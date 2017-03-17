@@ -1,5 +1,5 @@
 import { hideModal } from './modal'
-import { pickBy, cloneDeep, get } from 'lodash'
+import { pickBy, cloneDeep, get, isEmpty } from 'lodash'
 import moment from 'moment-timezone'
 import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
@@ -59,6 +59,9 @@ export function uploadFilesAndSaveEvent(newEvent) {
             // Remove empty event links
             if (newEvent.links && newEvent.links.length > 0) {
                 newEvent.links = newEvent.links.filter((l) => (l))
+                if (!newEvent.links.length) {
+                    delete newEvent.links
+                }
             }
 
             if (get(newEvent, 'location[0]') && !newEvent.location[0].qcode) {
@@ -75,20 +78,26 @@ export function uploadFilesAndSaveEvent(newEvent) {
             // upload files and link them to the event
             if ((newEvent.files || []).length > 0) {
                 const fileFiles = newEvent.files.filter(
-                    (f) => (f instanceof FileList || f instanceof Array)
+                    (f) => ((f instanceof FileList && f.length) || f instanceof Array)
                 )
-                return dispatch(uploadFiles(fileFiles))
-                .then((uploadedFiles) => {
-                    newEvent.files = [
-                        // reference uploaded files to event
-                        ...getIds(uploadedFiles),
-                        // remove uploaded FileList objects
-                        ...getIds(newEvent.files.filter((f) => (
-                            fileFiles.indexOf(f) === -1
-                        ))),
-                    ]
+                if (fileFiles.length)
+                {
+                    return dispatch(uploadFiles(fileFiles))
+                    .then((uploadedFiles) => {
+                        newEvent.files = [
+                            // reference uploaded files to event
+                            ...getIds(uploadedFiles),
+                            // remove uploaded FileList objects
+                            ...getIds(newEvent.files.filter((f) => (
+                                !isEmpty(f) && fileFiles.indexOf(f) === -1
+                            ))),
+                        ]
+                        return newEvent
+                    })
+                } else {
+                    delete newEvent.files
                     return newEvent
-                })
+                }
             } else {
                 return newEvent
             }
