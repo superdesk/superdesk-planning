@@ -1,5 +1,5 @@
 import React from 'react'
-import { EventsList } from '../../components'
+import { EventsList, ResizablePanel } from '../../components'
 import { AdvancedSearchPanelContainer } from '../index'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
@@ -60,7 +60,7 @@ class EventsListComponent extends React.Component {
         ]
         return (
             <div className={classes.join(' ')}>
-                <div className="Planning__events-list">
+                <ResizablePanel className="Planning__events-list" direction="e" minWidth="500">
                     <AdvancedSearchPanelContainer  />
                     <div className="subnav">
                         <div className={'flat-searchbar' + (searchBarExtended ? ' extended' : '')}>
@@ -106,7 +106,7 @@ class EventsListComponent extends React.Component {
                     </div>
                     <EventsList events={this.props.events}
                                 onEventClick={this.props.openEventDetails} />
-                </div>
+                </ResizablePanel>
             </div>
         )
     }
