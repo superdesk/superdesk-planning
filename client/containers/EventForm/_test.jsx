@@ -20,6 +20,7 @@ const event = {
         filemeta: { media_id: 'media1' },
     }],
     links: ['http://www.google.com'],
+    _plannings: [],
 }
 
 describe('<FormComponent />', () => {
@@ -29,6 +30,7 @@ describe('<FormComponent />', () => {
         const handleSubmit = sinon.stub().returns(onSaveResponse)
         const props = {
             submitting: submitting,
+            handlePlanningClick: ()=>{},
             handleSubmit,
         }
         const subject = shallow(<Component {...props}/>)
@@ -79,7 +81,7 @@ describe('<FormComponent />', () => {
         const initialValues = event
         const wrapper = mount(
             <Provider store={store}>
-                <FormComponent initialValues={initialValues} />
+                <FormComponent initialValues={initialValues} handlePlanningClick={()=>{}} />
             </Provider>
         )
         expect(wrapper.find('[name="name"]').props().value).toBe(initialValues.name)

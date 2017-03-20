@@ -16,7 +16,7 @@ export const LinksFieldArray = ({ fields }) => (
                 className="Link__add-btn btn btn-default"
                 onClick={() => fields.push()}
                 type="button">
-                Add an event link
+                Add a link
             </button>
         </li>
     </ul>

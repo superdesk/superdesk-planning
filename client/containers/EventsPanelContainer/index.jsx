@@ -31,7 +31,7 @@ const mapStateToProps = (state) => ({
     // selectors.getShowEventDetails is either true, an event id, or null
     eventToDetail: selectors.getShowEventDetails(state) === true
         ? DEFAULT_FORM_VALUES
-        : selectors.getEventToDetail(state),
+        : selectors.getEventToBeDetailed(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
