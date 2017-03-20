@@ -22,7 +22,7 @@ const forms = formReducer.plugin({
             default:
                 return state
         }
-    }
+    },
 })
 
 export default forms

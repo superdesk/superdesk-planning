@@ -9,7 +9,7 @@ class TestForm extends React.Component {
         const { value, onChange, withTime, defaultDate } = this.props
         const input = {
             value: value,
-            onChange: onChange || ((x) => x)
+            onChange: onChange || ((x) => x),
         }
         const meta = { dispatch: () => {} }
         return (

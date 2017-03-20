@@ -7,7 +7,7 @@ function renderDict(event, label, ...keys) {
             <dt>{label}</dt>,
             ...keys.map((key) => (
                 <dd>{get(event, key)}</dd>
-            ))
+            )),
         ]
     }
 }
@@ -41,5 +41,5 @@ EventMetadata.propTypes = {
         definition_long: React.PropTypes.string,
         location: React.PropTypes.array,
         occur_status: React.PropTypes.object,
-    })
+    }),
 }

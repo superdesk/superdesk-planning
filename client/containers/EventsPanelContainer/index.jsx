@@ -9,7 +9,7 @@ const DEFAULT_FORM_VALUES = {
     occur_status: {
         name: 'Planned, occurs certainly',
         qcode: 'eocstat:eos5',
-    }
+    },
 }
 export const EventsPanel = ({ eventToDetail, handleBackToList }) => (
     <ResizableEventsPanel className="Planning__events-panel" minWidth={500}>
@@ -34,9 +34,7 @@ const mapStateToProps = (state) => ({
         : selectors.getEventToBeDetailed(state),
 })
 
-const mapDispatchToProps = (dispatch) => ({
-    handleBackToList: () => (dispatch(actions.closeEventDetails()))
-})
+const mapDispatchToProps = (dispatch) => ({ handleBackToList: () => (dispatch(actions.closeEventDetails())) })
 
 export const EventsPanelContainer = connect(
     mapStateToProps,

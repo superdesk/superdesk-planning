@@ -37,13 +37,11 @@ FileFieldComponent.propTypes = {
         React.PropTypes.shape({
             media: React.PropTypes.object,
             filemeta: React.PropTypes.object,
-        })
+        }),
     ]),
     fieldName: React.PropTypes.string,
 }
 
-const mapStateToProps = (state) => ({
-    createLink: (f) => (selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw')
-})
+const mapStateToProps = (state) => ({ createLink: (f) => (selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw') })
 
 export const FileField = connect(mapStateToProps)(FileFieldComponent)

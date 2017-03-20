@@ -13,7 +13,10 @@ export const eventIsAllDayLong = (dates) => (
 export const createTestStore = (params={}) => {
     const { initialState={}, extraArguments={} } = params
     const mockedInitialState = {
-        config: { server: { url: 'http://server.com' }, iframely: { key: '123' } }
+        config: {
+            server: { url: 'http://server.com' },
+            iframely: { key: '123' },
+        },
     }
     const mockedExtraArguments = {
         $timeout: (cb) => (cb && cb()),
@@ -21,27 +24,39 @@ export const createTestStore = (params={}) => {
         $location: { search: () => (undefined) },
         vocabularies: {
             getAllActiveVocabularies: () => (
-                Promise.resolve({ _items: [
-                    {
-                        _id: 'categories',
-                        items: [
-                            { qcode: 'test:sport', name: 'Sport' },
-                            { qcode: 'test:news', name: 'News' },
-                        ]
-                    },
-                    {
-                        _id: 'eventoccurstatus',
-                        items: [
-                            { qcode: 'eocstat:eos0', name: 'Unplanned event' },
-                            { qcode: 'eocstat:eos1', name: 'Planned, occurence planned only' },
-                        ]
-                    }
-                ] })
-            )
+                Promise.resolve({
+                    _items: [
+                        {
+                            _id: 'categories',
+                            items: [
+                                {
+                                    qcode: 'test:sport',
+                                    name: 'Sport',
+                                },
+                                {
+                                    qcode: 'test:news',
+                                    name: 'News',
+                                },
+                            ],
+                        },
+                        {
+                            _id: 'eventoccurstatus',
+                            items: [
+                                {
+                                    qcode: 'eocstat:eos0',
+                                    name: 'Unplanned event',
+                                },
+                                {
+                                    qcode: 'eocstat:eos1',
+                                    name: 'Planned, occurence planned only',
+                                },
+                            ],
+                        },
+                    ],
+                })
+            ),
         },
-        upload: {
-            start: (d) => (Promise.resolve(d))
-        },
+        upload: { start: (d) => (Promise.resolve(d)) },
         api: (resource) => ({
             query: (q) =>  {
                 if (extraArguments.apiQuery) {
@@ -63,7 +78,10 @@ export const createTestStore = (params={}) => {
                 if (extraArguments.apiSave) {
                     return Promise.resolve(extraArguments.apiSave(resource, ori, item))
                 } else {
-                    const response = { ...ori, ...item }
+                    const response = {
+                        ...ori,
+                        ...item,
+                    }
                     // if there is no id we add one
                     if (!response._id) {
                         response._id = Math.random().toString(36).substr(2, 10)
@@ -72,16 +90,22 @@ export const createTestStore = (params={}) => {
                     return Promise.resolve(response)
                 }
             },
-        })
+        }),
     }
     const middlewares = [
         // adds the mocked extra arguments to actions
-        thunkMiddleware.withExtraArgument({ ...mockedExtraArguments, extraArguments })
+        thunkMiddleware.withExtraArgument({
+            ...mockedExtraArguments,
+            extraArguments,
+        }),
     ]
     // return the store
     return _createStore(
         planningApp,
-        { ...mockedInitialState, ...initialState },
+        {
+            ...mockedInitialState,
+            ...initialState,
+        },
         applyMiddleware.apply(null, middlewares)
     )
 }
@@ -92,7 +116,7 @@ export const createStore = (params={}) => {
         // logs actions
         createLogger(),
         // adds the extra arguments to actions
-        thunkMiddleware.withExtraArgument(extraArguments)
+        thunkMiddleware.withExtraArgument(extraArguments),
     ]
     // return the store
     return _createStore(
@@ -115,7 +139,7 @@ export const formatAddress = (nominatim) => {
         'waterways',
         'village',
         'district',
-        'borough'
+        'borough',
     ]
 
     const localityField = localityHierarchy.find((locality) =>
@@ -139,7 +163,7 @@ export const formatAddress = (nominatim) => {
         'subdivision',
         'farm',
         'locality',
-        'islet'
+        'islet',
     ]
     const areaField = areaHierarchy.find((area) =>
         nominatim.address.hasOwnProperty(area)
@@ -148,7 +172,7 @@ export const formatAddress = (nominatim) => {
     const address = {
         line: [
             `${get(nominatim.address, 'house_number', '')} ${get(nominatim.address, 'road', '')}`
-            .trim()
+            .trim(),
         ],
         locality: get(nominatim.address, localityField),
         area: get(nominatim.address, areaField),
@@ -162,5 +186,8 @@ export const formatAddress = (nominatim) => {
         get(address, 'postal_code'),
         get(address, 'country'),
     ].filter(d => d).join(', ')
-    return { address, shortName }
+    return {
+        address,
+        shortName,
+    }
 }

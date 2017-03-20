@@ -14,7 +14,7 @@ export class ModalWithForm extends React.Component {
     render() {
         const form = React.createElement(this.props.form, {
             initialValues: this.props.initialValues,
-            ref: 'form'
+            ref: 'form',
         })
         return (
             <Modal show={this.props.show} onHide={this.props.onHide}>

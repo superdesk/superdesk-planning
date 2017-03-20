@@ -30,7 +30,10 @@ class EventsListComponent extends React.Component {
 
     /** Reset the field value, close the search bar and load events */
     resetSearch() {
-        this.setState({ searchBarExtended: false, searchInputValue: '' })
+        this.setState({
+            searchBarExtended: false,
+            searchInputValue: '',
+        })
         this.props.loadEvents()
     }
 
@@ -56,7 +59,7 @@ class EventsListComponent extends React.Component {
         const { advancedSearchOpened } = this.props
         const classes = [
             'Planning__events-list-container',
-            advancedSearchOpened ? 'Planning--advanced-search-view' : null
+            advancedSearchOpened ? 'Planning--advanced-search-view' : null,
         ]
         return (
             <div className={classes.join(' ')}>
@@ -119,20 +122,20 @@ EventsListComponent.propTypes = {
     currentSearch: React.PropTypes.object,
     advancedSearchOpened: React.PropTypes.bool,
     openAdvancedSearch: React.PropTypes.func.isRequired,
-    closeAdvancedSearch: React.PropTypes.func.isRequired
+    closeAdvancedSearch: React.PropTypes.func.isRequired,
 }
 
 const mapStateToProps = (state) => ({
     events: selectors.getEventsWithMoreInfo(state),
     currentSearch: state.events.search.currentSearch,
-    advancedSearchOpened: state.events.search.advancedSearchOpened
+    advancedSearchOpened: state.events.search.advancedSearchOpened,
 })
 
 const mapDispatchToProps = (dispatch) => ({
     openEventDetails: (event) => dispatch(actions.openEventDetails(event)),
     loadEvents: (keyword) => dispatch(actions.fetchEvents({ fulltext: keyword })),
     openAdvancedSearch: () => (dispatch(actions.openAdvancedSearch())),
-    closeAdvancedSearch: () => (dispatch(actions.closeAdvancedSearch()))
+    closeAdvancedSearch: () => (dispatch(actions.closeAdvancedSearch())),
 })
 
 export const EventsListContainer = connect(

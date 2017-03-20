@@ -18,21 +18,19 @@ export class Component extends React.Component {
                        component={fields.InputField}
                        type="text"
                        label="Name"/>
-                <button type="submit" style={{visibility: 'hidden'}}>Submit</button>
+                <button type="submit" style={{ visibility: 'hidden' }}>Submit</button>
             </form>
         )
     }
 }
 
-Component.propTypes = {
-    handleSubmit: React.PropTypes.func.isRequired,
-}
+Component.propTypes = { handleSubmit: React.PropTypes.func.isRequired }
 
 // Decorate the form component
 export const CreateAgenda = reduxForm({
     form: 'createAgenda', // a unique name for this form
     validate: RequiredFieldsValidatorFactory(['name']),
-    enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
+    enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
 const mapDispatchToProps = (dispatch) => ({
@@ -40,7 +38,7 @@ const mapDispatchToProps = (dispatch) => ({
     onSubmit: ({ name }) => (
         // save the agenda through the API
         dispatch(actions.createAgenda({ name }))
-    )
+    ),
 })
 
 export const CreateAgendaForm = connect(

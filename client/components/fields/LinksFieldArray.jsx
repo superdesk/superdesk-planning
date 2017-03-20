@@ -22,6 +22,4 @@ export const LinksFieldArray = ({ fields }) => (
     </ul>
 )
 
-LinksFieldArray.propTypes = {
-    fields: React.PropTypes.object.isRequired,
-}
+LinksFieldArray.propTypes = { fields: React.PropTypes.object.isRequired }

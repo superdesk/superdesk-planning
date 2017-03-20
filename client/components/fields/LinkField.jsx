@@ -28,7 +28,7 @@ export class LinkFieldComponent extends React.Component {
         }
 
         if (!this.props.iframelyKey) {
-            this.setState({title: this.errorTitle})
+            this.setState({ title: this.errorTitle })
             return
         }
 
@@ -40,14 +40,14 @@ export class LinkFieldComponent extends React.Component {
             if (response.status >= 200 && response.status < 300) {
                 return response.json()
             } else {
-                this.setState({title: this.errorTitle})    
-            }           
+                this.setState({ title: this.errorTitle })
+            }
         }).then((json) => {
-            this.setState({title: json.meta.title})
+            this.setState({ title: json.meta.title })
         }).catch(() => {
             // This is in cases of network failuree issues
             // refer: https://www.npmjs.com/package/whatwg-fetch
-            this.setState({title: this.errorTitle})
+            this.setState({ title: this.errorTitle })
         })
     }
 
@@ -60,7 +60,7 @@ export class LinkFieldComponent extends React.Component {
                 component="input"
                 type="text"
                 placeholder="Paste link"/>
-                {   this.state.title && 
+                {   this.state.title &&
                     <a href={this.props.link} target="_blank" className="line-input">
                     {this.state.title}&nbsp;
                     </a>
@@ -81,11 +81,9 @@ LinkFieldComponent.propTypes = {
     onRemove: React.PropTypes.func,
     fieldName: React.PropTypes.string,
     link: React.PropTypes.string,
-    iframelyKey: React.PropTypes.string
+    iframelyKey: React.PropTypes.string,
 }
 
-const mapStateToProps = (state) => ({
-    iframelyKey: selectors.getIframelyKey(state)
-})
+const mapStateToProps = (state) => ({ iframelyKey: selectors.getIframelyKey(state) })
 
 export const LinkField = connect(mapStateToProps)(LinkFieldComponent)

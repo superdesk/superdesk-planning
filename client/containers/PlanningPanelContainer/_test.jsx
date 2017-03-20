@@ -13,19 +13,17 @@ describe('<PlanningPanelContainer />', () => {
                 plannings: {},
                 agendas: [{
                     _id: '1',
-                    name: 'agenda'
+                    name: 'agenda',
                 }],
                 currentAgendaId: '1',
-            }
+            },
         }
         const EVENT = {
             _id: '2',
-            name: 'event'
+            name: 'event',
         }
         const store = createTestStore({
-            extraArguments: {
-                apiQuery: () => ({ _items: [EVENT] })
-            },
+            extraArguments: { apiQuery: () => ({ _items: [EVENT] }) },
             initialState,
         })
         store.dispatch(actions.addEventToCurrentAgenda(EVENT)).then(() => {
@@ -38,15 +36,20 @@ describe('<PlanningPanelContainer />', () => {
                 plannings: {},
                 agendas: [{
                     _id: 'agenda1',
-                    name: 'agenda'
+                    name: 'agenda',
                 }],
                 currentAgendaId: 'agenda1',
-            }
+            },
         }
         const store = createTestStore({
             extraArguments: {
                 // Mock what the api will return when the planning list will be refreshed
-                apiQuery: () => ({ _items: [{ _id: 'RefreshedplanningId', slugline: 'coucou' }] }),
+                apiQuery: () => ({
+                    _items: [{
+                        _id: 'RefreshedplanningId',
+                        slugline: 'coucou',
+                    }],
+                }),
             },
             initialState,
         })
@@ -63,7 +66,10 @@ describe('<PlanningPanelContainer />', () => {
             expect(store.getState().planning.currentPlanningId).toEqual(planningCreated._id)
             // the planning list has been refreshed
             expect(store.getState().planning.plannings.RefreshedplanningId)
-                .toEqual({ _id: 'RefreshedplanningId', slugline: 'coucou' })
+                .toEqual({
+                    _id: 'RefreshedplanningId',
+                    slugline: 'coucou',
+                })
             done()
         })
     })
@@ -79,7 +85,7 @@ describe('<PlanningPanelContainer />', () => {
                     _id: 'agenda1',
                     planning_items: ['planning1', 'planning2'],
                 }],
-            }
+            },
         }
         const store = createTestStore({ initialState })
         const wrapper = mount(

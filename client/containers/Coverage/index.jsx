@@ -35,8 +35,6 @@ CoverageComponent.propTypes = {
     g2_content_type: React.PropTypes.array.isRequired,
 }
 
-const mapStateToProps = (state) => ({
-    g2_content_type: state.vocabularies.g2_content_type
-})
+const mapStateToProps = (state) => ({ g2_content_type: state.vocabularies.g2_content_type })
 
 export const Coverage = connect(mapStateToProps)(CoverageComponent)

@@ -55,6 +55,4 @@ export class DaysOfWeek extends React.Component {
     }
 }
 
-DaysOfWeek.propTypes = {
-    input: PropTypes.object
-}
+DaysOfWeek.propTypes = { input: PropTypes.object }

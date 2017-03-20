@@ -21,6 +21,4 @@ export const FilesFieldArray = ({ fields }) => (
     </ul>
 )
 
-FilesFieldArray.propTypes = {
-    fields: React.PropTypes.object.isRequired,
-}
+FilesFieldArray.propTypes = { fields: React.PropTypes.object.isRequired }

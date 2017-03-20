@@ -14,7 +14,7 @@ export class ResizableEventsPanelComponent extends React.Component {
 
     _onResize() {
         let thisNode = $(this.refs.panel)
-        let nextElement = thisNode.next() 
+        let nextElement = thisNode.next()
         let windowWidth = $(window).width()
         let thisOffset = thisNode.offset()
         let rightBorder = parseInt(thisNode.css('border-right-width'))
@@ -25,7 +25,7 @@ export class ResizableEventsPanelComponent extends React.Component {
         timeout = setTimeout(() => {
             nextElement.css({
                 width: (windowWidth - (thisNode.width() + thisOffset.left + rightBorder)),
-                left: (thisNode.width() + rightBorder)
+                left: (thisNode.width() + rightBorder),
             })
         }, 250)
     }
@@ -35,7 +35,7 @@ export class ResizableEventsPanelComponent extends React.Component {
         let container = $(thisNode).parent()
         let children = $(thisNode).children()
         $(thisNode).resizable({
-            handles: 'e', 
+            handles: 'e',
             minWidth: this.props.minWidth,
             maxWidth: this.props.maxWidth,
             start: () => {
@@ -53,13 +53,13 @@ export class ResizableEventsPanelComponent extends React.Component {
                 container.removeClass('no-transition')
                 children.removeClass('no-transition')
                 $(thisNode).removeClass('no-transition')
-            }
+            },
         })
         // call resize once to initialy set width of next element
         this._onResize()
         window.addEventListener('resize', this._onResize)
     }
-    
+
     componentWillUnmont() {
         window.removeEventListener('resize', this._onResize)
     }
@@ -72,7 +72,7 @@ export class ResizableEventsPanelComponent extends React.Component {
     }
 
     render() {
-        return <div ref='panel' className={this.props.className}> 
+        return <div ref='panel' className={this.props.className}>
             {this.props.children}
         </div>
     }
@@ -80,15 +80,13 @@ export class ResizableEventsPanelComponent extends React.Component {
 
 ResizableEventsPanelComponent.propTypes = {
     children: React.PropTypes.oneOfType([
-        React.PropTypes.array, 
-        React.PropTypes.element
+        React.PropTypes.array,
+        React.PropTypes.element,
     ]).isRequired,
     minWidth: React.PropTypes.number,
     maxWidth: React.PropTypes.number,
     className: React.PropTypes.string,
     showEvents: React.PropTypes.bool,
 }
-const mapStateToProps = (state) => ({
-    showEvents: state.events.show,
-})
+const mapStateToProps = (state) => ({ showEvents: state.events.show })
 export const ResizableEventsPanel = connect(mapStateToProps)(ResizableEventsPanelComponent)

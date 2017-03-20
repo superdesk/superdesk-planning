@@ -4,7 +4,7 @@ import * as actions from '../../actions'
 const sdLocation = {
     guid: 'location-guid',
     qcode: 'location-qcode',
-    name: '123 road, state, postcode, country'
+    name: '123 road, state, postcode, country',
 }
 
 const nominatimLocation = {
@@ -18,9 +18,9 @@ const nominatimLocation = {
             state: 'state',
             town: 'town',
             postcode: 'postcode',
-            country: 'country'
-        }
-    }
+            country: 'country',
+        },
+    },
 }
 
 const formattedLocation = {
@@ -34,10 +34,10 @@ const formattedLocation = {
         postal_code: 'postcode',
         position: {
             latitude: 'lat',
-            longitude: 'lon'
+            longitude: 'lon',
         },
         external: nominatimLocation,
-    }
+    },
 }
 
 describe('<AddGeoLookupInput />', () => {
@@ -55,7 +55,7 @@ describe('<AddGeoLookupInput />', () => {
                 expect(newLocation.address.country).toEqual(formattedLocation.address.country)
                 expect(newLocation.address.postal_code).toEqual(formattedLocation.address.postal_code)
                 return Promise.resolve()
-            })
+            }),
         })
         const action = actions.saveNominatim(nominatimLocation.nominatim)
         action(dispatch, getState, { api })
@@ -66,17 +66,15 @@ describe('<AddGeoLookupInput />', () => {
         const dispatch = sinon.spy(() => (Promise.resolve()))
         const api = () => ({
             query: sinon.spy(() => {
-                return Promise.resolve({
-                    _items: [ sdLocation ]
-                })
-            })
+                return Promise.resolve({ _items: [ sdLocation ] })
+            }),
         })
         const action = actions.saveLocation(nominatimLocation)
         action(dispatch, getState, { api })
         .then((savedLocation) => {
             expect(savedLocation).toEqual({
                 qcode: 'location-guid',
-                name: '123 road, state, postcode, country'
+                name: '123 road, state, postcode, country',
             })
         })
     })
@@ -89,7 +87,7 @@ describe('<AddGeoLookupInput />', () => {
                 expect(newLocation.unique_name).toEqual('Paris, Ile-de-France, France')
                 expect(newLocation.name).toEqual('Paris, France')
                 return Promise.resolve()
-            })
+            }),
         })
         const action = actions.saveNominatim({
             place_id: '158768940',
@@ -103,8 +101,8 @@ describe('<AddGeoLookupInput />', () => {
                 county: 'Paris',
                 state: 'Ile-de-France',
                 country: 'France',
-                country_code: 'fr'
-            }
+                country_code: 'fr',
+            },
         })
         action(dispatch, getState, { api })
     })
