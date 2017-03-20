@@ -5,7 +5,7 @@ import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
 
-describe('<AddEventContainer />', () => {
+describe('Modal', () => {
     it('open the modal', () => {
         let store = createTestStore()
         const wrapper = mount(<Provider store={store}><AddEventContainer /></Provider>)

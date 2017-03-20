@@ -68,6 +68,16 @@ const events = (state=initialState, action) => {
                     advancedSearchOpened: false
                 },
             }
+        case 'OPEN_EVENT_DETAILS':
+            return {
+                ...state,
+                showEventDetails: action.payload,
+            }
+        case 'CLOSE_EVENT_DETAILS':
+            return {
+                ...state,
+                showEventDetails: null,
+            }
         default:
             return state
     }

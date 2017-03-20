@@ -1,4 +1,18 @@
-.AddEventForm {
+@import '~superdesk-core/styles/sass/variables.scss';
+
+.EventForm {
+    > .subnav {
+        .subnav__button-stack--square-buttons { margin: 0; }
+        .navbtn { // back button
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+            border-left: 0;
+            button { background-color: transparent; }
+        }
+        button[type="submit"] { // save button
+            margin-top: 10px;
+            margin-right: 10px;
+        }
+    }
     label { margin-top: 10px; }
     .geolookup {
         display: table;
@@ -24,4 +38,16 @@
             }
         }
     }
+
+    &__form {
+        padding: 20px;
+        margin-top: $nav-height;
+        overflow: auto;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
 }

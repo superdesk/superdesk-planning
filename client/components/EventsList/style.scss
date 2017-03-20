@@ -1,7 +1,9 @@
+@import '~superdesk-core/styles/sass/variables.scss';
+
 .events-list {
     overflow: auto;
-    height: 100%;
     width: 100%;
+    margin-top: $nav-height;
     &__empty-msg {
         font-size: 1.75em;
         text-align: center;

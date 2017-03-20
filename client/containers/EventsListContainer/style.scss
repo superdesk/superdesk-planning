@@ -1,0 +1,19 @@
+@import '~superdesk-core/styles/sass/variables.scss';
+
+
+.Planning__events-list-container {
+    height: 100%;
+}
+
+.Planning__events-list {
+    position: relative;
+    display: flex;
+    height: 100%;
+    .subnav {
+        visibility: hidden;
+        > button {
+            margin-top: 10px;
+            margin-right: 10px;
+        }
+    }
+}

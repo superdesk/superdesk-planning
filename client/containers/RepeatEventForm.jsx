@@ -123,7 +123,7 @@ RepeatEventFormComponent.propTypes = {
     frequency: PropTypes.oneOf(['YEARLY', 'MONTHLY', 'WEEKLY', 'DAILY']),
 }
 
-// This is the same name defined in AddEventForm.jsx because it is just a sub form
+// This is the same name defined in EventForm.jsx because it is just a sub form
 const selector = formValueSelector('addEvent')
 const mapStateToProps = (state) => ({
     frequency: selector(state, 'dates.recurring_rule.frequency'),
