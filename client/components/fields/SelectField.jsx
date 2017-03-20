@@ -11,10 +11,14 @@ export const SelectField = ({ input, label, options, value, meta, multi }) => {
                 value={value}
                 multi={multi}
                 options={options}
-                onChange={(opts) => {
-                    input.onChange((Array.isArray(opts)) ? opts.map((opt) => (opt.value)) : opts.value)
-                }}
                 className="line-input"
+                onChange={(opts) => {
+                    if (Array.isArray(opts)) {
+                        input.onChange(opts.map((opt) => (opt.value)))
+                    } else {
+                        input.onChange(opts && opts.value || null)
+                    }
+                }}
             />
             {touched && ((error && <span className="help-block">{error}</span>) ||
             (warning && <span className="help-block">{warning}</span>))}
