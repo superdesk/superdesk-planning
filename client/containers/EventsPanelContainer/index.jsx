@@ -5,6 +5,12 @@ import * as selectors from '../../selectors'
 import * as actions from '../../actions'
 import './style.scss'
 
+const DEFAULT_FORM_VALUES = {
+    occur_status: {
+        name: 'Planned, occurs certainly',
+        qcode: 'eocstat:eos5',
+    }
+}
 export const EventsPanel = ({ eventToDetail, handleBackToList }) => (
     <div className="Planning__events-panel">
         {eventToDetail &&
@@ -24,7 +30,7 @@ EventsPanel.propTypes = {
 const mapStateToProps = (state) => ({
     // selectors.getShowEventDetails is either true, an event id, or null
     eventToDetail: selectors.getShowEventDetails(state) === true
-        ? {}
+        ? DEFAULT_FORM_VALUES
         : selectors.getEventToDetail(state),
 })
 

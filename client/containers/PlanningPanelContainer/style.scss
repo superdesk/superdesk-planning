@@ -38,6 +38,7 @@
         width: 0;
         background-color: white;
         box-shadow: inset 2px 0 3px -1px #d8d8d8;
+        > *:not(header) { margin: 10px; }
     }
 }
 $EDIT_PLANNING_WIDTH: 450px;
@@ -45,7 +46,6 @@ $EDIT_PLANNING_WIDTH: 450px;
 .Planning--edit-planning-view { // when the planning editor is open
     .Planning__edit-planning {
         width: $EDIT_PLANNING_WIDTH;
-        padding: $nav-height + 20px 10px 10px 10px;
     }
 }
 .Planning__edit-planning {
