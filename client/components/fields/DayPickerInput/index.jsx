@@ -1,6 +1,5 @@
 import React, { PropTypes } from 'react'
 import DatePicker from 'react-datepicker'
-import { touch } from 'redux-form'
 import TimePicker from 'rc-time-picker'
 import moment from 'moment'
 import 'react-datepicker/dist/react-datepicker.css'
@@ -18,25 +17,18 @@ export class DayPickerInput extends React.Component {
         const selectedTime = selectedDate ? moment(selectedDate) : undefined
         // remove the time from the date
         if (selectedDate) selectedDate.startOf('day')
+
+        const dateManuallyDefined = this.props.input.value ? true : false
         this.state = {
             selectedTime,
             selectedDate,
+            dateManuallyDefined
         }
-    }
-
-    componentWillMount() {
-        // set as touched if there is an initial value. This prevent the default value
-        // to take over in componentWillReceiveProps
-        if (this.props.input.value) this.touch()
     }
 
     /** open the date picker */
     focus() {
         this.refs.datePicker.handleFocus()
-    }
-
-    touch() {
-        return this.props.meta.dispatch(touch(this.props.meta.form, this.props.input.name))
     }
 
     setStateFromDate(_date) {
@@ -61,7 +53,8 @@ export class DayPickerInput extends React.Component {
     /** Update the state when the props change */
     componentWillReceiveProps(nextProps) {
         // use default date only when untouched
-        if (!nextProps.meta.touched && nextProps.defaultDate !== this.props.defaultDate) {
+        if (!this.state.dateManuallyDefined && nextProps.defaultDate &&
+            nextProps.defaultDate !== this.props.defaultDate){
             this.setStateFromDate(nextProps.defaultDate)
             .then(() => this.updateValueFromState())
         } else {
@@ -75,18 +68,16 @@ export class DayPickerInput extends React.Component {
     onDayChange(selectedDate) {
         this.setState(
             // given date is utc, we convert to local
-            { selectedDate: moment(selectedDate.format('YYYY-MM-DDTHH:mm:ss')) },
+            { selectedDate: moment(selectedDate.format('YYYY-MM-DDTHH:mm:ss')), dateManuallyDefined: true },
             () => {
-                this.touch()
                 this.updateValueFromState()
             }
         )
     }
 
     onTimeChange(selectedTime) {
-        this.setState({ selectedTime },
+        this.setState({ selectedTime, dateManuallyDefined: true },
             () => {
-                this.touch()
                 this.updateValueFromState()
             }
         )
