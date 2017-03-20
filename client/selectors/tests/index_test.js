@@ -21,8 +21,8 @@ describe('selectors', () => {
         let state = {
             planning: {
                 plannings: {
-                    a: { name: 'name a', _created: '2' },
-                    b: { name: 'name b', _created: '1' },
+                    a: { name: 'name a', _created: '2017-03-20T07:22:28.000Z' },
+                    b: { name: 'name b', _created: '2017-03-20T06:22:28.000Z' },
                 },
                 currentAgendaId: '1',
                 agendas: [{ _id: '1', name: 'name', planning_items: ['a', 'b'] }],
