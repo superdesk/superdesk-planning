@@ -20,6 +20,7 @@ function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting
                <Field name="anpa_category"
                        component={fields.CategoryField}
                        label="Category"/>
+                <br/>&nbsp;From&nbsp;<br/>
                 <Field name="dates.start"
                        component={fields.DayPickerInput}
                        withTime={true}/>
