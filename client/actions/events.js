@@ -204,7 +204,7 @@ function _fetchEvents({ advancedSearch, fulltext, ids }) {
             }
         // Otherwise fetch only future events
         } else {
-            query.range = { 'dates.start': { gte: 'now/d' } }
+            query.range = { 'dates.end': { gte: 'now/d' } }
         }
         // Query the API and sort by date
         return api('events').query({
