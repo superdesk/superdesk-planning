@@ -4,6 +4,7 @@ import { orderBy } from 'lodash'
 export const getAgendas = (state) => state.planning.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
 export const getEvents = (state) => state.events.events
+export const isEventListShown = (state) =>state.events.show
 export const getCurrentAgendaId = (state) => state.planning.currentAgendaId
 export const getStoredPlannings = (state) => state.planning.plannings
 export const getServerUrl = (state) => state.config.server.url

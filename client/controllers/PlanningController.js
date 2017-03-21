@@ -73,8 +73,4 @@ export function PlanningController(
         </Provider>,
         $element.get(0)
     )
-    // listen events
-    $scope.$on('PlanningMenuItemClicked', () => {
-        store.dispatch(actions.toggleEventsList())
-    })
 }

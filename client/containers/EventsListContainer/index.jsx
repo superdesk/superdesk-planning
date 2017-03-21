@@ -56,7 +56,7 @@ class EventsListComponent extends React.Component {
 
     render() {
         const { searchBarExtended } = this.state
-        const { advancedSearchOpened } = this.props
+        const { advancedSearchOpened, toggleEventsList } = this.props
         const classes = [
             'Planning__events-list-container',
             advancedSearchOpened ? 'Planning--advanced-search-view' : null,
@@ -66,6 +66,13 @@ class EventsListComponent extends React.Component {
                 <div className="Planning__events-list">
                     <AdvancedSearchPanelContainer  />
                     <div className="subnav">
+                        <div className="subnav__button-stack--square-buttons">
+                            <div className="navbtn" title="Hide the list">
+                                <button onClick={toggleEventsList} type="button">
+                                    <i className="icon-chevron-left-thin"/>
+                                </button>
+                            </div>
+                        </div>
                         <div className={'flat-searchbar' + (searchBarExtended ? ' extended' : '')}>
                             <div className="search-handler">
                                 <label
@@ -124,6 +131,7 @@ EventsListComponent.propTypes = {
     advancedSearchOpened: React.PropTypes.bool,
     openAdvancedSearch: React.PropTypes.func.isRequired,
     closeAdvancedSearch: React.PropTypes.func.isRequired,
+    toggleEventsList: React.PropTypes.func,
     deleteEvent: React.PropTypes.func,
 }
 
@@ -138,6 +146,7 @@ const mapDispatchToProps = (dispatch) => ({
     loadEvents: (keyword) => dispatch(actions.fetchEvents({ fulltext: keyword })),
     openAdvancedSearch: () => (dispatch(actions.openAdvancedSearch())),
     closeAdvancedSearch: () => (dispatch(actions.closeAdvancedSearch())),
+    toggleEventsList: () => (dispatch(actions.toggleEventsList())),
     deleteEvent: (event) => dispatch(actions.openDeleteEvent(event)),
 })
 
