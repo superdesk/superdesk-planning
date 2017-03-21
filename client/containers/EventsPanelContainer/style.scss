@@ -2,18 +2,33 @@ $EVENTS_LIST_WIDTH: 800px;
 
 .Planning--show-events {
     .Planning__events-panel {
-        width: $EVENTS_LIST_WIDTH;
+        margin-left: 0px;
+        width: $EVENTS_LIST_WIDTH; // set initial width of resizable panel
         .subnav { visibility: visible; }
     }
 }
 
 .Planning__events-panel {
-    width: 0;
+    width: $EVENTS_LIST_WIDTH; // needed to reset resizable panel width
+    margin-left: -60%; // this does not account for resized panel
     position: relative;
-    transition-property: width;
+    transition-property: margin-left;
     transition-duration: .25s;
     box-sizing: border-box;
     border-right: 3px solid #666;
     box-shadow: 2px 0 10px 0 rgba(0,0,0,.3);
     height: 100%;
+}
+
+// We must override some specific superdesk style def here
+#main-container:not(.authoring) .Planning__events-panel .ui-resizable-handle {
+    display: block !important;
+}
+
+// used for disabled css transitions temporarily
+.no-transition {
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  transition: none !important;
 }
