@@ -2,6 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { PlanningForm } from '../index'
+import { EventMetadata } from '../../components'
 import * as selectors from '../../selectors'
 import { get } from 'lodash'
 import moment from 'moment'
@@ -14,7 +15,10 @@ class EditPlanningPanel extends React.Component {
     }
 
     render() {
-        const { creationDate, closePlanningEditor, author } = this.props
+        const { closePlanningEditor, planning } = this.props
+        const creationDate = get(planning, '_created')
+        const author = get(planning, 'original_creator.username')
+        const event = get(planning, 'event_item')
         return (
             <div className="Planning__edit-planning">
                 <header>
@@ -30,6 +34,13 @@ class EditPlanningPanel extends React.Component {
                         <i className="icon-close-small" />
                     </a>
                 </header>
+                {event &&
+                    <div>
+                        <h3>Associated event</h3>
+                        <EventMetadata event={event}/>
+                    </div>
+                }
+                <h3>Planning</h3>
                 <PlanningForm />
             </div>
         )
@@ -38,13 +49,11 @@ class EditPlanningPanel extends React.Component {
 
 EditPlanningPanel.propTypes = {
     closePlanningEditor: React.PropTypes.func.isRequired,
-    creationDate: React.PropTypes.string,
-    author: React.PropTypes.string,
+    planning: React.PropTypes.object,
 }
 
 const mapStateToProps = (state) => ({
-    creationDate: get(selectors.getCurrentPlanning(state), '_created'),
-    author: get(selectors.getCurrentPlanning(state), 'original_creator.username'),
+    planning: selectors.getCurrentPlanning(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

@@ -4,6 +4,13 @@ import { connect } from 'react-redux'
 import { EventForm } from './index'
 import * as actions from '../actions'
 
+const DEFAULT_VALUES = {
+    occur_status: {
+        name: 'Planned, occurs certainly',
+        qcode: 'eocstat:eos5',
+    }
+}
+
 /**
 * Modal for adding/editing an event
 */
@@ -24,7 +31,7 @@ AddEvent.propTypes = {
 
 const mapStateToProps = (state) => ({
     show: state.modal.modalType === 'EDIT_EVENT',
-    initialValues: state.modal.modalProps && state.modal.modalProps.event
+    initialValues: state.modal.modalProps && state.modal.modalProps.event || DEFAULT_VALUES
 })
 
 const mapDispatchToProps = (dispatch) => ({
