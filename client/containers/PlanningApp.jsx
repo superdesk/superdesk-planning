@@ -7,13 +7,14 @@ import {
 
 const PlanningAppComponent = ({ showEvents }) => {
     const classes = [
-        'Planning',
-        showEvents ? 'Planning--show-events' : null,
+        'Planning'
     ]
     return (
         <div className={classes.join(' ')}>
             <CreateAgendaContainer />
-            <EventsPanelContainer />
+            {showEvents &&
+                <EventsPanelContainer />
+            }
             <PlanningPanelContainer />
         </div>
     )

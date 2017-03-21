@@ -1,16 +1,7 @@
 $EVENTS_LIST_WIDTH: 800px;
 
-.Planning--show-events {
-    .Planning__events-panel {
-        margin-left: 0px;
-        width: $EVENTS_LIST_WIDTH; // set initial width of resizable panel
-        .subnav { visibility: visible; }
-    }
-}
-
 .Planning__events-panel {
-    width: $EVENTS_LIST_WIDTH; // needed to reset resizable panel width
-    margin-left: -60%; // this does not account for resized panel
+    width: $EVENTS_LIST_WIDTH; // set initial resizable panel width
     position: relative;
     transition-property: margin-left;
     transition-duration: .25s;
@@ -18,6 +9,7 @@ $EVENTS_LIST_WIDTH: 800px;
     border-right: 3px solid #666;
     box-shadow: 2px 0 10px 0 rgba(0,0,0,.3);
     height: 100%;
+    .subnav { visibility: visible; }
 }
 
 // We must override some specific superdesk style def here
