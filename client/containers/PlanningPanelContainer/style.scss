@@ -5,6 +5,7 @@
     height: 100%;
     .Planning__planning {
         display: flex;
+        height: 93%;
         .subnav {
             .subnav__page-title { width: 100px; }
             select {
@@ -14,6 +15,8 @@
         }
         &__list {
             flex-grow: 1;
+            height: 100%;
+            overflow: auto;
             .list-view { box-shadow: inherit; }
         }
         .ListItem__list-item {
