@@ -5,7 +5,7 @@
     height: 100%;
     .Planning__planning {
         display: flex;
-        height: 93%;
+        height: calc(100% - 48px);
         .subnav {
             .subnav__page-title { width: 100px; }
             select {
