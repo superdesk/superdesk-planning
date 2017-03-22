@@ -12,17 +12,17 @@
 .Planning {
     @include absolute0;
     top: $nav-height;
-    display: flex;
     .navbtn { // fix the (+) button. Needed because it's not a dropdown
         overflow: hidden;
         padding: 0;
         button {border: 0;}
     }
     .subnav { top: 0; }
+    .ui-resizable { position: absolute; }
 }
 .Planning__planning {
     position: relative;
-    flex-grow: 1;
+    /* flex-grow: 1; */
     padding-top: $nav-height;
     transition-property: width;
     transition-duration: .25s;

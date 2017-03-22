@@ -5,6 +5,5 @@ export { ListItem } from './ListItem/index'
 export { QuickAddPlanning } from './QuickAddPlanning/index'
 export { EventItem } from './EventItem/index'
 export { EventMetadata } from './EventMetadata/index'
-export { ResizablePanel } from './ResizablePanel/index'
 import * as fields from './fields'
 export { fields }

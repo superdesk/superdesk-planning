@@ -1,7 +1,8 @@
 @import '~superdesk-core/styles/sass/variables.scss';
 
 .Planning--edit-planning-container {
-    width: 100%;
+    /* width: auto; */
+    position: absolute;
     .Planning__planning {
         display: flex;
         height: 100%;
