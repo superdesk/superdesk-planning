@@ -13,8 +13,7 @@ export class ResizableEventsPanelComponent extends React.Component {
     }
 
     _onResize() {
-        let thisNode = $(this.refs.panel) // this does not work on browser resize
-        //let thisElement = $('.Planning__events-panel')
+        let thisNode = $(this.refs.panel)
         let nextElement = thisNode.next() 
         let windowWidth = $(window).width()
         let thisOffset = thisNode.offset()
@@ -32,7 +31,7 @@ export class ResizableEventsPanelComponent extends React.Component {
     }
 
     componentDidMount() {
-        let thisNode = $(this.refs.panel) // this does not work on browser resize
+        let thisNode = $(this.refs.panel)
         let container = $(thisNode).parent()
         let children = $(thisNode).children()
         $(thisNode).resizable({
