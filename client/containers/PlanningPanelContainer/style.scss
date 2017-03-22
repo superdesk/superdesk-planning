@@ -1,10 +1,10 @@
 @import '~superdesk-core/styles/sass/variables.scss';
 
-.Planning--edit-planning-container {
+.Planning__planning-panel {
     position: absolute;
+    height: 100%;
     .Planning__planning {
         display: flex;
-        height: 100%;
         .subnav {
             .subnav__page-title { width: 100px; }
             select {
