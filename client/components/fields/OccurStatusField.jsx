@@ -3,6 +3,7 @@ import { connect } from 'react-redux'
 
 const mapStateToProps = (state, ownProps) => ({
     multi: false,
+    clearable: false,
     options: state.vocabularies.eventoccurstatus.map((s) => (
         { label: s.name, value: s }
     )),

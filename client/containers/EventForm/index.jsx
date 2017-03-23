@@ -50,7 +50,7 @@ export class Component extends React.Component {
             <form onSubmit={handleSubmit} className="EventForm">
                 <div className="subnav">
                     <div className="subnav__button-stack--square-buttons">
-                        <div className="navbtn" title="Create">
+                        <div className="navbtn" title="Back to list">
                             <button onClick={onBackClick} type="button">
                                 <i className="icon-chevron-left-thin"/>
                             </button>
@@ -62,11 +62,14 @@ export class Component extends React.Component {
                     </button>
                 </div>
                 <div className="EventForm__form">
+                    {error && <div className="error-block">{error}</div>}
+                    <div>
+                        <label htmlFor="name">What</label>
+                    </div>
                     <div>
                         <Field name="name"
                                component={fields.InputField}
-                               type="text"
-                               label="What"/>
+                               type="text"/>
                     </div>
                     <div>
                         <Field name="anpa_category"
@@ -84,7 +87,7 @@ export class Component extends React.Component {
                                label="Location"/>
                     </div>
                     <div>
-                        <label htmlFor="dates.start">When</label>
+                        <label htmlFor="dates.start">From</label>
                     </div>
                     <div>
                         <Field name="dates.start"
@@ -93,7 +96,11 @@ export class Component extends React.Component {
                                startDate={startingDate}
                                endDate={endingDate}
                                withTime={true}/>
-                        &nbsp;to&nbsp;
+                    </div>
+                    <div>
+                        <label htmlFor="dates.end">To</label>
+                    </div>
+                    <div>
                         <Field name="dates.end"
                                defaultDate={this.oneHourAfterStartingDate()}
                                component={fields.DayPickerInput}
@@ -130,7 +137,6 @@ export class Component extends React.Component {
                         <label htmlFor="links">Event Links</label>
                         <FieldArray name="links" component={fields.LinksFieldArray} />
                     </div>
-                    {error && <div><strong>{error}</strong></div>}
                 </div>
             </form>
         )
@@ -154,7 +160,7 @@ export const FormComponent = reduxForm({
     form: 'addEvent', // a unique name for this form
     validate: ChainValidators([
         EndDateAfterStartDate,
-        RequiredFieldsValidatorFactory(['name', 'dates.start']),
+        RequiredFieldsValidatorFactory(['name', 'dates.start', 'dates.end']),
         UntilDateAfterStartDate,
     ]),
     enableReinitialize: true //the form will reinitialize every time the initialValues prop changes

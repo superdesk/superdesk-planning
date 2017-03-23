@@ -123,6 +123,7 @@ function saveEvent(newEvent) {
         // add the event to the store
         .then(data => {
             dispatch(addEvents(data._items || [data]))
+            dispatch(closeEventDetails())
             return data
         }, (error) => {
             throw new SubmissionError({ _error: error.statusText })

@@ -108,12 +108,9 @@ export class DayPickerInput extends React.Component {
         const { selectedDate, selectedTime } = this.state
         return (
             <span className="day-picker-input">
-                {
-                    touched && ((error && <div className="day-picker-input__error">{error}</div>) ||
-                    (warning && <div className="day-picker-input__error">{warning}</div>))
-                }
                 <DatePicker
                     ref="datePicker"
+                    placeholderText="Date"
                     disabled={disabled}
                     className="line-input"
                     selectsEnd={selectsEnd}
@@ -124,14 +121,21 @@ export class DayPickerInput extends React.Component {
                     onChange={this.onDayChange.bind(this)}
                     fixedHeight />
                 {(withTime === true) && (
-                    <TimePicker
-                        disabled={disabled}
-                        placeholder="Time"
-                        value={selectedTime}
-                        showSecond={false}
-                        hideDisabledOptions={true}
-                        onChange={this.onTimeChange.bind(this)} />
+                    <span>
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <TimePicker
+                            disabled={disabled}
+                            placeholder="Time"
+                            value={selectedTime}
+                            showSecond={false}
+                            hideDisabledOptions={true}
+                            onChange={this.onTimeChange.bind(this)} />
+                    </span>
                 )}
+                {
+                    touched && ((error && <div className="day-picker-input__error">{error}</div>) ||
+                    (warning && <div className="day-picker-input__error">{warning}</div>))
+                }
             </span>
         )
     }

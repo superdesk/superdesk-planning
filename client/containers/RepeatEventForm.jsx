@@ -49,7 +49,6 @@ class RepeatEventFormComponent extends React.Component {
                 <div>
                     <label>Repeats</label>
                     <Field name="dates.recurring_rule.frequency" component="select">
-                        <option />
                         {/* values come from http://tinyurl.com/hqol55p */}
                         <option value="YEARLY">Yearly</option>
                         <option value="MONTHLY">Monthly</option>

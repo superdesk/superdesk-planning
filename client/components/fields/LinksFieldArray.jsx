@@ -11,7 +11,7 @@ export const LinksFieldArray = ({ fields }) => (
                 link={fields.get(index)}/>
         ))}
         <li>
-            <br/>
+            { fields.length ? <br/> : '' }
             <button
                 className="Link__add-btn btn btn-default"
                 onClick={() => fields.push()}
