@@ -1,6 +1,7 @@
 .event {
     border-left: 4px solid #bababa;
     box-sizing: border-box;
+    .event__title { overflow: hidden; text-overflow: ellipsis }
     &--has-planning {
         border-left: 4px solid #00aa4d;
     }
