@@ -71,7 +71,7 @@ class EventFileFeedingService(FileFeedingService):
                                 xml = ElementTree.parse(f)
                                 parser = self.get_feed_parser(provider, xml.getroot())
                                 item = parser.parse(xml.getroot(), provider)
-                        if isinstance(registered_parser, IcsTwoFeedParser):
+                        elif isinstance(registered_parser, IcsTwoFeedParser):
                             logger.info('Ingesting ics events')
                             with open(file_path, 'rb') as f:
                                 cal = Calendar.from_ical(f.read())
