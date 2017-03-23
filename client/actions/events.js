@@ -7,7 +7,7 @@ import { saveLocation } from './index'
 export const receiveEvents = (events) => ({
     type: 'RECEIVE_EVENTS',
     payload: events,
-    receivedAt: Date.now()
+    receivedAt: Date.now(),
 })
 
 export function toggleEventsList() {
@@ -20,14 +20,18 @@ export function addEvents(events) {
             e.files && e.files.length > 0 && typeof e.files[0] === 'string'
         ))
         if (incompleteEvents.length > 0) {
-            dispatch(_fetchEvents({
-                ids: incompleteEvents.map((i) => (i._id))
-            }))
+            dispatch(_fetchEvents({ ids: incompleteEvents.map((i) => (i._id)) }))
             .then((e) => {
-                dispatch({ type: 'ADD_EVENTS', payload: e._items })
+                dispatch({
+                    type: 'ADD_EVENTS',
+                    payload: e._items,
+                })
             })
         } else {
-            dispatch({ type: 'ADD_EVENTS', payload: events })
+            dispatch({
+                type: 'ADD_EVENTS',
+                payload: events,
+            })
         }
     }
 }
@@ -38,9 +42,7 @@ function uploadFiles(files) {
             upload.start({
                 method: 'POST',
                 url: getState().config.server.url + '/events_files/',
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                },
+                headers: { 'Content-Type': 'multipart/form-data' },
                 data: { media: [file] },
                 arrayKey: '',
                 // returns the item
@@ -137,15 +139,15 @@ function _fetchEvents({ advancedSearch, fulltext, ids }) {
         const filter = {}
         // If there is a fulltext, search by term
         if (fulltext) {
-            query.bool = { should: [
+            query.bool = {
+                should: [
                 { match: { name: fulltext } },
                 { match: { definition_short: fulltext } },
-            ] }
+                ],
+            }
         // search by ids
         } else if (ids) {
-            filter.bool = {
-                should: ids.map((i) => ({ term: { _id: i } }))
-            }
+            filter.bool = { should: ids.map((i) => ({ term: { _id: i } })) }
         // advanced search
         } else if (advancedSearch) {
             const should = [];
@@ -157,7 +159,7 @@ function _fetchEvents({ advancedSearch, fulltext, ids }) {
                             { match: { name: advancedSearch.name } },
                             { match: { definition_short: advancedSearch.name } }
                         )
-                    }
+                    },
                 },
                 {
                     condition: () => (advancedSearch.location),
@@ -165,7 +167,7 @@ function _fetchEvents({ advancedSearch, fulltext, ids }) {
                         should.push(
                             { match: { 'location.name': advancedSearch.location } }
                         )
-                    }
+                    },
                 },
                 {
                     condition: () => (advancedSearch.anpa_category),
@@ -175,7 +177,7 @@ function _fetchEvents({ advancedSearch, fulltext, ids }) {
                             { match: { 'anpa_category.qcode': code } }
                         ))
                         should.push(...queries)
-                    }
+                    },
                 },
                 {
                     condition: () => (advancedSearch.dates),
@@ -191,8 +193,8 @@ function _fetchEvents({ advancedSearch, fulltext, ids }) {
                         }
 
                         filter.range = range
-                    }
-                }
+                    },
+                },
             // loop over actions and performs if conditions are met
             ].forEach((action) => {
                 if (action.condition()) {
@@ -211,14 +213,20 @@ function _fetchEvents({ advancedSearch, fulltext, ids }) {
         return api('events').query({
             sort: '[("dates.start",1)]',
             embedded: { files: 1 },
-            source: JSON.stringify({ query, filter })
+            source: JSON.stringify({
+                query,
+                filter,
+            }),
         })
     }
 }
 
 export function fetchEvents(params={}) {
     return (dispatch, getState, { $timeout, $location }) => {
-        dispatch({ type: 'REQUEST_EVENTS', payload: params })
+        dispatch({
+            type: 'REQUEST_EVENTS',
+            payload: params,
+        })
         dispatch(_fetchEvents(params))
         .then(data => dispatch(receiveEvents(data._items)))
         // update the url (deep linking)
@@ -237,7 +245,10 @@ export const closeAdvancedSearch = () => (
 )
 
 export const openEventDetails = (event) => (
-    { type: 'OPEN_EVENT_DETAILS', payload: event && event._id || true }
+    {
+        type: 'OPEN_EVENT_DETAILS',
+        payload: event && event._id || true,
+    }
 )
 
 export const closeEventDetails = () => (

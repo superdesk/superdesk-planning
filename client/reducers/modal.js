@@ -1,6 +1,6 @@
 const initialState = {
     modalType: null,
-    modalProps: {}
+    modalProps: {},
 }
 
 const modal = (state = initialState, action) => {
@@ -8,7 +8,7 @@ const modal = (state = initialState, action) => {
         case 'SHOW_MODAL':
             return {
                 modalType: action.modalType,
-                modalProps: action.modalProps
+                modalProps: action.modalProps,
             }
         case 'HIDE_MODAL':
             return initialState

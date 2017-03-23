@@ -14,28 +14,28 @@ const events = [
         definition_short: 'definition_short 1',
         location: [{ name: 'location1' }],
         name: 'name1',
-        files: [{}, {}]
+        files: [{}, {}],
     },
     {
         _id: '5800d73230627218866f1e82',
         dates: {
             end: '2016-10-19T13:01:50+0000',
-            start: '2016-10-17T13:01:34+0000'
+            start: '2016-10-17T13:01:34+0000',
         },
         definition_short: '',
         location: [{ name: 'location1' }],
-        name: 'name2'
+        name: 'name2',
     },
     {
         _id: '5800d73230627218866f1d82',
         dates: {
             end: '2016-10-19T13:01:50+0000',
-            start: '2016-10-17T13:01:34+0000'
+            start: '2016-10-17T13:01:34+0000',
         },
         definition_short: '',
         location: [{ name: 'location2' }],
-        name: 'name3'
-    }
+        name: 'name3',
+    },
 ]
 
 describe('<EventsList />', () => {
@@ -47,9 +47,12 @@ describe('<EventsList />', () => {
             },
             planning: {
                 plannings: {
-                    planning1: { _id: 'planning1', event_item: { _id: '5800d71930627218866f1e80' }}
-                }
-            }
+                    planning1: {
+                        _id: 'planning1',
+                        event_item: { _id: '5800d71930627218866f1e80' },
+                    },
+                },
+            },
         }
         const store = createTestStore({ initialState })
         const wrapper = mount(
@@ -72,16 +75,19 @@ describe('<EventsList />', () => {
             _id: '123',
             dates: {
                 end: '2016-11-19T13:01:50+0000',
-                start: '2016-10-17T13:01:34+0000'
+                start: '2016-10-17T13:01:34+0000',
             },
             definition_short: '',
             location: [{ name: 'location3' }],
-            name: 'name4'
+            name: 'name4',
         }
         store.dispatch(actions.addEvents([newEvent]))
         expect(wrapper.find('.ListItem__list-item').length).toEqual(4)
         // update an item
-        const updatedEvent = { ...newEvent, name: 'new name' }
+        const updatedEvent = {
+            ...newEvent,
+            name: 'new name',
+        }
         store.dispatch(actions.addEvents([updatedEvent]))
         expect(wrapper.find('.ListItem__list-item').length).toEqual(4)
         expect(

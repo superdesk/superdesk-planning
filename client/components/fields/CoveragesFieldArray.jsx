@@ -25,6 +25,4 @@ export const CoveragesFieldArray = ({ fields }) => (
         </li>
     </ul>
 )
-CoveragesFieldArray.propTypes = {
-    fields: React.PropTypes.object.isRequired,
-}
+CoveragesFieldArray.propTypes = { fields: React.PropTypes.object.isRequired }

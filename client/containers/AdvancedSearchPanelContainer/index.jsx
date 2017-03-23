@@ -26,12 +26,10 @@ export function AdvancedSearchPanel({ onCloseAdvancedSearch, className }) {
 
 AdvancedSearchPanel.propTypes = {
     className: React.PropTypes.string,
-    onCloseAdvancedSearch: React.PropTypes.func.isRequired
+    onCloseAdvancedSearch: React.PropTypes.func.isRequired,
 }
 
-const mapDispatchToProps = (dispatch) => ({
-    onCloseAdvancedSearch: () => (dispatch(actions.closeAdvancedSearch()))
-})
+const mapDispatchToProps = (dispatch) => ({ onCloseAdvancedSearch: () => (dispatch(actions.closeAdvancedSearch())) })
 
 export const AdvancedSearchPanelContainer = connect(
     null, mapDispatchToProps

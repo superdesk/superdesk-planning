@@ -22,7 +22,7 @@ export class DayPickerInput extends React.Component {
         this.state = {
             selectedTime,
             selectedDate,
-            dateManuallyDefined
+            dateManuallyDefined,
         }
     }
 
@@ -35,7 +35,10 @@ export class DayPickerInput extends React.Component {
         return new Promise((resolve) => {
             // if there is no date, reset the state
             if (!_date) {
-                return this.setState({ selectedTime: undefined, selectedDate: undefined }, resolve())
+                return this.setState({
+                    selectedTime: undefined,
+                    selectedDate: undefined,
+                }, resolve())
             }
             // otherwise compute the value of date and time fields
             let date = moment(_date)
@@ -68,7 +71,10 @@ export class DayPickerInput extends React.Component {
     onDayChange(selectedDate) {
         this.setState(
             // given date is utc, we convert to local
-            { selectedDate: moment(selectedDate.format('YYYY-MM-DDTHH:mm:ss')), dateManuallyDefined: true },
+            {
+                selectedDate: moment(selectedDate.format('YYYY-MM-DDTHH:mm:ss')),
+                dateManuallyDefined: true,
+            },
             () => {
                 this.updateValueFromState()
             }
@@ -76,7 +82,10 @@ export class DayPickerInput extends React.Component {
     }
 
     onTimeChange(selectedTime) {
-        this.setState({ selectedTime, dateManuallyDefined: true },
+        this.setState({
+            selectedTime,
+            dateManuallyDefined: true,
+        },
             () => {
                 this.updateValueFromState()
             }
@@ -151,4 +160,7 @@ DayPickerInput.propTypes = {
     startDate: PropTypes.object,
     endDate: PropTypes.object,
 }
-DayPickerInput.defaultProps = { withTime: false, meta: {} }
+DayPickerInput.defaultProps = {
+    withTime: false,
+    meta: {},
+}

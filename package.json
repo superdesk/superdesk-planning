@@ -5,6 +5,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "fix": "eslint client --ext=jsx --ext=js --fix",
     "hint": "jscs client && eslint client --ext=jsx --ext=js",
     "unit_test": "karma start karma.conf.js --log-level debug --display-error-details --single-run  --browsers Firefox",
     "karma": "karma start karma.conf.js",

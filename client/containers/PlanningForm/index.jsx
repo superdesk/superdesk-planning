@@ -47,19 +47,17 @@ Component.propTypes = propTypes
 // Decorate the form component
 const PlanningReduxForm = reduxForm({
     form: 'planning', // a unique name for this form
-    enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
+    enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
-const mapStateToProps = (state) => ({
-    initialValues: selectors.getCurrentPlanning(state)
-})
+const mapStateToProps = (state) => ({ initialValues: selectors.getCurrentPlanning(state) })
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (planning) => (
         // save the planning through the API
         dispatch(actions.savePlanningAndReloadCurrentAgenda(planning))
-    )
+    ),
 })
 
 export const PlanningForm = connect(

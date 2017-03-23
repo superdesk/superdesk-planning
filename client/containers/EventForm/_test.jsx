@@ -8,14 +8,17 @@ import * as actions from '../../actions'
 
 const event = {
     _id: '5800d71930627218866f1e80',
-    dates: { start: '2016-10-15T14:30+0000', end: '2016-10-20T15:00+0000' },
+    dates: {
+        start: '2016-10-15T14:30+0000',
+        end: '2016-10-20T15:00+0000',
+    },
     definition_short: 'definition_short 1',
     location: [{ name: 'location1' }],
     name: 'name1',
     files: [{
         media: {
             name: 'file.pdf',
-            length: 1000
+            length: 1000,
         },
         filemeta: { media_id: 'media1' },
     }],
@@ -45,7 +48,7 @@ describe('<FormComponent />', () => {
                 expect(newEvent.dates.tz).toEqual(jasmine.any(String))
                 expect(newEvent.dates.start).toEqual(event.dates.start)
                 return Promise.resolve()
-            })
+            }),
         })
         const action = actions.uploadFilesAndSaveEvent(event)
         action(dispatch, getState, { api })
@@ -100,10 +103,8 @@ describe('<FormComponent />', () => {
             dates: {
                 start: '2016-10-15T14:30+0000',
                 end: '2016-10-20T15:00+0000',
-                recurring_rule: {
-                    frequency: 'YEARLY'
-                }
-            }
+                recurring_rule: { frequency: 'YEARLY' },
+            },
         }
         expect(mount(<Provider store={store}><EventForm initialValues={recEvent} /></Provider>)
             .find(FormComponent).props().doesRepeat

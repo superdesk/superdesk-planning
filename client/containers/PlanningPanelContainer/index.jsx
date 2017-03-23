@@ -47,12 +47,12 @@ class PlanningPanel extends React.Component {
             createPlanning,
             currentPlanning,
             planningsAreLoading,
-            editPlanningViewOpen
+            editPlanningViewOpen,
         } = this.props
         const listClasses = [
             'Planning__planning-panel',
             draggingOver ? 'Planning__planning__list--draggingOver' : null,
-            editPlanningViewOpen ? 'Planning--edit-planning-view' : null
+            editPlanningViewOpen ? 'Planning--edit-planning-view' : null,
         ].join(' ')
         return (
             <div className={listClasses}
@@ -135,7 +135,7 @@ const mapStateToProps = (state) => ({
     currentPlanning: selectors.getCurrentPlanning(state),
     planningList: selectors.getCurrentAgendaPlannings(state),
     planningsAreLoading: state.planning.agendasAreLoading || state.planning.planningsAreLoading,
-    editPlanningViewOpen: state.planning.editorOpened
+    editPlanningViewOpen: state.planning.editorOpened,
 })
 
 const mapDispatchToProps = (dispatch) => ({

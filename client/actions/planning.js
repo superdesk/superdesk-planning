@@ -6,7 +6,7 @@ const createAgenda = ({ name }) => (
     (dispatch, getState, { api }) => {
         api('planning').save({}, {
             planning_type: 'agenda',
-            name: name
+            name: name,
         })
         .then((agenda) => {
             dispatch(hideModal())
@@ -29,7 +29,10 @@ const deletePlanning = (planning) => (
         .then(() => (dispatch(fetchAgendas())))
         // reloads the plannings to show
         .then(() => (dispatch(fetchSelectedAgendaPlannings())))
-        .then(() => (dispatch({ type: 'DELETE_PLANNING', payload: planning._id })))
+        .then(() => (dispatch({
+            type: 'DELETE_PLANNING',
+            payload: planning._id,
+        })))
     )
 )
 
@@ -58,7 +61,7 @@ const addToCurrentAgenda = (planning) => (
         // add the planning to the agenda
         return dispatch(addPlanningToAgenda({
             planning: planning,
-            agenda: currentAgenda
+            agenda: currentAgenda,
         }))
         // returns the planning to chain well with planning savings actions
         .then(() => (planning))
@@ -136,7 +139,10 @@ const saveAndDeleteCoverages = (coverages=[], planning, originalCoverages=[]) =>
 )
 
 const addOrReplaceAgenda = (agenda) => (
-    { type: 'ADD_OR_REPLACE_AGENDA', payload: agenda }
+    {
+        type: 'ADD_OR_REPLACE_AGENDA',
+        payload: agenda,
+    }
 )
 
 const addPlanningToAgenda = ({ planning, agenda }) => (
@@ -148,9 +154,7 @@ const addPlanningToAgenda = ({ planning, agenda }) => (
         // add planning to planning_items
         planningItems.push(planning._id)
         // update the agenda
-        return api('planning').save(agenda, {
-            planning_items: planningItems
-        }).then((agenda) => (
+        return api('planning').save(agenda, { planning_items: planningItems }).then((agenda) => (
             // replace the agenda in the store
             dispatch(addOrReplaceAgenda(agenda))
         ))
@@ -181,11 +185,17 @@ const addEventToCurrentAgenda = (event) => (
 )
 
 const receiveAgendas = (agendas) => (
-    { type: 'RECEIVE_AGENDAS', payload: agendas }
+    {
+        type: 'RECEIVE_AGENDAS',
+        payload: agendas,
+    }
 )
 
 const receivePlannings = (plannings) => (
-    { type: 'RECEIVE_PLANNINGS', payload: plannings }
+    {
+        type: 'RECEIVE_PLANNINGS',
+        payload: plannings,
+    }
 )
 
 const requestAgendas = () => (
@@ -202,7 +212,10 @@ const fetchAgendas = () => (
         dispatch(requestAgendas())
         // fetch the plannings through the api
         return api('planning').query({
-            embedded: { event_item: 1, original_creator: 1 }, // nest event and creator to planning
+            embedded: {
+                event_item: 1,
+                original_creator: 1,
+            }, // nest event and creator to planning
             max_results: 10000,
             timestamp: new Date(),
         })
@@ -219,11 +232,13 @@ const fetchSelectedAgendaPlannings = () => (
         const agenda = selectors.getCurrentAgenda(getState())
         if (!agenda || !agenda.planning_items) return Promise.resolve()
         dispatch(requestAgendaPlannings())
+        const should = agenda.planning_items.map((pid) => ({ term: { _id: pid } }))
         const query = {
-            source: { filter: { bool: {
-                should: agenda.planning_items.map((pid) => ({ term: { _id: pid } }))
-            } } },
-            embedded: { event_item: 1, original_creator: 1 }, // nest event and creator to planning
+            source: { filter: { bool: { should } } },
+            embedded: {
+                event_item: 1,
+                original_creator: 1,
+            }, // nest event and creator to planning
             timestamp: new Date(),
         }
         return api('planning').query(query)
@@ -234,7 +249,10 @@ const fetchSelectedAgendaPlannings = () => (
 const selectAgenda = (agendaId) => (
     (dispatch, getState, { $timeout, $location }) => {
         // save in store selected agenda
-        dispatch({ type: 'SELECT_AGENDA', payload: agendaId })
+        dispatch({
+            type: 'SELECT_AGENDA',
+            payload: agendaId,
+        })
         // update the url (deep linking)
         $timeout(() => ($location.search('agenda', agendaId)))
         // reload the plannings list
@@ -243,7 +261,10 @@ const selectAgenda = (agendaId) => (
 )
 
 const openPlanningEditor = (planning) => (
-    (dispatch) => (dispatch({ type: 'OPEN_PLANNING_EDITOR', payload: planning }))
+    (dispatch) => (dispatch({
+        type: 'OPEN_PLANNING_EDITOR',
+        payload: planning,
+    }))
 )
 
 const closePlanningEditor = () => (
@@ -258,5 +279,5 @@ export {
     fetchAgendas,
     selectAgenda,
     openPlanningEditor,
-    closePlanningEditor
+    closePlanningEditor,
 }

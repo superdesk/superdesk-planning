@@ -18,8 +18,11 @@ describe('<SelectField />', () => {
         const FormComponent = reduxForm({ form: 'form' })(renderComponentField(OccurStatusField))
         const initialState = {
             vocabularies: {
-                eventoccurstatus: [{ name: 'occ', qcode: 'qcode' }]
-            }
+                eventoccurstatus: [{
+                    name: 'occ',
+                    qcode: 'qcode',
+                }],
+            },
         }
         const store = createTestStore({ initialState })
         const wrapper = mount(
@@ -27,7 +30,10 @@ describe('<SelectField />', () => {
                 <FormComponent/>
             </Provider>
         )
-        wrapper.find('Select').props().onChange({ name: 'lab', value: { name: 'lab' } })
+        wrapper.find('Select').props().onChange({
+            name: 'lab',
+            value: { name: 'lab' },
+        })
         expect(wrapper.find('Select').props().value.label).toEqual('lab')
         expect(wrapper.find('Select').props().options[0].label).toEqual('occ')
     })
@@ -36,8 +42,11 @@ describe('<SelectField />', () => {
         const FormComponent = reduxForm({ form: 'form' })(renderComponentField(CategoryField))
         const initialState = {
             vocabularies: {
-                categories: [{ name: 'cat', qcode: 'qcode' }]
-            }
+                categories: [{
+                    name: 'cat',
+                    qcode: 'qcode',
+                }],
+            },
         }
         const store = createTestStore({ initialState })
         const wrapper = mount(
@@ -45,7 +54,10 @@ describe('<SelectField />', () => {
                 <FormComponent/>
             </Provider>
         )
-        wrapper.find('Select').props().onChange([{ name: 'lab', value: { name: 'lab' } }])
+        wrapper.find('Select').props().onChange([{
+            name: 'lab',
+            value: { name: 'lab' },
+        }])
         expect(wrapper.find('Select').props().value[0].label).toEqual('lab')
         expect(wrapper.find('Select').props().options[0].label).toEqual('cat')
     })

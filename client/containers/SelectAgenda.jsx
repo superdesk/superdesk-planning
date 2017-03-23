@@ -30,8 +30,6 @@ const mapStateToProps = (state) => ({
     isLoading: state.planning.agendasAreLoading,
 })
 
-const mapDispatchToProps = (dispatch) => ({
-    onChange: (event) => (dispatch(actions.selectAgenda(event.target.value)))
-})
+const mapDispatchToProps = (dispatch) => ({ onChange: (event) => (dispatch(actions.selectAgenda(event.target.value))) })
 
 export const SelectAgenda = connect(mapStateToProps, mapDispatchToProps)(SelectAgendaComponent)

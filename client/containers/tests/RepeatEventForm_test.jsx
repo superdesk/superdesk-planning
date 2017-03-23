@@ -27,13 +27,16 @@ describe('<RepeatEventForm />', () => {
     it('checks well radio btn for end of recurring dates', () => {
         const expectEventToEnd = (end) => {
             expect(wrapper.find({
-                name: 'doesRepeatEnd', value: 'until'
+                name: 'doesRepeatEnd',
+                value: 'until',
             }).props().checked).toBe(end === 'until')
             expect(wrapper.find({
-                name: 'doesRepeatEnd', value: 'count'
+                name: 'doesRepeatEnd',
+                value: 'count',
             }).props().checked).toBe(end === 'count')
             expect(wrapper.find({
-                name: 'doesRepeatEnd', value: false
+                name: 'doesRepeatEnd',
+                value: false,
             }).props().checked).toBe(end === false)
         }
         // check intial radios states
@@ -46,10 +49,16 @@ describe('<RepeatEventForm />', () => {
         store.dispatch(change(form, 'dates.recurring_rule.count', 2))
         // check radio buttons new state
         expectEventToEnd('count')
-        wrapper.find({ name: 'doesRepeatEnd', value: 'until' })
+        wrapper.find({
+            name: 'doesRepeatEnd',
+            value: 'until',
+        })
         .simulate('change', { target: { value: 'until' } })
         expectEventToEnd('until')
-        wrapper.find({ name: 'doesRepeatEnd', value: false })
+        wrapper.find({
+            name: 'doesRepeatEnd',
+            value: false,
+        })
         .simulate('change', { target: { value: 'false' } })
         expectEventToEnd(false)
     })

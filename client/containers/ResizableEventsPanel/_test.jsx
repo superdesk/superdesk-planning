@@ -12,9 +12,7 @@ describe('<ResizableEventsPanel />', () => {
                 events: {},
                 search: {},
             },
-            planning: {
-                plannings: {}
-            }
+            planning: { plannings: {} },
         }
         const store = createTestStore({ initialState })
         const wrapper = mount(

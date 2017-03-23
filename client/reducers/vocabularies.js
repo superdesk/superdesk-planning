@@ -14,7 +14,7 @@ const vocabularies = (state=initialState, action) => {
                 ...zipObject(
                     action.payload.map((cv) => cv._id),
                     action.payload.map((cv) => cv.items)
-                )
+                ),
             }
         default:
             return state

@@ -16,9 +16,24 @@ describe('<DaysOfWeek />', () => {
             value: '',
         }
         let wrapper = shallow(<DaysOfWeek input={input}/>)
-        wrapper.find({ value: 'MO' }).simulate('change', { target: { value: 'MO', checked: true } })
-        wrapper.find({ value: 'WE' }).simulate('change', { target: { value: 'WE', checked: true } })
-        wrapper.find({ value: 'SA' }).simulate('change', { target: { value: 'SA', checked: true } })
+        wrapper.find({ value: 'MO' }).simulate('change', {
+            target: {
+                value: 'MO',
+                checked: true,
+            },
+        })
+        wrapper.find({ value: 'WE' }).simulate('change', {
+            target: {
+                value: 'WE',
+                checked: true,
+            },
+        })
+        wrapper.find({ value: 'SA' }).simulate('change', {
+            target: {
+                value: 'SA',
+                checked: true,
+            },
+        })
         expect(onButtonClick.callCount).toBe(3)
     })
     it('works well with initial value', () => {
@@ -38,7 +53,12 @@ describe('<DaysOfWeek />', () => {
         expect(wrapper.state().SU).toBe(true)
         expect(wrapper.find({ value: 'MO' }).props().checked).toBe(true)
         expect(wrapper.find({ value: 'WE' }).props().checked).toBe(false)
-        wrapper.find({ value: 'SA' }).simulate('change', { target: { value: 'SA', checked: true } })
+        wrapper.find({ value: 'SA' }).simulate('change', {
+            target: {
+                value: 'SA',
+                checked: true,
+            },
+        })
         expect(input.onChange.calledOnce).toBe(true)
     })
 })

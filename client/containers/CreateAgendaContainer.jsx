@@ -1,5 +1,5 @@
 import React from 'react'
-import {CreateAgendaForm } from './index'
+import { CreateAgendaForm } from './index'
 import { ModalWithForm } from '../components'
 import { connect } from 'react-redux'
 import * as actions from '../actions'
@@ -20,12 +20,8 @@ CreateAgenda.propTypes = {
     handleHide: React.PropTypes.func,
 }
 
-const mapStateToProps = (state) => ({
-    show: state.modal.modalType === 'CREATE_AGENDA',
-})
+const mapStateToProps = (state) => ({ show: state.modal.modalType === 'CREATE_AGENDA' })
 
-const mapDispatchToProps = (dispatch) => ({
-    handleHide: () => dispatch(actions.hideModal())
-})
+const mapDispatchToProps = (dispatch) => ({ handleHide: () => dispatch(actions.hideModal()) })
 
 export const CreateAgendaContainer = connect(mapStateToProps, mapDispatchToProps)(CreateAgenda)

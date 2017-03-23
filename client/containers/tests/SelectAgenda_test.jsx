@@ -8,8 +8,14 @@ import { createTestStore } from '../../utils'
 
 describe('<SelectAgendaComponent />', () => {
     const agendas = [
-        { _id: '1', name: 'agenda1' },
-        { _id: '2', name: 'agenda2' },
+        {
+            _id: '1',
+            name: 'agenda1',
+        },
+        {
+            _id: '2',
+            name: 'agenda2',
+        },
     ]
     it('selects an agenda', () => {
         const handleOnChange = sinon.spy()
@@ -28,14 +34,24 @@ describe('<SelectAgendaComponent />', () => {
         const initialState = {
             planning: {
                 plannings: {
-                    3: { _id: '3', slugline: 'planning 3' }
+                    3: {
+                        _id: '3',
+                        slugline: 'planning 3',
+                    },
                 },
                 agendas: [
-                    { _id: '1', name: 'agenda1' },
-                    { _id: '2', name: 'agenda2', planning_items: ['3'] },
+                    {
+                        _id: '1',
+                        name: 'agenda1',
+                    },
+                    {
+                        _id: '2',
+                        name: 'agenda2',
+                        planning_items: ['3'],
+                    },
                 ],
                 currentAgendaId: '1',
-            }
+            },
         }
         const store = createTestStore({ initialState: initialState })
         // must be empty first

@@ -49,13 +49,13 @@ AdvancedSearchFormComponent.propTypes = propTypes
 // Decorate the form component
 const FormComponent = reduxForm({
     form: 'advanced-search', // a unique name for this form
-    enableReinitialize: true //the form will reinitialize every time the initialValues prop changes
+    enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
 })(AdvancedSearchFormComponent)
 
 const selector = formValueSelector('advanced-search') // same as form name
 const mapStateToProps = (state) => ({
     startingDate: selector(state, 'dates.start'),
-    endingDate: selector(state, 'dates.end')
+    endingDate: selector(state, 'dates.end'),
 })
 
 const mapDispatchToProps = (dispatch) => ({

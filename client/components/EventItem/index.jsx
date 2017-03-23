@@ -20,7 +20,7 @@ export const EventItem = ({ event, onClick }) => {
             icon: 'icon-link',
             count: get(event, 'links.length', 0),
             className: 'links-count',
-        }
+        },
     ]
     const classes = [
         'event',

@@ -48,7 +48,7 @@ class GeoLookupInput extends React.Component {
             q: userInput,
             addressdetails: true,
             extratags: true,
-            namedetails: true
+            namedetails: true,
         })
     }
 

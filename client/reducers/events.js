@@ -40,24 +40,30 @@ const events = (state=initialState, action) => {
         case 'ADD_EVENTS':
             return {
                 ...state,
-                events: addToEvents({ newEvents: action.payload, toEvents: state.events.slice() })
+                events: addToEvents({
+                    newEvents: action.payload,
+                    toEvents: state.events.slice(),
+                }),
             }
         case 'REQUEST_EVENTS':
             return {
                 ...state,
                 search: {
                     ...state.search,
-                    currentSearch: action.payload
-                }
+                    currentSearch: action.payload,
+                },
             }
         case 'RECEIVE_EVENTS':
-            return { ...state, events: action.payload }
+            return {
+                ...state,
+                events: action.payload,
+            }
         case 'OPEN_ADVANCED_SEARCH':
             return {
                 ...state,
                 search: {
                     ...state.search,
-                    advancedSearchOpened: true
+                    advancedSearchOpened: true,
                 },
             }
         case 'CLOSE_ADVANCED_SEARCH':
@@ -65,7 +71,7 @@ const events = (state=initialState, action) => {
                 ...state,
                 search: {
                     ...state.search,
-                    advancedSearchOpened: false
+                    advancedSearchOpened: false,
                 },
             }
         case 'OPEN_EVENT_DETAILS':

@@ -13,16 +13,16 @@ describe('<PlanningForm />', () => {
                     2: {
                         _id: '2',
                         slugline: 'slug',
-                        coverages: [{ _id: 'coverage1' }]
-                    }
+                        coverages: [{ _id: 'coverage1' }],
+                    },
                 },
                 agendas: [{
                     _id: '1',
-                    name: 'agenda'
+                    name: 'agenda',
                 }],
                 currentAgendaId: '1',
                 currentPlanningId: '2',
-            }
+            },
         }
         const spyRemove = sinon.spy((resource, item) => {
             expect(item._id).toBe('coverage1')

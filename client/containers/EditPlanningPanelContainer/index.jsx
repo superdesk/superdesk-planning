@@ -52,13 +52,9 @@ EditPlanningPanel.propTypes = {
     planning: React.PropTypes.object,
 }
 
-const mapStateToProps = (state) => ({
-    planning: selectors.getCurrentPlanning(state),
-})
+const mapStateToProps = (state) => ({ planning: selectors.getCurrentPlanning(state) })
 
-const mapDispatchToProps = (dispatch) => ({
-    closePlanningEditor: () => dispatch(actions.closePlanningEditor())
-})
+const mapDispatchToProps = (dispatch) => ({ closePlanningEditor: () => dispatch(actions.closePlanningEditor()) })
 
 export const EditPlanningPanelContainer = connect(
     mapStateToProps, mapDispatchToProps

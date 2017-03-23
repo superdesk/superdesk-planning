@@ -43,6 +43,6 @@ SelectField.propTypes = {
         React.PropTypes.shape({
             label: React.PropTypes.string,
             value: React.PropTypes.object,
-        })
+        }),
     ]),
 }

@@ -15,7 +15,10 @@ const deletePlanningId = (pid, state) => {
     // clone plannings
     let plannings = cloneDeep(state.plannings)
     delete plannings[pid]
-    return { ...state, plannings }
+    return {
+        ...state,
+        plannings,
+    }
 }
 
 /*eslint-disable complexity*/
@@ -31,28 +34,49 @@ const planning = (state={}, action) => {
             // add to state.plannings, use _id as key
             action.payload.forEach((planning) => plannings[planning._id] = planning)
             // return new state
-            return { ...state, plannings, planningsAreLoading: false }
+            return {
+                ...state,
+                plannings,
+                planningsAreLoading: false,
+            }
         case 'SELECT_AGENDA':
-            return { ...state, currentAgendaId: action.payload }
+            return {
+                ...state,
+                currentAgendaId: action.payload,
+            }
         case 'REQUEST_AGENDAS':
-            return { ...state, agendasAreLoading: true }
+            return {
+                ...state,
+                agendasAreLoading: true,
+            }
         case 'REQUEST_AGENDA_PLANNNGS':
-            return { ...state, planningsAreLoading: true }
+            return {
+                ...state,
+                planningsAreLoading: true,
+            }
         case 'RECEIVE_AGENDAS':
-            return { ...state, agendasAreLoading: false, agendas: action.payload }
+            return {
+                ...state,
+                agendasAreLoading: false,
+                agendas: action.payload,
+            }
         case 'ADD_OR_REPLACE_AGENDA':
             return {
                 ...state,
-                agendas: replaceOrAddInAgendas(state.agendas.slice(), action.payload)
+                agendas: replaceOrAddInAgendas(state.agendas.slice(), action.payload),
             }
         case 'OPEN_PLANNING_EDITOR':
             return {
                 ...state,
                 editorOpened: true,
-                currentPlanningId: action.payload
+                currentPlanningId: action.payload,
             }
         case 'CLOSE_PLANNING_EDITOR':
-            return { ...state, editorOpened: false, currentPlanningId: null }
+            return {
+                ...state,
+                editorOpened: false,
+                currentPlanningId: null,
+            }
         default:
             return state
     }

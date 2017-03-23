@@ -8,7 +8,7 @@ import {
 const PlanningAppComponent = ({ showEvents }) => {
     const classes = [
         'Planning',
-        showEvents ? null : 'Planning--hide-events', 
+        showEvents ? null : 'Planning--hide-events',
     ]
     return (
         <div className={classes.join(' ')}>
@@ -19,12 +19,8 @@ const PlanningAppComponent = ({ showEvents }) => {
     )
 }
 
-PlanningAppComponent.propTypes = {
-    showEvents: React.PropTypes.bool
-}
+PlanningAppComponent.propTypes = { showEvents: React.PropTypes.bool }
 
-const mapStateToProps = (state) => ({
-    showEvents: state.events.show,
-})
+const mapStateToProps = (state) => ({ showEvents: state.events.show })
 
 export const PlanningApp = connect(mapStateToProps)(PlanningAppComponent)

@@ -12,12 +12,19 @@ describe('selectors', () => {
         },
         planning: {
             plannings: {
-                a: { name: 'name a', event_item: { _id: 'event1' } },
+                a: {
+                    name: 'name a',
+                    event_item: { _id: 'event1' },
+                },
                 b: { name: 'name b' },
             },
             currentAgendaId: '1',
-            agendas: [{ _id: '1', name: 'name', planning_items: ['a', 'b'] }],
-        }
+            agendas: [{
+                _id: '1',
+                name: 'name',
+                planning_items: ['a', 'b'],
+            }],
+        },
     }
     it('getCurrentAgenda', () => {
         let result

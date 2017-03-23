@@ -30,7 +30,7 @@ export function PlanningController($element, $scope, api, config, $location, $ti
                 agendasAreLoading: false,
                 plannings: {}, // plannings stored by _id
             },
-            config: config
+            config: config,
         },
         extraArguments: {
             api,
@@ -40,7 +40,7 @@ export function PlanningController($element, $scope, api, config, $location, $ti
             vocabularies,
             superdesk,
             upload,
-        }
+        },
     })
     // load data in the store
     store.dispatch(actions.loadCVocabularies())
