@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
-import { fields } from '../../components'
+import { fields, RelatedPlannings } from '../../components'
 import { RepeatEventForm } from '../index'
 import { Field, FieldArray, reduxForm, formValueSelector } from 'redux-form'
 import { isNil } from 'lodash'
@@ -45,7 +45,16 @@ export class Component extends React.Component {
     }
 
     render() {
-        const { pristine, submitting, onBackClick, handleSubmit, error, startingDate, endingDate} = this.props
+        const { pristine,
+            submitting,
+            onBackClick,
+            handleSubmit,
+            error,
+            startingDate,
+            endingDate,
+            initialValues,
+            handlePlanningClick,
+        } = this.props
         return (
             <form onSubmit={handleSubmit} className="EventForm">
                 <div className="subnav">
@@ -134,9 +143,15 @@ export class Component extends React.Component {
                         <FieldArray name="files" component={fields.FilesFieldArray} />
                     </div>
                     <div>
-                        <label htmlFor="links">Event Links</label>
+                        <label htmlFor="links">External links</label>
                         <FieldArray name="links" component={fields.LinksFieldArray} />
                     </div>
+                    {initialValues && initialValues._plannings &&
+                        <div>
+                            <label htmlFor="links">Related Plannings</label>
+                            <RelatedPlannings plannings={initialValues._plannings} onPlanningClick={handlePlanningClick}/>
+                        </div>
+                    }
                 </div>
             </form>
         )
@@ -153,6 +168,8 @@ Component.propTypes = {
     doesRepeat: React.PropTypes.bool,
     pristine: React.PropTypes.bool,
     submitting: React.PropTypes.bool,
+    initialValues: React.PropTypes.object,
+    handlePlanningClick: React.PropTypes.func.isRequired,
 }
 
 // Decorate the form component
@@ -178,7 +195,10 @@ const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event) => (
         // save the event through the API
         dispatch(actions.uploadFilesAndSaveEvent(event))
-    )
+    ),
+    handlePlanningClick: (planningId) => (
+        dispatch(actions.openPlanningEditor(planningId))
+    ),
 })
 
 export const EventForm = connect(

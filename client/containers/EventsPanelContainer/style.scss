@@ -1,19 +1,37 @@
-$EVENTS_LIST_WIDTH: 800px;
+$EVENTS_LIST_WIDTH: 500px;
 
-.Planning--show-events {
+.Planning--hide-events {
     .Planning__events-panel {
-        width: $EVENTS_LIST_WIDTH;
-        .subnav { visibility: visible; }
+        width: 0 !important;
+        .subnav { 
+            visibility: hidden;
+        }
     }
 }
 
 .Planning__events-panel {
-    width: 0;
-    position: relative;
+    width: $EVENTS_LIST_WIDTH; // set initial resizable panel width
+    position: absolute;
     transition-property: width;
     transition-duration: .25s;
     box-sizing: border-box;
     border-right: 3px solid #666;
     box-shadow: 2px 0 10px 0 rgba(0,0,0,.3);
     height: 100%;
+    .subnav {
+        visibility: visible;
+    }
+}
+
+// We must override some specific superdesk style def here
+#main-container:not(.authoring) .Planning__events-panel .ui-resizable-handle {
+    display: block !important;
+}
+
+// used for disabled css transitions temporarily
+.no-transition {
+  -webkit-transition: none !important;
+  -moz-transition: none !important;
+  -o-transition: none !important;
+  transition: none !important;
 }

@@ -50,7 +50,7 @@ class PlanningPanel extends React.Component {
             editPlanningViewOpen
         } = this.props
         const listClasses = [
-            'Planning--edit-planning-container',
+            'Planning__planning-panel',
             draggingOver ? 'Planning__planning__list--draggingOver' : null,
             editPlanningViewOpen ? 'Planning--edit-planning-view' : null
         ].join(' ')
