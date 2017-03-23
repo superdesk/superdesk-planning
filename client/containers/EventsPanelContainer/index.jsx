@@ -1,5 +1,5 @@
 import React from 'react'
-import { EventsListContainer, EventForm } from '../index'
+import { ResizableEventsPanel,  EventsListContainer, EventForm } from '../index'
 import { connect } from 'react-redux'
 import * as selectors from '../../selectors'
 import * as actions from '../../actions'
@@ -12,14 +12,14 @@ const DEFAULT_FORM_VALUES = {
     }
 }
 export const EventsPanel = ({ eventToDetail, handleBackToList }) => (
-    <div className="Planning__events-panel">
+    <ResizableEventsPanel className="Planning__events-panel" minWidth={500}>
         {eventToDetail &&
             <EventForm initialValues={eventToDetail} onBackClick={handleBackToList} />
         }
         {!eventToDetail &&
             <EventsListContainer/>
         }
-    </div>
+    </ResizableEventsPanel>
 )
 
 EventsPanel.propTypes = {

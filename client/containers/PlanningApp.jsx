@@ -8,7 +8,7 @@ import {
 const PlanningAppComponent = ({ showEvents }) => {
     const classes = [
         'Planning',
-        showEvents ? 'Planning--show-events' : null,
+        showEvents ? null : 'Planning--hide-events', 
     ]
     return (
         <div className={classes.join(' ')}>
