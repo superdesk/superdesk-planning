@@ -7,7 +7,7 @@ export const GeoLookupInput = ({ input, label, meta: { touched, error, warning }
         <AddGeoLookupInput
             onChange={input.onChange}
             initialValue={input.value || {}}/>
-        {touched && ((error && <span className="help-block">{error}</span>) ||
+        {touched && ((error && <span className="error-block">{error}</span>) ||
         (warning && <span className="help-block">{warning}</span>))}
     </div>
 )

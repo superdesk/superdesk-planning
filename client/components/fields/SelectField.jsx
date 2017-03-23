@@ -2,7 +2,7 @@ import React from 'react'
 import Select from 'react-select'
 import 'react-select/dist/react-select.css'
 
-export const SelectField = ({ input, label, options, value, meta, multi }) => {
+export const SelectField = ({ input, label, options, value, meta, multi, clearable }) => {
     const { touched, error, warning } = meta
     return (
         <div className="field">
@@ -10,6 +10,7 @@ export const SelectField = ({ input, label, options, value, meta, multi }) => {
             <Select
                 value={value}
                 multi={multi}
+                clearable={clearable}
                 options={options}
                 className="line-input"
                 onChange={(opts) => {
@@ -20,7 +21,7 @@ export const SelectField = ({ input, label, options, value, meta, multi }) => {
                     }
                 }}
             />
-            {touched && ((error && <span className="help-block">{error}</span>) ||
+            {touched && ((error && <span className="error-block">{error}</span>) ||
             (warning && <span className="help-block">{warning}</span>))}
         </div>
     )
@@ -31,6 +32,7 @@ SelectField.propTypes = {
     label: React.PropTypes.string,
     meta: React.PropTypes.object.isRequired,
     multi: React.PropTypes.bool.isRequired,
+    clearable: React.PropTypes.bool,
     options: React.PropTypes.arrayOf(React.PropTypes.shape({
         label: React.PropTypes.string,
         value: React.PropTypes.object,

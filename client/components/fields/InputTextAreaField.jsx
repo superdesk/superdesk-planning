@@ -4,7 +4,7 @@ export const InputTextAreaField = ({ input, label, meta: { touched, error, warni
     <div className="field">
         {label && <label>{label}</label>}
         <textArea {...input}/>
-        {touched && ((error && <span className="help-block">{error}</span>) ||
+        {touched && ((error && <span className="error-block">{error}</span>) ||
         (warning && <span className="help-block">{warning}</span>))}
     </div>
 )
