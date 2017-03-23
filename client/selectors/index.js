@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect'
-import { orderBy } from 'lodash'
+import { orderBy, get } from 'lodash'
 
 const getAgendas = (state) => state.planning.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
@@ -42,6 +42,7 @@ export const getCurrentPlanning = createSelector(
     }
 )
 
+/** Used for the events list */
 export const getEventsWithMoreInfo = createSelector(
     [getEvents, getStoredPlannings],
     (events, storedPlannings) => {
@@ -60,9 +61,21 @@ export const getEventsWithMoreInfo = createSelector(
     }
 )
 
-export const getEventToDetail = createSelector(
-    [getShowEventDetails, getEvents],
-    (showEventDetails, events) => (
-        events.find((e) => e._id === showEventDetails)
-    )
+/** Used for event details */
+export const getEventToBeDetailed = createSelector(
+    [getShowEventDetails, getEvents, getStoredPlannings, getAgendas],
+    (showEventDetails, events, storedPlannings, agendas) => {
+        const event = events.find((e) => e._id === showEventDetails)
+        if (event) {
+            return {
+                ...event,
+                _plannings: Object.keys(storedPlannings).filter((pKey) => (
+                    get(storedPlannings[pKey], 'event_item._id') === showEventDetails
+                )).map((pKey) => ({
+                    ...storedPlannings[pKey],
+                    _agenda: agendas.find((a) => a.planning_items.indexOf(pKey) > -1),
+                }))
+            }
+        }
+    }
 )

@@ -9,8 +9,19 @@ export const EventItem = ({ event, onClick }) => {
     // shows the time only if not an "all day long" event
     const time = eventIsAllDayLong(event.dates) ? '' : moment(event.dates.start).format('HH:mm')
     const location = get(event, 'location[0].name')
-    const filesAttachedCount = get(event, 'files', []).length
     const hasBeenCanceled = get(event, 'occur_status.qcode') === 'eocstat:eos6'
+    const counters = [
+        {
+            icon: 'icon-file',
+            count: get(event, 'files.length', 0),
+            className: 'files-attached-count',
+        },
+        {
+            icon: 'icon-link',
+            count: get(event, 'links.length', 0),
+            className: 'links-count',
+        }
+    ]
     const classes = [
         'event',
         event._hasPlanning ? 'event--has-planning' : null,
@@ -30,11 +41,15 @@ export const EventItem = ({ event, onClick }) => {
                         <span className="location">location: {location}</span>
                     }
                 </span>
-                <dl className="counts">
-                    {filesAttachedCount > 0 && [
-                        <dt key="1" className="files-attached-count"><i className={'icon-desk-attach'}/></dt>,
-                        <dd key="2" className="files-attached-count">{filesAttachedCount}</dd>,
-                    ]}
+                <dl className="event__counts">
+                    {counters.map(({ icon, count, className }) => {
+                        if (count > 0) {
+                            return [
+                                <dt className={className}><i className={icon}/></dt>,
+                                <dd className={className}>{count}</dd>,
+                            ]
+                        }
+                    })}
                 </dl>
             </div>
         </ListItem>

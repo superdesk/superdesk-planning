@@ -91,11 +91,11 @@ describe('<EventsList />', () => {
         // check attached file count
         expect(
             wrapper.find('.ListItem__list-item').first()
-            .find('.counts dd.files-attached-count').text())
+            .find('.event__counts dd.files-attached-count').text())
         .toBe(events[0].files.length.toString())
         expect(
             wrapper.find('.ListItem__list-item').last()
-            .find('.counts dd.files-attached-count').length)
+            .find('.event__counts dd.files-attached-count').length)
         .toBe(0)
     })
     it('trigger an event click', () => {
