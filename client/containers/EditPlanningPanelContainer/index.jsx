@@ -15,10 +15,9 @@ class EditPlanningPanel extends React.Component {
     }
 
     render() {
-        const { closePlanningEditor, planning } = this.props
+        const { closePlanningEditor, planning, event } = this.props
         const creationDate = get(planning, '_created')
         const author = get(planning, 'original_creator.username')
-        const event = get(planning, 'event_item')
         return (
             <div className="Planning__edit-planning">
                 <header>
@@ -50,9 +49,13 @@ class EditPlanningPanel extends React.Component {
 EditPlanningPanel.propTypes = {
     closePlanningEditor: React.PropTypes.func.isRequired,
     planning: React.PropTypes.object,
+    event: React.PropTypes.object,
 }
 
-const mapStateToProps = (state) => ({ planning: selectors.getCurrentPlanning(state) })
+const mapStateToProps = (state) => ({
+    planning: selectors.getCurrentPlanning(state),
+    event: selectors.getCurrentPlanningEvent(state),
+})
 
 const mapDispatchToProps = (dispatch) => ({ closePlanningEditor: () => dispatch(actions.closePlanningEditor()) })
 

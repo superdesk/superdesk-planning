@@ -34,7 +34,7 @@ describe('<SelectAgendaComponent />', () => {
         const initialState = {
             planning: {
                 plannings: {
-                    3: {
+                    '3': {
                         _id: '3',
                         slugline: 'planning 3',
                     },
@@ -61,6 +61,7 @@ describe('<SelectAgendaComponent />', () => {
             // check if selection is registered in the store
             expect(store.getState().planning.currentAgendaId)
             .toEqual('2')
+            // expect(selectors.getCurrentAgenda(store.getState())._id).toEqual('2')
             // must be not empty any more
             expect(selectors.getCurrentAgendaPlannings(store.getState()))
             .toEqual([initialState.planning.plannings['3']])

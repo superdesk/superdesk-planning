@@ -3,10 +3,10 @@ import moment from 'moment'
 import { get } from 'lodash'
 import { ListItem } from './index'
 
-export const PlanningItem = ({ item, onClick, active, onDelete }) => {
-    const location = get(item, 'event_item.location[0].name')
-    const eventTime = get(item, 'event_item.dates.start') ?
-        moment(get(item, 'event_item.dates.start')).format('LL HH:mm') : null
+export const PlanningItem = ({ item, event, onClick, active, onDelete }) => {
+    const location = get(event, 'location[0].name')
+    const eventTime = get(event, 'dates.start') ?
+        moment(get(event, 'dates.start')).format('LL HH:mm') : null
     return (
         <ListItem item={item} onClick={onClick.bind(null, item)} active={active}>
             <div className="line">
@@ -30,6 +30,7 @@ export const PlanningItem = ({ item, onClick, active, onDelete }) => {
 
 PlanningItem.propTypes = {
     item: PropTypes.object.isRequired,
+    event: PropTypes.object,
     active: PropTypes.bool,
     onClick: PropTypes.func,
     onDelete: PropTypes.func,

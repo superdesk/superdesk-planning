@@ -1,5 +1,6 @@
 import { hideModal } from './modal'
 import * as selectors from '../selectors'
+import * as actions from '../actions'
 import { pickBy, cloneDeep, isNil } from 'lodash'
 
 const createAgenda = ({ name }) => (
@@ -79,10 +80,6 @@ const savePlanning = (planning) => (
         // remove all properties starting with _,
         // otherwise it will fail for "unknown field" with `_type`
         planning = pickBy(planning, (v, k) => (!k.startsWith('_')))
-        // remove nested event, replace by its reference
-        if (planning.event_item && planning.event_item._id) {
-            planning.event_item = planning.event_item._id
-        }
         // clone and remove the nested coverages to save them later
         const coverages = cloneDeep(planning.coverages)
         delete planning.coverages
@@ -202,16 +199,13 @@ const requestAgendas = () => (
     { type: 'REQUEST_AGENDAS' }
 )
 
-const requestAgendaPlannings = () => (
-    { type: 'REQUEST_AGENDA_PLANNNGS' }
-)
-
-const fetchAgendas = () => (
+const fetchAgendas = (props={}) => (
     (dispatch, getState, { api }) => {
         // annonce that we are loading plannings
         dispatch(requestAgendas())
         // fetch the plannings through the api
         return api('planning').query({
+            source: props.source,
             embedded: {
                 event_item: 1,
                 original_creator: 1,
@@ -219,30 +213,35 @@ const fetchAgendas = () => (
             max_results: 10000,
             timestamp: new Date(),
         })
-        // annonce that we received the plannings
         .then((data) => {
-            dispatch(receiveAgendas(data._items.filter((i) => i.planning_type === 'agenda')))
-            dispatch(receivePlannings(data._items.filter((i) => i.planning_type !== 'agenda')))
+            // save the events in store.events and keep a reference in the `event_item` field
+            const plannings = data._items
+            const events = plannings.map((p) => {
+                const e = { ...p.event_item }
+                if (e._id) p.event_item = e._id
+                return e
+                // some can be empty. Keep only actual events
+            }).filter((e) => e._id)
+            dispatch(actions.addEvents(events))
+            return plannings
+        })
+        // annonce that we received the plannings
+        .then((plannings) => {
+            const agendas = plannings.filter((i) => i.planning_type === 'agenda')
+            const actualPlannings = plannings.filter((i) => i.planning_type !== 'agenda')
+            if (agendas && agendas.length > 0) dispatch(receiveAgendas(agendas))
+            dispatch(receivePlannings(actualPlannings))
         })
     }
 )
 
 const fetchSelectedAgendaPlannings = () => (
-    (dispatch, getState, { api }) => {
+    (dispatch, getState) => {
         const agenda = selectors.getCurrentAgenda(getState())
         if (!agenda || !agenda.planning_items) return Promise.resolve()
-        dispatch(requestAgendaPlannings())
+        dispatch({ type: 'REQUEST_AGENDA_PLANNNGS' })
         const should = agenda.planning_items.map((pid) => ({ term: { _id: pid } }))
-        const query = {
-            source: { filter: { bool: { should } } },
-            embedded: {
-                event_item: 1,
-                original_creator: 1,
-            }, // nest event and creator to planning
-            timestamp: new Date(),
-        }
-        return api('planning').query(query)
-        .then((response) => (dispatch(receivePlannings(response._items))))
+        return dispatch(fetchAgendas({ source: { filter: { bool: { should } } } }))
     }
 )
 

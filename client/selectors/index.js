@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect'
-import { orderBy, get } from 'lodash'
+import { orderBy } from 'lodash'
 
 const getAgendas = (state) => state.planning.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
@@ -25,11 +25,23 @@ export const getCurrentAgendaPlannings = createSelector(
         const planningsIds = currentAgenda ? currentAgenda.planning_items || [] : []
         // from ids, return the actual plannings objects
         return orderBy(
-            planningsIds.map(
-                (pid) => (storedPlanningsObjects[pid])
-            )
+            planningsIds.map((pid) => (storedPlanningsObjects[pid]))
             .filter((d) => d !== undefined), // remove undefined
         ['_created'], ['desc']) // sort by new created first, or by name
+    }
+)
+
+export const getCurrentAgendaPlanningsEvents = createSelector(
+    [getCurrentAgendaPlannings, getEvents],
+    (plannings, events) => {
+        const eventsByPlanningId = {}
+        plannings.forEach((p) => {
+            const e = events.find((e) => e._id === p.event_item)
+            if (e) {
+                eventsByPlanningId[p._id] = e
+            }
+        })
+        return eventsByPlanningId
     }
 )
 
@@ -42,14 +54,18 @@ export const getCurrentPlanning = createSelector(
     }
 )
 
+export const getCurrentPlanningEvent = createSelector(
+    [getCurrentPlanning, getEvents],
+    (planning, events) => planning && events.find((e) => e._id === planning.event_item)
+)
+
 /** Used for the events list */
 export const getEventsWithMoreInfo = createSelector(
     [getEvents, getStoredPlannings],
     (events, storedPlannings) => {
         function hasPlanning(event) {
             return storedPlannings && Object.keys(storedPlannings).some((planningKey) => (
-                storedPlannings[planningKey].event_item &&
-                storedPlannings[planningKey].event_item._id === event._id
+                storedPlannings[planningKey].event_item === event._id
             ))
         }
 
@@ -70,7 +86,7 @@ export const getEventToBeDetailed = createSelector(
             return {
                 ...event,
                 _plannings: Object.keys(storedPlannings).filter((pKey) => (
-                    get(storedPlannings[pKey], 'event_item._id') === showEventDetails
+                    storedPlannings[pKey].event_item === showEventDetails
                 )).map((pKey) => ({
                     ...storedPlannings[pKey],
                     _agenda: agendas.find((a) => a.planning_items.indexOf(pKey) > -1),
