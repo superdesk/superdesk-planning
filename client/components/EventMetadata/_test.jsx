@@ -1,6 +1,7 @@
 import React from 'react'
 import { mount } from 'enzyme'
 import { EventMetadata } from '../index'
+import moment from 'moment'
 
 describe('<EventMetadata />', () => {
     it('renders an event', () => {
@@ -15,6 +16,7 @@ describe('<EventMetadata />', () => {
         expect(wrapper.text()).toContain('definition_short 1')
         expect(wrapper.text()).toContain('definition_long 1')
         expect(wrapper.text()).toContain('name1')
+        expect(wrapper.text()).toContain(moment('2016-10-15T13:01:11+0000').format('MM/DD/YYYY HH:mm'))
         expect(wrapper.text()).toContain('location1')
         expect(wrapper.text()).not.toContain('Status')
     })
