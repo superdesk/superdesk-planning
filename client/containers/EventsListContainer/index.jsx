@@ -127,8 +127,8 @@ EventsListComponent.propTypes = {
 
 const mapStateToProps = (state) => ({
     events: selectors.getEventsWithMoreInfo(state),
-    currentSearch: state.events.search.currentSearch,
-    advancedSearchOpened: state.events.search.advancedSearchOpened,
+    currentSearch: get(state, 'events.search.currentSearch'),
+    advancedSearchOpened: get(state, 'events.search.advancedSearchOpened'),
 })
 
 const mapDispatchToProps = (dispatch) => ({

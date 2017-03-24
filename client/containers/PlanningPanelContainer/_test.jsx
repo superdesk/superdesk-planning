@@ -7,6 +7,20 @@ import { PlanningItem } from '../../components'
 import { PlanningPanelContainer } from '../index'
 
 describe('<PlanningPanelContainer />', () => {
+    const initialState = {
+        planning: {
+            plannings: {
+                planning1: { _id: 'planning1' },
+                planning2: { _id: 'planning2' },
+                planning3: { _id: 'planning3' },
+            },
+            agendas: [{
+                _id: 'agenda1',
+                planning_items: ['planning1', 'planning2'],
+            }],
+            currentAgendaId: 'agenda1',
+        },
+    }
     it('addEventToCurrentAgenda', () => {
         const initialState = {
             planning: {
@@ -97,5 +111,19 @@ describe('<PlanningPanelContainer />', () => {
         store.dispatch(actions.selectAgenda('agenda1'))
         expect(wrapper.find(PlanningItem).length)
         .toBe(initialState.planning.agendas[0].planning_items.length)
+    })
+    it('drag and drop', () => {
+        const store = createTestStore({ initialState })
+        const wrapper = mount(
+            <Provider store={store}>
+                <PlanningPanelContainer />
+            </Provider>
+        )
+        const jsEvent = { dataTransfer: { getData: () => ('{}') } }
+        wrapper.find('.Planning__planning-panel')
+        .simulate('drop', jsEvent)
+        .simulate('dragLeave')
+        .simulate('dragOver')
+        .simulate('dragEnter', jsEvent)
     })
 })

@@ -247,7 +247,7 @@ export const closeAdvancedSearch = () => (
 export const openEventDetails = (event) => (
     {
         type: 'OPEN_EVENT_DETAILS',
-        payload: event && event._id || true,
+        payload: get(event, '_id', event || true),
     }
 )
 
