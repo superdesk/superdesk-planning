@@ -3,9 +3,7 @@ $EVENTS_LIST_WIDTH: 500px;
 .Planning--hide-events {
     .Planning__events-panel {
         width: 0 !important;
-        .subnav { 
-            visibility: hidden;
-        }
+        visibility: hidden;
     }
 }
 
@@ -18,9 +16,7 @@ $EVENTS_LIST_WIDTH: 500px;
     border-right: 3px solid #666;
     box-shadow: 2px 0 10px 0 rgba(0,0,0,.3);
     height: 100%;
-    .subnav {
-        visibility: visible;
-    }
+    visibility: visible;
 }
 
 // We must override some specific superdesk style def here

@@ -27,7 +27,7 @@ export class ResizableEventsPanelComponent extends React.Component {
                 width: (windowWidth - (thisNode.width() + thisOffset.left + rightBorder)),
                 left: (thisNode.width() + rightBorder),
             })
-        }, 250)
+        }, 500)
     }
 
     componentDidMount() {
@@ -66,7 +66,7 @@ export class ResizableEventsPanelComponent extends React.Component {
 
     componentDidUpdate(prevProps) {
         // call resize for showEvents prop changes
-        if (prevProps.showEvents != this.props.showEvents) {
+        if (prevProps.showEvents !== this.props.showEvents) {
             this._onResize()
         }
     }
