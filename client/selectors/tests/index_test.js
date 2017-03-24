@@ -14,7 +14,7 @@ describe('selectors', () => {
             plannings: {
                 a: {
                     name: 'name a',
-                    event_item: { _id: 'event1' },
+                    event_item: 'event1',
                 },
                 b: { name: 'name b' },
             },

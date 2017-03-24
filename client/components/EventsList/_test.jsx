@@ -49,7 +49,7 @@ describe('<EventsList />', () => {
                 plannings: {
                     planning1: {
                         _id: 'planning1',
-                        event_item: { _id: '5800d71930627218866f1e80' },
+                        event_item: '5800d71930627218866f1e80',
                     },
                 },
             },
