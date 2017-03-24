@@ -21,8 +21,9 @@ const deletePlanningId = (pid, state) => {
     }
 }
 
+const initialState  = { plannings: {} }
 /*eslint-disable complexity*/
-const planning = (state={}, action) => {
+const planning = (state=initialState, action) => {
     switch (action.type) {
         case 'DELETE_PLANNING':
             return deletePlanningId(action.payload, state)
