@@ -27,6 +27,7 @@ class GeoLookupInput extends React.Component {
                 onSuggestsLookup={this.onSuggestsLookup}
                 onGeocodeSuggest={this.onGeocodeSuggest}
                 getSuggestLabel={this.getSuggestLabel}
+                ignoreTab
             />
         )
     }
