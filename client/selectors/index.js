@@ -89,7 +89,8 @@ export const getEventToBeDetailed = createSelector(
                     storedPlannings[pKey].event_item === showEventDetails
                 )).map((pKey) => ({
                     ...storedPlannings[pKey],
-                    _agenda: agendas.find((a) => a.planning_items.indexOf(pKey) > -1),
+                    _agenda: agendas.find((a) => a.planning_items ?
+                        a.planning_items.indexOf(pKey) > -1 : false),
                 })),
             }
         }
