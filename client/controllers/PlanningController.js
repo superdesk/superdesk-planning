@@ -13,7 +13,8 @@ export function PlanningController($element, $scope, api, config, $location, $ti
     const store = createStore({
         initialState: {
             events: {
-                events: [],
+                events: {},
+                eventsInList: [],
                 show: true,
                 search: {
                     currentSearch: $location.search().searchEvent &&

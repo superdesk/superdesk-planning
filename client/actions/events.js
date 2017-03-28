@@ -5,7 +5,7 @@ import { SubmissionError } from 'redux-form'
 import { saveLocation } from './index'
 
 export const receiveEvents = (events) => ({
-    type: 'RECEIVE_EVENTS',
+    type: 'ADD_EVENTS',
     payload: events,
     receivedAt: Date.now(),
 })
@@ -20,7 +20,7 @@ export function addEvents(events) {
             e.files && e.files.length > 0 && typeof e.files[0] === 'string'
         ))
         if (incompleteEvents.length > 0) {
-            dispatch(_fetchEvents({ ids: incompleteEvents.map((i) => (i._id)) }))
+            dispatch(performFetchQuery({ ids: incompleteEvents.map((i) => (i._id)) }))
             .then((e) => {
                 dispatch({
                     type: 'ADD_EVENTS',
@@ -33,6 +33,8 @@ export function addEvents(events) {
                 payload: events,
             })
         }
+        // add the events in the list
+        dispatch(addToEventsList(events.map((e) => e._id)))
     }
 }
 
@@ -111,7 +113,7 @@ export function uploadFilesAndSaveEvent(newEvent) {
 function saveEvent(newEvent) {
     return (dispatch, getState, { api }) => {
         // retrieve original
-        let original = selectors.getEvents(getState()).find((e) => e._id === newEvent._id)
+        let original = selectors.getEvents(getState())[newEvent._id]
         // clone the original because `save` will modify it
         original = cloneDeep(original) || {}
         newEvent = cloneDeep(newEvent) || {}
@@ -133,7 +135,7 @@ function saveEvent(newEvent) {
     }
 }
 
-function _fetchEvents({ advancedSearch, fulltext, ids }) {
+function performFetchQuery({ advancedSearch, fulltext, ids }) {
     return (dispatch, getState, { api }) => {
         const query = {}
         const filter = {}
@@ -221,20 +223,45 @@ function _fetchEvents({ advancedSearch, fulltext, ids }) {
     }
 }
 
+export function silentlyFetchEventsById(ids=[]) {
+    return (dispatch) => (
+        dispatch(performFetchQuery({ ids }))
+        .then(data => dispatch(receiveEvents(data._items)))
+    )
+}
+
+/** Fetch events from a user request */
 export function fetchEvents(params={}) {
     return (dispatch, getState, { $timeout, $location }) => {
         dispatch({
             type: 'REQUEST_EVENTS',
             payload: params,
         })
-        dispatch(_fetchEvents(params))
-        .then(data => dispatch(receiveEvents(data._items)))
+        dispatch(performFetchQuery(params))
+        .then(data => {
+            dispatch(receiveEvents(data._items))
+            dispatch(setEventsList(data._items.map((e) => e._id)))
+        })
         // update the url (deep linking)
         .then(() => $timeout(() => (
             $location.search('searchEvent', JSON.stringify(params)), 0, false)
         ))
     }
 }
+
+export const setEventsList = (idsList) => (
+    {
+        type: 'SET_EVENTS_LIST',
+        payload: idsList,
+    }
+)
+
+export const addToEventsList = (eventsIds) => (
+    {
+        type: 'ADD_TO_EVENTS_LIST',
+        payload: eventsIds,
+    }
+)
 
 export const openAdvancedSearch = () => (
     { type: 'OPEN_ADVANCED_SEARCH' }

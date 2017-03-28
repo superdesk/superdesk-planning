@@ -7,8 +7,8 @@ import { Provider } from 'react-redux'
 import * as actions from '../../actions'
 import { createTestStore } from '../../utils'
 
-const events = [
-    {
+const events = {
+    '5800d71930627218866f1e80': {
         _id: '5800d71930627218866f1e80',
         dates: { start: '2016-10-15T13:01:11+0000' },
         definition_short: 'definition_short 1',
@@ -16,7 +16,7 @@ const events = [
         name: 'name1',
         files: [{}, {}],
     },
-    {
+    '5800d73230627218866f1e82': {
         _id: '5800d73230627218866f1e82',
         dates: {
             end: '2016-10-19T13:01:50+0000',
@@ -26,7 +26,7 @@ const events = [
         location: [{ name: 'location1' }],
         name: 'name2',
     },
-    {
+    '5800d73230627218866f1d82': {
         _id: '5800d73230627218866f1d82',
         dates: {
             end: '2016-10-19T13:01:50+0000',
@@ -36,13 +36,14 @@ const events = [
         location: [{ name: 'location2' }],
         name: 'name3',
     },
-]
+}
 
 describe('<EventsList />', () => {
     it('renders events', () => {
         const initialState = {
             events: {
                 events: events,
+                eventsInList: Object.keys(events),
                 search: {},
             },
             planning: {
@@ -98,7 +99,7 @@ describe('<EventsList />', () => {
         expect(
             wrapper.find('.ListItem__list-item').first()
             .find('.event__counts dd.files-attached-count').text())
-        .toBe(events[0].files.length.toString())
+        .toBe(events['5800d71930627218866f1e80'].files.length.toString())
         expect(
             wrapper.find('.ListItem__list-item').last()
             .find('.event__counts dd.files-attached-count').length)
@@ -106,7 +107,8 @@ describe('<EventsList />', () => {
     })
     it('trigger an event click', () => {
         const onButtonClick = sinon.spy()
-        const wrapper = shallow(<EventsList events={events} onEventClick={onButtonClick} />)
+        const eventList = Object.keys(events).map((eid) => events[eid])
+        const wrapper = shallow(<EventsList events={eventList} onEventClick={onButtonClick} />)
         // simulate a click
         wrapper.find(EventItem).first().simulate('click')
         expect(onButtonClick.calledOnce).toBe(true)

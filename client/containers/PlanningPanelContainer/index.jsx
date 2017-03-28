@@ -14,7 +14,7 @@ class PlanningPanel extends React.Component {
     }
 
     componentDidMount() {
-        this.props.fetchAgendas()
+        this.props.fetchPlannings()
     }
 
     handleDragOver(e) {
@@ -122,7 +122,7 @@ PlanningPanel.propTypes = {
     currentAgenda: React.PropTypes.object,
     currentPlanning: React.PropTypes.object,
     planningsEvents: React.PropTypes.object,
-    fetchAgendas: React.PropTypes.func.isRequired,
+    fetchPlannings: React.PropTypes.func.isRequired,
     openCreateAgenda: React.PropTypes.func.isRequired,
     planningList: React.PropTypes.array.isRequired,
     planningsAreLoading: React.PropTypes.bool,
@@ -145,7 +145,10 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
     handlePlanningDeletion: (planning) => dispatch(actions.deletePlanning(planning)),
     openCreateAgenda: () => dispatch(actions.showModal({ modalType: 'CREATE_AGENDA' })),
-    fetchAgendas: () => dispatch(actions.fetchAgendas()),
+    fetchPlannings: () => {
+        dispatch(actions.fetchAgendas())
+        dispatch(actions.fetchPlannings())
+    },
     createPlanning: (planning) => dispatch(actions.savePlanningAndReloadCurrentAgenda(planning)),
     openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning))),
     addEventToCurrentAgenda: (event) => (dispatch(actions.addEventToCurrentAgenda(event))),

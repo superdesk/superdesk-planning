@@ -1,7 +1,7 @@
 import { hideModal } from './modal'
 import * as selectors from '../selectors'
 import * as actions from '../actions'
-import { pickBy, cloneDeep, isNil } from 'lodash'
+import { pickBy, cloneDeep, isNil, has } from 'lodash'
 
 const createAgenda = ({ name }) => (
     (dispatch, getState, { api }) => {
@@ -26,10 +26,8 @@ const deletePlanning = (planning) => (
                 dispatch(closePlanningEditor())
             }
         })
-        // reloads agendas because they contains the list of the plannings to show
+        // reloads agendas because they contains the list of the plannings to show and plannings
         .then(() => (dispatch(fetchAgendas())))
-        // reloads the plannings to show
-        .then(() => (dispatch(fetchSelectedAgendaPlannings())))
         .then(() => (dispatch({
             type: 'DELETE_PLANNING',
             payload: planning._id,
@@ -58,7 +56,7 @@ const savePlanningAndReloadCurrentAgenda = (originalPlanning) => (
 const addToCurrentAgenda = (planning) => (
     (dispatch, getState) => {
         const currentAgenda = selectors.getCurrentAgenda(getState())
-        if (!currentAgenda) throw 'unable to find the current agenda'
+        if (!currentAgenda) throw Error('unable to find the current agenda')
         // add the planning to the agenda
         return dispatch(addPlanningToAgenda({
             planning: planning,
@@ -66,6 +64,7 @@ const addToCurrentAgenda = (planning) => (
         }))
         // returns the planning to chain well with planning savings actions
         .then(() => (planning))
+
     }
 )
 
@@ -151,10 +150,12 @@ const addPlanningToAgenda = ({ planning, agenda }) => (
         // add planning to planning_items
         planningItems.push(planning._id)
         // update the agenda
-        return api('planning').save(agenda, { planning_items: planningItems }).then((agenda) => (
+        return api('planning').save(agenda, { planning_items: planningItems })
+        .then((agenda) => {
             // replace the agenda in the store
             dispatch(addOrReplaceAgenda(agenda))
-        ))
+            return agenda
+        })
     }
 )
 
@@ -195,42 +196,49 @@ const receivePlannings = (plannings) => (
     }
 )
 
-const requestAgendas = () => (
-    { type: 'REQUEST_AGENDAS' }
-)
-
-const fetchAgendas = (props={}) => (
-    (dispatch, getState, { api }) => {
-        // annonce that we are loading plannings
-        dispatch(requestAgendas())
-        // fetch the plannings through the api
-        return api('planning').query({
-            source: props.source,
-            embedded: {
-                event_item: 1,
-                original_creator: 1,
-            }, // nest event and creator to planning
+const performFetchRequest = (query={}) => (
+    (dispatch, getState, { api }) => (
+        api('planning').query({
+            source: query.source,
+            where: query.where,
+            embedded: { original_creator: 1 }, // nest creator to planning
             max_results: 10000,
             timestamp: new Date(),
         })
-        .then((data) => {
-            // save the events in store.events and keep a reference in the `event_item` field
-            const plannings = data._items
-            const events = plannings.map((p) => {
-                const e = { ...p.event_item }
-                if (e._id) p.event_item = e._id
-                return e
-                // some can be empty. Keep only actual events
-            }).filter((e) => e._id)
-            dispatch(actions.addEvents(events))
-            return plannings
-        })
+        .then((data) => data._items)
+    )
+)
+
+const fetchAgendas = () => (
+    (dispatch) => {
+        dispatch({ type: 'REQUEST_AGENDAS' })
+        const q = { where: { planning_type: 'agenda' } }
+        return dispatch(performFetchRequest(q))
+        .then((agendas) => dispatch(receiveAgendas(agendas)))
+    }
+)
+
+const fetchPlannings = (params={}) => (
+    (dispatch, getState) => {
+        // annonce that we are loading plannings
+        dispatch({ type: 'REQUEST_PLANINGS' })
+        // fetch the plannings through the api
+        const q = { query: { bool: { must_not:  { term:  { planning_type: 'agenda' } } } } }
+        if (params.planningIds) {
+            q.query.bool.should = params.planningIds.map((pid) => ({ term: { _id: pid } }))
+        }
+        // fetch the plannings
+        return dispatch(performFetchRequest(q))
         // annonce that we received the plannings
         .then((plannings) => {
-            const agendas = plannings.filter((i) => i.planning_type === 'agenda')
-            const actualPlannings = plannings.filter((i) => i.planning_type !== 'agenda')
-            if (agendas && agendas.length > 0) dispatch(receiveAgendas(agendas))
-            dispatch(receivePlannings(actualPlannings))
+            const linkedEvents = plannings
+            .map((p) => p.event_item)
+            .filter((eid) => (
+                eid && has(selectors.getEvents(getState()), eid)
+            ))
+            // load missing events
+            return dispatch(actions.silentlyFetchEventsById(linkedEvents))
+            .then(() => dispatch(receivePlannings(plannings)))
         })
     }
 )
@@ -239,9 +247,8 @@ const fetchSelectedAgendaPlannings = () => (
     (dispatch, getState) => {
         const agenda = selectors.getCurrentAgenda(getState())
         if (!agenda || !agenda.planning_items) return Promise.resolve()
-        dispatch({ type: 'REQUEST_AGENDA_PLANNNGS' })
-        const should = agenda.planning_items.map((pid) => ({ term: { _id: pid } }))
-        return dispatch(fetchAgendas({ source: { filter: { bool: { should } } } }))
+        const planningIds = agenda.planning_items.map((pid) => (pid))
+        return dispatch(fetchPlannings({ planningIds }))
     }
 )
 
@@ -275,6 +282,7 @@ export {
     deletePlanning,
     savePlanningAndReloadCurrentAgenda,
     addEventToCurrentAgenda,
+    fetchPlannings,
     fetchAgendas,
     selectAgenda,
     openPlanningEditor,

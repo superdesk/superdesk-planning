@@ -11,6 +11,7 @@ const FIELDS = [
     ['Description', 'definition_short', 'definition_long'],
     ['Location', 'location[0].name'],
     ['Status', 'occur_status.name'],
+    ['Categories', ['anpa_category', (d) => (d.map((c) => c.name).join(', '))]],
 ]
 
 function renderDict(event, label, ...keys) {

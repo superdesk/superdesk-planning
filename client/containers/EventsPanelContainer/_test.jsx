@@ -10,15 +10,16 @@ describe('<EventPanelContainer />', () => {
         const eventId = '5800d71930627218866f1e80'
         const initialState = {
             events: {
-                events: [
-                    {
+                events: {
+                    [eventId]: {
                         _id: eventId,
                         dates: { start: '2016-10-15T13:01:11+0000' },
                         definition_short: 'definition_short 1',
                         location: [{ name: 'location1' }],
                         name: 'name1',
                     },
-                ],
+                },
+                eventsInList: [eventId],
             },
         }
         const store = createTestStore({ initialState })

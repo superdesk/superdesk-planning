@@ -103,7 +103,10 @@ planning_schema = {
     },
 
     # Agenda details
-    'planning_type': {'type': 'string'},
+    'planning_type': {
+        'type': 'string',
+        'mapping': not_analyzed,
+    },
     'name': {'type': 'string'},
 
     # Event Item

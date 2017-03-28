@@ -27,7 +27,9 @@ export function saveFreeTextLocation(location) {
 
 export function saveLocation(newLocation) {
     return (dispatch, getState, { api }) => {
-        const uniqueName = get(newLocation, 'nominatim.display_name', newLocation)
+        const uniqueName = get(newLocation, 'nominatim.display_name')
+            || get(newLocation, 'name')
+            || newLocation
         // Check if the newLocation is already saved in internal
         // locations resources, if so just return the name and guid as qcode
         return api('locations').query({ source: { query: { term: { unique_name: uniqueName } } } })
@@ -40,7 +42,7 @@ export function saveLocation(newLocation) {
                 if (newLocation.nominatim) {
                     return dispatch(saveNominatim(newLocation.nominatim))
                 } else {
-                    return dispatch(saveFreeTextLocation(newLocation))
+                    return dispatch(saveFreeTextLocation(uniqueName))
                 }
             }
         })

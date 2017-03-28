@@ -41,7 +41,7 @@ describe('<FormComponent />', () => {
         expect(handleSubmit.callCount).toBe(1)
     })
     it('save the event', () => {
-        const getState = () => ({ events: { events: [] } })
+        const getState = () => ({ events: { events: {} } })
         const dispatch = sinon.spy(() => (Promise.resolve()))
         const api = () => ({
             save: sinon.spy((original, newEvent) => {
@@ -69,15 +69,6 @@ describe('<FormComponent />', () => {
         )
         let originalDates = event.dates
         expectDatesInStoreToBe(originalDates)
-    })
-    it('calls onSubmit() and ensure that modal is closed', (done) => {
-        const store = createTestStore()
-        const wrapper = mount(<Provider store={store}><EventForm /></Provider>)
-        wrapper.find(FormComponent).props().onSubmit(event).then(() => {
-            // modal is closed
-            expect(store.getState().modal.modalType).toBe(null)
-            done()
-        })
     })
     it('fill the form', () => {
         let store = createTestStore()
