@@ -80,6 +80,7 @@ class EventsService(superdesk.Service):
             event['guid'] = generate_guid(type=GUID_NEWSML)
             # set the author
             set_original_creator(event)
+            setRecurringMode(event)
             # generates events based on recurring rules
             if event['dates'].get('recurring_rule', {}).get('frequency'):
                 # generate a common id for all the events we will generate
@@ -122,6 +123,9 @@ class EventsService(superdesk.Service):
             # If the planning item is related to any coverages, delete them too
             for coverage in coverage_service.find(where={'planning_item': planning['_id']}):
                 coverage_service.delete({'_id': coverage['_id']})
+
+    def on_update(self, updates, original):
+        setRecurringMode(updates)
 
 
 events_schema = {
@@ -237,12 +241,13 @@ events_schema = {
                 'schema': {
                     'frequency': {'type': 'string'},
                     'interval': {'type': 'integer'},
-                    'until': {'type': 'datetime'},
-                    'count': {'type': 'integer'},
-                    'bymonth': {'type': 'string'},
-                    'byday': {'type': 'string'},
-                    'byhour': {'type': 'string'},
-                    'byminute': {'type': 'string'}
+                    'endRepeatMode': {'type': 'string'},
+                    'until': {'type': 'datetime', 'nullable': True},
+                    'count': {'type': 'integer', 'nullable': True},
+                    'bymonth': {'type': 'string', 'nullable': True},
+                    'byday': {'type': 'string', 'nullable': True},
+                    'byhour': {'type': 'string', 'nullable': True},
+                    'byminute': {'type': 'string', 'nullable': True}
                 }
             },
             'occur_status': {
@@ -270,12 +275,12 @@ events_schema = {
                 'schema': {
                     'frequency': {'type': 'string'},
                     'interval': {'type': 'string'},
-                    'until': {'type': 'datetime'},
-                    'count': {'type': 'integer'},
-                    'bymonth': {'type': 'string'},
-                    'byday': {'type': 'string'},
-                    'byhour': {'type': 'string'},
-                    'byminute': {'type': 'string'}
+                    'until': {'type': 'datetime', 'nullable': True},
+                    'count': {'type': 'integer', 'nullable': True},
+                    'bymonth': {'type': 'string', 'nullable': True},
+                    'byday': {'type': 'string', 'nullable': True},
+                    'byhour': {'type': 'string', 'nullable': True},
+                    'byminute': {'type': 'string', 'nullable': True}
                 }
             }
         }
@@ -394,7 +399,8 @@ class EventsResource(superdesk.Resource):
                   'DELETE': 'planning'}
 
 
-def generate_recurring_dates(start, frequency, interval=1, until=None, byday=None, count=None, tz=None):
+def generate_recurring_dates(start, frequency, interval=1, endRepeatMode='unlimited',
+                             until=None, byday=None, count=None, tz=None):
     """
 
     Returns list of dates related to recurring rules
@@ -452,3 +458,14 @@ def generate_recurring_dates(start, frequency, interval=1, until=None, byday=Non
         return (tz.localize(dt).astimezone(pytz.UTC).replace(tzinfo=None) for dt in dates)
     else:
         return (date for date in dates)
+
+
+def setRecurringMode(event):
+    endRepeatMode = event.get('dates', {}).get('recurring_rule', {}).get('endRepeatMode')
+    if endRepeatMode == 'unlimited':
+        event['dates']['recurring_rule']['count'] = None
+        event['dates']['recurring_rule']['until'] = None
+    elif endRepeatMode == 'count':
+        event['dates']['recurring_rule']['until'] = None
+    elif endRepeatMode == 'until':
+        event['dates']['recurring_rule']['count'] = None

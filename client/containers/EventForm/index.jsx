@@ -6,7 +6,7 @@ import { RepeatEventForm } from '../index'
 import { Field, FieldArray, reduxForm, formValueSelector } from 'redux-form'
 import { isNil } from 'lodash'
 import moment from 'moment'
-import { ChainValidators, EndDateAfterStartDate, RequiredFieldsValidatorFactory, UntilDateAfterStartDate } from '../../validators'
+import { ChainValidators, EndDateAfterStartDate, RequiredFieldsValidatorFactory, UntilDateValidator } from '../../validators'
 import './style.scss'
 
 /**
@@ -37,6 +37,13 @@ export class Component extends React.Component {
         if (!event.target.checked) {
             // if unchecked, remove the recurring rules
             this.props.change('dates.recurring_rule', {})
+        } else {
+            // if checked, set default recurring rule
+            this.props.change('dates.recurring_rule',
+                {
+                    frequency: 'YEARLY',
+                    interval: '1',
+                })
         }
         // update the state to hide the recurrent date form
         this.setState({ doesRepeat: event.target.checked })
@@ -44,7 +51,7 @@ export class Component extends React.Component {
 
     render() {
         const {
- pristine,
+            pristine,
             submitting,
             onBackClick,
             handleSubmit,
@@ -65,6 +72,7 @@ export class Component extends React.Component {
                         </div>
                     </div>
                     <span className="subnav__page-title">Event Details</span>
+                    <button type="button" className="btn" onClick={onBackClick}>Cancel</button>
                     <button type="submit" className="btn btn--primary" disabled={pristine || submitting}>
                         Save
                     </button>
@@ -177,7 +185,7 @@ export const FormComponent = reduxForm({
     validate: ChainValidators([
         EndDateAfterStartDate,
         RequiredFieldsValidatorFactory(['name', 'dates.start', 'dates.end']),
-        UntilDateAfterStartDate,
+        UntilDateValidator,
     ]),
     enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
 })(Component)

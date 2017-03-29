@@ -75,9 +75,15 @@ Feature: Events
                     "tz": "Europe/Berlin",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
+                        "interval": 1,
                         "byday": "FR",
-                        "count": 3
+                        "count": 3,
+                        "endRepeatMode": "count"
                     }
+                },
+                "occur_status": {
+                    "name": "Planned, occurs certainly",
+                    "qcode": "eocstat:eos5"
                 }
             }
         ]
