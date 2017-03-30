@@ -1,6 +1,10 @@
 import { cloneDeep } from 'lodash'
 
 const replaceOrAddInAgendas = (agendas, agenda) => {
+    if (agenda.planning_type !== 'agenda') {
+        throw Error(`Try to add ${JSON.stringify(agenda)} but \'planning_type\' is not an agenda`)
+    }
+
     const index = agendas.findIndex((a) => a._id === agenda._id)
     if (index === -1) {
         agendas.push(agenda)
@@ -13,7 +17,7 @@ const replaceOrAddInAgendas = (agendas, agenda) => {
 
 const deletePlanningId = (pid, state) => {
     // clone plannings
-    let plannings = cloneDeep(state.plannings)
+    const plannings = cloneDeep(state.plannings)
     delete plannings[pid]
     return {
         ...state,
@@ -21,12 +25,28 @@ const deletePlanningId = (pid, state) => {
     }
 }
 
-const initialState  = { plannings: {} }
+const initialState  = {
+    agendas: [],
+    plannings: {},
+    currentAgendaId: undefined,
+    currentPlanningId: undefined,
+    editorOpened: false,
+    agendasAreLoading: false,
+    planningsAreLoading: false,
+}
 /*eslint-disable complexity*/
-const planning = (state=initialState, action) => {
+const planningReducer = (state=initialState, action) => {
     switch (action.type) {
-        case 'DELETE_PLANNING':
-            return deletePlanningId(action.payload, state)
+        case 'REQUEST_AGENDAS':
+            return {
+                ...state,
+                agendasAreLoading: true,
+            }
+        case 'REQUEST_PLANINGS':
+            return {
+                ...state,
+                planningsAreLoading: true,
+            }
         case 'RECEIVE_PLANNINGS':
             // payload must be an array. If not, we transform
             action.payload = Array.isArray(action.payload) ? action.payload : [action.payload]
@@ -40,32 +60,24 @@ const planning = (state=initialState, action) => {
                 plannings,
                 planningsAreLoading: false,
             }
-        case 'SELECT_AGENDA':
-            return {
-                ...state,
-                currentAgendaId: action.payload,
-            }
-        case 'REQUEST_AGENDAS':
-            return {
-                ...state,
-                agendasAreLoading: true,
-            }
-        case 'REQUEST_AGENDA_PLANNNGS':
-            return {
-                ...state,
-                planningsAreLoading: true,
-            }
         case 'RECEIVE_AGENDAS':
             return {
                 ...state,
                 agendasAreLoading: false,
                 agendas: action.payload,
             }
+        case 'SELECT_AGENDA':
+            return {
+                ...state,
+                currentAgendaId: action.payload,
+            }
         case 'ADD_OR_REPLACE_AGENDA':
             return {
                 ...state,
                 agendas: replaceOrAddInAgendas(state.agendas.slice(), action.payload),
             }
+        case 'DELETE_PLANNING':
+            return deletePlanningId(action.payload, state)
         case 'OPEN_PLANNING_EDITOR':
             return {
                 ...state,
@@ -84,4 +96,4 @@ const planning = (state=initialState, action) => {
 }
 /*eslint-enable*/
 
-export default planning
+export default planningReducer

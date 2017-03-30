@@ -4,11 +4,12 @@ import { cloneDeep } from 'lodash'
 describe('selectors', () => {
     const state = {
         events: {
-            events: [
-                { _id: 'event1' },
-                { _id: 'event2' },
-            ],
+            events: {
+                event1: { _id: 'event1' },
+                event2: { _id: 'event2' },
+            },
             showEventDetails: 'event1',
+            eventsInList: ['event1', 'event2'],
         },
         planning: {
             plannings: {

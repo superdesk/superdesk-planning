@@ -9,7 +9,7 @@ export const getStoredPlannings = (state) => state.planning.plannings
 export const getServerUrl = (state) => state.config.server.url
 export const getIframelyKey = (state) => state.config.iframely ? state.config.iframely.key : null
 export const getShowEventDetails = (state) => state.events.showEventDetails
-
+export const getEventsIdsToShowInList = (state) => state.events.eventsInList
 export const getCurrentAgenda = createSelector(
     [getCurrentAgendaId, getAgendas],
     (currentAgendaId, agendas) => {
@@ -36,7 +36,7 @@ export const getCurrentAgendaPlanningsEvents = createSelector(
     (plannings, events) => {
         const eventsByPlanningId = {}
         plannings.forEach((p) => {
-            const e = events.find((e) => e._id === p.event_item)
+            const e = events[p.event_item]
             if (e) {
                 eventsByPlanningId[p._id] = e
             }
@@ -56,24 +56,28 @@ export const getCurrentPlanning = createSelector(
 
 export const getCurrentPlanningEvent = createSelector(
     [getCurrentPlanning, getEvents],
-    (planning, events) => planning && events.find((e) => e._id === planning.event_item)
+    (planning, events) => planning && events[planning.event_item]
 )
 
 /** Used for the events list */
 export const getEventsWithMoreInfo = createSelector(
-    [getEvents, getStoredPlannings],
-    (events, storedPlannings) => {
+    [getEvents, getStoredPlannings, getEventsIdsToShowInList],
+    (events, storedPlannings, eventsIdsToBeShown) => {
         function hasPlanning(event) {
             return storedPlannings && Object.keys(storedPlannings).some((planningKey) => (
                 storedPlannings[planningKey].event_item === event._id
             ))
         }
 
-        return events.map((event) => ({
-            ...event,
-            _hasPlanning: hasPlanning(event),
-            _type: 'events', // _type can disapear in the object, like in a POST response
-        }))
+        return eventsIdsToBeShown.map((eventId) => {
+            const event = events[eventId]
+            if (!event) throw Error(`the event ${eventId} is missing in the store`)
+            return {
+                ...event,
+                _hasPlanning: hasPlanning(event),
+                _type: 'events', // _type can disapear in the object, like in a POST response
+            }
+        })
     }
 )
 
@@ -81,7 +85,7 @@ export const getEventsWithMoreInfo = createSelector(
 export const getEventToBeDetailed = createSelector(
     [getShowEventDetails, getEvents, getStoredPlannings, getAgendas],
     (showEventDetails, events, storedPlannings, agendas) => {
-        const event = events.find((e) => e._id === showEventDetails)
+        const event = events[showEventDetails]
         if (event) {
             return {
                 ...event,
