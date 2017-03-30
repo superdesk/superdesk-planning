@@ -123,10 +123,10 @@ describe('<FormComponent />', () => {
         expect(link).toEqual(event.links[0])
         const titleNode = field.find('.line-input').last()
         expect(titleNode.text()).toBe('http://www.google.com ')
-
         // add a link
         expect(wrapper.find('LinkFieldComponent').length).toBe(1)
         wrapper.find('LinksFieldArray').find('.Link__add-btn').simulate('click')
         expect(wrapper.find('LinkFieldComponent').length).toBe(2)
+        wrapper.find('form').simulate('submit')
     })
 })
