@@ -143,7 +143,15 @@ const mapStateToProps = (state) => ({
 })
 
 const mapDispatchToProps = (dispatch) => ({
-    handlePlanningDeletion: (planning) => dispatch(actions.deletePlanning(planning)),
+    handlePlanningDeletion: (planning) => {
+        dispatch(actions.showModal({
+            modalType: 'CONFIRMATION',
+            modalProps: {
+                body: `Are you sure you want to delete the planning ${planning.slugline} ?`,
+                action: () => dispatch(actions.deletePlanning(planning)),
+            },
+        }))
+    },
     openCreateAgenda: () => dispatch(actions.showModal({ modalType: 'CREATE_AGENDA' })),
     fetchPlannings: () => {
         dispatch(actions.fetchAgendas())

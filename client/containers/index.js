@@ -14,3 +14,4 @@ export { AdvancedSearchPanelContainer } from './AdvancedSearchPanelContainer/ind
 export { AdvancedSearchForm } from './AdvancedSearchForm/index'
 export { EventsPanelContainer } from './EventsPanelContainer/index'
 export { ResizableEventsPanel } from './ResizableEventsPanel/index'
+export { ConfirmationModalContainer } from './ConfirmationModalContainer/index'

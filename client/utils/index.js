@@ -21,6 +21,10 @@ export const createTestStore = (params={}) => {
     const mockedExtraArguments = {
         $timeout: (cb) => (cb && cb()),
         $scope: { $apply: (cb) => (cb && cb()) },
+        notify: {
+            success: () => (undefined),
+            error: () => (undefined),
+        },
         $location: { search: () => (undefined) },
         vocabularies: {
             getAllActiveVocabularies: () => (
@@ -70,7 +74,7 @@ export const createTestStore = (params={}) => {
                 if (extraArguments.apiRemove) {
                     return Promise.resolve(extraArguments.apiRemove(resource, item))
                 } else {
-                    Promise.resolve()
+                    return Promise.resolve()
                 }
             },
 
