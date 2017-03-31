@@ -46,9 +46,9 @@ ConfirmationModalComponent.propTypes = {
 
 const mapStateToProps = (state) => ({
     show: state.modal.modalType === 'CONFIRMATION',
-    body: state.modal.modalProps.body,
-    title: state.modal.modalProps.title,
-    handleAction: state.modal.modalProps.action,
+    body: state.modal.modalProps ? state.modal.modalProps.body : null,
+    title: state.modal.modalProps ? state.modal.modalProps.title : null,
+    handleAction: state.modal.modalProps ? state.modal.modalProps.action : null,
 })
 
 const mapDispatchToProps = (dispatch) => ({ handleHide: () => dispatch(actions.hideModal()) })

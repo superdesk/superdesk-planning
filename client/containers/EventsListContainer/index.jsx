@@ -108,7 +108,8 @@ class EventsListComponent extends React.Component {
                         </button>
                     </div>
                     <EventsList events={this.props.events}
-                                onEventClick={this.props.openEventDetails} />
+                                onEventClick={this.props.openEventDetails}
+                                onEventDelete={this.props.deleteEvent} />
                 </div>
             </div>
         )
@@ -123,6 +124,7 @@ EventsListComponent.propTypes = {
     advancedSearchOpened: React.PropTypes.bool,
     openAdvancedSearch: React.PropTypes.func.isRequired,
     closeAdvancedSearch: React.PropTypes.func.isRequired,
+    deleteEvent: React.PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -136,6 +138,7 @@ const mapDispatchToProps = (dispatch) => ({
     loadEvents: (keyword) => dispatch(actions.fetchEvents({ fulltext: keyword })),
     openAdvancedSearch: () => (dispatch(actions.openAdvancedSearch())),
     closeAdvancedSearch: () => (dispatch(actions.closeAdvancedSearch())),
+    deleteEvent: (event) => dispatch(actions.openDeleteEvent(event)),
 })
 
 export const EventsListContainer = connect(
