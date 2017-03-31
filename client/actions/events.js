@@ -2,90 +2,61 @@ import { pickBy, cloneDeep, get, isEmpty, isNil } from 'lodash'
 import moment from 'moment-timezone'
 import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
-import { saveLocation } from './index'
+import { saveLocation as _saveLocation } from './index'
 
-export const receiveEvents = (events) => ({
-    type: 'ADD_EVENTS',
-    payload: events,
-    receivedAt: Date.now(),
-})
-
-export function toggleEventsList() {
-    return { type: 'TOGGLE_EVENT_LIST' }
-}
-
-export function addEvents(events) {
-    return (dispatch) => {
-        const incompleteEvents = events.filter((e) => (
-            e.files && e.files.length > 0 && typeof e.files[0] === 'string'
+export function uploadFilesAndSaveEvent(event) {
+    event = cloneDeep(event) || {}
+    return (dispatch) => (
+        dispatch(saveFiles(event))
+        .then((event) => dispatch(saveLocation(event)))
+        .then((event) => dispatch(saveEvent(event)))
+        // we used ids to refer to the files, but we need now file object with metadata
+        // before to add them to the events storage
+        .then((events) => (
+            new Promise((resolve) => {
+                const incompleteEvents = events.filter((e) => (
+                    e.files && e.files.length > 0 && typeof e.files[0] === 'string'
+                ))
+                if (incompleteEvents.length > 0) {
+                    dispatch(performFetchQuery({ ids: incompleteEvents.map((i) => (i._id)) }))
+                    .then((e) => resolve(e._items))
+                } else {
+                    resolve(events)
+                }
+            })
         ))
-        if (incompleteEvents.length > 0) {
-            dispatch(performFetchQuery({ ids: incompleteEvents.map((i) => (i._id)) }))
-            .then((e) => {
-                dispatch({
-                    type: 'ADD_EVENTS',
-                    payload: e._items,
-                })
-            })
-        } else {
-            dispatch({
-                type: 'ADD_EVENTS',
-                payload: events,
-            })
-        }
-        // add the events in the list
-        dispatch(addToEventsList(events.map((e) => e._id)))
-    }
-}
-
-function uploadFiles(files) {
-    return (dispatch, getState, { upload }) => (
-        Promise.all(files.map((file) => (
-            upload.start({
-                method: 'POST',
-                url: getState().config.server.url + '/events_files/',
-                headers: { 'Content-Type': 'multipart/form-data' },
-                data: { media: [file] },
-                arrayKey: '',
-                // returns the item
-            }).then((d) => (d.data))
-        )))
+        .then((events) => {
+            // add the events to the store
+            dispatch(receiveEvents(events))
+            // add the events in the list
+            dispatch(addToEventsList(events.map((e) => e._id)))
+        })
+        // close the event form
+        .then(() => dispatch(closeEventDetails()))
     )
 }
 
-export function uploadFilesAndSaveEvent(newEvent) {
+function saveFiles(newEvent) {
     const getId = (e) => (e._id)
     const getIds = (e) => (e.map(getId))
-    newEvent = cloneDeep(newEvent) || {}
-    return (dispatch) => (
-        Promise.resolve((() => {
-            // Remove empty event links
-            if (newEvent.links && newEvent.links.length > 0) {
-                newEvent.links = newEvent.links.filter((l) => (l))
-                if (!newEvent.links.length) {
-                    delete newEvent.links
-                }
-            }
-
-            if (get(newEvent, 'location[0]') && isNil(newEvent.location[0].qcode)) {
-                return dispatch(saveLocation(newEvent.location[0]))
-                .then((location) => {
-                    newEvent.location[0] = location
-                    return newEvent
-                })
-            } else {
-                return newEvent
-            }
-        })())
-        .then((newEvent) => {
+    return (dispatch, getState, { upload }) => (
+        new Promise((resolve) => {
             // upload files and link them to the event
             if ((newEvent.files || []).length > 0) {
                 const fileFiles = newEvent.files.filter(
                     (f) => ((f instanceof FileList && f.length) || f instanceof Array)
                 )
-                if (fileFiles.length)
-                {
-                    return dispatch(uploadFiles(fileFiles))
+                if (fileFiles.length) {
+                    return Promise.all(fileFiles.map((file) => (
+                        upload.start({
+                            method: 'POST',
+                            url: getState().config.server.url + '/events_files/',
+                            headers: { 'Content-Type': 'multipart/form-data' },
+                            data: { media: [file] },
+                            arrayKey: '',
+                            // returns the item
+                        }).then((d) => (d.data))
+                    )))
                     .then((uploadedFiles) => {
                         newEvent.files = [
                             // reference uploaded files to event
@@ -97,21 +68,48 @@ export function uploadFilesAndSaveEvent(newEvent) {
                         ]
                         return newEvent
                     })
+                    .then((newEvent) => resolve(newEvent))
                 } else {
                     delete newEvent.files
-                    return newEvent
+                    return resolve(newEvent)
                 }
             } else {
-                return newEvent
+                return resolve(newEvent)
             }
         })
-        .then((newEvent) => dispatch(saveEvent(newEvent)))
     )
+}
+
+function saveLocation(event) {
+    return (dispatch) => {
+        // location field was empty, we clear the location
+        if (get(event, 'location[0].name') === '') {
+            event.location = []
+            return event
+        }
+        // the location is set, but doesn't have a qcode (not registered in the location collection)
+        else if (get(event, 'location[0]') && isNil(event.location[0].qcode)) {
+            return dispatch(_saveLocation(event.location[0]))
+            .then((location) => {
+                event.location[0] = location
+                return event
+            })
+        } else {
+            return event
+        }
+    }
 }
 
 /** Add the user timezone, save the event, notify the form (to reset) and hide the modal */
 function saveEvent(newEvent) {
     return (dispatch, getState, { api }) => {
+        // remove links if it contains only null values
+        if (newEvent.links && newEvent.links.length > 0) {
+            newEvent.links = newEvent.links.filter((l) => (l))
+            if (!newEvent.links.length) {
+                delete newEvent.links
+            }
+        }
         // retrieve original
         let original = selectors.getEvents(getState())[newEvent._id]
         // clone the original because `save` will modify it
@@ -124,12 +122,9 @@ function saveEvent(newEvent) {
         newEvent.dates.tz = moment.tz.guess()
         // send the event on the backend
         return api('events').save(original, newEvent)
-        // add the event to the store
-        .then(data => {
-            dispatch(addEvents(data._items || [data]))
-            dispatch(closeEventDetails())
-            return data
-        }, (error) => {
+        // return a list of events (can has several because of reccurence)
+        .then(data => data._items || [data],
+        (error) => {
             throw new SubmissionError({ _error: error.statusText })
         })
     }
@@ -223,6 +218,8 @@ function performFetchQuery({ advancedSearch, fulltext, ids }) {
     }
 }
 
+/** This will fetch events and adds them to the store,
+    without addign them to the events list */
 export function silentlyFetchEventsById(ids=[]) {
     return (dispatch) => (
         dispatch(performFetchQuery({ ids }))
@@ -230,7 +227,9 @@ export function silentlyFetchEventsById(ids=[]) {
     )
 }
 
-/** Fetch events from a user request */
+/** Fetch events from a user request, like a search.
+    This will add the events to the events list
+    And update the URL for deep linking */
 export function fetchEvents(params={}) {
     return (dispatch, getState, { $timeout, $location }) => {
         dispatch({
@@ -249,35 +248,47 @@ export function fetchEvents(params={}) {
     }
 }
 
-export const setEventsList = (idsList) => (
-    {
+function setEventsList(idsList) {
+    return {
         type: 'SET_EVENTS_LIST',
         payload: idsList,
     }
-)
+}
 
-export const addToEventsList = (eventsIds) => (
-    {
+export function addToEventsList(eventsIds) {
+    return {
         type: 'ADD_TO_EVENTS_LIST',
         payload: eventsIds,
     }
-)
+}
 
-export const openAdvancedSearch = () => (
-    { type: 'OPEN_ADVANCED_SEARCH' }
-)
+export function openAdvancedSearch() {
+    return { type: 'OPEN_ADVANCED_SEARCH' }
+}
 
-export const closeAdvancedSearch = () => (
-    { type: 'CLOSE_ADVANCED_SEARCH' }
-)
+export function closeAdvancedSearch() {
+    return { type: 'CLOSE_ADVANCED_SEARCH' }
+}
 
-export const openEventDetails = (event) => (
-    {
+export function openEventDetails(event) {
+    return {
         type: 'OPEN_EVENT_DETAILS',
         payload: get(event, '_id', event || true),
     }
-)
+}
 
-export const closeEventDetails = () => (
-    { type: 'CLOSE_EVENT_DETAILS' }
-)
+export function closeEventDetails() {
+    return { type: 'CLOSE_EVENT_DETAILS' }
+}
+
+export function receiveEvents(events) {
+    return {
+        type: 'ADD_EVENTS',
+        payload: events,
+        receivedAt: Date.now(),
+    }
+}
+
+export function toggleEventsList() {
+    return { type: 'TOGGLE_EVENT_LIST' }
+}

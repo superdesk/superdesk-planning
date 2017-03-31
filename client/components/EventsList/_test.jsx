@@ -82,14 +82,15 @@ describe('<EventsList />', () => {
             location: [{ name: 'location3' }],
             name: 'name4',
         }
-        store.dispatch(actions.addEvents([newEvent]))
+        store.dispatch(actions.receiveEvents([newEvent]))
+        store.dispatch(actions.addToEventsList([newEvent._id]))
         expect(wrapper.find('.ListItem__list-item').length).toEqual(4)
         // update an item
         const updatedEvent = {
             ...newEvent,
             name: 'new name',
         }
-        store.dispatch(actions.addEvents([updatedEvent]))
+        store.dispatch(actions.receiveEvents([updatedEvent]))
         expect(wrapper.find('.ListItem__list-item').length).toEqual(4)
         expect(
             wrapper.find('.ListItem__list-item').last()
