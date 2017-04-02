@@ -196,7 +196,7 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.uploadFilesAndSaveEvent(event))
     ),
     handlePlanningClick: (planningId) => (
-        dispatch(actions.openPlanningEditor(planningId))
+        dispatch(actions.openPlanningEditorAndAgenda(planningId))
     ),
 })
 

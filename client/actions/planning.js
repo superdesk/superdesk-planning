@@ -273,6 +273,18 @@ const openPlanningEditor = (planning) => (
     }))
 )
 
+const openPlanningEditorAndAgenda = (planning) => (
+    (dispatch, getState) => {
+        dispatch(openPlanningEditor(planning))
+
+        const agenda = selectors.getAgendas(getState()).find((a) => a.planning_items ?
+                        a.planning_items.indexOf(planning) > -1 : false)
+        if (agenda && agenda._id !== selectors.getCurrentAgendaId(getState())) {
+            dispatch(selectAgenda(agenda._id))
+        }
+    }
+)
+
 const closePlanningEditor = () => (
     { type: 'CLOSE_PLANNING_EDITOR' }
 )
@@ -287,4 +299,5 @@ export {
     selectAgenda,
     openPlanningEditor,
     closePlanningEditor,
+    openPlanningEditorAndAgenda,
 }
