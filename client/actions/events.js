@@ -83,7 +83,7 @@ function saveFiles(newEvent) {
 function saveLocation(event) {
     return (dispatch) => {
         // location field was empty, we clear the location
-        if (get(event, 'location[0].name') === '') {
+        if (!get(event, 'location[0].name')) {
             event.location = []
             return event
         }
