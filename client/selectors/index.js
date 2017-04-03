@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect'
 import { orderBy } from 'lodash'
 
-const getAgendas = (state) => state.planning.agendas
+export const getAgendas = (state) => state.planning.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
 export const getEvents = (state) => state.events.events
 export const getCurrentAgendaId = (state) => state.planning.currentAgendaId
