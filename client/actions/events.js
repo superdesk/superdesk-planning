@@ -6,7 +6,7 @@ import { saveLocation as _saveLocation } from './index'
 
 export function uploadFilesAndSaveEvent(event) {
     event = cloneDeep(event) || {}
-    return (dispatch) => (
+    return (dispatch, getState) => (
         dispatch(saveFiles(event))
         .then((event) => dispatch(saveLocation(event)))
         .then((event) => dispatch(saveEvent(event)))
@@ -30,9 +30,13 @@ export function uploadFilesAndSaveEvent(event) {
             dispatch(receiveEvents(events))
             // add the events in the list
             dispatch(addToEventsList(events.map((e) => e._id)))
+
+            // If event was just created, open it in editing mode
+            // Otherwise, if saved again, event gets saved as new one
+            if (events.length > 0 && selectors.getShowEventDetails(getState()) === true) {
+                dispatch(openEventDetails(events[0]._id))
+            }
         })
-        // close the event form
-        .then(() => dispatch(closeEventDetails()))
     )
 }
 
