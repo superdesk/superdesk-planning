@@ -32,7 +32,7 @@
     "load-grunt-config": "^0.19.2",
     "load-grunt-tasks": "^3.5.2",
     "lodash": "^4.16.4",
-    "moment-timezone": "^0.5.9",
+    "moment-timezone": "0.5.11",
     "nominatim-browser": "^2.0.2",
     "rc-time-picker": "^2.1.0",
     "react": "^15.3.2",
