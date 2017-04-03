@@ -5,10 +5,30 @@ import { Provider } from 'react-redux'
 import { createStore } from '../utils'
 import * as actions from '../actions'
 
-PlanningController.$inject = ['$element', '$scope', 'api', 'config', '$location', '$timeout',
-    'vocabularies', 'superdesk', 'upload']
-export function PlanningController($element, $scope, api, config, $location, $timeout,
-    vocabularies, superdesk, upload) {
+PlanningController.$inject = [
+    '$element',
+    '$scope',
+    'api',
+    'config',
+    '$location',
+    '$timeout',
+    'vocabularies',
+    'superdesk',
+    'upload',
+    'notify',
+]
+export function PlanningController(
+    $element,
+    $scope,
+    api,
+    config,
+    $location,
+    $timeout,
+    vocabularies,
+    superdesk,
+    upload,
+    notify
+) {
     // create the application store
     const store = createStore({
         initialState: {
@@ -41,6 +61,7 @@ export function PlanningController($element, $scope, api, config, $location, $ti
             vocabularies,
             superdesk,
             upload,
+            notify,
         },
     })
     // load data in the store

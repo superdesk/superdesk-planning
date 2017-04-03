@@ -127,4 +127,21 @@ describe('<PlanningPanelContainer />', () => {
         .simulate('dragOver')
         .simulate('dragEnter', jsEvent)
     })
+    it('delete a planning', (done) => {
+        const store = createTestStore({ initialState })
+        const wrapper = mount(
+            <Provider store={store}>
+                <PlanningPanelContainer />
+            </Provider>
+        )
+        expect(Object.keys(store.getState().planning.plannings)).toContain('planning1')
+        expect(store.getState().modal.modalType).toBe(null)
+        wrapper.find('PlanningPanel').props().handlePlanningDeletion({ _id: 'planning1' })
+        expect(store.getState().modal.modalType).toBe('CONFIRMATION')
+        store.getState().modal.modalProps.action()
+        .then(() => {
+            expect(Object.keys(store.getState().planning.plannings)).not.toContain('planning1')
+            done()
+        })
+    })
 })
