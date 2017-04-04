@@ -260,6 +260,8 @@ const selectAgenda = (agendaId) => (
             type: 'SELECT_AGENDA',
             payload: agendaId,
         })
+        // close the planning details
+        dispatch(closePlanningEditor())
         // update the url (deep linking)
         $timeout(() => ($location.search('agenda', agendaId)))
         // reload the plannings list
@@ -267,22 +269,21 @@ const selectAgenda = (agendaId) => (
     }
 )
 
-const openPlanningEditor = (planning) => (
-    (dispatch) => (dispatch({
-        type: 'OPEN_PLANNING_EDITOR',
-        payload: planning,
-    }))
-)
+const openPlanningEditor = (planning) => ({
+    type: 'OPEN_PLANNING_EDITOR',
+    payload: planning,
+})
 
 const openPlanningEditorAndAgenda = (planning) => (
     (dispatch, getState) => {
-        dispatch(openPlanningEditor(planning))
-
-        const agenda = selectors.getAgendas(getState()).find((a) => a.planning_items ?
-                        a.planning_items.indexOf(planning) > -1 : false)
+        const agenda = selectors.getAgendas(getState()).find(
+            (a) => (a.planning_items || []).indexOf(planning) > -1
+        )
         if (agenda && agenda._id !== selectors.getCurrentAgendaId(getState())) {
             dispatch(selectAgenda(agenda._id))
         }
+        // open the planning details
+        dispatch(openPlanningEditor(planning))
     }
 )
 
