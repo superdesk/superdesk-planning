@@ -1,4 +1,4 @@
 export { ChainValidators } from './ChainValidators'
 export { EndDateAfterStartDate } from './EndDateAfterStartDate'
-export { UntilDateAfterStartDate } from './UntilDateAfterStartDate'
+export { UntilDateValidator } from './UntilDateValidator'
 export { RequiredFieldsValidatorFactory } from './RequiredFieldsValidatorFactory'

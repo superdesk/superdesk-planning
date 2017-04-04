@@ -11,11 +11,12 @@ describe('<DaysOfWeek />', () => {
                 expect(s).toBe('MO WE SA')
             }
         })
+        let meta = { touched: false }
         let input = {
             onChange: onButtonClick,
             value: '',
         }
-        let wrapper = shallow(<DaysOfWeek input={input}/>)
+        let wrapper = shallow(<DaysOfWeek input={input} meta={meta} />)
         wrapper.find({ value: 'MO' }).simulate('change', {
             target: {
                 value: 'MO',
@@ -37,13 +38,14 @@ describe('<DaysOfWeek />', () => {
         expect(onButtonClick.callCount).toBe(3)
     })
     it('works well with initial value', () => {
+        let meta = { touched: false }
         let input = {
             onChange: sinon.spy((s) => {
                 expect(s).toBe('MO TU SA SU')
             }),
             value: 'MO TU SU',
         }
-        let wrapper = shallow(<DaysOfWeek input={input}/>)
+        let wrapper = shallow(<DaysOfWeek input={input} meta={meta}/>)
         expect(wrapper.state().MO).toBe(true)
         expect(wrapper.state().TU).toBe(true)
         expect(wrapper.state().WE).toBe(false)

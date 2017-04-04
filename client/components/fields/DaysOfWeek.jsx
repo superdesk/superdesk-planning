@@ -38,6 +38,8 @@ export class DaysOfWeek extends React.Component {
     }
 
     render() {
+        const { touched, error, warning } = this.props.meta
+
         return (
             <div>
                 {Object.keys(this.state).map((d) => (
@@ -50,9 +52,14 @@ export class DaysOfWeek extends React.Component {
                         {d}
                     </label>
                 ))}
+                {touched && ((error && <span className="error-block">{error}</span>) ||
+                 (warning && <span className="help-block">{warning}</span>))}
             </div>
         )
     }
 }
 
-DaysOfWeek.propTypes = { input: PropTypes.object }
+DaysOfWeek.propTypes = {
+    input: PropTypes.object,
+    meta: React.PropTypes.object.isRequired,
+}
