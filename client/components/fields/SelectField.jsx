@@ -12,6 +12,7 @@ export const SelectField = ({ input, label, options, value, meta, multi, clearab
                 multi={multi}
                 clearable={clearable}
                 options={options}
+                valueKey="label"
                 className="line-input"
                 onChange={(opts) => {
                     if (Array.isArray(opts)) {
