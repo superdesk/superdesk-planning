@@ -134,3 +134,61 @@ Feature: Events
     ]
     """
     Then we get error 400
+
+
+    @auth
+    Scenario: Delete an event and it will delete its related plannings and coverages
+        Given "events"
+        """
+        [
+            {
+                "guid": "123",
+                "_id": "123",
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "name": "event 123",
+                "definition_short": "short value",
+                "definition_long": "long value",
+                "relationships":{
+                    "broader": "broader value",
+                    "narrower": "narrower value",
+                    "related": "related value"
+                },
+                "dates": {
+                    "start": "2016-01-02",
+                    "end": "2016-01-03"
+                },
+                "subject": [{"qcode": "test qcaode", "name": "test name"}],
+                "location": [{"qcode": "test qcaode", "name": "test name"}],
+                "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}]
+            }
+        ]
+        """
+        Given "planning"
+        """
+        [{
+            "_id": "P123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "event_item": "123"
+        }]
+        """
+        Given "coverage"
+        """
+        [{
+            "_id": "C123",
+            "planning_item": "P123",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "assigned_to": "whoever wants to do it"
+            }
+        }]
+        """
+        When we delete "/events/123"
+        Then we get response code 204
+        When we get "/events"
+        Then we get list with 0 items
+        When we get "/planning/"
+        Then we get list with 0 items
+        When we get "/coverage/"
+        Then we get list with 0 items

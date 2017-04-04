@@ -301,4 +301,5 @@ export {
     openPlanningEditor,
     closePlanningEditor,
     openPlanningEditorAndAgenda,
+    fetchSelectedAgendaPlannings,
 }

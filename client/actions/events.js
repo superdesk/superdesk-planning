@@ -3,6 +3,10 @@ import moment from 'moment-timezone'
 import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
 import { saveLocation as _saveLocation } from './index'
+import { showModal, hideModal, fetchSelectedAgendaPlannings,
+    fetchAgendas, closePlanningEditor, openPlanningEditorAndAgenda } from './index'
+import { DeleteEvent } from '../components/index'
+import React from 'react'
 
 export function uploadFilesAndSaveEvent(event) {
     event = cloneDeep(event) || {}
@@ -38,6 +42,39 @@ export function uploadFilesAndSaveEvent(event) {
             }
         })
     )
+}
+
+export function deleteEvent(event) {
+    return (dispatch, getState, { api }) => {
+        if (event) {
+            return api('events').remove(event)
+            .then(() => {
+                // Close delete event modal
+                dispatch(hideModal())
+                // Fetch events to reload latest events list
+                dispatch(fetchEvents())
+
+                if (event._plannings) {
+                    // Fetch agendas, etc. as they are affected too
+                    event._plannings.forEach((planning) => {
+                        if (selectors.getCurrentPlanningId(getState()) === planning._id) {
+                            dispatch(closePlanningEditor())
+                            dispatch({
+                                type: 'DELETE_PLANNING',
+                                payload: planning._id,
+                            })
+                        }
+                    })
+
+                    dispatch(fetchAgendas())
+                    // reloads the plannings to show
+                    .then(() => (dispatch(fetchSelectedAgendaPlannings())))
+                }
+            }, (error) => {
+                throw new SubmissionError({ _error: error.statusText })
+            })
+        }
+    }
 }
 
 function saveFiles(newEvent) {
@@ -296,3 +333,28 @@ export function receiveEvents(events) {
 export function toggleEventsList() {
     return { type: 'TOGGLE_EVENT_LIST' }
 }
+
+export const openDeleteEvent = (event) => (
+    (dispatch, getState) => {
+        const storedPlannings = selectors.getStoredPlannings(getState())
+        // Get _plannings for the event
+        const eventWithPlannings = {
+            ...event,
+            _plannings: Object.keys(storedPlannings).filter((pKey) => (
+                storedPlannings[pKey].event_item === event._id
+            )).map((pKey) => ({ ...storedPlannings[pKey] })),
+        }
+
+        dispatch(showModal({
+            modalType: 'CONFIRMATION',
+            modalProps: {
+                body: React.createElement(DeleteEvent, {
+                    eventDetail: eventWithPlannings,
+                    handlePlanningClick: (planningId) =>
+                        (dispatch(openPlanningEditorAndAgenda(planningId))),
+                }),
+                action: () => dispatch(deleteEvent(eventWithPlannings)),
+            },
+        }))
+    }
+)

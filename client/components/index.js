@@ -6,5 +6,6 @@ export { QuickAddPlanning } from './QuickAddPlanning/index'
 export { EventItem } from './EventItem/index'
 export { EventMetadata } from './EventMetadata/index'
 export { RelatedPlannings } from './RelatedPlannings/index'
+export { DeleteEvent } from './DeleteEvent/index'
 import * as fields from './fields'
 export { fields }

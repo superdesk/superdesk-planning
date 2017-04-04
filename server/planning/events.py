@@ -12,6 +12,7 @@
 
 import superdesk
 import logging
+import json
 from superdesk import get_resource_service
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
@@ -19,7 +20,7 @@ from apps.archive.common import set_original_creator
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
-from eve.utils import config
+from eve.utils import config, ParsedRequest
 from flask import current_app as app
 import itertools
 import copy
@@ -105,6 +106,22 @@ class EventsService(superdesk.Service):
                 docs.remove(event)
         if generatedEvents:
             docs.extend(generatedEvents)
+
+    def on_delete(self, doc):
+        # If the event has planning, delete them
+        planning_service = get_resource_service('planning')
+        coverage_service = get_resource_service('coverage')
+        query = {
+            'event_item': str(doc['_id'])
+        }
+        req = ParsedRequest()
+        req.where = json.dumps(query)
+
+        for planning in planning_service.get(req=req, lookup=None):
+            planning_service.delete_action(lookup={'_id': planning['_id']})
+            # If the planning item is related to any coverages, delete them too
+            for coverage in coverage_service.find(where={'planning_item': planning['_id']}):
+                coverage_service.delete({'_id': coverage['_id']})
 
 
 events_schema = {
