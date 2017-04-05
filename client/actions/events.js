@@ -36,7 +36,6 @@ export function uploadFilesAndSaveEvent(event) {
             dispatch(addToEventsList(events.map((e) => e._id)))
 
             // If event was just created, open it in editing mode
-            // Otherwise, if saved again, event gets saved as new one
             if (events.length > 0 && selectors.getShowEventDetails(getState()) === true) {
                 dispatch(openEventDetails(events[0]._id))
             }
