@@ -9,3 +9,5 @@ export { RelatedPlannings } from './RelatedPlannings/index'
 export { DeleteEvent } from './DeleteEvent/index'
 import * as fields from './fields'
 export { fields }
+import * as tooltips from './Tooltips'
+export { tooltips }

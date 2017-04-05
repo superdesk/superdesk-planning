@@ -2,9 +2,8 @@ import React, { PropTypes } from 'react'
 import moment from 'moment'
 import { get } from 'lodash'
 import { ListItem } from './index'
-import { OverlayTrigger, Tooltip } from 'react-bootstrap'
-
-const removeTooltip = <Tooltip id="tooltip">Remove the planning</Tooltip>
+import { OverlayTrigger } from 'react-bootstrap'
+import { tooltips } from './index'
 
 export const PlanningItem = ({ item, event, onClick, active, onDelete }) => {
     const location = get(event, 'location[0].name')
@@ -25,7 +24,7 @@ export const PlanningItem = ({ item, event, onClick, active, onDelete }) => {
                 }
             </div>
             <span className="ListItem__actions">
-                <OverlayTrigger placement="left" overlay={removeTooltip}>
+                <OverlayTrigger placement="left" overlay={tooltips.deletePlanningTooltip}>
                     <i className="icon-trash" onClick={(e)=>{e.stopPropagation(); onDelete(item)}}/>
                 </OverlayTrigger>
             </span>

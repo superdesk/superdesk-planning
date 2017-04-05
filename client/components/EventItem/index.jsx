@@ -2,8 +2,9 @@ import React, { PropTypes } from 'react'
 import moment from 'moment'
 import { eventIsAllDayLong } from '../../utils'
 import { get } from 'lodash'
-import { ListItem } from '../index'
+import { ListItem, tooltips } from '../index'
 import './style.scss'
+import { OverlayTrigger } from 'react-bootstrap'
 
 export const EventItem = ({ event, onClick, deleteEvent }) => {
     // shows the time only if not an "all day long" event
@@ -53,7 +54,9 @@ export const EventItem = ({ event, onClick, deleteEvent }) => {
                 </dl>
             </div>
             <span className="ListItem__actions">
-                <i className="icon-trash" onClick={(e)=>{e.stopPropagation(); deleteEvent(event)}}/>
+                <OverlayTrigger placement="left" overlay={tooltips.deleteEventTooltip}>
+                    <i className="icon-trash" onClick={(e)=>{e.stopPropagation(); deleteEvent(event)}}/>
+                </OverlayTrigger>
             </span>
         </ListItem>
     )
