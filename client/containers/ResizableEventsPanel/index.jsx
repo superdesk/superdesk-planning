@@ -12,7 +12,7 @@ export class ResizableEventsPanelComponent extends React.Component {
         this._onResize = this._onResize.bind(this)
     }
 
-    _onResize() {
+    _onResize(delay=0) {
         let thisNode = $(this.refs.panel)
         let nextElement = thisNode.next()
         let windowWidth = $(window).width()
@@ -27,7 +27,7 @@ export class ResizableEventsPanelComponent extends React.Component {
                 width: (windowWidth - (thisNode.width() + thisOffset.left + rightBorder)),
                 left: (thisNode.width() + rightBorder),
             })
-        }, 500)
+        }, delay)
     }
 
     componentDidMount() {
@@ -67,7 +67,7 @@ export class ResizableEventsPanelComponent extends React.Component {
     componentDidUpdate(prevProps) {
         // call resize for showEvents prop changes
         if (prevProps.showEvents !== this.props.showEvents) {
-            this._onResize()
+            this._onResize(500)
         }
     }
 
