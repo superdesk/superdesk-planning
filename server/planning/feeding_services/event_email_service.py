@@ -63,55 +63,39 @@ class EventEmailFeedingService(FeedingService):
                         rv, data = imap.fetch(num, '(RFC822)')
                         if rv == 'OK':
                             try:
+                                logger.info('Ingesting events from email')
                                 parser = self.get_feed_parser(provider, data)
-                                ''' add conditional for parsers '''
-                                if isinstance(parser, NTBEventXMLFeedParser):
-                                    logger.info('Ingesting events with xml  parser')
-                                    # parse attached xml files only
-                                    for response_part in data:
-                                        if isinstance(response_part, tuple):
-                                            msg = email.message_from_bytes(response_part[1])
-                                            # this will loop through all the available multiparts in email
-                                            for part in msg.walk():
-                                                # we are only going to process xml attachments
-                                                if part.get('Content-Disposition') is None:
-                                                    continue
-                                                fileName = part.get_filename()
-                                                if bool(fileName):
-                                                    attachment = part.get_payload(decode=True)
-                                                    content = io.BytesIO(attachment)
-                                                    res = process_file_from_stream(content, part.get_content_type())
-                                                    file_name, content_type, metadata = res
+                                for response_part in data:
+                                    if isinstance(response_part, tuple):
+                                        msg = email.message_from_bytes(response_part[1])
+                                        # this will loop through all the available multiparts in email
+                                        for part in msg.walk():
+                                            # parse attached files only
+                                            if part.get('Content-Disposition') is None:
+                                                continue
+                                            fileName = part.get_filename()
+                                            if bool(fileName):
+                                                attachment = part.get_payload(decode=True)
+                                                content = io.BytesIO(attachment)
+                                                res = process_file_from_stream(content, part.get_content_type())
+                                                file_name, content_type, metadata = res
+                                                if isinstance(parser, NTBEventXMLFeedParser):
                                                     if content_type != 'text/xml':
                                                         continue
                                                     content.seek(0)
                                                     xml = ElementTree.parse(content)
+                                                    logger.info('Ingesting events with xml parser')
                                                     new_items.append(parser.parse(xml.getroot(), provider))
-                                elif isinstance(parser, IcsTwoFeedParser):
-                                    logger.info('Ingesting events with ics parser')
-                                    # parse attached ical files only
-                                    for response_part in data:
-                                        if isinstance(response_part, tuple):
-                                            msg = email.message_from_bytes(response_part[1])
-                                            # this will loop through all the available multiparts in email
-                                            for part in msg.walk():
-                                                # we are only going to process ics attachments
-                                                if part.get('Content-Disposition') is None:
-                                                    continue
-                                                fileName = part.get_filename()
-                                                if bool(fileName):
-                                                    attachment = part.get_payload(decode=True)
-                                                    content = io.BytesIO(attachment)
-                                                    res = process_file_from_stream(content, part.get_content_type())
-                                                    file_name, content_type, metadata = res
+                                                elif isinstance(parser, IcsTwoFeedParser):
                                                     if content_type != 'text/calendar':
                                                         continue
                                                     content.seek(0)
                                                     cal = Calendar.from_ical(content.read())
+                                                    logger.info('Ingesting events with ics parser')
                                                     new_items.append(parser.parse(cal, provider))
-                                else:
-                                    logger.info('Ingesting events with unknown parser')
-                                    new_items.append(parser.parse(data, provider))
+                                                else:
+                                                    logger.warn('Ingesting events with unknown parser')
+                                                    new_items.append(parser.parse(data, provider))
                                 rv, data = imap.store(num, '+FLAGS', '\\Seen')
                             except IngestEmailError:
                                 continue
