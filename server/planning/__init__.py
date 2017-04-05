@@ -21,6 +21,7 @@ from .feed_parsers.ics_2_0 import IcsTwoFeedParser
 from .feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
 from .feeding_services.event_file_service import EventFileFeedingService
 from .feeding_services.event_http_service import EventHTTPFeedingService
+from .feeding_services.event_email_service import EventEmailFeedingService
 
 
 def init_app(app):
@@ -59,6 +60,11 @@ register_feeding_service(
     EventHTTPFeedingService.NAME,
     EventHTTPFeedingService(),
     EventHTTPFeedingService.ERRORS
+)
+register_feeding_service(
+    EventEmailFeedingService.NAME,
+    EventEmailFeedingService(),
+    EventEmailFeedingService.ERRORS
 )
 
 register_feed_parser(IcsTwoFeedParser.NAME, IcsTwoFeedParser())
