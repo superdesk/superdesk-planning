@@ -14,7 +14,6 @@ import io
 import logging
 
 from superdesk.errors import IngestEmailError
-from superdesk.io.registry import register_feeding_service
 from superdesk.io.feeding_services import FeedingService
 from superdesk.upload import url_for_media
 from superdesk.media.media_operations import process_file_from_stream
