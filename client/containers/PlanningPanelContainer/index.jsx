@@ -49,6 +49,8 @@ class PlanningPanel extends React.Component {
             currentPlanning,
             planningsAreLoading,
             editPlanningViewOpen,
+            isEventListShown,
+            toggleEventsList,
         } = this.props
         const listClasses = [
             'Planning__planning-panel',
@@ -64,6 +66,13 @@ class PlanningPanel extends React.Component {
                 <div className="Planning__planning">
                     <div className="Planning__planning__list">
                         <div className="subnav">
+                            {!isEventListShown &&
+                                <div className="navbtn" title="Show the event list">
+                                    <button onClick={toggleEventsList} type="button">
+                                        <i className="icon-chevron-right-thin"/>
+                                    </button>
+                                </div>
+                            }
                             <h3 className="subnav__page-title">
                                 <span>
                                     <span>Planning</span>
@@ -131,6 +140,8 @@ PlanningPanel.propTypes = {
     createPlanning: React.PropTypes.func,
     editPlanningViewOpen: React.PropTypes.bool,
     addEventToCurrentAgenda: React.PropTypes.func,
+    toggleEventsList: React.PropTypes.func,
+    isEventListShown: React.PropTypes.bool,
 }
 
 const mapStateToProps = (state) => ({
@@ -140,6 +151,7 @@ const mapStateToProps = (state) => ({
     planningsAreLoading: state.planning.agendasAreLoading || state.planning.planningsAreLoading,
     editPlanningViewOpen: state.planning.editorOpened,
     planningsEvents: selectors.getCurrentAgendaPlanningsEvents(state),
+    isEventListShown: selectors.isEventListShown(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -160,6 +172,7 @@ const mapDispatchToProps = (dispatch) => ({
     createPlanning: (planning) => dispatch(actions.savePlanningAndReloadCurrentAgenda(planning)),
     openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning))),
     addEventToCurrentAgenda: (event) => (dispatch(actions.addEventToCurrentAgenda(event))),
+    toggleEventsList: () => (dispatch(actions.toggleEventsList())),
 })
 
 export const PlanningPanelContainer = connect(

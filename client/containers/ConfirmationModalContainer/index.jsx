@@ -2,6 +2,7 @@ import React from 'react'
 import { Modal, Button } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
+import { get } from 'lodash'
 
 export function ConfirmationModalComponent({ show, title, body, handleHide, handleAction }) {
     const action = () => (
@@ -46,9 +47,9 @@ ConfirmationModalComponent.propTypes = {
 
 const mapStateToProps = (state) => ({
     show: state.modal.modalType === 'CONFIRMATION',
-    body: state.modal.modalProps ? state.modal.modalProps.body : null,
-    title: state.modal.modalProps ? state.modal.modalProps.title : null,
-    handleAction: state.modal.modalProps ? state.modal.modalProps.action : null,
+    body: get(state, 'modal.modalProps.body'),
+    title: get(state, 'modal.modalProps.title'),
+    handleAction: get(state, 'modal.modalProps.action'),
 })
 
 const mapDispatchToProps = (dispatch) => ({ handleHide: () => dispatch(actions.hideModal()) })

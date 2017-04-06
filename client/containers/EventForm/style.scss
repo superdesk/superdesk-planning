@@ -2,17 +2,7 @@
 
 .EventForm {
     > .subnav {
-        .subnav__button-stack--square-buttons { margin: 0; }
-        .navbtn { // back button
-            border-right: 1px solid rgba(0, 0, 0, 0.1);
-            border-left: 0;
-            button { background-color: transparent; }
-        }
-        button[type="submit"] { // save button
-            margin-top: 10px;
-            margin-right: 10px;
-        }
-        button[type="button"] { // save button
+        button[type="submit"], .btn { // save button
             margin-top: 10px;
             margin-right: 10px;
         }
