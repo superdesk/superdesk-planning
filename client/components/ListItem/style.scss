@@ -29,5 +29,5 @@
     }
 }
 
-.ListItem__list-item:not(.active) .ListItem__actions { background-color: rgba(222, 222, 222, .6) }
-.ListItem__list-item.active .ListItem__actions { background-color: rgba(200, 228, 238, .6) }
+.ListItem__list-item:not(.active) .ListItem__actions { background-color: rgb(222, 222, 222) }
+.ListItem__list-item.active .ListItem__actions { background-color: rgb(200, 228, 238) }
