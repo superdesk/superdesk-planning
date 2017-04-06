@@ -1,15 +1,16 @@
 import { hideModal } from './modal'
 import * as selectors from '../selectors'
 import * as actions from '../actions'
-import { pickBy, cloneDeep, isNil, has } from 'lodash'
+import { pickBy, cloneDeep, isNil, has, get } from 'lodash'
 
 const createAgenda = ({ name }) => (
-    (dispatch, getState, { api }) => {
+    (dispatch, getState, { api, notify }) => {
         api('planning').save({}, {
             planning_type: 'agenda',
             name: name,
         })
         .then((agenda) => {
+            notify.success('An agenda has been added')
             dispatch(hideModal())
             dispatch(addOrReplaceAgenda(agenda))
             dispatch(selectAgenda(agenda._id))
@@ -26,7 +27,7 @@ const deletePlanning = (planning) => (
                 dispatch(closePlanningEditor())
             }
         })
-        .then(() => notify.success('planning deleted'))
+        .then(() => notify.success('the planning has been deleted'))
         // reloads agendas because they contains the list of the plannings to show and plannings
         .then(() => (dispatch(fetchAgendas())))
         .then(() => (dispatch({
@@ -55,7 +56,7 @@ const savePlanningAndReloadCurrentAgenda = (originalPlanning) => (
 )
 
 const addToCurrentAgenda = (planning) => (
-    (dispatch, getState) => {
+    (dispatch, getState, { notify }) => {
         const currentAgenda = selectors.getCurrentAgenda(getState())
         if (!currentAgenda) throw Error('unable to find the current agenda')
         // add the planning to the agenda
@@ -63,6 +64,7 @@ const addToCurrentAgenda = (planning) => (
             planning: planning,
             agenda: currentAgenda,
         }))
+        .then(() => notify.success('The planning has been added to the agenda'))
         // returns the planning to chain well with planning savings actions
         .then(() => (planning))
 
@@ -70,7 +72,7 @@ const addToCurrentAgenda = (planning) => (
 )
 
 const savePlanning = (planning) => (
-    (dispatch, getState, { api }) => {
+    (dispatch, getState, { api, notify }) => {
         // find original
         let originalPlanning = {}
         if (planning._id) {
@@ -87,12 +89,22 @@ const savePlanning = (planning) => (
         delete planning.original_creator
         // save through the api
         return api('planning').save(cloneDeep(originalPlanning), planning)
-        // save/delete coverages
         .then((planning) => (
+            // save/delete coverages
             dispatch(saveAndDeleteCoverages(coverages, planning, originalPlanning.coverages))
             // returns the planning
             .then(() => (planning))
-        ))
+        ), (e) => {
+            notify.error(
+                `An error occured : ${JSON.stringify(get(e, 'data._issues', e.statusText))}`
+            )
+            throw e
+        })
+        // notify the user
+        .then((planning) => {
+            notify.success('The planning has been saved')
+            return planning
+        })
     }
 )
 

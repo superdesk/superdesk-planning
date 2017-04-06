@@ -142,7 +142,7 @@ function saveLocation(event) {
 
 /** Add the user timezone, save the event, notify the form (to reset) and hide the modal */
 function saveEvent(newEvent) {
-    return (dispatch, getState, { api }) => {
+    return (dispatch, getState, { api, notify }) => {
         // remove links if it contains only null values
         if (newEvent.links && newEvent.links.length > 0) {
             newEvent.links = newEvent.links.filter((l) => (l))
@@ -163,8 +163,11 @@ function saveEvent(newEvent) {
         // send the event on the backend
         return api('events').save(original, newEvent)
         // return a list of events (can has several because of reccurence)
-        .then(data => data._items || [data],
-        (error) => {
+        .then(data => {
+            notify.success('The event has been saved')
+            return data._items || [data]
+        }, (error) => {
+            notify.error('An error occured')
             throw new SubmissionError({ _error: error.statusText })
         })
     }
