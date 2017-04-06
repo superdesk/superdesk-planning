@@ -7,6 +7,7 @@ import { tooltips } from './index'
 
 export const PlanningItem = ({ item, event, onClick, active, onDelete }) => {
     const location = get(event, 'location[0].name')
+    const hasDueDate = get(item, 'coverages', []).some((c) => (get(c, 'planning.scheduled')))
     const eventTime = get(event, 'dates.start') ?
         moment(get(event, 'dates.start')).format('LL HH:mm') : null
     return (
@@ -17,10 +18,13 @@ export const PlanningItem = ({ item, event, onClick, active, onDelete }) => {
                 <time title={eventTime}>{eventTime}</time>
             </div>
             <div className="line">
-                {location &&
-                    <span className="container">
+                <span className="container">
+                    {location &&
                         <span className="location">location: {location}</span>
-                    </span>
+                    }
+                </span>
+                {hasDueDate &&
+                    <i className="icon-time"/>
                 }
             </div>
             <span className="ListItem__actions">
