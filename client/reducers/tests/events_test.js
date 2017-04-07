@@ -42,7 +42,7 @@ describe('events', () => {
         const newEvent = {
             _id: '4',
             name: 'name 4',
-            dates: { start: Date() },
+            dates: { start: '2016-10-15T14:30+0000' },
         }
         const result = events(state, {
             type: 'ADD_EVENTS',

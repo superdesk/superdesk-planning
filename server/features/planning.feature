@@ -82,7 +82,6 @@ Feature: Planning
     @auth
     @notification
     Scenario: Update agendas when a planning is removed
-        # Given "planning"
         When we post to "planning"
         """
         [{
@@ -104,3 +103,40 @@ Feature: Planning
         """
         []
         """
+
+    @auth
+    @notification
+        Scenario: Removes associated planning when an agenda is removed
+            # Given "planning"
+            When we post to "planning"
+            """
+            [{
+                "slugline": "orphan planning"
+            }]
+            """
+            And we post to "planning"
+            """
+            [{
+                "slugline": "planning 1"
+            }]
+            """
+            Then we store "planningId" with value "#planning._id#" to context
+            When we post to "planning" with success
+            """
+            [{
+                "planning_type": "agenda",
+                "planning_items": ["#planningId#"]
+            }]
+            """
+            Then we store "agendaId" with value "#planning._id#" to context
+            When we delete "/planning/#agendaId#"
+            Then we get response code 204
+            When we get "/planning"
+            Then we get list with 1 items
+            """
+                {"_items": [{
+                    "guid": "__any_value__",
+                    "original_creator": "__any_value__",
+                    "slugline": "orphan planning"
+                }]}
+            """

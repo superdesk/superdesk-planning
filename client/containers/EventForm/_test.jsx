@@ -5,12 +5,13 @@ import sinon from 'sinon'
 import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
+import moment from 'moment'
 
 const event = {
     _id: '5800d71930627218866f1e80',
     dates: {
-        start: '2016-10-15T14:30+0000',
-        end: '2016-10-20T15:00+0000',
+        start: moment('2016-10-15T14:30+0000'),
+        end: moment('2016-10-20T15:00+0000'),
     },
     definition_short: 'definition_short 1',
     location: [{ name: 'location1' }],
@@ -92,8 +93,8 @@ describe('<FormComponent />', () => {
         const recEvent = {
             ...event,
             dates: {
-                start: '2016-10-15T14:30+0000',
-                end: '2016-10-20T15:00+0000',
+                start: moment('2016-10-15T14:30+0000'),
+                end: moment('2016-10-20T15:00+0000'),
                 recurring_rule: { frequency: 'YEARLY' },
             },
         }

@@ -11,7 +11,6 @@
     "karma": "karma start karma.conf.js",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "test": "npm run hint && npm run unit_test"
-
   },
   "author": "Edouard Richard",
   "dependencies": {
@@ -73,6 +72,7 @@
     "karma-jasmine": "^1.0.2",
     "karma-junit-reporter": "^1.1.0",
     "karma-sourcemap-loader": "^0.3.7",
+    "karma-verbose-reporter": "0.0.6",
     "karma-webpack": "^2.0.2",
     "node-sass": "^4.3.0",
     "react-addons-test-utils": "^15.3.2",

@@ -1,10 +1,10 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import {
+    ModalsContainer,
     EventsPanelContainer,
     PlanningPanelContainer,
-    ConfirmationModalContainer,
-    CreateAgendaContainer } from './index'
+} from './index'
 
 const PlanningAppComponent = ({ showEvents }) => {
     const classes = [
@@ -13,8 +13,7 @@ const PlanningAppComponent = ({ showEvents }) => {
     ]
     return (
         <div className={classes.join(' ')}>
-            <CreateAgendaContainer />
-            <ConfirmationModalContainer />
+            <ModalsContainer />
             <EventsPanelContainer />
             <PlanningPanelContainer />
         </div>

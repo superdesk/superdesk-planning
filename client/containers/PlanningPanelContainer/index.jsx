@@ -39,18 +39,18 @@ class PlanningPanel extends React.Component {
     render() {
         const { draggingOver } = this.state
         const {
-            openCreateAgenda,
             planningList,
             openPlanningEditor,
             currentAgenda,
             handlePlanningDeletion,
-            createPlanning,
+            onPlanningCreation,
             planningsEvents,
             currentPlanning,
             planningsAreLoading,
             editPlanningViewOpen,
             isEventListShown,
             toggleEventsList,
+            onManageAgendasClick,
         } = this.props
         const listClasses = [
             'Planning__planning-panel',
@@ -73,26 +73,23 @@ class PlanningPanel extends React.Component {
                                     </button>
                                 </div>
                             }
+                            <div className="navbtn" title="Manage agendas">
+                                <button onClick={onManageAgendasClick} type="button">
+                                    <i className="icon-th-large"/>
+                                </button>
+                            </div>
                             <h3 className="subnav__page-title">
                                 <span>
                                     <span>Planning</span>
                                 </span>
                             </h3>
-                            <SelectAgenda />
-                            <div className="subnav__button-stack--square-buttons">
-                                <div className="refresh-box pull-right" />
-                                <div className="navbtn" title="Create">
-                                    <button className="sd-create-btn"
-                                            onClick={openCreateAgenda.bind(null, null)}>
-                                        <i className="svg-icon-plus" />
-                                        <span className="circle" />
-                                    </button>
-                                </div>
+                            <div  className="Planning__planning__select-agenda">
+                                <SelectAgenda />
                             </div>
                         </div>
                         <ul className="list-view compact-view">
                             {currentAgenda &&
-                                <QuickAddPlanning className="ListItem__list-item" onPlanningCreation={createPlanning}/>
+                                <QuickAddPlanning className="ListItem__list-item" onPlanningCreation={onPlanningCreation}/>
                             }
                             {(planningList && planningList.length > 0) && planningList.map((planning) => (
                                 <PlanningItem
@@ -132,16 +129,16 @@ PlanningPanel.propTypes = {
     currentPlanning: React.PropTypes.object,
     planningsEvents: React.PropTypes.object,
     fetchPlannings: React.PropTypes.func.isRequired,
-    openCreateAgenda: React.PropTypes.func.isRequired,
     planningList: React.PropTypes.array.isRequired,
     planningsAreLoading: React.PropTypes.bool,
     openPlanningEditor: React.PropTypes.func.isRequired,
     handlePlanningDeletion: React.PropTypes.func,
-    createPlanning: React.PropTypes.func,
+    onPlanningCreation: React.PropTypes.func,
     editPlanningViewOpen: React.PropTypes.bool,
     addEventToCurrentAgenda: React.PropTypes.func,
     toggleEventsList: React.PropTypes.func,
     isEventListShown: React.PropTypes.bool,
+    onManageAgendasClick: React.PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -164,15 +161,21 @@ const mapDispatchToProps = (dispatch) => ({
             },
         }))
     },
-    openCreateAgenda: () => dispatch(actions.showModal({ modalType: 'CREATE_AGENDA' })),
     fetchPlannings: () => {
         dispatch(actions.fetchAgendas())
         dispatch(actions.fetchPlannings())
     },
-    createPlanning: (planning) => dispatch(actions.savePlanningAndReloadCurrentAgenda(planning)),
+    onPlanningCreation: (planning) => (
+        // save planning and open the plannning editor
+        dispatch(actions.savePlanningAndReloadCurrentAgenda(planning))
+        .then((planning) => (
+            dispatch(actions.openPlanningEditor(planning._id))
+        ))
+    ),
     openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning))),
     addEventToCurrentAgenda: (event) => (dispatch(actions.addEventToCurrentAgenda(event))),
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
+    onManageAgendasClick: () => (dispatch(actions.showModal({ modalType: 'MANAGE_AGENDAS' }))),
 })
 
 export const PlanningPanelContainer = connect(

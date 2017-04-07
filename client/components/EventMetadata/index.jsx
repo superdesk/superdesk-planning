@@ -2,7 +2,7 @@ import React from 'react'
 import { get, some } from 'lodash'
 import moment from 'moment'
 
-const parseDate = (d) => moment(d).format('MM/DD/YYYY HH:mm')
+const parseDate = (d) => moment(d).format('DD/MM/YYYY HH:mm')
 const FIELDS = [
     // 'Label', 'key1', 'key2', ['key3', func(value)] etc...
     ['Name', 'name'],

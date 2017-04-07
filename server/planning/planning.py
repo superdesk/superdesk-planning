@@ -51,6 +51,9 @@ class PlanningService(superdesk.Service):
         for agenda in self.find(where={'planning_items': doc['_id']}):
             diff = {'planning_items': [_ for _ in agenda['planning_items'] if _ != doc['_id']]}
             self.update(agenda['_id'], diff, agenda)
+        # if it's an agenda, removes the plannings
+        if 'planning_items' in doc:
+            self.delete({'_id': {'$in': doc['planning_items']}})
 
 
 planning_schema = {

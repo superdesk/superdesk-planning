@@ -16,6 +16,7 @@ export class Component extends React.Component {
             <form onSubmit={this.props.handleSubmit} className="CreateAgendaForm">
                 <Field name="name"
                        component={fields.InputField}
+                       autoFocus={true}
                        type="text"
                        label="Name"/>
                 <button type="submit" style={{ visibility: 'hidden' }}>Submit</button>
