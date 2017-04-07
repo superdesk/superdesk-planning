@@ -26,7 +26,8 @@ export class EventsList extends React.Component {
                                     <EventItem event={event}
                                            key={event._id}
                                            onClick={this.onEventClick.bind(this, event)}
-                                           deleteEvent={this.onEventDelete.bind(this, event)}/>
+                                           deleteEvent={this.onEventDelete.bind(this, event)}
+                                           selectedEvent={this.props.selectedEvent}/>
                                 ))}
                             </ul>
                         </div>
@@ -74,4 +75,5 @@ EventsList.propTypes = {
     onEventClick: React.PropTypes.func,
     events: React.PropTypes.array.isRequired,
     onEventDelete: React.PropTypes.func,
+    selectedEvent: React.PropTypes.string,
 }

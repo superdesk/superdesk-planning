@@ -56,8 +56,8 @@ describe('<FormComponent />', () => {
     it('compute right dates', () => {
         const expectDatesInStoreToBe = (expectedDates) => {
             let { start, end } = store.getState().form.addEvent.values.dates
-            expect(start.isSame(expectedDates.start)).toBe(true)
-            expect(end.isSame(expectedDates.end)).toBe(true)
+            expect(start).toBe(expectedDates.start)
+            expect(end).toBe(expectedDates.end)
         }
 
         let store = createTestStore()

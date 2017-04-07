@@ -20,11 +20,15 @@ export class Component extends React.Component {
         this.state = { doesRepeat: false }
     }
 
-    componentWillReceiveProps(props) {
-        const { doesRepeat } = props
+    componentWillReceiveProps(nextProps) {
+        const { doesRepeat } = nextProps
         if (doesRepeat) {
             this.setState({ doesRepeat: true })
         }
+    }
+
+    componentDidMount() {
+        this.props.reset()
     }
 
     oneHourAfterStartingDate() {
@@ -64,6 +68,7 @@ export class Component extends React.Component {
         return (
             <form onSubmit={handleSubmit} className="EventForm">
                 <div className="subnav">
+                    {pristine && (
                     <div className="subnav__button-stack--square-buttons">
                         <div className="navbtn" title="Back to list">
                             <button onClick={onBackClick} type="button">
@@ -71,11 +76,16 @@ export class Component extends React.Component {
                             </button>
                         </div>
                     </div>
+                    )}
                     <span className="subnav__page-title">Event Details</span>
-                    <button type="button" className="btn" onClick={onBackClick}>Cancel</button>
-                    <button type="submit" className="btn btn--primary" disabled={pristine || submitting}>
-                        Save
-                    </button>
+                    {(!pristine && !submitting) && (
+                        <div>
+                            <button type="submit" className="btn btn--primary">
+                                Save
+                            </button>
+                            <button type="button" className="btn" onClick={onBackClick}>Cancel</button>
+                        </div>
+                    )}
                 </div>
                 <div className="EventForm__form">
                     {error && <div className="error-block">{error}</div>}
@@ -177,6 +187,7 @@ Component.propTypes = {
     submitting: React.PropTypes.bool,
     initialValues: React.PropTypes.object,
     handlePlanningClick: React.PropTypes.func.isRequired,
+    reset: React.PropTypes.func,
 }
 
 // Decorate the form component
