@@ -111,7 +111,7 @@ class EventsListComponent extends React.Component {
                         </h3>
                         <button className="btn btn--primary"
                                 onClick={this.props.openEventDetails.bind(null, null)}>
-                            Add an event
+                            Add event
                         </button>
                     </div>
                     <EventsList events={this.props.events}
