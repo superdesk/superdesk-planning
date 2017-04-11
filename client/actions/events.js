@@ -205,6 +205,16 @@ function performFetchQuery({ advancedSearch, fulltext, ids }) {
                     },
                 },
                 {
+                    condition: () => (advancedSearch.source),
+                    do: () => {
+                        const providers = advancedSearch.source.map((provider) => provider.name)
+                        const queries = providers.map((provider) => (
+                            { match: { source: provider } }
+                        ))
+                        should.push(...queries)
+                    },
+                },
+                {
                     condition: () => (advancedSearch.location),
                     do: () => {
                         should.push(

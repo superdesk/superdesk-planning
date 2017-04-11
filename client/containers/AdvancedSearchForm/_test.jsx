@@ -26,6 +26,16 @@ describe('<AdvancedSearchForm />', () => {
         })
     }
 
+    it('clicks on the clear', () => {
+        const store = createTestStore()
+        const wrapper = mount(
+            <Provider store={store}>
+                <AdvancedSearchForm />
+            </Provider>
+        )
+        wrapper.find('[name="clear"] button').simulate('click')
+    })
+
     it('perfrom a search', (done) => {
         Promise.all([
             {

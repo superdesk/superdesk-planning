@@ -66,6 +66,7 @@ export function PlanningController(
     })
     // load data in the store
     store.dispatch(actions.loadCVocabularies())
+    store.dispatch(actions.loadIngestProviders())
     // render the planning application
     ReactDOM.render(
         <Provider store={store}>
