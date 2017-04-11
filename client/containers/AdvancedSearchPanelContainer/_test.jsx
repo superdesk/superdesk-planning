@@ -3,7 +3,6 @@ import { mount } from 'enzyme'
 import { AdvancedSearchPanelContainer } from '../index'
 import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
-import moment from 'moment'
 
 describe('<AdvancedSearchPanelContainer />', () => {
 
