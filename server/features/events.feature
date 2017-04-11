@@ -70,8 +70,8 @@ Feature: Events
                 "unique_id": "123",
                 "name": "Friday Club",
                 "dates": {
-                    "start": "2016-11-17T23:00:00.000Z",
-                    "end": "2016-11-18T00:00:00.000Z",
+                    "start": "2016-11-17T12:00:00.000Z",
+                    "end": "2016-11-17T14:00:00.000Z",
                     "tz": "Europe/Berlin",
                     "recurring_rule": {
                         "frequency": "WEEKLY",
@@ -94,16 +94,23 @@ Feature: Events
         """
         {"_items": [
             {
-                "name": "Friday Club",
-                "dates": {"start": "2016-11-17T23:00:00+0000", "end": "2016-11-18T00:00:00+0000"}
-            },
-            {
-                "name": "Friday Club",
-                "dates": {"start": "2016-11-24T23:00:00+0000", "end": "2016-11-25T00:00:00+0000"}
-            },
-            {
-                "name": "Friday Club",
-                "dates": {"start": "2016-12-01T23:00:00+0000", "end": "2016-12-02T00:00:00+0000"}
+                "dates": {
+                    "start": "2016-11-18T12:00:00+0000",
+                    "end": "2016-11-18T14:00:00+0000"
+                },
+                "name": "Friday Club"
+            }, {
+                "dates": {
+                    "start": "2016-11-25T12:00:00+0000",
+                    "end": "2016-11-25T14:00:00+0000"
+                },
+                "name": "Friday Club"
+            }, {
+                "dates": {
+                    "start": "2016-12-02T12:00:00+0000",
+                    "end": "2016-12-02T14:00:00+0000"
+                },
+                "name": "Friday Club"
             }
         ]}
         """
@@ -198,3 +205,343 @@ Feature: Events
         Then we get list with 0 items
         When we get "/coverage/"
         Then we get list with 0 items
+
+
+    @auth
+    @notification
+    Scenario: Update a non-recurring event and set it as a recurring event
+        When we post to "events"
+        """
+        [
+            {
+                "unique_id": "123",
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2016-11-17T23:00:00.000Z",
+                    "end": "2016-11-18T00:00:00.000Z",
+                    "tz": "Europe/Berlin"
+                },
+                "occur_status": {
+                    "name": "Planned, occurs certainly",
+                    "qcode": "eocstat:eos5"
+                }
+            }
+        ]
+        """
+        Then we get response code 201
+        When we patch "/events/#events._id#"
+        """
+            {
+                "name": "Friday Club changed",
+                "dates": {
+                    "start": "2016-11-17T12:00:00.000Z",
+                    "end": "2016-11-17T14:00:00.000Z",
+                    "tz": "Europe/Berlin",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count",
+                        "update_recurrent_events": true
+                    }
+                }
+            }
+        """
+        Then we get response code 200
+        When we get "/events"
+        Then we get list with 4 items
+        """
+            {"_items": [
+                  {
+                      "dates": {
+                          "end": "2016-12-02T14:00:00+0000",
+                          "start": "2016-12-02T12:00:00+0000"
+                      },
+                      "name": "Friday Club changed"
+                  },
+                  {
+                      "dates": {
+                          "end": "2016-11-18T14:00:00+0000",
+                          "start": "2016-11-18T12:00:00+0000"
+                      },
+                      "name": "Friday Club changed"
+                  },
+                  {
+                      "dates": {
+                          "end": "2016-11-25T14:00:00+0000",
+                          "start": "2016-11-25T12:00:00+0000"
+                      },
+                      "name": "Friday Club changed"
+                  }
+            ]}
+        """
+
+
+ @auth
+    @notification
+    Scenario: Update a recurring event but change only that specific recurrence
+         When we post to "events"
+        """
+        [
+            {
+                "unique_id": "123",
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2016-11-17T23:00:00.000Z",
+                    "end": "2016-11-18T00:00:00.000Z",
+                    "tz": "Europe/Berlin",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                },
+                "occur_status": {
+                    "name": "Planned, occurs certainly",
+                    "qcode": "eocstat:eos5"
+                }
+            }
+        ]
+        """
+        Then we get response code 201
+        Then we store "EVENT" with first item
+        When we patch "/events/#EVENT._id#"
+        """
+            {
+                "name": "Friday Club changed",
+                "dates": {
+                    "start": "2016-11-17T22:00:00.000Z",
+                    "end": "2016-11-18T01:00:00.000Z",
+                    "tz": "Europe/Berlin",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count",
+                        "update_recurrent_events": false
+                    }
+                }
+            }
+        """
+        Then we get response code 200
+        When we get "/events?source={"query":{"match":{"recurrence_id": "#EVENT.recurrence_id#"}}}"
+        Then we get list with 2 items
+        """
+            {"_items": [
+                {
+                    "name": "Friday Club",
+                    "dates": {"start": "2016-11-24T23:00:00+0000", "end": "2016-11-25T00:00:00+0000"}
+                },
+                {
+                    "name": "Friday Club",
+                    "dates": {"start": "2016-12-01T23:00:00+0000", "end": "2016-12-02T00:00:00+0000"}
+                }
+            ]}
+        """
+
+
+ @auth
+    @notification
+    Scenario: Update a recurring event and change all following recurrences
+         When we post to "events"
+        """
+        [
+            {
+                "unique_id": "123",
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2016-11-17T10:00:00.000Z",
+                    "end": "2016-11-17T11:00:00.000Z",
+                    "tz": "Europe/Berlin",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                },
+                "occur_status": {
+                    "name": "Planned, occurs certainly",
+                    "qcode": "eocstat:eos5"
+                }
+            }
+        ]
+        """
+        Then we get response code 201
+        Then we store "EVENT" with 2 item
+        When we get "/events"
+        Then we get list with 3 items
+        """
+            {"_items": [
+                {
+                    "name": "Friday Club",
+                    "dates": {"start": "2016-11-18T10:00:00+0000", "end": "2016-11-18T11:00:00+0000"}
+                },
+                {
+                    "name": "Friday Club",
+                    "dates": {"start": "2016-11-25T10:00:00+0000", "end": "2016-11-25T11:00:00+0000"}
+                },
+                {
+                    "name": "Friday Club",
+                    "dates": {"start": "2016-12-02T10:00:00+0000", "end": "2016-12-02T11:00:00+0000"}
+                }
+            ]}
+        """
+        When we patch "/events/#EVENT._id#"
+        """
+            {
+                "name": "Friday Club changed",
+                "dates": {
+                    "start": "2016-12-10T14:00:00.000Z",
+                    "end": "2016-12-10T15:00:00.000Z",
+                    "tz": "Europe/Berlin",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count",
+                        "update_recurrent_events": true
+                    }
+                }
+            }
+        """
+        Then we get response code 200
+        When we get "/events?source={"query":{"match":{"recurrence_id": "#EVENT.recurrence_id#"}}}"
+        Then we get list with 4 items
+        """
+            {"_items": [{
+                    "dates": {
+                        "start": "2016-12-16T14:00:00+0000",
+                        "end": "2016-12-16T15:00:00+0000"
+                    },
+                    "name": "Friday Club changed"
+                }, {
+                    "dates": {
+                        "start": "2016-12-23T14:00:00+0000",
+                        "end": "2016-12-23T15:00:00+0000"
+                    },
+                    "name": "Friday Club changed"
+                }, {
+                    "dates": {
+                        "start": "2016-12-30T14:00:00+0000",
+                        "end": "2016-12-30T15:00:00+0000"
+                    },
+                    "name": "Friday Club changed"
+                }, {
+                    "dates": {
+                        "start": "2016-11-18T10:00:00+0000",
+                        "end": "2016-11-18T11:00:00+0000"
+                    },
+                    "name": "Friday Club"
+                }
+           ]}
+        """
+
+
+ @auth
+    @notification
+    Scenario: Update a recurring event and delete some of following recurrences
+         When we post to "events"
+        """
+        [
+            {
+                "unique_id": "123",
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2016-11-17T10:00:00.000Z",
+                    "end": "2016-11-17T11:00:00.000Z",
+                    "tz": "Europe/Berlin",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 5,
+                        "endRepeatMode": "count"
+                    }
+                },
+                "occur_status": {
+                    "name": "Planned, occurs certainly",
+                    "qcode": "eocstat:eos5"
+                }
+            }
+        ]
+        """
+        Then we get response code 201
+        Then we store "EVENT" with 2 item
+        When we get "/events"
+        Then we get list with 5 items
+        """
+            {"_items": [
+                {
+                    "name": "Friday Club",
+                    "dates": {"start": "2016-11-18T10:00:00+0000", "end": "2016-11-18T11:00:00+0000"}
+                },
+                {
+                    "name": "Friday Club",
+                    "dates": {"start": "2016-11-25T10:00:00+0000", "end": "2016-11-25T11:00:00+0000"}
+                },
+                {
+                    "name": "Friday Club",
+                    "dates": {"start": "2016-12-02T10:00:00+0000", "end": "2016-12-02T11:00:00+0000"}
+                },
+                {
+                    "name": "Friday Club",
+                    "dates": {"start": "2016-12-09T10:00:00+0000", "end": "2016-12-09T11:00:00+0000"}
+                },
+                {
+                    "name": "Friday Club",
+                    "dates": {"start": "2016-12-16T10:00:00+0000", "end": "2016-12-16T11:00:00+0000"}
+                }
+            ]}
+        """
+        When we patch "/events/#EVENT._id#"
+        """
+            {
+                "name": "Friday Club changed",
+                "dates": {
+                    "start": "2016-12-10T14:00:00.000Z",
+                    "end": "2016-12-10T15:00:00.000Z",
+                    "tz": "Europe/Berlin",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 2,
+                        "endRepeatMode": "count",
+                        "update_recurrent_events": true
+                    }
+                }
+            }
+        """
+        Then we get response code 200
+        When we get "/events?source={"query":{"match":{"recurrence_id": "#EVENT.recurrence_id#"}}}"
+        Then we get list with 3 items
+        """
+            {"_items": [
+                {
+                    "dates": {
+                        "end": "2016-11-18T11:00:00+0000",
+                        "start": "2016-11-18T10:00:00+0000"
+                    },
+                    "name": "Friday Club"
+                }, {
+                    "dates": {
+                        "end": "2016-12-16T15:00:00+0000",
+                        "start": "2016-12-16T14:00:00+0000"
+                    },
+                    "name": "Friday Club changed"
+                }, {
+                    "dates": {
+                        "end": "2016-12-23T15:00:00+0000",
+                        "start": "2016-12-23T14:00:00+0000"
+                    },
+                    "name": "Friday Club changed"
+                }
+           ]}
+        """

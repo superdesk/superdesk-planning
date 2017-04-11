@@ -127,6 +127,70 @@ class EventsService(superdesk.Service):
     def on_update(self, updates, original):
         setRecurringMode(updates)
 
+        updateRecurrentEvents = updates['dates'].get('recurring_rule', {}).get('update_recurrent_events', None)
+        if 'update_recurrent_events' in updates['dates'].get('recurring_rule', {}):
+            del updates['dates']['recurring_rule']['update_recurrent_events']
+
+        if updateRecurrentEvents is None:
+            # this is an recursive update(see below)
+            return
+
+        if not updateRecurrentEvents:
+            # update only the current item so set it as a non recurrent task
+            updates['dates']['recurring_rule'] = {}
+            updates['recurrence_id'] = generate_guid(type=GUID_NEWSML)
+            return
+
+        # update all following events
+        updates['recurrence_id'] = original.get('recurrence_id', None) or generate_guid(type=GUID_NEWSML)
+        # get the list of all items that follows the current edited one
+        existingEvents = self.find(where={'recurrence_id': updates['recurrence_id']})
+        existingEvents = [
+            event for event in existingEvents
+            if event['dates']['start'] >= original['dates']['start']
+        ]
+        # compute the difference between start and end in the original event
+        time_delta = updates['dates']['end'] - updates['dates']['start']
+        addEvents = []
+        # generate the dates for the following events
+        dates = [date for date in itertools.islice(generate_recurring_dates(
+            start=updates['dates']['start'],
+            tz=updates['dates'].get('tz') and pytz.timezone(updates['dates']['tz'] or None),
+            **updates['dates']['recurring_rule']
+        ), 0, 1000)]
+
+        for event, date in itertools.zip_longest(existingEvents, dates):
+            if not date:
+                # date is not present so the current event should be deleted
+                self.delete({'_id': event['_id']})
+            elif not event:
+                # the event is not present so a new event should be created
+                new_event = copy.deepcopy(original)
+                new_updates = copy.deepcopy(updates)
+                new_event.update(new_updates)
+                new_event['dates']['start'] = date
+                new_event['dates']['end'] = date + time_delta
+                # set a unique guid
+                new_event['guid'] = generate_guid(type=GUID_NEWSML)
+                new_event['_id'] = new_event['guid']
+                # set the recurrence id
+                addEvents.append(new_event)
+            elif event['_id'] == original['_id']:
+                updates['dates']['start'] = date
+                updates['dates']['end'] = date + time_delta
+            else:
+                # update the event with the new date and new updates
+                new_updates = copy.deepcopy(updates)
+                new_updates['dates']['start'] = date
+                new_updates['dates']['end'] = date + time_delta
+                new_updates['dates']['recurring_rule']['change_mode'] = 'simple'
+                # set the recurrence id
+                self.patch(event['_id'], new_updates)
+
+        if addEvents:
+            # add all new events
+            self.create(addEvents)
+
 
 events_schema = {
     # Identifiers
@@ -247,7 +311,8 @@ events_schema = {
                     'bymonth': {'type': 'string', 'nullable': True},
                     'byday': {'type': 'string', 'nullable': True},
                     'byhour': {'type': 'string', 'nullable': True},
-                    'byminute': {'type': 'string', 'nullable': True}
+                    'byminute': {'type': 'string', 'nullable': True},
+                    'update_recurrent_events': {'type': 'boolean', 'nullable': True}
                 }
             },
             'occur_status': {
