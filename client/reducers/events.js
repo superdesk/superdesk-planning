@@ -1,4 +1,5 @@
-import { orderBy, cloneDeep, uniq } from 'lodash'
+import { orderBy, cloneDeep, uniq, get } from 'lodash'
+import moment from 'moment'
 
 const initialState = {
     events: {},
@@ -9,6 +10,7 @@ const initialState = {
     },
     show: true,
     showEventDetails: null,
+    selectedEvent: null,
 }
 
 const eventsReducer = (state=initialState, action) => {
@@ -28,9 +30,17 @@ const eventsReducer = (state=initialState, action) => {
             }
         case 'ADD_EVENTS':
             var _events = cloneDeep(state.events)
-            action.payload.forEach((e) => (
+            action.payload.forEach((e) => {
                 _events[e._id] = e
-            ))
+                // Change dates to moment objects
+                if (e.dates) {
+                    e.dates.start = moment(e.dates.start)
+                    e.dates.end = moment(e.dates.end)
+                    if (get(e, 'dates.recurring_rule.until')) {
+                        e.dates.recurring_rule.until = moment(e.dates.recurring_rule.until)
+                    }
+                }
+            })
             return {
                 ...state,
                 events: _events,
@@ -67,6 +77,7 @@ const eventsReducer = (state=initialState, action) => {
             return {
                 ...state,
                 showEventDetails: action.payload,
+                selectedEvent: action.payload,
             }
         case 'CLOSE_EVENT_DETAILS':
             return {

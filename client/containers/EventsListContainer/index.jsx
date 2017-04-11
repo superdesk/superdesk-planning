@@ -116,7 +116,8 @@ class EventsListComponent extends React.Component {
                     </div>
                     <EventsList events={this.props.events}
                                 onEventClick={this.props.openEventDetails}
-                                onEventDelete={this.props.deleteEvent} />
+                                onEventDelete={this.props.deleteEvent}
+                                selectedEvent={this.props.selectedEvent} />
                 </div>
             </div>
         )
@@ -133,12 +134,14 @@ EventsListComponent.propTypes = {
     closeAdvancedSearch: React.PropTypes.func.isRequired,
     toggleEventsList: React.PropTypes.func,
     deleteEvent: React.PropTypes.func,
+    selectedEvent: React.PropTypes.string,
 }
 
 const mapStateToProps = (state) => ({
     events: selectors.getEventsWithMoreInfo(state),
     currentSearch: get(state, 'events.search.currentSearch'),
     advancedSearchOpened: get(state, 'events.search.advancedSearchOpened'),
+    selectedEvent: selectors.getSelectedEvent(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

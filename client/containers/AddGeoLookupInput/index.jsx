@@ -54,6 +54,8 @@ class GeoLookupInput extends React.Component {
     }
 
     onGeocodeSuggest(suggest) {
+        if (!suggest) return
+
         const { shortName } = has(suggest, 'raw') ? formatAddress(suggest.raw) : {}
 
         return {

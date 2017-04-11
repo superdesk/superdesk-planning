@@ -10,6 +10,8 @@ export const getStoredPlannings = (state) => state.planning.plannings
 export const getServerUrl = (state) => state.config.server.url
 export const getIframelyKey = (state) => state.config.iframely ? state.config.iframely.key : null
 export const getShowEventDetails = (state) => state.events.showEventDetails
+export const getSelectedEvent = (state) => state.events.selectedEvent === true ? null :
+    state.events.selectedEvent
 export const getEventsIdsToShowInList = (state) => state.events.eventsInList
 export const getCurrentAgenda = createSelector(
     [getCurrentAgendaId, getAgendas],
