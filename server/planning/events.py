@@ -92,7 +92,7 @@ class EventsService(superdesk.Service):
                     start=event['dates']['start'],
                     tz=event['dates'].get('tz') and pytz.timezone(event['dates']['tz'] or None),
                     **event['dates']['recurring_rule']
-                ), 0, 1000):  # set a limit to prevent too many events to be created
+                ), 0, 200):  # set a limit to prevent too many events to be created
                     # create event with the new dates
                     new_event = copy.deepcopy(event)
                     new_event['dates']['start'] = date
@@ -153,7 +153,7 @@ class EventsService(superdesk.Service):
             start=updates['dates']['start'],
             tz=updates['dates'].get('tz') and pytz.timezone(updates['dates']['tz'] or None),
             **updates['dates']['recurring_rule']
-        ), 0, 1000)]
+        ), 0, 200)]
 
         for event, date in itertools.zip_longest(existingEvents, dates):
             if not date:
