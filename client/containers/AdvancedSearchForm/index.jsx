@@ -13,6 +13,10 @@ function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting
                        component={fields.InputField}
                        type="text"
                        label="What"/>
+                <Field name="source"
+                       component={fields.IngestProviderField}
+                       type="text"
+                       label="Ingest Source"/>
                 <Field name="location"
                        component={fields.InputField}
                        type="text"
@@ -38,6 +42,7 @@ function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting
                 className="btn btn-default"
                 onClick={()=>{reset(); resetSearch()}}
                 type="button"
+                name="clear"
                 disabled={submitting}>Clear</button>
             {error && <div><strong>{error}</strong></div>}
         </form>

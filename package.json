@@ -41,7 +41,7 @@
     "react-debounce-input": "^2.4.2",
     "react-dom": "^15.3.2",
     "react-form-input": "^0.3.0",
-    "react-geolookup": "^1.0.2",
+    "react-geolookup": "^1.0.3",
     "react-redux": "^5.0.2",
     "react-select": "^1.0.0-rc.2",
     "redux": "^3.6.0",

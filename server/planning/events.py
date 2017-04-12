@@ -234,8 +234,7 @@ events_schema = {
     # Ingest Details
     'ingest_provider': superdesk.Resource.rel('ingest_providers'),
     'source': {     # The value is copied from the ingest_providers vocabulary
-        'type': 'string',
-        'mapping': not_analyzed
+        'type': 'string'
     },
     'original_source': {    # This value is extracted from the ingest
         'type': 'string',
