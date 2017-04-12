@@ -80,10 +80,10 @@ class EventsService(superdesk.Service):
             event['guid'] = generate_guid(type=GUID_NEWSML)
             # set the author
             set_original_creator(event)
-            setRecurringMode(event)
             # generates events based on recurring rules
-            if event['dates'].get('recurring_rule', {}).get('frequency'):
+            if event['dates'].get('recurring_rule', None):
                 # generate a common id for all the events we will generate
+                setRecurringMode(event)
                 recurrence_id = generate_guid(type=GUID_NEWSML)
                 # compute the difference between start and end in the original event
                 time_delta = event['dates']['end'] - event['dates']['start']
@@ -125,23 +125,19 @@ class EventsService(superdesk.Service):
                 coverage_service.delete({'_id': coverage['_id']})
 
     def on_update(self, updates, original):
-        setRecurringMode(updates)
-
-        updateRecurrentEvents = updates['dates'].get('recurring_rule', {}).get('update_recurrent_events', None)
-        if 'update_recurrent_events' in updates['dates'].get('recurring_rule', {}):
-            del updates['dates']['recurring_rule']['update_recurrent_events']
-
-        if updateRecurrentEvents is None:
+        if 'skip_on_update' in updates:
             # this is an recursive update(see below)
+            del updates['skip_on_update']
             return
 
-        if not updateRecurrentEvents:
+        if not updates['dates'].get('recurring_rule', None):
             # update only the current item so set it as a non recurrent task
-            updates['dates']['recurring_rule'] = {}
+            updates['dates']['recurring_rule'] = None
             updates['recurrence_id'] = generate_guid(type=GUID_NEWSML)
             return
 
         # update all following events
+        setRecurringMode(updates)
         updates['recurrence_id'] = original.get('recurrence_id', None) or generate_guid(type=GUID_NEWSML)
         # get the list of all items that follows the current edited one
         existingEvents = self.find(where={'recurrence_id': updates['recurrence_id']})
@@ -181,9 +177,11 @@ class EventsService(superdesk.Service):
             else:
                 # update the event with the new date and new updates
                 new_updates = copy.deepcopy(updates)
+                if 'guid' in new_updates:
+                    del new_updates['guid']
                 new_updates['dates']['start'] = date
                 new_updates['dates']['end'] = date + time_delta
-                new_updates['dates']['recurring_rule']['change_mode'] = 'simple'
+                new_updates['skip_on_update'] = True
                 # set the recurrence id
                 self.patch(event['_id'], new_updates)
 
@@ -313,7 +311,8 @@ events_schema = {
                     'byhour': {'type': 'string', 'nullable': True},
                     'byminute': {'type': 'string', 'nullable': True},
                     'update_recurrent_events': {'type': 'boolean', 'nullable': True}
-                }
+                },
+                'nullable': True
             },
             'occur_status': {
                 'nullable': True,
