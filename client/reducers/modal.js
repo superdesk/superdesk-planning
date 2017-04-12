@@ -1,6 +1,7 @@
 const initialState = {
     modalType: null,
     modalProps: undefined,
+    previousState: undefined,
 }
 
 const modal = (state = initialState, action) => {
@@ -9,9 +10,10 @@ const modal = (state = initialState, action) => {
             return {
                 modalType: action.modalType,
                 modalProps: action.modalProps,
+                previousState: state,
             }
         case 'HIDE_MODAL':
-            return initialState
+            return state.previousState || initialState
         default:
             return state
     }

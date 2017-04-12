@@ -53,6 +53,6 @@ describe('<DeleteEvent />', () => {
         )
 
         const relPlanningNode = wrapper.find('.related-plannings').childAt(0).childAt(1)
-        expect(relPlanningNode.text()).toBe('slug by ABC in  agenda')
+        expect(relPlanningNode.text()).toBe('slug created by ABC in  agenda')
     })
 })

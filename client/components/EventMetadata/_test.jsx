@@ -16,7 +16,7 @@ describe('<EventMetadata />', () => {
         expect(wrapper.text()).toContain('definition_short 1')
         expect(wrapper.text()).toContain('definition_long 1')
         expect(wrapper.text()).toContain('name1')
-        expect(wrapper.text()).toContain(moment('2016-10-15T13:01:11+0000').format('MM/DD/YYYY HH:mm'))
+        expect(wrapper.text()).toContain(moment('2016-10-15T13:01:11+0000').format('DD/MM/YYYY HH:mm'))
         expect(wrapper.text()).toContain('location1')
         expect(wrapper.text()).not.toContain('Status')
     })

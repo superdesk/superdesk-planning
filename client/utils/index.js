@@ -3,7 +3,7 @@ import { createStore as _createStore, applyMiddleware } from 'redux'
 import planningApp from '../reducers'
 import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
-import { get } from 'lodash'
+import { get, set } from 'lodash'
 
 export const eventIsAllDayLong = (dates) => (
     // is a multiple of 24h
@@ -103,6 +103,16 @@ export const createTestStore = (params={}) => {
             extraArguments,
         }),
     ]
+    // parse dates since we keep moment dates in the store
+    if (initialState.events) {
+        const paths = ['dates.start', 'dates.end']
+        Object.keys(initialState.events.events).forEach((eKey) => {
+            const event = initialState.events.events[eKey]
+            paths.forEach((path) => (
+                set(event, path, moment(get(event, path)))
+            ))
+        })
+    }
     // return the store
     return _createStore(
         planningApp,

@@ -31,6 +31,16 @@
             margin-top: 40px;
             > i { font-size: 2em }
         }
+        &__select-agenda {
+            select {
+                border: 0px solid black !important;
+                border-radius: 0px !important;
+                background-color: transparent;
+                box-shadow: 0px !important;
+                max-width: 200px;
+            }
+            flex-grow: 2;
+        }
     }
     .Planning__edit-planning {
         position: relative;

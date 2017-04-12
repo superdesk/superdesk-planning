@@ -6,7 +6,7 @@ import * as selectors from '../selectors'
 export const SelectAgendaComponent = ({ agendas, onChange, currentAgenda, isLoading }) => (
     <select onChange={onChange} value={currentAgenda || ''}>
         <option>
-            {isLoading && 'Loading...'}
+            {isLoading && 'Loading...' || 'Select an agenda'}
         </option>
         {agendas.map((agenda) => (
             <option

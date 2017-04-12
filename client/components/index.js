@@ -7,6 +7,8 @@ export { EventItem } from './EventItem/index'
 export { EventMetadata } from './EventMetadata/index'
 export { RelatedPlannings } from './RelatedPlannings/index'
 export { DeleteEvent } from './DeleteEvent/index'
+export { CreateAgendaModal } from './CreateAgendaModal'
+export { ConfirmationModal } from './ConfirmationModal'
 import * as fields from './fields'
 export { fields }
 import * as tooltips from './Tooltips'
