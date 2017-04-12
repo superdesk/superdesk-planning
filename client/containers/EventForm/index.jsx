@@ -40,7 +40,7 @@ export class Component extends React.Component {
     handleDoesRepeatChange(event) {
         if (!event.target.checked) {
             // if unchecked, remove the recurring rules
-            this.props.change('dates.recurring_rule', {})
+            this.props.change('dates.recurring_rule', null)
         } else {
             // if checked, set default recurring rule
             this.props.change('dates.recurring_rule',

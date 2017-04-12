@@ -242,8 +242,7 @@ Feature: Events
                         "interval": 1,
                         "byday": "FR",
                         "count": 3,
-                        "endRepeatMode": "count",
-                        "update_recurrent_events": true
+                        "endRepeatMode": "count"
                     }
                 }
             }
@@ -316,14 +315,7 @@ Feature: Events
                     "start": "2016-11-17T22:00:00.000Z",
                     "end": "2016-11-18T01:00:00.000Z",
                     "tz": "Europe/Berlin",
-                    "recurring_rule": {
-                        "frequency": "WEEKLY",
-                        "interval": 1,
-                        "byday": "FR",
-                        "count": 3,
-                        "endRepeatMode": "count",
-                        "update_recurrent_events": false
-                    }
+                    "recurring_rule": null
                 }
             }
         """
@@ -405,8 +397,7 @@ Feature: Events
                         "interval": 1,
                         "byday": "FR",
                         "count": 3,
-                        "endRepeatMode": "count",
-                        "update_recurrent_events": true
+                        "endRepeatMode": "count"
                     }
                 }
             }
@@ -513,8 +504,7 @@ Feature: Events
                         "interval": 1,
                         "byday": "FR",
                         "count": 2,
-                        "endRepeatMode": "count",
-                        "update_recurrent_events": true
+                        "endRepeatMode": "count"
                     }
                 }
             }

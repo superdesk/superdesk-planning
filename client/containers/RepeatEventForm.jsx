@@ -16,8 +16,6 @@ class RepeatEventFormComponent extends React.Component {
             this.state = { endRepeatMode: 'unlimited' }
             this.props.change('dates.recurring_rule.endRepeatMode', 'unlimited')
         }
-
-        this.props.change('dates.recurring_rule.update_recurrent_events', false)
     }
 
     componentWillReceiveProps(nextProps) {
@@ -137,14 +135,6 @@ class RepeatEventFormComponent extends React.Component {
                            ref="recurring_rule--until"
                            component={fields.DayPickerInput} />
                     </label>
-                    {
-                        this.props.editMode &&
-                        <label>
-                            <Field name="dates.recurring_rule.update_recurrent_events"
-                               component="input" type="checkbox" />
-                            <span htmlFor="dates.recurring_rule.update_recurrent_events">&nbsp; Update all following recurrences</span>
-                        </label>
-                    }
                 </div>
             </div>
         )
@@ -156,7 +146,6 @@ RepeatEventFormComponent.propTypes = {
     endRepeatMode: PropTypes.oneOf(['unlimited', 'count', 'until']),
     until: PropTypes.object,
     count: PropTypes.string,
-    editMode: PropTypes.bool,
 }
 
 // This is the same name defined in EventForm.jsx because it is just a sub form
@@ -166,7 +155,6 @@ const mapStateToProps = (state) => ({
     endRepeatMode: selector(state, 'dates.recurring_rule.endRepeatMode'),
     until: selector(state, 'dates.recurring_rule.until'),
     count: selector(state, 'dates.recurring_rule.count'),
-    editMode: !!selector(state, '_id'),
 })
 
 export const RepeatEventForm = connect(mapStateToProps)(RepeatEventFormComponent)
