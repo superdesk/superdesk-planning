@@ -58,62 +58,62 @@ class EventsListComponent extends React.Component {
         const { searchBarExtended } = this.state
         const { advancedSearchOpened, toggleEventsList } = this.props
         const classes = [
-            'Planning__events-list-container',
-            advancedSearchOpened ? 'Planning--advanced-search-view' : null,
+            'Events-list-container',
+            advancedSearchOpened ? 'Events-list-container--advanced-search-view' : null,
         ]
         return (
             <div className={classes.join(' ')}>
-                <div className="Planning__events-list">
-                    <AdvancedSearchPanelContainer  />
-                    <div className="subnav">
-                        <div className="subnav__button-stack--square-buttons">
-                            <div className="navbtn" title="Hide the list">
-                                <button onClick={toggleEventsList} type="button">
-                                    <i className="icon-chevron-left-thin"/>
-                                </button>
-                            </div>
+                <div className="Events-list-container__header subnav">
+                    <div className="subnav__button-stack--square-buttons">
+                        <div className="navbtn" title="Hide the list">
+                            <button onClick={toggleEventsList} type="button">
+                                <i className="icon-chevron-left-thin"/>
+                            </button>
                         </div>
-                        <div className={'flat-searchbar' + (searchBarExtended ? ' extended' : '')}>
-                            <div className="search-handler">
-                                <label
-                                    className="trigger-icon advanced-search-open"
-                                    onClick={this.toggleAdvancedSearch.bind(this)}>
-                                    <i className="icon-filter-large" />
-                                </label>
-                                <label
-                                    htmlFor="search-input"
-                                    className="trigger-icon"
-                                    onClick={this.toggleSearchBar.bind(this)}>
-                                    <i className="icon-search" />
-                                </label>
-                                <DebounceInput
-                                    minLength={2}
-                                    debounceTimeout={500}
-                                    value={this.state.searchInputValue}
-                                    onChange={this.onSearchChange.bind(this)}
-                                    id="search-input"
-                                    placeholder="Search"
-                                    type="text"/>
-                                <button
-                                    className="search-close visible"
-                                    onClick={this.resetSearch.bind(this)}>
-                                    <i className="icon-remove-sign" />
-                                </button>
-                                <button className="search-close">
-                                    <i className="svg-icon-right" />
-                                </button>
-                            </div>
-                        </div>
-                        <h3 className="subnav__page-title">
-                            <span>
-                                <span>Events calendar</span>
-                            </span>
-                        </h3>
-                        <button className="btn btn--primary"
-                                onClick={this.props.openEventDetails.bind(null, null)}>
-                            Add event
-                        </button>
                     </div>
+                    <div className={'flat-searchbar' + (searchBarExtended ? ' extended' : '')}>
+                        <div className="search-handler">
+                            <label
+                                className="trigger-icon advanced-search-open"
+                                onClick={this.toggleAdvancedSearch.bind(this)}>
+                                <i className="icon-filter-large" />
+                            </label>
+                            <label
+                                htmlFor="search-input"
+                                className="trigger-icon"
+                                onClick={this.toggleSearchBar.bind(this)}>
+                                <i className="icon-search" />
+                            </label>
+                            <DebounceInput
+                                minLength={2}
+                                debounceTimeout={500}
+                                value={this.state.searchInputValue}
+                                onChange={this.onSearchChange.bind(this)}
+                                id="search-input"
+                                placeholder="Search"
+                                type="text"/>
+                            <button
+                                className="search-close visible"
+                                onClick={this.resetSearch.bind(this)}>
+                                <i className="icon-remove-sign" />
+                            </button>
+                            <button className="search-close">
+                                <i className="svg-icon-right" />
+                            </button>
+                        </div>
+                    </div>
+                    <h3 className="subnav__page-title">
+                        <span>
+                            <span>Events calendar</span>
+                        </span>
+                    </h3>
+                    <button className="btn btn--primary"
+                            onClick={this.props.openEventDetails.bind(null, null)}>
+                        Add event
+                    </button>
+                </div>
+                <div className="Events-list-container__body">
+                    <AdvancedSearchPanelContainer  />
                     <EventsList events={this.props.events}
                                 onEventClick={this.props.openEventDetails}
                                 onEventDelete={this.props.deleteEvent}

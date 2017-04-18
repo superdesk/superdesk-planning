@@ -3,7 +3,7 @@
 .events-list {
     overflow: auto;
     width: 100%;
-    margin-top: $nav-height;
+    padding-bottom: 40px;
     &__empty-msg {
         font-size: 1.75em;
         text-align: center;
