@@ -21,19 +21,21 @@ class RepeatEventFormComponent extends React.Component {
     componentWillReceiveProps(nextProps) {
         const { endRepeatMode, until, count } = nextProps
 
-        if (until) {
+        if (until && endRepeatMode != 'until') {
             // force the selection of 'until' for endRepeatMode
             // covers the case when the user set a value for until date field
             // but don't select the 'until'related radio
             this.setState({ endRepeatMode: 'until' })
+            this.props.change('dates.recurring_rule.endRepeatMode', 'until')
             return
         }
 
-        if (count) {
+        if (count && endRepeatMode != 'count') {
             // force the selection of 'count' for endRepeatMode
             // covers the case when the user set a value for count integer field
             // but don't select the 'until'related radio
             this.setState({ endRepeatMode: 'count' })
+            this.props.change('dates.recurring_rule.endRepeatMode', 'count')
             return
         }
 
