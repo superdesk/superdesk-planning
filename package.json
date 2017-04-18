@@ -28,6 +28,8 @@
     "grunt-jscs": "^3.0.1",
     "grunt-template": "^1.0.0",
     "html-loader": "^0.4.3",
+    "jquery": "^2.2.3",
+    "jquery-ui": "components/jqueryui#1.11.4",
     "load-grunt-config": "^0.19.2",
     "load-grunt-tasks": "^3.5.2",
     "lodash": "^4.16.4",
@@ -45,14 +47,12 @@
     "react-redux": "^5.0.2",
     "react-select": "^1.0.0-rc.2",
     "redux": "^3.6.0",
-    "redux-form": "6.5.0",
+    "redux-form": "6.6.3",
     "redux-logger": "^2.7.0",
     "redux-thunk": "^2.1.0",
     "reselect": "^2.5.4",
     "style-loader": "^0.13.1",
-    "whatwg-fetch": "^2.0.3",
-    "jquery": "^2.2.3",
-    "jquery-ui": "components/jqueryui#1.11.4"
+    "whatwg-fetch": "^2.0.3"
   },
   "devDependencies": {
     "angular-mocks": "1.5.11",
