@@ -12,7 +12,7 @@ const DEFAULT_FORM_VALUES = {
     },
 }
 export const EventsPanel = ({ eventToDetail, handleBackToList }) => (
-    <ResizableEventsPanel className="Planning__events-panel" minWidth={570}>
+    <ResizableEventsPanel className="Events-panel" minWidth={570}>
         {eventToDetail &&
             <EventForm initialValues={eventToDetail} onBackClick={handleBackToList} />
         }

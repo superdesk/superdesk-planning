@@ -1,21 +1,25 @@
 @import '~superdesk-core/styles/sass/variables.scss';
 
 
-.Planning__events-list-container {
+.Events-list-container {
     height: 100%;
 }
 
-.Planning__events-list {
-    position: relative;
-    display: flex;
-    height: 100%;
-    .subnav {
-        > button {
-            margin-top: 10px;
-            margin-right: 10px;
-        }
-        .btn--primary {
-            white-space: nowrap;
-        }
+.Events-list-container__header {
+    > button {
+        margin-top: 10px;
+        margin-right: 10px;
     }
+    .btn--primary {
+        white-space: nowrap;
+    }
+}
+
+.Events-list-container__body {
+    position: absolute;
+    top: $nav-height;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    display: flex;
 }
