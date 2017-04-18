@@ -1,9 +1,8 @@
 @import '~superdesk-core/styles/sass/variables.scss';
-
-.Planning__planning-panel {
+.Planning-panel {
     position: absolute;
     height: 100%;
-    .Planning__planning {
+    &__container {
         display: flex;
         height: calc(100% - 48px);
         .subnav {
@@ -13,57 +12,34 @@
                 position: relative;
             }
         }
-        &__list {
-            flex-grow: 1;
-            height: 100%;
-            overflow: auto;
-            .list-view { box-shadow: inherit; }
-        }
-        .ListItem__list-item {
-            width: auto; // otherwise it overflow on the right because of the margin
-            margin: 10px 20px;
-            box-shadow: 0px 1px 4px 0 rgba(0, 0, 0, 0.2);
-        }
-        &__empty-message {
-            font-size: 1.75em;
-            line-height: 1.2em;
-            text-align: center;
-            margin-top: 40px;
-            > i { font-size: 2em }
-        }
-        &__select-agenda {
-            select {
-                border: 0px solid black !important;
-                border-radius: 0px !important;
-                background-color: transparent;
-                box-shadow: 0px !important;
-                max-width: 200px;
-            }
-            flex-grow: 2;
-        }
     }
-    .Planning__edit-planning {
-        position: relative;
-        transition-property: width;
-        transition-duration: .25s;
-        box-sizing: border-box;
+    &__list {
+        flex-grow: 1;
+        height: 100%;
         overflow: auto;
-        width: 0;
-        background-color: white;
-        box-shadow: inset 2px 0 3px -1px #d8d8d8;
-        > *:not(header) { margin: 10px; }
+        .list-view { box-shadow: inherit; }
     }
-}
-$EDIT_PLANNING_WIDTH: 450px;
-
-.Planning--edit-planning-view { // when the planning editor is open
-    .Planning__edit-planning {
-        width: $EDIT_PLANNING_WIDTH;
+    .ListItem__list-item {
+        width: auto; // otherwise it overflow on the right because of the margin
+        margin: 10px 20px;
+        box-shadow: 0px 1px 4px 0 rgba(0, 0, 0, 0.2);
     }
-}
-.Planning__edit-planning {
-    .subnav {
-        .close { padding: 12px 12px 0 0; }
-        background-color: white;
+    &__empty-message {
+        font-size: 1.75em;
+        line-height: 1.2em;
+        text-align: center;
+        margin-top: 40px;
+        > i { font-size: 2em }
+    }
+    &__select-agenda {
+        select {
+            border: 0px solid black !important;
+            border-radius: 0px !important;
+            background-color: transparent;
+            box-shadow: 0px !important;
+            max-width: 200px;
+        }
+        flex-grow: 2;
+        padding-top: 10px;
     }
 }

@@ -121,7 +121,7 @@ describe('<PlanningPanelContainer />', () => {
             </Provider>
         )
         const jsEvent = { dataTransfer: { getData: () => ('{}') } }
-        wrapper.find('.Planning__planning-panel')
+        wrapper.find('.Planning-panel')
         .simulate('drop', jsEvent)
         .simulate('dragLeave')
         .simulate('dragOver')

@@ -1,4 +1,5 @@
 @import '~superdesk-core/styles/sass/variables.scss';
+$EDIT_PLANNING_WIDTH: 450px;
 
 .Planning__edit-planning {
     position: relative;
@@ -9,6 +10,7 @@
     width: 0;
     background-color: white;
     box-shadow: inset 2px 0 3px -1px #d8d8d8;
+    > *:not(header) { margin: 10px; }
     & > header {
         border-bottom: 1px solid #cbcbcb;
         padding: 10px;
@@ -21,9 +23,8 @@
         }
     }
 }
-$EDIT_PLANNING_WIDTH: 450px;
 
-.Planning--edit-planning-view { // when the planning editor is open
+.Planning-panel--edit-planning-view { // when the planning editor is open
     .Planning__edit-planning {
         width: $EDIT_PLANNING_WIDTH;
     }
