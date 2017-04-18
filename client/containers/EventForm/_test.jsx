@@ -34,7 +34,6 @@ describe('<FormComponent />', () => {
         const handleSubmit = sinon.stub().returns(onSaveResponse)
         const props = {
             submitting: submitting,
-            handlePlanningClick: ()=>{},
             handleSubmit,
         }
         const subject = shallow(<Component {...props}/>)
@@ -76,7 +75,7 @@ describe('<FormComponent />', () => {
         const initialValues = event
         const wrapper = mount(
             <Provider store={store}>
-                <FormComponent initialValues={initialValues} handlePlanningClick={()=>{}} />
+                <FormComponent initialValues={initialValues} />
             </Provider>
         )
         expect(wrapper.find('[name="name"]').props().value).toBe(initialValues.name)
