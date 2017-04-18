@@ -33,6 +33,7 @@ const initialState  = {
     editorOpened: false,
     agendasAreLoading: false,
     planningsAreLoading: false,
+    onlyFuture: true,
 }
 /*eslint-disable complexity*/
 const planningReducer = (state=initialState, action) => {
@@ -89,6 +90,11 @@ const planningReducer = (state=initialState, action) => {
                 ...state,
                 editorOpened: false,
                 currentPlanningId: null,
+            }
+        case 'SET_ONLY_FUTURE':
+            return {
+                ...state,
+                onlyFuture: action.payload,
             }
         default:
             return state

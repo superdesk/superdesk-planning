@@ -2,9 +2,8 @@ import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { SelectAgenda, EditPlanningPanelContainer } from '../index'
-import { PlanningItem, QuickAddPlanning } from '../../components'
+import { PlanningItem, QuickAddPlanning, Toggle } from '../../components'
 import * as selectors from '../../selectors'
-import DebounceInput from 'react-debounce-input'
 import './style.scss'
 
 class PlanningPanel extends React.Component {
@@ -39,6 +38,8 @@ class PlanningPanel extends React.Component {
             isEventListShown,
             toggleEventsList,
             onManageAgendasClick,
+            onlyFuture,
+            onFutureToggleChange,
         } = this.props
         const listClasses = [
             'Planning-panel',
@@ -77,21 +78,8 @@ class PlanningPanel extends React.Component {
                         <div className="subnav">
                             <div className="flat-searchbar extended">
                                 <div className="search-handler">
-                                    <label
-                                        className="trigger-icon advanced-search-open">
-                                        <i className="icon-filter-large" />
-                                    </label>
-                                    <label
-                                        htmlFor="search-input"
-                                        className="trigger-icon">
-                                        <i className="icon-search" />
-                                    </label>
-                                    <DebounceInput
-                                        minLength={2}
-                                        debounceTimeout={500}
-                                        id="search-input"
-                                        placeholder="Search"
-                                        type="text"/>
+                                    <Toggle value={onlyFuture} onChange={onFutureToggleChange}/>
+                                    <label>Only future</label>
                                 </div>
                             </div>
                         </div>
@@ -147,6 +135,8 @@ PlanningPanel.propTypes = {
     toggleEventsList: React.PropTypes.func,
     isEventListShown: React.PropTypes.bool,
     onManageAgendasClick: React.PropTypes.func,
+    onlyFuture: React.PropTypes.bool,
+    onFutureToggleChange: React.PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -157,6 +147,7 @@ const mapStateToProps = (state) => ({
     editPlanningViewOpen: state.planning.editorOpened,
     planningsEvents: selectors.getCurrentAgendaPlanningsEvents(state),
     isEventListShown: selectors.isEventListShown(state),
+    onlyFuture: state.planning.onlyFuture,
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -184,6 +175,7 @@ const mapDispatchToProps = (dispatch) => ({
     addEventToCurrentAgenda: (event) => (dispatch(actions.addEventToCurrentAgenda(event))),
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
     onManageAgendasClick: () => (dispatch(actions.showModal({ modalType: 'MANAGE_AGENDAS' }))),
+    onFutureToggleChange: () => (dispatch(actions.toggleOnlyFutureFilter())),
 })
 
 export const PlanningPanelContainer = connect(
