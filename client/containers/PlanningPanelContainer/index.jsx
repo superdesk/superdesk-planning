@@ -4,28 +4,17 @@ import * as actions from '../../actions'
 import { SelectAgenda, EditPlanningPanelContainer } from '../index'
 import { PlanningItem, QuickAddPlanning } from '../../components'
 import * as selectors from '../../selectors'
+import DebounceInput from 'react-debounce-input'
 import './style.scss'
 
 class PlanningPanel extends React.Component {
-
-    constructor(props) {
-        super(props)
-        this.state = { draggingOver: false }
-    }
 
     componentDidMount() {
         this.props.fetchPlannings()
     }
 
-    handleDragOver(e) {
-        e.preventDefault()
-        this.setState({ draggingOver: true })
-    }
     handleDragEnter(e) {
         e.dataTransfer.dropEffect = 'copy'
-    }
-    handleDragLeave() {
-        this.setState({ draggingOver: false })
     }
 
     handleEventDrop(e) {
@@ -37,7 +26,6 @@ class PlanningPanel extends React.Component {
     }
 
     render() {
-        const { draggingOver } = this.state
         const {
             planningList,
             openPlanningEditor,
@@ -53,38 +41,58 @@ class PlanningPanel extends React.Component {
             onManageAgendasClick,
         } = this.props
         const listClasses = [
-            'Planning__planning-panel',
-            draggingOver ? 'Planning__planning__list--draggingOver' : null,
-            editPlanningViewOpen ? 'Planning--edit-planning-view' : null,
+            'Planning-panel',
+            editPlanningViewOpen ? 'Planning-panel--edit-planning-view' : null,
         ].join(' ')
         return (
             <div className={listClasses}
                  onDrop={this.handleEventDrop.bind(this)}
-                 onDragOver={this.handleDragOver.bind(this)}
+                 onDragOver={(e) => e.preventDefault()}
                  onDragEnter={this.handleDragEnter.bind(this)}
-                 onDragLeave={this.handleDragLeave.bind(this)}>
-                <div className="Planning__planning">
-                    <div className="Planning__planning__list">
+                 onDragLeave={this.handleDragLeave}>
+                <div className="subnav">
+                    {!isEventListShown &&
+                        <div className="navbtn" title="Show the event list">
+                            <button onClick={toggleEventsList} type="button">
+                                <i className="icon-chevron-right-thin"/>
+                            </button>
+                        </div>
+                    }
+                    <div className="navbtn" title="Manage agendas">
+                        <button onClick={onManageAgendasClick} type="button">
+                            <i className="icon-th-large"/>
+                        </button>
+                    </div>
+                    <h3 className="subnav__page-title">
+                        <span>
+                            <span>Planning</span>
+                        </span>
+                    </h3>
+                    <div  className="Planning-panel__select-agenda">
+                        <SelectAgenda />
+                    </div>
+                </div>
+                <div className="Planning-panel__container">
+                    <div className="Planning-panel__list">
                         <div className="subnav">
-                            {!isEventListShown &&
-                                <div className="navbtn" title="Show the event list">
-                                    <button onClick={toggleEventsList} type="button">
-                                        <i className="icon-chevron-right-thin"/>
-                                    </button>
+                            <div className="flat-searchbar extended">
+                                <div className="search-handler">
+                                    <label
+                                        className="trigger-icon advanced-search-open">
+                                        <i className="icon-filter-large" />
+                                    </label>
+                                    <label
+                                        htmlFor="search-input"
+                                        className="trigger-icon">
+                                        <i className="icon-search" />
+                                    </label>
+                                    <DebounceInput
+                                        minLength={2}
+                                        debounceTimeout={500}
+                                        id="search-input"
+                                        placeholder="Search"
+                                        type="text"/>
                                 </div>
-                            }
-                            <div className="navbtn" title="Manage agendas">
-                                <button onClick={onManageAgendasClick} type="button">
-                                    <i className="icon-th-large"/>
-                                </button>
-                            </div>
-                            <h3 className="subnav__page-title">
-                                <span>
-                                    <span>Planning</span>
-                                </span>
-                            </h3>
-                            <div  className="Planning__planning__select-agenda">
-                                <SelectAgenda />
                             </div>
                         </div>
                         <ul className="list-view compact-view">
@@ -103,15 +111,15 @@ class PlanningPanel extends React.Component {
                         </ul>
                         {
                             planningsAreLoading &&
-                                <div className="Planning__planning__empty-message">
+                                <div className="Planning-panel__empty-message">
                                     Loading
                                 </div>
                             || !currentAgenda &&
-                                <div className="Planning__planning__empty-message">
+                                <div className="Planning-panel__empty-message">
                                     Choose an agenda from the drop-down list above.
                                 </div>
                             || (planningList && planningList.length < 1) &&
-                                <div className="Planning__planning__empty-message">
+                                <div className="Planning-panel__empty-message">
                                     There are no planning items in this agenda.<br/>
                                     Drag an event here to start one.
                                 </div>

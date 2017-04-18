@@ -26,16 +26,11 @@
         }
     }
 
-    .subnav { top: 0; }
+    .subnav {
+        position: relative;
+        top: initial;
+    }
     .ui-resizable { position: absolute; }
-}
-.Planning__planning {
-    position: relative;
-    padding-top: $nav-height;
-    transition-property: width;
-    transition-duration: .25s;
-    overflow: auto;
-    height: 100%;
 }
 
 // a vertical align on this class ensure an aligned icon with text.
