@@ -8,6 +8,7 @@ export { EventMetadata } from './EventMetadata/index'
 export { RelatedPlannings } from './RelatedPlannings/index'
 export { DeleteEvent } from './DeleteEvent/index'
 export { CreateAgendaModal } from './CreateAgendaModal'
+export { default as Toggle } from './Toggle/index'
 export { ConfirmationModal } from './ConfirmationModal'
 import * as fields from './fields'
 export { fields }

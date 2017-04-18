@@ -49,6 +49,7 @@ export function PlanningController(
                 agendas: [],
                 planningsAreLoading: false,
                 agendasAreLoading: false,
+                onlyFuture: true,
                 plannings: {}, // plannings stored by _id
             },
             config: config,

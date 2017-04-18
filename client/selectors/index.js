@@ -1,5 +1,6 @@
 import { createSelector } from 'reselect'
-import { orderBy } from 'lodash'
+import { orderBy, get } from 'lodash'
+import moment from 'moment'
 
 export const getAgendas = (state) => state.planning.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
@@ -7,6 +8,7 @@ export const getEvents = (state) => state.events.events
 export const isEventListShown = (state) =>state.events.show
 export const getCurrentAgendaId = (state) => state.planning.currentAgendaId
 export const getStoredPlannings = (state) => state.planning.plannings
+export const isOnlyFutureFiltered = (state) => state.planning.onlyFuture
 export const getServerUrl = (state) => state.config.server.url
 export const getIframelyKey = (state) => state.config.iframely ? state.config.iframely.key : null
 export const getShowEventDetails = (state) => state.events.showEventDetails
@@ -21,16 +23,35 @@ export const getCurrentAgenda = createSelector(
         }
     }
 )
-
 export const getCurrentAgendaPlannings = createSelector(
-    [getCurrentAgenda, getStoredPlannings],
-    (currentAgenda, storedPlanningsObjects) => {
+    [getCurrentAgenda, getStoredPlannings, isOnlyFutureFiltered, getEvents],
+    (currentAgenda, storedPlanningsObjects, isOnlyFutureFiltered, events) => {
+        /** Return true if the planning has a future scheduled due date for a coverage
+        or an associated event with a future end date.
+        see: https://dev.sourcefabric.org/browse/SDESK-1103
+        */
+        function isFuture(planning) {
+            var isFuture = get(events[planning.event_item], 'dates.end', moment(new Date()))
+            // to date is future
+            .isSameOrAfter(new Date(), 'day')
+            // or a coverage due date is future
+            || get(planning, 'coverages', [])
+                .some((c) => (
+                    moment(c.planning.scheduled).isSameOrAfter(new Date(), 'day')
+                ))
+            return isFuture
+        }
+
         const planningsIds = currentAgenda ? currentAgenda.planning_items || [] : []
-        // from ids, return the actual plannings objects
-        return orderBy(
-            planningsIds.map((pid) => (storedPlanningsObjects[pid]))
-            .filter((d) => d !== undefined), // remove undefined
-        ['_created'], ['desc']) // sort by new created first, or by name
+        const plannings = planningsIds
+        // from ids, get the actual plannings objects
+        .map((pid) => (storedPlanningsObjects[pid]))
+        // remove undefined
+        .filter((p) => p !== undefined)
+        // if "only future" filter is enabled, keep only future planning
+        .filter((p) => !isOnlyFutureFiltered || isFuture(p))
+        // sort by new created first, or by name
+        return orderBy(plannings, ['_created'], ['desc'])
     }
 )
 
