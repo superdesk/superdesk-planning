@@ -18,16 +18,24 @@ export class ResizableEventsPanelComponent extends React.Component {
         let windowWidth = $(window).width()
         let thisOffset = thisNode.offset()
         let rightBorder = parseInt(thisNode.css('border-right-width'))
-        let timeout
-        // use setTimeout to adjust for transition effects and rate limit
-        // tried to use lodash debounce here, but it never seemed to work
-        clearTimeout(timeout)
-        timeout = setTimeout(() => {
+        //Fix for firefox, if no 'delay', don't use setTimeout()
+        if (!delay) {
             nextElement.css({
                 width: (windowWidth - (thisNode.width() + thisOffset.left + rightBorder)),
                 left: (thisNode.width() + rightBorder),
             })
-        }, delay)
+        } else {
+            let timeout
+            // use setTimeout to adjust for transition effects and rate limit
+            // tried to use lodash debounce here, but it never seemed to work
+            clearTimeout(timeout)
+            timeout = setTimeout(() => {
+                nextElement.css({
+                    width: (windowWidth - (thisNode.width() + thisOffset.left + rightBorder)),
+                    left: (thisNode.width() + rightBorder),
+                })
+            }, delay)
+        }
     }
 
     componentDidMount() {
