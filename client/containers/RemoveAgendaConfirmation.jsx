@@ -3,8 +3,9 @@ import { connect } from 'react-redux'
 import { RelatedPlannings } from '../components'
 import * as selectors from '../selectors'
 import { get } from 'lodash'
+import { openPlanningEditorAndAgenda } from '../actions'
 
-export function RemoveAgendaConfirmationComponent({ agenda, plannings }) {
+export function RemoveAgendaConfirmationComponent({ agenda, plannings, handlePlanningClick }) {
     return (
         <div>
             <p>Are you sure you want to delete {agenda.name} ?</p>
@@ -12,7 +13,7 @@ export function RemoveAgendaConfirmationComponent({ agenda, plannings }) {
                 <div>
                     This agenda contains:
                     <ul>
-                        <RelatedPlannings plannings={plannings} onPlanningClick={()=>{}}/>
+                        <RelatedPlannings plannings={plannings} onPlanningClick={handlePlanningClick}/>
                     </ul>
                 </div>
             || <div>This agenda is empty</div>
@@ -24,6 +25,7 @@ export function RemoveAgendaConfirmationComponent({ agenda, plannings }) {
 RemoveAgendaConfirmationComponent.propTypes = {
     agenda: React.PropTypes.object,
     plannings: React.PropTypes.array,
+    handlePlanningClick: React.PropTypes.func.isRequired,
 }
 
 const mapStateToProps = (state, ownProps) => ({
@@ -32,6 +34,13 @@ const mapStateToProps = (state, ownProps) => ({
         .map((pKey) => (selectors.getStoredPlannings(state)[pKey])),
 })
 
+const mapDispatchToProps = (dispatch) => ({
+    handlePlanningClick: (planningId) => (
+        dispatch(openPlanningEditorAndAgenda(planningId))
+    ),
+})
+
 export const RemoveAgendaConfirmationContainer = connect(
-    mapStateToProps
+    mapStateToProps,
+    mapDispatchToProps
 )(RemoveAgendaConfirmationComponent)

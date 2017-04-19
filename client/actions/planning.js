@@ -23,7 +23,13 @@ const deletePlanning = (planning) => (
         api('planning').remove(planning)
         // close the editor if the removed planning was opened
         .then(() => {
-            if (selectors.getCurrentPlanningId(getState()) === planning._id) {
+            if (planning.planning_type === 'agenda' && planning.planning_items &&
+                planning.planning_items.length > 0) {
+                if (planning.planning_items.indexOf(
+                    selectors.getCurrentPlanningId(getState())) > -1) {
+                    dispatch(closePlanningEditor())
+                }
+            } else if (selectors.getCurrentPlanningId(getState()) === planning._id) {
                 dispatch(closePlanningEditor())
             }
         })
