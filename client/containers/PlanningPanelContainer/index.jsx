@@ -85,7 +85,7 @@ class PlanningPanel extends React.Component {
                         </div>
                         <ul className="list-view compact-view">
                             {currentAgenda &&
-                                <QuickAddPlanning className="ListItem__list-item" onPlanningCreation={onPlanningCreation}/>
+                                <QuickAddPlanning className="ListItem" onPlanningCreation={onPlanningCreation}/>
                             }
                             {(planningList && planningList.length > 0) && planningList.map((planning) => (
                                 <PlanningItem

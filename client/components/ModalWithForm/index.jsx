@@ -1,5 +1,6 @@
 import React from 'react'
-import { Modal, Button } from 'react-bootstrap'
+import { Modal } from '../index'
+import { Button } from 'react-bootstrap'
 import './style.scss'
 
 export class ModalWithForm extends React.Component {

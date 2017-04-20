@@ -1,4 +1,5 @@
 .ManageAgendasModal .pills-list {
     padding-top: 20px;
     clear: both;
+    li { box-sizing: content-box; }
 }

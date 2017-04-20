@@ -1,15 +1,8 @@
 .event {
-    border-left: 4px solid #bababa;
-    box-sizing: border-box;
-    .event__title { overflow: hidden; text-overflow: ellipsis }
     &--has-planning {
         border-left: 4px solid #00aa4d;
     }
     &--has-been-canceled {
         .event__title { text-decoration: line-through; }
     }
-}
-.event__counts {
-    i { color: #bababa; }
-    dt { padding-left: 5px }
 }

@@ -15,12 +15,10 @@ export const EventItem = ({ event, onClick, deleteEvent, selectedEvent }) => {
         {
             icon: 'icon-file',
             count: get(event, 'files.length', 0),
-            className: 'files-attached-count',
         },
         {
             icon: 'icon-link',
             count: get(event, 'links.length', 0),
-            className: 'links-count',
         },
     ]
     const classes = [
@@ -30,34 +28,42 @@ export const EventItem = ({ event, onClick, deleteEvent, selectedEvent }) => {
     ].join(' ')
     return (
         <ListItem item={event} onClick={onClick.bind(this, event)} deleteEvent={deleteEvent.bind(this, event)} draggable={true} className={classes} active={selectedEvent === event._id}>
-            <div className="line">
-                <span className="event__title keyword">{event.name}</span>
-                <span className="item-heading">{event.definition_short}</span>
-                <time className="time--short" title={time}>{time}</time>
-
-            </div>
-            <div className="line">
-                <span className="container">
-                    {location &&
-                        <span className="location">location: {location}</span>
+        <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
+            <div className="sd-list-item__row">
+                <span className="sd-overflow-ellipsis sd-list-item--element-grow event__title">
+                    {event.name}
+                    {(event.definition_short && event.name !== event.definition_short) &&
+                        <span>&nbsp;|&nbsp;{event.definition_short}</span>
                     }
                 </span>
-                <dl className="event__counts">
-                    {counters.map(({ icon, count, className }) => {
-                        if (count > 0) {
-                            return [
-                                <dt className={className}><i className={icon}/></dt>,
-                                <dd className={className}>{count}</dd>,
-                            ]
-                        }
-                    })}
-                </dl>
+                <time title={time}>{time}</time>
             </div>
-            <span className="ListItem__actions">
-                <OverlayTrigger placement="left" overlay={tooltips.deleteEventTooltip}>
-                    <i className="icon-trash" onClick={(e)=>{e.stopPropagation(); deleteEvent(event)}}/>
-                </OverlayTrigger>
-            </span>
+            <div className="sd-list-item__row">
+                {location &&
+                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                        Location: {location}&nbsp;
+                    </span>
+                }
+                {counters.map(({ icon, count }) => {
+                    if (count > 0) {
+                        return (
+                            <span key={icon}>
+                                <i className={icon}/>&nbsp;{count}&nbsp;&nbsp;
+                            </span>
+                        )
+                    }
+                })}
+            </div>
+        </div>
+        <div className="sd-list-item__action-menu">
+            <OverlayTrigger placement="left" overlay={tooltips.deleteEventTooltip}>
+                <button
+                    className="dropdown__toggle"
+                    onClick={(e)=>{e.stopPropagation(); deleteEvent(event)}}>
+                    <i className="icon-trash"/>
+                </button>
+            </OverlayTrigger>
+        </div>
         </ListItem>
     )
 }
