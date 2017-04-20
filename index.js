@@ -16,7 +16,6 @@ function configurePlanning(superdesk) {
             category: superdesk.MENU_MAIN,
             adminTools: false,
             template: require('./client/views/planning.html'),
-            topTemplateUrl: 'scripts/superdesk-dashboard/views/workspace-topnav.html',
             privileges: { planning: 1 },
         })
         .activity('/settings/planning', {
