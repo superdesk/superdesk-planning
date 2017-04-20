@@ -1,49 +1,20 @@
 import React from 'react'
-import { EventsList } from '../../components'
+import { EventsList, SearchBar } from '../../components'
 import { AdvancedSearchPanelContainer } from '../index'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
-import DebounceInput from 'react-debounce-input'
-import { isNil, get } from 'lodash'
+import { get } from 'lodash'
 import './style.scss'
 
 class EventsListComponent extends React.Component {
     constructor(props) {
         super(props)
-        const currentKeyword = get(props, 'currentSearch.fulltext')
-        this.state = {
-            // initialize state from props
-            searchBarExtended: !isNil(currentKeyword),
-            searchInputValue: currentKeyword,
-        }
     }
 
     componentWillMount() {
         // load events for the first time
         this.props.loadEvents(this.props.currentSearch && this.props.currentSearch.fulltext)
-    }
-
-    toggleSearchBar() {
-        this.setState({ searchBarExtended: !this.state.searchBarExtended })
-    }
-
-    /** Reset the field value, close the search bar and load events */
-    resetSearch() {
-        this.setState({
-            searchBarExtended: false,
-            searchInputValue: '',
-        })
-        this.props.loadEvents()
-    }
-
-    /** Search events by keywords */
-    onSearchChange(event) {
-        this.setState(
-            { searchInputValue: event.target.value },
-            // update the input value since we are using the DebounceInput `value` prop
-            () => this.props.loadEvents(event.target.value)
-        )
     }
 
     toggleAdvancedSearch() {
@@ -55,8 +26,7 @@ class EventsListComponent extends React.Component {
     }
 
     render() {
-        const { searchBarExtended } = this.state
-        const { advancedSearchOpened, toggleEventsList } = this.props
+        const { advancedSearchOpened, toggleEventsList, loadEvents, currentSearch } = this.props
         const classes = [
             'Events-list-container',
             advancedSearchOpened ? 'Events-list-container--advanced-search-view' : null,
@@ -78,37 +48,12 @@ class EventsListComponent extends React.Component {
                     </h3>
                 </div>
                 <div className="Events-list-container__search subnav">
-                    <div className={'flat-searchbar' + (searchBarExtended ? ' extended' : '')}>
-                        <div className="search-handler">
-                            <label
-                                className="trigger-icon advanced-search-open"
-                                onClick={this.toggleAdvancedSearch.bind(this)}>
-                                <i className="icon-filter-large" />
-                            </label>
-                            <label
-                                htmlFor="search-input"
-                                className="trigger-icon"
-                                onClick={this.toggleSearchBar.bind(this)}>
-                                <i className="icon-search" />
-                            </label>
-                            <DebounceInput
-                                minLength={2}
-                                debounceTimeout={500}
-                                value={this.state.searchInputValue}
-                                onChange={this.onSearchChange.bind(this)}
-                                id="search-input"
-                                placeholder="Search"
-                                type="text"/>
-                            <button
-                                className="search-close visible"
-                                onClick={this.resetSearch.bind(this)}>
-                                <i className="icon-remove-sign" />
-                            </button>
-                            <button className="search-close">
-                                <i className="svg-icon-right" />
-                            </button>
-                        </div>
-                    </div>
+                    <label
+                        className="trigger-icon advanced-search-open"
+                        onClick={this.toggleAdvancedSearch.bind(this)}>
+                        <i className="icon-filter-large" />
+                    </label>
+                    <SearchBar value={get(currentSearch, 'fulltext')} onSearch={(value) => loadEvents(value)}/>
                     <button className="btn btn--primary"
                             onClick={this.props.openEventDetails.bind(null, null)}>
                         Add event

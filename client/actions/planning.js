@@ -256,6 +256,11 @@ const toggleOnlyFutureFilter = () => (
     }
 )
 
+const planningFilterByKeyword = (value) => ({
+    type: 'PLANNING_FILTER_BY_KEYWORD',
+    payload: value && value.trim() || null,
+})
+
 export {
     deletePlanning,
     savePlanning,
@@ -265,4 +270,5 @@ export {
     closePlanningEditor,
     openPlanningEditorAndAgenda,
     toggleOnlyFutureFilter,
+    planningFilterByKeyword,
 }

@@ -4,20 +4,37 @@
     height: 100%;
     &__container {
         display: flex;
-        height: calc(100% - 48px);
-        .subnav {
-            .subnav__page-title { width: 100px; }
-            select {
-                top: 10px;
-                position: relative;
+        z-index: 1;
+        position: absolute;
+        top: $nav-height;
+        right: 0;
+        left: 0;
+        bottom: 0;
+    }
+    &__searchbar {
+        .SearchBar {
+            flex-grow: 1;
+        }
+        > label {
+            margin: 15px;
+            white-space: nowrap;
+            .sd-toggle {
+                margin-left: 10px;
             }
         }
     }
     &__list {
         flex-grow: 1;
         height: 100%;
-        overflow: auto;
-        .list-view { box-shadow: inherit; }
+        .list-view {
+            overflow: auto;
+            box-shadow: inherit;
+            position: absolute;
+            top: $nav-height;
+            right: 0;
+            left: 0;
+            bottom: 0;
+        }
     }
     .ListItem {
         width: auto; // otherwise it overflow on the right because of the margin
@@ -28,7 +45,7 @@
         font-size: 1.75em;
         line-height: 1.2em;
         text-align: center;
-        margin-top: 40px;
+        margin-top: 80px;
         > i { font-size: 2em }
     }
     &__select-agenda {

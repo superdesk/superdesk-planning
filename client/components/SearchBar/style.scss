@@ -1,0 +1,10 @@
+.SearchBar.extended {
+    margin-left: 10px;
+    margin-right: 10px;
+    .search-handler {
+        display: flex;
+        input {
+            flex-grow: 1;
+        }
+    }
+}

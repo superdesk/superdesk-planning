@@ -2,7 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { SelectAgenda, EditPlanningPanelContainer } from '../index'
-import { QuickAddPlanning, Toggle, PlanningItem } from '../../components'
+import { PlanningItem, QuickAddPlanning, Toggle, SearchBar } from '../../components'
 import * as selectors from '../../selectors'
 import './style.scss'
 
@@ -40,6 +40,7 @@ class PlanningPanel extends React.Component {
             onManageAgendasClick,
             onlyFuture,
             onFutureToggleChange,
+            handleSearch,
         } = this.props
         const listClasses = [
             'Planning-panel',
@@ -75,13 +76,12 @@ class PlanningPanel extends React.Component {
                 </div>
                 <div className="Planning-panel__container">
                     <div className="Planning-panel__list">
-                        <div className="subnav">
-                            <div className="flat-searchbar extended">
-                                <div className="search-handler">
-                                    <Toggle value={onlyFuture} onChange={onFutureToggleChange}/>
-                                    <label>Only future</label>
-                                </div>
-                            </div>
+                        <div className="Planning-panel__searchbar subnav">
+                            <SearchBar value={null} onSearch={handleSearch}/>
+                            <label>
+                                Only future
+                                <Toggle value={onlyFuture} onChange={onFutureToggleChange}/>
+                            </label>
                         </div>
                         <ul className="list-view compact-view">
                             {currentAgenda &&
@@ -137,6 +137,7 @@ PlanningPanel.propTypes = {
     onManageAgendasClick: React.PropTypes.func,
     onlyFuture: React.PropTypes.bool,
     onFutureToggleChange: React.PropTypes.func,
+    handleSearch: React.PropTypes.func.isRequired,
 }
 
 const mapStateToProps = (state) => ({
@@ -171,6 +172,7 @@ const mapDispatchToProps = (dispatch) => ({
             dispatch(actions.openPlanningEditor(planning._id))
         ))
     ),
+    handleSearch: (text) => (dispatch(actions.planningFilterByKeyword(text))),
     openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning))),
     addEventToCurrentAgenda: (event) => (dispatch(actions.addEventToCurrentAgenda(event))),
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),

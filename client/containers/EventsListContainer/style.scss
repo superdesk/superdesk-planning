@@ -24,6 +24,17 @@ $EVENT_LIST_CONTAINER_ZINDEX: 6;
         white-space: nowrap;
         margin: 5px;
     }
+    .search-handler {
+        padding-left: 0;
+    }
+    .advanced-search-open {
+        width: 28px;
+        height: 28px;
+        display: inline-block;
+        opacity: 0.5;
+        margin: 16px 0 0 16px;
+        cursor: pointer;
+    }
     .flat-searchbar {
         flex-grow: 1;
         .search-handler {
