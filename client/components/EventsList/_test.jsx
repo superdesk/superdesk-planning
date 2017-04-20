@@ -62,15 +62,15 @@ describe('<EventsList />', () => {
             </Provider>
         )
         // there is three events to show
-        expect(wrapper.find('.ListItem__list-item').length).toEqual(3)
+        expect(wrapper.find('.ListItem').length).toEqual(3)
         // only two groups, because two share the same date
         expect(wrapper.find('.events-list__list').length).toEqual(2)
         // check order
         expect(wrapper.find('.events-list__title').map((e) => e.text()))
         .toEqual(['Saturday October 15, 2016', 'Monday October 17, 2016'])
         // check classes
-        expect(wrapper.find('.ListItem__list-item').first().hasClass('event--has-planning')).toBe(true)
-        expect(wrapper.find('.ListItem__list-item').last().hasClass('event--has-planning')).toBe(false)
+        expect(wrapper.find('.ListItem').first().hasClass('event--has-planning')).toBe(true)
+        expect(wrapper.find('.ListItem').last().hasClass('event--has-planning')).toBe(false)
         // add a new item
         const newEvent = {
             _id: '123',
@@ -84,27 +84,24 @@ describe('<EventsList />', () => {
         }
         store.dispatch(actions.receiveEvents([newEvent]))
         store.dispatch(actions.addToEventsList([newEvent._id]))
-        expect(wrapper.find('.ListItem__list-item').length).toEqual(4)
+        expect(wrapper.find('.ListItem').length).toEqual(4)
         // update an item
         const updatedEvent = {
             ...newEvent,
             name: 'new name',
         }
         store.dispatch(actions.receiveEvents([updatedEvent]))
-        expect(wrapper.find('.ListItem__list-item').length).toEqual(4)
+        expect(wrapper.find('.ListItem').length).toEqual(4)
         expect(
-            wrapper.find('.ListItem__list-item').last()
-            .find('.keyword').text())
-        .toBe('new name')
+            wrapper.find('.sd-list-item__row span').last().text())
+        .toContain('location3')
         // check attached file count
         expect(
-            wrapper.find('.ListItem__list-item').first()
-            .find('.event__counts dd.files-attached-count').text())
-        .toBe(events['5800d71930627218866f1e80'].files.length.toString())
+            wrapper.find('.ListItem').first().find('[className="icon-file"]').length
+        ).toBe(1)
         expect(
-            wrapper.find('.ListItem__list-item').last()
-            .find('.event__counts dd.files-attached-count').length)
-        .toBe(0)
+            wrapper.find('.ListItem').first().find('[className="icon-link"]').length
+        ).toBe(0)
     })
     it('trigger an event click', () => {
         const onButtonClick = sinon.spy()

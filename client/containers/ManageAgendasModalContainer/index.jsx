@@ -1,5 +1,6 @@
 import React from 'react'
-import { Modal, Button } from 'react-bootstrap'
+import { Modal } from '../../components'
+import { Button } from 'react-bootstrap'
 import { connect } from 'react-redux'
 import * as selectors from '../../selectors'
 import * as actions from '../../actions'
@@ -16,7 +17,12 @@ export function ManageAgendasModalComponent({
     selectAgenda,
 }) {
     return (
-        <Modal show={true} onHide={handleHide} className="ManageAgendasModal">
+        <Modal
+            show={true}
+            onHide={handleHide}
+            large={true}
+            className="ManageAgendasModal"
+        >
             <Modal.Header>
                 <a className="close" onClick={handleHide}>
                     <i className="icon-close-small" />
