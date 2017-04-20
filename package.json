@@ -78,7 +78,7 @@
     "react-addons-test-utils": "^15.3.2",
     "sass-loader": "^4.0.2",
     "sinon": "^2.0.0-pre.2",
-    "superdesk-core": "^1.6.0",
+    "superdesk-core": "^1.6.2",
     "webpack": "^1.13.2"
   }
 }
