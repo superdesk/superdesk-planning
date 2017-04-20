@@ -249,7 +249,7 @@ Feature: Events
         """
         Then we get response code 200
         When we get "/events"
-        Then we get list with 4 items
+        Then we get list with 3 items
         """
             {"_items": [
                   {
