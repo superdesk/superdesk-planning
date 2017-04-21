@@ -47,8 +47,7 @@ describe('<DeleteEvent />', () => {
         let store = createTestStore()
         const wrapper = mount(
             <Provider store={store}>
-                <DeleteEvent eventDetail={event}
-                    handlePlanningClick={()=>{}} />
+                <DeleteEvent eventDetail={event} />
             </Provider>
         )
 

@@ -1,8 +1,8 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
-import { fields, RelatedPlannings } from '../../components'
-import { RepeatEventForm } from '../index'
+import { fields } from '../../components'
+import { RelatedPlannings, RepeatEventForm } from '../index'
 import { Field, FieldArray, reduxForm, formValueSelector } from 'redux-form'
 import { isNil } from 'lodash'
 import moment from 'moment'
@@ -63,7 +63,6 @@ export class Component extends React.Component {
             startingDate,
             endingDate,
             initialValues,
-            handlePlanningClick,
         } = this.props
         return (
             <form onSubmit={handleSubmit} className="EventForm">
@@ -166,7 +165,8 @@ export class Component extends React.Component {
                     {initialValues && initialValues._plannings &&
                         <div>
                             <label htmlFor="links">Related Plannings</label>
-                            <RelatedPlannings plannings={initialValues._plannings} onPlanningClick={handlePlanningClick}/>
+                            <RelatedPlannings plannings={initialValues._plannings}
+                                openPlanningItem={true}/>
                         </div>
                     }
                 </div>
@@ -186,7 +186,6 @@ Component.propTypes = {
     pristine: React.PropTypes.bool,
     submitting: React.PropTypes.bool,
     initialValues: React.PropTypes.object,
-    handlePlanningClick: React.PropTypes.func.isRequired,
     reset: React.PropTypes.func,
 }
 
@@ -213,9 +212,6 @@ const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event) => (
         // save the event through the API
         dispatch(actions.uploadFilesAndSaveEvent(event))
-    ),
-    handlePlanningClick: (planningId) => (
-        dispatch(actions.openPlanningEditorAndAgenda(planningId))
     ),
 })
 

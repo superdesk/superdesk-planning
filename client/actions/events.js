@@ -4,7 +4,7 @@ import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
 import { saveLocation as _saveLocation } from './index'
 import { showModal, hideModal, fetchSelectedAgendaPlannings,
-    fetchAgendas, closePlanningEditor, openPlanningEditorAndAgenda } from './index'
+    fetchAgendas, closePlanningEditor } from './index'
 import { DeleteEvent } from '../components/index'
 import React from 'react'
 
@@ -363,11 +363,7 @@ export const openDeleteEvent = (event) => (
         dispatch(showModal({
             modalType: 'CONFIRMATION',
             modalProps: {
-                body: React.createElement(DeleteEvent, {
-                    eventDetail: eventWithPlannings,
-                    handlePlanningClick: (planningId) =>
-                        (dispatch(openPlanningEditorAndAgenda(planningId))),
-                }),
+                body: React.createElement(DeleteEvent, { eventDetail: eventWithPlannings }),
                 action: () => dispatch(deleteEvent(eventWithPlannings)),
             },
         }))
