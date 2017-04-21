@@ -1,7 +1,8 @@
 import React from 'react'
-import { shallow } from 'enzyme'
-import { SelectAgendaComponent } from '../SelectAgenda'
+import { shallow, mount } from 'enzyme'
+import { SelectAgendaComponent, SelectAgenda } from '../SelectAgenda'
 import sinon from 'sinon'
+import { Provider } from 'react-redux'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
 import { createTestStore } from '../../utils'
@@ -29,6 +30,16 @@ describe('<SelectAgendaComponent />', () => {
         wrapper.simulate('change', { target: { value: '2' } })
         expect(handleOnChange.calledOnce).toBe(true)
         expect(wrapper.find('option').length).toBe(3)
+    })
+    it('selects an agenda within container', () => {
+        const store = createTestStore()
+        const wrapper = mount(
+            <Provider store={store}>
+                <SelectAgenda/>
+            </Provider>
+        )
+        wrapper.simulate('change', { target: { value: 'newAgenda' } })
+        expect(store.getState().planning.currentAgendaId).toBe('newAgenda')
     })
     it('fetch selected agenda plannings', (done) => {
         const initialState = {
