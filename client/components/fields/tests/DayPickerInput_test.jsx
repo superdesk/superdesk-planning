@@ -40,9 +40,9 @@ describe('<DayPickerInput />', () => {
     it('hide the time when needed', () => {
         var wrapper
         wrapper = mount(<TestForm withTime={false} />)
-        expect(wrapper.find('.rc-time-picker-input').length).toBe(0)
+        expect(wrapper.find('.timepickerInput').length).toBe(0)
         wrapper = mount(<TestForm withTime={true} />)
-        expect(wrapper.find('.rc-time-picker-input').length).toBe(1)
+        expect(wrapper.find('.timepickerInput').length).toBe(1)
     })
     it('return the right date', () => {
         // test defaultDate
