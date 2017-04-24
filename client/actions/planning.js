@@ -2,20 +2,33 @@ import { hideModal } from './modal'
 import * as selectors from '../selectors'
 import * as actions from '../actions'
 import { pickBy, cloneDeep, isNil, has, get } from 'lodash'
+import { SubmissionError } from 'redux-form'
 
 const createAgenda = ({ name }) => (
-    (dispatch, getState, { api, notify }) => {
+    (dispatch, getState, { api, notify }) =>
         api('planning').save({}, {
             planning_type: 'agenda',
             name: name,
         })
         .then((agenda) => {
-            notify.success('An agenda has been added')
+            notify.success('An Agenda has been added.')
             dispatch(hideModal())
             dispatch(addOrReplaceAgenda(agenda))
             dispatch(selectAgenda(agenda._id))
+        }, (error) => {
+            let errorMessage = 'There was a problem, Agenda not created/updated.'
+            if (get(error, 'data._message')) {
+                errorMessage = get(error, 'data._message')
+            } else if (get(error, 'data._issues.validator exception')) {
+                errorMessage = get(error, 'data._issues.validator exception')
+            }
+
+            notify.error(errorMessage)
+            throw new SubmissionError({
+                name: errorMessage,
+                _error: error.statusText,
+            })
         })
-    }
 )
 
 const deletePlanning = (planning) => (

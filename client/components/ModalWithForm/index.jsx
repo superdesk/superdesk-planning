@@ -30,6 +30,7 @@ export class ModalWithForm extends React.Component {
                 <Modal.Footer>
                     <Button onClick={this.props.onHide}>Close</Button>
                     <Button type="submit"
+                            className="btn btn--primary"
                             onClick={this.submit.bind(this)}
                             disabled={this.props.pristine ||
                                 this.props.submitting}>Save</Button>

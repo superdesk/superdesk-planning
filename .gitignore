@@ -16,6 +16,7 @@ npm-debug.log
 dist/
 *.egg-info
 *.pyc
+src/
 
 # VIM related files
 *.swo
