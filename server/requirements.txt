@@ -8,4 +8,6 @@ wooper
 requests
 requests-mock
 icalendar==3.11.1
+coverage==4.3.4
+coveralls
 -e git://github.com/superdesk/superdesk-core.git@d75b11968#egg=Superdesk_Core

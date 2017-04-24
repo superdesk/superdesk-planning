@@ -9,7 +9,6 @@
     "hint": "jscs client && eslint client --ext=jsx --ext=js",
     "unit_test": "karma start karma.conf.js --log-level debug --display-error-details --single-run  --browsers Firefox",
     "karma": "karma start karma.conf.js",
-    "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
     "test": "npm run hint && npm run unit_test"
   },
   "author": "Edouard Richard",
@@ -56,7 +55,6 @@
   },
   "devDependencies": {
     "angular-mocks": "1.5.11",
-    "coveralls": "^2.12.0",
     "enzyme": "^2.4.1",
     "eslint": "^3.14.1",
     "eslint-plugin-jasmine": "^2.2.0",
