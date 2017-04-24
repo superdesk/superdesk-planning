@@ -31,15 +31,19 @@ export const getCurrentAgendaPlannings = createSelector(
         see: https://dev.sourcefabric.org/browse/SDESK-1103
         */
         function isFuture(planning) {
-            var isFuture = get(events[planning.event_item], 'dates.end', moment(new Date()))
-            // to date is future
-            .isSameOrAfter(new Date(), 'day')
+            const endDate = get(events[planning.event_item], 'dates.end')
+            // event ending date is future
+            if (endDate && endDate.isSameOrAfter(new Date(), 'day')) {
+                return true
+            }
             // or a coverage due date is future
-            || get(planning, 'coverages', [])
-                .some((c) => (
+            else if (get(planning, 'coverages', []).some((c) => (
                     moment(c.planning.scheduled).isSameOrAfter(new Date(), 'day')
-                ))
-            return isFuture
+            ))) {
+                return true
+            }
+            // it's an old planning
+            return false
         }
 
         const planningsIds = currentAgenda ? currentAgenda.planning_items || [] : []
