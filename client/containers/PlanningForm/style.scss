@@ -1,0 +1,9 @@
+
+.PlanningForm {
+    > footer {
+        button[type="submit"], .btn { // save button
+          margin: 10px 10px 10px 0;
+          float: right;
+        }
+    }
+}
