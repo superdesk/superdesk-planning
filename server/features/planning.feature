@@ -107,14 +107,16 @@ Feature: Planning
     @auth
     @notification
         Scenario: Removes associated planning when an agenda is removed
-            # Given "planning"
+            Given empty "planning"
             When we post to "planning"
             """
             [{
                 "slugline": "orphan planning"
             }]
             """
-            And we post to "planning"
+            Then we get OK response
+
+            When we post to "planning"
             """
             [{
                 "slugline": "planning 1"
@@ -139,4 +141,41 @@ Feature: Planning
                     "original_creator": "__any_value__",
                     "slugline": "orphan planning"
                 }]}
+            """
+
+    @auth
+    @notification
+        Scenario: Agenda name should be unique name
+            # Given "planning"
+            When we post to "planning"
+            """
+            [{
+                "planning_type": "agenda", "name": "foo"
+            }]
+            """
+            Then we get OK response
+            When we post to "planning"
+            """
+            [{
+                "planning_type": "agenda", "name": "FOO"
+            }]
+            """
+            Then we get error 400
+            """
+            {"_issues": {"name": {"unique": 1}}, "_status": "ERR", "_message": "Agenda with name FOO already exists."}
+            """
+            When we post to "planning"
+            """
+            [{
+                "planning_type": "agenda", "name": "bar"
+            }]
+            """
+            Then we get OK response
+            When we patch "/planning/#planning._id#"
+            """
+            {"name": "FOO"}
+            """
+            Then we get error 400
+            """
+            {"_issues": {"validator exception": "400: Agenda with name FOO already exists."}, "_status": "ERR"}
             """
