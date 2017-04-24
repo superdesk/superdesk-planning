@@ -140,11 +140,14 @@ class EventsService(superdesk.Service):
         setRecurringMode(updates)
         updates['recurrence_id'] = original.get('recurrence_id', None) or generate_guid(type=GUID_NEWSML)
         # get the list of all items that follows the current edited one
-        existingEvents = self.find(where={'recurrence_id': updates['recurrence_id']})
-        existingEvents = [
-            event for event in existingEvents
-            if event['dates']['start'] >= original['dates']['start']
-        ]
+        if not original['dates'].get('recurring_rule', None):
+            existingEvents = [original]
+        else:
+            existingEvents = self.find(where={'recurrence_id': updates['recurrence_id']})
+            existingEvents = [
+                event for event in existingEvents
+                if event['dates']['start'] >= original['dates']['start']
+            ]
         # compute the difference between start and end in the original event
         time_delta = updates['dates']['end'] - updates['dates']['start']
         addEvents = []
