@@ -45,6 +45,11 @@ class PlanningService(superdesk.Service):
         for doc in docs:
             doc['guid'] = generate_guid(type=GUID_NEWSML)
             set_original_creator(doc)
+            # remove event expiry if it is linked to the planning
+            if 'event_item' in doc:
+                events_service = get_resource_service('events')
+                original_event = events_service.find_one(req=None, _id=doc['event_item'])
+                events_service.update(doc['event_item'], {'expiry': None}, original_event)
 
     def on_deleted(self, doc):
         # remove the planning from agendas
