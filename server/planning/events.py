@@ -80,6 +80,8 @@ class EventsService(superdesk.Service):
             event['guid'] = generate_guid(type=GUID_NEWSML)
             # set the author
             set_original_creator(event)
+            # overwrite expiry date
+            overwrite_event_expiry_date(event)
             # generates events based on recurring rules
             if event['dates'].get('recurring_rule', None):
                 # generate a common id for all the events we will generate
@@ -102,6 +104,8 @@ class EventsService(superdesk.Service):
                     new_event['_id'] = new_event['guid']
                     # set the recurrence id
                     new_event['recurrence_id'] = recurrence_id
+                    # set expiry date
+                    overwrite_event_expiry_date(new_event)
                     generatedEvents.append(new_event)
                 # remove the event that contains the recurring rule. We don't need it anymore
                 docs.remove(event)
@@ -535,3 +539,8 @@ def setRecurringMode(event):
         event['dates']['recurring_rule']['until'] = None
     elif endRepeatMode == 'until':
         event['dates']['recurring_rule']['count'] = None
+
+
+def overwrite_event_expiry_date(event):
+    if 'expiry' in event:
+        event['expiry'] = event['dates']['end']
