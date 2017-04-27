@@ -32,8 +32,14 @@ export const getCurrentAgendaPlannings = createSelector(
         */
         function isFuture(planning) {
             const endDate = get(events[planning.event_item], 'dates.end')
+            // planning has no coverage due date and no event ending date
+            if (!endDate && !get(planning, 'coverages', []).some(
+                (c) => (get(c, 'planning.scheduled'))
+            )) {
+                return true
+            }
             // event ending date is future
-            if (endDate && endDate.isSameOrAfter(new Date(), 'day')) {
+            else if (endDate && endDate.isSameOrAfter(new Date(), 'day')) {
                 return true
             }
             // or a coverage due date is future
