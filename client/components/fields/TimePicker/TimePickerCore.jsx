@@ -94,7 +94,7 @@ export class TimePickerCore extends React.Component {
                         <div className="header">Hours</div>
                         <ul>
                             {hours.map((hour, index) => (
-                                <li key={index} className={index === this.state.selectedHourIndex ? 'active' : ''} onClick={this.setselectedHourIndex.bind(this, index)}>{hour}</li>
+                                <li key={index} className={index === this.state.selectedHourIndex ? 'active' : ''} onClick={this.setselectedHourIndex.bind(this, index)}>{hour < 10 ? '0' + hour : hour}</li>
                             ))}
                         </ul>
                     </div>
@@ -102,13 +102,13 @@ export class TimePickerCore extends React.Component {
                         <div className="header">Minutes</div>
                         <ul>
                             {minutes.map((minute, index) => (
-                            <li key={index} className={index === this.state.selectedMinuteIndex ? 'active' : ''} onClick={this.setselectedMinuteIndex.bind(this, index)}>{minute}</li>
+                            <li key={index} className={index === this.state.selectedMinuteIndex ? 'active' : ''} onClick={this.setselectedMinuteIndex.bind(this, index)}>{minute < 10 ? '0' + minute : minute}</li>
                             ))}
                         </ul>
                     </div>
                     <div>
-                        <button className="btn btn--primary btn--small btn--pull-right" type="button" onClick={this.handleConfirm.bind(this, 0)}>Confirm</button>
-                        <button className="btn btn--small btn--pull-right" type="button" onClick={this.handleCancel.bind(this)}>Cancel</button>
+                        <button className="btn btn--primary btn--small pull-right" type="button" onClick={this.handleConfirm.bind(this, 0)}>Confirm</button>
+                        <button className="btn btn--small pull-right" type="button" onClick={this.handleCancel.bind(this)}>Cancel</button>
                     </div>
                 </div>
             </div>

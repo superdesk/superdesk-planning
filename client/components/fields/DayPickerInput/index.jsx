@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react'
-import DatePicker from 'react-datepicker'
+import { DatePicker } from '../index'
 import { TimePicker } from '../index'
 import moment from 'moment'
 import 'react-datepicker/dist/react-datepicker.css'
@@ -113,23 +113,16 @@ export class DayPickerInput extends React.Component {
     }
 
     render() {
-        const { disabled, withTime, selectsEnd, selectsStart, startDate, endDate } = this.props
+        const { withTime } = this.props
         const { touched, error, warning } = this.props.meta
         const { selectedDate, selectedTime } = this.state
         return (
             <span className="day-picker-input">
                 <DatePicker
                     ref="datePicker"
-                    placeholderText="Date"
-                    disabled={disabled}
-                    className="line-input"
-                    selectsEnd={selectsEnd}
-                    selectsStart={selectsStart}
-                    startDate={startDate}
-                    endDate={endDate}
-                    selected={selectedDate}
-                    onChange={this.onDayChange.bind(this)}
-                    fixedHeight />
+                    value={selectedDate}
+                    placeholder="Date"
+                    onChange={this.onDayChange.bind(this)} />
                 {(withTime === true) && (
                     <span>
                         &nbsp;&nbsp;&nbsp;&nbsp;
@@ -152,11 +145,6 @@ DayPickerInput.propTypes = {
     defaultDate: PropTypes.object,
     input: PropTypes.object,
     meta: PropTypes.object,
-    disabled: PropTypes.bool,
-    selectsEnd: PropTypes.bool,
-    selectsStart: PropTypes.bool,
-    startDate: PropTypes.object,
-    endDate: PropTypes.object,
 }
 DayPickerInput.defaultProps = {
     withTime: false,
