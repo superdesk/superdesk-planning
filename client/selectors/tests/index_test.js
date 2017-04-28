@@ -1,5 +1,6 @@
 import * as selectors from '../index'
 import { cloneDeep } from 'lodash'
+import moment from 'moment'
 
 describe('selectors', () => {
     const state = {
@@ -12,6 +13,7 @@ describe('selectors', () => {
             eventsInList: ['event1', 'event2'],
         },
         planning: {
+            onlyFuture: false,
             plannings: {
                 a: {
                     name: 'name a',
@@ -52,6 +54,28 @@ describe('selectors', () => {
         delete newState.planning.currentAgendaId
         result = selectors.getCurrentAgendaPlannings(newState)
         expect(result).toEqual([])
+        // only future
+        newState = cloneDeep(state)
+        newState.planning.onlyFuture = true
+        result = selectors.getCurrentAgendaPlannings(newState)
+        // a and b have no coverage due date or event ending date, so they appear
+        expect(result).toEqual([newState.planning.plannings.a, newState.planning.plannings.b])
+        newState = cloneDeep(state)
+        newState.planning.onlyFuture = true
+        const future = '2045-10-19T13:01:50+0000'
+        const past = '1900-10-19T13:01:50+0000'
+        newState.events.events.event1.dates = { end: moment(future) }
+        newState.planning.plannings.b.coverages = [{ planning: { scheduled: past } }]
+        result = selectors.getCurrentAgendaPlannings(newState)
+        // a appears because it has a linked event with a future ending date
+        expect(result).toEqual([newState.planning.plannings.a])
+        newState = cloneDeep(state)
+        newState.planning.onlyFuture = true
+        newState.events.events.event1.dates = { end: moment(past) }
+        newState.planning.plannings.b.coverages = [{ planning: { scheduled: future } }]
+        result = selectors.getCurrentAgendaPlannings(newState)
+        // b appears because it has a future due date
+        expect(result).toEqual([newState.planning.plannings.b])
     })
     it('getEventsWithMoreInfo', () => {
         const events = selectors.getEventsWithMoreInfo(state)
