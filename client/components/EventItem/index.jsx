@@ -39,11 +39,11 @@ export const EventItem = ({ event, onClick, deleteEvent, selectedEvent }) => {
                 <time title={time}>{time}</time>
             </div>
             <div className="sd-list-item__row">
-                {location &&
-                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                        Location: {location}&nbsp;
-                    </span>
-                }
+                <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                    {location &&
+                        <span>Location: {location}&nbsp;</span>
+                    }
+                </span>
                 {counters.map(({ icon, count }) => {
                     if (count > 0) {
                         return (
