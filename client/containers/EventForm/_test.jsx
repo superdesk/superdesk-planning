@@ -4,6 +4,7 @@ import { EventForm, FormComponent, Component } from '../EventForm/index'
 import sinon from 'sinon'
 import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
+import { cloneDeep } from 'lodash'
 import * as actions from '../../actions'
 import moment from 'moment'
 
@@ -28,6 +29,17 @@ const event = {
 }
 
 describe('<FormComponent />', () => {
+    it('uploads and keeps files', (done) => {
+        const newEvent = cloneDeep(event)
+        const store = createTestStore()
+        newEvent.files.push([{}])
+        store.dispatch(actions.saveFiles(newEvent))
+        .then((e) => {
+            expect(e.files).toBeDefined()
+            expect(e.files.length).toBe(newEvent.files.length)
+            done()
+        })
+    })
     it('submit the form', () => {
         const submitting = false
         const onSaveResponse = Promise.resolve()
