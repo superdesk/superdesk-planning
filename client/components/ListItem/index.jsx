@@ -1,5 +1,6 @@
 import React from 'react'
 import './style.scss'
+import classNames from 'classnames'
 
 export class ListItem extends React.Component {
     constructor(props) {
@@ -14,13 +15,13 @@ export class ListItem extends React.Component {
     }
     render() {
         const { item, onClick, children, active, className, draggable=false } = this.props
-        const classes = [
+        const classes = classNames(
+            className,
             'ListItem',
             'sd-list-item',
             'sd-shadow--z1',
-            (active ? 'active' : null),
-            className,
-        ].join(' ')
+            { 'sd-list-item--activated': active }
+        )
         return (
             <div className={classes}
                 draggable={draggable}
