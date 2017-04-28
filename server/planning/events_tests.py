@@ -70,7 +70,3 @@ class EventTestCase(unittest.TestCase):
             datetime.datetime(2016, 11, 24, 23, 00),  # it's friday in Berlin
             datetime.datetime(2016, 12, 1, 23, 00),  # it's friday in Berlin
         ])
-
-
-if __name__ == '__main__':
-    unittest.main()

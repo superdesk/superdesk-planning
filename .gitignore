@@ -26,3 +26,5 @@ src/
 _build
 _build_html
 coverage/
+.coverage*
+htmlcov
