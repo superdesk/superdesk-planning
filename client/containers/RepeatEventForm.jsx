@@ -83,12 +83,13 @@ class RepeatEventFormComponent extends React.Component {
                     </Field>
                 </div>
                 <div className="recurring__interval">
-                    <label>Repeat Every</label>
+                    <label>Repeat every</label>
                     <Field name="dates.recurring_rule.interval" component="select">
                         {/* Create 30 options with 1...30 values */}
                         {Array.apply(null, { length: 30 }).map(Number.call, Number).map((n) => (
                             <option key={n + 1} value={n + 1}>
-                                {n + 1} {frequences[this.props.frequency]}
+                                {n + 1} { n === 0 && this.props.frequency ? frequences[this.props.frequency].slice(0, -1) :
+                                    frequences[this.props.frequency]}
                             </option>
                         ))}
                     </Field>

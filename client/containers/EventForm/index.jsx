@@ -76,7 +76,7 @@ export class Component extends React.Component {
                         </div>
                     </div>
                     )}
-                    <span className="subnav__page-title">Event Details</span>
+                    <span className="subnav__page-title">Event details</span>
                     {(!pristine && !submitting) && (
                         <div>
                             <button type="submit" className="btn btn--primary">
@@ -163,8 +163,9 @@ export class Component extends React.Component {
                         <FieldArray name="links" component={fields.LinksFieldArray} />
                     </div>
                     {initialValues && initialValues._plannings &&
+                        initialValues._plannings.length > 0 &&
                         <div>
-                            <label htmlFor="links">Related Plannings</label>
+                            <label htmlFor="links">Related planning items</label>
                             <RelatedPlannings plannings={initialValues._plannings}
                                 openPlanningItem={true}/>
                         </div>

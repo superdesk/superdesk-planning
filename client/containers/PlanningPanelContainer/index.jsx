@@ -66,7 +66,7 @@ class PlanningPanel extends React.Component {
                     </div>
                     <h3 className="subnav__page-title">
                         <span>
-                            <span>Planning</span>
+                            <span>Agenda</span>
                         </span>
                     </h3>
                     <div  className="Planning-panel__select-agenda">
@@ -155,7 +155,7 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.showModal({
             modalType: 'CONFIRMATION',
             modalProps: {
-                body: `Are you sure you want to delete the planning ${planning.slugline} ?`,
+                body: `Are you sure you want to delete the planning item ${planning.slugline} ?`,
                 action: () => dispatch(actions.deletePlanning(planning)),
             },
         }))
