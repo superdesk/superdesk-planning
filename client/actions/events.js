@@ -79,46 +79,43 @@ export function deleteEvent(event) {
     }
 }
 
-function saveFiles(newEvent) {
+export function saveFiles(newEvent) {
+    newEvent = cloneDeep(newEvent)
     const getId = (e) => (e._id)
     const getIds = (e) => (e.map(getId))
     return (dispatch, getState, { upload }) => (
         new Promise((resolve) => {
-            // upload files and link them to the event
-            if ((newEvent.files || []).length > 0) {
-                const fileFiles = newEvent.files.filter(
-                    (f) => ((f instanceof FileList && f.length) || f instanceof Array)
-                )
-                if (fileFiles.length) {
-                    return Promise.all(fileFiles.map((file) => (
-                        upload.start({
-                            method: 'POST',
-                            url: getState().config.server.url + '/events_files/',
-                            headers: { 'Content-Type': 'multipart/form-data' },
-                            data: { media: [file] },
-                            arrayKey: '',
-                            // returns the item
-                        }).then((d) => (d.data))
-                    )))
-                    .then((uploadedFiles) => {
-                        newEvent.files = [
-                            // reference uploaded files to event
-                            ...getIds(uploadedFiles),
-                            // remove uploaded FileList objects
-                            ...getIds(newEvent.files.filter((f) => (
-                                !isEmpty(f) && fileFiles.indexOf(f) === -1
-                            ))),
-                        ]
-                        return newEvent
-                    })
-                    .then((newEvent) => resolve(newEvent))
-                } else {
-                    delete newEvent.files
-                    return resolve(newEvent)
-                }
-            } else {
+            // if no file, do nothing
+            if ((newEvent.files || []).length === 0) {
                 return resolve(newEvent)
             }
+            // files to upload
+            const fileFiles = newEvent.files.filter(
+                (f) => ((f instanceof FileList && f.length) || f instanceof Array)
+            )
+            // upload files and link them to the event
+            return Promise.all(fileFiles.map((file) => (
+                upload.start({
+                    method: 'POST',
+                    url: getState().config.server.url + '/events_files/',
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                    data: { media: [file] },
+                    arrayKey: '',
+                    // returns the item
+                }).then((d) => (d.data))
+            )))
+            .then((uploadedFiles) => {
+                newEvent.files = [
+                    // reference uploaded files to event
+                    ...getIds(uploadedFiles),
+                    // remove uploaded FileList objects
+                    ...getIds(newEvent.files.filter((f) => (
+                        !isEmpty(f) && fileFiles.indexOf(f) === -1
+                    ))),
+                ]
+                return newEvent
+            })
+            .then(resolve)
         })
     )
 }
