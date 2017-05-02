@@ -8,10 +8,28 @@ import { PlanningPanelContainer } from '../index'
 
 describe('<PlanningPanelContainer />', () => {
     const initialState = {
+        events: {
+            events: {
+                event1: {
+                    _id: 'event1',
+                    name: 'event name',
+                },
+            },
+        },
         planning: {
             plannings: {
                 planning1: { _id: 'planning1' },
-                planning2: { _id: 'planning2' },
+                planning2: {
+                    _id: 'planning2',
+                    event_item: ['event1'],
+                    headline: 'headline',
+                    coverages: [{
+                        planning: {
+                            scheduled: '2016-10-15T13:01:11+0000',
+                            g2_content_type: 'photo',
+                        },
+                    }],
+                },
                 planning3: { _id: 'planning3' },
             },
             agendas: [{

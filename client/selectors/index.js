@@ -10,6 +10,8 @@ export const getCurrentAgendaId = (state) => state.planning.currentAgendaId
 export const getStoredPlannings = (state) => state.planning.plannings
 export const isOnlyFutureFiltered = (state) => state.planning.onlyFuture
 export const getServerUrl = (state) => state.config.server.url
+export const getDateFormat = (state) => state.config.model.dateformat
+export const getTimeFormat = (state) => state.config.shortTimeFormat
 export const getIframelyKey = (state) => state.config.iframely ? state.config.iframely.key : null
 export const getShowEventDetails = (state) => state.events.showEventDetails
 export const getSelectedEvent = (state) => state.events.selectedEvent === true ? null :

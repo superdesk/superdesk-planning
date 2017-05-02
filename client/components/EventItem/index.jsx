@@ -1,14 +1,10 @@
 import React, { PropTypes } from 'react'
-import moment from 'moment'
-import { eventIsAllDayLong } from '../../utils'
 import { get } from 'lodash'
-import { ListItem, tooltips } from '../index'
+import { ListItem, tooltips, TimeEvent } from '../index'
 import './style.scss'
 import { OverlayTrigger } from 'react-bootstrap'
 
 export const EventItem = ({ event, onClick, deleteEvent, selectedEvent }) => {
-    // shows the time only if not an "all day long" event
-    const time = eventIsAllDayLong(event.dates) ? '' : moment(event.dates.start).format('HH:mm')
     const location = get(event, 'location[0].name')
     const hasBeenCanceled = get(event, 'occur_status.qcode') === 'eocstat:eos6'
     const counters = [
@@ -36,7 +32,7 @@ export const EventItem = ({ event, onClick, deleteEvent, selectedEvent }) => {
                         <span>&nbsp;|&nbsp;{event.definition_short}</span>
                     }
                 </span>
-                <time title={time}>{time}</time>
+                <TimeEvent event={event}/>
             </div>
             <div className="sd-list-item__row">
                 <span className="sd-overflow-ellipsis sd-list-item--element-grow">
