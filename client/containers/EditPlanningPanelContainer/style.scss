@@ -1,31 +1,36 @@
 @import '~superdesk-core/styles/sass/variables.scss';
 $EDIT_PLANNING_WIDTH: 450px;
 
-.Planning__edit-planning {
+.EditPlanningPanel {
+    display: flex;
+    flex-direction: column;
     position: relative;
     transition-property: width;
     transition-duration: .25s;
     box-sizing: border-box;
-    overflow: auto;
     width: 0;
     background-color: white;
     box-shadow: inset 2px 0 3px -1px #d8d8d8;
-    > *:not(header) { margin: 10px; }
     & > header {
         border-bottom: 1px solid #cbcbcb;
         padding: 10px;
-        margin-bottom: 20px;
         color: $sd-text-label;
-        .close {
-            position: absolute;
-            right: 10px;
-            top: 10px;
-        }
+        display: flex;
+        align-items: center;
     }
 }
-
+.EditPlanningPanel__last-update {
+    flex-grow: 1;
+}
+.EditPlanningPanel__actions {
+    white-space: nowrap;
+}
+.EditPlanningPanel__body {
+    overflow: auto;
+    padding: 20px;
+}
 .Planning-panel--edit-planning-view { // when the planning editor is open
-    .Planning__edit-planning {
+    .EditPlanningPanel {
         width: $EDIT_PLANNING_WIDTH;
     }
 }

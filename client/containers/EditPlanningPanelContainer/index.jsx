@@ -1,4 +1,5 @@
 import React from 'react'
+import { reduxForm } from 'redux-form'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { PlanningForm } from '../index'
@@ -14,14 +15,18 @@ class EditPlanningPanel extends React.Component {
         super(props)
     }
 
+    handleSave() {
+        this.refs.PlanningForm.getWrappedInstance().submit()
+    }
+
     render() {
-        const { closePlanningEditor, planning, event } = this.props
+        const { closePlanningEditor, planning, event, pristine, submitting } = this.props
         const creationDate = get(planning, '_created')
         const author = get(planning, 'original_creator.username')
         return (
-            <div className="Planning__edit-planning">
+            <div className="EditPlanningPanel">
                 <header>
-                    <div>
+                    <div className="EditPlanningPanel__last-update">
                         {creationDate && author &&
                             <span>Created {moment(creationDate).fromNow()} by {author}</span>
                         }
@@ -29,18 +34,29 @@ class EditPlanningPanel extends React.Component {
                             <span>Create a new planning</span>
                         }
                     </div>
-                    <a onClick={closePlanningEditor} className="close">
-                        <i className="icon-close-small" />
-                    </a>
-                </header>
-                {event &&
-                    <div>
-                        <h3>Associated event</h3>
-                        <EventMetadata event={event}/>
+                    <div className="EditPlanningPanel__actions">
+                        <button
+                            className="btn"
+                            type="reset"
+                            onClick={closePlanningEditor}
+                            disabled={submitting}>Cancel</button>
+                        <button
+                            className="btn btn--primary"
+                            onClick={this.handleSave.bind(this)}
+                            type="submit"
+                            disabled={pristine || submitting}>Save</button>
                     </div>
-                }
-                <h3>Planning</h3>
-                <PlanningForm />
+                </header>
+                <div className="EditPlanningPanel__body">
+                    {event &&
+                        <div>
+                            <h3>Associated event</h3>
+                            <EventMetadata event={event}/>
+                        </div>
+                    }
+                    <h3>Planning</h3>
+                    <PlanningForm ref="PlanningForm" />
+                </div>
             </div>
         )
     }
@@ -50,6 +66,8 @@ EditPlanningPanel.propTypes = {
     closePlanningEditor: React.PropTypes.func.isRequired,
     planning: React.PropTypes.object,
     event: React.PropTypes.object,
+    pristine: React.PropTypes.bool.isRequired,
+    submitting: React.PropTypes.bool.isRequired,
 }
 
 const mapStateToProps = (state) => ({
@@ -61,4 +79,5 @@ const mapDispatchToProps = (dispatch) => ({ closePlanningEditor: () => dispatch(
 
 export const EditPlanningPanelContainer = connect(
     mapStateToProps, mapDispatchToProps
-)(EditPlanningPanel)
+// connect to the form in order to have pristine and submitting in props
+)(reduxForm({ form: 'planning' })(EditPlanningPanel))
