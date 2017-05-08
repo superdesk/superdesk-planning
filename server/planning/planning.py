@@ -12,13 +12,12 @@
 
 import superdesk
 import logging
-import re
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk import get_resource_service
 from superdesk.resource import build_custom_hateoas
 from apps.archive.common import set_original_creator
-from superdesk.errors import SuperdeskApiError
+
 logger = logging.getLogger(__name__)
 
 not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
@@ -53,42 +52,12 @@ class PlanningService(superdesk.Service):
                 original_event = events_service.find_one(req=None, _id=doc['event_item'])
                 events_service.update(doc['event_item'], {'expiry': None}, original_event)
 
-            self._validate_unique_agenda(doc, {})
-
-    def on_update(self, updates, original):
-        self._validate_unique_agenda(updates, original)
-
     def on_deleted(self, doc):
         # remove the planning from agendas
-        for agenda in self.find(where={'planning_items': doc['_id']}):
+        agenda_service = get_resource_service('agenda')
+        for agenda in agenda_service.find(where={'planning_items': doc['_id']}):
             diff = {'planning_items': [_ for _ in agenda['planning_items'] if _ != doc['_id']]}
-            self.update(agenda['_id'], diff, agenda)
-        # if it's an agenda, removes the plannings
-        if 'planning_items' in doc:
-            self.delete({'_id': {'$in': doc['planning_items']}})
-
-    def _validate_unique_agenda(self, updates, original):
-        """Validate unique name for agenda
-
-        :param dict updates:
-        :param dict original:
-        :raises SuperdeskApiError.badRequestError: If Agenda name is not unique
-        """
-        planning_type = updates.get('planning_type', original.get('planning_type'))
-        name = updates.get('name', original.get('name'))
-        if name and planning_type == 'agenda':
-            query = {
-                'planning_type': 'agenda',
-                'name': re.compile('^{}$'.format(re.escape(name.strip())), re.IGNORECASE)
-            }
-
-            if original:
-                query[superdesk.config.ID_FIELD] = {'$ne': original.get(superdesk.config.ID_FIELD)}
-
-            cursor = self.get_from_mongo(req=None, lookup=query)
-            if cursor.count():
-                raise SuperdeskApiError.badRequestError(message='Agenda with name {} already exists.'.format(name),
-                                                        payload={'name': {'unique': 1}})
+            agenda_service.update(agenda['_id'], diff, agenda)
 
 
 planning_schema = {
@@ -278,6 +247,7 @@ class PlanningResource(superdesk.Resource):
     datasource = {
         'source': 'planning',
         'search_backend': 'elastic',
+        'elastic_filter': {"bool": {"must_not": {"term": {"planning_type": "agenda"}}}}
     }
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']

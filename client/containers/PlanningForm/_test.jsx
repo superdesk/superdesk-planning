@@ -16,12 +16,14 @@ describe('<PlanningForm />', () => {
                     coverages: [{ _id: 'coverage1' }],
                 },
             },
+            currentPlanningId: '2',
+        },
+        agenda: {
             agendas: [{
                 _id: '1',
                 name: 'agenda',
             }],
             currentAgendaId: '1',
-            currentPlanningId: '2',
         },
     }
 

@@ -16,6 +16,7 @@ PlanningController.$inject = [
     'superdesk',
     'upload',
     'notify',
+    'privileges',
 ]
 export function PlanningController(
     $element,
@@ -27,7 +28,8 @@ export function PlanningController(
     vocabularies,
     superdesk,
     upload,
-    notify
+    notify,
+    privileges
 ) {
     // create the application store
     const store = createStore({
@@ -43,14 +45,16 @@ export function PlanningController(
                 },
             },
             planning: {
-                currentAgendaId: $location.search().agenda,
                 editorOpened: false,
                 currentPlanningId: null,
-                agendas: [],
                 planningsAreLoading: false,
-                agendasAreLoading: false,
                 onlyFuture: true,
                 plannings: {}, // plannings stored by _id
+            },
+            agenda: {
+                agendas: [],
+                agendasAreLoading: false,
+                currentAgendaId: $location.search().agenda,
             },
             config: config,
         },
@@ -63,11 +67,13 @@ export function PlanningController(
             superdesk,
             upload,
             notify,
+            privileges,
         },
     })
     // load data in the store
     store.dispatch(actions.loadCVocabularies())
     store.dispatch(actions.loadIngestProviders())
+    store.dispatch(actions.loadPrivileges())
     // render the planning application
     ReactDOM.render(
         <Provider store={store}>

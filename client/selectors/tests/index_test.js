@@ -21,20 +21,22 @@ describe('selectors', () => {
                 },
                 b: { name: 'name b' },
             },
-            currentAgendaId: '1',
+        },
+        agenda: {
             agendas: [{
                 _id: '1',
                 name: 'name',
                 planning_items: ['a', 'b'],
             }],
+            currentAgendaId: '1',
         },
     }
     it('getCurrentAgenda', () => {
         let result
         result = selectors.getCurrentAgenda(state)
-        expect(result).toEqual(state.planning.agendas[0])
+        expect(result).toEqual(state.agenda.agendas[0])
         const newState = cloneDeep(state)
-        delete newState.planning.currentAgendaId
+        delete newState.agenda.currentAgendaId
         result = selectors.getCurrentAgenda(newState)
         expect(result).toEqual(undefined)
     })
@@ -46,12 +48,12 @@ describe('selectors', () => {
         // without planning_items
         let newState
         newState = cloneDeep(state)
-        delete newState.planning.agendas[0].planning_items
+        delete newState.agenda.agendas[0].planning_items
         result = selectors.getCurrentAgendaPlannings(newState)
         expect(result).toEqual([])
         // without currentAgendaId
         newState = cloneDeep(state)
-        delete newState.planning.currentAgendaId
+        delete newState.agenda.currentAgendaId
         result = selectors.getCurrentAgendaPlannings(newState)
         expect(result).toEqual([])
         // only future
