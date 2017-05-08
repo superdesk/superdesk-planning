@@ -15,6 +15,7 @@ export function ManageAgendasModalComponent({
     onAgendaDeletion,
     openCreateAgenda,
     selectAgenda,
+    privileges,
 }) {
     return (
         <Modal
@@ -33,17 +34,21 @@ export function ManageAgendasModalComponent({
                 {agendas.length === 0 &&
                     <div>
                         <p>There is no agenda yet.</p>
-                        <Button type="button" bsClass="btn btn--primary" onClick={openCreateAgenda}>
-                            <i className="icon-plus-sign icon-white"/>
-                            Create one
-                        </Button>
+                        {privileges.planning_agenda_management === 1 && (
+                            <Button type="button" bsClass="btn btn--primary" onClick={openCreateAgenda}>
+                                <i className="icon-plus-sign icon-white"/>
+                                Create one
+                            </Button>
+                        )}
                     </div>
                     ||
                     <div>
-                        <Button type="button" bsClass="btn btn--pull-right btn--primary" onClick={openCreateAgenda}>
-                            <i className="icon-plus-sign icon-white"/>
-                            Add a new agenda
-                        </Button>
+                        {privileges.planning_agenda_management === 1 && (
+                            <Button type="button" bsClass="btn btn--pull-right btn--primary" onClick={openCreateAgenda}>
+                                <i className="icon-plus-sign icon-white"/>
+                                Add a new agenda
+                            </Button>
+                        )}
                         <ul className="pills-list provider-list">
                             {agendas.map((agenda) => (
                                 <li key={agenda._id}>
@@ -54,9 +59,11 @@ export function ManageAgendasModalComponent({
                                             &nbsp;created {moment(agenda._created).fromNow()}
                                         </div>
                                         <div className="actions">
-                                            <button title="Remove source" onClick={onAgendaDeletion.bind(null, agenda)}>
-                                                <i className="icon-trash"/>
-                                            </button>
+                                            {privileges.planning_agenda_management === 1 && (
+                                                <button title="Remove source" onClick={onAgendaDeletion.bind(null, agenda)}>
+                                                    <i className="icon-trash"/>
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </li>
@@ -78,10 +85,14 @@ ManageAgendasModalComponent.propTypes = {
     onAgendaDeletion: React.PropTypes.func,
     openCreateAgenda: React.PropTypes.func,
     selectAgenda: React.PropTypes.func,
+    privileges: React.PropTypes.object.isRequired,
 }
 
 const mapStateToProps = (state) => (
-    { agendas: orderBy(selectors.getAgendas(state), ['_created'], ['desc']) }
+    {
+        agendas: orderBy(selectors.getAgendas(state), ['_created'], ['desc']),
+        privileges: selectors.getPrivileges(state),
+    }
 )
 
 const mapDispatchToProps = (dispatch) => ({
@@ -92,11 +103,12 @@ const mapDispatchToProps = (dispatch) => ({
             modalType: 'CONFIRMATION',
             modalProps: {
                 body: <RemoveAgendaConfirmationContainer agenda={agenda}/>,
-                action: () => dispatch(actions.deletePlanning(agenda)),
+                action: () => dispatch(actions.deleteAgenda(agenda)),
             },
         }))
     ),
 })
+
 export const ManageAgendasModalContainer = connect(
     mapStateToProps,
     mapDispatchToProps

@@ -2,11 +2,11 @@ import { createSelector } from 'reselect'
 import { orderBy, get } from 'lodash'
 import moment from 'moment'
 
-export const getAgendas = (state) => state.planning.agendas
+export const getAgendas = (state) => state.agenda.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
 export const getEvents = (state) => state.events.events
 export const isEventListShown = (state) =>state.events.show
-export const getCurrentAgendaId = (state) => state.planning.currentAgendaId
+export const getCurrentAgendaId = (state) => state.agenda.currentAgendaId
 export const getStoredPlannings = (state) => state.planning.plannings
 export const isOnlyFutureFiltered = (state) => state.planning.onlyFuture
 export const getServerUrl = (state) => state.config.server.url
@@ -23,6 +23,8 @@ export const getCurrentAgenda = createSelector(
         }
     }
 )
+export const getPrivileges = (state) => state.privileges
+
 export const getCurrentAgendaPlannings = createSelector(
     [getCurrentAgenda, getStoredPlannings, isOnlyFutureFiltered, getEvents],
     (currentAgenda, storedPlanningsObjects, isOnlyFutureFiltered, events) => {

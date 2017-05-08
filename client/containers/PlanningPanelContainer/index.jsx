@@ -143,7 +143,7 @@ const mapStateToProps = (state) => ({
     currentAgenda: selectors.getCurrentAgenda(state),
     currentPlanning: selectors.getCurrentPlanning(state),
     planningList: selectors.getCurrentAgendaPlannings(state),
-    planningsAreLoading: state.planning.agendasAreLoading || state.planning.planningsAreLoading,
+    planningsAreLoading: state.agenda.agendasAreLoading || state.planning.planningsAreLoading,
     editPlanningViewOpen: state.planning.editorOpened,
     planningsEvents: selectors.getCurrentAgendaPlanningsEvents(state),
     isEventListShown: selectors.isEventListShown(state),

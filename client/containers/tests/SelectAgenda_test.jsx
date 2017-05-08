@@ -39,7 +39,7 @@ describe('<SelectAgendaComponent />', () => {
             </Provider>
         )
         wrapper.simulate('change', { target: { value: 'newAgenda' } })
-        expect(store.getState().planning.currentAgendaId).toBe('newAgenda')
+        expect(store.getState().agenda.currentAgendaId).toBe('newAgenda')
     })
     it('fetch selected agenda plannings', (done) => {
         const initialState = {
@@ -50,6 +50,8 @@ describe('<SelectAgendaComponent />', () => {
                         slugline: 'planning 3',
                     },
                 },
+            },
+            agenda: {
                 agendas: [
                     {
                         _id: '1',
@@ -70,7 +72,7 @@ describe('<SelectAgendaComponent />', () => {
         .toEqual([])
         store.dispatch(actions.selectAgenda('2')).then(() => {
             // check if selection is registered in the store
-            expect(store.getState().planning.currentAgendaId)
+            expect(store.getState().agenda.currentAgendaId)
             .toEqual('2')
             // expect(selectors.getCurrentAgenda(store.getState())._id).toEqual('2')
             // must be not empty any more
