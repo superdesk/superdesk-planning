@@ -1,39 +1,24 @@
-import { hideModal } from './modal'
 import * as selectors from '../selectors'
 import * as actions from '../actions'
 import { pickBy, cloneDeep, isNil, has, get } from 'lodash'
+import { fetchAgendas, addToCurrentAgenda, selectAgenda,
+    fetchSelectedAgendaPlannings } from './agenda'
 
-const createAgenda = ({ name }) => (
-    (dispatch, getState, { api, notify }) => {
-        api('planning').save({}, {
-            planning_type: 'agenda',
-            name: name,
-        })
-        .then((agenda) => {
-            notify.success('An agenda has been added')
-            dispatch(hideModal())
-            dispatch(addOrReplaceAgenda(agenda))
-            dispatch(selectAgenda(agenda._id))
-        })
-    }
-)
-
+/**
+ * Action dispatcher to delete a planning item
+ * @param {object} planning - The planning item to delete
+ * @return arrow function
+ */
 const deletePlanning = (planning) => (
     (dispatch, getState, { api, notify }) => (
         api('planning').remove(planning)
         // close the editor if the removed planning was opened
         .then(() => {
-            if (planning.planning_type === 'agenda' && planning.planning_items &&
-                planning.planning_items.length > 0) {
-                if (planning.planning_items.indexOf(
-                    selectors.getCurrentPlanningId(getState())) > -1) {
-                    dispatch(closePlanningEditor())
-                }
-            } else if (selectors.getCurrentPlanningId(getState()) === planning._id) {
+            if (selectors.getCurrentPlanningId(getState()) === planning._id) {
                 dispatch(closePlanningEditor())
             }
         })
-        .then(() => notify.success('the planning has been deleted'))
+        .then(() => notify.success('The planning has been deleted.'))
         // reloads agendas because they contains the list of the plannings to show and plannings
         .then(() => (dispatch(fetchAgendas())))
         .then(() => (dispatch({
@@ -43,6 +28,14 @@ const deletePlanning = (planning) => (
     )
 )
 
+/**
+ * Action dispatcher to save the supplied planning item and reload the
+ * list of Agendas and their associated planning items.
+ * If the planning item does not have an ._id, then add it to the
+ * currently selected Agenda
+ * @param {object} originalPlanning - The planning item to save
+ * @return arrow function
+ */
 const savePlanningAndReloadCurrentAgenda = (originalPlanning) => (
     (dispatch) => (
         dispatch(savePlanning(originalPlanning))
@@ -61,22 +54,11 @@ const savePlanningAndReloadCurrentAgenda = (originalPlanning) => (
     )
 )
 
-const addToCurrentAgenda = (planning) => (
-    (dispatch, getState, { notify }) => {
-        const currentAgenda = selectors.getCurrentAgenda(getState())
-        if (!currentAgenda) throw Error('unable to find the current agenda')
-        // add the planning to the agenda
-        return dispatch(addPlanningToAgenda({
-            planning: planning,
-            agenda: currentAgenda,
-        }))
-        .then(() => notify.success('The planning has been added to the agenda'))
-        // returns the planning to chain well with planning savings actions
-        .then(() => (planning))
-
-    }
-)
-
+/**
+ * Action dispatcher to save or create a new a planning item
+ * @param planning
+ * @return arrow function
+ */
 const savePlanning = (planning) => (
     (dispatch, getState, { api, notify }) => {
         // find original
@@ -116,8 +98,15 @@ const savePlanning = (planning) => (
 
 /**
 *   This will save or delete coverages through the API to
-*   the given planning based on the origial coverages
+*   the given planning based on the original coverages
 */
+/**
+ * Action dispatcher to save or delete coverages through the API
+ * @param {array, object} coverages - An array of coverage objects
+ * @param {object} planning - The associated planning item
+ * @param {object} originalCoverages - The original version of the coverage list
+ * @return arrow function
+ */
 const saveAndDeleteCoverages = (coverages=[], planning, originalCoverages=[]) => (
     (dispatch, getState, { api }) => {
         const promises = []
@@ -153,68 +142,21 @@ const saveAndDeleteCoverages = (coverages=[], planning, originalCoverages=[]) =>
     }
 )
 
-const addOrReplaceAgenda = (agenda) => (
-    {
-        type: 'ADD_OR_REPLACE_AGENDA',
-        payload: agenda,
-    }
-)
+/**
+ * Action for updating the list of planning items in the redux store
+ * @param  {array, object} plannings - An array of planning item objects
+ * @return object
+ */
+const receivePlannings = (plannings) => ({
+    type: 'RECEIVE_PLANNINGS',
+    payload: plannings,
+})
 
-const addPlanningToAgenda = ({ planning, agenda }) => (
-    (dispatch, getState, { api }) => {
-        // clone agenda
-        agenda = cloneDeep(agenda)
-        // init planning_items array if does not exist yet
-        let planningItems = agenda.planning_items || []
-        // add planning to planning_items
-        planningItems.push(planning._id)
-        // update the agenda
-        return api('planning').save(agenda, { planning_items: planningItems })
-        .then((agenda) => {
-            // replace the agenda in the store
-            dispatch(addOrReplaceAgenda(agenda))
-            return agenda
-        })
-    }
-)
-
-const addEventToCurrentAgenda = (event) => (
-    (dispatch, getState) => {
-        // check if there is a current agenda, throw an error if not
-        const currentAgenda = selectors.getCurrentAgenda(getState())
-        if (!currentAgenda) throw 'unable to find the current agenda'
-        // planning inherits some fields from the given event
-        return dispatch(savePlanning({
-            event_item: event._id,
-            slugline: event.name,
-            headline: event.definition_short,
-            subject: event.subject,
-            anpa_category: event.anpa_category,
-        }))
-        .then((planning) => (
-            dispatch(addToCurrentAgenda(planning))
-        ))
-        .then(() => (
-            // reload the plannings of the current calendar
-            dispatch(fetchSelectedAgendaPlannings())
-        ))
-    }
-)
-
-const receiveAgendas = (agendas) => (
-    {
-        type: 'RECEIVE_AGENDAS',
-        payload: agendas,
-    }
-)
-
-const receivePlannings = (plannings) => (
-    {
-        type: 'RECEIVE_PLANNINGS',
-        payload: plannings,
-    }
-)
-
+/**
+ * Action dispatcher to perform fetch the list of planning items from the server
+ * @param {object} query - Query object used when requesting the planning items
+ * @return arrow function
+ */
 const performFetchRequest = (query={}) => (
     (dispatch, getState, { api }) => (
         api('planning').query({
@@ -228,32 +170,31 @@ const performFetchRequest = (query={}) => (
     )
 )
 
-const fetchAgendas = () => (
-    (dispatch) => {
-        dispatch({ type: 'REQUEST_AGENDAS' })
-        const q = { where: { planning_type: 'agenda' } }
-        return dispatch(performFetchRequest(q))
-        .then((agendas) => dispatch(receiveAgendas(agendas)))
-    }
-)
-
+/**
+ * Action dispatcher for requesting a fetch of planning items
+ * @param {object} params - Parameters used when fetching the planning items
+ * @return arrow function
+ */
 const fetchPlannings = (params={}) => (
     (dispatch, getState) => {
-        // annonce that we are loading plannings
+        // announce that we are loading plannings
         dispatch({ type: 'REQUEST_PLANINGS' })
         // fetch the plannings through the api
-        const q = { query: { bool: { must_not:  { term:  { planning_type: 'agenda' } } } } }
+        let q = {}
         if (params.planningIds) {
-            q.query.bool.should = params.planningIds.map((pid) => ({ term: { _id: pid } }))
+            q = { query: { bool: {} } }
+            q.query.bool.should = params.planningIds.map(
+                (pid) => ({ term: { _id: pid } })
+            )
         }
         // fetch the plannings
         return dispatch(performFetchRequest(q))
-        // annonce that we received the plannings
+        // announce that we received the plannings
         .then((plannings) => {
             const linkedEvents = plannings
             .map((p) => p.event_item)
             .filter((eid) => (
-                eid && has(selectors.getEvents(getState()), eid)
+                eid && !has(selectors.getEvents(getState()), eid)
             ))
             // load missing events
             return dispatch(actions.silentlyFetchEventsById(linkedEvents))
@@ -262,36 +203,23 @@ const fetchPlannings = (params={}) => (
     }
 )
 
-const fetchSelectedAgendaPlannings = () => (
-    (dispatch, getState) => {
-        const agenda = selectors.getCurrentAgenda(getState())
-        if (!agenda || !agenda.planning_items) return Promise.resolve()
-        const planningIds = agenda.planning_items.map((pid) => (pid))
-        return dispatch(fetchPlannings({ planningIds }))
-    }
-)
-
-const selectAgenda = (agendaId) => (
-    (dispatch, getState, { $timeout, $location }) => {
-        // save in store selected agenda
-        dispatch({
-            type: 'SELECT_AGENDA',
-            payload: agendaId,
-        })
-        // close the planning details
-        dispatch(closePlanningEditor())
-        // update the url (deep linking)
-        $timeout(() => ($location.search('agenda', agendaId)))
-        // reload the plannings list
-        return dispatch(fetchSelectedAgendaPlannings())
-    }
-)
-
+/**
+ * Action for opening the planning editor
+ * @param planning
+ * @return object
+ */
 const openPlanningEditor = (planning) => ({
     type: 'OPEN_PLANNING_EDITOR',
     payload: planning,
 })
 
+/**
+ * Action dispatcher for opening the planning editor.
+ * This action also changes the currently selected agenda to the agenda this planning
+ * item is associated with
+ * @param planning
+ * @return arrow function
+ */
 const openPlanningEditorAndAgenda = (planning) => (
     (dispatch, getState) => {
         const agenda = selectors.getAgendas(getState()).find(
@@ -302,33 +230,39 @@ const openPlanningEditorAndAgenda = (planning) => (
         }
         // open the planning details
         dispatch(openPlanningEditor(planning))
+        return Promise.resolve()
     }
 )
 
+/**
+ * Action for closing the planning editor
+ * @return object
+ */
 const closePlanningEditor = () => (
     { type: 'CLOSE_PLANNING_EDITOR' }
 )
 
+/**
+ * Action dispatcher to toggle the `future` toggle of the planning list
+ * @return arrow function
+ */
 const toggleOnlyFutureFilter = () => (
-    (dispatch, getState) => (
+    (dispatch, getState) => {
         dispatch({
             type: 'SET_ONLY_FUTURE',
             payload: !getState().planning.onlyFuture,
         })
-    )
+        return Promise.resolve()
+    }
 )
 
 export {
-    createAgenda,
     deletePlanning,
+    savePlanning,
     savePlanningAndReloadCurrentAgenda,
-    addEventToCurrentAgenda,
     fetchPlannings,
-    fetchAgendas,
-    selectAgenda,
     openPlanningEditor,
     closePlanningEditor,
     openPlanningEditorAndAgenda,
-    fetchSelectedAgendaPlannings,
     toggleOnlyFutureFilter,
 }

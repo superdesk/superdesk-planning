@@ -71,6 +71,13 @@ class EventsListComponent extends React.Component {
                             </button>
                         </div>
                     </div>
+                    <h3 className="subnav__page-title">
+                        <span>
+                            <span>Events calendar</span>
+                        </span>
+                    </h3>
+                </div>
+                <div className="Events-list-container__search subnav">
                     <div className={'flat-searchbar' + (searchBarExtended ? ' extended' : '')}>
                         <div className="search-handler">
                             <label
@@ -102,11 +109,6 @@ class EventsListComponent extends React.Component {
                             </button>
                         </div>
                     </div>
-                    <h3 className="subnav__page-title">
-                        <span>
-                            <span>Events calendar</span>
-                        </span>
-                    </h3>
                     <button className="btn btn--primary"
                             onClick={this.props.openEventDetails.bind(null, null)}>
                         Add event

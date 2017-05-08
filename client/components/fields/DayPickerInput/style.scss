@@ -5,10 +5,6 @@
 .day-picker-input {
     position: relative;
     .react-datepicker__input-container {width: 100px;} // day selector
-    .rc-time-picker-input {  // time selector
-        width: 100px;
-        cursor: default; // is readonly but we don't want the forbidden cursor
-    }
     .day-picker-input__error {
     	color: #E51C23;
     	text-transform: none;
@@ -16,5 +12,3 @@
     	font-weight: normal;
     }
 }
-
-.rc-time-picker-input { @extend .line-input; }

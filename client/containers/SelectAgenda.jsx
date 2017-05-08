@@ -26,8 +26,8 @@ SelectAgendaComponent.propTypes = {
 
 const mapStateToProps = (state) => ({
     currentAgenda: getCurrentAgendaId(state),
-    agendas: state.planning.agendas,
-    isLoading: state.planning.agendasAreLoading,
+    agendas: state.agenda.agendas,
+    isLoading: state.agenda.agendasAreLoading,
 })
 
 const mapDispatchToProps = (dispatch) => ({ onChange: (event) => (dispatch(selectAgenda(event.target.value))) })

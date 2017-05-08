@@ -8,12 +8,32 @@ import { PlanningPanelContainer } from '../index'
 
 describe('<PlanningPanelContainer />', () => {
     const initialState = {
+        events: {
+            events: {
+                event1: {
+                    _id: 'event1',
+                    name: 'event name',
+                },
+            },
+        },
         planning: {
             plannings: {
                 planning1: { _id: 'planning1' },
-                planning2: { _id: 'planning2' },
+                planning2: {
+                    _id: 'planning2',
+                    event_item: ['event1'],
+                    headline: 'headline',
+                    coverages: [{
+                        planning: {
+                            scheduled: '2016-10-15T13:01:11+0000',
+                            g2_content_type: 'photo',
+                        },
+                    }],
+                },
                 planning3: { _id: 'planning3' },
             },
+        },
+        agenda: {
             agendas: [{
                 _id: 'agenda1',
                 planning_items: ['planning1', 'planning2'],
@@ -23,8 +43,9 @@ describe('<PlanningPanelContainer />', () => {
     }
     it('addEventToCurrentAgenda', () => {
         const initialState = {
-            planning: {
-                plannings: {},
+            planning: { plannings: {} },
+            agenda:
+            {
                 agendas: [{
                     _id: '1',
                     name: 'agenda',
@@ -46,8 +67,8 @@ describe('<PlanningPanelContainer />', () => {
     })
     it('Create a planning in the current agenda', (done) => {
         const initialState = {
-            planning: {
-                plannings: {},
+            planning: { plannings: {} },
+            agenda: {
                 agendas: [{
                     _id: 'agenda1',
                     name: 'agenda',
@@ -72,7 +93,7 @@ describe('<PlanningPanelContainer />', () => {
         store.dispatch(actions.savePlanningAndReloadCurrentAgenda({ slugline: 'coucou' }))
         .then((planningCreated) => {
             // the planning has been added to the current agenda
-            expect(store.getState().planning.agendas[0].planning_items[0])
+            expect(store.getState().agenda.agendas[0].planning_items[0])
                 .toEqual(planningCreated._id)
             // open the planning
             store.dispatch(actions.openPlanningEditor(planningCreated._id))
@@ -96,6 +117,8 @@ describe('<PlanningPanelContainer />', () => {
                     planning2: { _id: 'planning2' },
                     planning3: { _id: 'planning3' },
                 },
+            },
+            agenda: {
                 agendas: [{
                     _id: 'agenda1',
                     planning_items: ['planning1', 'planning2'],
@@ -111,7 +134,7 @@ describe('<PlanningPanelContainer />', () => {
         expect(wrapper.find(PlanningItem).length).toBe(0)
         store.dispatch(actions.selectAgenda('agenda1'))
         expect(wrapper.find(PlanningItem).length)
-        .toBe(initialState.planning.agendas[0].planning_items.length)
+        .toBe(initialState.agenda.agendas[0].planning_items.length)
     })
     it('drag and drop', () => {
         const store = createTestStore({ initialState })

@@ -1,5 +1,6 @@
 import React from 'react'
 import './style.scss'
+import classNames from 'classnames'
 
 export class ListItem extends React.Component {
     constructor(props) {
@@ -14,20 +15,21 @@ export class ListItem extends React.Component {
     }
     render() {
         const { item, onClick, children, active, className, draggable=false } = this.props
-        const classes = [
-            'ListItem__list-item',
-            'list-item-view',
-            (active ? 'active' : null),
+        const classes = classNames(
             className,
-        ].join(' ')
+            'ListItem',
+            'sd-list-item',
+            'sd-shadow--z1',
+            { 'sd-list-item--activated': active }
+        )
         return (
-            <li className={classes} draggable={draggable} onDragStart={this.handleDragStart.bind(this)}>
-                <div className="media-box media-text">
-                    <div className="item-info" onClick={onClick.bind(this, item)}>
-                        {children}
-                    </div>
-                </div>
-            </li>
+            <div className={classes}
+                draggable={draggable}
+                onDragStart={this.handleDragStart.bind(this)}
+                onClick={onClick.bind(this, item)}>
+                <div className="sd-list-item__border"/>
+                {children}
+            </div>
         )
     }
 }

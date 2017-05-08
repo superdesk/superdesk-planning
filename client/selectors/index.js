@@ -2,14 +2,16 @@ import { createSelector } from 'reselect'
 import { orderBy, get } from 'lodash'
 import moment from 'moment'
 
-export const getAgendas = (state) => state.planning.agendas
+export const getAgendas = (state) => state.agenda.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
 export const getEvents = (state) => state.events.events
 export const isEventListShown = (state) =>state.events.show
-export const getCurrentAgendaId = (state) => state.planning.currentAgendaId
+export const getCurrentAgendaId = (state) => state.agenda.currentAgendaId
 export const getStoredPlannings = (state) => state.planning.plannings
 export const isOnlyFutureFiltered = (state) => state.planning.onlyFuture
 export const getServerUrl = (state) => state.config.server.url
+export const getDateFormat = (state) => state.config.model.dateformat
+export const getTimeFormat = (state) => state.config.shortTimeFormat
 export const getIframelyKey = (state) => state.config.iframely ? state.config.iframely.key : null
 export const getShowEventDetails = (state) => state.events.showEventDetails
 export const getSelectedEvent = (state) => state.events.selectedEvent === true ? null :
@@ -23,6 +25,8 @@ export const getCurrentAgenda = createSelector(
         }
     }
 )
+export const getPrivileges = (state) => state.privileges
+
 export const getCurrentAgendaPlannings = createSelector(
     [getCurrentAgenda, getStoredPlannings, isOnlyFutureFiltered, getEvents],
     (currentAgenda, storedPlanningsObjects, isOnlyFutureFiltered, events) => {
@@ -31,15 +35,25 @@ export const getCurrentAgendaPlannings = createSelector(
         see: https://dev.sourcefabric.org/browse/SDESK-1103
         */
         function isFuture(planning) {
-            var isFuture = get(events[planning.event_item], 'dates.end', moment(new Date()))
-            // to date is future
-            .isSameOrAfter(new Date(), 'day')
+            const endDate = get(events[planning.event_item], 'dates.end')
+            // planning has no coverage due date and no event ending date
+            if (!endDate && !get(planning, 'coverages', []).some(
+                (c) => (get(c, 'planning.scheduled'))
+            )) {
+                return true
+            }
+            // event ending date is future
+            else if (endDate && endDate.isSameOrAfter(new Date(), 'day')) {
+                return true
+            }
             // or a coverage due date is future
-            || get(planning, 'coverages', [])
-                .some((c) => (
+            else if (get(planning, 'coverages', []).some((c) => (
                     moment(c.planning.scheduled).isSameOrAfter(new Date(), 'day')
-                ))
-            return isFuture
+            ))) {
+                return true
+            }
+            // it's an old planning
+            return false
         }
 
         const planningsIds = currentAgenda ? currentAgenda.planning_items || [] : []

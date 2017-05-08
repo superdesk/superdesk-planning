@@ -1,5 +1,6 @@
 import React from 'react'
-import { Modal, Button } from 'react-bootstrap'
+import { Modal } from './index'
+import { Button } from 'react-bootstrap'
 
 export function ConfirmationModal({ handleHide, modalProps }) {
     const action = () => (

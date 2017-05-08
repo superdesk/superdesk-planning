@@ -1,9 +1,8 @@
 import React, { PropTypes } from 'react'
 import DatePicker from 'react-datepicker'
-import TimePicker from 'rc-time-picker'
+import { TimePicker } from '../index'
 import moment from 'moment'
 import 'react-datepicker/dist/react-datepicker.css'
-import 'rc-time-picker/assets/index.css'
 import './style.scss'
 
 export class DayPickerInput extends React.Component {
@@ -82,14 +81,16 @@ export class DayPickerInput extends React.Component {
     }
 
     onTimeChange(selectedTime) {
-        this.setState({
-            selectedTime,
-            dateManuallyDefined: true,
-        },
-            () => {
-                this.updateValueFromState()
-            }
-        )
+        if (selectedTime) {
+            this.setState({
+                selectedTime,
+                dateManuallyDefined: true,
+            },
+                () => {
+                    this.updateValueFromState()
+                }
+            )
+        }
     }
 
     updateValueFromState() {
@@ -133,11 +134,8 @@ export class DayPickerInput extends React.Component {
                     <span>
                         &nbsp;&nbsp;&nbsp;&nbsp;
                         <TimePicker
-                            disabled={disabled}
-                            placeholder="Time"
                             value={selectedTime}
-                            showSecond={false}
-                            hideDisabledOptions={true}
+                            placeholder="Time"
                             onChange={this.onTimeChange.bind(this)} />
                     </span>
                 )}

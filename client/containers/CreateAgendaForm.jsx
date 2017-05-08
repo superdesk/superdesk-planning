@@ -31,6 +31,7 @@ Component.propTypes = { handleSubmit: React.PropTypes.func.isRequired }
 export const CreateAgenda = reduxForm({
     form: 'createAgenda', // a unique name for this form
     validate: RequiredFieldsValidatorFactory(['name']),
+    touchOnBlur: false,
     enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
 })(Component)
 

@@ -16,6 +16,8 @@ describe('<RelatedPlannings />', () => {
                         original_creator: { 'display_name': 'ABC' },
                     },
                 },
+            },
+            agenda: {
                 agendas: [
                     {
                         _id: '1',

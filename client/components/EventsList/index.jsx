@@ -3,6 +3,7 @@ import moment from 'moment'
 import { EventItem } from '../index'
 import './style.scss'
 import { sortBy } from 'lodash'
+import { isAllDay } from '../../utils'
 
 export class EventsList extends React.Component {
     constructor(props) {
@@ -51,14 +52,30 @@ export class EventsList extends React.Component {
         // order by date
         events = events.sort((a, b) => a.dates.start - b.dates.start)
         var days = {}
-        events.forEach((event) => {
-            let eventDate = moment(event.dates.start)
-            let eventDay = eventDate.format('YYYY-MM-DD')
-            if (!days[eventDay]) {
-                days[eventDay] = []
+        function addEventToDate(event, date) {
+            date = date || event.dates.start
+            date = date.format('YYYY-MM-DD')
+            if (!days[date]) {
+                days[date] = []
             }
 
-            days[eventDay].push(event)
+            days[date].push(event)
+        }
+        events.forEach((event) => {
+            // if the event happens during more that one day, add it to every day
+            if (!isAllDay(event) && !event.dates.start.isSame(event.dates.end, 'day')) {
+                // compute the number of days of the event
+                var deltaDays = Math.max(event.dates.end.diff(event.dates.start, 'days'), 1)
+                // add the event to the other days
+                for (var i = 1; i <= deltaDays; i++) {
+                    //  clone the date
+                    const newDate = moment(event.dates.start)
+                    newDate.add(i, 'days')
+                    addEventToDate(event, newDate)
+                }
+            }
+            // add event to its initial starting date
+            addEventToDate(event)
         })
 
         let sortable = []

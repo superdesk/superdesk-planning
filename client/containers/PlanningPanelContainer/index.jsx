@@ -2,7 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { SelectAgenda, EditPlanningPanelContainer } from '../index'
-import { PlanningItem, QuickAddPlanning, Toggle } from '../../components'
+import { QuickAddPlanning, Toggle, PlanningItem } from '../../components'
 import * as selectors from '../../selectors'
 import './style.scss'
 
@@ -66,7 +66,7 @@ class PlanningPanel extends React.Component {
                     </div>
                     <h3 className="subnav__page-title">
                         <span>
-                            <span>Planning</span>
+                            <span>Agenda</span>
                         </span>
                     </h3>
                     <div  className="Planning-panel__select-agenda">
@@ -85,7 +85,7 @@ class PlanningPanel extends React.Component {
                         </div>
                         <ul className="list-view compact-view">
                             {currentAgenda &&
-                                <QuickAddPlanning className="ListItem__list-item" onPlanningCreation={onPlanningCreation}/>
+                                <QuickAddPlanning className="ListItem" onPlanningCreation={onPlanningCreation}/>
                             }
                             {(planningList && planningList.length > 0) && planningList.map((planning) => (
                                 <PlanningItem
@@ -143,7 +143,7 @@ const mapStateToProps = (state) => ({
     currentAgenda: selectors.getCurrentAgenda(state),
     currentPlanning: selectors.getCurrentPlanning(state),
     planningList: selectors.getCurrentAgendaPlannings(state),
-    planningsAreLoading: state.planning.agendasAreLoading || state.planning.planningsAreLoading,
+    planningsAreLoading: state.agenda.agendasAreLoading || state.planning.planningsAreLoading,
     editPlanningViewOpen: state.planning.editorOpened,
     planningsEvents: selectors.getCurrentAgendaPlanningsEvents(state),
     isEventListShown: selectors.isEventListShown(state),
@@ -155,7 +155,7 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.showModal({
             modalType: 'CONFIRMATION',
             modalProps: {
-                body: `Are you sure you want to delete the planning ${planning.slugline} ?`,
+                body: `Are you sure you want to delete the planning item ${planning.slugline} ?`,
                 action: () => dispatch(actions.deletePlanning(planning)),
             },
         }))

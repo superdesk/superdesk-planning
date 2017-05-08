@@ -16,6 +16,7 @@ from .planning import PlanningResource, PlanningService
 from .events_files import EventsFilesResource, EventsFilesService
 from .coverage import CoverageResource, CoverageService
 from .locations import LocationsResource, LocationsService
+from .agenda import AgendaResource, AgendaService
 from superdesk.io.registry import register_feeding_service, register_feed_parser
 from .feed_parsers.ics_2_0 import IcsTwoFeedParser
 from .feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
@@ -31,6 +32,9 @@ def init_app(app):
     """
     planning_search_service = PlanningService('planning', backend=superdesk.get_backend())
     PlanningResource('planning', app=app, service=planning_search_service)
+
+    agenda_search_service = AgendaService('agenda', backend=superdesk.get_backend())
+    AgendaResource('agenda', app=app, service=agenda_search_service)
 
     coverage_search_service = CoverageService('coverage', backend=superdesk.get_backend())
     CoverageResource('coverage', app=app, service=coverage_search_service)
@@ -48,6 +52,12 @@ def init_app(app):
         name='planning',
         label='Planning',
         description='Create, update, and delete  events, planning items, and coverages'
+    )
+
+    superdesk.privilege(
+        name='planning_agenda_management',
+        label='Planning - Agenda Management',
+        description='Ability to create and modify Agendas'
     )
 
 

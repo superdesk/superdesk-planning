@@ -1,5 +1,6 @@
 import * as selectors from '../index'
 import { cloneDeep } from 'lodash'
+import moment from 'moment'
 
 describe('selectors', () => {
     const state = {
@@ -12,6 +13,7 @@ describe('selectors', () => {
             eventsInList: ['event1', 'event2'],
         },
         planning: {
+            onlyFuture: false,
             plannings: {
                 a: {
                     name: 'name a',
@@ -19,20 +21,22 @@ describe('selectors', () => {
                 },
                 b: { name: 'name b' },
             },
-            currentAgendaId: '1',
+        },
+        agenda: {
             agendas: [{
                 _id: '1',
                 name: 'name',
                 planning_items: ['a', 'b'],
             }],
+            currentAgendaId: '1',
         },
     }
     it('getCurrentAgenda', () => {
         let result
         result = selectors.getCurrentAgenda(state)
-        expect(result).toEqual(state.planning.agendas[0])
+        expect(result).toEqual(state.agenda.agendas[0])
         const newState = cloneDeep(state)
-        delete newState.planning.currentAgendaId
+        delete newState.agenda.currentAgendaId
         result = selectors.getCurrentAgenda(newState)
         expect(result).toEqual(undefined)
     })
@@ -44,14 +48,36 @@ describe('selectors', () => {
         // without planning_items
         let newState
         newState = cloneDeep(state)
-        delete newState.planning.agendas[0].planning_items
+        delete newState.agenda.agendas[0].planning_items
         result = selectors.getCurrentAgendaPlannings(newState)
         expect(result).toEqual([])
         // without currentAgendaId
         newState = cloneDeep(state)
-        delete newState.planning.currentAgendaId
+        delete newState.agenda.currentAgendaId
         result = selectors.getCurrentAgendaPlannings(newState)
         expect(result).toEqual([])
+        // only future
+        newState = cloneDeep(state)
+        newState.planning.onlyFuture = true
+        result = selectors.getCurrentAgendaPlannings(newState)
+        // a and b have no coverage due date or event ending date, so they appear
+        expect(result).toEqual([newState.planning.plannings.a, newState.planning.plannings.b])
+        newState = cloneDeep(state)
+        newState.planning.onlyFuture = true
+        const future = '2045-10-19T13:01:50+0000'
+        const past = '1900-10-19T13:01:50+0000'
+        newState.events.events.event1.dates = { end: moment(future) }
+        newState.planning.plannings.b.coverages = [{ planning: { scheduled: past } }]
+        result = selectors.getCurrentAgendaPlannings(newState)
+        // a appears because it has a linked event with a future ending date
+        expect(result).toEqual([newState.planning.plannings.a])
+        newState = cloneDeep(state)
+        newState.planning.onlyFuture = true
+        newState.events.events.event1.dates = { end: moment(past) }
+        newState.planning.plannings.b.coverages = [{ planning: { scheduled: future } }]
+        result = selectors.getCurrentAgendaPlannings(newState)
+        // b appears because it has a future due date
+        expect(result).toEqual([newState.planning.plannings.b])
     })
     it('getEventsWithMoreInfo', () => {
         const events = selectors.getEventsWithMoreInfo(state)
