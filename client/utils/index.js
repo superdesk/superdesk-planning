@@ -1,14 +1,24 @@
-import moment from 'moment'
+import moment from 'moment-timezone'
 import { createStore as _createStore, applyMiddleware } from 'redux'
 import planningApp from '../reducers'
 import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
 import { get, set } from 'lodash'
 
-export const eventIsAllDayLong = (dates) => (
-    // is a multiple of 24h
-    moment(dates.start).diff(moment(dates.end), 'minutes') % (24 * 60) === 0
-)
+export function isAllDay(event) {
+    // event last 24 hours
+    return moment(event.dates.end).diff(moment(event.dates.start), 'minutes') === 24 * 60 &&
+    // event has a local timezone
+    get(event, 'dates.tz') &&
+    // event starts and ends at midnight in the local timezone
+    [
+        event.dates.start,
+        event.dates.end,
+    ].every((d) => {
+        const date = moment(d).tz(event.dates.tz)
+        return (date.minute() === 0 && date.hour() === 0)
+    })
+}
 
 export const createTestStore = (params={}) => {
     const { initialState={}, extraArguments={} } = params
@@ -16,6 +26,8 @@ export const createTestStore = (params={}) => {
         config: {
             server: { url: 'http://server.com' },
             iframely: { key: '123' },
+            model: { dateformat: 'DD/MM/YYYY' },
+            shortTimeFormat: 'HH:mm',
         },
     }
     const mockedExtraArguments = {

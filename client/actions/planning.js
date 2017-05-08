@@ -266,7 +266,7 @@ const fetchPlannings = (params={}) => (
             const linkedEvents = plannings
             .map((p) => p.event_item)
             .filter((eid) => (
-                eid && has(selectors.getEvents(getState()), eid)
+                eid && !has(selectors.getEvents(getState()), eid)
             ))
             // load missing events
             return dispatch(actions.silentlyFetchEventsById(linkedEvents))

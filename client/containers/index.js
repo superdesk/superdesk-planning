@@ -17,3 +17,4 @@ export { ManageAgendasModalContainer } from './ManageAgendasModalContainer/index
 export { ModalsContainer } from './ModalsContainer'
 export { RemoveAgendaConfirmationContainer } from './RemoveAgendaConfirmation'
 export { RelatedPlannings } from './RelatedPlannings'
+export { default as Datetime } from './Datetime/index'

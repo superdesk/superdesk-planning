@@ -1,9 +1,8 @@
 import React, { PropTypes } from 'react'
-import moment from 'moment'
 import { get } from 'lodash'
-import { ListItem } from './index'
+import { ListItem, TimePlanning, DueDate, tooltips } from '../index'
 import { OverlayTrigger } from 'react-bootstrap'
-import { tooltips } from './index'
+import './style.scss'
 
 const coverageIcons = {
     text: 'icon-text',
@@ -11,15 +10,14 @@ const coverageIcons = {
     audio: 'icon-audio',
     photo: 'icon-photo',
 }
-export const PlanningItem = ({ item, event, onClick, active, onDelete }) => {
+const PlanningItem = ({ item, event, onClick, active, onDelete }) => {
     const location = get(event, 'location[0].name')
-    const hasDueDate = get(item, 'coverages', []).some((c) => (get(c, 'planning.scheduled')))
+    const dueDates = get(item, 'coverages', []).map((c) => (get(c, 'planning.scheduled'))).filter(d => (d))
     const coveragesTypes = get(item, 'coverages', []).map((c) => get(c, 'planning.g2_content_type'))
-    const eventTime = get(event, 'dates.start') ?
-        moment(get(event, 'dates.start')).format('LL HH:mm') : null
     return (
         <ListItem
             item={item}
+            className="PlanningItem"
             onClick={onClick.bind(null, item)}
             active={active}>
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
@@ -30,18 +28,24 @@ export const PlanningItem = ({ item, event, onClick, active, onDelete }) => {
                             <span>&nbsp;|&nbsp;{item.headline}</span>
                         }
                     </span>
-                    <time title={eventTime}>{eventTime}</time>
+                    {event &&
+                        <span className="PlanningItem__event">
+                            <TimePlanning event={event}/>
+                            <i className="icon-calendar-list"/>
+                        </span>
+                    }
                 </div>
                 <div className="sd-list-item__row">
-                    {coveragesTypes.map((c) => (
-                        <span><i className={coverageIcons[c]}/>&nbsp;</span>
+                    {coveragesTypes.map((c, i) => (
+                        <span key={i}><i className={coverageIcons[c]}/>&nbsp;</span>
                     ))}
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {location}
                     </span>&nbsp;
-                    {hasDueDate &&
-                        <span>
-                            <i className="icon-time"/>
+                    {dueDates.length > 0 &&
+                        <span className="PlanningItem__dueDate">
+                            <DueDate dates={dueDates}/>
+                            <i className="icon-bell"/>
                         </span>
                     }
                 </div>
@@ -66,3 +70,5 @@ PlanningItem.propTypes = {
     onClick: PropTypes.func,
     onDelete: PropTypes.func,
 }
+
+export default PlanningItem
