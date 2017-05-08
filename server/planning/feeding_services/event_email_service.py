@@ -67,7 +67,10 @@ class EventEmailFeedingService(FeedingService):
                                 parser = self.get_feed_parser(provider, data)
                                 for response_part in data:
                                     if isinstance(response_part, tuple):
-                                        msg = email.message_from_bytes(response_part[1])
+                                        if isinstance(response_part[1], bytes):
+                                            msg = email.message_from_bytes(response_part[1])
+                                        else:
+                                            msg = email.message_from_string(response_part[1])
                                         # this will loop through all the available multiparts in email
                                         for part in msg.walk():
                                             # parse attached files only
