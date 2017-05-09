@@ -1,8 +1,26 @@
 import events from '../events'
 
 describe('events', () => {
-    const state = {
-        events: {
+    describe('reducers', () => {
+        // Ensure we set the default state for agenda
+        let initialState
+        beforeEach(() => { initialState = events(undefined, { type: null }) })
+
+        it('initialState', () => {
+            expect(initialState).toEqual({
+                events: {},
+                eventsInList: [],
+                search: {
+                    currentSearch: undefined,
+                    advancedSearchOpened: false,
+                },
+                show: true,
+                showEventDetails: null,
+                selectedEvent: null,
+            })
+        })
+
+        const items = {
             1: {
                 _id: '1',
                 name: 'name 1',
@@ -18,38 +36,89 @@ describe('events', () => {
                 name: 'name 3',
                 dates: { start: '2015-10-15T14:01:11+0000' },
             },
-        },
-        eventsInList: [],
-    }
-    it('SET_EVENTS_LIST with right order', () => {
-        const result = events(state, {
-            type: 'SET_EVENTS_LIST',
-            payload: ['1', '2', '3'],
-        })
-        expect(result.eventsInList).toEqual(['1', '3', '2'])
-    })
-    it('ADD_TO_EVENTS_LIST', () => {
-        const result = events({
-            ...state,
-            eventsInList: ['1', '2'],
-        }, {
-            type: 'ADD_TO_EVENTS_LIST',
-            payload: ['3', '1'],
-        })
-        expect(result.eventsInList).toEqual(['1', '3', '2'])
-    })
-    it('ADD_EVENTS', () => {
-        const newEvent = {
-            _id: '4',
-            name: 'name 4',
-            dates: { start: '2016-10-15T14:30+0000' },
         }
-        const result = events(state, {
-            type: 'ADD_EVENTS',
-            payload: [newEvent],
+
+        it('TOGGLE_EVENT_LIST', () => {
+            const result = events(initialState, { type: 'TOGGLE_EVENT_LIST' })
+            expect(result.show).toBe(false)
         })
-        expect(result).not.toBe(state)
-        expect(result).not.toEqual(state)
-        expect(Object.keys(result.events)).toEqual(['1', '2', '3', '4'])
+
+        it('REQUEST_EVENTS', () => {
+            const result = events(initialState, {
+                type: 'REQUEST_EVENTS',
+                payload: {},
+            })
+            expect(result.search).toEqual({
+                currentSearch: {},
+                advancedSearchOpened: false,
+            })
+        })
+
+        it('ADD_EVENTS', () => {
+            initialState.events = items
+            const newEvent = {
+                _id: '4',
+                name: 'name 4',
+                dates: { start: '2016-10-15T14:30+0000' },
+            }
+            const result = events(initialState, {
+                type: 'ADD_EVENTS',
+                payload: [newEvent],
+            })
+            expect(result).not.toBe(initialState)
+            expect(result).not.toEqual(initialState)
+            expect(Object.keys(result.events)).toEqual(['1', '2', '3', '4'])
+        })
+
+        it('SET_EVENTS_LIST with right order', () => {
+            initialState.events = items
+            const result = events(initialState, {
+                type: 'SET_EVENTS_LIST',
+                payload: ['1', '2', '3'],
+            })
+            expect(result.eventsInList).toEqual(['1', '3', '2'])
+        })
+
+        it('ADD_TO_EVENTS_LIST', () => {
+            initialState.events = items
+            const result = events({
+                ...initialState,
+                eventsInList: ['1', '2'],
+            }, {
+                type: 'ADD_TO_EVENTS_LIST',
+                payload: ['3', '1'],
+            })
+            expect(result.eventsInList).toEqual(['1', '3', '2'])
+        })
+
+        it('OPEN_ADVANCED_SEARCH', () => {
+            const result = events(initialState, { type: 'OPEN_ADVANCED_SEARCH' })
+            expect(result.search).toEqual({
+                currentSearch: undefined,
+                advancedSearchOpened: true,
+            })
+        })
+
+        it('CLOSE_ADVANCED_SEARCH', () => {
+            const result = events(initialState, { type: 'CLOSE_ADVANCED_SEARCH' })
+            expect(result.search).toEqual({
+                currentSearch: undefined,
+                advancedSearchOpened: false,
+            })
+        })
+
+        it('OPEN_EVENT_DETAILS', () => {
+            const result = events(initialState, {
+                type: 'OPEN_EVENT_DETAILS',
+                payload: '1',
+            })
+            expect(result.showEventDetails).toBe('1')
+            expect(result.selectedEvent).toBe('1')
+        })
+
+        it('CLOSE_EVENT_DETAILS', () => {
+            const result = events(initialState, { type: 'CLOSE_EVENT_DETAILS' })
+            expect(result.showEventDetails).toBe(null)
+        })
     })
 })

@@ -21,6 +21,10 @@ describe('<EventPanelContainer />', () => {
                 },
                 eventsInList: [eventId],
             },
+            privileges: {
+                planning: 1,
+                planning_event_management: 1,
+            },
         }
         const store = createTestStore({ initialState })
         const wrapper = mount(

@@ -3,7 +3,7 @@ import * as actions from '../agenda'
 import { PRIVILEGES } from '../../constants'
 
 describe('agenda', () => {
-    describe('action', () => {
+    describe('actions', () => {
         let agendas = [
             {
                 _id: 'a1',

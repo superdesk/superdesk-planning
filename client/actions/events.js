@@ -7,6 +7,8 @@ import { showModal, hideModal, fetchSelectedAgendaPlannings,
     fetchAgendas, closePlanningEditor } from './index'
 import { DeleteEvent } from '../components/index'
 import React from 'react'
+import { PRIVILEGES } from '../constants'
+import { checkPermission } from './privileges'
 
 /**
  * Action Dispatcher for saving an event
@@ -14,7 +16,7 @@ import React from 'react'
  * @param {object} event - The event item to save
  * @return arrow function
  */
-export function uploadFilesAndSaveEvent(event) {
+function uploadFilesAndSaveEvent(event) {
     event = cloneDeep(event) || {}
     return (dispatch, getState) => (
         dispatch(saveFiles(event))
@@ -59,8 +61,8 @@ export function uploadFilesAndSaveEvent(event) {
  * @param {object} event - The event to delete
  * @return arrow function
  */
-export function deleteEvent(event) {
-    return (dispatch, getState, { api }) => {
+function deleteEvent(event) {
+    return (dispatch, getState, { api, notify }) => {
         if (event) {
             return api('events').remove(event)
             .then(() => {
@@ -89,6 +91,9 @@ export function deleteEvent(event) {
                 throw new SubmissionError({ _error: error.statusText })
             })
         }
+
+        notify.error('Failed to delete the event!')
+        return Promise.resolve()
     }
 }
 
@@ -97,7 +102,7 @@ export function deleteEvent(event) {
  * @param {object} newEvent - The event that contains the files to be uploaded
  * @return arrow function
  */
-export function saveFiles(newEvent) {
+function saveFiles(newEvent) {
     newEvent = cloneDeep(newEvent)
     const getId = (e) => (e._id)
     const getIds = (e) => (e.map(getId))
@@ -314,7 +319,7 @@ function performFetchQuery({ advancedSearch, fulltext, ids }) {
  * @param {array} ids - An array of Event IDs to fetch
  * @return arrow function
  */
-export function silentlyFetchEventsById(ids=[]) {
+function silentlyFetchEventsById(ids=[]) {
     return (dispatch) => (
         dispatch(performFetchQuery({ ids }))
         .then(data => dispatch(receiveEvents(data._items)))
@@ -328,13 +333,13 @@ export function silentlyFetchEventsById(ids=[]) {
  * @param {object} params - Query parameters to send to the server
  * @return arrow function
  */
-export function fetchEvents(params={}) {
+function fetchEvents(params={}) {
     return (dispatch, getState, { $timeout, $location }) => {
         dispatch({
             type: 'REQUEST_EVENTS',
             payload: params,
         })
-        dispatch(performFetchQuery(params))
+        return dispatch(performFetchQuery(params))
         .then(data => {
             dispatch(receiveEvents(data._items))
             dispatch(setEventsList(data._items.map((e) => e._id)))
@@ -364,7 +369,7 @@ function setEventsList(idsList) {
  * @param {array} eventsIds - An array of Event IDs to add
  * @return {{type: string, payload: *}}
  */
-export function addToEventsList(eventsIds) {
+function addToEventsList(eventsIds) {
     return {
         type: 'ADD_TO_EVENTS_LIST',
         payload: eventsIds,
@@ -375,7 +380,7 @@ export function addToEventsList(eventsIds) {
  * Action to open Event Advanced Search panel
  * @return object
  */
-export function openAdvancedSearch() {
+function openAdvancedSearch() {
     return { type: 'OPEN_ADVANCED_SEARCH' }
 }
 
@@ -383,27 +388,30 @@ export function openAdvancedSearch() {
  * Action to close the Event Advanced Search panel
  * @return object
  */
-export function closeAdvancedSearch() {
+function closeAdvancedSearch() {
     return { type: 'CLOSE_ADVANCED_SEARCH' }
 }
 
 /**
- * Action to open the Edit Event panel
+ * Opens the Edit Event panel with the supplied Event
+ * @param {function} dispatch - The redux store's dispatch function
+ * @param {function} getState - The redux store's getState function
+ * @param {object} services - Not used in this instance
  * @param {object} event - The Event ID to edit
- * @return {{type: string, payload: *}}
+ * @return Promise
  */
-export function openEventDetails(event) {
-    return {
+const _openEventDetails = (dispatch, getState, services, { event }) => (
+    dispatch({
         type: 'OPEN_EVENT_DETAILS',
         payload: get(event, '_id', event || true),
-    }
-}
+    })
+)
 
 /**
  * Action to close the Edit Event panel
  * @return object
  */
-export function closeEventDetails() {
+function closeEventDetails() {
     return { type: 'CLOSE_EVENT_DETAILS' }
 }
 
@@ -412,7 +420,7 @@ export function closeEventDetails() {
  * @param {array} events - An array of Event items
  * @return object
  */
-export function receiveEvents(events) {
+function receiveEvents(events) {
     return {
         type: 'ADD_EVENTS',
         payload: events,
@@ -424,7 +432,7 @@ export function receiveEvents(events) {
  * Action to toggle the Events panel
  * @return object
  */
-export function toggleEventsList() {
+function toggleEventsList() {
     return { type: 'TOGGLE_EVENT_LIST' }
 }
 
@@ -433,7 +441,7 @@ export function toggleEventsList() {
  * @param {object} event - The event to display in the Delete Event modal
  * @return arrow function
  */
-export const openDeleteEvent = (event) => (
+const openDeleteEvent = (event) => (
     (dispatch, getState) => {
         const storedPlannings = selectors.getStoredPlannings(getState())
         // Get _plannings for the event
@@ -453,3 +461,28 @@ export const openDeleteEvent = (event) => (
         }))
     }
 )
+
+const openEventDetails = (event) => (
+    checkPermission(
+        _openEventDetails,
+        PRIVILEGES.EVENT_MANAGEMENT,
+        'Unauthorised to edit an event!',
+        { event }
+    )
+)
+
+export {
+    openDeleteEvent,
+    toggleEventsList,
+    receiveEvents,
+    closeEventDetails,
+    openEventDetails,
+    closeAdvancedSearch,
+    openAdvancedSearch,
+    addToEventsList,
+    fetchEvents,
+    silentlyFetchEventsById,
+    saveFiles,
+    deleteEvent,
+    uploadFilesAndSaveEvent,
+}

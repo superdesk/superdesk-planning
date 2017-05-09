@@ -535,3 +535,82 @@ Feature: Events
                 }
            ]}
         """
+
+    @auth
+    Scenario: Event can be created only by user having privileges
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_event_management": 0, "users": 1}}
+        """
+        Then we get OK response
+        When we post to "events"
+        """
+        [{
+            "guid": "123",
+            "unique_id": "123",
+            "name": "event 123",
+            "definition_short": "short value",
+            "dates": {
+                "start": "2016-01-02",
+                "end": "2016-01-03"
+            }
+        }]
+        """
+        Then we get error 403
+        When we setup test user
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_event_management": 1, "users": 1}}
+        """
+        Then we get OK response
+        When we post to "events"
+        """
+        [{
+            "guid": "123",
+            "unique_id": "123",
+            "name": "event 123",
+            "definition_short": "short value",
+            "dates": {
+                "start": "2016-01-02",
+                "end": "2016-01-03"
+            }
+        }]
+        """
+        Then we get OK response
+
+    @auth
+    Scenario: Event can be modified only by user having privileges
+        When we post to "events" with success
+        """
+        [{
+            "guid": "123",
+            "unique_id": "123",
+            "name": "event 123",
+            "definition_short": "short value",
+            "dates": {
+                "start": "2016-01-02",
+                "end": "2016-01-03"
+            }
+        }]
+        """
+        Then we store "eventId" with value "#events._id#" to context
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_event_management": 0, "users": 1}}
+        """
+        Then we get OK response
+        When we patch "/events/#eventId#"
+        """
+        {"name": "New Event"}
+        """
+        Then we get error 403
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_event_management": 1, "users": 1}}
+        """
+        Then we get OK response
+        When we patch "/events/#eventId#"
+        """
+        {"name": "New Event"}
+        """
+        Then we get OK response
