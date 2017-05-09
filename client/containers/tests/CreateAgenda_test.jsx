@@ -3,9 +3,23 @@ import * as actions from '../../actions'
 
 describe('<CreateEditAgendaComponent />', () => {
 
+    let initialState
+    beforeEach(() => {
+        initialState = {
+            planning: {},
+            agenda: { agendas: [] },
+            privileges: {
+                planning: 1,
+                planning_agenda_management: 1,
+                planning_planning_management: 1,
+            },
+        }
+    })
+
+    const getState = () => (initialState)
+    const dispatch = sinon.spy(() => (Promise.resolve()))
+
     it('display error _message', () => {
-        const getState = () => ({ agenda: { agendas: [] } })
-        const dispatch = sinon.spy(() => (Promise.resolve()))
         const data = {
             data: {
                 _message: 'foo bar',
@@ -31,8 +45,6 @@ describe('<CreateEditAgendaComponent />', () => {
     })
 
     it('display error validator exception', () => {
-        const getState = () => ({ agenda: { agendas: [] } })
-        const dispatch = sinon.spy(() => (Promise.resolve()))
         const data = { data: { _issues: { 'validator exception': 'foo bar exception' } } }
         const api = () => ({ save: sinon.stub().returns(Promise.reject(data)) })
         const notify = {
@@ -53,8 +65,6 @@ describe('<CreateEditAgendaComponent />', () => {
     })
 
     it('display error generic exception', () => {
-        const getState = () => ({ agenda: { agendas: [] } })
-        const dispatch = sinon.spy(() => (Promise.resolve()))
         const api = () => ({ save: sinon.stub().returns(Promise.reject()) })
         const notify = {
             error: sinon.spy((message) => {

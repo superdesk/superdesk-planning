@@ -8,6 +8,12 @@ import { showModal, hideModal, fetchSelectedAgendaPlannings,
 import { DeleteEvent } from '../components/index'
 import React from 'react'
 
+/**
+ * Action Dispatcher for saving an event
+ * If there are any files attached, upload these as well
+ * @param {object} event - The event item to save
+ * @return arrow function
+ */
 export function uploadFilesAndSaveEvent(event) {
     event = cloneDeep(event) || {}
     return (dispatch, getState) => (
@@ -46,6 +52,13 @@ export function uploadFilesAndSaveEvent(event) {
     )
 }
 
+/**
+ * Action Dispatcher for deleting an event
+ * If there are planning items associated with this event, reload the list
+ * of Agendas and Planning items as well
+ * @param {object} event - The event to delete
+ * @return arrow function
+ */
 export function deleteEvent(event) {
     return (dispatch, getState, { api }) => {
         if (event) {
@@ -79,6 +92,11 @@ export function deleteEvent(event) {
     }
 }
 
+/**
+ * Action Dispatcher for uploading files
+ * @param {object} newEvent - The event that contains the files to be uploaded
+ * @return arrow function
+ */
 export function saveFiles(newEvent) {
     newEvent = cloneDeep(newEvent)
     const getId = (e) => (e._id)
@@ -120,6 +138,11 @@ export function saveFiles(newEvent) {
     )
 }
 
+/**
+ * Action Dispatcher for saving the location for an event
+ * @param {object} event - The event the location is associated with
+ * @return arrow function
+ */
 function saveLocation(event) {
     return (dispatch) => {
         // location field was empty, we clear the location
@@ -140,7 +163,13 @@ function saveLocation(event) {
     }
 }
 
-/** Add the user timezone, save the event, notify the form (to reset) and hide the modal */
+/**
+ * Action Dispatcher to create or save an event
+ * This action is private to this module only.
+ * Also adds the user timezone, and notify the form to reset and hide the modal
+ * @param {object} newEvent
+ * @return arrow function
+ */
 function saveEvent(newEvent) {
     return (dispatch, getState, { api, notify }) => {
         // remove links if it contains only null values
@@ -173,6 +202,14 @@ function saveEvent(newEvent) {
     }
 }
 
+/**
+ * Action Dispatcher for query the api for events
+ * You can provide one of the following parameters to fetch from the server
+ * @param {object} advancedSearch - Query parameters to send to the server
+ * @param {object} fulltext - Full text search parameters
+ * @param {array} ids - An array of Event IDs to fetch
+ * @return arrow function
+ */
 function performFetchQuery({ advancedSearch, fulltext, ids }) {
     return (dispatch, getState, { api }) => {
         const query = {}
@@ -271,8 +308,12 @@ function performFetchQuery({ advancedSearch, fulltext, ids }) {
     }
 }
 
-/** This will fetch events and adds them to the store,
-    without addign them to the events list */
+/**
+ * Action Dispatcher to fetch events from the server,
+ * and add them to the store without adding them to the events list
+ * @param {array} ids - An array of Event IDs to fetch
+ * @return arrow function
+ */
 export function silentlyFetchEventsById(ids=[]) {
     return (dispatch) => (
         dispatch(performFetchQuery({ ids }))
@@ -280,9 +321,13 @@ export function silentlyFetchEventsById(ids=[]) {
     )
 }
 
-/** Fetch events from a user request, like a search.
-    This will add the events to the events list
-    And update the URL for deep linking */
+/**
+ * Action Dispatcher to fetch events from the server
+ * This will add the events to the events list,
+ * and update the URL for deep linking
+ * @param {object} params - Query parameters to send to the server
+ * @return arrow function
+ */
 export function fetchEvents(params={}) {
     return (dispatch, getState, { $timeout, $location }) => {
         dispatch({
@@ -301,6 +346,11 @@ export function fetchEvents(params={}) {
     }
 }
 
+/**
+ * Action to set the list of events in the current list
+ * @param {array} idsList - An array of Event IDs to assign to the current list
+ * @return object
+ */
 function setEventsList(idsList) {
     return {
         type: 'SET_EVENTS_LIST',
@@ -308,6 +358,12 @@ function setEventsList(idsList) {
     }
 }
 
+/**
+ * Action to add events to the current list
+ * This action makes sure the list of events are unique, no duplicates
+ * @param {array} eventsIds - An array of Event IDs to add
+ * @return {{type: string, payload: *}}
+ */
 export function addToEventsList(eventsIds) {
     return {
         type: 'ADD_TO_EVENTS_LIST',
@@ -315,14 +371,27 @@ export function addToEventsList(eventsIds) {
     }
 }
 
+/**
+ * Action to open Event Advanced Search panel
+ * @return object
+ */
 export function openAdvancedSearch() {
     return { type: 'OPEN_ADVANCED_SEARCH' }
 }
 
+/**
+ * Action to close the Event Advanced Search panel
+ * @return object
+ */
 export function closeAdvancedSearch() {
     return { type: 'CLOSE_ADVANCED_SEARCH' }
 }
 
+/**
+ * Action to open the Edit Event panel
+ * @param {object} event - The Event ID to edit
+ * @return {{type: string, payload: *}}
+ */
 export function openEventDetails(event) {
     return {
         type: 'OPEN_EVENT_DETAILS',
@@ -330,10 +399,19 @@ export function openEventDetails(event) {
     }
 }
 
+/**
+ * Action to close the Edit Event panel
+ * @return object
+ */
 export function closeEventDetails() {
     return { type: 'CLOSE_EVENT_DETAILS' }
 }
 
+/**
+ * Action to receive the list of Events and store them in the store
+ * @param {array} events - An array of Event items
+ * @return object
+ */
 export function receiveEvents(events) {
     return {
         type: 'ADD_EVENTS',
@@ -342,10 +420,19 @@ export function receiveEvents(events) {
     }
 }
 
+/**
+ * Action to toggle the Events panel
+ * @return object
+ */
 export function toggleEventsList() {
     return { type: 'TOGGLE_EVENT_LIST' }
 }
 
+/**
+ * Action to display the Delete Event modal
+ * @param {object} event - The event to display in the Delete Event modal
+ * @return arrow function
+ */
 export const openDeleteEvent = (event) => (
     (dispatch, getState) => {
         const storedPlannings = selectors.getStoredPlannings(getState())
@@ -357,7 +444,7 @@ export const openDeleteEvent = (event) => (
             )).map((pKey) => ({ ...storedPlannings[pKey] })),
         }
 
-        dispatch(showModal({
+        return dispatch(showModal({
             modalType: 'CONFIRMATION',
             modalProps: {
                 body: React.createElement(DeleteEvent, { eventDetail: eventWithPlannings }),

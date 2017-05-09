@@ -7,7 +7,14 @@ import * as actions from '../../actions'
 
 describe('<EditPlanningPanelContainer />', () => {
     it('open the panel', () => {
-        let store = createTestStore()
+        let store = createTestStore({
+            initialState: {
+                privileges: {
+                    planning: 1,
+                    planning_planning_management: 1,
+                },
+            },
+        })
         const wrapper = mount(
             <Provider store={store}>
                 <EditPlanningPanelContainer />
