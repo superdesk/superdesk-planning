@@ -71,7 +71,7 @@ describe('<RepeatEventSummary />', () => {
                 end: moment('2016-10-20T15:00+0000'),
                 recurring_rule: {
                     frequency: 'MONTHLY',
-                    interval: '3',
+                    interval: 3,
                 },
             },
         }
@@ -87,7 +87,7 @@ describe('<RepeatEventSummary />', () => {
                 recurring_rule: {
                     endRepeatMode: 'until',
                     frequency: 'DAILY',
-                    interval: '3',
+                    interval: 3,
                     until:  moment('2020-07-01T00:00'),
                 },
             },
@@ -104,7 +104,7 @@ describe('<RepeatEventSummary />', () => {
                 recurring_rule: {
                     endRepeatMode: 'count',
                     frequency: 'DAILY',
-                    interval: '3',
+                    interval: 3,
                     count: '9',
                 },
             },
@@ -120,7 +120,7 @@ describe('<RepeatEventSummary />', () => {
                 end: moment('2016-10-20T15:00+0000'),
                 recurring_rule: {
                     frequency: 'WEEKLY',
-                    interval: '3',
+                    interval: 3,
                     byday: 'TH FR',
                 },
             },

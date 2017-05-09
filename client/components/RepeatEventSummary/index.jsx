@@ -91,7 +91,7 @@ export class RepeatEventSummary  extends React.Component {
 
 RepeatEventSummary.propTypes = {
     byDay: React.PropTypes.string,
-    interval: React.PropTypes.string,
+    interval: React.PropTypes.number,
     frequency: React.PropTypes.string,
     endRepeatMode: React.PropTypes.string,
     until: React.PropTypes.object,

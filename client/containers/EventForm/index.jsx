@@ -46,7 +46,7 @@ export class Component extends React.Component {
             this.props.change('dates.recurring_rule',
                 {
                     frequency: 'YEARLY',
-                    interval: '1',
+                    interval: 1,
                 })
         }
         // update the state to hide the recurrent date form
