@@ -77,21 +77,23 @@ class RepeatEventFormComponent extends React.Component {
     }
 
     handleEndRepeatModeChange(e) {
-        const choicesWithInput = ['count', 'until']
+        if (this.state.endRepeatMode !== e.target.value) {
+            const choicesWithInput = ['count', 'until']
 
-        //we clear inputs that belong to radiobox
-        choicesWithInput.forEach((fieldName) =>
-            this.props.change('dates.recurring_rule.' + fieldName, null)
-        )
+            //we clear inputs that belong to radiobox
+            choicesWithInput.forEach((fieldName) =>
+                this.props.change('dates.recurring_rule.' + fieldName, null)
+            )
 
-        // if the clicked radiobox belongs to an input field
-        if (choicesWithInput.indexOf(e.target.value) > -1) {
-            // focus the field
-            this.refs['recurring_rule--' + e.target.value].getRenderedComponent().focus()
+            // if the clicked radiobox belongs to an input field
+            if (choicesWithInput.indexOf(e.target.value) > -1) {
+                // focus the field
+                this.refs['recurring_rule--' + e.target.value].getRenderedComponent().focus()
+            }
+
+            this.props.change('dates.recurring_rule.endRepeatMode', e.target.value)
+            this.setState({ endRepeatMode:  e.target.value })
         }
-
-        this.props.change('dates.recurring_rule.endRepeatMode', e.target.value)
-        this.setState({ endRepeatMode:  e.target.value })
     }
 
     render() {

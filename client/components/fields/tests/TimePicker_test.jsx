@@ -21,7 +21,7 @@ TestForm.propTypes = {
     onChange: React.PropTypes.func.isRequired,
 }
 
-describe('<TimrePicker />', () => {
+describe('<TimePicker />', () => {
     it('shows placeholder text for null value', () => {
         const wrapper = mount(<TestForm placeholder='Time' onChange={() => {}}/>)
         const inputField = wrapper.find('.timepickerInput__textInput')

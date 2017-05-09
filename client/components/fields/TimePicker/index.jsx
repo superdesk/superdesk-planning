@@ -68,7 +68,7 @@ export class TimePicker extends React.Component {
     render() {
         const { value, placeholder } = this.props
         return (
-            <span className="timepickerInput">
+            <div className="timepickerInput">
                 <input type="text" className={ 'timepickerInput__textInput' + (this.state.invalid ? ' timepickerInput__textInput--invalid' : '')} value={this.state.viewValue} placeholder={placeholder} onChange={(e)=>(this.validateTimeText(e.target.value))}
                 onBlur={this.handleInputBlur.bind(this)} />
                 <button className="btn" type="button" onClick={this.toggleOpenTimePicker.bind(this)}>
@@ -77,7 +77,7 @@ export class TimePicker extends React.Component {
                     <TimePickerCore value={value} onCancel={this.toggleOpenTimePicker.bind(this)}
                     onChange={this.onChange.bind(this)}/>
                 )}
-            </span>
+            </div>
         )
     }
 }
