@@ -109,7 +109,7 @@ planning_schema = {
         'mapping': not_analyzed
     },
 
-    # Agenda details
+    # Agenda Item details
     'planning_type': {
         'type': 'string',
         'mapping': not_analyzed,
@@ -117,19 +117,18 @@ planning_schema = {
     'name': {
         'type': 'string'
     },
-
-    # Event Item
-    'event_item': superdesk.Resource.rel('events', type='string'),
-
     'planning_items': {
         'type': 'list',
         'schema': superdesk.Resource.rel('planning'),
     },
 
+    # Event Item
+    'event_item': superdesk.Resource.rel('events', type='string'),
+
     # Planning Details
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16
 
-    # Item Metadata - See IPTC-G2-Implementation_Guide 16.1
+    # Planning Item Metadata - See IPTC-G2-Implementation_Guide 16.1
     'item_class': {
         'type': 'string',
         'default': 'plinat:newscoverage'

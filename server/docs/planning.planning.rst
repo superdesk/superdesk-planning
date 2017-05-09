@@ -1,5 +1,5 @@
-planning.planning module
-========================
+planning\.planning module
+=========================
 
 .. automodule:: planning.planning
     :members:

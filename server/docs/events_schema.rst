@@ -32,6 +32,10 @@ Identifiers
 
     Ingest item id from which item was fetched.
 
+``recurrence_id`` *string*
+
+    Internal id for recurrence events.  All recurrence events for a particular recurring event will share this id.
+
 Audit Information
 -------------------
 
@@ -74,16 +78,25 @@ Ingest Details
 Event Details
 --------------
 
-``description`` *dict*
+``name`` *string*
 
-    Details for description dict::
+    Name or title of the event.
 
-        'description': {
-            'definition_short': 'string',
-            'definition_long': 'string',
-            'related': 'string',
-            'note': 'string',
-        }
+``description_short`` *string*
+
+    Text for short description.
+
+``description_long`` *string*
+
+    Text for long description.
+
+``anpa_category`` *list*
+
+    Optional, repeatable. The category classification(s) of the event.
+
+``files`` *list*
+
+    Optional, repeatable. Files attached to the event.
 
 ``relationships`` *dict*
 
@@ -94,6 +107,10 @@ Event Details
             'narrower': 'string',
             'related': 'string',
         }
+
+``links`` *list*
+
+    Optional, repeatable. Links attached to the event.
 
 ``dates`` *dict*
     
@@ -115,6 +132,7 @@ Event Details
                 'byhour': 'string',
                 'byminute': 'string'
             },
+            'occur_status': 'dict',
             'ex_date': [ 'datetime' ],
             'ex_rule': {
                 'frequency': 'string',
@@ -164,10 +182,10 @@ Event Details
 
     Optional, repeatable. Describes the organiser of the event.
 
-``contact_info`` *list*
+``event_contact_info`` *list*
 
     Indicates how to get in contact with the event. This may be a web site, or a temporary office established for the event, not necessarily the organiser or any participant.
 
-``language`` *list*
+``event_language`` *list*
 
     Optional, repeatable element describes the language(s) associated with the event.
