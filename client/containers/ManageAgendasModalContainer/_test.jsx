@@ -43,6 +43,7 @@ describe('<ManageAgendasModalContainer />', () => {
         wrapper.find('ManageAgendasModalComponent').props().selectAgenda('agenda2')
         expect(store.getState().agenda.currentAgendaId).toBe('agenda2')
         wrapper.find('ManageAgendasModalComponent').props().openCreateAgenda()
+        wrapper.find('ManageAgendasModalComponent').props().openEditAgenda()
         wrapper.find('ManageAgendasModalComponent').props().onAgendaDeletion()
     })
 })

@@ -13,7 +13,7 @@ export class Component extends React.Component {
 
     render() {
         return (
-            <form onSubmit={this.props.handleSubmit} className="CreateAgendaForm">
+            <form onSubmit={this.props.handleSubmit} className="CreateEditAgendaForm">
                 <Field name="name"
                        component={fields.InputField}
                        autoFocus={true}
@@ -28,8 +28,8 @@ export class Component extends React.Component {
 Component.propTypes = { handleSubmit: React.PropTypes.func.isRequired }
 
 // Decorate the form component
-export const CreateAgenda = reduxForm({
-    form: 'createAgenda', // a unique name for this form
+export const CreateEditAgenda = reduxForm({
+    form: 'createEditAgenda', // a unique name for this form
     validate: ChainValidators([
         RequiredFieldsValidatorFactory(['name']),
         MaxLengthValidatorFactory({ name: 100 }),
@@ -40,14 +40,16 @@ export const CreateAgenda = reduxForm({
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: ({ name }) => (
-        // save the agenda through the API
-        dispatch(actions.createAgenda({ name }))
+    onSubmit: ({ _id, name }) => dispatch(
+        actions.createOrUpdateAgenda({
+            _id,
+            name,
+        })
     ),
 })
 
-export const CreateAgendaForm = connect(
+export const CreateEditAgendaForm = connect(
     null,
     mapDispatchToProps,
     null,
-    { withRef: true })(CreateAgenda)
+    { withRef: true })(CreateEditAgenda)

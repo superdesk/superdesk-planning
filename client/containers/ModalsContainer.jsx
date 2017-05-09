@@ -1,13 +1,14 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { hideModal } from '../actions'
-import { CreateAgendaModal, ConfirmationModal } from '../components'
+import { AgendaModal, ConfirmationModal } from '../components'
 import { ManageAgendasModalContainer } from './index'
 
 const modals = {
     MANAGE_AGENDAS: ManageAgendasModalContainer,
     CONFIRMATION: ConfirmationModal,
-    CREATE_AGENDA: CreateAgendaModal,
+    CREATE_AGENDA: AgendaModal,
+    EDIT_AGENDA: AgendaModal,
 }
 
 export function Modals({ modalType, modalProps, handleHide }) {
