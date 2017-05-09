@@ -52,19 +52,17 @@ export function ManageAgendasModalComponent({
                         <ul className="pills-list provider-list">
                             {agendas.map((agenda) => (
                                 <li key={agenda._id}>
-                                    <div className="header">
-                                        <h6 onClick={selectAgenda.bind(null, agenda._id)}>{agenda.name}</h6>
-                                        <div className="last-updated">
-                                            ({get(agenda, 'planning_items.length', '0')})
-                                            &nbsp;created {moment(agenda._created).fromNow()}
-                                        </div>
-                                        <div className="actions">
-                                            {privileges.planning_agenda_management === 1 && (
-                                                <button title="Remove source" onClick={onAgendaDeletion.bind(null, agenda)}>
-                                                    <i className="icon-trash"/>
-                                                </button>
-                                            )}
-                                        </div>
+                                    <h6 onClick={selectAgenda.bind(null, agenda._id)}>{agenda.name}</h6>
+                                    <div className="last-updated">
+                                        ({get(agenda, 'planning_items.length', '0')})
+                                        &nbsp;created {moment(agenda._created).fromNow()}
+                                    </div>
+                                    <div className="actions">
+                                        {privileges.planning_agenda_management === 1 && (
+                                            <button title="Remove source" onClick={onAgendaDeletion.bind(null, agenda)}>
+                                                <i className="icon-trash"/>
+                                            </button>
+                                        )}
                                     </div>
                                 </li>
                             ))}
