@@ -1,5 +1,5 @@
-planning.locations module
-=========================
+planning\.locations module
+==========================
 
 .. automodule:: planning.locations
     :members:

@@ -1,7 +1,7 @@
-planning\.events module
+planning\.agenda module
 =======================
 
-.. automodule:: planning.events
+.. automodule:: planning.agenda
     :members:
     :undoc-members:
     :show-inheritance:
