@@ -50,15 +50,15 @@ describe('agenda', () => {
             dispatch.reset()
         })
 
-        it('createAgenda', () => {
-            const action = actions.createAgenda({ name: 'TestAgenda3' })
+        it('createOrUpdateAgenda', () => {
+            const action = actions.createOrUpdateAgenda({ name: 'TestAgenda3' })
             return action(dispatch, getState, {
                 api,
                 notify,
             })
             .then(() => {
                 expect(apiSpy.save.args[0]).toEqual([{}, { name: 'TestAgenda3' }])
-                expect(notify.success.args[0]).toEqual(['An agenda has been added.'])
+                expect(notify.success.args[0]).toEqual(['The agenda has been created/updated.'])
 
                 expect(dispatch.callCount).toBe(3)
                 expect(dispatch.args[0]).toEqual([{ type: 'HIDE_MODAL' }])

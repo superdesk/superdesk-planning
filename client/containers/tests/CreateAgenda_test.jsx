@@ -1,10 +1,10 @@
 import sinon from 'sinon'
 import * as actions from '../../actions'
 
-describe('<CreateAgendaComponent />', () => {
+describe('<CreateEditAgendaComponent />', () => {
 
     it('display error _message', () => {
-        const getState = () => ({ planning: { agendas: [] } })
+        const getState = () => ({ agenda: { agendas: [] } })
         const dispatch = sinon.spy(() => (Promise.resolve()))
         const data = {
             data: {
@@ -19,7 +19,7 @@ describe('<CreateAgendaComponent />', () => {
             }),
             success: sinon.spy(),
         }
-        const action = actions.createAgenda({ name: 'foo' })
+        const action = actions.createOrUpdateAgenda({ name: 'foo' })
         action(dispatch, getState, {
             api,
             notify,
@@ -31,7 +31,7 @@ describe('<CreateAgendaComponent />', () => {
     })
 
     it('display error validator exception', () => {
-        const getState = () => ({ planning: { agendas: [] } })
+        const getState = () => ({ agenda: { agendas: [] } })
         const dispatch = sinon.spy(() => (Promise.resolve()))
         const data = { data: { _issues: { 'validator exception': 'foo bar exception' } } }
         const api = () => ({ save: sinon.stub().returns(Promise.reject(data)) })
@@ -41,7 +41,7 @@ describe('<CreateAgendaComponent />', () => {
             }),
             success: sinon.spy(),
         }
-        const action = actions.createAgenda({ name: 'foo' })
+        const action = actions.createOrUpdateAgenda({ name: 'foo' })
         action(dispatch, getState, {
             api,
             notify,
@@ -53,16 +53,16 @@ describe('<CreateAgendaComponent />', () => {
     })
 
     it('display error generic exception', () => {
-        const getState = () => ({ planning: { agendas: [] } })
+        const getState = () => ({ agenda: { agendas: [] } })
         const dispatch = sinon.spy(() => (Promise.resolve()))
         const api = () => ({ save: sinon.stub().returns(Promise.reject()) })
         const notify = {
             error: sinon.spy((message) => {
-                expect(message).toBe('There was a problem, Agenda not created/updated.')
+                expect(message).toBe('There was a problem, Agenda is not created/updated.')
             }),
             success: sinon.spy(),
         }
-        const action = actions.createAgenda({ name: 'foo' })
+        const action = actions.createOrUpdateAgenda({ name: 'foo' })
         action(dispatch, getState, {
             api,
             notify,

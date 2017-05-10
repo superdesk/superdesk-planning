@@ -5,20 +5,29 @@ import { cloneDeep, get } from 'lodash'
 import { closePlanningEditor, fetchPlannings, savePlanning } from './planning'
 
 /**
- * Action Dispatcher for creating a new Agenda
- * @param {string} name - The name of the Agenda to create
+ * Action Dispatcher for create/update an Agenda
+ * @param {string} _id - The id of the Agenda
+ * @param {string} name - The name of the Agenda
  * @return arrow function
  */
-const createAgenda = ({ name }) => (
-    (dispatch, getState, { api, notify }) => (
-        api('agenda').save({}, { name: name })
+const createOrUpdateAgenda = ({ _id, name }) => (
+    (dispatch, getState, { api, notify }) => {
+        let originalAgenda = {}
+        const agendas = selectors.getAgendas(getState())
+
+        if (_id) {
+            originalAgenda = agendas.find((agenda) => agenda._id == _id)
+            originalAgenda = cloneDeep(originalAgenda || {})
+        }
+
+        return api('agenda').save(originalAgenda, { name })
             .then((agenda) => {
-                notify.success('An agenda has been added.')
+                notify.success('The agenda has been created/updated.')
                 dispatch(hideModal())
                 dispatch(addOrReplaceAgenda(agenda))
                 dispatch(selectAgenda(agenda._id))
             }, (error) => {
-                let errorMessage = 'There was a problem, Agenda not created/updated.'
+                let errorMessage = 'There was a problem, Agenda is not created/updated.'
                 if (get(error, 'data._message')) {
                     errorMessage = get(error, 'data._message')
                 } else if (get(error, 'data._issues.validator exception')) {
@@ -31,7 +40,7 @@ const createAgenda = ({ name }) => (
                     _error: error.statusText,
                 })
             })
-    )
+    }
 )
 
 /**
@@ -231,7 +240,7 @@ const fetchSelectedAgendaPlannings = () => (
 )
 
 export {
-    createAgenda,
+    createOrUpdateAgenda,
     deleteAgenda,
     fetchAgendas,
     selectAgenda,
