@@ -13,7 +13,7 @@ class Component extends React.Component {
     }
 
     render() {
-        const { handleSubmit, pristine, submitting, reset } = this.props
+        const { handleSubmit } = this.props
         return (
             <form onSubmit={handleSubmit} className="PlanningForm">
                 <div>
@@ -36,18 +36,6 @@ class Component extends React.Component {
                     <h3>Coverages</h3>
                     <FieldArray name="coverages" component={fields.CoveragesFieldArray} />
                 </div>
-
-                <footer>
-                    <button
-                        className="btn btn--primary"
-                        type="submit"
-                        disabled={pristine || submitting}>Save</button>
-                    <button
-                        className="btn"
-                        type="button"
-                        disabled={pristine || submitting} onClick={reset}>Cancel</button>
-                </footer>
-
             </form>
         )
     }
