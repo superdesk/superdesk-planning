@@ -40,6 +40,7 @@ class PlanningPanel extends React.Component {
             onManageAgendasClick,
             onlyFuture,
             onFutureToggleChange,
+            privileges,
         } = this.props
         const listClasses = [
             'Planning-panel',
@@ -84,7 +85,7 @@ class PlanningPanel extends React.Component {
                             </div>
                         </div>
                         <ul className="list-view compact-view">
-                            {currentAgenda &&
+                            {currentAgenda && privileges.planning_planning_management === 1 &&
                                 <QuickAddPlanning className="ListItem" onPlanningCreation={onPlanningCreation}/>
                             }
                             {(planningList && planningList.length > 0) && planningList.map((planning) => (
@@ -137,6 +138,7 @@ PlanningPanel.propTypes = {
     onManageAgendasClick: React.PropTypes.func,
     onlyFuture: React.PropTypes.bool,
     onFutureToggleChange: React.PropTypes.func,
+    privileges: React.PropTypes.object.isRequired,
 }
 
 const mapStateToProps = (state) => ({
@@ -148,6 +150,7 @@ const mapStateToProps = (state) => ({
     planningsEvents: selectors.getCurrentAgendaPlanningsEvents(state),
     isEventListShown: selectors.isEventListShown(state),
     onlyFuture: state.planning.onlyFuture,
+    privileges: selectors.getPrivileges(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

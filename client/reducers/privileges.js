@@ -1,7 +1,8 @@
+import { PRIVILEGES } from '../constants'
 
 const privileges = (state={}, action) => {
     switch (action.type) {
-        case 'RECEIVE_PRIVILEGES':
+        case PRIVILEGES.ACTIONS.RECEIVE_PRIVILEGES:
             return action.payload
         default:
             return state
