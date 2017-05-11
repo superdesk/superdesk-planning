@@ -40,6 +40,10 @@ describe('<PlanningPanelContainer />', () => {
             }],
             currentAgendaId: 'agenda1',
         },
+        privileges: {
+            planning: 1,
+            planning_planning_management: 1,
+        },
     }
     it('addEventToCurrentAgenda', () => {
         const initialState = {
@@ -51,6 +55,10 @@ describe('<PlanningPanelContainer />', () => {
                     name: 'agenda',
                 }],
                 currentAgendaId: '1',
+            },
+            privileges: {
+                planning: 1,
+                planning_planning_management: 1,
             },
         }
         const EVENT = {
@@ -75,6 +83,10 @@ describe('<PlanningPanelContainer />', () => {
                     planning_type: 'agenda',
                 }],
                 currentAgendaId: 'agenda1',
+            },
+            privileges: {
+                planning: 1,
+                planning_planning_management: 1,
             },
         }
         const store = createTestStore({
@@ -123,6 +135,10 @@ describe('<PlanningPanelContainer />', () => {
                     _id: 'agenda1',
                     planning_items: ['planning1', 'planning2'],
                 }],
+            },
+            privileges: {
+                planning: 1,
+                planning_planning_management: 1,
             },
         }
         const store = createTestStore({ initialState })

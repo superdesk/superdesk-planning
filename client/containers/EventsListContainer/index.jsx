@@ -56,7 +56,7 @@ class EventsListComponent extends React.Component {
 
     render() {
         const { searchBarExtended } = this.state
-        const { advancedSearchOpened, toggleEventsList } = this.props
+        const { advancedSearchOpened, toggleEventsList, privileges } = this.props
         const classes = [
             'Events-list-container',
             advancedSearchOpened ? 'Events-list-container--advanced-search-view' : null,
@@ -109,17 +109,20 @@ class EventsListComponent extends React.Component {
                             </button>
                         </div>
                     </div>
-                    <button className="btn btn--primary"
-                            onClick={this.props.openEventDetails.bind(null, null)}>
-                        Add event
-                    </button>
+                    {privileges.planning_event_management === 1 && (
+                        <button className="btn btn--primary"
+                                onClick={this.props.openEventDetails.bind(null, null)}>
+                            Add event
+                        </button>
+                    )}
                 </div>
                 <div className="Events-list-container__body">
                     <AdvancedSearchPanelContainer  />
                     <EventsList events={this.props.events}
                                 onEventClick={this.props.openEventDetails}
                                 onEventDelete={this.props.deleteEvent}
-                                selectedEvent={this.props.selectedEvent} />
+                                selectedEvent={this.props.selectedEvent}
+                                privileges={privileges}/>
                 </div>
             </div>
         )
@@ -137,6 +140,7 @@ EventsListComponent.propTypes = {
     toggleEventsList: React.PropTypes.func,
     deleteEvent: React.PropTypes.func,
     selectedEvent: React.PropTypes.string,
+    privileges: React.PropTypes.object.isRequired,
 }
 
 const mapStateToProps = (state) => ({
@@ -144,6 +148,7 @@ const mapStateToProps = (state) => ({
     currentSearch: get(state, 'events.search.currentSearch'),
     advancedSearchOpened: get(state, 'events.search.advancedSearchOpened'),
     selectedEvent: selectors.getSelectedEvent(state),
+    privileges: selectors.getPrivileges(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

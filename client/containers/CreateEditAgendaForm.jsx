@@ -40,11 +40,12 @@ export const CreateEditAgenda = reduxForm({
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: ({ _id, name }) => dispatch(
-        actions.createOrUpdateAgenda({
+    onSubmit: ({ _id, name }) => (
+        // save the agenda through the API
+        dispatch(actions.createOrUpdateAgenda({
             _id,
             name,
-        })
+        }))
     ),
 })
 

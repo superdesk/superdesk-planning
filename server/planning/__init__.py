@@ -60,6 +60,18 @@ def init_app(app):
         description='Ability to create and modify Agendas'
     )
 
+    superdesk.privilege(
+        name='planning_planning_management',
+        label='Planning - Planning Management',
+        description='Ability to create and modify Planning items'
+    )
+
+    superdesk.privilege(
+        name='planning_event_management',
+        label='Planning - Event Management',
+        description='Ability to create and modify Events'
+    )
+
 
 register_feeding_service(
     EventFileFeedingService.NAME,
