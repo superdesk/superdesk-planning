@@ -31,7 +31,15 @@ describe('agenda', () => {
             },
         }
         const getState = () => (initialState)
-        const dispatch = sinon.spy(() => (Promise.resolve()))
+        const dispatch = sinon.spy((action) =>  {
+            if (typeof action === 'function') {
+                return action(dispatch, getState, {
+                    notify,
+                    api,
+                    $timeout,
+                })
+            }
+        })
         const notify = {
             error: sinon.spy(),
             success: sinon.spy(),
@@ -105,10 +113,7 @@ describe('agenda', () => {
                             action: '_createOrUpdateAgenda',
                             permission: PRIVILEGES.AGENDA_MANAGEMENT,
                             errorMessage: 'Unauthorised to create or update an agenda',
-                            args: {
-                                _id: undefined,
-                                name: item.name,
-                            },
+                            args: [item],
                         },
                     }])
                     expect(dispatch.callCount).toBe(1)
@@ -125,8 +130,6 @@ describe('agenda', () => {
             .then(() => {
                 expect(apiSpy.remove.args[0]).toEqual([agendas[1]])
                 expect(notify.success.args[0]).toEqual(['The agenda has been deleted.'])
-
-                expect(dispatch.callCount).toBe(1)
                 // Cannot check dispatch(fetchAgendas()) using a spy on dispatch
                 // As fetchAgendas is a thunk function
             })
@@ -187,7 +190,6 @@ describe('agenda', () => {
                 })
                 .then((planning) => {
                     expect(planning).toEqual(item)
-                    expect(dispatch.callCount).toBe(1)
                     // Cannot check dispatch(addPlanningToAgenda()) using a spy on dispatch
                     // As addPlanningToAgenda is a thunk function
 
@@ -214,7 +216,7 @@ describe('agenda', () => {
                             action: '_addToCurrentAgenda',
                             permission: PRIVILEGES.PLANNING_MANAGEMENT,
                             errorMessage: 'Unauthorised to add a Planning Item to an Agenda',
-                            args: { planning: item },
+                            args: [item],
                         },
                     }])
                     expect(dispatch.callCount).toBe(1)
@@ -258,7 +260,7 @@ describe('agenda', () => {
                             action: '_addEventToCurrentAgenda',
                             permission: PRIVILEGES.PLANNING_MANAGEMENT,
                             errorMessage: 'Unauthorised to create a new planning item!',
-                            args: { event },
+                            args: [event],
                         },
                     }])
                     expect(dispatch.callCount).toBe(1)
@@ -301,11 +303,10 @@ describe('agenda', () => {
                     ])
                     expect(agenda).toEqual(newAgenda)
 
-                    expect(dispatch.args[0]).toEqual([{
+                    expect(dispatch.args[1]).toEqual([{
                         type: 'ADD_OR_REPLACE_AGENDA',
                         payload: newAgenda,
                     }])
-                    expect(dispatch.callCount).toBe(1)
                 })
             })
 
@@ -327,10 +328,10 @@ describe('agenda', () => {
                             action: '_addPlanningToAgenda',
                             permission: PRIVILEGES.PLANNING_MANAGEMENT,
                             errorMessage: 'Unauthorised to add a Planning Item to an Agenda',
-                            args: {
+                            args: [{
                                 planning,
                                 agenda: agendas[0],
-                            },
+                            }],
                         },
                     }])
                     expect(dispatch.callCount).toBe(1)

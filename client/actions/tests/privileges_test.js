@@ -1,6 +1,7 @@
 import sinon from 'sinon'
 import * as actions from '../privileges'
 import { PRIVILEGES } from '../../constants'
+import { checkPermission } from '../../utils'
 
 describe('privileges', () => {
     describe('actions', () => {
@@ -38,46 +39,41 @@ describe('privileges', () => {
             })
         })
 
-        const _mockAction = (dispatch) => (dispatch({ type: 'MOCK' }))
+        const _mockAction = () => ({ type: 'MOCK' })
 
-        const action = actions.checkPermission(
+        const action = checkPermission(
             _mockAction,
             PRIVILEGES.PLANNING_MANAGEMENT,
-            'Unauthorised to perform this action',
-            {}
+            'Unauthorised to perform this action'
         )
 
         it('checkPermission for ACCESS_DENIED', () => {
             initialState.privileges.planning_planning_management = 0
-            return action(dispatch, getState, {
+            action()(dispatch, getState, {
                 notify,
                 $timeout,
             })
-            .then(() => {
-                expect($timeout.callCount).toBe(1)
-                expect(notify.error.args[0][0]).toBe('Unauthorised to perform this action')
-                expect(dispatch.args[0]).toEqual([{
-                    type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                    payload: {
-                        action: '_mockAction',
-                        permission: PRIVILEGES.PLANNING_MANAGEMENT,
-                        errorMessage: 'Unauthorised to perform this action',
-                        args: {},
-                    },
-                }])
-                expect(dispatch.callCount).toBe(1)
-            })
+            expect($timeout.callCount).toBe(1)
+            expect(notify.error.args[0][0]).toBe('Unauthorised to perform this action')
+            expect(dispatch.args[0]).toEqual([{
+                type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
+                payload: {
+                    action: '_mockAction',
+                    permission: PRIVILEGES.PLANNING_MANAGEMENT,
+                    errorMessage: 'Unauthorised to perform this action',
+                    args: [],
+                },
+            }])
+            expect(dispatch.callCount).toBe(1)
         })
 
-        it('checkPermission for ACCESS_GRANTED', () => (
-            action(dispatch, getState, {
+        it('checkPermission for ACCESS_GRANTED', () => {
+            action()(dispatch, getState, {
                 notify,
                 $timeout,
             })
-            .then(() => {
-                expect(dispatch.args[0]).toEqual([{ type: 'MOCK' }])
-                expect(dispatch.callCount).toBe(1)
-            })
-        ))
+            expect(dispatch.args[0]).toEqual([{ type: 'MOCK' }])
+            expect(dispatch.callCount).toBe(1)
+        })
     })
 })

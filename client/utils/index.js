@@ -5,6 +5,8 @@ import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
 import { get, set } from 'lodash'
 
+export { default as checkPermission } from './checkPermission'
+
 export function isAllDay(event) {
     // event last 24 hours
     return moment(event.dates.end).diff(moment(event.dates.start), 'minutes') === 24 * 60 &&

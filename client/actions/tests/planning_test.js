@@ -34,7 +34,15 @@ describe('planning', () => {
         let initialState
 
         const getState = () => (initialState)
-        const dispatch = sinon.spy(() => (Promise.resolve()))
+        const dispatch = sinon.spy((action) =>  {
+            if (typeof action === 'function') {
+                return action(dispatch, getState, {
+                    notify,
+                    api,
+                    $timeout,
+                })
+            }
+        })
         const notify = {
             error: sinon.spy(),
             success: sinon.spy(),
@@ -122,7 +130,6 @@ describe('planning', () => {
                     // Cannot check dispatch(saveAndDeleteCoverages()) using a spy on dispatch
                     // As saveAndDeleteCoverages is a thunk function
 
-                    expect(dispatch.callCount).toBe(1)
                     expect($timeout.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(0)
                 })
@@ -144,7 +151,7 @@ describe('planning', () => {
                             action: '_savePlanning',
                             permission: PRIVILEGES.PLANNING_MANAGEMENT,
                             errorMessage: 'Unauthorised to modify a planning item!',
-                            args: { planning: item },
+                            args: [item],
                         },
                     }])
                     expect(dispatch.callCount).toBe(1)
@@ -195,7 +202,7 @@ describe('planning', () => {
                             action: '_savePlanningAndReloadCurrentAgenda',
                             permission: PRIVILEGES.PLANNING_MANAGEMENT,
                             errorMessage: 'Unauthorised to create a new planning item!',
-                            args: { originalPlanning: item },
+                            args: [item],
                         },
                     }])
                     expect(dispatch.callCount).toBe(1)
@@ -227,42 +234,38 @@ describe('planning', () => {
         describe('openPlanningEditor', () => {
             const action = actions.openPlanningEditor(plannings[0]._id)
 
-            it('openPlanningEditor dispatches action', () => (
+            it('openPlanningEditor dispatches action', () => {
                 action(dispatch, getState, {
                     notify,
                     $timeout,
                 })
-                .then(() => {
-                    expect(dispatch.args[0]).toEqual([{
-                        type: 'OPEN_PLANNING_EDITOR',
-                        payload: plannings[0]._id,
-                    }])
-                    expect($timeout.callCount).toBe(0)
-                    expect(notify.error.callCount).toBe(0)
-                    expect(dispatch.callCount).toBe(1)
-                })
-            ))
+                expect(dispatch.args[0]).toEqual([{
+                    type: 'OPEN_PLANNING_EDITOR',
+                    payload: plannings[0]._id,
+                }])
+                expect($timeout.callCount).toBe(0)
+                expect(notify.error.callCount).toBe(0)
+                expect(dispatch.callCount).toBe(1)
+            })
 
             it('openPlanningEditor raises ACCESS_DENIED without permission', () => {
                 initialState.privileges.planning_planning_management = 0
-                return action(dispatch, getState, {
+                action(dispatch, getState, {
                     notify,
                     $timeout,
                 })
-                .then(() => {
-                    expect($timeout.callCount).toBe(1)
-                    expect(notify.error.args[0][0]).toBe('Unauthorised to edit a planning item!')
-                    expect(dispatch.args[0]).toEqual([{
-                        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                        payload: {
-                            action: '_openPlanningEditor',
-                            permission: PRIVILEGES.PLANNING_MANAGEMENT,
-                            errorMessage: 'Unauthorised to edit a planning item!',
-                            args: { planning: plannings[0]._id },
-                        },
-                    }])
-                    expect(dispatch.callCount).toBe(1)
-                })
+                expect($timeout.callCount).toBe(1)
+                expect(notify.error.args[0][0]).toBe('Unauthorised to edit a planning item!')
+                expect(dispatch.args[0]).toEqual([{
+                    type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
+                    payload: {
+                        action: '_openPlanningEditor',
+                        permission: PRIVILEGES.PLANNING_MANAGEMENT,
+                        errorMessage: 'Unauthorised to edit a planning item!',
+                        args: [plannings[0]._id],
+                    },
+                }])
+                expect(dispatch.callCount).toBe(1)
             })
         })
 
@@ -283,7 +286,6 @@ describe('planning', () => {
                     // Cannot check dispatch(openPlanningEditor()) using a spy on dispatch
                     // As openPlanningEditor is a thunk function
 
-                    expect(dispatch.callCount).toBe(1)
                     expect($timeout.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(0)
                 })
@@ -304,7 +306,7 @@ describe('planning', () => {
                             action: '_openPlanningEditorAndAgenda',
                             permission: PRIVILEGES.PLANNING_MANAGEMENT,
                             errorMessage: 'Unauthorised to edit a planning item!',
-                            args: { planning: plannings[0]._id },
+                            args: [plannings[0]._id],
                         },
                     }])
                     expect(dispatch.callCount).toBe(1)
