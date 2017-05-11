@@ -241,45 +241,40 @@ describe('events', () => {
 
         describe('openEventDetails', () => {
             const action = actions.openEventDetails(events[0])
-
-            it('openEventDetails dispatches actions', () => (
+            it('openEventDetails dispatches actions', () => {
                 action(dispatch, getState, {
                     notify,
                     $timeout,
                 })
-                .then(() => {
-                    expect(dispatch.args[0]).toEqual([{
-                        type: 'OPEN_EVENT_DETAILS',
-                        payload: events[0]._id,
-                    }])
-                    expect(dispatch.callCount).toBe(1)
-                    expect(notify.error.callCount).toBe(0)
-                    expect($timeout.callCount).toBe(0)
-                })
-            ))
+                expect(dispatch.args[0]).toEqual([{
+                    type: 'OPEN_EVENT_DETAILS',
+                    payload: events[0]._id,
+                }])
+                expect(dispatch.callCount).toBe(1)
+                expect(notify.error.callCount).toBe(0)
+                expect($timeout.callCount).toBe(0)
+            })
 
             it('openEventDetails raises ACCESS_DENIED without permission', () => {
                 initialState.privileges.planning_event_management = 0
-                return action(dispatch, getState, {
+                action(dispatch, getState, {
                     notify,
                     $timeout,
                 })
-                .then(() => {
-                    expect($timeout.callCount).toBe(1)
-                    expect(notify.error.args[0][0]).toBe(
-                        'Unauthorised to edit an event!'
-                    )
-                    expect(dispatch.args[0]).toEqual([{
-                        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                        payload: {
-                            action: '_openEventDetails',
-                            permission: PRIVILEGES.EVENT_MANAGEMENT,
-                            errorMessage: 'Unauthorised to edit an event!',
-                            args: { event: events[0] },
-                        },
-                    }])
-                    expect(dispatch.callCount).toBe(1)
-                })
+                expect($timeout.callCount).toBe(1)
+                expect(notify.error.args[0][0]).toBe(
+                    'Unauthorised to edit an event!'
+                )
+                expect(dispatch.args[0]).toEqual([{
+                    type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
+                    payload: {
+                        action: '_openEventDetails',
+                        permission: PRIVILEGES.EVENT_MANAGEMENT,
+                        errorMessage: 'Unauthorised to edit an event!',
+                        args: [events[0]],
+                    },
+                }])
+                expect(dispatch.callCount).toBe(1)
             })
         })
 

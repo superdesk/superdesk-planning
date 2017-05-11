@@ -8,7 +8,7 @@ import { showModal, hideModal, fetchSelectedAgendaPlannings,
 import { DeleteEvent } from '../components/index'
 import React from 'react'
 import { PRIVILEGES } from '../constants'
-import { checkPermission } from './privileges'
+import { checkPermission } from '../utils'
 
 /**
  * Action Dispatcher for saving an event
@@ -394,18 +394,13 @@ function closeAdvancedSearch() {
 
 /**
  * Opens the Edit Event panel with the supplied Event
- * @param {function} dispatch - The redux store's dispatch function
- * @param {function} getState - The redux store's getState function
- * @param {object} services - Not used in this instance
  * @param {object} event - The Event ID to edit
  * @return Promise
  */
-const _openEventDetails = (dispatch, getState, services, { event }) => (
-    dispatch({
-        type: 'OPEN_EVENT_DETAILS',
-        payload: get(event, '_id', event || true),
-    })
-)
+const _openEventDetails = (event) => ({
+    type: 'OPEN_EVENT_DETAILS',
+    payload: get(event, '_id', event || true),
+})
 
 /**
  * Action to close the Edit Event panel
@@ -462,13 +457,10 @@ const openDeleteEvent = (event) => (
     }
 )
 
-const openEventDetails = (event) => (
-    checkPermission(
-        _openEventDetails,
-        PRIVILEGES.EVENT_MANAGEMENT,
-        'Unauthorised to edit an event!',
-        { event }
-    )
+const openEventDetails = checkPermission(
+    _openEventDetails,
+    PRIVILEGES.EVENT_MANAGEMENT,
+    'Unauthorised to edit an event!'
 )
 
 export {
