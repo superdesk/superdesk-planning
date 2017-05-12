@@ -3,6 +3,8 @@ import * as actions from '../actions'
 import { pickBy, cloneDeep, isNil, has, get } from 'lodash'
 import { fetchAgendas, addToCurrentAgenda, selectAgenda,
     fetchSelectedAgendaPlannings } from './agenda'
+import { PRIVILEGES } from '../constants'
+import { checkPermission } from '../utils'
 
 /**
  * Action dispatcher to delete a planning item
@@ -29,14 +31,14 @@ const deletePlanning = (planning) => (
 )
 
 /**
- * Action dispatcher to save the supplied planning item and reload the
+ * Saves the supplied planning item and reload the
  * list of Agendas and their associated planning items.
  * If the planning item does not have an ._id, then add it to the
  * currently selected Agenda
  * @param {object} originalPlanning - The planning item to save
- * @return arrow function
+ * @return Promise
  */
-const savePlanningAndReloadCurrentAgenda = (originalPlanning) => (
+const _savePlanningAndReloadCurrentAgenda = (originalPlanning) => (
     (dispatch) => (
         dispatch(savePlanning(originalPlanning))
         .then((planning) => (
@@ -45,7 +47,8 @@ const savePlanningAndReloadCurrentAgenda = (originalPlanning) => (
                 if (isNil(originalPlanning) || isNil(originalPlanning._id)) {
                     return dispatch(addToCurrentAgenda(planning))
                 }
-            })()).then(() => (
+            })())
+            .then(() => (
                 // update the planning list
                 dispatch(fetchSelectedAgendaPlannings())
                 .then(() => (planning))
@@ -55,11 +58,12 @@ const savePlanningAndReloadCurrentAgenda = (originalPlanning) => (
 )
 
 /**
- * Action dispatcher to save or create a new a planning item
+ * Saves a Planning Item
+ * If the item does not contain an _id, then it creates a new planning item istead
  * @param planning
- * @return arrow function
+ * @return Promise
  */
-const savePlanning = (planning) => (
+const _savePlanning = (planning) => (
     (dispatch, getState, { api, notify }) => {
         // find original
         let originalPlanning = {}
@@ -97,21 +101,18 @@ const savePlanning = (planning) => (
 )
 
 /**
-*   This will save or delete coverages through the API to
-*   the given planning based on the original coverages
-*/
-/**
- * Action dispatcher to save or delete coverages through the API
+ * Saves or deletes coverages through the API to
+ * the given planning based on the original coverages
  * @param {array, object} coverages - An array of coverage objects
  * @param {object} planning - The associated planning item
  * @param {object} originalCoverages - The original version of the coverage list
- * @return arrow function
+ * @return Promise
  */
-const saveAndDeleteCoverages = (coverages=[], planning, originalCoverages=[]) => (
+const _saveAndDeleteCoverages = (coverages, planning, originalCoverages) => (
     (dispatch, getState, { api }) => {
         const promises = []
         // saves coverages
-        if (coverages.length > 0) {
+        if (coverages && coverages.length > 0) {
             coverages.forEach((coverage) => {
                 coverage.planning_item = planning._id
                 // patch or post ? look for an original coverage
@@ -124,7 +125,7 @@ const saveAndDeleteCoverages = (coverages=[], planning, originalCoverages=[]) =>
             })
         }
         // deletes coverages
-        if (originalCoverages.length > 0) {
+        if (originalCoverages && originalCoverages.length > 0) {
             originalCoverages.forEach((originalCoverage) => {
                 // if there is a coverage in the original planning that is not anymore
                 // in the planning, we delete it
@@ -145,7 +146,7 @@ const saveAndDeleteCoverages = (coverages=[], planning, originalCoverages=[]) =>
 /**
  * Action for updating the list of planning items in the redux store
  * @param  {array, object} plannings - An array of planning item objects
- * @return object
+ * @return action object
  */
 const receivePlannings = (plannings) => ({
     type: 'RECEIVE_PLANNINGS',
@@ -155,7 +156,7 @@ const receivePlannings = (plannings) => ({
 /**
  * Action dispatcher to perform fetch the list of planning items from the server
  * @param {object} query - Query object used when requesting the planning items
- * @return arrow function
+ * @return thunk function
  */
 const performFetchRequest = (query={}) => (
     (dispatch, getState, { api }) => (
@@ -173,7 +174,7 @@ const performFetchRequest = (query={}) => (
 /**
  * Action dispatcher for requesting a fetch of planning items
  * @param {object} params - Parameters used when fetching the planning items
- * @return arrow function
+ * @return thunk function
  */
 const fetchPlannings = (params={}) => (
     (dispatch, getState) => {
@@ -204,23 +205,28 @@ const fetchPlannings = (params={}) => (
 )
 
 /**
- * Action for opening the planning editor
- * @param planning
- * @return object
+ * Opens the Planning Editor
+ * @param {function} dispatch - The redux store's dispatch function
+ * @param {function} getState - The redux store's getState function
+ * @param {object} services - Not used in this instance
+ * @param {object} planning - The planning item to open
+ * @return Promise
  */
-const openPlanningEditor = (planning) => ({
-    type: 'OPEN_PLANNING_EDITOR',
-    payload: planning,
-})
+const _openPlanningEditor = (planning) => (
+    {
+        type: 'OPEN_PLANNING_EDITOR',
+        payload: planning,
+    }
+)
 
 /**
- * Action dispatcher for opening the planning editor.
- * This action also changes the currently selected agenda to the agenda this planning
+ * Opens the Planning Editor
+ * Also changes the currently selected agenda to the the agenda this planning
  * item is associated with
  * @param planning
- * @return arrow function
+ * @return Promise
  */
-const openPlanningEditorAndAgenda = (planning) => (
+const _openPlanningEditorAndAgenda = (planning) => (
     (dispatch, getState) => {
         const agenda = selectors.getAgendas(getState()).find(
             (a) => (a.planning_items || []).indexOf(planning) > -1
@@ -229,8 +235,7 @@ const openPlanningEditorAndAgenda = (planning) => (
             dispatch(selectAgenda(agenda._id))
         }
         // open the planning details
-        dispatch(openPlanningEditor(planning))
-        return Promise.resolve()
+        return dispatch(openPlanningEditor(planning))
     }
 )
 
@@ -260,6 +265,33 @@ const planningFilterByKeyword = (value) => ({
     type: 'PLANNING_FILTER_BY_KEYWORD',
     payload: value && value.trim() || null,
 })
+
+// Action Privileges
+const savePlanningAndReloadCurrentAgenda = checkPermission(
+    _savePlanningAndReloadCurrentAgenda,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to create a new planning item!'
+)
+const savePlanning = checkPermission(
+    _savePlanning,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to modify a planning item!'
+)
+const saveAndDeleteCoverages = checkPermission(
+    _saveAndDeleteCoverages,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to modify planning coverages'
+)
+const openPlanningEditor = checkPermission(
+    _openPlanningEditor,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to edit a planning item!'
+)
+const openPlanningEditorAndAgenda = checkPermission(
+    _openPlanningEditorAndAgenda,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to edit a planning item!'
+)
 
 export {
     deletePlanning,

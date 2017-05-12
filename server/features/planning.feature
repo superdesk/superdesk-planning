@@ -42,6 +42,36 @@ Feature: Planning
         """
 
     @auth
+    Scenario: Planning item can be created only by user having privileges
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_planning_management": 0, "users": 1}}
+        """
+        Then we get OK response
+        When we post to "planning"
+        """
+        [{
+            "slugline": "test slugline",
+            "headline": "test headline"
+        }]
+        """
+        Then we get error 403
+        When we setup test user
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_planning_management": 1, "users": 1}}
+        """
+        Then we get OK response
+        When we post to "planning"
+        """
+        [{
+            "slugline": "test slugline",
+            "headline": "test headline"
+        }]
+        """
+        Then we get OK response
+
+    @auth
     @notification
     Scenario: Plannings contain nested coverages
         Given "planning"
@@ -78,3 +108,32 @@ Feature: Planning
             }]
         }]}
         """
+
+    @auth
+    Scenario: Planning item can be modified only by user having privileges
+        When we post to "planning"
+        """
+        [{"slugline": "slugger"}]
+        """
+        Then we get OK response
+        Then we store "planningId" with value "#planning._id#" to context
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_planning_management": 0, "users": 1}}
+        """
+        Then we get OK response
+        When we patch "/planning/#planningId#"
+        """
+        {"headline": "header"}
+        """
+        Then we get error 403
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_planning_management": 1, "users": 1}}
+        """
+        Then we get OK response
+        When we patch "/planning/#planningId#"
+        """
+        {"headline": "header"}
+        """
+        Then we get OK response

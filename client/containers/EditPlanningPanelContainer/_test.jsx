@@ -7,7 +7,14 @@ import * as actions from '../../actions'
 
 describe('<EditPlanningPanelContainer />', () => {
     it('open the panel', () => {
-        let store = createTestStore()
+        let store = createTestStore({
+            initialState: {
+                privileges: {
+                    planning: 1,
+                    planning_planning_management: 1,
+                },
+            },
+        })
         const wrapper = mount(
             <Provider store={store}>
                 <EditPlanningPanelContainer />
@@ -20,9 +27,14 @@ describe('<EditPlanningPanelContainer />', () => {
     })
     it('cancel', () => {
         const initialState = {
+            privileges: {
+                planning: 1,
+                planning_agenda_management: 1,
+                planning_planning_management: 1,
+            },
             planning: {
                 plannings: {
-                    2: {
+                    '2': {
                         _id: '2',
                         slugline: 'slug',
                         coverages: [{ _id: 'coverage1' }],
@@ -55,6 +67,7 @@ describe('<EditPlanningPanelContainer />', () => {
         expect(cancelButton.props().disabled).toBe(false)
 
         // Modify the slugline and ensure the save/cancel buttons are active
+        expect(sluglineInput.props().value).toBe('slug')
         sluglineInput.simulate('change', { target: { value: 'NewSlug' } })
         expect(sluglineInput.props().value).toBe('NewSlug')
         expect(saveButton.props().disabled).toBe(false)

@@ -3,43 +3,45 @@ import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
 import { cloneDeep, get } from 'lodash'
 import { closePlanningEditor, fetchPlannings, savePlanning } from './planning'
+import { PRIVILEGES } from '../constants'
+import { checkPermission } from '../utils'
 
 /**
- * Action Dispatcher for create/update an Agenda
- * @param {string} _id - The id of the Agenda
- * @param {string} name - The name of the Agenda
- * @return arrow function
+ * Creates or updates an Agenda
+ * @param {string} _id - The ID of the Agenda
+ * @param {string} name - The name of the Agenda to create
+ * @return Promise
  */
-const createOrUpdateAgenda = ({ _id, name }) => (
+const _createOrUpdateAgenda = ({ _id, name }) => (
     (dispatch, getState, { api, notify }) => {
         let originalAgenda = {}
         const agendas = selectors.getAgendas(getState())
 
         if (_id) {
-            originalAgenda = agendas.find((agenda) => agenda._id == _id)
+            originalAgenda = agendas.find((agenda) => agenda._id === _id)
             originalAgenda = cloneDeep(originalAgenda || {})
         }
 
         return api('agenda').save(originalAgenda, { name })
-            .then((agenda) => {
-                notify.success('The agenda has been created/updated.')
-                dispatch(hideModal())
-                dispatch(addOrReplaceAgenda(agenda))
-                dispatch(selectAgenda(agenda._id))
-            }, (error) => {
-                let errorMessage = 'There was a problem, Agenda is not created/updated.'
-                if (get(error, 'data._message')) {
-                    errorMessage = get(error, 'data._message')
-                } else if (get(error, 'data._issues.validator exception')) {
-                    errorMessage = get(error, 'data._issues.validator exception')
-                }
+        .then((agenda) => {
+            notify.success('The agenda has been created/updated.')
+            dispatch(hideModal())
+            dispatch(addOrReplaceAgenda(agenda))
+            dispatch(selectAgenda(agenda._id))
+        }, (error) => {
+            let errorMessage = 'There was a problem, Agenda is not created/updated.'
+            if (get(error, 'data._message')) {
+                errorMessage = get(error, 'data._message')
+            } else if (get(error, 'data._issues.validator exception')) {
+                errorMessage = get(error, 'data._issues.validator exception')
+            }
 
-                notify.error(errorMessage)
-                throw new SubmissionError({
-                    name: errorMessage,
-                    _error: error.statusText,
-                })
+            notify.error(errorMessage)
+            throw new SubmissionError({
+                name: errorMessage,
+                _error: error.statusText,
             })
+        })
     }
 )
 
@@ -48,24 +50,20 @@ const createOrUpdateAgenda = ({ _id, name }) => (
  * @param {object} agenda - The agenda object to send to the reducer
  * @return object
  */
-const addOrReplaceAgenda = (agenda) => (
-    {
-        type: 'ADD_OR_REPLACE_AGENDA',
-        payload: agenda,
-    }
-)
+const addOrReplaceAgenda = (agenda) => ({
+    type: 'ADD_OR_REPLACE_AGENDA',
+    payload: agenda,
+})
 
 /**
  * Action for storing the list of Agenda's in the redux store
  * @param agendas
  * @return object
  */
-const receiveAgendas = (agendas) => (
-    {
-        type: 'RECEIVE_AGENDAS',
-        payload: agendas,
-    }
-)
+const receiveAgendas = (agendas) => ({
+    type: 'RECEIVE_AGENDAS',
+    payload: agendas,
+})
 
 /**
  * Action dispatcher that changes the selected Agenda to the one provided.
@@ -123,9 +121,9 @@ const fetchAgendas = (query={}) => (
  * Action dispatcher that adds the supplied planning item to the agenda
  * @param {object} planning - The planning item to add to the agenda
  * @param {object} agenda - The agenda to add the planning to
- * @return arrow function
+ * @return Promise
  */
-const addPlanningToAgenda = ({ planning, agenda }) => (
+const _addPlanningToAgenda = ({ planning, agenda }) => (
     (dispatch, getState, { api }) => {
         // clone agenda
         agenda = cloneDeep(agenda)
@@ -147,9 +145,9 @@ const addPlanningToAgenda = ({ planning, agenda }) => (
  * Action dispatcher that adds the supplied planning item to the
  * currently selected agenda
  * @param {object} planning - The planning item to add to the agenda
- * @return arrow function
+ * @return Promise
  */
-const addToCurrentAgenda = (planning) => (
+const _addToCurrentAgenda = (planning) => (
     (dispatch, getState, { notify }) => {
         const currentAgenda = selectors.getCurrentAgenda(getState())
         if (!currentAgenda) throw Error('unable to find the current agenda')
@@ -169,9 +167,9 @@ const addToCurrentAgenda = (planning) => (
  * Action dispatcher that creates a planning item from the supplied event,
  * then adds this to the currently selected agenda
  * @param {object} event - The event used to create the planning item
- * @return arrow function
+ * @return Promise
  */
-const addEventToCurrentAgenda = (event) => (
+const _addEventToCurrentAgenda = (event) => (
     (dispatch, getState) => {
         // check if there is a current agenda, throw an error if not
         const currentAgenda = selectors.getCurrentAgenda(getState())
@@ -184,11 +182,11 @@ const addEventToCurrentAgenda = (event) => (
             subject: event.subject,
             anpa_category: event.anpa_category,
         }))
-        .then((planning) =>
+        .then((planning) => (
             dispatch(addToCurrentAgenda(planning))
             // reload the plannings of the current calendar
             .then(() => dispatch(fetchSelectedAgendaPlannings()))
-        )
+        ))
     }
 )
 
@@ -239,12 +237,59 @@ const fetchSelectedAgendaPlannings = () => (
     }
 )
 
+// Action Privileges
+/**
+ * Action Dispatcher for creating or updating an Agenda
+ * Also checks the permission if the user can do so
+ * @return thunk function
+ */
+const createOrUpdateAgenda = checkPermission(
+    _createOrUpdateAgenda,
+    PRIVILEGES.AGENDA_MANAGEMENT,
+    'Unauthorised to create or update an agenda'
+)
+
+/**
+ * Action Dispatcher for creating a Planning Item from an Event
+ * and adding that to the current Agenda.
+ * Also checks the permission if the user can do so
+ * @return thunk function
+ */
+const addEventToCurrentAgenda = checkPermission(
+    _addEventToCurrentAgenda,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to create a new planning item!'
+)
+
+/**
+ * Action Dispatcher to add a Planning Item to an Agenda
+ * Also checks the permission if the user can do so
+ * @return thunk function
+ */
+const addPlanningToAgenda = checkPermission(
+    _addPlanningToAgenda,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to add a Planning Item to an Agenda'
+)
+
+/**
+ * Action Dispatcher to add a Planning Item to the current Agenda
+ * Also checks the permission if the user can do so
+ * @return thunk function
+ */
+const addToCurrentAgenda = checkPermission(
+    _addToCurrentAgenda,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to add a Planning Item to an Agenda'
+)
+
 export {
     createOrUpdateAgenda,
     deleteAgenda,
     fetchAgendas,
     selectAgenda,
     addToCurrentAgenda,
+    addPlanningToAgenda,
     addEventToCurrentAgenda,
     fetchSelectedAgendaPlannings,
 }

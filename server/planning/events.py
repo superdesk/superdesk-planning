@@ -134,6 +134,12 @@ class EventsService(superdesk.Service):
             del updates['skip_on_update']
             return
 
+        # The rest of this update function expects 'dates' to be in updates
+        # This can cause issues, as a workaround for now add the dictionary in manually
+        # Until a better fix can be implemented
+        if 'dates' not in updates:
+            updates['dates'] = {}
+
         if not updates['dates'].get('recurring_rule', None):
             # update only the current item so set it as a non recurrent task
             updates['dates']['recurring_rule'] = None
@@ -464,8 +470,8 @@ class EventsResource(superdesk.Resource):
     }
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
-    privileges = {'POST': 'planning',
-                  'PATCH': 'planning',
+    privileges = {'POST': 'planning_event_management',
+                  'PATCH': 'planning_event_management',
                   'DELETE': 'planning'}
 
 
