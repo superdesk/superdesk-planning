@@ -9,6 +9,7 @@ export const isEventListShown = (state) =>state.events.show
 export const getCurrentAgendaId = (state) => state.agenda.currentAgendaId
 export const getStoredPlannings = (state) => state.planning.plannings
 export const isOnlyFutureFiltered = (state) => state.planning.onlyFuture
+export const filterPlanningKeyword = (state) => state.planning.filterPlanningKeyword
 export const getServerUrl = (state) => state.config.server.url
 export const getDateFormat = (state) => state.config.model.dateformat
 export const getTimeFormat = (state) => state.config.shortTimeFormat
@@ -28,8 +29,10 @@ export const getCurrentAgenda = createSelector(
 export const getPrivileges = (state) => state.privileges
 
 export const getCurrentAgendaPlannings = createSelector(
-    [getCurrentAgenda, getStoredPlannings, isOnlyFutureFiltered, getEvents],
-    (currentAgenda, storedPlanningsObjects, isOnlyFutureFiltered, events) => {
+    [getCurrentAgenda, getStoredPlannings, isOnlyFutureFiltered, getEvents,
+        filterPlanningKeyword],
+    (currentAgenda, storedPlanningsObjects, isOnlyFutureFiltered, events,
+        filterPlanningKeyword) => {
         /** Return true if the planning has a future scheduled due date for a coverage
         or an associated event with a future end date.
         see: https://dev.sourcefabric.org/browse/SDESK-1103
@@ -56,6 +59,19 @@ export const getCurrentAgendaPlannings = createSelector(
             return false
         }
 
+        function freetextSearch(planning) {
+            // compose a string with the fields we want to seach in.
+            const textToSearchIn = `
+                ${JSON.stringify(planning)}
+                ${JSON.stringify(events[planning.event_item])}
+            `.toLowerCase()
+            return filterPlanningKeyword
+                .toLowerCase()
+                .split(' ').every((keyword) => (
+                    textToSearchIn.indexOf(keyword) !== -1
+                ))
+        }
+
         const planningsIds = currentAgenda ? currentAgenda.planning_items || [] : []
         const plannings = planningsIds
         // from ids, get the actual plannings objects
@@ -64,6 +80,8 @@ export const getCurrentAgendaPlannings = createSelector(
         .filter((p) => p !== undefined)
         // if "only future" filter is enabled, keep only future planning
         .filter((p) => !isOnlyFutureFiltered || isFuture(p))
+        // filter by keyword
+        .filter((p) => !filterPlanningKeyword || freetextSearch(p))
         // sort by new created first, or by name
         return orderBy(plannings, ['_created'], ['desc'])
     }

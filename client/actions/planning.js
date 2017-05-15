@@ -223,9 +223,6 @@ const _openPlanningEditor = (planning) => (
  * Opens the Planning Editor
  * Also changes the currently selected agenda to the the agenda this planning
  * item is associated with
- * @param {function} dispatch - The redux store's dispatch function
- * @param {function} getState - The redux store's getState function
- * @param {object} services - Not used in this instance
  * @param planning
  * @return Promise
  */
@@ -264,6 +261,11 @@ const toggleOnlyFutureFilter = () => (
     }
 )
 
+const planningFilterByKeyword = (value) => ({
+    type: 'PLANNING_FILTER_BY_KEYWORD',
+    payload: value && value.trim() || null,
+})
+
 // Action Privileges
 const savePlanningAndReloadCurrentAgenda = checkPermission(
     _savePlanningAndReloadCurrentAgenda,
@@ -300,4 +302,5 @@ export {
     closePlanningEditor,
     openPlanningEditorAndAgenda,
     toggleOnlyFutureFilter,
+    planningFilterByKeyword,
 }

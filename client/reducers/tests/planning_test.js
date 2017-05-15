@@ -17,6 +17,7 @@ describe('planning', () => {
                 editorOpened: false,
                 planningsAreLoading: false,
                 onlyFuture: true,
+                filterPlanningKeyword: null,
             })
         })
 
