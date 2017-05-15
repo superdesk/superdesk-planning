@@ -219,3 +219,19 @@ export const formatAddress = (nominatim) => {
         shortName,
     }
 }
+
+/**
+ * Utility to return the error message from a api response, or the default message supplied
+ * @param {object} error - The API response, containing the error message
+ * @param {string} defaultMessage - The default string to return
+ * @return {string} string containing the error message
+ */
+export const getErrorMessage = (error, defaultMessage) => {
+    if (get(error, 'data._message')) {
+        return get(error, 'data._message')
+    } else if (get(error, 'data._issues.validator exception')) {
+        return get(error, 'data._issues.validator exception')
+    }
+
+    return defaultMessage
+}

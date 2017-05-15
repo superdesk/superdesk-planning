@@ -29,7 +29,8 @@ class PlanningPanel extends React.Component {
             planningList,
             openPlanningEditor,
             currentAgenda,
-            handlePlanningDeletion,
+            handlePlanningSpike,
+            handlePlanningUnspike,
             onPlanningCreation,
             planningsEvents,
             currentPlanning,
@@ -39,8 +40,10 @@ class PlanningPanel extends React.Component {
             toggleEventsList,
             onManageAgendasClick,
             onlyFuture,
+            onlySpiked,
             onFutureToggleChange,
             handleSearch,
+            onSpikedToggleChange,
             privileges,
         } = this.props
         const listClasses = [
@@ -83,6 +86,10 @@ class PlanningPanel extends React.Component {
                                 Only future
                                 <Toggle value={onlyFuture} onChange={onFutureToggleChange}/>
                             </label>
+                            <label>
+                                Spiked
+                                <Toggle value={onlySpiked} onChange={onSpikedToggleChange} />
+                            </label>
                         </div>
                         <ul className="list-view compact-view">
                             {currentAgenda && privileges.planning_planning_management === 1 && currentAgenda.state !== 'spiked' &&
@@ -94,8 +101,10 @@ class PlanningPanel extends React.Component {
                                     active={currentPlanning && currentPlanning._id === planning._id}
                                     item={planning}
                                     event={planningsEvents[planning._id]}
-                                    onDelete={handlePlanningDeletion}
-                                    onClick={openPlanningEditor.bind(null, planning._id)} />
+                                    onSpike={handlePlanningSpike}
+                                    onUnspike={handlePlanningUnspike}
+                                    onClick={openPlanningEditor.bind(null, planning._id)}
+                                    privileges={privileges} />
                             ))}
                         </ul>
                         {
@@ -129,7 +138,8 @@ PlanningPanel.propTypes = {
     planningList: React.PropTypes.array.isRequired,
     planningsAreLoading: React.PropTypes.bool,
     openPlanningEditor: React.PropTypes.func.isRequired,
-    handlePlanningDeletion: React.PropTypes.func,
+    handlePlanningSpike: React.PropTypes.func,
+    handlePlanningUnspike: React.PropTypes.func,
     onPlanningCreation: React.PropTypes.func,
     editPlanningViewOpen: React.PropTypes.bool,
     addEventToCurrentAgenda: React.PropTypes.func,
@@ -137,8 +147,10 @@ PlanningPanel.propTypes = {
     isEventListShown: React.PropTypes.bool,
     onManageAgendasClick: React.PropTypes.func,
     onlyFuture: React.PropTypes.bool,
+    onlySpiked: React.PropTypes.bool,
     onFutureToggleChange: React.PropTypes.func,
     handleSearch: React.PropTypes.func.isRequired,
+    onSpikedToggleChange: React.PropTypes.func,
     privileges: React.PropTypes.object.isRequired,
 }
 
@@ -151,16 +163,26 @@ const mapStateToProps = (state) => ({
     planningsEvents: selectors.getCurrentAgendaPlanningsEvents(state),
     isEventListShown: selectors.isEventListShown(state),
     onlyFuture: state.planning.onlyFuture,
+    onlySpiked: state.planning.onlySpiked,
     privileges: selectors.getPrivileges(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
-    handlePlanningDeletion: (planning) => {
+    handlePlanningSpike: (planning) => {
         dispatch(actions.showModal({
             modalType: 'CONFIRMATION',
             modalProps: {
-                body: `Are you sure you want to delete the planning item ${planning.slugline} ?`,
-                action: () => dispatch(actions.deletePlanning(planning)),
+                body: `Are you sure you want to spike the planning item ${planning.slugline} ?`,
+                action: () => dispatch(actions.spikePlanning(planning)),
+            },
+        }))
+    },
+    handlePlanningUnspike: (planning) => {
+        dispatch(actions.showModal({
+            modalType: 'CONFIRMATION',
+            modalProps: {
+                body: `Are you sure you want to unspike the planning item ${planning.slugline} ?`,
+                action: () => dispatch(actions.unspikePlanning(planning)),
             },
         }))
     },
@@ -181,6 +203,7 @@ const mapDispatchToProps = (dispatch) => ({
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
     onManageAgendasClick: () => (dispatch(actions.showModal({ modalType: 'MANAGE_AGENDAS' }))),
     onFutureToggleChange: () => (dispatch(actions.toggleOnlyFutureFilter())),
+    onSpikedToggleChange: () => (dispatch(actions.toggleOnlySpikedFilter())),
 })
 
 export const PlanningPanelContainer = connect(

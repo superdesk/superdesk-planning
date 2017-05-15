@@ -10,6 +10,7 @@ export const getCurrentAgendaId = (state) => state.agenda.currentAgendaId
 export const getStoredPlannings = (state) => state.planning.plannings
 export const isOnlyFutureFiltered = (state) => state.planning.onlyFuture
 export const filterPlanningKeyword = (state) => state.planning.filterPlanningKeyword
+export const isOnlySpikeFiltered = (state) => state.planning.onlySpiked
 export const getServerUrl = (state) => state.config.server.url
 export const getDateFormat = (state) => state.config.model.dateformat
 export const getTimeFormat = (state) => state.config.shortTimeFormat
@@ -30,9 +31,9 @@ export const getPrivileges = (state) => state.privileges
 
 export const getCurrentAgendaPlannings = createSelector(
     [getCurrentAgenda, getStoredPlannings, isOnlyFutureFiltered, getEvents,
-        filterPlanningKeyword],
+        filterPlanningKeyword, isOnlySpikeFiltered],
     (currentAgenda, storedPlanningsObjects, isOnlyFutureFiltered, events,
-        filterPlanningKeyword) => {
+        filterPlanningKeyword, isOnlySpikeFiltered) => {
         /** Return true if the planning has a future scheduled due date for a coverage
         or an associated event with a future end date.
         see: https://dev.sourcefabric.org/browse/SDESK-1103
@@ -82,6 +83,11 @@ export const getCurrentAgendaPlannings = createSelector(
         .filter((p) => !isOnlyFutureFiltered || isFuture(p))
         // filter by keyword
         .filter((p) => !filterPlanningKeyword || freetextSearch(p))
+        // if "only active" filter is enabled, keep only active planning
+        .filter((p) =>
+            (isOnlySpikeFiltered && p.state === 'spiked') ||
+            (!isOnlySpikeFiltered && p.state !== 'spiked')
+        )
         // sort by new created first, or by name
         return orderBy(plannings, ['_created'], ['desc'])
     }

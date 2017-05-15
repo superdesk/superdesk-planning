@@ -10,7 +10,7 @@ const coverageIcons = {
     audio: 'icon-audio',
     photo: 'icon-photo',
 }
-const PlanningItem = ({ item, event, onClick, active, onDelete }) => {
+const PlanningItem = ({ item, event, onClick, active, onSpike, onUnspike, privileges }) => {
     const location = get(event, 'location[0].name')
     const dueDates = get(item, 'coverages', []).map((c) => (get(c, 'planning.scheduled'))).filter(d => (d))
     const coveragesTypes = get(item, 'coverages', []).map((c) => get(c, 'planning.g2_content_type'))
@@ -22,6 +22,9 @@ const PlanningItem = ({ item, event, onClick, active, onDelete }) => {
             active={active}>
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
                 <div className="sd-list-item__row">
+                    {item.state === 'spiked' &&
+                        <span className="label label--alert">spiked</span>
+                    }
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {item.slugline}
                         {(item.headline && item.slugline !== item.headline) &&
@@ -51,13 +54,30 @@ const PlanningItem = ({ item, event, onClick, active, onDelete }) => {
                 </div>
             </div>
             <div className="sd-list-item__action-menu">
-                <OverlayTrigger placement="left" overlay={tooltips.deletePlanningTooltip}>
-                    <button
-                        className="dropdown__toggle"
-                        onClick={(e)=>{e.stopPropagation(); onDelete(item)}}>
-                        <i className="icon-trash"/>
-                    </button>
-                </OverlayTrigger>
+                {item.state !== 'spiked' && privileges.planning_planning_spike === 1 &&
+                    <OverlayTrigger placement="left" overlay={tooltips.spikePlanningTooltip}>
+                        <button
+                            className="dropdown__toggle"
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                onSpike(item)
+                            }}>
+                            <i className="icon-trash"/>
+                        </button>
+                    </OverlayTrigger>
+                }
+                {item.state === 'spiked' && privileges.planning_planning_unspike === 1 &&
+                    <OverlayTrigger placement="left" overlay={tooltips.unspikePlanningTooltip}>
+                        <button
+                            className="dropdown__toggle"
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                onUnspike(item)
+                            }}>
+                            <i className="icon-unspike" />
+                        </button>
+                    </OverlayTrigger>
+                }
             </div>
         </ListItem>
     )
@@ -68,7 +88,9 @@ PlanningItem.propTypes = {
     event: PropTypes.object,
     active: PropTypes.bool,
     onClick: PropTypes.func,
-    onDelete: PropTypes.func,
+    onSpike: PropTypes.func,
+    onUnspike: PropTypes.func,
+    privileges: PropTypes.object,
 }
 
 export default PlanningItem

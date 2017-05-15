@@ -23,6 +23,7 @@ export class EditPlanningPanel extends React.Component {
         const { closePlanningEditor, planning, event, pristine, submitting, agendaSpiked } = this.props
         const creationDate = get(planning, '_created')
         const author = get(planning, 'original_creator.username')
+        const planningSpiked = get(planning, 'state', 'active') === 'spiked'
         return (
             <div className="EditPlanningPanel">
                 <header>
@@ -40,7 +41,7 @@ export class EditPlanningPanel extends React.Component {
                             type="reset"
                             onClick={closePlanningEditor}
                             disabled={submitting}>Cancel</button>
-                        {!agendaSpiked &&
+                        {!agendaSpiked && !planningSpiked &&
                             <button
                                 className="btn btn--primary"
                                 onClick={this.handleSave.bind(this)}
@@ -51,7 +52,10 @@ export class EditPlanningPanel extends React.Component {
                 </header>
                 <div className="EditPlanningPanel__body">
                     {agendaSpiked &&
-                        <span className="label label--alert">agenda spiked</span>
+                        <span className="AgendaSpiked label label--alert">agenda spiked</span>
+                    }
+                    {planningSpiked &&
+                        <span className="PlanningSpiked label label--alert">planning spiked</span>
                     }
                     {event &&
                         <div>
