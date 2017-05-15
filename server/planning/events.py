@@ -78,6 +78,7 @@ class EventsService(superdesk.Service):
         for event in docs:
             # generates an unique id
             event['guid'] = generate_guid(type=GUID_NEWSML)
+            event['_id'] = event['guid']
             # set the author
             set_original_creator(event)
             # overwrite expiry date
@@ -172,6 +173,7 @@ class EventsService(superdesk.Service):
             if not date:
                 # date is not present so the current event should be deleted
                 self.delete({'_id': event['_id']})
+                get_resource_service('events_history').on_item_deleted(event)
             elif not event:
                 # the event is not present so a new event should be created
                 new_event = copy.deepcopy(original)
@@ -201,6 +203,7 @@ class EventsService(superdesk.Service):
         if addEvents:
             # add all new events
             self.create(addEvents)
+            get_resource_service('events_history').on_item_created(addEvents)
 
 
 events_schema = {

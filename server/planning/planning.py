@@ -17,6 +17,7 @@ from superdesk.metadata.item import GUID_NEWSML
 from superdesk import get_resource_service
 from superdesk.resource import build_custom_hateoas
 from apps.archive.common import set_original_creator
+from copy import deepcopy
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,9 @@ class PlanningService(superdesk.Service):
             diff = {'planning_items': [_ for _ in agenda['planning_items'] if _ != doc['_id']]}
             agenda_service.update(agenda['_id'], diff, agenda)
 
+
+event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
+event_type['mapping'] = not_analyzed
 
 planning_schema = {
     # Identifiers
@@ -123,7 +127,7 @@ planning_schema = {
     },
 
     # Event Item
-    'event_item': superdesk.Resource.rel('events', type='string'),
+    'event_item': event_type,
 
     # Planning Details
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16

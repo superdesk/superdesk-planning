@@ -59,6 +59,11 @@ Feature: Events
         Then we get list with 0 items
         When we get "/events?sort=[("dates.start",1)]&source={"query":{"range":{"dates.start":{"gte":"2016-01-02T00:00:00.000Z"}}}}"
         Then we get list with 1 items
+        When we get "/events_history"
+        Then we get a list with 1 items
+        """
+            {"_items": [{"operation": "create", "event_id": "#events._id#", "update": {"name": "event 123"}}]}
+        """
 
     @auth
     @notification
@@ -116,6 +121,8 @@ Feature: Events
         """
         When we get "/events?source={"query":{"match":{"recurrence_id": "#EVENT.recurrence_id#"}}}"
         Then we get list with 3 items
+        When we get "/events_history"
+        Then we get list with 3 items
 
     @auth
     @notification
@@ -155,8 +162,6 @@ Feature: Events
         """
         [
             {
-                "guid": "123",
-                "_id": "123",
                 "unique_id": "123",
                 "unique_name": "123 name",
                 "name": "event 123",
@@ -180,30 +185,30 @@ Feature: Events
         Given "planning"
         """
         [{
-            "_id": "P123",
             "item_class": "item class value",
             "headline": "test headline",
-            "event_item": "123"
+            "event_item": "#events._id#"
         }]
         """
         Given "coverage"
         """
         [{
-            "_id": "C123",
-            "planning_item": "P123",
+            "planning_item": "#planning._id#",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "assigned_to": "whoever wants to do it"
             }
         }]
         """
-        When we delete "/events/123"
+        When we delete "/events/#events._id#"
         Then we get response code 204
         When we get "/events"
         Then we get list with 0 items
         When we get "/planning/"
         Then we get list with 0 items
         When we get "/coverage/"
+        Then we get list with 0 items
+        When we get "/events_history/"
         Then we get list with 0 items
 
 
@@ -275,7 +280,16 @@ Feature: Events
                   }
             ]}
         """
-
+        When we get "/events_history/"
+        Then we get list with 4 items
+        """
+            {"_items": [
+            {"operation": "create", "event_id": "#events._id#"},
+            {"operation": "create", "event_id": "__any_value__"},
+            {"operation": "create", "event_id": "__any_value__"},
+            {"operation": "update", "event_id": "#events._id#"}
+            ]}
+        """
 
  @auth
     @notification
@@ -334,7 +348,16 @@ Feature: Events
                 }
             ]}
         """
-
+        When we get "/events_history/"
+        Then we get list with 4 items
+        """
+            {"_items": [
+            {"operation": "create", "event_id": "#EVENT._id#"},
+            {"operation": "create", "event_id": "__any_value__"},
+            {"operation": "create", "event_id": "__any_value__"},
+            {"operation": "update", "event_id": "#EVENT._id#"}
+            ]}
+        """
 
  @auth
     @notification
@@ -433,7 +456,17 @@ Feature: Events
                 }
            ]}
         """
-
+        When we get "/events_history/"
+        Then we get list with 5 items
+        """
+            {"_items": [
+            {"operation": "create", "event_id": "#EVENT._id#"},
+            {"operation": "create", "event_id": "__any_value__"},
+            {"operation": "create", "event_id": "__any_value__"},
+            {"operation": "create", "event_id": "__any_value__"},
+            {"operation": "update", "event_id": "#EVENT._id#"}
+            ]}
+        """
 
  @auth
     @notification
@@ -534,6 +567,16 @@ Feature: Events
                     "name": "Friday Club changed"
                 }
            ]}
+        """
+        When we get "/events_history/"
+        Then we get list with 4 items
+        """
+            {"_items": [
+            {"operation": "create", "event_id": "#EVENT._id#"},
+            {"operation": "create", "event_id": "__any_value__"},
+            {"operation": "create", "event_id": "__any_value__"},
+            {"operation": "update", "event_id": "#EVENT._id#"}
+            ]}
         """
 
     @auth
