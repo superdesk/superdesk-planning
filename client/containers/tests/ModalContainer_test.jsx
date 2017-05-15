@@ -1,7 +1,7 @@
 import React from 'react'
 import { mount, ReactWrapper } from 'enzyme'
 import { ModalsContainer } from '../ModalsContainer'
-import { RemoveAgendaConfirmationContainer } from '../index'
+import { SpikeAgendaConfirmationContainer } from '../index'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
 import { createTestStore } from '../../utils'
@@ -14,7 +14,6 @@ describe('<ModalsContainer />', () => {
         }
         const initialState = {
             planning: {
-                agendas: [agenda],
                 plannings: {
                     planning1: {
                         _id: 'planning1',
@@ -22,6 +21,7 @@ describe('<ModalsContainer />', () => {
                     },
                 },
             },
+            agenda: { agendas: [agenda] },
         }
         const store = createTestStore({ initialState })
         const wrapper = mount(
@@ -34,8 +34,8 @@ describe('<ModalsContainer />', () => {
         store.dispatch(actions.showModal({
             modalType: 'CONFIRMATION',
             modalProps: {
-                body: <RemoveAgendaConfirmationContainer agenda={agenda}/>,
-                action: () => store.dispatch(actions.deletePlanning(agenda)),
+                body: <SpikeAgendaConfirmationContainer agenda={agenda}/>,
+                action: () => store.dispatch(actions.spikeAgenda(agenda)),
             },
         }))
         expect(wrapper.find('ConfirmationModal').length).toBe(1)

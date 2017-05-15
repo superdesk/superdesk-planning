@@ -1,6 +1,6 @@
 import React from 'react'
 import { shallow, mount } from 'enzyme'
-import { SelectAgendaComponent, SelectAgenda } from '../SelectAgenda'
+import { SelectAgendaComponent, SelectAgenda } from './index'
 import sinon from 'sinon'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
@@ -16,20 +16,30 @@ describe('<SelectAgendaComponent />', () => {
         {
             _id: '2',
             name: 'agenda2',
+            state: 'active',
+        },
+        {
+            _id: '3',
+            name: 'agenda3',
+            state: 'spiked',
         },
     ]
     it('selects an agenda', () => {
         const handleOnChange = sinon.spy()
         const wrapper = shallow(
             <SelectAgendaComponent
-                agendas={agendas}
+                activeAgendas={agendas.filter((a) => a.state !== 'spiked')}
+                spikedAgendas={agendas.filter((a) => a.state === 'spiked')}
                 currentAgenda="1"
                 onChange={handleOnChange} />
         )
         expect(wrapper.find('select').props().value).toBe('1')
         wrapper.simulate('change', { target: { value: '2' } })
         expect(handleOnChange.calledOnce).toBe(true)
-        expect(wrapper.find('option').length).toBe(3)
+
+        // One option for `Select an agenda` and another
+        // option for the divider
+        expect(wrapper.find('option').length).toBe(5)
     })
     it('selects an agenda within container', () => {
         const store = createTestStore()

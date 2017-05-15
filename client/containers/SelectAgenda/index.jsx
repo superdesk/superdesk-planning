@@ -1,24 +1,34 @@
 import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
-import { selectAgenda } from '../actions'
-import { getCurrentAgendaId } from '../selectors'
+import { selectAgenda } from '../../actions'
+import { getCurrentAgendaId, getActiveAgendas, getSpikedAgendas } from '../../selectors'
 
-export const SelectAgendaComponent = ({ agendas, onChange, currentAgenda, isLoading }) => (
+export const SelectAgendaComponent = ({ activeAgendas, spikedAgendas, onChange, currentAgenda, isLoading }) => (
     <select onChange={onChange} value={currentAgenda || ''}>
         <option>
             {isLoading && 'Loading...' || 'Select an agenda'}
         </option>
-        {agendas.map((agenda) => (
+        {activeAgendas.map((agenda) => (
             <option
                 key={agenda._id}
                 value={agenda._id}>{agenda.name}
+            </option>
+        ))}
+        {Object.keys(spikedAgendas).length > 0 && (
+            <option disabled>──────────</option>
+        )}
+        {spikedAgendas.map((agenda) => (
+            <option
+                key={agenda._id}
+                value={agenda._id}>{agenda.name} - [spiked]
             </option>
         ))}
     </select>
 )
 
 SelectAgendaComponent.propTypes = {
-    agendas: PropTypes.array.isRequired,
+    activeAgendas: PropTypes.array.isRequired,
+    spikedAgendas: PropTypes.array,
     onChange: PropTypes.func.isRequired,
     currentAgenda: PropTypes.string,
     isLoading: PropTypes.bool,
@@ -26,7 +36,8 @@ SelectAgendaComponent.propTypes = {
 
 const mapStateToProps = (state) => ({
     currentAgenda: getCurrentAgendaId(state),
-    agendas: state.agenda.agendas,
+    activeAgendas: getActiveAgendas(state),
+    spikedAgendas: getSpikedAgendas(state),
     isLoading: state.agenda.agendasAreLoading,
 })
 

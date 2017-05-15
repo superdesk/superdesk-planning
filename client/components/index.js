@@ -19,3 +19,4 @@ export { fields }
 import * as tooltips from './Tooltips'
 export { tooltips }
 export { RepeatEventSummary } from './RepeatEventSummary/index'
+export { AgendaItem } from './AgendaItem'

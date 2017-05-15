@@ -115,6 +115,24 @@ export const getCurrentPlanningEvent = createSelector(
     (planning, events) => planning && events[planning.event_item]
 )
 
+/** Return true if the current Planning Agenda is Spiked, false otherwise */
+export const getCurrentPlanningAgendaSpiked = createSelector(
+    [getCurrentPlanningId, getAgendas],
+    (currentPlanningId, agendas) => {
+        if (currentPlanningId && agendas) {
+            let agenda = agendas.find((a) => (
+                a.planning_items && a.planning_items.indexOf(currentPlanningId) > -1
+            ))
+
+            if (agenda && 'state' in agenda) {
+                return agenda.state === 'spiked'
+            }
+        }
+
+        return false
+    }
+)
+
 /** Used for the events list */
 export const getEventsWithMoreInfo = createSelector(
     [getEvents, getStoredPlannings, getEventsIdsToShowInList],
@@ -155,4 +173,20 @@ export const getEventToBeDetailed = createSelector(
             }
         }
     }
+)
+
+/** Returns the list of Agendas that are `spiked` */
+export const getSpikedAgendas = createSelector(
+    [getAgendas],
+    (agendas) => (
+        agendas.filter((a) => a.state === 'spiked')
+    )
+)
+
+/** Returns the list of Agendas that are not `spiked` */
+export const getActiveAgendas = createSelector(
+    [getAgendas],
+    (agendas) => (
+        agendas.filter((a) => a.state !== 'spiked')
+    )
 )

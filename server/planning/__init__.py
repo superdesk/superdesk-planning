@@ -17,6 +17,7 @@ from .events_files import EventsFilesResource, EventsFilesService
 from .coverage import CoverageResource, CoverageService
 from .locations import LocationsResource, LocationsService
 from .agenda import AgendaResource, AgendaService
+from .agenda_spike import AgendaSpikeResource, AgendaUnspikeResource, AgendaSpikeService, AgendaUnspikeService
 from superdesk.io.registry import register_feeding_service, register_feed_parser
 from .feed_parsers.ics_2_0 import IcsTwoFeedParser
 from .feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
@@ -35,6 +36,12 @@ def init_app(app):
 
     agenda_search_service = AgendaService('agenda', backend=superdesk.get_backend())
     AgendaResource('agenda', app=app, service=agenda_search_service)
+
+    agenda_spike_service = AgendaSpikeService('agenda_spike', backend=superdesk.get_backend())
+    AgendaSpikeResource('agenda_spike', app=app, service=agenda_spike_service)
+
+    agenda_unspike_service = AgendaUnspikeService('agenda_unspike', backend=superdesk.get_backend())
+    AgendaUnspikeResource('agenda_unspike', app=app, service=agenda_unspike_service)
 
     coverage_search_service = CoverageService('coverage', backend=superdesk.get_backend())
     CoverageResource('coverage', app=app, service=coverage_search_service)
@@ -58,6 +65,18 @@ def init_app(app):
         name='planning_agenda_management',
         label='Planning - Agenda Management',
         description='Ability to create and modify Agendas'
+    )
+
+    superdesk.privilege(
+        name='planning_agenda_spike',
+        label='Planning - Spike Agendas',
+        description='Ability to spike an Agenda'
+    )
+
+    superdesk.privilege(
+        name='planning_agenda_unspike',
+        label='Planning - Unspike Agendas',
+        description='Ability to unspike an Agenda'
     )
 
     superdesk.privilege(

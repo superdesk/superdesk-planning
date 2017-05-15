@@ -9,7 +9,7 @@ import { get } from 'lodash'
 import moment from 'moment'
 import './style.scss'
 
-class EditPlanningPanel extends React.Component {
+export class EditPlanningPanel extends React.Component {
 
     constructor(props) {
         super(props)
@@ -20,7 +20,7 @@ class EditPlanningPanel extends React.Component {
     }
 
     render() {
-        const { closePlanningEditor, planning, event, pristine, submitting } = this.props
+        const { closePlanningEditor, planning, event, pristine, submitting, agendaSpiked } = this.props
         const creationDate = get(planning, '_created')
         const author = get(planning, 'original_creator.username')
         return (
@@ -40,14 +40,19 @@ class EditPlanningPanel extends React.Component {
                             type="reset"
                             onClick={closePlanningEditor}
                             disabled={submitting}>Cancel</button>
-                        <button
-                            className="btn btn--primary"
-                            onClick={this.handleSave.bind(this)}
-                            type="submit"
-                            disabled={pristine || submitting}>Save</button>
+                        {!agendaSpiked &&
+                            <button
+                                className="btn btn--primary"
+                                onClick={this.handleSave.bind(this)}
+                                type="submit"
+                                disabled={pristine || submitting}>Save</button>
+                        }
                     </div>
                 </header>
                 <div className="EditPlanningPanel__body">
+                    {agendaSpiked &&
+                        <span className="label label--alert">agenda spiked</span>
+                    }
                     {event &&
                         <div>
                             <h3>Associated event</h3>
@@ -68,11 +73,13 @@ EditPlanningPanel.propTypes = {
     event: React.PropTypes.object,
     pristine: React.PropTypes.bool.isRequired,
     submitting: React.PropTypes.bool.isRequired,
+    agendaSpiked: React.PropTypes.bool,
 }
 
 const mapStateToProps = (state) => ({
     planning: selectors.getCurrentPlanning(state),
     event: selectors.getCurrentPlanningEvent(state),
+    agendaSpiked: selectors.getCurrentPlanningAgendaSpiked(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({ closePlanningEditor: () => dispatch(actions.closePlanningEditor()) })

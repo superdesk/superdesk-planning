@@ -230,6 +230,17 @@ planning_schema = {
     'profile': {
         'type': 'string',
         'nullable': True
+    },
+
+    # These next two are for spiking/unspiking and purging of planning/agenda items
+    'state': {
+        'type': 'string',
+        'allowed': ['active', 'spiked'],
+        'default': 'active',
+        'mapping': not_analyzed
+    },
+    'expiry': {
+        'type': 'datetime'
     }
 
 }  # end planning_schema

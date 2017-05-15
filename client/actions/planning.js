@@ -35,26 +35,41 @@ const deletePlanning = (planning) => (
  * list of Agendas and their associated planning items.
  * If the planning item does not have an ._id, then add it to the
  * currently selected Agenda
+ * If no Agenda is selected, or the currently selected Agenda is spiked,
+ * then notify the end user and reject this action
  * @param {object} originalPlanning - The planning item to save
  * @return Promise
  */
 const _savePlanningAndReloadCurrentAgenda = (originalPlanning) => (
-    (dispatch) => (
-        dispatch(savePlanning(originalPlanning))
+    (dispatch, getState, { notify }) => {
+        // If we're creating a new Planning Item, then check if Agenda is
+        // selected, and that the Agenda is not spiked,
+        // otherwise notify the end user
+        const currentAgenda = selectors.getCurrentAgenda(getState())
+        const isNewAgenda = isNil(originalPlanning) || isNil(originalPlanning._id)
+        if (isNewAgenda) {
+            if (!currentAgenda) {
+                notify.error('No Agenda is currently selected.')
+                return Promise.reject()
+            } else if (currentAgenda.state === 'spiked') {
+                notify.error('Cannot create a new planning item in a spiked Agenda.')
+                return Promise.reject()
+            }
+        }
+
+        return dispatch(savePlanning(originalPlanning))
         .then((planning) => (
             Promise.resolve((() => {
-                // if event is new (there is no _id), adds to current agenda
-                if (isNil(originalPlanning) || isNil(originalPlanning._id)) {
+                if (isNewAgenda) {
                     return dispatch(addToCurrentAgenda(planning))
                 }
             })())
             .then(() => (
-                // update the planning list
                 dispatch(fetchSelectedAgendaPlannings())
                 .then(() => (planning))
             ))
         ))
-    )
+    }
 )
 
 /**

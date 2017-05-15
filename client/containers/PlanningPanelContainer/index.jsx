@@ -85,7 +85,7 @@ class PlanningPanel extends React.Component {
                             </label>
                         </div>
                         <ul className="list-view compact-view">
-                            {currentAgenda && privileges.planning_planning_management === 1 &&
+                            {currentAgenda && privileges.planning_planning_management === 1 && currentAgenda.state !== 'spiked' &&
                                 <QuickAddPlanning className="ListItem" onPlanningCreation={onPlanningCreation}/>
                             }
                             {(planningList && planningList.length > 0) && planningList.map((planning) => (
