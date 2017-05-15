@@ -43,7 +43,7 @@ function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting
                 onClick={()=>{reset(); resetSearch()}}
                 type="button"
                 name="clear"
-                disabled={submitting}>Clear</button>
+                disabled={pristine || submitting}>Clear</button>
             {error && <div><strong>{error}</strong></div>}
         </form>
     )
