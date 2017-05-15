@@ -17,6 +17,7 @@ from .events_files import EventsFilesResource, EventsFilesService
 from .coverage import CoverageResource, CoverageService
 from .locations import LocationsResource, LocationsService
 from .agenda import AgendaResource, AgendaService
+from .events_history import EventsHistoryResource, EventsHistoryService
 from .agenda_spike import AgendaSpikeResource, AgendaUnspikeResource, AgendaSpikeService, AgendaUnspikeService
 from superdesk.io.registry import register_feeding_service, register_feed_parser
 from .feed_parsers.ics_2_0 import IcsTwoFeedParser
@@ -54,6 +55,14 @@ def init_app(app):
 
     files_service = EventsFilesService('events_files', backend=superdesk.get_backend())
     EventsFilesResource('events_files', app=app, service=files_service)
+
+    events_history_service = EventsHistoryService('events_history', backend=superdesk.get_backend())
+    EventsHistoryResource('events_history', app=app, service=events_history_service)
+
+    app.on_updated_events += events_history_service.on_item_updated
+    app.on_inserted_events += events_history_service.on_item_created
+    app.on_deleted_item_events -= events_history_service.on_item_deleted
+    app.on_deleted_item_events += events_history_service.on_item_deleted
 
     superdesk.privilege(
         name='planning',
