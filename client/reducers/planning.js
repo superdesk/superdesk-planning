@@ -6,6 +6,7 @@ const initialState  = {
     editorOpened: false,
     planningsAreLoading: false,
     onlyFuture: true,
+    filterPlanningKeyword: null,
 }
 
 /*eslint-disable complexity*/
@@ -16,6 +17,11 @@ const planningReducer = (state=initialState, action) => {
             return {
                 ...state,
                 planningsAreLoading: true,
+            }
+        case 'PLANNING_FILTER_BY_KEYWORD':
+            return {
+                ...state,
+                filterPlanningKeyword: action.payload,
             }
         case 'RECEIVE_PLANNINGS':
             // payload must be an array. If not, we transform

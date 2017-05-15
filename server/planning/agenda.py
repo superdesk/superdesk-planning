@@ -77,10 +77,12 @@ class AgendaResource(superdesk.Resource):
     }
 
     resource_methods = ['GET', 'POST']
-    item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
+    item_methods = ['GET', 'PATCH', 'PUT']
     public_methods = ['GET']
+
+    # PATCH is set to `planning` so that planning_items may be updated when adding new planning items
+    # This check is done in the on_update method of the service
     privileges = {
         'POST': 'planning_agenda_management',
-        'PATCH': 'planning',
-        'DELETE': 'planning_agenda_management'
+        'PATCH': 'planning'
     }

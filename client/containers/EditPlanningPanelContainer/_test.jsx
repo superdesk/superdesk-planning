@@ -1,9 +1,10 @@
 import React from 'react'
-import { mount } from 'enzyme'
-import { EditPlanningPanelContainer } from '../index'
+import { shallow, mount } from 'enzyme'
+import { EditPlanningPanelContainer, EditPlanningPanel } from './index'
 import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
+import sinon from 'sinon'
 
 describe('<EditPlanningPanelContainer />', () => {
     it('open the panel', () => {
@@ -30,6 +31,8 @@ describe('<EditPlanningPanelContainer />', () => {
             privileges: {
                 planning: 1,
                 planning_agenda_management: 1,
+                planning_agenda_spike: 1,
+                planning_agenda_unspike: 1,
                 planning_planning_management: 1,
             },
             planning: {
@@ -46,6 +49,7 @@ describe('<EditPlanningPanelContainer />', () => {
                 agendas: [{
                     _id: '1',
                     name: 'agenda',
+                    planning_items: ['2'],
                 }],
                 currentAgendaId: '1',
             },
@@ -61,6 +65,10 @@ describe('<EditPlanningPanelContainer />', () => {
         const saveButton = wrapper.find('button[type="submit"]').first()
         const cancelButton = wrapper.find('button[type="reset"]').first()
         const sluglineInput = wrapper.find('Field [name="slugline"]')
+
+        // Make sure the `agenda spiked` badge is not shown
+        const badge = wrapper.find('.label .label--alert')
+        expect(badge.length).toBe(0)
 
         // Save/Cancel buttons start out as disabled
         expect(saveButton.props().disabled).toBe(true)
@@ -79,6 +87,28 @@ describe('<EditPlanningPanelContainer />', () => {
         store.dispatch(actions.openPlanningEditor(2))
         expect(sluglineInput.props().value).toBe('slug')
         expect(saveButton.props().disabled).toBe(true)
+        expect(cancelButton.props().disabled).toBe(false)
+    })
+
+    it('displays the `agenda spiked` badge', () => {
+        const wrapper = shallow(
+            <EditPlanningPanel
+                closePlanningEditor={sinon.spy()}
+                agendaSpiked={true}
+                pristine={false}
+                submitting={false}/>
+        )
+        const badge = wrapper.find('.label .label--alert').first()
+        const saveButton = wrapper.find('button[type="submit"]')
+        const cancelButton = wrapper.find('button[type="reset"]').first()
+
+        // Make sure the `save` button is not shown
+        expect(saveButton.length).toBe(0)
+
+        // Make sure the `agenda spiked` badge is shown
+        expect(badge.text()).toBe('agenda spiked')
+
+        // And finally make sure the `cancel` button is enabled
         expect(cancelButton.props().disabled).toBe(false)
     })
 })

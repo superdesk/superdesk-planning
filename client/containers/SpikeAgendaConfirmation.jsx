@@ -4,10 +4,10 @@ import { RelatedPlannings } from '../containers'
 import * as selectors from '../selectors'
 import { get } from 'lodash'
 
-export function RemoveAgendaConfirmationComponent({ agenda, plannings }) {
+export function SpikeAgendaConfirmationComponent({ agenda, plannings }) {
     return (
         <div>
-            <p>Are you sure you want to delete {agenda.name} ?</p>
+            <p>Are you sure you want to {agenda.state === 'spiked' && 'unspike' || 'spike'} {agenda.name} ?</p>
             {plannings.length &&
                 <div>
                     This agenda contains:
@@ -21,7 +21,7 @@ export function RemoveAgendaConfirmationComponent({ agenda, plannings }) {
     )
 }
 
-RemoveAgendaConfirmationComponent.propTypes = {
+SpikeAgendaConfirmationComponent.propTypes = {
     agenda: React.PropTypes.object,
     plannings: React.PropTypes.array,
 }
@@ -32,6 +32,6 @@ const mapStateToProps = (state, ownProps) => ({
         .map((pKey) => (selectors.getStoredPlannings(state)[pKey])),
 })
 
-export const RemoveAgendaConfirmationContainer = connect(
+export const SpikeAgendaConfirmationContainer = connect(
     mapStateToProps
-)(RemoveAgendaConfirmationComponent)
+)(SpikeAgendaConfirmationComponent)

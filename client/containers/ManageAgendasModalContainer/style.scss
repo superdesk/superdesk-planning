@@ -1,11 +1,14 @@
-.ManageAgendasModal .pills-list {
-    padding-top: 20px;
-    clear: both;
-    li {
-        box-sizing: content-box;
-        display: flex;
-        .last-updated {
-                white-space: nowrap;
-        }
+.ManageAgendasModal {
+    .btn--primary {
+        margin-bottom: 10px;
+    }
+
+    .ActiveAgendas {
+        padding-bottom: 20px;
+    }
+
+    .pills-list {
+        padding-bottom: 0;
+        clear: both;
     }
 }

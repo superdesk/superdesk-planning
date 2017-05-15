@@ -11,6 +11,7 @@ export { DeleteEvent } from './DeleteEvent/index'
 export { AgendaModal } from './AgendaModal'
 export { default as Toggle } from './Toggle/index'
 export { default as Modal } from './Modal/index'
+export { default as SearchBar } from './SearchBar/index'
 export { ConfirmationModal } from './ConfirmationModal'
 export { TimeEvent } from './TimeEvent'
 import * as fields from './fields'
@@ -18,3 +19,4 @@ export { fields }
 import * as tooltips from './Tooltips'
 export { tooltips }
 export { RepeatEventSummary } from './RepeatEventSummary/index'
+export { AgendaItem } from './AgendaItem'

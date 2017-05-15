@@ -20,13 +20,24 @@ describe('selectors', () => {
                     event_item: 'event1',
                 },
                 b: { name: 'name b' },
+                c: { name: 'plan c' },
             },
+            currentPlanningId: 'b',
         },
         agenda: {
             agendas: [{
                 _id: '1',
-                name: 'name',
+                name: 'Agenda 1',
                 planning_items: ['a', 'b'],
+            }, {
+                _id: '2',
+                name: 'Agenda 2',
+                state: 'active',
+            }, {
+                _id: '3',
+                name: 'Agenda 3',
+                state: 'spiked',
+                planning_items: ['c'],
             }],
             currentAgendaId: '1',
         },
@@ -88,6 +99,41 @@ describe('selectors', () => {
     it('getEventToBeDetailed', () => {
         const event = selectors.getEventToBeDetailed(state)
         expect(event._plannings.length).toBe(1)
-        expect(event._plannings[0]._agenda.name).toBe('name')
+        expect(event._plannings[0]._agenda.name).toBe('Agenda 1')
+    })
+
+    it('getCurrentPlanningAgendaSpiked', () => {
+        state.planning.currentPlanningId = 'c'
+        let agendaSpiked = selectors.getCurrentPlanningAgendaSpiked(state)
+        expect(agendaSpiked).toBe(true)
+
+        state.planning.currentPlanningId = 'b'
+        agendaSpiked = selectors.getCurrentPlanningAgendaSpiked(state)
+        expect(agendaSpiked).toBe(false)
+    })
+
+    it('getSpikedAgendas', () => {
+        const agendas = selectors.getSpikedAgendas(state)
+        expect(agendas.length).toBe(1)
+        expect(agendas).toEqual([{
+            _id: '3',
+            name: 'Agenda 3',
+            state: 'spiked',
+            planning_items: ['c'],
+        }])
+    })
+
+    it('getActiveAgendas', () => {
+        const agendas = selectors.getActiveAgendas(state)
+        expect(agendas.length).toBe(2)
+        expect(agendas).toEqual([{
+            _id: '1',
+            name: 'Agenda 1',
+            planning_items: ['a', 'b'],
+        }, {
+            _id: '2',
+            name: 'Agenda 2',
+            state: 'active',
+        }])
     })
 })
