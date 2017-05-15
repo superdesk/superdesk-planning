@@ -170,10 +170,19 @@ const _addToCurrentAgenda = (planning) => (
  * @return Promise
  */
 const _addEventToCurrentAgenda = (event) => (
-    (dispatch, getState) => {
-        // check if there is a current agenda, throw an error if not
+    (dispatch, getState, { notify }) => {
+        // Check if no agenda is selected, or the current agenda is spiked
+        // And notify the end user of the error
         const currentAgenda = selectors.getCurrentAgenda(getState())
-        if (!currentAgenda) throw 'unable to find the current agenda'
+        if (!currentAgenda) {
+            notify.error('No Agenda selected.')
+            return Promise.resolve()
+        } else if (currentAgenda.state === 'spiked') {
+            notify.error('Current Agenda is spiked.')
+            return Promise.resolve()
+        }
+        // DO IT
+
         // planning inherits some fields from the given event
         return dispatch(savePlanning({
             event_item: event._id,
@@ -191,25 +200,47 @@ const _addEventToCurrentAgenda = (event) => (
 )
 
 /**
- * Action dispatcher that deletes an Agenda
- * @param {object} agenda - The agenda to delete
+ * Action dispatcher that marks an Agenda as spiked
+ * @param {object} agenda - The agenda to spike
  * @return arrow function
  */
-const deleteAgenda = (agenda) => (
+const _spikeAgenda = (agenda) => (
     (dispatch, getState, { api, notify }) => (
-        api('agenda').remove(agenda)
+        api.update('agenda_spike', agenda, {})
         .then(() => {
-            notify.success('The agenda has been deleted.')
-
-            // close the editor if the removed agenda was opened
-            if (agenda.planning_items && agenda.planning_items.length > 0) {
-                if (agenda.planning_items.indexOf(
-                    selectors.getCurrentPlanningId(getState())) > -1) {
-                    dispatch(closePlanningEditor())
-                }
+            notify.success('The Agenda has been spiked.')
+            dispatch({
+                type: 'SPIKE_AGENDA',
+                payload: agenda,
+            })
+            dispatch(fetchAgendas())
+        }, (error) => {
+            let errorMessage = 'There was a problem, Agenda not deleted.'
+            if (get(error, 'data._message')) {
+                errorMessage = get(error, 'data._message')
+            } else if (get(error, 'data._issues.validator exception')) {
+                errorMessage = get(error, 'data._issues.validator exception')
             }
 
-            // Reload agendas because they contain the list of the plannings to show and plannings
+            notify.error(errorMessage)
+        })
+    )
+)
+
+/**
+ * Action dispatcher that marks an Agenda as active
+ * @param {object} agenda - The agenda to unspike
+ * @return thunk function
+ */
+const _unspikeAgenda = (agenda) => (
+    (dispatch, getState, { api, notify }) => (
+        api.update('agenda_unspike', agenda, {})
+        .then(() => {
+            notify.success('The Agenda has been unspiked.')
+            dispatch({
+                type: 'UNSPIKE_AGENDA',
+                payload: agenda,
+            })
             dispatch(fetchAgendas())
         }, (error) => {
             let errorMessage = 'There was a problem, Agenda not deleted.'
@@ -283,9 +314,24 @@ const addToCurrentAgenda = checkPermission(
     'Unauthorised to add a Planning Item to an Agenda'
 )
 
+/** Set permission for spiking agenda */
+const spikeAgenda = checkPermission(
+    _spikeAgenda,
+    PRIVILEGES.SPIKE_AGENDA,
+    'Unauthorised to spike an Agenda.'
+)
+
+/** Set permission for unspiking agenda */
+const unspikeAgenda = checkPermission(
+    _unspikeAgenda,
+    PRIVILEGES.UNSPIKE_AGENDA,
+    'Unauthorised to unspike an Agenda.'
+)
+
 export {
     createOrUpdateAgenda,
-    deleteAgenda,
+    spikeAgenda,
+    unspikeAgenda,
     fetchAgendas,
     selectAgenda,
     addToCurrentAgenda,

@@ -26,44 +26,6 @@ Feature: Agenda
 
     @auth
     @notification
-    Scenario: Removes associated planning when an agenda is removed
-        Given empty "planning"
-        When we post to "planning"
-        """
-        [{
-            "slugline": "orphan planning"
-        }]
-        """
-        Then we get OK response
-
-        When we post to "planning"
-        """
-        [{
-            "slugline": "planning 1"
-        }]
-        """
-        Then we store "planningId" with value "#planning._id#" to context
-        When we post to "agenda" with success
-        """
-        [{
-            "planning_items": ["#planningId#"]
-        }]
-        """
-        Then we store "agendaId" with value "#agenda._id#" to context
-        When we delete "/agenda/#agendaId#"
-        Then we get response code 204
-        When we get "/planning"
-        Then we get list with 1 items
-        """
-            {"_items": [{
-                "guid": "__any_value__",
-                "original_creator": "__any_value__",
-                "slugline": "orphan planning"
-            }]}
-        """
-
-    @auth
-    @notification
     Scenario: Agenda name should be unique name
         # Given "planning"
         When we post to "agenda"

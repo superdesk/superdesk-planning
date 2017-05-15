@@ -208,6 +208,33 @@ describe('planning', () => {
                     expect(dispatch.callCount).toBe(1)
                 })
             })
+
+            it('savePlanningAndReloadCurrentAgenda fails if no Agenda is selected', () => {
+                initialState.agenda.currentAgendaId = null
+                return action(dispatch, getState, {
+                    notify,
+                    $timeout,
+                    api,
+                })
+                .then(() => {
+                    expect(notify.error.args[0]).toEqual(['No Agenda is currently selected.'])
+                })
+            })
+
+            it('savePlanningAndReloadCurrentAgenda fails if current Agenda is spiked', () => {
+                initialState.agenda.currentAgendaId = agendas[0]._id
+                initialState.agenda.agendas[0].state = 'spiked'
+                return action(dispatch, getState, {
+                    notify,
+                    $timeout,
+                    api,
+                })
+                .then(() => {
+                    expect(notify.error.args[0]).toEqual([
+                        'Cannot create a new planning item in a spiked Agenda.',
+                    ])
+                })
+            })
         })
 
         it('fetchPlannings', () => {

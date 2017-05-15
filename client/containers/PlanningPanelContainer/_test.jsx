@@ -80,7 +80,6 @@ describe('<PlanningPanelContainer />', () => {
                 agendas: [{
                     _id: 'agenda1',
                     name: 'agenda',
-                    planning_type: 'agenda',
                 }],
                 currentAgendaId: 'agenda1',
             },
