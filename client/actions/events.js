@@ -215,7 +215,7 @@ function saveEvent(newEvent) {
  * @param {array} ids - An array of Event IDs to fetch
  * @return arrow function
  */
-function performFetchQuery({ advancedSearch, fulltext, ids }) {
+function performFetchQuery({ advancedSearch, fulltext, ids, page=1 }) {
     return (dispatch, getState, { api }) => {
         const query = {}
         const filter = {}
@@ -303,6 +303,7 @@ function performFetchQuery({ advancedSearch, fulltext, ids }) {
         }
         // Query the API and sort by date
         return api('events').query({
+            page: page,
             sort: '[("dates.start",1)]',
             embedded: { files: 1 },
             source: JSON.stringify({
@@ -333,7 +334,7 @@ function silentlyFetchEventsById(ids=[]) {
  * @param {object} params - Query parameters to send to the server
  * @return arrow function
  */
-function fetchEvents(params={}) {
+function fetchEvents(params={ page: 1 }) {
     return (dispatch, getState, { $timeout, $location }) => {
         dispatch({
             type: 'REQUEST_EVENTS',
@@ -348,6 +349,26 @@ function fetchEvents(params={}) {
         .then(() => $timeout(() => (
             $location.search('searchEvent', JSON.stringify(params)), 0, false)
         ))
+    }
+}
+
+/** Action factory that fetchs the next page of the previous request */
+function loadMoreEvents() {
+    return (dispatch, getState) => {
+        const previousParams = selectors.getPreviousEventRequestParams(getState())
+        const params = {
+            ...previousParams,
+            page: previousParams.page + 1,
+        }
+        dispatch({
+            type: 'REQUEST_EVENTS',
+            payload: params,
+        })
+        return dispatch(performFetchQuery(params))
+        .then(data => {
+            dispatch(receiveEvents(data._items))
+            dispatch(addToEventsList(data._items.map((e) => e._id)))
+        })
     }
 }
 
@@ -477,4 +498,5 @@ export {
     saveFiles,
     deleteEvent,
     uploadFilesAndSaveEvent,
+    loadMoreEvents,
 }

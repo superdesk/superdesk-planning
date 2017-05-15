@@ -10,6 +10,7 @@ describe('events', () => {
             expect(initialState).toEqual({
                 events: {},
                 eventsInList: [],
+                lastRequestParams: { page: 1 },
                 search: {
                     currentSearch: undefined,
                     advancedSearchOpened: false,

@@ -1,6 +1,8 @@
 import { orderBy, cloneDeep, uniq, get } from 'lodash'
 import moment from 'moment'
 
+const initialLastRequest = { page: 1 }
+
 const initialState = {
     events: {},
     eventsInList: [],
@@ -8,6 +10,7 @@ const initialState = {
         currentSearch: undefined,
         advancedSearchOpened: false,
     },
+    lastRequestParams: initialLastRequest,
     show: true,
     showEventDetails: null,
     selectedEvent: null,
@@ -23,6 +26,10 @@ const eventsReducer = (state=initialState, action) => {
         case 'REQUEST_EVENTS':
             return {
                 ...state,
+                lastRequestParams: {
+                    ...initialLastRequest,
+                    ...action.payload,
+                },
                 search: {
                     ...state.search,
                     currentSearch: action.payload,
