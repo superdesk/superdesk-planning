@@ -59,7 +59,7 @@ describe('planning', () => {
             }))),
         }
 
-        const api = () => (apiSpy)
+        let api
 
         beforeEach(() => {
             apiSpy.save.reset()
@@ -69,6 +69,8 @@ describe('planning', () => {
             notify.success.reset()
             dispatch.reset()
             $timeout.reset()
+
+            api = () => (apiSpy)
 
             initialState = {
                 agenda: {
@@ -81,35 +83,127 @@ describe('planning', () => {
                     editorOpened: false,
                     planningsAreLoading: false,
                     onlyFuture: true,
+                    onlyActive: false,
                 },
                 privileges: {
                     planning: 1,
                     planning_planning_management: 1,
+                    planning_planning_spike: 1,
+                    planning_planning_unspike: 1,
                 },
             }
         })
 
-        it('deletePlanning', () => {
-            const action = actions.deletePlanning(plannings[1])
-            return action(dispatch, getState, {
-                api,
-                notify,
+        describe('spikePlanning', () => {
+            const action = actions.spikePlanning(plannings[1])
+
+            it('spikePlanning calls `planning_spike` endpoint', () => {
+                initialState.privileges.planning_planning_spike = 1
+                api.update = sinon.spy(() => (Promise.resolve()))
+
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                    $timeout,
+                })
+                .then(() => {
+                    expect(api.update.args[0]).toEqual([
+                        'planning_spike',
+                        plannings[1],
+                        {},
+                    ])
+                    expect(notify.success.args[0]).toEqual(['The Planning Item has been spiked.'])
+                    expect(dispatch.args[0]).toEqual([{
+                        type: 'SPIKE_PLANNING',
+                        payload: plannings[1],
+                    }])
+
+                    expect(dispatch.callCount).toBe(2)
+                    expect($timeout.callCount).toBe(0)
+                    expect(notify.error.callCount).toBe(0)
+                })
             })
-            .then(() => {
-                expect(apiSpy.remove.args[0]).toEqual([plannings[1]])
-                expect(notify.success.args[0]).toEqual(['The planning has been deleted.'])
 
-                expect(dispatch.args[0]).toEqual([{ type: 'CLOSE_PLANNING_EDITOR' }])
+            it('spikePlanning raises ACCESS_DENIED without permission', () => {
+                initialState.privileges.planning_planning_spike = 0
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                    $timeout,
+                })
+                .then(() => {
+                    expect($timeout.callCount).toBe(1)
+                    expect(notify.error.args[0]).toEqual(['Unauthorised to spike a planning item!'])
+                    expect(dispatch.args[0]).toEqual([{
+                        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
+                        payload: {
+                            action: '_spikePlanning',
+                            permission: PRIVILEGES.SPIKE_PLANNING,
+                            errorMessage: 'Unauthorised to spike a planning item!',
+                            args: [plannings[1]],
+                        },
+                    }])
+                    expect(dispatch.callCount).toBe(1)
+                })
+            })
+        })
 
-                // Cannot check dispatch(fetchAgendas()) using a spy on dispatch
-                // As fetchAgendas is a thunk function
+        describe('unspikePlanning', () => {
+            const action = actions.unspikePlanning(plannings[1])
 
-                expect(dispatch.args[2]).toEqual([{
-                    type: 'DELETE_PLANNING',
-                    payload: plannings[1]._id,
-                }])
+            it('unspikePlanning calls `planning_unspike` endpoint', () => {
+                initialState.privileges.planning_planning_unspike = 1
+                api.update = sinon.spy(() => (Promise.resolve()))
 
-                expect(dispatch.callCount).toBe(3)
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                    $timeout,
+                })
+                .then(() => {
+                    expect(api.update.args[0]).toEqual([
+                        'planning_unspike',
+                        plannings[1],
+                        {},
+                    ])
+
+                    expect(notify.success.args[0]).toEqual(['The Planning Item has been unspiked.'])
+
+                    expect(dispatch.args[1]).toEqual([{
+                        type: 'UNSPIKE_PLANNING',
+                        payload: plannings[1],
+                    }])
+
+                    expect(dispatch.callCount).toBe(2)
+                    expect($timeout.callCount).toBe(0)
+                    expect(notify.error.callCount).toBe(0)
+                    expect(1).toBe(2)
+                })
+            })
+
+            it('unspikePlanning raises ACCESS_DENIED without permission', () => {
+                initialState.privileges.planning_planning_unspike = 0
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                    $timeout,
+                })
+                .then(() => {
+                    expect($timeout.callCount).toBe(1)
+                    expect(notify.error.args[0]).toEqual([
+                        'Unauthorised to unspike a planning item!',
+                    ])
+                    expect(dispatch.args[0]).toEqual([{
+                        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
+                        payload: {
+                            action: '_unspikePlanning',
+                            permission: PRIVILEGES.UNSPIKE_PLANNING,
+                            errorMessage: 'Unauthorised to unspike a planning item!',
+                            args: [plannings[1]],
+                        },
+                    }])
+                    expect(dispatch.callCount).toBe(1)
+                })
             })
         })
 
@@ -351,6 +445,27 @@ describe('planning', () => {
                 }])
 
                 expect(dispatch.callCount).toBe(1)
+            })
+        })
+
+        it('toggleOnlySpikedFilter', () => {
+            const action = actions.toggleOnlySpikedFilter()
+            return action(dispatch, getState)
+            .then(() => {
+                expect(dispatch.args[0]).toEqual([{
+                    type: 'SET_ONLY_SPIKED',
+                    payload: true,
+                }])
+
+                expect(dispatch.callCount).toBe(1)
+            })
+        })
+
+        it('planningFilterByKeyword', () => {
+            const action = actions.planningFilterByKeyword('Find this plan ')
+            expect(action).toEqual({
+                type: 'PLANNING_FILTER_BY_KEYWORD',
+                payload: 'Find this plan',
             })
         })
     })

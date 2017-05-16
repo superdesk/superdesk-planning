@@ -1,4 +1,5 @@
 import { cloneDeep } from 'lodash'
+import { PLANNING } from '../constants'
 
 const initialState  = {
     plannings: {},
@@ -7,23 +8,24 @@ const initialState  = {
     planningsAreLoading: false,
     onlyFuture: true,
     filterPlanningKeyword: null,
+    onlySpiked: false,
 }
 
 /*eslint-disable complexity*/
 const planningReducer = (state=initialState, action) => {
     let plannings
     switch (action.type) {
-        case 'REQUEST_PLANINGS':
+        case PLANNING.ACTIONS.REQUEST_PLANINGS:
             return {
                 ...state,
                 planningsAreLoading: true,
             }
-        case 'PLANNING_FILTER_BY_KEYWORD':
+        case PLANNING.ACTIONS.PLANNING_FILTER_BY_KEYWORD:
             return {
                 ...state,
                 filterPlanningKeyword: action.payload,
             }
-        case 'RECEIVE_PLANNINGS':
+        case PLANNING.ACTIONS.RECEIVE_PLANNINGS:
             // payload must be an array. If not, we transform
             action.payload = Array.isArray(action.payload) ? action.payload : [action.payload]
             // clone plannings
@@ -36,30 +38,27 @@ const planningReducer = (state=initialState, action) => {
                 plannings,
                 planningsAreLoading: false,
             }
-        case 'DELETE_PLANNING':
-            // Clone the list of current planning items
-            plannings = cloneDeep(state.plannings)
-            delete plannings[action.payload]
-            return {
-                ...state,
-                plannings,
-            }
-        case 'OPEN_PLANNING_EDITOR':
+        case PLANNING.ACTIONS.OPEN_PLANNING_EDITOR:
             return {
                 ...state,
                 editorOpened: true,
                 currentPlanningId: action.payload,
             }
-        case 'CLOSE_PLANNING_EDITOR':
+        case PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR:
             return {
                 ...state,
                 editorOpened: false,
                 currentPlanningId: null,
             }
-        case 'SET_ONLY_FUTURE':
+        case PLANNING.ACTIONS.SET_ONLY_FUTURE:
             return {
                 ...state,
                 onlyFuture: action.payload,
+            }
+        case PLANNING.ACTIONS.SET_ONLY_SPIKED:
+            return {
+                ...state,
+                onlySpiked: action.payload,
             }
         default:
             return state

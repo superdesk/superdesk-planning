@@ -66,9 +66,9 @@ describe('<EditPlanningPanelContainer />', () => {
         const cancelButton = wrapper.find('button[type="reset"]').first()
         const sluglineInput = wrapper.find('Field [name="slugline"]')
 
-        // Make sure the `agenda spiked` badge is not shown
-        const badge = wrapper.find('.label .label--alert')
-        expect(badge.length).toBe(0)
+        // Make sure the `agenda spiked` and `planning spiked` badges are not shown
+        expect(wrapper.find('.AgendaSpiked').length).toBe(0)
+        expect(wrapper.find('.PlanningSpiked').length).toBe(0)
 
         // Save/Cancel buttons start out as disabled
         expect(saveButton.props().disabled).toBe(true)
@@ -98,7 +98,7 @@ describe('<EditPlanningPanelContainer />', () => {
                 pristine={false}
                 submitting={false}/>
         )
-        const badge = wrapper.find('.label .label--alert').first()
+        const badge = wrapper.find('.AgendaSpiked').first()
         const saveButton = wrapper.find('button[type="submit"]')
         const cancelButton = wrapper.find('button[type="reset"]').first()
 
@@ -107,6 +107,33 @@ describe('<EditPlanningPanelContainer />', () => {
 
         // Make sure the `agenda spiked` badge is shown
         expect(badge.text()).toBe('agenda spiked')
+
+        // And finally make sure the `cancel` button is enabled
+        expect(cancelButton.props().disabled).toBe(false)
+    })
+
+    it('displays the `planning spiked` badge', () => {
+        const planning = {
+            slugline: 'Plan1',
+            state: 'spiked',
+        }
+        const wrapper = shallow(
+            <EditPlanningPanel
+                planning={planning}
+                closePlanningEditor={sinon.spy()}
+                pristine={false}
+                submitting={false} />
+        )
+
+        const badge = wrapper.find('.PlanningSpiked').first()
+        const saveButton = wrapper.find('button[type="submit"]')
+        const cancelButton = wrapper.find('button[type="reset"]').first()
+
+        // Make sure the `save` button is not shown
+        expect(saveButton.length).toBe(0)
+
+        // Make sure the `agenda spiked` badge is shown
+        expect(badge.text()).toBe('planning spiked')
 
         // And finally make sure the `cancel` button is enabled
         expect(cancelButton.props().disabled).toBe(false)

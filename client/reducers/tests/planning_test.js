@@ -18,6 +18,7 @@ describe('planning', () => {
                 planningsAreLoading: false,
                 onlyFuture: true,
                 filterPlanningKeyword: null,
+                onlySpiked: false,
             })
         })
 
@@ -40,25 +41,6 @@ describe('planning', () => {
             )
 
             expect(result.plannings).toEqual({ p1: item })
-        })
-
-        it('DELETE_PLANNING', () => {
-            const newState = planning(
-                initialState,
-                {
-                    type: 'RECEIVE_PLANNINGS',
-                    payload: [item],
-                }
-            )
-            const result = planning(
-                newState,
-                {
-                    type: 'DELETE_PLANNING',
-                    payload: item._id,
-                }
-            )
-
-            expect(result.plannings).toEqual({})
         })
 
         it('OPEN_PLANNING_EDITOR', () => {
@@ -102,6 +84,37 @@ describe('planning', () => {
                 }
             )
             expect(result.onlyFuture).toBe(true)
+        })
+
+        it('SET_ONLY_SPIKED', () => {
+            let result = planning(
+                initialState,
+                {
+                    type: 'SET_ONLY_SPIKED',
+                    payload: true,
+                }
+            )
+            expect(result.onlySpiked).toBe(true)
+
+            result = planning(
+                initialState,
+                {
+                    type: 'SET_ONLY_SPIKED',
+                    payload: false,
+                }
+            )
+            expect(result.onlySpiked).toBe(false)
+        })
+
+        it('PLANNING_FILTER_BY_KEYWORD', () => {
+            let result = planning(
+                initialState,
+                {
+                    type: 'PLANNING_FILTER_BY_KEYWORD',
+                    payload: 'Find this plan',
+                }
+            )
+            expect(result.filterPlanningKeyword).toBe('Find this plan')
         })
     })
 })

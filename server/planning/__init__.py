@@ -13,6 +13,7 @@
 import superdesk
 from .events import EventsResource, EventsService
 from .planning import PlanningResource, PlanningService
+from .planning_spike import PlanningSpikeResource, PlanningSpikeService, PlanningUnspikeResource, PlanningUnspikeService
 from .events_files import EventsFilesResource, EventsFilesService
 from .coverage import CoverageResource, CoverageService
 from .locations import LocationsResource, LocationsService
@@ -34,6 +35,12 @@ def init_app(app):
     """
     planning_search_service = PlanningService('planning', backend=superdesk.get_backend())
     PlanningResource('planning', app=app, service=planning_search_service)
+
+    planning_spike_service = PlanningSpikeService('planning_spike', backend=superdesk.get_backend())
+    PlanningSpikeResource('planning_spike', app=app, service=planning_spike_service)
+
+    planning_unspike_service = PlanningUnspikeService('planning_unspike', backend=superdesk.get_backend())
+    PlanningUnspikeResource('planning_unspike', app=app, service=planning_unspike_service)
 
     agenda_search_service = AgendaService('agenda', backend=superdesk.get_backend())
     AgendaResource('agenda', app=app, service=agenda_search_service)
@@ -92,6 +99,18 @@ def init_app(app):
         name='planning_planning_management',
         label='Planning - Planning Management',
         description='Ability to create and modify Planning items'
+    )
+
+    superdesk.privilege(
+        name='planning_planning_spike',
+        label='Planning - Spike Planning Items',
+        description='Ability to spike a Planning Item'
+    )
+
+    superdesk.privilege(
+        name='planning_planning_unspike',
+        label='Planning - Unspike Planning Items',
+        description='Ability to unspike a Planning Item'
     )
 
     superdesk.privilege(

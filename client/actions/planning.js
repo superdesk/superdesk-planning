@@ -1,32 +1,57 @@
 import * as selectors from '../selectors'
 import * as actions from '../actions'
 import { pickBy, cloneDeep, isNil, has, get } from 'lodash'
-import { fetchAgendas, addToCurrentAgenda, selectAgenda,
+import { addToCurrentAgenda, selectAgenda,
     fetchSelectedAgendaPlannings } from './agenda'
-import { PRIVILEGES } from '../constants'
-import { checkPermission } from '../utils'
+import { PRIVILEGES, PLANNING } from '../constants'
+import { checkPermission, getErrorMessage } from '../utils'
 
 /**
- * Action dispatcher to delete a planning item
- * @param {object} planning - The planning item to delete
- * @return arrow function
+ * Action dispatcher that marks a Planning item as spiked
+ * @param {object} planning - The planning item to spike
+ * @return Promise
  */
-const deletePlanning = (planning) => (
+const _spikePlanning = (planning) => (
     (dispatch, getState, { api, notify }) => (
-        api('planning').remove(planning)
-        // close the editor if the removed planning was opened
+        api.update('planning_spike', planning, {})
         .then(() => {
+            notify.success('The Planning Item has been spiked.')
+            dispatch({
+                type: PLANNING.ACTIONS.SPIKE_PLANNING,
+                payload: planning,
+            })
             if (selectors.getCurrentPlanningId(getState()) === planning._id) {
                 dispatch(closePlanningEditor())
             }
-        })
-        .then(() => notify.success('The planning has been deleted.'))
-        // reloads agendas because they contains the list of the plannings to show and plannings
-        .then(() => (dispatch(fetchAgendas())))
-        .then(() => (dispatch({
-            type: 'DELETE_PLANNING',
-            payload: planning._id,
-        })))
+        }, (error) => (
+            notify.error(
+                getErrorMessage(error, 'There was a problem, Planning item not spiked!')
+            )
+        ))
+        .then(() => (dispatch(fetchPlannings())))
+    )
+)
+
+/**
+ * Action dispatcher that marks a Planning item as active
+ * @param {object} planning - The Planning item to unspike
+ * @return Promise
+ */
+const _unspikePlanning = (planning) => (
+    (dispatch, getState, { api, notify }) => (
+        api.update('planning_unspike', planning, {})
+        .then(() => {
+            notify.success('The Planning Item has been unspiked.')
+            dispatch({
+                type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
+                payload: planning,
+            })
+        }, (error) => (
+            notify.error(
+                getErrorMessage(error, 'There was a problem, Planning item not unspiked!')
+            )
+        ))
+        .then(() => (dispatch(fetchPlannings())))
     )
 )
 
@@ -164,7 +189,7 @@ const _saveAndDeleteCoverages = (coverages, planning, originalCoverages) => (
  * @return action object
  */
 const receivePlannings = (plannings) => ({
-    type: 'RECEIVE_PLANNINGS',
+    type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
     payload: plannings,
 })
 
@@ -221,15 +246,12 @@ const fetchPlannings = (params={}) => (
 
 /**
  * Opens the Planning Editor
- * @param {function} dispatch - The redux store's dispatch function
- * @param {function} getState - The redux store's getState function
- * @param {object} services - Not used in this instance
  * @param {object} planning - The planning item to open
  * @return Promise
  */
 const _openPlanningEditor = (planning) => (
     {
-        type: 'OPEN_PLANNING_EDITOR',
+        type: PLANNING.ACTIONS.OPEN_PLANNING_EDITOR,
         payload: planning,
     }
 )
@@ -259,7 +281,7 @@ const _openPlanningEditorAndAgenda = (planning) => (
  * @return object
  */
 const closePlanningEditor = () => (
-    { type: 'CLOSE_PLANNING_EDITOR' }
+    { type: PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR }
 )
 
 /**
@@ -269,17 +291,37 @@ const closePlanningEditor = () => (
 const toggleOnlyFutureFilter = () => (
     (dispatch, getState) => {
         dispatch({
-            type: 'SET_ONLY_FUTURE',
+            type: PLANNING.ACTIONS.SET_ONLY_FUTURE,
             payload: !getState().planning.onlyFuture,
         })
         return Promise.resolve()
     }
 )
 
+/**
+ * Action dispatcher to set the planning item filter keyword
+ * This is used by the PlanningPanelContainer through the selector
+ * to filter the list of planning items to display
+ * @param {string} value - The filter string used to filter planning items
+ */
 const planningFilterByKeyword = (value) => ({
     type: 'PLANNING_FILTER_BY_KEYWORD',
     payload: value && value.trim() || null,
 })
+
+/**
+ * Action dispatcher to toggle the `Spiked` toggle of the planning list
+ * @return arrow function
+ */
+const toggleOnlySpikedFilter = () => (
+    (dispatch, getState) => {
+        dispatch({
+            type: PLANNING.ACTIONS.SET_ONLY_SPIKED,
+            payload: !getState().planning.onlySpiked,
+        })
+        return Promise.resolve()
+    }
+)
 
 // Action Privileges
 const savePlanningAndReloadCurrentAgenda = checkPermission(
@@ -308,8 +350,21 @@ const openPlanningEditorAndAgenda = checkPermission(
     'Unauthorised to edit a planning item!'
 )
 
+const spikePlanning = checkPermission(
+    _spikePlanning,
+    PRIVILEGES.SPIKE_PLANNING,
+    'Unauthorised to spike a planning item!'
+)
+
+const unspikePlanning = checkPermission(
+    _unspikePlanning,
+    PRIVILEGES.UNSPIKE_PLANNING,
+    'Unauthorised to unspike a planning item!'
+)
+
 export {
-    deletePlanning,
+    spikePlanning,
+    unspikePlanning,
     savePlanning,
     savePlanningAndReloadCurrentAgenda,
     fetchPlannings,
@@ -318,4 +373,5 @@ export {
     openPlanningEditorAndAgenda,
     toggleOnlyFutureFilter,
     planningFilterByKeyword,
+    toggleOnlySpikedFilter,
 }

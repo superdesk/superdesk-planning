@@ -41,6 +41,8 @@ describe('agenda', () => {
                     $timeout,
                 })
             }
+
+            return action
         })
         const notify = {
             error: sinon.spy(),
@@ -130,7 +132,7 @@ describe('agenda', () => {
 
             it('spikeAgenda calls `agenda_spike` endpoint', () => {
                 initialState.privileges.planning_agenda_spike = 1
-                api = { update: sinon.spy(() => (Promise.resolve())) }
+                api.update = sinon.spy(() => (Promise.resolve()))
 
                 return action(dispatch, getState, {
                     api,
@@ -143,7 +145,7 @@ describe('agenda', () => {
                         agendas[1],
                         {},
                     ])
-                    expect(dispatch.args[0]).toEqual([{
+                    expect(dispatch.args[1]).toEqual([{
                         type: 'SPIKE_AGENDA',
                         payload: agendas[1],
                     }])
@@ -151,10 +153,10 @@ describe('agenda', () => {
                     // Cannot check dispatch(fetchAgendas()) using a spy on dispatch
                     // As fetchAgendas is a thunk function
 
-                    expect(dispatch.callCount).toBe(2)
+                    expect(dispatch.callCount).toBe(4)
                     expect($timeout.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(0)
-                    expect(notify.success.args[0]).toBe(['The Agenda has been spiked.'])
+                    expect(notify.success.args[0]).toEqual(['The Agenda has been spiked.'])
                 })
             })
 
@@ -187,7 +189,8 @@ describe('agenda', () => {
 
             it('unspikeAgenda calls `agenda_unspike` endpoint', () => {
                 initialState.privileges.planning_agenda_unspike = 1
-                api = { update: sinon.spy(() => (Promise.resolve())) }
+                api.update = sinon.spy(() => (Promise.resolve()))
+
                 return action(dispatch, getState, {
                     api,
                     notify,
@@ -199,7 +202,7 @@ describe('agenda', () => {
                         agendas[1],
                         {},
                     ])
-                    expect(dispatch.args[0]).toEqual([{
+                    expect(dispatch.args[1]).toEqual([{
                         type: 'UNSPIKE_AGENDA',
                         payload: agendas[1],
                     }])
@@ -207,14 +210,14 @@ describe('agenda', () => {
                     // Cannot check dispatch(fetchAgendas()) using a spy on dispatch
                     // As fetchAgendas is a thunk function
 
-                    expect(dispatch.callCount).toBe(2)
+                    expect(dispatch.callCount).toBe(4)
                     expect($timeout.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(0)
                     expect(notify.success.args[0]).toEqual(['The Agenda has been unspiked.'])
                 })
             })
 
-            it('unspikeAgenda raises ACCESS_DENIED withou permission', () => {
+            it('unspikeAgenda raises ACCESS_DENIED without permission', () => {
                 initialState.privileges.planning_agenda_unspike = 0
                 return action(dispatch, getState, {
                     api,
