@@ -1,16 +1,12 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
-import { SelectAgenda, EditPlanningPanelContainer } from '../index'
-import { PlanningItem, QuickAddPlanning, Toggle, SearchBar } from '../../components'
+import { SelectAgenda, EditPlanningPanelContainer, PlanningList } from '../index'
+import { QuickAddPlanning, Toggle, SearchBar } from '../../components'
 import * as selectors from '../../selectors'
 import './style.scss'
 
 class PlanningPanel extends React.Component {
-
-    componentDidMount() {
-        this.props.fetchPlannings()
-    }
 
     handleDragEnter(e) {
         e.dataTransfer.dropEffect = 'copy'
@@ -27,13 +23,8 @@ class PlanningPanel extends React.Component {
     render() {
         const {
             planningList,
-            openPlanningEditor,
             currentAgenda,
-            handlePlanningSpike,
-            handlePlanningUnspike,
             onPlanningCreation,
-            planningsEvents,
-            currentPlanning,
             planningsAreLoading,
             editPlanningViewOpen,
             isEventListShown,
@@ -95,17 +86,9 @@ class PlanningPanel extends React.Component {
                             {currentAgenda && privileges.planning_planning_management === 1 && currentAgenda.state !== 'spiked' &&
                                 <QuickAddPlanning className="ListItem" onPlanningCreation={onPlanningCreation}/>
                             }
-                            {(planningList && planningList.length > 0) && planningList.map((planning) => (
-                                <PlanningItem
-                                    key={planning._id}
-                                    active={currentPlanning && currentPlanning._id === planning._id}
-                                    item={planning}
-                                    event={planningsEvents[planning._id]}
-                                    onSpike={handlePlanningSpike}
-                                    onUnspike={handlePlanningUnspike}
-                                    onClick={openPlanningEditor.bind(null, planning._id)}
-                                    privileges={privileges} />
-                            ))}
+                            {(planningList && planningList.length > 0) &&
+                                <PlanningList />
+                            }
                         </ul>
                         {
                             planningsAreLoading &&
@@ -132,14 +115,8 @@ class PlanningPanel extends React.Component {
 
 PlanningPanel.propTypes = {
     currentAgenda: React.PropTypes.object,
-    currentPlanning: React.PropTypes.object,
-    planningsEvents: React.PropTypes.object,
-    fetchPlannings: React.PropTypes.func.isRequired,
     planningList: React.PropTypes.array.isRequired,
     planningsAreLoading: React.PropTypes.bool,
-    openPlanningEditor: React.PropTypes.func.isRequired,
-    handlePlanningSpike: React.PropTypes.func,
-    handlePlanningUnspike: React.PropTypes.func,
     onPlanningCreation: React.PropTypes.func,
     editPlanningViewOpen: React.PropTypes.bool,
     addEventToCurrentAgenda: React.PropTypes.func,
@@ -156,11 +133,9 @@ PlanningPanel.propTypes = {
 
 const mapStateToProps = (state) => ({
     currentAgenda: selectors.getCurrentAgenda(state),
-    currentPlanning: selectors.getCurrentPlanning(state),
     planningList: selectors.getCurrentAgendaPlannings(state),
     planningsAreLoading: state.agenda.agendasAreLoading || state.planning.planningsAreLoading,
     editPlanningViewOpen: state.planning.editorOpened,
-    planningsEvents: selectors.getCurrentAgendaPlanningsEvents(state),
     isEventListShown: selectors.isEventListShown(state),
     onlyFuture: state.planning.onlyFuture,
     onlySpiked: state.planning.onlySpiked,
@@ -168,28 +143,6 @@ const mapStateToProps = (state) => ({
 })
 
 const mapDispatchToProps = (dispatch) => ({
-    handlePlanningSpike: (planning) => {
-        dispatch(actions.showModal({
-            modalType: 'CONFIRMATION',
-            modalProps: {
-                body: `Are you sure you want to spike the planning item ${planning.slugline} ?`,
-                action: () => dispatch(actions.spikePlanning(planning)),
-            },
-        }))
-    },
-    handlePlanningUnspike: (planning) => {
-        dispatch(actions.showModal({
-            modalType: 'CONFIRMATION',
-            modalProps: {
-                body: `Are you sure you want to unspike the planning item ${planning.slugline} ?`,
-                action: () => dispatch(actions.unspikePlanning(planning)),
-            },
-        }))
-    },
-    fetchPlannings: () => {
-        dispatch(actions.fetchAgendas())
-        dispatch(actions.fetchPlannings())
-    },
     onPlanningCreation: (planning) => (
         // save planning and open the plannning editor
         dispatch(actions.savePlanningAndReloadCurrentAgenda(planning))
@@ -198,7 +151,6 @@ const mapDispatchToProps = (dispatch) => ({
         ))
     ),
     handleSearch: (text) => (dispatch(actions.planningFilterByKeyword(text))),
-    openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning))),
     addEventToCurrentAgenda: (event) => (dispatch(actions.addEventToCurrentAgenda(event))),
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
     onManageAgendasClick: () => (dispatch(actions.showModal({ modalType: 'MANAGE_AGENDAS' }))),

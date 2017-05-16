@@ -1,5 +1,6 @@
 export { AddGeoLookupInput } from './AddGeoLookupInput/index'
 export { EventsListContainer } from './EventsListContainer/index'
+export { default as PlanningList } from './PlanningList/index'
 export { PlanningPanelContainer } from './PlanningPanelContainer/index'
 export { PlanningApp } from './PlanningApp'
 export { EventForm } from './EventForm/index'

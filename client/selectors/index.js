@@ -7,7 +7,7 @@ export const getAgendas = (state) => state.agenda.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
 export const getEvents = (state) => state.events.events
 export const isEventListShown = (state) =>state.events.show
-export const getPreviousEventRequestParams = (state) => state.events.lastRequestParams
+export const getPreviousEventRequestParams = (state) => get(state.events, 'lastRequestParams', {})
 export const getCurrentAgendaId = (state) => state.agenda.currentAgendaId
 export const getStoredPlannings = (state) => state.planning.plannings
 export const isOnlyFutureFiltered = (state) => state.planning.onlyFuture
