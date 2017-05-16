@@ -3,7 +3,6 @@ import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
 import { cloneDeep, get } from 'lodash'
 import { closePlanningEditor, fetchPlannings, savePlanning } from './planning'
-import { fetchEvents } from './events'
 import { PRIVILEGES } from '../constants'
 import { checkPermission } from '../utils'
 
@@ -137,8 +136,6 @@ const _addPlanningToAgenda = ({ planning, agenda }) => (
         .then((agenda) => {
             // replace the agenda in the store
             dispatch(addOrReplaceAgenda(agenda))
-            // reload event list as event expire will have changed to null
-            dispatch(fetchEvents())
             return agenda
         })
     }
