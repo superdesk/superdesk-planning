@@ -23,6 +23,12 @@ Feature: Agenda
         """
         []
         """
+        When we get "/agenda_history"
+        Then we get a list with 2 items
+        """
+            {"_items": [{"operation": "create", "agenda_id": "#agenda._id#", "update": {"state": "active"}},
+            {"operation": "update", "agenda_id": "#agenda._id#", "update": {"planning_items" : []}}]}
+        """
 
     @auth
     @notification
@@ -139,6 +145,12 @@ Feature: Agenda
         {"planning_items": ["#planningId#"]}
         """
         Then we get OK response
+        When we get "/agenda_history"
+        Then we get a list with 2 items
+        """
+            {"_items": [{"operation": "create", "agenda_id": "#agenda._id#", "update": {"state": "active"}},
+            {"operation": "update", "agenda_id": "#agenda._id#", "update": {"planning_items" : ["#planningId#"]}}]}
+        """
 
     @auth
     Scenario: Creating Agenda will generate default metadata
@@ -154,4 +166,27 @@ Feature: Agenda
             "planning_type": "agenda",
             "original_creator": "#CONTEXT_USER_ID#"
         }
+        """
+
+    @auth
+    Scenario: Updates to Agenda are tracked in the Agenda History
+        When we post to "agenda"
+        """
+        [{
+            "name" : "The big agenda",
+            "item_class" : "plinat:newscoverage",
+            "planning_type" : "agenda"
+        }]
+        """
+        Then we get OK response
+        When we patch "/agenda/#agenda._id#"
+        """
+        {"name": "The small agenda"}
+        """
+        Then we get OK response
+        When we get "/agenda_history"
+        Then we get a list with 2 items
+        """
+            {"_items": [{"operation": "create", "agenda_id": "#agenda._id#", "update": {"name": "The big agenda"}},
+            {"operation": "update", "agenda_id": "#agenda._id#", "update": {"name" : "The small agenda"}}]}
         """
