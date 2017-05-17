@@ -48,6 +48,15 @@ Feature: Agenda Spike
             "state": "spiked"
         }
         """
+        When we get "/agenda_history?where=agenda_id==%22#agenda._id#%22"
+        Then we get list with 1 items
+        """
+        {"_items": [{
+            "agenda_id": "#agenda._id#",
+            "operation": "update",
+            "update": {"state" : "spiked"}
+        }]}
+        """
 
     @auth
     @notification
@@ -79,6 +88,15 @@ Feature: Agenda Spike
             "name": "TestAgenda",
             "state": "active"
         }
+        """
+        When we get "/agenda_history?where=agenda_id==%22#agenda._id#%22"
+        Then we get list with 1 items
+        """
+        {"_items": [{
+            "agenda_id": "#agenda._id#",
+            "operation": "update",
+            "update": {"state" : "active"}
+        }]}
         """
 
     @auth

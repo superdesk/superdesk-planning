@@ -59,6 +59,7 @@ class PlanningService(superdesk.Service):
         for agenda in agenda_service.find(where={'planning_items': doc['_id']}):
             diff = {'planning_items': [_ for _ in agenda['planning_items'] if _ != doc['_id']]}
             agenda_service.update(agenda['_id'], diff, agenda)
+            get_resource_service('agenda_history').on_item_updated(diff, agenda)
 
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
