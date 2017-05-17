@@ -1,12 +1,11 @@
 import React from 'react'
-import { mount, shallow } from 'enzyme'
-import sinon from 'sinon'
+import { mount } from 'enzyme'
 import { EventsListContainer } from '../../containers'
-import { EventsList, EventItem } from '../index'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
 import { createTestStore } from '../../utils'
 import moment from 'moment'
+import { AutoSizer } from 'react-virtualized'
 
 const events = {
     '5800d71930627218866f1e80': {
@@ -44,6 +43,18 @@ const events = {
 }
 
 describe('<EventsList />', () => {
+    beforeEach(() => (
+        spyOn(AutoSizer.prototype, 'render').and.callFake(function render() {
+            return (
+                <div ref={this._setRef}>
+                    {this.props.children({
+                        width: 200,
+                        height: 400,
+                    })}
+                </div>
+            )
+        })
+    ))
     it('renders events', () => {
         const initialState = {
             events: {
@@ -115,13 +126,5 @@ describe('<EventsList />', () => {
         expect(
             wrapper.find('.ListItem').first().find('[className="icon-link"]').length
         ).toBe(0)
-    })
-    it('trigger an event click', () => {
-        const onButtonClick = sinon.spy()
-        const eventList = Object.keys(events).map((eid) => events[eid])
-        const wrapper = shallow(<EventsList events={eventList} onEventClick={onButtonClick} />)
-        // simulate a click
-        wrapper.find(EventItem).first().simulate('click')
-        expect(onButtonClick.calledOnce).toBe(true)
     })
 })

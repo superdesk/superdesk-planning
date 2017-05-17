@@ -1,11 +1,13 @@
 import { createSelector } from 'reselect'
-import { orderBy, get } from 'lodash'
+import { orderBy, get, sortBy } from 'lodash'
+import { isAllDay } from '../utils'
 import moment from 'moment'
 
 export const getAgendas = (state) => state.agenda.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
 export const getEvents = (state) => state.events.events
 export const isEventListShown = (state) =>state.events.show
+export const getPreviousEventRequestParams = (state) => state.events.lastRequestParams
 export const getCurrentAgendaId = (state) => state.agenda.currentAgendaId
 export const getStoredPlannings = (state) => state.planning.plannings
 export const isOnlyFutureFiltered = (state) => state.planning.onlyFuture
@@ -158,6 +160,55 @@ export const getEventsWithMoreInfo = createSelector(
                 _type: 'events', // _type can disapear in the object, like in a POST response
             }
         })
+    }
+)
+
+/**
+* Will produce an array of days, which contain the day date and
+* the associated events.
+*/
+export const getEventsOrderedByDay = createSelector(
+    [getEventsWithMoreInfo],
+    (events) => {
+        if (!events) return []
+        // order by date
+        events = events.sort((a, b) => a.dates.start - b.dates.start)
+        var days = {}
+        function addEventToDate(event, date) {
+            date = date || event.dates.start
+            date = date.format('YYYY-MM-DD')
+            if (!days[date]) {
+                days[date] = []
+            }
+
+            days[date].push(event)
+        }
+
+        events.forEach((event) => {
+            // if the event happens during more that one day, add it to every day
+            if (!isAllDay(event) && !event.dates.start.isSame(event.dates.end, 'day')) {
+                // compute the number of days of the event
+                var deltaDays = Math.max(event.dates.end.diff(event.dates.start, 'days'), 1)
+                // add the event to the other days
+                for (var i = 1; i <= deltaDays; i++) {
+                    //  clone the date
+                    const newDate = moment(event.dates.start)
+                    newDate.add(i, 'days')
+                    addEventToDate(event, newDate)
+                }
+            }
+            // add event to its initial starting date
+            addEventToDate(event)
+        })
+
+        let sortable = []
+        for (let day in days) sortable.push({
+            date: day,
+            events: days[day],
+        })
+
+        return sortBy(sortable, [(e) => (e.date)])
+
     }
 )
 

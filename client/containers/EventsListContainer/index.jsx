@@ -67,6 +67,7 @@ class EventsListComponent extends React.Component {
                                 onEventClick={this.props.openEventDetails}
                                 onEventDelete={this.props.deleteEvent}
                                 selectedEvent={this.props.selectedEvent}
+                                loadMoreEvents={this.props.loadMoreEvents}
                                 privileges={privileges} />
                 </div>
             </div>
@@ -86,10 +87,11 @@ EventsListComponent.propTypes = {
     deleteEvent: React.PropTypes.func,
     selectedEvent: React.PropTypes.string,
     privileges: React.PropTypes.object.isRequired,
+    loadMoreEvents: React.PropTypes.func.isRequired,
 }
 
 const mapStateToProps = (state) => ({
-    events: selectors.getEventsWithMoreInfo(state),
+    events: selectors.getEventsOrderedByDay(state),
     currentSearch: get(state, 'events.search.currentSearch'),
     advancedSearchOpened: get(state, 'events.search.advancedSearchOpened'),
     selectedEvent: selectors.getSelectedEvent(state),
@@ -103,6 +105,7 @@ const mapDispatchToProps = (dispatch) => ({
     closeAdvancedSearch: () => (dispatch(actions.closeAdvancedSearch())),
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
     deleteEvent: (event) => dispatch(actions.openDeleteEvent(event)),
+    loadMoreEvents: () => (dispatch(actions.loadMoreEvents())),
 })
 
 export const EventsListContainer = connect(
