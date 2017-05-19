@@ -198,11 +198,11 @@ const receivePlannings = (plannings) => ({
  * @param {object} query - Query object used when requesting the planning items
  * @return thunk function
  */
-const performFetchRequest = (query={}) => (
+const performFetchRequest = ({ source, where }) => (
     (dispatch, getState, { api }) => (
         api('planning').query({
-            source: query.source,
-            where: query.where,
+            source: source,
+            where: where,
             embedded: { original_creator: 1 }, // nest creator to planning
             max_results: 10000,
             timestamp: new Date(),

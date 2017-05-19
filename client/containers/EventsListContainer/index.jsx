@@ -12,11 +12,6 @@ class EventsListComponent extends React.Component {
         super(props)
     }
 
-    componentWillMount() {
-        // load events for the first time
-        this.props.loadEvents(this.props.currentSearch && this.props.currentSearch.fulltext)
-    }
-
     toggleAdvancedSearch() {
         if (this.props.advancedSearchOpened) {
             this.props.closeAdvancedSearch()

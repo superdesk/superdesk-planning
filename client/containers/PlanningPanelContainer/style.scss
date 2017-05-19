@@ -26,7 +26,7 @@
     &__list {
         flex-grow: 1;
         height: 100%;
-        .list-view {
+        > .list-view {
             overflow: auto;
             box-shadow: inherit;
             position: absolute;
@@ -34,6 +34,11 @@
             right: 0;
             left: 0;
             bottom: 0;
+            display: flex;
+            flex-direction: column;
+            .PlanningList {
+                flex: 1 1 auto;
+            }
         }
     }
     .ListItem {

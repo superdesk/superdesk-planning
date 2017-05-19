@@ -33,31 +33,7 @@ export function PlanningController(
 ) {
     // create the application store
     const store = createStore({
-        initialState: {
-            events: {
-                events: {},
-                eventsInList: [],
-                show: true,
-                search: {
-                    currentSearch: $location.search().searchEvent &&
-                        JSON.parse($location.search().searchEvent),
-                    advancedSearchOpened: false,
-                },
-            },
-            planning: {
-                editorOpened: false,
-                currentPlanningId: null,
-                planningsAreLoading: false,
-                onlyFuture: true,
-                plannings: {}, // plannings stored by _id
-            },
-            agenda: {
-                agendas: [],
-                agendasAreLoading: false,
-                currentAgendaId: $location.search().agenda,
-            },
-            config: config,
-        },
+        initialState: { config: config },
         extraArguments: {
             api,
             $location,
@@ -74,6 +50,17 @@ export function PlanningController(
     store.dispatch(actions.loadCVocabularies())
     store.dispatch(actions.loadIngestProviders())
     store.dispatch(actions.loadPrivileges())
+    store.dispatch(actions.fetchEvents({
+        fulltext: JSON.parse(
+            $location.search().searchEvent || '{}'
+        ).fulltext,
+    }))
+    store.dispatch(actions.fetchAgendas())
+    .then(() => {
+        if ($location.search().agenda) {
+            return store.dispatch(actions.selectAgenda($location.search().agenda))
+        }
+    })
     // render the planning application
     ReactDOM.render(
         <Provider store={store}>

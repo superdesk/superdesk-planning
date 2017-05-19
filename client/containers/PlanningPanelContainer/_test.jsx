@@ -5,8 +5,22 @@ import { mount } from 'enzyme'
 import React from 'react'
 import { PlanningItem } from '../../components'
 import { PlanningPanelContainer } from '../index'
+import { AutoSizer } from 'react-virtualized'
 
 describe('planning', () => {
+    // Give the space to Autosizer to display the list
+    beforeEach(() => (
+        spyOn(AutoSizer.prototype, 'render').and.callFake(function render() {
+            return (
+                <div ref={this._setRef}>
+                    {this.props.children({
+                        width: 200,
+                        height: 400,
+                    })}
+                </div>
+            )
+        })
+    ))
     describe('containers', () => {
         describe('<PlanningPanelContainer />', () => {
             const initialState = {
@@ -184,7 +198,7 @@ describe('planning', () => {
                     </Provider>
                 )
 
-                wrapper.find('PlanningPanel').props().handlePlanningSpike(item)
+                wrapper.find('PlanningList').props().handlePlanningSpike(item)
                 expect(store.getState().modal.modalType).toBe('CONFIRMATION')
                 expect(store.getState().modal.modalProps.body).toBe(
                     'Are you sure you want to spike the planning item Plan1 ?'
@@ -203,7 +217,7 @@ describe('planning', () => {
                     </Provider>
                 )
 
-                wrapper.find('PlanningPanel').props().handlePlanningUnspike(item)
+                wrapper.find('PlanningList').props().handlePlanningUnspike(item)
                 expect(store.getState().modal.modalType).toBe('CONFIRMATION')
                 expect(store.getState().modal.modalProps.body).toBe(
                     'Are you sure you want to unspike the planning item Plan1 ?'
