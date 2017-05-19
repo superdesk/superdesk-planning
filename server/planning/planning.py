@@ -16,8 +16,9 @@ from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk import get_resource_service
 from superdesk.resource import build_custom_hateoas
-from apps.archive.common import set_original_creator
+from apps.archive.common import set_original_creator, get_user
 from copy import deepcopy
+from eve.utils import config
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,11 @@ class PlanningService(superdesk.Service):
                 events_service = get_resource_service('events')
                 original_event = events_service.find_one(req=None, _id=doc['event_item'])
                 events_service.system_update(doc['event_item'], {'expiry': None}, original_event)
+
+    def on_update(self, updates, original):
+        user = get_user()
+        if user and user.get(config.ID_FIELD):
+            updates['version_creator'] = user[config.ID_FIELD]
 
     def on_deleted(self, doc):
         # remove the planning from agendas

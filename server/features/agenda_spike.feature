@@ -53,7 +53,7 @@ Feature: Agenda Spike
         """
         {"_items": [{
             "agenda_id": "#agenda._id#",
-            "operation": "update",
+            "operation": "spiked",
             "update": {"state" : "spiked"}
         }]}
         """
@@ -94,7 +94,7 @@ Feature: Agenda Spike
         """
         {"_items": [{
             "agenda_id": "#agenda._id#",
-            "operation": "update",
+            "operation": "unspiked",
             "update": {"state" : "active"}
         }]}
         """

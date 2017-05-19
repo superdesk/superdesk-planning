@@ -467,7 +467,14 @@ Feature: Events
             {"operation": "update", "event_id": "#EVENT._id#"}
             ]}
         """
-
+        When we get "/events_history?where=event_id==%22#EVENT._id#%22"
+        Then we get list with 2 items
+        """
+            {"_items": [
+            {"operation": "create", "event_id": "#EVENT._id#"},
+            {"operation": "update", "event_id": "#EVENT._id#"}
+            ]}
+        """
  @auth
     @notification
     Scenario: Update a recurring event and delete some of following recurrences
