@@ -8,20 +8,12 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-
-from flask import current_app as app
-from datetime import timedelta
 from .agenda import AgendaResource
+from .common import ITEM_EXPIRY, ITEM_STATE, ITEM_SPIKED, ITEM_ACTIVE, set_item_expiry
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from apps.auth import get_user
 from superdesk import config
-from superdesk.utc import utcnow
-
-EXPIRY = 'expiry'
-AGENDA_STATE = 'state'
-AGENDA_SPIKED = 'spiked'
-AGENDA_ACTIVE = 'active'
 
 
 class AgendaSpikeResource(AgendaResource):
@@ -38,13 +30,8 @@ class AgendaSpikeService(BaseService):
     def update(self, id, updates, original):
         user = get_user(required=True)
 
-        updates[AGENDA_STATE] = AGENDA_SPIKED
-
-        expiry_minutes = app.settings.get('PLANNING_EXPIRY_MINUTES', None)
-        if expiry_minutes is not None:
-            updates[EXPIRY] = utcnow() + timedelta(minutes=expiry_minutes)
-        else:
-            updates[EXPIRY] = None
+        updates[ITEM_STATE] = ITEM_SPIKED
+        set_item_expiry(updates)
 
         item = self.backend.update(self.datasource, id, updates, original)
         push_notification('agenda:spike', item=str(id), user=str(user.get(config.ID_FIELD)))
@@ -65,8 +52,8 @@ class AgendaUnspikeService(BaseService):
     def update(self, id, updates, original):
         user = get_user(required=True)
 
-        updates[AGENDA_STATE] = AGENDA_ACTIVE
-        updates[EXPIRY] = None
+        updates[ITEM_STATE] = ITEM_ACTIVE
+        updates[ITEM_EXPIRY] = None
 
         item = self.backend.update(self.datasource, id, updates, original)
         push_notification('agenda:unspike', item=str(id), user=str(user.get(config.ID_FIELD)))

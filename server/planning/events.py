@@ -17,6 +17,7 @@ from superdesk import get_resource_service
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from apps.archive.common import set_original_creator, get_user
+from .common import STATE_SCHEMA
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -81,8 +82,10 @@ class EventsService(superdesk.Service):
             event['_id'] = event['guid']
             # set the author
             set_original_creator(event)
+
             # overwrite expiry date
             overwrite_event_expiry_date(event)
+
             # generates events based on recurring rules
             if event['dates'].get('recurring_rule', None):
                 # generate a common id for all the events we will generate
@@ -105,8 +108,10 @@ class EventsService(superdesk.Service):
                     new_event['_id'] = new_event['guid']
                     # set the recurrence id
                     new_event['recurrence_id'] = recurrence_id
+
                     # set expiry date
                     overwrite_event_expiry_date(new_event)
+
                     generatedEvents.append(new_event)
                 # remove the event that contains the recurring rule. We don't need it anymore
                 docs.remove(event)
@@ -457,7 +462,15 @@ events_schema = {
                 'name': not_analyzed
             }
         }
+    },
+
+    # These next two are for spiking/unspiking and purging events
+    'state': STATE_SCHEMA,
+    'expiry': {
+        'type': 'datetime',
+        'nullable': True
     }
+
 }  # end events_schema
 
 
@@ -475,11 +488,10 @@ class EventsResource(superdesk.Resource):
         'source': 'events',
         'search_backend': 'elastic',
     }
-    item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
+    item_methods = ['GET', 'PATCH', 'PUT']
     public_methods = ['GET']
     privileges = {'POST': 'planning_event_management',
-                  'PATCH': 'planning_event_management',
-                  'DELETE': 'planning'}
+                  'PATCH': 'planning_event_management'}
 
 
 def generate_recurring_dates(start, frequency, interval=1, endRepeatMode='unlimited',

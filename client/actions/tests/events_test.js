@@ -40,18 +40,35 @@ describe('events', () => {
             privileges: {
                 planning: 1,
                 planning_event_management: 1,
+                planning_event_spike: 1,
+                planning_event_unspike: 1,
             },
             planning: { plannings: {} },
             config: { server: { url: 'http://server.com' } },
         }
         const getState = () => (initialState)
-        const dispatch = sinon.spy(() => (Promise.resolve()))
+        let dispatch
+
+        // Special dispatcher for `checkPermission` that executes the first dispatch
+        // and mocks the proceeding calls
+        const dispatchCheckPermission = sinon.spy((action) =>  {
+            if (typeof action === 'function' && dispatch.callCount < 2) {
+                return action(dispatch, getState, {
+                    notify,
+                    api,
+                    $timeout,
+                })
+            }
+
+            return action
+        })
+
         const notify = {
             error: sinon.spy(),
             success: sinon.spy(),
         }
         const $timeout = sinon.spy((func) => func())
-        const $location = { search: sinon.spy(() => (Promise.resolve())) }
+        let $location
 
         const upload = {
             start: sinon.spy((file) => (Promise.resolve({
@@ -66,7 +83,6 @@ describe('events', () => {
         const api = () => (apiSpy)
 
         beforeEach(() => {
-
             apiSpy = {
                 query: sinon.spy(() => (Promise.resolve({ _items: events }))),
                 remove: sinon.spy(() => (Promise.resolve())),
@@ -77,9 +93,12 @@ describe('events', () => {
                 }))),
             }
 
+            dispatch = sinon.spy(() => (Promise.resolve()))
+            $location = { search: sinon.spy(() => (Promise.resolve())) }
+
             notify.error.reset()
             notify.success.reset()
-            dispatch.reset()
+            $timeout.reset()
         })
 
         it('uploadFilesAndSaveEvent', () => {
@@ -110,33 +129,109 @@ describe('events', () => {
             })
         })
 
-        it('deleteEvent', () => {
-            const action = actions.deleteEvent(events[2])
-            return action(dispatch, getState, {
-                api,
-                notify,
+        describe('spikeEvent', () => {
+            const action = actions.spikeEvent(events[2])
+            it('spikeEvent calls `events_spike` endpoint', () => {
+                api.update = sinon.spy(() => (Promise.resolve()))
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then(() => {
+                    expect(api.update.args[0]).toEqual([
+                        'events_spike',
+                        events[2],
+                        {},
+                    ])
+
+                    expect(notify.success.args[0]).toEqual(['The Event has been spiked.'])
+                    expect(notify.error.callCount).toBe(0)
+
+                    expect(dispatch.args[0]).toEqual([{
+                        type: 'SPIKE_EVENT',
+                        payload: events[2],
+                    }])
+
+                    expect(dispatch.args[1]).toEqual([{ type: 'HIDE_MODAL' }])
+
+                    // Cannot check dispatch(silentlyFetchEventsById()) using a spy on dispatch
+                    // As silentlyFetchEventsById is a thunk function
+
+                    // Cannot check dispatch(fetchSelectedAgendaPlannings()) using a spy on dispatch
+                    // As fetchSelectedAgendaPlannings is a thunk function
+
+                    // Cannot check dispatch(fetchUsingURL()) using a spy on dispatch
+                    // As fetchUsingURL is a thunk function
+
+                    expect(dispatch.callCount).toBe(5)
+                })
             })
-            .then(() => {
-                expect(apiSpy.remove.args[0]).toEqual([events[2]])
 
-                expect(dispatch.args[0]).toEqual([{ type: 'HIDE_MODAL' }])
-
-                // Cannot check dispatch(fetchEvents()) using a spy on dispatch
-                // As fetchEvents is a thunk function
-
-                expect(dispatch.callCount).toBe(2)
+            it('spikeEvent on fail displays error message', () => {
+                api.update = sinon.spy(() => (Promise.reject(
+                    { data: { _message: 'Failed to spike the event' } }
+                )))
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then(() => {
+                    expect(api.update.callCount).toBe(1)
+                    expect(notify.error.args[0]).toEqual(['Failed to spike the event'])
+                    expect(notify.success.callCount).toBe(0)
+                })
             })
+
         })
 
-        it('deleteEvent notify error if no event given', () => {
-            const action = actions.deleteEvent()
-            return action(dispatch, getState, {
-                api,
-                notify,
+        describe('unspikeEvent', () => {
+            const action = actions.unspikeEvent(events[2])
+
+            it('unspikeEvent calls `events_unspike` endpoint', () => {
+                api.update = sinon.spy(() => (Promise.resolve()))
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then(() => {
+                    expect(api.update.args[0]).toEqual([
+                        'events_unspike',
+                        events[2],
+                        {},
+                    ])
+
+                    expect(notify.success.args[0]).toEqual(['The Event has been unspiked.'])
+
+                    expect(dispatch.args[0]).toEqual([{
+                        type: 'UNSPIKE_EVENT',
+                        payload: events[2],
+                    }])
+
+                    expect(dispatch.args[1]).toEqual([{ type: 'HIDE_MODAL' }])
+
+                    // Cannot check dispatch(silentlyFetchEventsById()) using a spy on dispatch
+                    // As silentlyFetchEventsById is a thunk function
+
+                    // Cannot check dispatch(fetchUsingURL()) using a spy on dispatch
+                    // As fetchUsingURL is a thunk function
+
+                    expect(dispatch.callCount).toBe(4)
+                })
             })
-            .then(() => {
-                expect(apiSpy.remove.callCount).toBe(0)
-                expect(notify.error.args[0]).toEqual(['Failed to delete the event!'])
+
+            it('unspikeEvent on fail displays error message', () => {
+                api.update = sinon.spy(() => (Promise.reject(
+                    { data: { _message: 'Failed to unspike the event' } }
+                )))
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then(() => {
+                    expect(api.update.callCount).toBe(1)
+                    expect(notify.error.args[0]).toEqual(['Failed to unspike the event'])
+                    expect(notify.success.callCount).toBe(0)
+                })
             })
         })
 
@@ -294,12 +389,95 @@ describe('events', () => {
             expect(action).toEqual({ type: 'TOGGLE_EVENT_LIST' })
         })
 
-        it('openDeleteEvent', () => {
-            const action = actions.openDeleteEvent(events[2])
-            return action(dispatch, getState)
-            .then(() => {
-                expect(dispatch.args[0][0].type).toBe('SHOW_MODAL')
-                expect(dispatch.args[0][0].modalType).toBe('CONFIRMATION')
+        describe('openSpikeEvent', () => {
+            const action = actions.openSpikeEvent(events[2])
+
+            it('openSpikeEvent displays the modal', () => {
+                initialState.privileges.planning_event_spike = 1
+                dispatch = dispatchCheckPermission
+                dispatch.reset()
+
+                return action(dispatch, getState, {
+                    notify,
+                    $timeout,
+                })
+                .then(() => {
+                    expect(dispatch.callCount).toBe(2)
+                    expect(dispatch.args[1]).toEqual([jasmine.objectContaining({
+                        type: 'SHOW_MODAL',
+                        modalType: 'CONFIRMATION',
+                    })])
+                    expect(notify.error.callCount).toBe(0, 'Notify Error shouldnt be called')
+                    expect($timeout.callCount).toBe(0, 'Timeout shouldnt be called')
+                })
+            })
+
+            it('openSpikeEvent raises ACCESS_DENIED without permission', () => {
+                initialState.privileges.planning_event_spike = 0
+                return action(dispatch, getState, {
+                    notify,
+                    $timeout,
+                })
+                .then(() => {
+                    expect(dispatch.callCount).toBe(1)
+                    expect(notify.error.args[0]).toEqual(['Unauthorised to spike an event!'])
+                    expect(dispatch.args[0]).toEqual([{
+                        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
+                        payload: {
+                            action: '_openSpikeEvent',
+                            permission: PRIVILEGES.SPIKE_EVENT,
+                            errorMessage: 'Unauthorised to spike an event!',
+                            args: [events[2]],
+                        },
+                    }])
+                    expect($timeout.callCount).toBe(1)
+                })
+            })
+        })
+
+        describe('openUnspikeEvent', () => {
+            const action = actions.openUnspikeEvent(events[2])
+
+            it('openUnspikeEvent displays the modal', () => {
+                initialState.privileges.planning_event_unspike = 1
+                dispatch = dispatchCheckPermission
+                dispatch.reset()
+
+                return action(dispatch, getState, {
+                    notify,
+                    $timeout,
+                })
+                .then(() => {
+                    expect(dispatch.callCount).toBe(2)
+                    expect(dispatch.args[1]).toEqual([jasmine.objectContaining({
+                        type: 'SHOW_MODAL',
+                        modalType: 'CONFIRMATION',
+                    })])
+                    expect(notify.error.callCount).toBe(0, 'Notify Error shouldnt be called')
+                    expect($timeout.callCount).toBe(0, 'Timeout shouldnt be called')
+                })
+            })
+
+            it('openUnspikeEvent raises ACCESS_DENIED without permission', () => {
+                initialState.privileges.planning_event_unspike = 0
+                return action(dispatch, getState, {
+                    notify,
+                    $timeout,
+                })
+                .then(() => {
+                    expect(dispatch.callCount).toBe(1)
+                    expect(notify.error.args[0]).toEqual(['Unauthorised to unspike an event!'])
+                    expect(dispatch.args[0]).toEqual([{
+                        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
+                        payload: {
+                            action: '_openUnspikeEvent',
+                            permission: PRIVILEGES.UNSPIKE_EVENT,
+                            errorMessage: 'Unauthorised to unspike an event!',
+                            args: [events[2]],
+                        },
+                    }])
+                    expect($timeout.callCount).toBe(1)
+                })
             })
         })
     })

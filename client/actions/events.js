@@ -3,12 +3,11 @@ import moment from 'moment-timezone'
 import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
 import { saveLocation as _saveLocation } from './index'
-import { showModal, hideModal, fetchSelectedAgendaPlannings,
-    fetchAgendas, closePlanningEditor } from './index'
-import { DeleteEvent } from '../components/index'
+import { showModal, hideModal, fetchSelectedAgendaPlannings, closePlanningEditor } from './index'
+import { SpikeEvent } from '../components/index'
 import React from 'react'
-import { PRIVILEGES } from '../constants'
-import { checkPermission } from '../utils'
+import { PRIVILEGES, EVENTS, ITEM_STATE } from '../constants'
+import { checkPermission, getErrorMessage } from '../utils'
 
 /**
  * Action Dispatcher for saving an event
@@ -16,7 +15,7 @@ import { checkPermission } from '../utils'
  * @param {object} event - The event item to save
  * @return arrow function
  */
-function uploadFilesAndSaveEvent(event) {
+const uploadFilesAndSaveEvent = (event) => {
     event = cloneDeep(event) || {}
     return (dispatch, getState) => (
         dispatch(saveFiles(event))
@@ -55,54 +54,85 @@ function uploadFilesAndSaveEvent(event) {
 }
 
 /**
- * Action Dispatcher for deleting an event
- * If there are planning items associated with this event, reload the list
- * of Agendas and Planning items as well
- * @param {object} event - The event to delete
- * @return arrow function
+ * Action dispatcher that marks an Event as spiked
+ * @param {object} event - The Event to be spiked
+ * @return Promise
  */
-function deleteEvent(event) {
-    return (dispatch, getState, { api, notify }) => {
-        if (event) {
-            return api('events').remove(event)
-            .then(() => {
-                // Close delete event modal
-                dispatch(hideModal())
-                // Fetch events to reload latest events list
-                dispatch(fetchEvents())
-
-                if (event._plannings) {
-                    // Fetch agendas, etc. as they are affected too
-                    event._plannings.forEach((planning) => {
-                        if (selectors.getCurrentPlanningId(getState()) === planning._id) {
-                            dispatch(closePlanningEditor())
-                            dispatch({
-                                type: 'DELETE_PLANNING',
-                                payload: planning._id,
-                            })
-                        }
-                    })
-
-                    dispatch(fetchAgendas())
-                    // reloads the plannings to show
-                    .then(() => (dispatch(fetchSelectedAgendaPlannings())))
-                }
-            }, (error) => {
-                throw new SubmissionError({ _error: error.statusText })
+const spikeEvent = (event) => (
+    (dispatch, getState, { api, notify }) => (
+        api.update('events_spike', event, {})
+        .then(() => {
+            notify.success('The Event has been spiked.')
+            dispatch({
+                type: EVENTS.ACTIONS.SPIKE_EVENT,
+                payload: event,
             })
-        }
 
-        notify.error('Failed to delete the event!')
-        return Promise.resolve()
-    }
-}
+            // Close delete event modal
+            dispatch(hideModal())
+
+            // Close the Planning Editor if the Planning Item is
+            // associated with this event
+            if (event._plannings) {
+                const planIds = event._plannings.map((p) => p._id)
+                const currentPlanId = selectors.getCurrentPlanningId(getState())
+                if (planIds.indexOf(currentPlanId) > -1) {
+                    dispatch(closePlanningEditor())
+                }
+            }
+
+            // Fetch events to reload latest events list
+            return dispatch(silentlyFetchEventsById([event._id], ITEM_STATE.ALL))
+            .then(() => {
+                dispatch(fetchSelectedAgendaPlannings())
+                dispatch(refetchEvents())
+            })
+
+        }, (error) => (
+            notify.error(
+                getErrorMessage(error, 'There was a problem, Event was not spiked!')
+            )
+        ))
+    )
+)
+
+/**
+ * Action dispatcher that marks an Event as active
+ * @param {object} event - The Event to unspike
+ * @return Promise
+ */
+const unspikeEvent = (event) => (
+    (dispatch, getState, { api, notify }) => (
+        api.update('events_unspike', event, {})
+        .then(() => {
+            notify.success('The Event has been unspiked.')
+            dispatch({
+                type: EVENTS.ACTIONS.UNSPIKE_EVENT,
+                payload: event,
+            })
+
+            // Close Unspike event modal
+            dispatch(hideModal())
+
+            // Fetch events to reload latest events list
+            return dispatch(silentlyFetchEventsById([event._id], ITEM_STATE.ALL))
+            .then(() => {
+                dispatch(refetchEvents())
+            })
+        }, (error) => (
+            notify.error(
+                getErrorMessage(error, 'There was a problem, Event was not unspiked!')
+            )
+        ))
+    )
+)
 
 /**
  * Action Dispatcher for uploading files
  * @param {object} newEvent - The event that contains the files to be uploaded
  * @return arrow function
  */
-function saveFiles(newEvent) {
+const saveFiles = (newEvent) => {
     newEvent = cloneDeep(newEvent)
     const getId = (e) => (e._id)
     const getIds = (e) => (e.map(getId))
@@ -148,8 +178,8 @@ function saveFiles(newEvent) {
  * @param {object} event - The event the location is associated with
  * @return arrow function
  */
-function saveLocation(event) {
-    return (dispatch) => {
+const saveLocation = (event) => (
+    (dispatch) => {
         // location field was empty, we clear the location
         if (!get(event, 'location[0].name')) {
             event.location = []
@@ -166,7 +196,7 @@ function saveLocation(event) {
             return event
         }
     }
-}
+)
 
 /**
  * Action Dispatcher to create or save an event
@@ -175,8 +205,8 @@ function saveLocation(event) {
  * @param {object} newEvent
  * @return arrow function
  */
-function saveEvent(newEvent) {
-    return (dispatch, getState, { api, notify }) => {
+const saveEvent = (newEvent) => (
+    (dispatch, getState, { api, notify }) => {
         // remove links if it contains only null values
         if (newEvent.links && newEvent.links.length > 0) {
             newEvent.links = newEvent.links.filter((l) => (l))
@@ -205,7 +235,7 @@ function saveEvent(newEvent) {
             throw new SubmissionError({ _error: error.statusText })
         })
     }
-}
+)
 
 /**
  * Action Dispatcher for query the api for events
@@ -213,34 +243,29 @@ function saveEvent(newEvent) {
  * @param {object} advancedSearch - Query parameters to send to the server
  * @param {object} fulltext - Full text search parameters
  * @param {array} ids - An array of Event IDs to fetch
+ * @param {string} state - The item state to filter by
  * @return arrow function
  */
-function performFetchQuery({ advancedSearch, fulltext, ids, page=1 }) {
-    return (dispatch, getState, { api }) => {
-        const query = {}
+const performFetchQuery = ({ advancedSearch, fulltext, ids, page=1, state=ITEM_STATE.ACTIVE }) => (
+    (dispatch, getState, { api }) => {
+        let query = {}
         const filter = {}
+        let mustNot = []
+        let must = []
+
         // If there is a fulltext, search by term
         if (fulltext) {
-            query.bool = {
-                should: [
-                { match: { name: fulltext } },
-                { match: { definition_short: fulltext } },
-                ],
-            }
+            must.push({ query_string: { query: fulltext } })
         // search by ids
         } else if (ids) {
-            filter.bool = { should: ids.map((i) => ({ term: { _id: i } })) }
+            must.push({ terms: { _id: ids } })
         // advanced search
         } else if (advancedSearch) {
-            const should = [];
             [
                 {
                     condition: () => (advancedSearch.name),
                     do: () => {
-                        should.push(
-                            { match: { name: advancedSearch.name } },
-                            { match: { definition_short: advancedSearch.name } }
-                        )
+                        must.push({ query_string: { query: advancedSearch.name } })
                     },
                 },
                 {
@@ -248,16 +273,16 @@ function performFetchQuery({ advancedSearch, fulltext, ids, page=1 }) {
                     do: () => {
                         const providers = advancedSearch.source.map((provider) => provider.name)
                         const queries = providers.map((provider) => (
-                            { match: { source: provider } }
+                            { term: { source: provider } }
                         ))
-                        should.push(...queries)
+                        must.push(...queries)
                     },
                 },
                 {
                     condition: () => (advancedSearch.location),
                     do: () => {
-                        should.push(
-                            { match: { 'location.name': advancedSearch.location } }
+                        must.push(
+                            { term: { 'location.name': advancedSearch.location } }
                         )
                     },
                 },
@@ -266,9 +291,9 @@ function performFetchQuery({ advancedSearch, fulltext, ids, page=1 }) {
                     do: () => {
                         const codes = advancedSearch.anpa_category.map((cat) => cat.qcode)
                         const queries = codes.map((code) => (
-                            { match: { 'anpa_category.qcode': code } }
+                            { term: { 'anpa_category.qcode': code } }
                         ))
-                        should.push(...queries)
+                        must.push(...queries)
                     },
                 },
                 {
@@ -293,14 +318,27 @@ function performFetchQuery({ advancedSearch, fulltext, ids, page=1 }) {
                     action.do()
                 }
             })
-            // build the query
-            if (should.length > 0) {
-                query.bool = { should }
-            }
         // Otherwise fetch only future events
         } else {
-            query.range = { 'dates.end': { gte: 'now/d' } }
+            filter.range = { 'dates.end': { gte: 'now/d' } }
         }
+
+        switch (state) {
+            case ITEM_STATE.SPIKED:
+                must.push({ term: { state: ITEM_STATE.SPIKED } })
+                break
+            case ITEM_STATE.ALL:
+                break
+            case ITEM_STATE.ACTIVE:
+            default:
+                mustNot.push({ term: { state: ITEM_STATE.SPIKED } })
+        }
+
+        query.bool = {
+            must_not: mustNot,
+            must,
+        }
+
         // Query the API and sort by date
         return api('events').query({
             page: page,
@@ -312,20 +350,24 @@ function performFetchQuery({ advancedSearch, fulltext, ids, page=1 }) {
             }),
         })
     }
-}
+)
 
 /**
  * Action Dispatcher to fetch events from the server,
  * and add them to the store without adding them to the events list
  * @param {array} ids - An array of Event IDs to fetch
+ * @param {string} state - The item state to filter by
  * @return arrow function
  */
-function silentlyFetchEventsById(ids=[]) {
-    return (dispatch) => (
-        dispatch(performFetchQuery({ ids }))
+const silentlyFetchEventsById = (ids=[], state = ITEM_STATE.ACTIVE) => (
+    (dispatch) => (
+        dispatch(performFetchQuery({
+            ids,
+            state,
+        }))
         .then(data => dispatch(receiveEvents(data._items)))
     )
-}
+)
 
 /**
  * Action Dispatcher to fetch events from the server
@@ -334,12 +376,16 @@ function silentlyFetchEventsById(ids=[]) {
  * @param {object} params - Query parameters to send to the server
  * @return arrow function
  */
-function fetchEvents(params={ page: 1 }) {
-    return (dispatch, getState, { $timeout, $location }) => {
+const fetchEvents = (params={
+    state: ITEM_STATE.ACTIVE,
+    page: 1,
+}) => (
+    (dispatch, getState, { $timeout, $location }) => {
         dispatch({
-            type: 'REQUEST_EVENTS',
+            type: EVENTS.ACTIONS.REQUEST_EVENTS,
             payload: params,
         })
+
         return dispatch(performFetchQuery(params))
         .then(data => {
             dispatch(receiveEvents(data._items))
@@ -350,7 +396,21 @@ function fetchEvents(params={ page: 1 }) {
             $location.search('searchEvent', JSON.stringify(params)), 0, false)
         ))
     }
-}
+)
+
+/**
+ * Action Dispatcher to re-fetch the current list of events
+ * It achieves this by performing a fetch using the params from
+ * the store value `events.lastRequestParams`
+ */
+const refetchEvents = () => (
+    (dispatch, getState) => (
+        dispatch({
+            type: EVENTS.ACTIONS.REQUEST_EVENTS,
+            payload: selectors.getPreviousEventRequestParams(getState()),
+        })
+    )
+)
 
 /** Action factory that fetchs the next page of the previous request */
 function loadMoreEvents() {
@@ -361,7 +421,7 @@ function loadMoreEvents() {
             page: previousParams.page + 1,
         }
         dispatch({
-            type: 'REQUEST_EVENTS',
+            type: EVENTS.ACTIONS.REQUEST_EVENTS,
             payload: params,
         })
         return dispatch(performFetchQuery(params))
@@ -377,12 +437,10 @@ function loadMoreEvents() {
  * @param {array} idsList - An array of Event IDs to assign to the current list
  * @return object
  */
-function setEventsList(idsList) {
-    return {
-        type: 'SET_EVENTS_LIST',
-        payload: idsList,
-    }
-}
+const setEventsList = (idsList) => ({
+    type: EVENTS.ACTIONS.SET_EVENTS_LIST,
+    payload: idsList,
+})
 
 /**
  * Action to add events to the current list
@@ -390,28 +448,26 @@ function setEventsList(idsList) {
  * @param {array} eventsIds - An array of Event IDs to add
  * @return {{type: string, payload: *}}
  */
-function addToEventsList(eventsIds) {
-    return {
-        type: 'ADD_TO_EVENTS_LIST',
-        payload: eventsIds,
-    }
-}
+const addToEventsList = (eventsIds) => ({
+    type: EVENTS.ACTIONS.ADD_TO_EVENTS_LIST,
+    payload: eventsIds,
+})
 
 /**
  * Action to open Event Advanced Search panel
  * @return object
  */
-function openAdvancedSearch() {
-    return { type: 'OPEN_ADVANCED_SEARCH' }
-}
+const openAdvancedSearch = () => (
+    { type: EVENTS.ACTIONS.OPEN_ADVANCED_SEARCH }
+)
 
 /**
  * Action to close the Event Advanced Search panel
  * @return object
  */
-function closeAdvancedSearch() {
-    return { type: 'CLOSE_ADVANCED_SEARCH' }
-}
+const closeAdvancedSearch = () => (
+    { type: EVENTS.ACTIONS.CLOSE_ADVANCED_SEARCH }
+)
 
 /**
  * Opens the Edit Event panel with the supplied Event
@@ -419,7 +475,7 @@ function closeAdvancedSearch() {
  * @return Promise
  */
 const _openEventDetails = (event) => ({
-    type: 'OPEN_EVENT_DETAILS',
+    type: EVENTS.ACTIONS.OPEN_EVENT_DETAILS,
     payload: get(event, '_id', event || true),
 })
 
@@ -427,37 +483,34 @@ const _openEventDetails = (event) => ({
  * Action to close the Edit Event panel
  * @return object
  */
-function closeEventDetails() {
-    return { type: 'CLOSE_EVENT_DETAILS' }
-}
+const closeEventDetails = () => (
+    { type: EVENTS.ACTIONS.CLOSE_EVENT_DETAILS }
+)
 
 /**
  * Action to receive the list of Events and store them in the store
  * @param {array} events - An array of Event items
  * @return object
  */
-function receiveEvents(events) {
-    return {
-        type: 'ADD_EVENTS',
-        payload: events,
-        receivedAt: Date.now(),
-    }
-}
+const receiveEvents = (events) => ({
+    type: EVENTS.ACTIONS.ADD_EVENTS,
+    payload: events,
+    receivedAt: Date.now(),
+})
 
 /**
  * Action to toggle the Events panel
  * @return object
  */
-function toggleEventsList() {
-    return { type: 'TOGGLE_EVENT_LIST' }
-}
+const toggleEventsList = () => (
+    { type: EVENTS.ACTIONS.TOGGLE_EVENT_LIST }
+)
 
 /**
- * Action to display the Delete Event modal
- * @param {object} event - The event to display in the Delete Event modal
- * @return arrow function
+ * Action Dispatcher to open the Spike Event modal
+ * @param {object} event - The Event to be spiked
  */
-const openDeleteEvent = (event) => (
+const _openSpikeEvent = (event) => (
     (dispatch, getState) => {
         const storedPlannings = selectors.getStoredPlannings(getState())
         // Get _plannings for the event
@@ -471,8 +524,33 @@ const openDeleteEvent = (event) => (
         return dispatch(showModal({
             modalType: 'CONFIRMATION',
             modalProps: {
-                body: React.createElement(DeleteEvent, { eventDetail: eventWithPlannings }),
-                action: () => dispatch(deleteEvent(eventWithPlannings)),
+                body: React.createElement(SpikeEvent, { eventDetail: eventWithPlannings }),
+                action: () => dispatch(spikeEvent(eventWithPlannings)),
+            },
+        }))
+    }
+)
+
+/**
+ * Action Dispatcher to open the Unspike Event modal
+ * @param {object} event - The Event to be unspiked
+ */
+const _openUnspikeEvent = (event) => (
+    (dispatch, getState) => {
+        const storedPlannings = selectors.getStoredPlannings(getState())
+        // Get _plannings for the event
+        const eventWithPlannings = {
+            ...event,
+            _plannings: Object.keys(storedPlannings).filter((pKey) => (
+                storedPlannings[pKey].event_item === event._id
+            )).map((pKey) => ({ ...storedPlannings[pKey] })),
+        }
+
+        return dispatch(showModal({
+            modalType: 'CONFIRMATION',
+            modalProps: {
+                body: React.createElement(SpikeEvent, { eventDetail: eventWithPlannings }),
+                action: () => dispatch(unspikeEvent(eventWithPlannings)),
             },
         }))
     }
@@ -484,8 +562,23 @@ const openEventDetails = checkPermission(
     'Unauthorised to edit an event!'
 )
 
+const openSpikeEvent = checkPermission(
+    _openSpikeEvent,
+    PRIVILEGES.SPIKE_EVENT,
+    'Unauthorised to spike an event!'
+)
+
+const openUnspikeEvent = checkPermission(
+    _openUnspikeEvent,
+    PRIVILEGES.UNSPIKE_EVENT,
+    'Unauthorised to unspike an event!'
+)
+
 export {
-    openDeleteEvent,
+    spikeEvent,
+    unspikeEvent,
+    openSpikeEvent,
+    openUnspikeEvent,
     toggleEventsList,
     receiveEvents,
     closeEventDetails,
@@ -496,7 +589,7 @@ export {
     fetchEvents,
     silentlyFetchEventsById,
     saveFiles,
-    deleteEvent,
     uploadFilesAndSaveEvent,
     loadMoreEvents,
+    refetchEvents,
 }

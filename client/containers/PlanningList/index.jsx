@@ -11,6 +11,7 @@ class PlanningList extends React.Component {
     rowRenderer({ index, key, style }) {
         const {
             plannings,
+            currentAgenda,
             currentPlanning,
             planningsEvents,
             openPlanningEditor,
@@ -27,6 +28,7 @@ class PlanningList extends React.Component {
                     active={currentPlanning && currentPlanning._id === planning._id}
                     item={planning}
                     event={planningsEvents[planning._id]}
+                    agenda={currentAgenda}
                     onSpike={handlePlanningSpike}
                     onUnspike={handlePlanningUnspike}
                     onClick={openPlanningEditor.bind(null, planning._id)}
@@ -58,6 +60,7 @@ class PlanningList extends React.Component {
 
 PlanningList.propTypes = {
     plannings: React.PropTypes.array.isRequired,
+    currentAgenda: React.PropTypes.object,
     currentPlanning: React.PropTypes.object,
     planningsEvents: React.PropTypes.object,
     openPlanningEditor: React.PropTypes.func.isRequired,
@@ -67,6 +70,7 @@ PlanningList.propTypes = {
 }
 
 const mapStateToProps = (state) => ({
+    currentAgenda: selectors.getCurrentAgenda(state),
     currentPlanning: selectors.getCurrentPlanning(state),
     plannings: selectors.getCurrentAgendaPlannings(state),
     planningsEvents: selectors.getCurrentAgendaPlanningsEvents(state),

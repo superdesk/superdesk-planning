@@ -3,6 +3,8 @@ import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { Field, reduxForm, formValueSelector, propTypes } from 'redux-form'
 import { fields } from '../../components'
+import { ITEM_STATE } from '../../constants'
+import { get } from 'lodash'
 import './style.scss'
 
 function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting, error, resetSearch }) {
@@ -24,14 +26,14 @@ function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting
                <Field name="anpa_category"
                        component={fields.CategoryField}
                        label="Category"/>
+                <Field name="state"
+                       component={fields.EventStateField}
+                       label="Event State"/>
                 <br/>&nbsp;From&nbsp;<br/>
                 <Field name="dates.start"
                        component={fields.DayPickerInput}
                        withTime={true}/>
                 <br/>&nbsp;To&nbsp;<br/>
-                <Field name="dates.end"
-                       component={fields.DayPickerInput}
-                       withTime={true}/>
             </fieldset>
             <button
                 className="btn btn-default"
@@ -66,7 +68,10 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (form) => (
-        dispatch(actions.fetchEvents({ advancedSearch: form }))
+        dispatch(actions.fetchEvents({
+            advancedSearch: form,
+            state: get(form, 'state.value', ITEM_STATE.ACTIVE),
+        }))
     ),
     resetSearch: () => (dispatch(actions.fetchEvents())),
 })

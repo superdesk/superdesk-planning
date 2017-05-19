@@ -13,7 +13,8 @@ export class EventsList extends React.Component {
         this.state = { isNextPageLoading: false }
     }
     onEventClick(event) { this.props.onEventClick(event) }
-    onEventDelete(event) { this.props.onEventDelete(event) }
+    onEventSpike(event) { this.props.onEventSpike(event) }
+    onEventUnspike(event) { this.props.onEventUnspike(event) }
 
     getRowHeight({ index }) {
         const { events } = this.props
@@ -46,10 +47,12 @@ export class EventsList extends React.Component {
                 <ul className="events-list__list list-view compact-view">
                     {events.map((event) => (
                         <EventItem event={event}
-                           key={event._id}
-                           onClick={this.onEventClick.bind(this, event)}
-                           deleteEvent={this.onEventDelete.bind(this, event)}
-                           selectedEvent={this.props.selectedEvent}/>
+                            key={event._id}
+                            onClick={this.onEventClick.bind(this, event)}
+                            onSpikeEvent={this.onEventSpike.bind(this, event)}
+                            onUnspikeEvent={this.onEventUnspike.bind(this, event)}
+                            selectedEvent={this.props.selectedEvent}
+                            privileges={this.props.privileges} />
                     ))}
                 </ul>
             </div>
@@ -93,7 +96,9 @@ export class EventsList extends React.Component {
 EventsList.propTypes = {
     onEventClick: React.PropTypes.func,
     events: React.PropTypes.array.isRequired,
-    onEventDelete: React.PropTypes.func,
+    onEventSpike: React.PropTypes.func,
+    onEventUnspike: React.PropTypes.func,
     selectedEvent: React.PropTypes.string,
     loadMoreEvents: React.PropTypes.func.isRequired,
+    privileges: React.PropTypes.object,
 }

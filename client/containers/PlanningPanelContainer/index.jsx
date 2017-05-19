@@ -3,6 +3,7 @@ import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { SelectAgenda, EditPlanningPanelContainer, PlanningList } from '../index'
 import { QuickAddPlanning, Toggle, SearchBar } from '../../components'
+import { ITEM_STATE } from '../../constants'
 import * as selectors from '../../selectors'
 import './style.scss'
 
@@ -83,7 +84,7 @@ class PlanningPanel extends React.Component {
                             </label>
                         </div>
                         <ul className="list-view compact-view">
-                            {currentAgenda && privileges.planning_planning_management === 1 && currentAgenda.state !== 'spiked' &&
+                            {currentAgenda && privileges.planning_planning_management === 1 && currentAgenda.state !== ITEM_STATE.SPIKED &&
                                 <QuickAddPlanning className="ListItem" onPlanningCreation={onPlanningCreation}/>
                             }
                             {(planningList && planningList.length > 0) &&

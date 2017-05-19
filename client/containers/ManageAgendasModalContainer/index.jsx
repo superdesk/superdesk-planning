@@ -146,7 +146,6 @@ const mapDispatchToProps = (dispatch) => ({
     ),
 })
 
-// DO IT
 export const ManageAgendasModalContainer = connect(
     mapStateToProps,
     mapDispatchToProps

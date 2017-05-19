@@ -3,7 +3,7 @@ import * as actions from '../actions'
 import { pickBy, cloneDeep, isNil, has, get } from 'lodash'
 import { addToCurrentAgenda, selectAgenda,
     fetchSelectedAgendaPlannings } from './agenda'
-import { PRIVILEGES, PLANNING } from '../constants'
+import { PRIVILEGES, PLANNING, ITEM_STATE } from '../constants'
 import { checkPermission, getErrorMessage } from '../utils'
 
 /**
@@ -76,7 +76,7 @@ const _savePlanningAndReloadCurrentAgenda = (originalPlanning) => (
             if (!currentAgenda) {
                 notify.error('No Agenda is currently selected.')
                 return Promise.reject()
-            } else if (currentAgenda.state === 'spiked') {
+            } else if (currentAgenda.state === ITEM_STATE.SPIKED) {
                 notify.error('Cannot create a new planning item in a spiked Agenda.')
                 return Promise.reject()
             }
@@ -99,7 +99,7 @@ const _savePlanningAndReloadCurrentAgenda = (originalPlanning) => (
 
 /**
  * Saves a Planning Item
- * If the item does not contain an _id, then it creates a new planning item istead
+ * If the item does not contain an _id, then it creates a new planning item instead
  * @param planning
  * @return Promise
  */
@@ -238,7 +238,7 @@ const fetchPlannings = (params={}) => (
                 eid && !has(selectors.getEvents(getState()), eid)
             ))
             // load missing events
-            return dispatch(actions.silentlyFetchEventsById(linkedEvents))
+            return dispatch(actions.silentlyFetchEventsById(linkedEvents, ITEM_STATE.ALL))
             .then(() => dispatch(receivePlannings(plannings)))
         })
     }

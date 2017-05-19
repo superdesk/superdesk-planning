@@ -12,6 +12,7 @@
 
 import superdesk
 from .events import EventsResource, EventsService
+from .events_spike import EventsSpikeResource, EventsSpikeService, EventsUnspikeResource, EventsUnspikeService
 from .planning import PlanningResource, PlanningService
 from .planning_spike import PlanningSpikeResource, PlanningSpikeService, PlanningUnspikeResource, PlanningUnspikeService
 from .events_files import EventsFilesResource, EventsFilesService
@@ -58,6 +59,12 @@ def init_app(app):
 
     events_search_service = EventsService('events', backend=superdesk.get_backend())
     EventsResource('events', app=app, service=events_search_service)
+
+    events_spike_service = EventsSpikeService('events_spike', backend=superdesk.get_backend())
+    EventsSpikeResource('events_spike', app=app, service=events_spike_service)
+
+    events_unspike_service = EventsUnspikeService('events_unspike', backend=superdesk.get_backend())
+    EventsUnspikeResource('events_unspike', app=app, service=events_unspike_service)
 
     locations_search_service = LocationsService('locations', backend=superdesk.get_backend())
     LocationsResource('locations', app=app, service=locations_search_service)
@@ -135,6 +142,18 @@ def init_app(app):
         name='planning_event_management',
         label='Planning - Event Management',
         description='Ability to create and modify Events'
+    )
+
+    superdesk.privilege(
+        name='planning_event_spike',
+        label='Planning - Spike Event Items',
+        description='Ability to spike an Event'
+    )
+
+    superdesk.privilege(
+        name='planning_event_unspike',
+        label='Planning - Unspike Event Items',
+        description='Ability to unspike an Event'
     )
 
 

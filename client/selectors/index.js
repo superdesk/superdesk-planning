@@ -2,6 +2,7 @@ import { createSelector } from 'reselect'
 import { orderBy, get, sortBy } from 'lodash'
 import { isAllDay } from '../utils'
 import moment from 'moment'
+import { ITEM_STATE } from '../constants'
 
 export const getAgendas = (state) => state.agenda.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
@@ -87,8 +88,8 @@ export const getCurrentAgendaPlannings = createSelector(
         .filter((p) => !filterPlanningKeyword || freetextSearch(p))
         // if "only active" filter is enabled, keep only active planning
         .filter((p) =>
-            (isOnlySpikeFiltered && p.state === 'spiked') ||
-            (!isOnlySpikeFiltered && p.state !== 'spiked')
+            (isOnlySpikeFiltered && p.state === ITEM_STATE.SPIKED) ||
+            (!isOnlySpikeFiltered && p.state !== ITEM_STATE.SPIKED)
         )
         // sort by new created first, or by name
         return orderBy(plannings, ['_created'], ['desc'])
@@ -133,7 +134,7 @@ export const getCurrentPlanningAgendaSpiked = createSelector(
             ))
 
             if (agenda && 'state' in agenda) {
-                return agenda.state === 'spiked'
+                return agenda.state === ITEM_STATE.SPIKED
             }
         }
 
@@ -236,7 +237,7 @@ export const getEventToBeDetailed = createSelector(
 export const getSpikedAgendas = createSelector(
     [getAgendas],
     (agendas) => (
-        agendas.filter((a) => a.state === 'spiked')
+        agendas.filter((a) => a.state === ITEM_STATE.SPIKED)
     )
 )
 
@@ -244,6 +245,6 @@ export const getSpikedAgendas = createSelector(
 export const getActiveAgendas = createSelector(
     [getAgendas],
     (agendas) => (
-        agendas.filter((a) => a.state !== 'spiked')
+        agendas.filter((a) => a.state !== ITEM_STATE.SPIKED)
     )
 )

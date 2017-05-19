@@ -4,10 +4,11 @@ import * as actions from '../../actions'
 import { fields } from '../../components'
 import { RelatedPlannings, RepeatEventForm } from '../index'
 import { Field, FieldArray, reduxForm, formValueSelector } from 'redux-form'
-import { isNil } from 'lodash'
+import { isNil, get } from 'lodash'
 import moment from 'moment'
 import { ChainValidators, EndDateAfterStartDate, RequiredFieldsValidatorFactory, UntilDateValidator } from '../../validators'
 import './style.scss'
+import { ITEM_STATE } from '../../constants'
 
 /**
 * Form for adding/editing an event
@@ -64,6 +65,8 @@ export class Component extends React.Component {
             endingDate,
             initialValues,
         } = this.props
+        const eventSpiked = get(initialValues, 'state', 'active') === ITEM_STATE.SPIKED
+
         return (
             <form onSubmit={handleSubmit} className="EventForm">
                 <div className="subnav">
@@ -79,9 +82,11 @@ export class Component extends React.Component {
                     <span className="subnav__page-title">Event details</span>
                     {(!pristine && !submitting) && (
                         <div>
-                            <button type="submit" className="btn btn--primary">
-                                Save
-                            </button>
+                            {!eventSpiked &&
+                                <button type="submit" className="btn btn--primary">
+                                    Save
+                                </button>
+                            }
                             <button type="button" className="btn" onClick={onBackClick}>Cancel</button>
                         </div>
                     )}

@@ -12,9 +12,13 @@ export const RelatedPlanningsComponent = ({ plannings, openPlanningItem, openPla
             anpa_category,
             _agenda,
             original_creator: { display_name },
+            state,
         }) => (
             <li key={_id}>
                 <i className="icon-list-alt"/>&nbsp;
+                {state && state === 'spiked' &&
+                    <span className="label label--alert">spiked</span>
+                }
                 <a onClick={ openPlanningItem ? openPlanningClick.bind(null, _id) : null}>
                     {slugline} created by {display_name} in {_agenda && _agenda.name} agenda
                     {anpa_category && anpa_category.length && (

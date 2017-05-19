@@ -216,6 +216,7 @@ describe('selectors', () => {
             state: 'active',
         }])
     })
+
     it('getEventsOrderedByDay', () => {
         const days = selectors.getEventsOrderedByDay(state)
         expect(days.map((d) => d.date)).toEqual([

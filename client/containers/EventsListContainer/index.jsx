@@ -60,7 +60,8 @@ class EventsListComponent extends React.Component {
                     <AdvancedSearchPanelContainer  />
                     <EventsList events={this.props.events}
                                 onEventClick={this.props.openEventDetails}
-                                onEventDelete={this.props.deleteEvent}
+                                onEventSpike={this.props.spikeEvent}
+                                onEventUnspike={this.props.unspikeEvent}
                                 selectedEvent={this.props.selectedEvent}
                                 loadMoreEvents={this.props.loadMoreEvents}
                                 privileges={privileges} />
@@ -79,7 +80,8 @@ EventsListComponent.propTypes = {
     openAdvancedSearch: React.PropTypes.func.isRequired,
     closeAdvancedSearch: React.PropTypes.func.isRequired,
     toggleEventsList: React.PropTypes.func,
-    deleteEvent: React.PropTypes.func,
+    spikeEvent: React.PropTypes.func,
+    unspikeEvent: React.PropTypes.func,
     selectedEvent: React.PropTypes.string,
     privileges: React.PropTypes.object.isRequired,
     loadMoreEvents: React.PropTypes.func.isRequired,
@@ -99,8 +101,9 @@ const mapDispatchToProps = (dispatch) => ({
     openAdvancedSearch: () => (dispatch(actions.openAdvancedSearch())),
     closeAdvancedSearch: () => (dispatch(actions.closeAdvancedSearch())),
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
-    deleteEvent: (event) => dispatch(actions.openDeleteEvent(event)),
     loadMoreEvents: () => (dispatch(actions.loadMoreEvents())),
+    spikeEvent: (event) => dispatch(actions.openSpikeEvent(event)),
+    unspikeEvent: (event) => dispatch(actions.openUnspikeEvent(event)),
 })
 
 export const EventsListContainer = connect(
