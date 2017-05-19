@@ -16,7 +16,7 @@ import json
 from superdesk import get_resource_service
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
-from apps.archive.common import set_original_creator
+from apps.archive.common import set_original_creator, get_user
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -134,6 +134,10 @@ class EventsService(superdesk.Service):
             # this is an recursive update(see below)
             del updates['skip_on_update']
             return
+
+        user = get_user()
+        if user and user.get(config.ID_FIELD):
+            updates['version_creator'] = user[config.ID_FIELD]
 
         # The rest of this update function expects 'dates' to be in updates
         # This can cause issues, as a workaround for now add the dictionary in manually

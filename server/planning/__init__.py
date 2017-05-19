@@ -19,6 +19,7 @@ from .coverage import CoverageResource, CoverageService
 from .locations import LocationsResource, LocationsService
 from .agenda import AgendaResource, AgendaService
 from .events_history import EventsHistoryResource, EventsHistoryService
+from .planning_history import PlanningHistoryResource, PlanningHistoryService
 from .agenda_history import AgendaHistoryResource, AgendaHistoryService
 from .agenda_spike import AgendaSpikeResource, AgendaUnspikeResource, AgendaSpikeService, AgendaUnspikeService
 from superdesk.io.registry import register_feeding_service, register_feed_parser
@@ -77,8 +78,16 @@ def init_app(app):
 
     app.on_inserted_agenda += agenda_history_service.on_item_created
     app.on_updated_agenda += agenda_history_service.on_item_updated
-    app.on_updated_agenda_spike += agenda_history_service.on_item_updated
-    app.on_updated_agenda_unspike += agenda_history_service.on_item_updated
+    app.on_updated_agenda_spike += agenda_history_service.on_spike
+    app.on_updated_agenda_unspike += agenda_history_service.on_unspike
+
+    planning_history_service = PlanningHistoryService('planning_history', backend=superdesk.get_backend())
+    PlanningHistoryResource('planning_history', app=app, service=planning_history_service)
+
+    app.on_inserted_planning += planning_history_service.on_item_created
+    app.on_updated_planning += planning_history_service.on_item_updated
+    app.on_updated_planning_spike += planning_history_service.on_spike
+    app.on_updated_planning_unspike += planning_history_service.on_unspike
 
     superdesk.privilege(
         name='planning',

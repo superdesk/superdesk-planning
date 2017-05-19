@@ -8,15 +8,12 @@
 
 """Superdesk Files"""
 
-from superdesk import Resource, Service
+from superdesk import Resource
+from .history import HistoryService
 import logging
-from copy import deepcopy
-from flask import g
 from eve.utils import config
 
 logger = logging.getLogger(__name__)
-
-fields_to_remove = ['_id', '_etag', '_current_version', '_updated', '_created']
 
 
 class EventsHistoryResource(Resource):
@@ -31,26 +28,11 @@ class EventsHistoryResource(Resource):
     }
 
 
-class EventsHistoryService(Service):
-
-    def on_item_updated(self, updates, original, operation=None):
-        event = deepcopy(original)
-        if updates:
-            event.update(updates)
-        self._save_history(event, updates, operation or 'update')
+class EventsHistoryService(HistoryService):
 
     def on_item_deleted(self, doc):
         lookup = {'event_id': doc[config.ID_FIELD]}
         self.delete(lookup=lookup)
-
-    def on_item_created(self, events):
-        for event in events:
-            self._save_history({config.ID_FIELD: event[config.ID_FIELD]}, deepcopy(event), 'create')
-
-    def get_user_id(self):
-        user = getattr(g, 'user', None)
-        if user:
-            return user.get('_id')
 
     def _save_history(self, event, update, operation):
         history = {
@@ -60,11 +42,3 @@ class EventsHistoryService(Service):
             'update': self._remove_unwanted_fields(update)
         }
         self.post([history])
-
-    def _remove_unwanted_fields(self, update):
-        if update:
-            update_copy = deepcopy(update)
-            for field in fields_to_remove:
-                update_copy.pop(field, None)
-
-            return update_copy

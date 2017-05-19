@@ -15,10 +15,11 @@ import superdesk
 from superdesk import get_resource_service
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
-from apps.archive.common import set_original_creator
+from apps.archive.common import set_original_creator, get_user
 from superdesk.errors import SuperdeskApiError
 from superdesk.users.services import current_user_has_privilege
 from .planning import planning_schema
+from eve.utils import config
 
 
 class AgendaService(superdesk.Service):
@@ -35,6 +36,10 @@ class AgendaService(superdesk.Service):
     def on_update(self, updates, original):
         if 'name' in updates and not current_user_has_privilege('planning_agenda_management'):
             raise SuperdeskApiError.forbiddenError('Insufficient privileges to update agenda.')
+
+        user = get_user()
+        if user and user.get(config.ID_FIELD):
+            updates['version_creator'] = user[config.ID_FIELD]
 
         self._validate_unique_agenda(updates, original)
 

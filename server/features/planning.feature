@@ -40,6 +40,19 @@ Feature: Planning
                 "headline": "test headline"
             }]}
         """
+        When we get "/planning_history"
+        Then we get list with 1 items
+        """
+            {"_items": [{
+                "planning_id":  "#planning._id#",
+                "operation": "create",
+                "update": {
+                    "original_creator": "__any_value__",
+                    "item_class": "item class value",
+                    "headline": "test headline"
+            }
+            }]}
+        """
 
     @auth
     Scenario: Planning item can be created only by user having privileges
@@ -137,3 +150,41 @@ Feature: Planning
         {"headline": "header"}
         """
         Then we get OK response
+
+    @auth
+    @notification
+    Scenario: Planning history tracks updates
+        Given empty "planning"
+        When we post to "/planning" with success
+        """
+        [
+            {
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "item_class": "item class value",
+                "headline": "test headline"
+            }
+        ]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {"headline": "updated test headline"}
+        """
+        Then we get OK response
+        When we get "/planning_history"
+        Then we get a list with 2 items
+        """
+            {"_items": [{
+                "planning_id":  "#planning._id#",
+                "operation": "create",
+                "update": {
+                    "original_creator": "__any_value__",
+                    "item_class": "item class value",
+                    "headline": "test headline"}},
+                {"planning_id":  "#planning._id#",
+                "operation": "update",
+                "update": {"headline": "updated test headline"}}
+            ]}
+        """
+
