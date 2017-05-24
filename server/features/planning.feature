@@ -101,7 +101,9 @@ Feature: Planning
             "planning_item": "123",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
-                "assigned_to": "whoever wants to do it"
+                "assigned_to": {
+                    "user": "whoever wants to do it"
+                }
             }
         }]
         """
@@ -116,7 +118,9 @@ Feature: Planning
                 "planning_item": "123",
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
-                    "assigned_to": "whoever wants to do it"
+                    "assigned_to": {
+                        "user": "whoever wants to do it"
+                    }
                 }
             }]
         }]}

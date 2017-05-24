@@ -7,6 +7,8 @@ import vocabularies from './vocabularies'
 import ingest from './ingest_providers'
 import privileges from './privileges'
 import agenda from './agenda'
+import users from './users'
+import desks from './desks'
 
 const planningApp = combineReducers({
     modal,
@@ -18,6 +20,8 @@ const planningApp = combineReducers({
     agenda,
     form: forms,
     config: (state) => (state || {}),
+    users,
+    desks,
 })
 
 export default planningApp
