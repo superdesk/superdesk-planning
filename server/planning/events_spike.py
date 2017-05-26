@@ -8,25 +8,25 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from .planning import PlanningResource
+from .events import EventsResource
 from .common import ITEM_EXPIRY, ITEM_STATE, ITEM_SPIKED, ITEM_ACTIVE, set_item_expiry
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from apps.auth import get_user
-from superdesk import config
+from superdesk import config, get_resource_service
 
 
-class PlanningSpikeResource(PlanningResource):
-    url = 'planning/spike'
-    resource_title = endpoint_name = 'planning_spike'
+class EventsSpikeResource(EventsResource):
+    url = 'events/spike'
+    resource_title = endpoint_name = 'events_spike'
 
-    datasource = {'source': 'planning'}
+    datasource = {'source': 'events'}
     resource_methods = []
     item_methods = ['PATCH']
-    privileges = {'PATCH': 'planning_planning_spike'}
+    privileges = {'PATCH': 'planning_event_spike'}
 
 
-class PlanningSpikeService(BaseService):
+class EventsSpikeService(BaseService):
     def update(self, id, updates, original):
         user = get_user(required=True)
 
@@ -34,21 +34,29 @@ class PlanningSpikeService(BaseService):
         set_item_expiry(updates)
 
         item = self.backend.update(self.datasource, id, updates, original)
-        push_notification('planning:spike', item=str(id), user=str(user.get(config.ID_FIELD)))
+
+        push_notification('events:spike', item=str(id), user=str(user.get(config.ID_FIELD)))
         return item
 
+    def on_updated(self, updates, original):
+        planning_service = get_resource_service('planning')
+        spike_service = get_resource_service('planning_spike')
 
-class PlanningUnspikeResource(PlanningResource):
-    url = 'planning/unspike'
-    resource_title = endpoint_name = 'planning_unspike'
+        for planning in list(planning_service.find(where={'event_item': original[config.ID_FIELD]})):
+            spike_service.patch(planning[config.ID_FIELD], {})
 
-    datasource = {'source': 'planning'}
+
+class EventsUnspikeResource(EventsResource):
+    url = 'events/unspike'
+    resource_title = endpoint_name = 'events_unspike'
+
+    datasource = {'source': 'events'}
     resource_methods = []
     item_methods = ['PATCH']
-    privileges = {'PATCH': 'planning_planning_unspike'}
+    privileges = {'PATCH': 'planning_event_unspike'}
 
 
-class PlanningUnspikeService(BaseService):
+class EventsUnspikeService(BaseService):
     def update(self, id, updates, original):
         user = get_user(required=True)
 
@@ -56,5 +64,5 @@ class PlanningUnspikeService(BaseService):
         updates[ITEM_EXPIRY] = None
 
         item = self.backend.update(self.datasource, id, updates, original)
-        push_notification('planning:unspike', item=str(id), user=str(user.get(config.ID_FIELD)))
+        push_notification('events:unspike', item=str(id), user=str(user.get(config.ID_FIELD)))
         return item

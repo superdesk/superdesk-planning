@@ -1,13 +1,14 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { RelatedPlannings } from '../containers'
+import { ITEM_STATE } from '../constants'
 import * as selectors from '../selectors'
 import { get } from 'lodash'
 
 export function SpikeAgendaConfirmationComponent({ agenda, plannings }) {
     return (
         <div>
-            <p>Are you sure you want to {agenda.state === 'spiked' && 'unspike' || 'spike'} {agenda.name} ?</p>
+            <p>Are you sure you want to {agenda.state === ITEM_STATE.SPIKED && 'unspike' || 'spike'} {agenda.name} ?</p>
             {plannings.length &&
                 <div>
                     This agenda contains:

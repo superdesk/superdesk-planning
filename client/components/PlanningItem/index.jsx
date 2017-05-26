@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react'
 import { get } from 'lodash'
 import { ListItem, TimePlanning, DueDate, tooltips } from '../index'
 import { OverlayTrigger } from 'react-bootstrap'
+import { ITEM_STATE } from '../../constants'
 import './style.scss'
 
 const coverageIcons = {
@@ -10,10 +11,22 @@ const coverageIcons = {
     audio: 'icon-audio',
     photo: 'icon-photo',
 }
-const PlanningItem = ({ item, event, onClick, active, onSpike, onUnspike, privileges }) => {
+
+const PlanningItem = ({ item, event, agenda, onClick, active, onSpike, onUnspike, privileges }) => {
     const location = get(event, 'location[0].name')
     const dueDates = get(item, 'coverages', []).map((c) => (get(c, 'planning.scheduled'))).filter(d => (d))
     const coveragesTypes = get(item, 'coverages', []).map((c) => get(c, 'planning.g2_content_type'))
+
+    const itemSpiked = item && get(item, 'state', 'active') === ITEM_STATE.SPIKED
+    const agendaSpiked = agenda && get(agenda, 'state', 'active') === ITEM_STATE.SPIKED
+    const eventSpiked = event ? get(event, 'state', 'active') === ITEM_STATE.SPIKED : false
+
+    const showSpikeButton = privileges.planning_planning_spike === 1 &&
+            !itemSpiked && !agendaSpiked && !eventSpiked
+
+    const showUnspikeButton = privileges.planning_planning_unspike === 1 &&
+            itemSpiked && !agendaSpiked && !eventSpiked
+
     return (
         <ListItem
             item={item}
@@ -22,7 +35,7 @@ const PlanningItem = ({ item, event, onClick, active, onSpike, onUnspike, privil
             active={active}>
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
                 <div className="sd-list-item__row">
-                    {item.state === 'spiked' &&
+                    {itemSpiked &&
                         <span className="label label--alert">spiked</span>
                     }
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
@@ -54,7 +67,7 @@ const PlanningItem = ({ item, event, onClick, active, onSpike, onUnspike, privil
                 </div>
             </div>
             <div className="sd-list-item__action-menu">
-                {item.state !== 'spiked' && privileges.planning_planning_spike === 1 &&
+                {showSpikeButton &&
                     <OverlayTrigger placement="left" overlay={tooltips.spikePlanningTooltip}>
                         <button
                             className="dropdown__toggle"
@@ -66,7 +79,7 @@ const PlanningItem = ({ item, event, onClick, active, onSpike, onUnspike, privil
                         </button>
                     </OverlayTrigger>
                 }
-                {item.state === 'spiked' && privileges.planning_planning_unspike === 1 &&
+                {showUnspikeButton &&
                     <OverlayTrigger placement="left" overlay={tooltips.unspikePlanningTooltip}>
                         <button
                             className="dropdown__toggle"
@@ -86,6 +99,7 @@ const PlanningItem = ({ item, event, onClick, active, onSpike, onUnspike, privil
 PlanningItem.propTypes = {
     item: PropTypes.object.isRequired,
     event: PropTypes.object,
+    agenda: PropTypes.object,
     active: PropTypes.bool,
     onClick: PropTypes.func,
     onSpike: PropTypes.func,

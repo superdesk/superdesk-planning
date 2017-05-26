@@ -3,10 +3,11 @@ import { get } from 'lodash'
 import moment from 'moment'
 import { tooltips } from '../index'
 import { OverlayTrigger } from 'react-bootstrap'
+import { ITEM_STATE } from '../../constants'
 import './style.scss'
 
 export const AgendaItem = ({ agenda, onClick, editEvent, spikeEvent, privileges }) => {
-    const isSpiked = 'state' in agenda && agenda.state === 'spiked'
+    const isSpiked = 'state' in agenda && agenda.state === ITEM_STATE.SPIKED
     return (
         <li className="AgendaItem">
             <h6 onClick={onClick.bind(this, agenda)}>{agenda.name}</h6>

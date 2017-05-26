@@ -3,7 +3,7 @@ import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
 import { cloneDeep, get } from 'lodash'
 import { closePlanningEditor, fetchPlannings, savePlanning } from './planning'
-import { PRIVILEGES } from '../constants'
+import { PRIVILEGES, ITEM_STATE } from '../constants'
 import { checkPermission } from '../utils'
 
 /**
@@ -177,11 +177,13 @@ const _addEventToCurrentAgenda = (event) => (
         if (!currentAgenda) {
             notify.error('No Agenda selected.')
             return Promise.resolve()
-        } else if (currentAgenda.state === 'spiked') {
+        } else if (currentAgenda.state === ITEM_STATE.SPIKED) {
             notify.error('Current Agenda is spiked.')
             return Promise.resolve()
+        } else if (get(event, 'state', 'active') === ITEM_STATE.SPIKED) {
+            notify.error('Cannot create a Planning item from a spiked event!')
+            return Promise.resolve()
         }
-        // DO IT
 
         // planning inherits some fields from the given event
         return dispatch(savePlanning({

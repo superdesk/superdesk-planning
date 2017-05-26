@@ -19,6 +19,7 @@ from superdesk.resource import build_custom_hateoas
 from apps.archive.common import set_original_creator, get_user
 from copy import deepcopy
 from eve.utils import config
+from .common import STATE_SCHEMA
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +49,7 @@ class PlanningService(superdesk.Service):
         for doc in docs:
             doc['guid'] = generate_guid(type=GUID_NEWSML)
             set_original_creator(doc)
+
             # remove event expiry if it is linked to the planning
             if 'event_item' in doc:
                 events_service = get_resource_service('events')
@@ -244,14 +246,10 @@ planning_schema = {
     },
 
     # These next two are for spiking/unspiking and purging of planning/agenda items
-    'state': {
-        'type': 'string',
-        'allowed': ['active', 'spiked'],
-        'default': 'active',
-        'mapping': not_analyzed
-    },
+    'state': STATE_SCHEMA,
     'expiry': {
-        'type': 'datetime'
+        'type': 'datetime',
+        'nullable': True
     }
 
 }  # end planning_schema

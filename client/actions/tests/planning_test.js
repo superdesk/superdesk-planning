@@ -42,6 +42,8 @@ describe('planning', () => {
                     $timeout,
                 })
             }
+
+            return action
         })
         const notify = {
             error: sinon.spy(),
@@ -177,7 +179,6 @@ describe('planning', () => {
                     expect(dispatch.callCount).toBe(2)
                     expect($timeout.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(0)
-                    expect(1).toBe(2)
                 })
             })
 

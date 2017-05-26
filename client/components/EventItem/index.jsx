@@ -3,10 +3,14 @@ import { get } from 'lodash'
 import { ListItem, tooltips, TimeEvent } from '../index'
 import './style.scss'
 import { OverlayTrigger } from 'react-bootstrap'
+import { ITEM_STATE } from '../../constants'
 
-export const EventItem = ({ event, onClick, deleteEvent, selectedEvent }) => {
+export const EventItem = ({ event, onClick, onSpikeEvent, onUnspikeEvent, selectedEvent, privileges }) => {
     const location = get(event, 'location[0].name')
     const hasBeenCanceled = get(event, 'occur_status.qcode') === 'eocstat:eos6'
+    const hasBeenSpiked = get(event, 'state', 'active') === ITEM_STATE.SPIKED
+    const hasSpikePrivileges = get(privileges, 'planning_event_spike', 0) === 1
+    const hasUnspikePrivileges = get(privileges, 'planning_event_unspike', 0) === 1
     const counters = [
         {
             icon: 'icon-file',
@@ -23,9 +27,12 @@ export const EventItem = ({ event, onClick, deleteEvent, selectedEvent }) => {
         hasBeenCanceled ? 'event--has-been-canceled' : null,
     ].join(' ')
     return (
-        <ListItem item={event} onClick={onClick.bind(this, event)} deleteEvent={deleteEvent.bind(this, event)} draggable={true} className={classes} active={selectedEvent === event._id}>
+        <ListItem item={event} onClick={onClick.bind(this, event)} draggable={true} className={classes} active={selectedEvent === event._id}>
         <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
             <div className="sd-list-item__row">
+                {hasBeenSpiked &&
+                    <span className="label label--alert">spiked</span>
+                }
                 <span className="sd-overflow-ellipsis sd-list-item--element-grow event__title">
                     {event.name}
                     {(event.definition_short && event.name !== event.definition_short) &&
@@ -52,13 +59,30 @@ export const EventItem = ({ event, onClick, deleteEvent, selectedEvent }) => {
             </div>
         </div>
         <div className="sd-list-item__action-menu">
-            <OverlayTrigger placement="left" overlay={tooltips.deleteEventTooltip}>
-                <button
-                    className="dropdown__toggle"
-                    onClick={(e)=>{e.stopPropagation(); deleteEvent(event)}}>
-                    <i className="icon-trash"/>
-                </button>
-            </OverlayTrigger>
+            {!hasBeenSpiked && hasSpikePrivileges &&
+                <OverlayTrigger placement="left" overlay={tooltips.spikeEventTooltip}>
+                    <button
+                        className="dropdown__toggle"
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            onSpikeEvent(event)
+                        }}>
+                        <i className="icon-trash"/>
+                    </button>
+                </OverlayTrigger>
+            }
+            {hasBeenSpiked && hasUnspikePrivileges &&
+                <OverlayTrigger placement="left" overlay={tooltips.unspikeEventTooltip}>
+                    <button
+                        className="dropdown__toggle"
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            onUnspikeEvent(event)
+                        }}>
+                        <i className="icon-unspike"/>
+                    </button>
+                </OverlayTrigger>
+            }
         </div>
         </ListItem>
     )
@@ -67,6 +91,8 @@ export const EventItem = ({ event, onClick, deleteEvent, selectedEvent }) => {
 EventItem.propTypes = {
     onClick: PropTypes.func.isRequired,
     event: PropTypes.object.isRequired,
-    deleteEvent: PropTypes.func.isRequired,
+    onSpikeEvent: PropTypes.func.isRequired,
+    onUnspikeEvent: PropTypes.func.isRequired,
     selectedEvent: PropTypes.string,
+    privileges: PropTypes.object,
 }

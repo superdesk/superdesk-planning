@@ -5,6 +5,7 @@ import * as actions from '../../actions'
 import { PlanningForm } from '../index'
 import { EventMetadata } from '../../components'
 import * as selectors from '../../selectors'
+import { ITEM_STATE } from '../../constants'
 import { get } from 'lodash'
 import moment from 'moment'
 import './style.scss'
@@ -23,7 +24,8 @@ export class EditPlanningPanel extends React.Component {
         const { closePlanningEditor, planning, event, pristine, submitting, agendaSpiked } = this.props
         const creationDate = get(planning, '_created')
         const author = get(planning, 'original_creator.username')
-        const planningSpiked = get(planning, 'state', 'active') === 'spiked'
+        const planningSpiked = planning ? get(planning, 'state', 'active') === ITEM_STATE.SPIKED : false
+        const eventSpiked = event ? get(event, 'state', 'active') === ITEM_STATE.SPIKED : false
         return (
             <div className="EditPlanningPanel">
                 <header>
@@ -41,7 +43,7 @@ export class EditPlanningPanel extends React.Component {
                             type="reset"
                             onClick={closePlanningEditor}
                             disabled={submitting}>Cancel</button>
-                        {!agendaSpiked && !planningSpiked &&
+                        {!agendaSpiked && !planningSpiked && !eventSpiked &&
                             <button
                                 className="btn btn--primary"
                                 onClick={this.handleSave.bind(this)}
@@ -56,6 +58,9 @@ export class EditPlanningPanel extends React.Component {
                     }
                     {planningSpiked &&
                         <span className="PlanningSpiked label label--alert">planning spiked</span>
+                    }
+                    {eventSpiked &&
+                        <span className="EventSpiked label label--alert">event spiked</span>
                     }
                     {event &&
                         <div>
