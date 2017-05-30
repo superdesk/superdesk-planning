@@ -1,5 +1,6 @@
 export { PRIVILEGES } from './privileges'
 export { PLANNING } from './planning'
+export { AGENDA } from './agenda'
 
 export const LIST_ITEM_HEIGHT = 56
 export const EVENT_LIST_DAY_HEADER_HEIGHT = 43

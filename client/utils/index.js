@@ -108,6 +108,14 @@ export const createTestStore = (params={}) => {
                     return Promise.resolve(response)
                 }
             },
+
+            getById: (_id) => {
+                if (extraArguments.apiGetById) {
+                    return Promise.resolve(extraArguments.apiGetById(resource, _id))
+                } else {
+                    return Promise.resolve()
+                }
+            },
         }),
     }
     const middlewares = [

@@ -1,4 +1,4 @@
-
+import { AGENDA } from '../constants'
 /**
  * Creates a new agenda if it doesn't exist, otherwise updates the existing one
  * @param {array, object} agendas - Array of current loaded Agendas
@@ -24,23 +24,23 @@ const initialState = {
 
 const agendaReducer = (state=initialState, action) => {
     switch (action.type) {
-        case 'REQUEST_AGENDAS':
+        case AGENDA.ACTIONS.REQUEST_AGENDAS:
             return {
                 ...state,
                 agendasAreLoading: true,
             }
-        case 'RECEIVE_AGENDAS':
+        case AGENDA.ACTIONS.RECEIVE_AGENDAS:
             return {
                 ...state,
                 agendasAreLoading: false,
                 agendas: action.payload,
             }
-        case 'SELECT_AGENDA':
+        case AGENDA.ACTIONS.SELECT_AGENDA:
             return {
                 ...state,
                 currentAgendaId: action.payload,
             }
-        case 'ADD_OR_REPLACE_AGENDA':
+        case AGENDA.ACTIONS.ADD_OR_REPLACE_AGENDA:
             return {
                 ...state,
                 agendas: replaceOrAddInAgendas(state.agendas.slice(), action.payload),

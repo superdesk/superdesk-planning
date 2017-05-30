@@ -1,6 +1,10 @@
 import sinon from 'sinon'
 import * as actions from '../agenda'
 import { PRIVILEGES } from '../../constants'
+import { registerNotifications } from '../../controllers/PlanningController'
+import { createTestStore } from '../../utils'
+import { cloneDeep } from 'lodash'
+import * as selectors from '../../selectors'
 
 describe('agenda', () => {
     describe('actions', () => {
@@ -277,6 +281,42 @@ describe('agenda', () => {
             })
         })
 
+        describe('fetchAgendaById', () => {
+            it('calls api.getById and runs dispatches', () => {
+                apiSpy.getById = sinon.spy(() => Promise.resolve(agendas[1]))
+                const action = actions.fetchAgendaById('a2')
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then((agenda) => {
+                    expect(agenda).toEqual(agendas[1])
+                    expect(apiSpy.getById.callCount).toBe(1)
+                    expect(apiSpy.getById.args[0]).toEqual(['a2'])
+                    expect(dispatch.callCount).toBe(1)
+                    expect(dispatch.args[0]).toEqual([{
+                        type: 'ADD_OR_REPLACE_AGENDA',
+                        payload: agendas[1],
+                    }])
+                    expect(notify.error.callCount).toBe(0)
+                })
+            })
+
+            it('notifies end user if an error occurred', () => {
+                apiSpy.getById = sinon.spy(() => Promise.reject())
+                const action = actions.fetchAgendaById('a2')
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then(() => {
+                    expect(dispatch.callCount).toBe(0)
+                    expect(notify.error.callCount).toBe(1)
+                    expect(notify.error.args[0]).toEqual(['Failed to fetch an Agenda!'])
+                })
+            })
+        })
+
         it('selectAgenda', () => {
             const action = actions.selectAgenda('a1')
             const $location = { search: sinon.spy() }
@@ -495,6 +535,86 @@ describe('agenda', () => {
                     expect(dispatch.callCount).toBe(1)
                 })
             })
+        })
+    })
+
+    describe('websocket', () => {
+        const initialState = {
+            agenda: {
+                agendas: [{
+                    _id: '1',
+                    name: 'agenda',
+                }],
+            },
+        }
+        const newAgenda = {
+            _id: '2',
+            name: 'NewAgenda',
+        }
+
+        let store
+        let spyGetById
+        let $rootScope
+
+        beforeEach(inject((_$rootScope_) => {
+            $rootScope = _$rootScope_
+
+            spyGetById = sinon.spy(() => newAgenda)
+            store = createTestStore({
+                initialState: cloneDeep(initialState),
+                extraArguments: { apiGetById: spyGetById },
+            })
+
+            registerNotifications($rootScope, store)
+            $rootScope.$digest()
+        }))
+
+        it('`agenda:created` adds the Agenda to the store', (done) => {
+            $rootScope.$broadcast('agenda:created', { item: '2' })
+
+            // Expects run in setTimeout to give the event listeners a chance to execute
+            setTimeout(() => {
+                expect(spyGetById.callCount).toBe(1)
+                expect(spyGetById.args[0]).toEqual([
+                    'agenda',
+                    '2',
+                ])
+
+                expect(selectors.getAgendas(store.getState())).toEqual([
+                    {
+                        _id: '1',
+                        name: 'agenda',
+                    },
+                    {
+                        _id: '2',
+                        name: 'NewAgenda',
+                    },
+                ])
+                done()
+            }, 0)
+        })
+
+        it('`agenda:updated` updates the Agenda in the store', (done) => {
+            newAgenda._id = '1'
+            $rootScope.$broadcast('agenda:created', { item: '1' })
+
+            // Expects run in setTimeout to give the event listeners a chance to execute
+            setTimeout(() => {
+                expect(spyGetById.callCount).toBe(1)
+                expect(spyGetById.args[0]).toEqual([
+                    'agenda',
+                    '1',
+                ])
+
+                expect(selectors.getAgendas(store.getState())).toEqual([
+                    {
+                        _id: '1',
+                        name: 'NewAgenda',
+                    },
+                ])
+
+                done()
+            }, 0)
         })
     })
 })
