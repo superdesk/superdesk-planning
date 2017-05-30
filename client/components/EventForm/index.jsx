@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
-import { RelatedPlannings, RepeatEventForm, fields, Toggle } from '../index'
+import { RelatedPlannings, RepeatEventForm, fields, Toggle, EventHistoryContainer } from '../index'
 import { Field, FieldArray, reduxForm, formValueSelector, getFormValues } from 'redux-form'
 import { isNil, get } from 'lodash'
 import { PubStatusLabel } from '../index'
@@ -24,7 +24,10 @@ import { isEventAllDay } from '../../utils'
 export class Component extends React.Component {
     constructor(props) {
         super(props)
-        this.state = { doesRepeat: false }
+        this.state = {
+            doesRepeat: false,
+            previewHistory: false,
+        }
     }
 
     componentWillReceiveProps(nextProps) {
@@ -42,6 +45,14 @@ export class Component extends React.Component {
         if (this.props.startingDate && !this.props.endingDate) {
             return moment(this.props.startingDate).add(1, 'h')
         }
+    }
+
+    viewEventHistory() {
+        this.setState({ previewHistory: true })
+    }
+
+    closeEventHistory() {
+        this.setState({ previewHistory: false })
     }
 
     handleDoesRepeatChange(event) {
@@ -104,6 +115,7 @@ export class Component extends React.Component {
             unpublish,
             saveAndPublish,
             duplicateEvent,
+            highlightedEvent,
         } = this.props
         const eventSpiked = get(initialValues, 'state', 'active') === ITEM_STATE.SPIKED
         const updatedReadOnly = readOnly || eventSpiked
@@ -120,6 +132,10 @@ export class Component extends React.Component {
                     label: 'Unspike Event',
                     callback: unspikeEvent.bind(null, initialValues),
                 },
+                {
+                    label: 'View Event History',
+                    callback: this.viewEventHistory.bind(this),
+                },
             ]
         } else if (id) {
             itemActions = [
@@ -135,6 +151,10 @@ export class Component extends React.Component {
                     label: 'Duplicate Event',
                     callback: () => duplicateEvent(initialValues),
                 },
+                {
+                    label: 'View Event History',
+                    callback: this.viewEventHistory.bind(this),
+                },
             ]
         }
         return (
@@ -147,7 +167,10 @@ export class Component extends React.Component {
                             </div>
                         </div>
                     )}
-                    <span className="subnav__page-title">Event details</span>
+                    <span className="subnav__page-title">
+                        {!this.state.previewHistory && 'Event details'}
+                        {this.state.previewHistory && 'Event history'}
+                    </span>
                     {(!pristine && !submitting) && (
                         <div>
                             <button type="button" className="btn" onClick={onBackClick}>Cancel</button>
@@ -163,7 +186,7 @@ export class Component extends React.Component {
                             }
                         </div>
                     )}
-                    { updatedReadOnly && (
+                    { updatedReadOnly && !this.state.previewHistory && (
                         <div className="subnav__actions">
                             <div>
                                 {!isPublished &&
@@ -189,7 +212,8 @@ export class Component extends React.Component {
                         </div>)
                     }
                 </div>
-                <div className="EventForm__form">
+                {!this.state.previewHistory &&
+                    <div className="EventForm__form">
                     <PubStatusLabel status={get(initialValues, 'pubstatus')} verbose={true}/>
                     <ItemActionsMenu actions={itemActions} />
                     {error && <div className="error-block">{error}</div>}
@@ -309,7 +333,18 @@ export class Component extends React.Component {
                             </div>
                         }
                     </div>
-                </div>
+                    </div>
+                }
+                {this.state.previewHistory &&
+                    <div className="history-preview">
+                        <div className="close-history">
+                            <a onClick={this.closeEventHistory.bind(this)} className="close">
+                                <i className="icon-close-small" />
+                            </a>
+                        </div>
+                        <EventHistoryContainer highlightedEvent={highlightedEvent} />
+                    </div>
+                }
             </form>
         )
     }
@@ -341,6 +376,7 @@ Component.propTypes = {
     addEventToCurrentAgenda: PropTypes.func.isRequired,
     duplicateEvent: PropTypes.func.isRequired,
     isAllDay: PropTypes.bool,
+    highlightedEvent: React.PropTypes.string,
 }
 
 // Decorate the form component
@@ -356,6 +392,7 @@ export const FormComponent = reduxForm({
 
 const selector = formValueSelector('addEvent') // same as form name
 const mapStateToProps = (state) => ({
+    highlightedEvent: selectors.getHighlightedEvent(state),
     startingDate: selector(state, 'dates.start'),
     endingDate: selector(state, 'dates.end'),
     doesRepeat: !isNil(selector(state, 'dates.recurring_rule.frequency')),

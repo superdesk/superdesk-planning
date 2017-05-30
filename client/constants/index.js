@@ -14,3 +14,11 @@ export const ITEM_STATE = {
 }
 
 export const WS_NOTIFICATION = 'WS_NOTIFICATION'
+
+export const DATE_FORMATS = {
+    COMPARE_FORMAT: 'YYYY-M-D',
+    DISPLAY_DATE_FORMAT: 'D. MMMM YYYY HH:mm',
+    DISPLAY_CDATE_FORMAT: 'D. MMMM HH:mm',
+    DISPLAY_DAY_FORMAT: 'dddd, ',
+    DISPLAY_TODAY_FORMAT: '[Today], ',
+}

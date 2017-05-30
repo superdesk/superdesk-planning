@@ -50,3 +50,6 @@ export { UnlockItem } from './UnlockItem'
 export { default as UpdateRecurrentEventsConfirmation }
     from './UpdateRecurrentEventsConfirmation/index'
 export { ItemActionsMenu } from './ItemActionsMenu/index'
+export { EventHistoryContainer } from './EventHistoryContainer/index'
+export { EventHistoryList } from './EventHistoryList/index'
+export { AbsoluteDate } from './AbsoluteDate'
