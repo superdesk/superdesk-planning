@@ -258,7 +258,24 @@ const performFetchQuery = ({ advancedSearch, fulltext, ids, page=1, state=ITEM_S
             must.push({ query_string: { query: fulltext } })
         // search by ids
         } else if (ids) {
-            must.push({ terms: { _id: ids } })
+            const chunkSize = EVENTS.FETCH_IDS_CHUNK_SIZE
+            if (ids.length <= chunkSize) {
+                must.push({ terms: { _id: ids } })
+            } else {
+                // chunk the requests
+                const requests = []
+                for (var i = 0; i < Math.ceil(ids.length / chunkSize); i++) {
+                    const args = {
+                        ...arguments[0],
+                        ids: ids.slice(i * chunkSize, (i + 1) * chunkSize),
+                    }
+                    requests.push(dispatch(performFetchQuery(args)))
+                }
+                // flattern responses and return a response-like object
+                return Promise.all(requests).then((responses) => (
+                    { _items: Array.prototype.concat(...responses.map((r) => r._items)) }
+                ))
+            }
         // advanced search
         } else if (advancedSearch) {
             [
@@ -362,10 +379,14 @@ const performFetchQuery = ({ advancedSearch, fulltext, ids, page=1, state=ITEM_S
 const silentlyFetchEventsById = (ids=[], state = ITEM_STATE.ACTIVE) => (
     (dispatch) => (
         dispatch(performFetchQuery({
-            ids,
+            // distinct ids
+            ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
             state,
         }))
-        .then(data => dispatch(receiveEvents(data._items)))
+        .then(data => {
+            dispatch(receiveEvents(data._items))
+            return data
+        })
     )
 )
 
@@ -390,11 +411,12 @@ const fetchEvents = (params={
         .then(data => {
             dispatch(receiveEvents(data._items))
             dispatch(setEventsList(data._items.map((e) => e._id)))
+            // update the url (deep linking)
+            $timeout(() => (
+                $location.search('searchEvent', JSON.stringify(params)), 0, false)
+            )
+            return data
         })
-        // update the url (deep linking)
-        .then(() => $timeout(() => (
-            $location.search('searchEvent', JSON.stringify(params)), 0, false)
-        ))
     }
 )
 

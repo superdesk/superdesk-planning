@@ -12,4 +12,8 @@ export const EVENTS = {
         ADD_EVENTS: 'ADD_EVENTS',
         TOGGLE_EVENT_LIST: 'TOGGLE_EVENT_LIST',
     },
+    // Number of ids to look for by single request
+    // because url length must stay short
+    // chunk size must be lower than page limit (25)
+    FETCH_IDS_CHUNK_SIZE: 25,
 }
