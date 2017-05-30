@@ -11,3 +11,5 @@ export const ITEM_STATE = {
     SPIKED: 'spiked',
     ALL: 'all',
 }
+
+export const WS_NOTIFICATION = 'WS_NOTIFICATION'

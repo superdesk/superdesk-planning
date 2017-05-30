@@ -4,9 +4,12 @@ import { PlanningApp } from '../containers'
 import { Provider } from 'react-redux'
 import { createStore } from '../utils'
 import * as actions from '../actions'
+import { WS_NOTIFICATION } from '../constants'
+import { forEach } from 'lodash'
 
 PlanningController.$inject = [
     '$element',
+    '$rootScope',
     '$scope',
     'api',
     'config',
@@ -17,9 +20,11 @@ PlanningController.$inject = [
     'upload',
     'notify',
     'privileges',
+    'notifyConnectionService',
 ]
 export function PlanningController(
     $element,
+    $rootScope,
     $scope,
     api,
     config,
@@ -29,7 +34,8 @@ export function PlanningController(
     superdesk,
     upload,
     notify,
-    privileges
+    privileges,
+    notifyConnectionService
 ) {
     // create the application store
     const store = createStore({
@@ -44,6 +50,7 @@ export function PlanningController(
             upload,
             notify,
             privileges,
+            notifyConnectionService,
         },
     })
     // load data in the store
@@ -61,6 +68,9 @@ export function PlanningController(
             return store.dispatch(actions.selectAgenda($location.search().agenda))
         }
     })
+
+    registerNotifications($rootScope, store)
+
     // render the planning application
     ReactDOM.render(
         <Provider store={store}>
@@ -68,4 +78,24 @@ export function PlanningController(
         </Provider>,
         $element.get(0)
     )
+}
+
+/**
+ * Registers WebSocket Notifications to Redux Actions
+ * @param {scope} $rootScope - Angular root scope where notifications are received
+ * @param {store} store - The Redux Store used for dispatching actions
+ */
+export const registerNotifications = ($rootScope, store) => {
+    forEach(actions.notifications, (func, event) => {
+        $rootScope.$on(event, (_e, data) => {
+            store.dispatch({
+                type: WS_NOTIFICATION,
+                payload: {
+                    event,
+                    data,
+                },
+            })
+            store.dispatch(func(_e, data))
+        })
+    })
 }
