@@ -19,7 +19,7 @@ Feature: Planning
         """
         {"_id": "#users._id#", "invisible_stages": []}
         """
-        When we post to "/planning" with success
+        When we post to "/planning"
         """
         [
             {
@@ -29,6 +29,17 @@ Feature: Planning
                 "headline": "test headline"
             }
         ]
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "planning:created",
+            "extra": {
+                "item": "#planning._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
         """
         When we get "/planning"
         Then we get list with 1 items

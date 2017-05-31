@@ -35,14 +35,11 @@ class AgendaService(superdesk.Service):
             self._validate_unique_agenda(doc, {})
 
     def on_created(self, docs):
-        # Not using get_user(required=True) because this causes issues with
-        # the behave tests that uses `Given "agenda"`
-        user = get_user()
         for doc in docs:
             push_notification(
                 'agenda:created',
                 item=str(doc[config.ID_FIELD]),
-                user=str(user.get(config.ID_FIELD, ''))
+                user=str(doc.get('original_creator', ''))
             )
 
     def on_update(self, updates, original):
@@ -56,8 +53,11 @@ class AgendaService(superdesk.Service):
         self._validate_unique_agenda(updates, original)
 
     def on_updated(self, updates, original):
-        user = get_user(required=True)
-        push_notification('agenda:updated', item=str(original[config.ID_FIELD]), user=str(user.get(config.ID_FIELD)))
+        push_notification(
+            'agenda:updated',
+            item=str(original[config.ID_FIELD]),
+            user=str(updates.get('version_creator', ''))
+        )
 
     def on_deleted(self, doc):
         # Make sure to remove the associated plannings from this agenda

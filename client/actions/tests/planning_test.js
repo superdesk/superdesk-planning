@@ -1,6 +1,10 @@
 import sinon from 'sinon'
 import * as actions from '../planning'
 import { PRIVILEGES } from '../../constants'
+import { createTestStore } from '../../utils'
+import { cloneDeep } from 'lodash'
+import { registerNotifications } from '../../controllers/PlanningController'
+import * as selectors from '../../selectors'
 
 describe('planning', () => {
     describe('actions', () => {
@@ -336,7 +340,7 @@ describe('planning', () => {
             const action = actions.fetchPlannings({})
             return action(dispatch, getState)
             .then(() => {
-                expect(dispatch.args[0]).toEqual([{ type: 'REQUEST_PLANINGS' }])
+                expect(dispatch.args[0]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
 
                 // Cannot check dispatch(performFetchRequest()) using a spy on dispatch
                 // As performFetchRequest is a thunk function
@@ -350,6 +354,49 @@ describe('planning', () => {
                 }])
 
                 expect(dispatch.callCount).toBe(4)
+            })
+        })
+
+        describe('fetchPlanningById', () => {
+            it('calls api.getById and runs dispatches', () => {
+                apiSpy.getById = sinon.spy(() => Promise.resolve(plannings[1]))
+                const action = actions.fetchPlanningById('p2')
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then((planning) => {
+                    expect(planning).toEqual(plannings[1])
+                    expect(apiSpy.getById.callCount).toBe(1)
+                    expect(apiSpy.getById.args[0]).toEqual(['p2'])
+                    expect(dispatch.callCount).toBe(2)
+                    expect(dispatch.args[0]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
+                    expect(dispatch.args[1]).toEqual([{
+                        type: 'RECEIVE_PLANNINGS',
+                        payload: [plannings[1]],
+                    }])
+                    expect(notify.error.callCount).toBe(0)
+                })
+            })
+
+            it('notifies end user if an error occurred', () => {
+                apiSpy.getById = sinon.spy(() => Promise.reject())
+                const action = actions.fetchPlanningById('p2')
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then(() => {
+                    expect(dispatch.callCount).toBe(2)
+                    expect(dispatch.args[0]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
+                    expect(dispatch.args[1]).toEqual([{
+                        type: 'RECEIVE_PLANNINGS',
+                        payload: [],
+                    }])
+
+                    expect(notify.error.callCount).toBe(1)
+                    expect(notify.error.args[0]).toEqual(['Failed to get a new Planning Item!'])
+                })
             })
         })
 
@@ -468,6 +515,83 @@ describe('planning', () => {
                 type: 'PLANNING_FILTER_BY_KEYWORD',
                 payload: 'Find this plan',
             })
+        })
+    })
+
+    describe('websocket', () => {
+        const initialState = {
+            planning: {
+                plannings: {
+                    p1: {
+                        _id: 'p1',
+                        slugline: 'Plan1',
+                    },
+                },
+            },
+        }
+        const newPlan = {
+            _id: 'p2',
+            slugline: 'Plan2',
+        }
+
+        let store
+        let spyGetById
+        let $rootScope
+
+        beforeEach(inject((_$rootScope_) => {
+            $rootScope = _$rootScope_
+
+            spyGetById = sinon.spy(() => newPlan)
+            store = createTestStore({
+                initialState: cloneDeep(initialState),
+                extraArguments: { apiGetById: spyGetById },
+            })
+
+            registerNotifications($rootScope, store)
+            $rootScope.$digest()
+        }))
+
+        describe('`planning:created`', () => {
+            it('Adds the Planning item to the store', (done) => {
+                $rootScope.$broadcast('planning:created', { item: 'p2' })
+
+                // Expects run in setTimeout to give the event listener a chance to execute
+                setTimeout(() => {
+                    expect(spyGetById.callCount).toBe(1)
+                    expect(spyGetById.args[0]).toEqual([
+                        'planning',
+                        'p2',
+                    ])
+
+                    expect(selectors.getStoredPlannings(store.getState())).toEqual({
+                        p1: {
+                            _id: 'p1',
+                            slugline: 'Plan1',
+                        },
+                        p2: {
+                            _id: 'p2',
+                            slugline: 'Plan2',
+                        },
+                    })
+                    done()
+                }, 0)
+            })
+
+            it('Silently returns if no item provided', () => {
+                $rootScope.$broadcast('planning:created', {})
+
+                // Expects run in setTimeout to give the event listener a chance to execute
+                setTimeout(() => {
+                    expect(spyGetById.callCount).toBe(0)
+                    expect(selectors.getStoredPlannings(store.getState())).toEqual({
+                        p1: {
+                            _id: 'p1',
+                            slugline: 'Plan1',
+                        },
+                    })
+                })
+            })
+
         })
     })
 })

@@ -16,6 +16,7 @@ from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk import get_resource_service
 from superdesk.resource import build_custom_hateoas
+from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user
 from copy import deepcopy
 from eve.utils import config
@@ -55,6 +56,14 @@ class PlanningService(superdesk.Service):
                 events_service = get_resource_service('events')
                 original_event = events_service.find_one(req=None, _id=doc['event_item'])
                 events_service.system_update(doc['event_item'], {'expiry': None}, original_event)
+
+    def on_created(self, docs):
+        for doc in docs:
+            push_notification(
+                'planning:created',
+                item=str(doc.get(config.ID_FIELD)),
+                user=str(doc.get('original_creator', ''))
+            )
 
     def on_update(self, updates, original):
         user = get_user()

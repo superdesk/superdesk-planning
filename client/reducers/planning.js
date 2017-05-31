@@ -15,7 +15,7 @@ const initialState  = {
 const planningReducer = (state=initialState, action) => {
     let plannings
     switch (action.type) {
-        case PLANNING.ACTIONS.REQUEST_PLANINGS:
+        case PLANNING.ACTIONS.REQUEST_PLANNINGS:
             return {
                 ...state,
                 planningsAreLoading: true,

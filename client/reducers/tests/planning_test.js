@@ -22,10 +22,10 @@ describe('planning', () => {
             })
         })
 
-        it('REQUEST_PLANINGS', () => {
+        it('REQUEST_PLANNINGS', () => {
             const result = planning(
                 initialState,
-                { type: 'REQUEST_PLANINGS' }
+                { type: 'REQUEST_PLANNINGS' }
             )
 
             expect(result.planningsAreLoading).toBe(true)
