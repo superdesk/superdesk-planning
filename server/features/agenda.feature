@@ -1,4 +1,52 @@
 Feature: Agenda
+    @auth
+    @notification
+    Scenario: Create an Agenda sends notification
+        When we post to "agenda"
+        """
+        [{
+            "name": "TestAgenda"
+        }]
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "agenda:created",
+            "extra": {
+                "item": "#agenda._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+
+    @auth
+    @notification
+    Scenario: Update an Agenda sends notification
+        When we post to "agenda"
+        """
+        [{
+            "name": "TestAgenda"
+        }]
+        """
+        Then we get OK response
+        When we patch "/agenda/#agenda._id#"
+        """
+        {
+            "name": "TestAgenda2"
+        }
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "agenda:updated",
+            "extra": {
+                "item": "#agenda._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
 
     @auth
     @notification

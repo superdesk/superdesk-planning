@@ -18,6 +18,7 @@ from superdesk.metadata.item import GUID_NEWSML
 from apps.archive.common import set_original_creator, get_user
 from superdesk.errors import SuperdeskApiError
 from superdesk.users.services import current_user_has_privilege
+from superdesk.notification import push_notification
 from .planning import planning_schema
 from eve.utils import config
 
@@ -33,6 +34,17 @@ class AgendaService(superdesk.Service):
             set_original_creator(doc)
             self._validate_unique_agenda(doc, {})
 
+    def on_created(self, docs):
+        # Not using get_user(required=True) because this causes issues with
+        # the behave tests that uses `Given "agenda"`
+        user = get_user()
+        for doc in docs:
+            push_notification(
+                'agenda:created',
+                item=str(doc[config.ID_FIELD]),
+                user=str(user.get(config.ID_FIELD, ''))
+            )
+
     def on_update(self, updates, original):
         if 'name' in updates and not current_user_has_privilege('planning_agenda_management'):
             raise SuperdeskApiError.forbiddenError('Insufficient privileges to update agenda.')
@@ -42,6 +54,10 @@ class AgendaService(superdesk.Service):
             updates['version_creator'] = user[config.ID_FIELD]
 
         self._validate_unique_agenda(updates, original)
+
+    def on_updated(self, updates, original):
+        user = get_user(required=True)
+        push_notification('agenda:updated', item=str(original[config.ID_FIELD]), user=str(user.get(config.ID_FIELD)))
 
     def on_deleted(self, doc):
         # Make sure to remove the associated plannings from this agenda

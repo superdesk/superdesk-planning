@@ -7,9 +7,11 @@ export * from './ingest_providers'
 export * from './privileges'
 export * from './agenda'
 
+import { agendaNotifications } from './agenda'
+
 /**
  * Map WebSocket Notifications to Action Event
  * This is used by client.controller.PlanningController to listen for
  * the WebSocket Notifications from the server, and dispatch events
  **/
-export const notifications = {}
+export const notifications = { ...agendaNotifications }

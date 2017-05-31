@@ -3,8 +3,8 @@ import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
 import { cloneDeep, get } from 'lodash'
 import { closePlanningEditor, fetchPlannings, savePlanning } from './planning'
-import { PRIVILEGES, ITEM_STATE } from '../constants'
-import { checkPermission } from '../utils'
+import { PRIVILEGES, ITEM_STATE, AGENDA } from '../constants'
+import { checkPermission, getErrorMessage } from '../utils'
 
 /**
  * Creates or updates an Agenda
@@ -29,12 +29,10 @@ const _createOrUpdateAgenda = ({ _id, name }) => (
             dispatch(addOrReplaceAgenda(agenda))
             dispatch(selectAgenda(agenda._id))
         }, (error) => {
-            let errorMessage = 'There was a problem, Agenda is not created/updated.'
-            if (get(error, 'data._message')) {
-                errorMessage = get(error, 'data._message')
-            } else if (get(error, 'data._issues.validator exception')) {
-                errorMessage = get(error, 'data._issues.validator exception')
-            }
+            let errorMessage = getErrorMessage(
+                error,
+                'There was a problem, Agenda is not created/updated.'
+            )
 
             notify.error(errorMessage)
             throw new SubmissionError({
@@ -51,7 +49,7 @@ const _createOrUpdateAgenda = ({ _id, name }) => (
  * @return object
  */
 const addOrReplaceAgenda = (agenda) => ({
-    type: 'ADD_OR_REPLACE_AGENDA',
+    type: AGENDA.ACTIONS.ADD_OR_REPLACE_AGENDA,
     payload: agenda,
 })
 
@@ -61,7 +59,7 @@ const addOrReplaceAgenda = (agenda) => ({
  * @return object
  */
 const receiveAgendas = (agendas) => ({
-    type: 'RECEIVE_AGENDAS',
+    type: AGENDA.ACTIONS.RECEIVE_AGENDAS,
     payload: agendas,
 })
 
@@ -76,7 +74,7 @@ const selectAgenda = (agendaId) => (
     (dispatch, getState, { $timeout, $location }) => {
         // save in store selected agenda
         dispatch({
-            type: 'SELECT_AGENDA',
+            type: AGENDA.ACTIONS.SELECT_AGENDA,
             payload: agendaId,
         })
         // close the planning details
@@ -94,7 +92,7 @@ const selectAgenda = (agendaId) => (
  */
 const fetchAgendas = (query={}) => (
     (dispatch, getState, { api, notify }) => {
-        dispatch({ type: 'REQUEST_AGENDAS' })
+        dispatch({ type: AGENDA.ACTIONS.REQUEST_AGENDAS })
         return api('agenda').query({
             source: query.source,
             where: query.where,
@@ -105,16 +103,29 @@ const fetchAgendas = (query={}) => (
         .then((data) => {
             dispatch(receiveAgendas(data._items))
         }, (error) => {
-            let errorMessage = 'There was a problem, agendas could not be fetched'
-            if (get(error, 'data._message')) {
-                errorMessage = get(error, 'data._message')
-            } else if (get(error, 'data._issues.validator exception')) {
-                errorMessage = get(error, 'data.validator exception')
-            }
-
-            notify.error(errorMessage)
+            notify.error(getErrorMessage(
+                error,
+                'There was a problem, agendas could not be fetched'
+            ))
         })
     }
+)
+
+/**
+ * Action Dispatcher that fetches an Agenda by ID
+ * and adds it to the redux store
+ * @param {string} _id - The ID of the Agenda to fetch
+ */
+const fetchAgendaById = (_id) => (
+    (dispatch, getState, { api, notify }) => (
+        api('agenda').getById(_id)
+        .then((agenda) => {
+            dispatch(addOrReplaceAgenda(agenda))
+            return Promise.resolve(agenda)
+        }, (error) => {
+            notify.error(getErrorMessage(error, 'Failed to fetch an Agenda!'))
+        })
+    )
 )
 
 /**
@@ -212,19 +223,15 @@ const _spikeAgenda = (agenda) => (
         .then(() => {
             notify.success('The Agenda has been spiked.')
             dispatch({
-                type: 'SPIKE_AGENDA',
+                type: AGENDA.ACTIONS.SPIKE_AGENDA,
                 payload: agenda,
             })
             dispatch(fetchAgendas())
         }, (error) => {
-            let errorMessage = 'There was a problem, Agenda not deleted.'
-            if (get(error, 'data._message')) {
-                errorMessage = get(error, 'data._message')
-            } else if (get(error, 'data._issues.validator exception')) {
-                errorMessage = get(error, 'data._issues.validator exception')
-            }
-
-            notify.error(errorMessage)
+            notify.error(getErrorMessage(
+                error,
+                'There was a problem, Agenda not spiked.'
+            ))
         })
     )
 )
@@ -240,19 +247,15 @@ const _unspikeAgenda = (agenda) => (
         .then(() => {
             notify.success('The Agenda has been unspiked.')
             dispatch({
-                type: 'UNSPIKE_AGENDA',
+                type: AGENDA.ACTIONS.UNSPIKE_AGENDA,
                 payload: agenda,
             })
             dispatch(fetchAgendas())
         }, (error) => {
-            let errorMessage = 'There was a problem, Agenda not deleted.'
-            if (get(error, 'data._message')) {
-                errorMessage = get(error, 'data._message')
-            } else if (get(error, 'data._issues.validator exception')) {
-                errorMessage = get(error, 'data._issues.validator exception')
-            }
-
-            notify.error(errorMessage)
+            notify.error(getErrorMessage(
+                error,
+                'There was a problem, Agenda was not unspiked.'
+            ))
         })
     )
 )
@@ -330,14 +333,37 @@ const unspikeAgenda = checkPermission(
     'Unauthorised to unspike an Agenda.'
 )
 
+// WebSocket Notifications
+/**
+ * Action Event when a new Agenda is created or updated
+ * @param _e
+ * @param {object} data - Agenda and User IDs
+ */
+const onAgendaCreatedOrUpdated = (_e, data) => (
+    (dispatch) => {
+        if (data && data.item) {
+            return dispatch(fetchAgendaById(data.item))
+        }
+
+    }
+)
+
+// Map of notification name and Action Event to execute
+const agendaNotifications = {
+    'agenda:created': onAgendaCreatedOrUpdated,
+    'agenda:updated': onAgendaCreatedOrUpdated,
+}
+
 export {
     createOrUpdateAgenda,
     spikeAgenda,
     unspikeAgenda,
     fetchAgendas,
+    fetchAgendaById,
     selectAgenda,
     addToCurrentAgenda,
     addPlanningToAgenda,
     addEventToCurrentAgenda,
     fetchSelectedAgendaPlannings,
+    agendaNotifications,
 }
