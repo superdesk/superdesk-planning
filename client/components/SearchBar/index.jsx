@@ -39,6 +39,7 @@ export default class SearchBar extends React.Component {
 
     render() {
         const { searchBarExtended, uniqueId } = this.state
+        const minLength = this.props.minLength ? this.props.minLength : 2
         return (
             <div className={'SearchBar flat-searchbar' + (searchBarExtended ? ' extended' : '')}>
                 <div className="search-handler">
@@ -49,7 +50,7 @@ export default class SearchBar extends React.Component {
                         <i className="icon-search" />
                     </label>
                     <DebounceInput
-                        minLength={2}
+                        minLength={minLength}
                         debounceTimeout={500}
                         value={this.state.searchInputValue}
                         onChange={this.onSearchChange.bind(this)}
@@ -57,6 +58,7 @@ export default class SearchBar extends React.Component {
                         placeholder="Search"
                         type="text"/>
                     <button
+                        type="button"
                         className="search-close visible"
                         onClick={this.resetSearch.bind(this)}>
                         <i className="icon-remove-sign" />
@@ -73,4 +75,5 @@ export default class SearchBar extends React.Component {
 SearchBar.propTypes = {
     onSearch: React.PropTypes.func.isRequired,
     value: React.PropTypes.string,
+    minLength: React.PropTypes.number,
 }

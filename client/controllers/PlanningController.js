@@ -21,6 +21,8 @@ PlanningController.$inject = [
     'notify',
     'privileges',
     'notifyConnectionService',
+    'userList',
+    'desks',
 ]
 export function PlanningController(
     $element,
@@ -35,7 +37,9 @@ export function PlanningController(
     upload,
     notify,
     privileges,
-    notifyConnectionService
+    notifyConnectionService,
+    userList,
+    desks
 ) {
     // create the application store
     const store = createStore({
@@ -51,6 +55,8 @@ export function PlanningController(
             notify,
             privileges,
             notifyConnectionService,
+            userList,
+            desks,
         },
     })
     // load data in the store
@@ -68,6 +74,8 @@ export function PlanningController(
             return store.dispatch(actions.selectAgenda($location.search().agenda))
         }
     })
+    store.dispatch(actions.loadUsers())
+    store.dispatch(actions.loadDesks())
 
     registerNotifications($rootScope, store)
 

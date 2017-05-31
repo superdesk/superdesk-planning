@@ -6,6 +6,8 @@ export * from './vocabularies'
 export * from './ingest_providers'
 export * from './privileges'
 export * from './agenda'
+export * from './users'
+export * from './desks'
 
 import { agendaNotifications } from './agenda'
 
