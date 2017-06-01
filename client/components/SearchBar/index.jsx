@@ -14,6 +14,14 @@ export default class SearchBar extends React.Component {
         }
     }
 
+    componentDidMount() {
+        // Doing this to focus the input field
+        // Sometimes, user doesn't want to click on the search icon to input search text
+        if (this.props.extendOnOpen) {
+            this.refs.searchIcon.click()
+        }
+    }
+
     toggleSearchBar() {
         this.setState({ searchBarExtended: !this.state.searchBarExtended })
     }
@@ -46,7 +54,8 @@ export default class SearchBar extends React.Component {
                     <label
                         htmlFor={uniqueId}
                         className="trigger-icon"
-                        onClick={this.toggleSearchBar.bind(this)}>
+                        onClick={this.toggleSearchBar.bind(this)}
+                        ref="searchIcon" >
                         <i className="icon-search" />
                     </label>
                     <DebounceInput
@@ -56,7 +65,7 @@ export default class SearchBar extends React.Component {
                         onChange={this.onSearchChange.bind(this)}
                         id={uniqueId}
                         placeholder="Search"
-                        type="text"/>
+                        type="text" />
                     <button
                         type="button"
                         className="search-close visible"
@@ -76,4 +85,5 @@ SearchBar.propTypes = {
     onSearch: React.PropTypes.func.isRequired,
     value: React.PropTypes.string,
     minLength: React.PropTypes.number,
+    extendOnOpen: React.PropTypes.bool,
 }

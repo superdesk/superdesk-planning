@@ -23,6 +23,7 @@ PlanningController.$inject = [
     'notifyConnectionService',
     'userList',
     'desks',
+    'metadata',
 ]
 export function PlanningController(
     $element,
@@ -39,7 +40,8 @@ export function PlanningController(
     privileges,
     notifyConnectionService,
     userList,
-    desks
+    desks,
+    metadata
 ) {
     // create the application store
     const store = createStore({
@@ -57,12 +59,14 @@ export function PlanningController(
             notifyConnectionService,
             userList,
             desks,
+            metadata,
         },
     })
     // load data in the store
     store.dispatch(actions.loadCVocabularies())
     store.dispatch(actions.loadIngestProviders())
     store.dispatch(actions.loadPrivileges())
+    store.dispatch(actions.loadSubjects())
     store.dispatch(actions.fetchEvents({
         fulltext: JSON.parse(
             $location.search().searchEvent || '{}'

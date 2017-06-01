@@ -8,6 +8,7 @@ export * from './privileges'
 export * from './agenda'
 export * from './users'
 export * from './desks'
+export * from './subjects'
 
 import { agendaNotifications } from './agenda'
 import { planningNotifications } from './planning'

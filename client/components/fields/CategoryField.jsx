@@ -1,4 +1,4 @@
-import { SelectField } from './SelectField'
+import { SelectMetaTermsField } from './SelectMetaTermsField/'
 import { connect } from 'react-redux'
 
 const mapStateToProps = (state, ownProps) => ({
@@ -17,4 +17,4 @@ const mapStateToProps = (state, ownProps) => ({
     )),
 })
 
-export const CategoryField = connect(mapStateToProps)(SelectField)
+export const CategoryField = connect(mapStateToProps)(SelectMetaTermsField)

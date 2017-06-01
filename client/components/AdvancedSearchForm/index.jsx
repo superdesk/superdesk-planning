@@ -26,6 +26,9 @@ function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting
                <Field name="anpa_category"
                        component={fields.CategoryField}
                        label="Category"/>
+                <Field name="subject"
+                       component={fields.SubjectField}
+                       label="Subject"/>
                 <Field name="state"
                        component={fields.EventStateField}
                        label="Event State"/>

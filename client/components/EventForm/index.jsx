@@ -119,6 +119,11 @@ export class Component extends React.Component {
                                label="Category"/>
                     </div>
                     <div>
+                        <Field name="subject"
+                               component={fields.SubjectField}
+                               label="Subject"/>
+                    </div>
+                    <div>
                         <Field name="definition_short"
                                component={fields.InputTextAreaField}
                                label="Description"/>
