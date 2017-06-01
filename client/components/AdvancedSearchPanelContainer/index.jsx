@@ -1,6 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { AdvancedSearchForm } from '../../containers/AdvancedSearchForm/index'
+import { AdvancedSearchForm } from '../index'
 import * as actions from '../../actions'
 import './style.scss'
 

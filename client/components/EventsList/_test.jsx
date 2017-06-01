@@ -1,6 +1,6 @@
 import React from 'react'
 import { mount } from 'enzyme'
-import { EventsListContainer } from '../../containers'
+import { EventsListContainer } from '../index'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
 import { createTestStore } from '../../utils'

@@ -1,6 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { PlanningApp } from '../containers'
+import { PlanningApp } from '../components'
 import { Provider } from 'react-redux'
 import { createStore } from '../utils'
 import * as actions from '../actions'

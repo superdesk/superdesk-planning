@@ -1,6 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { RelatedPlannings } from '../containers'
+import { RelatedPlannings } from './index'
 import { ITEM_STATE } from '../constants'
 import * as selectors from '../selectors'
 import { get } from 'lodash'
