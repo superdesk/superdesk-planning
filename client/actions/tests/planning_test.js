@@ -400,6 +400,46 @@ describe('planning', () => {
             })
         })
 
+        describe('fetchCoverageById', () => {
+            const coverage = {
+                _id: 'c1',
+                planning_item: plannings[1]._id,
+            }
+            const action = actions.fetchCoverageById('c1')
+
+            it('fetchCoverageById calls api.getById and runs dispatches', () => {
+                apiSpy.getById = sinon.spy(() => Promise.resolve(coverage))
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then((_coverage) => {
+                    expect(_coverage).toEqual(coverage)
+                    expect(apiSpy.getById.callCount).toBe(1)
+                    expect(apiSpy.getById.args[0]).toEqual(['c1'])
+                    expect(dispatch.callCount).toBe(1)
+                    expect(dispatch.args[0]).toEqual([{
+                        type: 'RECEIVE_COVERAGE',
+                        payload: coverage,
+                    }])
+                    expect(notify.error.callCount).toBe(0)
+                })
+            })
+
+            it('fetchCoverageById notifies end user if an error occurred', () => {
+                apiSpy.getById = sinon.spy(() => Promise.reject())
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then(() => {
+                    expect(dispatch.callCount).toBe(0)
+                    expect(notify.error.callCount).toBe(1)
+                    expect(notify.error.args[0]).toEqual(['Failed to fetch the Coverage!'])
+                })
+            })
+        })
+
         describe('openPlanningEditor', () => {
             const action = actions.openPlanningEditor(plannings[0]._id)
 
@@ -519,12 +559,34 @@ describe('planning', () => {
     })
 
     describe('websocket', () => {
+        const coverages = [
+            {
+                _id: 'c1',
+                planning_item: 'p1',
+            },
+            {
+                _id: 'c2',
+                planning_item: 'p1',
+            },
+            {
+                _id: 'c3',
+                planning_item: 'p1',
+            },
+            {
+                _id: 'c4',
+                planning_item: 'p2',
+            },
+        ]
         const initialState = {
             planning: {
                 plannings: {
                     p1: {
                         _id: 'p1',
                         slugline: 'Plan1',
+                        coverages: [
+                            coverages[0],
+                            coverages[1],
+                        ],
                     },
                 },
             },
@@ -532,19 +594,27 @@ describe('planning', () => {
         const newPlan = {
             _id: 'p2',
             slugline: 'Plan2',
+            coverages: [],
+        }
+
+        let spyGetById = {
+            func: undefined,
+            response: undefined,
         }
 
         let store
-        let spyGetById
+        // let spyGetById
         let $rootScope
 
         beforeEach(inject((_$rootScope_) => {
             $rootScope = _$rootScope_
+            spyGetById.response = newPlan
+            spyGetById.func = sinon.spy(() => spyGetById.response)
 
-            spyGetById = sinon.spy(() => newPlan)
+            // spyGetById = sinon.spy(() => newPlan)
             store = createTestStore({
                 initialState: cloneDeep(initialState),
-                extraArguments: { apiGetById: spyGetById },
+                extraArguments: { apiGetById: spyGetById.func },
             })
 
             registerNotifications($rootScope, store)
@@ -557,8 +627,8 @@ describe('planning', () => {
 
                 // Expects run in setTimeout to give the event listener a chance to execute
                 setTimeout(() => {
-                    expect(spyGetById.callCount).toBe(1)
-                    expect(spyGetById.args[0]).toEqual([
+                    expect(spyGetById.func.callCount).toBe(1)
+                    expect(spyGetById.func.args[0]).toEqual([
                         'planning',
                         'p2',
                     ])
@@ -567,31 +637,150 @@ describe('planning', () => {
                         p1: {
                             _id: 'p1',
                             slugline: 'Plan1',
+                            coverages: [
+                                coverages[0],
+                                coverages[1],
+                            ],
                         },
                         p2: {
                             _id: 'p2',
                             slugline: 'Plan2',
+                            coverages: [],
                         },
                     })
                     done()
                 }, 0)
             })
 
-            it('Silently returns if no item provided', () => {
+            it('Silently returns if no item provided', (done) => {
                 $rootScope.$broadcast('planning:created', {})
 
                 // Expects run in setTimeout to give the event listener a chance to execute
                 setTimeout(() => {
-                    expect(spyGetById.callCount).toBe(0)
+                    expect(spyGetById.func.callCount).toBe(0)
                     expect(selectors.getStoredPlannings(store.getState())).toEqual({
                         p1: {
                             _id: 'p1',
                             slugline: 'Plan1',
+                            coverages: [
+                                coverages[0],
+                                coverages[1],
+                            ],
                         },
                     })
+                    done()
+                }, 0)
+            })
+        })
+
+        describe('`coverage:created', () => {
+            it('Adds the Coverage to the Plan', (done) => {
+                spyGetById.response = coverages[2]
+                $rootScope.$broadcast('coverage:created', {
+                    item: 'c3',
+                    planning: 'p1',
                 })
+
+                setTimeout(() => {
+                    expect(spyGetById.func.callCount).toBe(1)
+                    expect(spyGetById.func.args[0]).toEqual([
+                        'coverage',
+                        'c3',
+                    ])
+
+                    expect(selectors.getStoredPlannings(store.getState())).toEqual({
+                        p1: {
+                            _id: 'p1',
+                            slugline: 'Plan1',
+                            coverages: [
+                                coverages[0],
+                                coverages[1],
+                                coverages[2],
+                            ],
+                        },
+                    })
+                    done()
+                }, 0)
             })
 
+            it('Silently returns if Plan is not loaded', (done) => {
+                spyGetById.response = coverages[3]
+                $rootScope.$broadcast('coverage:created', {
+                    item: 'c4',
+                    planning: 'p2',
+                })
+
+                setTimeout(() => {
+                    expect(spyGetById.func.callCount).toBe(0)
+                    expect(selectors.getStoredPlannings(store.getState())).toEqual({
+                        p1: {
+                            _id: 'p1',
+                            slugline: 'Plan1',
+                            coverages: [
+                                coverages[0],
+                                coverages[1],
+                            ],
+                        },
+                    })
+                    done()
+                }, 0)
+            })
+        })
+
+        describe('`coverage:updated', () => {
+            it('Updates the Coverage of the Plan', (done) => {
+                spyGetById.response = {
+                    ...coverages[0],
+                    foo: 'bar',
+                }
+                $rootScope.$broadcast('coverage:updated', {
+                    item: 'c1',
+                    planning: 'p1',
+                })
+
+                setTimeout(() => {
+                    expect(spyGetById.func.callCount).toBe(1)
+                    expect(spyGetById.func.args[0]).toEqual([
+                        'coverage',
+                        'c1',
+                    ])
+
+                    expect(selectors.getStoredPlannings(store.getState())).toEqual({
+                        p1: {
+                            _id: 'p1',
+                            slugline: 'Plan1',
+                            coverages: [
+                                {
+                                    ...coverages[0],
+                                    foo: 'bar',
+                                },
+                                coverages[1],
+                            ],
+                        },
+                    })
+                    done()
+                }, 0)
+            })
+        })
+
+        describe('`coverage:deleted', () => {
+            it('Removes the Coverage of the Plan', (done) => {
+                $rootScope.$broadcast('coverage:deleted', {
+                    item: 'c2',
+                    planning: 'p1',
+                })
+
+                setTimeout(() => {
+                    expect(selectors.getStoredPlannings(store.getState())).toEqual({
+                        p1: {
+                            _id: 'p1',
+                            slugline: 'Plan1',
+                            coverages: [coverages[0]],
+                        },
+                    })
+                    done()
+                }, 0)
+            })
         })
     })
 })

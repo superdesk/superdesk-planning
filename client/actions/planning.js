@@ -194,6 +194,15 @@ const receivePlannings = (plannings) => ({
 })
 
 /**
+ * Action for updating Planning item's coverage in the redux store
+ * @param {object} coverage - The Coverage to add to the store
+ */
+const receiveCoverage = (coverage) => ({
+    type: PLANNING.ACTIONS.RECEIVE_COVERAGE,
+    payload: coverage,
+})
+
+/**
  * Action dispatcher to perform fetch the list of planning items from the server
  * @param {object} query - Query object used when requesting the planning items
  * @return thunk function
@@ -269,6 +278,23 @@ const fetchPlanningById = (id) => (
             notify.error(getErrorMessage(error, 'Failed to get a new Planning Item!'))
         })
     }
+)
+
+/**
+ * Action Dispatcher that fetches a Coverage by ID and adds or updates it
+ * in the redux store for the associated Planning item
+ * @param {string} id - The ID of the Coverage to fetch
+ */
+const fetchCoverageById = (id) => (
+    (dispatch, getState, { api, notify }) => (
+        api('coverage').getById(id)
+        .then((coverage) => {
+            dispatch(receiveCoverage(coverage))
+            return Promise.resolve(coverage)
+        }, (error) => {
+            notify.error(getErrorMessage(error, 'Failed to fetch the Coverage!'))
+        })
+    )
 )
 
 /**
@@ -398,8 +424,43 @@ const onPlanningCreated = (_e, data) => (
     }
 )
 
+const onCoverageCreatedOrUpdated = (_e, data) => (
+    (dispatch, getState) => {
+        if (data && data.item && data.planning) {
+            const storedPlans = selectors.getStoredPlannings(getState())
+            const plan = get(storedPlans, data.planning, null)
+
+            // If we haven't got this planning loaded,
+            // no need to respond to this event
+            if (plan === null) return Promise.resolve()
+
+            // Otherwise send an Action to update the store
+            return dispatch(fetchCoverageById(data.item))
+        }
+    }
+)
+
+const onCoverageDeleted = (_e, data) => (
+    (dispatch) => {
+        if (data && data.item && data.planning) {
+            return dispatch({
+                type: PLANNING.ACTIONS.COVERAGE_DELETED,
+                payload: {
+                    _id: data.item,
+                    planning_item: data.planning,
+                },
+            })
+        }
+    }
+)
+
 // Map of notification name and Action Event to execute
-const planningNotifications = { 'planning:created': onPlanningCreated }
+const planningNotifications = {
+    'planning:created': onPlanningCreated,
+    'coverage:created': onCoverageCreatedOrUpdated,
+    'coverage:updated': onCoverageCreatedOrUpdated,
+    'coverage:deleted': onCoverageDeleted,
+}
 
 export {
     spikePlanning,
@@ -408,6 +469,7 @@ export {
     savePlanningAndReloadCurrentAgenda,
     fetchPlannings,
     fetchPlanningById,
+    fetchCoverageById,
     openPlanningEditor,
     closePlanningEditor,
     openPlanningEditorAndAgenda,
