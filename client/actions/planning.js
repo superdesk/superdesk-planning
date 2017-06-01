@@ -219,7 +219,7 @@ const performFetchRequest = ({ source, where }) => (
 const fetchPlannings = (params={}) => (
     (dispatch, getState) => {
         // announce that we are loading plannings
-        dispatch({ type: 'REQUEST_PLANINGS' })
+        dispatch({ type: PLANNING.ACTIONS.REQUEST_PLANNINGS })
         // fetch the plannings through the api
         let q = {}
         if (params.planningIds) {
@@ -240,6 +240,33 @@ const fetchPlannings = (params={}) => (
             // load missing events
             return dispatch(actions.silentlyFetchEventsById(linkedEvents, ITEM_STATE.ALL))
             .then(() => dispatch(receivePlannings(plannings)))
+        })
+    }
+)
+
+/**
+ * Action Dispatcher that fetches a Planning Item by ID
+ * and adds or updates it in the redux store
+ * @param {string} id - The ID of the Planning item to fetch
+ */
+const fetchPlanningById = (id) => (
+    (dispatch, getState, { api, notify }) => {
+        dispatch({ type: PLANNING.ACTIONS.REQUEST_PLANNINGS })
+        return api('planning').getById(id)
+        .then((planning) => {
+            dispatch(receivePlannings([planning]))
+            if (get(planning, 'event_item', null) !== null) {
+                return dispatch(
+                    actions.silentlyFetchEventsById([planning.event_item], ITEM_STATE.ALL)
+                )
+                .then(() => planning)
+            }
+
+            return Promise.resolve(planning)
+        }, (error) => {
+            // Dispatch empty receivePlannings so store.planning.planningsAreLoading is set to false
+            dispatch(receivePlannings([]))
+            notify.error(getErrorMessage(error, 'Failed to get a new Planning Item!'))
         })
     }
 )
@@ -362,16 +389,30 @@ const unspikePlanning = checkPermission(
     'Unauthorised to unspike a planning item!'
 )
 
+// WebSocket Notifications
+const onPlanningCreated = (_e, data) => (
+    (dispatch) => {
+        if (data && data.item) {
+            return dispatch(fetchPlanningById(data.item))
+        }
+    }
+)
+
+// Map of notification name and Action Event to execute
+const planningNotifications = { 'planning:created': onPlanningCreated }
+
 export {
     spikePlanning,
     unspikePlanning,
     savePlanning,
     savePlanningAndReloadCurrentAgenda,
     fetchPlannings,
+    fetchPlanningById,
     openPlanningEditor,
     closePlanningEditor,
     openPlanningEditorAndAgenda,
     toggleOnlyFutureFilter,
     planningFilterByKeyword,
     toggleOnlySpikedFilter,
+    planningNotifications,
 }
