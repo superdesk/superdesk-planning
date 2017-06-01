@@ -246,9 +246,14 @@ const fetchPlannings = (params={}) => (
             .filter((eid) => (
                 eid && !has(selectors.getEvents(getState()), eid)
             ))
-            // load missing events
-            return dispatch(actions.silentlyFetchEventsById(linkedEvents, ITEM_STATE.ALL))
-            .then(() => dispatch(receivePlannings(plannings)))
+
+            // load missing events, if there are any
+            if (linkedEvents.length > 0) {
+                return dispatch(actions.silentlyFetchEventsById(linkedEvents, ITEM_STATE.ALL))
+                    .then(() => dispatch(receivePlannings(plannings)))
+            }
+
+            return dispatch(receivePlannings(plannings))
         })
     }
 )

@@ -16,6 +16,7 @@ import json
 from superdesk import get_resource_service
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
+from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user
 from .common import STATE_SCHEMA
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
@@ -117,6 +118,35 @@ class EventsService(superdesk.Service):
                 docs.remove(event)
         if generatedEvents:
             docs.extend(generatedEvents)
+
+    def on_created(self, docs):
+        """Send WebSocket Notifications for created Events
+
+        Generate the list of IDs for recurring and non-recurring events
+        Then send this list off to the clients so they can fetch these events
+        """
+        notifications_sent = []
+
+        for doc in docs:
+            event_type = 'events:created'
+            event_id = str(doc.get(config.ID_FIELD))
+            user_id = str(doc.get('original_creator', ''))
+
+            if doc.get('recurrence_id'):
+                event_type = 'events:created:recurring'
+                event_id = str(doc['recurrence_id'])
+
+            # Don't send notification if one has already been sent
+            # This is to ensure recurring events to send multiple notifications
+            if event_id in notifications_sent:
+                continue
+
+            notifications_sent.append(event_id)
+            push_notification(
+                event_type,
+                item=event_id,
+                user=user_id
+            )
 
     def on_delete(self, doc):
         # If the event has planning, delete them

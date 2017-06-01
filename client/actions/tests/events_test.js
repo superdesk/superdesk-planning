@@ -1,8 +1,11 @@
 import sinon from 'sinon'
 import * as actions from '../events'
 import { PRIVILEGES, EVENTS } from '../../constants'
-import { range } from 'lodash'
 import { createTestStore } from '../../utils'
+import { range, cloneDeep } from 'lodash'
+import { registerNotifications } from '../../controllers/PlanningController'
+import * as selectors from '../../selectors'
+import moment from 'moment'
 
 describe('events', () => {
     describe('actions', () => {
@@ -10,17 +13,26 @@ describe('events', () => {
             {
                 _id: 'e1',
                 name: 'Event 1',
-                dates: { start: '2016-10-15T13:01:11+0000' },
+                dates: {
+                    start: '2016-10-15T13:01:11+0000',
+                    end: '2016-10-15T14:01:11+0000',
+                },
             },
             {
                 _id: 'e2',
                 name: 'Event 2',
-                dates: { start: '2014-10-15T14:01:11+0000' },
+                dates: {
+                    start: '2014-10-15T14:01:11+0000',
+                    end: '2014-10-15T15:01:11+0000',
+                },
             },
             {
                 _id: 'e3',
                 name: 'Event 3',
-                dates: { start: '2015-10-15T14:01:11+0000' },
+                dates: {
+                    start: '2015-10-15T14:01:11+0000',
+                    end: '2015-10-15T15:01:11+0000',
+                },
             },
         ]
         const initialState = {
@@ -335,6 +347,49 @@ describe('events', () => {
             })
         })
 
+        describe('fetchEventById', () => {
+            it('calls api.getById and runs dispatches', (done) => {
+                apiSpy.getById = sinon.spy(() => Promise.resolve(events[1]))
+                const action = actions.fetchEventById('e2')
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then((event) => {
+                    expect(event).toEqual(events[1])
+                    expect(apiSpy.getById.callCount).toBe(1)
+                    expect(apiSpy.getById.args[0]).toEqual(['e2'])
+
+                    expect(dispatch.callCount).toBe(2)
+                    expect(dispatch.args[0]).toEqual([jasmine.objectContaining({
+                        type: 'ADD_EVENTS',
+                        payload: [events[1]],
+                    })])
+                    expect(dispatch.args[1]).toEqual([{
+                        type: 'ADD_TO_EVENTS_LIST',
+                        payload: ['e2'],
+                    }])
+
+                    expect(notify.error.callCount).toBe(0)
+                    done()
+                })
+            })
+
+            it('notifies end user if an error occurred', (done) => {
+                apiSpy.getById = sinon.spy(() => Promise.reject())
+                const action = actions.fetchEventById('e2')
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then(() => {
+                    expect(notify.error.callCount).toBe(1)
+                    expect(notify.error.args[0]).toEqual(['Failed to fetch an Event!'])
+                    done()
+                })
+            })
+        })
+
         it('addToEventsList', () => {
             const ids = ['e4', 'e5', 'e6']
             const action = actions.addToEventsList(ids)
@@ -498,6 +553,228 @@ describe('events', () => {
                     }])
                     expect($timeout.callCount).toBe(1)
                 })
+            })
+        })
+    })
+
+    describe('websocket', () => {
+        const initialState = {
+            events: {
+                events: {
+                    e1: {
+                        _id: 'e1',
+                        name: 'Event1',
+                        dates: {
+                            start: '2017-05-31T16:37:11+0000',
+                            end: '2017-05-31T17:37:11+0000',
+                        },
+                    },
+                },
+                lastRequestParams: { page: 1 },
+            },
+        }
+        const newEvent = {
+            _id: 'e2',
+            name: 'Event2',
+            dates: {
+                start: '2017-06-30T12:37:11+0000',
+                end: '2017-06-30T13:37:11+0000',
+            },
+        }
+
+        const newRecurringEvents = {
+            _items: [
+                {
+                    _id: 'e3',
+                    name: 'Event3',
+                    recurrence_id: 'r1',
+                    dates: {
+                        start: '2017-06-30T12:37:11+0000',
+                        end: '2017-06-30T13:37:11+0000',
+                    },
+                },
+                {
+                    _id: 'e4',
+                    name: 'Event4',
+                    recurrence_id: 'r1',
+                    dates: {
+                        start: '2017-06-30T12:37:11+0000',
+                        end: '2017-06-30T13:37:11+0000',
+                    },
+                },
+            ],
+        }
+
+        let store
+        let spyGetById
+        let spyQuery
+        let $rootScope
+
+        // Store the window.setTimeout so we can restore it after our tests
+        let originalSetTimeout = window.setTimeout
+
+        beforeEach(inject((_$rootScope_) => {
+            // Mock window.setTimeout
+            jasmine.getGlobal().setTimeout = func => func()
+
+            $rootScope = _$rootScope_
+
+            spyGetById = sinon.spy(() => newEvent)
+            spyQuery = sinon.spy(() => newRecurringEvents)
+
+            store = createTestStore({
+                initialState: cloneDeep(initialState),
+                extraArguments: {
+                    apiGetById: spyGetById,
+                    apiQuery: spyQuery,
+                },
+            })
+
+            registerNotifications($rootScope, store)
+            $rootScope.$digest()
+        }))
+
+        afterEach(() => {
+            // Restore window.setTimeout
+            jasmine.getGlobal().setTimeout = originalSetTimeout
+        })
+
+        describe('`events:created`', () => {
+            it('Adds the Event item to the store', (done) => {
+                $rootScope.$broadcast('events:created', { item: 'e2' })
+
+                // Expects run in setTimeout to give the event listener a chance to execute
+                originalSetTimeout(() => {
+                    expect(spyGetById.callCount).toBe(1)
+                    expect(spyGetById.args[0]).toEqual([
+                        'events',
+                        'e2',
+                    ])
+
+                    expect(selectors.getEvents(store.getState())).toEqual({
+                        e1: {
+                            _id: 'e1',
+                            name: 'Event1',
+                            dates: {
+                                start: moment('2017-05-31T16:37:11+0000'),
+                                end: moment('2017-05-31T17:37:11+0000'),
+                            },
+                        },
+                        e2: {
+                            _id: 'e2',
+                            name: 'Event2',
+                            dates: {
+                                start: moment('2017-06-30T12:37:11+0000'),
+                                end: moment('2017-06-30T13:37:11+0000'),
+                            },
+                        },
+                    })
+                    done()
+                }, 0)
+            })
+
+            it('Silently returns if no event provided', (done) => {
+                $rootScope.$broadcast('events:created', {})
+
+                // Expects run in setTimeout to give the event listener a chance to execute
+                originalSetTimeout(() => {
+                    expect(spyGetById.callCount).toBe(0)
+                    expect(selectors.getEvents(store.getState())).toEqual({
+                        e1: {
+                            _id: 'e1',
+                            name: 'Event1',
+                            dates: {
+                                start: moment('2017-05-31T16:37:11+0000'),
+                                end: moment('2017-05-31T17:37:11+0000'),
+                            },
+                        },
+                    })
+                    done()
+                }, 0)
+            })
+        })
+
+        describe('`events:created:recurring`', () => {
+            it('Adds the Events to the store', (done) => {
+                $rootScope.$broadcast('events:created:recurring', { item: 'r1' })
+                $rootScope.$digest()
+
+                // Expects run in setTimeout to give the event listener a change to execute
+                originalSetTimeout(() => {
+                    expect(spyQuery.callCount).toBe(2)
+                    expect(spyQuery.args[0]).toEqual([
+                        'events',
+                        {
+                            page: 1,
+                            sort: '[("dates.start",1)]',
+                            embedded: { files: 1 },
+                            source: JSON.stringify({
+                                query: {
+                                    bool: {
+                                        must_not: [
+                                            { term: { state: 'spiked' } },
+                                        ],
+                                        must: [
+                                            { term: { recurrence_id: 'r1' } },
+                                        ],
+                                    },
+                                },
+                                filter: {},
+                            }),
+                        },
+                    ])
+
+                    expect(selectors.getEvents(store.getState())).toEqual({
+                        e1: {
+                            _id: 'e1',
+                            name: 'Event1',
+                            dates: {
+                                start: moment('2017-05-31T16:37:11+0000'),
+                                end: moment('2017-05-31T17:37:11+0000'),
+                            },
+                        },
+                        e3: {
+                            _id: 'e3',
+                            name: 'Event3',
+                            recurrence_id: 'r1',
+                            dates: {
+                                start: moment('2017-06-30T12:37:11+0000'),
+                                end: moment('2017-06-30T13:37:11+0000'),
+                            },
+                        },
+                        e4: {
+                            _id: 'e4',
+                            name: 'Event4',
+                            recurrence_id: 'r1',
+                            dates: {
+                                start: moment('2017-06-30T12:37:11+0000'),
+                                end: moment('2017-06-30T13:37:11+0000'),
+                            },
+                        },
+                    })
+
+                    done()
+                }, 0)
+            })
+
+            it('Silently returns if no recurring event provided', (done) => {
+                $rootScope.$broadcast('events:created:recurring', {})
+
+                // Expects run in setTimeout to give the event listener a chance to execute
+                originalSetTimeout(() => {
+                    expect(spyGetById.callCount).toBe(0)
+                    expect(selectors.getEvents(store.getState())).toEqual({
+                        e1: {
+                            _id: 'e1',
+                            name: 'Event1',
+                            dates: {
+                                start: moment('2017-05-31T16:37:11+0000'),
+                                end: moment('2017-05-31T17:37:11+0000'),
+                            },
+                        },
+                    })
+                    done()
+                }, 0)
             })
         })
     })
