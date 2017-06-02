@@ -1,6 +1,6 @@
 import React from 'react'
 import momentPropTypes from 'react-moment-proptypes'
-import { Datetime } from '../../containers'
+import { Datetime } from '../index'
 import { isAllDay } from '../../utils'
 
 function startAndFinishTheSameDay(event) {

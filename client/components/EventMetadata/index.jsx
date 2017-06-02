@@ -1,6 +1,6 @@
 import React from 'react'
 import { get, some } from 'lodash'
-import { Datetime } from '../../containers'
+import { Datetime } from '../index'
 
 const formatDate = (d) => React.createElement(Datetime, { date: d })
 const FIELDS = [

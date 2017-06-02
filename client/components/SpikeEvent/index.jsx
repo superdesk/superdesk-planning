@@ -1,5 +1,5 @@
 import React from 'react'
-import { RelatedPlannings } from '../../containers'
+import { RelatedPlannings } from '../index'
 import { ITEM_STATE } from '../../constants'
 import { get } from 'lodash'
 

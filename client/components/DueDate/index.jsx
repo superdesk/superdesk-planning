@@ -1,6 +1,6 @@
 import React from 'react'
 import moment from 'moment'
-import { Datetime } from '../../containers'
+import { Datetime } from '../index'
 
 export const DueDate = ({ dates }) => {
     dates = dates.map((d) => moment(d))

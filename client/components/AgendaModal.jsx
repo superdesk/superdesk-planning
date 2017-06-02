@@ -1,6 +1,5 @@
 import React from 'react'
-import { CreateEditAgendaForm } from '../containers'
-import { ModalWithForm } from './index'
+import { ModalWithForm, CreateEditAgendaForm } from './index'
 
 /**
 * Modal for adding and editing an agenda

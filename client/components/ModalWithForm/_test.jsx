@@ -1,7 +1,6 @@
 import React from 'react'
 import { mount } from 'enzyme'
-import { ModalWithForm } from '../index'
-import { CreateEditAgendaForm } from '../../containers'
+import { ModalWithForm, CreateEditAgendaForm } from '../index'
 import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
 
