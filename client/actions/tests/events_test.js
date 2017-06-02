@@ -1,6 +1,8 @@
 import sinon from 'sinon'
 import * as actions from '../events'
-import { PRIVILEGES } from '../../constants'
+import { PRIVILEGES, EVENTS } from '../../constants'
+import { range } from 'lodash'
+import { createTestStore } from '../../utils'
 
 describe('events', () => {
     describe('actions', () => {
@@ -277,6 +279,24 @@ describe('events', () => {
                 expect(dispatch.args[1][0].payload).toBe(events)
 
                 expect(dispatch.callCount).toBe(2)
+            })
+        })
+
+        describe('fetchEvents', () => {
+            const store = createTestStore({ initialState })
+            it('ids', (done) => {
+                const action = actions.fetchEvents(
+                    { ids: range(1, EVENTS.FETCH_IDS_CHUNK_SIZE + 10).map((i) => (`e${i}`)) }
+                )
+                store.dispatch(action)
+                .then((response) => {
+                    expect(response._items).toEqual([])
+                    done()
+                })
+            })
+            it('fulltext', (done) => {
+                store.dispatch(actions.fetchEvents({ fulltext: 'search that' }))
+                .then(() => done())
             })
         })
 

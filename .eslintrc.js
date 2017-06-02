@@ -17,7 +17,8 @@ module.exports = {
         gettext: false,
         inject: false,
         protractor: false,
-        requirejs: false
+        requirejs: false,
+        arguments: false,
     },
     parserOptions: {
         ecmaFeatures: {
