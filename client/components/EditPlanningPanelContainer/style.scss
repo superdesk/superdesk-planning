@@ -23,8 +23,13 @@ $EDIT_PLANNING_WIDTH: 450px;
         margin-right: 10px;
     }
 }
-.EditPlanningPanel__last-update {
+.TimeAndAuthor {
+    padding: 5px 0px 10px 0px;
+    color: $sd-text-label;
     flex-grow: 1;
+    &__author {
+        color: initial;
+    }
 }
 .EditPlanningPanel__actions {
     white-space: nowrap;
