@@ -7,7 +7,7 @@ import { showModal, hideModal, fetchSelectedAgendaPlannings, closePlanningEditor
 import { SpikeEvent } from '../components/index'
 import React from 'react'
 import { PRIVILEGES, EVENTS, ITEM_STATE } from '../constants'
-import { checkPermission, getErrorMessage } from '../utils'
+import { checkPermission, getErrorMessage, retryDispatch } from '../utils'
 
 /**
  * Action Dispatcher for saving an event
@@ -243,10 +243,21 @@ const saveEvent = (newEvent) => (
  * @param {object} advancedSearch - Query parameters to send to the server
  * @param {object} fulltext - Full text search parameters
  * @param {array} ids - An array of Event IDs to fetch
+ * @param {string} recurrenceId - The recurrence_id to fetch recurring events
+ * @param {int} page - The page number to fetch
  * @param {string} state - The item state to filter by
  * @return arrow function
  */
-const performFetchQuery = ({ advancedSearch, fulltext, ids, page=1, state=ITEM_STATE.ACTIVE }) => (
+const performFetchQuery = (
+    {
+        advancedSearch,
+        fulltext,
+        ids,
+        recurrenceId,
+        page=1,
+        state=ITEM_STATE.ACTIVE,
+    }
+) => (
     (dispatch, getState, { api }) => {
         let query = {}
         const filter = {}
@@ -276,6 +287,9 @@ const performFetchQuery = ({ advancedSearch, fulltext, ids, page=1, state=ITEM_S
                     { _items: Array.prototype.concat(...responses.map((r) => r._items)) }
                 ))
             }
+        // Recurring events
+        } else if (recurrenceId) {
+            must.push({ term: { recurrence_id: recurrenceId } })
         // advanced search
         } else if (advancedSearch) {
             [
@@ -426,12 +440,32 @@ const fetchEvents = (params={
  * the store value `events.lastRequestParams`
  */
 const refetchEvents = () => (
-    (dispatch, getState) => (
-        dispatch({
-            type: EVENTS.ACTIONS.REQUEST_EVENTS,
-            payload: selectors.getPreviousEventRequestParams(getState()),
+    (dispatch, getState) => {
+        const prevParams = selectors.getPreviousEventRequestParams(getState())
+
+        const promises = []
+        for (let i = 1; i <= prevParams.page; i++) {
+            const params = {
+                ...prevParams,
+                page: i,
+            }
+            dispatch({
+                type: EVENTS.ACTIONS.REQUEST_EVENTS,
+                payload: params,
+            })
+            promises.push(dispatch(performFetchQuery(params)))
+        }
+
+        return Promise.all(promises)
+        .then((responses) => {
+            let events = responses
+                .map((e) => e._items)
+                .reduce((a, b) => a.concat(b))
+
+            dispatch(receiveEvents(events))
+            dispatch(setEventsList(events.map((e) => e._id)))
         })
-    )
+    }
 )
 
 /** Action factory that fetchs the next page of the previous request */
@@ -453,6 +487,27 @@ function loadMoreEvents() {
         })
     }
 }
+
+/**
+ * Action Dispatcher to fetch a single event using its ID
+ * and add or update the Event in the Redux Store
+ * @param {string} _id - The ID of the Event to fetch
+ */
+const fetchEventById = (_id) => (
+    (dispatch, getState, { api, notify }) => (
+        api('events').getById(_id)
+        .then((event) => {
+            dispatch(receiveEvents([event]))
+            dispatch(addToEventsList([event._id]))
+            return Promise.resolve(event)
+        }, (error) => {
+            notify.error(getErrorMessage(
+                error,
+                'Failed to fetch an Event!'
+            ))
+        })
+    )
+)
 
 /**
  * Action to set the list of events in the current list
@@ -596,6 +651,59 @@ const openUnspikeEvent = checkPermission(
     'Unauthorised to unspike an event!'
 )
 
+// WebSocket Notifications
+/**
+ * Action Event when a new Event is created
+ * @param _e
+ * @param {object} data - Events and User IDs
+ */
+const onEventCreated = (_e, data) => (
+    (dispatch) => {
+        if (data && data.item) {
+            dispatch(fetchEventById(data.item))
+        }
+    }
+)
+
+/**
+ * Action Event when a new Recurring Event is created
+ * @param _e
+ * @param {object} data - Recurring Event and user IDs
+ */
+const onRecurringEventCreated = (_e, data) => (
+    (dispatch, getState, { notify }) => {
+        if (data && data.item) {
+            // Perform retryDispatch as the Elasticsearch index may not yet be created
+            // (because we receive this notification fast, and we're performing a query not
+            // a getById). So continue for 5 times, waiting 1 second between each request
+            // until we receive the new events or an error occurs
+            return dispatch(retryDispatch(
+                performFetchQuery({ recurrenceId: data.item }),
+                (events) => get(events, '_items.length', 0) > 0,
+                5,
+                1000
+            ))
+            // Once we know our Recurring Events can be received from Elasticsearch,
+            // go ahead and refresh the current list of events
+            .then((data) => {
+                dispatch(refetchEvents())
+                return Promise.resolve(data._items)
+            }, (error) => {
+                notify.error(getErrorMessage(
+                    error,
+                    'There was a problem fetching Recurring Events!'
+                ))
+            })
+        }
+    }
+)
+
+// Map of notification name and Action Event to execute
+const eventNotifications = {
+    'events:created': onEventCreated,
+    'events:created:recurring': onRecurringEventCreated,
+}
+
 export {
     spikeEvent,
     unspikeEvent,
@@ -610,8 +718,10 @@ export {
     addToEventsList,
     fetchEvents,
     silentlyFetchEventsById,
+    fetchEventById,
     saveFiles,
     uploadFilesAndSaveEvent,
     loadMoreEvents,
     refetchEvents,
+    eventNotifications,
 }

@@ -15,11 +15,12 @@ Feature: Events
         """
         {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
         """
+        And we reset notifications
         Then we get existing resource
         """
         {"_id": "#users._id#", "invisible_stages": []}
         """
-        When we post to "/events" with success
+        When we post to "/events"
         """
         [
             {
@@ -43,6 +44,17 @@ Feature: Events
                 "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}]
             }
         ]
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "events:created",
+            "extra": {
+                "item": "#events._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
         """
         When we get "/events"
         Then we get list with 1 items
@@ -95,6 +107,16 @@ Feature: Events
         """
         Then we get response code 201
         Then we store "EVENT" with first item
+        And we get notifications
+        """
+        [{
+            "event": "events:created:recurring",
+            "extra": {
+                "item": "#EVENT.recurrence_id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
         Then we get a list with 3 items
         """
         {"_items": [

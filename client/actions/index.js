@@ -11,6 +11,7 @@ export * from './desks'
 
 import { agendaNotifications } from './agenda'
 import { planningNotifications } from './planning'
+import { eventNotifications } from './events'
 
 /**
  * Map WebSocket Notifications to Action Event
@@ -21,4 +22,5 @@ import { planningNotifications } from './planning'
 export const notifications = {
     ...agendaNotifications,
     ...planningNotifications,
+    ...eventNotifications,
 }
