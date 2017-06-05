@@ -122,7 +122,7 @@ def init_app(app):
 
     superdesk.privilege(
         name='planning_planning_management',
-        label='Planning - Planning Management',
+        label='Planning - Planning Item Management',
         description='Ability to create and modify Planning items'
     )
 
