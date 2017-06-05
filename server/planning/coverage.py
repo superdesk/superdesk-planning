@@ -15,6 +15,7 @@ import logging
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
+from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator
 from apps.archive.common import get_user
 from eve.utils import config
@@ -39,6 +40,25 @@ class CoverageService(superdesk.Service):
 
     def on_update(self, updates, original):
         self._set_assignment_information(updates)
+
+    @staticmethod
+    def notify(event, doc):
+        push_notification(
+            event,
+            item=str(doc[config.ID_FIELD]),
+            user=str(doc.get('original_creator', '')),
+            planning=str(doc.get('planning_item', ''))
+        )
+
+    def on_created(self, docs):
+        for doc in docs:
+            CoverageService.notify('coverage:created', doc)
+
+    def on_updated(self, updates, original):
+        CoverageService.notify('coverage:updated', original)
+
+    def on_deleted(self, doc):
+        CoverageService.notify('coverage:deleted', doc)
 
     def _set_assignment_information(self, doc):
         if doc.get('planning') and doc['planning'].get('assigned_to'):

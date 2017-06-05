@@ -9,6 +9,16 @@ describe('planning', () => {
         })
 
         const item = { _id: 'p1' }
+        const plannings = {
+            p1: {
+                _id: 'p1',
+                slugline: 'Plan1',
+                coverages: [{
+                    _id: 'c1',
+                    planning_item: 'p1',
+                }],
+            },
+        }
 
         it('initialState', () => {
             expect(initialState).toEqual({
@@ -115,6 +125,125 @@ describe('planning', () => {
                 }
             )
             expect(result.filterPlanningKeyword).toBe('Find this plan')
+        })
+
+        describe('RECEIVE_COVERAGE', () => {
+            it('planning not loaded', () => {
+                initialState.plannings = plannings
+                let result = planning(
+                    initialState,
+                    {
+                        type: 'RECEIVE_COVERAGE',
+                        payload: {
+                            item: 'c1',
+                            planning: 'p2',
+                        },
+                    }
+                )
+
+                expect(result).toEqual(initialState)
+            })
+
+            it('coverage created', () => {
+                initialState.plannings = plannings
+
+                let result = planning(
+                    initialState,
+                    {
+                        type: 'RECEIVE_COVERAGE',
+                        payload: {
+                            _id: 'c2',
+                            planning_item: 'p1',
+                        },
+                    }
+                )
+
+                expect(result.plannings.p1.coverages).toEqual([
+                    {
+                        _id: 'c1',
+                        planning_item: 'p1',
+                    },
+                    {
+                        _id: 'c2',
+                        planning_item: 'p1',
+                    },
+                ])
+            })
+
+            it('coverage updated', () => {
+                initialState.plannings = plannings
+
+                let result = planning(
+                    initialState,
+                    {
+                        type: 'RECEIVE_COVERAGE',
+                        payload: {
+                            _id: 'c1',
+                            planning_item: 'p1',
+                            foo: 'bar',
+                        },
+                    }
+                )
+
+                expect(result.plannings.p1.coverages).toEqual([{
+                    _id: 'c1',
+                    planning_item: 'p1',
+                    foo: 'bar',
+                }])
+            })
+        })
+
+        describe('COVERAGE_DELETED', () => {
+            it('when planning not loaded', () => {
+                initialState.plannings = plannings
+
+                let result = planning(
+                    initialState,
+                    {
+                        type: 'COVERAGE_DELETED',
+                        payload: {
+                            _id: 'c2',
+                            planning_item: 'p2',
+                        },
+                    }
+                )
+
+                expect(result).toEqual(initialState)
+            })
+
+            it('coverage not loaded', () => {
+                initialState.plannings = plannings
+
+                let result = planning(
+                    initialState,
+                    {
+                        type: 'COVERAGE_DELETED',
+                        payload: {
+                            _id: 'c2',
+                            planning_item: 'p1',
+                        },
+                    }
+                )
+
+                expect(result).toEqual(initialState)
+            })
+
+            it('removes coverage', () => {
+                initialState.plannings = plannings
+
+                let result = planning(
+                    initialState,
+                    {
+                        type: 'COVERAGE_DELETED',
+                        payload: {
+                            _id: 'c1',
+                            planning_item: 'p1',
+                        },
+                    }
+                )
+
+                expect(result.plannings.p1.coverages).toEqual([])
+            })
         })
     })
 })
