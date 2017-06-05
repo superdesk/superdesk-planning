@@ -9,6 +9,7 @@ import moment from 'moment'
 import { ChainValidators, EndDateAfterStartDate, RequiredFieldsValidatorFactory, UntilDateValidator } from '../../validators'
 import './style.scss'
 import { ITEM_STATE } from '../../constants'
+import * as selectors from '../../selectors'
 
 /**
 * Form for adding/editing an event
@@ -64,8 +65,13 @@ export class Component extends React.Component {
             startingDate,
             endingDate,
             initialValues,
+            users,
         } = this.props
         const eventSpiked = get(initialValues, 'state', 'active') === ITEM_STATE.SPIKED
+        const creationDate = get(initialValues, '_created')
+        const updatedDate = get(initialValues, '_updated')
+        const author = get(initialValues, 'original_creator') && users ? users.find((u) => (u._id === initialValues.original_creator)) : null
+        const versionCreator = get(initialValues, 'version_creator') && users ? users.find((u) => (u._id === initialValues.version_creator)) : null
 
         return (
             <form onSubmit={handleSubmit} className="EventForm">
@@ -93,6 +99,12 @@ export class Component extends React.Component {
                 </div>
                 <div className="EventForm__form">
                     {error && <div className="error-block">{error}</div>}
+                    <div className="TimeAndAuthor">
+                        {updatedDate && versionCreator &&
+                            <div>Updated {moment(updatedDate).fromNow()} by <span className='TimeAndAuthor__author'> {versionCreator.display_name}</span>
+                            </div>
+                        }
+                    </div>
                     <div>
                         <label htmlFor="name">What</label>
                     </div>
@@ -175,6 +187,12 @@ export class Component extends React.Component {
                                 openPlanningItem={true}/>
                         </div>
                     }
+                    <div className="TimeAndAuthor">
+                        {creationDate && author &&
+                            <div>Created {moment(creationDate).fromNow()} by <span className='TimeAndAuthor__author'> {author.display_name}</span>
+                            </div>
+                        }
+                    </div>
                 </div>
             </form>
         )
@@ -193,6 +211,10 @@ Component.propTypes = {
     submitting: React.PropTypes.bool,
     initialValues: React.PropTypes.object,
     reset: React.PropTypes.func,
+    users: React.PropTypes.oneOfType([
+        React.PropTypes.array,
+        React.PropTypes.object,
+    ]),
 }
 
 // Decorate the form component
@@ -211,6 +233,7 @@ const mapStateToProps = (state) => ({
     startingDate: selector(state, 'dates.start'),
     endingDate: selector(state, 'dates.end'),
     doesRepeat: !isNil(selector(state, 'dates.recurring_rule.frequency')),
+    users: selectors.getUsers(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
