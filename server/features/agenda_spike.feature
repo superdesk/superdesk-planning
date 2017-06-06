@@ -32,7 +32,7 @@ Feature: Agenda Spike
         And we get notifications
         """
         [{
-            "event": "agenda:spike",
+            "event": "agenda:spiked",
             "extra": {
                 "item": "#agenda._id#",
                 "user": "#CONTEXT_USER_ID#"
@@ -73,7 +73,7 @@ Feature: Agenda Spike
         And we get notifications
         """
         [{
-            "event": "agenda:unspike",
+            "event": "agenda:unspiked",
             "extra": {
                 "item": "#agenda._id#",
                 "user": "#CONTEXT_USER_ID#"

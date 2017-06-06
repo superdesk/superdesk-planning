@@ -352,6 +352,8 @@ const onAgendaCreatedOrUpdated = (_e, data) => (
 const agendaNotifications = {
     'agenda:created': onAgendaCreatedOrUpdated,
     'agenda:updated': onAgendaCreatedOrUpdated,
+    'agenda:spiked': onAgendaCreatedOrUpdated,
+    'agenda:unspiked': onAgendaCreatedOrUpdated,
 }
 
 export {
