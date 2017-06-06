@@ -138,6 +138,7 @@ Feature: Planning
         """
 
     @auth
+    @notification
     Scenario: Planning item can be modified only by user having privileges
         When we post to "planning"
         """
@@ -165,6 +166,16 @@ Feature: Planning
         {"headline": "header"}
         """
         Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "planning:updated",
+            "extra": {
+                "item": "#planningId#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
 
     @auth
     @notification

@@ -70,6 +70,13 @@ class PlanningService(superdesk.Service):
         if user and user.get(config.ID_FIELD):
             updates['version_creator'] = user[config.ID_FIELD]
 
+    def on_updated(self, updates, original):
+        push_notification(
+            'planning:updated',
+            item=str(original[config.ID_FIELD]),
+            user=str(updates.get('version_creator', ''))
+        )
+
     def on_deleted(self, doc):
         # remove the planning from agendas
         agenda_service = get_resource_service('agenda')
