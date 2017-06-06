@@ -184,6 +184,11 @@ class EventsService(superdesk.Service):
             # update only the current item so set it as a non recurrent task
             updates['dates']['recurring_rule'] = None
             updates['recurrence_id'] = generate_guid(type=GUID_NEWSML)
+            push_notification(
+                'events:updated',
+                item=str(original[config.ID_FIELD]),
+                user=str(updates.get('version_creator', ''))
+            )
             return
 
         # update all following events
@@ -243,6 +248,13 @@ class EventsService(superdesk.Service):
             # add all new events
             self.create(addEvents)
             get_resource_service('events_history').on_item_created(addEvents)
+
+        push_notification(
+            'events:updated:recurring',
+            item=str(original[config.ID_FIELD]),
+            recurrence_id=str(updates['recurrence_id']),
+            user=str(updates.get('version_creator', ''))
+        )
 
 
 events_schema = {

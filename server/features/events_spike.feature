@@ -40,7 +40,7 @@ Feature: Events Spike
         And we get notifications
         """
         [{
-            "event": "events:spike",
+            "event": "events:spiked",
             "extra": {
                 "item": "#events._id#",
                 "user": "#CONTEXT_USER_ID#"
@@ -76,7 +76,7 @@ Feature: Events Spike
         And we get notifications
         """
         [{
-            "event": "events:unspike",
+            "event": "events:unspiked",
             "extra": {
                 "item": "#events._id#",
                 "user": "#CONTEXT_USER_ID#"

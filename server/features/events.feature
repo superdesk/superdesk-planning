@@ -219,6 +219,17 @@ Feature: Events
             }
         """
         Then we get response code 200
+        And we get notifications
+        """
+        [{
+            "event": "events:updated:recurring",
+            "extra": {
+                "item": "#events._id#",
+                "recurrence_id": "__any_value__",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
         When we get "/events"
         Then we get list with 3 items
         """
@@ -595,6 +606,7 @@ Feature: Events
         Then we get OK response
 
     @auth
+    @notification
     Scenario: Event can be modified only by user having privileges
         When we post to "events" with success
         """
@@ -630,3 +642,13 @@ Feature: Events
         {"name": "New Event"}
         """
         Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "events:updated",
+            "extra": {
+                "item": "#eventId#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """

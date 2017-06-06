@@ -62,7 +62,7 @@ const eventsReducer = (state=initialState, action) => {
             }
         case EVENTS.ACTIONS.ADD_TO_EVENTS_LIST:
             return eventsReducer(state, {
-                type: 'SET_EVENTS_LIST',
+                type: EVENTS.ACTIONS.SET_EVENTS_LIST,
                 payload: uniq([...state.eventsInList, ...action.payload]),
             })
         case EVENTS.ACTIONS.OPEN_ADVANCED_SEARCH:

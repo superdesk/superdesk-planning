@@ -177,7 +177,7 @@ describe('events', () => {
                     // Cannot check dispatch(fetchUsingURL()) using a spy on dispatch
                     // As fetchUsingURL is a thunk function
 
-                    expect(dispatch.callCount).toBe(5)
+                    expect(dispatch.callCount).toBe(4)
                 })
             })
 
@@ -229,7 +229,7 @@ describe('events', () => {
                     // Cannot check dispatch(fetchUsingURL()) using a spy on dispatch
                     // As fetchUsingURL is a thunk function
 
-                    expect(dispatch.callCount).toBe(4)
+                    expect(dispatch.callCount).toBe(3)
                 })
             })
 
@@ -582,33 +582,11 @@ describe('events', () => {
             },
         }
 
-        const newRecurringEvents = {
-            _items: [
-                {
-                    _id: 'e3',
-                    name: 'Event3',
-                    recurrence_id: 'r1',
-                    dates: {
-                        start: '2017-06-30T12:37:11+0000',
-                        end: '2017-06-30T13:37:11+0000',
-                    },
-                },
-                {
-                    _id: 'e4',
-                    name: 'Event4',
-                    recurrence_id: 'r1',
-                    dates: {
-                        start: '2017-06-30T12:37:11+0000',
-                        end: '2017-06-30T13:37:11+0000',
-                    },
-                },
-            ],
-        }
-
         let store
         let spyGetById
         let spyQuery
         let $rootScope
+        let spyQueryResult
 
         // Store the window.setTimeout so we can restore it after our tests
         let originalSetTimeout = window.setTimeout
@@ -620,7 +598,7 @@ describe('events', () => {
             $rootScope = _$rootScope_
 
             spyGetById = sinon.spy(() => newEvent)
-            spyQuery = sinon.spy(() => newRecurringEvents)
+            spyQuery = sinon.spy(() => spyQueryResult)
 
             store = createTestStore({
                 initialState: cloneDeep(initialState),
@@ -632,6 +610,29 @@ describe('events', () => {
 
             registerNotifications($rootScope, store)
             $rootScope.$digest()
+
+            spyQueryResult = {
+                _items: [
+                    {
+                        _id: 'e3',
+                        name: 'Event3',
+                        recurrence_id: 'r1',
+                        dates: {
+                            start: '2017-06-30T12:37:11+0000',
+                            end: '2017-06-30T13:37:11+0000',
+                        },
+                    },
+                    {
+                        _id: 'e4',
+                        name: 'Event4',
+                        recurrence_id: 'r1',
+                        dates: {
+                            start: '2017-06-30T12:37:11+0000',
+                            end: '2017-06-30T13:37:11+0000',
+                        },
+                    },
+                ],
+            }
         }))
 
         afterEach(() => {
@@ -775,6 +776,57 @@ describe('events', () => {
                     })
                     done()
                 }, 0)
+            })
+        })
+
+        describe('`events:updated`', () => {
+            it('Refetches the current list of events', (done) => {
+                spyQueryResult = {
+                    _items: [{
+                        _id: 'e1',
+                        name: 'Event1 Updated',
+                        dates: {
+                            start: '2017-05-31T17:00:00+0000',
+                            end: '2017-05-31T18:00:00+0000',
+                        },
+                    }],
+                }
+
+                $rootScope.$broadcast('events:updated', { item: 'e1' })
+
+                originalSetTimeout(() => {
+                    expect(spyQuery.callCount).toBe(1)
+                    expect(selectors.getEvents(store.getState())).toEqual({
+                        e1: {
+                            _id: 'e1',
+                            name: 'Event1 Updated',
+                            dates: {
+                                start: moment('2017-05-31T17:00:00+0000'),
+                                end: moment('2017-05-31T18:00:00+0000'),
+                            },
+                        },
+                    })
+                    done()
+                })
+            })
+
+            it('Event silently returns if no event provided', (done) => {
+                $rootScope.$broadcast('events:updated', {})
+
+                originalSetTimeout(() => {
+                    expect(spyQuery.callCount).toBe(0)
+                    expect(selectors.getEvents(store.getState())).toEqual({
+                        e1: {
+                            _id: 'e1',
+                            name: 'Event1',
+                            dates: {
+                                start: moment('2017-05-31T16:37:11+0000'),
+                                end: moment('2017-05-31T17:37:11+0000'),
+                            },
+                        },
+                    })
+                    done()
+                })
             })
         })
     })
