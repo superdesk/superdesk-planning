@@ -1,0 +1,20 @@
+<div class="field">
+    <label for="login_url" translate>Login URL</label>
+    <input type="text" id="login_url" placeholder="{{:: 'login url'|translate }}" ng-model="provider.config.login_url" required ng-change="$parent.setConfig(provider)">
+</div>
+<div class="field">
+    <label for="fixtures_url" translate>Fixtures URL</label>
+    <input type="text" id="fixtures_url" placeholder="{{:: 'fixtures url'|translate }}" ng-model="provider.config.fixtures_url" required ng-change="$parent.setConfig(provider)">
+</div>
+<div class="field">
+    <label for="username" translate>Username</label>
+    <input type="text" id="username" placeholder="{{:: 'username'|translate }}" ng-model="provider.config.username" required ng-change="$parent.setConfig(provider)">
+</div>
+<div class="field">
+    <label for="password" translate>Password</label>
+    <input type="password" id="password" placeholder="{{:: 'password'|translate }}" ng-model="provider.config.password" required ng-change="$parent.setConfig(provider)">
+</div>
+<div class="field">
+	<label for="sports" translate>Sports</label>
+	<input type="text" id="sports" placeholder="{{:: 'Comma seperated list of sport id\'s to ingest'|translate }}" ng-model="provider.config.sports" ng-change="$parent.setConfig(provider)">
+</div>

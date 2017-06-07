@@ -44,6 +44,10 @@ function runPlanning(ingestSources, $templateCache) {
         'superdesk-planning/views/eventEmailConfig.html',
         require('./client/views/eventEmailConfig.html')
     )
+    $templateCache.put(
+        'superdesk-planning/views/aapSportsHttp.html',
+        require('./client/views/aapSportsHttp.html')
+    )
     ingestSources.registerFeedingService('event_file', {
         label: 'Event File Feed',
         templateUrl: 'superdesk-planning/views/eventFileConfig.html',
@@ -55,6 +59,10 @@ function runPlanning(ingestSources, $templateCache) {
     ingestSources.registerFeedingService('event_email', {
         label: 'Event Email Feed',
         templateUrl: 'superdesk-planning/views/eventEmailConfig.html'
+    })
+    ingestSources.registerFeedingService('aap_sports_http', {
+        label: 'AAP Sports Results Feed',
+        templateUrl: 'superdesk-planning/views/aapSportsHttp.html'
     })
 }
 
