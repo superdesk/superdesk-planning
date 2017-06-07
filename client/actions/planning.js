@@ -1,10 +1,11 @@
 import * as selectors from '../selectors'
 import * as actions from '../actions'
-import { pickBy, cloneDeep, isNil, has, get } from 'lodash'
+import { pickBy, cloneDeep, isNil, has, get, isEqual } from 'lodash'
 import { addToCurrentAgenda, selectAgenda,
     fetchSelectedAgendaPlannings } from './agenda'
 import { PRIVILEGES, PLANNING, ITEM_STATE } from '../constants'
 import { checkPermission, getErrorMessage } from '../utils'
+import moment from 'moment'
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -154,14 +155,26 @@ const _saveAndDeleteCoverages = (coverages, planning, originalCoverages) => (
         // saves coverages
         if (coverages && coverages.length > 0) {
             coverages.forEach((coverage) => {
-                coverage.planning_item = planning._id
                 // patch or post ? look for an original coverage
                 const originalCoverage = originalCoverages.find((c) => (
                     c._id === coverage._id
                 ))
-                promises.push(
-                    api('coverage').save(cloneDeep(originalCoverage || {}), coverage)
-                )
+
+                // If the coverage is scheduled, convert it to a moment instance
+                // so the lodash.isEqual function can compare it with the new coverage
+                if (get(originalCoverage, 'planning.scheduled')) {
+                    originalCoverage.planning.scheduled = moment(
+                        originalCoverage.planning.scheduled
+                    )
+                }
+
+                // Only update the coverage if it has changed
+                if (!isEqual(coverage, originalCoverage)) {
+                    coverage.planning_item = planning._id
+                    promises.push(
+                        api('coverage').save(cloneDeep(originalCoverage || {}), coverage)
+                    )
+                }
             })
         }
         // deletes coverages
@@ -472,6 +485,7 @@ export {
     unspikePlanning,
     savePlanning,
     savePlanningAndReloadCurrentAgenda,
+    saveAndDeleteCoverages,
     fetchPlannings,
     fetchPlanningById,
     fetchCoverageById,

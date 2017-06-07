@@ -33,7 +33,11 @@ const planningReducer = (state=initialState, action) => {
             // clone plannings
             plannings = cloneDeep(state.plannings)
             // add to state.plannings, use _id as key
-            action.payload.forEach((planning) => plannings[planning._id] = planning)
+            action.payload.forEach((planning) => {
+                // Make sure that the Planning item has the coverages array
+                planning.coverages = get(planning, 'coverages', [])
+                plannings[planning._id] = planning
+            })
             // return new state
             return {
                 ...state,
