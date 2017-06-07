@@ -9,7 +9,6 @@ import { forEach } from 'lodash'
 
 PlanningController.$inject = [
     '$element',
-    '$rootScope',
     '$scope',
     'api',
     'config',
@@ -26,7 +25,6 @@ PlanningController.$inject = [
 ]
 export function PlanningController(
     $element,
-    $rootScope,
     $scope,
     api,
     config,
@@ -77,7 +75,11 @@ export function PlanningController(
     store.dispatch(actions.loadUsers())
     store.dispatch(actions.loadDesks())
 
-    registerNotifications($rootScope, store)
+    registerNotifications($scope, store)
+    $scope.$on('$destroy', () => {
+        // Unmount the React application
+        ReactDOM.unmountComponentAtNode($element.get(0))
+    })
 
     // render the planning application
     ReactDOM.render(
@@ -90,12 +92,12 @@ export function PlanningController(
 
 /**
  * Registers WebSocket Notifications to Redux Actions
- * @param {scope} $rootScope - Angular root scope where notifications are received
+ * @param {scope} $scope - PlanningController scope where notifications are received
  * @param {store} store - The Redux Store used for dispatching actions
  */
-export const registerNotifications = ($rootScope, store) => {
+export const registerNotifications = ($scope, store) => {
     forEach(actions.notifications, (func, event) => {
-        $rootScope.$on(event, (_e, data) => {
+        $scope.$on(event, (_e, data) => {
             store.dispatch({
                 type: WS_NOTIFICATION,
                 payload: {
