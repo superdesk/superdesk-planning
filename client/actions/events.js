@@ -82,12 +82,8 @@ const spikeEvent = (event) => (
             }
 
             // Fetch events to reload latest events list
-            return dispatch(silentlyFetchEventsById([event._id], ITEM_STATE.ALL))
-            .then(() => {
-                dispatch(fetchSelectedAgendaPlannings())
-                dispatch(refetchEvents())
-            })
-
+            return dispatch(refetchEvents())
+            .then(() => dispatch(fetchSelectedAgendaPlannings()))
         }, (error) => (
             notify.error(
                 getErrorMessage(error, 'There was a problem, Event was not spiked!')
@@ -115,10 +111,7 @@ const unspikeEvent = (event) => (
             dispatch(hideModal())
 
             // Fetch events to reload latest events list
-            return dispatch(silentlyFetchEventsById([event._id], ITEM_STATE.ALL))
-            .then(() => {
-                dispatch(refetchEvents())
-            })
+            return dispatch(refetchEvents())
         }, (error) => (
             notify.error(
                 getErrorMessage(error, 'There was a problem, Event was not unspiked!')
@@ -464,6 +457,7 @@ const refetchEvents = () => (
 
             dispatch(receiveEvents(events))
             dispatch(setEventsList(events.map((e) => e._id)))
+            return events
         })
     }
 )
@@ -698,10 +692,27 @@ const onRecurringEventCreated = (_e, data) => (
     }
 )
 
+/**
+ * Action Event when an Event gets updated
+ * @param _e
+ * @param {object} data - Event and User IDs
+ */
+const onEventUpdated = (_e, data) => (
+    (dispatch) => {
+        if (data && data.item) {
+            dispatch(refetchEvents())
+        }
+    }
+)
+
 // Map of notification name and Action Event to execute
 const eventNotifications = {
     'events:created': onEventCreated,
     'events:created:recurring': onRecurringEventCreated,
+    'events:updated': onEventUpdated,
+    'events:updated:recurring': onEventUpdated,
+    'events:spiked': onEventUpdated,
+    'events:unspiked': onEventUpdated,
 }
 
 export {

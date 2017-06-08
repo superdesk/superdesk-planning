@@ -35,7 +35,7 @@ class EventsSpikeService(BaseService):
 
         item = self.backend.update(self.datasource, id, updates, original)
 
-        push_notification('events:spike', item=str(id), user=str(user.get(config.ID_FIELD)))
+        push_notification('events:spiked', item=str(id), user=str(user.get(config.ID_FIELD)))
         return item
 
     def on_updated(self, updates, original):
@@ -64,5 +64,5 @@ class EventsUnspikeService(BaseService):
         updates[ITEM_EXPIRY] = None
 
         item = self.backend.update(self.datasource, id, updates, original)
-        push_notification('events:unspike', item=str(id), user=str(user.get(config.ID_FIELD)))
+        push_notification('events:unspiked', item=str(id), user=str(user.get(config.ID_FIELD)))
         return item
