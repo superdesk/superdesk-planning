@@ -34,7 +34,7 @@ class AgendaSpikeService(BaseService):
         set_item_expiry(updates)
 
         item = self.backend.update(self.datasource, id, updates, original)
-        push_notification('agenda:spike', item=str(id), user=str(user.get(config.ID_FIELD)))
+        push_notification('agenda:spiked', item=str(id), user=str(user.get(config.ID_FIELD)))
         return item
 
 
@@ -56,5 +56,5 @@ class AgendaUnspikeService(BaseService):
         updates[ITEM_EXPIRY] = None
 
         item = self.backend.update(self.datasource, id, updates, original)
-        push_notification('agenda:unspike', item=str(id), user=str(user.get(config.ID_FIELD)))
+        push_notification('agenda:unspiked', item=str(id), user=str(user.get(config.ID_FIELD)))
         return item

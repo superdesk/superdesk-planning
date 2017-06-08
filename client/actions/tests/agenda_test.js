@@ -616,5 +616,53 @@ describe('agenda', () => {
                 done()
             }, 0)
         })
+
+        it('`agenda:spiked` updates the Agenda in the store', (done) => {
+            newAgenda._id = '1'
+            newAgenda.name = 'agenda'
+            newAgenda.state = 'spiked'
+            $rootScope.$broadcast('agenda:spiked', { item: '1' })
+
+            setTimeout(() => {
+                expect(spyGetById.callCount).toBe(1)
+                expect(spyGetById.args[0]).toEqual([
+                    'agenda',
+                    '1',
+                ])
+
+                expect(selectors.getAgendas(store.getState())).toEqual([
+                    {
+                        _id: '1',
+                        name: 'agenda',
+                        state: 'spiked',
+                    },
+                ])
+                done()
+            })
+        })
+
+        it('`agenda:unspiked` updates the Agenda in the store', (done) => {
+            newAgenda._id = '1'
+            newAgenda.name = 'agenda'
+            newAgenda.state = 'active'
+            $rootScope.$broadcast('agenda:unspiked', { item: '1' })
+
+            setTimeout(() => {
+                expect(spyGetById.callCount).toBe(1)
+                expect(spyGetById.args[0]).toEqual([
+                    'agenda',
+                    '1',
+                ])
+
+                expect(selectors.getAgendas(store.getState())).toEqual([
+                    {
+                        _id: '1',
+                        name: 'agenda',
+                        state: 'active',
+                    },
+                ])
+                done()
+            })
+        })
     })
 })
