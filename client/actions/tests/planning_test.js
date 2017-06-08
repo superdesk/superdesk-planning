@@ -5,6 +5,7 @@ import { createTestStore } from '../../utils'
 import { cloneDeep } from 'lodash'
 import { registerNotifications } from '../../controllers/PlanningController'
 import * as selectors from '../../selectors'
+import moment from 'moment'
 
 describe('planning', () => {
     describe('actions', () => {
@@ -55,22 +56,19 @@ describe('planning', () => {
         }
         const $timeout = sinon.spy((func) => func())
 
-        let apiSpy = {
-            query: sinon.spy(() => (Promise.resolve())),
-            remove: sinon.spy(() => (Promise.resolve())),
-            save: sinon.spy((ori, item) => (Promise.resolve({
-                _id: 'p3',
-                ...ori,
-                ...item,
-            }))),
-        }
-
+        let apiSpy
         let api
 
         beforeEach(() => {
-            apiSpy.save.reset()
-            apiSpy.query.reset()
-            apiSpy.remove.reset()
+            apiSpy = {
+                query: sinon.spy(() => (Promise.resolve())),
+                remove: sinon.spy(() => (Promise.resolve())),
+                save: sinon.spy((ori, item) => (Promise.resolve({
+                    _id: 'p3',
+                    ...ori,
+                    ...item,
+                }))),
+            }
             notify.error.reset()
             notify.success.reset()
             dispatch.reset()
@@ -304,7 +302,6 @@ describe('planning', () => {
                             args: [item],
                         },
                     }])
-                    expect(dispatch.callCount).toBe(1)
                 })
             })
 
@@ -336,10 +333,125 @@ describe('planning', () => {
             })
         })
 
+        describe('saveAndDeleteCoverages', () => {
+            let planning
+            let coverages
+
+            const action = () => (
+                actions.saveAndDeleteCoverages(
+                    coverages,
+                    planning,
+                    planning.coverages
+                )(
+                    dispatch,
+                    getState, {
+                        notify,
+                        $timeout,
+                        api,
+                    }
+                )
+            )
+
+            beforeEach(() => {
+                planning = {
+                    _id: 'p1',
+                    slugline: 'Plan1',
+                    coverages: [{
+                        _id: 'c1',
+                        planning: { scheduled: '2017-06-07T12:00:00+0000' },
+                        planning_item: 'p1',
+                    }, {
+                        _id: 'c2',
+                        planning: { scheduled: '2017-06-08T12:00:00+0000' },
+                        planning_item: 'p1',
+                    }],
+                }
+
+                coverages = [
+                    {
+                        _id: 'c1',
+                        planning: { scheduled: moment('2017-06-07T12:00:00+0000') },
+                        planning_item: 'p1',
+                    }, {
+                        _id: 'c2',
+                        planning: { scheduled: moment('2017-06-08T12:00:00+0000') },
+                        planning_item: 'p1',
+                    },
+                ]
+                apiSpy.save = sinon.spy((() => Promise.resolve()))
+            })
+
+            it('only saves new, modified and deleted coverages', (done) => {
+                coverages[1].planning.scheduled = moment('2017-06-09T12:00:00+0000')
+                coverages.push({
+                    _id: 'c3',
+                    planning: { scheduled: moment('2017-06-10T13:00:00+0000') },
+                })
+
+                return action()
+                .then(() => {
+                    expect(apiSpy.save.callCount).toBe(2)
+
+                    // Coverage C1, is not sent to the server as it has not changed
+
+                    // Update Coverage C2
+                    expect(apiSpy.save.args[0]).toEqual([{
+                        _id: 'c2',
+                        planning: { scheduled: moment('2017-06-08T12:00:00+0000') },
+                        planning_item: 'p1',
+                    }, {
+                        _id: 'c2',
+                        planning: { scheduled: moment('2017-06-09T12:00:00+0000') },
+                        planning_item: 'p1',
+                    }])
+
+                    // Add new Coverage C3
+                    expect(apiSpy.save.args[1]).toEqual([{}, {
+                        _id: 'c3',
+                        planning: { scheduled: moment('2017-06-10T13:00:00+0000') },
+                        planning_item: 'p1',
+                    }])
+
+                    // No Coverages were deleted
+                    expect(apiSpy.remove.callCount).toBe(0)
+
+                    done()
+                })
+            })
+
+            it('saveAndDeleteCoverages raises ACCESS_DENIED without permission', (done) => {
+                initialState.privileges.planning_planning_management = 0
+                return action()
+                .then(() => {
+                    // Make sure the user is notified of unauthorised action
+                    expect($timeout.callCount).toBe(1)
+                    expect(notify.error.callCount).toBe(1)
+                    expect(notify.error.args[0]).toEqual([
+                        'Unauthorised to modify planning coverages',
+                    ])
+
+                    // Make sure the access denied redux action is dispatched
+                    expect(dispatch.callCount).toBe(1)
+                    expect(dispatch.args[0]).toEqual([{
+                        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
+                        payload: {
+                            action: '_saveAndDeleteCoverages',
+                            permission: PRIVILEGES.PLANNING_MANAGEMENT,
+                            errorMessage: 'Unauthorised to modify planning coverages',
+                            args: [coverages, planning, planning.coverages],
+                        },
+                    }])
+
+                    done()
+                })
+            })
+        })
+
         it('fetchPlannings', () => {
             const action = actions.fetchPlannings({})
-            return action(dispatch, getState)
+            action(dispatch, getState)
             .then(() => {
+                expect(dispatch.callCount).toBe(4)
                 expect(dispatch.args[0]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
 
                 // Cannot check dispatch(performFetchRequest()) using a spy on dispatch
@@ -353,12 +465,11 @@ describe('planning', () => {
                     payload: plannings,
                 }])
 
-                expect(dispatch.callCount).toBe(4)
             })
         })
 
         describe('fetchPlanningById', () => {
-            it('calls api.getById and runs dispatches', () => {
+            it('calls api.getById and runs dispatches', (done) => {
                 apiSpy.getById = sinon.spy(() => Promise.resolve(plannings[1]))
                 const action = actions.fetchPlanningById('p2')
                 return action(dispatch, getState, {
@@ -376,10 +487,12 @@ describe('planning', () => {
                         payload: [plannings[1]],
                     }])
                     expect(notify.error.callCount).toBe(0)
+
+                    done()
                 })
             })
 
-            it('notifies end user if an error occurred', () => {
+            it('notifies end user if an error occurred', (done) => {
                 apiSpy.getById = sinon.spy(() => Promise.reject())
                 const action = actions.fetchPlanningById('p2')
                 return action(dispatch, getState, {
@@ -396,6 +509,8 @@ describe('planning', () => {
 
                     expect(notify.error.callCount).toBe(1)
                     expect(notify.error.args[0]).toEqual(['Failed to get a new Planning Item!'])
+
+                    done()
                 })
             })
         })
@@ -407,7 +522,7 @@ describe('planning', () => {
             }
             const action = actions.fetchCoverageById('c1')
 
-            it('fetchCoverageById calls api.getById and runs dispatches', () => {
+            it('fetchCoverageById calls api.getById and runs dispatches', (done) => {
                 apiSpy.getById = sinon.spy(() => Promise.resolve(coverage))
                 return action(dispatch, getState, {
                     api,
@@ -423,10 +538,12 @@ describe('planning', () => {
                         payload: coverage,
                     }])
                     expect(notify.error.callCount).toBe(0)
+
+                    done()
                 })
             })
 
-            it('fetchCoverageById notifies end user if an error occurred', () => {
+            it('fetchCoverageById notifies end user if an error occurred', (done) => {
                 apiSpy.getById = sinon.spy(() => Promise.reject())
                 return action(dispatch, getState, {
                     api,
@@ -436,6 +553,8 @@ describe('planning', () => {
                     expect(dispatch.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(1)
                     expect(notify.error.args[0]).toEqual(['Failed to fetch the Coverage!'])
+
+                    done()
                 })
             })
         })

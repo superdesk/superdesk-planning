@@ -8,7 +8,6 @@ describe('planning', () => {
             initialState = planning(undefined, { type: null })
         })
 
-        const item = { _id: 'p1' }
         const plannings = {
             p1: {
                 _id: 'p1',
@@ -41,16 +40,60 @@ describe('planning', () => {
             expect(result.planningsAreLoading).toBe(true)
         })
 
-        it('RECEIVE_PLANNINGS', () => {
-            const result = planning(
-                initialState,
-                {
-                    type: 'RECEIVE_PLANNINGS',
-                    payload: [item],
-                }
-            )
+        describe('RECEIVE_PLANNINGS', () => {
+            it('saves the plan to the store', () => {
+                const result = planning(
+                    initialState,
+                    {
+                        type: 'RECEIVE_PLANNINGS',
+                        payload: [{
+                            _id: 'p1',
+                            coverages: [{ _id: 'c1' }],
+                        }],
+                    }
+                )
 
-            expect(result.plannings).toEqual({ p1: item })
+                expect(result.plannings).toEqual({
+                    p1: {
+                        _id: 'p1',
+                        coverages: [{ _id: 'c1' }],
+                    },
+                })
+            })
+
+            it('defaults coverages to empty array', () => {
+                const result = planning(
+                    initialState,
+                    {
+                        type: 'RECEIVE_PLANNINGS',
+                        payload: [{ _id: 'p1' }],
+                    }
+                )
+
+                expect(result.plannings).toEqual({
+                    p1: {
+                        _id: 'p1',
+                        coverages: [],
+                    },
+                })
+            })
+
+            it('converts payload to array', () => {
+                const result = planning(
+                    initialState,
+                    {
+                        type: 'RECEIVE_PLANNINGS',
+                        payload: { _id: 'p1' },
+                    }
+                )
+
+                expect(result.plannings).toEqual({
+                    p1: {
+                        _id: 'p1',
+                        coverages: [],
+                    },
+                })
+            })
         })
 
         it('OPEN_PLANNING_EDITOR', () => {

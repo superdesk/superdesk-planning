@@ -134,6 +134,7 @@ describe('planning', () => {
                         .toEqual({
                             _id: 'RefreshedplanningId',
                             slugline: 'coucou',
+                            coverages: [],
                         })
                     done()
                 })
