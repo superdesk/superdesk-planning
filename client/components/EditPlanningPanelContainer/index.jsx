@@ -8,6 +8,8 @@ import * as selectors from '../../selectors'
 import { ITEM_STATE } from '../../constants'
 import { get } from 'lodash'
 import moment from 'moment'
+import { OverlayTrigger } from 'react-bootstrap'
+import { tooltips } from '../index'
 import './style.scss'
 
 export class EditPlanningPanel extends React.Component {
@@ -21,13 +23,20 @@ export class EditPlanningPanel extends React.Component {
     }
 
     render() {
-        const { closePlanningEditor, planning, event, pristine, submitting, agendaSpiked } = this.props
+        const { closePlanningEditor, openPlanningEditor, planning, event, pristine, submitting, agendaSpiked, readOnly } = this.props
         const creationDate = get(planning, '_created')
         const updatedDate = get(planning, '_updated')
         const author = get(planning, 'original_creator')
         const versionCreator = get(planning, 'version_creator') && this.props.users ? this.props.users.find((u) => (u._id === planning.version_creator)) : null
         const planningSpiked = planning ? get(planning, 'state', 'active') === ITEM_STATE.SPIKED : false
         const eventSpiked = event ? get(event, 'state', 'active') === ITEM_STATE.SPIKED : false
+
+        // If the planning or event or agenda item is spiked, enforce readOnly
+        let updatedReadOnly = readOnly
+        if (agendaSpiked || eventSpiked || planningSpiked) {
+            updatedReadOnly = true
+        }
+
         return (
             <div className="EditPlanningPanel">
                 <header>
@@ -37,20 +46,36 @@ export class EditPlanningPanel extends React.Component {
                             </span>
                         }
                     </div>
-                    <div className="EditPlanningPanel__actions">
-                        <button
-                            className="btn"
-                            type="reset"
-                            onClick={closePlanningEditor}
-                            disabled={submitting}>Cancel</button>
-                        {!agendaSpiked && !planningSpiked && !eventSpiked &&
+                    { !updatedReadOnly && <div className="EditPlanningPanel__actions">
                             <button
-                                className="btn btn--primary"
-                                onClick={this.handleSave.bind(this)}
-                                type="submit"
-                                disabled={pristine || submitting}>Save</button>
-                        }
-                    </div>
+                                className="btn"
+                                type="reset"
+                                onClick={closePlanningEditor}
+                                disabled={submitting}>Cancel</button>
+                            {!agendaSpiked && !planningSpiked && !eventSpiked &&
+                                <button
+                                    className="btn btn--primary"
+                                    onClick={this.handleSave.bind(this)}
+                                    type="submit"
+                                    disabled={pristine || submitting}>Save</button>
+                            }
+                        </div>
+                    }
+                    { updatedReadOnly && (
+                        <div className="EditPlanningPanel__actions">
+                            {(!agendaSpiked && !eventSpiked && !planningSpiked) &&
+                            (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
+                                <button className="EditPlanningPanel__actions__edit" onClick={openPlanningEditor.bind(this, get(planning, '_id'))}>
+                                    <i className="icon-pencil"/>
+                                </button>
+                            </OverlayTrigger>)}
+                            <OverlayTrigger placement="bottom" overlay={tooltips.closeTooltip}>
+                                <button className="EditPlanningPanel__actions__edit" onClick={closePlanningEditor}>
+                                    <i className="icon-close-small"/>
+                                </button>
+                            </OverlayTrigger>
+                        </div>)
+                    }
                 </header>
                 <div className="EditPlanningPanel__body">
                     {agendaSpiked &&
@@ -78,7 +103,7 @@ export class EditPlanningPanel extends React.Component {
                             <span>Create a new planning</span>
                         }
                     </div>
-                    <PlanningForm ref="PlanningForm" />
+                    <PlanningForm ref="PlanningForm" readOnly={updatedReadOnly}/>
                 </div>
             </div>
         )
@@ -87,6 +112,7 @@ export class EditPlanningPanel extends React.Component {
 
 EditPlanningPanel.propTypes = {
     closePlanningEditor: React.PropTypes.func.isRequired,
+    openPlanningEditor: React.PropTypes.func.isRequired,
     planning: React.PropTypes.object,
     event: React.PropTypes.object,
     pristine: React.PropTypes.bool.isRequired,
@@ -96,6 +122,7 @@ EditPlanningPanel.propTypes = {
         React.PropTypes.array,
         React.PropTypes.object,
     ]),
+    readOnly: React.PropTypes.bool,
 }
 
 const mapStateToProps = (state) => ({
@@ -103,9 +130,13 @@ const mapStateToProps = (state) => ({
     event: selectors.getCurrentPlanningEvent(state),
     agendaSpiked: selectors.getCurrentPlanningAgendaSpiked(state),
     users: selectors.getUsers(state),
+    readOnly: selectors.getCurrentPlanningReadOnlyState(state),
 })
 
-const mapDispatchToProps = (dispatch) => ({ closePlanningEditor: () => dispatch(actions.closePlanningEditor()) })
+const mapDispatchToProps = (dispatch) => ({
+    closePlanningEditor: () => dispatch(actions.closePlanningEditor()),
+    openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning))),
+})
 
 export const EditPlanningPanelContainer = connect(
     mapStateToProps, mapDispatchToProps

@@ -33,6 +33,9 @@ $EDIT_PLANNING_WIDTH: 450px;
 }
 .EditPlanningPanel__actions {
     white-space: nowrap;
+    &__edit {
+        padding-right: 20px;
+    }
 }
 .EditPlanningPanel__body {
     overflow: auto;

@@ -12,7 +12,7 @@ const coverageIcons = {
     photo: 'icon-photo',
 }
 
-const PlanningItem = ({ item, event, agenda, onClick, active, onSpike, onUnspike, privileges }) => {
+const PlanningItem = ({ item, event, agenda, onClick, active, onSpike, onUnspike, privileges, onDoubleClick }) => {
     const location = get(event, 'location[0].name')
     const dueDates = get(item, 'coverages', []).map((c) => (get(c, 'planning.scheduled'))).filter(d => (d))
     const coveragesTypes = get(item, 'coverages', []).map((c) => get(c, 'planning.g2_content_type'))
@@ -31,7 +31,8 @@ const PlanningItem = ({ item, event, agenda, onClick, active, onSpike, onUnspike
         <ListItem
             item={item}
             className="PlanningItem"
-            onClick={onClick.bind(null, item)}
+            onClick={onClick}
+            onDoubleClick={onDoubleClick}
             active={active}>
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
                 <div className="sd-list-item__row">
@@ -102,6 +103,7 @@ PlanningItem.propTypes = {
     agenda: PropTypes.object,
     active: PropTypes.bool,
     onClick: PropTypes.func,
+    onDoubleClick: PropTypes.func,
     onSpike: PropTypes.func,
     onUnspike: PropTypes.func,
     privileges: PropTypes.object,

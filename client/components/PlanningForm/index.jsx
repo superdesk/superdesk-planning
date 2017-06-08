@@ -13,7 +13,7 @@ class Component extends React.Component {
     }
 
     render() {
-        const { handleSubmit } = this.props
+        const { handleSubmit, readOnly } = this.props
         return (
             <form onSubmit={handleSubmit} className="PlanningForm">
                 <div>
@@ -22,23 +22,27 @@ class Component extends React.Component {
                             name="slugline"
                             component={fields.InputField}
                             type="text"
-                            label="Slugline"/>
+                            label="Slugline"
+                            readOnly={readOnly} />
                         <Field
                             name="headline"
                             component={fields.InputField}
                             type="text"
-                            label="Headline"/>
+                            label="Headline"
+                            readOnly={readOnly} />
                         <Field
                             name="anpa_category"
                             component={fields.CategoryField}
-                            label="Category"/>
+                            label="Category"
+                            readOnly={readOnly} />
                         <Field
                             name="subject"
                             component={fields.SubjectField}
-                            label="Subject"/>
+                            label="Subject"
+                            readOnly={readOnly} />
                     </fieldset>
                     <h3>Coverages</h3>
-                    <FieldArray name="coverages" component={fields.CoveragesFieldArray} />
+                    <FieldArray name="coverages" component={fields.CoveragesFieldArray} readOnly={readOnly} />
                 </div>
             </form>
         )

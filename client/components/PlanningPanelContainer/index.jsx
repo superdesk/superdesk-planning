@@ -107,7 +107,7 @@ class PlanningPanel extends React.Component {
                                 </div>
                         }
                     </div>
-                    <EditPlanningPanelContainer />
+                    {editPlanningViewOpen && <EditPlanningPanelContainer /> }
                 </div>
             </div>
         )

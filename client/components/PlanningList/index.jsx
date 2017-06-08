@@ -7,17 +7,17 @@ import { connect } from 'react-redux'
 import { LIST_ITEM_HEIGHT, PLANNING_LIST_ITEM_MARGIN_HEIGHT } from '../../constants'
 
 class PlanningList extends React.Component {
-
     rowRenderer({ index, key, style }) {
         const {
             plannings,
             currentAgenda,
             currentPlanning,
             planningsEvents,
-            openPlanningEditor,
             handlePlanningUnspike,
             handlePlanningSpike,
             privileges,
+            previewPlanning,
+            openPlanningEditor,
         } = this.props
         const planning = plannings[index]
         return (
@@ -31,7 +31,8 @@ class PlanningList extends React.Component {
                     agenda={currentAgenda}
                     onSpike={handlePlanningSpike}
                     onUnspike={handlePlanningUnspike}
-                    onClick={openPlanningEditor.bind(null, planning._id)}
+                    onClick={previewPlanning}
+                    onDoubleClick={openPlanningEditor}
                     privileges={privileges} />
             </div>
         )
@@ -64,6 +65,7 @@ PlanningList.propTypes = {
     currentPlanning: React.PropTypes.object,
     planningsEvents: React.PropTypes.object,
     openPlanningEditor: React.PropTypes.func.isRequired,
+    previewPlanning: React.PropTypes.func.isRequired,
     handlePlanningSpike: React.PropTypes.func.isRequired,
     handlePlanningUnspike: React.PropTypes.func.isRequired,
     privileges: React.PropTypes.object.isRequired,
@@ -78,7 +80,8 @@ const mapStateToProps = (state) => ({
 })
 
 const mapDispatchToProps = (dispatch) => ({
-    openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning))),
+    previewPlanning: (planning) => (dispatch(actions.previewPlanning(planning._id))),
+    openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning._id))),
     handlePlanningSpike: (planning) => {
         dispatch(actions.showModal({
             modalType: 'CONFIRMATION',

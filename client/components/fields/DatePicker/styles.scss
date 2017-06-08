@@ -30,6 +30,9 @@
         &__textInput--invalid {
             border: 2px solid #b61818 !important;
         }
+        &:hover:disabled {
+            cursor: default;
+        }
     }
 
     &--btn {

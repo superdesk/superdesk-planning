@@ -17,6 +17,7 @@ describe('planning', () => {
             let active
 
             const onClick = sinon.spy()
+            const onDoubleClick = sinon.spy()
             const onSpike = sinon.spy()
             const onUnspike = sinon.spy()
 
@@ -27,6 +28,21 @@ describe('planning', () => {
                     agenda={agenda}
                     active={active}
                     onClick={onClick}
+                    onSpike={onSpike}
+                    onUnspike={onUnspike}
+                    privileges={privileges}
+                />)
+            )
+
+            // Creating this one separately as we cannot test click when doubleclick is used
+            const getWrapperWithDoubleClickProp = () => (
+                mount(<PlanningItem
+                    item={item}
+                    event={event}
+                    agenda={agenda}
+                    active={active}
+                    onClick={onClick}
+                    onDoubleClick={onDoubleClick}
                     onSpike={onSpike}
                     onUnspike={onUnspike}
                     privileges={privileges}
@@ -92,6 +108,7 @@ describe('planning', () => {
                 event = null
 
                 onClick.reset()
+                onDoubleClick.reset()
                 onSpike.reset()
                 onUnspike.reset()
             })
@@ -118,6 +135,17 @@ describe('planning', () => {
                 expect(wrapper.find('.icon-trash').length).toBe(0)
                 expect(wrapper.find('.icon-unspike').length).toBe(1)
 
+            })
+
+            // Creating this one separately as we cannot test click when doubleclick is used
+            it('executes onDoubleClick callbacks', () => {
+                let wrapper = getWrapperWithDoubleClickProp()
+
+                // onClick
+                wrapper.find('.ListItem').first().simulate('click')
+                wrapper.find('.ListItem').first().simulate('click')
+                expect(onDoubleClick.callCount).toBe(1)
+                expect(onDoubleClick.args[0][0]).toEqual(item)
             })
 
             it('executes callbacks onClick, onSpike and onUnspike', () => {

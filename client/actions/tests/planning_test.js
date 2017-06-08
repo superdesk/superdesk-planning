@@ -602,6 +602,14 @@ describe('planning', () => {
             expect(action).toEqual({ type: 'CLOSE_PLANNING_EDITOR' })
         })
 
+        it('previewPlanning', () => {
+            const action = actions.previewPlanning(plannings[0]._id)
+            expect(action).toEqual({
+                type: 'PREVIEW_PLANNING',
+                payload: plannings[0]._id,
+            })
+        })
+
         describe('openPlanningEditorAndAgenda', () => {
             const action = actions.openPlanningEditorAndAgenda(plannings[0]._id)
 

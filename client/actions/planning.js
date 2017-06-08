@@ -316,11 +316,24 @@ const fetchCoverageById = (id) => (
 )
 
 /**
+ * Opens the Planning in read-only mode
+ * @param {object} planning - The planning item to open
+ * @return Promise
+ */
+const previewPlanning = (planning) => (
+    {
+        type: PLANNING.ACTIONS.PREVIEW_PLANNING,
+        payload: planning,
+    }
+)
+
+/**
  * Opens the Planning Editor
  * @param {object} planning - The planning item to open
  * @return Promise
  */
 const _openPlanningEditor = (planning) => (
+    // Here, check locking and take appropriate action.
     {
         type: PLANNING.ACTIONS.OPEN_PLANNING_EDITOR,
         payload: planning,
@@ -496,4 +509,5 @@ export {
     planningFilterByKeyword,
     toggleOnlySpikedFilter,
     planningNotifications,
+    previewPlanning,
 }

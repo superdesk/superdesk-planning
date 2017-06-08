@@ -64,13 +64,14 @@ export class DatePicker extends React.Component {
     }
 
     render() {
-        const { value, placeholder } = this.props
+        const { value, placeholder, readOnly } = this.props
         return (
             <div className="datepickerInput">
-                <input type="text" className={ 'datepickerInput__textInput' + (this.state.invalid ? ' datepickerInput__textInput--invalid' : '')} value={this.state.viewValue} placeholder={placeholder} onChange={(e)=>(this.validateTimeText(e.target.value))}
+                <input type="text" className={ 'datepickerInput__textInput inputField' + (this.state.invalid ? ' datepickerInput__textInput--invalid' : '')} disabled={readOnly ? 'disabled' : ''} value={this.state.viewValue} placeholder={placeholder} onChange={(e)=>(this.validateTimeText(e.target.value))}
                 onBlur={this.handleInputBlur.bind(this)} />
-                <button className="datepickerInput--btn" type="button" onClick={this.toggleOpenDatePicker.bind(this)}>
+                { !readOnly && <button className="datepickerInput--btn" type="button" onClick={this.toggleOpenDatePicker.bind(this)}>
                     <i className="icon-calendar"/></button>
+                }
                 {this.state.openDatePicker && (
                     <DatePickerCore value={value} onCancel={this.toggleOpenDatePicker.bind(this)}
                     onChange={this.onChange.bind(this)}/>
@@ -84,4 +85,5 @@ DatePicker.propTypes = {
     value: PropTypes.object,
     placeholder: PropTypes.string,
     onChange: React.PropTypes.func.isRequired,
+    readOnly: PropTypes.bool,
 }
