@@ -244,8 +244,10 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (event) => (
+        // if needed, show a confirmation dialog
+        dispatch(actions.askConfirmationBeforeSavingEvent(event))
         // save the event through the API
-        dispatch(actions.uploadFilesAndSaveEvent(event))
+        .then(() => dispatch(actions.uploadFilesAndSaveEvent(event)))
     ),
 })
 

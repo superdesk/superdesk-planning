@@ -35,6 +35,7 @@
     "lodash": "^4.16.4",
     "moment-timezone": "0.5.11",
     "nominatim-browser": "^2.0.2",
+    "prop-types": "^15.5.10",
     "react": "^15.3.2",
     "react-addons-shallow-compare": "^15.3.2",
     "react-bootstrap": "^0.30.5",
