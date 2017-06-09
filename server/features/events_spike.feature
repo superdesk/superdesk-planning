@@ -56,6 +56,15 @@ Feature: Events Spike
             "state": "spiked"
         }
         """
+        When we get "/events_history?where=event_id==%22#events._id#%22"
+        Then we get list with 1 items
+        """
+        {"_items": [{
+            "event_id": "#events._id#",
+            "operation": "spiked",
+            "update": {"state" : "spiked"}
+        }]}
+        """
 
     @auth
     @notification
@@ -91,6 +100,15 @@ Feature: Events Spike
             "name": "TestEvent",
             "state": "active"
         }
+        """
+        When we get "/events_history?where=event_id==%22#events._id#%22"
+        Then we get list with 1 items
+        """
+        {"_items": [{
+            "event_id": "#events._id#",
+            "operation": "unspiked",
+            "update": {"state" : "active"}
+        }]}
         """
 
     @auth

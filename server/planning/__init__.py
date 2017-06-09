@@ -79,6 +79,8 @@ def init_app(app):
     app.on_inserted_events += events_history_service.on_item_created
     app.on_deleted_item_events -= events_history_service.on_item_deleted
     app.on_deleted_item_events += events_history_service.on_item_deleted
+    app.on_updated_events_spike += events_history_service.on_spike
+    app.on_updated_events_unspike += events_history_service.on_unspike
 
     agenda_history_service = AgendaHistoryService('agenda_history', backend=superdesk.get_backend())
     AgendaHistoryResource('agenda_history', app=app, service=agenda_history_service)
