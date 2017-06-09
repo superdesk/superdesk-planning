@@ -58,6 +58,7 @@
   "devDependencies": {
     "angular-mocks": "1.5.11",
     "enzyme": "^2.4.1",
+    "simulant": "^0.2.2",
     "eslint": "^3.14.1",
     "eslint-plugin-jasmine": "^2.2.0",
     "eslint-plugin-react": "^6.4.0",

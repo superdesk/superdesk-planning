@@ -32,6 +32,10 @@ class Component extends React.Component {
                             name="anpa_category"
                             component={fields.CategoryField}
                             label="Category"/>
+                        <Field
+                            name="subject"
+                            component={fields.SubjectField}
+                            label="Subject"/>
                     </fieldset>
                     <h3>Coverages</h3>
                     <FieldArray name="coverages" component={fields.CoveragesFieldArray} />

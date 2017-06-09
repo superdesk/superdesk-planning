@@ -321,6 +321,16 @@ const performFetchQuery = (
                     },
                 },
                 {
+                    condition: () => (advancedSearch.subject),
+                    do: () => {
+                        const codes = advancedSearch.subject.map((sub) => sub.qcode)
+                        const queries = codes.map((code) => (
+                            { term: { 'subject.qcode': code } }
+                        ))
+                        must.push(...queries)
+                    },
+                },
+                {
                     condition: () => (advancedSearch.dates),
                     do: () => {
                         const range = {}

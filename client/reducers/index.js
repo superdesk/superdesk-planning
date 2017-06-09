@@ -9,6 +9,7 @@ import privileges from './privileges'
 import agenda from './agenda'
 import users from './users'
 import desks from './desks'
+import subjects from './subjects'
 
 const planningApp = combineReducers({
     modal,
@@ -18,6 +19,7 @@ const planningApp = combineReducers({
     ingest,
     privileges,
     agenda,
+    subjects,
     form: forms,
     config: (state) => (state || {}),
     users,
