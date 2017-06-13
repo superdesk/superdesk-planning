@@ -1,13 +1,47 @@
-import { pickBy, cloneDeep, get, isEmpty, isNil } from 'lodash'
+import { pickBy, cloneDeep, get, isEmpty, isNil, isEqual } from 'lodash'
 import moment from 'moment-timezone'
 import * as selectors from '../selectors'
-import { SubmissionError } from 'redux-form'
+import { SubmissionError, getFormInitialValues } from 'redux-form'
 import { saveLocation as _saveLocation } from './index'
 import { showModal, hideModal, fetchSelectedAgendaPlannings, closePlanningEditor } from './index'
-import { SpikeEvent } from '../components/index'
+import { SpikeEvent, UpdateRecurrentEventsConfirmation } from '../components/index'
 import React from 'react'
 import { PRIVILEGES, EVENTS, ITEM_STATE } from '../constants'
 import { checkPermission, getErrorMessage, retryDispatch } from '../utils'
+
+const askConfirmationBeforeSavingEvent = (event) => (
+    (dispatch, getState) =>  {
+        const originalEvent = getFormInitialValues('addEvent')(getState())
+        return new Promise((resolve, reject) => {
+            if (originalEvent.recurrence_id && !isEqual(originalEvent.dates, event.dates)) {
+                dispatch(performFetchQuery({
+                    recurrenceId: originalEvent.recurrence_id,
+                    startDateGreatherThan: originalEvent.dates.start,
+                }))
+                .then((relatedEvents) => {
+                    const count = relatedEvents._meta.total
+                    if (count > 0) {
+                        dispatch(showModal({
+                            modalType: 'CONFIRMATION',
+                            modalProps: {
+                                body: React.createElement(UpdateRecurrentEventsConfirmation, {
+                                    updatedEvent: event,
+                                    relatedCount: relatedEvents._meta.total,
+                                }),
+                                onCancel: () => reject(),
+                                action: () => resolve(),
+                            },
+                        }))
+                    } else {
+                        resolve()
+                    }
+                })
+            } else {
+                resolve()
+            }
+        })
+    }
+)
 
 /**
  * Action Dispatcher for saving an event
@@ -36,19 +70,19 @@ const uploadFilesAndSaveEvent = (event) => {
                 }
             })
         ))
+        // refresh the list
+        .then((events) => (
+            dispatch(refetchEvents())
+            .then(() => (events))
+        ))
+        // If event was just created, open it in editing mode
         .then((events) => {
-            // add the events to the store
-            dispatch(receiveEvents(events))
-            // add the events in the list
-            dispatch(addToEventsList(events.map((e) => e._id)))
-
-            return events
-        }).then((events) => {
-            // If event was just created, open it in editing mode
             if (events.length > 0 && selectors.getShowEventDetails(getState()) === true) {
                 dispatch(closeEventDetails())
                 dispatch(openEventDetails(events[0]._id))
             }
+
+            return events
         })
     )
 }
@@ -243,10 +277,11 @@ const saveEvent = (newEvent) => (
  */
 const performFetchQuery = (
     {
-        advancedSearch,
+        advancedSearch={},
         fulltext,
         ids,
         recurrenceId,
+        startDateGreatherThan,
         page=1,
         state=ITEM_STATE.ACTIVE,
     }
@@ -257,11 +292,7 @@ const performFetchQuery = (
         let mustNot = []
         let must = []
 
-        // If there is a fulltext, search by term
-        if (fulltext) {
-            must.push({ query_string: { query: fulltext } })
-        // search by ids
-        } else if (ids) {
+        if (ids) {
             const chunkSize = EVENTS.FETCH_IDS_CHUNK_SIZE
             if (ids.length <= chunkSize) {
                 must.push({ terms: { _id: ids } })
@@ -280,80 +311,99 @@ const performFetchQuery = (
                     { _items: Array.prototype.concat(...responses.map((r) => r._items)) }
                 ))
             }
-        // Recurring events
-        } else if (recurrenceId) {
-            must.push({ term: { recurrence_id: recurrenceId } })
-        // advanced search
-        } else if (advancedSearch) {
-            [
-                {
-                    condition: () => (advancedSearch.name),
-                    do: () => {
-                        must.push({ query_string: { query: advancedSearch.name } })
-                    },
+        }
+        // List of actions to perform if the condition is true
+        [
+            {
+                condition: () => (fulltext),
+                do: () => {
+                    must.push({ query_string: { query: fulltext } })
                 },
-                {
-                    condition: () => (advancedSearch.source),
-                    do: () => {
-                        const providers = advancedSearch.source.map((provider) => provider.name)
-                        const queries = providers.map((provider) => (
-                            { term: { source: provider } }
-                        ))
-                        must.push(...queries)
-                    },
+            },
+            {
+                condition: () => (recurrenceId),
+                do: () => {
+                    must.push({ term: { recurrence_id: recurrenceId } })
                 },
-                {
-                    condition: () => (advancedSearch.location),
-                    do: () => {
-                        must.push(
-                            { term: { 'location.name': advancedSearch.location } }
-                        )
-                    },
+            },
+            {
+                condition: () => (startDateGreatherThan),
+                do: () => {
+                    filter.range = {
+                        ...get(filter, 'range', {}),
+                        'dates.start': { gt: startDateGreatherThan },
+                    }
                 },
-                {
-                    condition: () => (advancedSearch.anpa_category),
-                    do: () => {
-                        const codes = advancedSearch.anpa_category.map((cat) => cat.qcode)
-                        const queries = codes.map((code) => (
-                            { term: { 'anpa_category.qcode': code } }
-                        ))
-                        must.push(...queries)
-                    },
+            },
+            {
+                condition: () => (advancedSearch.name),
+                do: () => {
+                    must.push({ query_string: { query: advancedSearch.name } })
                 },
-                {
-                    condition: () => (advancedSearch.subject),
-                    do: () => {
-                        const codes = advancedSearch.subject.map((sub) => sub.qcode)
-                        const queries = codes.map((code) => (
-                            { term: { 'subject.qcode': code } }
-                        ))
-                        must.push(...queries)
-                    },
+            },
+            {
+                condition: () => (advancedSearch.source),
+                do: () => {
+                    const providers = advancedSearch.source.map((provider) => provider.name)
+                    const queries = providers.map((provider) => (
+                        { term: { source: provider } }
+                    ))
+                    must.push(...queries)
                 },
-                {
-                    condition: () => (advancedSearch.dates),
-                    do: () => {
-                        const range = {}
+            },
+            {
+                condition: () => (advancedSearch.location),
+                do: () => {
+                    must.push(
+                        { term: { 'location.name': advancedSearch.location } }
+                    )
+                },
+            },
+            {
+                condition: () => (advancedSearch.anpa_category),
+                do: () => {
+                    const codes = advancedSearch.anpa_category.map((cat) => cat.qcode)
+                    const queries = codes.map((code) => (
+                        { term: { 'anpa_category.qcode': code } }
+                    ))
+                    must.push(...queries)
+                },
+            },
+            {
+                condition: () => (advancedSearch.subject),
+                do: () => {
+                    const codes = advancedSearch.subject.map((sub) => sub.qcode)
+                    const queries = codes.map((code) => (
+                        { term: { 'subject.qcode': code } }
+                    ))
+                    must.push(...queries)
+                },
+            },
+            {
+                condition: () => (advancedSearch.dates),
+                do: () => {
+                    const range = {}
 
-                        if (advancedSearch.dates.start) {
-                            range['dates.start'] = { gte: advancedSearch.dates.start }
-                        }
+                    if (advancedSearch.dates.start) {
+                        range['dates.start'] = { gte: advancedSearch.dates.start }
+                    }
 
-                        if (advancedSearch.dates.end) {
-                            range['dates.end'] = { lte: advancedSearch.dates.end }
-                        }
+                    if (advancedSearch.dates.end) {
+                        range['dates.end'] = { lte: advancedSearch.dates.end }
+                    }
 
-                        filter.range = range
-                    },
+                    filter.range = range
                 },
-            // loop over actions and performs if conditions are met
-            ].forEach((action) => {
-                if (action.condition()) {
-                    action.do()
-                }
-            })
-        // Otherwise fetch only future events
-        } else {
+            },
+        // loop over actions and performs if conditions are met
+        ].forEach((action) => {
+            if (action.condition()) {
+                action.do()
+            }
+        })
+
+        // default filter
+        if (isEqual(filter, {}) && isEqual(must, []) && isEqual(mustNot, [])) {
             filter.range = { 'dates.end': { gte: 'now/d' } }
         }
 
@@ -383,6 +433,18 @@ const performFetchQuery = (
                 filter,
             }),
         })
+        // convert dates to moment objects
+        .then((data) => ({
+            ...data,
+            _items: data._items.map((item) => ({
+                ...item,
+                dates: {
+                    ...item.dates,
+                    start: moment(item.dates.start),
+                    end: moment(item.dates.end),
+                },
+            })),
+        }))
     }
 )
 
@@ -757,4 +819,5 @@ export {
     loadMoreEvents,
     refetchEvents,
     eventNotifications,
+    askConfirmationBeforeSavingEvent,
 }

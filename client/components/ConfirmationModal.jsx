@@ -7,19 +7,27 @@ export function ConfirmationModal({ handleHide, modalProps }) {
         Promise.resolve(modalProps.action())
         .then(handleHide)
     )
+    const handleCancel = () => {
+        handleHide()
+        if (modalProps.onCancel) {
+            modalProps.onCancel()
+        }
+    }
     return (
-        <Modal show={true} onHide={handleHide}>
+        <Modal show={true} onHide={handleCancel}>
             <Modal.Header>
-                <a className="close" onClick={handleHide}>
+                <a className="close" onClick={handleCancel}>
                     <i className="icon-close-small" />
                 </a>
                 <h3>{ modalProps.title || 'Confirmation' }</h3>
             </Modal.Header>
             <Modal.Body>
-                { modalProps.body || 'Are you sure ?'}
+                <div>
+                    { modalProps.body || 'Are you sure ?'}
+                </div>
             </Modal.Body>
             <Modal.Footer>
-                <Button type="button" onClick={handleHide}>Cancel</Button>
+                <Button type="button" onClick={handleCancel}>Cancel</Button>
                 <Button type="submit" onClick={action}>Ok</Button>
             </Modal.Footer>
         </Modal>
@@ -29,6 +37,7 @@ export function ConfirmationModal({ handleHide, modalProps }) {
 ConfirmationModal.propTypes = {
     handleHide: React.PropTypes.func.isRequired,
     modalProps: React.PropTypes.shape({
+        onCancel: React.PropTypes.func,
         action: React.PropTypes.func.isRequired,
         title: React.PropTypes.string,
         body: React.PropTypes.oneOfType([

@@ -12,7 +12,6 @@
 
 import superdesk
 import logging
-import json
 from superdesk import get_resource_service
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
@@ -22,7 +21,7 @@ from .common import STATE_SCHEMA
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
-from eve.utils import config, ParsedRequest
+from eve.utils import config
 from flask import current_app as app
 import itertools
 import copy
@@ -148,22 +147,6 @@ class EventsService(superdesk.Service):
                 user=user_id
             )
 
-    def on_delete(self, doc):
-        # If the event has planning, delete them
-        planning_service = get_resource_service('planning')
-        coverage_service = get_resource_service('coverage')
-        query = {
-            'event_item': str(doc['_id'])
-        }
-        req = ParsedRequest()
-        req.where = json.dumps(query)
-
-        for planning in planning_service.get(req=req, lookup=None):
-            planning_service.delete_action(lookup={'_id': planning['_id']})
-            # If the planning item is related to any coverages, delete them too
-            for coverage in coverage_service.find(where={'planning_item': planning['_id']}):
-                coverage_service.delete({'_id': coverage['_id']})
-
     def on_update(self, updates, original):
         if 'skip_on_update' in updates:
             # this is an recursive update(see below)
@@ -181,9 +164,24 @@ class EventsService(superdesk.Service):
             updates['dates'] = {}
 
         if not updates['dates'].get('recurring_rule', None):
-            # update only the current item so set it as a non recurrent task
+            # we keep the orignal and set it as not recursive
             updates['dates']['recurring_rule'] = None
-            updates['recurrence_id'] = generate_guid(type=GUID_NEWSML)
+            updates['recurrence_id'] = None
+            # we spike all the related recurrent events
+            if 'recurrence_id' in original:
+                # retieve all the related events
+                events = self.find(where={
+                    # all the events created from the same rec rules
+                    'recurrence_id': original['recurrence_id'],
+                    # except the original
+                    '_id': {'$ne': original['_id']},
+                    # only future ones
+                    'dates.start': {'$gt': original['dates']['start']},
+                })
+                spike_service = get_resource_service('events_spike')
+                # spike them
+                for event in events:
+                    spike_service.patch(event[config.ID_FIELD], {})
             push_notification(
                 'events:updated',
                 item=str(original[config.ID_FIELD]),
@@ -283,7 +281,8 @@ events_schema = {
     },
     'recurrence_id': {
         'type': 'string',
-        'mapping': not_analyzed
+        'mapping': not_analyzed,
+        'nullable': True,
     },
 
     # Audit Information
@@ -309,7 +308,12 @@ events_schema = {
         'type': 'string',
         'mapping': not_analyzed
     },
-
+    'event_created': {
+        'type': 'datetime'
+    },
+    'event_lastmodified': {
+        'type': 'datetime'
+    },
     # Event Details
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.2
     'name': {
@@ -376,7 +380,6 @@ events_schema = {
                     'byday': {'type': 'string', 'nullable': True},
                     'byhour': {'type': 'string', 'nullable': True},
                     'byminute': {'type': 'string', 'nullable': True},
-                    'update_recurrent_events': {'type': 'boolean', 'nullable': True}
                 },
                 'nullable': True
             },

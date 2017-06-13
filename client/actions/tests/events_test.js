@@ -755,7 +755,7 @@ describe('events', () => {
                     })
 
                     done()
-                }, 0)
+                }, 500)
             })
 
             it('Silently returns if no recurring event provided', (done) => {

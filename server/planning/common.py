@@ -17,7 +17,7 @@ NOT_ANALYZED = {'type': 'string', 'index': 'not_analyzed'}
 
 STATE_SCHEMA = {
     'type': 'string',
-    'allowed': ['active', 'spiked'],
+    'allowed': ['active', 'spiked', 'ingested'],
     'default': 'active',
     'mapping': NOT_ANALYZED
 }
