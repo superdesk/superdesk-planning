@@ -22,10 +22,9 @@ export class SelectMetaTermsField extends React.Component {
         const { touched, error, warning } = this.props.meta
         return ( <div className='field'>
             { this.props.label && <label>{this.props.label}</label> }
-            <button type="button" className="Select__dropdownToggle" disabled={this.props.readOnly}
-                onClick={this.toggleOpenSelectPopup.bind(this)}>
+            { !this.props.readOnly && <button type="button" className="Select__dropdownToggle" onClick={this.toggleOpenSelectPopup.bind(this)}>
                 <i className="icon--white icon-plus-large" />
-            </button>
+            </button> }
             { this.props.value && this.props.value.length > 0 && (
                 <div className="terms-list">
                     <ul>

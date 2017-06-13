@@ -20,10 +20,6 @@
         background-color: transparent;
         padding: 0;
         height: 24px;
-        &.line-input + .btn {
-            background-color: transparent;
-            top: 0px;
-        }
         &__textInput {
             background-color: transparent;
             padding: 0;
@@ -32,11 +28,15 @@
         &__textInput--invalid {
             border: 2px solid #b61818 !important;
         }
+        &:hover:disabled {
+            cursor: default;
+        }
     }
 
-    .btn {
+    &--btn {
         background: #fff;
         border: 0;
+        top: 0px;
         position: absolute;
         right: 2px; top: 2px;
         padding: 0 5px;

@@ -28,6 +28,7 @@ describe('planning', () => {
                 onlyFuture: true,
                 filterPlanningKeyword: null,
                 onlySpiked: false,
+                readOnly: true,
             })
         })
 
@@ -107,6 +108,21 @@ describe('planning', () => {
 
             expect(result.editorOpened).toBe(true)
             expect(result.currentPlanningId).toBe('p1')
+            expect(result.readOnly).toBe(false)
+        })
+
+        it('PREVIEW_PLANNING', () => {
+            const result = planning(
+                initialState,
+                {
+                    type: 'PREVIEW_PLANNING',
+                    payload: 'p1',
+                }
+            )
+
+            expect(result.editorOpened).toBe(true)
+            expect(result.currentPlanningId).toBe('p1')
+            expect(result.readOnly).toBe(true)
         })
 
         it('CLOSE_PLANNING_EDITOR', () => {

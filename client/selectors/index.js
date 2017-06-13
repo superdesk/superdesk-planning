@@ -32,6 +32,7 @@ export const getCurrentAgenda = createSelector(
 )
 export const getPrivileges = (state) => state.privileges
 export const getUsers = (state) => state.users
+export const getCurrentPlanningReadOnlyState = (state) => state.planning.readOnly
 
 export const getCurrentAgendaPlannings = createSelector(
     [getCurrentAgenda, getStoredPlannings, isOnlyFutureFiltered, getEvents,

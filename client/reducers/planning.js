@@ -9,6 +9,7 @@ const initialState  = {
     onlyFuture: true,
     filterPlanningKeyword: null,
     onlySpiked: false,
+    readOnly: true,
 }
 
 /*eslint-disable complexity*/
@@ -44,17 +45,31 @@ const planningReducer = (state=initialState, action) => {
                 plannings,
                 planningsAreLoading: false,
             }
+        case PLANNING.ACTIONS.PREVIEW_PLANNING:
+            if (!state.currentPlanningId || state.currentPlanningId !== action.payload) {
+                return {
+                    ...state,
+                    editorOpened: true,
+                    currentPlanningId: action.payload,
+                    readOnly: true,
+                }
+            } else {
+                return state
+            }
+
         case PLANNING.ACTIONS.OPEN_PLANNING_EDITOR:
             return {
                 ...state,
                 editorOpened: true,
                 currentPlanningId: action.payload,
+                readOnly: false,
             }
         case PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR:
             return {
                 ...state,
                 editorOpened: false,
                 currentPlanningId: null,
+                readOnly: true,
             }
         case PLANNING.ACTIONS.SET_ONLY_FUTURE:
             return {

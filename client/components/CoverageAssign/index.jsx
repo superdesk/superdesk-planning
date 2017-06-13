@@ -73,14 +73,16 @@ export class CoverageAssign  extends React.Component {
                     { (!deskAssigned && !userAssigned && <label>Unassigned</label>) ||
                       (deskAssigned && <label>{'Desk: ' + deskAssigned.name}</label>) ||
                       (userAssigned && <label>{userAssigned.display_name}</label>) }
-                    <button className='coverageassign__action pull-right' type='button'
+                    { !this.props.readOnly && <button className='coverageassign__action pull-right' type='button'
                         onClick={this.unassignAssignment.bind(this)}>
                         <a>Unassign</a>
-                    </button>
-                    <button className='coverageassign__action pull-right' type='button'
+                        </button>
+                    }
+                    { !this.props.readOnly && <button className='coverageassign__action pull-right' type='button'
                         onClick={this.toggleCoverageAssignSelect.bind(this)}>
                         <a>Assign</a>
-                    </button>
+                        </button>
+                    }
                     {
                         this.state.openCoverageAssignSelect &&
                         (<CoverageAssignSelect users={this.props.users} desks={this.props.desks} onCancel={this.toggleCoverageAssignSelect.bind(this)}
@@ -97,4 +99,5 @@ CoverageAssign.propTypes = {
     users: React.PropTypes.array.isRequired,
     desks: React.PropTypes.array.isRequired,
     input: React.PropTypes.object,
+    readOnly: React.PropTypes.bool,
 }

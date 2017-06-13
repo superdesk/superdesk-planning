@@ -4,23 +4,27 @@ import { Field } from 'redux-form'
 import { connect } from 'react-redux'
 import './style.scss'
 
-function CoverageComponent({ g2_content_type, coverage, users, desks }) {
+function CoverageComponent({ g2_content_type, coverage, users, desks, readOnly }) {
     return (
         <fieldset>
             <Field
                 name={`${coverage}.planning.assigned_to`}
                 component={CoverageAssign}
                 users={users}
-                desks={desks} />
+                desks={desks}
+                readOnly={readOnly} />
             <Field
                 name={`${coverage}.planning.ednote`}
                 component={fields.InputField}
                 type="text"
-                label="Description"/>
+                label="Description"
+                readOnly={readOnly} />
             <label>Type</label>
             <Field
                 name={`${coverage}.planning.g2_content_type`}
-                component="select">
+                component="select"
+                className="selectField"
+                disabled={readOnly ? 'disabled' : ''} >
                 <option />
                 {g2_content_type.map((t) => (
                     <option key={t.qcode} value={t.qcode}>{t.name}</option>
@@ -30,7 +34,8 @@ function CoverageComponent({ g2_content_type, coverage, users, desks }) {
             <Field
                 name={`${coverage}.planning.scheduled`}
                 component={fields.DayPickerInput}
-                withTime={true} />
+                withTime={true}
+                readOnly={readOnly} />
         </fieldset>
     )
 }
@@ -40,6 +45,7 @@ CoverageComponent.propTypes = {
     g2_content_type: React.PropTypes.array.isRequired,
     users: React.PropTypes.array.isRequired,
     desks: React.PropTypes.array.isRequired,
+    readOnly: React.PropTypes.bool,
 }
 
 const mapStateToProps = (state) => ({

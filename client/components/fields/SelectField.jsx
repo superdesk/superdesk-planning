@@ -2,7 +2,7 @@ import React from 'react'
 import Select from 'react-select'
 import 'react-select/dist/react-select.css'
 
-export const SelectField = ({ input, label, options, value, meta, multi, clearable }) => {
+export const SelectField = ({ input, label, options, value, meta, multi, clearable, readOnly }) => {
     const { touched, error, warning } = meta
     return (
         <div className="field">
@@ -15,6 +15,7 @@ export const SelectField = ({ input, label, options, value, meta, multi, clearab
                 tabSelectsValue={false}
                 valueKey="label"
                 className="line-input"
+                disabled={readOnly}
                 onChange={(opts) => {
                     if (Array.isArray(opts)) {
                         input.onChange(opts.map((opt) => (opt.value)))
@@ -47,4 +48,5 @@ SelectField.propTypes = {
             value: React.PropTypes.object,
         }),
     ]),
+    readOnly: React.PropTypes.bool,
 }
