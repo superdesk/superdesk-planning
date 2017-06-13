@@ -708,9 +708,21 @@ const onRecurringEventCreated = (_e, data) => (
  * @param {object} data - Event and User IDs
  */
 const onEventUpdated = (_e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (data && data.item) {
             dispatch(refetchEvents())
+
+            // Get the list of Planning Item IDs that are associated with this Event
+            const storedPlans = selectors.getStoredPlannings(getState())
+            const eventPlans = Object.keys(storedPlans)
+                .filter((pid) => get(storedPlans[pid], 'event_item', null) === data.item)
+
+            // If there are any associated Planning Items, then update the list
+            if (eventPlans.length > 0) {
+                // Re-fetch the Event, just in case it wasn't loaded by the refetchEvents action
+                dispatch(silentlyFetchEventsById([data.item], ITEM_STATE.ALL))
+                .then(() => (dispatch(fetchSelectedAgendaPlannings())))
+            }
         }
     }
 )

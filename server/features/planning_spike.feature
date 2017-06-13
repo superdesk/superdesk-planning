@@ -32,7 +32,7 @@ Feature: Planning Spike
         And we get notifications
         """
         [{
-            "event": "planning:spike",
+            "event": "planning:spiked",
             "extra": {
                 "item": "#planning._id#",
                 "user": "#CONTEXT_USER_ID#"
@@ -73,7 +73,7 @@ Feature: Planning Spike
         And we get notifications
         """
         [{
-            "event": "planning:unspike",
+            "event": "planning:unspiked",
             "extra": {
                 "item": "#planning._id#",
                 "user": "#CONTEXT_USER_ID#"

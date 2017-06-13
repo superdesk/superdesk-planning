@@ -901,5 +901,145 @@ describe('planning', () => {
                 }, 0)
             })
         })
+
+        describe('`planning:updated', () => {
+            it('Updates the Planning item in the store', (done) => {
+                spyGetById.response = {
+                    _id: 'p1',
+                    slugline: 'Plan1 Updated',
+                    coverages: [
+                        coverages[0],
+                        coverages[1],
+                    ],
+                }
+                $rootScope.$broadcast('planning:updated', { item: 'p1' })
+
+                setTimeout(() => {
+                    expect(spyGetById.func.callCount).toBe(1)
+                    expect(spyGetById.func.args[0]).toEqual([
+                        'planning',
+                        'p1',
+                    ])
+
+                    expect(selectors.getStoredPlannings(store.getState())).toEqual({
+                        p1: {
+                            _id: 'p1',
+                            slugline: 'Plan1 Updated',
+                            coverages: [
+                                coverages[0],
+                                coverages[1],
+                            ],
+                        },
+                    })
+                    done()
+                })
+            })
+
+            it('Event silently returns if no item provided', (done) => {
+                $rootScope.$broadcast('planning:updated', {})
+
+                setTimeout(() => {
+                    expect(spyGetById.func.callCount).toBe(0)
+                    expect(selectors.getStoredPlannings(store.getState())).toEqual({
+                        p1: {
+                            _id: 'p1',
+                            slugline: 'Plan1',
+                            coverages: [
+                                coverages[0],
+                                coverages[1],
+                            ],
+                        },
+                    })
+                    done()
+                })
+            })
+
+            it('Silently disgards event if Planning item is not loaded', (done) => {
+                $rootScope.$broadcast('planning:updated', { item: 'p3' })
+
+                setTimeout(() => {
+                    expect(spyGetById.func.callCount).toBe(0)
+                    expect(selectors.getStoredPlannings(store.getState())).toEqual({
+                        p1: {
+                            _id: 'p1',
+                            slugline: 'Plan1',
+                            coverages: [
+                                coverages[0],
+                                coverages[1],
+                            ],
+                        },
+                    })
+                    done()
+                })
+            })
+        })
+
+        it('`planning:spiked` updates the Planning item in the store', (done) => {
+            spyGetById.response = {
+                _id: 'p1',
+                slugline: 'Plan1 Updated',
+                state: 'spiked',
+                coverages: [
+                    coverages[0],
+                    coverages[1],
+                ],
+            }
+            $rootScope.$broadcast('planning:spiked', { item: 'p1' })
+
+            setTimeout(() => {
+                expect(spyGetById.func.callCount).toBe(1)
+                expect(spyGetById.func.args[0]).toEqual([
+                    'planning',
+                    'p1',
+                ])
+
+                expect(selectors.getStoredPlannings(store.getState())).toEqual({
+                    p1: {
+                        _id: 'p1',
+                        slugline: 'Plan1 Updated',
+                        state: 'spiked',
+                        coverages: [
+                            coverages[0],
+                            coverages[1],
+                        ],
+                    },
+                })
+                done()
+            })
+        })
+
+        it('`planning:unspiked` updates the Planning item in the store', (done) => {
+            spyGetById.response = {
+                _id: 'p1',
+                slugline: 'Plan1 Updated',
+                state: 'active',
+                coverages: [
+                    coverages[0],
+                    coverages[1],
+                ],
+            }
+            $rootScope.$broadcast('planning:unspiked', { item: 'p1' })
+
+            setTimeout(() => {
+                expect(spyGetById.func.callCount).toBe(1)
+                expect(spyGetById.func.args[0]).toEqual([
+                    'planning',
+                    'p1',
+                ])
+
+                expect(selectors.getStoredPlannings(store.getState())).toEqual({
+                    p1: {
+                        _id: 'p1',
+                        slugline: 'Plan1 Updated',
+                        state: 'active',
+                        coverages: [
+                            coverages[0],
+                            coverages[1],
+                        ],
+                    },
+                })
+                done()
+            })
+        })
     })
 })

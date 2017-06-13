@@ -34,7 +34,7 @@ class PlanningSpikeService(BaseService):
         set_item_expiry(updates)
 
         item = self.backend.update(self.datasource, id, updates, original)
-        push_notification('planning:spike', item=str(id), user=str(user.get(config.ID_FIELD)))
+        push_notification('planning:spiked', item=str(id), user=str(user.get(config.ID_FIELD)))
         return item
 
 
@@ -56,5 +56,5 @@ class PlanningUnspikeService(BaseService):
         updates[ITEM_EXPIRY] = None
 
         item = self.backend.update(self.datasource, id, updates, original)
-        push_notification('planning:unspike', item=str(id), user=str(user.get(config.ID_FIELD)))
+        push_notification('planning:unspiked', item=str(id), user=str(user.get(config.ID_FIELD)))
         return item
