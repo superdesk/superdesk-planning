@@ -344,15 +344,15 @@ describe('agenda', () => {
             it('addToCurrentAgenda executes dispatches', () => {
                 initialState.privileges.planning_planning_management = 1
 
-                const action = actions.addToCurrentAgenda(plannings[0])
+                const action = actions.addToCurrentAgenda([plannings[0]])
                 return action(dispatch, getState, {
                     notify,
                     $timeout,
                 })
-                .then((planning) => {
-                    expect(planning).toEqual(plannings[0])
-                    // Cannot check dispatch(addPlanningToAgenda()) using a spy on dispatch
-                    // As addPlanningToAgenda is a thunk function
+                .then((plannings) => {
+                    expect(plannings).toEqual([plannings[0]])
+                    // Cannot check dispatch(addPlanningsToAgenda()) using a spy on dispatch
+                    // As addPlanningsToAgenda is a thunk function
 
                     expect(notify.success.args[0]).toEqual([
                         'The planning has been added to the agenda',
@@ -474,10 +474,10 @@ describe('agenda', () => {
             })
         })
 
-        describe('addPlanningToAgenda', () => {
-            it('addPlanningToAgenda saves and executes dispatches', () => {
-                const action = actions.addPlanningToAgenda({
-                    planning: plannings[0],
+        describe('addPlanningsToAgenda', () => {
+            it('addPlanningsToAgenda saves and executes dispatches', () => {
+                const action = actions.addPlanningsToAgenda({
+                    plannings: plannings[0],
                     agenda: agendas[0],
                 })
                 initialState.privileges.planning_planning_management = 1
@@ -504,9 +504,9 @@ describe('agenda', () => {
                 })
             })
 
-            it('addPlanningToAgenda raises ACCESS_DENIED without permission', () => {
-                const action = actions.addPlanningToAgenda({
-                    planning: plannings[0],
+            it('addPlanningsToAgenda raises ACCESS_DENIED without permission', () => {
+                const action = actions.addPlanningsToAgenda({
+                    plannings: plannings[0],
                     agenda: agendas[0],
                 })
                 initialState.privileges.planning_planning_management = 0
@@ -523,11 +523,11 @@ describe('agenda', () => {
                     expect(dispatch.args[0]).toEqual([{
                         type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
                         payload: {
-                            action: '_addPlanningToAgenda',
+                            action: '_addPlanningsToAgenda',
                             permission: PRIVILEGES.PLANNING_MANAGEMENT,
                             errorMessage: 'Unauthorised to add a Planning Item to an Agenda',
                             args: [{
-                                planning: plannings[0],
+                                plannings: plannings[0],
                                 agenda: agendas[0],
                             }],
                         },

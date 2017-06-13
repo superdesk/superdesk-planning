@@ -1,9 +1,9 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import moment from 'moment'
 import { EventItem } from '../index'
 import { InfiniteLoader, List, AutoSizer } from 'react-virtualized'
 import { LIST_ITEM_HEIGHT, EVENT_LIST_DAY_HEADER_HEIGHT } from '../../constants'
-
 import './style.scss'
 
 export class EventsList extends React.Component {
@@ -53,7 +53,12 @@ export class EventsList extends React.Component {
                             onDoubleClick={this.props.onDoubleClick}
                             onSpikeEvent={this.onEventSpike.bind(this, event)}
                             onUnspikeEvent={this.onEventUnspike.bind(this, event)}
-                            selectedEvent={this.props.selectedEvent}
+                            highlightedEvent={this.props.highlightedEvent}
+                            isSelected={this.props.selectedEvents.indexOf(event._id) > -1}
+                            onSelectChange={(value) => this.props.onEventSelectChange({
+                                event: event._id,
+                                value,
+                            })}
                             privileges={this.props.privileges} />
                     ))}
                 </ul>
@@ -96,12 +101,14 @@ export class EventsList extends React.Component {
 }
 
 EventsList.propTypes = {
-    onClick: React.PropTypes.func,
-    onDoubleClick: React.PropTypes.func,
-    events: React.PropTypes.array.isRequired,
-    onEventSpike: React.PropTypes.func,
-    onEventUnspike: React.PropTypes.func,
-    selectedEvent: React.PropTypes.string,
-    loadMoreEvents: React.PropTypes.func.isRequired,
-    privileges: React.PropTypes.object,
+    onClick: PropTypes.func,
+    onDoubleClick: PropTypes.func,
+    events: PropTypes.array.isRequired,
+    onEventSpike: PropTypes.func,
+    onEventUnspike: PropTypes.func,
+    highlightedEvent: PropTypes.string,
+    loadMoreEvents: PropTypes.func.isRequired,
+    privileges: PropTypes.object,
+    selectedEvents: PropTypes.array.isRequired,
+    onEventSelectChange: PropTypes.func.isRequired,
 }

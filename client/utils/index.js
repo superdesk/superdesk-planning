@@ -23,6 +23,20 @@ export function isAllDay(event) {
     })
 }
 
+export function createReducer(initialState, reducerMap) {
+    return (state = initialState, action) => {
+        const reducer = reducerMap[action.type]
+        if (reducer) {
+            return reducer(state, action.payload)
+        } else {
+            return {
+                ...initialState,
+                ...state,
+            }
+        }
+    }
+}
+
 export const createTestStore = (params={}) => {
     const { initialState={}, extraArguments={} } = params
     const mockedInitialState = {

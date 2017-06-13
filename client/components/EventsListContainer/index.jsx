@@ -1,6 +1,11 @@
 import React from 'react'
-import { EventsList, SearchBar } from '../../components'
-import { AdvancedSearchPanelContainer } from '../index'
+import PropTypes from 'prop-types'
+import {
+    AdvancedSearchPanelContainer,
+    EventsList,
+    SearchBar,
+    MultiEventsSelectionActions,
+} from '../index'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
@@ -56,6 +61,11 @@ class EventsListComponent extends React.Component {
                         </button>
                     )}
                 </div>
+                {this.props.selectedEvents.length > 0 &&
+                    <div className="Events-list-container__selection subnav">
+                        <MultiEventsSelectionActions/>
+                    </div>
+                }
                 <div className="Events-list-container__body">
                     <AdvancedSearchPanelContainer  />
                     <EventsList events={this.props.events}
@@ -63,8 +73,10 @@ class EventsListComponent extends React.Component {
                                 onDoubleClick={this.props.openEventDetails}
                                 onEventSpike={this.props.spikeEvent}
                                 onEventUnspike={this.props.unspikeEvent}
-                                selectedEvent={this.props.selectedEvent}
+                                highlightedEvent={this.props.highlightedEvent}
                                 loadMoreEvents={this.props.loadMoreEvents}
+                                selectedEvents={this.props.selectedEvents}
+                                onEventSelectChange={this.props.onEventSelectChange}
                                 privileges={privileges} />
                 </div>
             </div>
@@ -73,28 +85,31 @@ class EventsListComponent extends React.Component {
 }
 
 EventsListComponent.propTypes = {
-    openEventDetails: React.PropTypes.func,
-    previewEvent: React.PropTypes.func,
-    loadEvents: React.PropTypes.func,
-    events: React.PropTypes.array,
-    currentSearch: React.PropTypes.object,
-    advancedSearchOpened: React.PropTypes.bool,
-    openAdvancedSearch: React.PropTypes.func.isRequired,
-    closeAdvancedSearch: React.PropTypes.func.isRequired,
-    toggleEventsList: React.PropTypes.func,
-    spikeEvent: React.PropTypes.func,
-    unspikeEvent: React.PropTypes.func,
-    selectedEvent: React.PropTypes.string,
-    privileges: React.PropTypes.object.isRequired,
-    loadMoreEvents: React.PropTypes.func.isRequired,
+    openEventDetails: PropTypes.func,
+    previewEvent: PropTypes.func,
+    loadEvents: PropTypes.func,
+    events: PropTypes.array,
+    currentSearch: PropTypes.object,
+    advancedSearchOpened: PropTypes.bool,
+    openAdvancedSearch: PropTypes.func.isRequired,
+    closeAdvancedSearch: PropTypes.func.isRequired,
+    toggleEventsList: PropTypes.func,
+    spikeEvent: PropTypes.func,
+    unspikeEvent: PropTypes.func,
+    highlightedEvent: PropTypes.string,
+    privileges: PropTypes.object.isRequired,
+    loadMoreEvents: PropTypes.func.isRequired,
+    selectedEvents: PropTypes.array.isRequired,
+    onEventSelectChange: PropTypes.func.isRequired,
 }
 
 const mapStateToProps = (state) => ({
     events: selectors.getEventsOrderedByDay(state),
     currentSearch: get(state, 'events.search.currentSearch'),
     advancedSearchOpened: get(state, 'events.search.advancedSearchOpened'),
-    selectedEvent: selectors.getSelectedEvent(state),
+    highlightedEvent: selectors.getHighlightedEvent(state),
     privileges: selectors.getPrivileges(state),
+    selectedEvents: selectors.getSelectedEvents(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -107,6 +122,7 @@ const mapDispatchToProps = (dispatch) => ({
     loadMoreEvents: () => (dispatch(actions.loadMoreEvents())),
     spikeEvent: (event) => dispatch(actions.openSpikeEvent(event)),
     unspikeEvent: (event) => dispatch(actions.openUnspikeEvent(event)),
+    onEventSelectChange: (args) => dispatch(actions.toggleEventSelection(args)),
 })
 
 export const EventsListContainer = connect(

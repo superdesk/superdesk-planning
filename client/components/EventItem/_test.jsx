@@ -14,7 +14,7 @@ describe('events', () => {
             let event
             let onSpikeEvent
             let onUnspikeEvent
-            let selectedEvent
+            let highlightedEvent
             let privileges
 
             const getShallowWrapper = () => (
@@ -23,7 +23,7 @@ describe('events', () => {
                     event={event}
                     onSpikeEvent={onSpikeEvent}
                     onUnspikeEvent={onUnspikeEvent}
-                    selectedEvent={selectedEvent}
+                    highlightedEvent={highlightedEvent}
                     privileges={privileges}
                 />)
             )
@@ -37,7 +37,7 @@ describe('events', () => {
                             event={event}
                             onSpikeEvent={onSpikeEvent}
                             onUnspikeEvent={onUnspikeEvent}
-                            selectedEvent={selectedEvent}
+                            highlightedEvent={highlightedEvent}
                             privileges={privileges} />
                     </Provider>
                 )
@@ -53,7 +53,7 @@ describe('events', () => {
                             event={event}
                             onSpikeEvent={onSpikeEvent}
                             onUnspikeEvent={onUnspikeEvent}
-                            selectedEvent={selectedEvent}
+                            highlightedEvent={highlightedEvent}
                             privileges={privileges} />
                     </Provider>
                 )
@@ -71,7 +71,7 @@ describe('events', () => {
                         end: moment('2016-10-15T14:01:00+0000'),
                     },
                 }
-                selectedEvent = null
+                highlightedEvent = null
                 privileges = {
                     planning_event_management: 1,
                     planning_event_spike: 1,

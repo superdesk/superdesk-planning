@@ -49,7 +49,7 @@ describe('events', () => {
                 },
                 show: true,
                 showEventDetails: null,
-                selectedEvent: null,
+                highlightedEvent: null,
             },
             privileges: {
                 planning: 1,
@@ -116,7 +116,7 @@ describe('events', () => {
         })
 
         it('uploadFilesAndSaveEvent', () => {
-            initialState.events.selectedEvent = true
+            initialState.events.highlightedEvent = true
             initialState.events.showEventDetails = true
             const event = {}
             const action = actions.uploadFilesAndSaveEvent(event)
@@ -147,7 +147,7 @@ describe('events', () => {
             const action = actions.spikeEvent(events[2])
             it('spikeEvent calls `events_spike` endpoint', () => {
                 api.update = sinon.spy(() => (Promise.resolve()))
-                return action(dispatch, getState, {
+                return action(dispatchCheckPermission, getState, {
                     api,
                     notify,
                 })
@@ -163,7 +163,7 @@ describe('events', () => {
 
                     expect(dispatch.args[0]).toEqual([{
                         type: 'SPIKE_EVENT',
-                        payload: events[2],
+                        payload: [events[2]],
                     }])
 
                     expect(dispatch.args[1]).toEqual([{ type: 'HIDE_MODAL' }])
@@ -185,7 +185,7 @@ describe('events', () => {
                 api.update = sinon.spy(() => (Promise.reject(
                     { data: { _message: 'Failed to spike the event' } }
                 )))
-                return action(dispatch, getState, {
+                return action(dispatchCheckPermission, getState, {
                     api,
                     notify,
                 })
