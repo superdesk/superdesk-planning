@@ -47,7 +47,7 @@ export function ManageAgendasModalComponent({
                     ||
                         <div>
                             {privileges.planning_agenda_management === 1 && (
-                                <Button type="button" bsClass="btn btn--pull-right btn--primary" onClick={openCreateAgenda}>
+                                <Button type="button" bsClass="btn btn--primary" onClick={openCreateAgenda}>
                                     <i className="icon-plus-sign icon-white"/>
                                     Add a new agenda
                                 </Button>
