@@ -59,7 +59,8 @@ class EventsListComponent extends React.Component {
                 <div className="Events-list-container__body">
                     <AdvancedSearchPanelContainer  />
                     <EventsList events={this.props.events}
-                                onEventClick={this.props.openEventDetails}
+                                onClick={this.props.previewEvent}
+                                onDoubleClick={this.props.openEventDetails}
                                 onEventSpike={this.props.spikeEvent}
                                 onEventUnspike={this.props.unspikeEvent}
                                 selectedEvent={this.props.selectedEvent}
@@ -73,6 +74,7 @@ class EventsListComponent extends React.Component {
 
 EventsListComponent.propTypes = {
     openEventDetails: React.PropTypes.func,
+    previewEvent: React.PropTypes.func,
     loadEvents: React.PropTypes.func,
     events: React.PropTypes.array,
     currentSearch: React.PropTypes.object,
@@ -97,6 +99,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     openEventDetails: (event) => dispatch(actions.openEventDetails(event)),
+    previewEvent: (event) => dispatch(actions.previewEvent(event)),
     loadEvents: (keyword) => dispatch(actions.fetchEvents({ fulltext: keyword })),
     openAdvancedSearch: () => (dispatch(actions.openAdvancedSearch())),
     closeAdvancedSearch: () => (dispatch(actions.closeAdvancedSearch())),

@@ -5,7 +5,7 @@ import './style.scss'
 import { OverlayTrigger } from 'react-bootstrap'
 import { ITEM_STATE } from '../../constants'
 
-export const EventItem = ({ event, onClick, onSpikeEvent, onUnspikeEvent, selectedEvent, privileges }) => {
+export const EventItem = ({ event, onClick, onDoubleClick, onSpikeEvent, onUnspikeEvent, selectedEvent, privileges }) => {
     const location = get(event, 'location[0].name')
     const hasBeenCanceled = get(event, 'occur_status.qcode') === 'eocstat:eos6'
     const hasBeenSpiked = get(event, 'state', 'active') === ITEM_STATE.SPIKED
@@ -29,7 +29,8 @@ export const EventItem = ({ event, onClick, onSpikeEvent, onUnspikeEvent, select
     return (
         <ListItem
             item={event}
-            onClick={() => onClick(event)}
+            onClick={onClick}
+            onDoubleClick={onDoubleClick}
             draggable={true}
             className={classes}
             active={selectedEvent === event._id}
@@ -96,6 +97,7 @@ export const EventItem = ({ event, onClick, onSpikeEvent, onUnspikeEvent, select
 
 EventItem.propTypes = {
     onClick: PropTypes.func.isRequired,
+    onDoubleClick: React.PropTypes.func,
     event: PropTypes.object.isRequired,
     onSpikeEvent: PropTypes.func.isRequired,
     onUnspikeEvent: PropTypes.func.isRequired,

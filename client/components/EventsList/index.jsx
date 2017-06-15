@@ -12,7 +12,8 @@ export class EventsList extends React.Component {
         super(props)
         this.state = { isNextPageLoading: false }
     }
-    onEventClick(event) { this.props.onEventClick(event) }
+    onClick(event) { this.props.onClick(event) }
+    onDoubleClick(event) { this.props.onDoubleClick(event) }
     onEventSpike(event) { this.props.onEventSpike(event) }
     onEventUnspike(event) { this.props.onEventUnspike(event) }
 
@@ -48,7 +49,8 @@ export class EventsList extends React.Component {
                     {events.map((event) => (
                         <EventItem event={event}
                             key={event._id}
-                            onClick={this.onEventClick.bind(this, event)}
+                            onClick={this.props.onClick}
+                            onDoubleClick={this.props.onDoubleClick}
                             onSpikeEvent={this.onEventSpike.bind(this, event)}
                             onUnspikeEvent={this.onEventUnspike.bind(this, event)}
                             selectedEvent={this.props.selectedEvent}
@@ -94,7 +96,8 @@ export class EventsList extends React.Component {
 }
 
 EventsList.propTypes = {
-    onEventClick: React.PropTypes.func,
+    onClick: React.PropTypes.func,
+    onDoubleClick: React.PropTypes.func,
     events: React.PropTypes.array.isRequired,
     onEventSpike: React.PropTypes.func,
     onEventUnspike: React.PropTypes.func,

@@ -2,6 +2,7 @@ import React from 'react'
 import { fields, CoverageAssign } from '../../components'
 import { Field } from 'redux-form'
 import { connect } from 'react-redux'
+import classNames from 'classnames'
 import './style.scss'
 
 function CoverageComponent({ g2_content_type, coverage, users, desks, readOnly }) {
@@ -23,7 +24,7 @@ function CoverageComponent({ g2_content_type, coverage, users, desks, readOnly }
             <Field
                 name={`${coverage}.planning.g2_content_type`}
                 component="select"
-                className="selectField"
+                className={classNames({ 'disabledInput': readOnly })}
                 disabled={readOnly ? 'disabled' : ''} >
                 <option />
                 {g2_content_type.map((t) => (

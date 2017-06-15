@@ -1,10 +1,13 @@
 import React from 'react'
+import classNames from 'classnames'
 import './style.scss'
 
 export const InputField = ({ input, label, type, autoFocus, readOnly, meta: { touched, error, warning } }) => (
     <div className="field">
         {label && <label>{label}</label>}
-        <input {...input} type={type} autoFocus={autoFocus} className="line-input inputField" disabled={readOnly ? 'disabled' : ''}/>
+        <input {...input} type={type} autoFocus={autoFocus}
+            className={classNames('line-input', { 'disabledInput': readOnly })}
+            disabled={readOnly ? 'disabled' : ''}/>
         {touched && ((error && <span className="error-block">{error}</span>) ||
         (warning && <span className="help-block">{warning}</span>))}
     </div>

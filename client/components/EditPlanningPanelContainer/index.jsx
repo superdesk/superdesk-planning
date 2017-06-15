@@ -130,7 +130,7 @@ const mapStateToProps = (state) => ({
     event: selectors.getCurrentPlanningEvent(state),
     agendaSpiked: selectors.getCurrentPlanningAgendaSpiked(state),
     users: selectors.getUsers(state),
-    readOnly: selectors.getCurrentPlanningReadOnlyState(state),
+    readOnly: selectors.getPlanningItemReadOnlyState(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

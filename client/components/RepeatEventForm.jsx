@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react'
 import { Field, formValueSelector } from 'redux-form'
 import { fields, RepeatEventSummary } from '../components'
 import { connect } from 'react-redux'
+import classNames from 'classnames'
 
 class RepeatEventFormComponent extends React.Component {
 
@@ -104,11 +105,17 @@ class RepeatEventFormComponent extends React.Component {
             DAILY: 'days',
         }
 
+        const readOnly = this.props.readOnly
+        const readOnlyClasses = classNames({ 'disabledInput': readOnly })
+        const readOnlyAttr = readOnly ? 'disabled' : ''
+
         return (
             <div>
                 <div>
                     <label>Repeats</label>
-                    <Field name="dates.recurring_rule.frequency" component="select">
+                    <Field name="dates.recurring_rule.frequency" component="select"
+                        className={readOnlyClasses}
+                        disabled={readOnlyAttr} >
                         {/* values come from http://tinyurl.com/hqol55p */}
                         <option value="YEARLY">Yearly</option>
                         <option value="MONTHLY">Monthly</option>
@@ -118,7 +125,9 @@ class RepeatEventFormComponent extends React.Component {
                 </div>
                 <div className="recurring__interval">
                     <label>Repeat every</label>
-                    <Field name="dates.recurring_rule.interval" component="select">
+                    <Field name="dates.recurring_rule.interval" component="select"
+                        className={readOnlyClasses}
+                        disabled={readOnlyAttr}>
                         {/* Create 30 options with 1...30 values */}
                         {Array.apply(null, { length: 30 }).map(Number.call, Number).map((n) => (
                             <option key={n + 1} value={n + 1}>
@@ -131,7 +140,7 @@ class RepeatEventFormComponent extends React.Component {
                 { this.props.frequency === 'WEEKLY' &&
                     <div>
                         <label htmlFor="dates.recurring_rule.byday">Repeat on</label>
-                        <Field name="dates.recurring_rule.byday" component={fields.DaysOfWeek} />
+                        <Field name="dates.recurring_rule.byday" component={fields.DaysOfWeek} readOnly={readOnly}/>
                     </div>
                 }
                 <div className="recurring__ends">
@@ -139,6 +148,8 @@ class RepeatEventFormComponent extends React.Component {
                     <label>
                         <input
                             name="endRepeatMode"
+                            className={readOnlyClasses}
+                            disabled={readOnlyAttr}
                             checked={this.state.endRepeatMode === 'unlimited'}
                             onChange={this.handleEndRepeatModeChange.bind(this)}
                             value="unlimited"
@@ -149,6 +160,8 @@ class RepeatEventFormComponent extends React.Component {
                         <input
                             name="endRepeatMode"
                             checked={this.state.endRepeatMode === 'count'}
+                            className={readOnlyClasses}
+                            disabled={readOnlyAttr}
                             onChange={this.handleEndRepeatModeChange.bind(this)}
                             value="count"
                             type="radio"/>
@@ -157,11 +170,14 @@ class RepeatEventFormComponent extends React.Component {
                             text="occurrences"
                             withRef={true}
                             ref="recurring_rule--count"
-                            component={fields.InputIntegerField} />
+                            component={fields.InputIntegerField}
+                            readOnly={readOnly} />
                     </label>
                     <label>
                         <input
                             name="endRepeatMode"
+                            className={readOnlyClasses}
+                            disabled={readOnlyAttr}
                             checked={this.state.endRepeatMode === 'until'}
                             onChange={this.handleEndRepeatModeChange.bind(this)}
                             value="until"
@@ -170,7 +186,8 @@ class RepeatEventFormComponent extends React.Component {
                         <Field name="dates.recurring_rule.until"
                            withRef={true}
                            ref="recurring_rule--until"
-                           component={fields.DayPickerInput} />
+                           component={fields.DayPickerInput}
+                           readOnly={readOnly} />
                     </label>
                     <RepeatEventSummary byDay={this.props.byDay}
                         interval={this.state.interval}
@@ -193,6 +210,7 @@ RepeatEventFormComponent.propTypes = {
     byDay: PropTypes.string,
     start: PropTypes.object,
     interval: PropTypes.string,
+    readOnly: PropTypes.bool,
 }
 
 // This is the same name defined in EventForm.jsx because it is just a sub form

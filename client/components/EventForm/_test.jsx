@@ -122,8 +122,15 @@ describe('events', () => {
             })
 
             it('supports files', () => {
-                const store = createTestStore()
-                const wrapper = mount(<Provider store={store}><EventForm initialValues={event} /></Provider>)
+                const store = createTestStore({
+                    initialState: {
+                        events: {
+                            readOnly: false,
+                            events: { '5800d71930627218866f1e80' : event },
+                        },
+                    },
+                })
+                const wrapper = mount(<Provider store={store}><EventForm initialValues={event}/></Provider>)
                 const field = wrapper.find('FileFieldComponent')
                 const file = field.props().file
                 expect(field.props().fieldName).toBe('files[0]')
@@ -136,7 +143,14 @@ describe('events', () => {
             })
 
             it('supports links', () => {
-                const store = createTestStore()
+                const store = createTestStore({
+                    initialState: {
+                        events: {
+                            readOnly: false,
+                            events: { '5800d71930627218866f1e80' : event },
+                        },
+                    },
+                })
                 const wrapper = mount(<Provider store={store}><EventForm initialValues={event} /></Provider>)
                 const field = wrapper.find('LinkFieldComponent')
                 const link = field.props().link

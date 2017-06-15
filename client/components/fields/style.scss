@@ -14,14 +14,15 @@
 	font-weight: normal;
 }
 
-.inputField {
+.disabledInput {
 	&:hover:disabled {
 		cursor: default;
 	}
 }
 
-.selectField {
-	&:hover:disabled {
+.disabledButton {
+	opacity: 0;
+	&:hover {
 		cursor: default;
 	}
 }

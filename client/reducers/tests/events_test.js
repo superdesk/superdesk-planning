@@ -18,6 +18,7 @@ describe('events', () => {
                 show: true,
                 showEventDetails: null,
                 selectedEvent: null,
+                readOnly: true,
             })
         })
 
@@ -115,6 +116,7 @@ describe('events', () => {
             })
             expect(result.showEventDetails).toBe('1')
             expect(result.selectedEvent).toBe('1')
+            expect(result.readOnly).toBe(false)
         })
 
         it('CLOSE_EVENT_DETAILS', () => {

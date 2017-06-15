@@ -10,6 +10,7 @@ describe('events', () => {
     describe('components', () => {
         describe('<EventItem />', () => {
             let onClick
+            let onDoubleClick
             let event
             let onSpikeEvent
             let onUnspikeEvent
@@ -42,8 +43,25 @@ describe('events', () => {
                 )
             }
 
+            const getWrapperWithDoubleClickProp = () => {
+                const store = createTestStore({})
+                return mount(
+                    <Provider store={store}>
+                        <EventItem
+                            onClick={onClick}
+                            onDoubleClick={onDoubleClick}
+                            event={event}
+                            onSpikeEvent={onSpikeEvent}
+                            onUnspikeEvent={onUnspikeEvent}
+                            selectedEvent={selectedEvent}
+                            privileges={privileges} />
+                    </Provider>
+                )
+            }
+
             beforeEach(() => {
                 onClick = sinon.spy(() => (Promise.resolve()))
+                onDoubleClick = sinon.spy(() => (Promise.resolve()))
                 onSpikeEvent = sinon.spy(() => (Promise.resolve()))
                 onUnspikeEvent = sinon.spy(() => (Promise.resolve()))
                 event = {
@@ -118,6 +136,15 @@ describe('events', () => {
                 button.simulate('click')
                 expect(onClick.callCount).toBe(1)
                 expect(onClick.args[0][0]).toEqual(event)
+            })
+
+            it('executes `onDoubleClick` callback', () => {
+                let wrapper = getWrapperWithDoubleClickProp()
+                const button = wrapper.find('.ListItem').first()
+                button.simulate('click')
+                button.simulate('click')
+                expect(onDoubleClick.callCount).toBe(1)
+                expect(onDoubleClick.args[0][0]).toEqual(event)
             })
 
             it('executes `onSpikedEvent` callback', () => {

@@ -10,6 +10,9 @@ import { ChainValidators, EndDateAfterStartDate, RequiredFieldsValidatorFactory,
 import './style.scss'
 import { ITEM_STATE } from '../../constants'
 import * as selectors from '../../selectors'
+import { OverlayTrigger } from 'react-bootstrap'
+import { tooltips } from '../index'
+import classNames from 'classnames'
 
 /**
 * Form for adding/editing an event
@@ -66,10 +69,14 @@ export class Component extends React.Component {
             endingDate,
             initialValues,
             users,
+            readOnly,
+            openEventDetails,
         } = this.props
         const eventSpiked = get(initialValues, 'state', 'active') === ITEM_STATE.SPIKED
+        const updatedReadOnly = readOnly || eventSpiked
         const creationDate = get(initialValues, '_created')
         const updatedDate = get(initialValues, '_updated')
+        const id = get(initialValues, '_id')
         const author = get(initialValues, 'original_creator') && users ? users.find((u) => (u._id === initialValues.original_creator)) : null
         const versionCreator = get(initialValues, 'version_creator') && users ? users.find((u) => (u._id === initialValues.version_creator)) : null
 
@@ -88,7 +95,7 @@ export class Component extends React.Component {
                     <span className="subnav__page-title">Event details</span>
                     {(!pristine && !submitting) && (
                         <div>
-                            {!eventSpiked &&
+                            {!updatedReadOnly &&
                                 <button type="submit" className="btn btn--primary">
                                     Save
                                 </button>
@@ -96,6 +103,20 @@ export class Component extends React.Component {
                             <button type="button" className="btn" onClick={onBackClick}>Cancel</button>
                         </div>
                     )}
+                    { updatedReadOnly && (
+                        <div className="subnav__previewAction">
+                            {!eventSpiked && (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
+                                <button onClick={openEventDetails.bind(null, id)}>
+                                    <i className="icon-pencil"/>
+                                </button>
+                            </OverlayTrigger>)}
+                            <OverlayTrigger placement="bottom" overlay={tooltips.closeTooltip}>
+                                <button onClick={onBackClick}>
+                                    <i className="icon-close-small"/>
+                                </button>
+                            </OverlayTrigger>
+                        </div>)
+                    }
                 </div>
                 <div className="EventForm__form">
                     {error && <div className="error-block">{error}</div>}
@@ -111,27 +132,32 @@ export class Component extends React.Component {
                     <div>
                         <Field name="name"
                                component={fields.InputField}
-                               type="text"/>
+                               type="text"
+                               readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <Field name="anpa_category"
                                component={fields.CategoryField}
-                               label="Category"/>
+                               label="Category"
+                               readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <Field name="subject"
                                component={fields.SubjectField}
-                               label="Subject"/>
+                               label="Subject"
+                               readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <Field name="definition_short"
                                component={fields.InputTextAreaField}
-                               label="Description"/>
+                               label="Description"
+                               readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <Field name="location[0]"
                                component={fields.GeoLookupInput}
-                               label="Location"/>
+                               label="Location"
+                               readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <label htmlFor="dates.start">From</label>
@@ -142,7 +168,8 @@ export class Component extends React.Component {
                                selectsStart={true}
                                startDate={startingDate}
                                endDate={endingDate}
-                               withTime={true}/>
+                               withTime={true}
+                               readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <label htmlFor="dates.end">To</label>
@@ -154,16 +181,19 @@ export class Component extends React.Component {
                                selectsEnd={true}
                                startDate={startingDate}
                                endDate={endingDate}
-                               withTime={true}/>
+                               withTime={true}
+                               readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <label htmlFor="repeat">Repeat ...</label>
                         <input
                             name="doesRepeat"
                             type="checkbox"
+                            className={classNames({ 'disabledInput': readOnly })}
                             value={true}
                             checked={this.state.doesRepeat}
-                            onChange={this.handleDoesRepeatChange.bind(this)}/>
+                            onChange={this.handleDoesRepeatChange.bind(this)}
+                            disabled={updatedReadOnly ? 'disabled' : ''}/>
                         {
                             this.state.doesRepeat &&
                             // as <RepeatEventForm/> contains fields, we provide the props in this form
@@ -174,15 +204,16 @@ export class Component extends React.Component {
                     <div>
                         <Field name="occur_status"
                                component={fields.OccurStatusField}
-                               label="Event Occurence Status"/>
+                               label="Event Occurence Status"
+                               readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <label htmlFor="files">Attached files</label>
-                        <FieldArray name="files" component={fields.FilesFieldArray} />
+                        <FieldArray name="files" component={fields.FilesFieldArray} readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <label htmlFor="links">External links</label>
-                        <FieldArray name="links" component={fields.LinksFieldArray} />
+                        <FieldArray name="links" component={fields.LinksFieldArray} readOnly={updatedReadOnly} />
                     </div>
                     {initialValues && initialValues._plannings &&
                         initialValues._plannings.length > 0 &&
@@ -220,6 +251,8 @@ Component.propTypes = {
         React.PropTypes.array,
         React.PropTypes.object,
     ]),
+    readOnly: React.PropTypes.bool,
+    openEventDetails: React.PropTypes.func,
 }
 
 // Decorate the form component
@@ -239,6 +272,7 @@ const mapStateToProps = (state) => ({
     endingDate: selector(state, 'dates.end'),
     doesRepeat: !isNil(selector(state, 'dates.recurring_rule.frequency')),
     users: selectors.getUsers(state),
+    readOnly: selectors.getEventReadOnlyState(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -249,6 +283,7 @@ const mapDispatchToProps = (dispatch) => ({
         // save the event through the API
         .then(() => dispatch(actions.uploadFilesAndSaveEvent(event)))
     ),
+    openEventDetails: (event) => dispatch(actions.openEventDetails(event)),
 })
 
 export const EventForm = connect(

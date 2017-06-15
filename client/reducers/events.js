@@ -15,8 +15,10 @@ const initialState = {
     show: true,
     showEventDetails: null,
     selectedEvent: null,
+    readOnly: true,
 }
 
+/*eslint-disable complexity*/
 const eventsReducer = (state=initialState, action) => {
     switch (action.type) {
         case EVENTS.ACTIONS.TOGGLE_EVENT_LIST:
@@ -81,20 +83,30 @@ const eventsReducer = (state=initialState, action) => {
                     advancedSearchOpened: false,
                 },
             }
-        case EVENTS.ACTIONS.OPEN_EVENT_DETAILS:
+        case EVENTS.ACTIONS.PREVIEW_EVENT:
             return {
                 ...state,
                 showEventDetails: action.payload,
                 selectedEvent: action.payload,
             }
+
+        case EVENTS.ACTIONS.OPEN_EVENT_DETAILS:
+            return {
+                ...state,
+                showEventDetails: action.payload,
+                selectedEvent: action.payload,
+                readOnly: false,
+            }
         case EVENTS.ACTIONS.CLOSE_EVENT_DETAILS:
             return {
                 ...state,
                 showEventDetails: null,
+                readOnly: true,
             }
         default:
             return state
     }
 }
+/*eslint-enable*/
 
 export default eventsReducer
