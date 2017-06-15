@@ -20,6 +20,7 @@ describe('<EventPanelContainer />', () => {
                     },
                 },
                 eventsInList: [eventId],
+                search: { currentSearch: {} },
             },
             privileges: {
                 planning: 1,

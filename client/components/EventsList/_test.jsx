@@ -11,8 +11,8 @@ const events = {
     '5800d71930627218866f1e80': {
         _id: '5800d71930627218866f1e80',
         dates: {
-            start: moment('2016-10-15T13:01:00+0000'),
-            end: moment('2016-10-15T14:01:00+0000'),
+            start: moment('2099-10-15T13:01:00+0000'),
+            end: moment('2099-10-15T14:01:00+0000'),
         },
         definition_short: 'definition_short 1',
         location: [{ name: 'location1' }],
@@ -22,8 +22,8 @@ const events = {
     '5800d73230627218866f1e82': {
         _id: '5800d73230627218866f1e82',
         dates: {
-            start: moment('2016-10-17T22:00:00+0000'),
-            end: moment('2016-10-18T22:00:00+0000'),
+            start: moment('2099-10-17T22:00:00+0000'),
+            end: moment('2099-10-18T22:00:00+0000'),
             tz: 'Europe/Berlin',
         },
         definition_short: '',
@@ -33,8 +33,8 @@ const events = {
     '5800d73230627218866f1d82': {
         _id: '5800d73230627218866f1d82',
         dates: {
-            start: moment('2016-10-17T13:01:34+0000'),
-            end: moment('2016-10-19T13:01:50+0000'),
+            start: moment('2099-10-17T13:01:34+0000'),
+            end: moment('2099-10-19T13:01:50+0000'),
         },
         definition_short: '',
         location: [{ name: 'location2' }],
@@ -61,7 +61,7 @@ describe('<EventsList />', () => {
             events: {
                 events: events,
                 eventsInList: Object.keys(events),
-                search: {},
+                search: { currentSearch: {} },
             },
             planning: {
                 plannings: {
@@ -83,13 +83,13 @@ describe('<EventsList />', () => {
         // check order
         expect(wrapper.find('.events-list__title').map((e) => e.text()))
         .toEqual([
-            'Saturday October 15, 2016',
-            'Monday October 17, 2016',
-            'Tuesday October 18, 2016',
-            'Wednesday October 19, 2016',
+            'Thursday October 15, 2099',
+            'Saturday October 17, 2099',
+            'Sunday October 18, 2099',
+            'Monday October 19, 2099',
         ])
-        // there is 5 events to show
-        expect(wrapper.find('.ListItem').length).toEqual(5)
+        // there is 6 events to show
+        expect(wrapper.find('.ListItem').length).toEqual(6)
         // check classes
         expect(wrapper.find('.ListItem').first().hasClass('event--has-planning')).toBe(true)
         expect(wrapper.find('.ListItem').last().hasClass('event--has-planning')).toBe(false)
@@ -97,8 +97,8 @@ describe('<EventsList />', () => {
         const newEvent = {
             _id: '123',
             dates: {
-                start: '2016-11-17T13:01:34+0000',
-                end: '2016-11-17T14:01:50+0000',
+                start: '2099-11-17T13:01:34+0000',
+                end: '2099-11-17T14:01:50+0000',
             },
             definition_short: '',
             location: [{ name: 'location3' }],
@@ -109,14 +109,14 @@ describe('<EventsList />', () => {
         // There are one more group
         expect(wrapper.find('.events-list__list').length).toEqual(4 + 1)
         // There is more event
-        expect(wrapper.find('.ListItem').length).toEqual(5 + 1)
+        expect(wrapper.find('.ListItem').length).toEqual(6 + 1)
         // update an item
         const updatedEvent = {
             ...newEvent,
             name: 'new name',
         }
         store.dispatch(actions.receiveEvents([updatedEvent]))
-        expect(wrapper.find('.ListItem').length).toEqual(5 + 1)
+        expect(wrapper.find('.ListItem').length).toEqual(6 + 1)
         expect(
             wrapper.find('.sd-list-item__row span').last().text())
         .toContain('location3')

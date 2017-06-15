@@ -6,6 +6,10 @@ import { ITEM_STATE } from '../constants'
 
 export const getAgendas = (state) => state.agenda.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
+export const eventSearchActive = (state) => (
+    state.events.search.currentSearch.advancedSearch ||
+    state.events.search.currentSearch.fulltext) ?
+    true : false
 export const getEvents = (state) => state.events.events
 export const isEventListShown = (state) =>state.events.show
 export const getPreviousEventRequestParams = (state) => get(state.events, 'lastRequestParams', {})
@@ -171,15 +175,24 @@ export const getEventsWithMoreInfo = createSelector(
 * the associated events.
 */
 export const getEventsOrderedByDay = createSelector(
-    [getEventsWithMoreInfo],
-    (events) => {
+    [eventSearchActive, getEventsWithMoreInfo],
+    (eventSearchActive, events) => {
         if (!events) return []
+        // check if search exists
         // order by date
         events = events.sort((a, b) => a.dates.start - b.dates.start)
         var days = {}
         function addEventToDate(event, date) {
             date = date || event.dates.start
             date = date.format('YYYY-MM-DD')
+            // if not in search mode, only add dates in the future
+            if (!eventSearchActive) {
+                let now = moment()
+                if (!moment(date).isSameOrAfter(now)) {
+                    return false
+                }
+            }
+
             if (!days[date]) {
                 days[date] = []
             }

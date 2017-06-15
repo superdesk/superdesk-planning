@@ -6,7 +6,14 @@ import { Provider } from 'react-redux'
 
 describe('<EventsListContainer />', () => {
     it('clicks on the buttons', () => {
-        const store = createTestStore()
+        const initialState = {
+            events: {
+                events: {},
+                eventsInList: [],
+                search: { currentSearch: {} },
+            },
+        }
+        const store = createTestStore({ initialState })
         const wrapper = mount(
             <Provider store={store}>
                 <EventsListContainer />

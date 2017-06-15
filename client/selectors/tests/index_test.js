@@ -8,6 +8,7 @@ describe('selectors', () => {
             events: {
                 event1: {
                     _id: 'event1',
+                    name: 'event1',
                     dates: {
                         start: moment('2016-10-15T13:01:00+0000'),
                         end: moment('2016-10-16T14:01:00+0000'),
@@ -15,6 +16,7 @@ describe('selectors', () => {
                 },
                 event2: {
                     _id: 'event2',
+                    name: 'event2',
                     dates: {
                         start: moment('2016-10-17T13:01:00+0000'),
                         end: moment('2016-10-17T14:01:00+0000'),
@@ -23,6 +25,7 @@ describe('selectors', () => {
             },
             showEventDetails: 'event1',
             eventsInList: ['event1', 'event2'],
+            search: { currentSearch: { fulltext: 'event' } },
         },
         planning: {
             onlyFuture: false,
