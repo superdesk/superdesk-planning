@@ -610,44 +610,18 @@ describe('planning', () => {
             })
         })
 
-        describe('openPlanningEditorAndAgenda', () => {
-            const action = actions.openPlanningEditorAndAgenda(plannings[0]._id)
+        it('previewPlanningAndOpenAgenda', () => {
+            const action = actions.previewPlanningAndOpenAgenda(plannings[1]._id)
+            action(dispatch, getState)
+            // Agenda is selected
+            expect(getState().agenda.currentAgendaId).toBe('a2')
 
-            it('openPlanningEditorAndAgenda dispatches actions', () => (
-                action(dispatch, getState, {
-                    notify,
-                    $timeout,
-                })
-                .then(() => {
-                    // Cannot check dispatch(openPlanningEditor()) using a spy on dispatch
-                    // As openPlanningEditor is a thunk function
-
-                    expect($timeout.callCount).toBe(0)
-                    expect(notify.error.callCount).toBe(0)
-                })
-            ))
-
-            it('openPlanningEditorAndAgenda raises ACCESS_DENIED without permission', () => {
-                initialState.privileges.planning_planning_management = 0
-                return action(dispatch, getState, {
-                    notify,
-                    $timeout,
-                })
-                .then(() => {
-                    expect($timeout.callCount).toBe(1)
-                    expect(notify.error.args[0][0]).toBe('Unauthorised to edit a planning item!')
-                    expect(dispatch.args[0]).toEqual([{
-                        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                        payload: {
-                            action: '_openPlanningEditorAndAgenda',
-                            permission: PRIVILEGES.PLANNING_MANAGEMENT,
-                            errorMessage: 'Unauthorised to edit a planning item!',
-                            args: [plannings[0]._id],
-                        },
-                    }])
-                    expect(dispatch.callCount).toBe(1)
-                })
-            })
+            // Planning is previewed
+            expect(dispatch.args[0]).toEqual([{
+                type: 'PREVIEW_PLANNING',
+                payload: 'p2',
+            }])
+            expect(dispatch.callCount).toBe(1)
         })
 
         it('toggleOnlyFutureFilter', () => {

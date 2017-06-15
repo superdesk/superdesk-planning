@@ -613,6 +613,16 @@ const closeAdvancedSearch = () => (
 )
 
 /**
+ * Opens the Event in preview/read-only mode
+ * @param {object} event - The Event ID to preview
+ * @return Promise
+ */
+const previewEvent = (event) => ({
+    type: EVENTS.ACTIONS.PREVIEW_EVENT,
+    payload: get(event, '_id'),
+})
+
+/**
  * Opens the Edit Event panel with the supplied Event
  * @param {object} event - The Event ID to edit
  * @return Promise
@@ -807,6 +817,7 @@ export {
     toggleEventsList,
     receiveEvents,
     closeEventDetails,
+    previewEvent,
     openEventDetails,
     closeAdvancedSearch,
     openAdvancedSearch,

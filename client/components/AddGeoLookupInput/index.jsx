@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react'
 import Geolookup from 'react-geolookup'
 import * as Nominatim from 'nominatim-browser'
 import './style.scss'
+import classNames from 'classnames'
 import { formatAddress } from '../../utils'
 import { get, has } from 'lodash'
 
@@ -18,8 +19,8 @@ class GeoLookupInput extends React.Component {
         return (
             <Geolookup
                 placeholder='Address, City'
-                inputClassName="line-input"
-                buttonClassName='btn btn-default geolookup__button'
+                inputClassName={classNames('line-input', { 'disabledInput': this.props.readOnly })}
+                buttonClassName={classNames({ 'disabledButton': this.props.readOnly }, 'btn btn-default geolookup__button')}
                 initialValue={this.props.initialValue.name}
                 disableAutoLookup={true}
                 onChange={this.handleChange.bind(this)}
@@ -27,6 +28,7 @@ class GeoLookupInput extends React.Component {
                 onSuggestsLookup={this.onSuggestsLookup}
                 onGeocodeSuggest={this.onGeocodeSuggest}
                 getSuggestLabel={this.getSuggestLabel}
+                disabled={this.props.readOnly}
                 ignoreTab
             />
         )
@@ -80,6 +82,7 @@ class GeoLookupInput extends React.Component {
 GeoLookupInput.propTypes = {
     initialValue: PropTypes.object,
     onChange: PropTypes.func,
+    readOnly: PropTypes.bool,
 }
 
 export const AddGeoLookupInput = GeoLookupInput

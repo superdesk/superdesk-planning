@@ -409,6 +409,14 @@ describe('events', () => {
             expect(action).toEqual({ type: 'CLOSE_ADVANCED_SEARCH' })
         })
 
+        it('previewEvent', () => {
+            const action = actions.previewEvent(events[0])
+            expect(action).toEqual({
+                type: 'PREVIEW_EVENT',
+                payload: events[0]._id,
+            })
+        })
+
         describe('openEventDetails', () => {
             const action = actions.openEventDetails(events[0])
             it('openEventDetails dispatches actions', () => {

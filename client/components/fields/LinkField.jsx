@@ -3,6 +3,7 @@ import { Field } from 'redux-form'
 import { connect } from 'react-redux'
 import * as selectors from '../../selectors'
 import 'whatwg-fetch'
+import classNames from 'classnames'
 import './style.scss'
 
 export class LinkFieldComponent extends React.Component {
@@ -56,7 +57,8 @@ export class LinkFieldComponent extends React.Component {
             <li className="Link__Item">
                 <Field
                 name={this.props.fieldName}
-                className="line-input"
+                className={classNames('line-input', { 'disabledInput': this.props.readOnly })}
+                disabled={this.props.readOnly ? 'disabled' : ''}
                 component="input"
                 type="text"
                 placeholder="Paste link"/>
@@ -65,13 +67,13 @@ export class LinkFieldComponent extends React.Component {
                     {this.state.title}&nbsp;
                     </a>
                 }
-                <button
+                {!this.props.readOnly && <button
                     className="Link__remove"
                     onClick={this.props.onRemove}
                     title="Remove link"
                     type="button">
                     <i className="icon-trash" />
-                </button>
+                </button>}
             </li>
         )
     }
@@ -82,6 +84,7 @@ LinkFieldComponent.propTypes = {
     fieldName: React.PropTypes.string,
     link: React.PropTypes.string,
     iframelyKey: React.PropTypes.string,
+    readOnly: React.PropTypes.bool,
 }
 
 const mapStateToProps = (state) => ({ iframelyKey: selectors.getIframelyKey(state) })

@@ -347,7 +347,7 @@ const _openPlanningEditor = (planning) => (
  * @param planning
  * @return Promise
  */
-const _openPlanningEditorAndAgenda = (planning) => (
+const previewPlanningAndOpenAgenda = (planning) => (
     (dispatch, getState) => {
         const agenda = selectors.getAgendas(getState()).find(
             (a) => (a.planning_items || []).indexOf(planning) > -1
@@ -356,7 +356,7 @@ const _openPlanningEditorAndAgenda = (planning) => (
             dispatch(selectAgenda(agenda._id))
         }
         // open the planning details
-        return dispatch(openPlanningEditor(planning))
+        return dispatch(previewPlanning(planning))
     }
 )
 
@@ -425,11 +425,6 @@ const saveAndDeleteCoverages = checkPermission(
 )
 const openPlanningEditor = checkPermission(
     _openPlanningEditor,
-    PRIVILEGES.PLANNING_MANAGEMENT,
-    'Unauthorised to edit a planning item!'
-)
-const openPlanningEditorAndAgenda = checkPermission(
-    _openPlanningEditorAndAgenda,
     PRIVILEGES.PLANNING_MANAGEMENT,
     'Unauthorised to edit a planning item!'
 )
@@ -546,7 +541,7 @@ export {
     fetchCoverageById,
     openPlanningEditor,
     closePlanningEditor,
-    openPlanningEditorAndAgenda,
+    previewPlanningAndOpenAgenda,
     toggleOnlyFutureFilter,
     planningFilterByKeyword,
     toggleOnlySpikedFilter,
