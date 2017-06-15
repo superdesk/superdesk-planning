@@ -7,7 +7,16 @@ import * as actions from '../../actions'
 
 describe('<PlanningApp />', () => {
     it('render Planning App', () => {
-        const store = createTestStore()
+        const store = createTestStore({
+            events: {
+                search: {
+                    currentSearch: {
+                        fulltext: '',
+                        advancedSearch: {},
+                    },
+                },
+            },
+        })
         const wrapper = mount(
             <Provider store={store}>
                 <PlanningApp />
