@@ -6,10 +6,10 @@ import { ITEM_STATE } from '../constants'
 
 export const getAgendas = (state) => state.agenda.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
-export const eventSearchActive = (state) => (typeof state.events.search !== 'undefined') ? ((
+export const eventSearchActive = (state) => (
     state.events.search.currentSearch.advancedSearch ||
     state.events.search.currentSearch.fulltext) ?
-    true : false) : false
+    true : false
 export const getEvents = (state) => state.events.events
 export const isEventListShown = (state) =>state.events.show
 export const getPreviousEventRequestParams = (state) => get(state.events, 'lastRequestParams', {})
