@@ -78,7 +78,8 @@ class EventsService(superdesk.Service):
         generatedEvents = []
         for event in docs:
             # generates an unique id
-            event['guid'] = generate_guid(type=GUID_NEWSML)
+            if 'guid' not in event:
+                event['guid'] = generate_guid(type=GUID_NEWSML)
             event['_id'] = event['guid']
             # set the author
             set_original_creator(event)
