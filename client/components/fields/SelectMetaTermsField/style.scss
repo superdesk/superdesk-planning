@@ -23,7 +23,7 @@
 }
 
 .Select__popup {
-    position: absolute;
+    position: relative;
     z-index: 2000;
     background: #fff;
     padding: 0px 10px 10px 10px;
@@ -51,7 +51,7 @@
     	span, i { float: left; text-align: left; }
 		overflow-y: scroll;
 		overflow-x: hidden;
-		height: 200px;
+		max-height: 200px;
 		margin-top: 5px;
     }
 
