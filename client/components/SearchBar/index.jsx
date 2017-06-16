@@ -72,9 +72,6 @@ export default class SearchBar extends React.Component {
                         onClick={this.resetSearch.bind(this)}>
                         <i className="icon-remove-sign" />
                     </button>
-                    <button className="search-close">
-                        <i className="svg-icon-right" />
-                    </button>
                 </div>
             </div>
         )
