@@ -14,6 +14,7 @@ from flask import g
 from eve.utils import config
 from bson import ObjectId
 
+
 fields_to_remove = ['_id', '_etag', '_current_version', '_updated', '_created', '_links', 'version_creator', 'guid']
 
 
@@ -28,9 +29,10 @@ class HistoryService(Service):
 
     def on_item_updated(self, updates, original, operation=None):
         item = deepcopy(original)
+        diff = self._changes(original, updates)
         if updates:
             item.update(updates)
-        self._save_history(item, updates, operation or 'update')
+        self._save_history(item, diff, operation or 'update')
 
     def on_spike(self, updates, original):
         self.on_item_updated(updates, original, 'spiked')
@@ -42,6 +44,23 @@ class HistoryService(Service):
         user = getattr(g, 'user', None)
         if user:
             return user.get('_id')
+
+    def _changes(self, original, updates):
+        """
+        Given the original record and the updates calculate what has changed and what is new
+
+        :param original:
+        :param updates:
+        :return: dictionary of what was changed and what was added
+        """
+        original_keys = set(original.keys())
+        updates_keys = set(updates.keys())
+        intersect_keys = original_keys.intersection(updates_keys)
+        modified = {o: updates[o] for o in intersect_keys if original[o] != updates[o]}
+        added_keys = updates_keys - original_keys
+        added = {a: updates[a] for a in added_keys}
+        modified.update(added)
+        return self._remove_unwanted_fields(modified)
 
     def _remove_unwanted_fields(self, update):
         if update:

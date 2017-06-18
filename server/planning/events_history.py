@@ -39,6 +39,6 @@ class EventsHistoryService(HistoryService):
             'event_id': event[config.ID_FIELD],
             'user_id': self.get_user_id(),
             'operation': operation,
-            'update': self._remove_unwanted_fields(update)
+            'update': update
         }
         self.post([history])
