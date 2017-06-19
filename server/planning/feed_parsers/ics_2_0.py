@@ -103,11 +103,11 @@ class IcsTwoFeedParser(FileFeedParser):
                         item['dates']['tz'] = tzid_from_dt(component.get('dtstart').dt)
 
                     # add participants
-                    item['participants'] = []
+                    item['participant'] = []
                     if component.get('attendee'):
                         for attendee in component.get('attendee'):
                             if isinstance(attendee, vCalAddress):
-                                item['participants'].append({
+                                item['participant'].append({
                                     'name': vCalAddress.from_ical(attendee),
                                     'qcode': ''
                                 })

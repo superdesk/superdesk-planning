@@ -10,4 +10,3 @@ export const spikeAgendaTooltip = <Tooltip id="spikeAgendaTT">Spike Agenda</Tool
 export const unspikeAgendaTooltip = <Tooltip id="unspikeAgendaTT">Unspike Agenda</Tooltip>
 export const editTooltip = <Tooltip id="editTT">Edit</Tooltip>
 export const closeTooltip = <Tooltip id="editTT">Close</Tooltip>
-

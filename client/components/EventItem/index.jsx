@@ -1,9 +1,13 @@
 import React, { PropTypes } from 'react'
 import { get } from 'lodash'
-import { ListItem, tooltips, TimeEvent } from '../index'
+import { ListItem, TimeEvent, PubStatusLabel } from '../index'
 import './style.scss'
 import { OverlayTrigger } from 'react-bootstrap'
 import { ITEM_STATE } from '../../constants'
+import {
+    spikeEventTooltip,
+    unspikeEventTooltip,
+} from '../Tooltips'
 
 export const EventItem = ({ event, onClick, onDoubleClick, onSpikeEvent, onUnspikeEvent, selectedEvent, privileges }) => {
     const location = get(event, 'location[0].name')
@@ -40,6 +44,7 @@ export const EventItem = ({ event, onClick, onDoubleClick, onSpikeEvent, onUnspi
                     {hasBeenSpiked &&
                         <span className="label label--alert">spiked</span>
                     }
+                    <PubStatusLabel status={event.pubstatus}/>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow event__title">
                         {event.name}
                         {(event.definition_short && event.name !== event.definition_short) &&
@@ -67,7 +72,7 @@ export const EventItem = ({ event, onClick, onDoubleClick, onSpikeEvent, onUnspi
             </div>
             <div className="sd-list-item__action-menu">
                 {!hasBeenSpiked && hasSpikePrivileges &&
-                    <OverlayTrigger placement="left" overlay={tooltips.spikeEventTooltip}>
+                    <OverlayTrigger placement="left" overlay={spikeEventTooltip}>
                         <button
                             className="dropdown__toggle"
                             onClick={(e) => {
@@ -79,7 +84,7 @@ export const EventItem = ({ event, onClick, onDoubleClick, onSpikeEvent, onUnspi
                     </OverlayTrigger>
                 }
                 {hasBeenSpiked && hasUnspikePrivileges &&
-                    <OverlayTrigger placement="left" overlay={tooltips.unspikeEventTooltip}>
+                    <OverlayTrigger placement="left" overlay={unspikeEventTooltip}>
                         <button
                             className="dropdown__toggle"
                             onClick={(e) => {

@@ -1,7 +1,7 @@
 import React from 'react'
 
 export default function Toggle({ value, onChange }) {
-    const onClick = () => onChange({ target: { value: !!value } })
+    const onClick = () => onChange({ target: { value: !value } })
     return (
         <span className={'sd-toggle ' + (value ? 'checked' : '')} onClick={onClick}>
             <span className="inner"/>

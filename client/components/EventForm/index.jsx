@@ -1,18 +1,19 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
-import { fields } from '../../components'
-import { RelatedPlannings, RepeatEventForm } from '../index'
-import { Field, FieldArray, reduxForm, formValueSelector } from 'redux-form'
+import { RelatedPlannings, RepeatEventForm, fields } from '../index'
+import { Field, FieldArray, reduxForm, formValueSelector, getFormValues } from 'redux-form'
 import { isNil, get } from 'lodash'
+import { PubStatusLabel } from '../index'
 import moment from 'moment'
 import { ChainValidators, EndDateAfterStartDate, RequiredFieldsValidatorFactory, UntilDateValidator } from '../../validators'
 import './style.scss'
-import { ITEM_STATE } from '../../constants'
+import { ITEM_STATE, EVENTS } from '../../constants'
 import * as selectors from '../../selectors'
 import { OverlayTrigger } from 'react-bootstrap'
 import { tooltips } from '../index'
 import classNames from 'classnames'
+import PropTypes from 'prop-types'
 
 /**
 * Form for adding/editing an event
@@ -71,6 +72,9 @@ export class Component extends React.Component {
             users,
             readOnly,
             openEventDetails,
+            publish,
+            unpublish,
+            saveAndPublish,
         } = this.props
         const eventSpiked = get(initialValues, 'state', 'active') === ITEM_STATE.SPIKED
         const updatedReadOnly = readOnly || eventSpiked
@@ -79,7 +83,7 @@ export class Component extends React.Component {
         const id = get(initialValues, '_id')
         const author = get(initialValues, 'original_creator') && users ? users.find((u) => (u._id === initialValues.original_creator)) : null
         const versionCreator = get(initialValues, 'version_creator') && users ? users.find((u) => (u._id === initialValues.version_creator)) : null
-
+        const isPublished = get(initialValues, 'pubstatus') === EVENTS.PUB_STATUS.USABLE
         return (
             <form onSubmit={handleSubmit} className="EventForm">
                 <div className="subnav">
@@ -95,30 +99,47 @@ export class Component extends React.Component {
                     <span className="subnav__page-title">Event details</span>
                     {(!pristine && !submitting) && (
                         <div>
+                            <button type="button" className="btn" onClick={onBackClick}>Cancel</button>
                             {!updatedReadOnly &&
                                 <button type="submit" className="btn btn--primary">
                                     Save
                                 </button>
                             }
-                            <button type="button" className="btn" onClick={onBackClick}>Cancel</button>
+                            {!updatedReadOnly && !isPublished &&
+                                <button onClick={() => saveAndPublish(id)} type="button" className="btn btn--highlight">
+                                    Save and publish
+                                </button>
+                            }
                         </div>
                     )}
                     { updatedReadOnly && (
-                        <div className="subnav__previewAction">
-                            {!eventSpiked && (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
-                                <button onClick={openEventDetails.bind(null, id)}>
-                                    <i className="icon-pencil"/>
-                                </button>
-                            </OverlayTrigger>)}
-                            <OverlayTrigger placement="bottom" overlay={tooltips.closeTooltip}>
-                                <button onClick={onBackClick}>
-                                    <i className="icon-close-small"/>
-                                </button>
-                            </OverlayTrigger>
+                        <div className="subnav__actions">
+                            <div>
+                                {!isPublished &&
+                                    <button
+                                        onClick={() => publish(id)}
+                                        type="button"
+                                        className="btn btn--highlight">
+                                        Publish</button>
+                                }
+                                {isPublished &&
+                                    <button
+                                        onClick={() => unpublish(id)}
+                                        type="button"
+                                        className="btn btn--hollow">
+                                        Unpublish</button>
+                                }
+                                {!eventSpiked && (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
+                                    <button onClick={openEventDetails.bind(null, id)}>
+                                        <i className="icon-pencil"/>
+                                    </button>
+                                </OverlayTrigger>)}
+                            </div>
                         </div>)
                     }
                 </div>
                 <div className="EventForm__form">
+                    <PubStatusLabel status={get(initialValues, 'pubstatus')} verbose={true}/>
                     {error && <div className="error-block">{error}</div>}
                     <div className="TimeAndAuthor">
                         {updatedDate && versionCreator &&
@@ -236,23 +257,26 @@ export class Component extends React.Component {
 }
 
 Component.propTypes = {
-    startingDate: React.PropTypes.object,
-    endingDate: React.PropTypes.object,
-    onBackClick: React.PropTypes.func,
-    error: React.PropTypes.object,
-    handleSubmit: React.PropTypes.func,
-    change: React.PropTypes.func,
-    doesRepeat: React.PropTypes.bool,
-    pristine: React.PropTypes.bool,
-    submitting: React.PropTypes.bool,
-    initialValues: React.PropTypes.object,
-    reset: React.PropTypes.func,
-    users: React.PropTypes.oneOfType([
-        React.PropTypes.array,
-        React.PropTypes.object,
+    startingDate: PropTypes.object,
+    endingDate: PropTypes.object,
+    onBackClick: PropTypes.func,
+    error: PropTypes.object,
+    handleSubmit: PropTypes.func,
+    change: PropTypes.func,
+    doesRepeat: PropTypes.bool,
+    pristine: PropTypes.bool,
+    submitting: PropTypes.bool,
+    initialValues: PropTypes.object,
+    reset: PropTypes.func,
+    users: PropTypes.oneOfType([
+        PropTypes.array,
+        PropTypes.object,
     ]),
-    readOnly: React.PropTypes.bool,
-    openEventDetails: React.PropTypes.func,
+    readOnly: PropTypes.bool,
+    openEventDetails: PropTypes.func,
+    publish: PropTypes.func.isRequired,
+    unpublish: PropTypes.func.isRequired,
+    saveAndPublish: PropTypes.func.isRequired,
 }
 
 // Decorate the form component
@@ -273,6 +297,7 @@ const mapStateToProps = (state) => ({
     doesRepeat: !isNil(selector(state, 'dates.recurring_rule.frequency')),
     users: selectors.getUsers(state),
     readOnly: selectors.getEventReadOnlyState(state),
+    formValues: getFormValues('addEvent')(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -284,10 +309,23 @@ const mapDispatchToProps = (dispatch) => ({
         .then(() => dispatch(actions.uploadFilesAndSaveEvent(event)))
     ),
     openEventDetails: (event) => dispatch(actions.openEventDetails(event)),
+    publish: (eventId) => dispatch(actions.publishEvent(eventId)),
+    unpublish: (eventId) => dispatch(actions.unpublishEvent(eventId)),
+    saveAndPublish: (eventId) => dispatch(actions.unpublishEvent(eventId)),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+    ...ownProps,
+    ...stateProps,
+    ...dispatchProps,
+    saveAndPublish: () => (
+        dispatchProps.onSubmit(stateProps.formValues)
+        .then((events) => dispatchProps.publish(events[0]._id))
+    ),
 })
 
 export const EventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
-    null,
+    mergeProps,
     { withRef: true })(FormComponent)

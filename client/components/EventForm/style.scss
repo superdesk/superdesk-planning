@@ -2,17 +2,12 @@
 
 .EventForm {
     > .subnav {
-        button[type="submit"], .btn { // save button
-            margin-top: 10px;
-            margin-right: 10px;
-            float: right;
-        }
+        align-items: center;
+        padding-right: 10px;
     }
-    .subnav__previewAction {
-        button {
-            margin-top: 15px;
-            margin-right: 10px;
-        }
+    .subnav__actions {
+        display: flex;
+        align-items: center;
     }
     label { margin-top: 10px; }
     .geolookup {

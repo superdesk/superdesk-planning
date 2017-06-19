@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from .events import EventsResource
-from .common import ITEM_EXPIRY, ITEM_STATE, ITEM_SPIKED, ITEM_ACTIVE, set_item_expiry
+from .common import ITEM_EXPIRY, ITEM_STATE, ITEM_SPIKED, ITEM_ACTIVE, set_item_expiry, PUB_STATUS_CANCELED
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from apps.auth import get_user
@@ -32,7 +32,7 @@ class EventsSpikeService(BaseService):
 
         updates[ITEM_STATE] = ITEM_SPIKED
         set_item_expiry(updates)
-
+        updates['pubstatus'] = PUB_STATUS_CANCELED
         item = self.backend.update(self.datasource, id, updates, original)
 
         push_notification('events:spiked', item=str(id), user=str(user.get(config.ID_FIELD)))

@@ -17,7 +17,7 @@ from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user
-from .common import STATE_SCHEMA
+from .common import STATE_SCHEMA, PUB_STATUS_VALUES
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -515,8 +515,14 @@ events_schema = {
     'expiry': {
         'type': 'datetime',
         'nullable': True
-    }
-
+    },
+    # says if the event is for internal usage or published
+    'pubstatus': {
+        'type': 'string',
+        'allowed': PUB_STATUS_VALUES,
+        'mapping': not_analyzed,
+        'nullable': True,
+    },
 }  # end events_schema
 
 
