@@ -27,6 +27,11 @@ ITEM_STATE = 'state'
 ITEM_SPIKED = 'spiked'
 ITEM_ACTIVE = 'active'
 
+PUB_STATUS_USABLE = 'usable'
+PUB_STATUS_WITHHOLD = 'withhold'
+PUB_STATUS_CANCELED = 'canceled'
+PUB_STATUS_VALUES = (PUB_STATUS_USABLE, PUB_STATUS_WITHHOLD, PUB_STATUS_CANCELED)
+
 
 def set_item_expiry(doc):
     expiry_minutes = app.settings.get('PLANNING_EXPIRY_MINUTES', None)

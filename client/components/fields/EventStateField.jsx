@@ -1,5 +1,5 @@
+import React from 'react'
 import { SelectField } from './SelectField'
-import { connect } from 'react-redux'
 import { ITEM_STATE } from '../../constants'
 
 const states = [{
@@ -13,20 +13,23 @@ const states = [{
     value: ITEM_STATE.SPIKED,
 }]
 
+export const EventStateField = (props) => {
+    const ownProps = {
+        ...props,
+        multi: false,
+        clearable: false,
+        options: states.map((s) => (
+            {
+                label: s.label,
+                value: s,
+            }
+        )),
+        value: props.input.value ? {
+            label: props.input.value.label,
+            value: props.input.value,
+        } : states[0],
+    }
+    return (<SelectField {...ownProps}/>)
+}
 
-const mapStateToProps = (state, ownProps) => ({
-    multi: false,
-    clearable: false,
-    options: states.map((s) => (
-        {
-            label: s.label,
-            value: s,
-        }
-    )),
-    value: ownProps.input.value ? {
-        label: ownProps.input.value.label,
-        value: ownProps.input.value,
-    } : states[0],
-})
-
-export const EventStateField = connect(mapStateToProps)(SelectField)
+EventStateField.propTypes = { input: React.PropTypes.object.isRequired }

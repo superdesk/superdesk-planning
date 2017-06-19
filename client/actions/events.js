@@ -9,6 +9,27 @@ import React from 'react'
 import { PRIVILEGES, EVENTS, ITEM_STATE } from '../constants'
 import { checkPermission, getErrorMessage, retryDispatch } from '../utils'
 
+const _setEventStatus = ({ eventId, status }) => (
+    (dispatch, getState) => {
+        const event = selectors.getEvents(getState())[eventId]
+        event.pubstatus = status
+        return dispatch(saveEvent(event))
+        .then((events) => {
+            dispatch(previewEvent(events[0]))
+        })
+    }
+)
+
+const publishEvent = (eventId) => setEventStatus({
+    eventId,
+    status: EVENTS.PUB_STATUS.USABLE,
+})
+
+const unpublishEvent = (eventId) => setEventStatus({
+    eventId,
+    status: EVENTS.PUB_STATUS.WITHHOLD,
+})
+
 const askConfirmationBeforeSavingEvent = (event) => (
     (dispatch, getState) =>  {
         const originalEvent = getFormInitialValues('addEvent')(getState())
@@ -228,7 +249,7 @@ const saveLocation = (event) => (
 /**
  * Action Dispatcher to create or save an event
  * This action is private to this module only.
- * Also adds the user timezone, and notify the form to reset and hide the modal
+ * Also adds the user timezone
  * @param {object} newEvent
  * @return arrow function
  */
@@ -715,6 +736,12 @@ const openEventDetails = checkPermission(
     'Unauthorised to edit an event!'
 )
 
+const setEventStatus = checkPermission(
+    _setEventStatus,
+    PRIVILEGES.EVENT_MANAGEMENT,
+    'Unauthorised to change the status of an event!'
+)
+
 const openSpikeEvent = checkPermission(
     _openSpikeEvent,
     PRIVILEGES.SPIKE_EVENT,
@@ -810,6 +837,8 @@ const eventNotifications = {
 }
 
 export {
+    publishEvent,
+    unpublishEvent,
     spikeEvent,
     unspikeEvent,
     openSpikeEvent,
