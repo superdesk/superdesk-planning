@@ -7,6 +7,7 @@ import { Provider } from 'react-redux'
 
 
 describe('<TimeEvent />', () => {
+
     function renderToText(event) {
         const store = createTestStore()
         const wrapper = mount(
@@ -16,6 +17,7 @@ describe('<TimeEvent />', () => {
         )
         return wrapper.text()
     }
+
     it('renders an event', () => {
         const event = {
             dates: {
@@ -28,16 +30,18 @@ describe('<TimeEvent />', () => {
             moment(event.dates.end).format('HH:mm')
         )
     })
+
     it('renders a full day event', () => {
         const event = {
             dates: {
-                start: moment('2016-10-15T22:00:00+0000'),
-                end: moment('2016-10-16T22:00:00+0000'),
+                start: moment('2016-10-15T00:00:00'),
+                end: moment('2016-10-15T23:59:00'),
                 tz: 'Europe/Berlin',
             },
         }
         expect(renderToText(event)).toBe('All day')
     })
+
     it('renders an event that ends on another day', () => {
         const event = {
             dates: {
