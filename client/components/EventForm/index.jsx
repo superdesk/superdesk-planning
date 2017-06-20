@@ -127,6 +127,15 @@ export class Component extends React.Component {
                         }
                     </div>
                     <div>
+                        <label htmlFor="slugline">Slugline</label>
+                    </div>
+                    <div>
+                        <Field name="slugline"
+                            component={fields.InputField}
+                            type="text"
+                            readOnly={updatedReadOnly}/>
+                    </div>
+                    <div>
                         <label htmlFor="name">What</label>
                     </div>
                     <div>

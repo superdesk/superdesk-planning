@@ -28,6 +28,7 @@ Feature: Events
                 "unique_id": "123",
                 "unique_name": "123 name",
                 "name": "event 123",
+                "slugline": "event-123",
                 "definition_short": "short value",
                 "definition_long": "long value",
                 "relationships":{
@@ -63,6 +64,7 @@ Feature: Events
                 "guid": "__any_value__",
                 "original_creator": "__any_value__",
                 "name": "event 123",
+                "slugline": "event-123",
                 "definition_short": "short value",
                 "definition_long": "long value"
             }]}

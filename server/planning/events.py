@@ -445,6 +445,8 @@ events_schema = {
             }
         }
     },
+
+    # Content metadata
     'subject': {
         'type': 'list',
         'mapping': {
@@ -454,6 +456,21 @@ events_schema = {
             }
         }
     },
+    'slugline': {
+        'type': 'string',
+        'mapping': {
+            'type': 'string',
+            'fields': {
+                'phrase': {
+                    'type': 'string',
+                    'analyzer': 'phrase_prefix_analyzer',
+                    'search_analyzer': 'phrase_prefix_analyzer'
+                }
+            }
+        }
+    },
+
+    # Item metadata
     'location': {
         'type': 'list',
         'mapping': {

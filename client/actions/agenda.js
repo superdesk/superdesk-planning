@@ -199,8 +199,8 @@ const _addEventToCurrentAgenda = (event) => (
         // planning inherits some fields from the given event
         return dispatch(savePlanning({
             event_item: event._id,
-            slugline: event.name,
-            headline: event.definition_short,
+            slugline: event.slugline,
+            headline: event.name,
             subject: event.subject,
             anpa_category: event.anpa_category,
         }))
