@@ -45,3 +45,4 @@ export { RelatedPlannings } from './RelatedPlannings'
 export { default as Datetime } from './Datetime/index'
 export { default as UpdateRecurrentEventsConfirmation }
     from './UpdateRecurrentEventsConfirmation/index'
+export { ItemActionsMenu } from './ItemActionsMenu/index'

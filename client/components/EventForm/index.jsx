@@ -14,6 +14,7 @@ import { OverlayTrigger } from 'react-bootstrap'
 import { tooltips } from '../index'
 import classNames from 'classnames'
 import PropTypes from 'prop-types'
+import { ItemActionsMenu } from '../index'
 
 /**
 * Form for adding/editing an event
@@ -72,6 +73,9 @@ export class Component extends React.Component {
             users,
             readOnly,
             openEventDetails,
+            spikeEvent,
+            unspikeEvent,
+            addEventToCurrentAgenda,
             publish,
             unpublish,
             saveAndPublish,
@@ -84,17 +88,37 @@ export class Component extends React.Component {
         const author = get(initialValues, 'original_creator') && users ? users.find((u) => (u._id === initialValues.original_creator)) : null
         const versionCreator = get(initialValues, 'version_creator') && users ? users.find((u) => (u._id === initialValues.version_creator)) : null
         const isPublished = get(initialValues, 'pubstatus') === EVENTS.PUB_STATUS.USABLE
+        let itemActions = []
+        if (eventSpiked) {
+            itemActions = [
+                {
+                    label: 'Unspike Event',
+                    callback: unspikeEvent.bind(null, initialValues),
+                },
+            ]
+        } else if (id) {
+            itemActions = [
+                {
+                    label: 'Spike Event',
+                    callback: spikeEvent.bind(null, initialValues),
+                },
+                {
+                    label: 'Create Planning Item',
+                    callback: addEventToCurrentAgenda.bind(null, initialValues),
+                },
+            ]
+        }
         return (
             <form onSubmit={handleSubmit} className="EventForm">
                 <div className="subnav">
                     {pristine && (
-                    <div className="subnav__button-stack--square-buttons">
-                        <div className="navbtn" title="Back to list">
-                            <button onClick={onBackClick} type="button">
-                                <i className="icon-chevron-left-thin"/>
-                            </button>
+                        <div className="subnav__button-stack--square-buttons">
+                            <div className="navbtn" title="Back to list">
+                                <button onClick={onBackClick} type="button">
+                                    <i className="icon-chevron-left-thin"/>
+                                </button>
+                            </div>
                         </div>
-                    </div>
                     )}
                     <span className="subnav__page-title">Event details</span>
                     {(!pristine && !submitting) && (
@@ -140,6 +164,7 @@ export class Component extends React.Component {
                 </div>
                 <div className="EventForm__form">
                     <PubStatusLabel status={get(initialValues, 'pubstatus')} verbose={true}/>
+                    <ItemActionsMenu actions={itemActions} />
                     {error && <div className="error-block">{error}</div>}
                     <div className="TimeAndAuthor">
                         {updatedDate && versionCreator &&
@@ -152,58 +177,58 @@ export class Component extends React.Component {
                     </div>
                     <div>
                         <Field name="name"
-                               component={fields.InputField}
-                               type="text"
-                               readOnly={updatedReadOnly}/>
+                            component={fields.InputField}
+                            type="text"
+                            readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <Field name="anpa_category"
-                               component={fields.CategoryField}
-                               label="Category"
-                               readOnly={updatedReadOnly}/>
+                            component={fields.CategoryField}
+                            label="Category"
+                            readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <Field name="subject"
-                               component={fields.SubjectField}
-                               label="Subject"
-                               readOnly={updatedReadOnly}/>
+                            component={fields.SubjectField}
+                            label="Subject"
+                            readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <Field name="definition_short"
-                               component={fields.InputTextAreaField}
-                               label="Description"
-                               readOnly={updatedReadOnly}/>
+                            component={fields.InputTextAreaField}
+                            label="Description"
+                            readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <Field name="location[0]"
-                               component={fields.GeoLookupInput}
-                               label="Location"
-                               readOnly={updatedReadOnly}/>
+                            component={fields.GeoLookupInput}
+                            label="Location"
+                            readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <label htmlFor="dates.start">From</label>
                     </div>
                     <div>
                         <Field name="dates.start"
-                               component={fields.DayPickerInput}
-                               selectsStart={true}
-                               startDate={startingDate}
-                               endDate={endingDate}
-                               withTime={true}
-                               readOnly={updatedReadOnly}/>
+                            component={fields.DayPickerInput}
+                            selectsStart={true}
+                            startDate={startingDate}
+                            endDate={endingDate}
+                            withTime={true}
+                            readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <label htmlFor="dates.end">To</label>
                     </div>
                     <div>
                         <Field name="dates.end"
-                               defaultDate={this.oneHourAfterStartingDate()}
-                               component={fields.DayPickerInput}
-                               selectsEnd={true}
-                               startDate={startingDate}
-                               endDate={endingDate}
-                               withTime={true}
-                               readOnly={updatedReadOnly}/>
+                            defaultDate={this.oneHourAfterStartingDate()}
+                            component={fields.DayPickerInput}
+                            selectsEnd={true}
+                            startDate={startingDate}
+                            endDate={endingDate}
+                            withTime={true}
+                            readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <label htmlFor="repeat">Repeat ...</label>
@@ -224,9 +249,9 @@ export class Component extends React.Component {
                     </div>
                     <div>
                         <Field name="occur_status"
-                               component={fields.OccurStatusField}
-                               label="Event Occurence Status"
-                               readOnly={updatedReadOnly}/>
+                            component={fields.OccurStatusField}
+                            label="Event Occurence Status"
+                            readOnly={updatedReadOnly}/>
                     </div>
                     <div>
                         <label htmlFor="files">Attached files</label>
@@ -277,6 +302,9 @@ Component.propTypes = {
     publish: PropTypes.func.isRequired,
     unpublish: PropTypes.func.isRequired,
     saveAndPublish: PropTypes.func.isRequired,
+    spikeEvent: PropTypes.func.isRequired,
+    unspikeEvent: PropTypes.func.isRequired,
+    addEventToCurrentAgenda: PropTypes.func.isRequired,
 }
 
 // Decorate the form component
@@ -306,12 +334,15 @@ const mapDispatchToProps = (dispatch) => ({
         // if needed, show a confirmation dialog
         dispatch(actions.askConfirmationBeforeSavingEvent(event))
         // save the event through the API
-        .then(() => dispatch(actions.uploadFilesAndSaveEvent(event)))
+            .then(() => dispatch(actions.uploadFilesAndSaveEvent(event)))
     ),
     openEventDetails: (event) => dispatch(actions.openEventDetails(event)),
     publish: (eventId) => dispatch(actions.publishEvent(eventId)),
     unpublish: (eventId) => dispatch(actions.unpublishEvent(eventId)),
     saveAndPublish: (eventId) => dispatch(actions.unpublishEvent(eventId)),
+    spikeEvent: (event) => dispatch(actions.spikeEvent(event)),
+    unspikeEvent: (event) => dispatch(actions.unspikeEvent(event)),
+    addEventToCurrentAgenda: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -320,7 +351,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     ...dispatchProps,
     saveAndPublish: () => (
         dispatchProps.onSubmit(stateProps.formValues)
-        .then((events) => dispatchProps.publish(events[0]._id))
+            .then((events) => dispatchProps.publish(events[0]._id))
     ),
 })
 
