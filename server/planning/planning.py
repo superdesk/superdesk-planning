@@ -51,7 +51,6 @@ class PlanningService(superdesk.Service):
             doc['guid'] = generate_guid(type=GUID_NEWSML)
             set_original_creator(doc)
 
-
     def on_created(self, docs):
         for doc in docs:
             push_notification(
