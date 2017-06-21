@@ -214,3 +214,60 @@ Feature: Planning
             ]}
         """
 
+    @auth
+    Scenario: Creating planning related to an event is tracked in event history
+        Given "events"
+        """
+        [
+            {
+                "unique_id": "123",
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2016-11-17T12:00:00.000Z",
+                    "end": "2016-11-17T14:00:00.000Z",
+                    "tz": "Europe/Berlin",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                },
+                "occur_status": {
+                    "name": "Planned, occurs certainly",
+                    "qcode": "eocstat:eos5"
+                }
+            }
+        ]
+        """
+        When we post to "/planning" with success
+        """
+        [
+            {
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "item_class": "item class value",
+                "headline": "test headline",
+                "event_item": "#events._id#"
+            }
+        ]
+        """
+        Then we get OK response
+        When we get "/planning_history"
+        Then we get a list with 1 items
+        """
+            {"_items": [{
+                "planning_id":  "#planning._id#",
+                "operation": "create"}
+            ]}
+        """
+        When we get "/events_history"
+        Then we get a list with 1 items
+        """
+            {"_items": [{
+                "event_id": "#events._id#",
+                "operation": "planning created",
+                "update": {"planning_id": "#planning._id#"}}
+            ]}
+        """
