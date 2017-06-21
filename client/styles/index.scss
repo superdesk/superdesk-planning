@@ -21,8 +21,17 @@
         .navbtn { // back button
             border-right: 1px solid rgba(0, 0, 0, 0.1);
             border-left: 0;
+            line-height: 4.8rem;
             button { background-color: transparent; }
+            .backlink {
+                padding: 0 10px 0 14px;
+                margin-top: -2px;
+                &--rotated {
+                    transform: rotate(180deg);
+                }
+            }
         }
+        align-items: center;
     }
 
     .subnav {

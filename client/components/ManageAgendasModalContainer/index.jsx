@@ -30,7 +30,7 @@ export function ManageAgendasModalComponent({
                 <a className="close" onClick={handleHide}>
                     <i className="icon-close-small" />
                 </a>
-                <h3>Manage Agendas</h3>
+                <h3 className="modal__heading">Manage Agendas</h3>
             </Modal.Header>
             <Modal.Body>
                 <div>
@@ -58,7 +58,7 @@ export function ManageAgendasModalComponent({
                     <div className="ActiveAgendas">
                         <span className="form-label"><strong>Active Agendas</strong></span>
                     {activeAgendas.length > 0 &&
-                        <ul className="pills-list provider-list">
+                        <div className="sd-list-item-group sd-list-item-group--space-between-items">
                             {activeAgendas.map((agenda) => (
                                 <AgendaItem
                                     agenda={agenda}
@@ -68,7 +68,7 @@ export function ManageAgendasModalComponent({
                                     key={agenda._id}
                                     privileges={privileges} />
                             ))}
-                        </ul>
+                        </div>
                     ||
                         <p>There are no active agendas.</p>
                     }
@@ -77,7 +77,7 @@ export function ManageAgendasModalComponent({
                     {spikedAgendas.length > 0 &&
                         <div className="SpikedAgendas">
                             <span className="form-label"><strong>Spiked Agendas</strong></span>
-                            <ul className="pills-list provider-list">
+                            <div className="sd-list-item-group sd-list-item-group--space-between-items">
                                 {spikedAgendas.map((agenda) => (
                                     <AgendaItem
                                         agenda={agenda}
@@ -87,7 +87,7 @@ export function ManageAgendasModalComponent({
                                         key={agenda._id}
                                         privileges={privileges} />
                                 ))}
-                            </ul>
+                            </div>
                         </div>
                     }
                 </div>
