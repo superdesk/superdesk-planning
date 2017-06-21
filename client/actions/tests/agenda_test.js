@@ -112,9 +112,6 @@ describe('agenda', () => {
                 .then(() => {
                     expect(apiSpy.save.args[0]).toEqual([{}, item])
                     expect(notify.success.args[0]).toEqual(['The agenda has been created/updated.'])
-
-                    expect(dispatch.callCount).toBe(10)
-
                     expect(dispatch.args[1]).toEqual([{ type: 'HIDE_MODAL' }])
                     expect(dispatch.args[2]).toEqual([{
                         type: 'ADD_OR_REPLACE_AGENDA',
@@ -129,8 +126,8 @@ describe('agenda', () => {
                         payload: 'a3',
                     }])
 
-                    expect(dispatch.args[5]).toEqual([{ type: 'CLOSE_PLANNING_EDITOR' }])
-                    expect(dispatch.args[8]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
+                    expect(dispatch.args[6]).toEqual([{ type: 'CLOSE_PLANNING_EDITOR' }])
+                    expect(dispatch.args[9]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
 
                     done()
                 })
@@ -390,15 +387,14 @@ describe('agenda', () => {
                 $location,
             })
             .then(() => {
-                expect(dispatch.callCount).toBe(7)
                 expect(dispatch.args[0]).toEqual([{
                     type: 'SELECT_AGENDA',
                     payload: 'a1',
                 }])
-                expect(dispatch.args[1]).toEqual([{ type: 'CLOSE_PLANNING_EDITOR' }])
+                expect(dispatch.args[2]).toEqual([{ type: 'CLOSE_PLANNING_EDITOR' }])
 
-                expect(dispatch.args[4]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
-                expect(dispatch.args[6]).toEqual([{
+                expect(dispatch.args[5]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
+                expect(dispatch.args[7]).toEqual([{
                     type: 'RECEIVE_PLANNINGS',
                     payload: [],
                 }])

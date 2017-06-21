@@ -23,6 +23,7 @@ PlanningController.$inject = [
     'userList',
     'desks',
     'metadata',
+    'session',
 ]
 export function PlanningController(
     $element,
@@ -39,7 +40,8 @@ export function PlanningController(
     notifyConnectionService,
     userList,
     desks,
-    metadata
+    metadata,
+    session
 ) {
     // create the application store
     const store = createStore({
@@ -58,6 +60,7 @@ export function PlanningController(
             userList,
             desks,
             metadata,
+            session,
         },
     })
     // load data in the store
@@ -78,6 +81,7 @@ export function PlanningController(
     })
     store.dispatch(actions.loadUsers())
     store.dispatch(actions.loadDesks())
+    store.dispatch(actions.loadSessionDetails())
 
     registerNotifications($scope, store)
     $scope.$on('$destroy', () => {

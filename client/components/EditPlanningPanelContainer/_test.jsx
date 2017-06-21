@@ -35,12 +35,29 @@ describe('planning', () => {
             })
 
             it('open the panel in edit mode', () => {
-                let store = createTestStore({
+                const store = createTestStore({
                     initialState: {
                         privileges: {
                             planning: 1,
                             planning_planning_management: 1,
                         },
+                        planning: {
+                            plannings: {
+                                planning1: {
+                                    _id: 'planning1',
+                                    lock_user: 'user',
+                                    lock_session: 123,
+                                },
+                            },
+                            editorOpened: true,
+                            currentPlanningId: 'planning1',
+                            readOnly: false,
+                        },
+                        session: {
+                            identity: { _id: 'user' },
+                            sessionId: 123,
+                        },
+                        users: [{ _id: 'user' }],
                     },
                 })
                 const wrapper = mount(
@@ -48,44 +65,39 @@ describe('planning', () => {
                         <EditPlanningPanelContainer />
                     </Provider>
                 )
-                store.dispatch(actions.openPlanningEditor())
-                expect(store.getState().planning.editorOpened).toBe(true)
-                expect(store.getState().planning.readOnly).toBe(false)
+
                 wrapper.find('button[type="reset"]').first().simulate('click')
                 expect(store.getState().planning.editorOpened).toBe(false)
             })
 
             it('cancel', () => {
-                const initialState = {
-                    privileges: {
-                        planning: 1,
-                        planning_agenda_management: 1,
-                        planning_agenda_spike: 1,
-                        planning_agenda_unspike: 1,
-                        planning_planning_management: 1,
-                    },
-                    planning: {
-                        plannings: {
-                            '2': {
-                                _id: '2',
-                                slugline: 'slug',
-                                coverages: [{ _id: 'coverage1' }],
-                            },
+                const store = createTestStore({
+                    initialState: {
+                        privileges: {
+                            planning: 1,
+                            planning_planning_management: 1,
                         },
-                        currentPlanningId: '2',
-                        readOnly: true,
+                        planning: {
+                            plannings: {
+                                planning1: {
+                                    _id: 'planning1',
+                                    slugline: 'slug',
+                                    coverages: [{ _id: 'coverage1' }],
+                                    lock_user: 'user',
+                                    lock_session: 123,
+                                },
+                            },
+                            editorOpened: true,
+                            currentPlanningId: 'planning1',
+                            readOnly: false,
+                        },
+                        session: {
+                            identity: { _id: 'user' },
+                            sessionId: 123,
+                        },
+                        users: [{ _id: 'user' }],
                     },
-                    agenda: {
-                        agendas: [{
-                            _id: '1',
-                            name: 'agenda',
-                            planning_items: ['2'],
-                        }],
-                        currentAgendaId: '1',
-                    },
-                }
-                const store = createTestStore({ initialState: initialState })
-
+                })
                 const wrapper = mount(
                     <Provider store={store}>
                         <EditPlanningPanelContainer />
@@ -94,17 +106,7 @@ describe('planning', () => {
 
                 const sluglineInput = wrapper.find('Field [name="slugline"]')
 
-                // Make sure the `agenda spiked` and `planning spiked` badges are not shown
-                expect(wrapper.find('.AgendaSpiked').length).toBe(0)
-                expect(wrapper.find('.PlanningSpiked').length).toBe(0)
-
-                // Save/Cancel buttons start out as invisible
-                expect(wrapper.find('button[type="submit"]').length).toBe(0)
-                expect(wrapper.find('button[type="reset"]').length).toBe(0)
-
                 // Modify the slugline and ensure the save/cancel buttons are active
-                const editButton = wrapper.find('.EditPlanningPanel__actions__edit').first()
-                editButton.simulate('click')
                 expect(sluglineInput.props().value).toBe('slug')
                 sluglineInput.simulate('change', { target: { value: 'NewSlug' } })
                 expect(sluglineInput.props().value).toBe('NewSlug')
@@ -117,7 +119,7 @@ describe('planning', () => {
                 // Cancel the modifications and ensure the save & cancel button disappear once again
                 cancelButton.simulate('click')
                 expect(store.getState().planning.editorOpened).toBe(false)
-                store.dispatch(actions.previewPlanning(2))
+                store.dispatch(actions.previewPlanning('planning1'))
                 expect(sluglineInput.props().value).toBe('slug')
                 expect(wrapper.find('button[type="submit"]').length).toBe(0)
                 expect(wrapper.find('button[type="reset"]').length).toBe(0)

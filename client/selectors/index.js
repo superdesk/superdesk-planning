@@ -41,6 +41,7 @@ export const getPrivileges = (state) => state.privileges
 export const getUsers = (state) => state.users
 export const getPlanningItemReadOnlyState = (state) => state.planning.readOnly
 export const getEventReadOnlyState = (state) => state.events.readOnly
+export const getSessionDetails = (state) => state.session
 
 export const getCurrentAgendaPlannings = createSelector(
     [getCurrentAgenda, getStoredPlannings, isOnlyFutureFiltered, getEvents,
@@ -266,5 +267,13 @@ export const getActiveAgendas = createSelector(
     [getAgendas],
     (agendas) => (
         agendas.filter((a) => a.state !== ITEM_STATE.SPIKED)
+    )
+)
+
+export const isCurrentPlanningLockedInThisSession = createSelector(
+    [getCurrentPlanning, getSessionDetails],
+    (currentPlanning, session) => (
+            currentPlanning && currentPlanning.lock_user === session.identity._id &&
+        currentPlanning.lock_session === session.sessionId ? true : false
     )
 )

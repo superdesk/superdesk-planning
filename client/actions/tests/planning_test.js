@@ -122,8 +122,6 @@ describe('planning', () => {
                         type: 'SPIKE_PLANNING',
                         payload: plannings[1],
                     }])
-
-                    expect(dispatch.callCount).toBe(7)
                     expect($timeout.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(0)
 
@@ -641,17 +639,19 @@ describe('planning', () => {
             const action = actions.openPlanningEditor(plannings[0]._id)
 
             it('openPlanningEditor dispatches action', () => {
+                api.save = sinon.spy(() => Promise.resolve(plannings[0]))
                 action(dispatch, getState, {
+                    api,
                     notify,
                     $timeout,
+                }).then(() => {
+                    expect(dispatch.args[3]).toEqual([{
+                        type: 'OPEN_PLANNING_EDITOR',
+                        payload: plannings[0],
+                    }])
+                    expect($timeout.callCount).toBe(0)
+                    expect(notify.error.callCount).toBe(0)
                 })
-                expect(dispatch.args[0]).toEqual([{
-                    type: 'OPEN_PLANNING_EDITOR',
-                    payload: plannings[0]._id,
-                }])
-                expect($timeout.callCount).toBe(0)
-                expect(notify.error.callCount).toBe(0)
-                expect(dispatch.callCount).toBe(1)
             })
 
             it('openPlanningEditor raises ACCESS_DENIED without permission', () => {
@@ -665,7 +665,7 @@ describe('planning', () => {
                 expect(dispatch.args[0]).toEqual([{
                     type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
                     payload: {
-                        action: '_openPlanningEditor',
+                        action: '_lockAndOpenPlanningEditor',
                         permission: PRIVILEGES.PLANNING_MANAGEMENT,
                         errorMessage: 'Unauthorised to edit a planning item!',
                         args: [plannings[0]._id],
@@ -677,15 +677,20 @@ describe('planning', () => {
 
         it('closePlanningEditor', () => {
             const action = actions.closePlanningEditor()
-            expect(action).toEqual({ type: 'CLOSE_PLANNING_EDITOR' })
+            action(dispatch, getState, {
+                notify,
+                $timeout,
+            })
+            expect(dispatch.args[0]).toEqual([{ type: 'CLOSE_PLANNING_EDITOR' }])
         })
 
         it('previewPlanning', () => {
             const action = actions.previewPlanning(plannings[0]._id)
-            expect(action).toEqual({
+            action(dispatch, getState)
+            expect(dispatch.args[2]).toEqual([{
                 type: 'PREVIEW_PLANNING',
                 payload: plannings[0]._id,
-            })
+            }])
         })
 
         it('previewPlanningAndOpenAgenda', () => {
@@ -695,11 +700,10 @@ describe('planning', () => {
             expect(getState().agenda.currentAgendaId).toBe('a2')
 
             // Planning is previewed
-            expect(dispatch.args[0]).toEqual([{
+            expect(dispatch.args[3]).toEqual([{
                 type: 'PREVIEW_PLANNING',
                 payload: 'p2',
             }])
-            expect(dispatch.callCount).toBe(1)
         })
 
         it('toggleOnlyFutureFilter', (done) => {

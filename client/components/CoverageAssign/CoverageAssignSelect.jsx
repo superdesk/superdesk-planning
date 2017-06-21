@@ -1,6 +1,7 @@
 import React from 'react'
 import { SearchBar } from '../../components'
 import ReactDOM from 'react-dom'
+import { UserAvatar } from '../'
 import './style.scss'
 
 export class CoverageAssignSelect extends React.Component {
@@ -83,9 +84,7 @@ export class CoverageAssignSelect extends React.Component {
                 {this.state.filteredUserList.map((user, index) => (
                     <li key={index} className='coverageassignselect__item'>
                         <button type='button' onClick={this.onUserAssignChange.bind(this, user._id)}>
-                            <figure className='avatar initials coverageassign__initials'>
-                                <span>{user.display_name.replace(/\W*(\w)\w*/g, '$1').toUpperCase()}</span>
-                            </figure>
+                            <UserAvatar user={user} />
                             <div className='coverageassignselect__label'>{user.display_name}</div>
                         </button>
                     </li>

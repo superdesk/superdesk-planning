@@ -58,18 +58,33 @@ const planningReducer = (state=initialState, action) => {
             }
 
         case PLANNING.ACTIONS.OPEN_PLANNING_EDITOR:
-            return {
-                ...state,
-                editorOpened: true,
-                currentPlanningId: action.payload,
-                readOnly: false,
+            if (action.payload.lock_user) {
+                // clone plannings
+                plannings = cloneDeep(state.plannings)
+                plannings[action.payload._id] = action.payload
+                // return new state with the lock information
+                return {
+                    ...state,
+                    plannings,
+                    editorOpened: true,
+                    currentPlanningId: action.payload._id,
+                    readOnly: false,
+                }
+
+            } else {
+                return {
+                    ...state,
+                    editorOpened: true,
+                    currentPlanningId: action.payload,
+                    readOnly: false,
+                }
             }
+
         case PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR:
             return {
                 ...state,
                 editorOpened: false,
                 currentPlanningId: null,
-                readOnly: true,
             }
         case PLANNING.ACTIONS.SET_ONLY_FUTURE:
             return {

@@ -9,6 +9,7 @@ export * from './agenda'
 export * from './users'
 export * from './desks'
 export * from './subjects'
+export * from './session'
 
 import { agendaNotifications } from './agenda'
 import { planningNotifications } from './planning'

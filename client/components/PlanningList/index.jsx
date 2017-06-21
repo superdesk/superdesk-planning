@@ -7,6 +7,12 @@ import { connect } from 'react-redux'
 import { LIST_ITEM_HEIGHT, PLANNING_LIST_ITEM_MARGIN_HEIGHT } from '../../constants'
 
 class PlanningList extends React.Component {
+
+    isPlanningLockedInThisSession(planning) {
+        return planning.lock_user === this.props.session.identity._id &&
+            planning.lock_session === this.props.session.sessionId ? true : false
+    }
+
     rowRenderer({ index, key, style }) {
         const {
             plannings,
@@ -33,7 +39,9 @@ class PlanningList extends React.Component {
                     onUnspike={handlePlanningUnspike}
                     onClick={previewPlanning}
                     onDoubleClick={openPlanningEditor}
-                    privileges={privileges} />
+                    privileges={privileges}
+                    itemLocked={planning.lock_user && planning.lock_session ? true : false}
+                    itemLockedInThisSession={this.isPlanningLockedInThisSession(planning)} />
             </div>
         )
     }
@@ -69,6 +77,7 @@ PlanningList.propTypes = {
     handlePlanningSpike: React.PropTypes.func.isRequired,
     handlePlanningUnspike: React.PropTypes.func.isRequired,
     privileges: React.PropTypes.object.isRequired,
+    session: React.PropTypes.object,
 }
 
 const mapStateToProps = (state) => ({
@@ -77,6 +86,7 @@ const mapStateToProps = (state) => ({
     plannings: selectors.getCurrentAgendaPlannings(state),
     planningsEvents: selectors.getCurrentAgendaPlanningsEvents(state),
     privileges: selectors.getPrivileges(state),
+    session: selectors.getSessionDetails(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
