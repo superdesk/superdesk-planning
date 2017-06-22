@@ -9,6 +9,14 @@
         display: flex;
         align-items: center;
     }
+    [name="slugline"] {
+        color: $sd-keyword;
+        font-weight: 700;
+    }
+    [name="name"] {
+        font-size: 17px;
+        color: $gray;
+    }
     label { margin-top: 10px; }
     .geolookup {
         display: table;
