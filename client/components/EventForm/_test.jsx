@@ -93,7 +93,7 @@ describe('events', () => {
                 const initialValues = event
                 const wrapper = mount(
                     <Provider store={store}>
-                        <FormComponent initialValues={initialValues} />
+                        <EventForm initialValues={initialValues} />
                     </Provider>
                 )
                 expect(wrapper.find('[name="name"]').props().value).toBe(initialValues.name)
@@ -170,6 +170,8 @@ describe('events', () => {
                     <Component
                         initialValues={{ state: 'spiked' }}
                         handleSubmit={sinon.spy()}
+                        unspikeEvent={() => {}}
+                        spikeEvent={() => {}}
                     />
                 )
                 expect(wrapper.find('[type="submit"]').length).toBe(0)
@@ -178,6 +180,8 @@ describe('events', () => {
                     <Component
                         initialValues={{ state: 'active' }}
                         handleSubmit={sinon.spy()}
+                        unspikeEvent={() => {}}
+                        spikeEvent={() => {}}
                     />
                 )
                 expect(wrapper.find('[type="submit"]').length).toBe(1)
