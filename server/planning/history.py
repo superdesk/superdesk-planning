@@ -29,9 +29,13 @@ class HistoryService(Service):
 
     def on_item_updated(self, updates, original, operation=None):
         item = deepcopy(original)
-        diff = self._changes(original, updates)
-        if updates:
-            item.update(updates)
+        if list(item.keys()) == ['_id']:
+            diff = updates
+        else:
+            diff = self._changes(original, updates)
+            if updates:
+                item.update(updates)
+
         self._save_history(item, diff, operation or 'update')
 
     def on_spike(self, updates, original):
@@ -69,3 +73,6 @@ class HistoryService(Service):
                 update_copy.pop(field, None)
 
             return update_copy
+
+    def _save_history(self, item, update, operation):
+        raise NotImplementedError()
