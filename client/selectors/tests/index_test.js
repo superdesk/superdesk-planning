@@ -10,16 +10,16 @@ describe('selectors', () => {
                     _id: 'event1',
                     name: 'event1',
                     dates: {
-                        start: moment('2016-10-15T13:01:00+0000'),
-                        end: moment('2016-10-16T14:01:00+0000'),
+                        start: moment('2099-10-15T13:01:00+0000'),
+                        end: moment('2099-10-16T14:01:00+0000'),
                     },
                 },
                 event2: {
                     _id: 'event2',
                     name: 'event2',
                     dates: {
-                        start: moment('2016-10-17T13:01:00+0000'),
-                        end: moment('2016-10-17T14:01:00+0000'),
+                        start: moment('2099-10-17T13:01:00+0000'),
+                        end: moment('2099-10-17T14:01:00+0000'),
                     },
                 },
             },
@@ -111,7 +111,10 @@ describe('selectors', () => {
             // a and b have no coverage due date or event ending date, so they appear
             newState.planning.onlyFuture = true
             result = _getPlanningItems()
-            expect(result).toEqual([newState.planning.plannings.b])
+            expect(result).toEqual([
+                newState.planning.plannings.a,
+                newState.planning.plannings.b,
+            ])
 
             // a appears because it has a linked event with a future ending date
             newState = cloneDeep(state)
@@ -145,6 +148,7 @@ describe('selectors', () => {
             newState.planning.plannings.a.state = 'spiked'
             result = _getPlanningItems()
             expect(result).toEqual([
+                newState.planning.plannings.a,
                 newState.planning.plannings.d,
             ])
 
@@ -223,9 +227,9 @@ describe('selectors', () => {
     it('getEventsOrderedByDay', () => {
         const days = selectors.getEventsOrderedByDay(state)
         expect(days.map((d) => d.date)).toEqual([
-            '2016-10-15',
-            '2016-10-16',
-            '2016-10-17',
+            '2099-10-15',
+            '2099-10-16',
+            '2099-10-17',
         ])
         expect(days[0].events[0]._id).toEqual('event1')
         expect(days[1].events[0]._id).toEqual('event1')
