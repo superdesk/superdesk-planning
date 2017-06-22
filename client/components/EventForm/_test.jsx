@@ -70,6 +70,11 @@ describe('events', () => {
                 action(dispatch, getState, { api })
             })
 
+            it('duplicate an event', () => {
+                const store = createTestStore()
+                store.dispatch(actions.duplicateEvent(event))
+            })
+
             it('compute right dates', () => {
                 const expectDatesInStoreToBe = (expectedDates) => {
                     let { start, end } = store.getState().form.addEvent.values.dates
