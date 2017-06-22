@@ -13,7 +13,7 @@ export const AgendaItem = ({ agenda, onClick, editEvent, spikeEvent, privileges 
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border" onClick={onClick.bind(this, agenda)}>
                 <div className="sd-list-item__row">
                     <span className="sd-overflow-ellipsis">{agenda.name}</span>
-                    <time title="blabla">({get(agenda, 'planning_items.length', '0')})&nbsp;created {moment(agenda._created).fromNow()}</time>
+                    <time>({get(agenda, 'planning_items.length', '0')})&nbsp;created {moment(agenda._created).fromNow()}</time>
                 </div>
             </div>
             {!isSpiked &&
