@@ -9,41 +9,42 @@ import './style.scss'
 export const AgendaItem = ({ agenda, onClick, editEvent, spikeEvent, privileges }) => {
     const isSpiked = 'state' in agenda && agenda.state === ITEM_STATE.SPIKED
     return (
-        <li className="AgendaItem">
-            <h6 onClick={onClick.bind(this, agenda)}>{agenda.name}</h6>
-            <div className="last-updated">
-                ({get(agenda, 'planning_items.length', '0')})
-                &nbsp;created {moment(agenda._created).fromNow()}
+        <div className="sd-list-item sd-shadow--z1">
+            <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border" onClick={onClick.bind(this, agenda)}>
+                <div className="sd-list-item__row">
+                    <span className="sd-overflow-ellipsis">{agenda.name}</span>
+                    <time title="blabla">({get(agenda, 'planning_items.length', '0')})&nbsp;created {moment(agenda._created).fromNow()}</time>
+                </div>
             </div>
             {!isSpiked &&
-                <div className="actions">
+                <div className="sd-list-item__action-menu sd-list-item__action-menu--direction-row">
                     {privileges.planning_agenda_management === 1 &&
                         <OverlayTrigger placement="bottom" overlay={tooltips.editAgendaTooltip}>
-                            <button onClick={editEvent.bind(this, agenda)}>
+                            <button onClick={editEvent.bind(this, agenda)} className="dropdown__toggle">
                                 <i className="icon-pencil"/>
                             </button>
                         </OverlayTrigger>
                     }
                     {privileges.planning_agenda_spike === 1 &&
                         <OverlayTrigger placement="bottom" overlay={tooltips.spikeAgendaTooltip}>
-                            <button onClick={spikeEvent.bind(this, agenda)}>
+                            <button onClick={spikeEvent.bind(this, agenda)} className="dropdown__toggle">
                                 <i className="icon-trash"/>
                             </button>
                         </OverlayTrigger>
                     }
                 </div>
             ||
-                <div className="actions">
+                <div className="sd-list-item__action-menu sd-list-item__action-menu--direction-row">
                     {privileges.planning_agenda_unspike === 1 &&
                         <OverlayTrigger placement="bottom" overlay={tooltips.unspikeAgendaTooltip}>
-                            <button onClick={spikeEvent.bind(this, agenda)}>
+                            <button onClick={spikeEvent.bind(this, agenda)} className="dropdown__toggle">
                                 <i className="icon-unspike"/>
                             </button>
                         </OverlayTrigger>
                     }
                 </div>
             }
-        </li>
+        </div>
     )
 }
 

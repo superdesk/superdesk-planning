@@ -51,9 +51,7 @@ class PlanningPanel extends React.Component {
                 <div className="subnav">
                     {!isEventListShown &&
                         <div className="navbtn" title="Show the event list">
-                            <button onClick={toggleEventsList} type="button">
-                                <i className="icon-chevron-right-thin"/>
-                            </button>
+                            <button onClick={toggleEventsList} type="button" className="backlink backlink--rotated" />
                         </div>
                     }
                     <div className="navbtn" title="Manage agendas">

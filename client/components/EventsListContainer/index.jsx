@@ -31,9 +31,7 @@ class EventsListComponent extends React.Component {
                 <div className="Events-list-container__header subnav">
                     <div className="subnav__button-stack--square-buttons">
                         <div className="navbtn" title="Hide the list">
-                            <button onClick={toggleEventsList} type="button">
-                                <i className="icon-chevron-left-thin"/>
-                            </button>
+                            <button onClick={toggleEventsList} type="button" className="backlink" />
                         </div>
                     </div>
                     <h3 className="subnav__page-title">

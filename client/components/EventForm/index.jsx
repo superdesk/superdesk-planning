@@ -90,9 +90,7 @@ export class Component extends React.Component {
                     {pristine && (
                     <div className="subnav__button-stack--square-buttons">
                         <div className="navbtn" title="Back to list">
-                            <button onClick={onBackClick} type="button">
-                                <i className="icon-chevron-left-thin"/>
-                            </button>
+                            <button onClick={onBackClick} type="button" className="backlink" />
                         </div>
                     </div>
                     )}
