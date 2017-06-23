@@ -130,11 +130,9 @@ describe('planning', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
 
@@ -162,11 +160,9 @@ describe('planning', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
         })
@@ -204,11 +200,9 @@ describe('planning', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
 
@@ -238,11 +232,9 @@ describe('planning', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
         })
@@ -270,11 +262,9 @@ describe('planning', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             ))
 
@@ -302,11 +292,9 @@ describe('planning', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
         })
@@ -337,11 +325,9 @@ describe('planning', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             ))
 
@@ -371,11 +357,9 @@ describe('planning', () => {
                         done()
                     })
                     .catch((error) => {
-                        /* eslint-disable no-console */
-                        console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                        expect('Error').toBe(null)
+                        expect(error).toBe(null)
+                        expect(error.stack).toBe(null)
                         done()
-                        /* eslint-enable no-console */
                     })
                 }
             )
@@ -395,11 +379,9 @@ describe('planning', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
 
@@ -422,11 +404,9 @@ describe('planning', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
         })
@@ -516,11 +496,9 @@ describe('planning', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
 
@@ -550,11 +528,9 @@ describe('planning', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
         })
@@ -577,11 +553,9 @@ describe('planning', () => {
                 done()
             })
             .catch((error) => {
-                /* eslint-disable no-console */
-                console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                expect('Error').toBe(null)
+                expect(error).toBe(null)
+                expect(error.stack).toBe(null)
                 done()
-                /* eslint-enable no-console */
             })
         })
 
@@ -608,11 +582,9 @@ describe('planning', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
 
@@ -637,11 +609,9 @@ describe('planning', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
         })
@@ -673,11 +643,9 @@ describe('planning', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
 
@@ -695,11 +663,9 @@ describe('planning', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
         })
@@ -783,11 +749,9 @@ describe('planning', () => {
                 done()
             })
             .catch((error) => {
-                /* eslint-disable no-console */
-                console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                expect('Error').toBe(null)
+                expect(error).toBe(null)
+                expect(error.stack).toBe(null)
                 done()
-                /* eslint-enable no-console */
             })
         })
 
@@ -805,11 +769,9 @@ describe('planning', () => {
                 done()
             })
             .catch((error) => {
-                /* eslint-disable no-console */
-                console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                expect('Error').toBe(null)
+                expect(error).toBe(null)
+                expect(error.stack).toBe(null)
                 done()
-                /* eslint-enable no-console */
             })
         })
 
