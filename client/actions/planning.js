@@ -29,7 +29,7 @@ const _spikePlanning = (planning) => (
                 getErrorMessage(error, 'There was a problem, Planning item not spiked!')
             )
         ))
-        .then(() => (dispatch(fetchPlannings())))
+        .then(() => (Promise.resolve(dispatch(fetchPlannings()))))
     )
 )
 

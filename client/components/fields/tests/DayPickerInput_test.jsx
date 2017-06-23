@@ -37,6 +37,7 @@ describe('<DayPickerInput />', () => {
         expect(moment.utc(dayPickerState.selectedTime).format('h:mm A')).toBe('9:30 AM')
         expect(dayPickerState.selectedDate.isSame(moment('2013-02-08'))).toBe(true)
     })
+
     it('hide the time when needed', () => {
         var wrapper
         wrapper = mount(<TestForm withTime={false} />)
@@ -44,6 +45,7 @@ describe('<DayPickerInput />', () => {
         wrapper = mount(<TestForm withTime={true} />)
         expect(wrapper.find('.timepickerInput').length).toBe(1)
     })
+
     it('return the right date', () => {
         // test defaultDate
         let date = moment('2013-02-08 09:30Z')

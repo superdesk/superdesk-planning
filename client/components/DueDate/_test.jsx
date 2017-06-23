@@ -18,11 +18,13 @@ describe('<DueDate />', () => {
     const date = '2016-10-15T13:01:00+0000'
     const dateSameDay = '2016-10-15T16:01:00+0000'
     const dateOtherDay = '2016-10-17T13:01:00+0000'
+
     it('renders a due date', () => {
         expect(renderDueDatesToText([
             date,
         ])).toBe(moment(date).format('DD/MM/YYYY HH:mm'))
     })
+
     it('renders a due date with two dates', () => {
         expect(renderDueDatesToText([
             date,
@@ -32,6 +34,7 @@ describe('<DueDate />', () => {
             moment(dateSameDay).format('HH:mm')
         )
     })
+
     it('renders a due date with two dates from a different day', () => {
         expect(renderDueDatesToText([
             date,

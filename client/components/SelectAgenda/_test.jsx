@@ -24,6 +24,7 @@ describe('<SelectAgendaComponent />', () => {
             state: 'spiked',
         },
     ]
+
     it('selects an agenda', () => {
         const handleOnChange = sinon.spy()
         const wrapper = shallow(
@@ -41,6 +42,7 @@ describe('<SelectAgendaComponent />', () => {
         // option for the divider
         expect(wrapper.find('option').length).toBe(5)
     })
+
     it('selects an agenda within container', () => {
         const store = createTestStore()
         const wrapper = mount(
@@ -51,6 +53,7 @@ describe('<SelectAgendaComponent />', () => {
         wrapper.simulate('change', { target: { value: 'newAgenda' } })
         expect(store.getState().agenda.currentAgendaId).toBe('newAgenda')
     })
+
     it('fetch selected agenda plannings', (done) => {
         const initialState = {
             planning: {

@@ -56,7 +56,7 @@ export class DayPickerInput extends React.Component {
     componentWillReceiveProps(nextProps) {
         // use default date only when untouched
         if (!this.state.dateManuallyDefined && nextProps.defaultDate &&
-            nextProps.defaultDate !== this.props.defaultDate){
+            nextProps.defaultDate !== this.props.defaultDate && this.props.input.value === ''){
             this.setStateFromDate(nextProps.defaultDate)
             .then(() => this.updateValueFromState())
         } else {

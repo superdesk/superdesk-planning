@@ -50,6 +50,7 @@ describe('<DatePicker />', () => {
         expect(inputField.get(0).value).toBe('')
         expect(inputField.get(0).placeholder).toBe('Date')
     })
+
     it('opens popup when icon-calender button is clicked', () => {
         const inputDate = moment('2014-01-01T14:00')
         const wrapper = mount(<TestForm placeholder='Date' input={inputDate} onChange={() => {}}/>)
@@ -57,6 +58,7 @@ describe('<DatePicker />', () => {
         wrapper.find('.datepickerInput--btn').simulate('click')
         expect(wrapper.find('.datepickerPopup').length).toBe(1)
     })
+
     it('cancel will close the popup', () => {
         const wrapper = mount(<TestForm placeholder='Date' onChange={() => {}}/>)
         wrapper.find('.datepickerInput--btn').simulate('click')
@@ -65,6 +67,7 @@ describe('<DatePicker />', () => {
         cancelBtn.simulate('click')
         expect(wrapper.find('.datepickerPopup').length).toBe(0)
     })
+
     it('can change mode from day to month', () => {
         const inputDate = moment('2014-01-01T14:00')
         const wrapper = mount(<TestFormDateCore value={inputDate} onChange={() => {}} onCancel={() => {}}/>)
@@ -74,6 +77,7 @@ describe('<DatePicker />', () => {
         const datePickerCoreState = wrapper.ref('datePickerCore').get(0).state
         expect(datePickerCoreState.mode).toBe('month')
     })
+
     it('can change mode from month to year', () => {
         const inputDate = moment('2014-01-01T14:00')
         const wrapper = mount(<TestFormDateCore value={inputDate} onChange={() => {}} onCancel={() => {}}/>)
@@ -85,6 +89,7 @@ describe('<DatePicker />', () => {
         const datePickerCoreState = wrapper.ref('datePickerCore').get(0).state
         expect(datePickerCoreState.mode).toBe('year')
     })
+
     it('day mode has selected date active', () => {
         const inputDate = moment('2014-01-08T14:00')
         const wrapper = mount(<TestForm placeholder='Date' input={inputDate} onChange={() => {}}/>)
@@ -94,6 +99,7 @@ describe('<DatePicker />', () => {
         expect(btns.length).toBe(1)
         expect(btns.at(0).childAt(0).text()).toBe('8')
     })
+
     it('month mode has selected month active', () => {
         const inputDate = moment('2014-01-08T14:00')
         const wrapper = mount(<TestForm placeholder='Date' input={inputDate} onChange={() => {}}/>)
@@ -106,6 +112,7 @@ describe('<DatePicker />', () => {
         expect(btns.length).toBe(1)
         expect(btns.at(0).childAt(0).text()).toBe('JANUARY')
     })
+
     it('year mode has selected year active', () => {
         const inputDate = moment('2014-01-08T14:00')
         const wrapper = mount(<TestForm placeholder='Date' input={inputDate} onChange={() => {}}/>)
@@ -120,6 +127,7 @@ describe('<DatePicker />', () => {
         expect(btns.length).toBe(1)
         expect(btns.at(0).childAt(0).text()).toBe('2014')
     })
+
     it('day mode displays all valid 42 days', () => {
         const inputDate = moment('2014-01-01T14:00')
         const wrapper = mount(<TestFormDateCore value={inputDate} onChange={() => {}} onCancel={() => {}}/>)
@@ -132,6 +140,7 @@ describe('<DatePicker />', () => {
         expect(rows.at(4).find('td').length).toBe(7)
         expect(rows.at(5).find('td').length).toBe(7)
     })
+
     it('month mode displays all valid 12 months', () => {
         const inputDate = moment('2014-01-01T14:00')
         const wrapper = mount(<TestFormDateCore value={inputDate} onChange={() => {}} onCancel={() => {}}/>)
@@ -152,6 +161,7 @@ describe('<DatePicker />', () => {
         expect(rows.at(3).find('td').at(1).text()).toBe('NOVEMBER')
         expect(rows.at(3).find('td').at(2).text()).toBe('DECEMBER')
     })
+
     it('year mode displays all valid 20 years', () => {
         const inputDate = moment('2014-01-01T14:00')
         const wrapper = mount(<TestFormDateCore value={inputDate} onChange={() => {}} onCancel={() => {}}/>)
@@ -182,6 +192,7 @@ describe('<DatePicker />', () => {
         expect(rows.at(3).find('td').at(3).text()).toBe('2019')
         expect(rows.at(3).find('td').at(4).text()).toBe('2020')
     })
+
     it('date can be manually selected', () => {
         const inputDate = moment('2014-01-08T14:00')
         const wrapper = mount(<TestForm placeholder='Date' input={inputDate} onChange={() => {}}/>)
@@ -194,6 +205,7 @@ describe('<DatePicker />', () => {
         expect(btns.length).toBe(1)
         expect(btns.at(0).childAt(0).text()).toBe('10')
     })
+
     it('month can be manually selected', () => {
         const inputDate = moment('2014-01-08T14:00')
         const wrapper = mount(<TestForm placeholder='Date' input={inputDate} onChange={() => {}}/>)
@@ -210,6 +222,7 @@ describe('<DatePicker />', () => {
         expect(btns.length).toBe(1)
         expect(btns.at(0).childAt(0).text()).toBe('MAY')
     })
+
     it('year can be manually selected', () => {
         const inputDate = moment('2014-01-08T14:00')
         const wrapper = mount(<TestForm placeholder='Date' input={inputDate} onChange={() => {}}/>)
@@ -227,6 +240,7 @@ describe('<DatePicker />', () => {
         expect(btns.length).toBe(1)
         expect(btns.at(0).childAt(0).text()).toBe('2008')
     })
+
     it('selecting month goes to day picking mode', () => {
         const inputDate = moment('2014-01-08T14:00')
         const wrapper = mount(<TestFormDateCore value={inputDate} onChange={() => {}} onCancel={() => {}}/>)
@@ -240,6 +254,7 @@ describe('<DatePicker />', () => {
         const datePickerCoreState = wrapper.ref('datePickerCore').get(0).state
         expect(datePickerCoreState.mode).toBe('day')
     })
+
     it('selecting year goes to month picking mode', () => {
         const inputDate = moment('2014-01-08T14:00')
         const wrapper = mount(<TestFormDateCore value={inputDate} onChange={() => {}} onCancel={() => {}}/>)
@@ -254,6 +269,7 @@ describe('<DatePicker />', () => {
         const datePickerCoreState = wrapper.ref('datePickerCore').get(0).state
         expect(datePickerCoreState.mode).toBe('month')
     })
+
     it('confirm will invoke onChange function with selected date', () => {
         let onChange = sinon.spy((_date) => {
             expect(_date.format('DD/MM/YYYY')).toBe('10/01/2014')

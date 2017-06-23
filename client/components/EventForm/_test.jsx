@@ -9,7 +9,7 @@ import * as actions from '../../actions'
 import moment from 'moment'
 
 describe('events', () => {
-    describe('containers', () => {
+    describe('components', () => {
         const event = {
             _id: '5800d71930627218866f1e80',
             dates: {
@@ -30,7 +30,7 @@ describe('events', () => {
             _plannings: [],
         }
 
-        describe('<FormComponent />', () => {
+        describe('<EventForm />', () => {
             it('uploads and keeps files', (done) => {
                 const newEvent = cloneDeep(event)
                 const store = createTestStore()
@@ -103,6 +103,7 @@ describe('events', () => {
                 )
                 expect(wrapper.find('[name="name"]').props().value).toBe(initialValues.name)
             })
+
             it('detects a non recurring event', () => {
                 const store = createTestStore()
                 // check with default values if doesRepeat is false
@@ -190,6 +191,42 @@ describe('events', () => {
                     />
                 )
                 expect(wrapper.find('[type="submit"]').length).toBe(1)
+            })
+
+            describe('allDay Toggle', () => {
+                it('detects an all day event', () => {
+                    const store = createTestStore()
+                    const allDayEvent = {
+                        ...event,
+                        dates: {
+                            start: moment('2017-06-16T00:00'),
+                            end: moment('2017-06-16T23:59'),
+                        },
+                    }
+                    const wrapper = mount(
+                        <Provider store={store}>
+                            <EventForm initialValues={allDayEvent} />
+                        </Provider>
+                    )
+                    expect(wrapper.find(FormComponent).props().isAllDay).toBe(true)
+                })
+
+                it('detects a non all day event', () => {
+                    const store = createTestStore()
+                    const nonAllDayEvent = {
+                        ...event,
+                        dates: {
+                            start: moment('2017-06-16T00:00'),
+                            end: moment('2017-06-16T12:01'),
+                        },
+                    }
+                    const wrapper = mount(
+                        <Provider store={store}>
+                            <EventForm initialValues={nonAllDayEvent} />
+                        </Provider>
+                    )
+                    expect(wrapper.find(FormComponent).props().isAllDay).toBe(false)
+                })
             })
         })
     })

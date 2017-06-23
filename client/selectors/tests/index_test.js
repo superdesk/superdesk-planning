@@ -10,16 +10,16 @@ describe('selectors', () => {
                     _id: 'event1',
                     name: 'event1',
                     dates: {
-                        start: moment('2099-10-15T13:01:00+0000'),
-                        end: moment('2099-10-16T14:01:00+0000'),
+                        start: moment('2099-10-15T13:01:00'),
+                        end: moment('2099-10-16T14:01:00'),
                     },
                 },
                 event2: {
                     _id: 'event2',
                     name: 'event2',
                     dates: {
-                        start: moment('2099-10-17T13:01:00+0000'),
-                        end: moment('2099-10-17T14:01:00+0000'),
+                        start: moment('2099-10-17T13:01:00'),
+                        end: moment('2099-10-17T14:01:00'),
                     },
                 },
             },

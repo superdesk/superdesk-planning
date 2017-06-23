@@ -22,6 +22,13 @@ export class DatePicker extends React.Component {
         })
     }
 
+    componentDidMount() {
+        // after first render, set value of the form input
+        const { value } = this.props
+        const viewValue = value && moment.isMoment(value) ? value.format('DD/MM/YYYY') : ''
+        this.setState({ viewValue })
+    }
+
     toggleOpenDatePicker() {
         this.setState({ openDatePicker: !this.state.openDatePicker })
     }
