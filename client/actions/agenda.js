@@ -235,15 +235,18 @@ const _createPlanningFromEvent = (event) => (
         // Check if no agenda is selected, or the current agenda is spiked
         // And notify the end user of the error
         const currentAgenda = selectors.getCurrentAgenda(getState())
+        let error
         if (!currentAgenda) {
-            notify.error('No Agenda selected.')
-            return Promise.resolve()
+            error = 'No Agenda selected.'
         } else if (currentAgenda.state === ITEM_STATE.SPIKED) {
-            notify.error('Current Agenda is spiked.')
-            return Promise.resolve()
+            error = 'Current Agenda is spiked.'
         } else if (get(event, 'state', 'active') === ITEM_STATE.SPIKED) {
-            notify.error('Cannot create a Planning item from a spiked event!')
-            return Promise.resolve()
+            error = 'Cannot create a Planning item from a spiked event!'
+        }
+
+        if (error) {
+            notify.error(error)
+            return Promise.reject(error)
         }
 
         // planning inherits some fields from the given event

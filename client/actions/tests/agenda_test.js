@@ -28,6 +28,7 @@ describe('agenda', () => {
         const notify = {
             error: sinon.spy(),
             success: sinon.spy(),
+            pop: sinon.spy(),
         }
         const $timeout = sinon.spy((func) => func())
         const $location = { search: sinon.spy() }
@@ -147,7 +148,7 @@ describe('agenda', () => {
                     notify,
                     $timeout,
                 })
-                .then(() => {
+                .catch(() => {
                     expect($timeout.callCount).toBe(1)
                     expect(notify.error.args[0][0]).toBe(
                         'Unauthorised to create or update an agenda'
@@ -163,11 +164,6 @@ describe('agenda', () => {
                     }])
                     expect(dispatch.callCount).toBe(1)
 
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
                     done()
                 })
             })
@@ -221,7 +217,7 @@ describe('agenda', () => {
                     notify,
                     $timeout,
                 })
-                .then(() => {
+                .catch(() => {
                     expect($timeout.callCount).toBe(1)
                     expect(notify.error.args[0]).toEqual(['Unauthorised to spike an Agenda.'])
                     expect(dispatch.args[0]).toEqual([{
@@ -235,11 +231,6 @@ describe('agenda', () => {
                     }])
                     expect(dispatch.callCount).toBe(1)
 
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
                     done()
                 })
             })
@@ -293,7 +284,7 @@ describe('agenda', () => {
                     notify,
                     $timeout,
                 })
-                .then(() => {
+                .catch(() => {
                     expect($timeout.callCount).toBe(1)
                     expect(notify.error.args[0]).toEqual(['Unauthorised to unspike an Agenda.'])
                     expect(dispatch.args[0]).toEqual([{
@@ -307,11 +298,6 @@ describe('agenda', () => {
                     }])
                     expect(dispatch.callCount).toBe(1)
 
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
                     done()
                 })
             })
@@ -465,7 +451,7 @@ describe('agenda', () => {
                     notify,
                     $timeout,
                 })
-                .then(() => {
+                .catch(() => {
                     expect($timeout.callCount).toBe(1)
                     expect(notify.error.args[0][0]).toBe(
                         'Unauthorised to add a Planning Item to an Agenda'
@@ -483,11 +469,6 @@ describe('agenda', () => {
 
                     done()
                 })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
-                    done()
-                })
             })
         })
 
@@ -500,8 +481,6 @@ describe('agenda', () => {
                     $timeout,
                 })
                 .then(() => {
-                    expect(dispatch.callCount).toBe(15)
-
                     expect(apiSpy.save.callCount).toBe(2)
                     expect(apiSpy.save.args[0]).toEqual([
                         {},
@@ -530,7 +509,7 @@ describe('agenda', () => {
                     notify,
                     $timeout,
                 })
-                .then(() => {
+                .catch(() => {
                     expect($timeout.callCount).toBe(1)
                     expect(notify.error.callCount).toBe(1)
                     expect(notify.error.args[0]).toEqual([
@@ -549,11 +528,6 @@ describe('agenda', () => {
 
                     done()
                 })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
-                    done()
-                })
             })
 
             it('addEventToCurrentAgenda raises error if no Agenda is selected', (done) => {
@@ -563,15 +537,8 @@ describe('agenda', () => {
                     notify,
                     $timeout,
                 })
-                .then(() => {
+                .catch(() => {
                     expect(notify.error.args[0]).toEqual(['No Agenda selected.'])
-                    expect(dispatch.callCount).toBe(1)
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
                     done()
                 })
             })
@@ -583,15 +550,8 @@ describe('agenda', () => {
                     notify,
                     $timeout,
                 })
-                .then(() => {
+                .catch(() => {
                     expect(notify.error.args[0]).toEqual(['Current Agenda is spiked.'])
-                    expect(dispatch.callCount).toBe(1)
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
                     done()
                 })
             })
@@ -603,17 +563,10 @@ describe('agenda', () => {
                     notify,
                     $timeout,
                 })
-                .then(() => {
+                .catch(() => {
                     expect(notify.error.args[0]).toEqual([
                         'Cannot create a Planning item from a spiked event!',
                     ])
-                    expect(dispatch.callCount).toBe(1)
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
                     done()
                 })
             })
@@ -689,7 +642,7 @@ describe('agenda', () => {
                     $timeout,
                     api,
                 })
-                .then(() => {
+                .catch(() => {
                     expect($timeout.callCount).toBe(1)
                     expect(notify.error.args[0][0]).toBe(
                         'Unauthorised to add a Planning Item to an Agenda'
@@ -708,11 +661,6 @@ describe('agenda', () => {
                     }])
                     expect(dispatch.callCount).toBe(1)
 
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
                     done()
                 })
             })

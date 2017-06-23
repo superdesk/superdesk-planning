@@ -147,7 +147,7 @@ const _spikeEvent = (events) => (
             notify.success('The Event has been spiked.')
             dispatch({
                 type: EVENTS.ACTIONS.SPIKE_EVENT,
-                payload: event,
+                payload: events,
             })
             // Close delete event modal
             dispatch(hideModal())

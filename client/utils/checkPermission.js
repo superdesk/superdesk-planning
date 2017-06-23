@@ -15,14 +15,14 @@ import { getPrivileges } from '../selectors'
  */
 const checkPermission = (action, permission, errorMessage) => (
     (...args) => (
-        (dispatch, getState, { $timeout, notify }) => {
+        function checkPermission(dispatch, getState, { $timeout, notify }) {
             const privileges = getPrivileges(getState())
             if (permission in privileges && privileges[permission] === 1) {
                 return Promise.resolve(dispatch(action(...args)))
             }
 
             $timeout(() => (notify.error(errorMessage)))
-            return Promise.resolve(dispatch({
+            return Promise.reject(dispatch({
                 type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
                 payload: {
                     action: action.name,

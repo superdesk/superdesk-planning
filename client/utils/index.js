@@ -38,6 +38,7 @@ export const createTestStore = (params={}) => {
         notify: {
             success: () => (undefined),
             error: () => (undefined),
+            pop: () => (undefined),
         },
         $location: { search: () => (undefined) },
         vocabularies: {

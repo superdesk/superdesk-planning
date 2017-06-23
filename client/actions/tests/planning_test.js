@@ -143,7 +143,7 @@ describe('planning', () => {
                     notify,
                     $timeout,
                 })
-                .then(() => {
+                .catch(() => {
                     expect($timeout.callCount).toBe(1)
                     expect(notify.error.args[0]).toEqual(['Unauthorised to spike a planning item!'])
                     expect(dispatch.args[0]).toEqual([{
@@ -155,13 +155,6 @@ describe('planning', () => {
                             args: [plannings[1]],
                         },
                     }])
-                    expect(dispatch.callCount).toBe(1)
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
                     done()
                 })
             })
@@ -213,7 +206,7 @@ describe('planning', () => {
                     notify,
                     $timeout,
                 })
-                .then(() => {
+                .catch(() => {
                     expect($timeout.callCount).toBe(1)
                     expect(notify.error.args[0]).toEqual([
                         'Unauthorised to unspike a planning item!',
@@ -227,13 +220,6 @@ describe('planning', () => {
                             args: [plannings[1]],
                         },
                     }])
-                    expect(dispatch.callCount).toBe(1)
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
                     done()
                 })
             })
@@ -275,7 +261,7 @@ describe('planning', () => {
                     $timeout,
                     api,
                 })
-                .then(() => {
+                .catch(() => {
                     expect($timeout.callCount).toBe(1)
                     expect(notify.error.args[0][0]).toBe('Unauthorised to modify a planning item!')
                     expect(dispatch.args[0]).toEqual([{
@@ -287,13 +273,6 @@ describe('planning', () => {
                             args: [item],
                         },
                     }])
-                    expect(dispatch.callCount).toBe(1)
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
                     done()
                 })
             })
@@ -339,7 +318,7 @@ describe('planning', () => {
                         $timeout,
                         api,
                     })
-                    .then(() => {
+                    .catch(() => {
                         expect($timeout.callCount).toBe(1)
                         expect(notify.error.args[0][0]).toBe(
                             'Unauthorised to create a new planning item!'
@@ -353,12 +332,6 @@ describe('planning', () => {
                                 args: [item],
                             },
                         }])
-
-                        done()
-                    })
-                    .catch((error) => {
-                        expect(error).toBe(null)
-                        expect(error.stack).toBe(null)
                         done()
                     })
                 }
@@ -505,7 +478,7 @@ describe('planning', () => {
             it('saveAndDeleteCoverages raises ACCESS_DENIED without permission', (done) => {
                 initialState.privileges.planning_planning_management = 0
                 return action()
-                .then(() => {
+                .catch(() => {
                     // Make sure the user is notified of unauthorised action
                     expect($timeout.callCount).toBe(1)
                     expect(notify.error.callCount).toBe(1)
@@ -524,12 +497,6 @@ describe('planning', () => {
                             args: [coverages, planning, planning.coverages],
                         },
                     }])
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
                     done()
                 })
             })
