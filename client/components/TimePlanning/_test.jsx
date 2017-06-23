@@ -20,6 +20,7 @@ describe('<TimePlanning />', () => {
             return ''
         }
     }
+
     it('renders an event', () => {
         const event = {
             dates: {
@@ -31,11 +32,12 @@ describe('<TimePlanning />', () => {
             moment(event.dates.start).format('DD/MM/YYYY HH:mm')
         )
     })
+
     it('renders a full day event', () => {
         const event = {
             dates: {
-                start: moment('2016-10-15T22:00:00+0000'),
-                end: moment('2016-10-16T22:00:00+0000'),
+                start: moment('2016-10-15T00:00:00'),
+                end: moment('2016-10-16T23:59:00'),
                 tz: 'Europe/Berlin',
             },
         }
@@ -43,6 +45,7 @@ describe('<TimePlanning />', () => {
             moment(event.dates.start).format('DD/MM/YYYY')
         )
     })
+
     it('renders an event that ends on another day', () => {
         const event = {
             dates: {
@@ -55,7 +58,9 @@ describe('<TimePlanning />', () => {
             moment(event.dates.end).format('DD/MM/YYYY')
         )
     })
+
     it('there is no event', () => {
         expect(renderToText()).toBe('')
     })
+
 })

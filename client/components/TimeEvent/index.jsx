@@ -1,7 +1,7 @@
 import React from 'react'
 import momentPropTypes from 'react-moment-proptypes'
 import { Datetime } from '../index'
-import { isAllDay } from '../../utils'
+import { isEventAllDay } from '../../utils'
 
 function startAndFinishTheSameDay(event) {
     return event.dates.start.isSame(event.dates.end, 'day')
@@ -9,7 +9,7 @@ function startAndFinishTheSameDay(event) {
 
 export const TimeEvent = ({ event, withDate=false }) => {
     // display "all day" if the event last exactly one day
-    if (isAllDay(event)) {
+    if (isEventAllDay(event.dates.start, event.dates.end)) {
         return (<div>All day</div>)
     // display only the time if the event start and finish the same day
     } else if (startAndFinishTheSameDay(event)) {
