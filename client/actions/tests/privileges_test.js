@@ -24,7 +24,7 @@ describe('privileges', () => {
             $timeout.reset()
         })
 
-        it('loadPrivileges', () => {
+        it('loadPrivileges', (done) => {
             const privileges = {
                 loaded: Promise.resolve(),
                 privileges,
@@ -36,6 +36,15 @@ describe('privileges', () => {
                     type: PRIVILEGES.ACTIONS.RECEIVE_PRIVILEGES,
                     payload: privileges.privileges,
                 }])
+
+                done()
+            })
+            .catch((error) => {
+                /* eslint-disable no-console */
+                console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                expect('Error').toBe(null)
+                done()
+                /* eslint-enable no-console */
             })
         })
 

@@ -56,6 +56,7 @@ describe('<EventsList />', () => {
             )
         })
     ))
+
     it('renders events', () => {
         const initialState = {
             events: {
