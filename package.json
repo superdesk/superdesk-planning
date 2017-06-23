@@ -61,7 +61,7 @@
     "enzyme": "^2.4.1",
     "simulant": "^0.2.2",
     "eslint": "^3.14.1",
-    "eslint-plugin-jasmine": "^2.2.0",
+    "eslint-plugin-jasmine": "~2.4.0",
     "eslint-plugin-react": "^6.4.0",
     "istanbul-instrumenter-loader": "0.2.0",
     "jasmine": "^2.5.1",
