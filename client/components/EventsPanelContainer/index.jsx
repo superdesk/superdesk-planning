@@ -11,6 +11,7 @@ const DEFAULT_FORM_VALUES = {
         qcode: 'eocstat:eos5',
     },
 }
+
 export const EventsPanel = ({ eventToDetail, handleBackToList }) => (
     <ResizableEventsPanel className="Events-panel" minWidth={570}>
         {eventToDetail &&

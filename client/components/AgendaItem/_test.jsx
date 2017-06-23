@@ -54,16 +54,15 @@ describe('agenda', () => {
             it('renders an active agenda', () => {
                 const wrapper = getActiveWrapper()
 
-                expect(wrapper.find('h6').length).toBe(1)
                 expect(wrapper.find('.icon-pencil').length).toBe(1)
                 expect(wrapper.find('.icon-trash').length).toBe(1)
                 expect(wrapper.find('.icon-unspike').length).toBe(0)
 
-                const title = wrapper.find('h6')
+                const title = wrapper.find('[onClick]').first()
                 const editButton = wrapper.find('.icon-pencil').parent()
                 const spikeButton = wrapper.find('.icon-trash').parent()
 
-                expect(title.text()).toBe(agenda.name)
+                expect(title.text()).toContain(agenda.name)
 
                 title.simulate('click')
                 expect(onClick.calledOnce).toBe(true)
@@ -79,7 +78,6 @@ describe('agenda', () => {
                 agenda.state = 'spiked'
                 const wrapper = getSpikedWrapper()
 
-                expect(wrapper.find('h6').length).toBe(1)
                 expect(wrapper.find('.icon-pencil').length).toBe(0)
                 expect(wrapper.find('.icon-trash').length).toBe(0)
                 expect(wrapper.find('.icon-unspike').length).toBe(1)

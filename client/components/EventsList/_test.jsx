@@ -11,8 +11,8 @@ const events = {
     '5800d71930627218866f1e80': {
         _id: '5800d71930627218866f1e80',
         dates: {
-            start: moment('2099-10-15T13:01:00+0000'),
-            end: moment('2099-10-15T14:01:00+0000'),
+            start: moment('2099-10-15T13:01:00'),
+            end: moment('2099-10-15T14:01:00'),
         },
         definition_short: 'definition_short 1',
         location: [{ name: 'location1' }],
@@ -22,8 +22,8 @@ const events = {
     '5800d73230627218866f1e82': {
         _id: '5800d73230627218866f1e82',
         dates: {
-            start: moment('2099-10-17T22:00:00+0000'),
-            end: moment('2099-10-18T22:00:00+0000'),
+            start: moment('2099-10-17T22:00:00'),
+            end: moment('2099-10-18T22:00:00'),
             tz: 'Europe/Berlin',
         },
         definition_short: '',
@@ -33,8 +33,8 @@ const events = {
     '5800d73230627218866f1d82': {
         _id: '5800d73230627218866f1d82',
         dates: {
-            start: moment('2099-10-17T13:01:34+0000'),
-            end: moment('2099-10-19T13:01:50+0000'),
+            start: moment('2099-10-17T13:01:34'),
+            end: moment('2099-10-19T13:01:50'),
         },
         definition_short: '',
         location: [{ name: 'location2' }],
@@ -56,6 +56,7 @@ describe('<EventsList />', () => {
             )
         })
     ))
+
     it('renders events', () => {
         const initialState = {
             events: {
@@ -98,8 +99,8 @@ describe('<EventsList />', () => {
         const newEvent = {
             _id: '123',
             dates: {
-                start: '2099-11-17T13:01:34+0000',
-                end: '2099-11-17T14:01:50+0000',
+                start: '2099-11-17T13:01:34',
+                end: '2099-11-17T14:01:50',
             },
             definition_short: '',
             location: [{ name: 'location3' }],

@@ -50,6 +50,7 @@ describe('events', () => {
                 show: true,
                 showEventDetails: null,
                 highlightedEvent: null,
+                lastRequestParams: { page: 1 },
             },
             privileges: {
                 planning: 1,
@@ -67,6 +68,18 @@ describe('events', () => {
         // and mocks the proceeding calls
         const dispatchCheckPermission = sinon.spy((action) =>  {
             if (typeof action === 'function' && dispatch.callCount < 2) {
+                return action(dispatch, getState, {
+                    notify,
+                    api,
+                    $timeout,
+                })
+            }
+
+            return action
+        })
+
+        const dispatchRunFunction = sinon.spy((action) =>  {
+            if (typeof action === 'function') {
                 return action(dispatch, getState, {
                     notify,
                     api,
@@ -112,40 +125,53 @@ describe('events', () => {
 
             notify.error.reset()
             notify.success.reset()
+            dispatchCheckPermission.reset()
+            dispatchRunFunction.reset()
             $timeout.reset()
         })
 
-        it('uploadFilesAndSaveEvent', () => {
+        it('uploadFilesAndSaveEvent', (done) => {
+            dispatch = dispatchRunFunction
             initialState.events.highlightedEvent = true
             initialState.events.showEventDetails = true
-            const event = {}
+            const event = {
+                name: 'Event 4',
+                dates: {
+                    start: '2099-10-15T13:01:11',
+                    end: '2099-10-15T14:01:11',
+                },
+            }
             const action = actions.uploadFilesAndSaveEvent(event)
             return action(dispatch, getState)
             .then(() => {
-                // Cannot check dispatch(saveFiles(event)) using a spy on dispatch
-                // As saveFiles is a thunk function
+                expect(dispatch.callCount).toBe(11)
 
-                // Cannot check dispatch(saveLocation(event)) using a spy on dispatch
-                // As saveLocation is a thunk function
+                expect(dispatch.args[4]).toEqual([{
+                    type: 'REQUEST_EVENTS',
+                    payload: { page: 1 },
+                }])
 
-                // Cannot check dispatch(saveEvent(event)) using a spy on dispatch
-                // As saveEvent is a thunk function
+                expect(dispatch.args[6]).toEqual([jasmine.objectContaining({
+                    type: 'ADD_EVENTS',
+                    payload: events,
+                })])
 
-                expect(dispatch.args[3][0].type).toBe('ADD_EVENTS')
-                expect(dispatch.args[4][0].type).toBe('ADD_TO_EVENTS_LIST')
+                expect(dispatch.args[7][0].type).toBe('SET_EVENTS_LIST')
 
-                expect(dispatch.args[5]).toEqual([{ type: 'CLOSE_EVENT_DETAILS' }])
-
-                // Cannot check dispatch(openEventDetails()) using a spy on dispatch
-                // As openEventDetails is a thunk function
-
-                expect(dispatch.callCount).toBe(7)
+                done()
+            })
+            .catch((error) => {
+                /* eslint-disable no-console */
+                console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                expect('Error').toBe(null)
+                done()
+                /* eslint-enable no-console */
             })
         })
 
         describe('spikeEvent', () => {
             const action = actions.spikeEvent(events[2])
-            it('spikeEvent calls `events_spike` endpoint', () => {
+            it('spikeEvent calls `events_spike` endpoint', (done) => {
                 api.update = sinon.spy(() => (Promise.resolve()))
                 return action(dispatchCheckPermission, getState, {
                     api,
@@ -178,10 +204,19 @@ describe('events', () => {
                     // As fetchUsingURL is a thunk function
 
                     expect(dispatch.callCount).toBe(4)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('spikeEvent on fail displays error message', () => {
+            it('spikeEvent on fail displays error message', (done) => {
                 api.update = sinon.spy(() => (Promise.reject(
                     { data: { _message: 'Failed to spike the event' } }
                 )))
@@ -193,6 +228,15 @@ describe('events', () => {
                     expect(api.update.callCount).toBe(1)
                     expect(notify.error.args[0]).toEqual(['Failed to spike the event'])
                     expect(notify.success.callCount).toBe(0)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
@@ -201,7 +245,7 @@ describe('events', () => {
         describe('unspikeEvent', () => {
             const action = actions.unspikeEvent(events[2])
 
-            it('unspikeEvent calls `events_unspike` endpoint', () => {
+            it('unspikeEvent calls `events_unspike` endpoint', (done) => {
                 api.update = sinon.spy(() => (Promise.resolve()))
                 return action(dispatch, getState, {
                     api,
@@ -230,10 +274,19 @@ describe('events', () => {
                     // As fetchUsingURL is a thunk function
 
                     expect(dispatch.callCount).toBe(3)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('unspikeEvent on fail displays error message', () => {
+            it('unspikeEvent on fail displays error message', (done) => {
                 api.update = sinon.spy(() => (Promise.reject(
                     { data: { _message: 'Failed to unspike the event' } }
                 )))
@@ -245,11 +298,20 @@ describe('events', () => {
                     expect(api.update.callCount).toBe(1)
                     expect(notify.error.args[0]).toEqual(['Failed to unspike the event'])
                     expect(notify.success.callCount).toBe(0)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
 
-        it('saveFiles', () => {
+        it('saveFiles', (done) => {
             const event = {
                 files: [
                     ['test_file_1'],
@@ -277,25 +339,44 @@ describe('events', () => {
                 }])
 
                 expect(newEvent.files).toEqual(['test_file_1', 'test_file_2'])
+
+                done()
+            })
+            .catch((error) => {
+                /* eslint-disable no-console */
+                console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                expect('Error').toBe(null)
+                done()
+                /* eslint-enable no-console */
             })
         })
 
-        it('silentlyFetchEventsById', () => {
+        it('silentlyFetchEventsById', (done) => {
+            dispatch = dispatchRunFunction
             const action = actions.silentlyFetchEventsById(['e1', 'e2', 'e3'])
             return action(dispatch)
             .then(() => {
-                // Cannot check dispatch(performFetchQuery()) using a spy on dispatch
-                // As performFetchQuery is a thunk function
-
-                expect(dispatch.args[1][0].type).toBe('ADD_EVENTS')
-                expect(dispatch.args[1][0].payload).toBe(events)
-
                 expect(dispatch.callCount).toBe(2)
+                expect(dispatch.args[1]).toEqual([jasmine.objectContaining({
+                    type: 'ADD_EVENTS',
+                    payload: events,
+                })])
+
+                done()
+            })
+            .catch((error) => {
+                /* eslint-disable no-console */
+                console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                expect('Error').toBe(null)
+                done()
+                /* eslint-enable no-console */
             })
         })
 
         describe('fetchEvents', () => {
+
             const store = createTestStore({ initialState })
+
             it('ids', (done) => {
                 const action = actions.fetchEvents(
                     { ids: range(1, EVENTS.FETCH_IDS_CHUNK_SIZE + 10).map((i) => (`e${i}`)) }
@@ -305,14 +386,30 @@ describe('events', () => {
                     expect(response._items).toEqual([])
                     done()
                 })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
+                })
             })
+
             it('fulltext', (done) => {
                 store.dispatch(actions.fetchEvents({ fulltext: 'search that' }))
                 .then(() => done())
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
+                })
             })
         })
 
-        it('fetchEvents', () => {
+        it('fetchEvents', (done) => {
+            dispatch = dispatchRunFunction
             const params = {}
             const action = actions.fetchEvents(params)
             return action(dispatch, getState, {
@@ -328,8 +425,10 @@ describe('events', () => {
                 // Cannot check dispatch(performFetchQuery()) using a spy on dispatch
                 // As performFetchQuery is a thunk function
 
-                expect(dispatch.args[2][0].type).toBe('ADD_EVENTS')
-                expect(dispatch.args[2][0].events).toBe(events)
+                expect(dispatch.args[2]).toEqual([jasmine.objectContaining({
+                    type: 'ADD_EVENTS',
+                    payload: events,
+                })])
 
                 expect(dispatch.args[3]).toEqual([{
                     type: 'SET_EVENTS_LIST',
@@ -344,6 +443,15 @@ describe('events', () => {
                 ])
 
                 expect(dispatch.callCount).toBe(4)
+
+                done()
+            })
+            .catch((error) => {
+                /* eslint-disable no-console */
+                console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                expect('Error').toBe(null)
+                done()
+                /* eslint-enable no-console */
             })
         })
 
@@ -373,6 +481,13 @@ describe('events', () => {
                     expect(notify.error.callCount).toBe(0)
                     done()
                 })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
+                })
             })
 
             it('notifies end user if an error occurred', (done) => {
@@ -386,6 +501,13 @@ describe('events', () => {
                     expect(notify.error.callCount).toBe(1)
                     expect(notify.error.args[0]).toEqual(['Failed to fetch an Event!'])
                     done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
@@ -475,7 +597,7 @@ describe('events', () => {
         describe('openSpikeEvent', () => {
             const action = actions.openSpikeEvent(events[2])
 
-            it('openSpikeEvent displays the modal', () => {
+            it('openSpikeEvent displays the modal', (done) => {
                 initialState.privileges.planning_event_spike = 1
                 dispatch = dispatchCheckPermission
                 dispatch.reset()
@@ -492,10 +614,19 @@ describe('events', () => {
                     })])
                     expect(notify.error.callCount).toBe(0, 'Notify Error shouldnt be called')
                     expect($timeout.callCount).toBe(0, 'Timeout shouldnt be called')
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('openSpikeEvent raises ACCESS_DENIED without permission', () => {
+            it('openSpikeEvent raises ACCESS_DENIED without permission', (done) => {
                 initialState.privileges.planning_event_spike = 0
                 return action(dispatch, getState, {
                     notify,
@@ -514,6 +645,15 @@ describe('events', () => {
                         },
                     }])
                     expect($timeout.callCount).toBe(1)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
@@ -521,7 +661,7 @@ describe('events', () => {
         describe('openUnspikeEvent', () => {
             const action = actions.openUnspikeEvent(events[2])
 
-            it('openUnspikeEvent displays the modal', () => {
+            it('openUnspikeEvent displays the modal', (done) => {
                 initialState.privileges.planning_event_unspike = 1
                 dispatch = dispatchCheckPermission
                 dispatch.reset()
@@ -538,10 +678,19 @@ describe('events', () => {
                     })])
                     expect(notify.error.callCount).toBe(0, 'Notify Error shouldnt be called')
                     expect($timeout.callCount).toBe(0, 'Timeout shouldnt be called')
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('openUnspikeEvent raises ACCESS_DENIED without permission', () => {
+            it('openUnspikeEvent raises ACCESS_DENIED without permission', (done) => {
                 initialState.privileges.planning_event_unspike = 0
                 return action(dispatch, getState, {
                     notify,
@@ -560,6 +709,15 @@ describe('events', () => {
                         },
                     }])
                     expect($timeout.callCount).toBe(1)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
@@ -679,7 +837,7 @@ describe('events', () => {
                         },
                     })
                     done()
-                }, 0)
+                }, 250)
             })
 
             it('Silently returns if no event provided', (done) => {
@@ -699,7 +857,7 @@ describe('events', () => {
                         },
                     })
                     done()
-                }, 0)
+                }, 250)
             })
         })
 
@@ -783,7 +941,7 @@ describe('events', () => {
                         },
                     })
                     done()
-                }, 0)
+                }, 250)
             })
         })
 
@@ -815,7 +973,7 @@ describe('events', () => {
                         },
                     })
                     done()
-                })
+                }, 250)
             })
 
             it('Event silently returns if no event provided', (done) => {
@@ -834,7 +992,7 @@ describe('events', () => {
                         },
                     })
                     done()
-                })
+                }, 250)
             })
         })
     })

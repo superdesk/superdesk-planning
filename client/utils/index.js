@@ -8,21 +8,6 @@ import { get, set } from 'lodash'
 export { default as checkPermission } from './checkPermission'
 export { default as retryDispatch } from './retryDispatch'
 
-export function isAllDay(event) {
-    // event last 24 hours
-    return moment(event.dates.end).diff(moment(event.dates.start), 'minutes') === 24 * 60 &&
-    // event has a local timezone
-    get(event, 'dates.tz') &&
-    // event starts and ends at midnight in the local timezone
-    [
-        event.dates.start,
-        event.dates.end,
-    ].every((d) => {
-        const date = moment(d).tz(event.dates.tz)
-        return (date.minute() === 0 && date.hour() === 0)
-    })
-}
-
 export function createReducer(initialState, reducerMap) {
     return (state = initialState, action) => {
         const reducer = reducerMap[action.type]
@@ -257,4 +242,19 @@ export const getErrorMessage = (error, defaultMessage) => {
     }
 
     return defaultMessage
+}
+
+/**
+ * Helper function to determine if the starting and ending dates
+ * occupy entire day(s)
+ * @param {moment} startingDate - A moment instance for the starting date/time
+ * @param {moment} endingDate - A moment instance for the starting date/time
+ * @return {boolean} If the date/times occupy entire day(s)
+ */
+export const isEventAllDay = (startingDate, endingDate) => {
+    startingDate = moment(startingDate).clone()
+    endingDate = moment(endingDate).clone()
+
+    return startingDate.isSame(startingDate.clone().startOf('day')) &&
+        endingDate.isSame(endingDate.clone().endOf('day').seconds(0).milliseconds(0))
 }

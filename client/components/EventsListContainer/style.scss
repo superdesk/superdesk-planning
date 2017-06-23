@@ -24,23 +24,31 @@ $EVENT_LIST_CONTAINER_ZINDEX: 6;
     z-index: $EVENT_LIST_CONTAINER_ZINDEX !important;
     .btn--primary {
         white-space: nowrap;
-        margin: 5px;
+        margin: 10px;
     }
     .search-handler {
         padding-left: 0;
     }
     .advanced-search-open {
-        width: 28px;
-        height: 28px;
+        width: 4.8rem;
+        height: 4.8rem;
         display: inline-block;
-        opacity: 0.5;
-        margin: 16px 0 0 16px;
+        margin: 0;
         cursor: pointer;
+        line-height: 54px;
+        text-align: center;
+        background: #ededed;
+        transition: all .1s ease;
+        overflow: hidden;
+        border-right: 1px solid #dfdfdf;
+        i {
+            opacity: .6;
+        }
     }
     .flat-searchbar {
         flex-grow: 1;
         .search-handler {
-            border-right: 0px solid black;
+            border-right: 0;
         }
     }
 }

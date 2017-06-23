@@ -37,6 +37,7 @@ describe('<DaysOfWeek />', () => {
         })
         expect(onButtonClick.callCount).toBe(3)
     })
+
     it('works well with initial value', () => {
         let meta = { touched: false }
         let input = {

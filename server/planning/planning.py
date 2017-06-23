@@ -51,12 +51,6 @@ class PlanningService(superdesk.Service):
             doc['guid'] = generate_guid(type=GUID_NEWSML)
             set_original_creator(doc)
 
-            # remove event expiry if it is linked to the planning
-            if 'event_item' in doc:
-                events_service = get_resource_service('events')
-                original_event = events_service.find_one(req=None, _id=doc['event_item'])
-                events_service.system_update(doc['event_item'], {'expiry': None}, original_event)
-
     def on_created(self, docs):
         for doc in docs:
             push_notification(
@@ -64,6 +58,13 @@ class PlanningService(superdesk.Service):
                 item=str(doc.get(config.ID_FIELD)),
                 user=str(doc.get('original_creator', ''))
             )
+            # remove event expiry if it is linked to the planning
+            if 'event_item' in doc:
+                events_service = get_resource_service('events')
+                original_event = events_service.find_one(req=None, _id=doc['event_item'])
+                events_service.system_update(doc['event_item'], {'expiry': None}, original_event)
+                get_resource_service('events_history').on_item_updated({'planning_id': doc.get('_id')}, original_event,
+                                                                       'planning created')
 
     def on_update(self, updates, original):
         user = get_user()

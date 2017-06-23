@@ -19,6 +19,7 @@ describe('agenda', () => {
                     notify,
                     api,
                     $timeout,
+                    $location,
                 })
             }
 
@@ -29,21 +30,12 @@ describe('agenda', () => {
             success: sinon.spy(),
         }
         const $timeout = sinon.spy((func) => func())
-
-        let apiSpy = {
-            query: sinon.spy(() => (Promise.resolve())),
-            remove: sinon.spy(() => (Promise.resolve())),
-            save: sinon.spy((ori, item) => (Promise.resolve({
-                _id: 'a3',
-                ...ori,
-                ...item,
-            }))),
-        }
+        const $location = { search: sinon.spy() }
 
         let api
+        let apiSpy
 
         beforeEach(() => {
-            apiSpy.save.reset()
             notify.error.reset()
             notify.success.reset()
             dispatch.reset()
@@ -74,6 +66,9 @@ describe('agenda', () => {
                 _id: 'e1',
                 name: 'Event1',
                 definition_short: 'Some event',
+                slugline: 'Slugger',
+                subject: '123',
+                anpa_category: 'abc',
             }]
 
             initialState = {
@@ -91,12 +86,22 @@ describe('agenda', () => {
                     planning_planning_management: 1,
                 },
             }
+
+            apiSpy = {
+                query: sinon.spy(() => (Promise.resolve())),
+                remove: sinon.spy(() => (Promise.resolve())),
+                save: sinon.spy((ori, item) => (Promise.resolve({
+                    _id: 'a3',
+                    ...ori,
+                    ...item,
+                }))),
+            }
         })
 
         describe('createOrUpdateAgenda', () => {
             const item = { name: 'TestAgenda3' }
             const action = actions.createOrUpdateAgenda({ name: item.name })
-            it('createOrUpdateAgenda saves and executes dispatches', () => {
+            it('createOrUpdateAgenda saves and executes dispatches', (done) => {
                 initialState.privileges.planning_agenda_management = 1
                 return action(dispatch, getState, {
                     api,
@@ -107,9 +112,10 @@ describe('agenda', () => {
                     expect(apiSpy.save.args[0]).toEqual([{}, item])
                     expect(notify.success.args[0]).toEqual(['The agenda has been created/updated.'])
 
-                    expect(dispatch.callCount).toBe(3)
-                    expect(dispatch.args[0]).toEqual([{ type: 'HIDE_MODAL' }])
-                    expect(dispatch.args[1]).toEqual([{
+                    expect(dispatch.callCount).toBe(10)
+
+                    expect(dispatch.args[1]).toEqual([{ type: 'HIDE_MODAL' }])
+                    expect(dispatch.args[2]).toEqual([{
                         type: 'ADD_OR_REPLACE_AGENDA',
                         payload: {
                             _id: 'a3',
@@ -117,12 +123,26 @@ describe('agenda', () => {
                         },
                     }])
 
-                    // Cannot check dispatch(selectAgenda(agenda._id)) using spy on dispatch
-                    // As selectAgenda is a thunk function
+                    expect(dispatch.args[4]).toEqual([{
+                        type: 'SELECT_AGENDA',
+                        payload: 'a3',
+                    }])
+
+                    expect(dispatch.args[5]).toEqual([{ type: 'CLOSE_PLANNING_EDITOR' }])
+                    expect(dispatch.args[8]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('createOrUpdateAgenda raises ACCESS_DENIED without permission', () => {
+            it('createOrUpdateAgenda raises ACCESS_DENIED without permission', (done) => {
                 initialState.privileges.planning_agenda_management = 0
                 return action(dispatch, getState, {
                     api,
@@ -144,12 +164,21 @@ describe('agenda', () => {
                         },
                     }])
                     expect(dispatch.callCount).toBe(1)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
 
         describe('spikeAgenda', () => {
-            it('spikeAgenda calls `agenda_spike` endpoint', () => {
+            it('spikeAgenda calls `agenda_spike` endpoint', (done) => {
                 initialState.privileges.planning_agenda_spike = 1
                 api.update = sinon.spy(() => (Promise.resolve()))
 
@@ -177,10 +206,19 @@ describe('agenda', () => {
                     expect($timeout.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(0)
                     expect(notify.success.args[0]).toEqual(['The Agenda has been spiked.'])
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('spikeAgenda raises ACCESS_DENIED without permission', () => {
+            it('spikeAgenda raises ACCESS_DENIED without permission', (done) => {
                 initialState.privileges.planning_agenda_spike = 0
 
                 const action = actions.spikeAgenda(agendas[1])
@@ -202,12 +240,21 @@ describe('agenda', () => {
                         },
                     }])
                     expect(dispatch.callCount).toBe(1)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
 
         describe('unspikeAgenda', () => {
-            it('unspikeAgenda calls `agenda_unspike` endpoint', () => {
+            it('unspikeAgenda calls `agenda_unspike` endpoint', (done) => {
                 initialState.privileges.planning_agenda_unspike = 1
                 api.update = sinon.spy(() => (Promise.resolve()))
 
@@ -235,10 +282,19 @@ describe('agenda', () => {
                     expect($timeout.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(0)
                     expect(notify.success.args[0]).toEqual(['The Agenda has been unspiked.'])
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('unspikeAgenda raises ACCESS_DENIED without permission', () => {
+            it('unspikeAgenda raises ACCESS_DENIED without permission', (done) => {
                 initialState.privileges.planning_agenda_unspike = 0
 
                 const action = actions.unspikeAgenda(agendas[1])
@@ -260,11 +316,21 @@ describe('agenda', () => {
                         },
                     }])
                     expect(dispatch.callCount).toBe(1)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
 
-        it('fetchAgendas', () => {
+        it('fetchAgendas', (done) => {
+            apiSpy.query = sinon.spy(() => (Promise.resolve({ _items: agendas })))
             const action = actions.fetchAgendas()
             return action(dispatch, getState, {
                 api,
@@ -273,16 +339,27 @@ describe('agenda', () => {
             .then(() => {
                 expect(apiSpy.query.callCount).toBe(1)
                 expect(dispatch.callCount).toBe(2)
+
                 expect(dispatch.args[0]).toEqual([{ type: 'REQUEST_AGENDAS' }])
+
                 expect(dispatch.args[1]).toEqual([{
                     type: 'RECEIVE_AGENDAS',
                     payload: agendas,
                 }])
+
+                done()
+            })
+            .catch((error) => {
+                /* eslint-disable no-console */
+                console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                expect('Error').toBe(null)
+                done()
+                /* eslint-enable no-console */
             })
         })
 
         describe('fetchAgendaById', () => {
-            it('calls api.getById and runs dispatches', () => {
+            it('calls api.getById and runs dispatches', (done) => {
                 apiSpy.getById = sinon.spy(() => Promise.resolve(agendas[1]))
                 const action = actions.fetchAgendaById('a2')
                 return action(dispatch, getState, {
@@ -299,10 +376,19 @@ describe('agenda', () => {
                         payload: agendas[1],
                     }])
                     expect(notify.error.callCount).toBe(0)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('notifies end user if an error occurred', () => {
+            it('notifies end user if an error occurred', (done) => {
                 apiSpy.getById = sinon.spy(() => Promise.reject())
                 const action = actions.fetchAgendaById('a2')
                 return action(dispatch, getState, {
@@ -313,11 +399,21 @@ describe('agenda', () => {
                     expect(dispatch.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(1)
                     expect(notify.error.args[0]).toEqual(['Failed to fetch an Agenda!'])
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
 
-        it('selectAgenda', () => {
+        it('selectAgenda', (done) => {
+            apiSpy.query = sinon.spy(() => (Promise.resolve({ _items: [] })))
             const action = actions.selectAgenda('a1')
             const $location = { search: sinon.spy() }
 
@@ -326,22 +422,36 @@ describe('agenda', () => {
                 $location,
             })
             .then(() => {
-                expect(dispatch.callCount).toBe(3)
+                expect(dispatch.callCount).toBe(7)
                 expect(dispatch.args[0]).toEqual([{
                     type: 'SELECT_AGENDA',
                     payload: 'a1',
                 }])
                 expect(dispatch.args[1]).toEqual([{ type: 'CLOSE_PLANNING_EDITOR' }])
 
-                // Cannot check dispatch(fetchSelectedAgendaPlannings()) using a spy on dispatch
-                // As fetchSelectedAgendaPlannings is a thunk function
+                expect(dispatch.args[4]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
+                expect(dispatch.args[6]).toEqual([{
+                    type: 'RECEIVE_PLANNINGS',
+                    payload: [],
+                }])
 
-                expect($location.args[0]).toEqual(['agenda', 'a1'])
+                expect($timeout.callCount).toBe(1)
+                expect($location.search.callCount).toBe(1)
+                expect($location.search.args[0]).toEqual(['agenda', 'a1'])
+
+                done()
+            })
+            .catch((error) => {
+                /* eslint-disable no-console */
+                console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                expect('Error').toBe(null)
+                done()
+                /* eslint-enable no-console */
             })
         })
 
         describe('addToCurrentAgenda', () => {
-            it('addToCurrentAgenda executes dispatches', () => {
+            it('addToCurrentAgenda executes dispatches', (done) => {
                 initialState.privileges.planning_planning_management = 1
 
                 const action = actions.addToCurrentAgenda([plannings[0]])
@@ -357,10 +467,19 @@ describe('agenda', () => {
                     expect(notify.success.args[0]).toEqual([
                         'The planning has been added to the agenda',
                     ])
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('addToCurrentAgenda raises ACCESS_DENIED without permission', () => {
+            it('addToCurrentAgenda raises ACCESS_DENIED without permission', (done) => {
                 initialState.privileges.planning_planning_management = 0
 
                 const action = actions.addToCurrentAgenda(plannings[0])
@@ -383,23 +502,54 @@ describe('agenda', () => {
                         },
                     }])
                     expect(dispatch.callCount).toBe(1)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
 
         describe('addEventToCurrentAgenda', () => {
-            it('addEventToCurrentAgenda executes dispatches', () => {
+            it('addEventToCurrentAgenda executes dispatches', (done) => {
+                apiSpy.query = sinon.spy(() => (Promise.resolve({ _items: plannings })))
                 const action = actions.addEventToCurrentAgenda(events[0])
                 return action(dispatch, getState, {
                     notify,
                     $timeout,
                 })
                 .then(() => {
-                    expect(dispatch.callCount).toBe(3)
+                    expect(dispatch.callCount).toBe(15)
+
+                    expect(apiSpy.save.callCount).toBe(2)
+                    expect(apiSpy.save.args[0]).toEqual([
+                        {},
+                        {
+                            event_item: events[0]._id,
+                            slugline: events[0].slugline,
+                            headline: events[0].name,
+                            subject: events[0].subject,
+                            anpa_category: events[0].anpa_category,
+                        },
+                    ])
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('addEventToCurrentAgenda raises ACCESS_DENIED without permission', () => {
+            it('addEventToCurrentAgenda raises ACCESS_DENIED without permission', (done) => {
                 initialState.privileges.planning_planning_management = 0
                 const action = actions.addEventToCurrentAgenda(events[0])
                 return action(dispatch, getState, {
@@ -408,23 +558,33 @@ describe('agenda', () => {
                 })
                 .then(() => {
                     expect($timeout.callCount).toBe(1)
-                    expect(notify.error.args[0][0]).toBe(
-                        'Unauthorised to create a new planning item!'
-                    )
+                    expect(notify.error.callCount).toBe(1)
+                    expect(notify.error.args[0]).toEqual([
+                        'Unauthorised to create a new planning item!',
+                    ])
+                    expect(dispatch.callCount).toBe(1)
                     expect(dispatch.args[0]).toEqual([{
                         type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
                         payload: {
                             action: '_addEventToCurrentAgenda',
                             permission: PRIVILEGES.PLANNING_MANAGEMENT,
                             errorMessage: 'Unauthorised to create a new planning item!',
-                            args: [event],
+                            args: [events[0]],
                         },
                     }])
-                    expect(dispatch.callCount).toBe(1)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('addEventToCurrentAgenda raises error if no Agenda is selected', () => {
+            it('addEventToCurrentAgenda raises error if no Agenda is selected', (done) => {
                 initialState.agenda.currentAgendaId = null
                 const action = actions.addEventToCurrentAgenda(events[0])
                 return action(dispatch, getState, {
@@ -434,10 +594,19 @@ describe('agenda', () => {
                 .then(() => {
                     expect(notify.error.args[0]).toEqual(['No Agenda selected.'])
                     expect(dispatch.callCount).toBe(1)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('addEventToCurrentAgenda raises error if current Agenda is spiked', () => {
+            it('addEventToCurrentAgenda raises error if current Agenda is spiked', (done) => {
                 agendas[1].state = 'spiked'
                 const action = actions.addEventToCurrentAgenda(events[0])
                 return action(dispatch, getState, {
@@ -447,10 +616,19 @@ describe('agenda', () => {
                 .then(() => {
                     expect(notify.error.args[0]).toEqual(['Current Agenda is spiked.'])
                     expect(dispatch.callCount).toBe(1)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('addEventToCurrentAgenda raises error if the Event is spiked', () => {
+            it('addEventToCurrentAgenda raises error if the Event is spiked', (done) => {
                 events[0].state = 'spiked'
                 const action = actions.addEventToCurrentAgenda(events[0])
                 return action(dispatch, getState, {
@@ -462,20 +640,45 @@ describe('agenda', () => {
                         'Cannot create a Planning item from a spiked event!',
                     ])
                     expect(dispatch.callCount).toBe(1)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
 
-        it('fetchSelectedAgendaPlannings', () => {
+        it('fetchSelectedAgendaPlannings', (done) => {
+            agendas[1].planning_items = ['p1']
+            apiSpy.query = sinon.spy(() => (Promise.resolve({ _items: plannings })))
             const action = actions.fetchSelectedAgendaPlannings()
             return action(dispatch, getState)
             .then(() => {
-                expect(dispatch.callCount).toBe(1)
+                expect(dispatch.callCount).toBe(4)
+                expect(dispatch.args[1]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
+                expect(dispatch.args[3]).toEqual([{
+                    type: 'RECEIVE_PLANNINGS',
+                    payload: plannings,
+                }])
+
+                done()
+            })
+            .catch((error) => {
+                /* eslint-disable no-console */
+                console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                expect('Error').toBe(null)
+                done()
+                /* eslint-enable no-console */
             })
         })
 
         describe('addPlanningsToAgenda', () => {
-            it('addPlanningsToAgenda saves and executes dispatches', () => {
+            it('addPlanningsToAgenda saves and executes dispatches', (sone) => {
                 const action = actions.addPlanningsToAgenda({
                     plannings: plannings[0],
                     agenda: agendas[0],
@@ -501,10 +704,19 @@ describe('agenda', () => {
                         type: 'ADD_OR_REPLACE_AGENDA',
                         payload: newAgenda,
                     }])
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('addPlanningsToAgenda raises ACCESS_DENIED without permission', () => {
+            it('addPlanningsToAgenda raises ACCESS_DENIED without permission', (done) => {
                 const action = actions.addPlanningsToAgenda({
                     plannings: plannings[0],
                     agenda: agendas[0],
@@ -533,6 +745,15 @@ describe('agenda', () => {
                         },
                     }])
                     expect(dispatch.callCount).toBe(1)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })

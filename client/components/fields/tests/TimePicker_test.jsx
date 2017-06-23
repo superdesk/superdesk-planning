@@ -28,6 +28,7 @@ describe('<TimePicker />', () => {
         expect(inputField.get(0).value).toBe('')
         expect(inputField.get(0).placeholder).toBe('Time')
     })
+
     it('opens popup when icon-time button is clicked', () => {
         let inputTime = moment('2014-01-01T14:00')
         const wrapper = mount(<TestForm placeholder='Time' input={inputTime} onChange={() => {}}/>)
@@ -35,6 +36,7 @@ describe('<TimePicker />', () => {
         wrapper.find('.timepickerInput--btn').simulate('click')
         expect(wrapper.find('.timepickerPopup').length).toBe(1)
     })
+
     it('has correct hours and  minutes selected in the popup', () => {
         let inputTime = moment('2014-01-01T14:30')
         const wrapper = mount(<TestForm placeholder='Time' input={inputTime} onChange={() => {}}/>)
@@ -45,6 +47,7 @@ describe('<TimePicker />', () => {
         expect(activeButtons.get(0).textContent).toBe('14')
         expect(activeButtons.get(1).textContent).toBe('30')
     })
+
     it('shows all valid hours and minutes for selection', () => {
         const wrapper = mount(<TestForm placeholder='Time' onChange={() => {}}/>)
         expect(wrapper.find('.timepickerPopup').length).toBe(0)
@@ -57,6 +60,7 @@ describe('<TimePicker />', () => {
         expect(hoursList.children().length).toBe(24)
         expect(minList.children().length).toBe(12)  // 12 as minutes displayed are 5 minutes apart
     })
+
     it('can manually select hours and minutes', () => {
         const wrapper = mount(<TestForm placeholder='Time' onChange={() => {}}/>)
         wrapper.find('.timepickerInput--btn').simulate('click')
@@ -69,6 +73,7 @@ describe('<TimePicker />', () => {
         expect(activeButtons.get(0).textContent).toBe('14')
         expect(activeButtons.get(1).textContent).toBe('30')
     })
+
     it('cancel will close the popup', () => {
         const wrapper = mount(<TestForm placeholder='Time' onChange={() => {}}/>)
         wrapper.find('.timepickerInput--btn').simulate('click')
@@ -77,6 +82,7 @@ describe('<TimePicker />', () => {
         cancelBtn.simulate('click')
         expect(wrapper.find('.timepickerPopup').length).toBe(0)
     })
+
     it('confirm will invoke onChange function with selected hours and minutes', () => {
         let onChange = sinon.spy((_date) => {
             expect(_date.format('HH:mm')).toBe('14:30')

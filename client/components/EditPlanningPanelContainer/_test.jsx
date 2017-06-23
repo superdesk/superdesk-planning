@@ -8,8 +8,11 @@ import sinon from 'sinon'
 import moment from 'moment'
 
 describe('planning', () => {
+
     describe('containers', () => {
+
         describe('<EditPlanningPanelContainer />', () => {
+
             it('open the panel for read only preview', () => {
                 let store = createTestStore({
                     initialState: {
@@ -30,6 +33,7 @@ describe('planning', () => {
                 wrapper.find('.EditPlanningPanel__actions__edit').last().simulate('click')
                 expect(store.getState().planning.editorOpened).toBe(false)
             })
+
             it('open the panel in edit mode', () => {
                 let store = createTestStore({
                     initialState: {
@@ -50,6 +54,7 @@ describe('planning', () => {
                 wrapper.find('button[type="reset"]').first().simulate('click')
                 expect(store.getState().planning.editorOpened).toBe(false)
             })
+
             it('cancel', () => {
                 const initialState = {
                     privileges: {

@@ -14,6 +14,9 @@
     &__searchbar {
         .SearchBar {
             flex-grow: 1;
+            + label {
+                margin-left: 20px;
+            }
         }
         > label {
             margin: 15px;

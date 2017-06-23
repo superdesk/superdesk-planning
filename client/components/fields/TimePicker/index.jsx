@@ -22,6 +22,13 @@ export class TimePicker extends React.Component {
         })
     }
 
+    componentDidMount() {
+        // after first render, set value of the form input
+        const { value } = this.props
+        const viewValue = value && moment.isMoment(value) ? value.format('HH:mm') : ''
+        this.setState({ viewValue })
+    }
+
     toggleOpenTimePicker() {
         this.setState({ openTimePicker: !this.state.openTimePicker })
     }

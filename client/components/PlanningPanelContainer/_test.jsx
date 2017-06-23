@@ -21,7 +21,9 @@ describe('planning', () => {
             )
         })
     ))
+
     describe('containers', () => {
+
         describe('<PlanningPanelContainer />', () => {
             const initialState = {
                 events: {

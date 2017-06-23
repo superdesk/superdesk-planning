@@ -1,14 +1,12 @@
 import { createSelector } from 'reselect'
 import { orderBy, get, sortBy } from 'lodash'
-import { isAllDay } from '../utils'
+// import { isAllDay } from '../utils'
 import moment from 'moment'
 import { ITEM_STATE } from '../constants'
 
 export const getAgendas = (state) => state.agenda.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
-export const eventSearchActive = (state) => (
-    state.events.search.currentSearch.advancedSearch ||
-    state.events.search.currentSearch.fulltext) ?
+export const eventSearchActive = (state) => (state.events.search.currentSearch.advancedSearch) ?
     true : false
 export const getEvents = (state) => state.events.events
 export const isEventListShown = (state) =>state.events.show
@@ -187,14 +185,14 @@ export const getEventsOrderedByDay = createSelector(
         // check if search exists
         // order by date
         events = events.sort((a, b) => a.dates.start - b.dates.start)
-        var days = {}
+        let days = {}
         function addEventToDate(event, date) {
             date = date || event.dates.start
             date = date.format('YYYY-MM-DD')
-            // if not in search mode, only add dates in the future
+            // if not in search mode, only add dates from today on
             if (!eventSearchActive) {
                 let now = moment()
-                if (!moment(date).isSameOrAfter(now)) {
+                if (!moment(date).isSameOrAfter(now.add(-1, 'days'))) {
                     return false
                 }
             }
@@ -207,18 +205,19 @@ export const getEventsOrderedByDay = createSelector(
         }
 
         events.forEach((event) => {
-            // if the event happens during more that one day, add it to every day
-            if (!isAllDay(event) && !event.dates.start.isSame(event.dates.end, 'day')) {
-                // compute the number of days of the event
-                var deltaDays = Math.max(event.dates.end.diff(event.dates.start, 'days'), 1)
+            // compute the number of days of the event
+            if (!event.dates.start.isSame(event.dates.end, 'day')) {
+                let deltaDays = Math.max(event.dates.end.diff(event.dates.start, 'days'), 1)
+                // if the event happens during more that one day, add it to every day
                 // add the event to the other days
-                for (var i = 1; i <= deltaDays; i++) {
+                for (let i = 1; i <= deltaDays; i++) {
                     //  clone the date
                     const newDate = moment(event.dates.start)
                     newDate.add(i, 'days')
                     addEventToDate(event, newDate)
                 }
             }
+
             // add event to its initial starting date
             addEventToDate(event)
         })
