@@ -17,7 +17,8 @@ describe('events', () => {
                 },
                 show: true,
                 showEventDetails: null,
-                selectedEvent: null,
+                highlightedEvent: null,
+                selectedEvents: [],
                 readOnly: true,
             })
         })
@@ -115,7 +116,7 @@ describe('events', () => {
                 payload: '1',
             })
             expect(result.showEventDetails).toBe('1')
-            expect(result.selectedEvent).toBe('1')
+            expect(result.highlightedEvent).toBe('1')
             expect(result.readOnly).toBe(false)
         })
 

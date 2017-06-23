@@ -30,6 +30,25 @@ const unpublishEvent = (eventId) => setEventStatus({
     status: EVENTS.PUB_STATUS.WITHHOLD,
 })
 
+const toggleEventSelection = ({ event, value }) => (
+    {
+        type: value ? EVENTS.ACTIONS.SELECT_EVENTS : EVENTS.ACTIONS.DESELECT_EVENT,
+        payload: value ? [event] : event,
+    }
+)
+
+const selectAllTheEventList = () => (
+    (dispatch, getState) =>  {
+        dispatch({
+            type: EVENTS.ACTIONS.SELECT_EVENTS,
+            payload: selectors.getEventsIdsToShowInList(getState()),
+        })
+    }
+)
+const deselectAllTheEventList = () => (
+    { type: EVENTS.ACTIONS.DESELECT_ALL_EVENT }
+)
+
 const askConfirmationBeforeSavingEvent = (event) => (
     (dispatch, getState) =>  {
         const originalEvent = getFormInitialValues('addEvent')(getState())
@@ -113,29 +132,36 @@ const uploadFilesAndSaveEvent = (event) => {
  * @param {object} event - The Event to be spiked
  * @return Promise
  */
-const spikeEvent = (event) => (
-    (dispatch, getState, { api, notify }) => (
-        api.update('events_spike', event, {})
+const _spikeEvent = (events) => (
+    (dispatch, getState, { api, notify }) => {
+        if (!Array.isArray(events)) {
+            events = [events]
+        }
+
+        return Promise.all(
+            events.map((event) => (
+                api.update('events_spike', event, {})
+            ))
+        )
         .then(() => {
             notify.success('The Event has been spiked.')
             dispatch({
                 type: EVENTS.ACTIONS.SPIKE_EVENT,
-                payload: event,
+                payload: events,
             })
-
             // Close delete event modal
             dispatch(hideModal())
-
             // Close the Planning Editor if the Planning Item is
             // associated with this event
-            if (event._plannings) {
-                const planIds = event._plannings.map((p) => p._id)
-                const currentPlanId = selectors.getCurrentPlanningId(getState())
-                if (planIds.indexOf(currentPlanId) > -1) {
-                    dispatch(closePlanningEditor())
+            events.forEach((event) => {
+                if (event._plannings) {
+                    const planIds = event._plannings.map((p) => p._id)
+                    const currentPlanId = selectors.getCurrentPlanningId(getState())
+                    if (planIds.indexOf(currentPlanId) > -1) {
+                        dispatch(closePlanningEditor())
+                    }
                 }
-            }
-
+            })
             // Fetch events to reload latest events list
             return dispatch(refetchEvents())
             .then(() => dispatch(fetchSelectedAgendaPlannings()))
@@ -144,7 +170,7 @@ const spikeEvent = (event) => (
                 getErrorMessage(error, 'There was a problem, Event was not spiked!')
             )
         ))
-    )
+    }
 )
 
 /**
@@ -742,6 +768,12 @@ const setEventStatus = checkPermission(
     'Unauthorised to change the status of an event!'
 )
 
+const spikeEvent = checkPermission(
+    _spikeEvent,
+    PRIVILEGES.SPIKE_EVENT,
+    'Unauthorised to spike an event!'
+)
+
 const openSpikeEvent = checkPermission(
     _openSpikeEvent,
     PRIVILEGES.SPIKE_EVENT,
@@ -839,6 +871,7 @@ const eventNotifications = {
 export {
     publishEvent,
     unpublishEvent,
+    toggleEventSelection,
     spikeEvent,
     unspikeEvent,
     openSpikeEvent,
@@ -860,4 +893,6 @@ export {
     refetchEvents,
     eventNotifications,
     askConfirmationBeforeSavingEvent,
+    selectAllTheEventList,
+    deselectAllTheEventList,
 }

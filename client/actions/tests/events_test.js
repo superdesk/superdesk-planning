@@ -49,7 +49,7 @@ describe('events', () => {
                 },
                 show: true,
                 showEventDetails: null,
-                selectedEvent: null,
+                highlightedEvent: null,
                 lastRequestParams: { page: 1 },
             },
             privileges: {
@@ -93,6 +93,7 @@ describe('events', () => {
         const notify = {
             error: sinon.spy(),
             success: sinon.spy(),
+            pop: sinon.spy(),
         }
         const $timeout = sinon.spy((func) => func())
         let $location
@@ -132,7 +133,7 @@ describe('events', () => {
 
         it('uploadFilesAndSaveEvent', (done) => {
             dispatch = dispatchRunFunction
-            initialState.events.selectedEvent = true
+            initialState.events.highlightedEvent = true
             initialState.events.showEventDetails = true
             const event = {
                 name: 'Event 4',
@@ -171,7 +172,7 @@ describe('events', () => {
             const action = actions.spikeEvent(events[2])
             it('spikeEvent calls `events_spike` endpoint', (done) => {
                 api.update = sinon.spy(() => (Promise.resolve()))
-                return action(dispatch, getState, {
+                return action(dispatchRunFunction, getState, {
                     api,
                     notify,
                 })
@@ -187,7 +188,7 @@ describe('events', () => {
 
                     expect(dispatch.args[0]).toEqual([{
                         type: 'SPIKE_EVENT',
-                        payload: events[2],
+                        payload: [events[2]],
                     }])
 
                     expect(dispatch.args[1]).toEqual([{ type: 'HIDE_MODAL' }])
@@ -216,7 +217,7 @@ describe('events', () => {
                 api.update = sinon.spy(() => (Promise.reject(
                     { data: { _message: 'Failed to spike the event' } }
                 )))
-                return action(dispatch, getState, {
+                return action(dispatchCheckPermission, getState, {
                     api,
                     notify,
                 })
@@ -606,8 +607,7 @@ describe('events', () => {
                     notify,
                     $timeout,
                 })
-                .then(() => {
-                    expect(dispatch.callCount).toBe(1)
+                .catch(() => {
                     expect(notify.error.args[0]).toEqual(['Unauthorised to spike an event!'])
                     expect(dispatch.args[0]).toEqual([{
                         type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
@@ -619,12 +619,6 @@ describe('events', () => {
                         },
                     }])
                     expect($timeout.callCount).toBe(1)
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
                     done()
                 })
             })
@@ -666,8 +660,7 @@ describe('events', () => {
                     notify,
                     $timeout,
                 })
-                .then(() => {
-                    expect(dispatch.callCount).toBe(1)
+                .catch(() => {
                     expect(notify.error.args[0]).toEqual(['Unauthorised to unspike an event!'])
                     expect(dispatch.args[0]).toEqual([{
                         type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
@@ -679,12 +672,6 @@ describe('events', () => {
                         },
                     }])
                     expect($timeout.callCount).toBe(1)
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
                     done()
                 })
             })

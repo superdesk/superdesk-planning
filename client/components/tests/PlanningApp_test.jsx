@@ -12,6 +12,7 @@ describe('<PlanningApp />', () => {
                 events: {},
                 eventsInList: [],
                 search: { currentSearch: {} },
+                show: false,
             },
         }
         const store = createTestStore({ initialState })

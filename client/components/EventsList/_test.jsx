@@ -63,6 +63,7 @@ describe('<EventsList />', () => {
                 events: events,
                 eventsInList: Object.keys(events),
                 search: { currentSearch: {} },
+                selectedEvents: [],
             },
             planning: {
                 plannings: {

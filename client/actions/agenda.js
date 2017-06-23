@@ -134,14 +134,19 @@ const fetchAgendaById = (_id) => (
  * @param {object} agenda - The agenda to add the planning to
  * @return Promise
  */
-const _addPlanningToAgenda = ({ planning, agenda }) => (
+const _addPlanningsToAgenda = ({ plannings, agenda }) => (
     (dispatch, getState, { api }) => {
+        if (!Array.isArray(plannings)) {
+            plannings = [plannings]
+        }
         // clone agenda
         agenda = cloneDeep(agenda)
-        // init planning_items array if does not exist yet
-        let planningItems = agenda.planning_items || []
-        // add planning to planning_items
-        planningItems.push(planning._id)
+        const planningItems = [
+            // init with existing planning_items array if does exist
+            ...get(agenda, 'planning_items', []),
+            // add plannings ids to planning_items
+            ...plannings.map((p) => (p._id)),
+        ]
         // update the agenda
         return api('agenda').save(agenda, { planning_items: planningItems })
         .then((agenda) => {
@@ -158,18 +163,22 @@ const _addPlanningToAgenda = ({ planning, agenda }) => (
  * @param {object} planning - The planning item to add to the agenda
  * @return Promise
  */
-const _addToCurrentAgenda = (planning) => (
+const _addToCurrentAgenda = (plannings) => (
     (dispatch, getState, { notify }) => {
+        if (!Array.isArray(plannings)) {
+            plannings = [plannings]
+        }
+
         const currentAgenda = selectors.getCurrentAgenda(getState())
         if (!currentAgenda) throw Error('unable to find the current agenda')
         // add the planning to the agenda
-        return dispatch(addPlanningToAgenda({
-            planning: planning,
+        return dispatch(addPlanningsToAgenda({
+            plannings: plannings,
             agenda: currentAgenda,
         }))
         .then(() => {
             notify.success('The planning has been added to the agenda')
-            return planning
+            return plannings
         })
     }
 )
@@ -180,20 +189,64 @@ const _addToCurrentAgenda = (planning) => (
  * @param {object} event - The event used to create the planning item
  * @return Promise
  */
-const _addEventToCurrentAgenda = (event) => (
+const _addEventToCurrentAgenda = (events) => (
+    (dispatch, getState, { notify }) => {
+        if (!Array.isArray(events)) {
+            events = [events]
+        }
+
+        const chunkSize = 5
+        let promise = Promise.resolve()
+        let plannings = []
+        notify.success(`creating ${events.length} plannings`)
+        for (let i = 0; i < Math.ceil(events.length / chunkSize); i++) {
+            let eventsChunk = events.slice(i * chunkSize, (i + 1) * chunkSize)
+            promise = promise.then(() => (
+                Promise.all(
+                    eventsChunk.map((event) => (
+                        dispatch(createPlanningFromEvent(event))
+                    ))
+                )
+                .then((data) => data.forEach((p) => plannings.push(p)))
+                .then(() => {
+                    notify.pop()
+                    notify.success(`created ${plannings.length}/${events.length} plannings`)
+                })
+            ))
+        }
+        // reload the plannings of the current calendar
+        return promise
+        .then(() => {
+            notify.pop()
+            notify.success(`created ${events.length} plannings !`)
+        })
+        .then(() => (dispatch(addToCurrentAgenda(plannings))))
+        .then(() => dispatch(fetchSelectedAgendaPlannings()))
+    }
+)
+
+/**
+ * Action dispatcher that creates a planning item from the supplied event,
+ * @param {object} event - The event used to create the planning item
+ * @return Promise
+ */
+const _createPlanningFromEvent = (event) => (
     (dispatch, getState, { notify }) => {
         // Check if no agenda is selected, or the current agenda is spiked
         // And notify the end user of the error
         const currentAgenda = selectors.getCurrentAgenda(getState())
+        let error
         if (!currentAgenda) {
-            notify.error('No Agenda selected.')
-            return Promise.resolve()
+            error = 'No Agenda selected.'
         } else if (currentAgenda.state === ITEM_STATE.SPIKED) {
-            notify.error('Current Agenda is spiked.')
-            return Promise.resolve()
+            error = 'Current Agenda is spiked.'
         } else if (get(event, 'state', 'active') === ITEM_STATE.SPIKED) {
-            notify.error('Cannot create a Planning item from a spiked event!')
-            return Promise.resolve()
+            error = 'Cannot create a Planning item from a spiked event!'
+        }
+
+        if (error) {
+            notify.error(error)
+            return Promise.reject(error)
         }
 
         // planning inherits some fields from the given event
@@ -204,11 +257,6 @@ const _addEventToCurrentAgenda = (event) => (
             subject: event.subject,
             anpa_category: event.anpa_category,
         }))
-        .then((planning) => (
-            dispatch(addToCurrentAgenda(planning))
-            // reload the plannings of the current calendar
-            .then(() => dispatch(fetchSelectedAgendaPlannings()))
-        ))
     }
 )
 
@@ -297,13 +345,19 @@ const addEventToCurrentAgenda = checkPermission(
     'Unauthorised to create a new planning item!'
 )
 
+const createPlanningFromEvent = checkPermission(
+    _createPlanningFromEvent,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to create a new planning item!'
+)
+
 /**
  * Action Dispatcher to add a Planning Item to an Agenda
  * Also checks the permission if the user can do so
  * @return thunk function
  */
-const addPlanningToAgenda = checkPermission(
-    _addPlanningToAgenda,
+const addPlanningsToAgenda = checkPermission(
+    _addPlanningsToAgenda,
     PRIVILEGES.PLANNING_MANAGEMENT,
     'Unauthorised to add a Planning Item to an Agenda'
 )
@@ -364,7 +418,7 @@ export {
     fetchAgendaById,
     selectAgenda,
     addToCurrentAgenda,
-    addPlanningToAgenda,
+    addPlanningsToAgenda,
     addEventToCurrentAgenda,
     fetchSelectedAgendaPlannings,
     agendaNotifications,

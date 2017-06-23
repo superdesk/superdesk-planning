@@ -8,6 +8,20 @@ import { get, set } from 'lodash'
 export { default as checkPermission } from './checkPermission'
 export { default as retryDispatch } from './retryDispatch'
 
+export function createReducer(initialState, reducerMap) {
+    return (state = initialState, action) => {
+        const reducer = reducerMap[action.type]
+        if (reducer) {
+            return reducer(state, action.payload)
+        } else {
+            return {
+                ...initialState,
+                ...state,
+            }
+        }
+    }
+}
+
 export const createTestStore = (params={}) => {
     const { initialState={}, extraArguments={} } = params
     const mockedInitialState = {
@@ -24,6 +38,7 @@ export const createTestStore = (params={}) => {
         notify: {
             success: () => (undefined),
             error: () => (undefined),
+            pop: () => (undefined),
         },
         $location: { search: () => (undefined) },
         vocabularies: {

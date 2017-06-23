@@ -3,19 +3,21 @@
 $EVENT_LIST_CONTAINER_ZINDEX: 6;
 .Events-list-container {
     height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .Events-list-container__header {
     z-index: $EVENT_LIST_CONTAINER_ZINDEX + 1;
 }
 
+.Events-list-container__selection {
+    z-index: $EVENT_LIST_CONTAINER_ZINDEX - 1 !important;
+    padding: 0 5px 0 16px;
+}
 .Events-list-container__body {
-    position: absolute;
-    top: $nav-height * 2;
-    right: 0;
-    left: 0;
-    bottom: 0;
     display: flex;
+    flex-grow: 1;
 }
 .Events-list-container__search {
     display: flex;
