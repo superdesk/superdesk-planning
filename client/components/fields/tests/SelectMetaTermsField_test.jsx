@@ -75,6 +75,7 @@ describe('<SelectMetaTermsField />', () => {
         wrapper.find('.Select__dropdownToggle').simulate('click')
         expect(wrapper.find('.Select__popup').length).toBe(1)
     })
+
     it('Displays all options passed in props', () => {
         const FormComponent = reduxForm({ form: 'form' })(renderComponentField(CategoryField))
         const initialState = { vocabularies: vocabularies }
@@ -88,6 +89,7 @@ describe('<SelectMetaTermsField />', () => {
         wrapper.find('.Select__dropdownToggle').simulate('click')
         expect(wrapper.find('.Select__popup__item').length).toBe(3)
     })
+
     it('Displays all values passed in props', () => {
         const input = { value: vocabularies.categories }
         const FormComponent = reduxForm({ form: 'form' })(renderComponentFieldWithInput(CategoryField, input))
@@ -104,6 +106,7 @@ describe('<SelectMetaTermsField />', () => {
         expect(valueList.at(1).text()).toBe('cat2')
         expect(valueList.at(2).text()).toBe('cat3')
     })
+
     it('Can cancel or delete value', () => {
         const input = {
             value: vocabularies.categories,
@@ -124,6 +127,7 @@ describe('<SelectMetaTermsField />', () => {
         expect(valueList.length).toBe(3)
         valueList.at(0).find('.icon-close-small').simulate('click')
     })
+
     it('Can select an option', () => {
         const input = {
             onChange: (vals) => {
@@ -143,6 +147,7 @@ describe('<SelectMetaTermsField />', () => {
         const optionsLst = wrapper.find('.Select__popup__list')
         optionsLst.children().at(0).find('button').simulate('click')
     })
+
     it('Displays parent level options correctly', () => {
         const FormComponent = reduxForm({ form: 'form' })(renderComponentField(SubjectField))
         const initialState = { subjects: subjects }
@@ -156,6 +161,7 @@ describe('<SelectMetaTermsField />', () => {
         const parentList = wrapper.find('.icon-chevron-right-thin')
         expect(parentList.length).toBe(2)
     })
+
     it('Displays next level options upon selecting parent option', () => {
         const FormComponent = reduxForm({ form: 'form' })(renderComponentField(SubjectField))
         const initialState = { subjects: subjects }
@@ -172,6 +178,7 @@ describe('<SelectMetaTermsField />', () => {
         expect(optionsLst.length).toBe(1)
         expect(optionsLst.at(0).text()).toBe('sub1-1')
     })
+
     it('Can traverse a level up from child to parent', () => {
         const FormComponent = reduxForm({ form: 'form' })(renderComponentField(SubjectField))
         const initialState = { subjects: subjects }
@@ -192,6 +199,7 @@ describe('<SelectMetaTermsField />', () => {
         const parentLst2 = wrapper.find('.Select__popup__item')
         expect(parentLst2.length).toBe(2)
     })
+
     it('Can choose an entire parent option', () => {
         const input = {
             onChange: (vals) => {
@@ -216,6 +224,7 @@ describe('<SelectMetaTermsField />', () => {
         expect(optionsLst.at(0).text()).toBe('sub1-1')
         wrapper.find('.Select__popup__category').simulate('click') // Choose the entire category
     })
+
     it('Can choose a child option as a value', () => {
         const input = {
             onChange: (vals) => {
@@ -240,6 +249,7 @@ describe('<SelectMetaTermsField />', () => {
         expect(optionsLst.at(0).text()).toBe('sub1-1')
         optionsLst.at(0).find('button').simulate('click')
     })
+
     it('Can traverse down options by arrowDown key', () => {
         const FormComponent = reduxForm({ form: 'form' })(renderComponentField(SubjectField))
         const initialState = { subjects: subjects }
@@ -256,6 +266,7 @@ describe('<SelectMetaTermsField />', () => {
         const activeOption = wrapper.find('.Select__popup__item--active')
         expect(activeOption.length).toBe(1)
     })
+
     it('Can traverse up options by arrowDown key', () => {
         const FormComponent = reduxForm({ form: 'form' })(renderComponentField(SubjectField))
         const initialState = { subjects: subjects }
@@ -276,6 +287,7 @@ describe('<SelectMetaTermsField />', () => {
         const activeOption2 = wrapper.find('.Select__popup__item--active')
         expect(activeOption2.length).toBe(0)
     })
+
     it('ESC key will close popup', () => {
         const FormComponent = reduxForm({ form: 'form' })(renderComponentField(SubjectField))
         const initialState = { subjects: subjects }
@@ -291,6 +303,7 @@ describe('<SelectMetaTermsField />', () => {
         simulant.fire(document.body.querySelector('.Select__popup'), escEvent)
         expect(wrapper.find('.Select__popup').length).toBe(0)
     })
+
     it('Right arrow key press on parent option will open the parent category', () => {
         const FormComponent = reduxForm({ form: 'form' })(renderComponentField(SubjectField))
         const initialState = { subjects: subjects }
@@ -312,6 +325,7 @@ describe('<SelectMetaTermsField />', () => {
         expect(optionsLst.length).toBe(1)
         expect(optionsLst.at(0).text()).toBe('sub1-1')
     })
+
     it('Left arrow key will navigate to previous parent category', () => {
         const FormComponent = reduxForm({ form: 'form' })(renderComponentField(SubjectField))
         const initialState = { subjects: subjects }
@@ -337,6 +351,7 @@ describe('<SelectMetaTermsField />', () => {
         const optionsLst2 = wrapper.find('.Select__popup__item')
         expect(optionsLst2.length).toBe(2)
     })
+
     it('Enter key will select the option', () => {
         const input = {
             onChange: (vals) => {
@@ -361,6 +376,7 @@ describe('<SelectMetaTermsField />', () => {
         const enterEvent = simulant('keydown', { keyCode: 13 })
         simulant.fire(document.body.querySelector('.Select__popup'), enterEvent)
     })
+
     it('CategoryField', () => {
         const FormComponent = reduxForm({ form: 'form' })(renderComponentField(CategoryField))
         const initialState = { vocabularies: vocabularies }
@@ -377,6 +393,7 @@ describe('<SelectMetaTermsField />', () => {
         expect(wrapper.find('SelectMetaTermsField').props().value[0].label).toEqual('lab')
         expect(wrapper.find('SelectMetaTermsField').props().options[0].label).toEqual('cat1')
     })
+
     it('SubjectField', () => {
         const FormComponent = reduxForm({ form: 'form' })(renderComponentField(SubjectField))
         const initialState = {

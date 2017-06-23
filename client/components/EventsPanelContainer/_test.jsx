@@ -43,6 +43,7 @@ describe('<EventPanelContainer />', () => {
         wrapper.find('EventsPanel').props().handleBackToList()
         expect(store.getState().events.readOnly).toBe(true)
     })
+
     it('Opens event in edit mode', () => {
         store.dispatch(actions.openEventDetails(eventId))
         expect(store.getState().events.showEventDetails).toBe(eventId)

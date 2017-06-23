@@ -61,7 +61,7 @@ describe('planning', () => {
 
         beforeEach(() => {
             apiSpy = {
-                query: sinon.spy(() => (Promise.resolve())),
+                query: sinon.spy(() => (Promise.resolve({ _items: plannings }))),
                 remove: sinon.spy(() => (Promise.resolve())),
                 save: sinon.spy((ori, item) => (Promise.resolve({
                     _id: 'p3',
@@ -101,7 +101,7 @@ describe('planning', () => {
         describe('spikePlanning', () => {
             const action = actions.spikePlanning(plannings[1])
 
-            it('spikePlanning calls `planning_spike` endpoint', () => {
+            it('spikePlanning calls `planning_spike` endpoint', (done) => {
                 initialState.privileges.planning_planning_spike = 1
                 api.update = sinon.spy(() => (Promise.resolve()))
 
@@ -117,18 +117,28 @@ describe('planning', () => {
                         {},
                     ])
                     expect(notify.success.args[0]).toEqual(['The Planning Item has been spiked.'])
-                    expect(dispatch.args[0]).toEqual([{
+
+                    expect(dispatch.args[1]).toEqual([{
                         type: 'SPIKE_PLANNING',
                         payload: plannings[1],
                     }])
 
-                    expect(dispatch.callCount).toBe(2)
+                    expect(dispatch.callCount).toBe(7)
                     expect($timeout.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(0)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('spikePlanning raises ACCESS_DENIED without permission', () => {
+            it('spikePlanning raises ACCESS_DENIED without permission', (done) => {
                 initialState.privileges.planning_planning_spike = 0
                 return action(dispatch, getState, {
                     api,
@@ -148,6 +158,15 @@ describe('planning', () => {
                         },
                     }])
                     expect(dispatch.callCount).toBe(1)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
@@ -155,7 +174,7 @@ describe('planning', () => {
         describe('unspikePlanning', () => {
             const action = actions.unspikePlanning(plannings[1])
 
-            it('unspikePlanning calls `planning_unspike` endpoint', () => {
+            it('unspikePlanning calls `planning_unspike` endpoint', (done) => {
                 initialState.privileges.planning_planning_unspike = 1
                 api.update = sinon.spy(() => (Promise.resolve()))
 
@@ -178,13 +197,22 @@ describe('planning', () => {
                         payload: plannings[1],
                     }])
 
-                    expect(dispatch.callCount).toBe(2)
+                    expect(dispatch.callCount).toBe(6)
                     expect($timeout.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(0)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('unspikePlanning raises ACCESS_DENIED without permission', () => {
+            it('unspikePlanning raises ACCESS_DENIED without permission', (done) => {
                 initialState.privileges.planning_planning_unspike = 0
                 return action(dispatch, getState, {
                     api,
@@ -206,6 +234,15 @@ describe('planning', () => {
                         },
                     }])
                     expect(dispatch.callCount).toBe(1)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
@@ -214,7 +251,7 @@ describe('planning', () => {
             const item = { slugline: 'TestAgenda3' }
             const action = actions.savePlanning(item)
 
-            it('savePlanning saves and executes dispatches', () => (
+            it('savePlanning saves and executes dispatches', (done) => (
                 action(dispatch, getState, {
                     notify,
                     $timeout,
@@ -229,10 +266,19 @@ describe('planning', () => {
 
                     expect($timeout.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(0)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             ))
 
-            it('savePlanning raises ACCESS_DENIED without permission', () => {
+            it('savePlanning raises ACCESS_DENIED without permission', (done) => {
                 initialState.privileges.planning_planning_management = 0
                 return action(dispatch, getState, {
                     notify,
@@ -252,6 +298,15 @@ describe('planning', () => {
                         },
                     }])
                     expect(dispatch.callCount).toBe(1)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
@@ -260,14 +315,14 @@ describe('planning', () => {
             const item = { slugline: 'TestAgenda3' }
             const action = actions.savePlanningAndReloadCurrentAgenda(item)
 
-            it('savePlanningAndReloadCurrentAgenda saves and executes dispatches', () => (
+            it('savePlanningAndReloadCurrentAgenda saves and executes dispatches', (done) => (
                 action(dispatch, getState, {
                     notify,
                     $timeout,
                     api,
                 })
                 .then(() => {
-                    expect(dispatch.callCount).toBe(3)
+                    expect(dispatch.callCount).toBe(15)
                     // Cannot check dispatch(savePlanning()) using a spy on dispatch
                     // As savePlanning is a thunk function
 
@@ -278,34 +333,54 @@ describe('planning', () => {
                     // As fetchSelectedAgendaPlannings is a thunk function
                     expect($timeout.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(0)
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             ))
 
-            it('savePlanningAndReloadCurrentAgenda raises ACCESS_DENIED without permission', () => {
-                initialState.privileges.planning_planning_management = 0
-                return action(dispatch, getState, {
-                    notify,
-                    $timeout,
-                    api,
-                })
-                .then(() => {
-                    expect($timeout.callCount).toBe(1)
-                    expect(notify.error.args[0][0]).toBe(
-                        'Unauthorised to create a new planning item!'
-                    )
-                    expect(dispatch.args[0]).toEqual([{
-                        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                        payload: {
-                            action: '_savePlanningAndReloadCurrentAgenda',
-                            permission: PRIVILEGES.PLANNING_MANAGEMENT,
-                            errorMessage: 'Unauthorised to create a new planning item!',
-                            args: [item],
-                        },
-                    }])
-                })
-            })
+            it('savePlanningAndReloadCurrentAgenda raises ACCESS_DENIED without permission',
+                (done) => {
+                    initialState.privileges.planning_planning_management = 0
+                    return action(dispatch, getState, {
+                        notify,
+                        $timeout,
+                        api,
+                    })
+                    .then(() => {
+                        expect($timeout.callCount).toBe(1)
+                        expect(notify.error.args[0][0]).toBe(
+                            'Unauthorised to create a new planning item!'
+                        )
+                        expect(dispatch.args[0]).toEqual([{
+                            type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
+                            payload: {
+                                action: '_savePlanningAndReloadCurrentAgenda',
+                                permission: PRIVILEGES.PLANNING_MANAGEMENT,
+                                errorMessage: 'Unauthorised to create a new planning item!',
+                                args: [item],
+                            },
+                        }])
 
-            it('savePlanningAndReloadCurrentAgenda fails if no Agenda is selected', () => {
+                        done()
+                    })
+                    .catch((error) => {
+                        /* eslint-disable no-console */
+                        console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                        expect('Error').toBe(null)
+                        done()
+                        /* eslint-enable no-console */
+                    })
+                }
+            )
+
+            it('savePlanningAndReloadCurrentAgenda fails if no Agenda is selected', (done) => {
                 initialState.agenda.currentAgendaId = null
                 return action(dispatch, getState, {
                     notify,
@@ -313,11 +388,22 @@ describe('planning', () => {
                     api,
                 })
                 .then(() => {
+                    expect('Reject').toBe('called')
+                    done()
+                }, () => {
                     expect(notify.error.args[0]).toEqual(['No Agenda is currently selected.'])
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
 
-            it('savePlanningAndReloadCurrentAgenda fails if current Agenda is spiked', () => {
+            it('savePlanningAndReloadCurrentAgenda fails if current Agenda is spiked', (done) => {
                 initialState.agenda.currentAgendaId = agendas[0]._id
                 initialState.agenda.agendas[0].state = 'spiked'
                 return action(dispatch, getState, {
@@ -326,9 +412,21 @@ describe('planning', () => {
                     api,
                 })
                 .then(() => {
+                    expect('Reject').toBe('called')
+                    done()
+                }, () => {
                     expect(notify.error.args[0]).toEqual([
                         'Cannot create a new planning item in a spiked Agenda.',
                     ])
+
+                    done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
@@ -417,6 +515,13 @@ describe('planning', () => {
 
                     done()
                 })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
+                })
             })
 
             it('saveAndDeleteCoverages raises ACCESS_DENIED without permission', (done) => {
@@ -444,27 +549,39 @@ describe('planning', () => {
 
                     done()
                 })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
+                })
             })
         })
 
-        it('fetchPlannings', () => {
+        it('fetchPlannings', (done) => {
             const action = actions.fetchPlannings({})
             action(dispatch, getState)
             .then(() => {
-                expect(dispatch.callCount).toBe(4)
+                expect(dispatch.callCount).toBe(3)
                 expect(dispatch.args[0]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
 
                 // Cannot check dispatch(performFetchRequest()) using a spy on dispatch
                 // As performFetchRequest is a thunk function
 
-                // Cannot check dispatch(silentlyFetchEventsById()) using a spy on dispatch
-                // As silentlyFetchEventsById is a thunk function
-
-                expect(dispatch.args[3]).toEqual([{
+                expect(dispatch.args[2]).toEqual([{
                     type: 'RECEIVE_PLANNINGS',
                     payload: plannings,
                 }])
 
+                done()
+            })
+            .catch((error) => {
+                /* eslint-disable no-console */
+                console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                expect('Error').toBe(null)
+                done()
+                /* eslint-enable no-console */
             })
         })
 
@@ -490,6 +607,13 @@ describe('planning', () => {
 
                     done()
                 })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
+                })
             })
 
             it('notifies end user if an error occurred', (done) => {
@@ -511,6 +635,13 @@ describe('planning', () => {
                     expect(notify.error.args[0]).toEqual(['Failed to get a new Planning Item!'])
 
                     done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
@@ -541,6 +672,13 @@ describe('planning', () => {
 
                     done()
                 })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
+                })
             })
 
             it('fetchCoverageById notifies end user if an error occurred', (done) => {
@@ -555,6 +693,13 @@ describe('planning', () => {
                     expect(notify.error.args[0]).toEqual(['Failed to fetch the Coverage!'])
 
                     done()
+                })
+                .catch((error) => {
+                    /* eslint-disable no-console */
+                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                    expect('Error').toBe(null)
+                    done()
+                    /* eslint-enable no-console */
                 })
             })
         })
@@ -624,7 +769,7 @@ describe('planning', () => {
             expect(dispatch.callCount).toBe(1)
         })
 
-        it('toggleOnlyFutureFilter', () => {
+        it('toggleOnlyFutureFilter', (done) => {
             const action = actions.toggleOnlyFutureFilter()
             return action(dispatch, getState)
             .then(() => {
@@ -634,10 +779,19 @@ describe('planning', () => {
                 }])
 
                 expect(dispatch.callCount).toBe(1)
+
+                done()
+            })
+            .catch((error) => {
+                /* eslint-disable no-console */
+                console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                expect('Error').toBe(null)
+                done()
+                /* eslint-enable no-console */
             })
         })
 
-        it('toggleOnlySpikedFilter', () => {
+        it('toggleOnlySpikedFilter', (done) => {
             const action = actions.toggleOnlySpikedFilter()
             return action(dispatch, getState)
             .then(() => {
@@ -647,6 +801,15 @@ describe('planning', () => {
                 }])
 
                 expect(dispatch.callCount).toBe(1)
+
+                done()
+            })
+            .catch((error) => {
+                /* eslint-disable no-console */
+                console.log('Unhandled exception: ' + error + '\n' + error.stack)
+                expect('Error').toBe(null)
+                done()
+                /* eslint-enable no-console */
             })
         })
 
@@ -750,7 +913,7 @@ describe('planning', () => {
                         },
                     })
                     done()
-                }, 0)
+                }, 250)
             })
 
             it('Silently returns if no item provided', (done) => {
@@ -770,7 +933,7 @@ describe('planning', () => {
                         },
                     })
                     done()
-                }, 0)
+                }, 250)
             })
         })
 
@@ -801,7 +964,7 @@ describe('planning', () => {
                         },
                     })
                     done()
-                }, 0)
+                }, 250)
             })
 
             it('Silently returns if Plan is not loaded', (done) => {
@@ -824,7 +987,7 @@ describe('planning', () => {
                         },
                     })
                     done()
-                }, 0)
+                }, 250)
             })
         })
 
@@ -860,7 +1023,7 @@ describe('planning', () => {
                         },
                     })
                     done()
-                }, 0)
+                }, 250)
             })
         })
 
@@ -880,7 +1043,7 @@ describe('planning', () => {
                         },
                     })
                     done()
-                }, 0)
+                }, 250)
             })
         })
 
@@ -914,7 +1077,7 @@ describe('planning', () => {
                         },
                     })
                     done()
-                })
+                }, 250)
             })
 
             it('Event silently returns if no item provided', (done) => {
@@ -933,7 +1096,7 @@ describe('planning', () => {
                         },
                     })
                     done()
-                })
+                }, 250)
             })
 
             it('Silently disgards event if Planning item is not loaded', (done) => {
@@ -952,7 +1115,7 @@ describe('planning', () => {
                         },
                     })
                     done()
-                })
+                }, 250)
             })
         })
 
@@ -987,7 +1150,7 @@ describe('planning', () => {
                     },
                 })
                 done()
-            })
+            }, 250)
         })
 
         it('`planning:unspiked` updates the Planning item in the store', (done) => {
@@ -1021,7 +1184,7 @@ describe('planning', () => {
                     },
                 })
                 done()
-            })
+            }, 250)
         })
     })
 })

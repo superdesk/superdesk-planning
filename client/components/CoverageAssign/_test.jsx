@@ -39,6 +39,7 @@ TestForm.propTypes = {
 }
 
 describe('<CoverAssign />', () => {
+
     it('Opens assignment popup', () => {
         const wrapper = mount(<TestForm users={users}
                 desks={desks} />)
@@ -46,6 +47,7 @@ describe('<CoverAssign />', () => {
         wrapper.find('.coverageassign__action').at(1).simulate('click')
         expect(wrapper.find('.coverageassignselect').length).toBe(1)
     })
+
     it('Desks and users are populated', () => {
         const wrapper = mount(<TestForm users={users}
                 desks={desks} />)
@@ -59,6 +61,7 @@ describe('<CoverAssign />', () => {
         expect(lbls.get(2).textContent).toBe('firstname lastname')
         expect(lbls.get(3).textContent).toBe('firstname2 lastname2')
     })
+
     it('Shows desk assignment correctly with right avatar', () => {
         const input = { value: { desk: 123 } }
         const wrapper = mount(<TestForm users={users}
@@ -68,6 +71,7 @@ describe('<CoverAssign />', () => {
         expect(deskLbl.textContent).toBe('Desk: Politic Desk')
         expect(wrapper.find('.desk').length).toBe(1)
     })
+
     it('Shows user assignment correctly with right avatar', () => {
         const input = { value: { user: 456 } }
         const wrapper = mount(<TestForm users={users}
