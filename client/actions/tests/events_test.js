@@ -161,11 +161,9 @@ describe('events', () => {
                 done()
             })
             .catch((error) => {
-                /* eslint-disable no-console */
-                console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                expect('Error').toBe(null)
+                expect(error).toBe(null)
+                expect(error.stack).toBe(null)
                 done()
-                /* eslint-enable no-console */
             })
         })
 
@@ -208,11 +206,9 @@ describe('events', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
 
@@ -232,11 +228,9 @@ describe('events', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
 
@@ -278,11 +272,9 @@ describe('events', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
 
@@ -302,11 +294,9 @@ describe('events', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
         })
@@ -343,11 +333,9 @@ describe('events', () => {
                 done()
             })
             .catch((error) => {
-                /* eslint-disable no-console */
-                console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                expect('Error').toBe(null)
+                expect(error).toBe(null)
+                expect(error.stack).toBe(null)
                 done()
-                /* eslint-enable no-console */
             })
         })
 
@@ -365,11 +353,9 @@ describe('events', () => {
                 done()
             })
             .catch((error) => {
-                /* eslint-disable no-console */
-                console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                expect('Error').toBe(null)
+                expect(error).toBe(null)
+                expect(error.stack).toBe(null)
                 done()
-                /* eslint-enable no-console */
             })
         })
 
@@ -387,11 +373,9 @@ describe('events', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
 
@@ -399,11 +383,9 @@ describe('events', () => {
                 store.dispatch(actions.fetchEvents({ fulltext: 'search that' }))
                 .then(() => done())
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
         })
@@ -447,11 +429,9 @@ describe('events', () => {
                 done()
             })
             .catch((error) => {
-                /* eslint-disable no-console */
-                console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                expect('Error').toBe(null)
+                expect(error).toBe(null)
+                expect(error.stack).toBe(null)
                 done()
-                /* eslint-enable no-console */
             })
         })
 
@@ -482,11 +462,9 @@ describe('events', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
 
@@ -503,11 +481,9 @@ describe('events', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
         })
@@ -618,11 +594,9 @@ describe('events', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
 
@@ -649,11 +623,9 @@ describe('events', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
         })
@@ -682,11 +654,9 @@ describe('events', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
 
@@ -713,11 +683,9 @@ describe('events', () => {
                     done()
                 })
                 .catch((error) => {
-                    /* eslint-disable no-console */
-                    console.log('Unhandled exception: ' + error + '\n' + error.stack)
-                    expect('Error').toBe(null)
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
                     done()
-                    /* eslint-enable no-console */
                 })
             })
         })
