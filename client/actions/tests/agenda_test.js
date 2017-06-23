@@ -678,7 +678,7 @@ describe('agenda', () => {
         })
 
         describe('addPlanningsToAgenda', () => {
-            it('addPlanningsToAgenda saves and executes dispatches', (sone) => {
+            it('addPlanningsToAgenda saves and executes dispatches', (done) => {
                 const action = actions.addPlanningsToAgenda({
                     plannings: plannings[0],
                     agenda: agendas[0],
