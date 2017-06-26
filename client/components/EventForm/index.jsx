@@ -103,6 +103,7 @@ export class Component extends React.Component {
             publish,
             unpublish,
             saveAndPublish,
+            duplicateEvent,
         } = this.props
         const eventSpiked = get(initialValues, 'state', 'active') === ITEM_STATE.SPIKED
         const updatedReadOnly = readOnly || eventSpiked
@@ -124,11 +125,15 @@ export class Component extends React.Component {
             itemActions = [
                 {
                     label: 'Spike Event',
-                    callback: spikeEvent.bind(null, initialValues),
+                    callback: () => spikeEvent(initialValues),
                 },
                 {
                     label: 'Create Planning Item',
-                    callback: addEventToCurrentAgenda.bind(null, initialValues),
+                    callback: () => addEventToCurrentAgenda(initialValues),
+                },
+                {
+                    label: 'Duplicate Event',
+                    callback: () => duplicateEvent(initialValues),
                 },
             ]
         }
@@ -334,6 +339,7 @@ Component.propTypes = {
     spikeEvent: PropTypes.func.isRequired,
     unspikeEvent: PropTypes.func.isRequired,
     addEventToCurrentAgenda: PropTypes.func.isRequired,
+    duplicateEvent: PropTypes.func.isRequired,
     isAllDay: PropTypes.bool,
 }
 
@@ -377,6 +383,7 @@ const mapDispatchToProps = (dispatch) => ({
     spikeEvent: (event) => dispatch(actions.spikeEvent(event)),
     unspikeEvent: (event) => dispatch(actions.unspikeEvent(event)),
     addEventToCurrentAgenda: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
+    duplicateEvent: (event) => dispatch(actions.duplicateEvent(event)),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

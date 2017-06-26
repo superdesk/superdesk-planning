@@ -9,6 +9,21 @@ import React from 'react'
 import { PRIVILEGES, EVENTS, ITEM_STATE } from '../constants'
 import { checkPermission, getErrorMessage, retryDispatch } from '../utils'
 
+const duplicateEvent = (event) => (
+    (dispatch) => {
+        // copy in order to keep the original
+        event = { ...event };
+        // remove ids
+        [
+            '_id',
+            'guid',
+        ].forEach((key) => delete event[key])
+        return dispatch(saveEvent(event))
+        .then(() => dispatch(closeEventDetails()))
+        .then(() => dispatch(refetchEvents()))
+    }
+)
+
 const _setEventStatus = ({ eventId, status }) => (
     (dispatch, getState) => {
         const event = selectors.getEvents(getState())[eventId]
@@ -875,6 +890,7 @@ const eventNotifications = {
 }
 
 export {
+    duplicateEvent,
     publishEvent,
     unpublishEvent,
     toggleEventSelection,
