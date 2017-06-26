@@ -293,11 +293,17 @@ const saveEvent = (newEvent) => (
         // clone the original because `save` will modify it
         original = cloneDeep(original) || {}
         newEvent = cloneDeep(newEvent) || {}
-        // remove all properties starting with _,
-        // otherwise it will fail for "unknown field" with `_type`
-        newEvent = pickBy(newEvent, (v, k) => (!k.startsWith('_')))
+
         // save the timezone. This is useful for recurring events
         newEvent.dates.tz = moment.tz.guess()
+
+        // remove all properties starting with _,
+        // otherwise it will fail for "unknown field" with `_type`
+        newEvent = pickBy(newEvent, (v, k) => (
+            !k.startsWith('_') &&
+            !isEqual(newEvent[k], original[k])
+        ))
+
         // send the event on the backend
         return api('events').save(original, newEvent)
         // return a list of events (can has several because of reccurence)
