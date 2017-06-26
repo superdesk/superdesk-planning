@@ -209,7 +209,7 @@ export class Component extends React.Component {
                             readOnly={updatedReadOnly}/>
                     </div>
                     <div>
-                        <label htmlFor="name">What</label>
+                        <label htmlFor="name">Name</label>
                     </div>
                     <div>
                         <Field name="name"

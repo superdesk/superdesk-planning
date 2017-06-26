@@ -14,7 +14,7 @@ function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting
                 <Field name="name"
                        component={fields.InputField}
                        type="text"
-                       label="What"/>
+                       label="Name"/>
                 <Field name="source"
                        component={fields.IngestProviderField}
                        type="text"
