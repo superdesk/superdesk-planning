@@ -12,9 +12,12 @@
 
 import superdesk
 import logging
+from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk import get_resource_service
+from superdesk.resource import Resource
+from superdesk.users.services import current_user_has_privilege
 from superdesk.resource import build_custom_hateoas
 from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user
@@ -66,8 +69,18 @@ class PlanningService(superdesk.Service):
                 get_resource_service('events_history').on_item_updated({'planning_id': doc.get('_id')}, original_event,
                                                                        'planning created')
 
+    def update(self, id, updates, original):
+        item = self.backend.update(self.datasource, id, updates, original)
+        return item
+
     def on_update(self, updates, original):
         user = get_user()
+        lock_user = original.get('lock_user', None)
+        str_user_id = str(user.get(config.ID_FIELD)) if user else None
+
+        if lock_user and str(lock_user) != str_user_id:
+            raise SuperdeskApiError.forbiddenError('The item was locked by another user')
+
         if user and user.get(config.ID_FIELD):
             updates['version_creator'] = user[config.ID_FIELD]
 
@@ -85,6 +98,12 @@ class PlanningService(superdesk.Service):
             diff = {'planning_items': [_ for _ in agenda['planning_items'] if _ != doc['_id']]}
             agenda_service.update(agenda['_id'], diff, agenda)
             get_resource_service('agenda_history').on_item_updated(diff, agenda)
+
+    def can_edit(self, item, user_id):
+        # Check privileges
+        if not current_user_has_privilege('planning_planning_management'):
+            return False, 'User does not have sufficient permissions.'
+        return True, ''
 
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
@@ -266,6 +285,19 @@ planning_schema = {
     'state': STATE_SCHEMA,
     'expiry': {
         'type': 'datetime',
+        'nullable': True
+    },
+
+    'lock_user': Resource.rel('users'),
+    'lock_time': {
+        'type': 'datetime',
+        'versioned': False
+    },
+    'lock_session': Resource.rel('auth'),
+
+    'lock_action': {
+        'type': 'string',
+        'mapping': not_analyzed,
         'nullable': True
     }
 

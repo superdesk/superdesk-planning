@@ -3,6 +3,7 @@ import { get } from 'lodash'
 import { ListItem, TimePlanning, DueDate, tooltips } from '../index'
 import { OverlayTrigger } from 'react-bootstrap'
 import { ITEM_STATE } from '../../constants'
+import classNames from 'classnames'
 import './style.scss'
 
 const coverageIcons = {
@@ -12,7 +13,19 @@ const coverageIcons = {
     photo: 'icon-photo',
 }
 
-const PlanningItem = ({ item, event, agenda, onClick, active, onSpike, onUnspike, privileges, onDoubleClick }) => {
+const PlanningItem = ({
+        item,
+        event,
+        agenda,
+        onClick,
+        active,
+        onSpike,
+        onUnspike,
+        privileges,
+        onDoubleClick,
+        itemLocked,
+        itemLockedInThisSession,
+    }) => {
     const location = get(event, 'location[0].name')
     const dueDates = get(item, 'coverages', []).map((c) => (get(c, 'planning.scheduled'))).filter(d => (d))
     const coveragesTypes = get(item, 'coverages', []).map((c) => get(c, 'planning.g2_content_type'))
@@ -21,16 +34,17 @@ const PlanningItem = ({ item, event, agenda, onClick, active, onSpike, onUnspike
     const agendaSpiked = agenda && get(agenda, 'state', 'active') === ITEM_STATE.SPIKED
     const eventSpiked = event ? get(event, 'state', 'active') === ITEM_STATE.SPIKED : false
 
-    const showSpikeButton = privileges.planning_planning_spike === 1 &&
-            !itemSpiked && !agendaSpiked && !eventSpiked
+    const showSpikeButton = (!itemLocked || itemLockedInThisSession) &&
+        privileges.planning_planning_spike === 1 && !itemSpiked && !agendaSpiked && !eventSpiked
 
-    const showUnspikeButton = privileges.planning_planning_unspike === 1 &&
-            itemSpiked && !agendaSpiked && !eventSpiked
+    const showUnspikeButton = (!itemLocked || itemLockedInThisSession) &&
+        privileges.planning_planning_unspike === 1 && itemSpiked && !agendaSpiked && !eventSpiked
 
     return (
         <ListItem
             item={item}
-            className="PlanningItem"
+            className={classNames('PlanningItem',
+            { 'PlanningItem--locked': itemLocked })}
             onClick={onClick}
             onDoubleClick={onDoubleClick}
             active={active}>
@@ -107,6 +121,8 @@ PlanningItem.propTypes = {
     onSpike: PropTypes.func,
     onUnspike: PropTypes.func,
     privileges: PropTypes.object,
+    itemLocked: React.PropTypes.bool,
+    itemLockedInThisSession: React.PropTypes.bool,
 }
 
 export default PlanningItem

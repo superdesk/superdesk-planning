@@ -3,6 +3,7 @@ export const PRIVILEGES = {
     SPIKE_AGENDA: 'planning_agenda_spike',
     UNSPIKE_AGENDA: 'planning_agenda_unspike',
     PLANNING_MANAGEMENT: 'planning_planning_management',
+    PLANNING_UNLOCK: 'planning_unlock',
     SPIKE_PLANNING: 'planning_planning_spike',
     UNSPIKE_PLANNING: 'planning_planning_unspike',
     EVENT_MANAGEMENT: 'planning_event_management',

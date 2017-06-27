@@ -45,6 +45,8 @@ export { RelatedPlannings } from './RelatedPlannings'
 export { default as Datetime } from './Datetime/index'
 export { default as Checkbox } from './Checkbox/index'
 export { default as MultiEventsSelectionActions } from './MultiEventsSelectionActions/index'
+export { UserAvatar } from './UserAvatar/index'
+export { UnlockItem } from './UnlockItem'
 export { default as UpdateRecurrentEventsConfirmation }
     from './UpdateRecurrentEventsConfirmation/index'
 export { ItemActionsMenu } from './ItemActionsMenu/index'

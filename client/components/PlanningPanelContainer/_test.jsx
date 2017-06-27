@@ -62,6 +62,7 @@ describe('planning', () => {
                     planning: 1,
                     planning_planning_management: 1,
                 },
+                session: { identity: { _id: 'user' } },
             }
 
             it('addEventToCurrentAgenda', () => {
@@ -127,7 +128,7 @@ describe('planning', () => {
                     expect(store.getState().agenda.agendas[0].planning_items[0])
                         .toEqual(planningCreated._id)
                     // open the planning
-                    store.dispatch(actions.openPlanningEditor(planningCreated._id))
+                    store.dispatch(actions.previewPlanning(planningCreated._id))
                     // the planning editor has been opened with the saved planning
                     expect(store.getState().planning.editorOpened).toBe(true)
                     expect(store.getState().planning.currentPlanningId).toEqual(planningCreated._id)
@@ -161,6 +162,7 @@ describe('planning', () => {
                         planning: 1,
                         planning_planning_management: 1,
                     },
+                    session: { identity: { _id: 'user' } },
                 }
                 const store = createTestStore({ initialState })
                 const wrapper = mount(

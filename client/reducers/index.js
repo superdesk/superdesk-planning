@@ -10,6 +10,7 @@ import agenda from './agenda'
 import users from './users'
 import desks from './desks'
 import subjects from './subjects'
+import session from './session'
 
 const planningApp = combineReducers({
     modal,
@@ -24,6 +25,7 @@ const planningApp = combineReducers({
     config: (state) => (state || {}),
     users,
     desks,
+    session,
 })
 
 export default planningApp

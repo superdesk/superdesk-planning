@@ -1,5 +1,6 @@
 import React from 'react'
 import { CoverageAssignSelect } from './CoverageAssignSelect'
+import { UserAvatar } from '../'
 import './style.scss'
 
 export class CoverageAssign  extends React.Component {
@@ -64,12 +65,8 @@ export class CoverageAssign  extends React.Component {
         return (
             <div className='field'>
                 <div className='coverageassign'>
-                    <figure className={avatar + ' avatar large'}>
-                    {
-                        avatar.indexOf('initials') >= 0 &&
-                        (<span>{userAssigned.display_name.replace(/\W*(\w)\w*/g, '$1').toUpperCase()}</span>)
-                    }
-                    </figure>
+                    { deskAssigned && <figure className={avatar + ' avatar large'} /> }
+                    { userAssigned && <UserAvatar user={userAssigned} large={true} withLoggedInfo={true}/> }
                     { (!deskAssigned && !userAssigned && <label>Unassigned</label>) ||
                       (deskAssigned && <label>{'Desk: ' + deskAssigned.name}</label>) ||
                       (userAssigned && <label>{userAssigned.display_name}</label>) }

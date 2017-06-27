@@ -321,9 +321,40 @@ const fetchCoverageById = (id) => (
  * @return Promise
  */
 const previewPlanning = (planning) => (
-    {
-        type: PLANNING.ACTIONS.PREVIEW_PLANNING,
-        payload: planning,
+    (dispatch, getState) => {
+        dispatch(closePlanningEditor(selectors.getCurrentPlanning(getState())))
+        dispatch({
+            type: PLANNING.ACTIONS.PREVIEW_PLANNING,
+            payload: planning,
+        })
+    }
+)
+
+const _unlockAndOpenPlanningEditor = (planning) => (
+    (dispatch, getState, { api, notify }) => (
+        api('planning_unlock', planning).save({})
+        .then(() => {
+            // Call openPlanningEditor to obtain a new lock for editing
+            dispatch(openPlanningEditor(planning._id))
+        }, (error) => {
+            const msg = get(error, 'data._message') || 'Could not unlock on the planning item.'
+            notify.error(msg)
+            return Promise.reject()
+        })
+    )
+)
+
+const _lockAndOpenPlanningEditor = (planning) => (
+    (dispatch, getState, { api, notify }) => {
+        // Close planning editor if open
+        dispatch(closePlanningEditor(selectors.getCurrentPlanning(getState())))
+        api.save('planning_lock', {}, { lock_action: 'edit' }, { _id: planning }).then((item) => {
+            dispatch(_openPlanningEditor(item))
+        }, (error) => {
+            const msg = get(error, 'data._message') || 'Could not obtain lock on the planning item.'
+            notify.error(msg)
+            dispatch(_openPlanningEditor(planning))
+        })
     }
 )
 
@@ -333,7 +364,6 @@ const previewPlanning = (planning) => (
  * @return Promise
  */
 const _openPlanningEditor = (planning) => (
-    // Here, check locking and take appropriate action.
     {
         type: PLANNING.ACTIONS.OPEN_PLANNING_EDITOR,
         payload: planning,
@@ -356,7 +386,7 @@ const previewPlanningAndOpenAgenda = (planning) => (
             dispatch(selectAgenda(agenda._id))
         }
         // open the planning details
-        return dispatch(previewPlanning(planning))
+        dispatch(previewPlanning(planning))
     }
 )
 
@@ -364,7 +394,20 @@ const previewPlanningAndOpenAgenda = (planning) => (
  * Action for closing the planning editor
  * @return object
  */
-const closePlanningEditor = () => (
+const closePlanningEditor = (planning) => (
+    (dispatch, getState, { api, notify }) => {
+        if (selectors.isCurrentPlanningLockedInThisSession(getState())) {
+            api('planning_unlock', planning).save({})
+            .catch(() => {
+                notify.error('Could not unlock on the planning item.')
+            })
+        }
+
+        dispatch(_closePlanningEditor())
+    }
+)
+
+const _closePlanningEditor = () => (
     { type: PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR }
 )
 
@@ -424,8 +467,13 @@ const saveAndDeleteCoverages = checkPermission(
     'Unauthorised to modify planning coverages'
 )
 const openPlanningEditor = checkPermission(
-    _openPlanningEditor,
+    _lockAndOpenPlanningEditor,
     PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to edit a planning item!'
+)
+const unlockAndOpenPlanningEditor = checkPermission(
+    _unlockAndOpenPlanningEditor,
+    PRIVILEGES.PLANNING_UNLOCK,
     'Unauthorised to edit a planning item!'
 )
 
@@ -528,6 +576,8 @@ const planningNotifications = {
     'planning:updated': onPlanningUpdated,
     'planning:spiked': onPlanningUpdated,
     'planning:unspiked': onPlanningUpdated,
+    'planning:lock': onPlanningUpdated,
+    'planning:unlock': onPlanningUpdated,
 }
 
 export {
@@ -540,6 +590,7 @@ export {
     fetchPlanningById,
     fetchCoverageById,
     openPlanningEditor,
+    unlockAndOpenPlanningEditor,
     closePlanningEditor,
     previewPlanningAndOpenAgenda,
     toggleOnlyFutureFilter,
