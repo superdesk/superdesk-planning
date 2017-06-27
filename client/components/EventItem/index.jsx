@@ -60,10 +60,10 @@ export const EventItem = ({
                     }
                     <PubStatusLabel status={event.pubstatus}/>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow event__title">
-                        {event.name}
-                        {(event.definition_short && event.name !== event.definition_short) &&
-                            <span>&nbsp;|&nbsp;{event.definition_short}</span>
+                        {event.slugline &&
+                            <span className="ListItem__slugline">{event.slugline}</span>
                         }
+                        <span className="ListItem__headline">{event.name}</span>
                     </span>
                     <TimeEvent event={event}/>
                 </div>

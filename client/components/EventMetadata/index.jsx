@@ -5,6 +5,7 @@ import { Datetime } from '../index'
 const formatDate = (d) => React.createElement(Datetime, { date: d })
 const FIELDS = [
     // 'Label', 'key1', 'key2', ['key3', func(value)] etc...
+    ['Slugline', 'slugline'],
     ['Name', 'name'],
     ['From', ['dates.start', formatDate]],
     ['To', ['dates.end', formatDate]],
@@ -54,6 +55,7 @@ export function EventMetadata ({ event }) {
 
 EventMetadata.propTypes = {
     event: React.PropTypes.shape({
+        slugline: React.PropTypes.string,
         name: React.PropTypes.string.isRequired,
         dates: React.PropTypes.object.isRequired,
         definition_short: React.PropTypes.string,

@@ -245,8 +245,8 @@ const fetchPlannings = (params={}) => (
         // fetch the plannings through the api
         let q = {}
         if (params.planningIds) {
-            q = { query: { bool: {} } }
-            q.query.bool.should = params.planningIds.map(
+            q = { source: { query: { bool: {} } } }
+            q.source.query.bool.should = params.planningIds.map(
                 (pid) => ({ term: { _id: pid } })
             )
         }

@@ -54,10 +54,10 @@ const PlanningItem = ({
                         <span className="label label--alert">spiked</span>
                     }
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                        {item.slugline}
-                        {(item.headline && item.slugline !== item.headline) &&
-                            <span>&nbsp;|&nbsp;{item.headline}</span>
+                        {item.slugline &&
+                            <span className="ListItem__slugline">{item.slugline}</span>
                         }
+                        <span className="ListItem__headline">{item.headline}</span>
                     </span>
                     {event &&
                         <span className="PlanningItem__event">

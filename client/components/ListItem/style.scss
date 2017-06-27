@@ -1,0 +1,9 @@
+@import '~superdesk-core/styles/sass/variables.scss';
+
+.ListItem__slugline {
+    color: $sd-keyword;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-right: 1rem;
+}
+.ListItem__headline { color: $gray; }
