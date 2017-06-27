@@ -17,7 +17,7 @@ from superdesk.users.services import current_user_has_privilege
 from superdesk.utc import utcnow
 from superdesk.lock import lock, unlock
 from eve.utils import config
-from superdesk import get_resource_service
+from superdesk import get_resource_service, get_resource_privileges
 from flask import current_app as app
 
 
@@ -145,8 +145,11 @@ class LockService:
         can_user_edit, error_message = superdesk.get_resource_service(resource).can_edit(item, user_id)
 
         if can_user_edit:
+            resource_privileges = get_resource_privileges(resource).get('PATCH')
+
             if not (str(item.get(LOCK_USER, '')) == str(user_id) or
-                    (current_user_has_privilege(resource) and current_user_has_privilege('planning_unlock'))):
+                    (current_user_has_privilege(resource_privileges) and
+                    current_user_has_privilege('planning_unlock'))):
                 return False, 'You don\'t have permissions to unlock an item.'
         else:
             return False, error_message

@@ -9,6 +9,7 @@ import {
     spikeEventTooltip,
     unspikeEventTooltip,
 } from '../Tooltips'
+import classNames from 'classnames'
 
 export const EventItem = ({
         event,
@@ -20,23 +21,23 @@ export const EventItem = ({
         privileges,
         isSelected,
         onSelectChange,
+        itemLocked,
+        itemLockedInThisSession,
     }) => {
     const hasBeenCanceled = get(event, 'occur_status.qcode') === 'eocstat:eos6'
     const hasBeenSpiked = get(event, 'state', 'active') === ITEM_STATE.SPIKED
     const hasSpikePrivileges = get(privileges, 'planning_event_spike', 0) === 1
     const hasUnspikePrivileges = get(privileges, 'planning_event_unspike', 0) === 1
-    const classes = [
-        'event',
-        event._hasPlanning ? 'event--has-planning' : null,
-        hasBeenCanceled ? 'event--has-been-canceled' : null,
-    ].join(' ')
     return (
         <ListItem
             item={event}
             onClick={onClick}
             onDoubleClick={onDoubleClick}
             draggable={true}
-            className={classes}
+            className={classNames('event',
+                { 'event--has-planning': event._hasPlanning },
+                { 'event--has-been-canceled': hasBeenCanceled },
+                { 'event--locked': itemLocked })}
             active={highlightedEvent === event._id || isSelected}
         >
             <div className="sd-list-item__action-menu">
@@ -59,6 +60,7 @@ export const EventItem = ({
             </div>
             <div className="sd-list-item__action-menu">
                 {!hasBeenSpiked && hasSpikePrivileges &&
+                    (!itemLocked || itemLockedInThisSession) &&
                     <OverlayTrigger placement="left" overlay={spikeEventTooltip}>
                         <button
                             className="dropdown__toggle"
@@ -71,6 +73,7 @@ export const EventItem = ({
                     </OverlayTrigger>
                 }
                 {hasBeenSpiked && hasUnspikePrivileges &&
+                    (!itemLocked || itemLockedInThisSession) &&
                     <OverlayTrigger placement="left" overlay={unspikeEventTooltip}>
                         <button
                             className="dropdown__toggle"
@@ -97,4 +100,6 @@ EventItem.propTypes = {
     privileges: PropTypes.object,
     isSelected: PropTypes.bool,
     onSelectChange: PropTypes.func.isRequired,
+    itemLocked: React.PropTypes.bool,
+    itemLockedInThisSession: React.PropTypes.bool,
 }

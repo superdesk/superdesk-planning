@@ -17,6 +17,8 @@ describe('events', () => {
                     start: '2016-10-15T13:01:11+0000',
                     end: '2016-10-15T14:01:11+0000',
                 },
+                lock_user: 'user123',
+                lock_session: 'session123',
             },
             {
                 _id: 'e2',
@@ -61,6 +63,11 @@ describe('events', () => {
             },
             planning: { plannings: {} },
             config: { server: { url: 'http://server.com' } },
+            users: [{ _id: 'user123' }],
+            session: {
+                identity: { _id: 'user123' },
+                sessionId: 'session123',
+            },
         }
         const getState = () => (initialState)
         let dispatch
@@ -146,8 +153,6 @@ describe('events', () => {
             const action = actions.uploadFilesAndSaveEvent(event)
             return action(dispatch, getState)
             .then(() => {
-                expect(dispatch.callCount).toBe(11)
-
                 expect(dispatch.args[4]).toEqual([{
                     type: 'REQUEST_EVENTS',
                     payload: { page: 1 },
@@ -520,17 +525,56 @@ describe('events', () => {
         describe('openEventDetails', () => {
             const action = actions.openEventDetails(events[0])
             it('openEventDetails dispatches actions', () => {
-                action(dispatch, getState, {
+                const openAction = actions.openEventDetails()
+                dispatch = dispatchRunFunction
+                openAction(dispatch, getState, {
                     notify,
                     $timeout,
                 })
-                expect(dispatch.args[0]).toEqual([{
+                expect(dispatch.args[1]).toEqual([{
                     type: 'OPEN_EVENT_DETAILS',
-                    payload: events[0]._id,
+                    payload: true,
                 }])
-                expect(dispatch.callCount).toBe(1)
                 expect(notify.error.callCount).toBe(0)
                 expect($timeout.callCount).toBe(0)
+            })
+
+            it('openEventDetails calls `events_lock` endpoint', (done) => {
+                dispatch = dispatchRunFunction
+                api.save = sinon.spy(() => (Promise.resolve(events[0])))
+                action(dispatchRunFunction, getState, {
+                    api,
+                    notify,
+                }).then(() => {
+                    expect(api.save.args[0]).toEqual([
+                        'events_lock',
+                        {},
+                        { lock_action: 'edit' },
+                        { _id: 'e1' },
+                    ])
+                    done()
+                })
+            })
+
+            it('openEventDetails sends notification if lock fails', (done) => {
+                dispatch = dispatchRunFunction
+                api.save = sinon.spy(() => (Promise.reject()))
+                action(dispatchRunFunction, getState, {
+                    api,
+                    notify,
+                }).then(() => {
+                    expect(api.save.args[0]).toEqual([
+                        'events_lock',
+                        {},
+                        { lock_action: 'edit' },
+                        { _id: 'e1' },
+                    ])
+
+                    expect(notify.error.args[0][0]).toBe(
+                        'Could not lock the event.'
+                    )
+                    done()
+                })
             })
 
             it('openEventDetails raises ACCESS_DENIED without permission', () => {
@@ -558,7 +602,11 @@ describe('events', () => {
 
         it('closeEventDetails', () => {
             const action = actions.closeEventDetails()
-            expect(action).toEqual({ type: 'CLOSE_EVENT_DETAILS' })
+            action(dispatch, getState, {
+                notify,
+                $timeout,
+            })
+            expect(dispatch.args[0]).toEqual([{ type: 'CLOSE_EVENT_DETAILS' }])
         })
 
         it('receiveEvents', () => {

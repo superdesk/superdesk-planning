@@ -24,6 +24,7 @@ from .planning_history import PlanningHistoryResource, PlanningHistoryService
 from .agenda_history import AgendaHistoryResource, AgendaHistoryService
 from .agenda_spike import AgendaSpikeResource, AgendaUnspikeResource, AgendaSpikeService, AgendaUnspikeService
 from .planning_lock import PlanningLockResource, PlanningLockService, PlanningUnlockResource, PlanningUnlockService
+from .events_lock import EventsLockResource, EventsLockService, EventsUnlockResource, EventsUnlockService
 from superdesk.io.registry import register_feeding_service, register_feed_parser
 from .feed_parsers.ics_2_0 import IcsTwoFeedParser
 from .feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
@@ -43,8 +44,14 @@ def init_app(app):
     planning_lock_service = PlanningLockService('planning_lock', backend=superdesk.get_backend())
     PlanningLockResource('planning_lock', app=app, service=planning_lock_service)
 
+    events_lock_service = EventsLockService('events_lock', backend=superdesk.get_backend())
+    EventsLockResource('events_lock', app=app, service=events_lock_service)
+
     planning_unlock_service = PlanningUnlockService('planning_unlock', backend=superdesk.get_backend())
     PlanningUnlockResource('planning_unlock', app=app, service=planning_unlock_service)
+
+    events_unlock_service = EventsUnlockService('events_unlock', backend=superdesk.get_backend())
+    EventsUnlockResource('events_unlock', app=app, service=events_unlock_service)
 
     planning_spike_service = PlanningSpikeService('planning_spike', backend=superdesk.get_backend())
     PlanningSpikeResource('planning_spike', app=app, service=planning_spike_service)
@@ -172,6 +179,7 @@ def init_app(app):
     )
 
     superdesk.intrinsic_privilege(PlanningUnlockResource.endpoint_name, method=['POST'])
+    superdesk.intrinsic_privilege(EventsUnlockResource.endpoint_name, method=['POST'])
 
 
 register_feeding_service(

@@ -19,6 +19,8 @@ describe('planning', () => {
                 _id: 'p2',
                 slugline: 'Planning2',
                 headline: 'Some Plan 2',
+                lock_user: 'user123',
+                lock_session: 'session123',
             },
         ]
 
@@ -94,6 +96,11 @@ describe('planning', () => {
                     planning_planning_management: 1,
                     planning_planning_spike: 1,
                     planning_planning_unspike: 1,
+                },
+                users: [{ _id: 'user123' }],
+                session: {
+                    identity: { _id: 'user123' },
+                    sessionId: 'session123',
                 },
             }
         })
@@ -651,6 +658,36 @@ describe('planning', () => {
                     }])
                     expect($timeout.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(0)
+                })
+            })
+
+            it('openPlanningEditor calls `planning_lock` endpoint', (done) => {
+                api.save = sinon.spy(() => Promise.resolve(plannings[0]))
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then(() => {
+                    expect(api.save.args[0]).toEqual([
+                        'planning_lock',
+                        {},
+                        { lock_action: 'edit' },
+                        { _id: plannings[0]._id },
+                    ])
+
+                    expect(notify.error.callCount).toBe(0)
+
+                    expect(dispatch.args[3]).toEqual([{
+                        type: 'OPEN_PLANNING_EDITOR',
+                        payload: plannings[0],
+                    }])
+
+                    done()
+                })
+                .catch((error) => {
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
+                    done()
                 })
             })
 

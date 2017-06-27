@@ -73,6 +73,11 @@ describe('<EventsList />', () => {
                     },
                 },
             },
+            users: [{ _id: 'user123' }],
+            session: {
+                identity: { _id: 'user123' },
+                sessionId: 'session123',
+            },
         }
         const store = createTestStore({ initialState })
         const wrapper = mount(

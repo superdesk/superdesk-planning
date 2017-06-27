@@ -39,6 +39,11 @@ export class EventsList extends React.Component {
         }
     }
 
+    isEventLockedInThisSession(event) {
+        return event.lock_user === this.props.session.identity._id &&
+            event.lock_session === this.props.session.sessionId ? true : false
+    }
+
     rowRenderer({ index, key, style }) {
         const { date, events } = this.props.events[index]
         const dateStr = moment(date).format('dddd LL')
@@ -59,7 +64,9 @@ export class EventsList extends React.Component {
                                 event: event._id,
                                 value,
                             })}
-                            privileges={this.props.privileges} />
+                            privileges={this.props.privileges}
+                            itemLocked={event.lock_user && event.lock_session ? true : false}
+                            itemLockedInThisSession={this.isEventLockedInThisSession(event)} />
                     ))}
                 </ul>
             </div>
@@ -111,4 +118,5 @@ EventsList.propTypes = {
     privileges: PropTypes.object,
     selectedEvents: PropTypes.array.isRequired,
     onEventSelectChange: PropTypes.func.isRequired,
+    session: PropTypes.object,
 }
