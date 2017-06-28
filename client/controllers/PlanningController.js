@@ -1,11 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { PlanningApp } from '../components'
 import { Provider } from 'react-redux'
-import { createStore } from '../utils'
+import { createStore, registerNotifications } from '../utils'
 import * as actions from '../actions'
-import { WS_NOTIFICATION } from '../constants'
-import { forEach } from 'lodash'
+import { PlanningApp } from '../components'
 
 PlanningController.$inject = [
     '$element',
@@ -102,24 +100,4 @@ export function PlanningController(
         </Provider>,
         $element.get(0)
     )
-}
-
-/**
- * Registers WebSocket Notifications to Redux Actions
- * @param {scope} $scope - PlanningController scope where notifications are received
- * @param {store} store - The Redux Store used for dispatching actions
- */
-export const registerNotifications = ($scope, store) => {
-    forEach(actions.notifications, (func, event) => {
-        $scope.$on(event, (_e, data) => {
-            store.dispatch({
-                type: WS_NOTIFICATION,
-                payload: {
-                    event,
-                    data,
-                },
-            })
-            store.dispatch(func()(_e, data))
-        })
-    })
 }

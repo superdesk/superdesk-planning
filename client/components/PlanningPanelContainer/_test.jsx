@@ -36,11 +36,15 @@ describe('planning', () => {
                 },
                 planning: {
                     plannings: {
-                        planning1: { _id: 'planning1' },
+                        planning1: {
+                            _id: 'planning1',
+                            agendas: ['agenda1'],
+                        },
                         planning2: {
                             _id: 'planning2',
                             event_item: ['event1'],
                             headline: 'headline',
+                            agendas: ['agenda1'],
                             coverages: [{
                                 planning: {
                                     scheduled: '2016-10-15T13:01:11+0000',
@@ -48,13 +52,17 @@ describe('planning', () => {
                                 },
                             }],
                         },
-                        planning3: { _id: 'planning3' },
+                        planning3: {
+                            _id: 'planning3',
+                            agendas: [],
+                        },
                     },
                 },
                 agenda: {
                     agendas: [{
                         _id: 'agenda1',
-                        planning_items: ['planning1', 'planning2'],
+                        name: 'agenda',
+                        is_enabled: true,
                     }],
                     currentAgendaId: 'agenda1',
                 },
@@ -73,6 +81,7 @@ describe('planning', () => {
                         agendas: [{
                             _id: '1',
                             name: 'agenda',
+                            is_enabled: true,
                         }],
                         currentAgendaId: '1',
                     },
@@ -86,11 +95,30 @@ describe('planning', () => {
                     name: 'event',
                 }
                 const store = createTestStore({
-                    extraArguments: { apiQuery: () => ({ _items: [EVENT] }) },
+                    extraArguments: {
+                        apiQuery: () => (
+                            {
+                                _items: [
+                                    {
+                                        _id: '2',
+                                        name: 'event',
+                                        agendas: ['agenda1'],
+                                    },
+                                ],
+                            }
+                        ),
+                    },
                     initialState,
                 })
                 store.dispatch(actions.addEventToCurrentAgenda(EVENT)).then(() => {
-                    expect(store.getState().planning.plannings).toEqual({ 2: EVENT })
+                    expect(store.getState().planning.plannings).toEqual({
+                        2: {
+                            _id: '2',
+                            name: 'event',
+                            agendas: ['agenda1'],
+                            coverages: [],
+                        },
+                    })
                 })
             })
 
@@ -101,6 +129,7 @@ describe('planning', () => {
                         agendas: [{
                             _id: 'agenda1',
                             name: 'agenda',
+                            is_enabled: true,
                         }],
                         currentAgendaId: 'agenda1',
                     },
@@ -116,20 +145,23 @@ describe('planning', () => {
                             _items: [{
                                 _id: 'RefreshedplanningId',
                                 slugline: 'coucou',
+                                agendas: ['agenda1'],
                             }],
                         }),
                     },
                     initialState,
                 })
+
+
+
                 expect(store.getState().planning.currentPlanningId).toBe(undefined)
                 store.dispatch(actions.planning.ui.saveAndReloadCurrentAgenda({ slugline: 'coucou' }))
-                // store.dispatch(actions.savePlanningAndReloadCurrentAgenda({ slugline: 'coucou' }))
                 .then((planningCreated) => {
                     // the planning has been added to the current agenda
-                    expect(store.getState().agenda.agendas[0].planning_items[0])
-                        .toEqual(planningCreated._id)
+                    expect(store.getState().planning.plannings['RefreshedplanningId'].agendas[0])
+                        .toEqual(initialState.agenda.agendas[0]._id)
                     // open the planning
-                    store.dispatch(actions.planning.ui.openEditor(planningCreated._id))
+                    return store.dispatch(actions.planning.ui.openEditor(planningCreated._id))
                     .then(() => {
                         // the planning editor has been opened with the saved planning
                         expect(store.getState().planning.editorOpened).toBe(true)
@@ -140,10 +172,10 @@ describe('planning', () => {
                                 _id: 'RefreshedplanningId',
                                 slugline: 'coucou',
                                 coverages: [],
+                                agendas: ['agenda1'],
                             })
                         done()
                     })
-
                 })
             })
 
@@ -151,17 +183,29 @@ describe('planning', () => {
                 const initialState = {
                     planning: {
                         plannings: {
-                            planning1: { _id: 'planning1' },
-                            planning2: { _id: 'planning2' },
-                            planning3: { _id: 'planning3' },
+                            planning1: {
+                                _id: 'planning1',
+                                'agendas': ['agenda1'],
+                            },
+                            planning2: {
+                                _id: 'planning2',
+                                'agendas': ['agenda1'],
+                            },
+                            planning3: {
+                                _id: 'planning3',
+                                'agendas': [],
+                            },
                         },
                         planningsInList: [],
                     },
                     agenda: {
                         agendas: [{
                             _id: 'agenda1',
-                            planning_items: ['planning1', 'planning2'],
+                            name: 'agenda',
+                            is_enabled: true,
                         }],
+                        currentAgendaId: null,
+                        currentAgenda: null,
                     },
                     privileges: {
                         planning: 1,
@@ -187,11 +231,12 @@ describe('planning', () => {
                         <PlanningPanelContainer />
                     </Provider>
                 )
+
                 expect(wrapper.find(PlanningItem).length).toBe(0)
                 store.dispatch(actions.selectAgenda('agenda1'))
                 .then(() => {
                     expect(wrapper.find(PlanningItem).length)
-                    .toBe(initialState.agenda.agendas[0].planning_items.length)
+                    .toBe(2)
 
                     done()
                 })
@@ -228,6 +273,8 @@ describe('planning', () => {
                 const item = {
                     _id: 'planning1',
                     headline: 'Plan1',
+                    slugline: 'Plan1',
+                    agendas: ['agenda1'],
                 }
 
                 const wrapper = mount(
@@ -264,6 +311,8 @@ describe('planning', () => {
                 const item = {
                     _id: 'planning1',
                     headline: 'Plan1',
+                    slugline: 'Plan1',
+                    agendas: ['agenda1'],
                 }
 
                 const wrapper = mount(

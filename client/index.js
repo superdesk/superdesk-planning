@@ -9,4 +9,11 @@ export default angular.module('superdesk.planning', [])
             controller: ctrl.PlanningController,
         })
     )
-    .controller('PlanningSettingsController', ctrl.PlanningSettingsController)
+    .directive('sdPlanningSettings',
+        () => ({
+            scope: {},
+            bindToController: true,
+            controllerAs: 'vm',
+            controller: ctrl.PlanningSettingsController,
+        })
+    )

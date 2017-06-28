@@ -3,11 +3,10 @@ import { reduxForm } from 'redux-form'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { PlanningForm } from '../index'
-import { EventMetadata, PlanningHistoryContainer } from '../../components'
+import { EventMetadata, PlanningHistoryContainer, AuditInformation } from '../../components'
 import * as selectors from '../../selectors'
 import { ITEM_STATE } from '../../constants'
 import { get } from 'lodash'
-import moment from 'moment'
 import { OverlayTrigger } from 'react-bootstrap'
 import { tooltips } from '../index'
 import { UserAvatar, UnlockItem } from '../'
@@ -55,7 +54,7 @@ export class EditPlanningPanel extends React.Component {
 
     /*eslint-disable complexity*/
     render() {
-        const { closePlanningEditor, openPlanningEditor, planning, event, pristine, submitting, agendaSpiked, readOnly, lockedInThisSession } = this.props
+        const { closePlanningEditor, openPlanningEditor, planning, event, pristine, submitting, readOnly, lockedInThisSession } = this.props
         const creationDate = get(planning, '_created')
         const updatedDate = get(planning, '_updated')
 
@@ -78,7 +77,7 @@ export class EditPlanningPanel extends React.Component {
         // If the planning or event or agenda item is spiked,
         // or we don't hold a lock, enforce readOnly
         let forceReadOnly = readOnly
-        if (!lockedInThisSession || agendaSpiked || eventSpiked || planningSpiked) {
+        if (!lockedInThisSession || eventSpiked || planningSpiked) {
             forceReadOnly = true
         }
 
@@ -102,14 +101,11 @@ export class EditPlanningPanel extends React.Component {
                                     onUnlock={this.props.unlockItem.bind(this, planning)}/>}
                             </div>
                             )}
-                        {creationDate && author &&
-                            <div>Created {moment(creationDate).fromNow()} by <span className='TimeAndAuthor__author'> {author.display_name}</span>
-                            </div>
-                        }
-                        {updatedDate && versionCreator &&
-                            <div>Updated {moment(updatedDate).fromNow()} by <span className='TimeAndAuthor__author'> {versionCreator.display_name}</span>
-                            </div>
-                        }
+                        <AuditInformation
+                            createdBy={author}
+                            updatedBy={versionCreator}
+                            createdAt={creationDate}
+                            updatedAt={updatedDate} />
                     </div>
                     { !forceReadOnly && <div className="EditPlanningPanel__actions">
                             <button
@@ -117,7 +113,7 @@ export class EditPlanningPanel extends React.Component {
                                 type="reset"
                                 onClick={closePlanningEditor.bind(this, planning)}
                                 disabled={submitting}>Cancel</button>
-                            {!agendaSpiked && !planningSpiked && !eventSpiked &&
+                            {!planningSpiked && !eventSpiked &&
                                 <button
                                     className="btn btn--primary"
                                     onClick={this.handleSave.bind(this)}
@@ -128,7 +124,7 @@ export class EditPlanningPanel extends React.Component {
                     }
                     { forceReadOnly && (
                         <div className="EditPlanningPanel__actions">
-                            {(!agendaSpiked && !eventSpiked && !planningSpiked) &&
+                            {(!eventSpiked && !planningSpiked) &&
                             (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
                                 <button className="EditPlanningPanel__actions__edit" onClick={openPlanningEditor.bind(this, get(planning, '_id'))}>
                                     <i className="icon-pencil"/>
@@ -143,29 +139,28 @@ export class EditPlanningPanel extends React.Component {
                         </div>)
                     }
                 </header>
+
                 {!this.state.previewHistory &&
                     <div className="EditPlanningPanel__body">
-                    <ItemActionsMenu actions={itemActions} />
-                    {agendaSpiked &&
-                        <span className="AgendaSpiked label label--alert">agenda spiked</span>
-                    }
-                    {planningSpiked &&
-                        <span className="PlanningSpiked label label--alert">planning spiked</span>
-                    }
-                    {eventSpiked &&
-                        <span className="EventSpiked label label--alert">event spiked</span>
-                    }
-                    {event &&
-                        <div>
-                            <h3>Associated event</h3>
-                            <EventMetadata event={event}/>
-                        </div>
-                    }
-                    <h3>Planning</h3>
-                    {(!creationDate || !author) &&
-                        <span>Create a new planning</span>
-                    }
-                    <PlanningForm ref="PlanningForm" readOnly={forceReadOnly}/>
+                        <ItemActionsMenu actions={itemActions} />
+
+                        {planningSpiked &&
+                            <span className="PlanningSpiked label label--alert">planning spiked</span>
+                        }
+                        {eventSpiked &&
+                            <span className="EventSpiked label label--alert">event spiked</span>
+                        }
+                        {event &&
+                            <div>
+                                <h3>Associated event</h3>
+                                <EventMetadata event={event}/>
+                            </div>
+                        }
+                        <h3>Planning</h3>
+                        {(!creationDate || !author) &&
+                            <span>Create a new planning</span>
+                        }
+                        <PlanningForm ref="PlanningForm" readOnly={forceReadOnly}/>
                     </div>
                 }
                 {this.state.previewHistory &&
@@ -191,7 +186,6 @@ EditPlanningPanel.propTypes = {
     event: React.PropTypes.object,
     pristine: React.PropTypes.bool.isRequired,
     submitting: React.PropTypes.bool.isRequired,
-    agendaSpiked: React.PropTypes.bool,
     users: React.PropTypes.oneOfType([
         React.PropTypes.array,
         React.PropTypes.object,
@@ -205,7 +199,6 @@ EditPlanningPanel.propTypes = {
 const mapStateToProps = (state) => ({
     planning: selectors.getCurrentPlanning(state),
     event: selectors.getCurrentPlanningEvent(state),
-    agendaSpiked: selectors.getCurrentPlanningAgendaSpiked(state),
     users: selectors.getUsers(state),
     readOnly: selectors.getPlanningItemReadOnlyState(state),
     unlockPrivilege: selectors.getPrivileges(state).planning_unlock ? true : false,

@@ -6,7 +6,10 @@ import { Provider } from 'react-redux'
 
 describe('<ModalWithForm />', () => {
     it('open the modal', () => {
-        let store = createTestStore()
+        let initialState = { users: [] }
+
+        let store = createTestStore({ initialState: initialState })
+
         const wrapper = mount(
             <Provider store={store}>
                 <ModalWithForm

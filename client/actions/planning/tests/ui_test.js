@@ -318,7 +318,7 @@ describe('actions.planning.ui', () => {
             })
         })
 
-        it('sends error notification if lock faile', (done) => {
+        it('sends error notification if lock failed', (done) => {
             store.initialState.planning.currentPlanningId = 'p1'
             restoreSinonStub(planningUi.openEditor)
             restoreSinonStub(planningApi.lock)
@@ -337,7 +337,8 @@ describe('actions.planning.ui', () => {
 
     it('previewPlanningAndOpenAgenda', () => {
         store.init()
-        store.dispatch(planningUi.previewPlanningAndOpenAgenda(data.plannings[0]._id))
+        store.dispatch(planningUi.previewPlanningAndOpenAgenda(data.plannings[0]._id,
+            data.agendas[1]))
 
         expect(store.dispatch.args[2]).toEqual([{
             type: 'SELECT_AGENDA',

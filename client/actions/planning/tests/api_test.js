@@ -21,7 +21,7 @@ describe('actions.planning.api', () => {
         data = store.data
 
         sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve()))
-        sinon.stub(planningApi, 'fetch').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningApi, 'fetch').callsFake(() => (Promise.resolve([])))
         sinon.stub(planningApi, 'query').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'receivePlannings').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'receiveCoverage').callsFake(() => (Promise.resolve()))
@@ -110,8 +110,8 @@ describe('actions.planning.api', () => {
             restoreSinonStub(planningApi.query)
         })
 
-        it('by list of ids', (done) => (
-            store.test(done, planningApi.query({ ids: ['p1', 'p2'] }))
+        it('by list of agendas', (done) => (
+            store.test(done, planningApi.query({ agendas: ['a1', 'a2'] }))
             .then(() => {
                 expect(services.api('planning').query.callCount).toBe(1)
                 expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
@@ -119,9 +119,31 @@ describe('actions.planning.api', () => {
                         query: {
                             bool: {
                                 must: [
-                                    { terms: { _id: ['p1', 'p2'] } },
+                                    { terms: { agendas: ['a1', 'a2'] } },
                                 ],
                                 must_not: [],
+                            },
+                        },
+                    }),
+                    embedded: { original_creator: 1 },
+                })])
+
+                done()
+            })
+        ))
+
+        it('by list of planning not in any agendas', (done) => (
+            store.test(done, planningApi.query({ noAgendaAssigned: true }))
+            .then(() => {
+                expect(services.api('planning').query.callCount).toBe(1)
+                expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
+                    source: JSON.stringify({
+                        query: {
+                            bool: {
+                                must: [],
+                                must_not: [
+                                    { exists: { field: 'agendas' } },
+                                ],
                             },
                         },
                     }),
@@ -155,7 +177,10 @@ describe('actions.planning.api', () => {
         ))
 
         it('by spiked item state', (done) => (
-            store.test(done, planningApi.query({ state: 'spiked' }))
+            store.test(done, planningApi.query({
+                agendas: ['a1', 'a2'],
+                state: 'spiked',
+            }))
             .then(() => {
                 expect(services.api('planning').query.callCount).toBe(1)
                 expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
@@ -163,6 +188,7 @@ describe('actions.planning.api', () => {
                         query: {
                             bool: {
                                 must: [
+                                    { terms: { agendas: ['a1', 'a2'] } },
                                     { term: { state: 'spiked' } },
                                 ],
                                 must_not: [],
@@ -177,14 +203,19 @@ describe('actions.planning.api', () => {
         ))
 
         it('by non-spiked item state', (done) => (
-            store.test(done, planningApi.query({ state: 'active' }))
+            store.test(done, planningApi.query({
+                agendas: ['a1', 'a2'],
+                state: 'active',
+            }))
             .then(() => {
                 expect(services.api('planning').query.callCount).toBe(1)
                 expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
                     source: JSON.stringify({
                         query: {
                             bool: {
-                                must: [],
+                                must: [
+                                    { terms: { agendas: ['a1', 'a2'] } },
+                                ],
                                 must_not: [
                                     { term: { state: 'spiked' } },
                                 ],
@@ -208,7 +239,7 @@ describe('actions.planning.api', () => {
 
         it('fetches planning items and linked events', (done) => {
             const params = {
-                ids: ['p1', 'p2'],
+                agendas: ['a1'],
                 state: 'active',
             }
             return store.test(done, planningApi.fetch(params))
@@ -492,6 +523,7 @@ describe('actions.planning.api', () => {
                     {
                         slugline: 'New Slugger',
                         headline: 'Some Plan 1',
+                        agendas: [],
                     },
                 ])
 
@@ -648,6 +680,7 @@ describe('actions.planning.api', () => {
 
             sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve({
                 ...newItem,
+                agendas: ['a1'],
                 _id: 'p3',
             })))
 
@@ -655,6 +688,7 @@ describe('actions.planning.api', () => {
             .then((item) => {
                 expect(item).toEqual({
                     ...newItem,
+                    agendas: ['a1'],
                     _id: 'p3',
                 })
 
@@ -663,11 +697,11 @@ describe('actions.planning.api', () => {
                 expect(planningApi.save.callCount).toBe(1)
                 expect(planningApi.save.args[0]).toEqual([newItem, {}])
 
-                expect(services.api('agenda').save.callCount).toBe(1)
-                expect(services.api('agenda').save.args[0]).toEqual([
-                    data.agendas[0],
-                    { planning_items: ['p3'] },
-                ])
+                expect(planningApi.fetch.callCount).toBe(1)
+                expect(planningApi.fetch.args[0]).toEqual([{
+                    noAgendaAssigned: false,
+                    agendas: ['a1'],
+                }])
 
                 done()
             })
@@ -727,9 +761,9 @@ describe('actions.planning.api', () => {
             })
         })
 
-        it('returns Promise.reject if no current Agenda is spiked', (done) => {
-            data.agendas[0].state = 'spiked'
-            errorMessage.data._message = 'Cannot create a new planning item in a spiked Agenda.'
+        it('returns Promise.reject if no current Agenda is disabled', (done) => {
+            data.agendas[0].is_enabled = false
+            errorMessage.data._message = 'Cannot create a new planning item in a disabled Agenda.'
 
             return store.test(
                 done,

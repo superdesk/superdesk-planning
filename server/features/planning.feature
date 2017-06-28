@@ -8,8 +8,7 @@ Feature: Planning
 
     @auth
     @notification
-    @vocabulary
-    Scenario: Create new planning item
+    Scenario: Create new planning item without agenda
         Given empty "users"
         Given empty "planning"
         When we post to "users"
@@ -90,6 +89,92 @@ Feature: Planning
             }
             ]}
         """
+
+    @auth
+    @notification
+    Scenario: Create new planning item with agenda
+        Given empty "users"
+        Given empty "planning"
+        When we post to "users"
+        """
+        {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
+        """
+        Then we get existing resource
+        """
+        {"_id": "#users._id#", "invisible_stages": []}
+        """
+        When we post to "agenda" with "agenda1" and success
+        """
+        [{"name": "foo1"}]
+        """
+        And we post to "agenda" with "agenda2" and success
+        """
+        [{"name": "foo2"}]
+        """
+        And we post to "/planning"
+        """
+        [
+            {
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "item_class": "item class value",
+                "headline": "test headline",
+                "agendas": ["#agenda1#"]
+            }
+        ]
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "planning:created",
+            "extra": {
+                "item": "#planning._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+        When we get "/planning"
+        Then we get list with 1 items
+        """
+            {"_items": [{
+                "guid": "__any_value__",
+                "original_creator": "__any_value__",
+                "item_class": "item class value",
+                "headline": "test headline",
+                "agendas": ["#agenda1#"]
+            }]}
+        """
+        When we get "/planning_history"
+        Then we get list with 2 items
+        """
+            {"_items": [
+                {
+                    "planning_id":  "#planning._id#",
+                    "operation": "create",
+                    "update": {
+                        "original_creator": "__any_value__",
+                        "item_class": "item class value",
+                        "headline": "test headline",
+                        "agendas": ["#agenda1#"]
+                    }
+                },
+                {
+                    "planning_id":  "#planning._id#",
+                    "operation": "coverage created"
+                }
+            ]}
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        { "agendas": ["#agenda1#", "#agenda2#"] }
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        { "agendas": [] }
+        """
+        Then we get OK response
 
     @auth
     Scenario: Planning item can be created only by user having privileges

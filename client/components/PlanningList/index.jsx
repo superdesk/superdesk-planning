@@ -25,11 +25,12 @@ class PlanningList extends React.Component {
     rowRenderer({ index, key, style }) {
         const {
             plannings,
-            currentAgenda,
+            agendas,
             currentPlanning,
             planningsEvents,
             handlePlanningUnspike,
             handlePlanningSpike,
+            onAgendaClick,
             privileges,
             openPlanningEditor,
         } = this.props
@@ -39,14 +40,15 @@ class PlanningList extends React.Component {
                 <PlanningItem
                     key={key}
                     style={style}
+                    agendas={agendas || []}
                     active={currentPlanning && currentPlanning._id === planning._id}
                     item={planning}
                     event={planningsEvents[planning._id]}
-                    agenda={currentAgenda}
                     onSpike={handlePlanningSpike}
                     onUnspike={handlePlanningUnspike}
                     onClick={this.previewOrEditPlanning.bind(this, planning)}
                     onDoubleClick={openPlanningEditor}
+                    onAgendaClick={onAgendaClick}
                     privileges={privileges}
                     itemLocked={planning.lock_user && planning.lock_session ? true : false}
                     itemLockedInThisSession={this.isPlanningLockedInThisSession(planning)} />
@@ -77,7 +79,7 @@ class PlanningList extends React.Component {
 
 PlanningList.propTypes = {
     plannings: React.PropTypes.array.isRequired,
-    currentAgenda: React.PropTypes.object,
+    agendas: React.PropTypes.array,
     currentPlanning: React.PropTypes.object,
     planningsEvents: React.PropTypes.object,
     openPlanningEditor: React.PropTypes.func.isRequired,
@@ -86,10 +88,11 @@ PlanningList.propTypes = {
     handlePlanningUnspike: React.PropTypes.func.isRequired,
     privileges: React.PropTypes.object.isRequired,
     session: React.PropTypes.object,
+    onAgendaClick: React.PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
-    currentAgenda: selectors.getCurrentAgenda(state),
+    agendas: selectors.getAgendas(state),
     currentPlanning: selectors.getCurrentPlanning(state),
     plannings: selectors.getFilteredPlanningList(state),
     planningsEvents: selectors.getFilteredPlanningListEvents(state),
@@ -104,7 +107,7 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.showModal({
             modalType: 'CONFIRMATION',
             modalProps: {
-                body: `Are you sure you want to spike the planning item ${item.headline} ?`,
+                body: `Are you sure you want to spike the planning item ${item.slugline || item.headline} ?`,
                 action: () => dispatch(actions.planning.ui.spike(item)),
             },
         }))
@@ -113,11 +116,12 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.showModal({
             modalType: 'CONFIRMATION',
             modalProps: {
-                body: `Are you sure you want to unspike the planning item ${item.headline} ?`,
+                body: `Are you sure you want to unspike the planning item ${item.slugline || item.headline} ?`,
                 action: () => dispatch(actions.planning.ui.unspike(item)),
             },
         }))
     },
+    onAgendaClick: (agendaId) => (dispatch(actions.selectAgenda(agendaId))),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningList)
