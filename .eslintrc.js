@@ -17,7 +17,8 @@ module.exports = {
         gettext: false,
         inject: false,
         protractor: false,
-        requirejs: false
+        requirejs: false,
+        arguments: false,
     },
     parserOptions: {
         ecmaFeatures: {
@@ -45,6 +46,11 @@ module.exports = {
         'react/no-unused-prop-types': 2,
         'react/self-closing-comp': 2,
         'react/prefer-es6-class': 2,
+        'no-trailing-spaces': 'error',
+        'object-property-newline': 'error',
+        'object-curly-newline': 'error',
+        'comma-dangle': ['error', 'always-multiline'],
+        'object-curly-spacing':['error', 'always'],
         'no-console': 'error',
         'jasmine/no-disabled-tests': 'warn',
         'block-scoped-var': 2,

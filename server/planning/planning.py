@@ -12,11 +12,19 @@
 
 import superdesk
 import logging
+from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from superdesk import get_resource_service
+from superdesk.resource import Resource
+from superdesk.users.services import current_user_has_privilege
 from superdesk.resource import build_custom_hateoas
-from apps.archive.common import set_original_creator
+from superdesk.notification import push_notification
+from apps.archive.common import set_original_creator, get_user
+from copy import deepcopy
+from eve.utils import config
+from .common import STATE_SCHEMA
+
 logger = logging.getLogger(__name__)
 
 not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
@@ -46,12 +54,60 @@ class PlanningService(superdesk.Service):
             doc['guid'] = generate_guid(type=GUID_NEWSML)
             set_original_creator(doc)
 
+    def on_created(self, docs):
+        for doc in docs:
+            push_notification(
+                'planning:created',
+                item=str(doc.get(config.ID_FIELD)),
+                user=str(doc.get('original_creator', ''))
+            )
+            # remove event expiry if it is linked to the planning
+            if 'event_item' in doc:
+                events_service = get_resource_service('events')
+                original_event = events_service.find_one(req=None, _id=doc['event_item'])
+                events_service.system_update(doc['event_item'], {'expiry': None}, original_event)
+                get_resource_service('events_history').on_item_updated({'planning_id': doc.get('_id')}, original_event,
+                                                                       'planning created')
+
+    def update(self, id, updates, original):
+        item = self.backend.update(self.datasource, id, updates, original)
+        return item
+
+    def on_update(self, updates, original):
+        user = get_user()
+        lock_user = original.get('lock_user', None)
+        str_user_id = str(user.get(config.ID_FIELD)) if user else None
+
+        if lock_user and str(lock_user) != str_user_id:
+            raise SuperdeskApiError.forbiddenError('The item was locked by another user')
+
+        if user and user.get(config.ID_FIELD):
+            updates['version_creator'] = user[config.ID_FIELD]
+
+    def on_updated(self, updates, original):
+        push_notification(
+            'planning:updated',
+            item=str(original[config.ID_FIELD]),
+            user=str(updates.get('version_creator', ''))
+        )
+
     def on_deleted(self, doc):
         # remove the planning from agendas
-        for agenda in self.find(where={'planning_items': doc['_id']}):
+        agenda_service = get_resource_service('agenda')
+        for agenda in agenda_service.find(where={'planning_items': doc['_id']}):
             diff = {'planning_items': [_ for _ in agenda['planning_items'] if _ != doc['_id']]}
-            self.update(agenda['_id'], diff, agenda)
+            agenda_service.update(agenda['_id'], diff, agenda)
+            get_resource_service('agenda_history').on_item_updated(diff, agenda)
 
+    def can_edit(self, item, user_id):
+        # Check privileges
+        if not current_user_has_privilege('planning_planning_management'):
+            return False, 'User does not have sufficient permissions.'
+        return True, ''
+
+
+event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
+event_type['mapping'] = not_analyzed
 
 planning_schema = {
     # Identifiers
@@ -102,22 +158,26 @@ planning_schema = {
         'mapping': not_analyzed
     },
 
-    # Agenda details
-    'planning_type': {'type': 'string'},
-    'name': {'type': 'string'},
-
-    # Event Item
-    'event_item': superdesk.Resource.rel('events', type='string'),
-
+    # Agenda Item details
+    'planning_type': {
+        'type': 'string',
+        'mapping': not_analyzed,
+    },
+    'name': {
+        'type': 'string'
+    },
     'planning_items': {
         'type': 'list',
         'schema': superdesk.Resource.rel('planning'),
     },
 
+    # Event Item
+    'event_item': event_type,
+
     # Planning Details
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16
 
-    # Item Metadata - See IPTC-G2-Implementation_Guide 16.1
+    # Planning Item Metadata - See IPTC-G2-Implementation_Guide 16.1
     'item_class': {
         'type': 'string',
         'default': 'plinat:newscoverage'
@@ -219,6 +279,26 @@ planning_schema = {
     'profile': {
         'type': 'string',
         'nullable': True
+    },
+
+    # These next two are for spiking/unspiking and purging of planning/agenda items
+    'state': STATE_SCHEMA,
+    'expiry': {
+        'type': 'datetime',
+        'nullable': True
+    },
+
+    'lock_user': Resource.rel('users'),
+    'lock_time': {
+        'type': 'datetime',
+        'versioned': False
+    },
+    'lock_session': Resource.rel('auth'),
+
+    'lock_action': {
+        'type': 'string',
+        'mapping': not_analyzed,
+        'nullable': True
     }
 
 }  # end planning_schema
@@ -235,10 +315,11 @@ class PlanningResource(superdesk.Resource):
     datasource = {
         'source': 'planning',
         'search_backend': 'elastic',
+        'elastic_filter': {"bool": {"must_not": {"term": {"planning_type": "agenda"}}}}
     }
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']
-    privileges = {'POST': 'planning',
-                  'PATCH': 'planning',
+    privileges = {'POST': 'planning_planning_management',
+                  'PATCH': 'planning_planning_management',
                   'DELETE': 'planning'}

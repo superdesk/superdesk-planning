@@ -1,0 +1,8 @@
+.PlanningItem{
+	&__dueDate, &__event {
+    	i { margin: 0 5px;}
+	}
+	&--locked {
+		border-left: 4px solid #e51c23;
+	}
+}

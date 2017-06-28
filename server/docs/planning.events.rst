@@ -1,5 +1,5 @@
-planning.events module
-======================
+planning\.events module
+=======================
 
 .. automodule:: planning.events
     :members:

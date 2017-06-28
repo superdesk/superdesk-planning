@@ -12,9 +12,14 @@
 
 import superdesk
 import logging
+from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
+from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator
+from apps.archive.common import get_user
+from eve.utils import config
+from superdesk.utc import utcnow
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +36,48 @@ class CoverageService(superdesk.Service):
         for doc in docs:
             doc['guid'] = generate_guid(type=GUID_NEWSML)
             set_original_creator(doc)
+            self._set_assignment_information(doc)
+
+    def on_update(self, updates, original):
+        self._set_assignment_information(updates)
+
+    @staticmethod
+    def notify(event, doc):
+        push_notification(
+            event,
+            item=str(doc[config.ID_FIELD]),
+            user=str(doc.get('original_creator', '')),
+            planning=str(doc.get('planning_item', ''))
+        )
+
+    def on_created(self, docs):
+        for doc in docs:
+            CoverageService.notify('coverage:created', doc)
+
+    def on_updated(self, updates, original):
+        CoverageService.notify('coverage:updated', original)
+
+    def on_deleted(self, doc):
+        CoverageService.notify('coverage:deleted', doc)
+
+    def _set_assignment_information(self, doc):
+        if doc.get('planning') and doc['planning'].get('assigned_to'):
+            planning = doc['planning']
+            if planning['assigned_to'].get('user') and planning['assigned_to'].get('desk'):
+                # Error - Assign either to desk or user, not both
+                raise SuperdeskApiError.badRequestError(message="Assignment can have exactly one assignee.")
+
+            # In case of update we need to nullify previous assignment
+            if planning['assigned_to'].get('user'):
+                planning['assigned_to']['desk'] = None
+            else:
+                planning['assigned_to']['user'] = None
+
+            user = get_user()
+            if user and user.get(config.ID_FIELD):
+                planning['assigned_to']['assigned_by'] = user[config.ID_FIELD]
+
+            planning['assigned_to']['assigned_date'] = utcnow()
 
 
 coverage_schema = {
@@ -104,7 +151,16 @@ coverage_schema = {
                     }
                 }
             },
-            'assigned_to': {'type': 'string'},
+            'assigned_to': {
+                'nullable': True,
+                'type': 'dict',
+                'schema': {
+                    'desk': {'type': 'string', 'nullable': True},
+                    'user': {'type': 'string', 'nullable': True},
+                    'assigned_by': {'type': 'string'},
+                    'assigned_date': {'type': 'datetime'},
+                }
+            },
             'news_content_characteristics': {
                 'type': 'list',
                 'mapping': {

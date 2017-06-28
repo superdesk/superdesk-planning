@@ -6,7 +6,7 @@ export default angular.module('superdesk.planning', [])
             scope: {},
             bindToController: true,
             controllerAs: 'vm',
-            controller: ctrl.PlanningController
+            controller: ctrl.PlanningController,
         })
     )
     .controller('PlanningSettingsController', ctrl.PlanningSettingsController)

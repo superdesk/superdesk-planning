@@ -1,0 +1,28 @@
+.Link__Item {
+	background-color: transparent;
+	outline: none;
+}
+
+.Link__remove {
+	float: right;
+}
+
+.error-block {
+	color: #E51C23;
+	text-transform: none;
+	font-size: 13px;
+	font-weight: normal;
+}
+
+.disabledInput {
+	&:hover:disabled {
+		cursor: default;
+	}
+}
+
+.disabledButton {
+	opacity: 0;
+	&:hover {
+		cursor: default;
+	}
+}

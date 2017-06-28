@@ -3,7 +3,7 @@ import { Field } from 'redux-form'
 import { connect } from 'react-redux'
 import * as selectors from '../../selectors'
 
-const FileFieldComponent = ({ onRemove, file, createLink, fieldName }) => (
+const FileFieldComponent = ({ onRemove, file, createLink, fieldName, readOnly }) => (
     <li className="File__item">
         <i className="icon-desk-attach"/>
         {file.media &&
@@ -18,13 +18,13 @@ const FileFieldComponent = ({ onRemove, file, createLink, fieldName }) => (
             component="input"
             type="file"/>
         }
-        <button
+        {!readOnly && (<button
             onClick={onRemove}
             title="Remove file"
             type="button"
             className="File__remove">
             <i className="icon-trash" />
-        </button>
+        </button>)}
     </li>
 )
 
@@ -37,13 +37,12 @@ FileFieldComponent.propTypes = {
         React.PropTypes.shape({
             media: React.PropTypes.object,
             filemeta: React.PropTypes.object,
-        })
+        }),
     ]),
     fieldName: React.PropTypes.string,
+    readOnly: React.PropTypes.bool,
 }
 
-const mapStateToProps = (state) => ({
-    createLink: (f) => (selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw')
-})
+const mapStateToProps = (state) => ({ createLink: (f) => (selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw') })
 
 export const FileField = connect(mapStateToProps)(FileFieldComponent)

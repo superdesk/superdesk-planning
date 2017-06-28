@@ -1,0 +1,122 @@
+@import '~superdesk-core/styles/sass/mixins.scss';
+@import '~superdesk-core/styles/sass/variables.scss';
+
+.Select {
+	&__dropdownToggle {
+  		width: 24px;
+        height: 24px;
+        background-color: $sd-blue;
+        @include opacity(50);
+        border-radius: 2px;
+        padding: 0;
+        i {
+            margin-bottom: 2px;
+        }
+        &:hover:enabled, &:focus:enabled {
+            @include opacity(100);
+        }
+  	}
+}
+
+.Select__button {
+	background-color: $sd-blue;
+}
+
+.Select__popup {
+    position: relative;
+    z-index: 2000;
+    background: #fff;
+    padding: 0px 10px 10px 10px;
+    @include box-shadow(0 0 5px 0 rgba(0,0,0,0.45));
+    @include border-radius(3px);
+    width: 280px;
+    @include border-box();
+
+    &__search {
+        margin-top: 15px;
+    }
+
+    &__category {
+        &:hover .Select__popup__parent {
+        	display: none;
+        }
+
+        &:hover .Select__popup__parent--choose {
+			display: block;
+        }
+    }
+
+    &__list {
+    	li {margin: 5px 0;}
+    	span, i { float: left; text-align: left; }
+		overflow-y: scroll;
+		overflow-x: hidden;
+		max-height: 200px;
+		margin-top: 5px;
+    }
+
+    &__item {
+    	margin: 5px;
+        button {
+            width: 100%;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+		&:hover {
+			background: $sd-hover;	
+		}
+
+		&--active {
+			background: $sd-hover;
+		}
+    }
+
+    &__search {
+    	border-bottom: 1px solid $grayLighter;
+    }
+
+    &__parent {
+	    display: block;
+	    vertical-align: top;
+        position: relative;
+        font-size: 12px;
+        color: #000;
+        background-color: rgba(0,0,0,0.05);
+        margin-right: 3px;
+        margin-bottom: 3px;
+        padding: 3px 10px;
+        cursor: pointer;
+        border-radius: 2px;
+        @include transition(color .2s);
+        max-width: 200px;
+
+        &--choose {
+        	background-color: rgba(0,0,0,0.05);
+        	margin-right: 3px;
+	        margin-bottom: 3px;
+	        padding: 3px 10px;
+			display: none;
+		}
+	}
+
+	// SearchBar related styling customisations
+    .search-handler {
+        padding: 0;
+        height: 30px;
+    }
+    .trigger-icon {
+    	margin-top: 0px;
+    }
+    .search-close {
+    	height: 30px;
+    }
+}
+
+.SearchBar--narrow {
+	margin: 0px
+}
+
+.SearchBar.extended {
+    @extend .SearchBar--narrow;
+}

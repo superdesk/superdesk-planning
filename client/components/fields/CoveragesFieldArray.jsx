@@ -1,30 +1,31 @@
-import { Coverage } from '../../containers'
+import { Coverage } from '../index'
 import React from 'react'
 
-export const CoveragesFieldArray = ({ fields }) => (
+export const CoveragesFieldArray = ({ fields, readOnly }) => (
     <ul className="Coverage__list">
         {fields.map((coverage, index) => (
             <li key={index} className="Coverage__item">
-                <button
+                { !readOnly &&  <button
                     onClick={()=>fields.remove(index)}
                     title="Remove coverage"
                     type="button"
                     className="Coverage__remove">
                     <i className="icon-trash" />
-                </button>
-                <Coverage coverage={coverage} />
+                </button> }
+                <Coverage coverage={coverage} readOnly={readOnly} />
             </li>
         ))}
         <li>
-            <button
+            { !readOnly && <button
                 className="Coverage__add-btn btn btn-default"
                 onClick={() => fields.push({})}
-                type="button">
+                type="button" >
                 <i className="icon-plus-large"/>
-            </button>
+            </button> }
         </li>
     </ul>
 )
 CoveragesFieldArray.propTypes = {
     fields: React.PropTypes.object.isRequired,
+    readOnly: React.PropTypes.bool,
 }

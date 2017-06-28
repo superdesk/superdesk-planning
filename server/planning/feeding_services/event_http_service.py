@@ -12,7 +12,7 @@ import datetime
 import requests
 import traceback
 
-from xml.etree import ElementTree
+import xml.etree.ElementTree as ET
 from superdesk.io.feeding_services.http_service import HTTPFeedingService
 from superdesk.errors import IngestApiError
 from superdesk.logging import logger
@@ -87,7 +87,7 @@ class EventHTTPFeedingService(HTTPFeedingService):
         logger.info('Ingesting: %s', str(response.content))
 
         if isinstance(parser, NTBEventXMLFeedParser):
-            xml = ElementTree.parse(response.content)
+            xml = ET.fromstring(response.content)
             items = parser.parse(xml, provider)
         elif isinstance(parser, IcsTwoFeedParser):
             cal = Calendar.from_ical(response.content)

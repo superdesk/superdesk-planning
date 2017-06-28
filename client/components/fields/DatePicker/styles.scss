@@ -1,0 +1,201 @@
+@import '~superdesk-core/styles/sass/mixins.scss';
+@import '~superdesk-core/styles/sass/variables.scss';
+
+// .timepicer-input and timepicker-popup classes are a part of superdesk-client-core
+// unable to import '~superdesk-core/styles/sass/sf-additional.scss' because it contains a 
+// reference to ~images in superdesk-client-core.
+// So, temporarily copying the css classes here
+
+.datepickerInput {
+    background-color: transparent;
+    width: 130px;
+    position: relative;
+    display: inline-block;
+
+    input[type="text"]{
+        width: 100%;
+        padding-right: 30px;
+        background-color: transparent;
+        padding: 0;
+        height: 24px;
+        &.line-input + .btn {
+            background-color: transparent;
+            top: 0px;
+        }
+        &__textInput {
+            background-color: transparent;
+            padding: 0;
+            height: 24px;
+        }
+        &__textInput--invalid {
+            border: 2px solid #b61818 !important;
+        }
+        &:hover:disabled {
+            cursor: default;
+        }
+    }
+
+    &--btn {
+        background: #fff;
+        border: 0;
+        position: absolute;
+        right: 2px; top: 2px;
+        padding: 0 5px;
+        height: 24px;
+        i {
+            margin-right: 0;
+        }
+        &:hover, &:active, &:focus {
+            @include box-shadow(none);
+        }
+        background-color: transparent;
+    }
+}
+
+.datepickerPopup {
+    position: absolute;
+    top: 0; left: 0;
+    z-index: 2000;
+    background: #fff;
+    padding: 10px;
+    @include box-shadow(0 0 5px 0 rgba(0,0,0,0.45));
+    @include border-radius(3px);
+    width: 260px;
+    @include border-box();
+
+    .btn {
+        &:hover {
+            @include box-shadow(none);
+        }
+        height: 28px;
+    }
+
+    .btn--mini {
+        padding: 4px 6px;
+        font-size: 11px;
+        line-height: 11px!important;
+        height: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 0;
+        td, th {
+            padding: 1px;
+            border: 0;
+        }
+    }
+
+    &__Additional {
+        margin-bottom: 5px;
+        table {
+            width: 100%;
+        }
+        .btn {
+            width: 100%;
+        }
+    }
+
+    &__Tools {
+        table {
+                width: 100%;
+
+                tbody {
+                    tr {
+                        td {
+                            .btn {
+                                background: none;
+                                padding: 0;
+                                width: 100%;
+                            }
+                        }
+                        &:last-child {
+                            td {
+                                small {
+                                    @include text-semibold();
+                                }
+                            }
+                        }
+                        &:first-child {
+                            td {
+                                .btn strong {
+                                    font-weight: normal;
+                                    font-size: 14px;
+                                }
+                                .btn i {
+                                    display: inline-block;
+                                    width: 14px;
+                                    height: 14px;
+                                    background-repeat: no-repeat;
+                                }
+                                &:first-child .btn i {
+                                    margin-left: 3px;
+                                    background-position: -189px -165px;
+                                }
+                                &:last-child .btn i {
+                                    margin-right: 3px;
+                                    background-position: -213px -165px;
+                                }
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+
+    &__core {
+        table {
+            width: 100%;
+
+            thead {
+                tr {
+                    th {
+                        .btn {
+                            background: none;
+                            padding: 0;
+                        }
+                        small {
+                            @include text-semibold();
+                        }
+                    }
+                }
+            }
+            tbody {
+                tr:first-child td {
+                    padding-top: 5px;
+                }
+                td {
+                    padding: 0 2px;
+                    .btn {
+                        width: 100% !important;
+                        min-width: 28px !important;
+                        padding: 0;
+                        background: none;
+                        color: #333;
+                        @include box-shadow(none);
+                        .text-muted {
+                            color: #999;
+                        }
+                        &:hover, &.active {
+                            color: #333;
+                            @include box-shadow(inset 0 0 1px 0 $sd-blue);
+                            background: $sd-hover;
+                        }
+
+                        &.btn--primary, &.btn--primary.active {
+                            //selected date
+                            color: #fff;
+                            background: $sd-blue;
+                            .text-muted {
+                                color: #fff;
+                            }
+                        }
+
+
+                    }
+                }
+            }
+        }
+    }
+}

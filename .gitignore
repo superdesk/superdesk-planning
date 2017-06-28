@@ -16,6 +16,7 @@ npm-debug.log
 dist/
 *.egg-info
 *.pyc
+src/
 
 # VIM related files
 *.swo
@@ -24,3 +25,6 @@ dist/
 *.swm
 _build
 _build_html
+coverage/
+.coverage*
+htmlcov

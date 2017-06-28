@@ -9,7 +9,7 @@ class TestForm extends React.Component {
         const { value, onChange, withTime, defaultDate } = this.props
         const input = {
             value: value,
-            onChange: onChange || ((x) => x)
+            onChange: onChange || ((x) => x),
         }
         const meta = { dispatch: () => {} }
         return (
@@ -37,13 +37,15 @@ describe('<DayPickerInput />', () => {
         expect(moment.utc(dayPickerState.selectedTime).format('h:mm A')).toBe('9:30 AM')
         expect(dayPickerState.selectedDate.isSame(moment('2013-02-08'))).toBe(true)
     })
+
     it('hide the time when needed', () => {
         var wrapper
         wrapper = mount(<TestForm withTime={false} />)
-        expect(wrapper.find('.rc-time-picker-input').length).toBe(0)
+        expect(wrapper.find('.timepickerInput').length).toBe(0)
         wrapper = mount(<TestForm withTime={true} />)
-        expect(wrapper.find('.rc-time-picker-input').length).toBe(1)
+        expect(wrapper.find('.timepickerInput').length).toBe(1)
     })
+
     it('return the right date', () => {
         // test defaultDate
         let date = moment('2013-02-08 09:30Z')

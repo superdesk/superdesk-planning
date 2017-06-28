@@ -1,0 +1,30 @@
+@import '~superdesk-core/styles/sass/variables.scss';
+
+$ADVANCED_SEARCH_WIDTH: 580px;
+
+.Planning__advanced-search {
+    position: relative;
+    box-sizing: border-box;
+    transition-property: width;
+    transition-duration: .25s;
+    overflow: auto;
+    box-shadow: inset 0 0 5px 2px #d8d8d8;
+    width: 0;
+    background-color: white;
+    > .subnav {
+        .close { padding: 12px 12px 0 0; }
+        background-color: transparent;
+        box-shadow: initial;
+    }
+    > form {
+        padding: 10px;
+    }
+}
+
+.Planning {
+    .Events-list-container--advanced-search-view { // when the advanced search is open
+        .Planning__advanced-search {
+            width: $ADVANCED_SEARCH_WIDTH;
+        }
+    }
+}

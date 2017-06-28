@@ -1,0 +1,79 @@
+@import '~superdesk-core/styles/sass/variables.scss';
+.Planning-panel {
+    position: absolute;
+    height: 100%;
+    &__container {
+        display: flex;
+        z-index: 1;
+        position: absolute;
+        top: $nav-height;
+        right: 0;
+        left: 0;
+        bottom: 0;
+    }
+    &__searchbar {
+        .SearchBar {
+            flex-grow: 1;
+            + label {
+                margin-left: 20px;
+            }
+        }
+        > label {
+            margin: 15px;
+            white-space: nowrap;
+            .sd-toggle {
+                margin-left: 10px;
+            }
+        }
+    }
+    &__list {
+        flex-grow: 1;
+        height: 100%;
+        > .list-view {
+            overflow: auto;
+            box-shadow: inherit;
+            position: absolute;
+            top: $nav-height;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            .PlanningList {
+                flex: 1 1 auto;
+            }
+        }
+    }
+    .ListItem {
+        width: auto; // otherwise it overflow on the right because of the margin
+        margin: 10px 20px;
+        box-shadow: 0px 1px 4px 0 rgba(0, 0, 0, 0.2);
+    }
+    &__empty-message {
+        font-size: 1.75em;
+        line-height: 1.2em;
+        text-align: center;
+        margin-top: 80px;
+        > i { font-size: 2em }
+    }
+    &__select-agenda {
+        select {
+            border: 0px solid black !important;
+            border-radius: 0px !important;
+            background-color: transparent;
+            box-shadow: 0px !important;
+            max-width: 200px;
+        }
+        flex-grow: 2;
+        padding-top: 10px;
+    }
+
+    label {
+        display: block;
+        margin-left: 0;
+    }
+
+    .Toggle {
+        margin-right: 15px;
+    }
+}

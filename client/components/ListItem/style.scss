@@ -1,33 +1,9 @@
-.ListItem__list-item {
-    .media-box {
-        border-right: 0 solid black;
-        .item-info {
-            .line { margin-left: 0; }
-            .highlights-box { margin-right: 0; }
-            // second line, with location and icons
-            .line:nth-child(2) { .container { flex-grow: 1 } }
-        }
-        &:hover {
-            border-right: 0 solid black;
-            .item-info { padding: 10px 10px 10px 10px; }
-            .ListItem__actions { visibility: visible; }
-        }
-    }
-}
+@import '~superdesk-core/styles/sass/variables.scss';
 
-.ListItem__actions {
-    position: absolute;
-    right: 0px;
-    top: 0px;
-    visibility: hidden;
-    height: 60px;
-    padding-top: 20px;
-    padding-left: 17px;
-    padding-right: 15px;
-    &:hover {
-        i { color: #436278 }
-    }
+.ListItem__slugline {
+    color: $sd-keyword;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-right: 1rem;
 }
-
-.ListItem__list-item:not(.active) .ListItem__actions { background-color: rgba(222, 222, 222, .6) }
-.ListItem__list-item.active .ListItem__actions { background-color: rgba(200, 228, 238, .6) }
+.ListItem__headline { color: $gray; }

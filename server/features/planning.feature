@@ -19,7 +19,7 @@ Feature: Planning
         """
         {"_id": "#users._id#", "invisible_stages": []}
         """
-        When we post to "/planning" with success
+        When we post to "/planning"
         """
         [
             {
@@ -29,6 +29,17 @@ Feature: Planning
                 "headline": "test headline"
             }
         ]
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "planning:created",
+            "extra": {
+                "item": "#planning._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
         """
         When we get "/planning"
         Then we get list with 1 items
@@ -40,6 +51,49 @@ Feature: Planning
                 "headline": "test headline"
             }]}
         """
+        When we get "/planning_history"
+        Then we get list with 1 items
+        """
+            {"_items": [{
+                "planning_id":  "#planning._id#",
+                "operation": "create",
+                "update": {
+                    "original_creator": "__any_value__",
+                    "item_class": "item class value",
+                    "headline": "test headline"
+            }
+            }]}
+        """
+
+    @auth
+    Scenario: Planning item can be created only by user having privileges
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_planning_management": 0, "users": 1}}
+        """
+        Then we get OK response
+        When we post to "planning"
+        """
+        [{
+            "slugline": "test slugline",
+            "headline": "test headline"
+        }]
+        """
+        Then we get error 403
+        When we setup test user
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_planning_management": 1, "users": 1}}
+        """
+        Then we get OK response
+        When we post to "planning"
+        """
+        [{
+            "slugline": "test slugline",
+            "headline": "test headline"
+        }]
+        """
+        Then we get OK response
 
     @auth
     @notification
@@ -58,7 +112,9 @@ Feature: Planning
             "planning_item": "123",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
-                "assigned_to": "whoever wants to do it"
+                "assigned_to": {
+                    "user": "whoever wants to do it"
+                }
             }
         }]
         """
@@ -73,7 +129,9 @@ Feature: Planning
                 "planning_item": "123",
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
-                    "assigned_to": "whoever wants to do it"
+                    "assigned_to": {
+                        "user": "whoever wants to do it"
+                    }
                 }
             }]
         }]}
@@ -81,26 +139,135 @@ Feature: Planning
 
     @auth
     @notification
-    Scenario: Update agendas when a planning is removed
-        # Given "planning"
+    Scenario: Planning item can be modified only by user having privileges
         When we post to "planning"
         """
-        [{
-            "slugline": "planning 1"
-        }]
+        [{"slugline": "slugger"}]
         """
+        Then we get OK response
         Then we store "planningId" with value "#planning._id#" to context
-        When we post to "planning" with success
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_planning_management": 0, "users": 1}}
+        """
+        Then we get OK response
+        When we patch "/planning/#planningId#"
+        """
+        {"headline": "header"}
+        """
+        Then we get error 403
+        When we patch "/users/#CONTEXT_USER_ID#"
+        """
+        {"user_type": "user", "privileges": {"planning_planning_management": 1, "users": 1}}
+        """
+        Then we get OK response
+        When we patch "/planning/#planningId#"
+        """
+        {"headline": "header"}
+        """
+        Then we get OK response
+        And we get notifications
         """
         [{
-            "planning_type": "agenda",
-            "planning_items": ["#planningId#"]
+            "event": "planning:updated",
+            "extra": {
+                "item": "#planningId#",
+                "user": "#CONTEXT_USER_ID#"
+            }
         }]
         """
-        And we delete "/planning/#planningId#"
-        Then we get response code 204
-        When we get "/planning"
-        Then we get field planning_items exactly
+
+    @auth
+    @notification
+    Scenario: Planning history tracks updates
+        Given empty "planning"
+        When we post to "/planning" with success
         """
-        []
+        [
+            {
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "item_class": "item class value",
+                "headline": "test headline"
+            }
+        ]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {"headline": "updated test headline"}
+        """
+        Then we get OK response
+        When we get "/planning_history"
+        Then we get a list with 2 items
+        """
+            {"_items": [{
+                "planning_id":  "#planning._id#",
+                "operation": "create",
+                "update": {
+                    "original_creator": "__any_value__",
+                    "item_class": "item class value",
+                    "headline": "test headline"}},
+                {"planning_id":  "#planning._id#",
+                "operation": "update",
+                "update": {"headline": "updated test headline"}}
+            ]}
+        """
+
+    @auth
+    Scenario: Creating planning related to an event is tracked in event history
+        Given "events"
+        """
+        [
+            {
+                "unique_id": "123",
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2016-11-17T12:00:00.000Z",
+                    "end": "2016-11-17T14:00:00.000Z",
+                    "tz": "Europe/Berlin",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                },
+                "occur_status": {
+                    "name": "Planned, occurs certainly",
+                    "qcode": "eocstat:eos5"
+                }
+            }
+        ]
+        """
+        When we post to "/planning" with success
+        """
+        [
+            {
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "item_class": "item class value",
+                "headline": "test headline",
+                "event_item": "#events._id#"
+            }
+        ]
+        """
+        Then we get OK response
+        When we get "/planning_history"
+        Then we get a list with 1 items
+        """
+            {"_items": [{
+                "planning_id":  "#planning._id#",
+                "operation": "create"}
+            ]}
+        """
+        When we get "/events_history"
+        Then we get a list with 1 items
+        """
+            {"_items": [{
+                "event_id": "#events._id#",
+                "operation": "planning created",
+                "update": {"planning_id": "#planning._id#"}}
+            ]}
         """

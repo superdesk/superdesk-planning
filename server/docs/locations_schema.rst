@@ -102,11 +102,6 @@ Location Details
             'external': 'dict'
         }
 
-``external``
- 
-    field is used to hold the raw response returned from any location lookup service, such as google places or foursquare.
-    
-
 ``access`` *list*
 
     Optional, repeatable element to indicate Methods of accessing the POI, including directions.
@@ -114,10 +109,6 @@ Location Details
 ``details`` *list*
 
     Optional, repeatable indicatoled information about the location.
-
-``access_status``
-
-    Optional, repeatable property indicating the accessibility, the ease (or otherwise) of gaining physical access to the event, for example, whether easy, restricted, difficult.
 
 ``created`` *dateimte*
 

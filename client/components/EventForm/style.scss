@@ -1,0 +1,57 @@
+@import '~superdesk-core/styles/sass/variables.scss';
+
+.EventForm {
+    > .subnav {
+        align-items: center;
+        padding-right: 10px;
+    }
+    .subnav__actions {
+        display: flex;
+        align-items: center;
+    }
+    [name="slugline"] {
+        color: $sd-keyword;
+        font-weight: 700;
+    }
+    [name="name"] {
+        font-size: 17px;
+        color: $gray;
+    }
+    label { margin-top: 10px; }
+    .geolookup {
+        display: table;
+        &__input-wrapper {
+            display: table-cell;
+            width: 100%;
+        }
+        &__suggests-wrapper {
+            display: table-row;
+        }
+    }
+    // sub form to define a recurring date
+    .recurring {
+        &__ends {
+            label { display: block }
+            input[type="radio"] {
+                margin-right: 10px;
+                cursor: default; // is readonly but we don't want the forbidden cursor
+            }
+            input[type="text"],input[type="number"] {
+                margin: 0 10px;
+                width: 120px;
+            }
+        }
+    }
+
+    &__form {
+        padding: 20px;
+        margin-top: $nav-height;
+        overflow: auto;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+    }
+
+}

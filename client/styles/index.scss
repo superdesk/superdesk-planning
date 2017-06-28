@@ -1,6 +1,5 @@
 @import '~superdesk-core/styles/sass/mixins.scss';
 @import '~superdesk-core/styles/sass/variables.scss';
-@import './typeahead.scss';
 
 @mixin absolute0 {
     position: absolute;
@@ -12,25 +11,36 @@
 .Planning {
     @include absolute0;
     top: $nav-height;
-    display: flex;
     .navbtn { // fix the (+) button. Needed because it's not a dropdown
         overflow: hidden;
         padding: 0;
         button {border: 0;}
     }
-    .subnav { top: 0; }
-}
-.Planning__planning {
-    position: relative;
-    flex-grow: 1;
-    padding-top: $nav-height;
-    transition-property: width;
-    transition-duration: .25s;
-    overflow: auto;
+    .subnav {
+        .subnav__button-stack--square-buttons { margin: 0; }
+        .navbtn { // back button
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+            border-left: 0;
+            line-height: 4.8rem;
+            button { background-color: transparent; }
+            .backlink {
+                padding: 0 10px 0 14px;
+                margin-top: -2px;
+                &--rotated {
+                    transform: rotate(180deg);
+                }
+            }
+        }
+        align-items: center;
+    }
+
+    .subnav {
+        position: relative;
+        top: initial;
+    }
+    .ui-resizable { position: absolute; }
 }
 
 // a vertical align on this class ensure an aligned icon with text.
 // It's isolated to this plugin to avoid unwanted effect on the rest of the app
-.Planning, .AddEventForm { .icon-desk-attach { vertical-align: middle; } }
-
-
+.Planning, .EventForm { .icon-desk-attach { vertical-align: middle; } }

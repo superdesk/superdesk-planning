@@ -9,6 +9,8 @@ it's converted to different formats.
 
 See IPTC-G2-Implementation_Guide (version 2.21) Section 16 for further information about the Planning Schema.
 
+This collection is storage for individual planning items as well as agendas.  The `planning_type` field is used to deteremine the type.
+
 Identifiers
 -----------
 
@@ -70,14 +72,29 @@ Ingest Details
 
     Counter for ingest items.
 
+Agenda Item Details
+-------------
+
+``planning_type`` *string*
+
+  Text description of the type of planning.  Can be null (event), or 'agenda'.
+
+``name`` *string*
+
+  Name for the agenda.
+
+``planning_items`` *list*
+
+  List of child planning ids.  
+
 Event Item
 -----------
 
-``event_item``
+``event_item`` *string*
 
   Internal id of the associated event.  
 
-Item Metadata
+Planning Item Metadata
 --------------
 
 ``ìtem_class``

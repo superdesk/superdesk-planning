@@ -1,4 +1,5 @@
 import React, { PropTypes } from 'react'
+import classNames from 'classnames'
 
 export class DaysOfWeek extends React.Component {
     constructor(props) {
@@ -38,23 +39,32 @@ export class DaysOfWeek extends React.Component {
     }
 
     render() {
+        const { touched, error, warning } = this.props.meta
+        const readOnly = this.props.readOnly
+
         return (
             <div>
                 {Object.keys(this.state).map((d) => (
                     <label key={d}>
                         <input
                             type="checkbox"
+                            className={classNames({ 'disabledInput': readOnly })}
+                            disabled={readOnly ? 'disabled' : ''}
                             value={d}
                             checked={this.state[d]}
                             onChange={this.handleOnChange.bind(this)} />
                         {d}
                     </label>
                 ))}
+                {touched && ((error && <span className="error-block">{error}</span>) ||
+                 (warning && <span className="help-block">{warning}</span>))}
             </div>
         )
     }
 }
 
 DaysOfWeek.propTypes = {
-    input: PropTypes.object
+    input: PropTypes.object,
+    meta: React.PropTypes.object.isRequired,
+    readOnly: PropTypes.bool,
 }

@@ -3,6 +3,7 @@ import { zipObject } from 'lodash'
 const initialState = {
     categories: [],
     g2_content_type: [],
+    eventoccurstatus: [],
 }
 
 const vocabularies = (state=initialState, action) => {
@@ -13,7 +14,7 @@ const vocabularies = (state=initialState, action) => {
                 ...zipObject(
                     action.payload.map((cv) => cv._id),
                     action.payload.map((cv) => cv.items)
-                )
+                ),
             }
         default:
             return state

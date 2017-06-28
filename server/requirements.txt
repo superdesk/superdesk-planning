@@ -3,8 +3,12 @@ nose-timer
 pep8
 flake8
 flake8-docstrings
+pydocstyle
 wooper
 requests
 requests-mock
 icalendar==3.11.1
--e git://github.com/superdesk/superdesk-core.git@4931606#egg=Superdesk_Core
+coverage==4.3.4
+coveralls
+mock
+-e git://github.com/superdesk/superdesk-core.git@d75b11968#egg=Superdesk_Core

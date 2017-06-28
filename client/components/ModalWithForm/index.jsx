@@ -1,5 +1,6 @@
 import React from 'react'
-import { Modal, Button } from 'react-bootstrap'
+import { Modal } from '../index'
+import { Button } from 'react-bootstrap'
 import './style.scss'
 
 export class ModalWithForm extends React.Component {
@@ -14,7 +15,7 @@ export class ModalWithForm extends React.Component {
     render() {
         const form = React.createElement(this.props.form, {
             initialValues: this.props.initialValues,
-            ref: 'form'
+            ref: 'form',
         })
         return (
             <Modal show={this.props.show} onHide={this.props.onHide}>
@@ -30,6 +31,7 @@ export class ModalWithForm extends React.Component {
                 <Modal.Footer>
                     <Button onClick={this.props.onHide}>Close</Button>
                     <Button type="submit"
+                            className="btn btn--primary"
                             onClick={this.submit.bind(this)}
                             disabled={this.props.pristine ||
                                 this.props.submitting}>Save</Button>

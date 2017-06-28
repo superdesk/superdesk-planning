@@ -10,8 +10,8 @@ export function saveNominatim(nominatim) {
             address: address,
             position: {
                 latitude: nominatim.lat,
-                longitude: nominatim.lon
-            }
+                longitude: nominatim.lon,
+            },
         })
     }
 }
@@ -27,12 +27,12 @@ export function saveFreeTextLocation(location) {
 
 export function saveLocation(newLocation) {
     return (dispatch, getState, { api }) => {
-        const uniqueName = get(newLocation, 'nominatim.display_name', newLocation)
+        const uniqueName = get(newLocation, 'nominatim.display_name')
+            || get(newLocation, 'name')
+            || newLocation
         // Check if the newLocation is already saved in internal
         // locations resources, if so just return the name and guid as qcode
-        return api('locations').query({
-            source: { query: { term: { unique_name: uniqueName } } }
-        })
+        return api('locations').query({ source: { query: { term: { unique_name: uniqueName } } } })
         .then(data => {
             if (data._items.length) {
                 // we have this location stored already
@@ -42,10 +42,13 @@ export function saveLocation(newLocation) {
                 if (newLocation.nominatim) {
                     return dispatch(saveNominatim(newLocation.nominatim))
                 } else {
-                    return dispatch(saveFreeTextLocation(newLocation))
+                    return dispatch(saveFreeTextLocation(uniqueName))
                 }
             }
         })
-        .then(data => ({ name: data.name, qcode: data.guid }))
+        .then(data => ({
+            name: data.name,
+            qcode: data.guid,
+        }))
     }
 }

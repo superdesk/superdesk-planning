@@ -103,11 +103,11 @@ class IcsTwoFeedParser(FileFeedParser):
                         item['dates']['tz'] = tzid_from_dt(component.get('dtstart').dt)
 
                     # add participants
-                    item['participants'] = []
+                    item['participant'] = []
                     if component.get('attendee'):
                         for attendee in component.get('attendee'):
                             if isinstance(attendee, vCalAddress):
-                                item['participants'].append({
+                                item['participant'].append({
                                     'name': vCalAddress.from_ical(attendee),
                                     'qcode': ''
                                 })
@@ -135,10 +135,8 @@ class IcsTwoFeedParser(FileFeedParser):
                         item['event_lastmodified'] = component.get('last-modified').dt
                     item['firstcreated'] = utcnow()
                     item['versioncreated'] = utcnow()
-
                     items.append(item)
             original_source_ids = [_['original_source'] for _ in items if _.get('original_source', None)]
-            # existing_items = []
             existing_items = list(get_resource_service('events').get_from_mongo(req=None, lookup={
                 'original_source': {'$in': original_source_ids}
             }))

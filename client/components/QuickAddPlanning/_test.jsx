@@ -10,7 +10,7 @@ describe('<QuickAddPlanning />', () => {
         ))
         const wrapper = shallow(<QuickAddPlanning onPlanningCreation={onPlanningCreation}/>)
         wrapper.simulate('click')
-        wrapper.find('input').simulate('change', { target: { value: '123' }})
+        wrapper.find('input').simulate('change', { target: { value: '123' } })
         expect(wrapper.state().slugline).toBe('123')
         wrapper.find('form').simulate('submit', { preventDefault: () => ({}) })
         expect(onPlanningCreation.calledOnce).toBe(true)

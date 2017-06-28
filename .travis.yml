@@ -1,8 +1,10 @@
 language: python
 
 python: 3.5
-
 sudo: false
+
+env:
+  - TRAVIS_NODE_VERSION="6"
 
 services:
     - mongodb
@@ -22,19 +24,20 @@ cache:
     - $HOME/.npm
 
 before_install:
-    - nvm install node
-    - nvm use node
+    - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
     - node --version
-    - rm -f .npm/*.lock
     - npm install -g npm@latest
     - npm config set loglevel warn
-node_js:
-    - '6'
+
 install:
     - npm install --python=python2.7
-    - cd server && pip install -q -r requirements.txt && cd ..
+    - cd server && pip install -r requirements.txt && cd ..
+    - gem install coveralls-lcov
 before_script:
     - export DISPLAY=:99.0
     - sh -e /etc/init.d/xvfb start
 script:
     - make test
+after_success:
+    - coveralls-lcov -v -n coverage/lcov.info > coverage.json
+    - coveralls --merge=coverage.json
