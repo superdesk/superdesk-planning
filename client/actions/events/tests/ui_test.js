@@ -53,7 +53,7 @@ describe('actions.events.ui', () => {
             () => (Promise.resolve(data.plannings))
         )
 
-        sinon.stub(planningApi, 'fetch').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningApi, 'fetch').callsFake(() => (Promise.resolve([])))
 
         sinon.stub(eventsUi, 'setEventsList').callsFake(() => (Promise.resolve()))
     })
@@ -223,8 +223,8 @@ describe('actions.events.ui', () => {
 
                 expect(eventsUi.refetchEvents.callCount).toBe(1)
 
-                expect(store.dispatch.callCount).toBe(5)
-                expect(store.dispatch.args[4]).toEqual([{ type: 'HIDE_MODAL' }])
+                expect(store.dispatch.callCount).toBe(6)
+                expect(store.dispatch.args[5]).toEqual([{ type: 'HIDE_MODAL' }])
 
                 expect(services.notify.success.callCount).toBe(1)
                 expect(services.notify.success.args[0]).toEqual(['The event(s) have been spiked'])

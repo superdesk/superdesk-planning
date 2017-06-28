@@ -45,6 +45,11 @@ class Component extends React.Component {
                             component={fields.SubjectField}
                             label="Subject"
                             readOnly={readOnly} />
+                        <Field
+                            name="agendas"
+                            component={fields.AgendaField}
+                            label="Agenda"
+                            readOnly={readOnly} />
                     </fieldset>
                     <h3>Coverages</h3>
                     <FieldArray name="coverages" component={fields.CoveragesFieldArray} readOnly={readOnly} />

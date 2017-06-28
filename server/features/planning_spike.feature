@@ -1,10 +1,14 @@
 Feature: Planning Spike
     @auth
     Scenario: Planning state defaults to active
+        When we post to "agenda" with "agenda1" and success
+        """
+        [{"name": "foo1"}]
+        """
         When we post to "planning"
         """
         [{
-            "slugline": "TestPlan"
+            "slugline": "TestPlan", "agendas": ["#agenda1#"]
         }]
         """
         Then we get OK response
@@ -14,6 +18,7 @@ Feature: Planning Spike
         {
             "_id": "#planning._id#",
             "slugline": "TestPlan",
+            "agendas": ["#agenda1#"],
             "state": "active"
         }
         """
@@ -21,10 +26,14 @@ Feature: Planning Spike
     @auth
     @notification
     Scenario: Spike a Planning item
+        Given "agenda"
+        """
+        [{"_id": "foo", "name": "foo", "is_enabled": true}]
+        """
         Given "planning"
         """
         [{
-            "slugline": "TestPlan"
+            "slugline": "TestPlan", "agendas": ["foo"]
         }]
         """
         When we spike planning "#planning._id#"
@@ -61,11 +70,16 @@ Feature: Planning Spike
     @auth
     @notification
     Scenario: Unspike a Planning item
+        Given "agenda"
+        """
+        [{"_id": "foo", "name": "foo", "is_enabled": true}]
+        """
         Given "planning"
         """
         [{
             "slugline": "TestPlan",
-            "state": "spiked"
+            "state": "spiked",
+            "agendas": ["foo"]
         }]
         """
         When we unspike planning "#planning._id#"
@@ -101,10 +115,14 @@ Feature: Planning Spike
 
     @auth
     Scenario: Planning item can be spiked and unspiked only by user having privileges
+        Given "agenda"
+        """
+        [{"_id": "foo", "name": "foo", "is_enabled": true}]
+        """
         Given "planning"
         """
         [{
-            "slugline": "TestPlan"
+            "slugline": "TestPlan", "agendas": ["foo"]
         }]
         """
         When we patch "/users/#CONTEXT_USER_ID#"
@@ -148,61 +166,4 @@ Feature: Planning Spike
         """
         Then we get OK response
         When we unspike planning "#planning._id#"
-        Then we get OK response
-
-    @auth
-    Scenario: Spike planning is recorded in agenda history
-        When we post to "planning"
-        """
-        [{"slugline": "slugger"}]
-        """
-        Then we get OK response
-        Then we store "planningId" with value "#planning._id#" to context
-        When we post to "agenda" with success
-        """
-        [{"name": "foo"}]
-        """
-        Then we store "agendaId" with value "#agenda._id#" to context
-        Then we get OK response
-        When we patch "/agenda/#agendaId#"
-        """
-        {"planning_items": ["#planningId#"]}
-        """
-        Then we get OK response
-        When we spike planning "#planningId#"
-        Then we get OK response
-        When we get "/planning_history?where=planning_id==%22#planningId#%22"
-        Then we get list with 2 items
-        """
-        {"_items": [{
-            "planning_id": "#planning._id#",
-            "operation": "create",
-            "update": {"state" : "active"}
-        },{
-            "planning_id": "#planning._id#",
-            "operation": "spiked",
-            "update": {"state" : "spiked"}
-        }]}
-        """
-        When we get "/agenda_history?where=agenda_id==%22#agendaId#%22"
-        Then we get list with 3 items
-        """
-        {"_items": [{
-            "operation" : "item spiked",
-                "update" : {
-                "planning_items" : "#planningId#"}
-        }]}
-        """
-        Then we get OK response
-        When we unspike planning "#planningId#"
-        Then we get OK response
-        When we get "/agenda_history?where=agenda_id==%22#agendaId#%22"
-        Then we get list with 4 items
-        """
-        {"_items": [{
-            "operation" : "item unspiked",
-                "update" : {
-                "planning_items" : "#planningId#"}
-        }]}
-        """
         Then we get OK response

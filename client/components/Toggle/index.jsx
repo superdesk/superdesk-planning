@@ -10,7 +10,7 @@ export default function Toggle({ value, onChange, readOnly }) {
         { 'disabled': readOnly }
     )
     return (
-        <span className={className} onClick={!readOnly ? onClick : null}>
+        <span className={className} onClick={!readOnly && onChange ? onClick : null}>
             <span className="inner"/>
         </span>
     )

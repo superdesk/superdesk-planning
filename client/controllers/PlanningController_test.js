@@ -1,6 +1,6 @@
 import * as actions from '../actions'
 import sinon from 'sinon'
-import { registerNotifications } from './PlanningController'
+import { registerNotifications } from '../utils'
 
 describe('PlanningController', () => {
     describe('websocket', () => {

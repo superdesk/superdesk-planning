@@ -1,5 +1,5 @@
 import sinon from 'sinon'
-import { registerNotifications } from '../../../controllers/PlanningController'
+import { registerNotifications } from '../../../utils'
 import planningApi from '../api'
 import planningNotifications from '../notifications'
 import { getTestActionStore, restoreSinonStub } from '../../../utils/testUtils'

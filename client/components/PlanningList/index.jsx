@@ -104,7 +104,7 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.showModal({
             modalType: 'CONFIRMATION',
             modalProps: {
-                body: `Are you sure you want to spike the planning item ${item.headline} ?`,
+                body: `Are you sure you want to spike the planning item ${item.slugline || item.headline} ?`,
                 action: () => dispatch(actions.planning.ui.spike(item)),
             },
         }))
@@ -113,7 +113,7 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.showModal({
             modalType: 'CONFIRMATION',
             modalProps: {
-                body: `Are you sure you want to unspike the planning item ${item.headline} ?`,
+                body: `Are you sure you want to unspike the planning item ${item.slugline || item.headline} ?`,
                 action: () => dispatch(actions.planning.ui.unspike(item)),
             },
         }))

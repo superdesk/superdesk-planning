@@ -8,10 +8,14 @@ Feature: Planning
 
     @auth
     @notification
-    Scenario: Create new planning item
+    Scenario: Create new planning item without agenda
         Given empty "users"
         Given empty "planning"
-        When we post to "users"
+        When we post to "agenda" with "agenda1" and success
+        """
+        [{"name": "foo1"}]
+        """
+        And we post to "users"
         """
         {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
         """
@@ -27,6 +31,19 @@ Feature: Planning
                 "unique_name": "123 name",
                 "item_class": "item class value",
                 "headline": "test headline"
+            }
+        ]
+        """
+        Then we get error 400
+        When we post to "/planning"
+        """
+        [
+            {
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "item_class": "item class value",
+                "headline": "test headline",
+                "agendas": ["#agenda1#"]
             }
         ]
         """
@@ -66,7 +83,91 @@ Feature: Planning
         """
 
     @auth
+    @notification
+    Scenario: Create new planning item with agenda
+        Given empty "users"
+        Given empty "planning"
+        When we post to "users"
+        """
+        {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
+        """
+        Then we get existing resource
+        """
+        {"_id": "#users._id#", "invisible_stages": []}
+        """
+        When we post to "agenda" with "agenda1" and success
+        """
+        [{"name": "foo1"}]
+        """
+        And we post to "agenda" with "agenda2" and success
+        """
+        [{"name": "foo2"}]
+        """
+        And we post to "/planning"
+        """
+        [
+            {
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "item_class": "item class value",
+                "headline": "test headline",
+                "agendas": ["#agenda1#"]
+            }
+        ]
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "planning:created",
+            "extra": {
+                "item": "#planning._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+        When we get "/planning"
+        Then we get list with 1 items
+        """
+            {"_items": [{
+                "guid": "__any_value__",
+                "original_creator": "__any_value__",
+                "item_class": "item class value",
+                "headline": "test headline",
+                "agendas": ["#agenda1#"]
+            }]}
+        """
+        When we get "/planning_history"
+        Then we get list with 1 items
+        """
+            {"_items": [{
+                "planning_id":  "#planning._id#",
+                "operation": "create",
+                "update": {
+                    "original_creator": "__any_value__",
+                    "item_class": "item class value",
+                    "headline": "test headline",
+                    "agendas": ["#agenda1#"]
+            }
+            }]}
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        { "agendas": ["#agenda1#", "#agenda2#"] }
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        { "agendas": [] }
+        """
+        Then we get error 400
+
+    @auth
     Scenario: Planning item can be created only by user having privileges
+        When we post to "agenda" with "agenda1" and success
+        """
+        [{"name": "foo1"}]
+        """
         When we patch "/users/#CONTEXT_USER_ID#"
         """
         {"user_type": "user", "privileges": {"planning_planning_management": 0, "users": 1}}
@@ -76,7 +177,8 @@ Feature: Planning
         """
         [{
             "slugline": "test slugline",
-            "headline": "test headline"
+            "headline": "test headline",
+            "agendas": ["#agenda1#"]
         }]
         """
         Then we get error 403
@@ -90,7 +192,8 @@ Feature: Planning
         """
         [{
             "slugline": "test slugline",
-            "headline": "test headline"
+            "headline": "test headline",
+            "agendas": ["#agenda1#"]
         }]
         """
         Then we get OK response
@@ -98,12 +201,17 @@ Feature: Planning
     @auth
     @notification
     Scenario: Plannings contain nested coverages
+        Given "agenda"
+        """
+        [{"_id": "foo", "name": "foo", "is_enabled": true}]
+        """
         Given "planning"
         """
         [{
             "_id": "123",
             "item_class": "item class value",
-            "headline": "test headline"
+            "headline": "test headline",
+            "agendas": ["foo"]
         }]
         """
         Given "coverage"
@@ -125,6 +233,7 @@ Feature: Planning
             "_id": "123",
             "item_class": "item class value",
             "headline": "test headline",
+            "agendas": ["foo"],
             "coverages": [{
                 "planning_item": "123",
                 "planning": {
@@ -140,9 +249,13 @@ Feature: Planning
     @auth
     @notification
     Scenario: Planning item can be modified only by user having privileges
+        When we post to "agenda" with "agenda1" and success
+        """
+        [{"name": "foo1"}]
+        """
         When we post to "planning"
         """
-        [{"slugline": "slugger"}]
+        [{"slugline": "slugger", "agendas": ["#agenda1#"]}]
         """
         Then we get OK response
         Then we store "planningId" with value "#planning._id#" to context
@@ -181,6 +294,10 @@ Feature: Planning
     @notification
     Scenario: Planning history tracks updates
         Given empty "planning"
+        When we post to "agenda" with "agenda1" and success
+        """
+        [{"name": "foo1"}]
+        """
         When we post to "/planning" with success
         """
         [
@@ -188,7 +305,8 @@ Feature: Planning
                 "unique_id": "123",
                 "unique_name": "123 name",
                 "item_class": "item class value",
-                "headline": "test headline"
+                "headline": "test headline",
+                "agendas": ["#agenda1#"]
             }
         ]
         """
@@ -241,6 +359,10 @@ Feature: Planning
             }
         ]
         """
+        When we post to "agenda" with "agenda1" and success
+        """
+        [{"name": "foo1"}]
+        """
         When we post to "/planning" with success
         """
         [
@@ -249,7 +371,8 @@ Feature: Planning
                 "unique_name": "123 name",
                 "item_class": "item class value",
                 "headline": "test headline",
-                "event_item": "#events._id#"
+                "event_item": "#events._id#",
+                "agendas": ["#agenda1#"]
             }
         ]
         """

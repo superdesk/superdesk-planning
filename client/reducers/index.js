@@ -15,9 +15,9 @@ import session from './session'
 const planningApp = combineReducers({
     modal,
     events,
-    planning,
     vocabularies,
     ingest,
+    planning,
     privileges,
     agenda,
     subjects,

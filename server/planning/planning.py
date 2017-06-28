@@ -9,9 +9,9 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 """Superdesk Planning"""
-
 import superdesk
 import logging
+from flask import json
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
@@ -22,7 +22,7 @@ from superdesk.resource import build_custom_hateoas
 from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user
 from copy import deepcopy
-from eve.utils import config
+from eve.utils import config, ParsedRequest
 from .common import STATE_SCHEMA
 
 logger = logging.getLogger(__name__)
@@ -97,19 +97,26 @@ class PlanningService(superdesk.Service):
             user=str(updates.get('version_creator', ''))
         )
 
-    def on_deleted(self, doc):
-        # remove the planning from agendas
-        agenda_service = get_resource_service('agenda')
-        for agenda in agenda_service.find(where={'planning_items': doc['_id']}):
-            diff = {'planning_items': [_ for _ in agenda['planning_items'] if _ != doc['_id']]}
-            agenda_service.update(agenda['_id'], diff, agenda)
-            get_resource_service('agenda_history').on_item_updated(diff, agenda)
-
     def can_edit(self, item, user_id):
         # Check privileges
         if not current_user_has_privilege('planning_planning_management'):
             return False, 'User does not have sufficient permissions.'
         return True, ''
+
+    def get_planning_by_agenda_id(self, agenda_id):
+        """Get the planing item by Agenda
+
+        :param dict agenda_id: Agenda _id
+        :return list: list of planing items
+        """
+        query = {
+            'query': {
+                'bool': {'must': {'term': {'agendas': str(agenda_id)}}}
+            }
+        }
+        req = ParsedRequest()
+        req.args = {'source': json.dumps(query)}
+        return super().get(req=req, lookup=None)
 
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
@@ -165,16 +172,12 @@ planning_schema = {
     },
 
     # Agenda Item details
-    'planning_type': {
-        'type': 'string',
-        'mapping': not_analyzed,
-    },
-    'name': {
-        'type': 'string'
-    },
-    'planning_items': {
+    'agendas': {
         'type': 'list',
-        'schema': superdesk.Resource.rel('planning'),
+        'required': True,
+        'minlength': 1,
+        'schema': superdesk.Resource.rel('agenda', required=True),
+        'mapping': not_analyzed
     },
 
     # Event Item
@@ -321,7 +324,6 @@ class PlanningResource(superdesk.Resource):
     datasource = {
         'source': 'planning',
         'search_backend': 'elastic',
-        'elastic_filter': {"bool": {"must_not": {"term": {"planning_type": "agenda"}}}}
     }
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']

@@ -12,12 +12,21 @@ Feature: Coverage
         Given empty "users"
         Given empty "coverage"
         Given empty "planning"
+        When we post to "agenda"
+        """
+        [{
+            "name": "TestAgenda"
+        }]
+        """
+        Then we get OK response
         When we post to "planning"
         """
         [{
-            "slugline": "planning 1"
+            "slugline": "planning 1",
+            "agendas": ["#agenda._id#"]
         }]
         """
+        Then we get OK response
         When we post to "users"
         """
         {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
@@ -78,6 +87,21 @@ Feature: Coverage
         """
         {"_id": "#users._id#", "invisible_stages": []}
         """
+        When we post to "agenda"
+        """
+        [{
+            "name": "TestAgenda"
+        }]
+        """
+        Then we get OK response
+        When we post to "planning"
+        """
+        [{
+            "slugline": "planning 1",
+            "agendas": ["#agenda._id#"]
+        }]
+        """
+        Then we get OK response
         When we post to "/coverage"
         """
         [
@@ -85,6 +109,7 @@ Feature: Coverage
                 "guid": "123",
                 "unique_id": "123",
                 "unique_name": "123 name",
+                "planning_item": "#planning._id#",
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
@@ -104,10 +129,18 @@ Feature: Coverage
         Given empty "users"
         Given empty "coverage"
         Given empty "planning"
+        When we post to "agenda"
+        """
+        [{
+            "name": "TestAgenda"
+        }]
+        """
+        Then we get OK response
         When we post to "planning"
         """
         [{
-            "slugline": "planning 1"
+            "slugline": "planning 1",
+            "agendas": ["#agenda._id#"]
         }]
         """
         When we post to "users"
@@ -169,12 +202,18 @@ Feature: Coverage
         """
         {"_id": "#users._id#", "invisible_stages": []}
         """
+        When we post to "agenda" with "agenda1" and success
+        """
+        [{"name": "foo"}]
+        """
         When we post to "planning"
         """
         [{
-            "slugline": "planning 1"
+            "slugline": "planning 1",
+            "agendas": ["#agenda1#"]
         }]
         """
+        Then we get OK response
         Then we store "planningId" with value "#planning._id#" to context
         When we post to "/coverage"
         """
@@ -250,12 +289,18 @@ Feature: Coverage
     Scenario: Coverage history tracks updates
         Given empty "coverage"
         Given empty "planning"
+        When we post to "agenda" with "agenda1" and success
+        """
+        [{"name": "foo"}]
+        """
         When we post to "planning"
         """
         [{
-            "slugline": "planning 1"
+            "slugline": "planning 1",
+            "agendas": ["#agenda1#"]
         }]
         """
+        Then we get OK response
         Then we store "planningId" with value "#planning._id#" to context
         When we post to "/coverage" with success
         """

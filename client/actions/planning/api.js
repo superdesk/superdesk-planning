@@ -29,6 +29,7 @@ const spike = (item) => (
 const unspike = (item) => (
     (dispatch, getState, { api }) => (
         api.update('planning_unspike', { ...item }, {})
+
         .then(() => {
             dispatch({
                 type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
@@ -40,41 +41,21 @@ const unspike = (item) => (
 
 /**
  * Action dispatcher to perform fetch the list of planning items from the server
- * @param {Array} ids - An array of Planning item ids to fetch
  * @param {string} eventItem - An event ID to fetch Planning items for that event
  * @param {string} state - Planning item state
+ * @param {agendas} list of agenda ids
  * @return Promise
  */
 const query = ({
-    ids,
     eventItem,
     state=ITEM_STATE.ALL,
+    agendas,
+    planningNotInAgenda=false,
 }) => (
     (dispatch, getState, { api }) => {
         let query = {}
         let mustNot = []
         let must = []
-
-        if (ids) {
-            const chunkSize = PLANNING.FETCH_IDS_CHUNK_SIZE
-            if (ids.length <= chunkSize) {
-                must.push({ terms: { _id: ids } })
-            } else {
-                // chunk the requests
-                const requests = []
-                for (let i = 0; i < Math.ceil(ids.length / chunkSize); i++) {
-                    const args = {
-                        ...arguments[0],
-                        ids: ids.slice(i * chunkSize, (i + 1) * chunkSize),
-                    }
-                    requests.push(dispatch(self.query(args)))
-                }
-                // flattern responses and return a response-like object
-                return Promise.all(requests).then((responses) => (
-                    Array.prototype.concat(...responses)
-                ))
-            }
-        }
 
         if (eventItem) {
             if (Array.isArray(eventItem)) {
@@ -82,6 +63,14 @@ const query = ({
             } else {
                 must.push({ term: { event_item: eventItem } })
             }
+        }
+
+        if (agendas) {
+            must.push({ terms: { agendas: agendas } })
+        }
+
+        if (planningNotInAgenda) {
+            mustNot.push({ exists: { field: 'agendas' } })
         }
 
         switch (state) {
@@ -127,7 +116,6 @@ const fetch = (params={}) => (
     (dispatch) => {
         // Announce that we are loading planning items
         dispatch(self.requestPlannings())
-
         // Fetch the Planning Items
         return dispatch(self.query(params))
         .then((items) => (
@@ -343,6 +331,10 @@ const save = (item, original=undefined) => (
             // remove nested original creator
             delete item.original_creator
 
+            if (item.agendas) {
+                item.agendas = item.agendas.map((agenda) => agenda._id || agenda)
+            }
+
             // Save through the api
             return api('planning').save(cloneDeep(originalItem), item)
             .then((item) => (
@@ -454,11 +446,13 @@ const saveAndReloadCurrentAgenda = (item) => (
                 if (!currentAgenda) {
                     errorMessage.data._message = 'No Agenda is currently selected.'
                     return Promise.reject(errorMessage)
-                } else if (get(currentAgenda, 'state', ITEM_STATE.ACTIVE) === ITEM_STATE.SPIKED) {
+                } else if (!currentAgenda.is_enabled) {
                     errorMessage.data._message =
-                        'Cannot create a new planning item in a spiked Agenda.'
+                        'Cannot create a new planning item in a disabled Agenda.'
                     return Promise.reject(errorMessage)
                 }
+
+                item.agendas = [currentAgenda]
             }
 
             return dispatch(self.save(item, originalItem))
@@ -466,17 +460,8 @@ const saveAndReloadCurrentAgenda = (item) => (
                 // If this is a new planning item, then re-fetch the selected
                 // agendas planning items
                 if (isEqual(originalItem, {})) {
-                    return dispatch(actions.addToCurrentAgenda(item))
-                    .then(
-                        () => (
-                            dispatch(actions.fetchSelectedAgendaPlannings())
-                            .then(
-                                () => (Promise.resolve(item)),
-                                (error) => (Promise.reject(error))
-                            )
-                        ),
-                        (error) => (Promise.reject(error))
-                    )
+                    return dispatch(actions.fetchSelectedAgendaPlannings())
+                        .then(() => (Promise.resolve(item)), (error) => (Promise.reject(error)))
                 }
 
                 return Promise.resolve(item)

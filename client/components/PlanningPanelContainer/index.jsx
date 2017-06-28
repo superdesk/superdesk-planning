@@ -3,7 +3,6 @@ import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { SelectAgenda, EditPlanningPanelContainer, PlanningList } from '../index'
 import { QuickAddPlanning, Toggle, SearchBar } from '../../components'
-import { ITEM_STATE } from '../../constants'
 import * as selectors from '../../selectors'
 import './style.scss'
 
@@ -30,7 +29,6 @@ class PlanningPanel extends React.Component {
             editPlanningViewOpen,
             isEventListShown,
             toggleEventsList,
-            onManageAgendasClick,
             onlyFuture,
             onlySpiked,
             onFutureToggleChange,
@@ -54,11 +52,6 @@ class PlanningPanel extends React.Component {
                             <button onClick={toggleEventsList} type="button" className="backlink backlink--rotated" />
                         </div>
                     }
-                    <div className="navbtn" title="Manage agendas">
-                        <button onClick={onManageAgendasClick} type="button">
-                            <i className="icon-th-large"/>
-                        </button>
-                    </div>
                     <h3 className="subnav__page-title">
                         <span>
                             <span>Agenda</span>
@@ -82,7 +75,7 @@ class PlanningPanel extends React.Component {
                             </label>
                         </div>
                         <ul className="list-view compact-view">
-                            {currentAgenda && privileges.planning_planning_management === 1 && currentAgenda.state !== ITEM_STATE.SPIKED &&
+                            {currentAgenda && privileges.planning_planning_management === 1 && currentAgenda.is_enabled &&
                                 <QuickAddPlanning className="ListItem" onPlanningCreation={onPlanningCreation}/>
                             }
                             {(planningList && planningList.length > 0) &&
@@ -104,7 +97,7 @@ class PlanningPanel extends React.Component {
                                         <p className="panel-info__description">...from the drop-down list above.</p>
                                     </div>
                                 </div>
-                            || (planningList && planningList.length < 1) &&
+                            || (planningList && planningList.length < 1 && currentAgenda) &&
                                 <div className="Planning-panel__empty-message">
                                     <div className="panel-info">
                                         <div className="panel-info__icon">
@@ -132,7 +125,6 @@ PlanningPanel.propTypes = {
     addEventToCurrentAgenda: React.PropTypes.func,
     toggleEventsList: React.PropTypes.func,
     isEventListShown: React.PropTypes.bool,
-    onManageAgendasClick: React.PropTypes.func,
     onlyFuture: React.PropTypes.bool,
     onlySpiked: React.PropTypes.bool,
     onFutureToggleChange: React.PropTypes.func,
@@ -163,7 +155,6 @@ const mapDispatchToProps = (dispatch) => ({
     handleSearch: (text) => (dispatch(actions.planning.ui.filterByKeyword(text))),
     addEventToCurrentAgenda: (event) => (dispatch(actions.addEventToCurrentAgenda(event))),
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
-    onManageAgendasClick: () => (dispatch(actions.showModal({ modalType: 'MANAGE_AGENDAS' }))),
     onFutureToggleChange: () => (dispatch(actions.planning.ui.toggleOnlyFutureFilter())),
     onSpikedToggleChange: () => (dispatch(actions.planning.ui.toggleOnlySpikedFilter())),
 })

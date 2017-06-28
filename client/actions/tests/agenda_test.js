@@ -1,8 +1,7 @@
 import sinon from 'sinon'
 import * as actions from '../agenda'
 import { PRIVILEGES } from '../../constants'
-import { registerNotifications } from '../../controllers/PlanningController'
-import { createTestStore } from '../../utils'
+import { createTestStore, registerNotifications } from '../../utils'
 import { cloneDeep } from 'lodash'
 import * as selectors from '../../selectors'
 
@@ -48,13 +47,12 @@ describe('agenda', () => {
                 {
                     _id: 'a1',
                     name: 'TestAgenda',
-                    planning_type: 'agenda',
+                    is_enabled: true,
                 },
                 {
                     _id: 'a2',
                     name: 'TestAgenda2',
-                    planning_type: 'agenda',
-                    planning_items: [],
+                    is_enabled: true,
                 },
             ]
 
@@ -121,13 +119,6 @@ describe('agenda', () => {
                         },
                     }])
 
-                    expect(dispatch.args[4]).toEqual([{
-                        type: 'SELECT_AGENDA',
-                        payload: 'a3',
-                    }])
-
-                    expect(dispatch.args[7]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
-
                     done()
                 })
                 .catch((error) => {
@@ -147,151 +138,17 @@ describe('agenda', () => {
                 .catch(() => {
                     expect($timeout.callCount).toBe(1)
                     expect(notify.error.args[0][0]).toBe(
-                        'Unauthorised to create or update an agenda'
+                        'Unauthorised to create or update an agenda!'
                     )
                     expect(dispatch.args[0]).toEqual([{
                         type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
                         payload: {
                             action: '_createOrUpdateAgenda',
                             permission: PRIVILEGES.AGENDA_MANAGEMENT,
-                            errorMessage: 'Unauthorised to create or update an agenda',
+                            errorMessage: 'Unauthorised to create or update an agenda!',
                             args: [item],
                         },
                     }])
-
-                    done()
-                })
-            })
-        })
-
-        describe('spikeAgenda', () => {
-            it('spikeAgenda calls `agenda_spike` endpoint', (done) => {
-                initialState.privileges.planning_agenda_spike = 1
-                api.update = sinon.spy(() => (Promise.resolve()))
-
-                const action = actions.spikeAgenda(agendas[1])
-                return action(dispatch, getState, {
-                    api,
-                    notify,
-                    $timeout,
-                })
-                .then(() => {
-                    expect(api.update.args[0]).toEqual([
-                        'agenda_spike',
-                        agendas[1],
-                        {},
-                    ])
-                    expect(dispatch.args[1]).toEqual([{
-                        type: 'SPIKE_AGENDA',
-                        payload: agendas[1],
-                    }])
-
-                    // Cannot check dispatch(fetchAgendas()) using a spy on dispatch
-                    // As fetchAgendas is a thunk function
-
-                    expect(dispatch.callCount).toBe(4)
-                    expect($timeout.callCount).toBe(0)
-                    expect(notify.error.callCount).toBe(0)
-                    expect(notify.success.args[0]).toEqual(['The Agenda has been spiked.'])
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
-                    done()
-                })
-            })
-
-            it('spikeAgenda raises ACCESS_DENIED without permission', (done) => {
-                initialState.privileges.planning_agenda_spike = 0
-
-                const action = actions.spikeAgenda(agendas[1])
-                return action(dispatch, getState, {
-                    api,
-                    notify,
-                    $timeout,
-                })
-                .catch(() => {
-                    expect($timeout.callCount).toBe(1)
-                    expect(notify.error.args[0]).toEqual(['Unauthorised to spike an Agenda.'])
-                    expect(dispatch.args[0]).toEqual([{
-                        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                        payload: {
-                            action: '_spikeAgenda',
-                            permission: PRIVILEGES.SPIKE_AGENDA,
-                            errorMessage: 'Unauthorised to spike an Agenda.',
-                            args: [agendas[1]],
-                        },
-                    }])
-                    expect(dispatch.callCount).toBe(1)
-
-                    done()
-                })
-            })
-        })
-
-        describe('unspikeAgenda', () => {
-            it('unspikeAgenda calls `agenda_unspike` endpoint', (done) => {
-                initialState.privileges.planning_agenda_unspike = 1
-                api.update = sinon.spy(() => (Promise.resolve()))
-
-                const action = actions.unspikeAgenda(agendas[1])
-                return action(dispatch, getState, {
-                    api,
-                    notify,
-                    $timeout,
-                })
-                .then(() => {
-                    expect(api.update.args[0]).toEqual([
-                        'agenda_unspike',
-                        agendas[1],
-                        {},
-                    ])
-                    expect(dispatch.args[1]).toEqual([{
-                        type: 'UNSPIKE_AGENDA',
-                        payload: agendas[1],
-                    }])
-
-                    // Cannot check dispatch(fetchAgendas()) using a spy on dispatch
-                    // As fetchAgendas is a thunk function
-
-                    expect(dispatch.callCount).toBe(4)
-                    expect($timeout.callCount).toBe(0)
-                    expect(notify.error.callCount).toBe(0)
-                    expect(notify.success.args[0]).toEqual(['The Agenda has been unspiked.'])
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
-                    done()
-                })
-            })
-
-            it('unspikeAgenda raises ACCESS_DENIED without permission', (done) => {
-                initialState.privileges.planning_agenda_unspike = 0
-
-                const action = actions.unspikeAgenda(agendas[1])
-                return action(dispatch, getState, {
-                    api,
-                    notify,
-                    $timeout,
-                })
-                .catch(() => {
-                    expect($timeout.callCount).toBe(1)
-                    expect(notify.error.args[0]).toEqual(['Unauthorised to unspike an Agenda.'])
-                    expect(dispatch.args[0]).toEqual([{
-                        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                        payload: {
-                            action: '_unspikeAgenda',
-                            permission: PRIVILEGES.UNSPIKE_AGENDA,
-                            errorMessage: 'Unauthorised to unspike an Agenda.',
-                            args: [agendas[1]],
-                        },
-                    }])
-                    expect(dispatch.callCount).toBe(1)
 
                     done()
                 })
@@ -409,62 +266,6 @@ describe('agenda', () => {
             })
         })
 
-        describe('addToCurrentAgenda', () => {
-            it('addToCurrentAgenda executes dispatches', (done) => {
-                initialState.privileges.planning_planning_management = 1
-
-                const action = actions.addToCurrentAgenda([plannings[0]])
-                return action(dispatch, getState, {
-                    notify,
-                    $timeout,
-                })
-                .then((plannings) => {
-                    expect(plannings).toEqual([plannings[0]])
-                    // Cannot check dispatch(addPlanningsToAgenda()) using a spy on dispatch
-                    // As addPlanningsToAgenda is a thunk function
-
-                    expect(notify.success.args[0]).toEqual([
-                        'The planning has been added to the agenda',
-                    ])
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
-                    done()
-                })
-            })
-
-            it('addToCurrentAgenda raises ACCESS_DENIED without permission', (done) => {
-                initialState.privileges.planning_planning_management = 0
-
-                const action = actions.addToCurrentAgenda(plannings[0])
-                return action(dispatch, getState, {
-                    notify,
-                    $timeout,
-                })
-                .catch(() => {
-                    expect($timeout.callCount).toBe(1)
-                    expect(notify.error.args[0][0]).toBe(
-                        'Unauthorised to add a Planning Item to an Agenda'
-                    )
-                    expect(dispatch.args[0]).toEqual([{
-                        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                        payload: {
-                            action: '_addToCurrentAgenda',
-                            permission: PRIVILEGES.PLANNING_MANAGEMENT,
-                            errorMessage: 'Unauthorised to add a Planning Item to an Agenda',
-                            args: [plannings[0]],
-                        },
-                    }])
-                    expect(dispatch.callCount).toBe(1)
-
-                    done()
-                })
-            })
-        })
-
         describe('addEventToCurrentAgenda', () => {
             it('addEventToCurrentAgenda executes dispatches', (done) => {
                 apiSpy.query = sinon.spy(() => (Promise.resolve({ _items: plannings })))
@@ -474,7 +275,7 @@ describe('agenda', () => {
                     $timeout,
                 })
                 .then(() => {
-                    expect(apiSpy.save.callCount).toBe(2)
+                    expect(apiSpy.save.callCount).toBe(1)
                     expect(apiSpy.save.args[0]).toEqual([
                         {},
                         {
@@ -484,6 +285,7 @@ describe('agenda', () => {
                             subject: events[0].subject,
                             anpa_category: events[0].anpa_category,
                             description_text: 'Some event',
+                            agendas: ['a2'],
                         },
                     ])
 
@@ -537,19 +339,6 @@ describe('agenda', () => {
                 })
             })
 
-            it('addEventToCurrentAgenda raises error if current Agenda is spiked', (done) => {
-                agendas[1].state = 'spiked'
-                const action = actions.addEventToCurrentAgenda(events[0])
-                return action(dispatch, getState, {
-                    notify,
-                    $timeout,
-                })
-                .catch(() => {
-                    expect(notify.error.args[0]).toEqual(['Current Agenda is spiked.'])
-                    done()
-                })
-            })
-
             it('addEventToCurrentAgenda raises error if the Event is spiked', (done) => {
                 events[0].state = 'spiked'
                 const action = actions.addEventToCurrentAgenda(events[0])
@@ -560,6 +349,21 @@ describe('agenda', () => {
                 .catch(() => {
                     expect(notify.error.args[0]).toEqual([
                         'Cannot create a Planning item from a spiked event!',
+                    ])
+                    done()
+                })
+            })
+
+            it('addEventToCurrentAgenda raises error if the agenda is disabled', (done) => {
+                agendas[1].is_enabled = false
+                const action = actions.addEventToCurrentAgenda(events[0])
+                return action(dispatch, getState, {
+                    notify,
+                    $timeout,
+                })
+                .catch(() => {
+                    expect(notify.error.args[0]).toEqual([
+                        'Cannot create a Planning item from a disabled agenda!',
                     ])
                     done()
                 })
@@ -584,78 +388,6 @@ describe('agenda', () => {
                 expect(error).toBe(null)
                 expect(error.stack).toBe(null)
                 done()
-            })
-        })
-
-        describe('addPlanningsToAgenda', () => {
-            it('addPlanningsToAgenda saves and executes dispatches', (done) => {
-                const action = actions.addPlanningsToAgenda({
-                    plannings: plannings[0],
-                    agenda: agendas[0],
-                })
-                initialState.privileges.planning_planning_management = 1
-                return action(dispatch, getState, {
-                    notify,
-                    $timeout,
-                    api,
-                })
-                .then((agenda) => {
-                    let newAgenda = {
-                        ...agendas[0],
-                        planning_items: ['p1'],
-                    }
-                    expect(apiSpy.save.args[0]).toEqual([
-                        agendas[0],
-                        { planning_items: ['p1'] },
-                    ])
-                    expect(agenda).toEqual(newAgenda)
-
-                    expect(dispatch.args[1]).toEqual([{
-                        type: 'ADD_OR_REPLACE_AGENDA',
-                        payload: newAgenda,
-                    }])
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
-                    done()
-                })
-            })
-
-            it('addPlanningsToAgenda raises ACCESS_DENIED without permission', (done) => {
-                const action = actions.addPlanningsToAgenda({
-                    plannings: plannings[0],
-                    agenda: agendas[0],
-                })
-                initialState.privileges.planning_planning_management = 0
-                return action(dispatch, getState, {
-                    notify,
-                    $timeout,
-                    api,
-                })
-                .catch(() => {
-                    expect($timeout.callCount).toBe(1)
-                    expect(notify.error.args[0][0]).toBe(
-                        'Unauthorised to add a Planning Item to an Agenda'
-                    )
-                    expect(dispatch.args[0]).toEqual([{
-                        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                        payload: {
-                            action: '_addPlanningsToAgenda',
-                            permission: PRIVILEGES.PLANNING_MANAGEMENT,
-                            errorMessage: 'Unauthorised to add a Planning Item to an Agenda',
-                            args: [{
-                                plannings: plannings[0],
-                                agenda: agendas[0],
-                            }],
-                        },
-                    }])
-                    expect(dispatch.callCount).toBe(1)
-
-                    done()
-                })
             })
         })
     })
@@ -737,54 +469,6 @@ describe('agenda', () => {
 
                 done()
             }, 0)
-        })
-
-        it('`agenda:spiked` updates the Agenda in the store', (done) => {
-            newAgenda._id = '1'
-            newAgenda.name = 'agenda'
-            newAgenda.state = 'spiked'
-            $rootScope.$broadcast('agenda:spiked', { item: '1' })
-
-            setTimeout(() => {
-                expect(spyGetById.callCount).toBe(1)
-                expect(spyGetById.args[0]).toEqual([
-                    'agenda',
-                    '1',
-                ])
-
-                expect(selectors.getAgendas(store.getState())).toEqual([
-                    {
-                        _id: '1',
-                        name: 'agenda',
-                        state: 'spiked',
-                    },
-                ])
-                done()
-            })
-        })
-
-        it('`agenda:unspiked` updates the Agenda in the store', (done) => {
-            newAgenda._id = '1'
-            newAgenda.name = 'agenda'
-            newAgenda.state = 'active'
-            $rootScope.$broadcast('agenda:unspiked', { item: '1' })
-
-            setTimeout(() => {
-                expect(spyGetById.callCount).toBe(1)
-                expect(spyGetById.args[0]).toEqual([
-                    'agenda',
-                    '1',
-                ])
-
-                expect(selectors.getAgendas(store.getState())).toEqual([
-                    {
-                        _id: '1',
-                        name: 'agenda',
-                        state: 'active',
-                    },
-                ])
-                done()
-            })
         })
     })
 })

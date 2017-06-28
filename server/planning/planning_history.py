@@ -8,7 +8,7 @@
 
 """Superdesk Files"""
 
-from superdesk import Resource, get_resource_service
+from superdesk import Resource
 from .history import HistoryService
 import logging
 from eve.utils import config
@@ -53,15 +53,7 @@ class PlanningHistoryService(HistoryService):
         :param original:
         :return:
         """
-        agenda_service = get_resource_service('agenda')
-        for agenda in agenda_service.find(where={'planning_items': original['_id']}):
-            get_resource_service('agenda_history').on_item_updated({'planning_items': original['_id']}, agenda,
-                                                                   operation='item spiked')
         super().on_spike(updates, original)
 
     def on_unspike(self, updates, original):
-        agenda_service = get_resource_service('agenda')
-        for agenda in agenda_service.find(where={'planning_items': original['_id']}):
-            get_resource_service('agenda_history').on_item_updated({'planning_items': original['_id']}, agenda,
-                                                                   operation='item unspiked')
         super().on_unspike(updates, original)
