@@ -18,6 +18,8 @@ const duplicateEvent = (event) => (
             '_id',
             'guid',
         ].forEach((key) => delete event[key])
+        // keeps only ids for files
+        event.files = get(event, 'files', []).map((file) => (file._id || file))
         return dispatch(saveEvent(event))
         .then(() => dispatch(closeEventDetails()))
         .then(() => dispatch(refetchEvents()))
