@@ -4,7 +4,7 @@ import * as selectors from '../../selectors'
 import * as actions from '../../actions'
 import { List, AutoSizer } from 'react-virtualized'
 import { connect } from 'react-redux'
-import { LIST_ITEM_HEIGHT, PLANNING_LIST_ITEM_MARGIN_HEIGHT } from '../../constants'
+import { LIST_ITEM_2_LINES_HEIGHT, PLANNING_LIST_ITEM_MARGIN_HEIGHT } from '../../constants'
 
 class PlanningList extends React.Component {
 
@@ -58,7 +58,7 @@ class PlanningList extends React.Component {
                             width={width}
                             plannings={plannings}
                             rowCount={plannings.length}
-                            rowHeight={LIST_ITEM_HEIGHT + PLANNING_LIST_ITEM_MARGIN_HEIGHT}
+                            rowHeight={LIST_ITEM_2_LINES_HEIGHT + PLANNING_LIST_ITEM_MARGIN_HEIGHT}
                         />
                     )}
                 </AutoSizer>

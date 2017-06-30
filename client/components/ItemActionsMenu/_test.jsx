@@ -16,6 +16,7 @@ describe('<ItemActionsMenu />', () => {
         wrapper.find('.dropdown__menu li button').simulate('click')
         expect(callback.callCount).toBe(1)
     })
+
     it('render without actions ', () => {
         const wrapper = mount(
             <ItemActionsMenu actions={[]}/>
