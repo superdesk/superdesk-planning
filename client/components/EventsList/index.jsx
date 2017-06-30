@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import moment from 'moment'
 import { EventItem } from '../index'
 import { InfiniteLoader, List, AutoSizer } from 'react-virtualized'
-import { LIST_ITEM_HEIGHT, EVENT_LIST_DAY_HEADER_HEIGHT } from '../../constants'
+import { LIST_ITEM_1_LINE_HEIGHT, EVENT_LIST_DAY_HEADER_HEIGHT } from '../../constants'
 import './style.scss'
 
 export class EventsList extends React.Component {
@@ -19,7 +19,7 @@ export class EventsList extends React.Component {
 
     getRowHeight({ index }) {
         const { events } = this.props
-        return events[index].events.length * LIST_ITEM_HEIGHT + EVENT_LIST_DAY_HEADER_HEIGHT
+        return events[index].events.length * LIST_ITEM_1_LINE_HEIGHT + EVENT_LIST_DAY_HEADER_HEIGHT
     }
 
     isRowLoaded({ index }) {

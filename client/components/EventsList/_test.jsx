@@ -119,15 +119,5 @@ describe('<EventsList />', () => {
         }
         store.dispatch(actions.receiveEvents([updatedEvent]))
         expect(wrapper.find('.ListItem').length).toEqual(6 + 1)
-        expect(
-            wrapper.find('.sd-list-item__row span').last().text())
-        .toContain('location3')
-        // check attached file count
-        expect(
-            wrapper.find('.ListItem').first().find('[className="icon-file"]').length
-        ).toBe(1)
-        expect(
-            wrapper.find('.ListItem').first().find('[className="icon-link"]').length
-        ).toBe(0)
     })
 })
