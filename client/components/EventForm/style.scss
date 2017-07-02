@@ -54,4 +54,13 @@
         bottom: 0;
     }
 
+    .history-preview {
+        max-height: calc(100vh - 100px);
+        overflow-y: scroll;
+    }
+
+    .close-history {
+        margin: 15px;
+    }
+
 }

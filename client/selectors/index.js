@@ -9,6 +9,7 @@ export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
 export const eventSearchActive = (state) => (state.events.search.currentSearch.advancedSearch) ?
     true : false
 export const getEvents = (state) => state.events.events
+export const getEventHistory = (state) => state.events.eventHistoryItems
 export const isEventListShown = (state) =>state.events.show
 export const getPreviousEventRequestParams = (state) => get(state.events, 'lastRequestParams', {})
 export const getCurrentAgendaId = (state) => state.agenda.currentAgendaId

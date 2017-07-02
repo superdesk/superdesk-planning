@@ -51,6 +51,7 @@ describe('events', () => {
                 showEventDetails: null,
                 highlightedEvent: null,
                 lastRequestParams: { page: 1 },
+                eventHistoryItems: [],
             },
             privileges: {
                 planning: 1,
@@ -673,6 +674,56 @@ describe('events', () => {
                     }])
                     expect($timeout.callCount).toBe(1)
                     done()
+                })
+            })
+        })
+
+        describe('fetchEventHistory', () => {
+            let eventHistoryItems = [
+                {
+                    _id: 'e2',
+                    _created: '2017-06-19T02:21:42+0000',
+                    event_id: 'e2',
+                    operation: 'create',
+                    update: {
+                        name: 'Test Event Wollongong',
+                        dates: {
+                            end: '2017-06-27T07:00:00+0000',
+                            start: '2017-06-24T23:00:00+0000',
+                            tz: 'Australia/Sydney',
+                        },
+                    },
+                    user_id: '5923ac531d41c81e3290a5ee',
+                },
+                {
+                    _id: 'e2',
+                    _created: '2017-06-19T02:21:42+0000',
+                    event_id: 'e2',
+                    operation: 'update',
+                    update: { name: 'Test Event Wollongong.' },
+                    user_id: '5923ac531d41c81e3290a5ee',
+                },
+            ]
+
+            it('calls events_history api and runs dispatch', () => {
+                apiSpy.query = sinon.spy(() => (Promise.resolve({ _items: eventHistoryItems })))
+                const action = actions.fetchEventHistory('e2')
+                return action(dispatch, getState, { api })
+                .then((data) => {
+                    expect(data._items).toEqual(eventHistoryItems)
+                    expect(apiSpy.query.callCount).toBe(1)
+                    expect(dispatch.callCount).toBe(1)
+
+                    expect(apiSpy.query.args[0]).toEqual([{
+                        where: { event_id: 'e2' },
+                        max_results: 200,
+                        sort: '[(\'_created\', 1)]',
+                    }])
+
+                    expect(dispatch.args[0]).toEqual([{
+                        type: 'RECEIVE_EVENT_HISTORY',
+                        payload: eventHistoryItems,
+                    }])
                 })
             })
         })

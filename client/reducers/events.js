@@ -18,6 +18,7 @@ const initialState = {
     highlightedEvent: null,
     selectedEvents: [],
     readOnly: true,
+    eventHistoryItems: [],
 }
 
 const eventsReducer = createReducer(initialState, {
@@ -113,7 +114,7 @@ const eventsReducer = createReducer(initialState, {
         {
             ...state,
             showEventDetails: payload,
-            selectedEvent: payload,
+            highlightedEvent: payload,
         }
     ),
     [EVENTS.ACTIONS.OPEN_EVENT_DETAILS]: (state, payload) => (
@@ -129,6 +130,12 @@ const eventsReducer = createReducer(initialState, {
             ...state,
             showEventDetails: null,
             readOnly: true,
+        }
+    ),
+    [EVENTS.ACTIONS.RECEIVE_EVENT_HISTORY]: (state, payload) => (
+        {
+            ...state,
+            eventHistoryItems: payload,
         }
     ),
 })

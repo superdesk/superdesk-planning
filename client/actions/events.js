@@ -722,6 +722,16 @@ const receiveEvents = (events) => ({
 })
 
 /**
+ * Action to receive the history of actions on Event and store them in the store
+ * @param {array} eventHistoryItems - An array of Event History items
+ * @return object
+ */
+const receiveEventHistory = (eventHistoryItems) => ({
+    type: EVENTS.ACTIONS.RECEIVE_EVENT_HISTORY,
+    payload: eventHistoryItems,
+})
+
+/**
  * Action to toggle the Events panel
  * @return object
  */
@@ -891,6 +901,27 @@ const eventNotifications = {
     'events:unspiked': onEventUpdated,
 }
 
+/**
+ * Action Dispatcher to fetch event history from the server
+ * This will add the history of action on that event in event history list
+ * @param {object} params - Query parameters to send to the server
+ * @return arrow function
+ */
+const fetchEventHistory = (eventId) => (
+    (dispatch, getState, { api }) => (
+        // Query the API and sort by created
+        api('events_history').query({
+            where: { event_id: eventId },
+            max_results: 200,
+            sort: '[(\'_created\', 1)]',
+        })
+        .then(data => {
+            dispatch(receiveEventHistory(data._items))
+            return data
+        })
+    )
+)
+
 export {
     duplicateEvent,
     publishEvent,
@@ -902,6 +933,7 @@ export {
     openUnspikeEvent,
     toggleEventsList,
     receiveEvents,
+    receiveEventHistory,
     closeEventDetails,
     previewEvent,
     openEventDetails,
@@ -909,6 +941,7 @@ export {
     openAdvancedSearch,
     addToEventsList,
     fetchEvents,
+    fetchEventHistory,
     silentlyFetchEventsById,
     fetchEventById,
     saveFiles,
