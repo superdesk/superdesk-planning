@@ -567,6 +567,37 @@ const onPlanningUpdated = (_e, data) => (
     }
 )
 
+/**
+ * Action Dispatcher to fetch planning history from the server
+ * This will add the history of action on that planning item in planning history list
+ * @param {object} params - Query parameters to send to the server
+ * @return arrow function
+ */
+const fetchPlanningHistory = (currentPlanningId) => (
+    (dispatch, getState, { api }) => (
+        // Query the API and sort by created
+        api('planning_history').query({
+            where: { planning_id: currentPlanningId },
+            max_results: 200,
+            sort: '[(\'_created\', 1)]',
+        })
+        .then(data => {
+            dispatch(receivePlanningHistory(data._items))
+            return data
+        })
+    )
+)
+
+/**
+ * Action to receive the history of actions on planning item
+ * @param {array} planningHistoryItems - An array of planning history items
+ * @return object
+ */
+const receivePlanningHistory = (planningHistoryItems) => ({
+    type: PLANNING.ACTIONS.RECEIVE_PLANNING_HISTORY,
+    payload: planningHistoryItems,
+})
+
 // Map of notification name and Action Event to execute
 const planningNotifications = {
     'planning:created': onPlanningCreated,
@@ -598,4 +629,6 @@ export {
     toggleOnlySpikedFilter,
     planningNotifications,
     previewPlanning,
+    fetchPlanningHistory,
+    receivePlanningHistory,
 }

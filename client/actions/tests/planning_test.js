@@ -790,6 +790,49 @@ describe('planning', () => {
                 payload: 'Find this plan',
             })
         })
+
+        describe('fetchPlanningHistory', () => {
+            let planningHistoryItems = [
+                {
+                    _id: 'p2',
+                    _created: '2017-06-19T02:21:42+0000',
+                    planning_id: 'p2',
+                    operation: 'create',
+                    update: { slugline: 'Test Planning item July' },
+                    user_id: '5923ac531d41c81e3290a5ee',
+                },
+                {
+                    _id: 'p2',
+                    _created: '2017-06-19T02:21:42+0000',
+                    planning_id: 'p2',
+                    operation: 'update',
+                    update: { headline: 'Test Planning item July.' },
+                    user_id: '5923ac531d41c81e3290a5ee',
+                },
+            ]
+
+            it('calls planning_history api and runs dispatch', () => {
+                apiSpy.query = sinon.spy(() => (Promise.resolve({ _items: planningHistoryItems })))
+                const action = actions.fetchPlanningHistory('p2')
+                return action(dispatch, getState, { api })
+                .then((data) => {
+                    expect(data._items).toEqual(planningHistoryItems)
+                    expect(apiSpy.query.calledOnce).toBe(true)
+                    expect(dispatch.calledOnce).toBe(true)
+
+                    expect(apiSpy.query.args[0]).toEqual([{
+                        where: { planning_id: 'p2' },
+                        max_results: 200,
+                        sort: '[(\'_created\', 1)]',
+                    }])
+
+                    expect(dispatch.args[0]).toEqual([{
+                        type: 'RECEIVE_PLANNING_HISTORY',
+                        payload: planningHistoryItems,
+                    }])
+                })
+            })
+        })
     })
 
     describe('websocket', () => {
