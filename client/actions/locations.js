@@ -12,6 +12,7 @@ export function saveNominatim(nominatim) {
                 latitude: nominatim.lat,
                 longitude: nominatim.lon,
             },
+            type: nominatim.type,
         })
     }
 }
@@ -48,6 +49,7 @@ export function saveLocation(newLocation) {
         })
         .then(data => ({
             name: data.name,
+            type: data.type,
             qcode: data.guid,
         }))
     }

@@ -93,6 +93,10 @@ locations_schema = {
         'type': 'string',
         'unique': True,
     },
+    'type': {
+        'type': 'string',
+        'default': 'Unclassified'
+    },
 
     # NewsML-G2 poiDetails properties See IPTC-G2-Implementation_Guide 12.6.3
     # or https://iptc.org/std/NewsML-G2/2.23/specification/XML-Schema-Doc-Power/ConceptItem.html#LinkAA
