@@ -214,15 +214,19 @@ export class Component extends React.Component {
                 </div>
                 {!this.state.previewHistory &&
                     <div className="EventForm__form">
-                    <PubStatusLabel status={get(initialValues, 'pubstatus')} verbose={true}/>
-                    <ItemActionsMenu actions={itemActions} />
-                    {error && <div className="error-block">{error}</div>}
                     <div className="TimeAndAuthor">
+                        {creationDate && author &&
+                            <div>Created {moment(creationDate).fromNow()} by <span className='TimeAndAuthor__author'> {author.display_name}</span>
+                            </div>
+                        }
                         {updatedDate && versionCreator &&
                             <div>Updated {moment(updatedDate).fromNow()} by <span className='TimeAndAuthor__author'> {versionCreator.display_name}</span>
                             </div>
                         }
                     </div>
+                    <PubStatusLabel status={get(initialValues, 'pubstatus')} verbose={true}/>
+                    <ItemActionsMenu actions={itemActions} />
+                    {error && <div className="error-block">{error}</div>}
                     <div>
                         <label htmlFor="slugline">Slugline</label>
                     </div>
@@ -327,12 +331,6 @@ export class Component extends React.Component {
                                 openPlanningItem={true}/>
                         </div>
                     }
-                    <div className="TimeAndAuthor">
-                        {creationDate && author &&
-                            <div>Created {moment(creationDate).fromNow()} by <span className='TimeAndAuthor__author'> {author.display_name}</span>
-                            </div>
-                        }
-                    </div>
                     </div>
                 }
                 {this.state.previewHistory &&
