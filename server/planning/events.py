@@ -16,13 +16,13 @@ from superdesk import get_resource_service
 from superdesk.resource import Resource
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
-from superdesk.metadata.item import GUID_NEWSML
+from superdesk.metadata.item import GUID_NEWSML, ITEM_TYPE
 from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user
 from superdesk.users.services import current_user_has_privilege
 from superdesk.utc import utcnow
 from .common import STATE_SCHEMA, PUB_STATUS_VALUES, UPDATE_SINGLE, UPDATE_FUTURE, UPDATE_ALL, \
-    UPDATE_METHODS
+    UPDATE_METHODS, PUB_STATUS_USABLE
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -142,6 +142,9 @@ class EventsService(superdesk.Service):
     def update(self, id, updates, original):
         item = self.backend.update(self.datasource, id, updates, original)
         return item
+
+    def publish(self, resource, id, updates, original):
+        pass
 
     def on_update(self, updates, original):
         """Update single or series of recurring events.
@@ -717,7 +720,6 @@ events_schema = {
                 'geo': {'type': 'string'},
                 'type': {
                     'type': 'string',
-                    'default': 'Unclassified',
                 }
             }
         }
@@ -780,6 +782,7 @@ events_schema = {
         'allowed': PUB_STATUS_VALUES,
         'mapping': not_analyzed,
         'nullable': True,
+        'default': PUB_STATUS_USABLE,
     },
 
     'lock_user': Resource.rel('users'),
@@ -801,7 +804,15 @@ events_schema = {
         'allowed': UPDATE_METHODS,
         'mapping': not_analyzed,
         'nullable': True
-    }
+    },
+
+    # Item type used by superdesk publishing
+    ITEM_TYPE: {
+        'type': 'string',
+        'mapping': not_analyzed,
+        'default': 'event',
+    },
+
 }  # end events_schema
 
 

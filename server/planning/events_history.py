@@ -43,8 +43,8 @@ class EventsHistoryService(HistoryService):
         }
         # a publish action is recorded as a special case
         if operation == 'update':
-            if 'usable' == update.get('pubstatus', ''):
+            if 'published' == update.get('state', ''):
                 history['operation'] = 'publish'
-            elif 'withhold' == update.get('pubstatus', ''):
+            elif 'canceled' == update.get('state', ''):
                 history['operation'] = 'unpublish'
         self.post([history])

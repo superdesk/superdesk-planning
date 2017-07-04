@@ -33,6 +33,7 @@ from .feeding_services.event_file_service import EventFileFeedingService
 from .feeding_services.event_http_service import EventHTTPFeedingService
 from .feeding_services.event_email_service import EventEmailFeedingService
 from .events_duplicate import EventsDuplicateResource, EventsDuplicateService
+from .events_publish import EventsPublishService, EventsPublishResource
 
 
 def init_app(app):
@@ -81,6 +82,9 @@ def init_app(app):
 
     events_unspike_service = EventsUnspikeService('events_unspike', backend=superdesk.get_backend())
     EventsUnspikeResource('events_unspike', app=app, service=events_unspike_service)
+
+    events_publish_service = EventsPublishService('events_publish', backend=superdesk.get_backend())
+    EventsPublishResource('events_publish', app=app, service=events_publish_service)
 
     locations_search_service = LocationsService('locations', backend=superdesk.get_backend())
     LocationsResource('locations', app=app, service=locations_search_service)
@@ -195,6 +199,8 @@ def init_app(app):
 
     superdesk.intrinsic_privilege(PlanningUnlockResource.endpoint_name, method=['POST'])
     superdesk.intrinsic_privilege(EventsUnlockResource.endpoint_name, method=['POST'])
+
+    import planning.output_formatters  # noqa
 
 
 register_feeding_service(

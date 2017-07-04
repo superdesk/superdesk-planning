@@ -35,27 +35,48 @@ const _setEventStatus = ({ eventId, status }) => (
         return dispatch(saveEvent(event))
         .then((events) => {
             dispatch(eventsUi.previewEvent(events[0]))
+            return events
         })
     }
 )
 
+/**
+ * Set event.pubstatus usable and publish event.
+ */
 const publishEvent = (eventId) => (
-    (dispatch, getState, { notify }) => {
+    (dispatch, getState, { api, notify }) => {
         dispatch(setEventStatus({
             eventId,
             status: EVENTS.PUB_STATUS.USABLE,
         }))
-        .then(() => notify.success('The event has been published'))
+        .then((events) => api.save('events_publish', {
+            event: eventId,
+            etag: events[0]._etag,
+        }))
+        .then(() => {
+            notify.success('The event has been published')
+            dispatch(eventsUi.refetchEvents())
+        })
     }
 )
 
+/**
+ * Set event.pubstatus canceled and publish event.
+ */
 const unpublishEvent = (eventId) => (
-    (dispatch, getState, { notify }) => {
+    (dispatch, getState, { api, notify }) => {
         dispatch(setEventStatus({
             eventId,
-            status: EVENTS.PUB_STATUS.WITHHOLD,
+            status: EVENTS.PUB_STATUS.CANCELED,
         }))
-        .then(() => notify.success('The event has been unpublished'))
+        .then((events) => api.save('events_publish', {
+            event: eventId,
+            etag: events[0]._etag,
+        }))
+        .then(() => {
+            notify.success('The event has been unpublished')
+            dispatch(eventsUi.refetchEvents())
+        })
     }
 )
 
