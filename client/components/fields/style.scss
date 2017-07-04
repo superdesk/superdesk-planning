@@ -21,7 +21,7 @@
 }
 
 .disabledButton {
-	opacity: 0;
+	display: none;
 	&:hover {
 		cursor: default;
 	}

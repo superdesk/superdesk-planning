@@ -218,11 +218,14 @@ export const formatAddress = (nominatim) => {
         external: { nominatim },
     }
     const shortName = [
+        get(address, nominatim.type), // Title of the place
         get(address, 'line[0]'),
+        get(address, 'area'),
         get(address, 'locality'),
         get(address, 'postal_code'),
         get(address, 'country'),
     ].filter(d => d).join(', ')
+
     return {
         address,
         shortName,
