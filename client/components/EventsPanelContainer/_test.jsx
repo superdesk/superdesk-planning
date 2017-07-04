@@ -26,6 +26,11 @@ describe('<EventPanelContainer />', () => {
             planning: 1,
             planning_event_management: 1,
         },
+        users: [{ _id: 'user123' }],
+        session: {
+            identity: { _id: 'user123' },
+            sessionId: 'session123',
+        },
     }
     const store = createTestStore({ initialState })
     const wrapper = mount(
@@ -44,13 +49,7 @@ describe('<EventPanelContainer />', () => {
         expect(store.getState().events.readOnly).toBe(true)
     })
 
-    it('Opens event in edit mode', () => {
-        store.dispatch(actions.openEventDetails(eventId))
-        expect(store.getState().events.showEventDetails).toBe(eventId)
-        expect(store.getState().events.readOnly).toBe(false)
-        store.dispatch(actions.openEventDetails({ _id: eventId }))
-        expect(store.getState().events.showEventDetails).toBe(eventId)
-        expect(store.getState().events.readOnly).toBe(false)
+    it('Opens new event event in edit mode', () => {
         store.dispatch(actions.openEventDetails())
         expect(store.getState().events.showEventDetails).toBe(true)
         expect(store.getState().events.readOnly).toBe(false)

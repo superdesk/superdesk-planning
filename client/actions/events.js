@@ -692,22 +692,81 @@ const previewEvent = (event) => ({
     payload: get(event, '_id'),
 })
 
+const _unlockAndOpenEventDetails = (event) => (
+    (dispatch) => (
+        dispatch(unlockEvent(event)).then((item) => {
+            dispatch(receiveEvents([item]))
+            // Call openPlanningEditor to obtain a new lock for editing
+            dispatch(_openEventDetails(item))
+        }, () => (Promise.reject()))
+    )
+)
+
 /**
  * Opens the Edit Event panel with the supplied Event
  * @param {object} event - The Event ID to edit
  * @return Promise
  */
-const _openEventDetails = (event) => ({
-    type: EVENTS.ACTIONS.OPEN_EVENT_DETAILS,
-    payload: get(event, '_id', event || true),
-})
+const _openEventDetails = (event) => (
+    (dispatch) => {
+        const id = get(event, '_id')
+        if (id) {
+            const openDetails = {
+                type: EVENTS.ACTIONS.OPEN_EVENT_DETAILS,
+                payload: id,
+            }
+
+            dispatch(lockEvent(event)).then((item) => {
+                dispatch(openDetails)
+                dispatch(receiveEvents([item]))
+            }, () => {
+                dispatch(openDetails)
+            })
+        } else {
+            dispatch({
+                type: EVENTS.ACTIONS.OPEN_EVENT_DETAILS,
+                payload: true,
+            })
+        }
+    }
+)
+
+const lockEvent = (event) => (
+    (dispatch, getState, { api, notify }) => (
+        api.save('events_lock', {}, { lock_action: 'edit' }, { _id: event._id })
+           .then((item) => (item),
+                (error) => {
+                    const msg = get(error, 'data._message') || 'Could not lock the event.'
+                    notify.error(msg)
+                    throw error
+                })
+    )
+)
+
+const unlockEvent = (event) => (
+    (dispatch, getState, { api, notify }) => (
+        api('events_unlock', event).save({})
+            .then((item) => (item),
+                (error) => {
+                    const msg = get(error, 'data._message') || 'Could not unlock the event.'
+                    notify.error(msg)
+                    throw error
+                })
+    )
+)
 
 /**
  * Action to close the Edit Event panel
  * @return object
  */
-const closeEventDetails = () => (
-    { type: EVENTS.ACTIONS.CLOSE_EVENT_DETAILS }
+const closeEventDetails = (event) => (
+    (dispatch, getState) => {
+        if (selectors.isEventDetailLockedInThisSession(getState())) {
+            dispatch(unlockEvent(event))
+        }
+
+        dispatch({ type: EVENTS.ACTIONS.CLOSE_EVENT_DETAILS })
+    }
 )
 
 /**
@@ -792,6 +851,12 @@ const _openUnspikeEvent = (event) => (
 const openEventDetails = checkPermission(
     _openEventDetails,
     PRIVILEGES.EVENT_MANAGEMENT,
+    'Unauthorised to edit an event!'
+)
+
+const unlockAndOpenEventDetails = checkPermission(
+    _unlockAndOpenEventDetails,
+    PRIVILEGES.PLANNING_UNLOCK,
     'Unauthorised to edit an event!'
 )
 
@@ -899,6 +964,8 @@ const eventNotifications = {
     'events:updated:recurring': onEventUpdated,
     'events:spiked': onEventUpdated,
     'events:unspiked': onEventUpdated,
+    'events:lock': onEventUpdated,
+    'events:unlock': onEventUpdated,
 }
 
 /**
@@ -952,4 +1019,5 @@ export {
     askConfirmationBeforeSavingEvent,
     selectAllTheEventList,
     deselectAllTheEventList,
+    unlockAndOpenEventDetails,
 }

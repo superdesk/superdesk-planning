@@ -278,3 +278,12 @@ export const isCurrentPlanningLockedInThisSession = createSelector(
         currentPlanning.lock_session === session.sessionId ? true : false
     )
 )
+
+export const isEventDetailLockedInThisSession = createSelector(
+    [getShowEventDetails, getEvents, getSessionDetails],
+    (showEventDetails, events, session) => {
+        const event = events[showEventDetails]
+        return event && (event.lock_user === session.identity._id &&
+        event.lock_session === session.sessionId) ? true : false
+    }
+)

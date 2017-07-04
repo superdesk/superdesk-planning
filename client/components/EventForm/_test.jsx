@@ -128,11 +128,20 @@ describe('events', () => {
             })
 
             it('supports files', () => {
+                let _event = event
+                _event.lock_user = 'user123'
+                _event.lock_session = 'session123'
                 const store = createTestStore({
                     initialState: {
                         events: {
                             readOnly: false,
-                            events: { '5800d71930627218866f1e80' : event },
+                            events: { '5800d71930627218866f1e80' : _event },
+                            showEventDetails: '5800d71930627218866f1e80',
+                        },
+                        users: [{ _id: 'user123' }],
+                        session: {
+                            identity: { _id: 'user123' },
+                            sessionId: 'session123',
                         },
                     },
                 })
@@ -149,11 +158,20 @@ describe('events', () => {
             })
 
             it('supports links', () => {
+                let _event = event
+                _event.lock_user = 'user123'
+                _event.lock_session = 'session123'
                 const store = createTestStore({
                     initialState: {
                         events: {
                             readOnly: false,
-                            events: { '5800d71930627218866f1e80' : event },
+                            events: { '5800d71930627218866f1e80' : _event },
+                            showEventDetails: '5800d71930627218866f1e80',
+                        },
+                        users: [{ _id: 'user123' }],
+                        session: {
+                            identity: { _id: 'user123' },
+                            sessionId: 'session123',
                         },
                     },
                 })

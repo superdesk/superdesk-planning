@@ -30,7 +30,7 @@ export class EditPlanningPanel extends React.Component {
     }
 
     getLockedUser(planning) {
-        return get(planning, 'lock_user') && this.props.users ?
+        return get(planning, 'lock_user') && Array.isArray(this.props.users) ?
             this.props.users.find((u) => (u._id === planning.lock_user)) : null
     }
 
@@ -163,7 +163,7 @@ EditPlanningPanel.propTypes = {
         React.PropTypes.object,
     ]),
     readOnly: React.PropTypes.bool,
-    unlockPrivilege: React.PropTypes.number,
+    unlockPrivilege: React.PropTypes.bool,
     unlockItem: React.PropTypes.func,
     lockedInThisSession: React.PropTypes.bool,
 }
@@ -174,7 +174,7 @@ const mapStateToProps = (state) => ({
     agendaSpiked: selectors.getCurrentPlanningAgendaSpiked(state),
     users: selectors.getUsers(state),
     readOnly: selectors.getPlanningItemReadOnlyState(state),
-    unlockPrivilege: selectors.getPrivileges(state).planning_unlock,
+    unlockPrivilege: selectors.getPrivileges(state).planning_unlock ? true : false,
     lockedInThisSession: selectors.isCurrentPlanningLockedInThisSession(state),
 })
 

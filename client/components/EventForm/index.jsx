@@ -13,8 +13,9 @@ import * as selectors from '../../selectors'
 import { OverlayTrigger } from 'react-bootstrap'
 import { tooltips } from '../index'
 import PropTypes from 'prop-types'
-import { ItemActionsMenu } from '../index'
+import { ItemActionsMenu, UnlockItem, UserAvatar } from '../index'
 import { isEventAllDay } from '../../utils'
+import classNames from 'classnames'
 
 /**
 * Form for adding/editing an event
@@ -27,6 +28,7 @@ export class Component extends React.Component {
         this.state = {
             doesRepeat: false,
             previewHistory: false,
+            openUnlockPopup: false,
         }
     }
 
@@ -97,6 +99,15 @@ export class Component extends React.Component {
         this.props.change('dates.end', newEnd)
     }
 
+    getLockedUser(event) {
+        return get(event, 'lock_user') && Array.isArray(this.props.users) ?
+            this.props.users.find((u) => (u._id === event.lock_user)) : null
+    }
+
+    toggleOpenUnlockPopup() {
+        this.setState({ openUnlockPopup: !this.state.openUnlockPopup })
+    }
+
     render() {
         const {
             pristine,
@@ -116,15 +127,21 @@ export class Component extends React.Component {
             saveAndPublish,
             duplicateEvent,
             highlightedEvent,
+            lockedInThisSession,
+            unlockPrivilege,
+            onUnlock,
         } = this.props
         const eventSpiked = get(initialValues, 'state', 'active') === ITEM_STATE.SPIKED
-        const updatedReadOnly = readOnly || eventSpiked
+        const updatedReadOnly = readOnly || eventSpiked ||
+            (get(initialValues, '_id') && !lockedInThisSession)
         const creationDate = get(initialValues, '_created')
         const updatedDate = get(initialValues, '_updated')
         const id = get(initialValues, '_id')
         const author = get(initialValues, 'original_creator') && users ? users.find((u) => (u._id === initialValues.original_creator)) : null
         const versionCreator = get(initialValues, 'version_creator') && users ? users.find((u) => (u._id === initialValues.version_creator)) : null
         const isPublished = get(initialValues, 'pubstatus') === EVENTS.PUB_STATUS.USABLE
+        const lockedUser = this.getLockedUser(initialValues)
+
         let itemActions = []
         if (eventSpiked) {
             itemActions = [
@@ -204,7 +221,7 @@ export class Component extends React.Component {
                                         Unpublish</button>
                                 }
                                 {!eventSpiked && (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
-                                    <button onClick={openEventDetails.bind(null, id)}>
+                                    <button type='button' onClick={openEventDetails.bind(null, initialValues)}>
                                         <i className="icon-pencil"/>
                                     </button>
                                 </OverlayTrigger>)}
@@ -214,6 +231,22 @@ export class Component extends React.Component {
                 </div>
                 {!this.state.previewHistory &&
                     <div className="EventForm__form">
+                    {(!readOnly && !lockedInThisSession && lockedUser)
+                        && (
+                        <div className={classNames('dropdown',
+                            'dropdown--drop-right',
+                            { 'open': this.state.openUnlockPopup })} >
+                            <div className="lock-avatar">
+                                <button type='button' onClick={this.toggleOpenUnlockPopup.bind(this)}>
+                                    <UserAvatar user={lockedUser} withLoggedInfo={true}/>
+                                </button>
+                                {this.state.openUnlockPopup && <UnlockItem user={lockedUser}
+                                    showUnlock={unlockPrivilege}
+                                    onCancel={this.toggleOpenUnlockPopup.bind(this)}
+                                    onUnlock={onUnlock.bind(this, initialValues)}/>}
+                            </div>
+                        </div>
+                    )}
                     <div className="TimeAndAuthor">
                         {creationDate && author &&
                             <div>Created {moment(creationDate).fromNow()} by <span className='TimeAndAuthor__author'> {author.display_name}</span>
@@ -375,6 +408,9 @@ Component.propTypes = {
     duplicateEvent: PropTypes.func.isRequired,
     isAllDay: PropTypes.bool,
     highlightedEvent: React.PropTypes.string,
+    lockedInThisSession: PropTypes.bool,
+    onUnlock: PropTypes.func,
+    unlockPrivilege: React.PropTypes.bool,
 }
 
 // Decorate the form component
@@ -401,6 +437,8 @@ const mapStateToProps = (state) => ({
         selector(state, 'dates.start'),
         selector(state, 'dates.end')
     ),
+    lockedInThisSession: selectors.isEventDetailLockedInThisSession(state),
+    unlockPrivilege: selectors.getPrivileges(state).planning_unlock ? true : false,
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -419,6 +457,7 @@ const mapDispatchToProps = (dispatch) => ({
     unspikeEvent: (event) => dispatch(actions.unspikeEvent(event)),
     addEventToCurrentAgenda: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
     duplicateEvent: (event) => dispatch(actions.duplicateEvent(event)),
+    onUnlock: (event) => dispatch(actions.unlockAndOpenEventDetails(event)),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

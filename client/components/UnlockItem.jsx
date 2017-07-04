@@ -34,7 +34,7 @@ export class UnlockItem extends React.Component {
                     <div className="dropdown__menu-label">Locked by</div>
                     <UserAvatar user={this.props.user} large={true}/>
                     <div className="lock-text">{this.props.user.display_name}</div>
-                    {this.props.showUnlock && (<button className="btn btn--medium" onClick={this.unlockItem.bind(this)}>
+                    {this.props.showUnlock && (<button type='button' className="btn btn--medium" onClick={this.unlockItem.bind(this)}>
                         Unlock
                     </button>)}
                 </div> )
