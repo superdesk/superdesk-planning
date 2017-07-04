@@ -34,13 +34,22 @@ export class EditPlanningPanel extends React.Component {
             this.props.users.find((u) => (u._id === planning.lock_user)) : null
     }
 
+    getCreator(planning, creator) {
+        const user = get(planning, creator)
+        if (user) {
+            return user.display_name ? user : this.props.users.find((u) => (u._id === user))
+        }
+    }
+
     /*eslint-disable complexity*/
     render() {
         const { closePlanningEditor, openPlanningEditor, planning, event, pristine, submitting, agendaSpiked, readOnly, lockedInThisSession } = this.props
         const creationDate = get(planning, '_created')
         const updatedDate = get(planning, '_updated')
-        const author = get(planning, 'original_creator')
-        const versionCreator = get(planning, 'version_creator') && this.props.users ? this.props.users.find((u) => (u._id === planning.version_creator)) : null
+
+        const author = this.getCreator(planning, 'original_creator')
+        const versionCreator = this.getCreator(planning, 'version_creator')
+
         const planningSpiked = planning ? get(planning, 'state', 'active') === ITEM_STATE.SPIKED : false
         const eventSpiked = event ? get(event, 'state', 'active') === ITEM_STATE.SPIKED : false
         const lockedUser = this.getLockedUser(planning)
@@ -72,9 +81,13 @@ export class EditPlanningPanel extends React.Component {
                                     onUnlock={this.props.unlockItem.bind(this, planning)}/>}
                             </div>
                             )}
+                        {creationDate && author &&
+                            <div>Created {moment(creationDate).fromNow()} by <span className='TimeAndAuthor__author'> {author.display_name}</span>
+                            </div>
+                        }
                         {updatedDate && versionCreator &&
-                            <span>Updated {moment(updatedDate).fromNow()} by <span className='TimeAndAuthor__author'> {versionCreator.display_name}</span>
-                            </span>
+                            <div>Updated {moment(updatedDate).fromNow()} by <span className='TimeAndAuthor__author'> {versionCreator.display_name}</span>
+                            </div>
                         }
                     </div>
                     { !forceReadOnly && <div className="EditPlanningPanel__actions">
@@ -126,15 +139,9 @@ export class EditPlanningPanel extends React.Component {
                         </div>
                     }
                     <h3>Planning</h3>
-                    <div className="TimeAndAuthor">
-                        {creationDate && author &&
-                            <span>Created {moment(creationDate).fromNow()} by <span className='TimeAndAuthor__author'> {author.display_name}</span>
-                            </span>
-                        }
-                        {(!creationDate || !author) &&
-                            <span>Create a new planning</span>
-                        }
-                    </div>
+                    {(!creationDate || !author) &&
+                        <span>Create a new planning</span>
+                    }
                     <PlanningForm ref="PlanningForm" readOnly={forceReadOnly}/>
                 </div>
             </div>
