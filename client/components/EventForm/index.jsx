@@ -203,10 +203,10 @@ export class Component extends React.Component {
                             }
                         </div>
                     )}
-                    { updatedReadOnly && !this.state.previewHistory && (
+                    {!this.state.previewHistory && (
                         <div className="subnav__actions">
                             <div>
-                                {!isPublished &&
+                                {updatedReadOnly && !isPublished &&
                                     <button
                                         onClick={() => publish(id)}
                                         type="button"
@@ -220,7 +220,7 @@ export class Component extends React.Component {
                                         className="btn btn--hollow">
                                         Unpublish</button>
                                 }
-                                {!eventSpiked && (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
+                                {updatedReadOnly && !eventSpiked && (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
                                     <button type='button' onClick={openEventDetails.bind(null, initialValues)}>
                                         <i className="icon-pencil"/>
                                     </button>
