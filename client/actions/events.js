@@ -104,6 +104,31 @@ const askConfirmationBeforeSavingEvent = (event) => (
 )
 
 /**
+ * Action Dispatcher for saving an event with confirmation
+ * @param {object} event - The event item to save
+ * @return arrow function
+ */
+const saveEventWithConfirmation = (event) => (
+    (dispatch) => {
+        dispatch(askConfirmationBeforeSavingEvent(event))
+        .then(() => dispatch(uploadFilesAndSaveEvent(event)))
+    }
+)
+
+/**
+ * Action Dispatcher for saving an event with confirmation
+ * and then publish the event
+ * @param {object} event - The event item to save and publish
+ * @return arrow function
+ */
+const saveAndPublish = (event) => (
+    (dispatch) => {
+        dispatch(askConfirmationBeforeSavingEvent(event))
+        .then(() => dispatch(uploadFilesAndSaveEvent(event)))
+        .then(() => dispatch(publishEvent(event._id)))
+    }
+)
+/**
  * Action Dispatcher for saving an event
  * If there are any files attached, upload these as well
  * @param {object} event - The event item to save
@@ -1059,4 +1084,6 @@ export {
     selectAllTheEventList,
     deselectAllTheEventList,
     unlockAndOpenEventDetails,
+    saveEventWithConfirmation,
+    saveAndPublish,
 }

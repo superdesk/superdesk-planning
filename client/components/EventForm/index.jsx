@@ -74,6 +74,10 @@ export class Component extends React.Component {
         this.setState({ doesRepeat: event.target.value })
     }
 
+    handleSaveAndPublish(event) {
+        this.props.saveAndPublish(event)
+    }
+
     handleAllDayChange(event) {
         let newStart
         let newEnd
@@ -124,7 +128,6 @@ export class Component extends React.Component {
             addEventToCurrentAgenda,
             publish,
             unpublish,
-            saveAndPublish,
             duplicateEvent,
             highlightedEvent,
             lockedInThisSession,
@@ -197,7 +200,7 @@ export class Component extends React.Component {
                                 </button>
                             }
                             {!updatedReadOnly && !isPublished &&
-                                <button onClick={() => saveAndPublish(id)} type="button" className="btn btn--success">
+                                <button onClick={handleSubmit(this.handleSaveAndPublish.bind(this))} type="button" className="btn btn--success">
                                     Save and publish
                                 </button>
                             }
@@ -448,16 +451,11 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event) => (
-        // if needed, show a confirmation dialog
-        dispatch(actions.askConfirmationBeforeSavingEvent(event))
-        // save the event through the API
-            .then(() => dispatch(actions.uploadFilesAndSaveEvent(event)))
-    ),
+    onSubmit: (event) => dispatch(actions.saveEventWithConfirmation(event)),
     openEventDetails: (event) => dispatch(actions.openEventDetails(event)),
+    saveAndPublish: (event) => dispatch(actions.saveAndPublish(event)),
     publish: (eventId) => dispatch(actions.publishEvent(eventId)),
     unpublish: (eventId) => dispatch(actions.unpublishEvent(eventId)),
-    saveAndPublish: (eventId) => dispatch(actions.unpublishEvent(eventId)),
     spikeEvent: (event) => dispatch(actions.spikeEvent(event)),
     unspikeEvent: (event) => dispatch(actions.unspikeEvent(event)),
     addEventToCurrentAgenda: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
@@ -465,18 +463,8 @@ const mapDispatchToProps = (dispatch) => ({
     onUnlock: (event) => dispatch(actions.unlockAndOpenEventDetails(event)),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-    ...ownProps,
-    ...stateProps,
-    ...dispatchProps,
-    saveAndPublish: () => (
-        dispatchProps.onSubmit(stateProps.formValues)
-            .then((events) => dispatchProps.publish(events[0]._id))
-    ),
-})
-
 export const EventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
-    mergeProps,
+    null,
     { withRef: true })(FormComponent)
