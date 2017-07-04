@@ -54,7 +54,7 @@ function runPlanning(ingestSources, $templateCache) {
     })
     ingestSources.registerFeedingService('event_email', {
         label: 'Event Email Feed',
-        templateUrl: 'superdesk-planning/views/eventEmailConfig.html'
+        templateUrl: 'superdesk-planning/views/eventEmailConfig.html',
     })
 }
 
