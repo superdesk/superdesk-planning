@@ -541,16 +541,14 @@ describe('events', () => {
 
             it('openEventDetails calls `events_lock` endpoint', (done) => {
                 dispatch = dispatchRunFunction
-                api.save = sinon.spy(() => (Promise.resolve(events[0])))
+                apiSpy.save = sinon.spy(() => (Promise.resolve(events[0])))
                 action(dispatchRunFunction, getState, {
                     api,
                     notify,
                 }).then(() => {
-                    expect(api.save.args[0]).toEqual([
-                        'events_lock',
+                    expect(apiSpy.save.args[0]).toEqual([
                         {},
                         { lock_action: 'edit' },
-                        { _id: 'e1' },
                     ])
                     done()
                 })
@@ -558,16 +556,14 @@ describe('events', () => {
 
             it('openEventDetails sends notification if lock fails', (done) => {
                 dispatch = dispatchRunFunction
-                api.save = sinon.spy(() => (Promise.reject()))
+                apiSpy.save = sinon.spy(() => (Promise.reject()))
                 action(dispatchRunFunction, getState, {
                     api,
                     notify,
                 }).then(() => {
-                    expect(api.save.args[0]).toEqual([
-                        'events_lock',
+                    expect(apiSpy.save.args[0]).toEqual([
                         {},
                         { lock_action: 'edit' },
-                        { _id: 'e1' },
                     ])
 
                     expect(notify.error.args[0][0]).toBe(
