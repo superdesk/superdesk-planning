@@ -30,5 +30,17 @@
             {"is_active": true, "qcode": "eocstat:eos5", "name": "Planned, occurs certainly"},
             {"is_active": true, "qcode": "eocstat:eos6", "name": "Planned, then cancelled"}
         ]
+    },
+    {
+        "_id": "newscoveragestatus",
+        "display_name": "News Coverage Status",
+        "type": "manageable",
+        "unique_field": "qcode",
+        "items": [
+            {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended"},
+            {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet"},
+            {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended"},
+            {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request"}
+        ]
     }
 ]
