@@ -28,7 +28,8 @@ const duplicateEvent = (event) => (
 
 const _setEventStatus = ({ eventId, status }) => (
     (dispatch, getState) => {
-        const event = selectors.getEvents(getState())[eventId]
+        // clone event in order to not modify the store
+        const event = { ...selectors.getEvents(getState())[eventId] }
         event.pubstatus = status
         return dispatch(saveEvent(event))
         .then((events) => {
@@ -136,7 +137,7 @@ const uploadFilesAndSaveEvent = (event) => {
         .then((events) => {
             if (events.length > 0 && selectors.getShowEventDetails(getState()) === true) {
                 dispatch(closeEventDetails())
-                dispatch(openEventDetails(events[0]._id))
+                dispatch(openEventDetails(events[0]))
             }
 
             return events
@@ -733,7 +734,7 @@ const _openEventDetails = (event) => (
 
 const _lockEvent = (event) => (
     (dispatch, getState, { api, notify }) => (
-        api.save('events_lock', {}, { lock_action: 'edit' }, { _id: event._id })
+        api('events_lock', event).save({}, { lock_action: 'edit' })
            .then((item) => (item),
                 (error) => {
                     const msg = get(error, 'data._message') || 'Could not lock the event.'
