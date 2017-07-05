@@ -22,6 +22,7 @@ describe('planning', () => {
         it('initialState', () => {
             expect(initialState).toEqual({
                 plannings: {},
+                planningsInList: [],
                 currentPlanningId: undefined,
                 editorOpened: false,
                 planningsAreLoading: false,

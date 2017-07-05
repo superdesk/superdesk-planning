@@ -1,7 +1,6 @@
 export * from './events'
 export * from './locations'
 export * from './modal'
-export * from './planning'
 export * from './vocabularies'
 export * from './ingest_providers'
 export * from './privileges'
@@ -11,8 +10,9 @@ export * from './desks'
 export * from './subjects'
 export * from './session'
 
+import planning from './planning/index'
+
 import { agendaNotifications } from './agenda'
-import { planningNotifications } from './planning'
 import { eventNotifications } from './events'
 
 /**
@@ -21,8 +21,13 @@ import { eventNotifications } from './events'
  * the WebSocket Notifications from the server, and dispatch events
  **/
 
-export const notifications = {
+const notifications = {
     ...agendaNotifications,
-    ...planningNotifications,
+    ...planning.notifications.events,
     ...eventNotifications,
+}
+
+export {
+    planning,
+    notifications,
 }

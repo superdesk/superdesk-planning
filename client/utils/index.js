@@ -33,9 +33,9 @@ export const createTestStore = (params={}) => {
         },
     }
     const mockedExtraArguments = {
-        $timeout: (cb) => (cb && cb()),
+        $timeout: extraArguments.timeout ? extraArguments.timeout : (cb) => (cb && cb()),
         $scope: { $apply: (cb) => (cb && cb()) },
-        notify: {
+        notify: extraArguments.notify ? extraArguments.notify : {
             success: () => (undefined),
             error: () => (undefined),
             pop: () => (undefined),
@@ -76,7 +76,7 @@ export const createTestStore = (params={}) => {
             ),
         },
         upload: { start: (d) => (Promise.resolve(d)) },
-        api: (resource) => ({
+        api: extraArguments.api ? extraArguments.api : (resource) => ({
             query: (q) =>  {
                 if (extraArguments.apiQuery) {
                     return Promise.resolve(extraArguments.apiQuery(resource, q))
@@ -119,6 +119,14 @@ export const createTestStore = (params={}) => {
             },
         }),
     }
+
+    if (!get(mockedExtraArguments.api, 'save')) {
+        mockedExtraArguments.api.save = (resource, dest, diff, parent) => (Promise.resolve({
+            ...parent,
+            ...diff,
+        }))
+    }
+
     const middlewares = [
         // adds the mocked extra arguments to actions
         thunkMiddleware.withExtraArgument({

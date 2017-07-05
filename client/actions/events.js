@@ -3,11 +3,13 @@ import moment from 'moment-timezone'
 import * as selectors from '../selectors'
 import { SubmissionError, getFormInitialValues } from 'redux-form'
 import { saveLocation as _saveLocation } from './index'
-import { showModal, hideModal, fetchSelectedAgendaPlannings, closePlanningEditor } from './index'
+import { showModal, hideModal, fetchSelectedAgendaPlannings } from './index'
 import { SpikeEvent, UpdateRecurrentEventsConfirmation } from '../components/index'
 import React from 'react'
 import { PRIVILEGES, EVENTS, ITEM_STATE } from '../constants'
 import { checkPermission, getErrorMessage, retryDispatch } from '../utils'
+
+import { planning } from './index'
 
 const duplicateEvent = (event) => (
     (dispatch) => {
@@ -176,7 +178,7 @@ const _spikeEvent = (events) => (
                     const planIds = event._plannings.map((p) => p._id)
                     const currentPlanId = selectors.getCurrentPlanningId(getState())
                     if (planIds.indexOf(currentPlanId) > -1) {
-                        dispatch(closePlanningEditor())
+                        dispatch(planning.ui.closeEditor())
                     }
                 }
             })
@@ -535,7 +537,7 @@ const silentlyFetchEventsById = (ids=[], state = ITEM_STATE.ACTIVE) => (
         }))
         .then(data => {
             dispatch(receiveEvents(data._items))
-            return data
+            return Promise.resolve(data._items)
         })
     )
 )
@@ -959,14 +961,14 @@ const onEventUpdated = (_e, data) => (
 
 // Map of notification name and Action Event to execute
 const eventNotifications = {
-    'events:created': onEventCreated,
-    'events:created:recurring': onRecurringEventCreated,
-    'events:updated': onEventUpdated,
-    'events:updated:recurring': onEventUpdated,
-    'events:spiked': onEventUpdated,
-    'events:unspiked': onEventUpdated,
-    'events:lock': onEventUpdated,
-    'events:unlock': onEventUpdated,
+    'events:created': () => (onEventCreated),
+    'events:created:recurring': () => (onRecurringEventCreated),
+    'events:updated': () => (onEventUpdated),
+    'events:updated:recurring': () => (onEventUpdated),
+    'events:spiked': () => (onEventUpdated),
+    'events:unspiked': () => (onEventUpdated),
+    'events:lock': () => (onEventUpdated),
+    'events:unlock': () => (onEventUpdated),
 }
 
 /**

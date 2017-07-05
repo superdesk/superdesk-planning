@@ -15,6 +15,7 @@ export const isEventListShown = (state) =>state.events.show
 export const getPreviousEventRequestParams = (state) => get(state.events, 'lastRequestParams', {})
 export const getCurrentAgendaId = (state) => state.agenda.currentAgendaId
 export const getStoredPlannings = (state) => state.planning.plannings
+export const getPlanningIdsInList = (state) => state.planning.planningsInList
 export const isOnlyFutureFiltered = (state) => state.planning.onlyFuture
 export const filterPlanningKeyword = (state) => state.planning.filterPlanningKeyword
 export const isOnlySpikeFiltered = (state) => state.planning.onlySpiked
@@ -45,10 +46,18 @@ export const getPlanningItemReadOnlyState = (state) => state.planning.readOnly
 export const getEventReadOnlyState = (state) => state.events.readOnly
 export const getSessionDetails = (state) => state.session
 
-export const getCurrentAgendaPlannings = createSelector(
-    [getCurrentAgenda, getStoredPlannings, isOnlyFutureFiltered, getEvents,
+export const getPlanningsInList = createSelector(
+    [getPlanningIdsInList, getStoredPlannings],
+    (planningIds, storedPlannings) => (
+        planningIds.map((pid) => (storedPlannings[pid]))
+    )
+)
+
+// export const getCurrentAgendaPlannings = createSelector(
+export const getFilteredPlanningList = createSelector(
+    [getCurrentAgenda, getPlanningsInList, isOnlyFutureFiltered, getEvents,
         filterPlanningKeyword, isOnlySpikeFiltered],
-    (currentAgenda, storedPlanningsObjects, isOnlyFutureFiltered, events,
+    (currentAgenda, planningsInList, isOnlyFutureFiltered, events,
         filterPlanningKeyword, isOnlySpikeFiltered) => {
         /** Return true if the planning has a future scheduled due date for a coverage
         or an associated event with a future end date.
@@ -89,10 +98,7 @@ export const getCurrentAgendaPlannings = createSelector(
                 ))
         }
 
-        const planningsIds = currentAgenda ? currentAgenda.planning_items || [] : []
-        const plannings = planningsIds
-        // from ids, get the actual plannings objects
-        .map((pid) => (storedPlanningsObjects[pid]))
+        const plannings = planningsInList
         // remove undefined
         .filter((p) => p !== undefined)
         // if "only future" filter is enabled, keep only future planning
@@ -109,8 +115,8 @@ export const getCurrentAgendaPlannings = createSelector(
     }
 )
 
-export const getCurrentAgendaPlanningsEvents = createSelector(
-    [getCurrentAgendaPlannings, getEvents],
+export const getFilteredPlanningListEvents = createSelector(
+    [getFilteredPlanningList, getEvents],
     (plannings, events) => {
         const eventsByPlanningId = {}
         plannings.forEach((p) => {

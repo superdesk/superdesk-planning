@@ -159,7 +159,6 @@ describe('agenda', () => {
                             args: [item],
                         },
                     }])
-                    expect(dispatch.callCount).toBe(1)
 
                     done()
                 })
@@ -394,7 +393,7 @@ describe('agenda', () => {
                 expect(dispatch.args[2]).toEqual([{ type: 'CLOSE_PLANNING_EDITOR' }])
 
                 expect(dispatch.args[5]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
-                expect(dispatch.args[7]).toEqual([{
+                expect(dispatch.args[8]).toEqual([{
                     type: 'RECEIVE_PLANNINGS',
                     payload: [],
                 }])
@@ -574,9 +573,8 @@ describe('agenda', () => {
             const action = actions.fetchSelectedAgendaPlannings()
             return action(dispatch, getState)
             .then(() => {
-                expect(dispatch.callCount).toBe(4)
                 expect(dispatch.args[1]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
-                expect(dispatch.args[3]).toEqual([{
+                expect(dispatch.args[4]).toEqual([{
                     type: 'RECEIVE_PLANNINGS',
                     payload: plannings,
                 }])

@@ -11,7 +11,7 @@ describe('<AbsoluteDate />', () => {
     function getDayFormat(date) {
         let dayFormat
 
-        if (moment().format(DATE_FORMATS.COMPARE_FORMAT) === moment.utc(date).format(DATE_FORMATS.COMPARE_FORMAT)) {
+        if (moment.utc().format(DATE_FORMATS.COMPARE_FORMAT) === moment.utc(date).format(DATE_FORMATS.COMPARE_FORMAT)) {
             dayFormat = DATE_FORMATS.DISPLAY_TODAY_FORMAT
         } else {
             dayFormat = DATE_FORMATS.DISPLAY_DAY_FORMAT
@@ -54,7 +54,7 @@ describe('<AbsoluteDate />', () => {
     })
 
     it('renders a absolute date for Today date', () => {
-        const date = moment().format()
+        const date = moment.utc().format()
 
         expect(renderAbsoluteDateToText(date))
         .toBe(
