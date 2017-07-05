@@ -29,6 +29,7 @@ describe('planning', () => {
                 filterPlanningKeyword: null,
                 onlySpiked: false,
                 readOnly: true,
+                planningHistoryItems: [],
             })
         })
 

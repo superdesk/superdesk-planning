@@ -10,6 +10,7 @@ const initialState  = {
     filterPlanningKeyword: null,
     onlySpiked: false,
     readOnly: true,
+    planningHistoryItems: [],
 }
 
 /*eslint-disable complexity*/
@@ -131,6 +132,12 @@ const planningReducer = (state=initialState, action) => {
                 ...state,
                 plannings,
             }
+        case PLANNING.ACTIONS.RECEIVE_PLANNING_HISTORY:
+            return {
+                ...state,
+                planningHistoryItems: action.payload,
+            }
+
         default:
             return state
     }

@@ -3,7 +3,7 @@ import { reduxForm } from 'redux-form'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { PlanningForm } from '../index'
-import { EventMetadata } from '../../components'
+import { EventMetadata, PlanningHistoryContainer } from '../../components'
 import * as selectors from '../../selectors'
 import { ITEM_STATE } from '../../constants'
 import { get } from 'lodash'
@@ -13,12 +13,16 @@ import { tooltips } from '../index'
 import { UserAvatar, UnlockItem } from '../'
 import classNames from 'classnames'
 import './style.scss'
+import { ItemActionsMenu } from '../index'
 
 export class EditPlanningPanel extends React.Component {
 
     constructor(props) {
         super(props)
-        this.state = { openUnlockPopup: false }
+        this.state = {
+            openUnlockPopup: false,
+            previewHistory: false,
+        }
     }
 
     handleSave() {
@@ -41,6 +45,14 @@ export class EditPlanningPanel extends React.Component {
         }
     }
 
+    viewPlanningHistory() {
+        this.setState({ previewHistory: true })
+    }
+
+    closePlanningHistory() {
+        this.setState({ previewHistory: false })
+    }
+
     /*eslint-disable complexity*/
     render() {
         const { closePlanningEditor, openPlanningEditor, planning, event, pristine, submitting, agendaSpiked, readOnly, lockedInThisSession } = this.props
@@ -53,6 +65,15 @@ export class EditPlanningPanel extends React.Component {
         const planningSpiked = planning ? get(planning, 'state', 'active') === ITEM_STATE.SPIKED : false
         const eventSpiked = event ? get(event, 'state', 'active') === ITEM_STATE.SPIKED : false
         const lockedUser = this.getLockedUser(planning)
+
+        let itemActions = []
+
+        itemActions = [
+            {
+                label: 'View Planning History',
+                callback: this.viewPlanningHistory.bind(this),
+            },
+        ]
 
         // If the planning or event or agenda item is spiked,
         // or we don't hold a lock, enforce readOnly
@@ -122,7 +143,9 @@ export class EditPlanningPanel extends React.Component {
                         </div>)
                     }
                 </header>
-                <div className="EditPlanningPanel__body">
+                {!this.state.previewHistory &&
+                    <div className="EditPlanningPanel__body">
+                    <ItemActionsMenu actions={itemActions} />
                     {agendaSpiked &&
                         <span className="AgendaSpiked label label--alert">agenda spiked</span>
                     }
@@ -143,7 +166,18 @@ export class EditPlanningPanel extends React.Component {
                         <span>Create a new planning</span>
                     }
                     <PlanningForm ref="PlanningForm" readOnly={forceReadOnly}/>
-                </div>
+                    </div>
+                }
+                {this.state.previewHistory &&
+                    <div className="history-preview">
+                        <div className="close-history">
+                            <a onClick={this.closePlanningHistory.bind(this)} className="close">
+                                <i className="icon-close-small" />
+                            </a>
+                        </div>
+                        <PlanningHistoryContainer currentPlanningId={planning._id} />
+                    </div>
+                }
             </div>
         )
     }
