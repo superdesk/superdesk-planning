@@ -112,6 +112,8 @@ def init_app(app):
     app.on_updated_planning_spike += planning_history_service.on_spike
     app.on_updated_planning_unspike += planning_history_service.on_unspike
 
+    app.on_locked_planning += planning_search_service.on_locked_planning
+
     superdesk.privilege(
         name='planning',
         label='Planning',

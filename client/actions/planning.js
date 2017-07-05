@@ -331,31 +331,47 @@ const previewPlanning = (planning) => (
 )
 
 const _unlockAndOpenPlanningEditor = (planning) => (
-    (dispatch, getState, { api, notify }) => (
-        api('planning_unlock', planning).save({})
+    (dispatch) => (
+        dispatch(_unlockPlanning(planning))
         .then(() => {
             // Call openPlanningEditor to obtain a new lock for editing
             dispatch(openPlanningEditor(planning._id))
-        }, (error) => {
-            const msg = get(error, 'data._message') || 'Could not unlock on the planning item.'
-            notify.error(msg)
-            return Promise.reject()
-        })
+        }, () => (Promise.reject()))
     )
 )
 
 const _lockAndOpenPlanningEditor = (planning) => (
-    (dispatch, getState, { api, notify }) => {
+    (dispatch, getState) => {
         // Close planning editor if open
         dispatch(closePlanningEditor(selectors.getCurrentPlanning(getState())))
-        api.save('planning_lock', {}, { lock_action: 'edit' }, { _id: planning }).then((item) => {
+        return dispatch(_lockPlanning(planning)).then((item) => {
             dispatch(_openPlanningEditor(item))
-        }, (error) => {
-            const msg = get(error, 'data._message') || 'Could not obtain lock on the planning item.'
-            notify.error(msg)
-            dispatch(_openPlanningEditor(planning))
         })
     }
+)
+
+const _lockPlanning = (planning) => (
+    (dispatch, getState, { api, notify }) => (
+        api.save('planning_lock', {}, { lock_action: 'edit' }, { _id: planning })
+           .then((item) => (item),
+                (error) => {
+                    const msg = get(error, 'data._message') || 'Could not lock the planning item.'
+                    notify.error(msg)
+                    if (error) throw error
+                })
+    )
+)
+
+const _unlockPlanning = (planning) => (
+    (dispatch, getState, { api, notify }) => (
+        api('planning_unlock', planning).save({})
+            .then((item) => (item),
+                (error) => {
+                    const msg = get(error, 'data._message') || 'Could not unlock the planning item.'
+                    notify.error(msg)
+                    throw error
+                })
+    )
 )
 
 /**
@@ -395,12 +411,9 @@ const previewPlanningAndOpenAgenda = (planning) => (
  * @return object
  */
 const closePlanningEditor = (planning) => (
-    (dispatch, getState, { api, notify }) => {
+    (dispatch, getState) => {
         if (selectors.isCurrentPlanningLockedInThisSession(getState())) {
-            api('planning_unlock', planning).save({})
-            .catch(() => {
-                notify.error('Could not unlock on the planning item.')
-            })
+            dispatch(_unlockPlanning(planning))
         }
 
         dispatch(_closePlanningEditor())

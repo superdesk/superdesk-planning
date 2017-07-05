@@ -36,7 +36,7 @@ class PlanningService(superdesk.Service):
 
     def __generate_related_coverages(self, planning):
         custom_coverage_hateoas = {'self': {'title': 'Coverage', 'href': '/coverage/{_id}'}}
-        for coverage in get_resource_service('coverage').find(where={'planning_item': planning['_id']}):
+        for coverage in get_resource_service('coverage').find(where={'planning_item': planning.get(config.ID_FIELD)}):
             build_custom_hateoas(custom_coverage_hateoas, coverage)
             yield coverage
 
@@ -46,6 +46,9 @@ class PlanningService(superdesk.Service):
         for doc in docs:
             doc['coverages'] = list(self.__generate_related_coverages(doc))
         return docs
+
+    def on_fetched_item(self, doc):
+        doc['coverages'] = list(self.__generate_related_coverages(doc))
 
     def on_create(self, docs):
         """Set default metadata."""
@@ -68,6 +71,9 @@ class PlanningService(superdesk.Service):
                 events_service.system_update(doc['event_item'], {'expiry': None}, original_event)
                 get_resource_service('events_history').on_item_updated({'planning_id': doc.get('_id')}, original_event,
                                                                        'planning created')
+
+    def on_locked_planning(self, item, user_id):
+        item['coverages'] = list(self.__generate_related_coverages(item))
 
     def update(self, id, updates, original):
         item = self.backend.update(self.datasource, id, updates, original)

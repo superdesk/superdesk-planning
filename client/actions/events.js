@@ -694,7 +694,7 @@ const previewEvent = (event) => ({
 
 const _unlockAndOpenEventDetails = (event) => (
     (dispatch) => (
-        dispatch(unlockEvent(event)).then((item) => {
+        dispatch(_unlockEvent(event)).then((item) => {
             dispatch(receiveEvents([item]))
             // Call openPlanningEditor to obtain a new lock for editing
             dispatch(_openEventDetails(item))
@@ -716,7 +716,7 @@ const _openEventDetails = (event) => (
                 payload: id,
             }
 
-            dispatch(lockEvent(event)).then((item) => {
+            dispatch(_lockEvent(event)).then((item) => {
                 dispatch(openDetails)
                 dispatch(receiveEvents([item]))
             }, () => {
@@ -731,19 +731,19 @@ const _openEventDetails = (event) => (
     }
 )
 
-const lockEvent = (event) => (
+const _lockEvent = (event) => (
     (dispatch, getState, { api, notify }) => (
         api.save('events_lock', {}, { lock_action: 'edit' }, { _id: event._id })
            .then((item) => (item),
                 (error) => {
                     const msg = get(error, 'data._message') || 'Could not lock the event.'
                     notify.error(msg)
-                    throw error
+                    if (error) throw error
                 })
     )
 )
 
-const unlockEvent = (event) => (
+const _unlockEvent = (event) => (
     (dispatch, getState, { api, notify }) => (
         api('events_unlock', event).save({})
             .then((item) => (item),
@@ -762,7 +762,7 @@ const unlockEvent = (event) => (
 const closeEventDetails = (event) => (
     (dispatch, getState) => {
         if (selectors.isEventDetailLockedInThisSession(getState())) {
-            dispatch(unlockEvent(event))
+            dispatch(_unlockEvent(event))
         }
 
         dispatch({ type: EVENTS.ACTIONS.CLOSE_EVENT_DETAILS })

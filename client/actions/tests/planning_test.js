@@ -645,19 +645,27 @@ describe('planning', () => {
         describe('openPlanningEditor', () => {
             const action = actions.openPlanningEditor(plannings[0]._id)
 
-            it('openPlanningEditor dispatches action', () => {
+            it('openPlanningEditor dispatches action', (done) => {
                 api.save = sinon.spy(() => Promise.resolve(plannings[0]))
-                action(dispatch, getState, {
+                return action(dispatch, getState, {
                     api,
                     notify,
                     $timeout,
                 }).then(() => {
-                    expect(dispatch.args[3]).toEqual([{
-                        type: 'OPEN_PLANNING_EDITOR',
-                        payload: plannings[0],
-                    }])
+                    expect(dispatch.args[4]).toEqual(
+                        [{
+                            type: 'OPEN_PLANNING_EDITOR',
+                            payload: plannings[0],
+                        }]
+                    )
                     expect($timeout.callCount).toBe(0)
                     expect(notify.error.callCount).toBe(0)
+                    done()
+                })
+                .catch((error) => {
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
+                    done()
                 })
             })
 
@@ -676,12 +684,33 @@ describe('planning', () => {
                     ])
 
                     expect(notify.error.callCount).toBe(0)
+                    done()
+                })
+                .catch((error) => {
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
+                    done()
+                })
+            })
 
-                    expect(dispatch.args[3]).toEqual([{
-                        type: 'OPEN_PLANNING_EDITOR',
-                        payload: plannings[0],
-                    }])
+            it('openPlanningEditor sends error notification if lock fails', (done) => {
+                api.save = sinon.spy(() => Promise.reject())
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then(() => {
+                    expect(api.save.args[0]).toEqual([
+                        'planning_lock',
+                        {},
+                        { lock_action: 'edit' },
+                        { _id: plannings[0]._id },
+                    ])
 
+                    expect(notify.error.callCount).toBe(1)
+                    expect(notify.error.args[0][0]).toBe(
+                        'Could not lock the planning item.'
+                    )
                     done()
                 })
                 .catch((error) => {
