@@ -51,6 +51,11 @@ Feature: Coverage
                 "delivery": []
             }]}
         """
+        When we get "/coverage_history"
+        Then we get a list with 1 items
+        """
+            {"_items": [{"operation": "create", "coverage_id": "#coverage._id#", "update": {"unique_name": "123 name"}}]}
+        """
 
     @auth
     @notification
@@ -222,4 +227,58 @@ Feature: Coverage
                 "user": "#CONTEXT_USER_ID#"
             }
         }]
+        """
+
+    @auth
+    @notification
+    Scenario: Coverage history tracks updates
+        Given empty "coverage"
+        When we post to "/coverage" with success
+        """
+        [
+             {
+                "guid": "123",
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "assigned_to": {
+                        "user": "whoever wants to do it"
+                    }
+                },
+                "delivery": []
+            }
+        ]
+        """
+        Then we get OK response
+        When we patch "/coverage/#coverage._id#"
+        """
+        {"unique_name": "123 name updated"}
+        """
+        Then we get OK response
+        When we get "/coverage_history"
+        Then we get a list with 2 items
+        """
+            {"_items": [{
+                "coverage_id":  "#coverage._id#",
+                "operation": "create",
+                "update": {
+                    "planning": {"assigned_to": {"user": "whoever wants to do it" }}
+                    }},
+                {"coverage_id":  "#coverage._id#",
+                "operation": "update",
+                "update": {"unique_name": "123 name updated"}}
+            ]}
+        """
+        When we get "/coverage_history?where=coverage_id==%22#coverage._id#%22"
+        Then we get list with 2 items
+        """
+            {"_items": [{
+                "coverage_id":  "#coverage._id#",
+                "operation": "create"
+                },
+                {"coverage_id":  "#coverage._id#",
+                "operation": "update"
+                }
+            ]}
         """
