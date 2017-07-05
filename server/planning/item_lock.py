@@ -59,10 +59,6 @@ class LockService:
 
                 item_service.update(item.get(config.ID_FIELD), updates, item)
 
-                # following line executes handlers attached to function:
-                # on_locked_'resource' - ex. on_locked_planning, on_locked_event
-                getattr(self.app, 'on_locked_%s' % resource)(item, user_id)
-
                 push_notification(resource + ':lock',
                                   item=str(item.get(config.ID_FIELD)),
                                   user=str(user_id), lock_time=updates['lock_time'],
@@ -71,6 +67,10 @@ class LockService:
                 raise SuperdeskApiError.forbiddenError(message=error_message)
 
             item = item_service.find_one(req=None, _id=item_id)
+
+            # following line executes handlers attached to function:
+            # on_locked_'resource' - ex. on_locked_planning, on_locked_event
+            getattr(self.app, 'on_locked_%s' % resource)(item, user_id)
             return item
         finally:
             # unlock the lock :)
