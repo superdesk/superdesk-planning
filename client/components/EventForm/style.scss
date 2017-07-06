@@ -52,6 +52,14 @@
         left: 0;
         right: 0;
         bottom: 0;
+        background: white;
+        .dropdown {
+            vertical-align: text-bottom;
+            margin-right: 10px;
+        }
+        .lock-avatar {
+            margin: 0;
+        }
     }
 
     .history-preview {
