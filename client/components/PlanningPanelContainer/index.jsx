@@ -151,7 +151,7 @@ const mapDispatchToProps = (dispatch) => ({
     ),
     handleSearch: (text) => (dispatch(actions.planning.ui.filterByKeyword(text))),
     addEventToCurrentAgenda: (event) => (dispatch(actions.addEventToCurrentAgenda(event))),
-    toggleEventsList: () => (dispatch(actions.planning.ui.toggleEventsList())),
+    toggleEventsList: () => (dispatch(actions.toggleEventsList())),
     onManageAgendasClick: () => (dispatch(actions.showModal({ modalType: 'MANAGE_AGENDAS' }))),
     onFutureToggleChange: () => (dispatch(actions.planning.ui.toggleOnlyFutureFilter())),
     onSpikedToggleChange: () => (dispatch(actions.planning.ui.toggleOnlySpikedFilter())),
