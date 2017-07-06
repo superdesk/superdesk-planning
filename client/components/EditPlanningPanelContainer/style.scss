@@ -24,9 +24,9 @@ $EDIT_PLANNING_WIDTH: 450px;
     }
 }
 .TimeAndAuthor {
-    padding: 5px 0px 10px 0px;
+    margin: 15px 0px 10px 0px;
     color: $sd-text-label;
-    flex-grow: 1;
+    display: inline-block;   
     &__author {
         color: initial;
     }

@@ -197,7 +197,7 @@ export class Component extends React.Component {
                                 </button>
                             }
                             {!updatedReadOnly && !isPublished &&
-                                <button onClick={() => saveAndPublish(id)} type="button" className="btn btn--highlight">
+                                <button onClick={() => saveAndPublish(id)} type="button" className="btn btn--success">
                                     Save and publish
                                 </button>
                             }
@@ -210,7 +210,7 @@ export class Component extends React.Component {
                                     <button
                                         onClick={() => publish(id)}
                                         type="button"
-                                        className="btn btn--highlight">
+                                        className="btn btn--success">
                                         Publish</button>
                                 }
                                 {isPublished &&
@@ -221,7 +221,10 @@ export class Component extends React.Component {
                                         Unpublish</button>
                                 }
                                 {updatedReadOnly && !eventSpiked && (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
-                                    <button type='button' onClick={openEventDetails.bind(null, initialValues)}>
+                                    <button
+                                        type='button'
+                                        onClick={openEventDetails.bind(null, initialValues)}
+                                        className="navbtn navbtn--right">
                                         <i className="icon-pencil"/>
                                     </button>
                                 </OverlayTrigger>)}
@@ -231,34 +234,36 @@ export class Component extends React.Component {
                 </div>
                 {!this.state.previewHistory &&
                     <div className="EventForm__form">
-                    {(!readOnly && !lockedInThisSession && lockedUser)
-                        && (
-                        <div className={classNames('dropdown',
-                            'dropdown--drop-right',
-                            { 'open': this.state.openUnlockPopup })} >
-                            <div className="lock-avatar">
-                                <button type='button' onClick={this.toggleOpenUnlockPopup.bind(this)}>
-                                    <UserAvatar user={lockedUser} withLoggedInfo={true}/>
-                                </button>
-                                {this.state.openUnlockPopup && <UnlockItem user={lockedUser}
-                                    showUnlock={unlockPrivilege}
-                                    onCancel={this.toggleOpenUnlockPopup.bind(this)}
-                                    onUnlock={onUnlock.bind(this, initialValues)}/>}
-                            </div>
-                        </div>
-                    )}
-                    <div className="TimeAndAuthor">
-                        {creationDate && author &&
-                            <div>Created {moment(creationDate).fromNow()} by <span className='TimeAndAuthor__author'> {author.display_name}</span>
-                            </div>
-                        }
-                        {updatedDate && versionCreator &&
-                            <div>Updated {moment(updatedDate).fromNow()} by <span className='TimeAndAuthor__author'> {versionCreator.display_name}</span>
-                            </div>
-                        }
-                    </div>
                     <PubStatusLabel status={get(initialValues, 'pubstatus')} verbose={true}/>
                     <ItemActionsMenu actions={itemActions} />
+                    <div>
+                        {(!readOnly && !lockedInThisSession && lockedUser)
+                            && (
+                            <div className={classNames('dropdown',
+                                'dropdown--dropright',
+                                { 'open': this.state.openUnlockPopup })} >
+                                <div className="lock-avatar">
+                                    <button type='button' onClick={this.toggleOpenUnlockPopup.bind(this)}>
+                                        <UserAvatar user={lockedUser} withLoggedInfo={true}/>
+                                    </button>
+                                    {this.state.openUnlockPopup && <UnlockItem user={lockedUser}
+                                        showUnlock={unlockPrivilege}
+                                        onCancel={this.toggleOpenUnlockPopup.bind(this)}
+                                        onUnlock={onUnlock.bind(this, initialValues)}/>}
+                                </div>
+                            </div>
+                        )}
+                        <div className="TimeAndAuthor">
+                            {creationDate && author &&
+                                <div>Created {moment(creationDate).fromNow()} by <span className='TimeAndAuthor__author'> {author.display_name}</span>
+                                </div>
+                            }
+                            {updatedDate && versionCreator &&
+                                <div>Updated {moment(updatedDate).fromNow()} by <span className='TimeAndAuthor__author'> {versionCreator.display_name}</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
                     {error && <div className="error-block">{error}</div>}
                     <div>
                         <label htmlFor="slugline">Slugline</label>

@@ -50,7 +50,7 @@ export class EventsList extends React.Component {
         return (
             <div className="events-list__group" key={key} style={style}>
                 <div className="events-list__title">{dateStr}</div>
-                <ul className="events-list__list list-view compact-view">
+                <div className="events-list__list sd-list-item-group sd-shadow--z2">
                     {events.map((event) => (
                         <EventItem event={event}
                             key={event._id}
@@ -68,7 +68,7 @@ export class EventsList extends React.Component {
                             itemLocked={event.lock_user && event.lock_session ? true : false}
                             itemLockedInThisSession={this.isEventLockedInThisSession(event)} />
                     ))}
-                </ul>
+                </div>
             </div>
         )
     }

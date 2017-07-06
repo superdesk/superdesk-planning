@@ -21,8 +21,7 @@ const PUB_STATUS_LABELS = {
     },
     internal: {
         label: 'Internal',
-        labelType: 'default',
-        tooltip:  <Tooltip id="pubStatuInternalTT">Internal</Tooltip>,
+        labelType: '',
     },
 }
 

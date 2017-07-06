@@ -96,12 +96,23 @@ class PlanningPanel extends React.Component {
                                 </div>
                             || !currentAgenda &&
                                 <div className="Planning-panel__empty-message">
-                                    Choose an agenda from the drop-down list above.
+                                    <div className="panel-info">
+                                        <div className="panel-info__icon">
+                                            <i className="big-icon--calendar" />
+                                        </div>
+                                        <h3 className="panel-info__heading">Choose an agenda</h3>
+                                        <p className="panel-info__description">...from the drop-down list above.</p>
+                                    </div>
                                 </div>
                             || (planningList && planningList.length < 1) &&
                                 <div className="Planning-panel__empty-message">
-                                    There are no planning items in this agenda.<br/>
-                                    Drag an event here to start one.
+                                    <div className="panel-info">
+                                        <div className="panel-info__icon">
+                                            <i className="big-icon--add-to-list" />
+                                        </div>
+                                        <h3 className="panel-info__heading">There are no planning items in this agenda.</h3>
+                                        <p className="panel-info__description">Drag an event here to start one.</p>
+                                    </div>
                                 </div>
                         }
                     </div>
