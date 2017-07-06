@@ -117,11 +117,38 @@ const onPlanningUpdated = (_e, data) => (
     }
 )
 
+/**
+ * WS Action when a Planning item gets unlocked
+ * If the Planning Item is unlocked don't fetch it. Just update the store directly by a dispatch.
+ * This is done because backend Eve caching is returning old objects on subsequent fetch if locking
+ * is applied.
+ * @param {object} _e - Event object
+ * @param {object} data - Planning and User IDs
+ */
+const onPlanningUnlocked = (_e, data) => (
+    (dispatch, getState) => {
+        if (data && data.item) {
+            let planningItem = selectors.getStoredPlannings(getState())[data.item]
+            planningItem = {
+                ...planningItem,
+                lock_action: null,
+                lock_user: null,
+                lock_session: null,
+                lock_time: null,
+                _etag: data.etag,
+
+            }
+            return dispatch(planning.api.receivePlannings([planningItem]))
+        }
+    }
+)
+
 const self = {
     onPlanningCreated,
     onCoverageCreatedOrUpdated,
     onCoverageDeleted,
     onPlanningUpdated,
+    onPlanningUnlocked,
 }
 
 // Map of notification name and Action Event to execute
@@ -134,7 +161,7 @@ self.events = {
     'planning:spiked': () => (self.onPlanningUpdated),
     'planning:unspiked': () => (self.onPlanningUpdated),
     'planning:lock': () => (self.onPlanningUpdated),
-    'planning:unlock': () => (self.onPlanningUpdated),
+    'planning:unlock': () => (self.onPlanningUnlocked),
 }
 
 export default self

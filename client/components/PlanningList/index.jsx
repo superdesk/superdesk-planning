@@ -13,6 +13,15 @@ class PlanningList extends React.Component {
             planning.lock_session === this.props.session.sessionId ? true : false
     }
 
+    previewOrEditPlanning(planning) {
+        // If we have the lock in this session, dispatch openPlanningEditor instead
+        if (this.isPlanningLockedInThisSession(planning)) {
+            this.props.openPlanningEditor(planning)
+        } else {
+            this.props.previewPlanning(planning)
+        }
+    }
+
     rowRenderer({ index, key, style }) {
         const {
             plannings,
@@ -22,7 +31,6 @@ class PlanningList extends React.Component {
             handlePlanningUnspike,
             handlePlanningSpike,
             privileges,
-            previewPlanning,
             openPlanningEditor,
         } = this.props
         const planning = plannings[index]
@@ -37,7 +45,7 @@ class PlanningList extends React.Component {
                     agenda={currentAgenda}
                     onSpike={handlePlanningSpike}
                     onUnspike={handlePlanningUnspike}
-                    onClick={previewPlanning}
+                    onClick={this.previewOrEditPlanning.bind(this, planning)}
                     onDoubleClick={openPlanningEditor}
                     privileges={privileges}
                     itemLocked={planning.lock_user && planning.lock_session ? true : false}

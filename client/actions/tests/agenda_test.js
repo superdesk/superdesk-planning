@@ -126,8 +126,7 @@ describe('agenda', () => {
                         payload: 'a3',
                     }])
 
-                    expect(dispatch.args[6]).toEqual([{ type: 'CLOSE_PLANNING_EDITOR' }])
-                    expect(dispatch.args[9]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
+                    expect(dispatch.args[7]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
 
                     done()
                 })
@@ -390,10 +389,9 @@ describe('agenda', () => {
                     type: 'SELECT_AGENDA',
                     payload: 'a1',
                 }])
-                expect(dispatch.args[2]).toEqual([{ type: 'CLOSE_PLANNING_EDITOR' }])
 
-                expect(dispatch.args[5]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
-                expect(dispatch.args[8]).toEqual([{
+                expect(dispatch.args[3]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
+                expect(dispatch.args[6]).toEqual([{
                     type: 'RECEIVE_PLANNINGS',
                     payload: [],
                 }])

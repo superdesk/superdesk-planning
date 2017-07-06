@@ -151,6 +151,7 @@ describe('events', () => {
                 },
             }
             const action = actions.uploadFilesAndSaveEvent(event)
+            api.save = sinon.spy(() => (Promise.resolve(event)))
             return action(dispatch, getState)
             .then(() => {
                 expect(dispatch.args[4]).toEqual([{

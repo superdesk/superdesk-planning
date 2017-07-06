@@ -103,7 +103,8 @@ class LockService:
 
             push_notification(resource + ':unlock',
                               item=str(item.get(config.ID_FIELD)),
-                              user=str(user_id), lock_session=str(session_id))
+                              user=str(user_id), lock_session=str(session_id),
+                              etag=updates['_etag'])
         else:
             raise SuperdeskApiError.forbiddenError(message=error_message)
 
