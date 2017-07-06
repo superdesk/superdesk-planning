@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { hideModal } from '../actions'
-import { AgendaModal, ConfirmationModal } from '../components'
+import { AgendaModal, ConfirmationModal, NotificationModal } from '../components'
 import { ManageAgendasModalContainer } from './index'
 
 const modals = {
@@ -9,6 +9,7 @@ const modals = {
     CONFIRMATION: ConfirmationModal,
     CREATE_AGENDA: AgendaModal,
     EDIT_AGENDA: AgendaModal,
+    NOTIFICATION_MODAL: NotificationModal,
 }
 
 export function Modals({ modalType, modalProps, handleHide }) {

@@ -289,4 +289,57 @@ describe('actions.planning.notifications', () => {
             })
         })
     })
+
+    describe('`planning:unlocked`', () => {
+        beforeEach(() => {
+            store.initialState.planning.currentPlanningId = 'p1'
+            store.initialState.planning.plannings.p1.lock_user = 'ident1'
+            store.initialState.planning.plannings.p1.lock_session = 'session1'
+            store.ready = true
+        })
+
+        it('dispatches notification modal if item unlocked is being edited', (done) => (
+            store.test(done, planningNotifications.onPlanningUnlocked({},
+                {
+                    item: 'p1',
+                    user: 'ident2',
+                }))
+            .then(() => {
+                const modalStr = 'The planning item you were editing was unlocked' +
+                    ' by \"firstname2 lastname2\"'
+                expect(store.dispatch.args[0]).toEqual([{
+                    type: 'SHOW_MODAL',
+                    modalType: 'NOTIFICATION_MODAL',
+                    modalProps: {
+                        title: 'Item Unlocked',
+                        body: modalStr,
+                    },
+                }])
+
+                done()
+            })
+        ))
+
+        it('dispatches receivePlannings', (done) => (
+            store.test(done, planningNotifications.onPlanningUnlocked({},
+                {
+                    item: 'p1',
+                    user: 'ident2',
+                })) .then(() => {
+                    expect(store.dispatch.args[1]).toEqual([{
+                        type: 'RECEIVE_PLANNINGS',
+                        payload: [{
+                            ...data.plannings[0],
+                            lock_action: null,
+                            lock_user: null,
+                            lock_session: null,
+                            lock_time: null,
+                            _etag: undefined,
+                        }],
+                    }])
+
+                    done()
+                })
+        ))
+    })
 })

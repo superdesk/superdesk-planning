@@ -227,6 +227,16 @@ export const getTestActionStore = () => {
                 identity: { _id: 'ident1' },
                 sessionId: 'session1',
             },
+            users: [
+                {
+                    _id: 'ident1',
+                    display_name: 'firstname lastname',
+                },
+                {
+                    _id: 'ident2',
+                    display_name: 'firstname2 lastname2',
+                },
+            ],
         },
 
         getState: sinon.spy(() => (store.initialState)),

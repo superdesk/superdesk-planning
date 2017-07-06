@@ -237,7 +237,7 @@ export class Component extends React.Component {
                     <PubStatusLabel status={get(initialValues, 'pubstatus')} verbose={true}/>
                     <ItemActionsMenu actions={itemActions} />
                     <div>
-                        {(!readOnly && !lockedInThisSession && lockedUser)
+                        {(!lockedInThisSession && lockedUser)
                             && (
                             <div className={classNames('dropdown',
                                 'dropdown--dropright',

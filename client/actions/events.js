@@ -935,6 +935,42 @@ const onRecurringEventCreated = (_e, data) => (
 )
 
 /**
+ * Action Event when an Event gets unlocked
+ * @param _e
+ * @param {object} data - Event and User IDs
+ */
+const onEventUnlocked = (_e, data) => (
+    (dispatch, getState) => {
+        if (data && data.item) {
+            const event = selectors.getShowEventDetails(getState())
+            // If this is the event currently being edited, show popup notification
+            if (event === data.item && selectors.isEventDetailLockedInThisSession(getState())) {
+                const user =  selectors.getUsers(getState()).find((u) => u._id === data.user)
+                dispatch(showModal({
+                    modalType: 'NOTIFICATION_MODAL',
+                    modalProps: {
+                        title: 'Item Unlocked',
+                        body: 'The event you were editing was unlocked by \"' +
+                            user.display_name + '\"',
+                    },
+                }))
+            }
+
+            let eventInStore = selectors.getEvents(getState())[data.item]
+            eventInStore = {
+                ...eventInStore,
+                lock_action: null,
+                lock_user: null,
+                lock_session: null,
+                lock_time: null,
+                _etag: data.etag,
+            }
+            dispatch(receiveEvents([eventInStore]))
+        }
+    }
+)
+
+/**
  * Action Event when an Event gets updated
  * @param _e
  * @param {object} data - Event and User IDs
@@ -968,7 +1004,7 @@ const eventNotifications = {
     'events:spiked': () => (onEventUpdated),
     'events:unspiked': () => (onEventUpdated),
     'events:lock': () => (onEventUpdated),
-    'events:unlock': () => (onEventUpdated),
+    'events:unlock': () => (onEventUnlocked),
 }
 
 /**
