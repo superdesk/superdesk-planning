@@ -132,7 +132,7 @@ PlanningPanel.propTypes = {
 
 const mapStateToProps = (state) => ({
     currentAgenda: selectors.getCurrentAgenda(state),
-    planningList: selectors.getCurrentAgendaPlannings(state),
+    planningList: selectors.getFilteredPlanningList(state),
     planningsAreLoading: state.agenda.agendasAreLoading || state.planning.planningsAreLoading,
     editPlanningViewOpen: state.planning.editorOpened,
     isEventListShown: selectors.isEventListShown(state),
@@ -143,18 +143,18 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     onPlanningCreation: (planning) => (
-        // save planning and open the plannning editor
-        dispatch(actions.savePlanningAndReloadCurrentAgenda(planning))
+        // save planning and open the planning editor
+        dispatch(actions.planning.ui.saveAndReloadCurrentAgenda(planning))
         .then((planning) => (
-            dispatch(actions.openPlanningEditor(planning._id))
+            dispatch(actions.planning.ui.openEditor(planning._id))
         ))
     ),
-    handleSearch: (text) => (dispatch(actions.planningFilterByKeyword(text))),
+    handleSearch: (text) => (dispatch(actions.planning.ui.filterByKeyword(text))),
     addEventToCurrentAgenda: (event) => (dispatch(actions.addEventToCurrentAgenda(event))),
-    toggleEventsList: () => (dispatch(actions.toggleEventsList())),
+    toggleEventsList: () => (dispatch(actions.planning.ui.toggleEventsList())),
     onManageAgendasClick: () => (dispatch(actions.showModal({ modalType: 'MANAGE_AGENDAS' }))),
-    onFutureToggleChange: () => (dispatch(actions.toggleOnlyFutureFilter())),
-    onSpikedToggleChange: () => (dispatch(actions.toggleOnlySpikedFilter())),
+    onFutureToggleChange: () => (dispatch(actions.planning.ui.toggleOnlyFutureFilter())),
+    onSpikedToggleChange: () => (dispatch(actions.planning.ui.toggleOnlySpikedFilter())),
 })
 
 export const PlanningPanelContainer = connect(

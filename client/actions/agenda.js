@@ -2,9 +2,10 @@ import { hideModal } from './modal'
 import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
 import { cloneDeep, get } from 'lodash'
-import { closePlanningEditor, fetchPlannings, savePlanning } from './planning'
 import { PRIVILEGES, ITEM_STATE, AGENDA } from '../constants'
 import { checkPermission, getErrorMessage } from '../utils'
+
+import { planning } from './index'
 
 /**
  * Creates or updates an Agenda
@@ -78,7 +79,7 @@ const selectAgenda = (agendaId) => (
             payload: agendaId,
         })
         // close the planning details
-        dispatch(closePlanningEditor())
+        dispatch(planning.ui.closeEditor())
         // update the url (deep linking)
         $timeout(() => ($location.search('agenda', agendaId)))
         // reload the plannings list
@@ -250,7 +251,7 @@ const _createPlanningFromEvent = (event) => (
         }
 
         // planning inherits some fields from the given event
-        return dispatch(savePlanning({
+        return dispatch(planning.api.save({
             event_item: event._id,
             slugline: event.slugline,
             headline: event.name,
@@ -317,7 +318,7 @@ const fetchSelectedAgendaPlannings = () => (
     (dispatch, getState) => {
         const agenda = selectors.getCurrentAgenda(getState())
         if (!agenda || !agenda.planning_items) return Promise.resolve()
-        return dispatch(fetchPlannings({ planningIds: agenda.planning_items }))
+        return dispatch(planning.api.fetch({ ids: agenda.planning_items }))
     }
 )
 
@@ -404,10 +405,10 @@ const onAgendaCreatedOrUpdated = (_e, data) => (
 
 // Map of notification name and Action Event to execute
 const agendaNotifications = {
-    'agenda:created': onAgendaCreatedOrUpdated,
-    'agenda:updated': onAgendaCreatedOrUpdated,
-    'agenda:spiked': onAgendaCreatedOrUpdated,
-    'agenda:unspiked': onAgendaCreatedOrUpdated,
+    'agenda:created': () => (onAgendaCreatedOrUpdated),
+    'agenda:updated': () => (onAgendaCreatedOrUpdated),
+    'agenda:spiked': () => (onAgendaCreatedOrUpdated),
+    'agenda:unspiked': () => (onAgendaCreatedOrUpdated),
 }
 
 export {

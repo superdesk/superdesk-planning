@@ -63,7 +63,7 @@ const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (planning) => (
         // save the planning through the API
-        dispatch(actions.savePlanningAndReloadCurrentAgenda(planning))
+        dispatch(actions.planning.ui.saveAndReloadCurrentAgenda(planning))
     ),
 })
 

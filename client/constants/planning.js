@@ -13,5 +13,11 @@ export const PLANNING = {
         RECEIVE_COVERAGE: 'RECEIVE_COVERAGE',
         COVERAGE_DELETED: 'COVERAGE_DELETED',
         RECEIVE_PLANNING_HISTORY: 'RECEIVE_PLANNING_HISTORY',
+        SET_LIST: 'SET_PLANNING_LIST',
+        ADD_TO_LIST: 'ADD_TO_PLANNING_LIST',
     },
+    // Number of ids to look for by single request
+    // because url length must stay short
+    // chunk size must be lower than page limit (25)
+    FETCH_IDS_CHUNK_SIZE: 25,
 }

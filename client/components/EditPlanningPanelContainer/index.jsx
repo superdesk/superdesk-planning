@@ -213,9 +213,9 @@ const mapStateToProps = (state) => ({
 })
 
 const mapDispatchToProps = (dispatch) => ({
-    closePlanningEditor: (planning) => dispatch(actions.closePlanningEditor(planning)),
-    openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning))),
-    unlockItem: (planning) => (dispatch(actions.unlockAndOpenPlanningEditor(planning))),
+    closePlanningEditor: (planning) => dispatch(actions.planning.ui.closeEditor(planning)),
+    openPlanningEditor: (planning) => (dispatch(actions.planning.ui.openEditor(planning))),
+    unlockItem: (planning) => (dispatch(actions.planning.ui.unlockAndOpenEditor(planning))),
 })
 
 export const EditPlanningPanelContainer = connect(

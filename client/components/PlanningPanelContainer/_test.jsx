@@ -122,28 +122,32 @@ describe('planning', () => {
                     initialState,
                 })
                 expect(store.getState().planning.currentPlanningId).toBe(undefined)
-                store.dispatch(actions.savePlanningAndReloadCurrentAgenda({ slugline: 'coucou' }))
+                store.dispatch(actions.planning.ui.saveAndReloadCurrentAgenda({ slugline: 'coucou' }))
+                // store.dispatch(actions.savePlanningAndReloadCurrentAgenda({ slugline: 'coucou' }))
                 .then((planningCreated) => {
                     // the planning has been added to the current agenda
                     expect(store.getState().agenda.agendas[0].planning_items[0])
                         .toEqual(planningCreated._id)
                     // open the planning
-                    store.dispatch(actions.previewPlanning(planningCreated._id))
-                    // the planning editor has been opened with the saved planning
-                    expect(store.getState().planning.editorOpened).toBe(true)
-                    expect(store.getState().planning.currentPlanningId).toEqual(planningCreated._id)
-                    // the planning list has been refreshed
-                    expect(store.getState().planning.plannings.RefreshedplanningId)
-                        .toEqual({
-                            _id: 'RefreshedplanningId',
-                            slugline: 'coucou',
-                            coverages: [],
-                        })
-                    done()
+                    store.dispatch(actions.planning.ui.openEditor(planningCreated._id))
+                    .then(() => {
+                        // the planning editor has been opened with the saved planning
+                        expect(store.getState().planning.editorOpened).toBe(true)
+                        expect(store.getState().planning.currentPlanningId).toEqual(planningCreated._id)
+                        // the planning list has been refreshed
+                        expect(store.getState().planning.plannings.RefreshedplanningId)
+                            .toEqual({
+                                _id: 'RefreshedplanningId',
+                                slugline: 'coucou',
+                                coverages: [],
+                            })
+                        done()
+                    })
+
                 })
             })
 
-            it('loads plannings when agenda is selected', () => {
+            it('loads plannings when agenda is selected', (done) => {
                 const initialState = {
                     planning: {
                         plannings: {
@@ -151,6 +155,7 @@ describe('planning', () => {
                             planning2: { _id: 'planning2' },
                             planning3: { _id: 'planning3' },
                         },
+                        planningsInList: [],
                     },
                     agenda: {
                         agendas: [{
@@ -164,7 +169,19 @@ describe('planning', () => {
                     },
                     session: { identity: { _id: 'user' } },
                 }
-                const store = createTestStore({ initialState })
+
+                const store = createTestStore({
+                    initialState,
+                    extraArguments: {
+                        apiQuery: () => ({
+                            _items: [
+                                initialState.planning.plannings.planning1,
+                                initialState.planning.plannings.planning2,
+                            ],
+                        }),
+                    },
+                })
+
                 const wrapper = mount(
                     <Provider store={store}>
                         <PlanningPanelContainer />
@@ -172,8 +189,12 @@ describe('planning', () => {
                 )
                 expect(wrapper.find(PlanningItem).length).toBe(0)
                 store.dispatch(actions.selectAgenda('agenda1'))
-                expect(wrapper.find(PlanningItem).length)
-                .toBe(initialState.agenda.agendas[0].planning_items.length)
+                .then(() => {
+                    expect(wrapper.find(PlanningItem).length)
+                    .toBe(initialState.agenda.agendas[0].planning_items.length)
+
+                    done()
+                })
             })
 
             it('drag and drop', () => {
@@ -191,42 +212,76 @@ describe('planning', () => {
                 .simulate('dragEnter', jsEvent)
             })
 
-            it('spike a planning', () => {
-                const store = createTestStore({ initialState })
+            it('spike a planning', (done) => {
+                const store = createTestStore({
+                    initialState,
+                    extraArguments: {
+                        apiQuery: () => ({
+                            _items: [
+                                initialState.planning.plannings.planning1,
+                                initialState.planning.plannings.planning2,
+                            ],
+                        }),
+                    },
+                })
+
                 const item = {
                     _id: 'planning1',
                     slugline: 'Plan1',
                 }
+
                 const wrapper = mount(
                     <Provider store={store}>
                         <PlanningPanelContainer />
                     </Provider>
                 )
 
-                wrapper.find('PlanningList').props().handlePlanningSpike(item)
-                expect(store.getState().modal.modalType).toBe('CONFIRMATION')
-                expect(store.getState().modal.modalProps.body).toBe(
-                    'Are you sure you want to spike the planning item Plan1 ?'
-                )
+                store.dispatch(actions.selectAgenda('agenda1'))
+                .then(() => {
+                    wrapper.find('PlanningList').props().handlePlanningSpike(item)
+                    expect(store.getState().modal.modalType).toBe('CONFIRMATION')
+                    expect(store.getState().modal.modalProps.body).toBe(
+                        'Are you sure you want to spike the planning item Plan1 ?'
+                    )
+
+                    done()
+                })
             })
 
-            it('unspike a planning', () => {
-                const store = createTestStore({ initialState })
+            it('unspike a planning', (done) => {
+                const store = createTestStore({
+                    initialState,
+                    extraArguments: {
+                        apiQuery: () => ({
+                            _items: [
+                                initialState.planning.plannings.planning1,
+                                initialState.planning.plannings.planning2,
+                            ],
+                        }),
+                    },
+                })
+
                 const item = {
                     _id: 'planning1',
                     slugline: 'Plan1',
                 }
+
                 const wrapper = mount(
                     <Provider store={store}>
                         <PlanningPanelContainer />
                     </Provider>
                 )
 
-                wrapper.find('PlanningList').props().handlePlanningUnspike(item)
-                expect(store.getState().modal.modalType).toBe('CONFIRMATION')
-                expect(store.getState().modal.modalProps.body).toBe(
-                    'Are you sure you want to unspike the planning item Plan1 ?'
-                )
+                store.dispatch(actions.selectAgenda('agenda1'))
+                .then(() => {
+                    wrapper.find('PlanningList').props().handlePlanningUnspike(item)
+                    expect(store.getState().modal.modalType).toBe('CONFIRMATION')
+                    expect(store.getState().modal.modalProps.body).toBe(
+                        'Are you sure you want to unspike the planning item Plan1 ?'
+                    )
+
+                    done()
+                })
             })
         })
     })

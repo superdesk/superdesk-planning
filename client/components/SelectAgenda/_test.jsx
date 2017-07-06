@@ -58,11 +58,12 @@ describe('<SelectAgendaComponent />', () => {
         const initialState = {
             planning: {
                 plannings: {
-                    '3': {
+                    planning3: {
                         _id: '3',
                         slugline: 'planning 3',
                     },
                 },
+                planningsInList: [],
             },
             agenda: {
                 agendas: [
@@ -73,15 +74,26 @@ describe('<SelectAgendaComponent />', () => {
                     {
                         _id: '2',
                         name: 'agenda2',
-                        planning_items: ['3'],
+                        planning_items: ['planning3'],
                     },
                 ],
                 currentAgendaId: '1',
             },
         }
-        const store = createTestStore({ initialState: initialState })
+
+        const store = createTestStore({
+            initialState,
+            extraArguments: {
+                apiQuery: () => ({
+                    _items: [
+                        initialState.planning.plannings.planning3,
+                    ],
+                }),
+            },
+        })
+
         // must be empty first
-        expect(selectors.getCurrentAgendaPlannings(store.getState()))
+        expect(selectors.getFilteredPlanningList(store.getState()))
         .toEqual([])
         store.dispatch(actions.selectAgenda('2')).then(() => {
             // check if selection is registered in the store
@@ -89,8 +101,9 @@ describe('<SelectAgendaComponent />', () => {
             .toEqual('2')
             // expect(selectors.getCurrentAgenda(store.getState())._id).toEqual('2')
             // must be not empty any more
-            expect(selectors.getCurrentAgendaPlannings(store.getState()))
-            .toEqual([initialState.planning.plannings['3']])
+            expect(selectors.getFilteredPlanningList(store.getState()))
+            .toEqual([initialState.planning.plannings.planning3])
+
             done()
         })
     })

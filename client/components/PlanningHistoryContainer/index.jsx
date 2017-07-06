@@ -41,7 +41,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     fetchPlanningHistory: (currentPlanningId) => (
-        dispatch(actions.fetchPlanningHistory(currentPlanningId))
+        dispatch(actions.planning.api.fetchPlanningHistory(currentPlanningId))
     ),
 })
 

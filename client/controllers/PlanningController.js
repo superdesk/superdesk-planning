@@ -113,7 +113,7 @@ export const registerNotifications = ($scope, store) => {
                     data,
                 },
             })
-            store.dispatch(func(_e, data))
+            store.dispatch(func()(_e, data))
         })
     })
 }

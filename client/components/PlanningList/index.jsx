@@ -83,30 +83,30 @@ PlanningList.propTypes = {
 const mapStateToProps = (state) => ({
     currentAgenda: selectors.getCurrentAgenda(state),
     currentPlanning: selectors.getCurrentPlanning(state),
-    plannings: selectors.getCurrentAgendaPlannings(state),
-    planningsEvents: selectors.getCurrentAgendaPlanningsEvents(state),
+    plannings: selectors.getFilteredPlanningList(state),
+    planningsEvents: selectors.getFilteredPlanningListEvents(state),
     privileges: selectors.getPrivileges(state),
     session: selectors.getSessionDetails(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
-    previewPlanning: (planning) => (dispatch(actions.previewPlanning(planning._id))),
-    openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning._id))),
-    handlePlanningSpike: (planning) => {
+    previewPlanning: (item) => (dispatch(actions.planning.ui.preview(item._id))),
+    openPlanningEditor: (item) => (dispatch(actions.planning.ui.openEditor(item._id))),
+    handlePlanningSpike: (item) => {
         dispatch(actions.showModal({
             modalType: 'CONFIRMATION',
             modalProps: {
-                body: `Are you sure you want to spike the planning item ${planning.slugline} ?`,
-                action: () => dispatch(actions.spikePlanning(planning)),
+                body: `Are you sure you want to spike the planning item ${item.slugline} ?`,
+                action: () => dispatch(actions.planning.ui.spike(item)),
             },
         }))
     },
-    handlePlanningUnspike: (planning) => {
+    handlePlanningUnspike: (item) => {
         dispatch(actions.showModal({
             modalType: 'CONFIRMATION',
             modalProps: {
-                body: `Are you sure you want to unspike the planning item ${planning.slugline} ?`,
-                action: () => dispatch(actions.unspikePlanning(planning)),
+                body: `Are you sure you want to unspike the planning item ${item.slugline} ?`,
+                action: () => dispatch(actions.planning.ui.unspike(item)),
             },
         }))
     },

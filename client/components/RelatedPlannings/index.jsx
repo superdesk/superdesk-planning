@@ -1,8 +1,8 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import './style.scss'
-import { previewPlanningAndOpenAgenda } from '../../actions'
 import * as selectors from '../../selectors'
+import * as actions from '../../actions'
 
 export const RelatedPlanningsComponent = ({ plannings, openPlanningItem, openPlanningClick }) => (
     <ul className="related-plannings">
@@ -47,7 +47,7 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     openPlanningClick: (planningId) => (
-        dispatch(previewPlanningAndOpenAgenda(planningId))
+        dispatch(actions.planning.ui.previewPlanningAndOpenAgenda(planningId))
     ),
 })
 
