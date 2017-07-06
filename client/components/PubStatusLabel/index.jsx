@@ -32,13 +32,20 @@ const PubStatusLabel = ({ status, verbose }) => {
     }
 
     const labelClasses = classNames('label', `label--${pubStatus.labelType}`)
-    return (
-        <OverlayTrigger placement="bottom" overlay={pubStatus.tooltip}>
-            <span className={labelClasses}>
-                {verbose ? get(pubStatus, 'labelVerbose', pubStatus.label) : pubStatus.label}
-            </span>
-        </OverlayTrigger>
+    const label = (
+        <span className={labelClasses}>
+            {verbose ? get(pubStatus, 'labelVerbose', pubStatus.label) : pubStatus.label}
+        </span>
     )
+    if (pubStatus.tooltip) {
+        return (
+            <OverlayTrigger placement="bottom" overlay={pubStatus.tooltip}>
+                {label}
+            </OverlayTrigger>
+        )
+    } else {
+        return label
+    }
 }
 
 PubStatusLabel.defaultProps = {
