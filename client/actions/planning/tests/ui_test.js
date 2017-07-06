@@ -344,8 +344,6 @@ describe('actions.planning.ui', () => {
             payload: 'a2',
         }])
 
-        expect(planningUi.closeEditor.callCount).toBe(1)
-
         expect(services.$timeout.callCount).toBe(1)
         expect(services.$location.search.callCount).toBe(1)
         expect(services.$location.search.args[0]).toEqual(['agenda', 'a2'])

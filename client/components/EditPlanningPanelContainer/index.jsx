@@ -90,7 +90,7 @@ export class EditPlanningPanel extends React.Component {
                         'dropdown--drop-right',
                         'pull-left',
                         { 'open': this.state.openUnlockPopup })}>
-                        {(!readOnly && !lockedInThisSession && lockedUser)
+                        {(!lockedInThisSession && lockedUser)
                             && (
                             <div className="lock-avatar">
                                 <button type='button' onClick={this.toggleOpenUnlockPopup.bind(this)}>
