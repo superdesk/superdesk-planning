@@ -12,19 +12,26 @@ export class EventsList extends React.Component {
         super(props)
         this.state = { isNextPageLoading: false }
     }
+
     onClick(event) { this.props.onClick(event) }
     onDoubleClick(event) { this.props.onDoubleClick(event) }
     onEventSpike(event) { this.props.onEventSpike(event) }
     onEventUnspike(event) { this.props.onEventUnspike(event) }
 
     getRowHeight({ index }) {
-        const { events } = this.props
-        return events[index].events.length * LIST_ITEM_1_LINE_HEIGHT + EVENT_LIST_DAY_HEADER_HEIGHT
+        const event = this.props.events[index]
+        const isFirst = !!event.date
+        const isLast = this.props.events.length === index + 1
+        let height = LIST_ITEM_1_LINE_HEIGHT
+        // space to display the day date
+        if (isFirst) { height += EVENT_LIST_DAY_HEADER_HEIGHT }
+        // margin to display the shadow at the bottom
+        if (isLast) { height += 3 }
+        return height
     }
 
     isRowLoaded({ index }) {
-        const { events } = this.props
-        return index <= events.length
+        return index <= this.props.events.length
     }
 
     loadMoreRows() {
@@ -45,30 +52,28 @@ export class EventsList extends React.Component {
     }
 
     rowRenderer({ index, key, style }) {
-        const { date, events } = this.props.events[index]
-        const dateStr = moment(date).format('dddd LL')
+        const { event, date } = this.props.events[index]
+        const isFirst = !!date
         return (
-            <div className="events-list__group" key={key} style={style}>
-                <div className="events-list__title">{dateStr}</div>
-                <div className="events-list__list sd-list-item-group sd-shadow--z2">
-                    {events.map((event) => (
-                        <EventItem event={event}
-                            key={event._id}
-                            onClick={this.props.onClick}
-                            onDoubleClick={this.props.onDoubleClick}
-                            onSpikeEvent={this.onEventSpike.bind(this, event)}
-                            onUnspikeEvent={this.onEventUnspike.bind(this, event)}
-                            highlightedEvent={this.props.highlightedEvent}
-                            isSelected={this.props.selectedEvents.indexOf(event._id) > -1}
-                            onSelectChange={(value) => this.props.onEventSelectChange({
-                                event: event._id,
-                                value,
-                            })}
-                            privileges={this.props.privileges}
-                            itemLocked={event.lock_user && event.lock_session ? true : false}
-                            itemLockedInThisSession={this.isEventLockedInThisSession(event)} />
-                    ))}
-                </div>
+            <div key={key} style={style} className="events-list__group">
+                {isFirst &&
+                    <div className="events-list__title">{moment(date).format('dddd LL')}</div>
+                }
+                <EventItem event={event}
+                    key={event._id}
+                    onClick={this.props.onClick}
+                    onDoubleClick={this.props.onDoubleClick}
+                    onSpikeEvent={this.onEventSpike.bind(this, event)}
+                    onUnspikeEvent={this.onEventUnspike.bind(this, event)}
+                    highlightedEvent={this.props.highlightedEvent}
+                    isSelected={this.props.selectedEvents.indexOf(event._id) > -1}
+                    onSelectChange={(value) => this.props.onEventSelectChange({
+                        event: event._id,
+                        value,
+                    })}
+                    privileges={this.props.privileges}
+                    itemLocked={event.lock_user && event.lock_session ? true : false}
+                    itemLockedInThisSession={this.isEventLockedInThisSession(event)} />
             </div>
         )
     }
@@ -99,7 +104,7 @@ export class EventsList extends React.Component {
                         </AutoSizer>
                     )}
                 </InfiniteLoader>
-            { !this.props.events || this.props.events.length === 0 &&
+            { !events || events.length === 0 &&
                 <p className="events-list__empty-msg">There is no event yet</p>
             }
             </div>

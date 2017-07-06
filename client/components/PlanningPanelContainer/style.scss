@@ -47,7 +47,6 @@
     .ListItem {
         width: auto; // otherwise it overflow on the right because of the margin
         margin: 10px 20px;
-        box-shadow: 0px 1px 4px 0 rgba(0, 0, 0, 0.2);
     }
     &__empty-message {
         font-size: 1.8rem;
