@@ -11,6 +11,13 @@ Feature: Coverage
     Scenario: Create new coverage item
         Given empty "users"
         Given empty "coverage"
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "slugline": "planning 1"
+        }]
+        """
         When we post to "users"
         """
         {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
@@ -32,6 +39,7 @@ Feature: Coverage
                         "user": "whoever wants to do it"
                     }
                 },
+                "planning_item": "#planning._id#",
                 "delivery": []
             }
         ]
@@ -95,6 +103,13 @@ Feature: Coverage
     Scenario: Coverage assignment audit information is populated.
         Given empty "users"
         Given empty "coverage"
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "slugline": "planning 1"
+        }]
+        """
         When we post to "users"
         """
         {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
@@ -116,7 +131,8 @@ Feature: Coverage
                         "user": "whoever wants to do it"
                     }
                 },
-                "delivery": []
+                "delivery": [],
+                "planning_item": "#planning._id#"
             }
         ]
         """
@@ -233,6 +249,14 @@ Feature: Coverage
     @notification
     Scenario: Coverage history tracks updates
         Given empty "coverage"
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "slugline": "planning 1"
+        }]
+        """
+        Then we store "planningId" with value "#planning._id#" to context
         When we post to "/coverage" with success
         """
         [
@@ -246,7 +270,8 @@ Feature: Coverage
                         "user": "whoever wants to do it"
                     }
                 },
-                "delivery": []
+                "delivery": [],
+                "planning_item": "#planning._id#"
             }
         ]
         """
@@ -280,5 +305,30 @@ Feature: Coverage
                 {"coverage_id":  "#coverage._id#",
                 "operation": "update"
                 }
+            ]}
+        """
+        When we get "/planning_history?where=planning_id==%22#planning._id#%22"
+        Then we get list with 3 items
+        """
+            {"_items": [
+                {"operation": "create"},
+                {"operation": "coverage created",
+                    "update": {"coverage_id": "#coverage._id#"}},
+                {"operation": "coverage updated",
+                    "update": {"coverage_id": "#coverage._id#"}}
+            ]}
+        """
+        When we delete "/coverage/#coverage._id#"
+        When we get "/planning_history?where=planning_id==%22#planning._id#%22"
+        Then we get list with 4 items
+        """
+            {"_items": [
+                {"operation": "create"},
+                {"operation": "coverage created",
+                    "update": {"coverage_id": "#coverage._id#"}},
+                {"operation": "coverage updated",
+                    "update": {"coverage_id": "#coverage._id#"}},
+                {"operation": "coverage deleted",
+                    "update": {"coverage_id": "#coverage._id#"}}
             ]}
         """

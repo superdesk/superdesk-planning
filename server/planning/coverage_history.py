@@ -8,7 +8,7 @@
 
 """Superdesk Files"""
 
-from superdesk import Resource
+from superdesk import Resource, get_resource_service
 from .history import HistoryService
 import logging
 from eve.utils import config
@@ -30,9 +30,20 @@ class CoverageHistoryResource(Resource):
 
 class CoverageHistoryService(HistoryService):
 
+    def on_item_created(self, items):
+        super().on_item_created(items)
+        for item in items:
+            self._save_planning_history(item['planning_item'], item.get('_id'), 'coverage created')
+
+    def on_item_updated(self, updates, original, operation=None):
+        super().on_item_updated(updates, original, operation)
+        self._save_planning_history(original['planning_item'], original.get('_id'), 'coverage updated')
+
     def on_item_deleted(self, doc):
         lookup = {'coverage_id': doc[config.ID_FIELD]}
         self.delete(lookup=lookup)
+        # find the planning item that this coverage belongs to and updates it's history with a coverage deleted
+        self._save_planning_history(doc['planning_item'], doc.get('_id'), 'coverage deleted')
 
     def _save_history(self, event, update, operation):
         history = {
@@ -42,3 +53,14 @@ class CoverageHistoryService(HistoryService):
             'update': update
         }
         self.post([history])
+
+    def _save_planning_history(self, planning_id, coverage_id, operation):
+        """Changes to the coverage are reported in the planning history
+
+        :param planning_id:
+        :param coverage_id:
+        :param operation:
+        :return:
+        """
+        planning = get_resource_service('planning').find_one(req=None, _id=planning_id)
+        get_resource_service('planning_history').on_item_updated({'coverage_id': coverage_id}, planning, operation)
