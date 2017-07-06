@@ -3,6 +3,7 @@ import planning from './index'
 import { getErrorMessage } from '../../utils'
 import * as selectors from '../../selectors'
 import { PLANNING } from '../../constants'
+import { showModal } from '../index'
 
 /**
  * WS Action when a new Planning item is created
@@ -127,7 +128,7 @@ const onPlanningUpdated = (_e, data) => (
  */
 const onPlanningUnlocked = (_e, data) => (
     (dispatch, getState) => {
-        if (data && data.item) {
+        if (get(data, 'item')) {
             let planningItem = selectors.getStoredPlannings(getState())[data.item]
             planningItem = {
                 ...planningItem,
@@ -136,9 +137,25 @@ const onPlanningUnlocked = (_e, data) => (
                 lock_session: null,
                 lock_time: null,
                 _etag: data.etag,
-
             }
-            return dispatch(planning.api.receivePlannings([planningItem]))
+
+            // If this is the planning item currently being edited, show popup notification
+            const currentPlanning = selectors.getCurrentPlanning(getState())
+            if (currentPlanning && currentPlanning._id == data.item &&
+                selectors.isCurrentPlanningLockedInThisSession(getState())) {
+                const user =  selectors.getUsers(getState()).find((u) => u._id === data.user)
+                dispatch(showModal({
+                    modalType: 'NOTIFICATION_MODAL',
+                    modalProps: {
+                        title: 'Item Unlocked',
+                        body: 'The planning item you were editing was unlocked by \"' +
+                            user.display_name + '\"',
+                    },
+                }))
+            }
+
+            dispatch(planning.api.receivePlannings([planningItem]))
+            return Promise.resolve()
         }
     }
 )
