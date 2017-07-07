@@ -11,6 +11,7 @@ export * from './subjects'
 export * from './session'
 
 import planning from './planning/index'
+import events from './events/index'
 
 import { agendaNotifications } from './agenda'
 import { eventNotifications } from './events'
@@ -30,4 +31,5 @@ const notifications = {
 export {
     planning,
     notifications,
+    events,
 }

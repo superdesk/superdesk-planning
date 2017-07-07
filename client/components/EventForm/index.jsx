@@ -466,7 +466,7 @@ const mapDispatchToProps = (dispatch) => ({
     saveAndPublish: (event) => dispatch(actions.saveAndPublish(event)),
     publish: (eventId) => dispatch(actions.publishEvent(eventId)),
     unpublish: (eventId) => dispatch(actions.unpublishEvent(eventId)),
-    spikeEvent: (event) => dispatch(actions.spikeEvent(event)),
+    spikeEvent: (event) => dispatch(actions.events.ui.spike(event)),
     unspikeEvent: (event) => dispatch(actions.unspikeEvent(event)),
     addEventToCurrentAgenda: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
     duplicateEvent: (event) => dispatch(actions.duplicateEvent(event)),

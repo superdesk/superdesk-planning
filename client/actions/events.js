@@ -9,7 +9,8 @@ import React from 'react'
 import { PRIVILEGES, EVENTS, ITEM_STATE } from '../constants'
 import { checkPermission, getErrorMessage, retryDispatch } from '../utils'
 
-import { planning } from './index'
+import eventsApi from './events/api'
+import eventsUi from './events/ui'
 
 const duplicateEvent = (event) => (
     (dispatch) => {
@@ -24,7 +25,7 @@ const duplicateEvent = (event) => (
         event.files = get(event, 'files', []).map((file) => (file._id || file))
         return dispatch(saveEvent(event))
         .then(() => dispatch(closeEventDetails()))
-        .then(() => dispatch(refetchEvents()))
+        .then(() => dispatch(eventsUi.refetchEvents()))
     }
 )
 
@@ -74,9 +75,9 @@ const askConfirmationBeforeSavingEvent = (event) => (
         const originalEvent = getFormInitialValues('addEvent')(getState())
         return new Promise((resolve, reject) => {
             if (originalEvent.recurrence_id && !isEqual(originalEvent.dates, event.dates)) {
-                dispatch(performFetchQuery({
+                dispatch(eventsApi.query({
                     recurrenceId: originalEvent.recurrence_id,
-                    startDateGreatherThan: originalEvent.dates.start,
+                    startDateGreaterThan: originalEvent.dates.start,
                 }))
                 .then((relatedEvents) => {
                     const count = relatedEvents._meta.total
@@ -148,7 +149,7 @@ const uploadFilesAndSaveEvent = (event) => {
                     e.files && e.files.length > 0 && typeof e.files[0] === 'string'
                 ))
                 if (incompleteEvents.length > 0) {
-                    dispatch(performFetchQuery({ ids: incompleteEvents.map((i) => (i._id)) }))
+                    dispatch(eventsApi.query({ ids: incompleteEvents.map((i) => (i._id)) }))
                     .then((e) => resolve(e._items))
                 } else {
                     resolve(events)
@@ -157,7 +158,7 @@ const uploadFilesAndSaveEvent = (event) => {
         ))
         // refresh the list
         .then((events) => (
-            dispatch(refetchEvents())
+            dispatch(eventsUi.refetchEvents())
             .then(() => (events))
         ))
         // If event was just created, open it in editing mode
@@ -171,52 +172,6 @@ const uploadFilesAndSaveEvent = (event) => {
         })
     )
 }
-
-/**
- * Action dispatcher that marks an Event as spiked
- * @param {object} event - The Event to be spiked
- * @return Promise
- */
-const _spikeEvent = (events) => (
-    (dispatch, getState, { api, notify }) => {
-        if (!Array.isArray(events)) {
-            events = [events]
-        }
-
-        return Promise.all(
-            events.map((event) => (
-                api.update('events_spike', event, {})
-            ))
-        )
-        .then(() => {
-            notify.success('The Event has been spiked.')
-            dispatch({
-                type: EVENTS.ACTIONS.SPIKE_EVENT,
-                payload: events,
-            })
-            // Close delete event modal
-            dispatch(hideModal())
-            // Close the Planning Editor if the Planning Item is
-            // associated with this event
-            events.forEach((event) => {
-                if (event._plannings) {
-                    const planIds = event._plannings.map((p) => p._id)
-                    const currentPlanId = selectors.getCurrentPlanningId(getState())
-                    if (planIds.indexOf(currentPlanId) > -1) {
-                        dispatch(planning.ui.closeEditor())
-                    }
-                }
-            })
-            // Fetch events to reload latest events list
-            return dispatch(refetchEvents())
-            .then(() => dispatch(fetchSelectedAgendaPlannings()))
-        }, (error) => (
-            notify.error(
-                getErrorMessage(error, 'There was a problem, Event was not spiked!')
-            )
-        ))
-    }
-)
 
 /**
  * Action dispatcher that marks an Event as active
@@ -237,7 +192,7 @@ const unspikeEvent = (event) => (
             dispatch(hideModal())
 
             // Fetch events to reload latest events list
-            return dispatch(refetchEvents())
+            return dispatch(eventsUi.refetchEvents())
         }, (error) => (
             notify.error(
                 getErrorMessage(error, 'There was a problem, Event was not unspiked!')
@@ -363,190 +318,6 @@ const saveEvent = (newEvent) => (
 )
 
 /**
- * Action Dispatcher for query the api for events
- * You can provide one of the following parameters to fetch from the server
- * @param {object} advancedSearch - Query parameters to send to the server
- * @param {object} fulltext - Full text search parameters
- * @param {array} ids - An array of Event IDs to fetch
- * @param {string} recurrenceId - The recurrence_id to fetch recurring events
- * @param {int} page - The page number to fetch
- * @param {string} state - The item state to filter by
- * @return arrow function
- */
-const performFetchQuery = (
-    {
-        advancedSearch={},
-        fulltext,
-        ids,
-        recurrenceId,
-        startDateGreatherThan,
-        page=1,
-        state=ITEM_STATE.ACTIVE,
-    }
-) => (
-    (dispatch, getState, { api }) => {
-        let query = {}
-        const filter = {}
-        let mustNot = []
-        let must = []
-
-        if (ids) {
-            const chunkSize = EVENTS.FETCH_IDS_CHUNK_SIZE
-            if (ids.length <= chunkSize) {
-                must.push({ terms: { _id: ids } })
-            } else {
-                // chunk the requests
-                const requests = []
-                for (var i = 0; i < Math.ceil(ids.length / chunkSize); i++) {
-                    const args = {
-                        ...arguments[0],
-                        ids: ids.slice(i * chunkSize, (i + 1) * chunkSize),
-                    }
-                    requests.push(dispatch(performFetchQuery(args)))
-                }
-                // flattern responses and return a response-like object
-                return Promise.all(requests).then((responses) => (
-                    { _items: Array.prototype.concat(...responses.map((r) => r._items)) }
-                ))
-            }
-        }
-        // List of actions to perform if the condition is true
-        [
-            {
-                condition: () => (fulltext),
-                do: () => {
-                    must.push({ query_string: { query: fulltext } })
-                },
-            },
-            {
-                condition: () => (recurrenceId),
-                do: () => {
-                    must.push({ term: { recurrence_id: recurrenceId } })
-                },
-            },
-            {
-                condition: () => (startDateGreatherThan),
-                do: () => {
-                    filter.range = {
-                        ...get(filter, 'range', {}),
-                        'dates.start': { gt: startDateGreatherThan },
-                    }
-                },
-            },
-            {
-                condition: () => (advancedSearch.name),
-                do: () => {
-                    must.push({ query_string: { query: advancedSearch.name } })
-                },
-            },
-            {
-                condition: () => (advancedSearch.source),
-                do: () => {
-                    const providers = advancedSearch.source.map((provider) => provider.name)
-                    const queries = providers.map((provider) => (
-                        { term: { source: provider } }
-                    ))
-                    must.push(...queries)
-                },
-            },
-            {
-                condition: () => (advancedSearch.location),
-                do: () => {
-                    must.push(
-                        { term: { 'location.name': advancedSearch.location } }
-                    )
-                },
-            },
-            {
-                condition: () => (advancedSearch.anpa_category),
-                do: () => {
-                    const codes = advancedSearch.anpa_category.map((cat) => cat.qcode)
-                    const queries = codes.map((code) => (
-                        { term: { 'anpa_category.qcode': code } }
-                    ))
-                    must.push(...queries)
-                },
-            },
-            {
-                condition: () => (advancedSearch.subject),
-                do: () => {
-                    const codes = advancedSearch.subject.map((sub) => sub.qcode)
-                    const queries = codes.map((code) => (
-                        { term: { 'subject.qcode': code } }
-                    ))
-                    must.push(...queries)
-                },
-            },
-            {
-                condition: () => (advancedSearch.dates),
-                do: () => {
-                    const range = {}
-
-                    if (advancedSearch.dates.start) {
-                        range['dates.start'] = { gte: advancedSearch.dates.start }
-                    }
-
-                    if (advancedSearch.dates.end) {
-                        range['dates.end'] = { lte: advancedSearch.dates.end }
-                    }
-
-                    filter.range = range
-                },
-            },
-        // loop over actions and performs if conditions are met
-        ].forEach((action) => {
-            if (action.condition()) {
-                action.do()
-            }
-        })
-
-        // default filter
-        if (isEqual(filter, {}) && isEqual(must, []) && isEqual(mustNot, [])) {
-            filter.range = { 'dates.end': { gte: 'now/d' } }
-        }
-
-        switch (state) {
-            case ITEM_STATE.SPIKED:
-                must.push({ term: { state: ITEM_STATE.SPIKED } })
-                break
-            case ITEM_STATE.ALL:
-                break
-            case ITEM_STATE.ACTIVE:
-            default:
-                mustNot.push({ term: { state: ITEM_STATE.SPIKED } })
-        }
-
-        query.bool = {
-            must_not: mustNot,
-            must,
-        }
-
-        // Query the API and sort by date
-        return api('events').query({
-            page: page,
-            sort: '[("dates.start",1)]',
-            embedded: { files: 1 },
-            source: JSON.stringify({
-                query,
-                filter,
-            }),
-        })
-        // convert dates to moment objects
-        .then((data) => ({
-            ...data,
-            _items: data._items.map((item) => ({
-                ...item,
-                dates: {
-                    ...item.dates,
-                    start: moment(item.dates.start),
-                    end: moment(item.dates.end),
-                },
-            })),
-        }))
-    }
-)
-
-/**
  * Action Dispatcher to fetch events from the server,
  * and add them to the store without adding them to the events list
  * @param {array} ids - An array of Event IDs to fetch
@@ -555,13 +326,13 @@ const performFetchQuery = (
  */
 const silentlyFetchEventsById = (ids=[], state = ITEM_STATE.ACTIVE) => (
     (dispatch) => (
-        dispatch(performFetchQuery({
+        dispatch(eventsApi.query({
             // distinct ids
             ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
             state,
         }))
         .then(data => {
-            dispatch(receiveEvents(data._items))
+            dispatch(eventsApi.receiveEvents(data._items))
             return Promise.resolve(data._items)
         })
     )
@@ -584,50 +355,15 @@ const fetchEvents = (params={
             payload: params,
         })
 
-        return dispatch(performFetchQuery(params))
+        return dispatch(eventsApi.query(params))
         .then(data => {
-            dispatch(receiveEvents(data._items))
-            dispatch(setEventsList(data._items.map((e) => e._id)))
+            dispatch(eventsApi.receiveEvents(data._items))
+            dispatch(eventsUi.setEventsList(data._items.map((e) => e._id)))
             // update the url (deep linking)
             $timeout(() => (
                 $location.search('searchEvent', JSON.stringify(params)), 0, false)
             )
             return data
-        })
-    }
-)
-
-/**
- * Action Dispatcher to re-fetch the current list of events
- * It achieves this by performing a fetch using the params from
- * the store value `events.lastRequestParams`
- */
-const refetchEvents = () => (
-    (dispatch, getState) => {
-        const prevParams = selectors.getPreviousEventRequestParams(getState())
-
-        const promises = []
-        for (let i = 1; i <= prevParams.page; i++) {
-            const params = {
-                ...prevParams,
-                page: i,
-            }
-            dispatch({
-                type: EVENTS.ACTIONS.REQUEST_EVENTS,
-                payload: params,
-            })
-            promises.push(dispatch(performFetchQuery(params)))
-        }
-
-        return Promise.all(promises)
-        .then((responses) => {
-            let events = responses
-                .map((e) => e._items)
-                .reduce((a, b) => a.concat(b))
-
-            dispatch(receiveEvents(events))
-            dispatch(setEventsList(events.map((e) => e._id)))
-            return events
         })
     }
 )
@@ -644,9 +380,9 @@ function loadMoreEvents() {
             type: EVENTS.ACTIONS.REQUEST_EVENTS,
             payload: params,
         })
-        return dispatch(performFetchQuery(params))
+        return dispatch(eventsApi.query(params))
         .then(data => {
-            dispatch(receiveEvents(data._items))
+            dispatch(eventsApi.receiveEvents(data._items))
             dispatch(addToEventsList(data._items.map((e) => e._id)))
         })
     }
@@ -661,7 +397,7 @@ const fetchEventById = (_id) => (
     (dispatch, getState, { api, notify }) => (
         api('events').getById(_id)
         .then((event) => {
-            dispatch(receiveEvents([event]))
+            dispatch(eventsApi.receiveEvents([event]))
             dispatch(addToEventsList([event._id]))
             return Promise.resolve(event)
         }, (error) => {
@@ -672,16 +408,6 @@ const fetchEventById = (_id) => (
         })
     )
 )
-
-/**
- * Action to set the list of events in the current list
- * @param {array} idsList - An array of Event IDs to assign to the current list
- * @return object
- */
-const setEventsList = (idsList) => ({
-    type: EVENTS.ACTIONS.SET_EVENTS_LIST,
-    payload: idsList,
-})
 
 /**
  * Action to add events to the current list
@@ -723,7 +449,7 @@ const previewEvent = (event) => ({
 const _unlockAndOpenEventDetails = (event) => (
     (dispatch) => (
         dispatch(_unlockEvent(event)).then((item) => {
-            dispatch(receiveEvents([item]))
+            dispatch(eventsApi.receiveEvents([item]))
             // Call openPlanningEditor to obtain a new lock for editing
             dispatch(_openEventDetails(item))
         }, () => (Promise.reject()))
@@ -746,7 +472,7 @@ const _openEventDetails = (event) => (
 
             dispatch(_lockEvent(event)).then((item) => {
                 dispatch(openDetails)
-                dispatch(receiveEvents([item]))
+                dispatch(eventsApi.receiveEvents([item]))
             }, () => {
                 dispatch(openDetails)
             })
@@ -798,17 +524,6 @@ const closeEventDetails = (event) => (
 )
 
 /**
- * Action to receive the list of Events and store them in the store
- * @param {array} events - An array of Event items
- * @return object
- */
-const receiveEvents = (events) => ({
-    type: EVENTS.ACTIONS.ADD_EVENTS,
-    payload: events,
-    receivedAt: Date.now(),
-})
-
-/**
  * Action to receive the history of actions on Event and store them in the store
  * @param {array} eventHistoryItems - An array of Event History items
  * @return object
@@ -824,31 +539,6 @@ const receiveEventHistory = (eventHistoryItems) => ({
  */
 const toggleEventsList = () => (
     { type: EVENTS.ACTIONS.TOGGLE_EVENT_LIST }
-)
-
-/**
- * Action Dispatcher to open the Spike Event modal
- * @param {object} event - The Event to be spiked
- */
-const _openSpikeEvent = (event) => (
-    (dispatch, getState) => {
-        const storedPlannings = selectors.getStoredPlannings(getState())
-        // Get _plannings for the event
-        const eventWithPlannings = {
-            ...event,
-            _plannings: Object.keys(storedPlannings).filter((pKey) => (
-                storedPlannings[pKey].event_item === event._id
-            )).map((pKey) => ({ ...storedPlannings[pKey] })),
-        }
-
-        return dispatch(showModal({
-            modalType: 'CONFIRMATION',
-            modalProps: {
-                body: React.createElement(SpikeEvent, { eventDetail: eventWithPlannings }),
-                action: () => dispatch(spikeEvent(eventWithPlannings)),
-            },
-        }))
-    }
 )
 
 /**
@@ -894,18 +584,6 @@ const setEventStatus = checkPermission(
     'Unauthorised to change the status of an event!'
 )
 
-const spikeEvent = checkPermission(
-    _spikeEvent,
-    PRIVILEGES.SPIKE_EVENT,
-    'Unauthorised to spike an event!'
-)
-
-const openSpikeEvent = checkPermission(
-    _openSpikeEvent,
-    PRIVILEGES.SPIKE_EVENT,
-    'Unauthorised to spike an event!'
-)
-
 const openUnspikeEvent = checkPermission(
     _openUnspikeEvent,
     PRIVILEGES.UNSPIKE_EVENT,
@@ -939,7 +617,7 @@ const onRecurringEventCreated = (_e, data) => (
             // a getById). So continue for 5 times, waiting 1 second between each request
             // until we receive the new events or an error occurs
             return dispatch(retryDispatch(
-                performFetchQuery({ recurrenceId: data.item }),
+                eventsApi.query({ recurrenceId: data.item }),
                 (events) => get(events, '_items.length', 0) > 0,
                 5,
                 1000
@@ -947,7 +625,7 @@ const onRecurringEventCreated = (_e, data) => (
             // Once we know our Recurring Events can be received from Elasticsearch,
             // go ahead and refresh the current list of events
             .then((data) => {
-                dispatch(refetchEvents())
+                dispatch(eventsUi.refetchEvents())
                 return Promise.resolve(data._items)
             }, (error) => {
                 notify.error(getErrorMessage(
@@ -990,7 +668,7 @@ const onEventUnlocked = (_e, data) => (
                 lock_time: null,
                 _etag: data.etag,
             }
-            dispatch(receiveEvents([eventInStore]))
+            dispatch(eventsApi.receiveEvents([eventInStore]))
         }
     }
 )
@@ -1003,7 +681,7 @@ const onEventUnlocked = (_e, data) => (
 const onEventUpdated = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
-            dispatch(refetchEvents())
+            dispatch(eventsUi.refetchEvents())
 
             // Get the list of Planning Item IDs that are associated with this Event
             const storedPlans = selectors.getStoredPlannings(getState())
@@ -1035,7 +713,7 @@ const eventNotifications = {
 /**
  * Action Dispatcher to fetch event history from the server
  * This will add the history of action on that event in event history list
- * @param {object} params - Query parameters to send to the server
+ * @param {object} eventId - Query parameters to send to the server
  * @return arrow function
  */
 const fetchEventHistory = (eventId) => (
@@ -1058,12 +736,9 @@ export {
     publishEvent,
     unpublishEvent,
     toggleEventSelection,
-    spikeEvent,
     unspikeEvent,
-    openSpikeEvent,
     openUnspikeEvent,
     toggleEventsList,
-    receiveEvents,
     receiveEventHistory,
     closeEventDetails,
     previewEvent,
@@ -1078,7 +753,6 @@ export {
     saveFiles,
     uploadFilesAndSaveEvent,
     loadMoreEvents,
-    refetchEvents,
     eventNotifications,
     askConfirmationBeforeSavingEvent,
     selectAllTheEventList,

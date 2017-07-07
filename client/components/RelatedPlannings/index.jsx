@@ -1,14 +1,16 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import './style.scss'
 import * as selectors from '../../selectors'
 import * as actions from '../../actions'
 
-export const RelatedPlanningsComponent = ({ plannings, openPlanningItem, openPlanningClick }) => (
+export const RelatedPlanningsComponent = ({ plannings, openPlanningItem, openPlanningClick, short }) => (
     <ul className="related-plannings">
         {plannings.map(({
             _id,
             slugline,
+            headline,
             anpa_category,
             _agenda,
             original_creator: { display_name },
@@ -19,22 +21,31 @@ export const RelatedPlanningsComponent = ({ plannings, openPlanningItem, openPla
                 {state && state === 'spiked' &&
                     <span className="label label--alert">spiked</span>
                 }
-                <a onClick={ openPlanningItem ? openPlanningClick.bind(null, _id) : null}>
-                    {slugline} created by {display_name} in {_agenda && _agenda.name} agenda
-                    {anpa_category && anpa_category.length && (
-                        <span>&nbsp;[{anpa_category.map((c) => c.name).join(', ')}]</span>
-                    )}
-                </a>
+                { short ? (
+                    <a onClick={ openPlanningItem ? openPlanningClick.bind(null, _id) : null}>
+                        {slugline || headline} in agenda {_agenda && _agenda.name}
+                    </a>
+                ) : (
+                    <a onClick={ openPlanningItem ? openPlanningClick.bind(null, _id) : null}>
+                        {slugline || headline} created by {display_name} in {_agenda && _agenda.name} agenda
+                        {anpa_category && anpa_category.length && (
+                            <span>&nbsp;[{anpa_category.map((c) => c.name).join(', ')}]</span>
+                        )}
+                    </a>
+                )}
             </li>
         ))}
     </ul>
 )
 
 RelatedPlanningsComponent.propTypes = {
-    plannings: React.PropTypes.array.isRequired,
-    openPlanningItem: React.PropTypes.bool,
-    openPlanningClick: React.PropTypes.func.isRequired,
+    plannings: PropTypes.array.isRequired,
+    openPlanningItem: PropTypes.bool,
+    openPlanningClick: PropTypes.func.isRequired,
+    short: PropTypes.bool,
 }
+
+RelatedPlanningsComponent.defaultProps = { short: false }
 
 const mapStateToProps = (state, ownProps) => ({
     plannings: ownProps.plannings.map((planning) => {

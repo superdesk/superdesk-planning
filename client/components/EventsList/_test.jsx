@@ -111,7 +111,7 @@ describe('<EventsList />', () => {
             location: [{ name: 'location3' }],
             name: 'name4',
         }
-        store.dispatch(actions.receiveEvents([newEvent]))
+        store.dispatch(actions.events.api.receiveEvents([newEvent]))
         store.dispatch(actions.addToEventsList([newEvent._id]))
         // There are one more group
         expect(wrapper.find('.events-list__title').length).toEqual(4 + 1)
@@ -122,7 +122,7 @@ describe('<EventsList />', () => {
             ...newEvent,
             name: 'new name',
         }
-        store.dispatch(actions.receiveEvents([updatedEvent]))
+        store.dispatch(actions.events.api.receiveEvents([updatedEvent]))
         expect(wrapper.find('.ListItem').length).toEqual(6 + 1)
     })
 })
