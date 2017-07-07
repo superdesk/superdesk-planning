@@ -5,7 +5,7 @@ import { cloneDeep, get } from 'lodash'
 import { PRIVILEGES, ITEM_STATE, AGENDA } from '../constants'
 import { checkPermission, getErrorMessage } from '../utils'
 
-import { planning } from './index'
+import { planning, showModal } from './index'
 
 /**
  * Creates or updates an Agenda
@@ -184,6 +184,37 @@ const _addToCurrentAgenda = (plannings) => (
 )
 
 /**
+ * Action factory that ask for creating a planning item from the supplied event,
+ * then calls addEventToCurrentAgenda
+ * @param {array} events - The events needed to create the planning items
+ */
+const askForAddEventToCurrentAgenda = (events) => (
+    (dispatch, getState) => {
+        const currentAgenda = selectors.getCurrentAgenda(getState())
+        if (currentAgenda) {
+            const message = events.length === 1 ?
+                'Do you want to add this event to the current agenda'
+                : `Do you want to add these ${events.length} events to the current agenda ?`
+            dispatch(showModal({
+                modalType: 'CONFIRMATION',
+                modalProps: {
+                    body: message,
+                    action: () => dispatch(addEventToCurrentAgenda(events)),
+                },
+            }))
+        } else {
+            dispatch(showModal({
+                modalType: 'CONFIRMATION',
+                modalProps: {
+                    body: 'You have to select an agenda first',
+                    action: () => {},
+                },
+            }))
+        }
+    }
+)
+
+/**
  * Action dispatcher that creates a planning item from the supplied event,
  * then adds this to the currently selected agenda
  * @param {object} event - The event used to create the planning item
@@ -191,6 +222,13 @@ const _addToCurrentAgenda = (plannings) => (
  */
 const _addEventToCurrentAgenda = (events) => (
     (dispatch, getState, { notify }) => {
+        const currentAgenda = selectors.getCurrentAgenda(getState())
+        if (!currentAgenda) {
+            let errorMsg = 'You have to select an agenda first'
+            notify.error(errorMsg)
+            return Promise.reject(errorMsg)
+        }
+
         if (!Array.isArray(events)) {
             events = [events]
         }
@@ -420,6 +458,7 @@ export {
     addToCurrentAgenda,
     addPlanningsToAgenda,
     addEventToCurrentAgenda,
+    askForAddEventToCurrentAgenda,
     fetchSelectedAgendaPlannings,
     agendaNotifications,
 }

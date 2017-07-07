@@ -531,7 +531,7 @@ describe('agenda', () => {
                     $timeout,
                 })
                 .catch(() => {
-                    expect(notify.error.args[0]).toEqual(['No Agenda selected.'])
+                    expect(notify.error.args[0]).toEqual(['You have to select an agenda first'])
                     done()
                 })
             })

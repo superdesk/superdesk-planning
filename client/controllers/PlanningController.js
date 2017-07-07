@@ -43,6 +43,12 @@ export function PlanningController(
     metadata,
     session
 ) {
+    // wrap notify methods inside $timeout to ensure it get displayed ASAP
+    const _notify = {
+        pop: () => $timeout(() => notify.pop()),
+        success: (msg) => $timeout(() => notify.success(msg)),
+        error: (msg) => $timeout(() => notify.error(msg)),
+    }
     // create the application store
     const store = createStore({
         initialState: { config: config },
@@ -54,7 +60,7 @@ export function PlanningController(
             vocabularies,
             superdesk,
             upload,
-            notify,
+            notify: _notify,
             privileges,
             notifyConnectionService,
             userList,
