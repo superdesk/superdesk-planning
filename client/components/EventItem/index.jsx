@@ -23,6 +23,7 @@ export const EventItem = ({
         onSelectChange,
         itemLocked,
         itemLockedInThisSession,
+        className,
     }) => {
     const hasBeenCanceled = get(event, 'occur_status.qcode') === 'eocstat:eos6'
     const hasBeenSpiked = get(event, 'state', 'active') === ITEM_STATE.SPIKED
@@ -35,6 +36,7 @@ export const EventItem = ({
             onDoubleClick={onDoubleClick}
             draggable={true}
             className={classNames('event',
+                className,
                 { 'event--has-planning': event._hasPlanning },
                 { 'event--has-been-canceled': hasBeenCanceled },
                 { 'event--locked': itemLocked })}
@@ -97,6 +99,7 @@ EventItem.propTypes = {
     onSpikeEvent: PropTypes.func.isRequired,
     onUnspikeEvent: PropTypes.func.isRequired,
     highlightedEvent: PropTypes.string,
+    className: PropTypes.string,
     privileges: PropTypes.object,
     isSelected: PropTypes.bool,
     onSelectChange: PropTypes.func.isRequired,

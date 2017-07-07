@@ -86,7 +86,7 @@ describe('<EventsList />', () => {
             </Provider>
         )
         // There are 4 groups
-        expect(wrapper.find('.events-list__list').length).toEqual(4)
+        expect(wrapper.find('.events-list__title').length).toEqual(4)
         // check order
         expect(wrapper.find('.events-list__title').map((e) => e.text()))
         .toEqual([
@@ -114,7 +114,7 @@ describe('<EventsList />', () => {
         store.dispatch(actions.receiveEvents([newEvent]))
         store.dispatch(actions.addToEventsList([newEvent._id]))
         // There are one more group
-        expect(wrapper.find('.events-list__list').length).toEqual(4 + 1)
+        expect(wrapper.find('.events-list__title').length).toEqual(4 + 1)
         // There is more event
         expect(wrapper.find('.ListItem').length).toEqual(6 + 1)
         // update an item

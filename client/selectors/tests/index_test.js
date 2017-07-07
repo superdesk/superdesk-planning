@@ -228,14 +228,14 @@ describe('selectors', () => {
     })
 
     it('getEventsOrderedByDay', () => {
-        const days = selectors.getEventsOrderedByDay(state)
-        expect(days.map((d) => d.date)).toEqual([
+        const events = selectors.getEventsOrderedByDay(state)
+        expect(events.map((d) => d.date)).toEqual([
             '2099-10-15',
             '2099-10-16',
             '2099-10-17',
         ])
-        expect(days[0].events[0]._id).toEqual('event1')
-        expect(days[1].events[0]._id).toEqual('event1')
-        expect(days[2].events[0]._id).toEqual('event2')
+        expect(events[0].event._id).toEqual('event1')
+        expect(events[1].event._id).toEqual('event1')
+        expect(events[2].event._id).toEqual('event2')
     })
 })

@@ -194,7 +194,7 @@ export const getEventsOrderedByDay = createSelector(
         // check if search exists
         // order by date
         events = events.sort((a, b) => a.dates.start - b.dates.start)
-        let days = {}
+        const days = {}
         function addEventToDate(event, date) {
             date = date || event.dates.start
             date = date.format('YYYY-MM-DD')
@@ -236,9 +236,18 @@ export const getEventsOrderedByDay = createSelector(
             date: day,
             events: days[day],
         })
+        sortable = sortBy(sortable, [(e) => (e.date)])
 
-        return sortBy(sortable, [(e) => (e.date)])
+        // restructure to set a `date` field only for the first event of a day
+        sortable = Array.prototype.concat(...sortable.map((day) => ([
+            {
+                event: day.events[0],
+                date: day.date,
+            },
+            ...day.events.slice(1).map((event) => ({ event })),
+        ])))
 
+        return sortable
     }
 )
 
