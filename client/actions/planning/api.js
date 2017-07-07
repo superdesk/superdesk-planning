@@ -11,13 +11,12 @@ import moment from 'moment'
  */
 const spike = (item) => (
     (dispatch, getState, { api }) => (
-        api.update('planning_spike', item, {})
+        api.update('planning_spike', { ...item }, {})
         .then(() => {
             dispatch({
                 type: PLANNING.ACTIONS.SPIKE_PLANNING,
                 payload: item,
             })
-            return dispatch(self.fetch())
         }, (error) => (Promise.reject(error)))
     )
 )
@@ -29,13 +28,12 @@ const spike = (item) => (
  */
 const unspike = (item) => (
     (dispatch, getState, { api }) => (
-        api.update('planning_unspike', item, {})
+        api.update('planning_unspike', { ...item }, {})
         .then(() => {
             dispatch({
                 type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
                 payload: item,
             })
-            return dispatch(self.fetch())
         }, (error) => (Promise.reject(error)))
     )
 )
@@ -132,15 +130,10 @@ const fetch = (params={}) => (
             dispatch(self.fetchPlanningsEvents(items))
             .then(() => {
                 dispatch(self.receivePlannings(items))
-                dispatch(self.setInList(items.map((p) => p._id)))
                 return Promise.resolve(items)
             }, (error) => {
                 dispatch(self.receivePlannings([]))
                 return Promise.reject(error)
-            })
-            .catch((error) => {
-                expect(error).toBe(null)
-                expect(error.stack).toBe(null)
             })
         ), (error) => {
             dispatch(self.receivePlannings([]))

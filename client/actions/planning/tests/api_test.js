@@ -61,7 +61,6 @@ describe('actions.planning.api', () => {
                     payload: data.plannings[1],
                 }])
 
-                expect(planningApi.fetch.callCount).toBe(1)
                 done()
             })
         ))
@@ -92,7 +91,6 @@ describe('actions.planning.api', () => {
                     payload: data.plannings[1],
                 }])
 
-                expect(planningApi.fetch.callCount).toBe(1)
                 done()
             })
         ))
