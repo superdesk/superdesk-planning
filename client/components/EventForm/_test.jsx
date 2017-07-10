@@ -30,6 +30,24 @@ describe('events', () => {
             _plannings: [],
         }
 
+        const createTestStoreForEventEditing = (event) => {
+            return createTestStore({
+                initialState: {
+                    events: {
+                        readOnly: false,
+                        events: { '5800d71930627218866f1e80' : event },
+                        showEventDetails: '5800d71930627218866f1e80',
+                    },
+                    users: [{ _id: 'user123' }],
+                    session: {
+                        identity: { _id: 'user123' },
+                        sessionId: 'session123',
+                    },
+                },
+            })
+
+        }
+
         describe('<EventForm />', () => {
             it('uploads and keeps files', (done) => {
                 const newEvent = cloneDeep(event)
@@ -131,20 +149,7 @@ describe('events', () => {
                 let _event = event
                 _event.lock_user = 'user123'
                 _event.lock_session = 'session123'
-                const store = createTestStore({
-                    initialState: {
-                        events: {
-                            readOnly: false,
-                            events: { '5800d71930627218866f1e80' : _event },
-                            showEventDetails: '5800d71930627218866f1e80',
-                        },
-                        users: [{ _id: 'user123' }],
-                        session: {
-                            identity: { _id: 'user123' },
-                            sessionId: 'session123',
-                        },
-                    },
-                })
+                const store = createTestStoreForEventEditing(_event)
                 const wrapper = mount(<Provider store={store}><EventForm initialValues={event}/></Provider>)
                 const field = wrapper.find('FileFieldComponent')
                 const file = field.props().file
@@ -161,20 +166,7 @@ describe('events', () => {
                 let _event = event
                 _event.lock_user = 'user123'
                 _event.lock_session = 'session123'
-                const store = createTestStore({
-                    initialState: {
-                        events: {
-                            readOnly: false,
-                            events: { '5800d71930627218866f1e80' : _event },
-                            showEventDetails: '5800d71930627218866f1e80',
-                        },
-                        users: [{ _id: 'user123' }],
-                        session: {
-                            identity: { _id: 'user123' },
-                            sessionId: 'session123',
-                        },
-                    },
-                })
+                const store = createTestStoreForEventEditing(_event)
                 const wrapper = mount(<Provider store={store}><EventForm initialValues={event} /></Provider>)
                 const field = wrapper.find('LinkFieldComponent')
                 const link = field.props().link
@@ -192,7 +184,10 @@ describe('events', () => {
             it('hides the save button if event is spiked', () => {
                 let wrapper = shallow(
                     <Component
-                        initialValues={{ state: 'spiked' }}
+                        initialValues={{
+                            _id: 'event123',
+                            state: 'spiked',
+                        }}
                         handleSubmit={sinon.spy()}
                         unspikeEvent={() => {}}
                         spikeEvent={() => {}}
@@ -209,6 +204,90 @@ describe('events', () => {
                     />
                 )
                 expect(wrapper.find('[type="submit"]').length).toBe(1)
+            })
+
+            it('Recurrence rules input fields are disabled when metadata is edited', () => {
+                const recEvent = {
+                    ...event,
+                    dates: {
+                        start: moment('2016-10-15T14:30+0000'),
+                        end: moment('2016-10-20T15:00+0000'),
+                        recurring_rule: {
+                            frequency: 'DAILY',
+                            endRepeatMode: 'unlimited',
+                        },
+                    },
+                    lock_user: 'user123',
+                    lock_session: 'session123',
+                }
+                const store = createTestStoreForEventEditing(recEvent)
+                const wrapper = mount(<Provider store={store}><EventForm initialValues={recEvent}
+                    formValues={recEvent} /></Provider>)
+                expect(wrapper.find(FormComponent).props().doesRepeat).toBe(true)
+                wrapper.find('LinksFieldArray').find('.Link__add-btn').simulate('click')
+                expect(wrapper.find('.error-block').length).toBe(1)
+                expect(wrapper.find('.error-block').get(0).textContent).toBe('Editing event\'s recurring rules values disabled')
+            })
+
+            it('Metadata input fields are disabled when recurring rule is edited', () => {
+                const recEvent = {
+                    ...event,
+                    dates: {
+                        start: moment('2016-10-15T14:30+0000'),
+                        end: moment('2016-10-20T15:00+0000'),
+                        recurring_rule: {
+                            frequency: 'DAILY',
+                            endRepeatMode: 'unlimited',
+                        },
+                    },
+                    lock_user: 'user123',
+                    lock_session: 'session123',
+                }
+                const store = createTestStoreForEventEditing(recEvent)
+                const wrapper = mount(<Provider store={store}><EventForm initialValues={recEvent}
+                    formValues={recEvent} /></Provider>)
+                expect(wrapper.find(FormComponent).props().doesRepeat).toBe(true)
+                const allDayToggleBtn = wrapper.find('.sd-toggle').at(0)
+                allDayToggleBtn.find('span').first().simulate('click')
+                expect(wrapper.find('.error-block').length).toBe(1)
+                expect(wrapper.find('.error-block').get(0).textContent).toBe('Editing event\'s metadata disabled')
+            })
+
+            it('Metadata and recurring rules can be edited for non-recurring event', () => {
+                const _event = {
+                    ...event,
+                    lock_user: 'user123',
+                    lock_session: 'session123',
+                }
+                const store = createTestStoreForEventEditing(_event)
+                const wrapper = mount(<Provider store={store}><EventForm initialValues={_event}/></Provider>)
+                expect(wrapper.find(FormComponent).props().doesRepeat).toBe(false)
+                expect(wrapper.find('FileFieldComponent').props().readOnly).toBe(false)
+                expect(wrapper.find('DayPickerInput').at(0).props().readOnly).toBe(false)
+            })
+
+            it('Cannot spike/create new events if only metadata of a recurring event is edited', () => {
+                const recEvent = {
+                    ...event,
+                    dates: {
+                        start: moment('2016-10-15T14:30+0000'),
+                        end: moment('2016-10-20T15:00+0000'),
+                        recurring_rule: {
+                            frequency: 'DAILY',
+                            endRepeatMode: 'unlimited',
+                        },
+                    },
+                    lock_user: 'user123',
+                    lock_session: 'session123',
+                }
+                const store = createTestStoreForEventEditing(recEvent)
+                const wrapper = mount(<Provider store={store}><EventForm initialValues={recEvent}
+                    enableReinitialize={true}/></Provider>)
+                expect(wrapper.find(FormComponent).props().doesRepeat).toBe(true)
+                wrapper.find('LinksFieldArray').find('.Link__add-btn').simulate('click')
+                expect(wrapper.find('ItemActionsMenu').props().actions.length).toBe(2)
+                expect(wrapper.find('ItemActionsMenu').props().actions[0].label).toBe('Create Planning Item')
+                expect(wrapper.find('ItemActionsMenu').props().actions[1].label).toBe('View Event History')
             })
 
             describe('allDay Toggle', () => {

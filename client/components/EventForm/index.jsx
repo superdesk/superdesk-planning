@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { RelatedPlannings, RepeatEventForm, fields, Toggle, EventHistoryContainer } from '../index'
 import { Field, FieldArray, reduxForm, formValueSelector, getFormValues } from 'redux-form'
-import { isNil, get } from 'lodash'
+import { isNil, get, isEqual, remove } from 'lodash'
 import { PubStatusLabel } from '../index'
 import moment from 'moment'
 import { ChainValidators, EndDateAfterStartDate, RequiredFieldsValidatorFactory, UntilDateValidator } from '../../validators'
@@ -29,18 +29,44 @@ export class Component extends React.Component {
             doesRepeat: false,
             previewHistory: false,
             openUnlockPopup: false,
+            recurringRuleEdited: false,
         }
     }
 
     componentWillReceiveProps(nextProps) {
         const { doesRepeat } = nextProps
-        if (doesRepeat) {
-            this.setState({ doesRepeat: true })
+        const recurringRuleNextState = this.getNextRecurringRuleState(nextProps)
+
+        if (doesRepeat || this.state.recurringRuleEdited !== recurringRuleNextState) {
+            this.setState({
+                doesRepeat: true,
+                recurringRuleEdited: recurringRuleNextState,
+            })
         }
     }
 
     componentDidMount() {
         this.props.reset()
+    }
+
+    getNextRecurringRuleState(nextProps) {
+        const recurringRuleFields = [
+            'dates.start',
+            'dates.end',
+            'dates.recurring_rule',
+        ]
+
+        // CTRL-Z was done to bring form back to pristine: reset its state value
+        if (nextProps.pristine || !get(this.props.initialValues, 'dates.recurring_rule') ||
+            !nextProps.doesRepeat)
+            return false
+
+        // Return true if any recurring-rules field got changed
+        return recurringRuleFields.some((field) => {
+            if (!isEqual(get(nextProps.formValues, field), get(this.props.initialValues, field))) {
+                return true
+            }
+        })
     }
 
     oneHourAfterStartingDate() {
@@ -112,6 +138,18 @@ export class Component extends React.Component {
         this.setState({ openUnlockPopup: !this.state.openUnlockPopup })
     }
 
+    isMetaDataEditable() {
+        // Editable if form is new event or pristine or non recurring event
+        // or recurring rules not edited
+        return (!get(this.props.initialValues, '_id') || !this.props.doesRepeat || this.props.pristine || !this.state.recurringRuleEdited)
+    }
+
+    isRecurringRulesEditable() {
+        // Editable if form is new event or pristine or recurring event
+        // or recurring rules edited
+        return (!get(this.props.initialValues, '_id') || !get(this.props.initialValues, 'dates.recurring_rule') || this.props.pristine || this.state.recurringRuleEdited)
+    }
+
     render() {
         const {
             pristine,
@@ -135,15 +173,21 @@ export class Component extends React.Component {
             onUnlock,
         } = this.props
         const eventSpiked = get(initialValues, 'state', 'active') === ITEM_STATE.SPIKED
-        const updatedReadOnly = readOnly || eventSpiked ||
-            (get(initialValues, '_id') && !lockedInThisSession)
         const creationDate = get(initialValues, '_created')
         const updatedDate = get(initialValues, '_updated')
         const id = get(initialValues, '_id')
+        const forcedReadOnly = !isNil(id) && (readOnly || eventSpiked || !lockedInThisSession)
         const author = get(initialValues, 'original_creator') && users ? users.find((u) => (u._id === initialValues.original_creator)) : null
         const versionCreator = get(initialValues, 'version_creator') && users ? users.find((u) => (u._id === initialValues.version_creator)) : null
         const isPublished = get(initialValues, 'pubstatus') === EVENTS.PUB_STATUS.USABLE
         const lockedUser = this.getLockedUser(initialValues)
+        const metaDataEditable =  !forcedReadOnly && this.isMetaDataEditable()
+        const recurringRulesEditable =  !forcedReadOnly && this.isRecurringRulesEditable()
+
+        const RepeatEventFormProps = {
+            ...this.props,
+            readOnly: !recurringRulesEditable,
+        }
 
         let itemActions = []
         if (eventSpiked) {
@@ -179,6 +223,13 @@ export class Component extends React.Component {
                     callback: () => spikeEvent(initialValues),
                 })
             }
+
+            // Cannot spike or create new events if it is a recurring event and
+            // only metadata was edited
+            if ( metaDataEditable && !recurringRulesEditable) {
+                remove(itemActions, (action) => action.label === 'Spike Event' ||
+                    action.label === 'Duplicate Event')
+            }
         }
 
         return (
@@ -198,22 +249,20 @@ export class Component extends React.Component {
                     {(!pristine && !submitting) && (
                         <div>
                             <button type="button" className="btn" onClick={onBackClick}>Cancel</button>
-                            {!updatedReadOnly &&
+                            {!forcedReadOnly &&
                                 <button type="submit" className="btn btn--primary">
                                     Save
                                 </button>
                             }
-                            {!updatedReadOnly && !isPublished &&
-                                <button onClick={handleSubmit(this.handleSaveAndPublish.bind(this))} type="button" className="btn btn--success">
-                                    Save and publish
-                                </button>
+                            {!forcedReadOnly && !isPublished &&
+                                <button onClick={handleSubmit(this.handleSaveAndPublish.bind(this))} type="button" className="btn btn--success" />
                             }
                         </div>
                     )}
                     {!this.state.previewHistory && (
                         <div className="subnav__actions">
                             <div>
-                                {updatedReadOnly && !isPublished &&
+                                {forcedReadOnly && !isPublished &&
                                     <button
                                         onClick={() => publish(id)}
                                         type="button"
@@ -227,7 +276,7 @@ export class Component extends React.Component {
                                         className="btn btn--hollow">
                                         Unpublish</button>
                                 }
-                                {updatedReadOnly && !eventSpiked && (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
+                                {forcedReadOnly && !eventSpiked && (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
                                     <button
                                         type='button'
                                         onClick={openEventDetails.bind(null, initialValues)}
@@ -271,6 +320,8 @@ export class Component extends React.Component {
                             }
                         </div>
                     </div>
+                    { !forcedReadOnly && !metaDataEditable && <span className="error-block">Editing event's metadata disabled</span> }
+                    { !forcedReadOnly && !recurringRulesEditable && <span className="error-block">Editing event's recurring rules values disabled</span> }
                     {error && <div className="error-block">{error}</div>}
                     <div>
                         <label htmlFor="slugline">Slugline</label>
@@ -279,7 +330,7 @@ export class Component extends React.Component {
                         <Field name="slugline"
                             component={fields.InputField}
                             type="text"
-                            readOnly={updatedReadOnly}/>
+                            readOnly={!metaDataEditable}/>
                     </div>
                     <div>
                         <label htmlFor="name">Name</label>
@@ -288,37 +339,37 @@ export class Component extends React.Component {
                         <Field name="name"
                             component={fields.InputField}
                             type="text"
-                            readOnly={updatedReadOnly}/>
+                            readOnly={!metaDataEditable}/>
                     </div>
                     <div>
                         <Field name="anpa_category"
                             component={fields.CategoryField}
                             label="Category"
-                            readOnly={updatedReadOnly}/>
+                            readOnly={!metaDataEditable}/>
                     </div>
                     <div>
                         <Field name="subject"
                             component={fields.SubjectField}
                             label="Subject"
-                            readOnly={updatedReadOnly}/>
+                            readOnly={!metaDataEditable}/>
                     </div>
                     <div>
                         <Field name="definition_short"
                             component={fields.InputTextAreaField}
                             label="Description"
-                            readOnly={updatedReadOnly}/>
+                            readOnly={!metaDataEditable}/>
                     </div>
                     <div>
                         <Field name="internal_note"
                             component={fields.InputTextAreaField}
                             label="Internal Note"
-                            readOnly={updatedReadOnly}/>
+                            readOnly={!metaDataEditable}/>
                     </div>
                     <div>
                         <Field name="location[0]"
                             component={fields.GeoLookupInput}
                             label="Location"
-                            readOnly={updatedReadOnly}/>
+                            readOnly={!metaDataEditable}/>
                     </div>
                     <div>
                         <label htmlFor="dates.start">From</label>
@@ -327,7 +378,7 @@ export class Component extends React.Component {
                         <Field name="dates.start"
                                component={fields.DayPickerInput}
                                withTime={true}
-                               readOnly={updatedReadOnly}/>
+                               readOnly={!recurringRulesEditable}/>
                     </div>
                     <div>
                         <label htmlFor="dates.end">To</label>
@@ -337,13 +388,13 @@ export class Component extends React.Component {
                                defaultDate={this.oneHourAfterStartingDate()}
                                component={fields.DayPickerInput}
                                withTime={true}
-                               readOnly={updatedReadOnly}/>
+                               readOnly={!recurringRulesEditable}/>
                     </div>
                     <label>
                         <Toggle
                             value={this.props.isAllDay}
                             onChange={this.handleAllDayChange.bind(this)}
-                            readOnly={updatedReadOnly}/> All Day
+                            readOnly={!recurringRulesEditable}/> All Day
                     </label>
                     <div>
                         <label>
@@ -351,28 +402,28 @@ export class Component extends React.Component {
                                 name="doesRepeat"
                                 value={this.state.doesRepeat}
                                 onChange={this.handleDoesRepeatChange.bind(this)}
-                                readOnly={updatedReadOnly}/> Repeat
+                                readOnly={!recurringRulesEditable}/> Repeat
                         </label>
                         {
                             this.state.doesRepeat &&
                             // as <RepeatEventForm/> contains fields, we provide the props in this form
                             // see http://redux-form.com/6.2.0/docs/api/Props.md
-                            <RepeatEventForm {...this.props} />
+                            <RepeatEventForm { ...RepeatEventFormProps } />
                         }
                     </div>
                     <div>
                         <Field name="occur_status"
                             component={fields.OccurStatusField}
                             label="Event Occurence Status"
-                            readOnly={updatedReadOnly}/>
+                            readOnly={!metaDataEditable}/>
                     </div>
                     <div>
                         <label htmlFor="files">Attached files</label>
-                        <FieldArray name="files" component={fields.FilesFieldArray} readOnly={updatedReadOnly}/>
+                        <FieldArray name="files" component={fields.FilesFieldArray} readOnly={!metaDataEditable}/>
                     </div>
                     <div>
                         <label htmlFor="links">External links</label>
-                        <FieldArray name="links" component={fields.LinksFieldArray} readOnly={updatedReadOnly} />
+                        <FieldArray name="links" component={fields.LinksFieldArray} readOnly={!metaDataEditable} />
                     </div>
                     {initialValues && initialValues._plannings &&
                         initialValues._plannings.length > 0 &&
