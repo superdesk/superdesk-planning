@@ -1,16 +1,20 @@
 import React, { PropTypes } from 'react'
-import { get } from 'lodash'
+import { get, capitalize } from 'lodash'
 import { ListItem, TimePlanning, DueDate, tooltips } from '../index'
-import { OverlayTrigger } from 'react-bootstrap'
+import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { ITEM_STATE } from '../../constants'
 import classNames from 'classnames'
 import './style.scss'
 
-const coverageIcons = {
-    text: 'icon-text',
-    video: 'icon-video',
-    audio: 'icon-audio',
-    photo: 'icon-photo',
+const getCoverageIcon = (type) => {
+    const coverageIcons = {
+        text: 'icon-text',
+        video: 'icon-video',
+        live_video: 'icon-video',
+        audio: 'icon-audio',
+        photo: 'icon-photo',
+    }
+    return get(coverageIcons, type, 'icon-file')
 }
 
 const PlanningItem = ({
@@ -68,7 +72,18 @@ const PlanningItem = ({
                 </div>
                 <div className="sd-list-item__row">
                     {coveragesTypes.map((c, i) => (
-                        <span key={i}><i className={coverageIcons[c]}/>&nbsp;</span>
+                        <span key={i}>
+                            <OverlayTrigger
+                                placement="bottom"
+                                overlay={
+                                    <Tooltip id={`${i}${c}`}>
+                                        {capitalize(c).replace(/_/g, ' ')}
+                                    </Tooltip>
+                                }>
+                                <i className={getCoverageIcon(c)}/>
+                            </OverlayTrigger>
+                            &nbsp;
+                        </span>
                     ))}
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {location}
