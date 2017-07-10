@@ -20,6 +20,7 @@ from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user
 from superdesk.users.services import current_user_has_privilege
+from superdesk.utc import utcnow
 from .common import STATE_SCHEMA, PUB_STATUS_VALUES
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
@@ -371,6 +372,40 @@ class EventsService(superdesk.Service):
         req.sort = '[("dates.start", 1)]'
         req.where = json.dumps(query)
         return self.get_from_mongo(req, {})
+
+    def get_recurring_timeline(self, selected):
+        """Utility method to get all events in the series
+
+        This splits up the series of events into 3 separate arrays.
+        Historic: event.dates.start < utcnow()
+        Past: utcnow() < event.dates.start < selected.dates.start
+        Future: event.dates.start > selected.dates.start
+        """
+        historic = []
+        past = []
+        future = []
+
+        selected_start = selected.get('dates', {}).get('start', utcnow())
+
+        req = ParsedRequest()
+        req.sort = '[("dates.start", 1)]'
+        req.where = json.dumps({
+            '$and': [
+                {'recurrence_id': selected['recurrence_id']},
+                {'_id': {'$ne': selected[config.ID_FIELD]}}
+            ]
+        })
+
+        for event in list(self.get_from_mongo(req, {})):
+            end = event['dates']['end']
+            if end < utcnow():
+                historic.append(event)
+            elif end < selected_start:
+                past.append(event)
+            elif end > selected_start:
+                future.append(event)
+
+        return historic, past, future
 
 
 events_schema = {
