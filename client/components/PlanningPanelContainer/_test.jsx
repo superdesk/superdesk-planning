@@ -227,7 +227,7 @@ describe('planning', () => {
 
                 const item = {
                     _id: 'planning1',
-                    slugline: 'Plan1',
+                    headline: 'Plan1',
                 }
 
                 const wrapper = mount(
@@ -263,7 +263,7 @@ describe('planning', () => {
 
                 const item = {
                     _id: 'planning1',
-                    slugline: 'Plan1',
+                    headline: 'Plan1',
                 }
 
                 const wrapper = mount(

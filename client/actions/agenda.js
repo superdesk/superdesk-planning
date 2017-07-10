@@ -354,8 +354,16 @@ const _unspikeAgenda = (agenda) => (
 const fetchSelectedAgendaPlannings = () => (
     (dispatch, getState) => {
         const agenda = selectors.getCurrentAgenda(getState())
-        if (!agenda || !agenda.planning_items) return Promise.resolve()
-        return dispatch(planning.api.fetch({ ids: agenda.planning_items }))
+        return new Promise((resolve) => {
+            if (!agenda || !agenda.planning_items) {
+                resolve([])
+            } else {
+                resolve(dispatch(planning.api.fetch({ ids: agenda.planning_items })))
+            }
+        })
+        .then((items) => (dispatch(planning.api.setInList(
+            items.map((p) => p._id)
+        ))))
     }
 )
 
