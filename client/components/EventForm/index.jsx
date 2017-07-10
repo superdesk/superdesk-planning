@@ -160,10 +160,6 @@ export class Component extends React.Component {
         } else if (id) {
             itemActions = [
                 {
-                    label: 'Spike Event',
-                    callback: () => spikeEvent(initialValues),
-                },
-                {
                     label: 'Create Planning Item',
                     callback: () => addEventToCurrentAgenda(initialValues),
                 },
@@ -176,7 +172,15 @@ export class Component extends React.Component {
                     callback: this.viewEventHistory.bind(this),
                 },
             ]
+
+            if (!isPublished) {
+                itemActions.unshift({
+                    label: 'Spike Event',
+                    callback: () => spikeEvent(initialValues),
+                })
+            }
         }
+
         return (
             <form onSubmit={handleSubmit} className="EventForm">
                 <div className="subnav">
