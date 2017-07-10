@@ -709,3 +709,163 @@ Feature: Events Recurring
             }
         }]
         """
+
+    @auth
+    Scenario: Spike single event from recurring series
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2099-11-21T12:00:00.000Z",
+                "end": "2099-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 4,
+                    "endRepeatMode": "count"
+                }
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        Then we store "EVENT4" with 4 item
+        When we spike events "#EVENT2._id#"
+        """
+        { "spike_method": "single" }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            { "_id": "#EVENT1._id#", "state": "active" },
+            { "_id": "#EVENT2._id#", "state": "spiked" },
+            { "_id": "#EVENT3._id#", "state": "active" },
+            { "_id": "#EVENT4._id#", "state": "active" }
+        ]}
+        """
+
+    @auth
+    Scenario: Spike future events from recurring series
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2099-11-21T12:00:00.000Z",
+                "end": "2099-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 4,
+                    "endRepeatMode": "count"
+                }
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        Then we store "EVENT4" with 4 item
+        When we spike events "#EVENT2._id#"
+        """
+        { "spike_method": "future" }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            { "_id": "#EVENT1._id#", "state": "active" },
+            { "_id": "#EVENT2._id#", "state": "spiked" },
+            { "_id": "#EVENT3._id#", "state": "spiked" },
+            { "_id": "#EVENT4._id#", "state": "spiked" }
+        ]}
+        """
+
+    @auth
+    Scenario: Spike all events from recurring series
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2099-11-21T12:00:00.000Z",
+                "end": "2099-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 4,
+                    "endRepeatMode": "count"
+                }
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        Then we store "EVENT4" with 4 item
+        When we spike events "#EVENT2._id#"
+        """
+        { "spike_method": "all" }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            { "_id": "#EVENT1._id#", "state": "spiked" },
+            { "_id": "#EVENT2._id#", "state": "spiked" },
+            { "_id": "#EVENT3._id#", "state": "spiked" },
+            { "_id": "#EVENT4._id#", "state": "spiked" }
+        ]}
+        """
+
+    @auth
+    Scenario: Spike all recurring doesnt spike historic events
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "#DATE-3#",
+                "end": "#DATE-2#",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 4,
+                    "endRepeatMode": "count"
+                }
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        Then we store "EVENT4" with 4 item
+        When we spike events "#EVENT3._id#"
+        """
+        { "spike_method": "all" }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            { "_id": "#EVENT1._id#", "state": "active" },
+            { "_id": "#EVENT2._id#", "state": "active" },
+            { "_id": "#EVENT3._id#", "state": "spiked" },
+            { "_id": "#EVENT4._id#", "state": "spiked" }
+        ]}
+        """

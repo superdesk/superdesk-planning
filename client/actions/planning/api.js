@@ -77,7 +77,11 @@ const query = ({
         }
 
         if (eventItem) {
-            must.push({ term: { event_item: eventItem } })
+            if (Array.isArray(eventItem)) {
+                must.push({ terms: { event_item: eventItem } })
+            } else {
+                must.push({ term: { event_item: eventItem } })
+            }
         }
 
         switch (state) {
@@ -288,6 +292,22 @@ const loadPlanningById = (ids=[], state = ITEM_STATE.ALL) => (
             }, (error) => (Promise.reject(error)))
         }
     }
+)
+
+/**
+ * Action dispatcher to load Planning items by Event ID from the API, and place them
+ * in the local store. This does not update the list of visible Planning items
+ * @param {string} eventItem - The Event ID used to query the API
+ * @param {string} state - The state of the Planning items
+ * @return Promise
+ */
+const loadPlanningByEventId = (eventItem, state = ITEM_STATE.ALL) => (
+    (dispatch) => (
+        dispatch(self.loadPlanning({
+            eventItem,
+            state,
+        }))
+    )
 )
 
 /**
@@ -556,6 +576,7 @@ const self = {
     loadPlanningById,
     fetchPlanningHistory,
     receivePlanningHistory,
+    loadPlanningByEventId,
 }
 
 export default self

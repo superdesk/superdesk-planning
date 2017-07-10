@@ -284,10 +284,10 @@ describe('actions.planning.api', () => {
                     source: JSON.stringify({
                         query: {
                             bool: {
-                                must_not: [],
                                 must: [
                                     { terms: { _id: ['e1'] } },
                                 ],
+                                must_not: [],
                             },
                         },
                         filter: {},

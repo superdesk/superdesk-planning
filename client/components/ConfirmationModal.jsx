@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { Modal } from './index'
 import { Button } from 'react-bootstrap'
 
@@ -28,21 +29,21 @@ export function ConfirmationModal({ handleHide, modalProps }) {
             </Modal.Body>
             <Modal.Footer>
                 <Button type="button" onClick={handleCancel}>Cancel</Button>
-                <Button type="submit" onClick={action}>Ok</Button>
+                <Button className="btn--primary" type="submit" onClick={action}>Ok</Button>
             </Modal.Footer>
         </Modal>
     )
 }
 
 ConfirmationModal.propTypes = {
-    handleHide: React.PropTypes.func.isRequired,
-    modalProps: React.PropTypes.shape({
-        onCancel: React.PropTypes.func,
-        action: React.PropTypes.func.isRequired,
-        title: React.PropTypes.string,
-        body: React.PropTypes.oneOfType([
-            React.PropTypes.string,
-            React.PropTypes.element,
+    handleHide: PropTypes.func.isRequired,
+    modalProps: PropTypes.shape({
+        onCancel: PropTypes.func,
+        action: PropTypes.func.isRequired,
+        title: PropTypes.string,
+        body: PropTypes.oneOfType([
+            PropTypes.string,
+            PropTypes.element,
         ]),
     }),
 }

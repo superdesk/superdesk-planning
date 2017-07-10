@@ -56,7 +56,8 @@ const mapDispatchToProps = (dispatch) => ({
         modalType: 'CONFIRMATION',
         modalProps: {
             body: `Do you want to spike these ${events.length} events ?`,
-            action: () => dispatch(actions.spikeEvent(events)),
+            // action: () => dispatch(actions.spikeEvent(events)),
+            action: () => dispatch(actions.events.ui.spike(events)),
         },
     })),
 })

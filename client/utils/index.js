@@ -158,10 +158,11 @@ export const createTestStore = (params={}) => {
 export const createStore = (params={}) => {
     const { initialState={}, extraArguments={} } = params
     const middlewares = [
-        // logs actions
-        createLogger(),
         // adds the extra arguments to actions
         thunkMiddleware.withExtraArgument(extraArguments),
+
+        // logs actions (this should always be the last middleware)
+        createLogger(),
     ]
     // return the store
     return _createStore(
@@ -251,6 +252,8 @@ export const getErrorMessage = (error, defaultMessage) => {
         return get(error, 'data._message')
     } else if (get(error, 'data._issues.validator exception')) {
         return get(error, 'data._issues.validator exception')
+    } else if (typeof error === 'string') {
+        return error
     }
 
     return defaultMessage
