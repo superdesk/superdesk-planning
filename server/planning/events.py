@@ -440,6 +440,7 @@ events_schema = {
     },
     'definition_short': {'type': 'string'},
     'definition_long': {'type': 'string'},
+    'internal_note': {'type': 'string'},
     'anpa_category': {
         'type': 'list',
         'nullable': True,
