@@ -294,6 +294,7 @@ const _createPlanningFromEvent = (event) => (
             headline: event.name,
             subject: event.subject,
             anpa_category: event.anpa_category,
+            description_text: event.definition_short,
         }))
     }
 )

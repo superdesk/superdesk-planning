@@ -31,6 +31,11 @@ class Component extends React.Component {
                             label="Headline"
                             readOnly={readOnly} />
                         <Field
+                            name="description_text"
+                            component={fields.InputTextAreaField}
+                            label="Description"
+                            readOnly={readOnly} />
+                        <Field
                             name="anpa_category"
                             component={fields.CategoryField}
                             label="Category"
