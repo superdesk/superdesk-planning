@@ -483,6 +483,7 @@ describe('agenda', () => {
                             headline: events[0].name,
                             subject: events[0].subject,
                             anpa_category: events[0].anpa_category,
+                            description_text: 'Some event',
                         },
                     ])
 
