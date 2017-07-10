@@ -53,7 +53,7 @@ describe('events', () => {
                 }
                 const subject = shallow(<Component {...props}/>)
                 subject.find('form').simulate('submit')
-                expect(handleSubmit.callCount).toBe(1)
+                expect(handleSubmit.callCount).toBe(2)
             })
 
             it('save the event', () => {
