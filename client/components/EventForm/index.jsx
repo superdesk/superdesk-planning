@@ -309,6 +309,12 @@ export class Component extends React.Component {
                             readOnly={updatedReadOnly}/>
                     </div>
                     <div>
+                        <Field name="internal_note"
+                            component={fields.InputTextAreaField}
+                            label="Internal Note"
+                            readOnly={updatedReadOnly}/>
+                    </div>
+                    <div>
                         <Field name="location[0]"
                             component={fields.GeoLookupInput}
                             label="Location"
