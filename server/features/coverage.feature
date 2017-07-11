@@ -11,6 +11,13 @@ Feature: Coverage
     Scenario: Create new coverage item
         Given empty "users"
         Given empty "coverage"
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "slugline": "planning 1"
+        }]
+        """
         When we post to "users"
         """
         {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
@@ -32,6 +39,7 @@ Feature: Coverage
                         "user": "whoever wants to do it"
                     }
                 },
+                "planning_item": "#planning._id#",
                 "delivery": []
             }
         ]
@@ -50,6 +58,11 @@ Feature: Coverage
                 },
                 "delivery": []
             }]}
+        """
+        When we get "/coverage_history"
+        Then we get a list with 1 items
+        """
+            {"_items": [{"operation": "create", "coverage_id": "#coverage._id#", "update": {"unique_name": "123 name"}}]}
         """
 
     @auth
@@ -90,6 +103,13 @@ Feature: Coverage
     Scenario: Coverage assignment audit information is populated.
         Given empty "users"
         Given empty "coverage"
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "slugline": "planning 1"
+        }]
+        """
         When we post to "users"
         """
         {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
@@ -111,7 +131,8 @@ Feature: Coverage
                         "user": "whoever wants to do it"
                     }
                 },
-                "delivery": []
+                "delivery": [],
+                "planning_item": "#planning._id#"
             }
         ]
         """
@@ -222,4 +243,92 @@ Feature: Coverage
                 "user": "#CONTEXT_USER_ID#"
             }
         }]
+        """
+
+    @auth
+    @notification
+    Scenario: Coverage history tracks updates
+        Given empty "coverage"
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "slugline": "planning 1"
+        }]
+        """
+        Then we store "planningId" with value "#planning._id#" to context
+        When we post to "/coverage" with success
+        """
+        [
+             {
+                "guid": "123",
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "assigned_to": {
+                        "user": "whoever wants to do it"
+                    }
+                },
+                "delivery": [],
+                "planning_item": "#planning._id#"
+            }
+        ]
+        """
+        Then we get OK response
+        When we patch "/coverage/#coverage._id#"
+        """
+        {"unique_name": "123 name updated"}
+        """
+        Then we get OK response
+        When we get "/coverage_history"
+        Then we get a list with 2 items
+        """
+            {"_items": [{
+                "coverage_id":  "#coverage._id#",
+                "operation": "create",
+                "update": {
+                    "planning": {"assigned_to": {"user": "whoever wants to do it" }}
+                    }},
+                {"coverage_id":  "#coverage._id#",
+                "operation": "update",
+                "update": {"unique_name": "123 name updated"}}
+            ]}
+        """
+        When we get "/coverage_history?where=coverage_id==%22#coverage._id#%22"
+        Then we get list with 2 items
+        """
+            {"_items": [{
+                "coverage_id":  "#coverage._id#",
+                "operation": "create"
+                },
+                {"coverage_id":  "#coverage._id#",
+                "operation": "update"
+                }
+            ]}
+        """
+        When we get "/planning_history?where=planning_id==%22#planning._id#%22"
+        Then we get list with 3 items
+        """
+            {"_items": [
+                {"operation": "create"},
+                {"operation": "coverage created",
+                    "update": {"coverage_id": "#coverage._id#"}},
+                {"operation": "coverage updated",
+                    "update": {"coverage_id": "#coverage._id#"}}
+            ]}
+        """
+        When we delete "/coverage/#coverage._id#"
+        When we get "/planning_history?where=planning_id==%22#planning._id#%22"
+        Then we get list with 4 items
+        """
+            {"_items": [
+                {"operation": "create"},
+                {"operation": "coverage created",
+                    "update": {"coverage_id": "#coverage._id#"}},
+                {"operation": "coverage updated",
+                    "update": {"coverage_id": "#coverage._id#"}},
+                {"operation": "coverage deleted",
+                    "update": {"coverage_id": "#coverage._id#"}}
+            ]}
         """

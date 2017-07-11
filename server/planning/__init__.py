@@ -17,6 +17,7 @@ from .planning import PlanningResource, PlanningService
 from .planning_spike import PlanningSpikeResource, PlanningSpikeService, PlanningUnspikeResource, PlanningUnspikeService
 from .events_files import EventsFilesResource, EventsFilesService
 from .coverage import CoverageResource, CoverageService
+from .coverage_history import CoverageHistoryResource, CoverageHistoryService
 from .locations import LocationsResource, LocationsService
 from .agenda import AgendaResource, AgendaService
 from .events_history import EventsHistoryResource, EventsHistoryService
@@ -113,6 +114,14 @@ def init_app(app):
     app.on_updated_planning_unspike += planning_history_service.on_unspike
 
     app.on_locked_planning += planning_search_service.on_locked_planning
+
+    coverage_history_service = CoverageHistoryService('coverage_history', backend=superdesk.get_backend())
+    CoverageHistoryResource('coverage_history', app=app, service=coverage_history_service)
+
+    app.on_updated_coverage += coverage_history_service.on_item_updated
+    app.on_inserted_coverage += coverage_history_service.on_item_created
+    app.on_deleted_item_coverage -= coverage_history_service.on_item_deleted
+    app.on_deleted_item_coverage += coverage_history_service.on_item_deleted
 
     superdesk.privilege(
         name='planning',
