@@ -14,6 +14,7 @@ import superdesk
 import logging
 from superdesk import get_resource_service
 from superdesk.resource import Resource
+from superdesk.utc import utcnow
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
@@ -257,9 +258,7 @@ class EventsService(superdesk.Service):
 
             updated_event['dates']['start'] = e['dates']['start']
             updated_event['dates']['end'] = e['dates']['end']
-            updated_event['skip_on_update'] = True
-            self.patch(e[config.ID_FIELD], updated_event)
-            app.on_updated_events(updated_event, {'_id': e[config.ID_FIELD]})
+            self._patch_event_in_recurrent_series(e[config.ID_FIELD], updated_event)
 
         # And finally push a notification to connected clients
         push_notification(
@@ -269,19 +268,45 @@ class EventsService(superdesk.Service):
             user=str(updates.get('version_creator', ''))
         )
 
+    def _patch_event_in_recurrent_series(self, event_id, updated_event):
+        updated_event['skip_on_update'] = True
+        self.patch(event_id, updated_event)
+        app.on_updated_events(updated_event, {'_id': event_id})
+
+    def _get_empty_updates_for_recurring_event(self, event):
+        updates = {}
+        updates['dates'] = copy.deepcopy(event['dates'])
+        return updates
+
     def _remove_recurring_rules(self, updates, original):
         """Remove recurring rules for an event
-
-        This will also spike all future events in the series
         """
-        updates['dates']['recurring_rule'] = None
+
+        (historic, past, future) = self.get_recurring_timeline(original)
+
+        # 1 - Disassociate the selected event from the series
         updates['recurrence_id'] = None
 
-        # we spike all the related recurrent events
-        spike_service = get_resource_service('events_spike')
-        for e in self._get_future_events(original):
-            updated_event = spike_service.patch(e[config.ID_FIELD], {})
-            app.on_updated_events_spike(updated_event, e)
+        # 2 - Original series will end one event before the selected event
+        original_series_events = historic + past
+        for event in original_series_events:
+            event_updates = self._get_empty_updates_for_recurring_event(event)
+            recurring_rule = event_updates['dates']['recurring_rule']
+            if recurring_rule:
+                recurring_rule['until'] = original_series_events[len(original_series_events) - 1]['dates']['start']
+                recurring_rule['endRepeatMode'] = 'until'
+                recurring_rule['count'] = None
+                self._patch_event_in_recurrent_series(event[config.ID_FIELD], event_updates)
+
+        # 3 - Create a new series for the future events
+        new_recurrence_id = generate_guid(type=GUID_NEWSML)
+        for future_event in future:
+            event_updates = self._get_empty_updates_for_recurring_event(future_event)
+            event_updates['recurrence_id'] = new_recurrence_id
+            recurring_rule = event_updates['dates']['recurring_rule']
+            if recurring_rule and recurring_rule['endRepeatMode'] == 'count':
+                recurring_rule['count'] = recurring_rule['count'] - (len(historic) + len(past) + 1)
+            self._patch_event_in_recurrent_series(future_event[config.ID_FIELD], event_updates)
 
     def _convert_to_recurring_event(self, updates, original):
         """Convert a single event to a series of recurring events"""
