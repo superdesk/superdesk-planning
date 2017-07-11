@@ -74,7 +74,20 @@ const askConfirmationBeforeSavingEvent = (event) => (
     (dispatch, getState) =>  {
         const originalEvent = getFormInitialValues('addEvent')(getState())
         return new Promise((resolve, reject) => {
-            if (originalEvent.recurrence_id && !isEqual(originalEvent.dates, event.dates)) {
+            if (isNil(get(event, 'dates.recurring_rule')) &&
+                !isNil(get(originalEvent, 'dates.recurring_rule'))) {
+                // A recurring event was converted to a non-recurring one
+                // Display a confirmation modal indicating the after-effects
+                dispatch(showModal({
+                    modalType: 'CONFIRMATION',
+                    modalProps: {
+                        body: 'Only this instance of the recurrent series will be affected.',
+                        onCancel: () => reject(),
+                        action: () => resolve(),
+                    },
+                }))
+
+            } else if (originalEvent.recurrence_id && !isEqual(originalEvent.dates, event.dates)) {
                 dispatch(eventsApi.query({
                     recurrenceId: originalEvent.recurrence_id,
                     startDateGreaterThan: originalEvent.dates.start,
