@@ -255,7 +255,12 @@ export class Component extends React.Component {
                                 </button>
                             }
                             {!forcedReadOnly && !isPublished &&
-                                <button onClick={handleSubmit(this.handleSaveAndPublish.bind(this))} type="button" className="btn btn--success" />
+                                <button
+                                    onClick={handleSubmit(this.handleSaveAndPublish.bind(this))}
+                                    type="button"
+                                    className="btn btn--success">
+                                    Save and publish
+                                </button>
                             }
                         </div>
                     )}
