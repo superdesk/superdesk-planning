@@ -41,15 +41,25 @@ const _setEventStatus = ({ eventId, status }) => (
     }
 )
 
-const publishEvent = (eventId) => setEventStatus({
-    eventId,
-    status: EVENTS.PUB_STATUS.USABLE,
-})
+const publishEvent = (eventId) => (
+    (dispatch, getState, { notify }) => {
+        dispatch(setEventStatus({
+            eventId,
+            status: EVENTS.PUB_STATUS.USABLE,
+        }))
+        .then(() => notify.success('The event has been published'))
+    }
+)
 
-const unpublishEvent = (eventId) => setEventStatus({
-    eventId,
-    status: EVENTS.PUB_STATUS.WITHHOLD,
-})
+const unpublishEvent = (eventId) => (
+    (dispatch, getState, { notify }) => {
+        dispatch(setEventStatus({
+            eventId,
+            status: EVENTS.PUB_STATUS.WITHHOLD,
+        }))
+        .then(() => notify.success('The event has been unpublished'))
+    }
+)
 
 const toggleEventSelection = ({ event, value }) => (
     {
@@ -110,9 +120,10 @@ const askConfirmationBeforeSavingEvent = (event) => (
  * @return arrow function
  */
 const saveEventWithConfirmation = (event) => (
-    (dispatch) => {
+    (dispatch, getState, { notify }) => {
         dispatch(askConfirmationBeforeSavingEvent(event))
         .then(() => dispatch(uploadFilesAndSaveEvent(event)))
+        .then(() => notify.success('The event has been saved'))
     }
 )
 
@@ -126,7 +137,7 @@ const saveAndPublish = (event) => (
     (dispatch) => {
         dispatch(askConfirmationBeforeSavingEvent(event))
         .then(() => dispatch(uploadFilesAndSaveEvent(event)))
-        .then(() => dispatch(publishEvent(event._id)))
+        .then((events) => dispatch(publishEvent(events[0]._id)))
     }
 )
 /**
@@ -307,10 +318,9 @@ const saveEvent = (newEvent) => (
         // send the event on the backend
         return api('events').save(original, newEvent)
         // return a list of events (can has several because of reccurence)
-        .then(data => {
-            notify.success('The event has been saved')
-            return data._items || [data]
-        }, (error) => {
+        .then(data => (
+            data._items || [data]
+        ), (error) => {
             notify.error('An error occured')
             throw new SubmissionError({ _error: error.statusText })
         })
