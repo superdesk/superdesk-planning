@@ -41,7 +41,7 @@ export { EventsPanelContainer } from './EventsPanelContainer/index'
 export { ResizableEventsPanel } from './ResizableEventsPanel/index'
 export { ManageAgendasModalContainer } from './ManageAgendasModalContainer/index'
 export { NotificationModal } from './NotificationModal'
-export { ModalsContainer } from './ModalsContainer'
+
 export { SpikeAgendaConfirmationContainer } from './SpikeAgendaConfirmation'
 export { RelatedPlannings } from './RelatedPlannings'
 export { default as Datetime } from './Datetime/index'
@@ -49,11 +49,15 @@ export { default as Checkbox } from './Checkbox/index'
 export { default as MultiEventsSelectionActions } from './MultiEventsSelectionActions/index'
 export { UserAvatar } from './UserAvatar/index'
 export { UnlockItem } from './UnlockItem'
-export { default as UpdateRecurrentEventsConfirmation }
-    from './UpdateRecurrentEventsConfirmation/index'
 export { ItemActionsMenu } from './ItemActionsMenu/index'
 export { EventHistoryContainer } from './EventHistoryContainer/index'
 export { EventHistoryList } from './EventHistoryList/index'
 export { AbsoluteDate } from './AbsoluteDate'
 export { PlanningHistoryContainer } from './PlanningHistoryContainer/index'
 export { PlanningHistoryList } from './PlanningHistoryList/index'
+export { UpdateRecurringEventsModal, UpdateRecurringEventsForm }
+    from './UpdateRecurrentEventsConfirmation'
+export { RelatedEvents } from './RelatedEvents/index'
+
+// This must go last, as it imports Modals from above modules
+export { ModalsContainer } from './ModalsContainer'

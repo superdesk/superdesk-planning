@@ -4,7 +4,8 @@ import * as selectors from '../selectors'
 import { SubmissionError, getFormInitialValues } from 'redux-form'
 import { saveLocation as _saveLocation } from './index'
 import { showModal, hideModal, fetchSelectedAgendaPlannings } from './index'
-import { SpikeEvent, UpdateRecurrentEventsConfirmation } from '../components/index'
+import { SpikeEvent } from '../components/index'
+import { EventUpdateMethods } from '../components/fields'
 import React from 'react'
 import { PRIVILEGES, EVENTS, ITEM_STATE } from '../constants'
 import { checkPermission, getErrorMessage, retryDispatch } from '../utils'
@@ -76,54 +77,41 @@ const selectAllTheEventList = () => (
         })
     }
 )
+
 const deselectAllTheEventList = () => (
     { type: EVENTS.ACTIONS.DESELECT_ALL_EVENT }
 )
 
-const askConfirmationBeforeSavingEvent = (event) => (
-    (dispatch, getState) =>  {
+const askConfirmationBeforeSavingEvent = (event, publish=false) => (
+    (dispatch, getState) => {
         const originalEvent = getFormInitialValues('addEvent')(getState())
-        return new Promise((resolve, reject) => {
-            if (isNil(get(event, 'dates.recurring_rule')) &&
-                !isNil(get(originalEvent, 'dates.recurring_rule'))) {
-                // A recurring event was converted to a non-recurring one
-                // Display a confirmation modal indicating the after-effects
-                dispatch(showModal({
-                    modalType: 'CONFIRMATION',
-                    modalProps: {
-                        body: 'Only this instance of the recurrent series will be affected.',
-                        onCancel: () => reject(),
-                        action: () => resolve(),
-                    },
-                }))
 
-            } else if (originalEvent.recurrence_id && !isEqual(originalEvent.dates, event.dates)) {
-                dispatch(eventsApi.query({
-                    recurrenceId: originalEvent.recurrence_id,
-                    startDateGreaterThan: originalEvent.dates.start,
-                }))
-                .then((relatedEvents) => {
-                    const count = relatedEvents._meta.total
-                    if (count > 0) {
-                        dispatch(showModal({
-                            modalType: 'CONFIRMATION',
-                            modalProps: {
-                                body: React.createElement(UpdateRecurrentEventsConfirmation, {
-                                    updatedEvent: event,
-                                    relatedCount: relatedEvents._meta.total,
-                                }),
-                                onCancel: () => reject(),
-                                action: () => resolve(),
-                            },
-                        }))
-                    } else {
-                        resolve()
-                    }
-                })
-            } else {
-                resolve()
-            }
-        })
+        // If this is not from a recurring series, then simply save this event
+        if (!get(originalEvent, 'recurrence_id')) {
+            return dispatch(uploadFilesAndSaveEvent(event))
+            .then(() => {
+                if (publish) {
+                    dispatch(publishEvent(event._id))
+                }
+            })
+        }
+
+        // Otherwise get events in the series and display the confirmation modal
+        return dispatch(eventsApi.query({ recurrenceId: originalEvent.recurrence_id }))
+        .then((relatedEvents) => (
+            dispatch(showModal({
+                modalType: 'UPDATE_EVENT_MODAL',
+                modalProps: {
+                    eventDetail: {
+                        ...event,
+                        _recurring: get(relatedEvents, '_items', [event]),
+                        _publish: publish,
+                        _events: [],
+                        _originalEvent: originalEvent,
+                    },
+                },
+            }))
+        ))
     }
 )
 
@@ -133,11 +121,7 @@ const askConfirmationBeforeSavingEvent = (event) => (
  * @return arrow function
  */
 const saveEventWithConfirmation = (event) => (
-    (dispatch, getState, { notify }) => {
-        dispatch(askConfirmationBeforeSavingEvent(event))
-        .then(() => dispatch(uploadFilesAndSaveEvent(event)))
-        .then(() => notify.success('The event has been saved'))
-    }
+    (dispatch) => (dispatch(askConfirmationBeforeSavingEvent(event, false)))
 )
 
 /**
@@ -147,12 +131,9 @@ const saveEventWithConfirmation = (event) => (
  * @return arrow function
  */
 const saveAndPublish = (event) => (
-    (dispatch) => {
-        dispatch(askConfirmationBeforeSavingEvent(event))
-        .then(() => dispatch(uploadFilesAndSaveEvent(event)))
-        .then((events) => dispatch(publishEvent(events[0]._id)))
-    }
+    (dispatch) => (dispatch(askConfirmationBeforeSavingEvent(event, true)))
 )
+
 /**
  * Action Dispatcher for saving an event
  * If there are any files attached, upload these as well
@@ -327,6 +308,8 @@ const saveEvent = (newEvent) => (
             !k.startsWith('_') &&
             !isEqual(newEvent[k], original[k])
         ))
+
+        newEvent.update_method = get(newEvent, 'update_method.value', EventUpdateMethods[0].value)
 
         // send the event on the backend
         return api('events').save(original, newEvent)

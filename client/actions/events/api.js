@@ -39,11 +39,11 @@ const spike = (events) => (
 
         return Promise.all(
             events.map((event) => {
-                event.spike_method = get(event, 'spike_method.value', EventUpdateMethods[0].value)
+                event.update_method = get(event, 'update_method.value', EventUpdateMethods[0].value)
                 return api.update(
                     'events_spike',
                     event,
-                    { spike_method: event.spike_method }
+                    { update_method: event.update_method }
                 )
             })
         )

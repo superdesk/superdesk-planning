@@ -112,7 +112,7 @@ describe('<SpikeEventForm />', () => {
         restoreSinonStub(eventsUi.spike)
     })
 
-    it('renders and updates on spike_method change', (done) => {
+    it('renders and updates on update_method change', (done) => {
         return store.dispatch(eventsApi.loadRecurringEventsAndPlanningItems(data.events[1]))
         .then((eventDetail) => {
             const wrapper = mount(
