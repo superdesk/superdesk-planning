@@ -11,10 +11,10 @@ class EventHistoryComponent extends React.Component {
     }
 
     render() {
-        const { eventHistoryItems, users, openPlanningClick } = this.props
+        const { eventHistoryItems, users, openPlanningClick, openEventPreview, closeEventHistory } = this.props
         return (
             <div>
-                <EventHistoryList eventHistoryItems={eventHistoryItems} users={users} openPlanningClick={openPlanningClick} />
+                <EventHistoryList eventHistoryItems={eventHistoryItems} users={users} openPlanningClick={openPlanningClick} openEventPreview={openEventPreview} closeEventHistory={closeEventHistory} />
             </div>
         )
     }
@@ -33,6 +33,8 @@ EventHistoryComponent.propTypes = {
     highlightedEvent: PropTypes.string,
     fetchEventHistory: PropTypes.func,
     openPlanningClick: PropTypes.func,
+    closeEventHistory: PropTypes.func,
+    openEventPreview: PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -47,6 +49,10 @@ const mapDispatchToProps = (dispatch) => ({
     openPlanningClick: (planningId) => (
         dispatch(actions.previewPlanningAndOpenAgenda(planningId))
     ),
+    openEventPreview: (eventId) => {
+        dispatch(actions.closeEventDetails())
+        dispatch(actions.previewEvent({ _id: eventId }))
+    },
 })
 
 export const EventHistoryContainer = connect(

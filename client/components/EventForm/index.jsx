@@ -447,7 +447,8 @@ export class Component extends React.Component {
                                 <i className="icon-close-small" />
                             </a>
                         </div>
-                        <EventHistoryContainer highlightedEvent={highlightedEvent} />
+                        <EventHistoryContainer highlightedEvent={highlightedEvent}
+                            closeEventHistory={this.closeEventHistory.bind(this)}/>
                     </div>
                 }
             </form>
