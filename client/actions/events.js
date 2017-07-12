@@ -15,18 +15,15 @@ import eventsUi from './events/ui'
 
 const duplicateEvent = (event) => (
     (dispatch) => {
-        // copy in order to keep the original
-        event = { ...event };
-        // remove ids
-        [
-            '_id',
-            'guid',
-        ].forEach((key) => delete event[key])
-        // keeps only ids for files
-        event.files = get(event, 'files', []).map((file) => (file._id || file))
-        return dispatch(saveEvent(event))
-        .then(() => dispatch(closeEventDetails()))
+        var duplicate = null
+        var original = event
+        return dispatch(createDuplicate(event))
+        .then((dup) => {
+            duplicate = dup[0]
+            dispatch(closeEventDetails(original))
+        })
         .then(() => dispatch(eventsUi.refetchEvents()))
+        .then(() => dispatch(openEventDetails(duplicate)))
     }
 )
 
@@ -324,6 +321,25 @@ const saveEvent = (newEvent) => (
 )
 
 /**
+ * Action Dispatcher to create a duplicate of the passed event
+ * This action is private to this module only.
+ * @param {object} event
+ * @return arrow function
+ */
+const createDuplicate = (event) => (
+    (dispatch, getState, { api, notify }) => (
+        api('events_duplicate', event).save({})
+        .then(data => {
+            notify.success('The event has been duplicated')
+            return data._items || [data]
+        }, (error) => {
+            notify.error('An error occured when duplicating the event')
+            throw new SubmissionError({ _error: error.statusText })
+        })
+    )
+)
+
+/**
  * Action Dispatcher to fetch events from the server,
  * and add them to the store without adding them to the events list
  * @param {array} ids - An array of Event IDs to fetch
@@ -519,10 +535,11 @@ const _unlockEvent = (event) => (
  * Action to close the Edit Event panel
  * @return object
  */
-const closeEventDetails = (event) => (
+const closeEventDetails = () => (
     (dispatch, getState) => {
         if (selectors.isEventDetailLockedInThisSession(getState())) {
-            dispatch(_unlockEvent(event))
+            const _event = selectors.getShowEventDetails(getState())
+            dispatch(_unlockEvent({ _id: _event }))
         }
 
         dispatch({ type: EVENTS.ACTIONS.CLOSE_EVENT_DETAILS })

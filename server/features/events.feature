@@ -199,3 +199,151 @@ Feature: Events
             }
         }]
         """
+
+    @auth
+    Scenario: Track publish history for event
+        Given empty "users"
+        When we post to "users"
+        """
+        {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
+        """
+        When we post to "/events"
+        """
+        [
+            {
+                "guid": "123",
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "name": "event 123",
+                "slugline": "event-123",
+                "definition_short": "short value",
+                "definition_long": "long value",
+                "relationships":{
+                    "broader": "broader value",
+                    "narrower": "narrower value",
+                    "related": "related value"
+                },
+                "dates": {
+                    "start": "2016-01-02",
+                    "end": "2016-01-03"
+                },
+                "subject": [{"qcode": "test qcaode", "name": "test name"}],
+                "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}]
+            }
+        ]
+        """
+        Then we get OK response
+        When we patch "/events/#events._id#"
+        """
+        {"pubstatus": "usable"}
+        """
+        When we get "/events_history"
+        Then we get a list with 2 items
+        """
+            {"_items": [{
+                "event_id": "#events._id#",
+                "operation": "create"
+                },
+                {
+                "event_id": "#events._id#",
+                "operation": "publish",
+                "update": {"pubstatus": "usable"}
+                }
+            ]}
+        """
+        When we patch "/events/#events._id#"
+        """
+        {"pubstatus": "withhold"}
+        """
+        When we get "/events_history"
+        Then we get a list with 3 items
+        """
+            {"_items": [{
+                "event_id": "#events._id#",
+                "operation": "create"
+                },
+                {
+                "event_id": "#events._id#",
+                "operation": "publish",
+                "update": {"pubstatus": "usable"}
+                },
+                {
+                "event_id": "#events._id#",
+                "operation": "unpublish",
+                "update": {"pubstatus": "withhold"}
+                }
+            ]}
+        """
+
+    @auth
+    Scenario: Duplicate an event
+        Given empty "users"
+        When we post to "users"
+        """
+        {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
+        """
+        When we post to "/events"
+        """
+        [
+            {
+                "guid": "123",
+                "name": "event 123",
+                "slugline": "event-123",
+                "definition_short": "short value",
+                "definition_long": "long value",
+                "relationships":{
+                    "broader": "broader value",
+                    "narrower": "narrower value",
+                    "related": "related value"
+                },
+                "dates": {
+                    "start": "2016-01-02",
+                    "end": "2016-01-03"
+                },
+                "subject": [{"qcode": "test qcaode", "name": "test name"}],
+                "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}]
+            }
+        ]
+        """
+        Then we get OK response
+        When we post to "/events/#events._id#/duplicate"
+        """
+        [{}]
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {
+                "_id": "123",
+                "name": "event 123"
+            },
+            {
+                "_id": "#duplicate._id#",
+                "name": "event 123"
+            }
+        ]}
+        """
+        When we get "/events_history"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            {
+                "operation": "create",
+                "event_id": "123"
+            },
+            {
+                "operation": "create",
+                "event_id": "#duplicate._id#"
+            },
+            {
+                "operation": "duplicate",
+                "update": { "duplicate_id" : "#duplicate._id#"}
+            },
+            {
+                "operation": "duplicate_from",
+                "update": { "duplicate_id" : "123"}
+            }
+        ]}
+        """

@@ -32,6 +32,7 @@ from .feed_parsers.ntb_event_xml import NTBEventXMLFeedParser
 from .feeding_services.event_file_service import EventFileFeedingService
 from .feeding_services.event_http_service import EventHTTPFeedingService
 from .feeding_services.event_email_service import EventEmailFeedingService
+from .events_duplicate import EventsDuplicateResource, EventsDuplicateService
 
 
 def init_app(app):
@@ -122,6 +123,9 @@ def init_app(app):
     app.on_inserted_coverage += coverage_history_service.on_item_created
     app.on_deleted_item_coverage -= coverage_history_service.on_item_deleted
     app.on_deleted_item_coverage += coverage_history_service.on_item_deleted
+
+    events_duplicate_service = EventsDuplicateService('events_duplicate', backend=superdesk.get_backend())
+    EventsDuplicateResource('events_duplicate', app=app, service=events_duplicate_service)
 
     superdesk.privilege(
         name='planning',
