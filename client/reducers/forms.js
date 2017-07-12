@@ -35,8 +35,8 @@ const forms = formReducer.plugin({
         let storedPlannings = event._recurring.plannings
         let plannings = []
 
-        if (action.payload && action.meta.field === 'spike_method') {
-            // Filter planning items based on the current 'spike_method'
+        if (action.payload && action.meta.field === 'update_method') {
+            // Filter planning items based on the current 'update_method'
             // Spike selected event only
             if (action.payload.value === EventUpdateMethods[0].value) {
                 plannings = Object.keys(storedPlannings).filter((pid) => (
@@ -63,12 +63,45 @@ const forms = formReducer.plugin({
             }
         }
 
-        // event._plannings = plannings
         return {
             ...state,
             values: {
-                ...event,
+                ...state.values,
                 _plannings: plannings,
+            },
+        }
+    },
+    // 'updateEventConfirmation' is the name of the form given to reduxForm
+    updateEventConfirmation: (state={}, action) => {
+        if (action.type !== actionTypes.CHANGE ||
+            get(action, 'meta.form', '') !== 'updateEventConfirmation') {
+            return state
+        }
+
+        let event = state.values
+        let eventsInSeries = get(event, '_recurring', [])
+        let events = []
+
+        switch (action.payload.value) {
+            case EventUpdateMethods[1].value: // Selected & Future Events
+                events = eventsInSeries.filter((e) => (
+                    moment(e.dates.start).isSameOrAfter(moment(event.dates.start)) &&
+                    e._id !== event._id
+                ))
+                break
+            case EventUpdateMethods[2].value: // All Events
+                events = eventsInSeries.filter((e) => e._id !== event._id)
+                break
+            case EventUpdateMethods[0].value: // Selected Event Only
+            default:
+                break
+        }
+
+        return {
+            ...state,
+            values: {
+                ...state.values,
+                _events: events,
             },
         }
     },

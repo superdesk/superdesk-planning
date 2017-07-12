@@ -11,8 +11,8 @@ import './style.scss'
 const Component = ({ handleSubmit, initialValues, relatedPlannings=[] }) => {
     let event = initialValues
 
-    // Default the spike_method to 'Spike this event only'
-    event.spike_method = EventUpdateMethods[0]
+    // Default the update_method to 'Spike this event only'
+    event.update_method = EventUpdateMethods[0]
     let startStr = moment(event.dates.start).format('MMMM Do YYYY, h:mm:ss a')
     let endStr = moment(event.dates.end).format('MMMM Do YYYY, h:mm:ss a')
     let showRecurring = event.recurrence_id &&
@@ -45,7 +45,7 @@ const Component = ({ handleSubmit, initialValues, relatedPlannings=[] }) => {
                             <strong>This event is a recurring event!</strong>
                         </span>
 
-                        <Field name="spike_method"
+                        <Field name="update_method"
                                component={EventUpdateMethodField}
                                label={updateMethodLabel}/>
                     </div>

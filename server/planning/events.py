@@ -14,7 +14,6 @@ import superdesk
 import logging
 from superdesk import get_resource_service
 from superdesk.resource import Resource
-from superdesk.utc import utcnow
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
@@ -22,7 +21,8 @@ from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user
 from superdesk.users.services import current_user_has_privilege
 from superdesk.utc import utcnow
-from .common import STATE_SCHEMA, PUB_STATUS_VALUES
+from .common import STATE_SCHEMA, PUB_STATUS_VALUES, UPDATE_SINGLE, UPDATE_FUTURE, UPDATE_ALL, \
+    UPDATE_METHODS
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -92,6 +92,10 @@ class EventsService(superdesk.Service):
             # overwrite expiry date
             overwrite_event_expiry_date(event)
 
+            # We ignore the 'update_method' on create
+            if 'update_method' in event:
+                del event['update_method']
+
             # generates events based on recurring rules
             if event['dates'].get('recurring_rule', None):
                 generated_events.extend(generate_recurring_events(event))
@@ -151,6 +155,12 @@ class EventsService(superdesk.Service):
             del updates['skip_on_update']
             return
 
+        if 'update_method' in updates:
+            update_method = updates['update_method']
+            del updates['update_method']
+        else:
+            update_method = UPDATE_SINGLE
+
         user = get_user()
         user_id = user.get(config.ID_FIELD) if user else None
 
@@ -168,7 +178,7 @@ class EventsService(superdesk.Service):
         if not original.get('dates', {}).get('recurring_rule', None):
             self._update_single_event(updates, original)
         else:
-            self._update_recurring_events(updates, original)
+            self._update_recurring_events(updates, original, update_method)
 
     def _update_single_event(self, updates, original):
         """Updates the metadata and occurrence of a single event.
@@ -194,7 +204,7 @@ class EventsService(superdesk.Service):
                 user=str(updates.get('version_creator', ''))
             )
 
-    def _update_recurring_events(self, updates, original):
+    def _update_recurring_events(self, updates, original, update_method):
         """Method to update recurring events.
 
         If the recurring_rule has been removed for this event, process
@@ -203,25 +213,34 @@ class EventsService(superdesk.Service):
         merged = copy.deepcopy(original)
         merged.update(updates)
 
-        if updates.get('dates'):
-            if not updates['dates'].get('recurring_rule', None):
-                # Recurring rule has been removed for this event,
-                # Remove this rule and return from this method
-                self._remove_recurring_rules(updates, original)
-                push_notification(
-                    'events:updated',
-                    item=str(original[config.ID_FIELD]),
-                    user=str(updates.get('version_creator'))
-                )
-                return
+        # If dates has not been updated, then we're updating the metadata
+        # of this series of recurring events
+        if not updates.get('dates'):
+            self._update_metadata_recurring(updates, original, update_method)
+            # And finally push a notification to connected clients
+            push_notification(
+                'events:updated:recurring',
+                item=str(original[config.ID_FIELD]),
+                recurrence_id=str(original['recurrence_id']),
+                user=str(updates.get('version_creator', ''))
+            )
+            return
+        # Otherwise if the recurring_rule has bee removed, then we're
+        # disassociating this event from the series of recurring events
+        elif not updates['dates'].get('recurring_rule', None):
+            # Recurring rule has been removed for this event,
+            # Remove this rule and return from this method
+            self._remove_recurring_rules(updates, original)
+            push_notification(
+                'events:updated',
+                item=str(original[config.ID_FIELD]),
+                user=str(updates.get('version_creator'))
+            )
+            return
 
-            # Generate the list of changes to the series of events based on the
-            # new recurring_rules
-            new_events, updated_events, deleted_events = self._update_recurring_rules(updates, original)
-        else:
-            # We only update events here, so get the list of future events
-            updated_events = self._get_future_events(merged)
-            new_events = deleted_events = []
+        # Generate the list of changes to the series of events based on the
+        # new recurring_rules
+        new_events, updated_events, deleted_events = self._update_recurring_rules(updates, original)
 
         # Create instances for the new events, and save them to mongo/elastic
         # Then fire off events for them
@@ -267,6 +286,28 @@ class EventsService(superdesk.Service):
             recurrence_id=str(original['recurrence_id']),
             user=str(updates.get('version_creator', ''))
         )
+
+    def _update_metadata_recurring(self, updates, original, update_method):
+        """Update the Metadata for a series of recurring events
+
+        Based on the update_method, it will update:
+        single: the provided event only
+        future: the provided event, and all future events
+        all: all events in the series
+        """
+        events = []
+        if update_method == UPDATE_FUTURE:
+            historic, past, future = self.get_recurring_timeline(original)
+            events.extend(future)
+        elif update_method == UPDATE_ALL:
+            historic, past, future = self.get_recurring_timeline(original)
+            events.extend(historic)
+            events.extend(past)
+            events.extend(future)
+
+        for e in events:
+            self.patch(e[config.ID_FIELD], updates)
+            app.on_updated_events(updates, {'_id': e[config.ID_FIELD]})
 
     def _patch_event_in_recurrent_series(self, event_id, updated_event):
         updated_event['skip_on_update'] = True
@@ -732,6 +773,14 @@ events_schema = {
 
     'lock_action': {
         'type': 'string',
+        'mapping': not_analyzed,
+        'nullable': True
+    },
+
+    # The update method used for recurring events
+    'update_method': {
+        'type': 'string',
+        'allowed': UPDATE_METHODS,
         'mapping': not_analyzed,
         'nullable': True
     }
