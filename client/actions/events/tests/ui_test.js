@@ -17,10 +17,6 @@ describe('actions.events.ui', () => {
         services = store.services
         data = store.data
 
-        sinon.stub(eventsApi, 'fetch').callsFake(
-            () => (Promise.resolve({ _items: data.events }))
-        )
-
         sinon.stub(eventsApi, 'loadEventsByRecurrenceId').callsFake(
             () => (Promise.resolve(data.events))
         )
@@ -56,6 +52,10 @@ describe('actions.events.ui', () => {
         sinon.stub(planningApi, 'fetch').callsFake(() => (Promise.resolve()))
 
         sinon.stub(eventsUi, 'setEventsList').callsFake(() => (Promise.resolve()))
+
+        sinon.stub(eventsUi, '_openEventDetails').callsFake(() => (Promise.resolve()))
+        sinon.stub(eventsApi, 'lock').callsFake((item) => (Promise.resolve(item)))
+        sinon.stub(eventsApi, 'unlock').callsFake((item) => (Promise.resolve(item)))
     })
 
     afterEach(() => {
@@ -69,7 +69,9 @@ describe('actions.events.ui', () => {
         restoreSinonStub(eventsUi._openMultiSpikeModal)
         restoreSinonStub(eventsUi.refetchEvents)
         restoreSinonStub(eventsUi.setEventsList)
-
+        restoreSinonStub(eventsUi._openEventDetails)
+        restoreSinonStub(eventsApi.lock)
+        restoreSinonStub(eventsApi.unlock)
         restoreSinonStub(planningApi.loadPlanningByEventId)
         restoreSinonStub(planningApi.fetch)
     })
@@ -300,6 +302,58 @@ describe('actions.events.ui', () => {
 
                 done()
             })
+        })
+    })
+
+    describe('openEventDetails', () => {
+        it('openEventDetails dispatches action', (done) => {
+            store.test(done, eventsUi.openEventDetails())
+            .then(() => {
+                expect(store.dispatch.args[1]).toEqual([{
+                    type: 'OPEN_EVENT_DETAILS',
+                    payload: true,
+                }])
+                done()
+            })
+        })
+
+        it('openEventDetails calls `lockEvent` api', (done) => {
+            store.test(done, eventsUi.openEventDetails(data.events[0]))
+            .then(() => {
+                expect(eventsApi.lock.callCount).toBe(1)
+                done()
+            })
+        })
+
+        it('openEventDetails raises ACCESS_DENIED without permission', (done) => {
+            store.initialState.privileges.planning_event_management = 0
+            store.test(done, eventsUi.openEventDetails(data.events[0]))
+            .catch(() => {
+                expectAccessDenied({
+                    store,
+                    permission: PRIVILEGES.EVENT_MANAGEMENT,
+                    action: '_openEventDetails',
+                    errorMessage: 'Unauthorised to edit an event!',
+                    args: [data.events[0]],
+                })
+
+                done()
+            })
+        })
+    })
+
+    it('closeEventDetails', (done) => {
+        store.test(done, eventsUi.closeEventDetails())
+            .then(() => {
+                expect(store.dispatch.args[0]).toEqual([{ type: 'CLOSE_EVENT_DETAILS' }])
+                done()
+            })
+    })
+
+    it('_previewEvent', () => {
+        expect(eventsUi._previewEvent(data.events[0])).toEqual({
+            type: 'PREVIEW_EVENT',
+            payload: data.events[0]._id,
         })
     })
 

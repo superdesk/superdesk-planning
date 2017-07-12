@@ -50,8 +50,8 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.previewPlanningAndOpenAgenda(planningId))
     ),
     openEventPreview: (eventId) => {
-        dispatch(actions.closeEventDetails())
-        dispatch(actions.previewEvent({ _id: eventId }))
+        dispatch(actions.events.ui.closeEventDetails())
+        dispatch(actions.events.ui.previewEvent({ _id: eventId }))
     },
 })
 

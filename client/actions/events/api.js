@@ -325,6 +325,30 @@ const receiveEvents = (events) => ({
     receivedAt: Date.now(),
 })
 
+const lock = (event) => (
+    (dispatch, getState, { api, notify }) => (
+        api('events_lock', event).save({}, { lock_action: 'edit' })
+           .then((item) => (item),
+                (error) => {
+                    const msg = get(error, 'data._message') || 'Could not lock the event.'
+                    notify.error(msg)
+                    if (error) throw error
+                })
+    )
+)
+
+const unlock = (event) => (
+    (dispatch, getState, { api, notify }) => (
+        api('events_unlock', event).save({})
+            .then((item) => (item),
+                (error) => {
+                    const msg = get(error, 'data._message') || 'Could not unlock the event.'
+                    notify.error(msg)
+                    throw error
+                })
+    )
+)
+
 const self = {
     loadEventsByRecurrenceId,
     spike,
@@ -332,6 +356,8 @@ const self = {
     refetchEvents,
     receiveEvents,
     loadRecurringEventsAndPlanningItems,
+    lock,
+    unlock,
 }
 
 export default self
