@@ -509,6 +509,156 @@ Feature: Events Recurring
 
     @auth
     @notification
+    Scenario: Updating recurring rule of only a single instance will not affect other events in series
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2019-11-21T12:00:00.000Z",
+                "end": "2019-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "FR",
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        When we get "/events"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-11-22T12:00:00+0000",
+                    "end": "2019-11-22T14:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }, {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-11-29T12:00:00+0000",
+                    "end": "2019-11-29T14:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }, {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-12-06T12:00:00+0000",
+                    "end": "2019-12-06T14:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }
+        ]}
+        """
+        When we patch "/events/#EVENT1._id#"
+        """
+        {
+            "dates": {
+                "start": "#EVENT1.dates.start#",
+                "end": "#EVENT1.dates.end#",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "TU",
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/events/#EVENT1._id#"
+        Then we get existing resource
+        """
+            {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-11-26T12:00:00+0000",
+                    "end": "2019-11-26T14:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "TU",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }
+        """
+        When we get "/events/#EVENT2._id#"
+        Then we get existing resource
+        """
+            {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-11-29T12:00:00+0000",
+                    "end": "2019-11-29T14:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }
+        """
+        When we get "/events/#EVENT3._id#"
+        Then we get existing resource
+        """
+            {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-12-06T12:00:00+0000",
+                    "end": "2019-12-06T14:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }
+        """
+
+    @auth
+    @notification
     Scenario: Increase number of occurrences
         When we post to "events"
         """
@@ -595,7 +745,8 @@ Feature: Events Recurring
                     "count": 4,
                     "endRepeatMode": "count"
                 }
-            }
+            },
+            "update_method": "all"
         }
         """
         Then we get OK response
