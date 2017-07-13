@@ -360,7 +360,15 @@ export class Component extends React.Component {
                     </div>
                     <div>
                         <Field name="definition_short"
+                            component={fields.InputField}
+                            type="text"
+                            label="Short Description"
+                            readOnly={!metaDataEditable}/>
+                    </div>
+                    <div>
+                        <Field name="definition_long"
                             component={fields.InputTextAreaField}
+                            multiLine={true}
                             label="Description"
                             readOnly={!metaDataEditable}/>
                     </div>
