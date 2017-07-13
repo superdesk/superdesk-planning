@@ -212,7 +212,7 @@ describe('actions.events.ui', () => {
     })
 
     describe('spike', () => {
-        it('calls `api.spike` and hides the modal', (done) => {
+        it('calls `api.spike`', (done) => {
             restoreSinonStub(eventsUi.refetchEvents)
             sinon.stub(eventsUi, 'refetchEvents').callsFake(() => (Promise.resolve()))
 
@@ -225,8 +225,7 @@ describe('actions.events.ui', () => {
 
                 expect(eventsUi.refetchEvents.callCount).toBe(1)
 
-                expect(store.dispatch.callCount).toBe(6)
-                expect(store.dispatch.args[5]).toEqual([{ type: 'HIDE_MODAL' }])
+                expect(store.dispatch.callCount).toBe(10)
 
                 expect(services.notify.success.callCount).toBe(1)
                 expect(services.notify.success.args[0]).toEqual(['The event(s) have been spiked'])

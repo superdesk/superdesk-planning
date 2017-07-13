@@ -265,7 +265,7 @@ export class Component extends React.Component {
                     {!this.state.previewHistory && (
                         <div className="subnav__actions">
                             <div>
-                                {forcedReadOnly && !isPublished &&
+                                {forcedReadOnly && !isPublished && !eventSpiked &&
                                     <button
                                         onClick={() => publish(id)}
                                         type="button"
