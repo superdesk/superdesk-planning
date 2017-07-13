@@ -238,6 +238,24 @@ class EventsService(superdesk.Service):
             )
             return
 
+        # If we are updating the recurring rules of only one single instance of the series,
+        if update_method == UPDATE_SINGLE:
+            new_dates = [date for date in itertools.islice(generate_recurring_dates(
+                start=updates['dates']['start'],
+                tz=updates['dates'].get('tz') and pytz.timezone(updates['dates']['tz'] or None),
+                **updates['dates']['recurring_rule']), 0, 10)]
+            time_delta = updates['dates']['end'] - updates['dates']['start']
+            updates['dates']['start'] = new_dates[0]
+            updates['dates']['end'] = new_dates[0] + time_delta
+
+            push_notification(
+                'events:updated:recurring',
+                item=str(original[config.ID_FIELD]),
+                recurrence_id=str(original['recurrence_id']),
+                user=str(updates.get('version_creator', ''))
+            )
+            return
+
         # Generate the list of changes to the series of events based on the
         # new recurring_rules
         new_events, updated_events, deleted_events = self._update_recurring_rules(updates, original)
@@ -334,7 +352,7 @@ class EventsService(superdesk.Service):
             event_updates = self._get_empty_updates_for_recurring_event(event)
             recurring_rule = event_updates['dates']['recurring_rule']
             if recurring_rule:
-                recurring_rule['until'] = original_series_events[len(original_series_events) - 1]['dates']['start']
+                recurring_rule['until'] = original_series_events[-1]['dates']['start']
                 recurring_rule['endRepeatMode'] = 'until'
                 recurring_rule['count'] = None
                 self._patch_event_in_recurrent_series(event[config.ID_FIELD], event_updates)
