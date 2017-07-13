@@ -20,6 +20,7 @@ from apps.archive.common import set_original_creator
 from apps.archive.common import get_user
 from eve.utils import config
 from superdesk.utc import utcnow
+from superdesk.activity import add_activity, ACTIVITY_UPDATE
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +79,12 @@ class CoverageService(superdesk.Service):
                 planning['assigned_to']['assigned_by'] = user[config.ID_FIELD]
 
             planning['assigned_to']['assigned_date'] = utcnow()
+            if planning['assigned_to'].get('user'):
+                add_activity(ACTIVITY_UPDATE,
+                             '{{assignor}} assigned a coverage to you',
+                             self.datasource,
+                             notify=[planning['assigned_to'].get('user')],
+                             assignor=user.get('username'))
 
 
 coverage_schema = {
