@@ -31,6 +31,16 @@ describe('planning', () => {
                             planning: 1,
                             planning_planning_management: 1,
                         },
+                        session: {
+                            identity: { _id: 'user' },
+                            sessionId: 123,
+                        },
+                        users: [
+                            {
+                                _id: 'user',
+                                display_name: 'foo',
+                            },
+                        ],
                     },
                 })
                 const wrapper = mount(
@@ -68,7 +78,12 @@ describe('planning', () => {
                             identity: { _id: 'user' },
                             sessionId: 123,
                         },
-                        users: [{ _id: 'user' }],
+                        users: [
+                            {
+                                _id: 'user',
+                                display_name: 'foo',
+                            },
+                        ],
                     },
                 })
 
@@ -143,24 +158,6 @@ describe('planning', () => {
                 expect(sluglineInput.props().value).toBe('slug')
                 expect(wrapper.find('button[type="submit"]').length).toBe(0)
                 expect(wrapper.find('button[type="reset"]').length).toBe(0)
-            })
-
-            it('displays the `agenda spiked` badge', () => {
-                const wrapper = shallow(
-                    <EditPlanningPanel
-                        closePlanningEditor={sinon.spy()}
-                        agendaSpiked={true}
-                        pristine={false}
-                        submitting={false}/>
-                )
-                const badge = wrapper.find('.AgendaSpiked').first()
-                const saveButton = wrapper.find('button[type="submit"]')
-
-                // Make sure the `save` button is not shown
-                expect(saveButton.length).toBe(0)
-
-                // Make sure the `agenda spiked` badge is shown
-                expect(badge.text()).toBe('agenda spiked')
             })
 
             it('displays the `planning spiked` badge', () => {

@@ -1,17 +1,14 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import { hideModal } from '../actions'
-
 import {
     AgendaModal,
     ConfirmationModal,
     NotificationModal,
     SpikeEventModal,
-    UpdateRecurringEventsModal,
-    ManageAgendasModalContainer } from './index'
+    UpdateRecurringEventsModal } from './index'
 
 const modals = {
-    MANAGE_AGENDAS: ManageAgendasModalContainer,
     CONFIRMATION: ConfirmationModal,
     CREATE_AGENDA: AgendaModal,
     EDIT_AGENDA: AgendaModal,
@@ -30,7 +27,6 @@ export function Modals({ modalType, modalProps, handleHide }) {
         return null
     }
 }
-
 
 Modals.propTypes = {
     modalType: React.PropTypes.string,

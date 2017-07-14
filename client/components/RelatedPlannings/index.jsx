@@ -2,7 +2,6 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import './style.scss'
-import * as selectors from '../../selectors'
 import * as actions from '../../actions'
 
 export const RelatedPlanningsComponent = ({ plannings, openPlanningItem, openPlanningClick, short }) => (
@@ -12,29 +11,43 @@ export const RelatedPlanningsComponent = ({ plannings, openPlanningItem, openPla
             slugline,
             headline,
             anpa_category,
-            _agenda,
+            _agendas,
             original_creator: { display_name },
             state,
-        }) => (
-            <li key={_id}>
-                <i className="icon-list-alt"/>&nbsp;
-                {state && state === 'spiked' &&
-                    <span className="label label--alert">spiked</span>
-                }
-                { short ? (
-                    <a onClick={ openPlanningItem ? openPlanningClick.bind(null, _id) : null}>
-                        {slugline || headline} in agenda {_agenda && _agenda.name}
+        }) => {
+            const agendaElements = (_agendas || []).map((_agenda) => (
+                _agenda && <span key={_agenda._id}>
+                    <a onClick={ openPlanningItem ? openPlanningClick.bind(null, _id, _agenda) : null}>
+                        {
+                            _agenda.is_enabled ? _agenda.name : `${_agenda.name} - [Disabled]`
+                        }
                     </a>
-                ) : (
-                    <a onClick={ openPlanningItem ? openPlanningClick.bind(null, _id) : null}>
-                        {slugline || headline} created by {display_name} in {_agenda && _agenda.name} agenda
-                        {anpa_category && anpa_category.length && (
-                            <span>&nbsp;[{anpa_category.map((c) => c.name).join(', ')}]</span>
-                        )}
-                    </a>
-                )}
-            </li>
-        ))}
+                    </span>
+                    )).reduce((accu, elem) => {
+                        return accu === null ? [elem] : [accu, ', ', elem]
+                    }, null)
+
+            return (
+                <li key={_id}>
+                    <i className="icon-list-alt"/>&nbsp;
+                        {state && state === 'spiked' &&
+                            <span className="label label--alert">spiked</span>
+                        }
+                    { short ? (
+                        <span>{slugline || headline} in agenda { agendaElements }</span>
+                        )
+                        :
+                        (
+                           <span>{slugline || headline} created by { display_name } in agenda { agendaElements }
+                           {anpa_category && anpa_category.length && (
+                               <span>&nbsp;[{anpa_category.map((c) => c.name).join(', ')}]</span>
+                                )
+                           }</span>
+                        )
+                        }
+                </li>
+            )
+        })}
     </ul>
 )
 
@@ -49,16 +62,12 @@ RelatedPlanningsComponent.defaultProps = { short: false }
 
 const mapStateToProps = (state, ownProps) => ({
     plannings: ownProps.plannings.map((planning) => {
-        return {
-            ...planning,
-            _agenda: selectors.getAgendas(state).find((a) => a.planning_items ?
-                        a.planning_items.indexOf(planning._id) > -1 : false),
-        }}),
+        return { ...planning }}),
 })
 
 const mapDispatchToProps = (dispatch) => ({
-    openPlanningClick: (planningId) => (
-        dispatch(actions.planning.ui.previewPlanningAndOpenAgenda(planningId))
+    openPlanningClick: (planningId, agenda) => (
+        dispatch(actions.planning.ui.previewPlanningAndOpenAgenda(planningId, agenda))
     ),
 })
 

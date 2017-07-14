@@ -7,6 +7,7 @@ import { get, set } from 'lodash'
 
 export { default as checkPermission } from './checkPermission'
 export { default as retryDispatch } from './retryDispatch'
+export { default as registerNotifications } from './notifications'
 
 export function createReducer(initialState, reducerMap) {
     return (state = initialState, action) => {

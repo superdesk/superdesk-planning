@@ -34,16 +34,20 @@ describe('selectors', () => {
                 a: {
                     name: 'name a',
                     event_item: 'event1',
+                    agendas: ['1', '2'],
                 },
                 b: {
                     name: 'name b',
                     state: 'active',
+                    agendas: ['1', '2'],
                 },
                 c: { name: 'plan c' },
                 d: {
                     name: 'plan d',
                     state: 'spiked',
+                    agendas: ['1'],
                 },
+                e: { name: 'plan e' },
             },
             planningsInList: ['a', 'b', 'd'],
             currentPlanningId: 'b',
@@ -52,16 +56,15 @@ describe('selectors', () => {
             agendas: [{
                 _id: '1',
                 name: 'Agenda 1',
-                planning_items: ['a', 'b', 'd'],
+                is_enabled: true,
             }, {
                 _id: '2',
                 name: 'Agenda 2',
-                state: 'active',
+                is_enabled: true,
             }, {
                 _id: '3',
                 name: 'Agenda 3',
-                state: 'spiked',
-                planning_items: ['c'],
+                is_enabled: false,
             }],
             currentAgendaId: '1',
         },
@@ -87,13 +90,6 @@ describe('selectors', () => {
         it('show all except spiked', () => {
             result = _getPlanningItems()
             expect(result).toEqual([newState.planning.plannings.a, newState.planning.plannings.b])
-        })
-
-        it('empty planning items', () => {
-            delete newState.agenda.agendas[0].planning_items
-            newState.planning.planningsInList = []
-            result = _getPlanningItems()
-            expect(result).toEqual([])
         })
 
         it('without a selected agenda', () => {
@@ -189,42 +185,33 @@ describe('selectors', () => {
     it('getEventToBeDetailed', () => {
         const event = selectors.getEventToBeDetailed(state)
         expect(event._plannings.length).toBe(1)
-        expect(event._plannings[0]._agenda.name).toBe('Agenda 1')
+        expect(event._plannings[0]._agendas[0].name).toBe('Agenda 1')
     })
 
-    it('getCurrentPlanningAgendaSpiked', () => {
-        state.planning.currentPlanningId = 'c'
-        let agendaSpiked = selectors.getCurrentPlanningAgendaSpiked(state)
-        expect(agendaSpiked).toBe(true)
-
-        state.planning.currentPlanningId = 'b'
-        agendaSpiked = selectors.getCurrentPlanningAgendaSpiked(state)
-        expect(agendaSpiked).toBe(false)
-    })
-
-    it('getSpikedAgendas', () => {
-        const agendas = selectors.getSpikedAgendas(state)
+    it('getDisabledAgendas', () => {
+        const agendas = selectors.getDisabledAgendas(state)
         expect(agendas.length).toBe(1)
         expect(agendas).toEqual([{
             _id: '3',
             name: 'Agenda 3',
-            state: 'spiked',
-            planning_items: ['c'],
+            is_enabled: false,
         }])
     })
 
-    it('getActiveAgendas', () => {
-        const agendas = selectors.getActiveAgendas(state)
+    it('getEnabledAgendas', () => {
+        const agendas = selectors.getEnabledAgendas(state)
         expect(agendas.length).toBe(2)
-        expect(agendas).toEqual([{
-            _id: '1',
-            name: 'Agenda 1',
-            planning_items: ['a', 'b', 'd'],
-        }, {
-            _id: '2',
-            name: 'Agenda 2',
-            state: 'active',
-        }])
+        expect(agendas).toEqual([
+            {
+                _id: '1',
+                name: 'Agenda 1',
+                is_enabled: true,
+            }, {
+                _id: '2',
+                name: 'Agenda 2',
+                is_enabled: true,
+            },
+        ])
     })
 
     it('getEventsOrderedByDay', () => {

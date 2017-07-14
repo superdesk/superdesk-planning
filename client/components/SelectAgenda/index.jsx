@@ -1,34 +1,34 @@
 import React, { PropTypes } from 'react'
 import { connect } from 'react-redux'
 import { selectAgenda } from '../../actions'
-import { getCurrentAgendaId, getActiveAgendas, getSpikedAgendas } from '../../selectors'
+import { getCurrentAgendaId, getEnabledAgendas, getDisabledAgendas } from '../../selectors'
 
-export const SelectAgendaComponent = ({ activeAgendas, spikedAgendas, onChange, currentAgenda, isLoading }) => (
+export const SelectAgendaComponent = ({ enabledAgendas, disabledAgendas, onChange, currentAgenda, isLoading }) => (
     <select onChange={onChange} value={currentAgenda || ''}>
         <option>
             {isLoading && 'Loading...' || 'Select an agenda'}
         </option>
-        {activeAgendas.map((agenda) => (
+        {enabledAgendas.map((agenda) => (
             <option
                 key={agenda._id}
                 value={agenda._id}>{agenda.name}
             </option>
         ))}
-        {Object.keys(spikedAgendas).length > 0 && (
+        {Object.keys(disabledAgendas).length > 0 && (
             <option disabled>──────────</option>
         )}
-        {spikedAgendas.map((agenda) => (
+        {disabledAgendas.map((agenda) => (
             <option
                 key={agenda._id}
-                value={agenda._id}>{agenda.name} - [spiked]
+                value={agenda._id}>{agenda.name} - [Disabled]
             </option>
         ))}
     </select>
 )
 
 SelectAgendaComponent.propTypes = {
-    activeAgendas: PropTypes.array.isRequired,
-    spikedAgendas: PropTypes.array,
+    enabledAgendas: PropTypes.array.isRequired,
+    disabledAgendas: PropTypes.array,
     onChange: PropTypes.func.isRequired,
     currentAgenda: PropTypes.string,
     isLoading: PropTypes.bool,
@@ -36,8 +36,8 @@ SelectAgendaComponent.propTypes = {
 
 const mapStateToProps = (state) => ({
     currentAgenda: getCurrentAgendaId(state),
-    activeAgendas: getActiveAgendas(state),
-    spikedAgendas: getSpikedAgendas(state),
+    enabledAgendas: getEnabledAgendas(state),
+    disabledAgendas: getDisabledAgendas(state),
     isLoading: state.agenda.agendasAreLoading,
 })
 
