@@ -1313,3 +1313,435 @@ Feature: Events Recurring
             }}
         ]}
         """
+
+    @auth
+    Scenario: Change occurrence day midway through event series
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2019-11-21T12:00:00.000Z",
+                "end": "2019-11-21T14:00:00.000Z",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "FR",
+                    "count": 5,
+                    "endRepeatMode": "count"
+                }
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        Then we store "EVENT4" with 4 item
+        Then we store "EVENT5" with 5 item
+        When we patch "/events/#EVENT3._id#"
+        """
+        {
+            "dates": {
+                "start": "2019-12-06T12:00:00.000Z",
+                "end": "2019-12-06T14:00:00.000Z",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "WE",
+                    "count": 5,
+                    "endRepeatMode": "count"
+                }
+            },
+            "update_method": "future"
+        }
+        """
+        Then we get OK response
+        Then we store "NEW_RECURRING" from patch
+        When we get "/events"
+        Then we get list with 5 items
+        """
+        {"_items": [
+            {
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "dates": {
+                    "start": "2019-11-22T12:00:00+0000",
+                    "end": "2019-11-22T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "endRepeatMode": "until",
+                        "until": "2019-11-29T12:00:00+0000"
+                    }
+                }
+            },
+            {
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "dates": {
+                    "start": "2019-11-29T12:00:00+0000",
+                    "end": "2019-11-29T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "endRepeatMode": "until",
+                        "until": "2019-11-29T12:00:00+0000"
+                    }
+                }
+            },
+            {
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#",
+                "previous_recurrence_id": "#EVENT1.recurrence_id#",
+                "dates": {
+                    "start": "2019-12-11T12:00:00+0000",
+                    "end": "2019-12-11T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "WE",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            },
+            {
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#",
+                "previous_recurrence_id": "#EVENT1.recurrence_id#",
+                "dates": {
+                    "start": "2019-12-18T12:00:00+0000",
+                    "end": "2019-12-18T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "WE",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            },
+            {
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#",
+                "previous_recurrence_id": "#EVENT1.recurrence_id#",
+                "dates": {
+                    "start": "2019-12-25T12:00:00+0000",
+                    "end": "2019-12-25T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "WE",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }
+        ]}
+        """
+
+    @auth
+    Scenario: Modifying recurring rules spikes events with planning items
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "slugline": "Weekly Meetings",
+            "dates": {
+                "start": "2019-11-21T12:00:00.000Z",
+                "end": "2019-11-21T14:00:00.000Z",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "FR",
+                    "count": 5,
+                    "endRepeatMode": "count"
+                }
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        Then we store "EVENT4" with 4 item
+        Then we store "EVENT5" with 5 item
+        When we post to "/events/publish"
+        """
+        {"event": "#EVENT4._id#", "etag": "#EVENT4._etag#"}
+        """
+        Then we get OK response
+        When we post to "planning"
+        """
+        [{
+            "slugline": "Weekly Meetings",
+            "headline": "Friday Club",
+            "event_item": "#EVENT5._id#"
+        }]
+        """
+        Then we get OK response
+        When we patch "/events/#EVENT3._id#"
+        """
+        {
+            "dates": {
+                "start": "2019-12-06T12:00:00.000Z",
+                "end": "2019-12-06T14:00:00.000Z",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "WE",
+                    "count": 5,
+                    "endRepeatMode": "count"
+                }
+            },
+            "update_method": "future"
+        }
+        """
+        Then we get OK response
+        Then we store "NEW_RECURRING" from patch
+        When we get "/events"
+        Then we get list with 7 items
+        """
+        {"_items": [
+            {
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "dates": {
+                    "start": "2019-11-22T12:00:00+0000",
+                    "end": "2019-11-22T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "endRepeatMode": "until",
+                        "until": "2019-11-29T12:00:00+0000"
+                    }
+                },
+                "state": "active"
+            },
+            {
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "dates": {
+                    "start": "2019-11-29T12:00:00+0000",
+                    "end": "2019-11-29T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "endRepeatMode": "until",
+                        "until": "2019-11-29T12:00:00+0000"
+                    }
+                },
+                "state": "active"
+            },
+            {
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#",
+                "previous_recurrence_id": "#EVENT1.recurrence_id#",
+                "dates": {
+                    "start": "2019-12-11T12:00:00+0000",
+                    "end": "2019-12-11T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "WE",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                },
+                "state": "active"
+            },
+            {
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#",
+                "previous_recurrence_id": "#EVENT1.recurrence_id#",
+                "dates": {
+                    "start": "2019-12-18T12:00:00+0000",
+                    "end": "2019-12-18T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "WE",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                },
+                "state": "active"
+            },
+            {
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#",
+                "previous_recurrence_id": "#EVENT1.recurrence_id#",
+                "dates": {
+                    "start": "2019-12-25T12:00:00+0000",
+                    "end": "2019-12-25T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "WE",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                },
+                "state": "active"
+            },
+            {
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "dates": {
+                    "start": "2019-12-13T12:00:00+0000",
+                    "end": "2019-12-13T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 5,
+                        "endRepeatMode": "count"
+                    }
+                },
+                "state": "spiked",
+                "pubstatus": "canceled"
+            },
+            {
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "dates": {
+                    "start": "2019-12-20T12:00:00+0000",
+                    "end": "2019-12-20T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 5,
+                        "endRepeatMode": "count"
+                    }
+                },
+                "state": "spiked"
+            }
+        ]}
+        """
+        When we get "/planning"
+        Then we get list with 1 items
+        """
+        {"_items": [{
+            "slugline": "Weekly Meetings",
+            "headline": "Friday Club",
+            "event_item": "#EVENT5._id#",
+            "state": "spiked"
+        }]}
+        """
+
+    @auth
+    Scenario: Modifying recurring rules for all events doesnt change recurrence_id
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2019-11-21T12:00:00.000Z",
+                "end": "2019-11-21T14:00:00.000Z",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "FR",
+                    "count": 5,
+                    "endRepeatMode": "count"
+                }
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        Then we store "EVENT4" with 4 item
+        Then we store "EVENT5" with 5 item
+        When we patch "/events/#EVENT3._id#"
+        """
+        {
+            "dates": {
+                "start": "2019-12-06T12:00:00.000Z",
+                "end": "2019-12-06T14:00:00.000Z",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "WE",
+                    "count": 5,
+                    "endRepeatMode": "count"
+                }
+            },
+            "update_method": "all"
+        }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 5 items
+        """
+        {"_items": [
+            {
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "dates": {
+                    "start": "2019-11-27T12:00:00+0000",
+                    "end": "2019-11-27T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "WE",
+                        "count": 5,
+                        "endRepeatMode": "count"
+                    }
+                }
+            },
+            {
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "dates": {
+                    "start": "2019-12-04T12:00:00+0000",
+                    "end": "2019-12-04T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "WE",
+                        "count": 5,
+                        "endRepeatMode": "count"
+                    }
+                }
+            },
+            {
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "previous_recurrence_id": "__no_value__",
+                "dates": {
+                    "start": "2019-12-11T12:00:00+0000",
+                    "end": "2019-12-11T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "WE",
+                        "count": 5,
+                        "endRepeatMode": "count"
+                    }
+                }
+            },
+            {
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "previous_recurrence_id": "__no_value__",
+                "dates": {
+                    "start": "2019-12-18T12:00:00+0000",
+                    "end": "2019-12-18T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "WE",
+                        "count": 5,
+                        "endRepeatMode": "count"
+                    }
+                }
+            },
+            {
+                "recurrence_id": "#EVENT1.recurrence_id#",
+                "previous_recurrence_id": "__no_value__",
+                "dates": {
+                    "start": "2019-12-25T12:00:00+0000",
+                    "end": "2019-12-25T14:00:00+0000",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "WE",
+                        "count": 5,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }
+        ]}
+        """
