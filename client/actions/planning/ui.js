@@ -137,6 +137,15 @@ const _unlockAndOpenEditor = (item) => (
  */
 const _lockAndOpenEditor = (item) => (
     (dispatch, getState, { notify }) => {
+        // If the user already has a lock, don't obtain a new lock, open it directly
+        const planningInState = selectors.getStoredPlannings(getState())[item]
+        const session = selectors.getSessionDetails(getState())
+        if (planningInState && planningInState.lock_user === session.identity._id &&
+                planningInState.lock_session === session.sessionId) {
+            dispatch(self._openEditor(planningInState))
+            return Promise.resolve(planningInState)
+        }
+
         dispatch(self.closeEditor(selectors.getCurrentPlanning(getState())))
         return dispatch(planning.api.lock(item))
         .then((lockedItem) => {

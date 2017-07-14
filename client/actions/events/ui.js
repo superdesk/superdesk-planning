@@ -5,6 +5,102 @@ import planning from '../planning'
 import eventsApi from './api'
 import { fetchSelectedAgendaPlannings } from '../agenda'
 import * as selectors from '../../selectors'
+import { get } from 'lodash'
+
+/**
+ * Action to open the Edit Event panel with the supplied Event
+ * @param {object} event - The Event ID to edit
+ * @return Promise
+ */
+const _openEventDetails = (event) => (
+    (dispatch, getState) => {
+        const id = get(event, '_id')
+        if (id) {
+            const openDetails = {
+                type: EVENTS.ACTIONS.OPEN_EVENT_DETAILS,
+                payload: id,
+            }
+
+            // In sessions with multiple tabs, state values of showEventDetails are different
+            // So, explicitly get the event from the store and see if we hold the lock on it
+            const eventInState = { ...selectors.getEvents(getState())[id] }
+            const session = selectors.getSessionDetails(getState())
+            if (eventInState && eventInState.lock_user === session.identity._id &&
+                    eventInState.lock_session === session.sessionId) {
+                dispatch(openDetails)
+                return Promise.resolve(eventInState)
+            } else {
+                return dispatch(eventsApi.lock(event)).then((item) => {
+                    dispatch(openDetails)
+                    dispatch(eventsApi.receiveEvents([item]))
+                }, () => {
+                    dispatch(openDetails)
+                })
+            }
+        } else {
+            dispatch({
+                type: EVENTS.ACTIONS.OPEN_EVENT_DETAILS,
+                payload: true,
+            })
+            return Promise.resolve()
+        }
+    }
+)
+
+/**
+ * If user has lock, opens event in edit. Otherwise previews it
+ * @param {object} event - The Event ID to preview
+ * @return Promise
+ */
+const previewEvent = (event) => (
+    (dispatch, getState) => {
+        const id = get(event, '_id')
+        const eventInState = { ...selectors.getEvents(getState())[id] }
+        const session = selectors.getSessionDetails(getState())
+        if (eventInState && eventInState.lock_user === session.identity._id &&
+                eventInState.lock_session === session.sessionId) {
+            dispatch({
+                type: EVENTS.ACTIONS.OPEN_EVENT_DETAILS,
+                payload: id,
+            })
+        } else {
+            dispatch(_previewEvent(event))
+        }
+
+        return Promise.resolve()
+    }
+)
+
+/**
+ * Action to close the Edit Event panel
+ * @return object
+ */
+const closeEventDetails = () => (
+    (dispatch, getState) => {
+        if (selectors.isEventDetailLockedInThisSession(getState())) {
+            const _event = selectors.getShowEventDetails(getState())
+            dispatch(eventsApi.unlock({ _id: _event }))
+        }
+
+        dispatch({ type: EVENTS.ACTIONS.CLOSE_EVENT_DETAILS })
+        return Promise.resolve()
+    }
+)
+
+/**
+ * Action to unlock and open the Edit Event panel with the supplied Event
+ * @param {object} event - The Event ID to edit
+ * @return Promise
+ */
+const _unlockAndOpenEventDetails = (event) => (
+    (dispatch) => (
+        dispatch(eventsApi.unlock(event)).then((item) => {
+            dispatch(eventsApi.receiveEvents([item]))
+            // Call openPlanningEditor to obtain a new lock for editing
+            dispatch(_openEventDetails(item))
+        }, () => (Promise.reject()))
+    )
+)
 
 /**
  * Helper function to open the appropriate Spike Modal
@@ -151,20 +247,49 @@ const setEventsList = (idsList) => ({
     payload: idsList,
 })
 
+/**
+ * Opens the Event in preview/read-only mode
+ * @param {object} event - The Event ID to preview
+ * @return Promise
+ */
+const _previewEvent = (event) => ({
+    type: EVENTS.ACTIONS.PREVIEW_EVENT,
+    payload: get(event, '_id'),
+})
+
 const openSpikeModal = checkPermission(
     _openSpikeModal,
     PRIVILEGES.SPIKE_EVENT,
     'Unauthorised to spike an Event'
 )
 
+const openEventDetails = checkPermission(
+    _openEventDetails,
+    PRIVILEGES.EVENT_MANAGEMENT,
+    'Unauthorised to edit an event!'
+)
+
+const unlockAndOpenEventDetails = checkPermission(
+    _unlockAndOpenEventDetails,
+    PRIVILEGES.PLANNING_UNLOCK,
+    'Unauthorised to edit an event!'
+)
+
 const self = {
+    _openEventDetails,
     _openSpikeModal,
     _openSingleSpikeModal,
     _openMultiSpikeModal,
+    _unlockAndOpenEventDetails,
+    _previewEvent,
     spike,
     refetchEvents,
     setEventsList,
     openSpikeModal,
+    openEventDetails,
+    unlockAndOpenEventDetails,
+    closeEventDetails,
+    previewEvent,
 }
 
 export default self

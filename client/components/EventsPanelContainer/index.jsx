@@ -36,7 +36,7 @@ const mapStateToProps = (state) => ({
 })
 
 const mapDispatchToProps = (dispatch) => (
-    { handleBackToList: (event) =>(dispatch(actions.closeEventDetails(event))) }
+    { handleBackToList: (event) =>(dispatch(actions.events.ui.closeEventDetails(event))) }
 )
 
 export const EventsPanelContainer = connect(

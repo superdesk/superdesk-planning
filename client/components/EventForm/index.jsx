@@ -527,7 +527,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (event) => dispatch(actions.saveEventWithConfirmation(event)),
-    openEventDetails: (event) => dispatch(actions.openEventDetails(event)),
+    openEventDetails: (event) => dispatch(actions.events.ui.openEventDetails(event)),
     saveAndPublish: (event) => dispatch(actions.saveAndPublish(event)),
     publish: (eventId) => dispatch(actions.publishEvent(eventId)),
     unpublish: (eventId) => dispatch(actions.unpublishEvent(eventId)),
@@ -535,7 +535,7 @@ const mapDispatchToProps = (dispatch) => ({
     unspikeEvent: (event) => dispatch(actions.unspikeEvent(event)),
     addEventToCurrentAgenda: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
     duplicateEvent: (event) => dispatch(actions.duplicateEvent(event)),
-    onUnlock: (event) => dispatch(actions.unlockAndOpenEventDetails(event)),
+    onUnlock: (event) => dispatch(actions.events.ui.unlockAndOpenEventDetails(event)),
 })
 
 export const EventForm = connect(

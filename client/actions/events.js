@@ -20,10 +20,10 @@ const duplicateEvent = (event) => (
         return dispatch(createDuplicate(event))
         .then((dup) => {
             duplicate = dup[0]
-            dispatch(closeEventDetails(original))
+            dispatch(eventsUi.closeEventDetails(original))
         })
         .then(() => dispatch(eventsUi.refetchEvents()))
-        .then(() => dispatch(openEventDetails(duplicate)))
+        .then(() => dispatch(eventsUi.openEventDetails(duplicate)))
     }
 )
 
@@ -34,7 +34,7 @@ const _setEventStatus = ({ eventId, status }) => (
         event.pubstatus = status
         return dispatch(saveEvent(event))
         .then((events) => {
-            dispatch(previewEvent(events[0]))
+            dispatch(eventsUi.previewEvent(events[0]))
         })
     }
 )
@@ -166,8 +166,8 @@ const uploadFilesAndSaveEvent = (event) => {
         // If event was just created, open it in editing mode
         .then((events) => {
             if (events.length > 0 && selectors.getShowEventDetails(getState()) === true) {
-                dispatch(closeEventDetails())
-                dispatch(openEventDetails(events[0]))
+                dispatch(eventsUi.closeEventDetails())
+                dispatch(eventsUi.openEventDetails(events[0]))
             }
 
             return events
@@ -459,94 +459,6 @@ const closeAdvancedSearch = () => (
 )
 
 /**
- * Opens the Event in preview/read-only mode
- * @param {object} event - The Event ID to preview
- * @return Promise
- */
-const previewEvent = (event) => ({
-    type: EVENTS.ACTIONS.PREVIEW_EVENT,
-    payload: get(event, '_id'),
-})
-
-const _unlockAndOpenEventDetails = (event) => (
-    (dispatch) => (
-        dispatch(_unlockEvent(event)).then((item) => {
-            dispatch(eventsApi.receiveEvents([item]))
-            // Call openPlanningEditor to obtain a new lock for editing
-            dispatch(_openEventDetails(item))
-        }, () => (Promise.reject()))
-    )
-)
-
-/**
- * Opens the Edit Event panel with the supplied Event
- * @param {object} event - The Event ID to edit
- * @return Promise
- */
-const _openEventDetails = (event) => (
-    (dispatch) => {
-        const id = get(event, '_id')
-        if (id) {
-            const openDetails = {
-                type: EVENTS.ACTIONS.OPEN_EVENT_DETAILS,
-                payload: id,
-            }
-
-            dispatch(_lockEvent(event)).then((item) => {
-                dispatch(openDetails)
-                dispatch(eventsApi.receiveEvents([item]))
-            }, () => {
-                dispatch(openDetails)
-            })
-        } else {
-            dispatch({
-                type: EVENTS.ACTIONS.OPEN_EVENT_DETAILS,
-                payload: true,
-            })
-        }
-    }
-)
-
-const _lockEvent = (event) => (
-    (dispatch, getState, { api, notify }) => (
-        api('events_lock', event).save({}, { lock_action: 'edit' })
-           .then((item) => (item),
-                (error) => {
-                    const msg = get(error, 'data._message') || 'Could not lock the event.'
-                    notify.error(msg)
-                    if (error) throw error
-                })
-    )
-)
-
-const _unlockEvent = (event) => (
-    (dispatch, getState, { api, notify }) => (
-        api('events_unlock', event).save({})
-            .then((item) => (item),
-                (error) => {
-                    const msg = get(error, 'data._message') || 'Could not unlock the event.'
-                    notify.error(msg)
-                    throw error
-                })
-    )
-)
-
-/**
- * Action to close the Edit Event panel
- * @return object
- */
-const closeEventDetails = () => (
-    (dispatch, getState) => {
-        if (selectors.isEventDetailLockedInThisSession(getState())) {
-            const _event = selectors.getShowEventDetails(getState())
-            dispatch(_unlockEvent({ _id: _event }))
-        }
-
-        dispatch({ type: EVENTS.ACTIONS.CLOSE_EVENT_DETAILS })
-    }
-)
-
-/**
  * Action to receive the history of actions on Event and store them in the store
  * @param {array} eventHistoryItems - An array of Event History items
  * @return object
@@ -587,18 +499,6 @@ const _openUnspikeEvent = (event) => (
             },
         }))
     }
-)
-
-const openEventDetails = checkPermission(
-    _openEventDetails,
-    PRIVILEGES.EVENT_MANAGEMENT,
-    'Unauthorised to edit an event!'
-)
-
-const unlockAndOpenEventDetails = checkPermission(
-    _unlockAndOpenEventDetails,
-    PRIVILEGES.PLANNING_UNLOCK,
-    'Unauthorised to edit an event!'
 )
 
 const setEventStatus = checkPermission(
@@ -763,9 +663,6 @@ export {
     openUnspikeEvent,
     toggleEventsList,
     receiveEventHistory,
-    closeEventDetails,
-    previewEvent,
-    openEventDetails,
     closeAdvancedSearch,
     openAdvancedSearch,
     addToEventsList,
@@ -780,7 +677,6 @@ export {
     askConfirmationBeforeSavingEvent,
     selectAllTheEventList,
     deselectAllTheEventList,
-    unlockAndOpenEventDetails,
     saveEventWithConfirmation,
     saveAndPublish,
 }
