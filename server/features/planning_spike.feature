@@ -49,13 +49,17 @@ Feature: Planning Spike
         }
         """
         When we get "/planning_history?where=planning_id==%22#planning._id#%22"
-        Then we get list with 1 items
+        Then we get list with 2 items
         """
         {"_items": [{
             "planning_id": "#planning._id#",
             "operation": "spiked",
-            "update": {"state" : "spiked"}
-        }]}
+            "update": {"state" : "spiked"}},
+            {
+            "planning_id": "#planning._id#",
+            "operation": "coverage created"
+            }
+            ]}
         """
 
     @auth
@@ -90,13 +94,16 @@ Feature: Planning Spike
         }
         """
         When we get "/planning_history?where=planning_id==%22#planning._id#%22"
-        Then we get list with 1 items
+        Then we get list with 2 items
         """
         {"_items": [{
             "planning_id": "#planning._id#",
             "operation": "unspiked",
-            "update": {"state" : "active"}
-        }]}
+            "update": {"state" : "active"}},
+            {
+            "planning_id": "#planning._id#",
+            "operation": "coverage created"
+            }]}
         """
 
     @auth
@@ -172,7 +179,7 @@ Feature: Planning Spike
         When we spike planning "#planningId#"
         Then we get OK response
         When we get "/planning_history?where=planning_id==%22#planningId#%22"
-        Then we get list with 2 items
+        Then we get list with 3 items
         """
         {"_items": [{
             "planning_id": "#planning._id#",
@@ -181,8 +188,11 @@ Feature: Planning Spike
         },{
             "planning_id": "#planning._id#",
             "operation": "spiked",
-            "update": {"state" : "spiked"}
-        }]}
+            "update": {"state" : "spiked"}},
+            {
+            "planning_id": "#planning._id#",
+            "operation": "coverage created"
+            }]}
         """
         When we get "/agenda_history?where=agenda_id==%22#agendaId#%22"
         Then we get list with 3 items

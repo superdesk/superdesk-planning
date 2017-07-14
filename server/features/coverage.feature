@@ -45,7 +45,7 @@ Feature: Coverage
         ]
         """
         When we get "/coverage"
-        Then we get list with 1 items
+        Then we get list with 2 items
         """
             {"_items": [{
                 "guid": "__any_value__",
@@ -60,7 +60,7 @@ Feature: Coverage
             }]}
         """
         When we get "/coverage_history"
-        Then we get a list with 1 items
+        Then we get a list with 2 items
         """
             {"_items": [{"operation": "create", "coverage_id": "#coverage._id#", "update": {"unique_name": "123 name"}}]}
         """
@@ -137,7 +137,7 @@ Feature: Coverage
         ]
         """
         When we get "/coverage"
-        Then we get list with 1 items
+        Then we get list with 2 items
         """
             {"_items": [{
                 "guid": "__any_value__",
@@ -282,7 +282,7 @@ Feature: Coverage
         """
         Then we get OK response
         When we get "/coverage_history"
-        Then we get a list with 2 items
+        Then we get a list with 3 items
         """
             {"_items": [{
                 "coverage_id":  "#coverage._id#",
@@ -308,7 +308,7 @@ Feature: Coverage
             ]}
         """
         When we get "/planning_history?where=planning_id==%22#planning._id#%22"
-        Then we get list with 3 items
+        Then we get list with 4 items
         """
             {"_items": [
                 {"operation": "create"},
@@ -320,7 +320,7 @@ Feature: Coverage
         """
         When we delete "/coverage/#coverage._id#"
         When we get "/planning_history?where=planning_id==%22#planning._id#%22"
-        Then we get list with 4 items
+        Then we get list with 5 items
         """
             {"_items": [
                 {"operation": "create"},

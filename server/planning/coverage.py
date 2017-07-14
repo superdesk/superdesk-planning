@@ -274,6 +274,13 @@ coverage_schema = {
                 'rank': {'type': 'integer'}
             }
         }
+    },
+    'news_coverage_status': {
+        'type': 'dict',
+        'schema': {
+            'qcode': {'type': 'string'},
+            'name': {'type': 'string'}
+        }
     }
 }  # end coverage_schema
 

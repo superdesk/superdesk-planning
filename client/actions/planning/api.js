@@ -402,6 +402,13 @@ const saveAndDeleteCoverages = (coverages, item, originalCoverages) => (
                     )
                 }
             })
+        } else {
+            if (get(originalCoverages, 'length', 0) > 0) {
+                // There must always be at least one coverage associated with the planning item
+                var _errorMessage = { data: {} }
+                _errorMessage.data._message = 'The planning item must have at least one coverage.'
+                return Promise.reject(_errorMessage)
+            }
         }
 
         // Deletes coverages
