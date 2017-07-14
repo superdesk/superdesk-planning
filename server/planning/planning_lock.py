@@ -14,6 +14,7 @@ from superdesk.metadata.utils import item_url
 from apps.archive.common import get_user, get_auth
 from superdesk.services import BaseService
 from .item_lock import LockService
+from superdesk import get_resource_service
 
 CUSTOM_HATEOAS = {'self': {'title': 'Planning', 'href': '/planning/{_id}'}}
 
@@ -38,13 +39,15 @@ class PlanningLockResource(Resource):
 class PlanningLockService(BaseService):
 
     def create(self, docs, **kwargs):
-        user = get_user(required=True)
-        auth = get_auth()
+        user_id = get_user(required=True)['_id']
+        session_id = get_auth()['_id']
         item_id = request.view_args['item_id']
         lock_action = docs[0].get('lock_action', 'edit')
         lock_service = LockService()
-        item = lock_service.lock(item_id, user['_id'], auth['_id'], lock_action, 'planning')
-        return _update_returned_document(docs[0], item)
+        resource_service = get_resource_service('planning')
+        item = resource_service.find_one(req=None, _id=item_id)
+        updated_item = lock_service.lock(item, user_id, session_id, lock_action, 'planning')
+        return _update_returned_document(docs[0], updated_item)
 
 
 class PlanningUnlockResource(Resource):
@@ -59,9 +62,11 @@ class PlanningUnlockResource(Resource):
 class PlanningUnlockService(BaseService):
 
     def create(self, docs, **kwargs):
-        user = get_user(required=True)
-        auth = get_auth()
+        user_id = get_user(required=True)['_id']
+        session_id = get_auth()['_id']
         item_id = request.view_args['item_id']
         lock_service = LockService()
-        item = lock_service.unlock(item_id, user['_id'], auth['_id'], 'planning')
-        return _update_returned_document(docs[0], item)
+        resource_service = get_resource_service('planning')
+        item = resource_service.find_one(req=None, _id=item_id)
+        updated_item = lock_service.unlock(item, user_id, session_id, 'planning')
+        return _update_returned_document(docs[0], updated_item)

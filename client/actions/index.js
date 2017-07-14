@@ -26,6 +26,7 @@ const notifications = {
     ...agendaNotifications,
     ...planning.notifications.events,
     ...eventNotifications,
+    ...events.notifications.events,
 }
 
 export {

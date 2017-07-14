@@ -31,15 +31,19 @@ class LockService:
         self.app = app
         self.app.on_session_end += self.on_session_end
 
-    def lock(self, item_id, user_id, session_id, action, resource):
-        item_service = get_resource_service(resource)
-        item = item_service.find_one(req=None, _id=item_id)
-
+    def lock(self, item, user_id, session_id, action, resource, lock_id_field=None):
         if not item:
             raise SuperdeskApiError.notFoundError()
 
+        item_service = get_resource_service(resource)
+        item_id = item.get(config.ID_FIELD)
+
+        # lock_id will have a specific value (recurrence_id) for recurring events
+        if not lock_id_field:
+            lock_id_field = config.ID_FIELD
+
         # set the lock_id it per item
-        lock_id = "item_lock {}".format(item.get(config.ID_FIELD))
+        lock_id = "item_lock {}".format(item.get(lock_id_field))
 
         # get the lock it not raise forbidden exception
         if not lock(lock_id, expire=5):
@@ -62,7 +66,8 @@ class LockService:
                 push_notification(resource + ':lock',
                                   item=str(item.get(config.ID_FIELD)),
                                   user=str(user_id), lock_time=updates['lock_time'],
-                                  lock_session=str(session_id))
+                                  lock_session=str(session_id),
+                                  etag=updates['_etag'])
             else:
                 raise SuperdeskApiError.forbiddenError(message=error_message)
 
@@ -76,12 +81,12 @@ class LockService:
             # unlock the lock :)
             unlock(lock_id, remove=True)
 
-    def unlock(self, item_id, user_id, session_id, resource):
-        item_service = get_resource_service(resource)
-        item = item_service.find_one(req=None, _id=item_id)
-
+    def unlock(self, item, user_id, session_id, resource):
         if not item:
             raise SuperdeskApiError.notFoundError()
+
+        item_service = get_resource_service(resource)
+        item_id = item.get(config.ID_FIELD)
 
         if not item.get(LOCK_USER):
             raise SuperdeskApiError.badRequestError(message="Item is not locked.")
