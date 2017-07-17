@@ -216,6 +216,9 @@ export const formatAddress = (nominatim) => {
     )
 
     const address = {
+        title: (localityHierarchy.indexOf(nominatim.type) === -1 &&
+            areaHierarchy.indexOf(nominatim.type) === -1) ?
+            get(nominatim.address, nominatim.type) : null,
         line: [
             `${get(nominatim.address, 'house_number', '')} ${get(nominatim.address, 'road', '')}`
             .trim(),
@@ -227,7 +230,7 @@ export const formatAddress = (nominatim) => {
         external: { nominatim },
     }
     const shortName = [
-        get(address, nominatim.type), // Title of the place
+        get(address, 'title'),
         get(address, 'line[0]'),
         get(address, 'area'),
         get(address, 'locality'),
