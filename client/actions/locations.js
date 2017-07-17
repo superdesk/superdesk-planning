@@ -47,10 +47,21 @@ export function saveLocation(newLocation) {
                 }
             }
         })
-        .then(data => ({
-            name: data.name,
-            type: data.type,
-            qcode: data.guid,
-        }))
+        .then(data => {
+            const eventData = {
+                name: data.name,
+                type: data.type,
+                qcode: data.guid,
+            }
+
+            if (data.position) {
+                eventData.location = {
+                    lat: data.position.latitude,
+                    lon: data.position.longitude,
+                }
+            }
+
+            return eventData
+        })
     }
 }
