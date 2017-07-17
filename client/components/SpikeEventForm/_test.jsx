@@ -59,7 +59,7 @@ describe('<SpikeEventForm />', () => {
                 coverages: [],
                 event_item: 'e1',
                 original_creator: { display_name: 'Hue Man' },
-                _agenda: data.agendas[1],
+                _agendas: [data.agendas[1]],
             },
             {
                 _id: 'p2',
@@ -68,7 +68,7 @@ describe('<SpikeEventForm />', () => {
                 coverages: [],
                 event_item: 'e2',
                 original_creator: { display_name: 'Hue Man' },
-                _agenda: undefined,
+                _agendas: [],
             },
             {
                 _id: 'p3',
@@ -77,7 +77,7 @@ describe('<SpikeEventForm />', () => {
                 coverages: [],
                 event_item: 'e3',
                 original_creator: { display_name: 'Hue Man' },
-                _agenda: undefined,
+                _agendas: [],
             },
             {
                 _id: 'p4',
@@ -86,7 +86,7 @@ describe('<SpikeEventForm />', () => {
                 coverages: [],
                 event_item: 'e3',
                 original_creator: { display_name: 'Hue Man' },
-                _agenda: undefined,
+                _agendas: [],
             },
         ]
 

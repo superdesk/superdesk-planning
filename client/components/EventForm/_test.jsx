@@ -38,7 +38,12 @@ describe('events', () => {
                         events: { '5800d71930627218866f1e80' : event },
                         showEventDetails: '5800d71930627218866f1e80',
                     },
-                    users: [{ _id: 'user123' }],
+                    users: [
+                        {
+                            _id: 'user123',
+                            display_name: 'foo',
+                        },
+                    ],
                     session: {
                         identity: { _id: 'user123' },
                         sessionId: 'session123',
@@ -100,7 +105,7 @@ describe('events', () => {
                     expect(end).toBe(expectedDates.end)
                 }
 
-                let store = createTestStore()
+                let store = createTestStoreForEventEditing()
                 const initialValues = event
                 mount(
                     <Provider store={store}>
@@ -112,7 +117,7 @@ describe('events', () => {
             })
 
             it('fill the form', () => {
-                let store = createTestStore()
+                let store = createTestStoreForEventEditing()
                 const initialValues = event
                 const wrapper = mount(
                     <Provider store={store}>
@@ -123,7 +128,7 @@ describe('events', () => {
             })
 
             it('detects a non recurring event', () => {
-                const store = createTestStore()
+                const store = createTestStoreForEventEditing()
                 // check with default values if doesRepeat is false
                 expect(mount(<Provider store={store}><EventForm /></Provider>)
                     .find(FormComponent).props().doesRepeat
@@ -131,7 +136,7 @@ describe('events', () => {
             })
 
             it('detects a recurring event', () => {
-                const store = createTestStore()
+                const store = createTestStoreForEventEditing()
                 const recEvent = {
                     ...event,
                     dates: {
@@ -292,7 +297,7 @@ describe('events', () => {
 
             describe('allDay Toggle', () => {
                 it('detects an all day event', () => {
-                    const store = createTestStore()
+                    const store = createTestStoreForEventEditing()
                     const allDayEvent = {
                         ...event,
                         dates: {
@@ -309,7 +314,7 @@ describe('events', () => {
                 })
 
                 it('detects a non all day event', () => {
-                    const store = createTestStore()
+                    const store = createTestStoreForEventEditing()
                     const nonAllDayEvent = {
                         ...event,
                         dates: {

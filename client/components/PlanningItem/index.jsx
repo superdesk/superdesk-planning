@@ -19,8 +19,8 @@ const getCoverageIcon = (type) => {
 
 const PlanningItem = ({
         item,
+        agendas,
         event,
-        agenda,
         onClick,
         active,
         onSpike,
@@ -29,20 +29,20 @@ const PlanningItem = ({
         onDoubleClick,
         itemLocked,
         itemLockedInThisSession,
+        onAgendaClick,
     }) => {
     const location = get(event, 'location[0].name')
     const dueDates = get(item, 'coverages', []).map((c) => (get(c, 'planning.scheduled'))).filter(d => (d))
     const coveragesTypes = get(item, 'coverages', []).map((c) => get(c, 'planning.g2_content_type'))
 
     const itemSpiked = item && get(item, 'state', 'active') === ITEM_STATE.SPIKED
-    const agendaSpiked = agenda && get(agenda, 'state', 'active') === ITEM_STATE.SPIKED
     const eventSpiked = event ? get(event, 'state', 'active') === ITEM_STATE.SPIKED : false
 
     const showSpikeButton = (!itemLocked || itemLockedInThisSession) &&
-        privileges.planning_planning_spike === 1 && !itemSpiked && !agendaSpiked && !eventSpiked
+        privileges.planning_planning_spike === 1 && !itemSpiked && !eventSpiked
 
     const showUnspikeButton = (!itemLocked || itemLockedInThisSession) &&
-        privileges.planning_planning_unspike === 1 && itemSpiked && !agendaSpiked && !eventSpiked
+        privileges.planning_planning_unspike === 1 && itemSpiked && !eventSpiked
 
     return (
         <ListItem
@@ -88,6 +88,28 @@ const PlanningItem = ({
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {location}
                     </span>&nbsp;
+                    {item.agendas &&
+                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                            {item.agendas.map((agendaId) => {
+                                const agenda = agendas.find((agenda) => agenda._id === agendaId)
+
+                                if (!agenda) {
+                                    return null
+                                }
+
+                                let style = agenda.is_enabled ? 'label--primary' : 'label--light'
+
+                                return ( <span key={'agenda-label-'+ agenda._id}
+                                    className={`label ${style}`}
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        onAgendaClick(agenda._id)
+                                    }}>
+                                    {agenda.name}
+                                </span>)
+                            })}
+                        </span>
+                    }
                     {dueDates.length > 0 &&
                         <span className="PlanningItem__dueDate">
                             <DueDate dates={dueDates}/>
@@ -128,8 +150,8 @@ const PlanningItem = ({
 
 PlanningItem.propTypes = {
     item: PropTypes.object.isRequired,
+    agendas: PropTypes.array.isRequired,
     event: PropTypes.object,
-    agenda: PropTypes.object,
     active: PropTypes.bool,
     onClick: PropTypes.func,
     onDoubleClick: PropTypes.func,
@@ -138,6 +160,7 @@ PlanningItem.propTypes = {
     privileges: PropTypes.object,
     itemLocked: React.PropTypes.bool,
     itemLockedInThisSession: React.PropTypes.bool,
+    onAgendaClick: React.PropTypes.func,
 }
 
 export default PlanningItem

@@ -30,7 +30,7 @@ const planningReducer = createReducer(initialState, {
     [PLANNING.ACTIONS.ADD_TO_LIST]: (state, payload) => (
         planningReducer(state, {
             type: PLANNING.ACTIONS.SET_LIST,
-            payload: uniq(...state.planningsInList, ...payload),
+            payload: uniq([...state.planningsInList, ...payload]),
         })
     ),
 

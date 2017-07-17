@@ -106,6 +106,7 @@ export const getTestActionStore = () => {
                     slugline: 'Planning1',
                     headline: 'Some Plan 1',
                     coverages: [],
+                    agendas: [],
                 },
                 {
                     _id: 'p2',
@@ -113,19 +114,24 @@ export const getTestActionStore = () => {
                     headline: 'Some Plan 2',
                     event_item: 'e1',
                     coverages: [],
+                    agendas: ['a2'],
                 },
             ],
             agendas: [
                 {
                     _id: 'a1',
                     name: 'TestAgenda',
-                    planning_type: 'agenda',
+                    is_enabled: true,
                 },
                 {
                     _id: 'a2',
                     name: 'TestAgenda2',
-                    planning_type: 'agenda',
-                    planning_items: ['p1'],
+                    is_enabled: true,
+                },
+                {
+                    _id: 'a3',
+                    name: 'TestAgenda3',
+                    is_enabled: false,
                 },
             ],
             coverages: [

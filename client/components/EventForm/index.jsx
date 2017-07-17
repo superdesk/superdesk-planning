@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
-import { RelatedPlannings, RepeatEventForm, fields, Toggle, EventHistoryContainer } from '../index'
+import { RelatedPlannings, RepeatEventForm, fields, Toggle, EventHistoryContainer, AuditInformation } from '../index'
 import { Field, FieldArray, reduxForm, formValueSelector, getFormValues } from 'redux-form'
 import { isNil, get, isEqual, remove } from 'lodash'
 import { PubStatusLabel } from '../index'
@@ -312,16 +312,11 @@ export class Component extends React.Component {
                                 </div>
                             </div>
                         )}
-                        <div className="TimeAndAuthor">
-                            {creationDate && author &&
-                                <div>Created {moment(creationDate).fromNow()} by <span className='TimeAndAuthor__author'> {author.display_name}</span>
-                                </div>
-                            }
-                            {updatedDate && versionCreator &&
-                                <div>Updated {moment(updatedDate).fromNow()} by <span className='TimeAndAuthor__author'> {versionCreator.display_name}</span>
-                                </div>
-                            }
-                        </div>
+                        <AuditInformation
+                            createdBy={author}
+                            updatedBy={versionCreator}
+                            createdAt={creationDate}
+                            updatedAt={updatedDate} />
                     </div>
                     { !forcedReadOnly && !metaDataEditable && <span className="error-block">Editing event's metadata disabled</span> }
                     { !forcedReadOnly && !recurringRulesEditable && <span className="error-block">Editing event's recurring rules values disabled</span> }

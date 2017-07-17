@@ -86,9 +86,7 @@ const _saveAndReloadCurrentAgenda = (item) => (
             notify.success('The Planning item has been saved.')
             return Promise.resolve(item)
         }, (error) => {
-            notify.error(
-                getErrorMessage(error, 'Failed to save the Planning item!')
-            )
+            notify.error(getErrorMessage(error, 'Failed to save the Planning item!'))
             return Promise.reject(error)
         })
     )
@@ -195,14 +193,13 @@ const _openEditor = (item) => ({
  * @param {string} pid - The Planning item id to open
  * @return Promise
  */
-const previewPlanningAndOpenAgenda = (pid) => (
+const previewPlanningAndOpenAgenda = (pid, agenda) => (
     (dispatch, getState) => {
-        const agenda = selectors.getAgendas(getState()).find(
-            (a) => (a.planning_items || []).indexOf(pid) > -1
-        )
+
         if (agenda && agenda._id !== selectors.getCurrentAgendaId(getState())) {
             dispatch(actions.selectAgenda(agenda._id))
         }
+
         // open the planning details
         return dispatch(self.preview(pid))
     }
