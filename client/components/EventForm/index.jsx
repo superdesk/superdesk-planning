@@ -235,7 +235,7 @@ export class Component extends React.Component {
         return (
             <form onSubmit={handleSubmit} className="EventForm">
                 <div className="subnav">
-                    {pristine && (
+                    {pristine && forcedReadOnly && (
                         <div className="subnav__button-stack--square-buttons">
                             <div className="navbtn" title="Back to list">
                                 <button onClick={onBackClick} type="button" className="backlink" />
@@ -246,15 +246,13 @@ export class Component extends React.Component {
                         {!this.state.previewHistory && 'Event details'}
                         {this.state.previewHistory && 'Event history'}
                     </span>
-                    {(!pristine && !submitting) && (
+                    {!forcedReadOnly && (
                         <div>
                             <button type="button" className="btn" onClick={onBackClick}>Cancel</button>
-                            {!forcedReadOnly &&
-                                <button type="submit" className="btn btn--primary">
-                                    Save
-                                </button>
-                            }
-                            {!forcedReadOnly && !isPublished &&
+                            <button type="submit" className="btn btn--primary" disabled={pristine || submitting}>
+                                Save
+                            </button>
+                            {!isPublished &&
                                 <button
                                     onClick={handleSubmit(this.handleSaveAndPublish.bind(this))}
                                     type="button"
