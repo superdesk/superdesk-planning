@@ -8,6 +8,7 @@ Feature: Planning
 
     @auth
     @notification
+    @vocabulary
     Scenario: Create new planning item
         Given empty "users"
         Given empty "planning"
@@ -51,8 +52,16 @@ Feature: Planning
                 "headline": "test headline"
             }]}
         """
+        When we get "/coverage"
+        Then we get a list with 1 items
+        """
+            {"_items": [{
+                "planning_item": "#planning._id#"
+            }
+            ]}
+        """
         When we get "/planning_history"
-        Then we get list with 1 items
+        Then we get a list with 2 items
         """
             {"_items": [{
                 "planning_id":  "#planning._id#",
@@ -61,8 +70,25 @@ Feature: Planning
                     "original_creator": "__any_value__",
                     "item_class": "item class value",
                     "headline": "test headline"
-            }
+            }},
+            {
+                "planning_id":  "#planning._id#",
+                "operation": "coverage created",
+                 "update": {
+                    "coverage_id": "__any_value__"
+                }
             }]}
+        """
+        When we get "/coverage_history"
+        Then we get a list with 1 items
+        """
+            {"_items": [{
+                "operation": "create",
+                "update": {
+                    "planning_item": "#planning._id#"
+                    }
+            }
+            ]}
         """
 
     @auth
@@ -101,7 +127,6 @@ Feature: Planning
         Given "planning"
         """
         [{
-            "_id": "123",
             "item_class": "item class value",
             "headline": "test headline"
         }]
@@ -109,7 +134,7 @@ Feature: Planning
         Given "coverage"
         """
         [{
-            "planning_item": "123",
+            "planning_item": "#planning._id#",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "assigned_to": {
@@ -122,11 +147,11 @@ Feature: Planning
         Then we get list with 1 items
         """
         {"_items": [{
-            "_id": "123",
+            "_id": "#planning._id#",
             "item_class": "item class value",
             "headline": "test headline",
             "coverages": [{
-                "planning_item": "123",
+                "planning_item": "#planning._id#",
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
@@ -199,7 +224,7 @@ Feature: Planning
         """
         Then we get OK response
         When we get "/planning_history"
-        Then we get a list with 2 items
+        Then we get a list with 3 items
         """
             {"_items": [{
                 "planning_id":  "#planning._id#",
@@ -210,7 +235,9 @@ Feature: Planning
                     "headline": "test headline"}},
                 {"planning_id":  "#planning._id#",
                 "operation": "update",
-                "update": {"headline": "updated test headline"}}
+                "update": {"headline": "updated test headline"}},
+                {"operation": "coverage created",
+                "planning_id": "#planning._id#"}
             ]}
         """
 
@@ -255,11 +282,14 @@ Feature: Planning
         """
         Then we get OK response
         When we get "/planning_history"
-        Then we get a list with 1 items
+        Then we get a list with 2 items
         """
             {"_items": [{
                 "planning_id":  "#planning._id#",
-                "operation": "create"}
+                "operation": "create"},
+                {"planning_id":  "#planning._id#",
+                "operation": "coverage created"
+                }
             ]}
         """
         When we get "/events_history"

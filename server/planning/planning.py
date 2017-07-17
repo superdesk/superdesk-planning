@@ -24,6 +24,8 @@ from apps.archive.common import set_original_creator, get_user
 from copy import deepcopy
 from eve.utils import config
 from .common import STATE_SCHEMA
+from superdesk.utc import utcnow
+from bson.objectid import ObjectId
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +66,15 @@ class PlanningService(superdesk.Service):
                 item=str(doc.get(config.ID_FIELD)),
                 user=str(doc.get('original_creator', ''))
             )
+
+            # Create a place holder coverage item
+            coverage = {'planning_item': ObjectId(doc.get(config.ID_FIELD))}
+            coverage_status = get_resource_service('vocabularies').find_one(req=None, _id='newscoveragestatus')
+            if coverage_status is not None:
+                coverage['news_coverage_status'] = \
+                    [x for x in coverage_status.get('items', []) if x['qcode'] == 'ncostat:notdec'][0]
+                coverage['news_coverage_status'].pop('is_active')
+
             # remove event expiry if it is linked to the planning
             if 'event_item' in doc:
                 events_service = get_resource_service('events')
@@ -71,6 +82,14 @@ class PlanningService(superdesk.Service):
                 events_service.system_update(doc['event_item'], {'expiry': None}, original_event)
                 get_resource_service('events_history').on_item_updated({'planning_id': doc.get('_id')}, original_event,
                                                                        'planning created')
+                # if the planning item is related to an event the default coverage schedule time is inherited from the
+                # event else it is set to now
+                coverage['planning'] = {'scheduled': original_event.get('dates', {}).get('start', None)}
+            else:
+                coverage['planning'] = {'scheduled': utcnow()}
+
+            get_resource_service('coverage').post([coverage])
+            get_resource_service('coverage_history').on_item_created([coverage])
 
     def on_locked_planning(self, item, user_id):
         item['coverages'] = list(self.__generate_related_coverages(item))
