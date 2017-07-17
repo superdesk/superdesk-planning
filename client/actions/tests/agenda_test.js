@@ -180,49 +180,74 @@ describe('agenda', () => {
             })
         })
 
-        it('deleteAgenda', (done) => {
-            apiSpy.query = sinon.spy(() => (Promise.resolve({ _items: agendas })))
-            const action = actions.deleteAgenda(agendas[0])
-            return action(dispatch, getState, {
-                api,
-                notify,
+        describe('deleteAgenda', () => {
+            it('can be deleted if user has permission', (done) => {
+                initialState.privileges.planning_agenda_management = 1
+                const action = actions.deleteAgenda(agendas[0])
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then(() => {
+                    expect(apiSpy.remove.callCount).toBe(1)
+                    expect(notify.success.callCount).toBe(1)
+                    done()
+                })
+                .catch((error) => {
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
+                    done()
+                })
             })
-            .then(() => {
-                expect(apiSpy.remove.callCount).toBe(1)
-                expect(apiSpy.query.callCount).toBe(1)
-                expect(notify.success.callCount).toBe(1)
-                done()
-            })
-            .catch((error) => {
-                expect(error).toBe(null)
-                expect(error.stack).toBe(null)
-                done()
-            })
-        })
 
-        it('deleteAgenda raises ACCESS_DENIED without permission', (done) => {
-            initialState.privileges.planning_agenda_management = 0
-            const action = actions.deleteAgenda(agendas[0])
-            return action(dispatch, getState, {
-                api,
-                notify,
-                $timeout,
-            })
-            .catch(() => {
-                expect(notify.error.args[0][0]).toBe(
-                    'Unauthorised to delete an agenda!'
-                )
-                expect(dispatch.args[0]).toEqual([{
-                    type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                    payload: {
-                        action: '_deleteAgenda',
-                        permission: PRIVILEGES.AGENDA_MANAGEMENT,
-                        errorMessage: 'Unauthorised to delete an agenda!',
-                        args: [agendas[0]],
-                    },
-                }])
+            it('raises ACCESS_DENIED without permission', (done) => {
+                initialState.privileges.planning_agenda_management = 0
+                const action = actions.deleteAgenda(agendas[0])
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                    $timeout,
+                })
+                .catch(() => {
+                    expect(notify.error.args[0][0]).toBe(
+                        'Unauthorised to delete an agenda!'
+                    )
+                    expect(dispatch.args[0]).toEqual([{
+                        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
+                        payload: {
+                            action: '_deleteAgenda',
+                            permission: PRIVILEGES.AGENDA_MANAGEMENT,
+                            errorMessage: 'Unauthorised to delete an agenda!',
+                            args: [agendas[0]],
+                        },
+                    }])
 
-                done()
+                    done()
+                })
+            })
+
+            it('remove agenda call fails', (done) => {
+                initialState.privileges.planning_agenda_management = 1
+                apiSpy.remove = sinon.spy(() => (Promise.reject({ })))
+                const action = actions.deleteAgenda(agendas[0])
+
+                return action(dispatch, getState, {
+                    api,
+                    notify,
+                })
+                .then(() => {
+                    expect(apiSpy.remove.callCount).toBe(1)
+                    expect(notify.error.callCount).toBe(1)
+                    expect(notify.error.args[0][0]).toBe(
+                        'There was a problem, agenda could not be deleted.'
+                    )
+                    done()
+                })
+                .catch((error) => {
+                    expect(error).toBe(null)
+                    expect(error.stack).toBe(null)
+                    done()
+                })
             })
         })
 

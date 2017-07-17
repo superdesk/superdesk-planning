@@ -139,6 +139,7 @@ Feature: Agenda
         Then we get OK response
 
     @auth
+    @notification
     Scenario: Agenda name cannot be deleted if referenced by Planning Item
         When we post to "agenda"
         """
@@ -170,5 +171,15 @@ Feature: Agenda
         }
         """
         Then we get OK response
+        When we reset notifications
         When we delete "/agenda/#agenda._id#"
         Then we get OK response
+        Then we get notifications
+        """
+        [{
+            "event": "agenda:deleted",
+            "extra": {
+                "item": "#agenda._id#"
+            }
+        }]
+        """

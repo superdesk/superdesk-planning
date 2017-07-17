@@ -56,10 +56,16 @@ class AgendasService(Service):
         push_notification(
             'agenda:updated',
             item=str(original[config.ID_FIELD]),
-            user=str(original.get('original_creator', ''))
+            user=str(updates.get('version_creator', ''))
         )
 
     def on_delete(self, doc):
         if get_resource_service('planning').get_planning_by_agenda_id(doc.get(config.ID_FIELD)).count() > 0:
             raise SuperdeskApiError.badRequestError(message='Agenda is referenced by Planning items. '
                                                             'Cannot delete Agenda')
+
+    def on_deleted(self, doc):
+        push_notification(
+            'agenda:deleted',
+            item=str(doc[config.ID_FIELD])
+        )

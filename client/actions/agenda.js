@@ -279,7 +279,6 @@ const _deleteAgenda = (agenda) => (
         api('agenda').remove(agenda)
         .then(() => {
             notify.success('The agenda has been deleted.')
-            dispatch(fetchAgendas())
         }, (error) => {
             notify.error(getErrorMessage(
                 error,
@@ -340,10 +339,18 @@ const onAgendaCreatedOrUpdated = (_e, data) => (
     }
 )
 
+/**
+ * Action Event when a Agenda is deleted
+ */
+const onAgendaDeleted = () => (
+    (dispatch) => dispatch(fetchAgendas())
+)
+
 // Map of notification name and Action Event to execute
 const agendaNotifications = {
     'agenda:created': () => (onAgendaCreatedOrUpdated),
     'agenda:updated': () => (onAgendaCreatedOrUpdated),
+    'agenda:deleted': () => (onAgendaDeleted),
 }
 
 export {
