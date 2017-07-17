@@ -26,6 +26,7 @@ const planningApp = combineReducers({
     users,
     desks,
     session,
+    deployConfig: (state) => (state || {}),
 })
 
 export default planningApp

@@ -22,7 +22,7 @@ from apps.archive.common import set_original_creator, get_user
 from superdesk.users.services import current_user_has_privilege
 from superdesk.utc import utcnow
 from .common import STATE_SCHEMA, PUB_STATUS_VALUES, UPDATE_SINGLE, UPDATE_FUTURE, UPDATE_ALL, \
-    UPDATE_METHODS, PUB_STATUS_USABLE
+    UPDATE_METHODS, PUB_STATUS_USABLE, get_max_recurrent_events
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -412,7 +412,7 @@ class EventsService(superdesk.Service):
             start=merged['dates']['start'],
             tz=merged['dates'].get('tz') and pytz.timezone(merged['dates']['tz'] or None),
             **merged['dates']['recurring_rule']
-        ), 0, 200)]
+        ), 0, get_max_recurrent_events())]
 
         for event, date in itertools.zip_longest(existing_events, dates):
             if not date:
@@ -614,7 +614,10 @@ events_schema = {
                 'schema': {
                     'frequency': {'type': 'string'},
                     'interval': {'type': 'integer'},
-                    'endRepeatMode': {'type': 'string'},
+                    'endRepeatMode': {
+                        'type': 'string',
+                        'allowed': ['count', 'until']
+                    },
                     'until': {'type': 'datetime', 'nullable': True},
                     'count': {'type': 'integer', 'nullable': True},
                     'bymonth': {'type': 'string', 'nullable': True},
@@ -835,8 +838,8 @@ class EventsResource(superdesk.Resource):
                   'PATCH': 'planning_event_management'}
 
 
-def generate_recurring_dates(start, frequency, interval=1, endRepeatMode='unlimited',
-                             until=None, byday=None, count=None, tz=None):
+def generate_recurring_dates(start, frequency, interval=1, endRepeatMode='count',
+                             until=None, byday=None, count=5, tz=None):
     """
 
     Returns list of dates related to recurring rules
@@ -898,10 +901,7 @@ def generate_recurring_dates(start, frequency, interval=1, endRepeatMode='unlimi
 
 def setRecurringMode(event):
     endRepeatMode = event.get('dates', {}).get('recurring_rule', {}).get('endRepeatMode')
-    if endRepeatMode == 'unlimited':
-        event['dates']['recurring_rule']['count'] = None
-        event['dates']['recurring_rule']['until'] = None
-    elif endRepeatMode == 'count':
+    if endRepeatMode == 'count':
         event['dates']['recurring_rule']['until'] = None
     elif endRepeatMode == 'until':
         event['dates']['recurring_rule']['count'] = None
@@ -926,7 +926,7 @@ def generate_recurring_events(event):
             start=event['dates']['start'],
             tz=event['dates'].get('tz') and pytz.timezone(event['dates']['tz'] or None),
             **event['dates']['recurring_rule']
-    ), 0, 200):  # set a limit to prevent too many events to be created
+    ), 0, get_max_recurrent_events()):  # set a limit to prevent too many events to be created
         # create event with the new dates
         new_event = copy.deepcopy(event)
         new_event['dates']['start'] = date

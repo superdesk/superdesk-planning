@@ -32,6 +32,7 @@ from .feeding_services.event_http_service import EventHTTPFeedingService
 from .feeding_services.event_email_service import EventEmailFeedingService
 from .events_duplicate import EventsDuplicateResource, EventsDuplicateService
 from .events_publish import EventsPublishService, EventsPublishResource
+from .common import get_max_recurrent_events
 
 
 def init_app(app):
@@ -185,6 +186,8 @@ def init_app(app):
     superdesk.intrinsic_privilege(EventsUnlockResource.endpoint_name, method=['POST'])
 
     import planning.output_formatters  # noqa
+
+    app.client_config['max_recurrent_events'] = get_max_recurrent_events(app)
 
 
 register_feeding_service(

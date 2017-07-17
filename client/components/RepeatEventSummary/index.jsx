@@ -63,13 +63,11 @@ export class RepeatEventSummary  extends React.Component {
 
     getSuffix() {
         let suffix = ''
-        if (this.props.endRepeatMode !== 'unlimited') {
-            if (this.props.endRepeatMode === 'count' && parseInt(this.props.count) > 0) {
-                suffix = ', ' + this.props.count + ' times'
-            } else if (this.props.endRepeatMode === 'until' && this.props.until &&
-                this.props.until.isValid()) {
-                suffix = ', until ' + this.props.until.format('D MMM YYYY')
-            }
+        if (this.props.endRepeatMode === 'count' && parseInt(this.props.count) > 0) {
+            suffix = ', ' + this.props.count + ' times'
+        } else if (this.props.endRepeatMode === 'until' && this.props.until &&
+            this.props.until.isValid()) {
+            suffix = ', until ' + this.props.until.format('D MMM YYYY')
         }
         return suffix
     }
@@ -95,6 +93,6 @@ RepeatEventSummary.propTypes = {
     frequency: React.PropTypes.string,
     endRepeatMode: React.PropTypes.string,
     until: React.PropTypes.object,
-    count: React.PropTypes.string,
+    count: React.PropTypes.number,
     startDate: React.PropTypes.object,
 }

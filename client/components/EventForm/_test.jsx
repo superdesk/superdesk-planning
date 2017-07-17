@@ -219,7 +219,7 @@ describe('events', () => {
                         end: moment('2016-10-20T15:00+0000'),
                         recurring_rule: {
                             frequency: 'DAILY',
-                            endRepeatMode: 'unlimited',
+                            endRepeatMode: 'count',
                         },
                     },
                     lock_user: 'user123',
@@ -242,7 +242,7 @@ describe('events', () => {
                         end: moment('2016-10-20T15:00+0000'),
                         recurring_rule: {
                             frequency: 'DAILY',
-                            endRepeatMode: 'unlimited',
+                            endRepeatMode: 'count',
                         },
                     },
                     lock_user: 'user123',
@@ -279,7 +279,7 @@ describe('events', () => {
                         end: moment('2016-10-20T15:00+0000'),
                         recurring_rule: {
                             frequency: 'DAILY',
-                            endRepeatMode: 'unlimited',
+                            endRepeatMode: 'count',
                         },
                     },
                     lock_user: 'user123',

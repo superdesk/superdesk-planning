@@ -22,6 +22,7 @@ PlanningController.$inject = [
     'desks',
     'metadata',
     'session',
+    'deployConfig',
 ]
 export function PlanningController(
     $element,
@@ -39,7 +40,8 @@ export function PlanningController(
     userList,
     desks,
     metadata,
-    session
+    session,
+    deployConfig
 ) {
     // wrap notify methods inside $timeout to ensure it get displayed ASAP
     const _notify = {
@@ -49,7 +51,10 @@ export function PlanningController(
     }
     // create the application store
     const store = createStore({
-        initialState: { config: config },
+        initialState: {
+            config: config,
+            deployConfig: deployConfig.config,
+        },
         extraArguments: {
             api,
             $location,
@@ -65,6 +70,7 @@ export function PlanningController(
             desks,
             metadata,
             session,
+            deployConfig,
         },
     })
     // load data in the store

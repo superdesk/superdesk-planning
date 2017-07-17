@@ -6,7 +6,12 @@ import { Field, FieldArray, reduxForm, formValueSelector, getFormValues } from '
 import { isNil, get, isEqual, remove } from 'lodash'
 import { PubStatusLabel } from '../index'
 import moment from 'moment'
-import { ChainValidators, EndDateAfterStartDate, RequiredFieldsValidatorFactory, UntilDateValidator } from '../../validators'
+import {
+    ChainValidators,
+    EndDateAfterStartDate,
+    RequiredFieldsValidatorFactory,
+    UntilDateValidator,
+    EventMaxEndRepeatCount } from '../../validators'
 import './style.scss'
 import { ITEM_STATE, EVENTS } from '../../constants'
 import * as selectors from '../../selectors'
@@ -496,6 +501,7 @@ export const FormComponent = reduxForm({
         EndDateAfterStartDate,
         RequiredFieldsValidatorFactory(['name', 'dates.start', 'dates.end']),
         UntilDateValidator,
+        EventMaxEndRepeatCount,
     ]),
     enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
 })(Component)
@@ -515,6 +521,7 @@ const mapStateToProps = (state) => ({
     ),
     lockedInThisSession: selectors.isEventDetailLockedInThisSession(state),
     unlockPrivilege: selectors.getPrivileges(state).planning_unlock ? true : false,
+    maxRecurrentEvents: selectors.getMaxRecurrentEvents(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
