@@ -179,7 +179,7 @@ export class Component extends React.Component {
         const forcedReadOnly = !isNil(id) && (readOnly || eventSpiked || !lockedInThisSession)
         const author = get(initialValues, 'original_creator') && users ? users.find((u) => (u._id === initialValues.original_creator)) : null
         const versionCreator = get(initialValues, 'version_creator') && users ? users.find((u) => (u._id === initialValues.version_creator)) : null
-        const isPublished = get(initialValues, 'pubstatus') === EVENTS.PUB_STATUS.USABLE
+        const isPublished = get(initialValues, 'state') === EVENTS.STATE.PUBLISHED
         const lockedUser = this.getLockedUser(initialValues)
         const metaDataEditable =  !forcedReadOnly && this.isMetaDataEditable()
         const recurringRulesEditable =  !forcedReadOnly && this.isRecurringRulesEditable()
@@ -295,7 +295,7 @@ export class Component extends React.Component {
                 </div>
                 {!this.state.previewHistory &&
                     <div className="EventForm__form">
-                    <PubStatusLabel status={get(initialValues, 'pubstatus')} verbose={true}/>
+                    <PubStatusLabel status={get(initialValues, 'state')} verbose={true}/>
                     <ItemActionsMenu actions={itemActions} />
                     <div>
                         {(!lockedInThisSession && lockedUser)

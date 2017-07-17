@@ -53,7 +53,7 @@ def steip_impl_store_indexed_item_to_ctx(context, tag, index):
 def step_impl_then_get_event_file(context):
     assert_200(context.response)
     data = get_json_data(context.response)
-    url = '/upload/%s/raw' % data['filemeta']['media_id']
+    url = '/upload-raw/%s' % data['filemeta']['media_id']
     headers = [('Accept', 'application/json')]
     headers = unique_headers(headers, context.headers)
     response = context.client.get(get_prefixed_url(context.app, url), headers=headers)

@@ -22,6 +22,10 @@ export const EVENTS = {
         WITHHOLD: 'withhold',
         CANCELED: 'canceled',
     },
+    STATE: {
+        PUBLISHED: 'published',
+        KILLED: 'killed',
+    },
     // Number of ids to look for by single request
     // because url length must stay short
     // chunk size must be lower than page limit (25)

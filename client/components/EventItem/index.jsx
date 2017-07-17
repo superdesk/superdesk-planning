@@ -50,7 +50,7 @@ export const EventItem = ({
                     {hasBeenSpiked &&
                         <span className="label label--alert">spiked</span>
                     }
-                    <PubStatusLabel status={event.pubstatus}/>
+                    <PubStatusLabel status={event.state}/>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow event__title">
                         {event.slugline &&
                             <span className="ListItem__slugline">{event.slugline}</span>

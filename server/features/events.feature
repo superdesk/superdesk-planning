@@ -233,9 +233,9 @@ Feature: Events
         ]
         """
         Then we get OK response
-        When we patch "/events/#events._id#"
+        When we post to "/events/publish"
         """
-        {"pubstatus": "usable"}
+        {"event": "#events._id#", "etag": "#events._etag#"}
         """
         When we get "/events_history"
         Then we get a list with 2 items
@@ -247,7 +247,7 @@ Feature: Events
                 {
                 "event_id": "#events._id#",
                 "operation": "publish",
-                "update": {"pubstatus": "usable"}
+                "update": {"state": "published"}
                 }
             ]}
         """
@@ -265,11 +265,11 @@ Feature: Events
                 {
                 "event_id": "#events._id#",
                 "operation": "publish",
-                "update": {"pubstatus": "usable"}
+                "update": {"state": "published"}
                 },
                 {
                 "event_id": "#events._id#",
-                "operation": "unpublish",
+                "operation": "update",
                 "update": {"pubstatus": "withhold"}
                 }
             ]}
