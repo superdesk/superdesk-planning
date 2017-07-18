@@ -178,6 +178,7 @@ const spike = (event) => (
             Promise.all(
                 [
                     dispatch(self.refetchEvents()),
+                    dispatch(_openEventDetails(events[0])),
                     dispatch(fetchSelectedAgendaPlannings()),
                 ]
             )
