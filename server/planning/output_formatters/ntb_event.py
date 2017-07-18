@@ -41,8 +41,6 @@ class NTBEventFormatter(Formatter):
         title.text = item.get('name')
         time = etree.SubElement(doc, 'time')
         time.text = self._format_time(item.get('versioncreated'))
-        location = etree.SubElement(doc, 'location')
-        location.text = self._format_location(item)
         dates = item.get('dates', {})
         time_start = etree.SubElement(doc, 'timeStart')
         time_start.text = self._format_time(dates.get('start'), dates.get('tz'))
@@ -52,9 +50,9 @@ class NTBEventFormatter(Formatter):
         priority.text = str(item.get('priority', self.PRIORITY))
         content = etree.SubElement(doc, 'content')
         content.text = item.get('definition_long', item.get('definition_short'))
-        self._format_geo(doc, item)
         self._format_category(doc, item)
         self._format_subjects(doc, item)
+        self._format_location(doc, item)
 
     def _format_subjects(self, doc, item):
         subjects = etree.SubElement(doc, 'subjects')
@@ -67,10 +65,18 @@ class NTBEventFormatter(Formatter):
         if item.get('anpa_category'):
             category.text = item['anpa_category'][0].get('name')
 
-    def _format_geo(self, doc, item):
+    def _format_location(self, doc, item):
         geo = etree.SubElement(doc, 'geo')
-        etree.SubElement(geo, 'latitude')
-        etree.SubElement(geo, 'longitude')
+        location = etree.SubElement(doc, 'location')
+        latitude = etree.SubElement(geo, 'latitude')
+        longitude = etree.SubElement(geo, 'longitude')
+        if item.get('location'):
+            item_loc = item['location'][0]
+            location.text = item_loc.get('name', '')
+            if item_loc.get('location'):
+                item_geo = item_loc.get('location', {})
+                latitude.text = str(item_geo.get('lat', ''))
+                longitude.text = str(item_geo.get('lon', ''))
 
     def _format_time(self, time, tz=None):
         local_time = self._get_local_time(time, tz)
@@ -86,6 +92,3 @@ class NTBEventFormatter(Formatter):
         if tz is None:
             tz = self.TIMEZONE
         return utc_to_local(tz, get_date(time))
-
-    def _format_location(self, item):
-        pass

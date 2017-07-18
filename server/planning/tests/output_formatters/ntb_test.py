@@ -23,6 +23,9 @@ class NTBEventTestCase(unittest.TestCase):
         'subject': [
             {'qcode': '05001000', 'name': 'adult education', 'parent': '0500000'},
         ],
+        'location': [
+            {'location': {'lon': 14.4212535, 'lat': 50.0874654}, 'name': 'Prague'},
+        ],
     }
 
     def test_formatter(self):
@@ -39,18 +42,18 @@ class NTBEventTestCase(unittest.TestCase):
         self.assertEqual(self.item['name'], root.find('title').text)
         self.assertEqual('2016-10-31T10:33:40', root.find('time').text)  # utc + 1
         self.assertEqual('NBRP161031_092725_hh_00', root.find('ntbId').text)
-        self.assertEqual(None, root.find('location').text)
+        self.assertEqual('Prague', root.find('location').text)
         self.assertEqual('2016-11-01T00:00:00', root.find('timeStart').text)
         self.assertEqual('2016-11-01T23:59:59', root.find('timeEnd').text)
         self.assertEqual('5', root.find('priority').text)
         self.assertEqual(self.item['definition_short'], root.find('content').text)
-        geo = root.find('geo')
-        self.assertIsNone(geo.find('latitude').text)
-        self.assertIsNone(geo.find('longitude').text)
         self.assertEqual(self.item['anpa_category'][0]['name'], root.find('category').text)
         subjects = root.find('subjects')
         self.assertEqual(1, len(subjects))
         self.assertEqual(self.item['subject'][0]['name'], subjects[0].text)
+        geo = root.find('geo')
+        self.assertEqual(str(self.item['location'][0]['location']['lat']), geo.find('latitude').text)
+        self.assertEqual(str(self.item['location'][0]['location']['lon']), geo.find('longitude').text)
 
     def test_kill(self):
         item = self.item.copy()

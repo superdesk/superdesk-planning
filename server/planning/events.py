@@ -718,9 +718,8 @@ events_schema = {
                 'qcode': {'type': 'string'},
                 'name': {'type': 'string'},
                 'geo': {'type': 'string'},
-                'type': {
-                    'type': 'string',
-                }
+                'type': {'type': 'string'},
+                'location': {'type': 'geo_point'},
             }
         }
     },
