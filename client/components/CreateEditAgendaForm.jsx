@@ -11,7 +11,7 @@ export class Component extends React.Component {
 
     constructor(props) {
         super(props)
-        this.state = { isEnabled: this.props.initialValues.is_enabled }
+        this.state = { isEnabled: get(this.props.initialValues, 'is_enabled', true) }
     }
 
     handleEnabledChange(event) {
