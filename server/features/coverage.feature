@@ -36,7 +36,7 @@ Feature: Coverage
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
-                        "user": "whoever wants to do it"
+                        "user": "507f191e810c19729de860ea"
                     }
                 },
                 "planning_item": "#planning._id#",
@@ -53,7 +53,7 @@ Feature: Coverage
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
-                        "user": "whoever wants to do it"
+                        "user": "507f191e810c19729de860ea"
                     }
                 },
                 "delivery": []
@@ -128,7 +128,7 @@ Feature: Coverage
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
-                        "user": "whoever wants to do it"
+                        "user": "507f191e810c19729de860ea"
                     }
                 },
                 "delivery": [],
@@ -145,7 +145,7 @@ Feature: Coverage
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
-                        "user": "whoever wants to do it",
+                        "user": "507f191e810c19729de860ea",
                         "assigned_by": "#CONTEXT_USER_ID#",
                         "assigned_date": "__any_value__"
                     }
@@ -186,7 +186,7 @@ Feature: Coverage
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
-                        "user": "whoever wants to do it"
+                        "user": "507f191e810c19729de860ea"
                     }
                 },
                 "delivery": [],
@@ -213,7 +213,7 @@ Feature: Coverage
             "planning": {
                 "ednote": "testing changes",
                 "assigned_to": {
-                    "user": "someone else"
+                    "user": "c507f191e810c19729de860e"
                 }
             }
         }
@@ -267,7 +267,7 @@ Feature: Coverage
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
-                        "user": "whoever wants to do it"
+                        "user": "507f191e810c19729de860ea"
                     }
                 },
                 "delivery": [],
@@ -288,7 +288,7 @@ Feature: Coverage
                 "coverage_id":  "#coverage._id#",
                 "operation": "create",
                 "update": {
-                    "planning": {"assigned_to": {"user": "whoever wants to do it" }}
+                    "planning": {"assigned_to": {"user": "507f191e810c19729de860ea" }}
                     }},
                 {"coverage_id":  "#coverage._id#",
                 "operation": "update",

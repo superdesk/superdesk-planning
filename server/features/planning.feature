@@ -223,7 +223,7 @@ Feature: Planning
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "assigned_to": {
-                    "user": "whoever wants to do it"
+                    "user": "507f191e810c19729de860ea"
                 }
             }
         }]
@@ -240,7 +240,7 @@ Feature: Planning
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
-                        "user": "whoever wants to do it"
+                        "user": "507f191e810c19729de860ea"
                     }
                 }
             }]
