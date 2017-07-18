@@ -13,7 +13,7 @@ class NTBEventFormatter(Formatter):
     PRIORITY = '5'
 
     def can_format(self, format_type, article):
-        return format_type == 'ntb_event'
+        return format_type == 'ntb_event' and article.get('type') == 'event'
 
     def format(self, item, subscriber, codes=None):
         doc = etree.Element('document')
