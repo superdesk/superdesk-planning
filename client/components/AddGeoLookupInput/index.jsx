@@ -32,7 +32,7 @@ class GeoLookupInput extends React.Component {
                 ignoreTab
                 suggestItemLabelRenderer={(suggest) => {
                     return (<span><span className='label geolookup__suggestItemLabel'>{suggest.raw.type.replace('_', ' ')}</span>
-                        &nbsp;&nbsp;{suggest.label}</span>)
+                        &nbsp;&nbsp;{formatAddress(suggest.raw).shortName}</span>)
                 }}
             />
         )

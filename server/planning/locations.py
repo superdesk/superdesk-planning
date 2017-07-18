@@ -112,6 +112,7 @@ locations_schema = {
     'address': {
         'type': 'dict',
         'schema': {
+            'title': {'type': 'string'},
             'line': {
                 'type': 'list',
                 'mapping': {'type': 'string'}
