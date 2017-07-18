@@ -112,7 +112,10 @@ locations_schema = {
     'address': {
         'type': 'dict',
         'schema': {
-            'title': {'type': 'string'},
+            'title': {
+                'type': 'string',
+                'nullable': True,
+            },
             'line': {
                 'type': 'list',
                 'mapping': {'type': 'string'}
