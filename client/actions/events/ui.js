@@ -97,7 +97,9 @@ const _unlockAndOpenEventDetails = (event) => (
         dispatch(eventsApi.unlock(event)).then((item) => {
             dispatch(eventsApi.receiveEvents([item]))
             // Call openPlanningEditor to obtain a new lock for editing
-            dispatch(_openEventDetails(item))
+            // Recurring events item resolved might not be the item we want to open
+            // So, use original parameter (event) to open
+            dispatch(_openEventDetails(event))
         }, () => (Promise.reject()))
     )
 )

@@ -167,7 +167,6 @@ Feature: Events Locking
       Then we get error 403
 
     @auth
-    @test
     Scenario: Can unlock a planning item and edit it
       Given "events"
       """
@@ -215,3 +214,296 @@ Feature: Events Locking
       {"name": "event 123.2"}
       """
       Then we get OK response
+
+    @auth
+    Scenario: Locking a recurrent event fails when an event in the series already holds the lock
+      When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2019-11-21T12:00:00.000Z",
+                "end": "2019-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "FR",
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        When we get "/events"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-11-22T12:00:00+0000",
+                    "end": "2019-11-22T14:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }, {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-11-29T12:00:00+0000",
+                    "end": "2019-11-29T14:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }, {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-12-06T12:00:00+0000",
+                    "end": "2019-12-06T14:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }
+        ]}
+        """
+      When we post to "/events/#EVENT1._id#/lock"
+      """
+      {"lock_action": "edit"}
+      """
+      Then we get new resource
+      """
+      {
+        "_id": "#EVENT1._id#",
+        "name": "Friday Club",
+        "lock_user": "#CONTEXT_USER_ID#"
+      }
+      """
+      When we post to "/events/#EVENT3._id#/lock"
+      """
+      {"lock_action": "edit"}
+      """
+      Then we get error 403
+
+    @auth
+    Scenario: Unlocking an event from a recurring series unlocks the actual locked event
+      When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2019-11-21T12:00:00.000Z",
+                "end": "2019-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "FR",
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        When we get "/events"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-11-22T12:00:00+0000",
+                    "end": "2019-11-22T14:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }, {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-11-29T12:00:00+0000",
+                    "end": "2019-11-29T14:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }, {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-12-06T12:00:00+0000",
+                    "end": "2019-12-06T14:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }
+        ]}
+        """
+      When we post to "/events/#EVENT1._id#/lock"
+      """
+      {"lock_action": "edit"}
+      """
+      Then we get new resource
+      """
+      {
+        "_id": "#EVENT1._id#",
+        "name": "Friday Club",
+        "lock_user": "#CONTEXT_USER_ID#"
+      }
+      """
+      When we post to "/events/#EVENT3._id#/unlock"
+      """
+      {}
+      """
+      Then we get new resource
+      """
+      {
+        "_id": "#EVENT1._id#",
+        "name": "Friday Club",
+        "lock_user": null
+      }
+      """
+
+    @auth
+    Scenario: Locking a recurrent event does not modify other events' lock information
+      When we post to "events"
+      """
+      [{
+          "name": "Friday Club",
+          "dates": {
+              "start": "2019-11-21T12:00:00.000Z",
+              "end": "2019-11-21T14:00:00.000Z",
+              "tz": "Australia/Sydney",
+              "recurring_rule": {
+                  "frequency": "WEEKLY",
+                  "interval": 1,
+                  "byday": "FR",
+                  "count": 3,
+                  "endRepeatMode": "count"
+              }
+          }
+      }]
+      """
+      Then we get OK response
+      Then we store "EVENT1" with first item
+      Then we store "EVENT2" with 2 item
+      Then we store "EVENT3" with 3 item
+      When we get "/events"
+      Then we get list with 3 items
+      """
+      {"_items": [
+          {
+              "name": "Friday Club",
+              "dates": {
+                  "start": "2019-11-22T12:00:00+0000",
+                  "end": "2019-11-22T14:00:00+0000",
+                  "tz": "Australia/Sydney",
+                  "recurring_rule": {
+                      "frequency": "WEEKLY",
+                      "interval": 1,
+                      "byday": "FR",
+                      "count": 3,
+                      "endRepeatMode": "count"
+                  }
+              }
+          }, {
+              "name": "Friday Club",
+              "dates": {
+                  "start": "2019-11-29T12:00:00+0000",
+                  "end": "2019-11-29T14:00:00+0000",
+                  "tz": "Australia/Sydney",
+                  "recurring_rule": {
+                      "frequency": "WEEKLY",
+                      "interval": 1,
+                      "byday": "FR",
+                      "count": 3,
+                      "endRepeatMode": "count"
+                  }
+              }
+          }, {
+              "name": "Friday Club",
+              "dates": {
+                  "start": "2019-12-06T12:00:00+0000",
+                  "end": "2019-12-06T14:00:00+0000",
+                  "tz": "Australia/Sydney",
+                  "recurring_rule": {
+                      "frequency": "WEEKLY",
+                      "interval": 1,
+                      "byday": "FR",
+                      "count": 3,
+                      "endRepeatMode": "count"
+                  }
+              }
+          }
+      ]}
+      """
+      When we post to "/events/#EVENT1._id#/lock"
+      """
+      {"lock_action": "edit"}
+      """
+      Then we get new resource
+      """
+      {
+        "_id": "#EVENT1._id#",
+        "name": "Friday Club",
+        "lock_user": "#CONTEXT_USER_ID#"
+      }
+      """
+      When we get "/events/#EVENT2._id#"
+      Then we get existing resource
+      """
+      {
+        "_id": "#EVENT2._id#",
+        "name": "Friday Club"
+      }
+      """
+      When we get "/events/#EVENT3._id#"
+      Then we get existing resource
+      """
+      {
+        "_id": "#EVENT3._id#",
+        "name": "Friday Club"
+      }
+      """
+
+

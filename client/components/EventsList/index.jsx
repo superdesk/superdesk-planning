@@ -72,7 +72,7 @@ export class EventsList extends React.Component {
                         value,
                     })}
                     privileges={this.props.privileges}
-                    itemLocked={event.lock_user && event.lock_session ? true : false}
+                    itemLocked={event.lock_user ? true : false}
                     itemLockedInThisSession={this.isEventLockedInThisSession(event)} />
             </div>
         )
