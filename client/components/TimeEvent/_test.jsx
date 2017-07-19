@@ -54,4 +54,28 @@ describe('<TimeEvent />', () => {
             moment(event.dates.end).format('DD/MM/YYYY')
         )
     })
+
+    it('renders repeat icon for recurring events', () => {
+        const event = {
+            dates: {
+                start: moment('2016-10-15T08:00:00+0000'),
+                end: moment('2016-10-16T11:00:00+0000'),
+            },
+        }
+        const store = createTestStore()
+        let wrapper = mount(
+            <Provider store={store}>
+                <TimeEvent event={event}/>
+            </Provider>
+        )
+        expect(wrapper.find('.icon-repeat').length).toBe(0)
+
+        event.recurrence_id = 'rec1'
+        wrapper = mount(
+            <Provider store={store}>
+                <TimeEvent event={event}/>
+            </Provider>
+        )
+        expect(wrapper.find('.icon-repeat').length).toBe(1)
+    })
 })

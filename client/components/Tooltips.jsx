@@ -9,3 +9,4 @@ export const editAgendaTooltip = <Tooltip id="editAgendaTT">Edit Agenda</Tooltip
 export const editTooltip = <Tooltip id="editTT">Edit</Tooltip>
 export const closeTooltip = <Tooltip id="editTT">Close</Tooltip>
 export const deleteAgendaTooltip = <Tooltip id="deleteAgendaTT">Delete Agenda</Tooltip>
+export const repeatingEventTooltip = <Tooltip id="repeatingEventTT">Repeating Event</Tooltip>
