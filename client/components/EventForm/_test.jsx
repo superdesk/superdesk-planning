@@ -6,7 +6,9 @@ import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
 import { cloneDeep } from 'lodash'
 import * as actions from '../../actions'
+import eventsUi from '../../actions/events/ui'
 import moment from 'moment'
+import { restoreSinonStub } from '../../utils/testUtils'
 
 describe('events', () => {
     describe('components', () => {
@@ -328,6 +330,33 @@ describe('events', () => {
                         </Provider>
                     )
                     expect(wrapper.find(FormComponent).props().isAllDay).toBe(false)
+                })
+            })
+
+            describe('Actions menu', () => {
+                beforeEach(() => {
+                    sinon.stub(eventsUi, 'openSpikeModal').callsFake(() => ({ type: 'MOCK' }))
+                })
+
+                afterEach(() => {
+                    restoreSinonStub(eventsUi.openSpikeModal)
+                })
+
+                it('spike action calls `actions.events.ui.openSpikeModal`', () => {
+                    const store = createTestStoreForEventEditing(event)
+                    const wrapper = mount(
+                        <Provider store={store}>
+                            <EventForm initialValues={event}/>
+                        </Provider>
+                    )
+
+                    const actionsMenu = wrapper.find('ItemActionsMenu')
+
+                    actionsMenu.find('.dropdown__toggle').simulate('click')
+                    actionsMenu.find('button[children="Spike Event"]').simulate('click')
+
+                    expect(eventsUi.openSpikeModal.callCount).toBe(1)
+                    expect(eventsUi.openSpikeModal.args[0]).toEqual([event])
                 })
             })
         })
