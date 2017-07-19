@@ -54,11 +54,12 @@ class EventTestCase(TestCase):
         my_birthdays = generate_recurring_dates(
             start=datetime.datetime(1989, 12, 13),
             frequency='YEARLY',
-            endRepeatMode='unlimited',
+            endRepeatMode='count',
+            count=200
         )
         self.assertTrue(datetime.datetime(1989, 12, 13) in my_birthdays)
         self.assertTrue(datetime.datetime(2016, 12, 13) in my_birthdays)
-        self.assertTrue(datetime.datetime(9999, 12, 13) in my_birthdays)
+        self.assertTrue(datetime.datetime(2179, 12, 13) in my_birthdays)
         # Time zone
         self.assertEquals(list(generate_recurring_dates(
             start=datetime.datetime(2016, 11, 17, 23, 00),

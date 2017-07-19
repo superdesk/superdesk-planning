@@ -23,6 +23,7 @@ export const getServerUrl = (state) => state.config.server.url
 export const getDateFormat = (state) => state.config.model.dateformat
 export const getTimeFormat = (state) => state.config.shortTimeFormat
 export const getIframelyKey = (state) => state.config.iframely ? state.config.iframely.key : null
+export const getMaxRecurrentEvents = (state) => get(state, 'deployConfig.max_recurrent_events', 200)
 export const getShowEventDetails = (state) => state.events.showEventDetails
 export const getSelectedEvents = (state) => state.events.selectedEvents
 export const getHighlightedEvent = (state) => state.events.highlightedEvent === true ? null :

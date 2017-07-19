@@ -34,19 +34,15 @@ describe('<RepeatEventForm />', () => {
                 name: 'endRepeatMode',
                 value: 'count',
             }).props().checked).toBe(end === 'count')
-            expect(wrapper.find({
-                name: 'endRepeatMode',
-                value: 'unlimited',
-            }).props().checked).toBe(end === 'unlimited')
         }
         // check intial radios states
-        expectEventToEnd('unlimited')
+        expectEventToEnd('count')
         // set a "until" date
         store.dispatch(change(form, 'dates.recurring_rule.until', moment()))
         // check radio buttons new state
         expectEventToEnd('until')
         // set a count value
-        store.dispatch(change(form, 'dates.recurring_rule.count', '2'))
+        store.dispatch(change(form, 'dates.recurring_rule.count', 2))
         // check radio buttons new state
         expectEventToEnd('count')
         wrapper.find({
@@ -55,12 +51,6 @@ describe('<RepeatEventForm />', () => {
         })
         .simulate('change', { target: { value: 'until' } })
         expectEventToEnd('until')
-        wrapper.find({
-            name: 'endRepeatMode',
-            value: 'unlimited',
-        })
-        .simulate('change', { target: { value: 'unlimited' } })
-        expectEventToEnd('unlimited')
         wrapper.find({
             name: 'endRepeatMode',
             value: 'count',
