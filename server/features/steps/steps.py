@@ -49,6 +49,12 @@ def steip_impl_store_indexed_item_to_ctx(context, tag, index):
     setattr(context, tag, item)
 
 
+@then('we store "{tag}" from patch')
+def step_imp_store_item_from_patch(context, tag):
+    data = get_json_data(context.response)
+    setattr(context, tag, data)
+
+
 @then('we get an event file reference')
 def step_impl_then_get_event_file(context):
     assert_200(context.response)
