@@ -261,7 +261,8 @@ export class Component extends React.Component {
                                 <button
                                     onClick={handleSubmit(this.handleSaveAndPublish.bind(this))}
                                     type="button"
-                                    className="btn btn--success">
+                                    className="btn btn--success"
+                                    disabled={submitting}>
                                     Save and publish
                                 </button>
                             }
