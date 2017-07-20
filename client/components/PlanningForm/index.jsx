@@ -13,7 +13,7 @@ class Component extends React.Component {
     }
 
     render() {
-        const { handleSubmit, readOnly, headline } = this.props
+        const { handleSubmit, readOnly, headline, slugline } = this.props
         return (
             <form onSubmit={handleSubmit} className="PlanningForm">
                 <div>
@@ -56,6 +56,7 @@ class Component extends React.Component {
                         name="coverages"
                         component={fields.CoveragesFieldArray}
                         headline={headline}
+                        slugline={slugline}
                         readOnly={readOnly} />
                 </div>
             </form>
@@ -75,6 +76,7 @@ const selector = formValueSelector('planning') // same as form name
 const mapStateToProps = (state) => ({
     initialValues: selectors.getCurrentPlanning(state),
     headline: selector(state, 'headline'), // Used to parse current headline to new coverages
+    slugline: selector(state, 'slugline'), // Used to parse current slugline to new coverages
 })
 
 const mapDispatchToProps = (dispatch) => ({

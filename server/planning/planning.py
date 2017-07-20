@@ -90,6 +90,7 @@ class PlanningService(superdesk.Service):
 
             # Copy metadata from the planning item to the coverage
             coverage['planning']['headline'] = doc.get('headline', '')
+            coverage['planning']['slugline'] = doc.get('slugline', '')
 
             get_resource_service('coverage').post([coverage])
             get_resource_service('coverage_history').on_item_created([coverage])
