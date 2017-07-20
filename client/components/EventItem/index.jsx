@@ -4,7 +4,7 @@ import { get } from 'lodash'
 import { ListItem, TimeEvent, PubStatusLabel, Checkbox } from '../index'
 import './style.scss'
 import { OverlayTrigger } from 'react-bootstrap'
-import { ITEM_STATE } from '../../constants'
+import { ITEM_STATE, EVENTS } from '../../constants'
 import {
     spikeEventTooltip,
     unspikeEventTooltip,
@@ -29,6 +29,7 @@ export const EventItem = ({
     const hasBeenSpiked = get(event, 'state', 'active') === ITEM_STATE.SPIKED
     const hasSpikePrivileges = get(privileges, 'planning_event_spike', 0) === 1
     const hasUnspikePrivileges = get(privileges, 'planning_event_unspike', 0) === 1
+    const isPublished = get(event, 'state') === EVENTS.STATE.PUBLISHED
     return (
         <ListItem
             item={event}
@@ -62,7 +63,7 @@ export const EventItem = ({
             </div>
             <div className="sd-list-item__action-menu">
                 {!hasBeenSpiked && hasSpikePrivileges &&
-                    (!itemLocked || itemLockedInThisSession) &&
+                    (!itemLocked || itemLockedInThisSession) && !isPublished &&
                     <OverlayTrigger placement="left" overlay={spikeEventTooltip}>
                         <button
                             className="dropdown__toggle"
