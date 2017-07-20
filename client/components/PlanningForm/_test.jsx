@@ -101,8 +101,10 @@ describe('<PlanningForm />', () => {
 
             const coveragesProps = coveragesField.props()
             expect(coveragesProps.headline).toBe('Some Plan 1')
+            expect(coveragesProps.slugline).toBe('Planning1')
             expect(coveragesProps.fields.length).toBe(4)
             expect(get(coveragesProps.fields.get(3), 'planning.headline', '')).toBe('Some Plan 1')
+            expect(get(coveragesProps.fields.get(3), 'planning.slugline', '')).toBe('Planning1')
 
         })
     })

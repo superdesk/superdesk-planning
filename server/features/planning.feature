@@ -26,7 +26,8 @@ Feature: Planning
                 "unique_id": "123",
                 "unique_name": "123 name",
                 "item_class": "item class value",
-                "headline": "test headline"
+                "headline": "test headline",
+                "slugline": "test slugline"
             }
         ]
         """
@@ -48,7 +49,8 @@ Feature: Planning
                 "guid": "__any_value__",
                 "original_creator": "__any_value__",
                 "item_class": "item class value",
-                "headline": "test headline"
+                "headline": "test headline",
+                "slugline": "test slugline"
             }]}
         """
         When we get "/coverage"
@@ -57,7 +59,8 @@ Feature: Planning
             {"_items": [{
                 "planning_item": "#planning._id#",
                 "planning": {
-                    "headline": "test headline"
+                    "headline": "test headline",
+                    "slugline": "test slugline"
                 }
             }
             ]}
@@ -71,7 +74,8 @@ Feature: Planning
                 "update": {
                     "original_creator": "__any_value__",
                     "item_class": "item class value",
-                    "headline": "test headline"
+                    "headline": "test headline",
+                    "slugline": "test slugline"
             }},
             {
                 "planning_id":  "#planning._id#",
@@ -87,8 +91,12 @@ Feature: Planning
             {"_items": [{
                 "operation": "create",
                 "update": {
-                    "planning_item": "#planning._id#"
+                    "planning_item": "#planning._id#",
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline"
                     }
+                }
             }
             ]}
         """
@@ -216,7 +224,8 @@ Feature: Planning
         """
         [{
             "item_class": "item class value",
-            "headline": "test headline"
+            "headline": "test headline",
+            "slugline": "test slugline"
         }]
         """
         Given "coverage"
@@ -228,7 +237,8 @@ Feature: Planning
                 "assigned_to": {
                     "user": "507f191e810c19729de860ea"
                 },
-                "headline": "test headline"
+                "headline": "test headline",
+                "slugline": "test slugline"
             }
         }]
         """
@@ -246,7 +256,8 @@ Feature: Planning
                     "assigned_to": {
                         "user": "507f191e810c19729de860ea"
                     },
-                    "headline": "test headline"
+                    "headline": "test headline",
+                    "slugline": "test slugline"
                 }
             }]
         }]}
