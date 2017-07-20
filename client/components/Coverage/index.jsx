@@ -20,6 +20,10 @@ function CoverageComponent({ g2_content_type, coverage, users, desks, readOnly }
                 type="text"
                 label="Description"
                 readOnly={readOnly} />
+            <Field name={`${coverage}.planning.internal_note`}
+                component={fields.InputTextAreaField}
+                label="Internal Note"
+                readOnly={readOnly}/>
             <label>Type</label>
             <Field
                 name={`${coverage}.planning.g2_content_type`}
