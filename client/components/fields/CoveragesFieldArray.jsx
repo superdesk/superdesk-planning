@@ -1,7 +1,8 @@
 import { Coverage } from '../index'
 import React from 'react'
+import PropTypes from 'prop-types'
 
-export const CoveragesFieldArray = ({ fields, readOnly }) => (
+export const CoveragesFieldArray = ({ fields, readOnly, headline }) => (
     <ul className="Coverage__list">
         {fields.map((coverage, index) => (
             <li key={index} className="Coverage__item">
@@ -18,14 +19,18 @@ export const CoveragesFieldArray = ({ fields, readOnly }) => (
         <li>
             { !readOnly && <button
                 className="Coverage__add-btn btn btn-default"
-                onClick={() => fields.push({})}
+                onClick={() => fields.push({ planning: { headline } })}
                 type="button" >
                 <i className="icon-plus-large"/>
             </button> }
         </li>
     </ul>
 )
+
 CoveragesFieldArray.propTypes = {
-    fields: React.PropTypes.object.isRequired,
-    readOnly: React.PropTypes.bool,
+    fields: PropTypes.object.isRequired,
+    readOnly: PropTypes.bool,
+    headline: PropTypes.string,
 }
+
+CoveragesFieldArray.defaultProps = { headline: '' }
