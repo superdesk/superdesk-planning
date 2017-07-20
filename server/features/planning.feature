@@ -235,6 +235,7 @@ Feature: Planning
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "assigned_to": {
+                    "desk": "Politic Desk",
                     "user": "507f191e810c19729de860ea"
                 },
                 "headline": "test headline",
@@ -254,6 +255,7 @@ Feature: Planning
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
+                        "desk": "Politic Desk",
                         "user": "507f191e810c19729de860ea"
                     },
                     "headline": "test headline",
