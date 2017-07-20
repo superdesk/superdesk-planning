@@ -253,6 +253,9 @@ coverage_schema = {
                         'name': not_analyzed
                     }
                 }
+            },
+            'internal_note': {
+                'type': 'string'
             }
         }  # end planning dict schema
     },  # end planning
