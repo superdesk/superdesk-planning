@@ -88,6 +88,9 @@ class PlanningService(superdesk.Service):
             else:
                 coverage['planning'] = {'scheduled': utcnow()}
 
+            # Copy metadata from the planning item to the coverage
+            coverage['planning']['headline'] = doc.get('headline', '')
+
             get_resource_service('coverage').post([coverage])
             get_resource_service('coverage_history').on_item_created([coverage])
 

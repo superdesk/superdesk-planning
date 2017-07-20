@@ -1,7 +1,7 @@
 import React from 'react'
 import { fields } from '../../components'
 import { connect } from 'react-redux'
-import { Field, FieldArray, reduxForm, propTypes } from 'redux-form'
+import { Field, FieldArray, reduxForm, propTypes, formValueSelector } from 'redux-form'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
 import './style.scss'
@@ -13,7 +13,7 @@ class Component extends React.Component {
     }
 
     render() {
-        const { handleSubmit, readOnly } = this.props
+        const { handleSubmit, readOnly, headline } = this.props
         return (
             <form onSubmit={handleSubmit} className="PlanningForm">
                 <div>
@@ -52,7 +52,11 @@ class Component extends React.Component {
                             readOnly={readOnly} />
                     </fieldset>
                     <h3>Coverages</h3>
-                    <FieldArray name="coverages" component={fields.CoveragesFieldArray} readOnly={readOnly} />
+                    <FieldArray
+                        name="coverages"
+                        component={fields.CoveragesFieldArray}
+                        headline={headline}
+                        readOnly={readOnly} />
                 </div>
             </form>
         )
@@ -67,7 +71,11 @@ const PlanningReduxForm = reduxForm({
     enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
-const mapStateToProps = (state) => ({ initialValues: selectors.getCurrentPlanning(state) })
+const selector = formValueSelector('planning') // same as form name
+const mapStateToProps = (state) => ({
+    initialValues: selectors.getCurrentPlanning(state),
+    headline: selector(state, 'headline'), // Used to parse current headline to new coverages
+})
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */

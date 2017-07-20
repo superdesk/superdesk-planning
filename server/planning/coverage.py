@@ -222,10 +222,7 @@ coverage_schema = {
                 }
             },
             'headline': {
-                'type': 'list',
-                'mapping': {
-                    'type': 'string'
-                }
+                'type': 'string'
             },
             'keyword': {
                 'type': 'list',

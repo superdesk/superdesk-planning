@@ -55,7 +55,10 @@ Feature: Planning
         Then we get a list with 1 items
         """
             {"_items": [{
-                "planning_item": "#planning._id#"
+                "planning_item": "#planning._id#",
+                "planning": {
+                    "headline": "test headline"
+                }
             }
             ]}
         """
@@ -224,7 +227,8 @@ Feature: Planning
                 "ednote": "test coverage, I want 250 words",
                 "assigned_to": {
                     "user": "507f191e810c19729de860ea"
-                }
+                },
+                "headline": "test headline"
             }
         }]
         """
@@ -241,7 +245,8 @@ Feature: Planning
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
                         "user": "507f191e810c19729de860ea"
-                    }
+                    },
+                    "headline": "test headline"
                 }
             }]
         }]}
