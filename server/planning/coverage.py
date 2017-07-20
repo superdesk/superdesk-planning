@@ -14,18 +14,15 @@ import superdesk
 import logging
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
-from superdesk.metadata.item import GUID_NEWSML
+from superdesk.metadata.item import GUID_NEWSML, metadata_schema
+from superdesk.resource import not_analyzed
 from superdesk.notification import push_notification
-from apps.archive.common import set_original_creator
-from apps.archive.common import get_user
+from apps.archive.common import set_original_creator, get_user
 from eve.utils import config
 from superdesk.utc import utcnow
 from superdesk.activity import add_activity, ACTIVITY_UPDATE
 
 logger = logging.getLogger(__name__)
-
-not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
-not_indexed = {'type': 'string', 'index': 'no'}
 
 
 class CoverageService(superdesk.Service):
@@ -89,52 +86,24 @@ class CoverageService(superdesk.Service):
 
 coverage_schema = {
     # Identifiers
-    'guid': {
-        'type': 'string',
-        'unique': True,
-        'mapping': not_analyzed
-    },
-    'unique_id': {
-        'type': 'integer',
-        'unique': True,
-    },
-    'unique_name': {
-        'type': 'string',
-        'unique': True,
-        'mapping': not_analyzed
-    },
-    'version': {
-        'type': 'integer'
-    },
-    'ingest_id': {
-        'type': 'string',
-        'mapping': not_analyzed
-    },
+    '_id': metadata_schema['_id'],
+    'guid': metadata_schema['guid'],
+    'unique_id': metadata_schema['unique_id'],
+    'unique_name': metadata_schema['unique_name'],
+    'version': metadata_schema['version'],
+    'ingest_id': metadata_schema['ingest_id'],
 
     # Audit Information
-    'original_creator': superdesk.Resource.rel('users'),
-    'version_creator': superdesk.Resource.rel('users'),
-    'firstcreated': {
-        'type': 'datetime'
-    },
-    'versioncreated': {
-        'type': 'datetime'
-    },
+    'original_creator': metadata_schema['original_creator'],
+    'version_creator': metadata_schema['version_creator'],
+    'firstcreated': metadata_schema['firstcreated'],
+    'versioncreated': metadata_schema['versioncreated'],
 
     # Ingest Details
-    'ingest_provider': superdesk.Resource.rel('ingest_providers'),
-    'source': {     # The value is copied from the ingest_providers vocabulary
-        'type': 'string',
-        'mapping': not_analyzed
-    },
-    'original_source': {    # This value is extracted from the ingest
-        'type': 'string',
-        'mapping': not_analyzed
-    },
-    'ingest_provider_sequence': {
-        'type': 'string',
-        'mapping': not_analyzed
-    },
+    'ingest_provider': metadata_schema['ingest_provider'],
+    'source': metadata_schema['source'],
+    'original_source': metadata_schema['original_source'],
+    'ingest_provider_sequence': metadata_schema['ingest_provider_sequence'],
 
     # Reference to Planning Item
     'planning_item': superdesk.Resource.rel('planning'),
@@ -144,7 +113,7 @@ coverage_schema = {
     'planning': {
         'type': 'dict',
         'schema': {
-            'ednote': {'type': 'string'},
+            'ednote': metadata_schema['ednote'],
             'g2_content_type': {'type': 'string'},
             'item_class': {'type': 'string'},
             'item_count': {'type': 'string'},
@@ -206,24 +175,9 @@ coverage_schema = {
                     'type': 'string'
                 }
             },
-            'description': {
-                'type': 'list',
-                'mapping': {
-                    'type': 'string'
-                }
-            },
-            'genre': {
-                'type': 'list',
-                'mapping': {
-                    'properties': {
-                        'qcode': not_analyzed,
-                        'name': not_analyzed
-                    }
-                }
-            },
-            'headline': {
-                'type': 'string'
-            },
+            'description_text': metadata_schema['description_text'],
+            'genre': metadata_schema['genre'],
+            'headline': metadata_schema['headline'],
             'keyword': {
                 'type': 'list',
                 'mapping': {
@@ -236,21 +190,8 @@ coverage_schema = {
                     'type': 'string'
                 }
             },
-            'slugline': {
-                'type': 'list',
-                'mapping': {
-                    'type': 'string'
-                }
-            },
-            'subject': {
-                'type': 'list',
-                'mapping': {
-                    'properties': {
-                        'qcode': not_analyzed,
-                        'name': not_analyzed
-                    }
-                }
-            },
+            'slugline': metadata_schema['slugline'],
+            'subject': metadata_schema['subject'],
             'internal_note': {
                 'type': 'string'
             }
