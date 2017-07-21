@@ -11,6 +11,7 @@ import users from './users'
 import desks from './desks'
 import subjects from './subjects'
 import session from './session'
+import genres from './genres'
 
 const planningApp = combineReducers({
     modal,
@@ -27,6 +28,7 @@ const planningApp = combineReducers({
     desks,
     session,
     deployConfig: (state) => (state || {}),
+    genres,
 })
 
 export default planningApp

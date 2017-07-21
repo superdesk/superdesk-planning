@@ -9,6 +9,7 @@ export * from './users'
 export * from './desks'
 export * from './subjects'
 export * from './session'
+export * from './genres'
 
 import planning from './planning/index'
 import events from './events/index'
