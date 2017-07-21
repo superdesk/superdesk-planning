@@ -115,6 +115,7 @@ coverage_schema = {
         'schema': {
             'ednote': metadata_schema['ednote'],
             'g2_content_type': {'type': 'string'},
+            'coverage_provider': {'type': 'string'},
             'item_class': {'type': 'string'},
             'item_count': {'type': 'string'},
             'scheduled': {'type': 'datetime'},

@@ -5,7 +5,15 @@ import { connect } from 'react-redux'
 import classNames from 'classnames'
 import './style.scss'
 
-function CoverageComponent({ g2_content_type, coverage, users, desks, readOnly, content_type }) {
+function CoverageComponent({
+    g2_content_type,
+    coverage_providers,
+    coverage,
+    users,
+    desks,
+    readOnly,
+    content_type,
+    }) {
     const isTextCoverage = content_type === 'text'
     return (
         <fieldset>
@@ -60,6 +68,17 @@ function CoverageComponent({ g2_content_type, coverage, users, desks, readOnly, 
                     label="Genre"
                     readOnly={readOnly}/>
             )}
+            <label>Provider</label>
+            <Field
+                name={`${coverage}.planning.coverage_provider`}
+                component="select"
+                className={classNames({ 'disabledInput': readOnly })}
+                disabled={readOnly ? 'disabled' : ''} >
+                <option />
+                {coverage_providers.map((p) => (
+                    <option key={p.qcode} value={p.qcode}>{p.name}</option>
+                ))}
+            </Field>
             <label>Due</label>
             <Field
                 name={`${coverage}.planning.scheduled`}
@@ -74,6 +93,7 @@ CoverageComponent.propTypes = {
     coverage: React.PropTypes.string.isRequired,
     g2_content_type: React.PropTypes.array.isRequired,
     content_type: React.PropTypes.string,
+    coverage_providers: React.PropTypes.array.isRequired,
     users: React.PropTypes.array.isRequired,
     desks: React.PropTypes.array.isRequired,
     readOnly: React.PropTypes.bool,
@@ -85,6 +105,7 @@ const mapStateToProps = (state, ownProps) => ({
     users: state.users && state.users.length > 0 ? state.users : [],
     desks: state.desks && state.desks.length > 0 ? state.desks : [],
     content_type: selector(state, ownProps.coverage + '.planning.g2_content_type'),
+    coverage_providers: state.vocabularies.coverage_providers || [],
 })
 
 export const Coverage = connect(mapStateToProps)(CoverageComponent)
