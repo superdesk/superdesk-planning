@@ -204,6 +204,11 @@ export const getTestActionStore = () => {
                 planningsAreLoading: false,
                 onlyFuture: true,
                 onlyActive: false,
+                lastRequestParams: {
+                    agendas: ['a1'],
+                    noAgendaAssigned: false,
+                    page: 1,
+                },
             },
             events: {
                 events: {},

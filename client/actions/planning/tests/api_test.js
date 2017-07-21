@@ -26,7 +26,6 @@ describe('actions.planning.api', () => {
         sinon.stub(planningApi, 'receivePlannings').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'receiveCoverage').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'fetchPlanningsEvents').callsFake(() => (Promise.resolve()))
-        sinon.stub(planningApi, 'requestPlannings').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'saveAndDeleteCoverages').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'fetchPlanningById').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'fetchPlanningHistory').callsFake(() => (Promise.resolve()))
@@ -39,7 +38,6 @@ describe('actions.planning.api', () => {
         restoreSinonStub(planningApi.receivePlannings)
         restoreSinonStub(planningApi.receiveCoverage)
         restoreSinonStub(planningApi.fetchPlanningsEvents)
-        restoreSinonStub(planningApi.requestPlannings)
         restoreSinonStub(planningApi.saveAndDeleteCoverages)
         restoreSinonStub(planningApi.fetchPlanningById)
         restoreSinonStub(planningApi.fetchPlanningHistory)
@@ -244,8 +242,6 @@ describe('actions.planning.api', () => {
             }
             return store.test(done, planningApi.fetch(params))
             .then((items) => {
-                expect(planningApi.requestPlannings.callCount).toBe(1)
-
                 expect(planningApi.query.callCount).toBe(1)
                 expect(planningApi.query.args[0]).toEqual([params])
 
@@ -343,7 +339,6 @@ describe('actions.planning.api', () => {
             })
             .then((item) => {
                 expect(item).toEqual(data.plannings[0])
-                expect(planningApi.requestPlannings.callCount).toBe(1)
 
                 expect(services.api('planning').getById.callCount).toBe(1)
                 expect(services.api('planning').getById.args[0]).toEqual(['p1'])
@@ -366,7 +361,6 @@ describe('actions.planning.api', () => {
             store.test(done, planningApi.fetchPlanningById('p1', true))
             .then((item) => {
                 expect(item).toEqual(data.plannings[0])
-                expect(planningApi.requestPlannings.callCount).toBe(1)
 
                 expect(services.api('planning').getById.callCount).toBe(1)
                 expect(services.api('planning').getById.args[0]).toEqual(['p1'])
@@ -392,8 +386,6 @@ describe('actions.planning.api', () => {
                 return store.dispatch(planningApi.fetchPlanningById('p1'))
             })
             .then(() => {}, (error) => {
-                expect(planningApi.requestPlannings.callCount).toBe(1)
-
                 expect(planningApi.fetchPlanningsEvents.callCount).toBe(0)
 
                 expect(planningApi.receivePlannings.callCount).toBe(1)
@@ -409,7 +401,6 @@ describe('actions.planning.api', () => {
             .then((item) => {
                 expect(item).toEqual(data.plannings[0])
 
-                expect(planningApi.requestPlannings.callCount).toBe(0)
                 expect(services.api('planning').getById.callCount).toBe(0)
                 expect(planningApi.fetchPlanningsEvents.callCount).toBe(0)
                 expect(planningApi.receivePlannings.callCount).toBe(0)
@@ -701,6 +692,7 @@ describe('actions.planning.api', () => {
                 expect(planningApi.fetch.args[0]).toEqual([{
                     noAgendaAssigned: false,
                     agendas: ['a1'],
+                    page: 1,
                 }])
 
                 done()
@@ -790,11 +782,6 @@ describe('actions.planning.api', () => {
             type: 'RECEIVE_COVERAGE',
             payload: data.coverages[0],
         })
-    })
-
-    it('requestPlannings', () => {
-        restoreSinonStub(planningApi.requestPlannings)
-        expect(planningApi.requestPlannings()).toEqual({ type: 'REQUEST_PLANNINGS' })
     })
 
     describe('fetchPlanningHistory', () => {

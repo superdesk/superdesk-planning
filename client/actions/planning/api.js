@@ -44,6 +44,7 @@ const unspike = (item) => (
  * @param {string} eventItem - An event ID to fetch Planning items for that event
  * @param {string} state - Planning item state
  * @param {agendas} list of agenda ids
+ * @param {int} page - The page number to query for
  * @return Promise
  */
 const query = ({
@@ -51,6 +52,7 @@ const query = ({
     state=ITEM_STATE.ALL,
     agendas,
     noAgendaAssigned=false,
+    page=1,
 }) => (
     (dispatch, getState, { api }) => {
         let query = {}
@@ -89,6 +91,7 @@ const query = ({
 
         // Query the API
         return api('planning').query({
+            page,
             source: JSON.stringify({ query }),
             embedded: { original_creator: 1 }, // Nest creator to planning
             timestamp: new Date(),
@@ -111,25 +114,19 @@ const query = ({
  * @return Promise
  */
 const fetch = (params={}) => (
-    (dispatch) => {
-        // Announce that we are loading planning items
-        dispatch(self.requestPlannings())
-        // Fetch the Planning Items
-        return dispatch(self.query(params))
+    (dispatch) => (
+        dispatch(self.query(params))
         .then((items) => (
             dispatch(self.fetchPlanningsEvents(items))
             .then(() => {
                 dispatch(self.receivePlannings(items))
                 return Promise.resolve(items)
-            }, (error) => {
-                dispatch(self.receivePlannings([]))
-                return Promise.reject(error)
-            })
+            }, (error) => (Promise.reject(error)))
         ), (error) => {
             dispatch(self.receivePlannings([]))
             return Promise.reject(error)
         })
-    }
+    )
 )
 
 /**
@@ -174,18 +171,13 @@ const fetchPlanningById = (pid, force=false) => (
             return Promise.resolve(storedPlannings[pid])
         }
 
-        dispatch(self.requestPlannings())
         return api('planning').getById(pid)
         .then((item) => (
             dispatch(self.fetchPlanningsEvents([item]))
             .then(() => {
                 dispatch(self.receivePlannings([item]))
-                dispatch(self.addToList([item._id]))
                 return Promise.resolve(item)
-            }, (error) => {
-                dispatch(self.receivePlannings([]))
-                return Promise.reject(error)
-            })
+            }, (error) => (Promise.reject(error)))
         ), (error) => {
             dispatch(self.receivePlannings([]))
             return Promise.reject(error)
@@ -478,24 +470,6 @@ const saveAndReloadCurrentAgenda = (item) => (
 )
 
 /**
- * Action that sets the list of visible Planning items
- * @param {Array} ids - An array of Planning item ids
- */
-const setInList = (ids) => ({
-    type: PLANNING.ACTIONS.SET_LIST,
-    payload: ids,
-})
-
-/**
- * Action that adds Planning items to the list of visible Planning items
- * @param {Array} ids - An array of Planning item ids
- */
-const addToList = (ids) => ({
-    type: PLANNING.ACTIONS.ADD_TO_LIST,
-    payload: ids,
-})
-
-/**
  * Action for updating the list of planning items in the redux store
  * @param  {array, object} plannings - An array of planning item objects
  * @return action object
@@ -513,11 +487,6 @@ const receiveCoverage = (coverage) => ({
     type: PLANNING.ACTIONS.RECEIVE_COVERAGE,
     payload: coverage,
 })
-
-/**
- * Action that states that there are Planning items currently loading
- */
-const requestPlannings = () => ({ type: PLANNING.ACTIONS.REQUEST_PLANNINGS })
 
 /**
  * Action dispatcher that attempts to unlock a Planning item through the API
@@ -559,11 +528,8 @@ const self = {
     fetchCoverageById,
     fetchPlanningById,
     fetchPlanningsEvents,
-    requestPlannings,
     unlock,
     lock,
-    setInList,
-    addToList,
     loadPlanning,
     loadPlanningById,
     fetchPlanningHistory,
