@@ -78,6 +78,7 @@ export function PlanningController(
     store.dispatch(actions.loadIngestProviders())
     store.dispatch(actions.loadPrivileges())
     store.dispatch(actions.loadSubjects())
+    store.dispatch(actions.loadGenres())
     store.dispatch(actions.fetchEvents({
         fulltext: JSON.parse(
             $location.search().searchEvent || '{}'

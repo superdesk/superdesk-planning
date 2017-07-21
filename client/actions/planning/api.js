@@ -95,6 +95,7 @@ const query = ({
         })
         .then((data) => {
             if (get(data, '_items')) {
+                data._items.forEach(_convertCoveragesGenreToObject)
                 return Promise.resolve(data._items)
             } else {
                 return Promise.reject('Failed to retrieve items')
@@ -177,7 +178,7 @@ const fetchPlanningById = (pid, force=false) => (
         dispatch(self.requestPlannings())
         return api('planning').getById(pid)
         .then((item) => (
-            dispatch(self.fetchPlanningsEvents([item]))
+            dispatch(self.fetchPlanningsEvents([_convertCoveragesGenreToObject(item)]))
             .then(() => {
                 dispatch(self.receivePlannings([item]))
                 dispatch(self.addToList([item._id]))
@@ -203,6 +204,7 @@ const fetchCoverageById = (cid) => (
     (dispatch, getState, { api }) => (
         api('coverage').getById(cid)
         .then((coverage) => {
+            _convertCoverageGenreToObject(coverage)
             dispatch(self.receiveCoverage(coverage))
             return Promise.resolve(coverage)
         }, (error) => (Promise.reject(error)))
@@ -273,6 +275,7 @@ const loadPlanningById = (ids=[], state = ITEM_STATE.ALL) => (
         } else {
             return api('planning').getById(ids)
             .then((item) => {
+                _convertCoveragesGenreToObject(item)
                 dispatch(self.receivePlannings([item]))
                 return Promise.resolve([item])
             }, (error) => (Promise.reject(error)))
@@ -387,6 +390,12 @@ const saveAndDeleteCoverages = (coverages, item, originalCoverages) => (
                 // Only update the coverage if it has changed
                 if (!isEqual(coverage, originalCoverage)) {
                     coverage.planning_item = item._id
+
+                    // Convert genre back to an Array
+                    if (get(coverage, 'planning.genre')) {
+                        coverage.planning.genre = [coverage.planning.genre]
+                    }
+
                     promises.push(
                         api('coverage').save(cloneDeep(originalCoverage || {}), coverage)
                     )
@@ -545,6 +554,31 @@ const lock = (item) => (
         )
     )
 )
+
+/**
+ * Utility to convert a Planning item's coverage's genre from an Array to an Object
+ * @param {object} plan - The planning item to modify it's coverages
+ * @return {object} planning item provided
+ */
+const _convertCoveragesGenreToObject = (plan) => {
+    get(plan, 'coverages', []).forEach(_convertCoverageGenreToObject)
+    return plan
+}
+
+/**
+ * Utility to convert coverage genre from an Array to an Object
+ * @param {object} coverage - The coverage to modify
+ * @return {object} coverage item provided
+ */
+const _convertCoverageGenreToObject = (coverage) => {
+    // Make sure the coverage has a planning field
+    if (!('planning' in coverage)) coverage.planning = {}
+
+    // Convert genre from an Array to an Object
+    coverage.planning.genre = get(coverage, 'planning.genre[0]')
+
+    return coverage
+}
 
 const self = {
     spike,

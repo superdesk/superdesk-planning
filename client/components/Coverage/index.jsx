@@ -1,11 +1,12 @@
 import React from 'react'
 import { fields, CoverageAssign } from '../../components'
-import { Field } from 'redux-form'
+import { Field, formValueSelector } from 'redux-form'
 import { connect } from 'react-redux'
 import classNames from 'classnames'
 import './style.scss'
 
-function CoverageComponent({ g2_content_type, coverage, users, desks, readOnly }) {
+function CoverageComponent({ g2_content_type, coverage, users, desks, readOnly, content_type }) {
+    const isTextCoverage = content_type === 'text'
     return (
         <fieldset>
             <Field
@@ -53,6 +54,12 @@ function CoverageComponent({ g2_content_type, coverage, users, desks, readOnly }
                     <option key={t.qcode} value={t.qcode}>{t.name}</option>
                 ))}
             </Field>
+            {isTextCoverage && (
+                <Field name={`${coverage}.planning.genre`}
+                    component={fields.GenreField}
+                    label="Genre"
+                    readOnly={readOnly}/>
+            )}
             <label>Due</label>
             <Field
                 name={`${coverage}.planning.scheduled`}
@@ -66,15 +73,18 @@ function CoverageComponent({ g2_content_type, coverage, users, desks, readOnly }
 CoverageComponent.propTypes = {
     coverage: React.PropTypes.string.isRequired,
     g2_content_type: React.PropTypes.array.isRequired,
+    content_type: React.PropTypes.string,
     users: React.PropTypes.array.isRequired,
     desks: React.PropTypes.array.isRequired,
     readOnly: React.PropTypes.bool,
 }
 
-const mapStateToProps = (state) => ({
+const selector = formValueSelector('planning') // same as form name
+const mapStateToProps = (state, ownProps) => ({
     g2_content_type: state.vocabularies.g2_content_type,
     users: state.users && state.users.length > 0 ? state.users : [],
     desks: state.desks && state.desks.length > 0 ? state.desks : [],
+    content_type: selector(state, ownProps.coverage + '.planning.g2_content_type'),
 })
 
 export const Coverage = connect(mapStateToProps)(CoverageComponent)
