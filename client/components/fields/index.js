@@ -21,3 +21,4 @@ export { EventUpdateMethodField, EventUpdateMethods } from './EventUpdateMethodF
 export { SelectField } from './SelectField'
 export { AgendaField } from './AgendaField'
 export { GenreField } from './GenreField'
+export { DeskSelectField } from './DeskSelectField'

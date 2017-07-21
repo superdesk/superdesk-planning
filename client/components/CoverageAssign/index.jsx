@@ -1,6 +1,7 @@
 import React from 'react'
 import { CoverageAssignSelect } from './CoverageAssignSelect'
 import { UserAvatar } from '../'
+import { get } from 'lodash'
 import './style.scss'
 
 export class CoverageAssign  extends React.Component {
@@ -57,19 +58,37 @@ export class CoverageAssign  extends React.Component {
         return deskAssigned ? 'desk' : 'initials coverageassign__initials'
     }
 
+    onChange(value) {
+        this.props.input.onChange({
+            desk: get(value.desk, '_id'),
+            user: get(value.user, '_id'),
+        })
+        this.toggleCoverageAssignSelect()
+    }
+
     render() {
         const deskAssigned = this.getAssignedDesk()
         const userAssigned = this.getAssignedUser()
         let avatar = this.getAvatar(deskAssigned, userAssigned)
 
+        const coverageAssignSelectInput = {
+            onChange: this.onChange.bind(this),
+            value: {
+                deskAssigned: deskAssigned,
+                userAssigned: userAssigned,
+            },
+        }
+
         return (
             <div className='field'>
                 <div className='coverageassign'>
-                    { deskAssigned && <figure className={avatar + ' avatar large'} /> }
-                    { userAssigned && <UserAvatar user={userAssigned} large={true} withLoggedInfo={true}/> }
-                    { (!deskAssigned && !userAssigned && <label>Unassigned</label>) ||
-                      (deskAssigned && <label>{'Desk: ' + deskAssigned.name}</label>) ||
-                      (userAssigned && <label>{userAssigned.display_name}</label>) }
+                    { userAssigned && <UserAvatar user={userAssigned} large={true} /> }
+                    { !userAssigned && deskAssigned && <figure className={avatar + ' avatar large'} /> }
+
+                    { !deskAssigned && !userAssigned && <label>Unassigned</label> }
+                    { deskAssigned && <label>{'Desk: ' + deskAssigned.name}</label> }
+                    { userAssigned && <label>{userAssigned.display_name}</label> }
+
                     { !this.props.readOnly && <button className='coverageassign__action pull-right' type='button'
                         onClick={this.unassignAssignment.bind(this)}>
                         <a>Unassign</a>
@@ -82,9 +101,11 @@ export class CoverageAssign  extends React.Component {
                     }
                     {
                         this.state.openCoverageAssignSelect &&
-                        (<CoverageAssignSelect users={this.props.users} desks={this.props.desks} onCancel={this.toggleCoverageAssignSelect.bind(this)}
-                            onDeskAssignChange={this.selectDeskAssignee.bind(this)}
-                            onUserAssignChange={this.selectUserAssignee.bind(this)} />)
+                        (<CoverageAssignSelect
+                            users={this.props.users}
+                            desks={this.props.desks}
+                            onCancel={this.toggleCoverageAssignSelect.bind(this)}
+                            input={coverageAssignSelectInput} />)
                     }
                 </div>
             </div>

@@ -309,7 +309,7 @@ export class Component extends React.Component {
                                 { 'open': this.state.openUnlockPopup })} >
                                 <div className="lock-avatar">
                                     <button type='button' onClick={this.toggleOpenUnlockPopup.bind(this)}>
-                                        <UserAvatar user={lockedUser} withLoggedInfo={true}/>
+                                        <UserAvatar user={lockedUser} withLoggedInfo={true} />
                                     </button>
                                     {this.state.openUnlockPopup && <UnlockItem user={lockedUser}
                                         showUnlock={unlockPrivilege}

@@ -36,6 +36,7 @@ Feature: Coverage
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
+                        "desk": "Politic Desk",
                         "user": "507f191e810c19729de860ea"
                     }
                 },
@@ -53,6 +54,7 @@ Feature: Coverage
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
+                        "desk": "Politic Desk",
                         "user": "507f191e810c19729de860ea"
                     }
                 },
@@ -64,39 +66,6 @@ Feature: Coverage
         """
             {"_items": [{"operation": "create", "coverage_id": "#coverage._id#", "update": {"unique_name": "123 name"}}]}
         """
-
-    @auth
-    @notification
-    Scenario: Coverage assignment can be assigned either to a user or a desk. Not both.
-        Given empty "users"
-        Given empty "coverage"
-        When we post to "users"
-        """
-        {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
-        """
-        Then we get existing resource
-        """
-        {"_id": "#users._id#", "invisible_stages": []}
-        """
-        When we post to "/coverage"
-        """
-        [
-            {
-                "guid": "123",
-                "unique_id": "123",
-                "unique_name": "123 name",
-                "planning": {
-                    "ednote": "test coverage, I want 250 words",
-                    "assigned_to": {
-                        "user": "__any_value__"
-                        "desk": "Politic desk"
-                    }
-                },
-                "delivery": []
-            }
-        ]
-        """
-        Then we get error 400
 
     @auth
     @notification
@@ -128,6 +97,7 @@ Feature: Coverage
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
+                        "desk": "Politic Desk",
                         "user": "507f191e810c19729de860ea"
                     }
                 },
@@ -145,6 +115,7 @@ Feature: Coverage
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
+                        "desk": "Politic Desk",
                         "user": "507f191e810c19729de860ea",
                         "assigned_by": "#CONTEXT_USER_ID#",
                         "assigned_date": "__any_value__"
@@ -186,6 +157,7 @@ Feature: Coverage
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
+                        "desk": "Politic Desk",
                         "user": "507f191e810c19729de860ea"
                     }
                 },
@@ -213,6 +185,7 @@ Feature: Coverage
             "planning": {
                 "ednote": "testing changes",
                 "assigned_to": {
+                    "desk": "Politic Desk",
                     "user": "c507f191e810c19729de860e"
                 }
             }
@@ -267,6 +240,7 @@ Feature: Coverage
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
+                        "desk": "Politic Desk",
                         "user": "507f191e810c19729de860ea"
                     }
                 },
@@ -288,7 +262,7 @@ Feature: Coverage
                 "coverage_id":  "#coverage._id#",
                 "operation": "create",
                 "update": {
-                    "planning": {"assigned_to": {"user": "507f191e810c19729de860ea" }}
+                    "planning": {"assigned_to": { "desk": "Politic Desk", "user": "507f191e810c19729de860ea" }}
                     }},
                 {"coverage_id":  "#coverage._id#",
                 "operation": "update",

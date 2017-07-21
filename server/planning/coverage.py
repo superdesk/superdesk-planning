@@ -61,14 +61,11 @@ class CoverageService(superdesk.Service):
     def _set_assignment_information(self, doc):
         if doc.get('planning') and doc['planning'].get('assigned_to'):
             planning = doc['planning']
-            if planning['assigned_to'].get('user') and planning['assigned_to'].get('desk'):
-                # Error - Assign either to desk or user, not both
-                raise SuperdeskApiError.badRequestError(message="Assignment can have exactly one assignee.")
+            if planning['assigned_to'].get('user') and not planning['assigned_to'].get('desk'):
+                raise SuperdeskApiError.badRequestError(message="Assignment should have a desk.")
 
-            # In case of update we need to nullify previous assignment
-            if planning['assigned_to'].get('user'):
-                planning['assigned_to']['desk'] = None
-            else:
+            # In case user was removed
+            if not planning['assigned_to'].get('user'):
                 planning['assigned_to']['user'] = None
 
             user = get_user()
