@@ -195,47 +195,54 @@ export class Component extends React.Component {
         }
 
         let itemActions = []
-        if (eventSpiked) {
-            itemActions = [
-                {
-                    label: 'Unspike Event',
-                    callback: unspikeEvent.bind(null, initialValues),
-                },
-                {
-                    label: 'View Event History',
-                    callback: this.viewEventHistory.bind(this),
-                },
-            ]
-        } else if (id) {
-            itemActions = [
-                {
-                    label: 'Create Planning Item',
-                    callback: () => addEventToCurrentAgenda(initialValues),
-                },
-                {
-                    label: 'Duplicate Event',
-                    callback: () => duplicateEvent(initialValues),
-                },
-                {
-                    label: 'View Event History',
-                    callback: this.viewEventHistory.bind(this),
-                },
-            ]
+        const populateItemActions = () => {
+            if (eventSpiked) {
+                itemActions = [
+                    {
+                        label: 'View Event History',
+                        callback: this.viewEventHistory.bind(this),
+                    },
+                ]
 
-            if (!isPublished) {
-                itemActions.unshift({
-                    label: 'Spike Event',
-                    callback: () => spikeEvent(initialValues),
-                })
-            }
+                if (!lockedUser || lockedInThisSession) {
+                    itemActions.unshift({
+                        label: 'Unspike Event',
+                        callback: unspikeEvent.bind(null, initialValues),
+                    })
+                }
+            } else if (id) {
+                itemActions = [
+                    {
+                        label: 'Create Planning Item',
+                        callback: () => addEventToCurrentAgenda(initialValues),
+                    },
+                    {
+                        label: 'Duplicate Event',
+                        callback: () => duplicateEvent(initialValues),
+                    },
+                    {
+                        label: 'View Event History',
+                        callback: this.viewEventHistory.bind(this),
+                    },
+                ]
 
-            // Cannot spike or create new events if it is a recurring event and
-            // only metadata was edited
-            if ( metaDataEditable && !recurringRulesEditable) {
-                remove(itemActions, (action) => action.label === 'Spike Event' ||
-                    action.label === 'Duplicate Event')
+                if (!isPublished && (!lockedUser || lockedInThisSession)) {
+                    itemActions.unshift({
+                        label: 'Spike Event',
+                        callback: () => spikeEvent(initialValues),
+                    })
+                }
+
+                // Cannot spike or create new events if it is a recurring event and
+                // only metadata was edited
+                if ( metaDataEditable && !recurringRulesEditable) {
+                    remove(itemActions, (action) => action.label === 'Spike Event' ||
+                        action.label === 'Duplicate Event')
+                }
             }
         }
+
+        populateItemActions()
 
         return (
             <form onSubmit={handleSubmit} className="EventForm">
