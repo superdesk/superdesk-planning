@@ -41,13 +41,13 @@ const unspike = (item) => (
 
 /**
  * Action dispatcher to perform fetch the list of planning items from the server
- * @param {string} eventItem - An event ID to fetch Planning items for that event
+ * @param {string} eventIds - An event ID to fetch Planning items for that event
  * @param {string} state - Planning item state
  * @param {agendas} list of agenda ids
  * @return Promise
  */
 const query = ({
-    eventItem,
+    eventIds,
     state=ITEM_STATE.ALL,
     agendas,
     noAgendaAssigned=false,
@@ -57,11 +57,29 @@ const query = ({
         let mustNot = []
         let must = []
 
-        if (eventItem) {
-            if (Array.isArray(eventItem)) {
-                must.push({ terms: { event_item: eventItem } })
+        if (eventIds) {
+            if (Array.isArray(eventIds)) {
+                const chunkSize = PLANNING.FETCH_IDS_CHUNK_SIZE
+                if (eventIds.length <= chunkSize) {
+                    must.push({ terms: { event_item: eventIds } })
+                } else {
+                    const requests = []
+                    for (let i = 0; i < Math.ceil(eventIds.length / chunkSize); i++) {
+                        const args = {
+                            ...arguments[0],
+                            eventIds: eventIds.slice(i * chunkSize, (i + 1) * chunkSize),
+                        }
+                        requests.push(dispatch(self.query(args)))
+                    }
+
+                    // Flatten responses and return a response-like object
+                    return Promise.all(requests).then((responses) => (
+                        Array.prototype.concat(...responses)
+                    ))
+                }
+
             } else {
-                must.push({ term: { event_item: eventItem } })
+                must.push({ term: { event_item: eventIds } })
             }
         }
 
@@ -286,14 +304,14 @@ const loadPlanningById = (ids=[], state = ITEM_STATE.ALL) => (
 /**
  * Action dispatcher to load Planning items by Event ID from the API, and place them
  * in the local store. This does not update the list of visible Planning items
- * @param {string} eventItem - The Event ID used to query the API
+ * @param {string} eventIds - The Event ID used to query the API
  * @param {string} state - The state of the Planning items
  * @return Promise
  */
-const loadPlanningByEventId = (eventItem, state = ITEM_STATE.ALL) => (
+const loadPlanningByEventId = (eventIds, state = ITEM_STATE.ALL) => (
     (dispatch) => (
         dispatch(self.loadPlanning({
-            eventItem,
+            eventIds,
             state,
         }))
     )

@@ -155,7 +155,7 @@ describe('actions.planning.api', () => {
         ))
 
         it('by event_item', (done) => (
-            store.test(done, planningApi.query({ eventItem: 'e1' }))
+            store.test(done, planningApi.query({ eventIds: 'e1' }))
             .then(() => {
                 expect(services.api('planning').query.callCount).toBe(1)
                 expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
@@ -310,6 +310,7 @@ describe('actions.planning.api', () => {
                 expect(services.api('events').query.callCount).toBe(1)
                 expect(services.api('events').query.args[0]).toEqual([{
                     page: 1,
+                    max_results: 25,
                     sort: '[("dates.start",1)]',
                     embedded: { files: 1 },
                     source: JSON.stringify({

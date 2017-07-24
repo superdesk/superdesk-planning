@@ -12,11 +12,13 @@ import planningApi from '../planning/api'
  * @param rid
  * @param state
  */
-const loadEventsByRecurrenceId = (rid, state = ITEM_STATE.ALL) => (
+const loadEventsByRecurrenceId = (rid, state = ITEM_STATE.ALL, page=1, maxResults=25) => (
     (dispatch) => (
         dispatch(self.query({
             recurrenceId: rid,
             state,
+            page,
+            maxResults,
         }))
         .then((data) => {
             dispatch(self.receiveEvents(data._items))
@@ -77,6 +79,7 @@ const query = (
         recurrenceId,
         startDateGreaterThan,
         page=1,
+        maxResults=25,
         state=ITEM_STATE.ACTIVE,
     }
 ) => (
@@ -219,7 +222,8 @@ const query = (
 
         // Query the API and sort by date
         return api('events').query({
-            page: page,
+            page,
+            max_results: maxResults,
             sort: '[("dates.start",1)]',
             embedded: { files: 1 },
             source: JSON.stringify({
@@ -282,7 +286,7 @@ const refetchEvents = () => (
  * @param {object} event - Any event from the series of recurring events
  */
 const loadRecurringEventsAndPlanningItems = (event) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         // Make sure we're dealing with a recurring event
         if (!get(event, 'recurrence_id')) {
             return Promise.reject('Supplied event is not a recurring event!')
@@ -292,7 +296,12 @@ const loadRecurringEventsAndPlanningItems = (event) => (
         const eventDetail = cloneDeep(event)
 
         // Load all of the events from the series
-        return dispatch(self.loadEventsByRecurrenceId(eventDetail.recurrence_id))
+        return dispatch(self.loadEventsByRecurrenceId(
+            eventDetail.recurrence_id,
+            ITEM_STATE.ALL,
+            1,
+            200
+        ))
         .then((events) => {
             // Store the events, and an array of their ids
             eventDetail._recurring = {
@@ -301,8 +310,19 @@ const loadRecurringEventsAndPlanningItems = (event) => (
             }
 
             // Load all the Planning items from all events in the series
-            return dispatch(planningApi.loadPlanningByEventId(eventDetail._recurring.ids))
+            return dispatch(planningApi.loadPlanningByEventId(
+                eventDetail._recurring.ids
+            ))
             .then((items) => {
+                // Map the list of Agendas to each Planning item
+                const agendas = selectors.getAgendas(getState())
+                items = items.map((p) => ({
+                    ...p,
+                    _agendas: !p.agendas ? [] : p.agendas.map((id) =>
+                        agendas.find((agenda) => agenda._id === id)
+                    ),
+                }))
+
                 // Store the associated planning items with the event
                 eventDetail._recurring.plannings = items
                 eventDetail._plannings = items.filter((p) => (p.event_item === eventDetail._id))
