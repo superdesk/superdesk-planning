@@ -4,6 +4,8 @@ import { PRIVILEGES } from '../../constants'
 import { createTestStore, registerNotifications } from '../../utils'
 import { cloneDeep } from 'lodash'
 import * as selectors from '../../selectors'
+import { getTestActionStore, restoreSinonStub } from '../../utils/testUtils'
+import planningUi from '../../actions/planning/ui'
 
 describe('agenda', () => {
     describe('actions', () => {
@@ -301,38 +303,42 @@ describe('agenda', () => {
             })
         })
 
-        it('selectAgenda', (done) => {
-            apiSpy.query = sinon.spy(() => (Promise.resolve({ _items: [] })))
-            const action = actions.selectAgenda('a1')
-            const $location = { search: sinon.spy() }
+        describe('selectAgenda', () => {
+            let store
+            let services
 
-            return action(dispatch, getState, {
-                $timeout,
-                $location,
+            beforeEach(() => {
+                store = getTestActionStore()
+                services = store.services
+
+                sinon.stub(planningUi, 'fetchToList').callsFake(() => (Promise.resolve()))
             })
-            .then(() => {
-                expect(dispatch.args[0]).toEqual([{
-                    type: 'SELECT_AGENDA',
-                    payload: 'a1',
-                }])
 
-                expect(dispatch.args[3]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
-                expect(dispatch.args[6]).toEqual([{
-                    type: 'RECEIVE_PLANNINGS',
-                    payload: [],
-                }])
-
-                expect($timeout.callCount).toBe(1)
-                expect($location.search.callCount).toBe(1)
-                expect($location.search.args[0]).toEqual(['agenda', 'a1'])
-
-                done()
+            afterEach(() => {
+                restoreSinonStub(planningUi.fetchToList)
             })
-            .catch((error) => {
-                expect(error).toBe(null)
-                expect(error.stack).toBe(null)
-                done()
-            })
+
+            it('calls `planning.ui.fetchToList`', (done) => (
+                store.test(done, actions.selectAgenda('a1'))
+                .then(() => {
+                    expect(store.dispatch.args[0]).toEqual([{
+                        type: 'SELECT_AGENDA',
+                        payload: 'a1',
+                    }])
+
+                    expect(services.$location.search.callCount).toBe(1)
+                    expect(services.$location.search.args[0]).toEqual(['agenda', 'a1'])
+
+                    expect(planningUi.fetchToList.callCount).toBe(1)
+                    expect(planningUi.fetchToList.args[0]).toEqual([{
+                        noAgendaAssigned: false,
+                        agendas: ['a1'],
+                        page: 1,
+                    }])
+
+                    done()
+                })
+            ))
         })
 
         describe('addEventToCurrentAgenda', () => {
@@ -439,24 +445,57 @@ describe('agenda', () => {
             })
         })
 
-        it('fetchSelectedAgendaPlannings', (done) => {
-            agendas[1].planning_items = ['p1']
-            apiSpy.query = sinon.spy(() => (Promise.resolve({ _items: plannings })))
-            const action = actions.fetchSelectedAgendaPlannings()
-            return action(dispatch, getState)
-            .then(() => {
-                expect(dispatch.args[1]).toEqual([{ type: 'REQUEST_PLANNINGS' }])
-                expect(dispatch.args[4]).toEqual([{
-                    type: 'RECEIVE_PLANNINGS',
-                    payload: plannings,
-                }])
+        describe('fetchSelectedAgendaPlannings', () => {
+            let store
 
-                done()
+            beforeEach(() => {
+                store = getTestActionStore()
+                sinon.stub(planningUi, 'clearList').callsFake(() => ({ type: 'MOCK' }))
+                sinon.stub(planningUi, 'fetchToList').callsFake(() => (Promise.resolve()))
             })
-            .catch((error) => {
-                expect(error).toBe(null)
-                expect(error.stack).toBe(null)
-                done()
+
+            afterEach(() => {
+                restoreSinonStub(planningUi.clearList)
+                restoreSinonStub(planningUi.fetchToList)
+            })
+
+            it('clears the list if no agenda id is selected', (done) => {
+                store.initialState.agenda.currentAgendaId = undefined
+                store.test(done, actions.fetchSelectedAgendaPlannings())
+                .then(() => {
+                    expect(planningUi.clearList.callCount).toBe(1)
+                    expect(planningUi.fetchToList.callCount).toBe(0)
+                    done()
+                })
+            })
+
+            it('fetches planning items for the agenda', (done) => {
+                store.test(done, actions.fetchSelectedAgendaPlannings())
+                .then(() => {
+                    expect(planningUi.clearList.callCount).toBe(0)
+                    expect(planningUi.fetchToList.callCount).toBe(1)
+                    expect(planningUi.fetchToList.args[0]).toEqual([{
+                        noAgendaAssigned: false,
+                        agendas: ['a1'],
+                        page: 1,
+                    }])
+                    done()
+                })
+            })
+
+            it('fetches planning items for no agenda assigned', (done) => {
+                store.initialState.agenda.currentAgendaId = 'NO_AGENDA_ASSIGNED'
+                store.test(done, actions.fetchSelectedAgendaPlannings())
+                .then(() => {
+                    expect(planningUi.clearList.callCount).toBe(0)
+                    expect(planningUi.fetchToList.callCount).toBe(1)
+                    expect(planningUi.fetchToList.args[0]).toEqual([{
+                        noAgendaAssigned: true,
+                        agendas: null,
+                        page: 1,
+                    }])
+                    done()
+                })
             })
         })
     })

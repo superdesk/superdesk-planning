@@ -3,6 +3,7 @@ import { checkPermission, getErrorMessage } from '../../utils'
 import * as selectors from '../../selectors'
 import { PLANNING, PRIVILEGES } from '../../constants'
 import * as actions from '../index'
+import { get } from 'lodash'
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -246,6 +247,72 @@ const toggleOnlySpikedFilter = () => (
     )
 )
 
+/**
+ * Clears the Planning List
+ */
+const clearList = () => ({ type: PLANNING.ACTIONS.CLEAR_LIST })
+
+/**
+ * Action that sets the list of visible Planning items
+ * @param {Array} ids - An array of Planning item ids
+ */
+const setInList = (ids) => ({
+    type: PLANNING.ACTIONS.SET_LIST,
+    payload: ids,
+})
+
+/**
+ * Action that adds Planning items to the list of visible Planning items
+ * @param {Array} ids - An array of Planning item ids
+ */
+const addToList = (ids) => ({
+    type: PLANNING.ACTIONS.ADD_TO_LIST,
+    payload: ids,
+})
+
+/**
+ * Queries the API and sets the Planning List to the items received
+ * @param {object} params - Parameters used when querying for planning items
+ */
+const fetchToList = (params) => (
+    (dispatch) => {
+        dispatch(self.requestPlannings(params))
+        return dispatch(planning.api.fetch(params))
+        .then((items) => (dispatch(self.setInList(
+            items.map((p) => p._id)
+        ))))
+    }
+)
+
+/**
+ * Fetch more planning items and add them to the list
+ * Uses planning.lastRequestParams from the redux store for the api query,
+ * then adds the received Planning items to the Planning List
+ */
+const fetchMoreToList = () => (
+    (dispatch, getState) => {
+        const previousParams = selectors.getPreviousPlanningRequestParams(getState())
+        const params = {
+            ...previousParams,
+            page: get(previousParams, 'page', 0) + 1,
+        }
+        dispatch(self.requestPlannings(params))
+        return dispatch(planning.api.fetch(params))
+        .then((items) => (dispatch(self.addToList(
+            items.map((p) => p._id)
+        ))))
+    }
+)
+
+/**
+ * Action that states that there are Planning items currently loading
+ * @param {object} params - Parameters used when querying for planning items
+ */
+const requestPlannings = (params={}) => ({
+    type: PLANNING.ACTIONS.REQUEST_PLANNINGS,
+    payload: params,
+})
+
 const spike = checkPermission(
     _spike,
     PRIVILEGES.SPIKE_PLANNING,
@@ -296,6 +363,12 @@ const self = {
     filterByKeyword,
     toggleOnlySpikedFilter,
     unlockAndOpenEditor,
+    clearList,
+    fetchToList,
+    requestPlannings,
+    setInList,
+    addToList,
+    fetchMoreToList,
 }
 
 export default self

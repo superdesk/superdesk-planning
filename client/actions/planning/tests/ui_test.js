@@ -28,6 +28,13 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningUi, 'openEditor').callsFake(() => (Promise.resolve()))
         sinon.stub(planningUi, 'closeEditor').callsFake(() => (Promise.resolve()))
         sinon.stub(planningUi, 'preview').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningUi, 'requestPlannings').callsFake(() => (Promise.resolve()))
+
+        sinon.stub(planningUi, 'clearList').callsFake(() => ({ type: 'clearList' }))
+        sinon.stub(planningUi, 'setInList').callsFake(() => ({ type: 'setInList' }))
+        sinon.stub(planningUi, 'addToList').callsFake(() => ({ type: 'addToList' }))
+        sinon.stub(planningUi, 'fetchToList').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningUi, 'fetchMoreToList').callsFake(() => (Promise.resolve()))
     })
 
     afterEach(() => {
@@ -38,9 +45,16 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(planningApi.saveAndReloadCurrentAgenda)
         restoreSinonStub(planningApi.lock)
         restoreSinonStub(planningApi.unlock)
+
         restoreSinonStub(planningUi.openEditor)
         restoreSinonStub(planningUi.closeEditor)
         restoreSinonStub(planningUi.preview)
+        restoreSinonStub(planningUi.requestPlannings)
+        restoreSinonStub(planningUi.clearList)
+        restoreSinonStub(planningUi.setInList)
+        restoreSinonStub(planningUi.addToList)
+        restoreSinonStub(planningUi.fetchToList)
+        restoreSinonStub(planningUi.fetchMoreToList)
     })
 
     describe('spike', () => {
@@ -404,4 +418,86 @@ describe('actions.planning.ui', () => {
             })
         })
     })
+
+    it('clearList', () => {
+        restoreSinonStub(planningUi.clearList)
+        expect(planningUi.clearList()).toEqual({ type: 'CLEAR_PLANNING_LIST' })
+    })
+
+    it('setInList', () => {
+        restoreSinonStub(planningUi.setInList)
+        expect(planningUi.setInList(['p1', 'p2', 'p3'])).toEqual({
+            type: 'SET_PLANNING_LIST',
+            payload: ['p1', 'p2', 'p3'],
+        })
+    })
+
+    it('addToList', () => {
+        restoreSinonStub(planningUi.addToList)
+        expect(planningUi.addToList(['p4', 'p5'])).toEqual({
+            type: 'ADD_TO_PLANNING_LIST',
+            payload: ['p4', 'p5'],
+        })
+    })
+
+    it('fetchToList', (done) => {
+        restoreSinonStub(planningUi.fetchToList)
+        restoreSinonStub(planningApi.fetch)
+        sinon.stub(planningApi, 'fetch').callsFake(
+            () => (Promise.resolve(data.plannings))
+        )
+
+        const params = store.initialState.planning.lastRequestParams
+
+        store.test(done, planningUi.fetchToList(params))
+        .then(() => {
+            expect(planningUi.requestPlannings.callCount).toBe(1)
+            expect(planningUi.requestPlannings.args[0]).toEqual([params])
+
+            expect(planningApi.fetch.callCount).toBe(1)
+            expect(planningApi.fetch.args[0]).toEqual([params])
+
+            expect(planningUi.setInList.callCount).toBe(1)
+            expect(planningUi.setInList.args[0]).toEqual([['p1', 'p2']])
+
+            done()
+        })
+    })
+
+    it('fetchMoreToList', (done) => {
+        restoreSinonStub(planningUi.fetchMoreToList)
+        restoreSinonStub(planningApi.fetch)
+        sinon.stub(planningApi, 'fetch').callsFake(
+            () => (Promise.resolve(data.plannings))
+        )
+
+        const expectedParams = {
+            agendas: ['a1'],
+            noAgendaAssigned: false,
+            page: 2,
+        }
+
+        store.test(done, planningUi.fetchMoreToList())
+        .then(() => {
+            expect(planningUi.requestPlannings.callCount).toBe(1)
+            expect(planningUi.requestPlannings.args[0]).toEqual([expectedParams])
+
+            expect(planningApi.fetch.callCount).toBe(1)
+            expect(planningApi.fetch.args[0]).toEqual([expectedParams])
+
+            expect(planningUi.addToList.callCount).toBe(1)
+            expect(planningUi.addToList.args[0]).toEqual([['p1', 'p2']])
+
+            done()
+        })
+    })
+
+    it('requestPlannings', () => {
+        restoreSinonStub(planningUi.requestPlannings)
+        expect(planningUi.requestPlannings({ page: 2 })).toEqual({
+            type: 'REQUEST_PLANNINGS',
+            payload: { page: 2 },
+        })
+    })
+
 })

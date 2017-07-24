@@ -13,6 +13,7 @@ const initialState  = {
     onlySpiked: false,
     readOnly: true,
     planningHistoryItems: [],
+    lastRequestParams: { page: 1 },
 }
 
 let plannings
@@ -34,10 +35,19 @@ const planningReducer = createReducer(initialState, {
         })
     ),
 
-    [PLANNING.ACTIONS.REQUEST_PLANNINGS]: (state) => (
+    [PLANNING.ACTIONS.CLEAR_LIST]: (state) => (
+        {
+            ...state,
+            lastRequestParams: { page: 1 },
+            planningsInList: [],
+        }
+    ),
+
+    [PLANNING.ACTIONS.REQUEST_PLANNINGS]: (state, payload) => (
         {
             ...state,
             planningsAreLoading: true,
+            lastRequestParams: payload,
         }
     ),
 

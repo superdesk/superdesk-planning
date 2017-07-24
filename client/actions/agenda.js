@@ -252,21 +252,19 @@ const fetchSelectedAgendaPlannings = () => (
     (dispatch, getState) => {
         const agendaId = selectors.getCurrentAgendaId(getState())
 
-        return new Promise((resolve) => {
-            if (!agendaId) {
-                resolve([])
-            } else {
-                const agenda = selectors.getCurrentAgenda(getState())
-                const params = {
-                    noAgendaAssigned: agendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED,
-                    agendas: agenda ? [agenda._id] : null,
-                }
-                resolve(dispatch(planning.api.fetch(params)))
-            }
-        })
-        .then((items) => (dispatch(planning.api.setInList(
-            items.map((p) => p._id)
-        ))))
+        if (!agendaId) {
+            dispatch(planning.ui.clearList())
+            return Promise.resolve()
+        }
+
+        const agenda = selectors.getCurrentAgenda(getState())
+        const params = {
+            noAgendaAssigned: agendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED,
+            agendas: agenda ? [agenda._id] : null,
+            page: 1,
+        }
+
+        return dispatch(planning.ui.fetchToList(params))
     }
 )
 

@@ -225,8 +225,6 @@ describe('actions.events.ui', () => {
 
                 expect(eventsUi.refetchEvents.callCount).toBe(1)
 
-                expect(store.dispatch.callCount).toBe(10)
-
                 expect(services.notify.success.callCount).toBe(1)
                 expect(services.notify.success.args[0]).toEqual(['The event(s) have been spiked'])
 

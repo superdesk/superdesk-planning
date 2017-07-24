@@ -15,7 +15,11 @@ const onPlanningCreated = (_e, data) => (
         if (get(data, 'item')) {
             return dispatch(planning.api.fetchPlanningById(data.item, true))
             .then(
-                (item) => (Promise.resolve(item)),
+                (item) => {
+                    dispatch(planning.ui.addToList([item._id]))
+                    return Promise.resolve(item)
+                },
+
                 (error) => {
                     notify.error(
                         getErrorMessage(error, 'Failed to get a new Planning Item!')

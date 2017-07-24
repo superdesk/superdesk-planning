@@ -13,6 +13,8 @@ export const getEvents = (state) => state.events.events
 export const getEventHistory = (state) => state.events.eventHistoryItems
 export const isEventListShown = (state) =>state.events.show
 export const getPreviousEventRequestParams = (state) => get(state.events, 'lastRequestParams', {})
+export const getPreviousPlanningRequestParams = (state) =>
+    get(state.planning, 'lastRequestParams', {})
 export const getCurrentAgendaId = (state) => state.agenda.currentAgendaId
 export const getStoredPlannings = (state) => state.planning.plannings
 export const getPlanningIdsInList = (state) => state.planning.planningsInList
