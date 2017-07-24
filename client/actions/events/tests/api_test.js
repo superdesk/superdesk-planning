@@ -55,6 +55,8 @@ describe('actions.events.api', () => {
                 expect(eventsApi.query.args[0]).toEqual([{
                     recurrenceId: 'r1',
                     state: ITEM_STATE.ACTIVE,
+                    page: 1,
+                    maxResults: 25,
                 }])
 
                 expect(eventsApi.receiveEvents.callCount).toBe(1)
@@ -305,13 +307,30 @@ describe('actions.events.api', () => {
                     _recurring: {
                         events: data.events,
                         ids: ['e1', 'e2', 'e3'],
-                        plannings: data.plannings,
+                        plannings: [
+                            {
+                                ...data.plannings[0],
+                                _agendas: [],
+                            },
+                            {
+                                ...data.plannings[1],
+                                _agendas: [data.agendas[1]],
+                            },
+                        ],
                     },
-                    _plannings: [data.plannings[1]],
+                    _plannings: [{
+                        ...data.plannings[1],
+                        _agendas: [data.agendas[1]],
+                    }],
                 })
 
                 expect(eventsApi.loadEventsByRecurrenceId.callCount).toBe(1)
-                expect(eventsApi.loadEventsByRecurrenceId.args[0]).toEqual(['rec1'])
+                expect(eventsApi.loadEventsByRecurrenceId.args[0]).toEqual([
+                    'rec1',
+                    'all',
+                    1,
+                    200,
+                ])
 
                 expect(planningApi.loadPlanningByEventId.callCount).toBe(1)
                 expect(planningApi.loadPlanningByEventId.args[0]).toEqual([['e1', 'e2', 'e3']])
