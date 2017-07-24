@@ -277,3 +277,18 @@ export const isEventAllDay = (startingDate, endingDate) => {
     return startingDate.isSame(startingDate.clone().startOf('day')) &&
         endingDate.isSame(endingDate.clone().endOf('day').seconds(0).milliseconds(0))
 }
+
+/**
+ * Helper function to retrieve the user object using their ID from an item field.
+ * i.e. get the User object for 'original_creator'
+ * @param {object} item - The item to get the ID from
+ * @param {string} creator - The field name where the ID is stored
+ * @param {Array} users - The array of users, typically from the redux store
+ * @return {object} The user object found, otherwise nothing is returned
+ */
+export const getCreator = (item, creator, users) => {
+    const user = get(item, creator)
+    if (user) {
+        return user.display_name ? user : users.find((u) => u._id === user)
+    }
+}

@@ -1,5 +1,7 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { fields, CoverageAssign } from '../../components'
+import * as selectors from '../../selectors'
 import { Field, formValueSelector } from 'redux-form'
 import { connect } from 'react-redux'
 import classNames from 'classnames'
@@ -90,19 +92,19 @@ function CoverageComponent({
 }
 
 CoverageComponent.propTypes = {
-    coverage: React.PropTypes.string.isRequired,
-    g2_content_type: React.PropTypes.array.isRequired,
-    content_type: React.PropTypes.string,
-    coverage_providers: React.PropTypes.array.isRequired,
-    users: React.PropTypes.array.isRequired,
-    desks: React.PropTypes.array.isRequired,
-    readOnly: React.PropTypes.bool,
+    coverage: PropTypes.string.isRequired,
+    g2_content_type: PropTypes.array.isRequired,
+    content_type: PropTypes.string,
+    coverage_providers: PropTypes.array.isRequired,
+    users: PropTypes.array.isRequired,
+    desks: PropTypes.array.isRequired,
+    readOnly: PropTypes.bool,
 }
 
 const selector = formValueSelector('planning') // same as form name
 const mapStateToProps = (state, ownProps) => ({
     g2_content_type: state.vocabularies.g2_content_type,
-    users: state.users && state.users.length > 0 ? state.users : [],
+    users: selectors.getUsers(state),
     desks: state.desks && state.desks.length > 0 ? state.desks : [],
     content_type: selector(state, ownProps.coverage + '.planning.g2_content_type'),
     coverage_providers: state.vocabularies.coverage_providers || [],

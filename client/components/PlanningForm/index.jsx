@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { fields } from '../../components'
 import { connect } from 'react-redux'
 import { Field, FieldArray, reduxForm, propTypes, formValueSelector } from 'redux-form'
@@ -13,7 +14,7 @@ class Component extends React.Component {
     }
 
     render() {
-        const { handleSubmit, readOnly, headline, slugline } = this.props
+        const { handleSubmit, readOnly, headline, slugline, users } = this.props
         return (
             <form onSubmit={handleSubmit} className="PlanningForm">
                 <div>
@@ -57,6 +58,7 @@ class Component extends React.Component {
                         component={fields.CoveragesFieldArray}
                         headline={headline}
                         slugline={slugline}
+                        users={users}
                         readOnly={readOnly} />
                 </div>
             </form>
@@ -64,7 +66,12 @@ class Component extends React.Component {
     }
 }
 
-Component.propTypes = propTypes
+Component.propTypes = {
+    ...propTypes,
+    headline: PropTypes.string,
+    slugline: PropTypes.string,
+    users: PropTypes.array.isRequired,
+}
 
 // Decorate the form component
 const PlanningReduxForm = reduxForm({
@@ -77,6 +84,7 @@ const mapStateToProps = (state) => ({
     initialValues: selectors.getCurrentPlanning(state),
     headline: selector(state, 'headline'), // Used to parse current headline to new coverages
     slugline: selector(state, 'slugline'), // Used to parse current slugline to new coverages
+    users: selectors.getUsers(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

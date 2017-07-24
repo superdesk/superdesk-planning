@@ -42,7 +42,7 @@ export const getCurrentAgenda = createSelector(
     }
 )
 export const getPrivileges = (state) => state.privileges
-export const getUsers = (state) => state.users
+export const getUsers = (state) => get(state, 'users.length', 0) > 0 ? state.users : []
 export const getPlanningItemReadOnlyState = (state) => state.planning.readOnly
 export const getEventReadOnlyState = (state) => state.events.readOnly
 export const getSessionDetails = (state) => state.session
