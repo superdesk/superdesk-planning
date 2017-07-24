@@ -37,26 +37,28 @@ class CoverageService(superdesk.Service):
             self._set_assignment_information(doc)
 
     def on_update(self, updates, original):
+        user = get_user()
+        updates['version_creator'] = str(user.get(config.ID_FIELD)) if user else None
         self._set_assignment_information(updates)
 
     @staticmethod
-    def notify(event, doc):
+    def notify(event, doc, user):
         push_notification(
             event,
             item=str(doc[config.ID_FIELD]),
-            user=str(doc.get('original_creator', '')),
+            user=str(user),
             planning=str(doc.get('planning_item', ''))
         )
 
     def on_created(self, docs):
         for doc in docs:
-            CoverageService.notify('coverage:created', doc)
+            CoverageService.notify('coverage:created', doc, doc.get('original_creator', ''))
 
     def on_updated(self, updates, original):
-        CoverageService.notify('coverage:updated', original)
+        CoverageService.notify('coverage:updated', original, updates.get('version_creator', ''))
 
     def on_deleted(self, doc):
-        CoverageService.notify('coverage:deleted', doc)
+        CoverageService.notify('coverage:deleted', doc, doc.get('version_creator', ''))
 
     def _set_assignment_information(self, doc):
         if doc.get('planning') and doc['planning'].get('assigned_to'):

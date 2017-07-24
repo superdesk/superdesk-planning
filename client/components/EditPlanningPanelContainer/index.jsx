@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { reduxForm } from 'redux-form'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
@@ -13,6 +14,7 @@ import { UserAvatar, UnlockItem } from '../'
 import classNames from 'classnames'
 import './style.scss'
 import { ItemActionsMenu } from '../index'
+import { getCreator } from '../../utils'
 
 export class EditPlanningPanel extends React.Component {
 
@@ -37,13 +39,6 @@ export class EditPlanningPanel extends React.Component {
             this.props.users.find((u) => (u._id === planning.lock_user)) : null
     }
 
-    getCreator(planning, creator) {
-        const user = get(planning, creator)
-        if (user) {
-            return user.display_name ? user : this.props.users.find((u) => (u._id === user))
-        }
-    }
-
     viewPlanningHistory() {
         this.setState({ previewHistory: true })
     }
@@ -54,12 +49,23 @@ export class EditPlanningPanel extends React.Component {
 
     /*eslint-disable complexity*/
     render() {
-        const { closePlanningEditor, openPlanningEditor, planning, event, pristine, submitting, readOnly, lockedInThisSession } = this.props
+        const {
+            closePlanningEditor,
+            openPlanningEditor,
+            planning,
+            event,
+            pristine,
+            submitting,
+            readOnly,
+            lockedInThisSession,
+            users,
+        } = this.props
+
         const creationDate = get(planning, '_created')
         const updatedDate = get(planning, '_updated')
 
-        const author = this.getCreator(planning, 'original_creator')
-        const versionCreator = this.getCreator(planning, 'version_creator')
+        const author = getCreator(planning, 'original_creator', users)
+        const versionCreator = getCreator(planning, 'version_creator', users)
 
         const planningSpiked = planning ? get(planning, 'state', 'active') === ITEM_STATE.SPIKED : false
         const eventSpiked = event ? get(event, 'state', 'active') === ITEM_STATE.SPIKED : false
@@ -180,20 +186,20 @@ export class EditPlanningPanel extends React.Component {
 }
 
 EditPlanningPanel.propTypes = {
-    closePlanningEditor: React.PropTypes.func.isRequired,
-    openPlanningEditor: React.PropTypes.func.isRequired,
-    planning: React.PropTypes.object,
-    event: React.PropTypes.object,
-    pristine: React.PropTypes.bool.isRequired,
-    submitting: React.PropTypes.bool.isRequired,
-    users: React.PropTypes.oneOfType([
-        React.PropTypes.array,
-        React.PropTypes.object,
+    closePlanningEditor: PropTypes.func.isRequired,
+    openPlanningEditor: PropTypes.func.isRequired,
+    planning: PropTypes.object,
+    event: PropTypes.object,
+    pristine: PropTypes.bool.isRequired,
+    submitting: PropTypes.bool.isRequired,
+    users: PropTypes.oneOfType([
+        PropTypes.array,
+        PropTypes.object,
     ]),
-    readOnly: React.PropTypes.bool,
-    unlockPrivilege: React.PropTypes.bool,
-    unlockItem: React.PropTypes.func,
-    lockedInThisSession: React.PropTypes.bool,
+    readOnly: PropTypes.bool,
+    unlockPrivilege: PropTypes.bool,
+    unlockItem: PropTypes.func,
+    lockedInThisSession: PropTypes.bool,
 }
 
 const mapStateToProps = (state) => ({
