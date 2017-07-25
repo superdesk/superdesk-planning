@@ -10,6 +10,7 @@ export * from './desks'
 export * from './subjects'
 export * from './session'
 export * from './genres'
+export * from './urgency'
 
 import planning from './planning/index'
 import events from './events/index'

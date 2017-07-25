@@ -23,6 +23,7 @@ PlanningController.$inject = [
     'metadata',
     'session',
     'deployConfig',
+    'gettextCatalog',
 ]
 export function PlanningController(
     $element,
@@ -41,7 +42,8 @@ export function PlanningController(
     desks,
     metadata,
     session,
-    deployConfig
+    deployConfig,
+    gettextCatalog
 ) {
     // wrap notify methods inside $timeout to ensure it get displayed ASAP
     const _notify = {
@@ -71,6 +73,7 @@ export function PlanningController(
             metadata,
             session,
             deployConfig,
+            gettextCatalog,
         },
     })
     // load data in the store
@@ -93,6 +96,7 @@ export function PlanningController(
     store.dispatch(actions.loadUsers())
     store.dispatch(actions.loadDesks())
     store.dispatch(actions.loadSessionDetails())
+    store.dispatch(actions.loadUrgency())
 
     registerNotifications($scope, store)
     $scope.$on('$destroy', () => {
