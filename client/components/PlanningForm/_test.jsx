@@ -1,11 +1,10 @@
 import { createTestStore } from '../../utils'
 import { getTestActionStore } from '../../utils/testUtils'
 import { mount } from 'enzyme'
-import { PlanningForm } from '../index'
+import { PlanningForm, CoverageContainer } from '../index'
 import { CoveragesFieldArray } from '../fields'
 import React from 'react'
 import { Provider } from 'react-redux'
-import { get } from 'lodash'
 
 describe('<PlanningForm />', () => {
     let store
@@ -34,10 +33,10 @@ describe('<PlanningForm />', () => {
         })
     }
 
-    const getWrapper = () => {
+    const getWrapper = (readOnly=false) => {
         const wrapper = mount(
             <Provider store={store}>
-                <PlanningForm />
+                <PlanningForm readOnly={readOnly}/>
             </Provider>
         )
 
@@ -49,19 +48,25 @@ describe('<PlanningForm />', () => {
             form,
             coveragesField,
             addCoverageButton: coveragesField.find('.Coverage__add-btn'),
+            coverageContainers: () => form.find(CoverageContainer),
         }
     }
 
     describe('coverages', () => {
         it('removes a coverage', (done) => {
             setStore()
-            const { form, coveragesField } = getWrapper()
+            const { form, coverageContainers } = getWrapper()
 
-            expect(coveragesField.find('.Coverage__item').length).toBe(3)
-            coveragesField.find('.Coverage__remove').first().simulate('click')
-            expect(coveragesField.find('.Coverage__item').length).toBe(2)
-            coveragesField.find('.Coverage__remove').first().simulate('click')
-            expect(coveragesField.find('.Coverage__item').length).toBe(1)
+            expect(coverageContainers().length).toBe(3)
+
+            coverageContainers().at(0).find('.dropdown__toggle').simulate('click')
+            coverageContainers().at(0).find('li button .icon-trash').simulate('click')
+            expect(coverageContainers().length).toBe(2)
+
+            coverageContainers().at(0).find('.dropdown__toggle').simulate('click')
+            coverageContainers().at(0).find('li button .icon-trash').simulate('click')
+            expect(coverageContainers().length).toBe(1)
+
             form.simulate('submit')
 
             setTimeout(() => {
@@ -73,38 +78,37 @@ describe('<PlanningForm />', () => {
             }, 500)
         })
 
-        it('cannot remove all coverages', (done) => {
-            astore.initialState.planning.currentPlanningId = data.plannings[1]._id
+        it('cannot remove all coverages', () => {
             setStore()
+            const { coverageContainers } = getWrapper()
 
-            const { form, coveragesField } = getWrapper()
+            expect(coverageContainers().length).toBe(3)
 
-            expect(coveragesField.find('.Coverage__item').length).toBe(1)
-            coveragesField.find('.Coverage__remove').first().simulate('click')
-            form.simulate('submit')
+            coverageContainers().at(0).find('.dropdown__toggle').simulate('click')
+            coverageContainers().at(0).find('li button .icon-trash').simulate('click')
+            expect(coverageContainers().length).toBe(2)
 
-            setTimeout(() => {
-                expect(services.notify.error.callCount).toBe(1)
-                expect(services.notify.error.args[0])
-                    .toEqual(['The planning item must have at least one coverage.'])
-                done()
-            }, 250)
+            coverageContainers().at(0).find('.dropdown__toggle').simulate('click')
+            coverageContainers().at(0).find('li button .icon-trash').simulate('click')
+            expect(coverageContainers().length).toBe(1)
+
+            expect(coverageContainers().at(0).find('li button .icon-trash').length).toBe(0)
         })
 
         it('new coverages copies metadata from planning item', () => {
             setStore()
-            const { coveragesField, addCoverageButton } = getWrapper()
+            const { coveragesField, addCoverageButton, coverageContainers } = getWrapper()
 
-            expect(coveragesField.find('.Coverage__item').length).toBe(3)
+            expect(coverageContainers().length).toBe(3)
             addCoverageButton.simulate('click')
-            expect(coveragesField.find('.Coverage__item').length).toBe(4)
+            expect(coverageContainers().length).toBe(4)
 
             const coveragesProps = coveragesField.props()
             expect(coveragesProps.headline).toBe('Some Plan 1')
             expect(coveragesProps.slugline).toBe('Planning1')
             expect(coveragesProps.fields.length).toBe(4)
-            expect(get(coveragesProps.fields.get(3), 'planning.headline', '')).toBe('Some Plan 1')
-            expect(get(coveragesProps.fields.get(3), 'planning.slugline', '')).toBe('Planning1')
+            expect(coveragesProps.fields.get(3).planning.headline).toBe('Some Plan 1')
+            expect(coveragesProps.fields.get(3).planning.slugline).toBe('Planning1')
 
         })
     })
