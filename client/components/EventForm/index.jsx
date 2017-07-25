@@ -19,7 +19,7 @@ import { OverlayTrigger } from 'react-bootstrap'
 import { tooltips } from '../index'
 import PropTypes from 'prop-types'
 import { ItemActionsMenu, UnlockItem, UserAvatar } from '../index'
-import { isEventAllDay } from '../../utils'
+import { isEventAllDay, doesRecurringEventsOverlap } from '../../utils'
 import classNames from 'classnames'
 
 /**
@@ -176,6 +176,9 @@ export class Component extends React.Component {
             lockedInThisSession,
             unlockPrivilege,
             onUnlock,
+            startingDate,
+            endingDate,
+            recurringRule,
         } = this.props
         const eventSpiked = get(initialValues, 'state', 'active') === ITEM_STATE.SPIKED
         const creationDate = get(initialValues, '_created')
@@ -188,6 +191,7 @@ export class Component extends React.Component {
         const lockedUser = this.getLockedUser(initialValues)
         const metaDataEditable =  !forcedReadOnly && this.isMetaDataEditable()
         const recurringRulesEditable =  !forcedReadOnly && this.isRecurringRulesEditable()
+        const occurrenceOverlaps = doesRecurringEventsOverlap(startingDate, endingDate, recurringRule)
 
         const RepeatEventFormProps = {
             ...this.props,
@@ -397,7 +401,10 @@ export class Component extends React.Component {
                         <Field name="dates.start"
                                component={fields.DayPickerInput}
                                withTime={true}
-                               readOnly={!recurringRulesEditable}/>
+                               readOnly={!recurringRulesEditable}/>&nbsp;
+                        { occurrenceOverlaps && (
+                            <span className="error-block">Events Overlap!</span>
+                        )}
                     </div>
                     <div>
                         <label htmlFor="dates.end">To</label>
@@ -496,10 +503,11 @@ Component.propTypes = {
     addEventToCurrentAgenda: PropTypes.func.isRequired,
     duplicateEvent: PropTypes.func.isRequired,
     isAllDay: PropTypes.bool,
-    highlightedEvent: React.PropTypes.string,
+    highlightedEvent: PropTypes.string,
     lockedInThisSession: PropTypes.bool,
     onUnlock: PropTypes.func,
-    unlockPrivilege: React.PropTypes.bool,
+    unlockPrivilege: PropTypes.bool,
+    recurringRule: PropTypes.object,
 }
 
 // Decorate the form component
@@ -530,6 +538,7 @@ const mapStateToProps = (state) => ({
     lockedInThisSession: selectors.isEventDetailLockedInThisSession(state),
     unlockPrivilege: selectors.getPrivileges(state).planning_unlock ? true : false,
     maxRecurrentEvents: selectors.getMaxRecurrentEvents(state),
+    recurringRule: selector(state, 'dates.recurring_rule'),
 })
 
 const mapDispatchToProps = (dispatch) => ({
