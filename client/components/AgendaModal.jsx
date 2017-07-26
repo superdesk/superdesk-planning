@@ -21,6 +21,7 @@ export const AgendaModal = ({ handleHide, modalProps }) => {
             onHide={handleHide}
             form={CreateEditAgendaForm}
             show={true}
+            large={true}
             initialValues={initialValues}/>
     )
 }

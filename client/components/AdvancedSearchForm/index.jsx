@@ -37,6 +37,9 @@ function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting
                        component={fields.DayPickerInput}
                        withTime={true}/>
                 <br/>&nbsp;To&nbsp;<br/>
+                <Field name="dates.end"
+                       component={fields.DayPickerInput}
+                       withTime={true}/>
             </fieldset>
             <button
                 className="btn btn-default"

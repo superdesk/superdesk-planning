@@ -51,18 +51,13 @@ const mapStateToProps = (state) => (
 const mapDispatchToProps = (dispatch) => ({
     selectAll: () => dispatch(actions.selectAllTheEventList()),
     deselect: () => dispatch(actions.deselectAllTheEventList()),
-    addEventToCurrentAgenda: (events) => dispatch(actions.showModal({
-        modalType: 'CONFIRMATION',
-        modalProps: {
-            body: `Do you want to add these ${events.length} events to the current agenda ?`,
-            action: () => dispatch(actions.addEventToCurrentAgenda(events)),
-        },
-    })),
+    addEventToCurrentAgenda: (events) => dispatch(actions.askForAddEventToCurrentAgenda(events)),
     spikeEvent: (events) => dispatch(actions.showModal({
         modalType: 'CONFIRMATION',
         modalProps: {
             body: `Do you want to spike these ${events.length} events ?`,
-            action: () => dispatch(actions.spikeEvent(events)),
+            // action: () => dispatch(actions.spikeEvent(events)),
+            action: () => dispatch(actions.events.ui.spike(events)),
         },
     })),
 })

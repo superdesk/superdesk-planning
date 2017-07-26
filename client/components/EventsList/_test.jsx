@@ -73,6 +73,11 @@ describe('<EventsList />', () => {
                     },
                 },
             },
+            users: [{ _id: 'user123' }],
+            session: {
+                identity: { _id: 'user123' },
+                sessionId: 'session123',
+            },
         }
         const store = createTestStore({ initialState })
         const wrapper = mount(
@@ -81,7 +86,7 @@ describe('<EventsList />', () => {
             </Provider>
         )
         // There are 4 groups
-        expect(wrapper.find('.events-list__list').length).toEqual(4)
+        expect(wrapper.find('.events-list__title').length).toEqual(4)
         // check order
         expect(wrapper.find('.events-list__title').map((e) => e.text()))
         .toEqual([
@@ -106,10 +111,10 @@ describe('<EventsList />', () => {
             location: [{ name: 'location3' }],
             name: 'name4',
         }
-        store.dispatch(actions.receiveEvents([newEvent]))
+        store.dispatch(actions.events.api.receiveEvents([newEvent]))
         store.dispatch(actions.addToEventsList([newEvent._id]))
         // There are one more group
-        expect(wrapper.find('.events-list__list').length).toEqual(4 + 1)
+        expect(wrapper.find('.events-list__title').length).toEqual(4 + 1)
         // There is more event
         expect(wrapper.find('.ListItem').length).toEqual(6 + 1)
         // update an item
@@ -117,17 +122,7 @@ describe('<EventsList />', () => {
             ...newEvent,
             name: 'new name',
         }
-        store.dispatch(actions.receiveEvents([updatedEvent]))
+        store.dispatch(actions.events.api.receiveEvents([updatedEvent]))
         expect(wrapper.find('.ListItem').length).toEqual(6 + 1)
-        expect(
-            wrapper.find('.sd-list-item__row span').last().text())
-        .toContain('location3')
-        // check attached file count
-        expect(
-            wrapper.find('.ListItem').first().find('[className="icon-file"]').length
-        ).toBe(1)
-        expect(
-            wrapper.find('.ListItem').first().find('[className="icon-link"]').length
-        ).toBe(0)
     })
 })

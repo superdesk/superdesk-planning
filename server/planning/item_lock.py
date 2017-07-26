@@ -17,7 +17,7 @@ from superdesk.users.services import current_user_has_privilege
 from superdesk.utc import utcnow
 from superdesk.lock import lock, unlock
 from eve.utils import config
-from superdesk import get_resource_service
+from superdesk import get_resource_service, get_resource_privileges
 from flask import current_app as app
 
 
@@ -31,15 +31,19 @@ class LockService:
         self.app = app
         self.app.on_session_end += self.on_session_end
 
-    def lock(self, item_id, user_id, session_id, action, resource):
-        item_service = get_resource_service(resource)
-        item = item_service.find_one(req=None, _id=item_id)
-
+    def lock(self, item, user_id, session_id, action, resource, lock_id_field=None):
         if not item:
             raise SuperdeskApiError.notFoundError()
 
+        item_service = get_resource_service(resource)
+        item_id = item.get(config.ID_FIELD)
+
+        # lock_id will have a specific value (recurrence_id) for recurring events
+        if not lock_id_field:
+            lock_id_field = config.ID_FIELD
+
         # set the lock_id it per item
-        lock_id = "item_lock {}".format(item.get(config.ID_FIELD))
+        lock_id = "item_lock {}".format(item.get(lock_id_field))
 
         # get the lock it not raise forbidden exception
         if not lock(lock_id, expire=5):
@@ -59,29 +63,30 @@ class LockService:
 
                 item_service.update(item.get(config.ID_FIELD), updates, item)
 
-                # following line executes handlers attached to function:
-                # on_locked_'resource' - ex. on_locked_planning, on_locked_event
-                getattr(self.app, 'on_locked_%s' % resource)(item, user_id)
-
                 push_notification(resource + ':lock',
                                   item=str(item.get(config.ID_FIELD)),
                                   user=str(user_id), lock_time=updates['lock_time'],
-                                  lock_session=str(session_id))
+                                  lock_session=str(session_id),
+                                  etag=updates['_etag'])
             else:
                 raise SuperdeskApiError.forbiddenError(message=error_message)
 
             item = item_service.find_one(req=None, _id=item_id)
+
+            # following line executes handlers attached to function:
+            # on_locked_'resource' - ex. on_locked_planning, on_locked_event
+            getattr(self.app, 'on_locked_%s' % resource)(item, user_id)
             return item
         finally:
             # unlock the lock :)
             unlock(lock_id, remove=True)
 
-    def unlock(self, item_id, user_id, session_id, resource):
-        item_service = get_resource_service(resource)
-        item = item_service.find_one(req=None, _id=item_id)
-
+    def unlock(self, item, user_id, session_id, resource):
         if not item:
             raise SuperdeskApiError.notFoundError()
+
+        item_service = get_resource_service(resource)
+        item_id = item.get(config.ID_FIELD)
 
         if not item.get(LOCK_USER):
             raise SuperdeskApiError.badRequestError(message="Item is not locked.")
@@ -103,7 +108,8 @@ class LockService:
 
             push_notification(resource + ':unlock',
                               item=str(item.get(config.ID_FIELD)),
-                              user=str(user_id), lock_session=str(session_id))
+                              user=str(user_id), lock_session=str(session_id),
+                              etag=updates['_etag'])
         else:
             raise SuperdeskApiError.forbiddenError(message=error_message)
 
@@ -145,8 +151,11 @@ class LockService:
         can_user_edit, error_message = superdesk.get_resource_service(resource).can_edit(item, user_id)
 
         if can_user_edit:
+            resource_privileges = get_resource_privileges(resource).get('PATCH')
+
             if not (str(item.get(LOCK_USER, '')) == str(user_id) or
-                    (current_user_has_privilege(resource) and current_user_has_privilege('planning_unlock'))):
+                    (current_user_has_privilege(resource_privileges) and
+                    current_user_has_privilege('planning_unlock'))):
                 return False, 'You don\'t have permissions to unlock an item.'
         else:
             return False, error_message

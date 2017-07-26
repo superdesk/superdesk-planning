@@ -4,7 +4,8 @@ import * as actions from '../../actions'
 const sdLocation = {
     guid: 'location-guid',
     qcode: 'location-qcode',
-    name: '123 road, state, postcode, country',
+    name: '123 road, town, state, postcode, country',
+    type: 'residential',
 }
 
 const nominatimLocation = {
@@ -25,7 +26,7 @@ const nominatimLocation = {
 
 const formattedLocation = {
     unique_name: 'display location',
-    name: '123 road, state, postcode, country',
+    name: '123 road, town, state, postcode, country',
     address: {
         line: ['123 road'],
         locality: 'state',
@@ -74,7 +75,8 @@ describe('<AddGeoLookupInput />', () => {
         .then((savedLocation) => {
             expect(savedLocation).toEqual({
                 qcode: 'location-guid',
-                name: '123 road, state, postcode, country',
+                name: '123 road, town, state, postcode, country',
+                type: 'residential',
             })
         })
     })

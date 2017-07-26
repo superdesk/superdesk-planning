@@ -5,41 +5,47 @@ import { EVENTS } from '../../constants'
 import classNames from 'classnames'
 import { get } from 'lodash'
 
-const PUB_STATUS_LABELS = {
-    [EVENTS.PUB_STATUS.USABLE]: {
+const STATUS_LABELS = {
+    [EVENTS.STATE.PUBLISHED]: {
         label: 'P',
         labelVerbose: 'Published',
         labelType: 'success',
         tooltip:  <Tooltip id="pubStatusUsuableTT">Published</Tooltip>,
     },
-    [EVENTS.PUB_STATUS.WITHHOLD]: {
-        label: 'Unpublished',
+    [EVENTS.STATE.KILLED]: {
+        label: 'Killed',
         labelType: 'warning',
         tooltip: (<Tooltip id="pubStatusWithHoldTT">
-            The event has been already published but is now set as internal event.
+            The event has been killed.
         </Tooltip>),
     },
     internal: {
         label: 'Internal',
-        labelType: 'default',
-        tooltip:  <Tooltip id="pubStatuInternalTT">Internal</Tooltip>,
+        labelType: '',
     },
 }
 
 const PubStatusLabel = ({ status, verbose }) => {
-    const pubStatus = PUB_STATUS_LABELS[status]
-    if (!pubStatus || (pubStatus === PUB_STATUS_LABELS.internal && !verbose)) {
+    const pubStatus = STATUS_LABELS[status]
+    if (!pubStatus || (pubStatus === STATUS_LABELS.internal && !verbose)) {
         return null
     }
 
     const labelClasses = classNames('label', `label--${pubStatus.labelType}`)
-    return (
-        <OverlayTrigger placement="bottom" overlay={pubStatus.tooltip}>
-            <span className={labelClasses}>
-                {verbose ? get(pubStatus, 'labelVerbose', pubStatus.label) : pubStatus.label}
-            </span>
-        </OverlayTrigger>
+    const label = (
+        <span className={labelClasses}>
+            {verbose ? get(pubStatus, 'labelVerbose', pubStatus.label) : pubStatus.label}
+        </span>
     )
+    if (pubStatus.tooltip) {
+        return (
+            <OverlayTrigger placement="bottom" overlay={pubStatus.tooltip}>
+                {label}
+            </OverlayTrigger>
+        )
+    } else {
+        return label
+    }
 }
 
 PubStatusLabel.defaultProps = {

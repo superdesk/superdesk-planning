@@ -15,7 +15,7 @@ const DEFAULT_FORM_VALUES = {
 export const EventsPanel = ({ eventToDetail, handleBackToList }) => (
     <ResizableEventsPanel className="Events-panel" minWidth={570}>
         {eventToDetail &&
-            <EventForm initialValues={eventToDetail} onBackClick={handleBackToList} />
+            <EventForm initialValues={eventToDetail} onBackClick={handleBackToList.bind(null, eventToDetail)} />
         }
         {!eventToDetail &&
             <EventsListContainer/>
@@ -35,7 +35,9 @@ const mapStateToProps = (state) => ({
         : selectors.getEventToBeDetailed(state),
 })
 
-const mapDispatchToProps = (dispatch) => ({ handleBackToList: () => (dispatch(actions.closeEventDetails())) })
+const mapDispatchToProps = (dispatch) => (
+    { handleBackToList: (event) =>(dispatch(actions.events.ui.closeEventDetails(event))) }
+)
 
 export const EventsPanelContainer = connect(
     mapStateToProps,

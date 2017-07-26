@@ -1,0 +1,24 @@
+
+.SpikeEvent {
+    .metadata-view {
+        dl {
+            margin-top: 0;
+            > dt {
+                width: 90px;
+                line-height: 20px;
+            }
+            > dd {
+                padding-left: 90px;
+                line-height: 20px;
+            }
+        }
+    }
+
+    .Spacing {
+        min-height: 75px;
+    }
+
+    .sd-alert {
+        overflow-y: scroll;
+    }
+}

@@ -18,10 +18,12 @@ $EVENT_LIST_CONTAINER_ZINDEX: 6;
 .Events-list-container__body {
     display: flex;
     flex-grow: 1;
+    overflow: hidden;
 }
 .Events-list-container__search {
     display: flex;
     z-index: $EVENT_LIST_CONTAINER_ZINDEX !important;
+    overflow: hidden;
     .btn--primary {
         white-space: nowrap;
         margin: 10px;

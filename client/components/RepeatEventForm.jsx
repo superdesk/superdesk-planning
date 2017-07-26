@@ -26,19 +26,19 @@ class RepeatEventFormComponent extends React.Component {
         } else {
             // if endRepeatMode not present set the default value for it
             this.state = {
-                endRepeatMode: 'unlimited',
+                endRepeatMode: 'count',
                 interval: intervals,
                 frequency: frequency,
                 date: startDate,
             }
-            this.props.change('dates.recurring_rule.endRepeatMode', 'unlimited')
+            this.props.change('dates.recurring_rule.endRepeatMode', 'count')
         }
     }
 
     componentWillReceiveProps(nextProps) {
         const { endRepeatMode, until, count, frequency, start, interval } = nextProps
 
-        if (until && endRepeatMode != 'until') {
+        if (until && endRepeatMode !== 'until') {
             // force the selection of 'until' for endRepeatMode
             // covers the case when the user set a value for until date field
             // but don't select the 'until'related radio
@@ -47,7 +47,7 @@ class RepeatEventFormComponent extends React.Component {
             return
         }
 
-        if (count && endRepeatMode != 'count') {
+        if (count && endRepeatMode !== 'count') {
             // force the selection of 'count' for endRepeatMode
             // covers the case when the user set a value for count integer field
             // but don't select the 'until'related radio
@@ -127,6 +127,7 @@ class RepeatEventFormComponent extends React.Component {
                     <label>Repeat every</label>
                     <Field name="dates.recurring_rule.interval" component="select"
                         className={readOnlyClasses}
+                        type="number"
                         disabled={readOnlyAttr}>
                         {/* Create 30 options with 1...30 values */}
                         {Array.apply(null, { length: 30 }).map(Number.call, Number).map((n) => (
@@ -148,17 +149,6 @@ class RepeatEventFormComponent extends React.Component {
                     <label>
                         <input
                             name="endRepeatMode"
-                            className={readOnlyClasses}
-                            disabled={readOnlyAttr}
-                            checked={this.state.endRepeatMode === 'unlimited'}
-                            onChange={this.handleEndRepeatModeChange.bind(this)}
-                            value="unlimited"
-                            type="radio"/>
-                        Never
-                    </label>
-                    <label>
-                        <input
-                            name="endRepeatMode"
                             checked={this.state.endRepeatMode === 'count'}
                             className={readOnlyClasses}
                             disabled={readOnlyAttr}
@@ -171,6 +161,7 @@ class RepeatEventFormComponent extends React.Component {
                             withRef={true}
                             ref="recurring_rule--count"
                             component={fields.InputIntegerField}
+                            type="number"
                             readOnly={readOnly} />
                     </label>
                     <label>
@@ -204,12 +195,12 @@ class RepeatEventFormComponent extends React.Component {
 RepeatEventFormComponent.propTypes = {
     change: PropTypes.func.isRequired,
     frequency: PropTypes.oneOf(['YEARLY', 'MONTHLY', 'WEEKLY', 'DAILY']),
-    endRepeatMode: PropTypes.oneOf(['unlimited', 'count', 'until']),
+    endRepeatMode: PropTypes.oneOf(['count', 'until']),
     until: PropTypes.object,
-    count: PropTypes.string,
+    count: PropTypes.number,
     byDay: PropTypes.string,
     start: PropTypes.object,
-    interval: PropTypes.string,
+    interval: PropTypes.number,
     readOnly: PropTypes.bool,
 }
 

@@ -9,9 +9,9 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 """Superdesk Planning"""
-
 import superdesk
 import logging
+from flask import json
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
@@ -22,8 +22,10 @@ from superdesk.resource import build_custom_hateoas
 from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user
 from copy import deepcopy
-from eve.utils import config
+from eve.utils import config, ParsedRequest
 from .common import STATE_SCHEMA
+from superdesk.utc import utcnow
+from bson.objectid import ObjectId
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +38,7 @@ class PlanningService(superdesk.Service):
 
     def __generate_related_coverages(self, planning):
         custom_coverage_hateoas = {'self': {'title': 'Coverage', 'href': '/coverage/{_id}'}}
-        for coverage in get_resource_service('coverage').find(where={'planning_item': planning['_id']}):
+        for coverage in get_resource_service('coverage').find(where={'planning_item': planning.get(config.ID_FIELD)}):
             build_custom_hateoas(custom_coverage_hateoas, coverage)
             yield coverage
 
@@ -46,6 +48,9 @@ class PlanningService(superdesk.Service):
         for doc in docs:
             doc['coverages'] = list(self.__generate_related_coverages(doc))
         return docs
+
+    def on_fetched_item(self, doc):
+        doc['coverages'] = list(self.__generate_related_coverages(doc))
 
     def on_create(self, docs):
         """Set default metadata."""
@@ -61,6 +66,15 @@ class PlanningService(superdesk.Service):
                 item=str(doc.get(config.ID_FIELD)),
                 user=str(doc.get('original_creator', ''))
             )
+
+            # Create a place holder coverage item
+            coverage = {'planning_item': ObjectId(doc.get(config.ID_FIELD))}
+            coverage_status = get_resource_service('vocabularies').find_one(req=None, _id='newscoveragestatus')
+            if coverage_status is not None:
+                coverage['news_coverage_status'] = \
+                    [x for x in coverage_status.get('items', []) if x['qcode'] == 'ncostat:notdec'][0]
+                coverage['news_coverage_status'].pop('is_active')
+
             # remove event expiry if it is linked to the planning
             if 'event_item' in doc:
                 events_service = get_resource_service('events')
@@ -68,6 +82,21 @@ class PlanningService(superdesk.Service):
                 events_service.system_update(doc['event_item'], {'expiry': None}, original_event)
                 get_resource_service('events_history').on_item_updated({'planning_id': doc.get('_id')}, original_event,
                                                                        'planning created')
+                # if the planning item is related to an event the default coverage schedule time is inherited from the
+                # event else it is set to now
+                coverage['planning'] = {'scheduled': original_event.get('dates', {}).get('start', None)}
+            else:
+                coverage['planning'] = {'scheduled': utcnow()}
+
+            # Copy metadata from the planning item to the coverage
+            coverage['planning']['headline'] = doc.get('headline', '')
+            coverage['planning']['slugline'] = doc.get('slugline', '')
+
+            get_resource_service('coverage').post([coverage])
+            get_resource_service('coverage_history').on_item_created([coverage])
+
+    def on_locked_planning(self, item, user_id):
+        item['coverages'] = list(self.__generate_related_coverages(item))
 
     def update(self, id, updates, original):
         item = self.backend.update(self.datasource, id, updates, original)
@@ -91,19 +120,26 @@ class PlanningService(superdesk.Service):
             user=str(updates.get('version_creator', ''))
         )
 
-    def on_deleted(self, doc):
-        # remove the planning from agendas
-        agenda_service = get_resource_service('agenda')
-        for agenda in agenda_service.find(where={'planning_items': doc['_id']}):
-            diff = {'planning_items': [_ for _ in agenda['planning_items'] if _ != doc['_id']]}
-            agenda_service.update(agenda['_id'], diff, agenda)
-            get_resource_service('agenda_history').on_item_updated(diff, agenda)
-
     def can_edit(self, item, user_id):
         # Check privileges
         if not current_user_has_privilege('planning_planning_management'):
             return False, 'User does not have sufficient permissions.'
         return True, ''
+
+    def get_planning_by_agenda_id(self, agenda_id):
+        """Get the planing item by Agenda
+
+        :param dict agenda_id: Agenda _id
+        :return list: list of planing items
+        """
+        query = {
+            'query': {
+                'bool': {'must': {'term': {'agendas': str(agenda_id)}}}
+            }
+        }
+        req = ParsedRequest()
+        req.args = {'source': json.dumps(query)}
+        return super().get(req=req, lookup=None)
 
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
@@ -159,16 +195,10 @@ planning_schema = {
     },
 
     # Agenda Item details
-    'planning_type': {
-        'type': 'string',
-        'mapping': not_analyzed,
-    },
-    'name': {
-        'type': 'string'
-    },
-    'planning_items': {
+    'agendas': {
         'type': 'list',
-        'schema': superdesk.Resource.rel('planning'),
+        'schema': superdesk.Resource.rel('agenda'),
+        'mapping': not_analyzed
     },
 
     # Event Item
@@ -315,7 +345,6 @@ class PlanningResource(superdesk.Resource):
     datasource = {
         'source': 'planning',
         'search_backend': 'elastic',
-        'elastic_filter': {"bool": {"must_not": {"term": {"planning_type": "agenda"}}}}
     }
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']

@@ -20,6 +20,7 @@ describe('events', () => {
                 highlightedEvent: null,
                 selectedEvents: [],
                 readOnly: true,
+                eventHistoryItems: [],
             })
         })
 

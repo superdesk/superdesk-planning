@@ -12,6 +12,7 @@ export function saveNominatim(nominatim) {
                 latitude: nominatim.lat,
                 longitude: nominatim.lon,
             },
+            type: nominatim.type,
         })
     }
 }
@@ -46,9 +47,21 @@ export function saveLocation(newLocation) {
                 }
             }
         })
-        .then(data => ({
-            name: data.name,
-            qcode: data.guid,
-        }))
+        .then(data => {
+            const eventData = {
+                name: data.name,
+                type: data.type,
+                qcode: data.guid,
+            }
+
+            if (data.position) {
+                eventData.location = {
+                    lat: data.position.latitude,
+                    lon: data.position.longitude,
+                }
+            }
+
+            return eventData
+        })
     }
 }

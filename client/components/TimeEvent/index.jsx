@@ -1,41 +1,66 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import momentPropTypes from 'react-moment-proptypes'
-import { Datetime } from '../index'
+import { OverlayTrigger } from 'react-bootstrap'
+import { Datetime, tooltips } from '../index'
 import { isEventAllDay } from '../../utils'
+import { get } from 'lodash'
+import './style.scss'
 
 function startAndFinishTheSameDay(event) {
     return event.dates.start.isSame(event.dates.end, 'day')
 }
 
 export const TimeEvent = ({ event, withDate=false }) => {
+    const isRecurringEvent = get(event, 'recurrence_id', null) !== null
+
+    let label
+
     // display "all day" if the event last exactly one day
     if (isEventAllDay(event.dates.start, event.dates.end)) {
-        return (<div>All day</div>)
+        label = (<span className="TimeEvent">All day</span>)
     // display only the time if the event start and finish the same day
     } else if (startAndFinishTheSameDay(event)) {
-        return (
-            <span>
+        label = (
+            <span className="TimeEvent">
                 <Datetime date={event.dates.start} withDate={withDate}/>&nbsp;-&nbsp;
                 <Datetime date={event.dates.end} withDate={withDate}/>
             </span>
         )
     // otherwise display the start and end datetime
     } else {
-        return (
-            <span>
+        label = (
+            <span className="TimeEvent">
                 <Datetime date={event.dates.start} withTime={false}/>&nbsp;-&nbsp;
                 <Datetime date={event.dates.end} withTime={false}/>
             </span>
         )
     }
+
+    // If this is in a series of recurring events, then wrap the date/time component
+    // in a Tooltip overlay and display the icon-repeat
+    if (isRecurringEvent) {
+        return (
+            <OverlayTrigger placement="bottom" overlay={tooltips.repeatingEventTooltip}>
+                <span className="TimeEvent">
+                    {label}
+                    <i className="icon-repeat"/>
+                </span>
+            </OverlayTrigger>
+        )
+    // Otherwise simply return the date/time component
+    } else {
+        return label
+    }
 }
 
 TimeEvent.propTypes = {
-    withDate: React.PropTypes.bool,
-    event: React.PropTypes.shape({
-        dates: React.PropTypes.shape({
+    withDate: PropTypes.bool,
+    event: PropTypes.shape({
+        dates: PropTypes.shape({
             end: momentPropTypes.momentObj,
             start: momentPropTypes.momentObj,
         }),
+        recurrence_id: PropTypes.string,
     }),
 }

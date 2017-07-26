@@ -8,7 +8,7 @@ Feature: Planning
 
     @auth
     @notification
-    Scenario: Create new planning item
+    Scenario: Create new planning item without agenda
         Given empty "users"
         Given empty "planning"
         When we post to "users"
@@ -26,7 +26,8 @@ Feature: Planning
                 "unique_id": "123",
                 "unique_name": "123 name",
                 "item_class": "item class value",
-                "headline": "test headline"
+                "headline": "test headline",
+                "slugline": "test slugline"
             }
         ]
         """
@@ -48,11 +49,24 @@ Feature: Planning
                 "guid": "__any_value__",
                 "original_creator": "__any_value__",
                 "item_class": "item class value",
-                "headline": "test headline"
+                "headline": "test headline",
+                "slugline": "test slugline"
             }]}
         """
+        When we get "/coverage"
+        Then we get a list with 1 items
+        """
+            {"_items": [{
+                "planning_item": "#planning._id#",
+                "planning": {
+                    "headline": "test headline",
+                    "slugline": "test slugline"
+                }
+            }
+            ]}
+        """
         When we get "/planning_history"
-        Then we get list with 1 items
+        Then we get a list with 2 items
         """
             {"_items": [{
                 "planning_id":  "#planning._id#",
@@ -60,10 +74,118 @@ Feature: Planning
                 "update": {
                     "original_creator": "__any_value__",
                     "item_class": "item class value",
-                    "headline": "test headline"
-            }
+                    "headline": "test headline",
+                    "slugline": "test slugline"
+            }},
+            {
+                "planning_id":  "#planning._id#",
+                "operation": "coverage created",
+                 "update": {
+                    "coverage_id": "__any_value__"
+                }
             }]}
         """
+        When we get "/coverage_history"
+        Then we get a list with 1 items
+        """
+            {"_items": [{
+                "operation": "create",
+                "update": {
+                    "planning_item": "#planning._id#",
+                    "planning": {
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            }
+            ]}
+        """
+
+    @auth
+    @notification
+    Scenario: Create new planning item with agenda
+        Given empty "users"
+        Given empty "planning"
+        When we post to "users"
+        """
+        {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
+        """
+        Then we get existing resource
+        """
+        {"_id": "#users._id#", "invisible_stages": []}
+        """
+        When we post to "agenda" with "agenda1" and success
+        """
+        [{"name": "foo1"}]
+        """
+        And we post to "agenda" with "agenda2" and success
+        """
+        [{"name": "foo2"}]
+        """
+        And we post to "/planning"
+        """
+        [
+            {
+                "unique_id": "123",
+                "unique_name": "123 name",
+                "item_class": "item class value",
+                "headline": "test headline",
+                "agendas": ["#agenda1#"]
+            }
+        ]
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "planning:created",
+            "extra": {
+                "item": "#planning._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+        When we get "/planning"
+        Then we get list with 1 items
+        """
+            {"_items": [{
+                "guid": "__any_value__",
+                "original_creator": "__any_value__",
+                "item_class": "item class value",
+                "headline": "test headline",
+                "agendas": ["#agenda1#"]
+            }]}
+        """
+        When we get "/planning_history"
+        Then we get list with 2 items
+        """
+            {"_items": [
+                {
+                    "planning_id":  "#planning._id#",
+                    "operation": "create",
+                    "update": {
+                        "original_creator": "__any_value__",
+                        "item_class": "item class value",
+                        "headline": "test headline",
+                        "agendas": ["#agenda1#"]
+                    }
+                },
+                {
+                    "planning_id":  "#planning._id#",
+                    "operation": "coverage created"
+                }
+            ]}
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        { "agendas": ["#agenda1#", "#agenda2#"] }
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        { "agendas": [] }
+        """
+        Then we get OK response
 
     @auth
     Scenario: Planning item can be created only by user having privileges
@@ -101,20 +223,23 @@ Feature: Planning
         Given "planning"
         """
         [{
-            "_id": "123",
             "item_class": "item class value",
-            "headline": "test headline"
+            "headline": "test headline",
+            "slugline": "test slugline"
         }]
         """
         Given "coverage"
         """
         [{
-            "planning_item": "123",
+            "planning_item": "#planning._id#",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "assigned_to": {
-                    "user": "whoever wants to do it"
-                }
+                    "desk": "Politic Desk",
+                    "user": "507f191e810c19729de860ea"
+                },
+                "headline": "test headline",
+                "slugline": "test slugline"
             }
         }]
         """
@@ -122,16 +247,19 @@ Feature: Planning
         Then we get list with 1 items
         """
         {"_items": [{
-            "_id": "123",
+            "_id": "#planning._id#",
             "item_class": "item class value",
             "headline": "test headline",
             "coverages": [{
-                "planning_item": "123",
+                "planning_item": "#planning._id#",
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
-                        "user": "whoever wants to do it"
-                    }
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de860ea"
+                    },
+                    "headline": "test headline",
+                    "slugline": "test slugline"
                 }
             }]
         }]}
@@ -199,7 +327,7 @@ Feature: Planning
         """
         Then we get OK response
         When we get "/planning_history"
-        Then we get a list with 2 items
+        Then we get a list with 3 items
         """
             {"_items": [{
                 "planning_id":  "#planning._id#",
@@ -210,7 +338,9 @@ Feature: Planning
                     "headline": "test headline"}},
                 {"planning_id":  "#planning._id#",
                 "operation": "update",
-                "update": {"headline": "updated test headline"}}
+                "update": {"headline": "updated test headline"}},
+                {"operation": "coverage created",
+                "planning_id": "#planning._id#"}
             ]}
         """
 
@@ -255,11 +385,14 @@ Feature: Planning
         """
         Then we get OK response
         When we get "/planning_history"
-        Then we get a list with 1 items
+        Then we get a list with 2 items
         """
             {"_items": [{
                 "planning_id":  "#planning._id#",
-                "operation": "create"}
+                "operation": "create"},
+                {"planning_id":  "#planning._id#",
+                "operation": "coverage created"
+                }
             ]}
         """
         When we get "/events_history"
