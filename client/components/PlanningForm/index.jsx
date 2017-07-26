@@ -51,6 +51,10 @@ class Component extends React.Component {
                             component={fields.AgendaField}
                             label="Agenda"
                             readOnly={readOnly} />
+                        <Field
+                            name="urgency"
+                            component={fields.UrgencyField}
+                            readOnly={readOnly} />
                     </fieldset>
                     <h3>Coverages</h3>
                     <FieldArray
