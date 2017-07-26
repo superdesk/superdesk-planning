@@ -1,24 +1,29 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { reduxForm } from 'redux-form'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { PlanningForm } from '../index'
-import { EventMetadata } from '../../components'
+import { EventMetadata, PlanningHistoryContainer, AuditInformation } from '../../components'
 import * as selectors from '../../selectors'
 import { ITEM_STATE } from '../../constants'
 import { get } from 'lodash'
-import moment from 'moment'
 import { OverlayTrigger } from 'react-bootstrap'
 import { tooltips } from '../index'
 import { UserAvatar, UnlockItem } from '../'
 import classNames from 'classnames'
 import './style.scss'
+import { ItemActionsMenu } from '../index'
+import { getCreator } from '../../utils'
 
 export class EditPlanningPanel extends React.Component {
 
     constructor(props) {
         super(props)
-        this.state = { openUnlockPopup: false }
+        this.state = {
+            openUnlockPopup: false,
+            previewHistory: false,
+        }
     }
 
     handleSave() {
@@ -30,25 +35,55 @@ export class EditPlanningPanel extends React.Component {
     }
 
     getLockedUser(planning) {
-        return get(planning, 'lock_user') && this.props.users ?
+        return get(planning, 'lock_user') && Array.isArray(this.props.users) ?
             this.props.users.find((u) => (u._id === planning.lock_user)) : null
+    }
+
+    viewPlanningHistory() {
+        this.setState({ previewHistory: true })
+    }
+
+    closePlanningHistory() {
+        this.setState({ previewHistory: false })
     }
 
     /*eslint-disable complexity*/
     render() {
-        const { closePlanningEditor, openPlanningEditor, planning, event, pristine, submitting, agendaSpiked, readOnly, lockedInThisSession } = this.props
+        const {
+            closePlanningEditor,
+            openPlanningEditor,
+            planning,
+            event,
+            pristine,
+            submitting,
+            readOnly,
+            lockedInThisSession,
+            users,
+        } = this.props
+
         const creationDate = get(planning, '_created')
         const updatedDate = get(planning, '_updated')
-        const author = get(planning, 'original_creator')
-        const versionCreator = get(planning, 'version_creator') && this.props.users ? this.props.users.find((u) => (u._id === planning.version_creator)) : null
+
+        const author = getCreator(planning, 'original_creator', users)
+        const versionCreator = getCreator(planning, 'version_creator', users)
+
         const planningSpiked = planning ? get(planning, 'state', 'active') === ITEM_STATE.SPIKED : false
         const eventSpiked = event ? get(event, 'state', 'active') === ITEM_STATE.SPIKED : false
         const lockedUser = this.getLockedUser(planning)
 
+        let itemActions = []
+
+        itemActions = [
+            {
+                label: 'View Planning History',
+                callback: this.viewPlanningHistory.bind(this),
+            },
+        ]
+
         // If the planning or event or agenda item is spiked,
         // or we don't hold a lock, enforce readOnly
         let forceReadOnly = readOnly
-        if (!lockedInThisSession || agendaSpiked || eventSpiked || planningSpiked) {
+        if (!lockedInThisSession || eventSpiked || planningSpiked) {
             forceReadOnly = true
         }
 
@@ -60,11 +95,11 @@ export class EditPlanningPanel extends React.Component {
                         'dropdown--drop-right',
                         'pull-left',
                         { 'open': this.state.openUnlockPopup })}>
-                        {(!readOnly && !lockedInThisSession && lockedUser)
+                        {(!lockedInThisSession && lockedUser)
                             && (
                             <div className="lock-avatar">
                                 <button type='button' onClick={this.toggleOpenUnlockPopup.bind(this)}>
-                                    <UserAvatar user={lockedUser} withLoggedInfo={true}/>
+                                    <UserAvatar user={lockedUser} withLoggedInfo={true} />
                                 </button>
                                 {this.state.openUnlockPopup && <UnlockItem user={lockedUser}
                                     showUnlock={this.props.unlockPrivilege}
@@ -72,10 +107,11 @@ export class EditPlanningPanel extends React.Component {
                                     onUnlock={this.props.unlockItem.bind(this, planning)}/>}
                             </div>
                             )}
-                        {updatedDate && versionCreator &&
-                            <span>Updated {moment(updatedDate).fromNow()} by <span className='TimeAndAuthor__author'> {versionCreator.display_name}</span>
-                            </span>
-                        }
+                        <AuditInformation
+                            createdBy={author}
+                            updatedBy={versionCreator}
+                            createdAt={creationDate}
+                            updatedAt={updatedDate} />
                     </div>
                     { !forceReadOnly && <div className="EditPlanningPanel__actions">
                             <button
@@ -83,7 +119,7 @@ export class EditPlanningPanel extends React.Component {
                                 type="reset"
                                 onClick={closePlanningEditor.bind(this, planning)}
                                 disabled={submitting}>Cancel</button>
-                            {!agendaSpiked && !planningSpiked && !eventSpiked &&
+                            {!planningSpiked && !eventSpiked &&
                                 <button
                                     className="btn btn--primary"
                                     onClick={this.handleSave.bind(this)}
@@ -94,7 +130,7 @@ export class EditPlanningPanel extends React.Component {
                     }
                     { forceReadOnly && (
                         <div className="EditPlanningPanel__actions">
-                            {(!agendaSpiked && !eventSpiked && !planningSpiked) &&
+                            {(!eventSpiked && !planningSpiked) &&
                             (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
                                 <button className="EditPlanningPanel__actions__edit" onClick={openPlanningEditor.bind(this, get(planning, '_id'))}>
                                     <i className="icon-pencil"/>
@@ -109,34 +145,40 @@ export class EditPlanningPanel extends React.Component {
                         </div>)
                     }
                 </header>
-                <div className="EditPlanningPanel__body">
-                    {agendaSpiked &&
-                        <span className="AgendaSpiked label label--alert">agenda spiked</span>
-                    }
-                    {planningSpiked &&
-                        <span className="PlanningSpiked label label--alert">planning spiked</span>
-                    }
-                    {eventSpiked &&
-                        <span className="EventSpiked label label--alert">event spiked</span>
-                    }
-                    {event &&
-                        <div>
-                            <h3>Associated event</h3>
-                            <EventMetadata event={event}/>
-                        </div>
-                    }
-                    <h3>Planning</h3>
-                    <div className="TimeAndAuthor">
-                        {creationDate && author &&
-                            <span>Created {moment(creationDate).fromNow()} by <span className='TimeAndAuthor__author'> {author.display_name}</span>
-                            </span>
+
+                {!this.state.previewHistory &&
+                    <div className="EditPlanningPanel__body">
+                        <ItemActionsMenu actions={itemActions} />
+
+                        {planningSpiked &&
+                            <span className="PlanningSpiked label label--alert">planning spiked</span>
                         }
+                        {eventSpiked &&
+                            <span className="EventSpiked label label--alert">event spiked</span>
+                        }
+                        {event &&
+                            <div>
+                                <h3>Associated event</h3>
+                                <EventMetadata event={event}/>
+                            </div>
+                        }
+                        <h3>Planning</h3>
                         {(!creationDate || !author) &&
                             <span>Create a new planning</span>
                         }
+                        <PlanningForm ref="PlanningForm" readOnly={forceReadOnly}/>
                     </div>
-                    <PlanningForm ref="PlanningForm" readOnly={forceReadOnly}/>
-                </div>
+                }
+                {this.state.previewHistory &&
+                    <div className="history-preview">
+                        <div className="close-history">
+                            <a onClick={this.closePlanningHistory.bind(this)} className="close">
+                                <i className="icon-close-small" />
+                            </a>
+                        </div>
+                        <PlanningHistoryContainer currentPlanningId={planning._id} />
+                    </div>
+                }
             </div>
         )
     }
@@ -144,37 +186,35 @@ export class EditPlanningPanel extends React.Component {
 }
 
 EditPlanningPanel.propTypes = {
-    closePlanningEditor: React.PropTypes.func.isRequired,
-    openPlanningEditor: React.PropTypes.func.isRequired,
-    planning: React.PropTypes.object,
-    event: React.PropTypes.object,
-    pristine: React.PropTypes.bool.isRequired,
-    submitting: React.PropTypes.bool.isRequired,
-    agendaSpiked: React.PropTypes.bool,
-    users: React.PropTypes.oneOfType([
-        React.PropTypes.array,
-        React.PropTypes.object,
+    closePlanningEditor: PropTypes.func.isRequired,
+    openPlanningEditor: PropTypes.func.isRequired,
+    planning: PropTypes.object,
+    event: PropTypes.object,
+    pristine: PropTypes.bool.isRequired,
+    submitting: PropTypes.bool.isRequired,
+    users: PropTypes.oneOfType([
+        PropTypes.array,
+        PropTypes.object,
     ]),
-    readOnly: React.PropTypes.bool,
-    unlockPrivilege: React.PropTypes.number,
-    unlockItem: React.PropTypes.func,
-    lockedInThisSession: React.PropTypes.bool,
+    readOnly: PropTypes.bool,
+    unlockPrivilege: PropTypes.bool,
+    unlockItem: PropTypes.func,
+    lockedInThisSession: PropTypes.bool,
 }
 
 const mapStateToProps = (state) => ({
     planning: selectors.getCurrentPlanning(state),
     event: selectors.getCurrentPlanningEvent(state),
-    agendaSpiked: selectors.getCurrentPlanningAgendaSpiked(state),
     users: selectors.getUsers(state),
     readOnly: selectors.getPlanningItemReadOnlyState(state),
-    unlockPrivilege: selectors.getPrivileges(state).planning_unlock,
+    unlockPrivilege: selectors.getPrivileges(state).planning_unlock ? true : false,
     lockedInThisSession: selectors.isCurrentPlanningLockedInThisSession(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
-    closePlanningEditor: (planning) => dispatch(actions.closePlanningEditor(planning)),
-    openPlanningEditor: (planning) => (dispatch(actions.openPlanningEditor(planning))),
-    unlockItem: (planning) => (dispatch(actions.unlockAndOpenPlanningEditor(planning))),
+    closePlanningEditor: (planning) => dispatch(actions.planning.ui.closeEditor(planning)),
+    openPlanningEditor: (planning) => (dispatch(actions.planning.ui.openEditor(planning))),
+    unlockItem: (planning) => (dispatch(actions.planning.ui.unlockAndOpenEditor(planning))),
 })
 
 export const EditPlanningPanelContainer = connect(

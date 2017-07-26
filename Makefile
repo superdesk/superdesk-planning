@@ -14,6 +14,6 @@ testpy:
 	flake8 ${BACKEND_DIR}
 	cd ${BACKEND_DIR} ; nosetests -v --with-coverage --cover-package=planning
 	mv  ${BACKEND_DIR}/.coverage .coverage.nosetests
-	cd ${BACKEND_DIR} ; coverage run --source planning --omit "*tests*" -m behave
+	cd ${BACKEND_DIR} ; coverage run --source planning --omit "*tests*" -m behave --format progress2 --logging-level=ERROR
 	mv  ${BACKEND_DIR}/.coverage .coverage.behave
 	coverage combine .coverage.behave .coverage.nosetests

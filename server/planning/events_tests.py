@@ -1,10 +1,12 @@
-import unittest
 from planning.events import generate_recurring_dates
 import datetime
 import pytz
+from superdesk import get_resource_service
+from superdesk.utc import utcnow
+from planning.tests import TestCase
 
 
-class EventTestCase(unittest.TestCase):
+class EventTestCase(TestCase):
     def test_recurring_dates_generation(self):
         # Every other thurdsay and friday afternoon on January 2016
         self.assertEquals(list(generate_recurring_dates(
@@ -52,11 +54,12 @@ class EventTestCase(unittest.TestCase):
         my_birthdays = generate_recurring_dates(
             start=datetime.datetime(1989, 12, 13),
             frequency='YEARLY',
-            endRepeatMode='unlimited',
+            endRepeatMode='count',
+            count=200
         )
         self.assertTrue(datetime.datetime(1989, 12, 13) in my_birthdays)
         self.assertTrue(datetime.datetime(2016, 12, 13) in my_birthdays)
-        self.assertTrue(datetime.datetime(9999, 12, 13) in my_birthdays)
+        self.assertTrue(datetime.datetime(2179, 12, 13) in my_birthdays)
         # Time zone
         self.assertEquals(list(generate_recurring_dates(
             start=datetime.datetime(2016, 11, 17, 23, 00),
@@ -70,3 +73,54 @@ class EventTestCase(unittest.TestCase):
             datetime.datetime(2016, 11, 24, 23, 00),  # it's friday in Berlin
             datetime.datetime(2016, 12, 1, 23, 00),  # it's friday in Berlin
         ])
+
+    def test_get_recurring_timeline(self):
+        with self.app.app_context():
+            generated_events = generate_recurring_events(10)
+            self.app.data.insert('events', generated_events)
+
+            service = get_resource_service('events')
+            selected = service.find_one(req=None, name='Event 5')
+            self.assertEquals('Event 5', selected['name'])
+
+            (historic, past, future) = service.get_recurring_timeline(selected)
+
+            self.assertEquals(2, len(historic))
+            self.assertEquals(3, len(past))
+            self.assertEquals(4, len(future))
+
+            expected_time = generated_events[0]['dates']['start']
+            for e in historic:
+                self.assertEquals(e['dates']['start'], expected_time)
+                expected_time += datetime.timedelta(days=1)
+
+            for e in past:
+                self.assertEquals(e['dates']['start'], expected_time)
+                expected_time += datetime.timedelta(days=1)
+
+            self.assertEquals(selected['dates']['start'], expected_time)
+            expected_time += datetime.timedelta(days=1)
+
+            for e in future:
+                self.assertEquals(e['dates']['start'], expected_time)
+                expected_time += datetime.timedelta(days=1)
+
+
+def generate_recurring_events(num_events):
+    events = []
+    days = -2
+    now = utcnow()
+    for i in range(num_events):
+        start = now + datetime.timedelta(days=days)
+        end = start + datetime.timedelta(hours=4)
+        events.append({
+            'slugline': 'Event',
+            'name': 'Event {}'.format(i),
+            'recurrence_id': 'rec1',
+            'dates': {
+                'start': start,
+                'end': end
+            }
+        })
+        days += 1
+    return events

@@ -14,17 +14,15 @@ import superdesk
 import logging
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
-from superdesk.metadata.item import GUID_NEWSML
+from superdesk.metadata.item import GUID_NEWSML, metadata_schema
+from superdesk.resource import not_analyzed
 from superdesk.notification import push_notification
-from apps.archive.common import set_original_creator
-from apps.archive.common import get_user
+from apps.archive.common import set_original_creator, get_user
 from eve.utils import config
 from superdesk.utc import utcnow
+from superdesk.activity import add_activity, ACTIVITY_UPDATE
 
 logger = logging.getLogger(__name__)
-
-not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
-not_indexed = {'type': 'string', 'index': 'no'}
 
 
 class CoverageService(superdesk.Service):
@@ -39,38 +37,37 @@ class CoverageService(superdesk.Service):
             self._set_assignment_information(doc)
 
     def on_update(self, updates, original):
+        user = get_user()
+        updates['version_creator'] = str(user.get(config.ID_FIELD)) if user else None
         self._set_assignment_information(updates)
 
     @staticmethod
-    def notify(event, doc):
+    def notify(event, doc, user):
         push_notification(
             event,
             item=str(doc[config.ID_FIELD]),
-            user=str(doc.get('original_creator', '')),
+            user=str(user),
             planning=str(doc.get('planning_item', ''))
         )
 
     def on_created(self, docs):
         for doc in docs:
-            CoverageService.notify('coverage:created', doc)
+            CoverageService.notify('coverage:created', doc, doc.get('original_creator', ''))
 
     def on_updated(self, updates, original):
-        CoverageService.notify('coverage:updated', original)
+        CoverageService.notify('coverage:updated', original, updates.get('version_creator', ''))
 
     def on_deleted(self, doc):
-        CoverageService.notify('coverage:deleted', doc)
+        CoverageService.notify('coverage:deleted', doc, doc.get('version_creator', ''))
 
     def _set_assignment_information(self, doc):
         if doc.get('planning') and doc['planning'].get('assigned_to'):
             planning = doc['planning']
-            if planning['assigned_to'].get('user') and planning['assigned_to'].get('desk'):
-                # Error - Assign either to desk or user, not both
-                raise SuperdeskApiError.badRequestError(message="Assignment can have exactly one assignee.")
+            if planning['assigned_to'].get('user') and not planning['assigned_to'].get('desk'):
+                raise SuperdeskApiError.badRequestError(message="Assignment should have a desk.")
 
-            # In case of update we need to nullify previous assignment
-            if planning['assigned_to'].get('user'):
-                planning['assigned_to']['desk'] = None
-            else:
+            # In case user was removed
+            if not planning['assigned_to'].get('user'):
                 planning['assigned_to']['user'] = None
 
             user = get_user()
@@ -78,56 +75,34 @@ class CoverageService(superdesk.Service):
                 planning['assigned_to']['assigned_by'] = user[config.ID_FIELD]
 
             planning['assigned_to']['assigned_date'] = utcnow()
+            if planning['assigned_to'].get('user'):
+                add_activity(ACTIVITY_UPDATE,
+                             '{{assignor}} assigned a coverage to you',
+                             self.datasource,
+                             notify=[planning['assigned_to'].get('user')],
+                             assignor=user.get('username'))
 
 
 coverage_schema = {
     # Identifiers
-    'guid': {
-        'type': 'string',
-        'unique': True,
-        'mapping': not_analyzed
-    },
-    'unique_id': {
-        'type': 'integer',
-        'unique': True,
-    },
-    'unique_name': {
-        'type': 'string',
-        'unique': True,
-        'mapping': not_analyzed
-    },
-    'version': {
-        'type': 'integer'
-    },
-    'ingest_id': {
-        'type': 'string',
-        'mapping': not_analyzed
-    },
+    '_id': metadata_schema['_id'],
+    'guid': metadata_schema['guid'],
+    'unique_id': metadata_schema['unique_id'],
+    'unique_name': metadata_schema['unique_name'],
+    'version': metadata_schema['version'],
+    'ingest_id': metadata_schema['ingest_id'],
 
     # Audit Information
-    'original_creator': superdesk.Resource.rel('users'),
-    'version_creator': superdesk.Resource.rel('users'),
-    'firstcreated': {
-        'type': 'datetime'
-    },
-    'versioncreated': {
-        'type': 'datetime'
-    },
+    'original_creator': metadata_schema['original_creator'],
+    'version_creator': metadata_schema['version_creator'],
+    'firstcreated': metadata_schema['firstcreated'],
+    'versioncreated': metadata_schema['versioncreated'],
 
     # Ingest Details
-    'ingest_provider': superdesk.Resource.rel('ingest_providers'),
-    'source': {     # The value is copied from the ingest_providers vocabulary
-        'type': 'string',
-        'mapping': not_analyzed
-    },
-    'original_source': {    # This value is extracted from the ingest
-        'type': 'string',
-        'mapping': not_analyzed
-    },
-    'ingest_provider_sequence': {
-        'type': 'string',
-        'mapping': not_analyzed
-    },
+    'ingest_provider': metadata_schema['ingest_provider'],
+    'source': metadata_schema['source'],
+    'original_source': metadata_schema['original_source'],
+    'ingest_provider_sequence': metadata_schema['ingest_provider_sequence'],
 
     # Reference to Planning Item
     'planning_item': superdesk.Resource.rel('planning'),
@@ -137,8 +112,9 @@ coverage_schema = {
     'planning': {
         'type': 'dict',
         'schema': {
-            'ednote': {'type': 'string'},
+            'ednote': metadata_schema['ednote'],
             'g2_content_type': {'type': 'string'},
+            'coverage_provider': {'type': 'string'},
             'item_class': {'type': 'string'},
             'item_count': {'type': 'string'},
             'scheduled': {'type': 'datetime'},
@@ -199,27 +175,9 @@ coverage_schema = {
                     'type': 'string'
                 }
             },
-            'description': {
-                'type': 'list',
-                'mapping': {
-                    'type': 'string'
-                }
-            },
-            'genre': {
-                'type': 'list',
-                'mapping': {
-                    'properties': {
-                        'qcode': not_analyzed,
-                        'name': not_analyzed
-                    }
-                }
-            },
-            'headline': {
-                'type': 'list',
-                'mapping': {
-                    'type': 'string'
-                }
-            },
+            'description_text': metadata_schema['description_text'],
+            'genre': metadata_schema['genre'],
+            'headline': metadata_schema['headline'],
             'keyword': {
                 'type': 'list',
                 'mapping': {
@@ -232,20 +190,10 @@ coverage_schema = {
                     'type': 'string'
                 }
             },
-            'slugline': {
-                'type': 'list',
-                'mapping': {
-                    'type': 'string'
-                }
-            },
-            'subject': {
-                'type': 'list',
-                'mapping': {
-                    'properties': {
-                        'qcode': not_analyzed,
-                        'name': not_analyzed
-                    }
-                }
+            'slugline': metadata_schema['slugline'],
+            'subject': metadata_schema['subject'],
+            'internal_note': {
+                'type': 'string'
             }
         }  # end planning dict schema
     },  # end planning
@@ -273,6 +221,13 @@ coverage_schema = {
                 'dir': {'type': 'string'},
                 'rank': {'type': 'integer'}
             }
+        }
+    },
+    'news_coverage_status': {
+        'type': 'dict',
+        'schema': {
+            'qcode': {'type': 'string'},
+            'name': {'type': 'string'}
         }
     }
 }  # end coverage_schema

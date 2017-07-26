@@ -22,6 +22,7 @@ describe('planning', () => {
         it('initialState', () => {
             expect(initialState).toEqual({
                 plannings: {},
+                planningsInList: [],
                 currentPlanningId: undefined,
                 editorOpened: false,
                 planningsAreLoading: false,
@@ -29,16 +30,62 @@ describe('planning', () => {
                 filterPlanningKeyword: null,
                 onlySpiked: false,
                 readOnly: true,
+                planningHistoryItems: [],
+                lastRequestParams: { page: 1 },
             })
         })
 
         it('REQUEST_PLANNINGS', () => {
             const result = planning(
                 initialState,
-                { type: 'REQUEST_PLANNINGS' }
+                {
+                    type: 'REQUEST_PLANNINGS',
+                    payload: {
+                        agendas: ['a1'],
+                        noAgendaAssigned: false,
+                        page: 2,
+                    },
+                }
             )
 
             expect(result.planningsAreLoading).toBe(true)
+            expect(result.lastRequestParams).toEqual({
+                agendas: ['a1'],
+                noAgendaAssigned: false,
+                page: 2,
+            })
+        })
+
+        it('SET_LIST', () => {
+            const result = planning(
+                initialState,
+                {
+                    type: 'SET_PLANNING_LIST',
+                    payload: ['p1', 'p2'],
+                }
+            )
+
+            expect(result.planningsInList).toEqual(['p1', 'p2'])
+        })
+
+        it('ADD_TO_LIST', () => {
+            const result = planning(
+                {
+                    ...initialState,
+                    planningsInList: ['p1', 'p2'],
+                },
+                {
+                    type: 'ADD_TO_PLANNING_LIST',
+                    payload: ['p2', 'p3', 'p4'],
+                }
+            )
+
+            expect(result.planningsInList).toEqual(['p1', 'p2', 'p3', 'p4'])
+        })
+
+        it('CLEAR_LIST', () => {
+            const result = planning(initialState, { type: 'CLEAR_PLANNING_LIST' })
+            expect(result.planningsInList).toEqual([])
         })
 
         describe('RECEIVE_PLANNINGS', () => {

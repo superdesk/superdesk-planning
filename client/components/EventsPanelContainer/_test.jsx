@@ -26,6 +26,11 @@ describe('<EventPanelContainer />', () => {
             planning: 1,
             planning_event_management: 1,
         },
+        users: [{ _id: 'user123' }],
+        session: {
+            identity: { _id: 'user123' },
+            sessionId: 'session123',
+        },
     }
     const store = createTestStore({ initialState })
     const wrapper = mount(
@@ -35,23 +40,17 @@ describe('<EventPanelContainer />', () => {
     )
 
     it('Opens event in preview mode', () => {
-        store.dispatch(actions.previewEvent(store.getState().events.events[eventId]))
+        store.dispatch(actions.events.ui.previewEvent(store.getState().events.events[eventId]))
         expect(store.getState().events.showEventDetails).toBe(eventId)
         expect(store.getState().events.readOnly).toBe(true)
-        store.dispatch(actions.previewEvent({ _id: eventId }))
+        store.dispatch(actions.events.ui.previewEvent({ _id: eventId }))
         expect(store.getState().events.showEventDetails).toBe(eventId)
         wrapper.find('EventsPanel').props().handleBackToList()
         expect(store.getState().events.readOnly).toBe(true)
     })
 
-    it('Opens event in edit mode', () => {
-        store.dispatch(actions.openEventDetails(eventId))
-        expect(store.getState().events.showEventDetails).toBe(eventId)
-        expect(store.getState().events.readOnly).toBe(false)
-        store.dispatch(actions.openEventDetails({ _id: eventId }))
-        expect(store.getState().events.showEventDetails).toBe(eventId)
-        expect(store.getState().events.readOnly).toBe(false)
-        store.dispatch(actions.openEventDetails())
+    it('Opens new event event in edit mode', () => {
+        store.dispatch(actions.events.ui.openEventDetails())
         expect(store.getState().events.showEventDetails).toBe(true)
         expect(store.getState().events.readOnly).toBe(false)
         wrapper.find('EventsPanel').props().handleBackToList()

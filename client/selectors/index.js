@@ -1,18 +1,23 @@
 import { createSelector } from 'reselect'
-import { orderBy, get, sortBy } from 'lodash'
+import { orderBy, get, sortBy, includes, isEmpty } from 'lodash'
 // import { isAllDay } from '../utils'
 import moment from 'moment'
 import { ITEM_STATE } from '../constants'
 
 export const getAgendas = (state) => state.agenda.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
+export const getPlanningHistory = (state) => state.planning.planningHistoryItems
 export const eventSearchActive = (state) => (state.events.search.currentSearch.advancedSearch) ?
     true : false
 export const getEvents = (state) => state.events.events
+export const getEventHistory = (state) => state.events.eventHistoryItems
 export const isEventListShown = (state) =>state.events.show
 export const getPreviousEventRequestParams = (state) => get(state.events, 'lastRequestParams', {})
+export const getPreviousPlanningRequestParams = (state) =>
+    get(state.planning, 'lastRequestParams', {})
 export const getCurrentAgendaId = (state) => state.agenda.currentAgendaId
 export const getStoredPlannings = (state) => state.planning.plannings
+export const getPlanningIdsInList = (state) => state.planning.planningsInList
 export const isOnlyFutureFiltered = (state) => state.planning.onlyFuture
 export const filterPlanningKeyword = (state) => state.planning.filterPlanningKeyword
 export const isOnlySpikeFiltered = (state) => state.planning.onlySpiked
@@ -20,6 +25,7 @@ export const getServerUrl = (state) => state.config.server.url
 export const getDateFormat = (state) => state.config.model.dateformat
 export const getTimeFormat = (state) => state.config.shortTimeFormat
 export const getIframelyKey = (state) => state.config.iframely ? state.config.iframely.key : null
+export const getMaxRecurrentEvents = (state) => get(state, 'deployConfig.max_recurrent_events', 200)
 export const getShowEventDetails = (state) => state.events.showEventDetails
 export const getSelectedEvents = (state) => state.events.selectedEvents
 export const getHighlightedEvent = (state) => state.events.highlightedEvent === true ? null :
@@ -38,15 +44,23 @@ export const getCurrentAgenda = createSelector(
     }
 )
 export const getPrivileges = (state) => state.privileges
-export const getUsers = (state) => state.users
+export const getUsers = (state) => get(state, 'users.length', 0) > 0 ? state.users : []
 export const getPlanningItemReadOnlyState = (state) => state.planning.readOnly
 export const getEventReadOnlyState = (state) => state.events.readOnly
 export const getSessionDetails = (state) => state.session
 
-export const getCurrentAgendaPlannings = createSelector(
-    [getCurrentAgenda, getStoredPlannings, isOnlyFutureFiltered, getEvents,
+export const getPlanningsInList = createSelector(
+    [getPlanningIdsInList, getStoredPlannings],
+    (planningIds, storedPlannings) => (
+        planningIds.map((pid) => (storedPlannings[pid]))
+    )
+)
+
+// export const getCurrentAgendaPlannings = createSelector(
+export const getFilteredPlanningList = createSelector(
+    [getCurrentAgenda, getCurrentAgendaId, getPlanningsInList, isOnlyFutureFiltered, getEvents,
         filterPlanningKeyword, isOnlySpikeFiltered],
-    (currentAgenda, storedPlanningsObjects, isOnlyFutureFiltered, events,
+    (currentAgenda, currentAgendaId, planningsInList, isOnlyFutureFiltered, events,
         filterPlanningKeyword, isOnlySpikeFiltered) => {
         /** Return true if the planning has a future scheduled due date for a coverage
         or an associated event with a future end date.
@@ -87,10 +101,19 @@ export const getCurrentAgendaPlannings = createSelector(
                 ))
         }
 
-        const planningsIds = currentAgenda ? currentAgenda.planning_items || [] : []
-        const plannings = planningsIds
-        // from ids, get the actual plannings objects
-        .map((pid) => (storedPlanningsObjects[pid]))
+        let plannings = []
+
+        if (currentAgenda && currentAgenda._id) {
+            plannings = planningsInList.filter(
+                (planning) => includes(planning.agendas, currentAgenda._id)
+            )
+        } else if (currentAgendaId) {
+            plannings = planningsInList.filter(
+                (planning) => !planning.agendas || isEmpty(planning.agendas)
+            )
+        }
+
+        plannings = plannings
         // remove undefined
         .filter((p) => p !== undefined)
         // if "only future" filter is enabled, keep only future planning
@@ -107,8 +130,8 @@ export const getCurrentAgendaPlannings = createSelector(
     }
 )
 
-export const getCurrentAgendaPlanningsEvents = createSelector(
-    [getCurrentAgendaPlannings, getEvents],
+export const getFilteredPlanningListEvents = createSelector(
+    [getFilteredPlanningList, getEvents],
     (plannings, events) => {
         const eventsByPlanningId = {}
         plannings.forEach((p) => {
@@ -122,7 +145,7 @@ export const getCurrentAgendaPlanningsEvents = createSelector(
 )
 
 export const getCurrentPlanning = createSelector(
-    [getCurrentPlanningId, getStoredPlannings],
+    [getCurrentPlanningId, getStoredPlannings, getAgendas],
     (currentPlanningId, storedPlannings) => {
         if (currentPlanningId) {
             return storedPlannings[currentPlanningId]
@@ -133,24 +156,6 @@ export const getCurrentPlanning = createSelector(
 export const getCurrentPlanningEvent = createSelector(
     [getCurrentPlanning, getEvents],
     (planning, events) => planning && events[planning.event_item]
-)
-
-/** Return true if the current Planning Agenda is Spiked, false otherwise */
-export const getCurrentPlanningAgendaSpiked = createSelector(
-    [getCurrentPlanningId, getAgendas],
-    (currentPlanningId, agendas) => {
-        if (currentPlanningId && agendas) {
-            let agenda = agendas.find((a) => (
-                a.planning_items && a.planning_items.indexOf(currentPlanningId) > -1
-            ))
-
-            if (agenda && 'state' in agenda) {
-                return agenda.state === ITEM_STATE.SPIKED
-            }
-        }
-
-        return false
-    }
 )
 
 /** Used for the events list */
@@ -186,7 +191,7 @@ export const getEventsOrderedByDay = createSelector(
         // check if search exists
         // order by date
         events = events.sort((a, b) => a.dates.start - b.dates.start)
-        let days = {}
+        const days = {}
         function addEventToDate(event, date) {
             date = date || event.dates.start
             date = date.format('YYYY-MM-DD')
@@ -228,45 +233,63 @@ export const getEventsOrderedByDay = createSelector(
             date: day,
             events: days[day],
         })
+        sortable = sortBy(sortable, [(e) => (e.date)])
 
-        return sortBy(sortable, [(e) => (e.date)])
+        // restructure to set a `date` field only for the first event of a day
+        sortable = Array.prototype.concat(...sortable.map((day) => ([
+            {
+                event: day.events[0],
+                date: day.date,
+            },
+            ...day.events.slice(1).map((event) => ({ event })),
+        ])))
 
+        return sortable
     }
 )
 
 /** Used for event details */
 export const getEventToBeDetailed = createSelector(
     [getShowEventDetails, getEvents, getStoredPlannings, getAgendas],
-    (showEventDetails, events, storedPlannings, agendas) => {
+    (showEventDetails, events, plannings, agendas) => {
         const event = events[showEventDetails]
         if (event) {
             return {
                 ...event,
-                _plannings: Object.keys(storedPlannings).filter((pKey) => (
-                    storedPlannings[pKey].event_item === showEventDetails
-                )).map((pKey) => ({
-                    ...storedPlannings[pKey],
-                    _agenda: agendas.find((a) => a.planning_items ?
-                        a.planning_items.indexOf(pKey) > -1 : false),
+                _plannings: Object.keys(plannings).filter((pKey) => (
+                    plannings[pKey].event_item === showEventDetails
+                )).map((key) => ({
+                    ...plannings[key],
+                    _agendas: !plannings[key].agendas ? [] :
+                        plannings[key].agendas.map((id) =>
+                            agendas.find((agenda => agenda._id === id))),
                 })),
             }
         }
     }
 )
 
-/** Returns the list of Agendas that are `spiked` */
-export const getSpikedAgendas = createSelector(
-    [getAgendas],
-    (agendas) => (
-        agendas.filter((a) => a.state === ITEM_STATE.SPIKED)
+/** Returns the list of Agendas that are assigned to planning items */
+export const getPlanningItemAgendas = createSelector(
+    [getAgendas, getCurrentPlanning],
+    (agendas, planning) => (
+       agendas.filter((a) => includes(planning.agendas || [], a._id))
     )
 )
 
-/** Returns the list of Agendas that are not `spiked` */
-export const getActiveAgendas = createSelector(
+/** Returns the list of Agendas that are `enabled` */
+export const getEnabledAgendas = createSelector(
     [getAgendas],
     (agendas) => (
-        agendas.filter((a) => a.state !== ITEM_STATE.SPIKED)
+        agendas.filter((a) => a.is_enabled === true)
+    )
+)
+
+/** Returns the list of Agendas that are not `disabled` */
+export const getDisabledAgendas = createSelector(
+    [getAgendas],
+    (agendas) => (
+        agendas.filter((a) => a.is_enabled === false)
     )
 )
 
@@ -276,4 +299,13 @@ export const isCurrentPlanningLockedInThisSession = createSelector(
             currentPlanning && currentPlanning.lock_user === session.identity._id &&
         currentPlanning.lock_session === session.sessionId ? true : false
     )
+)
+
+export const isEventDetailLockedInThisSession = createSelector(
+    [getShowEventDetails, getEvents, getSessionDetails],
+    (showEventDetails, events, session) => {
+        const event = events[showEventDetails]
+        return event && (event.lock_user === session.identity._id &&
+        event.lock_session === session.sessionId) ? true : false
+    }
 )

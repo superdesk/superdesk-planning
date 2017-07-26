@@ -53,7 +53,7 @@ export class ListItem extends React.Component {
             className,
             'ListItem',
             'sd-list-item',
-            'sd-shadow--z1',
+            'sd-shadow--z2',
             { 'sd-list-item--activated': active }
         )
         return (

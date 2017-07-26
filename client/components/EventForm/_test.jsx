@@ -6,7 +6,9 @@ import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
 import { cloneDeep } from 'lodash'
 import * as actions from '../../actions'
+import eventsUi from '../../actions/events/ui'
 import moment from 'moment'
+import { restoreSinonStub } from '../../utils/testUtils'
 
 describe('events', () => {
     describe('components', () => {
@@ -28,6 +30,29 @@ describe('events', () => {
             }],
             links: ['http://www.google.com'],
             _plannings: [],
+        }
+
+        const createTestStoreForEventEditing = (event) => {
+            return createTestStore({
+                initialState: {
+                    events: {
+                        readOnly: false,
+                        events: { '5800d71930627218866f1e80' : event },
+                        showEventDetails: '5800d71930627218866f1e80',
+                    },
+                    users: [
+                        {
+                            _id: 'user123',
+                            display_name: 'foo',
+                        },
+                    ],
+                    session: {
+                        identity: { _id: 'user123' },
+                        sessionId: 'session123',
+                    },
+                },
+            })
+
         }
 
         describe('<EventForm />', () => {
@@ -53,7 +78,7 @@ describe('events', () => {
                 }
                 const subject = shallow(<Component {...props}/>)
                 subject.find('form').simulate('submit')
-                expect(handleSubmit.callCount).toBe(1)
+                expect(handleSubmit.callCount).toBe(2)
             })
 
             it('save the event', () => {
@@ -82,7 +107,7 @@ describe('events', () => {
                     expect(end).toBe(expectedDates.end)
                 }
 
-                let store = createTestStore()
+                let store = createTestStoreForEventEditing()
                 const initialValues = event
                 mount(
                     <Provider store={store}>
@@ -94,7 +119,7 @@ describe('events', () => {
             })
 
             it('fill the form', () => {
-                let store = createTestStore()
+                let store = createTestStoreForEventEditing()
                 const initialValues = event
                 const wrapper = mount(
                     <Provider store={store}>
@@ -105,7 +130,7 @@ describe('events', () => {
             })
 
             it('detects a non recurring event', () => {
-                const store = createTestStore()
+                const store = createTestStoreForEventEditing()
                 // check with default values if doesRepeat is false
                 expect(mount(<Provider store={store}><EventForm /></Provider>)
                     .find(FormComponent).props().doesRepeat
@@ -113,7 +138,7 @@ describe('events', () => {
             })
 
             it('detects a recurring event', () => {
-                const store = createTestStore()
+                const store = createTestStoreForEventEditing()
                 const recEvent = {
                     ...event,
                     dates: {
@@ -128,14 +153,10 @@ describe('events', () => {
             })
 
             it('supports files', () => {
-                const store = createTestStore({
-                    initialState: {
-                        events: {
-                            readOnly: false,
-                            events: { '5800d71930627218866f1e80' : event },
-                        },
-                    },
-                })
+                let _event = event
+                _event.lock_user = 'user123'
+                _event.lock_session = 'session123'
+                const store = createTestStoreForEventEditing(_event)
                 const wrapper = mount(<Provider store={store}><EventForm initialValues={event}/></Provider>)
                 const field = wrapper.find('FileFieldComponent')
                 const file = field.props().file
@@ -149,14 +170,10 @@ describe('events', () => {
             })
 
             it('supports links', () => {
-                const store = createTestStore({
-                    initialState: {
-                        events: {
-                            readOnly: false,
-                            events: { '5800d71930627218866f1e80' : event },
-                        },
-                    },
-                })
+                let _event = event
+                _event.lock_user = 'user123'
+                _event.lock_session = 'session123'
+                const store = createTestStoreForEventEditing(_event)
                 const wrapper = mount(<Provider store={store}><EventForm initialValues={event} /></Provider>)
                 const field = wrapper.find('LinkFieldComponent')
                 const link = field.props().link
@@ -174,7 +191,10 @@ describe('events', () => {
             it('hides the save button if event is spiked', () => {
                 let wrapper = shallow(
                     <Component
-                        initialValues={{ state: 'spiked' }}
+                        initialValues={{
+                            _id: 'event123',
+                            state: 'spiked',
+                        }}
                         handleSubmit={sinon.spy()}
                         unspikeEvent={() => {}}
                         spikeEvent={() => {}}
@@ -193,9 +213,93 @@ describe('events', () => {
                 expect(wrapper.find('[type="submit"]').length).toBe(1)
             })
 
+            it('Recurrence rules input fields are disabled when metadata is edited', () => {
+                const recEvent = {
+                    ...event,
+                    dates: {
+                        start: moment('2016-10-15T14:30+0000'),
+                        end: moment('2016-10-20T15:00+0000'),
+                        recurring_rule: {
+                            frequency: 'DAILY',
+                            endRepeatMode: 'count',
+                        },
+                    },
+                    lock_user: 'user123',
+                    lock_session: 'session123',
+                }
+                const store = createTestStoreForEventEditing(recEvent)
+                const wrapper = mount(<Provider store={store}><EventForm initialValues={recEvent}
+                    formValues={recEvent} /></Provider>)
+                expect(wrapper.find(FormComponent).props().doesRepeat).toBe(true)
+                wrapper.find('LinksFieldArray').find('.Link__add-btn').simulate('click')
+                expect(wrapper.find('.error-block').length).toBe(1)
+                expect(wrapper.find('.error-block').get(0).textContent).toBe('Editing event\'s recurring rules values disabled')
+            })
+
+            it('Metadata input fields are disabled when recurring rule is edited', () => {
+                const recEvent = {
+                    ...event,
+                    dates: {
+                        start: moment('2016-10-15T14:30+0000'),
+                        end: moment('2016-10-20T15:00+0000'),
+                        recurring_rule: {
+                            frequency: 'DAILY',
+                            endRepeatMode: 'count',
+                        },
+                    },
+                    lock_user: 'user123',
+                    lock_session: 'session123',
+                }
+                const store = createTestStoreForEventEditing(recEvent)
+                const wrapper = mount(<Provider store={store}><EventForm initialValues={recEvent}
+                    formValues={recEvent} /></Provider>)
+                expect(wrapper.find(FormComponent).props().doesRepeat).toBe(true)
+                const allDayToggleBtn = wrapper.find('.sd-toggle').at(0)
+                allDayToggleBtn.find('span').first().simulate('click')
+                expect(wrapper.find('.error-block').length).toBe(1)
+                expect(wrapper.find('.error-block').get(0).textContent).toBe('Editing event\'s metadata disabled')
+            })
+
+            it('Metadata and recurring rules can be edited for non-recurring event', () => {
+                const _event = {
+                    ...event,
+                    lock_user: 'user123',
+                    lock_session: 'session123',
+                }
+                const store = createTestStoreForEventEditing(_event)
+                const wrapper = mount(<Provider store={store}><EventForm initialValues={_event}/></Provider>)
+                expect(wrapper.find(FormComponent).props().doesRepeat).toBe(false)
+                expect(wrapper.find('FileFieldComponent').props().readOnly).toBe(false)
+                expect(wrapper.find('DayPickerInput').at(0).props().readOnly).toBe(false)
+            })
+
+            it('Cannot spike/create new events if only metadata of a recurring event is edited', () => {
+                const recEvent = {
+                    ...event,
+                    dates: {
+                        start: moment('2016-10-15T14:30+0000'),
+                        end: moment('2016-10-20T15:00+0000'),
+                        recurring_rule: {
+                            frequency: 'DAILY',
+                            endRepeatMode: 'count',
+                        },
+                    },
+                    lock_user: 'user123',
+                    lock_session: 'session123',
+                }
+                const store = createTestStoreForEventEditing(recEvent)
+                const wrapper = mount(<Provider store={store}><EventForm initialValues={recEvent}
+                    enableReinitialize={true}/></Provider>)
+                expect(wrapper.find(FormComponent).props().doesRepeat).toBe(true)
+                wrapper.find('LinksFieldArray').find('.Link__add-btn').simulate('click')
+                expect(wrapper.find('ItemActionsMenu').props().actions.length).toBe(2)
+                expect(wrapper.find('ItemActionsMenu').props().actions[0].label).toBe('Create Planning Item')
+                expect(wrapper.find('ItemActionsMenu').props().actions[1].label).toBe('View Event History')
+            })
+
             describe('allDay Toggle', () => {
                 it('detects an all day event', () => {
-                    const store = createTestStore()
+                    const store = createTestStoreForEventEditing()
                     const allDayEvent = {
                         ...event,
                         dates: {
@@ -212,7 +316,7 @@ describe('events', () => {
                 })
 
                 it('detects a non all day event', () => {
-                    const store = createTestStore()
+                    const store = createTestStoreForEventEditing()
                     const nonAllDayEvent = {
                         ...event,
                         dates: {
@@ -226,6 +330,33 @@ describe('events', () => {
                         </Provider>
                     )
                     expect(wrapper.find(FormComponent).props().isAllDay).toBe(false)
+                })
+            })
+
+            describe('Actions menu', () => {
+                beforeEach(() => {
+                    sinon.stub(eventsUi, 'openSpikeModal').callsFake(() => ({ type: 'MOCK' }))
+                })
+
+                afterEach(() => {
+                    restoreSinonStub(eventsUi.openSpikeModal)
+                })
+
+                it('spike action calls `actions.events.ui.openSpikeModal`', () => {
+                    const store = createTestStoreForEventEditing(event)
+                    const wrapper = mount(
+                        <Provider store={store}>
+                            <EventForm initialValues={event}/>
+                        </Provider>
+                    )
+
+                    const actionsMenu = wrapper.find('ItemActionsMenu')
+
+                    actionsMenu.find('.dropdown__toggle').simulate('click')
+                    actionsMenu.find('li button').first().simulate('click')
+
+                    expect(eventsUi.openSpikeModal.callCount).toBe(1)
+                    expect(eventsUi.openSpikeModal.args[0]).toEqual([event])
                 })
             })
         })

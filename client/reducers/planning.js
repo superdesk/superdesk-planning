@@ -1,8 +1,10 @@
-import { cloneDeep, get } from 'lodash'
+import { cloneDeep, get, uniq } from 'lodash'
 import { PLANNING } from '../constants'
+import { createReducer } from '../utils'
 
 const initialState  = {
     plannings: {},
+    planningsInList: [],
     currentPlanningId: undefined,
     editorOpened: false,
     planningsAreLoading: false,
@@ -10,131 +12,179 @@ const initialState  = {
     filterPlanningKeyword: null,
     onlySpiked: false,
     readOnly: true,
+    planningHistoryItems: [],
+    lastRequestParams: { page: 1 },
 }
 
-/*eslint-disable complexity*/
-const planningReducer = (state=initialState, action) => {
-    let plannings
-    let plan
-    let index
-    switch (action.type) {
-        case PLANNING.ACTIONS.REQUEST_PLANNINGS:
+let plannings
+let plan
+let index
+
+const planningReducer = createReducer(initialState, {
+    [PLANNING.ACTIONS.SET_LIST]: (state, payload) => (
+        {
+            ...state,
+            planningsInList: payload,
+        }
+    ),
+
+    [PLANNING.ACTIONS.ADD_TO_LIST]: (state, payload) => (
+        planningReducer(state, {
+            type: PLANNING.ACTIONS.SET_LIST,
+            payload: uniq([...state.planningsInList, ...payload]),
+        })
+    ),
+
+    [PLANNING.ACTIONS.CLEAR_LIST]: (state) => (
+        {
+            ...state,
+            lastRequestParams: { page: 1 },
+            planningsInList: [],
+        }
+    ),
+
+    [PLANNING.ACTIONS.REQUEST_PLANNINGS]: (state, payload) => (
+        {
+            ...state,
+            planningsAreLoading: true,
+            lastRequestParams: payload,
+        }
+    ),
+
+    [PLANNING.ACTIONS.PLANNING_FILTER_BY_KEYWORD]: (state, payload) => (
+        {
+            ...state,
+            filterPlanningKeyword: payload,
+        }
+    ),
+
+    [PLANNING.ACTIONS.RECEIVE_PLANNINGS]: (state, payload) => {
+        // payload must be an array. If not, we transform
+        payload = Array.isArray(payload) ? payload : [payload]
+        // clone plannings
+        plannings = cloneDeep(state.plannings)
+        // add to state.plannings, use _id as key
+        payload.forEach((planning) => {
+            // Make sure that the Planning item has the coverages array
+            planning.coverages = get(planning, 'coverages', [])
+            plannings[planning._id] = planning
+        })
+        // return new state
+        return {
+            ...state,
+            plannings,
+            planningsAreLoading: false,
+        }
+    },
+
+    [PLANNING.ACTIONS.PREVIEW_PLANNING]: (state, payload) => {
+        if (!state.currentPlanningId || state.currentPlanningId !== payload) {
             return {
                 ...state,
-                planningsAreLoading: true,
+                editorOpened: true,
+                currentPlanningId: payload,
+                readOnly: true,
             }
-        case PLANNING.ACTIONS.PLANNING_FILTER_BY_KEYWORD:
-            return {
-                ...state,
-                filterPlanningKeyword: action.payload,
-            }
-        case PLANNING.ACTIONS.RECEIVE_PLANNINGS:
-            // payload must be an array. If not, we transform
-            action.payload = Array.isArray(action.payload) ? action.payload : [action.payload]
+        } else {
+            return state
+        }
+    },
+
+    [PLANNING.ACTIONS.OPEN_PLANNING_EDITOR]: (state, payload) => {
+        if (payload.lock_user) {
             // clone plannings
             plannings = cloneDeep(state.plannings)
-            // add to state.plannings, use _id as key
-            action.payload.forEach((planning) => {
-                // Make sure that the Planning item has the coverages array
-                planning.coverages = get(planning, 'coverages', [])
-                plannings[planning._id] = planning
-            })
-            // return new state
+            plannings[payload._id] = payload
+            // return new state with the lock information
             return {
                 ...state,
                 plannings,
-                planningsAreLoading: false,
+                editorOpened: true,
+                currentPlanningId: payload._id,
+                readOnly: false,
             }
-        case PLANNING.ACTIONS.PREVIEW_PLANNING:
-            if (!state.currentPlanningId || state.currentPlanningId !== action.payload) {
-                return {
-                    ...state,
-                    editorOpened: true,
-                    currentPlanningId: action.payload,
-                    readOnly: true,
-                }
-            } else {
-                return state
-            }
-
-        case PLANNING.ACTIONS.OPEN_PLANNING_EDITOR:
-            if (action.payload.lock_user) {
-                // clone plannings
-                plannings = cloneDeep(state.plannings)
-                plannings[action.payload._id] = action.payload
-                // return new state with the lock information
-                return {
-                    ...state,
-                    plannings,
-                    editorOpened: true,
-                    currentPlanningId: action.payload._id,
-                    readOnly: false,
-                }
-
-            } else {
-                return {
-                    ...state,
-                    editorOpened: true,
-                    currentPlanningId: action.payload,
-                    readOnly: false,
-                }
-            }
-
-        case PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR:
+        } else if (payload._id) {
             return {
                 ...state,
-                editorOpened: false,
-                currentPlanningId: null,
+                editorOpened: true,
+                currentPlanningId: payload._id,
+                readOnly: false,
             }
-        case PLANNING.ACTIONS.SET_ONLY_FUTURE:
+        } else {
             return {
                 ...state,
-                onlyFuture: action.payload,
+                editorOpened: true,
+                currentPlanningId: payload,
+                readOnly: false,
             }
-        case PLANNING.ACTIONS.SET_ONLY_SPIKED:
-            return {
-                ...state,
-                onlySpiked: action.payload,
-            }
-        case PLANNING.ACTIONS.RECEIVE_COVERAGE:
-            plannings = cloneDeep(state.plannings)
-            plan = get(plannings, action.payload.planning_item, null)
+        }
+    },
 
-            // If the planning item is not loaded, disregard this action
-            if (plan === null) return state
+    [PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR]: (state) => (
+        {
+            ...state,
+            editorOpened: false,
+            currentPlanningId: null,
+        }
+    ),
 
-            // Either add or update the coverage item
-            index = plan.coverages.findIndex((c) => c._id === action.payload._id)
-            if (index === -1) {
-                plan.coverages.push(action.payload)
-            } else {
-                plan.coverages.splice(index, 1, action.payload)
-            }
+    [PLANNING.ACTIONS.SET_ONLY_FUTURE]: (state, payload) => (
+        {
+            ...state,
+            onlyFuture: payload,
+        }
+    ),
 
-            return {
-                ...state,
-                plannings,
-            }
-        case PLANNING.ACTIONS.COVERAGE_DELETED:
-            plannings = cloneDeep(state.plannings)
-            plan = get(plannings, action.payload.planning_item, null)
+    [PLANNING.ACTIONS.SET_ONLY_SPIKED]: (state, payload) => (
+        {
+            ...state,
+            onlySpiked: payload,
+        }
+    ),
 
-            // If the planning item is not loaded, disregard this action
-            if (plan === null) return state
+    [PLANNING.ACTIONS.RECEIVE_COVERAGE]: (state, payload) => {
+        plannings = cloneDeep(state.plannings)
+        plan = get(plannings, payload.planning_item, null)
 
-            // Remove the coverage from the planning item
-            index = plan.coverages.findIndex((c) => c._id === action.payload._id)
-            if (index === -1) return state
+        // If the planning item is not loaded, disregard this action
+        if (plan === null) return state
 
-            plan.coverages.splice(index, 1)
-            return {
-                ...state,
-                plannings,
-            }
-        default:
-            return state
-    }
-}
-/*eslint-enable*/
+        // Either add or update the coverage item
+        index = plan.coverages.findIndex((c) => c._id === payload._id)
+        if (index === -1) {
+            plan.coverages.push(payload)
+        } else {
+            plan.coverages.splice(index, 1, payload)
+        }
+
+        return {
+            ...state,
+            plannings,
+        }
+    },
+
+    [PLANNING.ACTIONS.COVERAGE_DELETED]: (state, payload) => {
+        plannings = cloneDeep(state.plannings)
+        plan = get(plannings, payload.planning_item, null)
+
+        // If the planning item is not loaded, disregard this action
+        if (plan === null) return state
+
+        // Remove the coverage from the planning item
+        index = plan.coverages.findIndex((c) => c._id === payload._id)
+        if (index === -1) return state
+
+        plan.coverages.splice(index, 1)
+        return {
+            ...state,
+            plannings,
+        }
+    },
+
+    [PLANNING.ACTIONS.RECEIVE_PLANNING_HISTORY]: (state, payload) => ({
+        ...state,
+        planningHistoryItems: payload,
+    }),
+})
 
 export default planningReducer

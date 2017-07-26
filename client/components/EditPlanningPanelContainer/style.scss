@@ -24,9 +24,9 @@ $EDIT_PLANNING_WIDTH: 450px;
     }
 }
 .TimeAndAuthor {
-    padding: 5px 0px 10px 0px;
+    margin: 15px 0px 10px 0px;
     color: $sd-text-label;
-    flex-grow: 1;
+    display: inline-block;   
     &__author {
         color: initial;
     }
@@ -45,4 +45,11 @@ $EDIT_PLANNING_WIDTH: 450px;
     .EditPlanningPanel {
         width: $EDIT_PLANNING_WIDTH;
     }
+}
+.history-preview {
+    max-height: calc(100vh - 100px);
+    overflow-y: scroll;
+}
+.close-history {
+    margin: 15px;
 }

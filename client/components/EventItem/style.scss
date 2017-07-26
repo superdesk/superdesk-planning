@@ -5,4 +5,7 @@
     &--has-been-canceled {
         .event__title { text-decoration: line-through; }
     }
+    &--locked {
+		border-left: 4px solid #e51c23;
+	}
 }

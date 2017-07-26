@@ -1,11 +1,13 @@
 import sinon from 'sinon'
 import * as actions from '../events'
 import { PRIVILEGES, EVENTS } from '../../constants'
-import { createTestStore } from '../../utils'
+import { createTestStore, registerNotifications } from '../../utils'
 import { range, cloneDeep } from 'lodash'
-import { registerNotifications } from '../../controllers/PlanningController'
 import * as selectors from '../../selectors'
 import moment from 'moment'
+import { restoreSinonStub } from '../../utils/testUtils'
+
+import eventsUi from '../events/ui'
 
 describe('events', () => {
     describe('actions', () => {
@@ -17,6 +19,8 @@ describe('events', () => {
                     start: '2016-10-15T13:01:11+0000',
                     end: '2016-10-15T14:01:11+0000',
                 },
+                lock_user: 'user123',
+                lock_session: 'session123',
             },
             {
                 _id: 'e2',
@@ -51,6 +55,7 @@ describe('events', () => {
                 showEventDetails: null,
                 highlightedEvent: null,
                 lastRequestParams: { page: 1 },
+                eventHistoryItems: [],
             },
             privileges: {
                 planning: 1,
@@ -60,6 +65,11 @@ describe('events', () => {
             },
             planning: { plannings: {} },
             config: { server: { url: 'http://server.com' } },
+            users: [{ _id: 'user123' }],
+            session: {
+                identity: { _id: 'user123' },
+                sessionId: 'session123',
+            },
         }
         const getState = () => (initialState)
         let dispatch
@@ -129,6 +139,12 @@ describe('events', () => {
             dispatchCheckPermission.reset()
             dispatchRunFunction.reset()
             $timeout.reset()
+
+            sinon.stub(eventsUi, 'refetchEvents').callsFake(() => (Promise.resolve()))
+        })
+
+        afterEach(() => {
+            restoreSinonStub(eventsUi.refetchEvents)
         })
 
         it('uploadFilesAndSaveEvent', (done) => {
@@ -143,22 +159,10 @@ describe('events', () => {
                 },
             }
             const action = actions.uploadFilesAndSaveEvent(event)
+            api.save = sinon.spy(() => (Promise.resolve(event)))
             return action(dispatch, getState)
             .then(() => {
-                expect(dispatch.callCount).toBe(11)
-
-                expect(dispatch.args[4]).toEqual([{
-                    type: 'REQUEST_EVENTS',
-                    payload: { page: 1 },
-                }])
-
-                expect(dispatch.args[6]).toEqual([jasmine.objectContaining({
-                    type: 'ADD_EVENTS',
-                    payload: events,
-                })])
-
-                expect(dispatch.args[7][0].type).toBe('SET_EVENTS_LIST')
-
+                expect(eventsUi.refetchEvents.callCount).toBe(1)
                 done()
             })
             .catch((error) => {
@@ -166,75 +170,6 @@ describe('events', () => {
                 expect(error.stack).toBe(null)
                 done()
             })
-        })
-
-        describe('spikeEvent', () => {
-            const action = actions.spikeEvent(events[2])
-            it('spikeEvent calls `events_spike` endpoint', (done) => {
-                api.update = sinon.spy(() => (Promise.resolve()))
-                return action(dispatchRunFunction, getState, {
-                    api,
-                    notify,
-                })
-                .then(() => {
-                    expect(api.update.args[0]).toEqual([
-                        'events_spike',
-                        events[2],
-                        {},
-                    ])
-
-                    expect(notify.success.args[0]).toEqual(['The Event has been spiked.'])
-                    expect(notify.error.callCount).toBe(0)
-
-                    expect(dispatch.args[0]).toEqual([{
-                        type: 'SPIKE_EVENT',
-                        payload: [events[2]],
-                    }])
-
-                    expect(dispatch.args[1]).toEqual([{ type: 'HIDE_MODAL' }])
-
-                    // Cannot check dispatch(silentlyFetchEventsById()) using a spy on dispatch
-                    // As silentlyFetchEventsById is a thunk function
-
-                    // Cannot check dispatch(fetchSelectedAgendaPlannings()) using a spy on dispatch
-                    // As fetchSelectedAgendaPlannings is a thunk function
-
-                    // Cannot check dispatch(fetchUsingURL()) using a spy on dispatch
-                    // As fetchUsingURL is a thunk function
-
-                    expect(dispatch.callCount).toBe(4)
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
-                    done()
-                })
-            })
-
-            it('spikeEvent on fail displays error message', (done) => {
-                api.update = sinon.spy(() => (Promise.reject(
-                    { data: { _message: 'Failed to spike the event' } }
-                )))
-                return action(dispatchCheckPermission, getState, {
-                    api,
-                    notify,
-                })
-                .then(() => {
-                    expect(api.update.callCount).toBe(1)
-                    expect(notify.error.args[0]).toEqual(['Failed to spike the event'])
-                    expect(notify.success.callCount).toBe(0)
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
-                    done()
-                })
-            })
-
         })
 
         describe('unspikeEvent', () => {
@@ -508,120 +443,9 @@ describe('events', () => {
             expect(action).toEqual({ type: 'CLOSE_ADVANCED_SEARCH' })
         })
 
-        it('previewEvent', () => {
-            const action = actions.previewEvent(events[0])
-            expect(action).toEqual({
-                type: 'PREVIEW_EVENT',
-                payload: events[0]._id,
-            })
-        })
-
-        describe('openEventDetails', () => {
-            const action = actions.openEventDetails(events[0])
-            it('openEventDetails dispatches actions', () => {
-                action(dispatch, getState, {
-                    notify,
-                    $timeout,
-                })
-                expect(dispatch.args[0]).toEqual([{
-                    type: 'OPEN_EVENT_DETAILS',
-                    payload: events[0]._id,
-                }])
-                expect(dispatch.callCount).toBe(1)
-                expect(notify.error.callCount).toBe(0)
-                expect($timeout.callCount).toBe(0)
-            })
-
-            it('openEventDetails raises ACCESS_DENIED without permission', () => {
-                initialState.privileges.planning_event_management = 0
-                action(dispatch, getState, {
-                    notify,
-                    $timeout,
-                })
-                expect($timeout.callCount).toBe(1)
-                expect(notify.error.args[0][0]).toBe(
-                    'Unauthorised to edit an event!'
-                )
-                expect(dispatch.args[0]).toEqual([{
-                    type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                    payload: {
-                        action: '_openEventDetails',
-                        permission: PRIVILEGES.EVENT_MANAGEMENT,
-                        errorMessage: 'Unauthorised to edit an event!',
-                        args: [events[0]],
-                    },
-                }])
-                expect(dispatch.callCount).toBe(1)
-            })
-        })
-
-        it('closeEventDetails', () => {
-            const action = actions.closeEventDetails()
-            expect(action).toEqual({ type: 'CLOSE_EVENT_DETAILS' })
-        })
-
-        it('receiveEvents', () => {
-            const action = actions.receiveEvents(events)
-            expect(action.type).toBe('ADD_EVENTS')
-            expect(action.payload).toEqual(events)
-        })
-
         it('toggleEventsList', () => {
             const action = actions.toggleEventsList()
             expect(action).toEqual({ type: 'TOGGLE_EVENT_LIST' })
-        })
-
-        describe('openSpikeEvent', () => {
-            const action = actions.openSpikeEvent(events[2])
-
-            it('openSpikeEvent displays the modal', (done) => {
-                initialState.privileges.planning_event_spike = 1
-                dispatch = dispatchCheckPermission
-                dispatch.reset()
-
-                return action(dispatch, getState, {
-                    notify,
-                    $timeout,
-                })
-                .then(() => {
-                    expect(dispatch.callCount).toBe(2)
-                    expect(dispatch.args[1]).toEqual([jasmine.objectContaining({
-                        type: 'SHOW_MODAL',
-                        modalType: 'CONFIRMATION',
-                    })])
-                    expect(notify.error.callCount).toBe(0, 'Notify Error shouldnt be called')
-                    expect($timeout.callCount).toBe(0, 'Timeout shouldnt be called')
-
-                    done()
-                })
-                .catch((error) => {
-                    expect(error).toBe(null)
-                    expect(error.stack).toBe(null)
-                    done()
-                })
-            })
-
-            it('openSpikeEvent raises ACCESS_DENIED without permission', (done) => {
-                initialState.privileges.planning_event_spike = 0
-                return action(dispatch, getState, {
-                    notify,
-                    $timeout,
-                })
-                .catch(() => {
-                    expect(notify.error.args[0]).toEqual(['Unauthorised to spike an event!'])
-                    expect(dispatch.args[0]).toEqual([{
-                        type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                        payload: {
-                            action: '_openSpikeEvent',
-                            permission: PRIVILEGES.SPIKE_EVENT,
-                            errorMessage: 'Unauthorised to spike an event!',
-                            args: [events[2]],
-                        },
-                    }])
-                    expect($timeout.callCount).toBe(1)
-                    done()
-                })
-            })
         })
 
         describe('openUnspikeEvent', () => {
@@ -673,6 +497,56 @@ describe('events', () => {
                     }])
                     expect($timeout.callCount).toBe(1)
                     done()
+                })
+            })
+        })
+
+        describe('fetchEventHistory', () => {
+            let eventHistoryItems = [
+                {
+                    _id: 'e2',
+                    _created: '2017-06-19T02:21:42+0000',
+                    event_id: 'e2',
+                    operation: 'create',
+                    update: {
+                        name: 'Test Event Wollongong',
+                        dates: {
+                            end: '2017-06-27T07:00:00+0000',
+                            start: '2017-06-24T23:00:00+0000',
+                            tz: 'Australia/Sydney',
+                        },
+                    },
+                    user_id: '5923ac531d41c81e3290a5ee',
+                },
+                {
+                    _id: 'e2',
+                    _created: '2017-06-19T02:21:42+0000',
+                    event_id: 'e2',
+                    operation: 'update',
+                    update: { name: 'Test Event Wollongong.' },
+                    user_id: '5923ac531d41c81e3290a5ee',
+                },
+            ]
+
+            it('calls events_history api and runs dispatch', () => {
+                apiSpy.query = sinon.spy(() => (Promise.resolve({ _items: eventHistoryItems })))
+                const action = actions.fetchEventHistory('e2')
+                return action(dispatch, getState, { api })
+                .then((data) => {
+                    expect(data._items).toEqual(eventHistoryItems)
+                    expect(apiSpy.query.callCount).toBe(1)
+                    expect(dispatch.callCount).toBe(1)
+
+                    expect(apiSpy.query.args[0]).toEqual([{
+                        where: { event_id: 'e2' },
+                        max_results: 200,
+                        sort: '[(\'_created\', 1)]',
+                    }])
+
+                    expect(dispatch.args[0]).toEqual([{
+                        type: 'RECEIVE_EVENT_HISTORY',
+                        payload: eventHistoryItems,
+                    }])
                 })
             })
         })
@@ -828,16 +702,17 @@ describe('events', () => {
                         'events',
                         {
                             page: 1,
+                            max_results: 25,
                             sort: '[("dates.start",1)]',
                             embedded: { files: 1 },
                             source: JSON.stringify({
                                 query: {
                                     bool: {
-                                        must_not: [
-                                            { term: { state: 'spiked' } },
-                                        ],
                                         must: [
                                             { term: { recurrence_id: 'r1' } },
+                                        ],
+                                        must_not: [
+                                            { term: { state: 'spiked' } },
                                         ],
                                     },
                                 },

@@ -30,6 +30,12 @@
                     transform: rotate(180deg);
                 }
             }
+            &--right {
+                border-right: 0;
+                border-left: 1px solid rgba(0, 0, 0, 0.1);
+                margin-right: -10px;
+                margin-left: 12px;
+            }
         }
         align-items: center;
     }

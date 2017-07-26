@@ -7,6 +7,7 @@ import { get, set } from 'lodash'
 
 export { default as checkPermission } from './checkPermission'
 export { default as retryDispatch } from './retryDispatch'
+export { default as registerNotifications } from './notifications'
 
 export function createReducer(initialState, reducerMap) {
     return (state = initialState, action) => {
@@ -33,9 +34,9 @@ export const createTestStore = (params={}) => {
         },
     }
     const mockedExtraArguments = {
-        $timeout: (cb) => (cb && cb()),
+        $timeout: extraArguments.timeout ? extraArguments.timeout : (cb) => (cb && cb()),
         $scope: { $apply: (cb) => (cb && cb()) },
-        notify: {
+        notify: extraArguments.notify ? extraArguments.notify : {
             success: () => (undefined),
             error: () => (undefined),
             pop: () => (undefined),
@@ -76,7 +77,7 @@ export const createTestStore = (params={}) => {
             ),
         },
         upload: { start: (d) => (Promise.resolve(d)) },
-        api: (resource) => ({
+        api: extraArguments.api ? extraArguments.api : (resource) => ({
             query: (q) =>  {
                 if (extraArguments.apiQuery) {
                     return Promise.resolve(extraArguments.apiQuery(resource, q))
@@ -119,6 +120,14 @@ export const createTestStore = (params={}) => {
             },
         }),
     }
+
+    if (!get(mockedExtraArguments.api, 'save')) {
+        mockedExtraArguments.api.save = (resource, dest, diff, parent) => (Promise.resolve({
+            ...parent,
+            ...diff,
+        }))
+    }
+
     const middlewares = [
         // adds the mocked extra arguments to actions
         thunkMiddleware.withExtraArgument({
@@ -150,10 +159,11 @@ export const createTestStore = (params={}) => {
 export const createStore = (params={}) => {
     const { initialState={}, extraArguments={} } = params
     const middlewares = [
-        // logs actions
-        createLogger(),
         // adds the extra arguments to actions
         thunkMiddleware.withExtraArgument(extraArguments),
+
+        // logs actions (this should always be the last middleware)
+        createLogger(),
     ]
     // return the store
     return _createStore(
@@ -207,6 +217,9 @@ export const formatAddress = (nominatim) => {
     )
 
     const address = {
+        title: (localityHierarchy.indexOf(nominatim.type) === -1 &&
+            areaHierarchy.indexOf(nominatim.type) === -1) ?
+            get(nominatim.address, nominatim.type) : null,
         line: [
             `${get(nominatim.address, 'house_number', '')} ${get(nominatim.address, 'road', '')}`
             .trim(),
@@ -218,11 +231,14 @@ export const formatAddress = (nominatim) => {
         external: { nominatim },
     }
     const shortName = [
+        get(address, 'title'),
         get(address, 'line[0]'),
+        get(address, 'area'),
         get(address, 'locality'),
         get(address, 'postal_code'),
         get(address, 'country'),
     ].filter(d => d).join(', ')
+
     return {
         address,
         shortName,
@@ -240,6 +256,8 @@ export const getErrorMessage = (error, defaultMessage) => {
         return get(error, 'data._message')
     } else if (get(error, 'data._issues.validator exception')) {
         return get(error, 'data._issues.validator exception')
+    } else if (typeof error === 'string') {
+        return error
     }
 
     return defaultMessage
@@ -258,4 +276,19 @@ export const isEventAllDay = (startingDate, endingDate) => {
 
     return startingDate.isSame(startingDate.clone().startOf('day')) &&
         endingDate.isSame(endingDate.clone().endOf('day').seconds(0).milliseconds(0))
+}
+
+/**
+ * Helper function to retrieve the user object using their ID from an item field.
+ * i.e. get the User object for 'original_creator'
+ * @param {object} item - The item to get the ID from
+ * @param {string} creator - The field name where the ID is stored
+ * @param {Array} users - The array of users, typically from the redux store
+ * @return {object} The user object found, otherwise nothing is returned
+ */
+export const getCreator = (item, creator, users) => {
+    const user = get(item, creator)
+    if (user) {
+        return user.display_name ? user : users.find((u) => u._id === user)
+    }
 }

@@ -3,7 +3,6 @@ import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { SelectAgenda, EditPlanningPanelContainer, PlanningList } from '../index'
 import { QuickAddPlanning, Toggle, SearchBar } from '../../components'
-import { ITEM_STATE } from '../../constants'
 import * as selectors from '../../selectors'
 import './style.scss'
 
@@ -25,12 +24,12 @@ class PlanningPanel extends React.Component {
         const {
             planningList,
             currentAgenda,
+            currentAgendaId,
             onPlanningCreation,
             planningsAreLoading,
             editPlanningViewOpen,
             isEventListShown,
             toggleEventsList,
-            onManageAgendasClick,
             onlyFuture,
             onlySpiked,
             onFutureToggleChange,
@@ -54,11 +53,6 @@ class PlanningPanel extends React.Component {
                             <button onClick={toggleEventsList} type="button" className="backlink backlink--rotated" />
                         </div>
                     }
-                    <div className="navbtn" title="Manage agendas">
-                        <button onClick={onManageAgendasClick} type="button">
-                            <i className="icon-th-large"/>
-                        </button>
-                    </div>
                     <h3 className="subnav__page-title">
                         <span>
                             <span>Agenda</span>
@@ -82,7 +76,8 @@ class PlanningPanel extends React.Component {
                             </label>
                         </div>
                         <ul className="list-view compact-view">
-                            {currentAgenda && privileges.planning_planning_management === 1 && currentAgenda.state !== ITEM_STATE.SPIKED &&
+                            {((currentAgendaId || currentAgenda && currentAgenda.is_enabled) &&
+                            privileges.planning_planning_management === 1 ) &&
                                 <QuickAddPlanning className="ListItem" onPlanningCreation={onPlanningCreation}/>
                             }
                             {(planningList && planningList.length > 0) &&
@@ -94,14 +89,25 @@ class PlanningPanel extends React.Component {
                                 <div className="Planning-panel__empty-message">
                                     Loading
                                 </div>
-                            || !currentAgenda &&
+                            || !currentAgendaId &&
                                 <div className="Planning-panel__empty-message">
-                                    Choose an agenda from the drop-down list above.
+                                    <div className="panel-info">
+                                        <div className="panel-info__icon">
+                                            <i className="big-icon--calendar" />
+                                        </div>
+                                        <h3 className="panel-info__heading">Choose an agenda</h3>
+                                        <p className="panel-info__description">...from the drop-down list above.</p>
+                                    </div>
                                 </div>
-                            || (planningList && planningList.length < 1) &&
+                            || (planningList && planningList.length < 1 && currentAgendaId) &&
                                 <div className="Planning-panel__empty-message">
-                                    There are no planning items in this agenda.<br/>
-                                    Drag an event here to start one.
+                                    <div className="panel-info">
+                                        <div className="panel-info__icon">
+                                            <i className="big-icon--add-to-list" />
+                                        </div>
+                                        <h3 className="panel-info__heading">There are no planning items in this agenda.</h3>
+                                        <p className="panel-info__description">Drag an event here to start one.</p>
+                                    </div>
                                 </div>
                         }
                     </div>
@@ -113,6 +119,7 @@ class PlanningPanel extends React.Component {
 }
 
 PlanningPanel.propTypes = {
+    currentAgendaId: React.PropTypes.string,
     currentAgenda: React.PropTypes.object,
     planningList: React.PropTypes.array.isRequired,
     planningsAreLoading: React.PropTypes.bool,
@@ -121,7 +128,6 @@ PlanningPanel.propTypes = {
     addEventToCurrentAgenda: React.PropTypes.func,
     toggleEventsList: React.PropTypes.func,
     isEventListShown: React.PropTypes.bool,
-    onManageAgendasClick: React.PropTypes.func,
     onlyFuture: React.PropTypes.bool,
     onlySpiked: React.PropTypes.bool,
     onFutureToggleChange: React.PropTypes.func,
@@ -131,8 +137,9 @@ PlanningPanel.propTypes = {
 }
 
 const mapStateToProps = (state) => ({
+    currentAgendaId: selectors.getCurrentAgendaId(state),
     currentAgenda: selectors.getCurrentAgenda(state),
-    planningList: selectors.getCurrentAgendaPlannings(state),
+    planningList: selectors.getFilteredPlanningList(state),
     planningsAreLoading: state.agenda.agendasAreLoading || state.planning.planningsAreLoading,
     editPlanningViewOpen: state.planning.editorOpened,
     isEventListShown: selectors.isEventListShown(state),
@@ -143,18 +150,17 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     onPlanningCreation: (planning) => (
-        // save planning and open the plannning editor
-        dispatch(actions.savePlanningAndReloadCurrentAgenda(planning))
+        // save planning and open the planning editor
+        dispatch(actions.planning.ui.saveAndReloadCurrentAgenda(planning))
         .then((planning) => (
-            dispatch(actions.openPlanningEditor(planning._id))
+            dispatch(actions.planning.ui.openEditor(planning._id))
         ))
     ),
-    handleSearch: (text) => (dispatch(actions.planningFilterByKeyword(text))),
+    handleSearch: (text) => (dispatch(actions.planning.ui.filterByKeyword(text))),
     addEventToCurrentAgenda: (event) => (dispatch(actions.addEventToCurrentAgenda(event))),
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
-    onManageAgendasClick: () => (dispatch(actions.showModal({ modalType: 'MANAGE_AGENDAS' }))),
-    onFutureToggleChange: () => (dispatch(actions.toggleOnlyFutureFilter())),
-    onSpikedToggleChange: () => (dispatch(actions.toggleOnlySpikedFilter())),
+    onFutureToggleChange: () => (dispatch(actions.planning.ui.toggleOnlyFutureFilter())),
+    onSpikedToggleChange: () => (dispatch(actions.planning.ui.toggleOnlySpikedFilter())),
 })
 
 export const PlanningPanelContainer = connect(

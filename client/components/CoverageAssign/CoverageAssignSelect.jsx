@@ -1,43 +1,53 @@
 import React from 'react'
 import { SearchBar } from '../../components'
+import { fields } from '../index'
 import ReactDOM from 'react-dom'
 import { UserAvatar } from '../'
+import { map, get } from 'lodash'
 import './style.scss'
 
 export class CoverageAssignSelect extends React.Component {
     constructor(props) {
         super(props)
         this.handleClickOutside = this.handleClickOutside.bind(this)
+    }
+
+    filterUsers(deskAssigned) {
+        if (!deskAssigned) return this.props.users
+
+        return this.props.users.filter((user) =>
+            map(deskAssigned.members, 'user').indexOf(user._id) !== -1)
+    }
+
+    filterDesks(userAssigned) {
+        if (!userAssigned) return this.props.desks
+
+        return this.props.desks.filter((desk) =>
+            map(desk.members, 'user').indexOf(userAssigned) !== -1)
+    }
+
+    componentWillMount() {
         this.state = {
-            filteredUserList: this.props.users,
-            filteredDeskList: this.props.desks,
+            filteredUserList: this.filterUsers(this.props.input.value.deskAssigned),
+            filteredDeskList: this.filterDesks(get(this.props.input.value.userAssigned, '_id')),
+            userAssigned: this.props.input.value.userAssigned,
+            deskAssigned: this.props.input.value.deskAssigned,
         }
     }
 
-    filterList(value) {
+    filterUserList(value) {
         if (!value) {
-            this.setState({
-                filteredUserList: this.props.users,
-                filteredDeskList: this.props.desks,
-            })
+            this.setState({ filteredUserList: this.filterUsers(this.state.deskAssigned) })
             return
         }
 
         const valueNoCase = value.toLowerCase()
-
-        const newUserList = this.props.users.filter((user) => (
+        const newUserList = this.state.filteredUserList.filter((user) => (
             user.display_name.toLowerCase().substr(0, value.length) === valueNoCase ||
                 user.display_name.toLowerCase().indexOf(valueNoCase) >= 0
         ))
-        const newDeskList = this.props.desks.filter((desk) => (
-            desk.name.toLowerCase().substr(0, value.length) === valueNoCase ||
-                desk.name.toLowerCase().indexOf(valueNoCase) >= 0
-        ))
 
-        this.setState({
-            filteredUserList: newUserList,
-            filteredDeskList: newDeskList,
-        })
+        this.setState({ filteredUserList: newUserList })
     }
 
     componentDidMount() {
@@ -57,30 +67,55 @@ export class CoverageAssignSelect extends React.Component {
     }
 
     onDeskAssignChange(value) {
-        this.props.onDeskAssignChange(value)
-        this.props.onCancel()
+        // Change user list according to desk members
+        const updatedValue = Array.isArray(value) ? null : value
+        this.setState({
+            filteredUserList: this.filterUsers(updatedValue),
+            deskAssigned: updatedValue,
+        })
     }
 
     onUserAssignChange(value) {
-        this.props.onUserAssignChange(value)
-        this.props.onCancel()
+        // Change desk list to user's desks
+        this.setState({
+            filteredDeskList: this.filterDesks(value),
+            userAssigned: this.props.users.find((user) => user._id === value),
+        })
+    }
+
+    onChange(value) {
+        this.props.input.onChange({
+            user: value.user,
+            desk: value.desk,
+        })
     }
 
     render() {
+        const deskSelectFieldInput = {
+            value: this.state.deskAssigned,
+            onChange: this.onDeskAssignChange.bind(this),
+        }
+
         return (<div className='coverageassignselect'>
             <label>Assign</label>
-            <div className='coverageassignselect__search'>
-                <SearchBar onSearch={(value) => {this.filterList(value)}} minLength={1}/>
-            </div>
+            { this.state.userAssigned && !this.state.deskAssigned &&
+                        <span className="error-block">Must select a desk.</span> }
+            <fields.DeskSelectField
+                desks={this.state.filteredDeskList}
+                input={deskSelectFieldInput} />
+            { this.state.userAssigned &&
+                <div className='coverageassignselect__user'>
+                    <UserAvatar user={this.state.userAssigned} />
+                    <div className='coverageassignselect__label'>{this.state.userAssigned.display_name}</div>
+                    <button type='button' onClick={this.onUserAssignChange.bind(this, null)}>
+                        <i className="icon-close-small"/>
+                    </button>
+                </div> }
+            { this.state.filteredUserList.length > 0 && <div className='coverageassignselect__search'>
+                <SearchBar onSearch={(value) => {this.filterUserList(value)}} minLength={1}
+                    extendOnOpen={true} />
+            </div> }
             <ul className='coverageassignselect__list'>
-                {this.state.filteredDeskList.map((desk, index) => (
-                    <li key={index} className='coverageassignselect__item'>
-                        <button type='button' onClick={this.onDeskAssignChange.bind(this, desk._id)}>
-                            <figure className='avatar desk'/>
-                            <div className='coverageassignselect__label'>{desk.name}</div>
-                        </button>
-                    </li>
-                ))}
                 {this.state.filteredUserList.map((user, index) => (
                     <li key={index} className='coverageassignselect__item'>
                         <button type='button' onClick={this.onUserAssignChange.bind(this, user._id)}>
@@ -90,6 +125,18 @@ export class CoverageAssignSelect extends React.Component {
                     </li>
                 ))}
             </ul>
+            <div className='coverageassignselect__action'>
+                { this.state.deskAssigned && <button type="button" className="btn btn--primary"
+                    onClick={this.onChange.bind(this, {
+                        user: this.state.userAssigned,
+                        desk: this.state.deskAssigned,
+                    })}>
+                    Save
+                </button>}
+                <button type="button" className="btn" onClick={this.props.onCancel}>
+                    Cancel
+                </button>
+            </div>
         </div>)
     }
 }
@@ -98,6 +145,5 @@ CoverageAssignSelect.propTypes = {
     users: React.PropTypes.array.isRequired,
     desks: React.PropTypes.array.isRequired,
     onCancel: React.PropTypes.func.isRequired,
-    onDeskAssignChange: React.PropTypes.func.isRequired,
-    onUserAssignChange: React.PropTypes.func.isRequired,
+    input: React.PropTypes.object.isRequired,
 }

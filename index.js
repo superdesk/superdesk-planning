@@ -21,8 +21,6 @@ function configurePlanning(superdesk) {
         .activity('/settings/planning', {
             label: gettext('Planning'),
             template: require('./client/views/settings.html'),
-            controller: ctrl.PlanningSettingsController,
-            controllerAs: 'vm',
             category: superdesk.MENU_SETTINGS,
             priority: 2000,
             privileges: { planning: 1 },
@@ -54,7 +52,7 @@ function runPlanning(ingestSources, $templateCache) {
     })
     ingestSources.registerFeedingService('event_email', {
         label: 'Event Email Feed',
-        templateUrl: 'superdesk-planning/views/eventEmailConfig.html'
+        templateUrl: 'superdesk-planning/views/eventEmailConfig.html',
     })
 }
 

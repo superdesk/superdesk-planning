@@ -49,13 +49,17 @@ Feature: Planning Spike
         }
         """
         When we get "/planning_history?where=planning_id==%22#planning._id#%22"
-        Then we get list with 1 items
+        Then we get list with 2 items
         """
         {"_items": [{
             "planning_id": "#planning._id#",
             "operation": "spiked",
-            "update": {"state" : "spiked"}
-        }]}
+            "update": {"state" : "spiked"}},
+            {
+            "planning_id": "#planning._id#",
+            "operation": "coverage created"
+            }
+            ]}
         """
 
     @auth
@@ -90,13 +94,16 @@ Feature: Planning Spike
         }
         """
         When we get "/planning_history?where=planning_id==%22#planning._id#%22"
-        Then we get list with 1 items
+        Then we get list with 2 items
         """
         {"_items": [{
             "planning_id": "#planning._id#",
             "operation": "unspiked",
-            "update": {"state" : "active"}
-        }]}
+            "update": {"state" : "active"}},
+            {
+            "planning_id": "#planning._id#",
+            "operation": "coverage created"
+            }]}
         """
 
     @auth
@@ -148,61 +155,4 @@ Feature: Planning Spike
         """
         Then we get OK response
         When we unspike planning "#planning._id#"
-        Then we get OK response
-
-    @auth
-    Scenario: Spike planning is recorded in agenda history
-        When we post to "planning"
-        """
-        [{"slugline": "slugger"}]
-        """
-        Then we get OK response
-        Then we store "planningId" with value "#planning._id#" to context
-        When we post to "agenda" with success
-        """
-        [{"name": "foo"}]
-        """
-        Then we store "agendaId" with value "#agenda._id#" to context
-        Then we get OK response
-        When we patch "/agenda/#agendaId#"
-        """
-        {"planning_items": ["#planningId#"]}
-        """
-        Then we get OK response
-        When we spike planning "#planningId#"
-        Then we get OK response
-        When we get "/planning_history?where=planning_id==%22#planningId#%22"
-        Then we get list with 2 items
-        """
-        {"_items": [{
-            "planning_id": "#planning._id#",
-            "operation": "create",
-            "update": {"state" : "active"}
-        },{
-            "planning_id": "#planning._id#",
-            "operation": "spiked",
-            "update": {"state" : "spiked"}
-        }]}
-        """
-        When we get "/agenda_history?where=agenda_id==%22#agendaId#%22"
-        Then we get list with 3 items
-        """
-        {"_items": [{
-            "operation" : "item spiked",
-                "update" : {
-                "planning_items" : "#planningId#"}
-        }]}
-        """
-        Then we get OK response
-        When we unspike planning "#planningId#"
-        Then we get OK response
-        When we get "/agenda_history?where=agenda_id==%22#agendaId#%22"
-        Then we get list with 4 items
-        """
-        {"_items": [{
-            "operation" : "item unspiked",
-                "update" : {
-                "planning_items" : "#planningId#"}
-        }]}
-        """
         Then we get OK response

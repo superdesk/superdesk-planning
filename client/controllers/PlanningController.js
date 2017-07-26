@@ -1,11 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { PlanningApp } from '../components'
 import { Provider } from 'react-redux'
-import { createStore } from '../utils'
+import { createStore, registerNotifications } from '../utils'
 import * as actions from '../actions'
-import { WS_NOTIFICATION } from '../constants'
-import { forEach } from 'lodash'
+import { PlanningApp } from '../components'
 
 PlanningController.$inject = [
     '$element',
@@ -24,6 +22,8 @@ PlanningController.$inject = [
     'desks',
     'metadata',
     'session',
+    'deployConfig',
+    'gettextCatalog',
 ]
 export function PlanningController(
     $element,
@@ -41,11 +41,22 @@ export function PlanningController(
     userList,
     desks,
     metadata,
-    session
+    session,
+    deployConfig,
+    gettextCatalog
 ) {
+    // wrap notify methods inside $timeout to ensure it get displayed ASAP
+    const _notify = {
+        pop: () => $timeout(() => notify.pop()),
+        success: (msg) => $timeout(() => notify.success(msg)),
+        error: (msg) => $timeout(() => notify.error(msg)),
+    }
     // create the application store
     const store = createStore({
-        initialState: { config: config },
+        initialState: {
+            config: config,
+            deployConfig: deployConfig.config,
+        },
         extraArguments: {
             api,
             $location,
@@ -54,13 +65,15 @@ export function PlanningController(
             vocabularies,
             superdesk,
             upload,
-            notify,
+            notify: _notify,
             privileges,
             notifyConnectionService,
             userList,
             desks,
             metadata,
             session,
+            deployConfig,
+            gettextCatalog,
         },
     })
     // load data in the store
@@ -68,6 +81,7 @@ export function PlanningController(
     store.dispatch(actions.loadIngestProviders())
     store.dispatch(actions.loadPrivileges())
     store.dispatch(actions.loadSubjects())
+    store.dispatch(actions.loadGenres())
     store.dispatch(actions.fetchEvents({
         fulltext: JSON.parse(
             $location.search().searchEvent || '{}'
@@ -82,6 +96,7 @@ export function PlanningController(
     store.dispatch(actions.loadUsers())
     store.dispatch(actions.loadDesks())
     store.dispatch(actions.loadSessionDetails())
+    store.dispatch(actions.loadUrgency())
 
     registerNotifications($scope, store)
     $scope.$on('$destroy', () => {
@@ -96,24 +111,4 @@ export function PlanningController(
         </Provider>,
         $element.get(0)
     )
-}
-
-/**
- * Registers WebSocket Notifications to Redux Actions
- * @param {scope} $scope - PlanningController scope where notifications are received
- * @param {store} store - The Redux Store used for dispatching actions
- */
-export const registerNotifications = ($scope, store) => {
-    forEach(actions.notifications, (func, event) => {
-        $scope.$on(event, (_e, data) => {
-            store.dispatch({
-                type: WS_NOTIFICATION,
-                payload: {
-                    event,
-                    data,
-                },
-            })
-            store.dispatch(func(_e, data))
-        })
-    })
 }

@@ -12,7 +12,7 @@
 from superdesk.tests.steps import (then, when, step_impl_then_get_existing, get_json_data,
                                    assert_200, unique_headers, get_prefixed_url,
                                    if_match, assert_404, apply_placeholders, get_res)
-import json
+from flask import json
 
 
 @then('we get a list with {total_count} items')
@@ -49,11 +49,17 @@ def steip_impl_store_indexed_item_to_ctx(context, tag, index):
     setattr(context, tag, item)
 
 
+@then('we store "{tag}" from patch')
+def step_imp_store_item_from_patch(context, tag):
+    data = get_json_data(context.response)
+    setattr(context, tag, data)
+
+
 @then('we get an event file reference')
 def step_impl_then_get_event_file(context):
     assert_200(context.response)
     data = get_json_data(context.response)
-    url = '/upload/%s/raw' % data['filemeta']['media_id']
+    url = '/upload-raw/%s' % data['filemeta']['media_id']
     headers = [('Accept', 'application/json')]
     headers = unique_headers(headers, context.headers)
     response = context.client.get(get_prefixed_url(context.app, url), headers=headers)
@@ -76,6 +82,7 @@ def step_impl_we_delete_event_file(context):
 
 @when('we spike {resource} "{item_id}"')
 def step_impl_when_spike_resource(context, resource, item_id):
+    data = context.text or {}
     resource = apply_placeholders(context, resource)
     item_id = apply_placeholders(context, item_id)
 
@@ -86,7 +93,7 @@ def step_impl_when_spike_resource(context, resource, item_id):
     headers = if_match(context, res.get('_etag'))
 
     context.response = context.client.patch(get_prefixed_url(context.app, spike_url),
-                                            data='{}', headers=headers)
+                                            data=json.dumps(data), headers=headers)
 
 
 @when('we unspike {resource} "{item_id}"')

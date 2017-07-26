@@ -52,6 +52,23 @@
         left: 0;
         right: 0;
         bottom: 0;
+        background: white;
+        .dropdown {
+            vertical-align: text-bottom;
+            margin-right: 10px;
+        }
+        .lock-avatar {
+            margin: 0;
+        }
+    }
+
+    .history-preview {
+        max-height: calc(100vh - 100px);
+        overflow-y: scroll;
+    }
+
+    .close-history {
+        margin: 15px;
     }
 
 }

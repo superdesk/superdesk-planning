@@ -25,7 +25,7 @@ describe('planning', () => {
                 mount(<PlanningItem
                     item={item}
                     event={event}
-                    agenda={agenda}
+                    agendas={[agenda]}
                     active={active}
                     onClick={onClick}
                     onSpike={onSpike}
@@ -39,7 +39,7 @@ describe('planning', () => {
                 mount(<PlanningItem
                     item={item}
                     event={event}
-                    agenda={agenda}
+                    agendas={[agenda]}
                     active={active}
                     onClick={onClick}
                     onDoubleClick={onDoubleClick}
@@ -53,7 +53,6 @@ describe('planning', () => {
                 privileges.planning_planning_spike = get(params, 'privilege', 1)
                 privileges.planning_planning_unspike = get(params, 'privilege', 1)
                 item.state = get(params, 'states.planning', 'active')
-                agenda.state = get(params, 'states.agenda', 'active')
 
                 if (get(params, 'states.event')) {
                     event = events[0]
@@ -64,7 +63,7 @@ describe('planning', () => {
                 return shallow(<PlanningItem
                     item={item}
                     event={event}
-                    agenda={agenda}
+                    agenda={[agenda]}
                     active={active}
                     onClick={onClick}
                     onSpike={onSpike}
@@ -101,7 +100,10 @@ describe('planning', () => {
                     },
                 }]
 
-                agenda = { name: 'Agenda1' }
+                agenda = {
+                    name: 'Agenda1',
+                    is_enabled: true,
+                }
 
                 item = items[0]
                 active = true
@@ -179,10 +181,7 @@ describe('planning', () => {
             it('shows `spike` button', () => {
                 let wrapper = getShallowWrapperWithStates({
                     privilege: 1,
-                    states: {
-                        planning: 'active',
-                        agenda: 'active',
-                    },
+                    states: { planning: 'active' },
                 })
                 expect(wrapper.find('.icon-trash').length).toBe(1)
 
@@ -190,7 +189,6 @@ describe('planning', () => {
                     privilege: 1,
                     states: {
                         planning: 'active',
-                        agenda: 'active',
                         event: 'active',
                     },
                 })
@@ -198,19 +196,7 @@ describe('planning', () => {
 
                 wrapper = getShallowWrapperWithStates({
                     privilege: 0,
-                    states: {
-                        planning: 'active',
-                        agenda: 'active',
-                    },
-                })
-                expect(wrapper.find('.icon-trash').length).toBe(0)
-
-                wrapper = getShallowWrapperWithStates({
-                    privilege: 1,
-                    states: {
-                        planning: 'spiked',
-                        agenda: 'active',
-                    },
+                    states: { planning: 'active' },
                 })
                 expect(wrapper.find('.icon-trash').length).toBe(0)
 
@@ -218,16 +204,6 @@ describe('planning', () => {
                     privilege: 1,
                     states: {
                         planning: 'active',
-                        agenda: 'spiked',
-                    },
-                })
-                expect(wrapper.find('.icon-trash').length).toBe(0)
-
-                wrapper = getShallowWrapperWithStates({
-                    privilege: 1,
-                    states: {
-                        planning: 'active',
-                        agenda: 'active',
                         event: 'spiked',
                     },
                 })
@@ -244,18 +220,14 @@ describe('planning', () => {
             it('shows `unspike` button', () => {
                 let wrapper = getShallowWrapperWithStates({
                     privilege: 1,
-                    states: {
-                        planning: 'spiked',
-                        agenda: 'active',
-                    },
+                    states: { planning: 'active' },
                 })
-                expect(wrapper.find('.icon-unspike').length).toBe(1)
+                expect(wrapper.find('.icon-unspike').length).toBe(0)
 
                 wrapper = getShallowWrapperWithStates({
                     privilege: 1,
                     states: {
                         planning: 'spiked',
-                        agenda: 'active',
                         event: 'active',
                     },
                 })
@@ -263,36 +235,20 @@ describe('planning', () => {
 
                 wrapper = getShallowWrapperWithStates({
                     privilege: 0,
-                    states: {
-                        planning: 'spiked',
-                        agenda: 'active',
-                    },
+                    states: { planning: 'active' },
                 })
                 expect(wrapper.find('.icon-unspike').length).toBe(0)
 
                 wrapper = getShallowWrapperWithStates({
                     privilege: 1,
-                    states: {
-                        planning: 'active',
-                        agenda: 'active',
-                    },
+                    states: { planning: 'spiked' },
                 })
-                expect(wrapper.find('.icon-unspike').length).toBe(0)
+                expect(wrapper.find('.icon-unspike').length).toBe(1)
 
                 wrapper = getShallowWrapperWithStates({
                     privilege: 1,
                     states: {
                         planning: 'spiked',
-                        agenda: 'spiked',
-                    },
-                })
-                expect(wrapper.find('.icon-unspike').length).toBe(0)
-
-                wrapper = getShallowWrapperWithStates({
-                    privilege: 1,
-                    states: {
-                        planning: 'spiked',
-                        agenda: 'active',
                         event: 'spiked',
                     },
                 })
