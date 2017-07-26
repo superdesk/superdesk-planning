@@ -277,6 +277,24 @@ Feature: Events
 
     @auth
     Scenario: Duplicate an event
+        Given "vocabularies"
+        """
+        [{
+            "_id": "eventoccurstatus",
+                    "display_name": "Event Occurence Status",
+                    "type": "manageable",
+                    "unique_field": "qcode",
+                    "items": [
+                        {"is_active": true, "qcode": "eocstat:eos0", "name": "Unplanned event"},
+                        {"is_active": true, "qcode": "eocstat:eos1", "name": "Planned, occurence planned only"},
+                        {"is_active": true, "qcode": "eocstat:eos2", "name": "Planned, occurence highly uncertain"},
+                        {"is_active": true, "qcode": "eocstat:eos3", "name": "Planned, May occur"},
+                        {"is_active": true, "qcode": "eocstat:eos4", "name": "Planned, occurence highly likely"},
+                        {"is_active": true, "qcode": "eocstat:eos5", "name": "Planned, occurs certainly"},
+                        {"is_active": true, "qcode": "eocstat:eos6", "name": "Planned, then cancelled"}
+                    ]
+        }]
+        """
         Given empty "users"
         When we post to "users"
         """
@@ -306,6 +324,10 @@ Feature: Events
         ]
         """
         Then we get OK response
+        When we post to "/events/publish"
+        """
+        {"event": "#events._id#", "etag": "#events._etag#"}
+        """
         When we post to "/events/#events._id#/duplicate"
         """
         [{}]
@@ -317,16 +339,19 @@ Feature: Events
         {"_items": [
             {
                 "_id": "123",
-                "name": "event 123"
+                "name": "event 123",
+                "state": "published"
             },
             {
                 "_id": "#duplicate._id#",
-                "name": "event 123"
+                "name": "event 123",
+                "state": "active",
+                "occur_status": {"qcode": "eocstat:eos5"}
             }
         ]}
         """
         When we get "/events_history"
-        Then we get list with 4 items
+        Then we get list with 5 items
         """
         {"_items": [
             {
@@ -344,6 +369,10 @@ Feature: Events
             {
                 "operation": "duplicate_from",
                 "update": { "duplicate_id" : "123"}
+            },
+            {
+                "operation": "publish",
+                "update": { "state" : "published"}
             }
         ]}
         """
