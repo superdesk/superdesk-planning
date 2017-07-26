@@ -133,15 +133,14 @@ describe('actions.planning.api', () => {
         it('by list of planning not in any agendas', (done) => (
             store.test(done, planningApi.query({ noAgendaAssigned: true }))
             .then(() => {
+                let noAgenda = { constant_score: { filter: { exists: { field: 'agendas' } } } }
                 expect(services.api('planning').query.callCount).toBe(1)
                 expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
                     source: JSON.stringify({
                         query: {
                             bool: {
                                 must: [],
-                                must_not: [
-                                    { exists: { field: 'agendas' } },
-                                ],
+                                must_not: [noAgenda],
                             },
                         },
                     }),
