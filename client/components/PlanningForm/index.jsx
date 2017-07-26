@@ -75,6 +75,7 @@ Component.propTypes = {
     headline: PropTypes.string,
     slugline: PropTypes.string,
     users: PropTypes.array.isRequired,
+    readOnly: PropTypes.bool,
 }
 
 // Decorate the form component

@@ -1,6 +1,8 @@
 import React from 'react'
+import ReactDOM from 'react-dom'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
+import { get } from 'lodash'
 import './style.scss'
 
 export class ItemActionsMenu extends React.Component {
@@ -8,6 +10,23 @@ export class ItemActionsMenu extends React.Component {
     constructor(props) {
         super(props)
         this.state = { isOpen: false }
+        this.handleClickOutside = this.handleClickOutside.bind(this)
+    }
+
+    componentDidMount() {
+        document.addEventListener('click', this.handleClickOutside, true)
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('click', this.handleClickOutside, true)
+    }
+
+    handleClickOutside(event) {
+        const domNode = ReactDOM.findDOMNode(this)
+
+        if ((!domNode || !domNode.contains(event.target))) {
+            this.setState({ isOpen: false })
+        }
     }
 
     toggleMenu(event) {
@@ -57,10 +76,37 @@ export class ItemActionsMenu extends React.Component {
     }
 
     renderItem(action) {
+        if (Array.isArray(action.callback)) {
+            let items = action.callback.map(this.renderItem.bind(this))
+
+            if (!items.length) {
+                items = <li><button onClick={this.closeMenu.bind(this)}>There are no actions available.</button></li>
+            }
+
+            const submenuDirection = get(action, 'direction', 'left')
+
+            return (
+                <li key={'submenu-' + action.label}>
+                    <div className="dropdown">
+                        <button className="dropdown__toggle" onClick={this.closeMenu.bind(this)}>
+                            {action.icon && (<i className={action.icon}/>)}
+                            {action.label}
+                        </button>
+                        <ul className={'dropdown__menu dropdown__menu--submenu-' + submenuDirection}>
+                            {items}
+                        </ul>
+                    </div>
+                </li>
+            )
+        }
+
         const trigger = this.triggerAction.bind(this, action)
         return (
             <li key={action.label}>
-                <button onClick={trigger}>{action.label}</button>
+                <button onClick={trigger}>
+                    {action.icon && (<i className={action.icon}/>)}
+                    {action.label}
+                </button>
             </li>
         )
     }
