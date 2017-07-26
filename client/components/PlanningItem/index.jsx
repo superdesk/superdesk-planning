@@ -64,7 +64,7 @@ const PlanningItem = ({
                         <span className="ListItem__headline">{item.headline}</span>
                     </span>
                     {event &&
-                        <span className="PlanningItem__event">
+                        <span className="PlanningItem__event sd-no-wrap">
                             <TimePlanning event={event}/>
                             <i className="icon-calendar-list"/>
                         </span>
@@ -72,7 +72,7 @@ const PlanningItem = ({
                 </div>
                 <div className="sd-list-item__row">
                     {coveragesTypes.map((c, i) => (
-                        <span key={i}>
+                        <span key={i} style={{ display:'inherit' }}>
                             <OverlayTrigger
                                 placement="bottom"
                                 overlay={
@@ -85,11 +85,11 @@ const PlanningItem = ({
                             &nbsp;
                         </span>
                     ))}
-                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                    <span className="sd-overflow-ellipsis">
                         {location}
                     </span>&nbsp;
                     {item.agendas &&
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                        <span className="sd-list-item--element-grow">
                             {item.agendas.map((agendaId) => {
                                 const agenda = agendas.find((agenda) => agenda._id === agendaId)
 
@@ -97,7 +97,7 @@ const PlanningItem = ({
                                     return null
                                 }
 
-                                let style = agenda.is_enabled ? 'label--primary' : 'label--light'
+                                let style = agenda.is_enabled ? 'label--primary label--hollow' : 'label--hollow'
 
                                 return ( <span key={'agenda-label-'+ agenda._id}
                                     className={`label ${style}`}
@@ -111,7 +111,7 @@ const PlanningItem = ({
                         </span>
                     }
                     {dueDates.length > 0 &&
-                        <span className="PlanningItem__dueDate">
+                        <span className="PlanningItem__dueDate sd-no-wrap">
                             <DueDate dates={dueDates}/>
                             <i className="icon-bell"/>
                         </span>

@@ -2,6 +2,18 @@
 .Planning-panel {
     position: absolute;
     height: 100%;
+    .subnav {
+        box-shadow: inset 7px 0 10px -7px rgba(0, 0, 0, 0.5);
+        border-bottom: 1px solid #bfbfbf;
+    }
+    > .subnav {
+        background-color: #dedede;    
+    }
+    .subnav__page-title {
+        flex-grow: 0;
+        padding: 1rem 1rem 1rem 2rem;
+        font-weight: 300;
+    }
     &__container {
         display: flex;
         z-index: 1;
@@ -56,15 +68,23 @@
         > i { font-size: 2em }
     }
     &__select-agenda {
+        height: 100%;
         select {
             border: 0px solid black !important;
             border-radius: 0px !important;
             background-color: transparent;
-            box-shadow: 0px !important;
-            max-width: 200px;
+            box-shadow: 0px !important;            
+            font-size: 1.6rem;
+            height: 100%;
+            padding: 0 .4rem;
+            &:hover {
+                background-color: rgba(255,255,255, .7);
+                cursor: pointer;
+            }
+            option {
+                font-size: 1.3rem;
+            }
         }
-        flex-grow: 2;
-        padding-top: 10px;
     }
 
     label {
