@@ -96,7 +96,7 @@ describe('actions.events.api', () => {
 
                 expect(store.dispatch.args[0]).toEqual([{
                     type: 'SPIKE_EVENT',
-                    payload: [data.events[1]],
+                    payload: [data.events[1]._id],
                 }])
 
                 done()
@@ -119,7 +119,7 @@ describe('actions.events.api', () => {
 
                 expect(store.dispatch.args[0]).toEqual([{
                     type: 'SPIKE_EVENT',
-                    payload: data.events,
+                    payload: data.events.map((event) => event._id),
                 }])
 
                 done()
@@ -144,6 +144,61 @@ describe('actions.events.api', () => {
         it('returns Promise.reject if `events_spike` fails', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject(errorMessage)))
             return store.test(done, planningApi.spike(data.events))
+            .then(() => {}, (error) => {
+                expect(error).toEqual(errorMessage)
+                done()
+            })
+        })
+    })
+
+    describe('unspike', () => {
+        it('can unspike a single event', (done) => (
+            store.test(done, eventsApi.unspike(data.events[1]))
+            .then((items) => {
+                expect(items).toEqual([data.events[1]])
+
+                expect(services.api.update.callCount).toBe(1)
+                expect(services.api.update.args[0]).toEqual([
+                    'events_unspike',
+                    data.events[1],
+                    {},
+                ])
+
+                expect(store.dispatch.args[0]).toEqual([{
+                    type: 'UNSPIKE_EVENT',
+                    payload: [data.events[1]._id],
+                }])
+
+                done()
+            })
+        ))
+
+        it('can unspike multiple events', (done) => (
+            store.test(done, eventsApi.unspike(data.events))
+            .then((items) => {
+                expect(items).toEqual(data.events)
+
+                expect(services.api.update.callCount).toBe(data.events.length)
+                for (let i = 0; i < data.events.length; i++) {
+                    expect(services.api.update.args[i]).toEqual([
+                        'events_unspike',
+                        data.events[i],
+                        {},
+                    ])
+                }
+
+                expect(store.dispatch.args[0]).toEqual([{
+                    type: 'UNSPIKE_EVENT',
+                    payload: data.events.map((event) => event._id),
+                }])
+
+                done()
+            })
+        ))
+
+        it('returns Promise.reject if `events_unspike` fails', (done) => {
+            services.api.update = sinon.spy(() => (Promise.reject(errorMessage)))
+            return store.test(done, eventsApi.unspike(data.events))
             .then(() => {}, (error) => {
                 expect(error).toEqual(errorMessage)
                 done()

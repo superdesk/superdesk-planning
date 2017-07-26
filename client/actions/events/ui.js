@@ -180,7 +180,6 @@ const spike = (event) => (
             Promise.all(
                 [
                     dispatch(self.refetchEvents()),
-                    dispatch(_openEventDetails(events[0])),
                     dispatch(fetchSelectedAgendaPlannings()),
                 ]
             )
@@ -199,6 +198,75 @@ const spike = (event) => (
                     })
 
                     notify.success('The event(s) have been spiked')
+                    return Promise.resolve(events)
+                },
+
+                (error) => {
+                    notify.error(
+                        getErrorMessage(error, 'Failed to load events and plannings')
+                    )
+
+                    return Promise.reject(error)
+                }
+            )
+
+        ), (error) => {
+            notify.error(
+                getErrorMessage(error, 'Failed to spike the event(s)')
+            )
+
+            return Promise.reject(error)
+        })
+    )
+)
+
+const _openBulkSpikeModal = (events) => (
+    (dispatch) => {
+        if (!Array.isArray(events)) {
+            events = [events]
+        }
+
+        dispatch(showModal({
+            modalType: 'CONFIRMATION',
+            modalProps: {
+                body: `Do you want to spike these ${events.length} events?`,
+                action: () => dispatch(self.spike(events)),
+            },
+        }))
+    }
+)
+
+const _openUnspikeModal = (events) => (
+    (dispatch) => {
+        if (!Array.isArray(events)) {
+            events = [events]
+        }
+
+        dispatch(showModal({
+            modalType: 'CONFIRMATION',
+            modalProps: {
+                body: `Do you want to unspike these ${events.length} events?`,
+                action: () => dispatch(self.unspike(events)),
+            },
+        }))
+    }
+)
+
+const unspike = (event) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(eventsApi.unspike(event))
+        .then((events) => (
+            Promise.all(
+                [
+                    dispatch(self.refetchEvents()),
+                    dispatch(fetchSelectedAgendaPlannings()),
+                ]
+            )
+            .then(
+                () => {
+                    dispatch(hideModal())
+
+                    notify.success('The event(s) have been unspiked')
                     return Promise.resolve(events)
                 },
 
@@ -266,6 +334,18 @@ const openSpikeModal = checkPermission(
     'Unauthorised to spike an Event'
 )
 
+const openBulkSpikeModal = checkPermission(
+    _openBulkSpikeModal,
+    PRIVILEGES.SPIKE_EVENT,
+    'Unauthorised to spike an Event'
+)
+
+const openUnspikeModal = checkPermission(
+    _openUnspikeModal,
+    PRIVILEGES.UNSPIKE_EVENT,
+    'Unauthorised to unspike an Event'
+)
+
 const openEventDetails = checkPermission(
     _openEventDetails,
     PRIVILEGES.EVENT_MANAGEMENT,
@@ -286,9 +366,12 @@ const self = {
     _unlockAndOpenEventDetails,
     _previewEvent,
     spike,
+    unspike,
     refetchEvents,
     setEventsList,
     openSpikeModal,
+    openBulkSpikeModal,
+    openUnspikeModal,
     openEventDetails,
     unlockAndOpenEventDetails,
     closeEventDetails,
