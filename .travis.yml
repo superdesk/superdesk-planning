@@ -1,22 +1,23 @@
 language: python
 
 python: 3.5
-sudo: false
+sudo: required
 
 env:
   - TRAVIS_NODE_VERSION="6"
 
 services:
     - mongodb
-    - elasticsearch
     - redis-server
 
 addons:
   apt:
     sources:
     - mongodb-3.0-precise
+    - elasticsearch-2.x
     packages:
     - mongodb-org-server
+    - elasticsearch
 
 cache:
   directories:
@@ -24,6 +25,8 @@ cache:
     - $HOME/.npm
 
 before_install:
+    - sudo apt-get purge elasticsearch
+    - sudo apt-get install -t stable elasticsearch && sudo service elasticsearch restart
     - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
     - node --version
     - npm install -g npm@latest
