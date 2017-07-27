@@ -284,14 +284,14 @@ export class Component extends React.Component {
                             <div>
                                 {forcedReadOnly && !isPublished && !eventSpiked &&
                                     <button
-                                        onClick={() => publish(id)}
+                                        onClick={() => publish(initialValues)}
                                         type="button"
                                         className="btn btn--success">
                                         Publish</button>
                                 }
                                 {isPublished &&
                                     <button
-                                        onClick={() => unpublish(id)}
+                                        onClick={() => unpublish(initialValues)}
                                         type="button"
                                         className="btn btn--hollow">
                                         Unpublish</button>
@@ -552,8 +552,8 @@ const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event) => dispatch(actions.saveEventWithConfirmation(event)),
     openEventDetails: (event) => dispatch(actions.events.ui.openEventDetails(event)),
     saveAndPublish: (event) => dispatch(actions.saveAndPublish(event)),
-    publish: (eventId) => dispatch(actions.publishEvent(eventId)),
-    unpublish: (eventId) => dispatch(actions.unpublishEvent(eventId)),
+    publish: (event) => dispatch(actions.publishEvent(event)),
+    unpublish: (event) => dispatch(actions.unpublishEvent(event)),
     spikeEvent: (event) => dispatch(actions.events.ui.openSpikeModal(event)),
     unspikeEvent: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
     addEventToCurrentAgenda: (event) => dispatch(actions.addEventToCurrentAgenda(event)),

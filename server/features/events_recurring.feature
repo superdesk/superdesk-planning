@@ -1466,7 +1466,7 @@ Feature: Events Recurring
         Then we store "EVENT5" with 5 item
         When we post to "/events/publish"
         """
-        {"event": "#EVENT4._id#", "etag": "#EVENT4._etag#"}
+        {"event": "#EVENT4._id#", "etag": "#EVENT4._etag#", "pubstatus": "usable"}
         """
         Then we get OK response
         When we post to "planning"

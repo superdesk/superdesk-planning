@@ -15,6 +15,7 @@ class EventsPublishResource(EventsResource):
     schema = {
         'event': Resource.rel('events', type='string', required=True),
         'etag': {'type': 'string', 'required': True},
+        'pubstatus': {'type': 'string', 'required': True, 'allowed': [PUB_STATUS_USABLE, PUB_STATUS_CANCELED]},
     }
 
     url = 'events/publish'
@@ -29,6 +30,7 @@ class EventsPublishService(BaseService):
         for doc in docs:
             event = get_resource_service('events').find_one(req=None, _id=doc['event'], _etag=doc['etag'])
             if event:
+                event['pubstatus'] = doc['pubstatus']
                 self.validate_event(event)
                 self.publish_event(event)
                 ids.append(doc['event'])
@@ -46,7 +48,7 @@ class EventsPublishService(BaseService):
         event.setdefault(config.VERSION, 1)
         event.setdefault('item_id', event['_id'])
         get_enqueue_service('publish').enqueue_item(event, 'event')
-        updates = {'state': self._get_publish_state(event)}
+        updates = {'state': self._get_publish_state(event), 'pubstatus': event['pubstatus']}
         get_resource_service('events').update(event['_id'], updates, event)
         get_resource_service('events_history')._save_history(event, updates, 'publish')
 
