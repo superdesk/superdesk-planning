@@ -122,7 +122,7 @@ Feature: Events Locking
         Then we get error 403
 
     @auth
-    Scenario: Fail to unlock a planning item without privilege
+    Scenario: Fail to unlock an event without privilege
       Given "events"
       """
       [{
@@ -167,7 +167,7 @@ Feature: Events Locking
       Then we get error 403
 
     @auth
-    Scenario: Can unlock a planning item and edit it
+    Scenario: Can unlock an event and edit it
       Given "events"
       """
       [{
