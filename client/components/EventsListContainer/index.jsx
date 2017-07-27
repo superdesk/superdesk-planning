@@ -122,7 +122,7 @@ const mapDispatchToProps = (dispatch) => ({
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
     loadMoreEvents: () => (dispatch(actions.loadMoreEvents())),
     spikeEvent: (event) => dispatch(actions.events.ui.openSpikeModal(event)),
-    unspikeEvent: (event) => dispatch(actions.openUnspikeEvent(event)),
+    unspikeEvent: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
     onEventSelectChange: (args) => dispatch(actions.toggleEventSelection(args)),
 })
 

@@ -152,15 +152,17 @@ const eventsReducer = createReducer(initialState, {
     [EVENTS.ACTIONS.SET_EVENTS_LIST]: (state, payload) => (
         {
             ...state,
-            eventsInList: orderBy(payload, (e) => (
-                state.events[e].dates.start
-            ), ['desc']),
+            eventsInList: orderBy(
+                uniq([...payload, ...state.selectedEvents]),
+                (e) => state.events[e].dates.start,
+                ['desc']
+            ),
         }
     ),
     [EVENTS.ACTIONS.ADD_TO_EVENTS_LIST]: (state, payload) => (
         eventsReducer(state, {
             type: EVENTS.ACTIONS.SET_EVENTS_LIST,
-            payload: uniq([...state.eventsInList, ...payload]),
+            payload: [...state.eventsInList, ...payload],
         })
     ),
     [EVENTS.ACTIONS.OPEN_ADVANCED_SEARCH]: (state) => (

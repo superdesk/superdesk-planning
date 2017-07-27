@@ -3,10 +3,8 @@ import moment from 'moment-timezone'
 import * as selectors from '../selectors'
 import { SubmissionError, getFormInitialValues } from 'redux-form'
 import { saveLocation as _saveLocation } from './index'
-import { showModal, hideModal, fetchSelectedAgendaPlannings } from './index'
-import { SpikeEvent } from '../components/index'
+import { showModal, fetchSelectedAgendaPlannings } from './index'
 import { EventUpdateMethods } from '../components/fields'
-import React from 'react'
 import { PRIVILEGES, EVENTS, ITEM_STATE } from '../constants'
 import { checkPermission, getErrorMessage, retryDispatch } from '../utils'
 
@@ -195,34 +193,6 @@ const uploadFilesAndSaveEvent = (event) => {
         })
     )
 }
-
-/**
- * Action dispatcher that marks an Event as active
- * @param {object} event - The Event to unspike
- * @return Promise
- */
-const unspikeEvent = (event) => (
-    (dispatch, getState, { api, notify }) => (
-        api.update('events_unspike', event, {})
-        .then(() => {
-            notify.success('The Event has been unspiked.')
-            dispatch({
-                type: EVENTS.ACTIONS.UNSPIKE_EVENT,
-                payload: event,
-            })
-
-            // Close Unspike event modal
-            dispatch(hideModal())
-
-            // Fetch events to reload latest events list
-            return dispatch(eventsUi.refetchEvents())
-        }, (error) => (
-            notify.error(
-                getErrorMessage(error, 'There was a problem, Event was not unspiked!')
-            )
-        ))
-    )
-)
 
 /**
  * Action Dispatcher for uploading files
@@ -497,41 +467,10 @@ const toggleEventsList = () => (
     { type: EVENTS.ACTIONS.TOGGLE_EVENT_LIST }
 )
 
-/**
- * Action Dispatcher to open the Unspike Event modal
- * @param {object} event - The Event to be unspiked
- */
-const _openUnspikeEvent = (event) => (
-    (dispatch, getState) => {
-        const storedPlannings = selectors.getStoredPlannings(getState())
-        // Get _plannings for the event
-        const eventWithPlannings = {
-            ...event,
-            _plannings: Object.keys(storedPlannings).filter((pKey) => (
-                storedPlannings[pKey].event_item === event._id
-            )).map((pKey) => ({ ...storedPlannings[pKey] })),
-        }
-
-        return dispatch(showModal({
-            modalType: 'CONFIRMATION',
-            modalProps: {
-                body: React.createElement(SpikeEvent, { eventDetail: eventWithPlannings }),
-                action: () => dispatch(unspikeEvent(eventWithPlannings)),
-            },
-        }))
-    }
-)
-
 const setEventStatus = checkPermission(
     _setEventStatus,
     PRIVILEGES.EVENT_MANAGEMENT,
     'Unauthorised to change the status of an event!'
-)
-
-const openUnspikeEvent = checkPermission(
-    _openUnspikeEvent,
-    PRIVILEGES.UNSPIKE_EVENT,
-    'Unauthorised to unspike an event!'
 )
 
 // WebSocket Notifications
@@ -590,18 +529,26 @@ const onEventUpdated = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
             dispatch(eventsUi.refetchEvents())
+            .then((events) => {
+                const selectedEvents = selectors.getSelectedEvents(getState())
 
-            // Get the list of Planning Item IDs that are associated with this Event
-            const storedPlans = selectors.getStoredPlannings(getState())
-            const eventPlans = Object.keys(storedPlans)
-                .filter((pid) => get(storedPlans[pid], 'event_item', null) === data.item)
+                // If the event is currently selected and not loaded from refetchEvents,
+                // then manually reload this event from the server
+                if (selectedEvents.indexOf(data.item) !== -1 &&
+                    !events.find((event) => event._id === data.item)) {
+                    dispatch(silentlyFetchEventsById([data.item], ITEM_STATE.ALL))
+                }
 
-            // If there are any associated Planning Items, then update the list
-            if (eventPlans.length > 0) {
-                // Re-fetch the Event, just in case it wasn't loaded by the refetchEvents action
-                dispatch(silentlyFetchEventsById([data.item], ITEM_STATE.ALL))
-                .then(() => (dispatch(fetchSelectedAgendaPlannings())))
-            }
+                // Get the list of Planning Item IDs that are associated with this Event
+                const storedPlans = selectors.getStoredPlannings(getState())
+                const eventPlans = Object.keys(storedPlans)
+                    .filter((pid) => get(storedPlans[pid], 'event_item', null) === data.item)
+
+                // If there are any associated Planning Items, then update the list
+                if (eventPlans.length > 0) {
+                    dispatch(fetchSelectedAgendaPlannings())
+                }
+            })
         }
     }
 )
@@ -642,8 +589,6 @@ export {
     publishEvent,
     unpublishEvent,
     toggleEventSelection,
-    unspikeEvent,
-    openUnspikeEvent,
     toggleEventsList,
     receiveEventHistory,
     closeAdvancedSearch,

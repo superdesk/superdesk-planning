@@ -549,7 +549,7 @@ const mapDispatchToProps = (dispatch) => ({
     publish: (eventId) => dispatch(actions.publishEvent(eventId)),
     unpublish: (eventId) => dispatch(actions.unpublishEvent(eventId)),
     spikeEvent: (event) => dispatch(actions.events.ui.openSpikeModal(event)),
-    unspikeEvent: (event) => dispatch(actions.unspikeEvent(event)),
+    unspikeEvent: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
     addEventToCurrentAgenda: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
     duplicateEvent: (event) => dispatch(actions.duplicateEvent(event)),
     onUnlock: (event) => dispatch(actions.events.ui.unlockAndOpenEventDetails(event)),

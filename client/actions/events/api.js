@@ -52,7 +52,26 @@ const spike = (events) => (
         .then(() => {
             dispatch({
                 type: EVENTS.ACTIONS.SPIKE_EVENT,
-                payload: events,
+                payload: events.map((event) => event._id),
+            })
+            return Promise.resolve(events)
+        }, (error) => (Promise.reject(error)))
+    }
+)
+
+const unspike = (events) => (
+    (dispatch, getState, { api }) => {
+        if (!Array.isArray(events)) {
+            events = [events]
+        }
+
+        return Promise.all(
+            events.map((event) => api.update('events_unspike', event, {}))
+        )
+        .then(() => {
+            dispatch({
+                type: EVENTS.ACTIONS.UNSPIKE_EVENT,
+                payload: events.map((event) => event._id),
             })
             return Promise.resolve(events)
         }, (error) => (Promise.reject(error)))
@@ -372,6 +391,7 @@ const unlock = (event) => (
 const self = {
     loadEventsByRecurrenceId,
     spike,
+    unspike,
     query,
     refetchEvents,
     receiveEvents,
