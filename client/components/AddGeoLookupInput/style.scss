@@ -34,6 +34,7 @@
         line-height: $baseLineHeight;
         white-space: nowrap;
         width: 100%;
+        max-width: 420px;
         position: relative;
         color: $dropdownLinkColor;
         background: none;
