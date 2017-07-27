@@ -353,6 +353,12 @@ export class Component extends React.Component {
                             readOnly={!metaDataEditable}/>
                     </div>
                     <div>
+                        <Field name="calendars"
+                               component={fields.EventCalendarField}
+                               label="Calendars"
+                               readOnly={!metaDataEditable}/>
+                    </div>
+                    <div>
                         <Field name="anpa_category"
                             component={fields.CategoryField}
                             label="Category"

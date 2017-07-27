@@ -23,7 +23,10 @@ function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting
                        component={fields.InputField}
                        type="text"
                        label="Location"/>
-               <Field name="anpa_category"
+                <Field name="calendars"
+                       component={fields.EventCalendarField}
+                       label="Calendars"/>
+                <Field name="anpa_category"
                        component={fields.CategoryField}
                        label="Category"/>
                 <Field name="subject"

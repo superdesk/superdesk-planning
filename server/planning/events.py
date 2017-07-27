@@ -900,6 +900,18 @@ events_schema = {
         'default': 'event',
     },
 
+    # Named Calendars
+    'calendars': {
+        'type': 'list',
+        'nullable': True,
+        'mapping': {
+            'type': 'object',
+            'properties': {
+                'qcode': not_analyzed,
+                'name': not_analyzed,
+            }
+        }
+    }
 }  # end events_schema
 
 

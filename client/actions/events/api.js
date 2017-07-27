@@ -157,6 +157,16 @@ const query = (
                 },
             },
             {
+                condition: () => (advancedSearch.calendars),
+                do: () => {
+                    const codes = advancedSearch.calendars.map((cat) => cat.qcode)
+                    const queries = codes.map((code) => (
+                        { term: { 'calendars.qcode': code } }
+                    ))
+                    must.push(...queries)
+                },
+            },
+            {
                 condition: () => (advancedSearch.anpa_category),
                 do: () => {
                     const codes = advancedSearch.anpa_category.map((cat) => cat.qcode)

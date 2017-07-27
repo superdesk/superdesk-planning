@@ -69,5 +69,16 @@
                     {"name": "NTB Event", "qcode": "ntb_event"}
                 ]}
         ]
+    },
+    {
+        "_id": "event_calendars",
+        "display_name": "Event Calendars",
+        "type": "manageable",
+        "unique_field": "qcode",
+        "items": [
+            {"is_active": true, "name": "Sport", "qcode": "sport"},
+            {"is_active": true, "name": "Finance", "qcode": "finance"},
+            {"is_active": true, "name": "Entertainment", "qcode": "entertainment"}
+        ]
     }
 ]

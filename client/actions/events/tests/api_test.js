@@ -261,6 +261,46 @@ describe('actions.events.api', () => {
                 done()
             })
         })
+
+        describe('advancedSearch', () => {
+            it('by calendars', (done) => (
+                store.test(done, eventsApi.query({
+                    advancedSearch: {
+                        calendars: [{
+                            qcode: 'sport',
+                            name: 'Sport',
+                        }, {
+                            qcode: 'finance',
+                            name: 'Finance',
+                        }],
+                    },
+                }))
+                .then(() => {
+                    expect(services.api('events').query.callCount).toBe(1)
+                    expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
+                        page: 1,
+                        sort: '[("dates.start",1)]',
+                        embedded: { files: 1 },
+                        source: JSON.stringify({
+                            query: {
+                                bool: {
+                                    must: [
+                                        { term: { 'calendars.qcode': 'sport' } },
+                                        { term: { 'calendars.qcode': 'finance' } },
+                                    ],
+                                    must_not: [
+                                        { term: { state: ITEM_STATE.SPIKED } },
+                                    ],
+                                },
+                            },
+                            filter: {},
+                        }),
+                    })])
+
+                    done()
+                })
+            ))
+        })
     })
 
     describe('refetchEvents', () => {
