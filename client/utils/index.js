@@ -4,6 +4,7 @@ import planningApp from '../reducers'
 import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
 import { get, set } from 'lodash'
+import RRule from 'rrule'
 
 export { default as checkPermission } from './checkPermission'
 export { default as retryDispatch } from './retryDispatch'
@@ -291,4 +292,51 @@ export const getCreator = (item, creator, users) => {
     if (user) {
         return user.display_name ? user : users.find((u) => u._id === user)
     }
+}
+
+/**
+ * Helper function to determine if a recurring event instances overlap
+ * Using the RRule library (similar to that the server uses), it coverts the
+ * recurring_rule to an RRule instance and determines if instances overlap
+ * @param {moment} startingDate - The starting date/time of the selected event
+ * @param {moment} endingDate - The ending date/time of the selected event
+ * @param {object} recurringRule - The list of recurring rules
+ * @returns {boolean} True if the instances overlap, false otherwise
+ */
+export const doesRecurringEventsOverlap = (startingDate, endingDate, recurringRule) => {
+    if (!recurringRule || !startingDate || !endingDate ||
+        !('frequency' in recurringRule) || !('interval' in recurringRule)) return false
+
+    const freqMap = {
+        YEARLY: RRule.YEARLY,
+        MONTHLY: RRule.MONTHLY,
+        WEEKLY: RRule.WEEKLY,
+        DAILY: RRule.DAILY,
+    }
+
+    const dayMap = {
+        MO: RRule.MO,
+        TU: RRule.TU,
+        WE: RRule.WE,
+        TH: RRule.TH,
+        FR: RRule.FR,
+        SA: RRule.SA,
+        SU: RRule.SU,
+    }
+
+    const rules = {
+        freq: freqMap[recurringRule.frequency],
+        interval: parseInt(recurringRule.interval) || 1,
+        dtstart: startingDate.toDate(),
+        count: 2,
+    }
+
+    if ('byday' in recurringRule) {
+        rules.byweekday = recurringRule.byday.split(' ').map((day) => dayMap[day])
+    }
+
+    const rule = new RRule(rules)
+
+    let nextEvent = moment(rule.after(startingDate.toDate()))
+    return nextEvent.isBetween(startingDate, endingDate) || nextEvent.isSame(endingDate)
 }
