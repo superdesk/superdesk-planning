@@ -43,6 +43,7 @@
     .subnav {
         position: relative;
         top: initial;
+        flex-shrink: 0;
     }
     .ui-resizable { position: absolute; }
 }

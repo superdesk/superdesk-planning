@@ -55,7 +55,7 @@ class PlanningPanel extends React.Component {
                     }
                     <h3 className="subnav__page-title">
                         <span>
-                            <span>Agenda</span>
+                            <span>Agenda:</span>
                         </span>
                     </h3>
                     <div  className="Planning-panel__select-agenda">
