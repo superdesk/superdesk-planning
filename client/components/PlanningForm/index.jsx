@@ -36,6 +36,10 @@ class Component extends React.Component {
                             component={fields.InputTextAreaField}
                             label="Description"
                             readOnly={readOnly} />
+                        <Field name="internal_note"
+                            component={fields.InputTextAreaField}
+                            label="Internal Note"
+                            readOnly={readOnly}/>
                         <Field
                             name="anpa_category"
                             component={fields.CategoryField}
