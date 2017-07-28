@@ -1,6 +1,5 @@
 import { createSelector } from 'reselect'
 import { orderBy, get, sortBy, includes, isEmpty } from 'lodash'
-// import { isAllDay } from '../utils'
 import moment from 'moment'
 import { ITEM_STATE } from '../constants'
 
@@ -48,6 +47,7 @@ export const getUsers = (state) => get(state, 'users.length', 0) > 0 ? state.use
 export const getPlanningItemReadOnlyState = (state) => state.planning.readOnly
 export const getEventReadOnlyState = (state) => state.events.readOnly
 export const getSessionDetails = (state) => state.session
+export const getEventCalendars = (state) => get(state, 'vocabularies.event_calendars', [])
 
 export const getPlanningsInList = createSelector(
     [getPlanningIdsInList, getStoredPlannings],

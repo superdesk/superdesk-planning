@@ -4,6 +4,8 @@ const initialState = {
     categories: [],
     g2_content_type: [],
     eventoccurstatus: [],
+    event_calendars: [],
+    coverage_providers: [],
 }
 
 const vocabularies = (state=initialState, action) => {
