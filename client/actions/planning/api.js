@@ -88,7 +88,7 @@ const query = ({
         if (agendas) {
             must.push({ terms: { agendas: agendas } })
         } else if (noAgendaAssigned) {
-            mustNot.push({ exists: { field: 'agendas' } })
+            mustNot.push({ constant_score: { filter: { exists: { field: 'agendas' } } } })
         }
 
         switch (state) {
