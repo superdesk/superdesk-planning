@@ -8,7 +8,7 @@ from superdesk.services import BaseService
 from apps.publish.enqueue import get_enqueue_service
 
 from .events import EventsResource
-from .common import PUB_STATUS_USABLE, PUB_STATUS_CANCELED
+from .common import PUB_STATUS_USABLE, PUB_STATUS_CANCELED, PLANNING_STATE
 
 
 class EventsPublishResource(EventsResource):
@@ -52,5 +52,5 @@ class EventsPublishService(BaseService):
 
     def _get_publish_state(self, event):
         if event.get('pubstatus') == PUB_STATUS_CANCELED:
-            return 'killed'
-        return 'published'
+            return PLANNING_STATE.KILLED
+        return PLANNING_STATE.PUBLISHED

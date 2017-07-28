@@ -11,21 +11,29 @@
 from flask import current_app as app
 from superdesk.utc import utcnow
 from datetime import timedelta
-
+from collections import namedtuple
 
 NOT_ANALYZED = {'type': 'string', 'index': 'not_analyzed'}
 
+ITEM_STATE = 'state'
+
+ITEM_ACTIVE = 'active'
+ITEM_SPIKED = 'spiked'
+ITEM_INGESTED = 'ingested'
+ITEM_PUBLISHED = 'published'
+ITEM_KILLED = 'killed'
+
+planning_state = [ITEM_ACTIVE, ITEM_SPIKED, ITEM_INGESTED, ITEM_PUBLISHED, ITEM_KILLED]
+PLANNING_STATE = namedtuple('CONTENT_STATE', ['ACTIVE', 'SPIKED', 'INGESTED', 'PUBLISHED', 'KILLED'])(*planning_state)
+
 STATE_SCHEMA = {
     'type': 'string',
-    'allowed': ['active', 'spiked', 'ingested'],
-    'default': 'active',
+    'allowed': planning_state,
+    'default': PLANNING_STATE.ACTIVE,
     'mapping': NOT_ANALYZED
 }
 
 ITEM_EXPIRY = 'expiry'
-ITEM_STATE = 'state'
-ITEM_SPIKED = 'spiked'
-ITEM_ACTIVE = 'active'
 
 PUB_STATUS_USABLE = 'usable'
 PUB_STATUS_WITHHOLD = 'withhold'

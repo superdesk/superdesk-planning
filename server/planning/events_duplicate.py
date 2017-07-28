@@ -7,12 +7,15 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
+
 import logging
 from superdesk import get_resource_service
 from superdesk.resource import Resource
 from superdesk.services import BaseService
 from superdesk.metadata.utils import item_url
 from flask import request
+from .common import PUB_STATUS_USABLE, ITEM_STATE, PLANNING_STATE
+
 
 logger = logging.getLogger(__name__)
 
@@ -54,4 +57,10 @@ class EventsDuplicateService(BaseService):
                   '_created', '_updated', '_etag'}:
             new_doc.pop(f, None)
         new_doc['recurring_rule'] = None
+        new_doc[ITEM_STATE] = PLANNING_STATE.ACTIVE
+        new_doc['pubstatus'] = PUB_STATUS_USABLE
+        eocstat_map = get_resource_service('vocabularies').find_one(req=None, _id='eventoccurstatus')
+        new_doc['occur_status'] = [x for x in eocstat_map.get('items', []) if
+                                   x['qcode'] == 'eocstat:eos5' and x.get('is_active', True)][0]
+        new_doc['occur_status'].pop('is_active', None)
         return new_doc
