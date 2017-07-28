@@ -367,12 +367,16 @@ const receiveEvents = (events) => ({
 const lock = (event) => (
     (dispatch, getState, { api, notify }) => (
         api('events_lock', event).save({}, { lock_action: 'edit' })
-           .then((item) => (item),
-                (error) => {
-                    const msg = get(error, 'data._message') || 'Could not lock the event.'
-                    notify.error(msg)
-                    if (error) throw error
-                })
+       .then(
+        (item) => {
+            // On lock, file object in the event is lost, so, replace it from original event
+            item.files = event.files
+            return item
+        }, (error) => {
+            const msg = get(error, 'data._message') || 'Could not lock the event.'
+            notify.error(msg)
+            if (error) throw error
+        })
     )
 )
 
