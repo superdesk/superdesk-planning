@@ -220,6 +220,10 @@ planning_schema = {
         'type': 'string',
         'nullable': True
     },
+    'internal_note': {
+        'type': 'string',
+        'nullable': True
+    },
     'anpa_category': {
         'type': 'list',
         'nullable': True,
