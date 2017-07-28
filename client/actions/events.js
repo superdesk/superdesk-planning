@@ -5,8 +5,8 @@ import { SubmissionError, getFormInitialValues } from 'redux-form'
 import { saveLocation as _saveLocation } from './index'
 import { showModal, fetchSelectedAgendaPlannings } from './index'
 import { EventUpdateMethods } from '../components/fields'
-import { PRIVILEGES, EVENTS, ITEM_STATE } from '../constants'
-import { checkPermission, getErrorMessage, retryDispatch } from '../utils'
+import { EVENTS, ITEM_STATE } from '../constants'
+import { getErrorMessage, retryDispatch } from '../utils'
 
 import eventsApi from './events/api'
 import eventsUi from './events/ui'
@@ -25,58 +25,45 @@ const duplicateEvent = (event) => (
     }
 )
 
-const _setEventStatus = ({ eventId, status }) => (
-    (dispatch, getState) => {
-        // clone event in order to not modify the store
-        const event = { ...selectors.getEvents(getState())[eventId] }
-        event.pubstatus = status
-        return dispatch(saveEvent(event))
-        .then((events) => {
-            dispatch(eventsUi.previewEvent(events[0]))
-            return events
-        })
-    }
-)
-
 /**
  * Set event.pubstatus usable and publish event.
+ *
+ * @param {Object} event
  */
-const publishEvent = (eventId) => (
-    (dispatch, getState, { api, notify }) => {
-        dispatch(setEventStatus({
-            eventId,
-            status: EVENTS.PUB_STATUS.USABLE,
-        }))
-        .then((events) => api.save('events_publish', {
-            event: eventId,
-            etag: events[0]._etag,
-        }))
+function publishEvent(event) {
+    return function (dispatch, getState, { api, notify }) {
+        return api.save('events_publish', {
+            event: event._id,
+            etag: event._etag,
+            pubstatus: EVENTS.PUB_STATUS.USABLE,
+        })
         .then(() => {
             notify.success('The event has been published')
-            dispatch(eventsUi.refetchEvents())
+            dispatch(silentlyFetchEventsById([event._id], ITEM_STATE.ALL))
+            dispatch(eventsUi.closeEventDetails())
         })
     }
-)
+}
 
 /**
  * Set event.pubstatus canceled and publish event.
+ *
+ * @param {Object} event
  */
-const unpublishEvent = (eventId) => (
-    (dispatch, getState, { api, notify }) => {
-        dispatch(setEventStatus({
-            eventId,
-            status: EVENTS.PUB_STATUS.CANCELED,
-        }))
-        .then((events) => api.save('events_publish', {
-            event: eventId,
-            etag: events[0]._etag,
-        }))
+function unpublishEvent(event) {
+    return function (dispatch, getState, { api, notify }) {
+        return api.save('events_publish', {
+            event: event._id,
+            etag: event._etag,
+            pubstatus: EVENTS.PUB_STATUS.CANCELED,
+        })
         .then(() => {
             notify.success('The event has been unpublished')
-            dispatch(eventsUi.refetchEvents())
+            dispatch(silentlyFetchEventsById([event._id], ITEM_STATE.ALL))
+            dispatch(eventsUi.closeEventDetails())
         })
     }
-)
+}
 
 const toggleEventSelection = ({ event, value }) => (
     {
@@ -105,9 +92,9 @@ const askConfirmationBeforeSavingEvent = (event, publish=false) => (
         // If this is not from a recurring series, then simply save this event
         if (!get(originalEvent, 'recurrence_id')) {
             return dispatch(uploadFilesAndSaveEvent(event))
-            .then(() => {
+            .then((events) => {
                 if (publish) {
-                    dispatch(publishEvent(event._id))
+                    dispatch(publishEvent(events[0]))
                 }
             })
         }
@@ -186,7 +173,8 @@ const uploadFilesAndSaveEvent = (event) => {
         .then((events) => {
             if (events.length > 0 && selectors.getShowEventDetails(getState()) === true) {
                 dispatch(eventsUi.closeEventDetails())
-                dispatch(eventsUi.openEventDetails(events[0]))
+                return dispatch(eventsUi.openEventDetails(events[0]))
+                    .then(() => events)
             }
 
             return events
@@ -288,7 +276,9 @@ const saveEvent = (newEvent) => (
         newEvent = cloneDeep(newEvent) || {}
 
         // save the timezone. This is useful for recurring events
-        newEvent.dates.tz = moment.tz.guess()
+        if (newEvent.dates) {
+            newEvent.dates.tz = moment.tz.guess()
+        }
 
         // remove all properties starting with _,
         // otherwise it will fail for "unknown field" with `_type`
@@ -465,12 +455,6 @@ const receiveEventHistory = (eventHistoryItems) => ({
  */
 const toggleEventsList = () => (
     { type: EVENTS.ACTIONS.TOGGLE_EVENT_LIST }
-)
-
-const setEventStatus = checkPermission(
-    _setEventStatus,
-    PRIVILEGES.EVENT_MANAGEMENT,
-    'Unauthorised to change the status of an event!'
 )
 
 // WebSocket Notifications

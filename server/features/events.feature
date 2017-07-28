@@ -235,7 +235,7 @@ Feature: Events
         Then we get OK response
         When we post to "/events/publish"
         """
-        {"event": "#events._id#", "etag": "#events._etag#"}
+        {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
         """
         When we get "/events_history"
         Then we get a list with 2 items
@@ -326,7 +326,7 @@ Feature: Events
         Then we get OK response
         When we post to "/events/publish"
         """
-        {"event": "#events._id#", "etag": "#events._etag#"}
+        {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
         """
         When we post to "/events/#events._id#/duplicate"
         """

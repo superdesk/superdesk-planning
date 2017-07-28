@@ -33,6 +33,7 @@ const _openEventDetails = (event) => (
                 return dispatch(eventsApi.lock(event)).then((item) => {
                     dispatch(openDetails)
                     dispatch(eventsApi.receiveEvents([item]))
+                    return item
                 }, () => {
                     dispatch(openDetails)
                 })
@@ -42,7 +43,7 @@ const _openEventDetails = (event) => (
                 type: EVENTS.ACTIONS.OPEN_EVENT_DETAILS,
                 payload: true,
             })
-            return Promise.resolve()
+            return Promise.resolve(event)
         }
     }
 )
