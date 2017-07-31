@@ -4,7 +4,7 @@ import { ListItem, TimePlanning, DueDate, tooltips } from '../index'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { ITEM_STATE } from '../../constants'
 import classNames from 'classnames'
-import { getCoverageIcon, isItemPublic } from '../../utils/index'
+import { getCoverageIcon, isItemPublic, planningUtils } from '../../utils/index'
 import './style.scss'
 
 const PlanningItem = ({
@@ -22,8 +22,8 @@ const PlanningItem = ({
         onAgendaClick,
     }) => {
     const location = get(event, 'location[0].name')
-    const dueDates = get(item, 'coverages', []).map((c) => (get(c, 'planning.scheduled'))).filter(d => (d))
-    const coveragesTypes = get(item, 'coverages', []).map((c) => get(c, 'planning.g2_content_type'))
+    const dueDates = get(item, '_coverages', []).map((c) => (get(c, 'scheduled'))).filter(d => (d))
+    const coveragesTypes = planningUtils.mapCoverageByDate(get(item, 'coverages', []))
 
     const itemSpiked = item && get(item, 'state', 'active') === ITEM_STATE.SPIKED
     const eventSpiked = event ? get(event, 'state', 'active') === ITEM_STATE.SPIKED : false
@@ -79,11 +79,11 @@ const PlanningItem = ({
                             <OverlayTrigger
                                 placement="bottom"
                                 overlay={
-                                    <Tooltip id={`${i}${c}`}>
-                                        {capitalize(c).replace(/_/g, ' ')}
+                                    <Tooltip id={`${i}${c.g2_content_type}`}>
+                                        {capitalize(c.g2_content_type).replace(/_/g, ' ')}
                                     </Tooltip>
                                 }>
-                                <i className={getCoverageIcon(c)}/>
+                                <i className={getCoverageIcon(c.g2_content_type) + ` ${c.iconColor}`}/>
                             </OverlayTrigger>
                             &nbsp;
                         </span>

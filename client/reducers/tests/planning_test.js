@@ -32,6 +32,7 @@ describe('planning', () => {
                 readOnly: true,
                 planningHistoryItems: [],
                 lastRequestParams: { page: 1 },
+                search: { currentSearch: undefined },
             })
         })
 

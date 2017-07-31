@@ -10,6 +10,7 @@ export const PLANNING = {
         SET_ONLY_FUTURE: 'SET_ONLY_FUTURE',
         SET_ONLY_SPIKED: 'SET_ONLY_SPIKED',
         PLANNING_FILTER_BY_KEYWORD: 'PLANNING_FILTER_BY_KEYWORD',
+        PLANNING_FILTER_BY_TIMELINE: 'PLANNING_FILTER_BY_TIMELINE',
         RECEIVE_COVERAGE: 'RECEIVE_COVERAGE',
         COVERAGE_DELETED: 'COVERAGE_DELETED',
         RECEIVE_PLANNING_HISTORY: 'RECEIVE_PLANNING_HISTORY',
@@ -21,4 +22,9 @@ export const PLANNING = {
     // because url length must stay short
     // chunk size must be lower than page limit (25)
     FETCH_IDS_CHUNK_SIZE: 25,
+    PLANNING_FILTER_TIMELINE: {
+        FUTURE: 'FUTURE',
+        PAST: 'PAST',
+        NOT_SCHEDULED: 'NOT_SCHEDULED',
+    },
 }

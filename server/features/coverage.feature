@@ -44,7 +44,7 @@ Feature: Coverage
         ]
         """
         When we get "/coverage"
-        Then we get list with 2 items
+        Then we get list with 1 items
         """
             {"_items": [{
                 "guid": "__any_value__",
@@ -60,7 +60,7 @@ Feature: Coverage
             }]}
         """
         When we get "/coverage_history"
-        Then we get a list with 2 items
+        Then we get a list with 1 items
         """
             {"_items": [{"operation": "create", "coverage_id": "#coverage._id#", "update": {
                 "planning_item": "#planning._id#"
@@ -105,7 +105,7 @@ Feature: Coverage
         ]
         """
         When we get "/coverage"
-        Then we get list with 2 items
+        Then we get list with 1 items
         """
             {"_items": [{
                 "guid": "__any_value__",
@@ -256,7 +256,7 @@ Feature: Coverage
         """
         Then we get OK response
         When we get "/coverage_history"
-        Then we get a list with 3 items
+        Then we get a list with 2 items
         """
             {"_items": [{
                 "coverage_id":  "#coverage._id#",
@@ -288,7 +288,7 @@ Feature: Coverage
             ]}
         """
         When we get "/planning_history?where=planning_id==%22#planning._id#%22"
-        Then we get list with 4 items
+        Then we get list with 3 items
         """
             {"_items": [
                 {"operation": "create"},
@@ -300,7 +300,7 @@ Feature: Coverage
         """
         When we delete "/coverage/#coverage._id#"
         When we get "/planning_history?where=planning_id==%22#planning._id#%22"
-        Then we get list with 5 items
+        Then we get list with 4 items
         """
             {"_items": [
                 {"operation": "create"},
@@ -311,4 +311,175 @@ Feature: Coverage
                 {"operation": "coverage deleted",
                     "update": {"coverage_id": "#coverage._id#"}}
             ]}
+        """
+    @auth
+    @notification
+    Scenario: Create or update coverage - sync coverage information to planning
+        Given empty "users"
+        Given empty "coverage"
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "slugline": "planning 1"
+        }]
+        """
+        Then we get OK response
+        Then we store "planning_date" with value "#planning._planning_date#" to context
+        When we post to "/coverage"
+        """
+        [
+            {
+                "guid": "123",
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "g2_content_type": "text",
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de860ea"
+                    }
+                },
+                "planning_item": "#planning._id#",
+                "delivery": []
+            }
+        ]
+        """
+        Then we get OK response
+        Then we store "coverage1" with value "#coverage._id#" to context
+        When we get "/coverage"
+        Then we get list with 1 items
+        """
+            {"_items": [{
+                "guid": "__any_value__",
+                "original_creator": "__any_value__",
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "g2_content_type": "text",
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de860ea"
+                    }
+                },
+                "delivery": []
+            }]}
+        """
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "slugline": "planning 1",
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "g2_content_type": "text",
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de860ea",
+                        "assigned_by": "#CONTEXT_USER_ID#",
+                        "assigned_date": "__any_value__"
+                    }
+                },
+                "planning_item": "#planning._id#",
+                "delivery": []
+            }],
+            "_coverages": [
+                {
+                    "coverage_id" : null,
+                    "scheduled" : "__any_value__",
+                    "g2_content_type": null
+                },
+                {
+                    "coverage_id" : "#coverage._id#",
+                    "scheduled" : null,
+                    "g2_content_type": "text"
+                }
+            ]
+        }
+        """
+        When we patch "/coverage/#coverage._id#"
+        """
+        {"planning": { "scheduled": "#DATE+1#", "g2_content_type": "text" }}
+        """
+        Then we get updated response
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "slugline": "planning 1",
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "g2_content_type": "text",
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de860ea",
+                        "assigned_by": "#CONTEXT_USER_ID#",
+                        "assigned_date": "__any_value__"
+                    }
+                },
+                "planning_item": "#planning._id#",
+                "delivery": []
+            }],
+            "_coverages": [
+                {
+                    "coverage_id": "#coverage._id#",
+                    "scheduled": "__any_value__",
+                    "g2_content_type": "text"
+                }
+            ]
+        }
+        """
+        When we post to "/coverage"
+        """
+        [
+            {
+                "guid": "456",
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "g2_content_type": "video",
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de860ea"
+                    },
+                    "scheduled": "#DATE+3#"
+                },
+                "planning_item": "#planning._id#",
+                "delivery": []
+            }
+        ]
+        """
+        Then we get OK response
+        Then we store "coverage2" with value "#coverage._id#" to context
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+            "slugline": "planning 1",
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "g2_content_type": "text",
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de860ea",
+                        "assigned_by": "#CONTEXT_USER_ID#",
+                        "assigned_date": "__any_value__"
+                    }
+                },
+                "planning_item": "#planning._id#",
+                "delivery": []
+            }],
+            "_coverages": [
+                {
+                    "coverage_id": "#coverage1#",
+                    "scheduled": "__any_value__",
+                    "g2_content_type": "text"
+                },
+                {
+                    "coverage_id": "#coverage2#",
+                    "scheduled": "__any_value__",
+                    "g2_content_type": "video"
+                }
+            ]
+        }
         """

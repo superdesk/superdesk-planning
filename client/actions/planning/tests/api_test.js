@@ -7,6 +7,7 @@ import {
     restoreSinonStub,
     convertEventDatesToMoment,
 } from '../../../utils/testUtils'
+import { getTimeZoneOffset } from '../../../utils/index'
 
 describe('actions.planning.api', () => {
     let errorMessage
@@ -112,44 +113,149 @@ describe('actions.planning.api', () => {
             restoreSinonStub(planningApi.query)
         })
 
-        it('by list of agendas', (done) => (
-            store.test(done, planningApi.query({ agendas: ['a1', 'a2'] }))
+        it('list planning items of agendas in future', (done) => (
+            store.test(done, planningApi.query(
+                {
+                    agendas: ['a1', 'a2'],
+                    onlyFuture: true,
+                }
+            ))
             .then(() => {
                 expect(services.api('planning').query.callCount).toBe(1)
-                expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
-                    source: JSON.stringify({
-                        query: {
-                            bool: {
-                                must: [
-                                    { terms: { agendas: ['a1', 'a2'] } },
-                                ],
-                                must_not: [],
+                const source = JSON.parse(services.api('planning').query.args[0][0].source)
+                expect(source.query.bool.must).toEqual([
+                    { terms: { agendas: ['a1', 'a2'] } },
+                    {
+                        nested: {
+                            path: '_coverages',
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            range: {
+                                                '_coverages.scheduled': {
+                                                    gte: 'now/d',
+                                                    time_zone: getTimeZoneOffset(),
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
                             },
                         },
-                    }),
-                    embedded: { original_creator: 1 },
-                })])
+                    },
+                ])
+                expect(source.query.bool.must_not).toEqual([])
+                expect(source.sort).toEqual(
+                    [
+                        {
+                            '_coverages.scheduled': {
+                                order: 'asc',
+                                nested_path: '_coverages',
+                                nested_filter: {
+                                    range: {
+                                        '_coverages.scheduled': {
+                                            gte: 'now/d',
+                                            time_zone: getTimeZoneOffset(),
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    ]
+                )
+                done()
+            })
+        ))
 
+        it('list planning items of agendas in past', (done) => (
+            store.test(done, planningApi.query(
+                {
+                    agendas: ['a1', 'a2'],
+                    onlyFuture: false,
+                }
+            ))
+            .then(() => {
+                expect(services.api('planning').query.callCount).toBe(1)
+                const source = JSON.parse(services.api('planning').query.args[0][0].source)
+                expect(source.query.bool.must).toEqual([
+                    { terms: { agendas: ['a1', 'a2'] } },
+                    {
+                        nested: {
+                            path: '_coverages',
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            range: {
+                                                '_coverages.scheduled': {
+                                                    lt: 'now/d',
+                                                    time_zone: getTimeZoneOffset(),
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                ])
+                expect(source.query.bool.must_not).toEqual([])
+                expect(source.sort).toEqual(
+                    [
+                        {
+                            '_coverages.scheduled': {
+                                order: 'desc',
+                                nested_path: '_coverages',
+                                nested_filter: {
+                                    range: {
+                                        '_coverages.scheduled': {
+                                            lt: 'now/d',
+                                            time_zone: getTimeZoneOffset(),
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    ]
+                )
                 done()
             })
         ))
 
         it('by list of planning not in any agendas', (done) => (
-            store.test(done, planningApi.query({ noAgendaAssigned: true }))
+            store.test(done, planningApi.query({
+                noAgendaAssigned: true,
+                onlyFuture: false,
+            }))
             .then(() => {
                 let noAgenda = { constant_score: { filter: { exists: { field: 'agendas' } } } }
                 expect(services.api('planning').query.callCount).toBe(1)
-                expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
-                    source: JSON.stringify({
-                        query: {
-                            bool: {
-                                must: [],
-                                must_not: [noAgenda],
+                const source = JSON.parse(services.api('planning').query.args[0][0].source)
+
+                expect(source.query.bool.must).toEqual([
+                    {
+                        nested: {
+                            path: '_coverages',
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            range: {
+                                                '_coverages.scheduled': {
+                                                    lt: 'now/d',
+                                                    time_zone: getTimeZoneOffset(),
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
                             },
                         },
-                    }),
-                    embedded: { original_creator: 1 },
-                })])
+                    },
+                ])
+
+                expect(source.query.bool.must_not).toEqual([noAgenda])
 
                 done()
             })
@@ -159,20 +265,9 @@ describe('actions.planning.api', () => {
             store.test(done, planningApi.query({ eventIds: 'e1' }))
             .then(() => {
                 expect(services.api('planning').query.callCount).toBe(1)
-                expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
-                    source: JSON.stringify({
-                        query: {
-                            bool: {
-                                must: [
-                                    { term: { event_item: 'e1' } },
-                                ],
-                                must_not: [],
-                            },
-                        },
-                    }),
-                    embedded: { original_creator: 1 },
-                })])
-
+                const source = JSON.parse(services.api('planning').query.args[0][0].source)
+                expect(source.query.bool.must).toEqual([{ term: { event_item: 'e1' } }])
+                expect(source.sort).toEqual([{ _planning_date: { order: 'asc' } }])
                 done()
             })
         ))
@@ -184,21 +279,32 @@ describe('actions.planning.api', () => {
             }))
             .then(() => {
                 expect(services.api('planning').query.callCount).toBe(1)
-                expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
-                    source: JSON.stringify({
-                        query: {
-                            bool: {
-                                must: [
-                                    { terms: { agendas: ['a1', 'a2'] } },
-                                    { term: { state: 'spiked' } },
-                                ],
-                                must_not: [],
+                const source = JSON.parse(services.api('planning').query.args[0][0].source)
+                expect(source.query.bool.must).toEqual([
+                    { terms: { agendas: ['a1', 'a2'] } },
+                    { term: { state: 'spiked' } },
+                    {
+                        nested: {
+                            path: '_coverages',
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            range: {
+                                                '_coverages.scheduled': {
+                                                    lt: 'now/d',
+                                                    time_zone: getTimeZoneOffset(),
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
                             },
                         },
-                    }),
-                    embedded: { original_creator: 1 },
-                })])
+                    },
+                ])
 
+                expect(source.query.bool.must_not).toEqual([])
                 done()
             })
         ))
@@ -210,25 +316,48 @@ describe('actions.planning.api', () => {
             }))
             .then(() => {
                 expect(services.api('planning').query.callCount).toBe(1)
-                expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
-                    source: JSON.stringify({
-                        query: {
-                            bool: {
-                                must: [
-                                    { terms: { agendas: ['a1', 'a2'] } },
-                                ],
-                                must_not: [
-                                    { term: { state: 'spiked' } },
-                                ],
+                const source = JSON.parse(services.api('planning').query.args[0][0].source)
+                expect(source.query.bool.must).toEqual([
+                    { terms: { agendas: ['a1', 'a2'] } },
+                    {
+                        nested: {
+                            path: '_coverages',
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            range: {
+                                                '_coverages.scheduled': {
+                                                    lt: 'now/d',
+                                                    time_zone: getTimeZoneOffset(),
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
                             },
                         },
-                    }),
-                    embedded: { original_creator: 1 },
-                })])
+                    },
+                ])
+
+                expect(source.query.bool.must_not).toEqual([{ term: { state: 'spiked' } }])
 
                 done()
             })
         ))
+
+        it('refetch', (done) => {
+            sinon.stub(planningApi, 'query').callsFake(() => (Promise.resolve(['item'])))
+            store.initialState.planning.lastRequestParams.page = 3
+
+            store.test(done, planningApi.refetch())
+            .then((items) => {
+                expect(planningApi.query.callCount).toBe(3)
+                expect(items.length).toBe(3)
+                expect(items).toEqual(['item', 'item', 'item'])
+                done()
+            })
+        })
     })
 
     describe('fetch', () => {
@@ -477,17 +606,7 @@ describe('actions.planning.api', () => {
                     },
                 ])
 
-                expect(planningApi.saveAndDeleteCoverages.callCount).toBe(1)
-                expect(planningApi.saveAndDeleteCoverages.args[0]).toEqual([
-                    [],
-                    {
-                        _id: 'p3',
-                        slugline: 'Planning3',
-                        headline: 'Some Plan 3',
-                    },
-                    [],
-                ])
-
+                expect(planningApi.saveAndDeleteCoverages.callCount).toBe(0)
                 done()
             })
         })
@@ -525,7 +644,7 @@ describe('actions.planning.api', () => {
                 expect(planningApi.saveAndDeleteCoverages.callCount).toBe(1)
                 expect(planningApi.saveAndDeleteCoverages.args[0]).toEqual([
                     planningItem.coverages,
-                    planningItem,
+                    data.plannings[0],
                     data.plannings[0].coverages,
                 ])
 
@@ -691,13 +810,6 @@ describe('actions.planning.api', () => {
 
                 expect(planningApi.save.callCount).toBe(1)
                 expect(planningApi.save.args[0]).toEqual([newItem, {}])
-
-                expect(planningApi.fetch.callCount).toBe(1)
-                expect(planningApi.fetch.args[0]).toEqual([{
-                    noAgendaAssigned: false,
-                    agendas: ['a1'],
-                    page: 1,
-                }])
 
                 done()
             })

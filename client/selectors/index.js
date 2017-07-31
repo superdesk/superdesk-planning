@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect'
-import { orderBy, get, sortBy, includes, isEmpty } from 'lodash'
+import { get, sortBy, includes, isEmpty } from 'lodash'
 import moment from 'moment'
-import { ITEM_STATE } from '../constants'
 import { isItemLockedInThisSession } from '../utils'
+import { ITEM_STATE, AGENDA } from '../constants'
 
 export const getAgendas = (state) => state.agenda.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
@@ -74,6 +74,7 @@ export const getSessionDetails = (state) => state.session
 export const getCurrentUserId = (state) => state.session.identity._id
 export const getEventCalendars = (state) => get(state, 'vocabularies.event_calendars', [])
 
+export const getPlanningSearch = (state) => state.planning.search.currentSearch
 export const getPlanningsInList = createSelector(
     [getPlanningIdsInList, getStoredPlannings],
     (planningIds, storedPlannings) => (
@@ -81,50 +82,9 @@ export const getPlanningsInList = createSelector(
     )
 )
 
-// export const getCurrentAgendaPlannings = createSelector(
 export const getFilteredPlanningList = createSelector(
-    [getCurrentAgenda, getCurrentAgendaId, getPlanningsInList, isOnlyFutureFiltered, getEvents,
-        filterPlanningKeyword, isOnlySpikeFiltered],
-    (currentAgenda, currentAgendaId, planningsInList, isOnlyFutureFiltered, events,
-        filterPlanningKeyword, isOnlySpikeFiltered) => {
-        /** Return true if the planning has a future scheduled due date for a coverage
-        or an associated event with a future end date.
-        see: https://dev.sourcefabric.org/browse/SDESK-1103
-        */
-        function isFuture(planning) {
-            const endDate = get(events[planning.event_item], 'dates.end')
-            // planning has no coverage due date and no event ending date
-            if (!endDate && !get(planning, 'coverages', []).some(
-                (c) => (get(c, 'planning.scheduled'))
-            )) {
-                return true
-            }
-            // event ending date is future
-            else if (endDate && endDate.isSameOrAfter(new Date(), 'day')) {
-                return true
-            }
-            // or a coverage due date is future
-            else if (get(planning, 'coverages', []).some((c) => (
-                    moment(c.planning.scheduled).isSameOrAfter(new Date(), 'day')
-            ))) {
-                return true
-            }
-            // it's an old planning
-            return false
-        }
-
-        function freetextSearch(planning) {
-            // compose a string with the fields we want to seach in.
-            const textToSearchIn = `
-                ${JSON.stringify(planning)}
-                ${JSON.stringify(events[planning.event_item])}
-            `.toLowerCase()
-            return filterPlanningKeyword
-                .toLowerCase()
-                .split(' ').every((keyword) => (
-                    textToSearchIn.indexOf(keyword) !== -1
-                ))
-        }
+    [getCurrentAgenda, getCurrentAgendaId, getPlanningsInList, isOnlySpikeFiltered],
+    (currentAgenda, currentAgendaId, planningsInList, onlySpike) => {
 
         let plannings = []
 
@@ -138,20 +98,10 @@ export const getFilteredPlanningList = createSelector(
             )
         }
 
-        plannings = plannings
-        // remove undefined
-        .filter((p) => p !== undefined)
-        // if "only future" filter is enabled, keep only future planning
-        .filter((p) => !isOnlyFutureFiltered || isFuture(p))
-        // filter by keyword
-        .filter((p) => !filterPlanningKeyword || freetextSearch(p))
-        // if "only active" filter is enabled, keep only active planning
-        .filter((p) =>
-            (isOnlySpikeFiltered && p.state === ITEM_STATE.SPIKED) ||
-            (!isOnlySpikeFiltered && p.state !== ITEM_STATE.SPIKED)
+        return plannings.filter((p) =>
+            (onlySpike && p.state === ITEM_STATE.SPIKED) ||
+            (!onlySpike && p.state !== ITEM_STATE.SPIKED)
         )
-        // sort by new created first, or by name
-        return orderBy(plannings, ['_created'], ['desc'])
     }
 )
 
@@ -330,5 +280,23 @@ export const isEventDetailLockedInThisSession = createSelector(
     (showEventDetails, events, session) => {
         const event = events[showEventDetails]
         return event && isItemLockedInThisSession(event, session)
+    }
+)
+
+export const getPlanningFilterParams = createSelector(
+    [getCurrentAgendaId, getCurrentAgenda, getPlanningSearch,
+        filterPlanningKeyword, isOnlySpikeFiltered, isOnlyFutureFiltered],
+    (agendaId, agenda, planningSearch, filterKeyword, onlySpiked, onlyFuture) => {
+        const params = {
+            noAgendaAssigned: agendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED,
+            agendas: agenda ? [agenda._id] : null,
+            page: 1,
+            advancedSearch: planningSearch,
+            state: onlySpiked ? ITEM_STATE.SPIKED : ITEM_STATE.ACTIVE,
+            fulltext: filterKeyword,
+            onlyFuture: onlyFuture,
+        }
+
+        return params
     }
 )

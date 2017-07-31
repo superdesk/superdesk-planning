@@ -251,19 +251,12 @@ const _createPlanningFromEvent = (event) => (
 const fetchSelectedAgendaPlannings = () => (
     (dispatch, getState) => {
         const agendaId = selectors.getCurrentAgendaId(getState())
-
         if (!agendaId) {
             dispatch(planning.ui.clearList())
             return Promise.resolve()
         }
 
-        const agenda = selectors.getCurrentAgenda(getState())
-        const params = {
-            noAgendaAssigned: agendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED,
-            agendas: agenda ? [agenda._id] : null,
-            page: 1,
-        }
-
+        const params = selectors.getPlanningFilterParams(getState())
         return dispatch(planning.ui.fetchToList(params))
     }
 )

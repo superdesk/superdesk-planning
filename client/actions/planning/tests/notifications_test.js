@@ -1,7 +1,7 @@
-import sinon from 'sinon'
-import { registerNotifications } from '../../../utils'
 import planningApi from '../api'
 import planningUi from '../ui'
+import sinon from 'sinon'
+import { registerNotifications } from '../../../utils'
 import planningNotifications from '../notifications'
 import { getTestActionStore, restoreSinonStub } from '../../../utils/testUtils'
 
@@ -172,26 +172,35 @@ describe('actions.planning.notifications', () => {
 
     describe('`planning:created`', () => {
         afterEach(() => {
-            restoreSinonStub(planningApi.fetchPlanningById)
+            restoreSinonStub(planningApi.refetch)
+            restoreSinonStub(planningUi.setInList)
+            restoreSinonStub(planningNotifications.canRefetchPlanning)
         })
 
-        it('calls fetchPlanningById on create', (done) => {
-            sinon.stub(planningApi, 'fetchPlanningById').callsFake(
-                () => (Promise.resolve(data.plannings[0]))
+        it('calls refetch on create', (done) => {
+            restoreSinonStub(planningApi.refetch)
+            sinon.stub(planningApi, 'refetch').callsFake(() => (Promise.resolve([{ _id: 'p1' }])))
+            sinon.stub(planningUi, 'setInList').callsFake(() => ({ type: 'setInList' }))
+            sinon.stub(planningNotifications, 'canRefetchPlanning').callsFake(
+                () => (Promise.resolve(true))
             )
 
             return store.test(done, planningNotifications.onPlanningCreated({}, { item: 'p1' }))
-            .then((item) => {
-                expect(item).toEqual(data.plannings[0])
-                expect(planningApi.fetchPlanningById.callCount).toBe(1)
-                expect(planningApi.fetchPlanningById.args[0]).toEqual(['p1', true])
+            .then(() => {
+                expect(planningNotifications.canRefetchPlanning.callCount).toBe(1)
+                expect(planningApi.refetch.callCount).toBe(1)
+                expect(planningUi.setInList.callCount).toBe(1)
                 done()
             })
         })
 
-        it('notifies user if fetchPlanningById failed', (done) => {
-            sinon.stub(planningApi, 'fetchPlanningById').callsFake(
+        it('notifies user if refetch failed', (done) => {
+            restoreSinonStub(planningApi.refetch)
+            sinon.stub(planningApi, 'refetch').callsFake(
                 () => (Promise.reject(errorMessage))
+            )
+            sinon.stub(planningNotifications, 'canRefetchPlanning').callsFake(
+                () => (Promise.resolve(true))
             )
 
             return store.test(done, planningNotifications.onPlanningCreated({}, { item: 'p5' }))
@@ -199,6 +208,102 @@ describe('actions.planning.notifications', () => {
                 expect(error).toEqual(errorMessage)
                 expect(services.notify.error.callCount).toBe(1)
                 expect(services.notify.error.args[0]).toEqual(['Failed!'])
+                done()
+            })
+        })
+    })
+
+    describe('`canRefetchPlanning`', () => {
+        it('user is editing in the same session', (done) => {
+            store.initialState.session = {
+                identity: { _id: 'foo' },
+                sessionId: 'bar',
+            }
+            return store.test(done, planningNotifications.canRefetchPlanning({
+                item: 'p1',
+                added_agendas: ['a1'],
+                removed_agendas: ['a2'],
+                user: 'foo',
+                session: 'bar',
+            }))
+            .then((result) => {
+                expect(result).toBe(false)
+                done()
+            })
+        })
+
+        it('user is editing not in the same session', (done) => {
+            store.initialState.agenda.currentAgendaId = 'a1'
+            store.initialState.session = {
+                identity: { _id: 'foo' },
+                sessionId: 'bar2',
+            }
+            return store.test(done, planningNotifications.canRefetchPlanning({
+                item: 'p1',
+                added_agendas: ['a1'],
+                removed_agendas: ['a2'],
+                user: 'foo',
+                session: 'bar',
+            }))
+            .then((result) => {
+                expect(result).toBe(true)
+                done()
+            })
+        })
+
+        it('current agenda is same as planning item agenda', (done) => {
+            store.initialState.agenda.currentAgendaId = 'a1'
+            store.initialState.session = {
+                identity: { _id: 'foo' },
+                sessionId: 'bar2',
+            }
+            return store.test(done, planningNotifications.canRefetchPlanning({
+                item: 'p1',
+                added_agendas: ['a1'],
+                removed_agendas: ['a2'],
+                user: 'foo',
+                session: 'bar',
+            }))
+            .then((result) => {
+                expect(result).toBe(true)
+                done()
+            })
+        })
+
+        it('current agenda is not same as planning item agenda', (done) => {
+            store.initialState.agenda.currentAgendaId = 'a3'
+            store.initialState.session = {
+                identity: { _id: 'foo' },
+                sessionId: 'bar2',
+            }
+            return store.test(done, planningNotifications.canRefetchPlanning({
+                item: 'p1',
+                added_agendas: ['a1'],
+                removed_agendas: ['a2'],
+                user: 'foo',
+                session: 'bar',
+            }))
+            .then((result) => {
+                expect(result).toBe(false)
+                done()
+            })
+        })
+
+        it('planning item is removed from the agenda', (done) => {
+            store.initialState.agenda.currentAgendaId = 'a2'
+            store.initialState.session = {
+                identity: { _id: 'foo' },
+                sessionId: 'bar2',
+            }
+            return store.test(done, planningNotifications.canRefetchPlanning({
+                item: 'p1',
+                added_agendas: ['a1'],
+                removed_agendas: ['a2'],
+                user: 'foo',
+                session: 'bar',
+            }))
+            .then((result) => {
+                expect(result).toBe(true)
                 done()
             })
         })
@@ -273,14 +378,22 @@ describe('actions.planning.notifications', () => {
     describe('onPlanningUpdated', () => {
         afterEach(() => {
             restoreSinonStub(planningApi.loadPlanningById)
+            restoreSinonStub(planningApi.refetch)
+            restoreSinonStub(planningUi.setInList)
+            restoreSinonStub(planningUi.refetch)
+            restoreSinonStub(planningNotifications.canRefetchPlanning)
         })
 
-        it('calls fetchPlanningById on update', (done) => {
+        it('calls loadPlanningById on update', (done) => {
             sinon.stub(planningApi, 'loadPlanningById').callsFake(
                 () => (Promise.resolve(data.plannings[0]))
             )
 
-            return store.test(done, planningNotifications.onPlanningUpdated({}, { item: 'p1' }))
+            return store.test(done, planningNotifications.onPlanningUpdated(
+                {},
+                { item: 'p1' },
+                false
+            ))
             .then((item) => {
                 expect(item).toEqual(data.plannings[0])
                 expect(planningApi.loadPlanningById.callCount).toBe(1)
@@ -295,12 +408,39 @@ describe('actions.planning.notifications', () => {
                 () => (Promise.reject(errorMessage))
             )
 
-            return store.test(done, planningNotifications.onPlanningUpdated({}, { item: 'p1' }))
+            return store.test(done, planningNotifications.onPlanningUpdated(
+                {},
+                { item: 'p1' },
+                false
+            ))
             .then(() => {}, (error) => {
                 expect(error).toEqual(errorMessage)
                 expect(services.notify.error.callCount).toBe(1)
                 expect(services.notify.error.args[0]).toEqual(['Failed!'])
 
+                done()
+            })
+        })
+
+        it('calls refetch on update', (done) => {
+            sinon.stub(planningApi, 'loadPlanningById').callsFake(
+                () => (Promise.resolve(data.plannings[0]))
+            )
+
+            sinon.stub(planningUi, 'refetch').callsFake(() => (Promise.resolve()))
+            sinon.stub(planningNotifications, 'canRefetchPlanning').callsFake(
+                () => (Promise.resolve(true))
+            )
+
+            return store.test(done, planningNotifications.onPlanningUpdated(
+                {},
+                { item: 'p1' },
+                true
+            ))
+            .then(() => {
+                expect(planningNotifications.canRefetchPlanning.callCount).toBe(1)
+                expect(planningUi.refetch.callCount).toBe(1)
+                expect(planningApi.loadPlanningById.callCount).toBe(0)
                 done()
             })
         })
@@ -361,21 +501,16 @@ describe('actions.planning.notifications', () => {
 
     describe('onPlanningPublished', () => {
         afterEach(() => {
-            restoreSinonStub(planningUi.fetchToList)
+            restoreSinonStub(planningUi.refetch)
         })
 
         it('onPlanningPublished calls fetchToList', (done) => {
-            sinon.stub(planningUi, 'fetchToList').callsFake(() => (Promise.resolve()))
+            sinon.stub(planningUi, 'refetch').callsFake(() => (Promise.resolve()))
 
             store.test(done, planningNotifications.onPlanningPublished({}, { item: 'p1' }))
             .then(() => {
                 // Reloads selected Agenda Plannings
-                expect(planningUi.fetchToList.callCount).toBe(1)
-                expect(planningUi.fetchToList.args[0]).toEqual([{
-                    noAgendaAssigned: false,
-                    agendas: ['a1'],
-                    page: 1,
-                }])
+                expect(planningUi.refetch.callCount).toBe(1)
                 done()
             })
         })

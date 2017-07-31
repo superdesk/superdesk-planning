@@ -20,12 +20,12 @@ from superdesk.resource import not_analyzed
 from superdesk.users.services import current_user_has_privilege
 from superdesk.resource import build_custom_hateoas
 from superdesk.notification import push_notification
-from apps.archive.common import set_original_creator, get_user
+from apps.archive.common import set_original_creator, get_user, get_auth
 from copy import deepcopy
 from eve.utils import config, ParsedRequest
 from .common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA
 from superdesk.utc import utcnow
-from bson.objectid import ObjectId
+
 
 logger = logging.getLogger(__name__)
 
@@ -55,42 +55,27 @@ class PlanningService(superdesk.Service):
         for doc in docs:
             doc['guid'] = generate_guid(type=GUID_NEWSML)
             set_original_creator(doc)
+            self._set_planning_event_date(doc)
 
     def on_created(self, docs):
+        session_id = get_auth().get('_id')
         for doc in docs:
             push_notification(
                 'planning:created',
                 item=str(doc.get(config.ID_FIELD)),
-                user=str(doc.get('original_creator', ''))
+                user=str(doc.get('original_creator', '')),
+                added_agendas=doc.get('agendas') or [],
+                removed_agendas=[],
+                session=session_id
             )
 
-            # Create a place holder coverage item
-            coverage = {'planning_item': ObjectId(doc.get(config.ID_FIELD))}
-            coverage_status = get_resource_service('vocabularies').find_one(req=None, _id='newscoveragestatus')
-            if coverage_status is not None:
-                coverage['news_coverage_status'] = \
-                    [x for x in coverage_status.get('items', []) if x['qcode'] == 'ncostat:notdec'][0]
-                coverage['news_coverage_status'].pop('is_active')
-
-            # remove event expiry if it is linked to the planning
-            if 'event_item' in doc:
-                events_service = get_resource_service('events')
-                original_event = events_service.find_one(req=None, _id=doc['event_item'])
-                events_service.system_update(doc['event_item'], {'expiry': None}, original_event)
-                get_resource_service('events_history').on_item_updated({'planning_id': doc.get('_id')}, original_event,
-                                                                       'planning created')
-                # if the planning item is related to an event the default coverage schedule time is inherited from the
-                # event else it is set to now
-                coverage['planning'] = {'scheduled': original_event.get('dates', {}).get('start', None)}
-            else:
-                coverage['planning'] = {'scheduled': utcnow()}
-
-            # Copy metadata from the planning item to the coverage
-            coverage['planning']['headline'] = doc.get('headline', '')
-            coverage['planning']['slugline'] = doc.get('slugline', '')
-
-            get_resource_service('coverage').post([coverage])
-            get_resource_service('coverage_history').on_item_created([coverage])
+        if 'event_item' in doc:
+            events_service = get_resource_service('events')
+            original_event = events_service.find_one(req=None, _id=doc['event_item'])
+            events_service.system_update(doc['event_item'], {'expiry': None}, original_event)
+            get_resource_service('events_history').on_item_updated({'planning_id': doc.get('_id')},
+                                                                   original_event,
+                                                                   'planning created')
 
     def on_locked_planning(self, item, user_id):
         item['coverages'] = list(self.__generate_related_coverages(item))
@@ -110,11 +95,34 @@ class PlanningService(superdesk.Service):
         if user and user.get(config.ID_FIELD):
             updates['version_creator'] = user[config.ID_FIELD]
 
+    def _set_planning_event_date(self, doc):
+        """Set the planning event date
+
+        :param dict doc: planning document
+        """
+        event_id = doc.get('event_item')
+        event = {}
+        if event_id:
+            event = get_resource_service('events').find_one(req=None, _id=event_id)
+
+        doc['_planning_date'] = event.get('dates', {}).get('start') if event else utcnow()
+        doc['_coverages'] = [{'coverage_id': None, 'scheduled': doc['_planning_date'], 'g2_content_type': None}]
+
+    def _get_added_removed_agendas(self, updates, original):
+        added_agendas = updates.get('agendas') or []
+        existing_agendas = original.get('agendas') or []
+        removed_agendas = list(set(existing_agendas) - set(added_agendas))
+        return added_agendas, removed_agendas
+
     def on_updated(self, updates, original):
+        added, removed = self._get_added_removed_agendas(updates, original)
+        session_id = get_auth().get('_id')
         push_notification(
             'planning:updated',
             item=str(original[config.ID_FIELD]),
-            user=str(updates.get('version_creator', ''))
+            user=str(updates.get('version_creator', '')),
+            added_agendas=added, removed_agendas=removed,
+            session=session_id
         )
 
     def can_edit(self, item, user_id):
@@ -138,13 +146,44 @@ class PlanningService(superdesk.Service):
         req.args = {'source': json.dumps(query)}
         return super().get(req=req, lookup=None)
 
+    def sync_coverages(self, docs):
+        """Sync the coverage information between planning an coverages
+
+        :param list docs: list of coverage docs
+        """
+        if not docs:
+            return
+        ids = set([doc.get('planning_item') for doc in docs])
+        service = get_resource_service('coverage')
+        for planning_id in ids:
+            planning = self.find_one(req=None, _id=planning_id)
+            coverages = list(service.get_from_mongo(req=None, lookup={'planning_item': planning_id}))
+            updates = []
+            add_default_coverage = True
+            for doc in coverages:
+                if doc.get('planning', {}).get('scheduled'):
+                    add_default_coverage = False
+                updates.append({
+                    'coverage_id': doc.get(config.ID_FIELD),
+                    'scheduled': doc.get('planning', {}).get('scheduled'),
+                    'g2_content_type': doc.get('planning', {}).get('g2_content_type')
+                })
+
+            if add_default_coverage:
+                updates.append({
+                    'coverage_id': None,
+                    'scheduled': planning.get('_planning_date') or utcnow(),
+                    'g2_content_type': None
+                })
+
+            self.system_update(planning_id, {'_coverages': updates}, planning)
+
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
 event_type['mapping'] = not_analyzed
 
 planning_schema = {
     # Identifiers
-    '_id': metadata_schema['_id'],
     'guid': metadata_schema['guid'],
 
     # Audit Information
@@ -204,6 +243,24 @@ planning_schema = {
     'lock_time': metadata_schema['lock_time'],
     'lock_session': metadata_schema['lock_session'],
     'lock_action': metadata_schema['lock_action'],
+    # field to sync coverage information on planning
+    # to be used for sorting/filtering on scheduled
+    '_coverages': {
+        'type': 'list',
+        'mapping': {
+            'type': 'nested',
+            'properties': {
+                'coverage_id': not_analyzed,
+                'scheduled': {'type': 'date'},
+                'g2_content_type': not_analyzed
+            }
+        }
+    },
+    # date to hold the event date when planning item is created from event or _created
+    '_planning_date': {
+        'type': 'datetime',
+        'nullable': True
+    },
 
     'flags': {
         'type': 'dict',
@@ -240,3 +297,4 @@ class PlanningResource(superdesk.Resource):
     privileges = {'POST': 'planning_planning_management',
                   'PATCH': 'planning_planning_management',
                   'DELETE': 'planning'}
+    etag_ignore_fields = ['_coverages', '_planning_date']

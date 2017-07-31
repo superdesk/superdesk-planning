@@ -148,6 +148,11 @@ describe('planning', () => {
                                 agendas: ['agenda1'],
                             }],
                         }),
+                        apiGetById: () => ({
+                            _id: 'RefreshedplanningId',
+                            slugline: 'coucou',
+                            agendas: ['agenda1'],
+                        }),
                     },
                     initialState,
                 })

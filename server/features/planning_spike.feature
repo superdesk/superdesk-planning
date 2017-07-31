@@ -51,16 +51,12 @@ Feature: Planning Spike
         }
         """
         When we get "/planning_history?where=planning_id==%22#planning._id#%22"
-        Then we get list with 2 items
+        Then we get list with 1 items
         """
         {"_items": [{
             "planning_id": "#planning._id#",
             "operation": "spiked",
-            "update": {"state" : "spiked", "revert_state": "in_progress"}},
-            {
-            "planning_id": "#planning._id#",
-            "operation": "coverage created"
-            }
+            "update": {"state" : "spiked", "revert_state": "in_progress"}}
             ]}
         """
 
@@ -97,16 +93,13 @@ Feature: Planning Spike
         }
         """
         When we get "/planning_history?where=planning_id==%22#planning._id#%22"
-        Then we get list with 2 items
+        Then we get list with 1 items
         """
         {"_items": [{
             "planning_id": "#planning._id#",
             "operation": "unspiked",
-            "update": {"state" : "in_progress"}},
-            {
-            "planning_id": "#planning._id#",
-            "operation": "coverage created"
-            }]}
+            "update": {"state" : "in_progress"}}
+        ]}
         """
 
     @auth

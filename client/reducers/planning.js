@@ -15,6 +15,7 @@ const initialState  = {
     readOnly: true,
     planningHistoryItems: [],
     lastRequestParams: { page: 1 },
+    search: { currentSearch: undefined },
 }
 
 let plannings
@@ -147,6 +148,10 @@ const planningReducer = createReducer(initialState, {
         {
             ...state,
             onlyFuture: payload,
+            search: {
+                ...state.search,
+                currentSearch: payload,
+            },
         }
     ),
 
