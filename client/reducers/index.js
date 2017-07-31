@@ -7,6 +7,7 @@ import vocabularies from './vocabularies'
 import ingest from './ingest_providers'
 import privileges from './privileges'
 import agenda from './agenda'
+import assignment from './assignment'
 import users from './users'
 import desks from './desks'
 import subjects from './subjects'
@@ -22,6 +23,7 @@ const planningApp = combineReducers({
     planning,
     privileges,
     agenda,
+    assignment,
     subjects,
     form: forms,
     config: (state) => (state || {}),

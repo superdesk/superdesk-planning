@@ -4,18 +4,8 @@ import { ListItem, TimePlanning, DueDate, tooltips } from '../index'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { ITEM_STATE } from '../../constants'
 import classNames from 'classnames'
+import { getCoverageIcon } from '../../utils/index'
 import './style.scss'
-
-const getCoverageIcon = (type) => {
-    const coverageIcons = {
-        text: 'icon-text',
-        video: 'icon-video',
-        live_video: 'icon-video',
-        audio: 'icon-audio',
-        photo: 'icon-photo',
-    }
-    return get(coverageIcons, type, 'icon-file')
-}
 
 const PlanningItem = ({
         item,

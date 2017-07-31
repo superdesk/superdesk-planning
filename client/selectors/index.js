@@ -43,11 +43,35 @@ export const getCurrentAgenda = createSelector(
         }
     }
 )
+
+export const getAssignments = (state) => state.assignment.assignments
+export const getFilterBy = (state) => state.assignment.filterBy
+export const getSearchQuery = (state) => state.assignment.searchQuery
+export const getOrderByField = (state) => state.assignment.orderByField
+export const getOrderDirection = (state) => state.assignment.orderDirection
+export const getSelectedAssignments = (state) => state.assignment.selectedAssignments
+export const getAssignmentListSettings = (state) => ({
+    filterBy: getFilterBy(state),
+    searchQuery: getSearchQuery(state),
+    orderByField: getOrderByField(state),
+    orderDirection: getOrderDirection(state),
+    lastAssignmentLoadedPage: state.assignment.lastAssignmentLoadedPage,
+})
+export const getMyAssignmentsCount = (state) => {
+    const assignments = getAssignments(state)
+    const currentUserId = getCurrentUserId(state)
+
+    return assignments.reduce((previousValue, assignment) =>
+        previousValue + (assignment.planning.assigned_to.user === currentUserId ? 1 : 0),
+    0)
+}
+
 export const getPrivileges = (state) => state.privileges
 export const getUsers = (state) => get(state, 'users.length', 0) > 0 ? state.users : []
 export const getPlanningItemReadOnlyState = (state) => state.planning.readOnly
 export const getEventReadOnlyState = (state) => state.events.readOnly
 export const getSessionDetails = (state) => state.session
+export const getCurrentUserId = (state) => state.session.identity._id
 export const getEventCalendars = (state) => get(state, 'vocabularies.event_calendars', [])
 
 export const getPlanningsInList = createSelector(
