@@ -15,7 +15,8 @@ export const PlanningHistoryList = ({ planningHistoryItems, users }) => {
                     <li className="item" key={historyItem._id}>
                         {
                             users &&
-                            includes(['create', 'update', 'spiked', 'unspiked'], historyItem.operation)
+                            includes(['create', 'update', 'spiked', 'unspiked', 'coverage created',
+                                'coverage updated', 'coverage deleted'], historyItem.operation)
                             &&
                             <div>
                                 <strong>
@@ -23,6 +24,9 @@ export const PlanningHistoryList = ({ planningHistoryItems, users }) => {
                                     {historyItem.operation === 'update' && 'Updated by '}
                                     {historyItem.operation === 'spiked' && 'Spiked by '}
                                     {historyItem.operation === 'unspiked' && 'Unspiked by '}
+                                    {historyItem.operation === 'coverage created' && 'Coverage created by '}
+                                    {historyItem.operation === 'coverage updated' && 'Coverage updated by '}
+                                    {historyItem.operation === 'coverage deleted' && 'Coverage deleted by '}
                                 </strong>
 
                                 <span className="user-name">{displayUser(historyItem.user_id)}</span>
