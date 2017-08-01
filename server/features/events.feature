@@ -376,3 +376,100 @@ Feature: Events
             }
         ]}
         """
+
+    @auth
+    Scenario: Duplicate a recurrent event
+        Given "vocabularies"
+        """
+        [{
+            "_id": "eventoccurstatus",
+                    "display_name": "Event Occurence Status",
+                    "type": "manageable",
+                    "unique_field": "qcode",
+                    "items": [
+                        {"is_active": true, "qcode": "eocstat:eos5", "name": "Planned, occurs certainly"}
+                    ]
+        }]
+        """
+        Given empty "users"
+        When we post to "users"
+        """
+        {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
+        """
+        When we post to "/events"
+        """
+        [
+            {
+                "guid": "123",
+                "name": "event 123",
+                "slugline": "event-123",
+                "definition_short": "short value",
+                "definition_long": "long value",
+                "recurrence_id": "432",
+                "previous_recurrence_id": "765",
+                "relationships":{
+                    "broader": "broader value",
+                    "narrower": "narrower value",
+                    "related": "related value"
+                },
+                "dates": {
+                    "start": "2016-01-02",
+                    "end": "2016-01-03",
+                    "recurring_rule" : {
+                        "frequency" : "WEEKLY",
+                        "until" : null,
+                        "count" : 1,
+                        "endRepeatMode" : "count",
+                        "interval" : 1,
+                        "byday" : "MO"
+                    }
+                },
+                "subject": [{"qcode": "test qcaode", "name": "test name"}],
+                "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}]
+            }
+        ]
+        """
+        Then we get OK response
+        Then we store "eventId" with value "#events._id#" to context
+        When we post to "/events/#eventId#/duplicate"
+        """
+        [{}]
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {
+                "_id": "#eventId#",
+                "name": "event 123"
+            },
+            {
+                "_id": "#duplicate._id#",
+                "name": "event 123",
+                "occur_status": {"qcode": "eocstat:eos5"}
+            }
+        ]}
+        """
+        When we get "/events_history"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            {
+                "operation": "create",
+                "event_id": "#eventId#"
+            },
+            {
+                "operation": "create",
+                "event_id": "#duplicate._id#"
+            },
+            {
+                "operation": "duplicate",
+                "update": { "duplicate_id" : "#duplicate._id#"}
+            },
+            {
+                "operation": "duplicate_from",
+                "update": { "duplicate_id" : "#eventId#"}
+            }
+        ]}
+        """
