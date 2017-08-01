@@ -18,11 +18,12 @@
         color: $gray;
     }
     label { margin-top: 10px; }
-    .geolookup {
+    .addgeolookup {
         display: table;
         &__input-wrapper {
             display: table-cell;
             width: 100%;
+            padding: 5px 10px 0px 0px;
         }
         &__suggests-wrapper {
             display: table-row;
