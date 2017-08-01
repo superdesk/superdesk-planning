@@ -54,6 +54,7 @@ describe('events', () => {
                         identity: { _id: 'user123' },
                         sessionId: 'session123',
                     },
+                    privileges: { planning_event_management: 1 },
                 },
             })
 
@@ -76,9 +77,17 @@ describe('events', () => {
                 const submitting = false
                 const onSaveResponse = Promise.resolve()
                 const handleSubmit = sinon.stub().returns(onSaveResponse)
+                const itemActions = {
+                    unspikeEvent: () => {},
+                    addEventToCurrentAgenda: () => {},
+                    duplicateEvent: () => {},
+                    spikeEvent: () => {},
+                }
                 const props = {
                     submitting: submitting,
                     handleSubmit,
+                    ...itemActions,
+                    eventManagementPrivilege: true,
                 }
                 const subject = shallow(<Component {...props}/>)
                 subject.find('form').simulate('submit')

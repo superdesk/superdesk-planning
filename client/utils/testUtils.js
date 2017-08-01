@@ -336,13 +336,13 @@ export const convertEventDatesToMoment = (events) => {
     return events
 }
 
-export const expectAccessDenied = ({ store, permission, action, errorMessage, args }) => {
+export const expectAccessDenied = ({ store, permission, action, errorMessage, args, argPos=0 }) => {
     expect(store.services.$timeout.callCount).toBe(1)
 
     expect(store.services.notify.error.callCount).toBe(1)
     expect(store.services.notify.error.args[0]).toEqual([errorMessage])
 
-    expect(store.dispatch.args[0]).toEqual([{
+    expect(store.dispatch.args[argPos]).toEqual([{
         type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
         payload: {
             action,
