@@ -192,56 +192,49 @@ export class Component extends React.Component {
         const metaDataEditable =  !forcedReadOnly && this.isMetaDataEditable()
         const recurringRulesEditable =  !forcedReadOnly && this.isRecurringRulesEditable()
         const occurrenceOverlaps = doesRecurringEventsOverlap(startingDate, endingDate, recurringRule)
+        const lockRestricted = lockedUser && !lockedInThisSession
 
         const RepeatEventFormProps = {
             ...this.props,
             readOnly: !recurringRulesEditable,
         }
 
-        let itemActions = []
+        let itemActions = [{
+            label: 'View Event History',
+            callback: this.viewEventHistory.bind(this),
+        }]
+
         const populateItemActions = () => {
-            if (eventSpiked) {
-                itemActions = [
-                    {
-                        label: 'View Event History',
-                        callback: this.viewEventHistory.bind(this),
-                    },
-                ]
-
-                if (!lockedUser || lockedInThisSession) {
-                    itemActions.unshift({
-                        label: 'Unspike Event',
-                        callback: unspikeEvent.bind(null, initialValues),
-                    })
-                }
+            if (eventSpiked && !lockRestricted) {
+                itemActions.unshift({
+                    label: 'Unspike Event',
+                    callback: unspikeEvent.bind(null, initialValues),
+                })
             } else if (id) {
-                itemActions = [
-                    {
-                        label: 'Create Planning Item',
-                        callback: () => addEventToCurrentAgenda(initialValues),
-                    },
-                    {
-                        label: 'Duplicate Event',
-                        callback: () => duplicateEvent(initialValues),
-                    },
-                    {
-                        label: 'View Event History',
-                        callback: this.viewEventHistory.bind(this),
-                    },
-                ]
+                if (!lockRestricted) {
+                    itemActions.unshift(
+                        {
+                            label: 'Create Planning Item',
+                            callback: () => addEventToCurrentAgenda(initialValues),
+                        },
+                        {
+                            label: 'Duplicate Event',
+                            callback: () => duplicateEvent(initialValues),
+                        })
 
-                if (!isPublished && (!lockedUser || lockedInThisSession)) {
-                    itemActions.unshift({
-                        label: 'Spike Event',
-                        callback: () => spikeEvent(initialValues),
-                    })
-                }
+                    if (!isPublished) {
+                        itemActions.unshift({
+                            label: 'Spike Event',
+                            callback: () => spikeEvent(initialValues),
+                        })
+                    }
 
-                // Cannot spike or create new events if it is a recurring event and
-                // only metadata was edited
-                if ( metaDataEditable && !recurringRulesEditable) {
-                    remove(itemActions, (action) => action.label === 'Spike Event' ||
-                        action.label === 'Duplicate Event')
+                    // Cannot spike or create new events if it is a recurring event and
+                    // only metadata was edited
+                    if ( metaDataEditable && !recurringRulesEditable) {
+                        remove(itemActions, (action) => action.label === 'Spike Event' ||
+                            action.label === 'Duplicate Event')
+                    }
                 }
             }
         }
@@ -282,7 +275,7 @@ export class Component extends React.Component {
                     {!this.state.previewHistory && (
                         <div className="subnav__actions">
                             <div>
-                                {forcedReadOnly && !isPublished && !eventSpiked &&
+                                {forcedReadOnly && !isPublished && !eventSpiked && !lockRestricted &&
                                     <button
                                         onClick={() => publish(initialValues)}
                                         type="button"
@@ -296,7 +289,7 @@ export class Component extends React.Component {
                                         className="btn btn--hollow">
                                         Unpublish</button>
                                 }
-                                {forcedReadOnly && !eventSpiked && (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
+                                {forcedReadOnly && !eventSpiked && !lockRestricted && (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
                                     <button
                                         type='button'
                                         onClick={openEventDetails.bind(null, initialValues)}
@@ -313,8 +306,7 @@ export class Component extends React.Component {
                     <PubStatusLabel status={get(initialValues, 'state')} verbose={true}/>
                     <ItemActionsMenu actions={itemActions} />
                     <div>
-                        {(!lockedInThisSession && lockedUser)
-                            && (
+                        {lockRestricted && (
                             <div className={classNames('dropdown',
                                 'dropdown--dropright',
                                 { 'open': this.state.openUnlockPopup })} >

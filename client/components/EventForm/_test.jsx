@@ -45,6 +45,10 @@ describe('events', () => {
                             _id: 'user123',
                             display_name: 'foo',
                         },
+                        {
+                            _id: 'somebodyelse',
+                            display_name: 'somebodyelse',
+                        },
                     ],
                     session: {
                         identity: { _id: 'user123' },
@@ -357,6 +361,28 @@ describe('events', () => {
 
                     expect(eventsUi.openSpikeModal.callCount).toBe(1)
                     expect(eventsUi.openSpikeModal.args[0]).toEqual([event])
+                })
+
+                it('Lock restricted event has only view-event-history action available', () => {
+                    const recEvent = {
+                        ...event,
+                        dates: {
+                            start: moment('2016-10-15T14:30+0000'),
+                            end: moment('2016-10-20T15:00+0000'),
+                            recurring_rule: {
+                                frequency: 'DAILY',
+                                endRepeatMode: 'count',
+                            },
+                        },
+                        lock_user: 'somebodyelse',
+                        lock_session: 'someothersession',
+                    }
+                    const store = createTestStoreForEventEditing(recEvent)
+                    const wrapper = mount(<Provider store={store}><EventForm initialValues={recEvent}
+                        enableReinitialize={true}/></Provider>)
+                    expect(wrapper.find('ItemActionsMenu').props().actions.length).toBe(1)
+                    expect(wrapper.find('ItemActionsMenu').props().actions[0].label).toBe('View Event History')
+                    expect(wrapper.find('.btn--success').length).toBe(0) // Publish button
                 })
             })
         })
