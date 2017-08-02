@@ -176,6 +176,7 @@ export class Component extends React.Component {
             lockedInThisSession,
             unlockPrivilege,
             eventManagementPrivilege,
+            planningManagementPrivilege,
             onUnlock,
             startingDate,
             endingDate,
@@ -184,8 +185,8 @@ export class Component extends React.Component {
         const eventSpiked = get(initialValues, 'state', 'active') === ITEM_STATE.SPIKED
         const creationDate = get(initialValues, '_created')
         const updatedDate = get(initialValues, '_updated')
-        const id = get(initialValues, '_id')
-        const forcedReadOnly = !isNil(id) && (readOnly || eventSpiked || !lockedInThisSession)
+        const existingEvent = !!get(initialValues, '_id')
+        const forcedReadOnly = existingEvent && (readOnly || eventSpiked || !lockedInThisSession)
         const author = get(initialValues, 'original_creator') && users ? users.find((u) => (u._id === initialValues.original_creator)) : null
         const versionCreator = get(initialValues, 'version_creator') && users ? users.find((u) => (u._id === initialValues.version_creator)) : null
         const isPublished = get(initialValues, 'state') === EVENTS.STATE.PUBLISHED
@@ -222,34 +223,41 @@ export class Component extends React.Component {
                 callback: () => spikeEvent(initialValues),
             },
         }
-        let itemActions = [ eventActions.EVENT_HISTORY ]
+        let itemActions = []
 
         const populateItemActions = () => {
-            if(!eventManagementPrivilege) {
-                if (id && !lockRestricted) {
+            itemActions.unshift(eventActions.EVENT_HISTORY)
+
+            if (!lockRestricted) {
+                if (planningManagementPrivilege) {
                     itemActions.unshift(eventActions.CREATE_PLANNING)
                 }
-                return
-            }
 
-            if (eventSpiked && !lockRestricted) {
-                itemActions.unshift(eventActions.UNSPIKE_EVENT)
-            } else if (id && !lockRestricted) {
-                itemActions.unshift(eventActions.CREATE_PLANNING, eventActions.DUPLICATE_EVENT)
-                if (!isPublished) {
-                    itemActions.unshift(eventActions.SPIKE_EVENT)
-                }
+                if(!eventManagementPrivilege) return
 
-                // Cannot spike or create new events if it is a recurring event and
-                // only metadata was edited
-                if ( this.state.doesRepeat && metaDataEditable && !recurringRulesEditable) {
-                    remove(itemActions, (action) => action.label === eventActions.SPIKE_EVENT.label ||
-                        action.label === eventActions.DUPLICATE_EVENT.label)
+                if (eventSpiked) {
+                    itemActions.unshift(eventActions.UNSPIKE_EVENT)
+                    remove(itemActions, (action) =>
+                        action.label === eventActions.CREATE_PLANNING.label)
+                } else {
+                    itemActions.unshift(eventActions.DUPLICATE_EVENT)
+                    if (!isPublished) {
+                        itemActions.unshift(eventActions.SPIKE_EVENT)
+                    }
+
+                    // Cannot spike or create new events if it is a recurring event and
+                    // only metadata was edited
+                    if ( this.state.doesRepeat && metaDataEditable && !recurringRulesEditable) {
+                        remove(itemActions, (action) => action.label === eventActions.SPIKE_EVENT.label ||
+                            action.label === eventActions.DUPLICATE_EVENT.label)
+                    }
                 }
             }
         }
 
-        populateItemActions()
+        if (existingEvent) {
+            populateItemActions()
+        }
 
         return (
             <form onSubmit={handleSubmit} className="EventForm">
@@ -472,7 +480,8 @@ export class Component extends React.Component {
                 {this.state.previewHistory &&
                     <div className="history-preview">
                         <div className="close-history">
-                            <a onClick={this.closeEventHistory.bind(this)} className="close">
+                            <a onClick={this.closeEventHistory.bind(this)} className="close"
+                                style={{ opacity:'0.8' }}>
                                 <i className="icon-close-small" />
                             </a>
                         </div>
@@ -516,6 +525,7 @@ Component.propTypes = {
     onUnlock: PropTypes.func,
     unlockPrivilege: PropTypes.bool,
     eventManagementPrivilege: PropTypes.bool,
+    planningManagementPrivilege: PropTypes.bool,
     recurringRule: PropTypes.object,
 }
 
@@ -547,6 +557,7 @@ const mapStateToProps = (state) => ({
     lockedInThisSession: selectors.isEventDetailLockedInThisSession(state),
     unlockPrivilege: selectors.getPrivileges(state).planning_unlock ? true : false,
     eventManagementPrivilege: selectors.getPrivileges(state).planning_event_management ? true : false,
+    planningManagementPrivilege: selectors.getPrivileges(state).planning_planning_management ? true : false,
     maxRecurrentEvents: selectors.getMaxRecurrentEvents(state),
     recurringRule: selector(state, 'dates.recurring_rule'),
 })

@@ -332,6 +332,30 @@ describe('actions.planning.ui', () => {
             })
         })
 
+        it('openEditor dispatches preview if insufficient privileges', (done) => {
+            store.initialState.privileges.planning_planning_management = 0
+            store.initialState.planning.currentPlanningId = 'p1'
+            restoreSinonStub(planningUi.openEditor)
+            store.test(done, planningUi.openEditor(data.plannings[1]))
+            .catch(() => {
+                expect(store.dispatch.args[2]).toEqual([{
+                    type: 'PREVIEW_PLANNING',
+                    payload: data.plannings[1],
+                }])
+
+                expectAccessDenied({
+                    store,
+                    permission: PRIVILEGES.PLANNING_MANAGEMENT,
+                    action: '_lockAndOpenEditor',
+                    errorMessage: 'Unauthorised to edit a planning item!',
+                    args: [data.plannings[1]],
+                    argPos: 3,
+                })
+
+                done()
+            })
+        })
+
         it('sends error notification if lock failed', (done) => {
             store.initialState.planning.currentPlanningId = 'p1'
             restoreSinonStub(planningUi.openEditor)

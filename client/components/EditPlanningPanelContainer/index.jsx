@@ -59,6 +59,7 @@ export class EditPlanningPanel extends React.Component {
             readOnly,
             lockedInThisSession,
             users,
+            planningManagementPrivilege,
         } = this.props
 
         const creationDate = get(planning, '_created')
@@ -130,7 +131,7 @@ export class EditPlanningPanel extends React.Component {
                     }
                     { forceReadOnly && (
                         <div className="EditPlanningPanel__actions">
-                            {(!eventSpiked && !planningSpiked) &&
+                            {(!eventSpiked && !planningSpiked && planningManagementPrivilege) &&
                             (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
                                 <button className="EditPlanningPanel__actions__edit" onClick={openPlanningEditor.bind(this, get(planning, '_id'))}>
                                     <i className="icon-pencil"/>
@@ -198,6 +199,7 @@ EditPlanningPanel.propTypes = {
     ]),
     readOnly: PropTypes.bool,
     unlockPrivilege: PropTypes.bool,
+    planningManagementPrivilege: PropTypes.bool,
     unlockItem: PropTypes.func,
     lockedInThisSession: PropTypes.bool,
 }
@@ -208,6 +210,7 @@ const mapStateToProps = (state) => ({
     users: selectors.getUsers(state),
     readOnly: selectors.getPlanningItemReadOnlyState(state),
     unlockPrivilege: selectors.getPrivileges(state).planning_unlock ? true : false,
+    planningManagementPrivilege: selectors.getPrivileges(state).planning_planning_management ? true : false,
     lockedInThisSession: selectors.isCurrentPlanningLockedInThisSession(state),
 })
 
