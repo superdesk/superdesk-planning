@@ -13,7 +13,7 @@ import {
     UntilDateValidator,
     EventMaxEndRepeatCount } from '../../validators'
 import './style.scss'
-import { ITEM_STATE, EVENTS } from '../../constants'
+import { ITEM_STATE, EVENTS, PRIVILEGES } from '../../constants'
 import * as selectors from '../../selectors'
 import { OverlayTrigger } from 'react-bootstrap'
 import { tooltips } from '../index'
@@ -174,14 +174,19 @@ export class Component extends React.Component {
             duplicateEvent,
             highlightedEvent,
             lockedInThisSession,
-            unlockPrivilege,
-            eventManagementPrivilege,
-            planningManagementPrivilege,
+            privileges,
             onUnlock,
             startingDate,
             endingDate,
             recurringRule,
         } = this.props
+
+        const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK]
+        const eventManagementPrivilege = !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
+        const planningManagementPrivilege = !!privileges[PRIVILEGES.PLANNING_MANAGEMENT]
+        const spikePrivilege = !!privileges[PRIVILEGES.SPIKE_EVENT]
+        const unspikePrivilege = !!privileges[PRIVILEGES.UNSPIKE_EVENT]
+
         const eventSpiked = get(initialValues, 'state', 'active') === ITEM_STATE.SPIKED
         const creationDate = get(initialValues, '_created')
         const updatedDate = get(initialValues, '_updated')
@@ -236,12 +241,14 @@ export class Component extends React.Component {
                 if(!eventManagementPrivilege) return
 
                 if (eventSpiked) {
-                    itemActions.unshift(eventActions.UNSPIKE_EVENT)
+                    if (unspikePrivilege) {
+                        itemActions.unshift(eventActions.UNSPIKE_EVENT)
+                    }
                     remove(itemActions, (action) =>
                         action.label === eventActions.CREATE_PLANNING.label)
                 } else {
                     itemActions.unshift(eventActions.DUPLICATE_EVENT)
-                    if (!isPublished) {
+                    if (!isPublished && spikePrivilege) {
                         itemActions.unshift(eventActions.SPIKE_EVENT)
                     }
 
@@ -523,9 +530,7 @@ Component.propTypes = {
     highlightedEvent: PropTypes.string,
     lockedInThisSession: PropTypes.bool,
     onUnlock: PropTypes.func,
-    unlockPrivilege: PropTypes.bool,
-    eventManagementPrivilege: PropTypes.bool,
-    planningManagementPrivilege: PropTypes.bool,
+    privileges: PropTypes.object,
     recurringRule: PropTypes.object,
 }
 
@@ -555,9 +560,7 @@ const mapStateToProps = (state) => ({
         selector(state, 'dates.end')
     ),
     lockedInThisSession: selectors.isEventDetailLockedInThisSession(state),
-    unlockPrivilege: selectors.getPrivileges(state).planning_unlock ? true : false,
-    eventManagementPrivilege: selectors.getPrivileges(state).planning_event_management ? true : false,
-    planningManagementPrivilege: selectors.getPrivileges(state).planning_planning_management ? true : false,
+    privileges: selectors.getPrivileges(state),
     maxRecurrentEvents: selectors.getMaxRecurrentEvents(state),
     recurringRule: selector(state, 'dates.recurring_rule'),
 })

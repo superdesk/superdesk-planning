@@ -1,5 +1,5 @@
 import planning from './index'
-import { checkPermission, getErrorMessage } from '../../utils'
+import { checkPermission, getErrorMessage, isItemLockedInThisSession } from '../../utils'
 import * as selectors from '../../selectors'
 import { PLANNING, PRIVILEGES } from '../../constants'
 import * as actions from '../index'
@@ -138,9 +138,8 @@ const _lockAndOpenEditor = (item) => (
     (dispatch, getState, { notify }) => {
         // If the user already has a lock, don't obtain a new lock, open it directly
         const planningInState = selectors.getStoredPlannings(getState())[item]
-        const session = selectors.getSessionDetails(getState())
-        if (planningInState && planningInState.lock_user === session.identity._id &&
-                planningInState.lock_session === session.sessionId) {
+        if (planningInState && isItemLockedInThisSession(planningInState,
+                selectors.getSessionDetails(getState()))) {
             dispatch(self._openEditor(planningInState))
             return Promise.resolve(planningInState)
         }

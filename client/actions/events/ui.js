@@ -1,6 +1,6 @@
 import { showModal, hideModal } from '../index'
-import { checkPermission, getErrorMessage } from '../../utils'
-import { PRIVILEGES, EVENTS } from '../../constants'
+import { checkPermission, getErrorMessage, isItemLockedInThisSession } from '../../utils'
+import { PRIVILEGES, EVENTS, ITEM_STATE } from '../../constants'
 import planning from '../planning'
 import eventsApi from './api'
 import { fetchSelectedAgendaPlannings } from '../agenda'
@@ -24,12 +24,16 @@ const _openEventDetails = (event) => (
             // In sessions with multiple tabs, state values of showEventDetails are different
             // So, explicitly get the event from the store and see if we hold the lock on it
             const eventInState = { ...selectors.getEvents(getState())[id] }
-            const session = selectors.getSessionDetails(getState())
-            if (eventInState && eventInState.lock_user === session.identity._id &&
-                    eventInState.lock_session === session.sessionId) {
+            if (eventInState && isItemLockedInThisSession(eventInState,
+                    selectors.getSessionDetails(getState()))) {
                 dispatch(openDetails)
                 return Promise.resolve(eventInState)
             } else {
+                if (eventInState.state === ITEM_STATE.SPIKED) {
+                    dispatch(self.previewEvent(event))
+                    return Promise.resolve(eventInState)
+                }
+
                 return dispatch(eventsApi.lock(event)).then((item) => {
                     dispatch(openDetails)
                     dispatch(eventsApi.receiveEvents([item]))
@@ -57,9 +61,8 @@ const previewEvent = (event) => (
     (dispatch, getState) => {
         const id = get(event, '_id')
         const eventInState = { ...selectors.getEvents(getState())[id] }
-        const session = selectors.getSessionDetails(getState())
-        if (eventInState && eventInState.lock_user === session.identity._id &&
-                eventInState.lock_session === session.sessionId) {
+        if (eventInState && isItemLockedInThisSession(eventInState,
+                selectors.getSessionDetails(getState()))) {
             dispatch({
                 type: EVENTS.ACTIONS.OPEN_EVENT_DETAILS,
                 payload: id,
