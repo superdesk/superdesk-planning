@@ -430,16 +430,22 @@ describe('actions.events.ui', () => {
             })
         })
 
-        it('openEventDetails raises ACCESS_DENIED without permission', (done) => {
+        it('openEventDetails dispatches previewEvent if insufficient privileges', (done) => {
             store.initialState.privileges.planning_event_management = 0
             store.test(done, eventsUi.openEventDetails(data.events[0]))
             .catch(() => {
+                expect(store.dispatch.args[1]).toEqual([{
+                    type: 'PREVIEW_EVENT',
+                    payload: data.events[0]._id,
+                }])
+
                 expectAccessDenied({
                     store,
                     permission: PRIVILEGES.EVENT_MANAGEMENT,
                     action: '_openEventDetails',
                     errorMessage: 'Unauthorised to edit an event!',
                     args: [data.events[0]],
+                    argPos: 2,
                 })
 
                 done()

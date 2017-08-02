@@ -175,6 +175,7 @@ export class Component extends React.Component {
             highlightedEvent,
             lockedInThisSession,
             unlockPrivilege,
+            eventManagementPrivilege,
             onUnlock,
             startingDate,
             endingDate,
@@ -199,42 +200,51 @@ export class Component extends React.Component {
             readOnly: !recurringRulesEditable,
         }
 
-        let itemActions = [{
-            label: 'View Event History',
-            callback: this.viewEventHistory.bind(this),
-        }]
+        const eventActions = {
+            'EVENT_HISTORY': {
+                label: 'View Event History',
+                callback: this.viewEventHistory.bind(this),
+            },
+            'UNSPIKE_EVENT': {
+                label: 'Unspike Event',
+                callback: unspikeEvent.bind(null, initialValues),
+            },
+            'CREATE_PLANNING': {
+                label: 'Create Planning Item',
+                callback: () => addEventToCurrentAgenda(initialValues),
+            },
+            'DUPLICATE_EVENT': {
+                label: 'Duplicate Event',
+                callback: () => duplicateEvent(initialValues),
+            },
+            'SPIKE_EVENT': {
+                label: 'Spike Event',
+                callback: () => spikeEvent(initialValues),
+            },
+        }
+        let itemActions = [ eventActions.EVENT_HISTORY ]
 
         const populateItemActions = () => {
+            if(!eventManagementPrivilege) {
+                if (id && !lockRestricted) {
+                    itemActions.unshift(eventActions.CREATE_PLANNING)
+                }
+                return
+            }
+
             if (eventSpiked && !lockRestricted) {
-                itemActions.unshift({
-                    label: 'Unspike Event',
-                    callback: unspikeEvent.bind(null, initialValues),
-                })
-            } else if (id) {
-                if (!lockRestricted) {
-                    itemActions.unshift(
-                        {
-                            label: 'Create Planning Item',
-                            callback: () => addEventToCurrentAgenda(initialValues),
-                        },
-                        {
-                            label: 'Duplicate Event',
-                            callback: () => duplicateEvent(initialValues),
-                        })
+                itemActions.unshift(eventActions.UNSPIKE_EVENT)
+            } else if (id && !lockRestricted) {
+                itemActions.unshift(eventActions.CREATE_PLANNING, eventActions.DUPLICATE_EVENT)
+                if (!isPublished) {
+                    itemActions.unshift(eventActions.SPIKE_EVENT)
+                }
 
-                    if (!isPublished) {
-                        itemActions.unshift({
-                            label: 'Spike Event',
-                            callback: () => spikeEvent(initialValues),
-                        })
-                    }
-
-                    // Cannot spike or create new events if it is a recurring event and
-                    // only metadata was edited
-                    if ( metaDataEditable && !recurringRulesEditable) {
-                        remove(itemActions, (action) => action.label === 'Spike Event' ||
-                            action.label === 'Duplicate Event')
-                    }
+                // Cannot spike or create new events if it is a recurring event and
+                // only metadata was edited
+                if ( this.state.doesRepeat && metaDataEditable && !recurringRulesEditable) {
+                    remove(itemActions, (action) => action.label === eventActions.SPIKE_EVENT.label ||
+                        action.label === eventActions.DUPLICATE_EVENT.label)
                 }
             }
         }
@@ -261,7 +271,7 @@ export class Component extends React.Component {
                             <button type="submit" className="btn btn--primary" disabled={pristine || submitting}>
                                 Save
                             </button>
-                            {!isPublished &&
+                            {!isPublished && eventManagementPrivilege &&
                                 <button
                                     onClick={handleSubmit(this.handleSaveAndPublish.bind(this))}
                                     type="button"
@@ -272,7 +282,7 @@ export class Component extends React.Component {
                             }
                         </div>
                     )}
-                    {!this.state.previewHistory && (
+                    {!this.state.previewHistory && eventManagementPrivilege && (
                         <div className="subnav__actions">
                             <div>
                                 {forcedReadOnly && !isPublished && !eventSpiked && !lockRestricted &&
@@ -505,6 +515,7 @@ Component.propTypes = {
     lockedInThisSession: PropTypes.bool,
     onUnlock: PropTypes.func,
     unlockPrivilege: PropTypes.bool,
+    eventManagementPrivilege: PropTypes.bool,
     recurringRule: PropTypes.object,
 }
 
@@ -535,6 +546,7 @@ const mapStateToProps = (state) => ({
     ),
     lockedInThisSession: selectors.isEventDetailLockedInThisSession(state),
     unlockPrivilege: selectors.getPrivileges(state).planning_unlock ? true : false,
+    eventManagementPrivilege: selectors.getPrivileges(state).planning_event_management ? true : false,
     maxRecurrentEvents: selectors.getMaxRecurrentEvents(state),
     recurringRule: selector(state, 'dates.recurring_rule'),
 })

@@ -350,7 +350,8 @@ const openUnspikeModal = checkPermission(
 const openEventDetails = checkPermission(
     _openEventDetails,
     PRIVILEGES.EVENT_MANAGEMENT,
-    'Unauthorised to edit an event!'
+    'Unauthorised to edit an event!',
+    previewEvent
 )
 
 const unlockAndOpenEventDetails = checkPermission(
