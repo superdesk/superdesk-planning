@@ -31,7 +31,7 @@ EventsPanel.propTypes = {
 const mapStateToProps = (state) => ({
     // selectors.getShowEventDetails is either true, an event id, or null
     eventToDetail: selectors.getShowEventDetails(state) === true
-        ? DEFAULT_FORM_VALUES
+        ? { occur_status: state.vocabularies.eventoccurstatus.find((u) => u.qcode === DEFAULT_FORM_VALUES.occur_status.qcode) }
         : selectors.getEventToBeDetailed(state),
 })
 
