@@ -340,7 +340,8 @@ const saveAndReloadCurrentAgenda = checkPermission(
 const openEditor = checkPermission(
     _lockAndOpenEditor,
     PRIVILEGES.PLANNING_MANAGEMENT,
-    'Unauthorised to edit a planning item!'
+    'Unauthorised to edit a planning item!',
+    preview
 )
 
 const unlockAndOpenEditor = checkPermission(

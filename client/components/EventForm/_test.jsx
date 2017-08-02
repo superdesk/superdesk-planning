@@ -54,7 +54,10 @@ describe('events', () => {
                         identity: { _id: 'user123' },
                         sessionId: 'session123',
                     },
-                    privileges: { planning_event_management: 1 },
+                    privileges: {
+                        planning_event_management: 1,
+                        planning_planning_management: 1,
+                    },
                 },
             })
 
