@@ -6,7 +6,7 @@ export const GeoLookupInput = ({ input, label, readOnly, meta: { touched, error,
     const type = input.value && (input.value.type || get(input.value.nominatim, 'type') || null)
     return (<div className="field">
         {label && <label>{label}</label>}
-        {type && <span className='label geolookup__suggestItemLabel'>{type.replace('_', ' ')}</span>}
+        {type && <span className='label addgeolookup__suggestItemLabel'>{type.replace('_', ' ')}</span>}
         <AddGeoLookupInput
             onChange={input.onChange}
             initialValue={input.value || {}}

@@ -5,6 +5,8 @@ import './style.scss'
 import classNames from 'classnames'
 import { formatAddress } from '../../utils'
 import { get, has } from 'lodash'
+import TextareaAutosize from 'react-textarea-autosize'
+import { AddGeoLookupResultsPopUp } from './AddGeoLookupResultsPopUp'
 
 /**
 * Modal for adding/editing a location with nominatim search
@@ -13,28 +15,56 @@ class GeoLookupInput extends React.Component {
 
     constructor(props) {
         super(props)
+        this.state = { searchResults: [] }
+    }
+
+    handleInputChange(event) {
+        this.refs.geolookup.onInputChange(event.target.value.replace(/(?:\r\n|\r|\n)/g, ' '))
+        this.handleChange(event.target.value)
+    }
+
+    handleSearchClick() {
+        this.refs.geolookup.onButtonClick()
+    }
+
+    onSuggestResults(suggests) {
+        this.setState({ searchResults : suggests })
+    }
+
+    resetSearchResults() {
+        this.setState({ searchResults : [] })
     }
 
     render() {
         return (
-            <Geolookup
-                placeholder='Address, City'
-                inputClassName={classNames('line-input', { 'disabledInput': this.props.readOnly })}
-                buttonClassName={classNames({ 'disabledButton': this.props.readOnly }, 'btn btn-default geolookup__button')}
-                initialValue={this.props.initialValue.name}
-                disableAutoLookup={true}
-                onChange={this.handleChange.bind(this)}
-                onSuggestSelect={this.onSuggestSelect.bind(this)}
-                onSuggestsLookup={this.onSuggestsLookup}
-                onGeocodeSuggest={this.onGeocodeSuggest}
-                getSuggestLabel={this.getSuggestLabel}
-                disabled={this.props.readOnly}
-                ignoreTab
-                suggestItemLabelRenderer={(suggest) => {
-                    return (<span><span className='label geolookup__suggestItemLabel'>{suggest.raw.type.replace('_', ' ')}</span>
-                        &nbsp;&nbsp;{formatAddress(suggest.raw).shortName}</span>)
-                }}
-            />
+            <div className='addgeolookup'>
+                <span className='addgeolookup__input-wrapper'><TextareaAutosize
+                    className={classNames({ 'disabledInput': this.props.readOnly })}
+                    disabled={this.props.readOnly ? 'disabled' : ''}
+                    value={get(this.props.initialValue, 'name')}
+                    onChange={this.handleInputChange.bind(this)} />
+                </span>
+                {!this.props.readOnly &&
+                    <span><button type='button' className='btn'
+                        onClick={this.handleSearchClick.bind(this)} >Search</button></span>}
+                {this.state.searchResults.length > 0 &&
+                    <AddGeoLookupResultsPopUp
+                        suggests={this.state.searchResults}
+                        onCancel={this.resetSearchResults.bind(this)}
+                        onChange={this.onSuggestSelect.bind(this)} />
+                }
+                {!this.props.readOnly && <Geolookup
+                    disableAutoLookup={true}
+                    onSuggestSelect={this.onSuggestSelect.bind(this)}
+                    onSuggestsLookup={this.onSuggestsLookup}
+                    onGeocodeSuggest={this.onGeocodeSuggest}
+                    onSuggestResults={this.onSuggestResults.bind(this)}
+                    getSuggestLabel={this.getSuggestLabel}
+                    disabled={this.props.readOnly}
+                    ignoreTab
+                    ref="geolookup"
+                />}
+            </div>
         )
     }
 
@@ -47,7 +77,8 @@ class GeoLookupInput extends React.Component {
     *    @param  {Object} suggest The suggest
     */
     onSuggestSelect(suggest) {
-        this.props.onChange(suggest)
+        this.props.onChange(this.onGeocodeSuggest(suggest))
+        this.resetSearchResults()
     }
 
     onSuggestsLookup(userInput) {
