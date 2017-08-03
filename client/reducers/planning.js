@@ -1,6 +1,7 @@
 import { cloneDeep, get, uniq } from 'lodash'
 import { PLANNING } from '../constants'
 import { createReducer } from '../utils'
+import moment from 'moment'
 
 const initialState  = {
     plannings: {},
@@ -19,6 +20,29 @@ const initialState  = {
 let plannings
 let plan
 let index
+
+const modifyPlanningsBeingAdded = (state, payload) => {
+    // payload must be an array. If not, we transform
+    payload = Array.isArray(payload) ? payload : [payload]
+    // clone plannings
+    plannings = cloneDeep(state.plannings)
+    // add to state.plannings, use _id as key
+    payload.forEach((planning) => {
+        // Make sure that the Planning item has the coverages array
+        planning.coverages = get(planning, 'coverages', [])
+        modifyCoveragesForPlanning(planning)
+        plannings[planning._id] = planning
+    })
+}
+
+const modifyCoveragesForPlanning = (planning) => {
+    // As with events, change the coverage dates to moment objects
+    planning.coverages.forEach((cov) => {
+        if (get(cov, 'planning.scheduled')) {
+            cov.planning.scheduled = moment(cov.planning.scheduled)
+        }
+    })
+}
 
 const planningReducer = createReducer(initialState, {
     [PLANNING.ACTIONS.SET_LIST]: (state, payload) => (
@@ -59,16 +83,7 @@ const planningReducer = createReducer(initialState, {
     ),
 
     [PLANNING.ACTIONS.RECEIVE_PLANNINGS]: (state, payload) => {
-        // payload must be an array. If not, we transform
-        payload = Array.isArray(payload) ? payload : [payload]
-        // clone plannings
-        plannings = cloneDeep(state.plannings)
-        // add to state.plannings, use _id as key
-        payload.forEach((planning) => {
-            // Make sure that the Planning item has the coverages array
-            planning.coverages = get(planning, 'coverages', [])
-            plannings[planning._id] = planning
-        })
+        modifyPlanningsBeingAdded(state, payload)
         // return new state
         return {
             ...state,
@@ -156,6 +171,8 @@ const planningReducer = createReducer(initialState, {
         } else {
             plan.coverages.splice(index, 1, payload)
         }
+
+        modifyCoveragesForPlanning(plan)
 
         return {
             ...state,
