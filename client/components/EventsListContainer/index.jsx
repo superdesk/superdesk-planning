@@ -26,7 +26,7 @@ class EventsListComponent extends React.Component {
     }
 
     render() {
-        const { advancedSearchOpened, toggleEventsList, loadEvents, currentSearch, privileges, session } = this.props
+        const { advancedSearchOpened, toggleEventsList, loadEvents, currentSearch, privileges } = this.props
         const classes = [
             'Events-list-container',
             advancedSearchOpened ? 'Events-list-container--advanced-search-view' : null,
@@ -75,8 +75,7 @@ class EventsListComponent extends React.Component {
                                 loadMoreEvents={this.props.loadMoreEvents}
                                 selectedEvents={this.props.selectedEvents}
                                 onEventSelectChange={this.props.onEventSelectChange}
-                                privileges={privileges}
-                                session={session} />
+                                privileges={privileges} />
                 </div>
             </div>
         )
@@ -100,7 +99,6 @@ EventsListComponent.propTypes = {
     loadMoreEvents: PropTypes.func.isRequired,
     selectedEvents: PropTypes.array.isRequired,
     onEventSelectChange: PropTypes.func.isRequired,
-    session: PropTypes.object,
 }
 
 const mapStateToProps = (state) => ({
@@ -110,7 +108,6 @@ const mapStateToProps = (state) => ({
     highlightedEvent: selectors.getHighlightedEvent(state),
     privileges: selectors.getPrivileges(state),
     selectedEvents: selectors.getSelectedEvents(state),
-    session: selectors.getSessionDetails(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

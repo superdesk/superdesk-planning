@@ -6,8 +6,9 @@ import classNames from 'classnames'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
 import './style.scss'
-import { get, every } from 'lodash'
+import { get, every, some } from 'lodash'
 import { PRIVILEGES } from '../../constants'
+import { isItemLockedInThisSession } from '../../utils'
 
 function MultiEventsSelectionActions({
     selectedEvents,
@@ -18,14 +19,20 @@ function MultiEventsSelectionActions({
     spike,
     unspike,
     privileges,
+    session,
 }) {
     const count = selectedEvents.length
     const classes = classNames('MultiEventsSelectionActions', className)
 
+    const lockRestricted = some(selectedEvents, (event) =>
+        get(event, 'lock_user') && !isItemLockedInThisSession(event, session))
+
     const allActive = every(selectedEvents, (event) => get(event, 'state', 'active') !== 'spiked')
-    const showSpike = allActive && get(privileges, PRIVILEGES.SPIKE_PLANNING, 0) === 1
+    const showSpike = allActive && get(privileges, PRIVILEGES.SPIKE_PLANNING, 0) === 1 &&
+        !lockRestricted
     const showUnspike = !allActive && get(privileges, PRIVILEGES.UNSPIKE_PLANNING, 0) === 1
-    const showCreatePlan = allActive && get(privileges, PRIVILEGES.PLANNING_MANAGEMENT, 0) === 1
+    const showCreatePlan = allActive && get(privileges, PRIVILEGES.PLANNING_MANAGEMENT, 0) === 1 &&
+        !lockRestricted
 
     return (
         <div className={classes}>
@@ -70,11 +77,13 @@ MultiEventsSelectionActions.propTypes = {
     spike: PropTypes.func.isRequired,
     unspike: PropTypes.func.isRequired,
     privileges: PropTypes.object.isRequired,
+    session: PropTypes.object.isRequired,
 }
 
 const mapStateToProps = (state) => ({
     selectedEvents: getSelectedEventsObjects(state),
     privileges: selectors.getPrivileges(state),
+    session: selectors.getSessionDetails(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

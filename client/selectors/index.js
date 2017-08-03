@@ -2,6 +2,7 @@ import { createSelector } from 'reselect'
 import { orderBy, get, sortBy, includes, isEmpty } from 'lodash'
 import moment from 'moment'
 import { ITEM_STATE } from '../constants'
+import { isItemLockedInThisSession } from '../utils'
 
 export const getAgendas = (state) => state.agenda.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
@@ -296,8 +297,7 @@ export const getDisabledAgendas = createSelector(
 export const isCurrentPlanningLockedInThisSession = createSelector(
     [getCurrentPlanning, getSessionDetails],
     (currentPlanning, session) => (
-            currentPlanning && currentPlanning.lock_user === session.identity._id &&
-        currentPlanning.lock_session === session.sessionId ? true : false
+        currentPlanning && isItemLockedInThisSession(currentPlanning, session)
     )
 )
 
@@ -305,7 +305,6 @@ export const isEventDetailLockedInThisSession = createSelector(
     [getShowEventDetails, getEvents, getSessionDetails],
     (showEventDetails, events, session) => {
         const event = events[showEventDetails]
-        return event && (event.lock_user === session.identity._id &&
-        event.lock_session === session.sessionId) ? true : false
+        return event && isItemLockedInThisSession(event, session)
     }
 )

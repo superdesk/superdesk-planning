@@ -57,6 +57,7 @@ describe('events', () => {
                     privileges: {
                         planning_event_management: 1,
                         planning_planning_management: 1,
+                        planning_event_spike: 1,
                     },
                 },
             })
@@ -86,11 +87,12 @@ describe('events', () => {
                     duplicateEvent: () => {},
                     spikeEvent: () => {},
                 }
+                const priv = { planning_event_management: 1 }
                 const props = {
                     submitting: submitting,
                     handleSubmit,
                     ...itemActions,
-                    eventManagementPrivilege: true,
+                    privileges: priv,
                 }
                 const subject = shallow(<Component {...props}/>)
                 subject.find('form').simulate('submit')
@@ -205,6 +207,7 @@ describe('events', () => {
             })
 
             it('hides the save button if event is spiked', () => {
+                const priv = { planning_event_management: 1 }
                 let wrapper = shallow(
                     <Component
                         initialValues={{
@@ -214,6 +217,7 @@ describe('events', () => {
                         handleSubmit={sinon.spy()}
                         unspikeEvent={() => {}}
                         spikeEvent={() => {}}
+                        privileges={priv}
                     />
                 )
                 expect(wrapper.find('[type="submit"]').length).toBe(0)
@@ -224,6 +228,7 @@ describe('events', () => {
                         handleSubmit={sinon.spy()}
                         unspikeEvent={() => {}}
                         spikeEvent={() => {}}
+                        privileges={priv}
                     />
                 )
                 expect(wrapper.find('[type="submit"]').length).toBe(1)

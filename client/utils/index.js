@@ -340,3 +340,8 @@ export const doesRecurringEventsOverlap = (startingDate, endingDate, recurringRu
     let nextEvent = moment(rule.after(startingDate.toDate()))
     return nextEvent.isBetween(startingDate, endingDate) || nextEvent.isSame(endingDate)
 }
+
+export const isItemLockedInThisSession = (item, session) => (
+    item.lock_user === get(session, 'identity._id') &&
+        item.lock_session === get(session, 'sessionId')
+)
