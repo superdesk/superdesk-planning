@@ -81,6 +81,7 @@ export class CoverageAssignSelect extends React.Component {
             filteredDeskList: this.filterDesks(value),
             userAssigned: this.props.users.find((user) => user._id === value),
         })
+        this.refs.searchBar.resetSearch()
     }
 
     onChange(value) {
@@ -113,7 +114,7 @@ export class CoverageAssignSelect extends React.Component {
                 </div> }
             { this.state.filteredUserList.length > 0 && <div className='coverageassignselect__search'>
                 <SearchBar onSearch={(value) => {this.filterUserList(value)}} minLength={1}
-                    extendOnOpen={true} />
+                    extendOnOpen={true} ref='searchBar'/>
             </div> }
             <ul className='coverageassignselect__list'>
                 {this.state.filteredUserList.map((user, index) => (
