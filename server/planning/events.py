@@ -13,10 +13,10 @@
 import superdesk
 import logging
 from superdesk import get_resource_service
-from superdesk.resource import Resource
+from superdesk.resource import not_analyzed
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
-from superdesk.metadata.item import GUID_NEWSML, ITEM_TYPE
+from superdesk.metadata.item import GUID_NEWSML, ITEM_TYPE, metadata_schema
 from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user
 from superdesk.users.services import current_user_has_privilege
@@ -34,9 +34,6 @@ import pytz
 import re
 
 logger = logging.getLogger(__name__)
-
-not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
-not_indexed = {'type': 'string', 'index': 'no'}
 
 FREQUENCIES = {'DAILY': DAILY, 'WEEKLY': WEEKLY, 'MONTHLY': MONTHLY, 'YEARLY': YEARLY}
 DAYS = {'MO': MO, 'TU': TU, 'WE': WE, 'TH': TH, 'FR': FR, 'SA': SA, 'SU': SU}
@@ -577,28 +574,12 @@ class EventsService(superdesk.Service):
 
 events_schema = {
     # Identifiers
-    '_id': {'type': 'string', 'unique': True},
-    'guid': {
-        'type': 'string',
-        'unique': True,
-        'mapping': not_analyzed
-    },
-    'unique_id': {
-        'type': 'integer',
-        'unique': True,
-    },
-    'unique_name': {
-        'type': 'string',
-        'unique': True,
-        'mapping': not_analyzed
-    },
-    'version': {
-        'type': 'integer'
-    },
-    'ingest_id': {
-        'type': 'string',
-        'mapping': not_analyzed
-    },
+    '_id': metadata_schema['_id'],
+    'guid': metadata_schema['guid'],
+    'unique_id': metadata_schema['unique_id'],
+    'unique_name': metadata_schema['unique_name'],
+    'version': metadata_schema['version'],
+    'ingest_id': metadata_schema['ingest_id'],
     'recurrence_id': {
         'type': 'string',
         'mapping': not_analyzed,
@@ -613,28 +594,17 @@ events_schema = {
     },
 
     # Audit Information
-    'original_creator': superdesk.Resource.rel('users', nullable=True),
-    'version_creator': superdesk.Resource.rel('users'),
-    'firstcreated': {
-        'type': 'datetime'
-    },
-    'versioncreated': {
-        'type': 'datetime'
-    },
+    'original_creator': metadata_schema['original_creator'],
+    'version_creator': metadata_schema['version_creator'],
+    'firstcreated': metadata_schema['firstcreated'],
+    'versioncreated': metadata_schema['versioncreated'],
 
     # Ingest Details
-    'ingest_provider': superdesk.Resource.rel('ingest_providers'),
-    'source': {     # The value is copied from the ingest_providers vocabulary
-        'type': 'string'
-    },
-    'original_source': {    # This value is extracted from the ingest
-        'type': 'string',
-        'mapping': not_analyzed
-    },
-    'ingest_provider_sequence': {
-        'type': 'string',
-        'mapping': not_analyzed
-    },
+    'ingest_provider': metadata_schema['ingest_provider'],
+    'source': metadata_schema['source'],
+    'original_source': metadata_schema['original_source'],
+    'ingest_provider_sequence': metadata_schema['ingest_provider_sequence'],
+
     'event_created': {
         'type': 'datetime'
     },
@@ -650,17 +620,7 @@ events_schema = {
     'definition_short': {'type': 'string'},
     'definition_long': {'type': 'string'},
     'internal_note': {'type': 'string'},
-    'anpa_category': {
-        'type': 'list',
-        'nullable': True,
-        'mapping': {
-            'type': 'object',
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed,
-            }
-        }
-    },
+    'anpa_category': metadata_schema['anpa_category'],
     'files': {
         'type': 'list',
         'nullable': True,
@@ -777,28 +737,8 @@ events_schema = {
     },
 
     # Content metadata
-    'subject': {
-        'type': 'list',
-        'mapping': {
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed
-            }
-        }
-    },
-    'slugline': {
-        'type': 'string',
-        'mapping': {
-            'type': 'string',
-            'fields': {
-                'phrase': {
-                    'type': 'string',
-                    'analyzer': 'phrase_prefix_analyzer',
-                    'search_analyzer': 'phrase_prefix_analyzer'
-                }
-            }
-        }
-    },
+    'subject': metadata_schema['subject'],
+    'slugline': metadata_schema['slugline'],
 
     # Item metadata
     'location': {
@@ -874,18 +814,10 @@ events_schema = {
         'default': PUB_STATUS_USABLE,
     },
 
-    'lock_user': Resource.rel('users'),
-    'lock_time': {
-        'type': 'datetime',
-        'versioned': False
-    },
-    'lock_session': Resource.rel('auth'),
-
-    'lock_action': {
-        'type': 'string',
-        'mapping': not_analyzed,
-        'nullable': True
-    },
+    'lock_user': metadata_schema['lock_user'],
+    'lock_time': metadata_schema['lock_time'],
+    'lock_session': metadata_schema['lock_session'],
+    'lock_action': metadata_schema['lock_action'],
 
     # The update method used for recurring events
     'update_method': {

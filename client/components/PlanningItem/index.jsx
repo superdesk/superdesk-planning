@@ -37,6 +37,7 @@ const PlanningItem = ({
 
     const itemSpiked = item && get(item, 'state', 'active') === ITEM_STATE.SPIKED
     const eventSpiked = event ? get(event, 'state', 'active') === ITEM_STATE.SPIKED : false
+    const notForPublication = item ? get(item, 'flags.marked_for_not_publication', false) : false
 
     const showSpikeButton = (!itemLocked || itemLockedInThisSession) &&
         privileges.planning_planning_spike === 1 && !itemSpiked && !eventSpiked
@@ -56,6 +57,9 @@ const PlanningItem = ({
                 <div className="sd-list-item__row">
                     {itemSpiked &&
                         <span className="label label--alert">spiked</span>
+                    }
+                    {notForPublication &&
+                        <span className="state-label not-for-publication">Not for Publication</span>
                     }
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {item.slugline &&
