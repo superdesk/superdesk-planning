@@ -127,6 +127,7 @@ Feature: Events Recurring
             }
         }]
         """
+        Then we store "NEW_RECURRING" from patch
         When we get "/events"
         Then we get list with 3 items
         """
@@ -136,19 +137,22 @@ Feature: Events Recurring
                 "dates": {
                     "start": "2019-11-22T12:00:00+0000",
                     "end": "2019-11-22T14:00:00+0000"
-                }
+                },
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
             }, {
                 "name": "Weekly Friday Club",
                 "dates": {
                     "start": "2019-11-29T12:00:00+0000",
                     "end": "2019-11-29T14:00:00+0000"
-                }
+                },
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
             }, {
                 "name": "Weekly Friday Club",
                 "dates": {
                     "start": "2019-12-06T12:00:00+0000",
                     "end": "2019-12-06T14:00:00+0000"
-                }
+                },
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
             }
         ]}
         """

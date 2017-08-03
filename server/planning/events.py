@@ -311,6 +311,8 @@ class EventsService(superdesk.Service):
     def _convert_to_recurring_event(self, updates, original):
         """Convert a single event to a series of recurring events"""
         # Convert the single event to a series of recurring events
+        updates['recurrence_id'] = generate_guid(type=GUID_NEWSML)
+
         merged = copy.deepcopy(original)
         merged.update(updates)
         generated_events = generate_recurring_events(merged)
@@ -1030,6 +1032,14 @@ def generate_recurring_events(event):
     ), 0, get_max_recurrent_events()):  # set a limit to prevent too many events to be created
         # create event with the new dates
         new_event = copy.deepcopy(event)
+
+        # Remove fields not required by the new events
+        for key in list(new_event.keys()):
+            if key.startswith('_'):
+                new_event.pop(key)
+            elif key.startswith('lock_'):
+                new_event.pop(key)
+
         new_event['dates']['start'] = date
         new_event['dates']['end'] = date + time_delta
         # set a unique guid
