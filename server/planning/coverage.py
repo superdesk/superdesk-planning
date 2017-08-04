@@ -231,6 +231,10 @@ class CoverageResource(superdesk.Resource):
 
     url = 'coverage'
     schema = coverage_schema
+    datasource = {
+        'source': 'coverage',
+        'search_backend': 'elastic',
+    }
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']

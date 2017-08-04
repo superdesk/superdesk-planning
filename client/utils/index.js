@@ -345,3 +345,19 @@ export const isItemLockedInThisSession = (item, session) => (
     item.lock_user === get(session, 'identity._id') &&
         item.lock_session === get(session, 'sessionId')
 )
+
+/**
+ * Get the name of associated icon for different coverage types
+ * @param {type} coverage types
+ * @returns {string} icon name
+ */
+export const getCoverageIcon = (type) => {
+    const coverageIcons = {
+        text: 'icon-text',
+        video: 'icon-video',
+        live_video: 'icon-video',
+        audio: 'icon-audio',
+        photo: 'icon-photo',
+    }
+    return get(coverageIcons, type, 'icon-file')
+}
