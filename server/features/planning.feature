@@ -23,8 +23,6 @@ Feature: Planning
         """
         [
             {
-                "unique_id": "123",
-                "unique_name": "123 name",
                 "item_class": "item class value",
                 "headline": "test headline",
                 "slugline": "test slugline"
@@ -126,8 +124,6 @@ Feature: Planning
         """
         [
             {
-                "unique_id": "123",
-                "unique_name": "123 name",
                 "item_class": "item class value",
                 "headline": "test headline",
                 "agendas": ["#agenda1#"]
@@ -313,8 +309,6 @@ Feature: Planning
         """
         [
             {
-                "unique_id": "123",
-                "unique_name": "123 name",
                 "item_class": "item class value",
                 "headline": "test headline"
             }
@@ -375,8 +369,6 @@ Feature: Planning
         """
         [
             {
-                "unique_id": "123",
-                "unique_name": "123 name",
                 "item_class": "item class value",
                 "headline": "test headline",
                 "event_item": "#events._id#"

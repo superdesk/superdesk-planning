@@ -31,8 +31,6 @@ Feature: Coverage
         [
             {
                 "guid": "123",
-                "unique_id": "123",
-                "unique_name": "123 name",
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
@@ -64,7 +62,9 @@ Feature: Coverage
         When we get "/coverage_history"
         Then we get a list with 2 items
         """
-            {"_items": [{"operation": "create", "coverage_id": "#coverage._id#", "update": {"unique_name": "123 name"}}]}
+            {"_items": [{"operation": "create", "coverage_id": "#coverage._id#", "update": {
+                "planning_item": "#planning._id#"
+            }}]}
         """
 
     @auth
@@ -92,8 +92,6 @@ Feature: Coverage
         [
             {
                 "guid": "123",
-                "unique_id": "123",
-                "unique_name": "123 name",
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
@@ -152,8 +150,6 @@ Feature: Coverage
         [
             {
                 "guid": "123",
-                "unique_id": "123",
-                "unique_name": "123 name",
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
@@ -235,8 +231,6 @@ Feature: Coverage
         [
              {
                 "guid": "123",
-                "unique_id": "123",
-                "unique_name": "123 name",
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "assigned_to": {
@@ -252,7 +246,13 @@ Feature: Coverage
         Then we get OK response
         When we patch "/coverage/#coverage._id#"
         """
-        {"unique_name": "123 name updated"}
+        {"planning": {
+            "ednote": "test coverage, I want 251 words",
+            "assigned_to": {
+                "desk": "Politic Desk",
+                "user": "507f191e810c19729de860ea"
+            }
+        }}
         """
         Then we get OK response
         When we get "/coverage_history"
@@ -266,7 +266,13 @@ Feature: Coverage
                     }},
                 {"coverage_id":  "#coverage._id#",
                 "operation": "update",
-                "update": {"unique_name": "123 name updated"}}
+                "update": {"planning": {
+                    "ednote": "test coverage, I want 251 words",
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de860ea"
+                    }
+                }}}
             ]}
         """
         When we get "/coverage_history?where=coverage_id==%22#coverage._id#%22"

@@ -20,6 +20,11 @@ class Component extends React.Component {
                 <div>
                     <fieldset>
                         <Field
+                            name="flags.marked_for_not_publication"
+                            component={fields.ToggleField}
+                            label="Not for Publication"
+                            readOnly={readOnly}/>
+                        <Field
                             name="slugline"
                             component={fields.InputField}
                             type="text"

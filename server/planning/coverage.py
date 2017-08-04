@@ -87,22 +87,12 @@ coverage_schema = {
     # Identifiers
     '_id': metadata_schema['_id'],
     'guid': metadata_schema['guid'],
-    'unique_id': metadata_schema['unique_id'],
-    'unique_name': metadata_schema['unique_name'],
-    'version': metadata_schema['version'],
-    'ingest_id': metadata_schema['ingest_id'],
 
     # Audit Information
     'original_creator': metadata_schema['original_creator'],
     'version_creator': metadata_schema['version_creator'],
     'firstcreated': metadata_schema['firstcreated'],
     'versioncreated': metadata_schema['versioncreated'],
-
-    # Ingest Details
-    'ingest_provider': metadata_schema['ingest_provider'],
-    'source': metadata_schema['source'],
-    'original_source': metadata_schema['original_source'],
-    'ingest_provider_sequence': metadata_schema['ingest_provider_sequence'],
 
     # Reference to Planning Item
     'planning_item': superdesk.Resource.rel('planning'),

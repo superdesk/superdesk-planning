@@ -14,9 +14,9 @@ import logging
 from flask import json
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
-from superdesk.metadata.item import GUID_NEWSML
+from superdesk.metadata.item import GUID_NEWSML, metadata_schema
 from superdesk import get_resource_service
-from superdesk.resource import Resource
+from superdesk.resource import not_analyzed
 from superdesk.users.services import current_user_has_privilege
 from superdesk.resource import build_custom_hateoas
 from superdesk.notification import push_notification
@@ -28,9 +28,6 @@ from superdesk.utc import utcnow
 from bson.objectid import ObjectId
 
 logger = logging.getLogger(__name__)
-
-not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
-not_indexed = {'type': 'string', 'index': 'no'}
 
 
 class PlanningService(superdesk.Service):
@@ -147,52 +144,14 @@ event_type['mapping'] = not_analyzed
 
 planning_schema = {
     # Identifiers
-    'guid': {
-        'type': 'string',
-        'unique': True,
-        'mapping': not_analyzed
-    },
-    'unique_id': {
-        'type': 'integer',
-        'unique': True,
-    },
-    'unique_name': {
-        'type': 'string',
-        'unique': True,
-        'mapping': not_analyzed
-    },
-    'version': {
-        'type': 'integer'
-    },
-    'ingest_id': {
-        'type': 'string',
-        'mapping': not_analyzed
-    },
+    '_id': metadata_schema['_id'],
+    'guid': metadata_schema['guid'],
 
     # Audit Information
-    'original_creator': superdesk.Resource.rel('users'),
-    'version_creator': superdesk.Resource.rel('users'),
-    'firstcreated': {
-        'type': 'datetime'
-    },
-    'versioncreated': {
-        'type': 'datetime'
-    },
-
-    # Ingest Details
-    'ingest_provider': superdesk.Resource.rel('ingest_providers'),
-    'source': {     # The value is copied from the ingest_providers vocabulary
-        'type': 'string',
-        'mapping': not_analyzed
-    },
-    'original_source': {    # This value is extracted from the ingest
-        'type': 'string',
-        'mapping': not_analyzed
-    },
-    'ingest_provider_sequence': {
-        'type': 'string',
-        'mapping': not_analyzed
-    },
+    'original_creator': metadata_schema['original_creator'],
+    'version_creator': metadata_schema['version_creator'],
+    'firstcreated': metadata_schema['firstcreated'],
+    'versioncreated': metadata_schema['versioncreated'],
 
     # Agenda Item details
     'agendas': {
@@ -212,108 +171,27 @@ planning_schema = {
         'type': 'string',
         'default': 'plinat:newscoverage'
     },
-    'ednote': {
-        'type': 'string',
-        'nullable': True,
-    },
-    'description_text': {
-        'type': 'string',
-        'nullable': True
-    },
+    'ednote': metadata_schema['ednote'],
+    'description_text': metadata_schema['description_text'],
     'internal_note': {
         'type': 'string',
         'nullable': True
     },
-    'anpa_category': {
-        'type': 'list',
-        'nullable': True,
-        'mapping': {
-            'type': 'object',
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed,
-            }
-        }
-    },
-    'subject': {
-        'type': 'list',
-        'mapping': {
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed
-            }
-        }
-    },
-    'genre': {
-        'type': 'list',
-        'nullable': True,
-        'mapping': {
-            'type': 'object',
-            'properties': {
-                'name': not_analyzed,
-                'qcode': not_analyzed
-            }
-        }
-    },
-    'company_codes': {
-        'type': 'list',
-        'mapping': {
-            'type': 'object',
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed,
-                'security_exchange': not_analyzed
-            }
-        }
-    },
+    'anpa_category': metadata_schema['anpa_category'],
+    'subject': metadata_schema['subject'],
+    'genre': metadata_schema['genre'],
+    'company_codes': metadata_schema['company_codes'],
 
     # Content Metadata - See IPTC-G2-Implementation_Guide 16.2
-    'language': {
-        'type': 'string',
-        'mapping': not_analyzed,
-        'nullable': True,
-    },
-    'abstract': {
-        'type': 'string',
-        'nullable': True,
-    },
-    'headline': {
-        'type': 'string'
-    },
-    'slugline': {
-        'type': 'string',
-        'mapping': {
-            'type': 'string',
-            'fields': {
-                'phrase': {
-                    'type': 'string',
-                    'analyzer': 'phrase_prefix_analyzer',
-                    'search_analyzer': 'phrase_prefix_analyzer'
-                }
-            }
-        }
-    },
-    'keywords': {
-        'type': 'list',
-        'mapping': {
-            'type': 'string'
-        }
-    },
-    'word_count': {
-        'type': 'integer'
-    },
-    'priority': {
-        'type': 'integer',
-        'nullable': True
-    },
-    'urgency': {
-        'type': 'integer',
-        'nullable': True
-    },
-    'profile': {
-        'type': 'string',
-        'nullable': True
-    },
+    'language': metadata_schema['language'],
+    'abstract': metadata_schema['abstract'],
+    'headline': metadata_schema['headline'],
+    'slugline': metadata_schema['slugline'],
+    'keywords': metadata_schema['keywords'],
+    'word_count': metadata_schema['word_count'],
+    'priority': metadata_schema['priority'],
+    'urgency': metadata_schema['urgency'],
+    'profile': metadata_schema['profile'],
 
     # These next two are for spiking/unspiking and purging of planning/agenda items
     'state': STATE_SCHEMA,
@@ -322,19 +200,18 @@ planning_schema = {
         'nullable': True
     },
 
-    'lock_user': Resource.rel('users'),
-    'lock_time': {
-        'type': 'datetime',
-        'versioned': False
+    'lock_user': metadata_schema['lock_user'],
+    'lock_time': metadata_schema['lock_time'],
+    'lock_session': metadata_schema['lock_session'],
+    'lock_action': metadata_schema['lock_action'],
+
+    'flags': {
+        'type': 'dict',
+        'schema': {
+            'marked_for_not_publication':
+                metadata_schema['flags']['schema']['marked_for_not_publication']
+        }
     },
-    'lock_session': Resource.rel('auth'),
-
-    'lock_action': {
-        'type': 'string',
-        'mapping': not_analyzed,
-        'nullable': True
-    }
-
 }  # end planning_schema
 
 
