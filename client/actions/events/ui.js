@@ -215,6 +215,7 @@ const spike = (event) => (
             )
 
         ), (error) => {
+            dispatch(hideModal())
             notify.error(
                 getErrorMessage(error, 'Failed to spike the event(s)')
             )

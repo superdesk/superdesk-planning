@@ -9,6 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from .events import EventsResource
+from superdesk.errors import SuperdeskApiError
 from .common import ITEM_EXPIRY, ITEM_STATE, ITEM_SPIKED, ITEM_ACTIVE, set_item_expiry,\
     PUB_STATUS_CANCELED, UPDATE_SINGLE, UPDATE_FUTURE
 from superdesk.services import BaseService
@@ -16,6 +17,7 @@ from superdesk.notification import push_notification
 from apps.auth import get_user
 from superdesk import config, get_resource_service
 from superdesk.utc import utcnow
+from .item_lock import LOCK_USER, LOCK_SESSION
 
 
 class EventsSpikeResource(EventsResource):
@@ -31,6 +33,8 @@ class EventsSpikeResource(EventsResource):
 class EventsSpikeService(BaseService):
     def update(self, id, updates, original):
         user = get_user(required=True)
+
+        self._validate(id)
 
         updates[ITEM_STATE] = ITEM_SPIKED
         set_item_expiry(updates)
@@ -88,6 +92,16 @@ class EventsSpikeService(BaseService):
             self.on_update(updates, e)
             self.update(e[config.ID_FIELD], {}, e)
             self.on_updated(updates, e)
+
+    def _validate(self, id):
+        # Check to see if there are any planning items that are locked
+        # If yes, return error
+        # Check to see if we have any related planning items for that event which is locked
+        planning_service = get_resource_service('planning')
+        for planning in list(planning_service.find(where={'event_item': id})):
+            if planning.get(LOCK_USER) or planning.get(LOCK_SESSION):
+                raise SuperdeskApiError.forbiddenError(
+                    message="Spike failed. One or more related planning items are locked.")
 
 
 class EventsUnspikeResource(EventsResource):

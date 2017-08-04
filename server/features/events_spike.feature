@@ -257,3 +257,52 @@ Feature: Events Spike
                 "state": "spiked"
             }]}
         """
+
+    @auth
+    Scenario: Spiking an Event fails if an associated Planning items is locked
+        Given "events"
+        """
+        [{
+            "name": "TestEvent",
+            "dates": {
+                "start": "2016-01-01",
+                "end": "2017-01-01"
+            }
+        }]
+        """
+        Given "planning"
+        """
+        [{
+            "slugline": "TestPlan 1",
+            "event_item": "#events._id#",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "123"
+        }, {
+            "slugline": "TestPlan 2",
+            "event_item": "#events._id#"
+        }]
+        """
+        When we get "/planning"
+        Then we get list with 2 items
+        """
+            {"_items": [{
+                "slugline": "TestPlan 1",
+                "event_item": "#events._id#",
+                "state": "active",
+                "lock_user": "#CONTEXT_USER_ID#",
+                "lock_session": "123"
+            }, {
+                "slugline": "TestPlan 2",
+                "event_item": "#events._id#",
+                "state": "active"
+            }]}
+        """
+        When we spike events "#events._id#"
+        Then we get error 400
+        """
+        {
+            "_issues": {
+                "validator exception": "403: Spike failed. One or more related planning items are locked."
+            }
+        }
+        """
