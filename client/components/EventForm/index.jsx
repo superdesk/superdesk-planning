@@ -13,13 +13,13 @@ import {
     UntilDateValidator,
     EventMaxEndRepeatCount } from '../../validators'
 import './style.scss'
-import { ITEM_STATE, EVENTS, PRIVILEGES } from '../../constants'
+import { ITEM_STATE, PRIVILEGES } from '../../constants'
 import * as selectors from '../../selectors'
 import { OverlayTrigger } from 'react-bootstrap'
 import { tooltips } from '../index'
 import PropTypes from 'prop-types'
 import { ItemActionsMenu, UnlockItem, UserAvatar } from '../index'
-import { isEventAllDay, doesRecurringEventsOverlap } from '../../utils'
+import { eventUtils, getLockedUser, isItemLockedInThisSession, isItemLockRestricted, getItemState } from '../../utils'
 import classNames from 'classnames'
 
 /**
@@ -125,7 +125,7 @@ export class Component extends React.Component {
 
             // If the initial values were all day, then set the end minutes to 55
             // So that the allDay toggle is turned off
-            if (isEventAllDay(newStart, newEnd)) {
+            if (eventUtils.isEventAllDay(newStart, newEnd)) {
                 newEnd.minutes(55)
             }
         }
@@ -173,7 +173,7 @@ export class Component extends React.Component {
             unpublish,
             duplicateEvent,
             highlightedEvent,
-            lockedInThisSession,
+            session,
             privileges,
             onUnlock,
             startingDate,
@@ -182,24 +182,20 @@ export class Component extends React.Component {
         } = this.props
 
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK]
-        const eventManagementPrivilege = !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
-        const planningManagementPrivilege = !!privileges[PRIVILEGES.PLANNING_MANAGEMENT]
-        const spikePrivilege = !!privileges[PRIVILEGES.SPIKE_EVENT]
-        const unspikePrivilege = !!privileges[PRIVILEGES.UNSPIKE_EVENT]
 
-        const eventSpiked = get(initialValues, 'state', 'active') === ITEM_STATE.SPIKED
+        const eventSpiked = getItemState(initialValues) === ITEM_STATE.SPIKED
         const creationDate = get(initialValues, '_created')
         const updatedDate = get(initialValues, '_updated')
         const existingEvent = !!get(initialValues, '_id')
-        const forcedReadOnly = existingEvent && (readOnly || eventSpiked || !lockedInThisSession)
+        const forcedReadOnly = existingEvent && (readOnly || eventSpiked ||
+            !isItemLockedInThisSession(initialValues, session))
         const author = get(initialValues, 'original_creator') && users ? users.find((u) => (u._id === initialValues.original_creator)) : null
         const versionCreator = get(initialValues, 'version_creator') && users ? users.find((u) => (u._id === initialValues.version_creator)) : null
-        const isPublished = get(initialValues, 'state') === EVENTS.STATE.PUBLISHED
-        const lockedUser = this.getLockedUser(initialValues)
+        const lockedUser = getLockedUser(initialValues, users)
         const metaDataEditable =  !forcedReadOnly && this.isMetaDataEditable()
         const recurringRulesEditable =  !forcedReadOnly && this.isRecurringRulesEditable()
-        const occurrenceOverlaps = doesRecurringEventsOverlap(startingDate, endingDate, recurringRule)
-        const lockRestricted = lockedUser && !lockedInThisSession
+        const occurrenceOverlaps = eventUtils.doesRecurringEventsOverlap(startingDate, endingDate, recurringRule)
+        const lockRestricted =  isItemLockRestricted(initialValues, session)
 
         const RepeatEventFormProps = {
             ...this.props,
@@ -233,31 +229,31 @@ export class Component extends React.Component {
         const populateItemActions = () => {
             itemActions.unshift(eventActions.EVENT_HISTORY)
 
-            if (!lockRestricted) {
-                if (planningManagementPrivilege) {
-                    itemActions.unshift(eventActions.CREATE_PLANNING)
+            if (eventUtils.canCreatePlanningFromEvent(initialValues, session, privileges)) {
+                itemActions.unshift(eventActions.CREATE_PLANNING)
+            }
+
+            if (eventSpiked) {
+                if (eventUtils.canUnspikeEvent(initialValues, privileges)) {
+                    itemActions.unshift(eventActions.UNSPIKE_EVENT)
                 }
 
-                if(!eventManagementPrivilege) return
-
-                if (eventSpiked) {
-                    if (unspikePrivilege) {
-                        itemActions.unshift(eventActions.UNSPIKE_EVENT)
-                    }
-                    remove(itemActions, (action) =>
-                        action.label === eventActions.CREATE_PLANNING.label)
-                } else {
+                remove(itemActions, (action) =>
+                    action.label === eventActions.CREATE_PLANNING.label)
+            } else {
+                if (eventUtils.canDuplicateEvent(initialValues, session, privileges)) {
                     itemActions.unshift(eventActions.DUPLICATE_EVENT)
-                    if (!isPublished && spikePrivilege) {
-                        itemActions.unshift(eventActions.SPIKE_EVENT)
-                    }
+                }
 
-                    // Cannot spike or create new events if it is a recurring event and
-                    // only metadata was edited
-                    if ( this.state.doesRepeat && metaDataEditable && !recurringRulesEditable) {
-                        remove(itemActions, (action) => action.label === eventActions.SPIKE_EVENT.label ||
-                            action.label === eventActions.DUPLICATE_EVENT.label)
-                    }
+                if (eventUtils.canSpikeEvent(initialValues, session, privileges)) {
+                    itemActions.unshift(eventActions.SPIKE_EVENT)
+                }
+
+                // Cannot spike or create new events if it is a recurring event and
+                // only metadata was edited
+                if ( this.state.doesRepeat && metaDataEditable && !recurringRulesEditable) {
+                    remove(itemActions, (action) => action.label === eventActions.SPIKE_EVENT.label ||
+                        action.label === eventActions.DUPLICATE_EVENT.label)
                 }
             }
         }
@@ -286,7 +282,7 @@ export class Component extends React.Component {
                             <button type="submit" className="btn btn--primary" disabled={pristine || submitting}>
                                 Save
                             </button>
-                            {!isPublished && eventManagementPrivilege &&
+                            { eventUtils.canPublishEvent(initialValues, session, privileges) &&
                                 <button
                                     onClick={handleSubmit(this.handleSaveAndPublish.bind(this))}
                                     type="button"
@@ -297,17 +293,17 @@ export class Component extends React.Component {
                             }
                         </div>
                     )}
-                    {!this.state.previewHistory && eventManagementPrivilege && (
+                    {!this.state.previewHistory && (
                         <div className="subnav__actions">
                             <div>
-                                {forcedReadOnly && !isPublished && !eventSpiked && !lockRestricted &&
+                                {forcedReadOnly && eventUtils.canPublishEvent(initialValues, session, privileges) &&
                                     <button
                                         onClick={() => publish(initialValues)}
                                         type="button"
                                         className="btn btn--success">
                                         Publish</button>
                                 }
-                                {isPublished &&
+                                {eventUtils.canUnpublishEvent(initialValues, privileges) &&
                                     <button
                                         onClick={() => unpublish(initialValues)}
                                         type="button"
@@ -328,7 +324,7 @@ export class Component extends React.Component {
                 </div>
                 {!this.state.previewHistory &&
                     <div className="EventForm__form">
-                    <PubStatusLabel status={get(initialValues, 'state')} verbose={true}/>
+                    <PubStatusLabel status={getItemState(initialValues)} verbose={true}/>
                     <ItemActionsMenu actions={itemActions} />
                     <div>
                         {lockRestricted && (
@@ -528,7 +524,7 @@ Component.propTypes = {
     duplicateEvent: PropTypes.func.isRequired,
     isAllDay: PropTypes.bool,
     highlightedEvent: PropTypes.string,
-    lockedInThisSession: PropTypes.bool,
+    session: PropTypes.object,
     onUnlock: PropTypes.func,
     privileges: PropTypes.object,
     recurringRule: PropTypes.object,
@@ -555,11 +551,11 @@ const mapStateToProps = (state) => ({
     users: selectors.getUsers(state),
     readOnly: selectors.getEventReadOnlyState(state),
     formValues: getFormValues('addEvent')(state),
-    isAllDay: isEventAllDay(
+    isAllDay: eventUtils.isEventAllDay(
         selector(state, 'dates.start'),
         selector(state, 'dates.end')
     ),
-    lockedInThisSession: selectors.isEventDetailLockedInThisSession(state),
+    session: selectors.getSessionDetails(state),
     privileges: selectors.getPrivileges(state),
     maxRecurrentEvents: selectors.getMaxRecurrentEvents(state),
     recurringRule: selector(state, 'dates.recurring_rule'),

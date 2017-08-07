@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import momentPropTypes from 'react-moment-proptypes'
 import { OverlayTrigger } from 'react-bootstrap'
 import { Datetime, tooltips } from '../index'
-import { isEventAllDay } from '../../utils'
+import { eventUtils } from '../../utils'
 import { get } from 'lodash'
 import './style.scss'
 
@@ -17,7 +17,7 @@ export const TimeEvent = ({ event, withDate=false }) => {
     let label
 
     // display "all day" if the event last exactly one day
-    if (isEventAllDay(event.dates.start, event.dates.end)) {
+    if (eventUtils.isEventAllDay(event.dates.start, event.dates.end)) {
         label = (<span className="TimeEvent">All day</span>)
     // display only the time if the event start and finish the same day
     } else if (startAndFinishTheSameDay(event)) {

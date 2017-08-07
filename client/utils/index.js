@@ -4,11 +4,11 @@ import planningApp from '../reducers'
 import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
 import { get, set } from 'lodash'
-import RRule from 'rrule'
 
 export { default as checkPermission } from './checkPermission'
 export { default as retryDispatch } from './retryDispatch'
 export { default as registerNotifications } from './notifications'
+export { default as eventUtils } from './events'
 
 export function createReducer(initialState, reducerMap) {
     return (state = initialState, action) => {
@@ -265,21 +265,6 @@ export const getErrorMessage = (error, defaultMessage) => {
 }
 
 /**
- * Helper function to determine if the starting and ending dates
- * occupy entire day(s)
- * @param {moment} startingDate - A moment instance for the starting date/time
- * @param {moment} endingDate - A moment instance for the starting date/time
- * @return {boolean} If the date/times occupy entire day(s)
- */
-export const isEventAllDay = (startingDate, endingDate) => {
-    startingDate = moment(startingDate).clone()
-    endingDate = moment(endingDate).clone()
-
-    return startingDate.isSame(startingDate.clone().startOf('day')) &&
-        endingDate.isSame(endingDate.clone().endOf('day').seconds(0).milliseconds(0))
-}
-
-/**
  * Helper function to retrieve the user object using their ID from an item field.
  * i.e. get the User object for 'original_creator'
  * @param {object} item - The item to get the ID from
@@ -294,52 +279,9 @@ export const getCreator = (item, creator, users) => {
     }
 }
 
-/**
- * Helper function to determine if a recurring event instances overlap
- * Using the RRule library (similar to that the server uses), it coverts the
- * recurring_rule to an RRule instance and determines if instances overlap
- * @param {moment} startingDate - The starting date/time of the selected event
- * @param {moment} endingDate - The ending date/time of the selected event
- * @param {object} recurringRule - The list of recurring rules
- * @returns {boolean} True if the instances overlap, false otherwise
- */
-export const doesRecurringEventsOverlap = (startingDate, endingDate, recurringRule) => {
-    if (!recurringRule || !startingDate || !endingDate ||
-        !('frequency' in recurringRule) || !('interval' in recurringRule)) return false
-
-    const freqMap = {
-        YEARLY: RRule.YEARLY,
-        MONTHLY: RRule.MONTHLY,
-        WEEKLY: RRule.WEEKLY,
-        DAILY: RRule.DAILY,
-    }
-
-    const dayMap = {
-        MO: RRule.MO,
-        TU: RRule.TU,
-        WE: RRule.WE,
-        TH: RRule.TH,
-        FR: RRule.FR,
-        SA: RRule.SA,
-        SU: RRule.SU,
-    }
-
-    const rules = {
-        freq: freqMap[recurringRule.frequency],
-        interval: parseInt(recurringRule.interval) || 1,
-        dtstart: startingDate.toDate(),
-        count: 2,
-    }
-
-    if ('byday' in recurringRule) {
-        rules.byweekday = recurringRule.byday.split(' ').map((day) => dayMap[day])
-    }
-
-    const rule = new RRule(rules)
-
-    let nextEvent = moment(rule.after(startingDate.toDate()))
-    return nextEvent.isBetween(startingDate, endingDate) || nextEvent.isSame(endingDate)
-}
+export const isItemLockRestricted = (item, session) => (
+    get(item, 'lock_user') && !isItemLockedInThisSession(item, session)
+)
 
 export const isItemLockedInThisSession = (item, session) => (
     item.lock_user === get(session, 'identity._id') &&
@@ -361,3 +303,11 @@ export const getCoverageIcon = (type) => {
     }
     return get(coverageIcons, type, 'icon-file')
 }
+
+export const getLockedUser = (item, users) => (
+    get(item, 'lock_user') && Array.isArray(users) ?
+            users.find((u) => (u._id === item.lock_user)) : null
+)
+
+export const getItemState = (item) => (get(item, 'state'))
+
