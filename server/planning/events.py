@@ -845,7 +845,11 @@ events_schema = {
                 'name': not_analyzed,
             }
         }
-    }
+    },
+
+    # The previous state the item was in before for example being spiked,
+    # when un-spiked it will revert to this state
+    'revert_state': metadata_schema['revert_state']
 }  # end events_schema
 
 
