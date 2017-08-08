@@ -24,7 +24,7 @@ $EDIT_PLANNING_WIDTH: 450px;
     }
 }
 .TimeAndAuthor {
-    margin: 15px 0px 10px 0px;
+    margin: 0px 0px 10px 0px;
     color: $sd-text-label;
     display: inline-block;   
     &__author {
@@ -33,6 +33,8 @@ $EDIT_PLANNING_WIDTH: 450px;
 }
 .EditPlanningPanel__actions {
     white-space: nowrap;
+    position: absolute;
+    right: 10px;
     &__edit {
         padding-right: 20px;
     }

@@ -1,6 +1,7 @@
 import sinon from 'sinon'
 import { registerNotifications } from '../../../utils'
 import planningApi from '../api'
+import planningUi from '../ui'
 import planningNotifications from '../notifications'
 import { getTestActionStore, restoreSinonStub } from '../../../utils/testUtils'
 
@@ -38,6 +39,9 @@ describe('actions.planning.notifications', () => {
             sinon.stub(planningNotifications, 'onPlanningUnlocked').callsFake(
                 () => (Promise.resolve())
             )
+            sinon.stub(planningNotifications, 'onPlanningPublished').callsFake(
+                () => (Promise.resolve())
+            )
 
             $rootScope = _$rootScope_
             registerNotifications($rootScope, store)
@@ -50,6 +54,7 @@ describe('actions.planning.notifications', () => {
             restoreSinonStub(planningNotifications.onCoverageDeleted)
             restoreSinonStub(planningNotifications.onPlanningUpdated)
             restoreSinonStub(planningNotifications.onPlanningUnlocked)
+            restoreSinonStub(planningNotifications.onPlanningPublished)
         })
 
         it('`planning:created` calls onPlanningCreated', (done) => {
@@ -148,6 +153,17 @@ describe('actions.planning.notifications', () => {
             setTimeout(() => {
                 expect(planningNotifications.onPlanningUnlocked.callCount).toBe(1)
                 expect(planningNotifications.onPlanningUnlocked.args[0][1]).toEqual({ item: 'p2' })
+
+                done()
+            }, delay)
+        })
+
+        it('`planning:published` calls onPlanningPublished', (done) => {
+            $rootScope.$broadcast('planning:published', { item: 'p2' })
+
+            setTimeout(() => {
+                expect(planningNotifications.onPlanningPublished.callCount).toBe(1)
+                expect(planningNotifications.onPlanningPublished.args[0][1]).toEqual({ item: 'p2' })
 
                 done()
             }, delay)
@@ -341,5 +357,27 @@ describe('actions.planning.notifications', () => {
                     done()
                 })
         ))
+    })
+
+    describe('onPlanningPublished', () => {
+        afterEach(() => {
+            restoreSinonStub(planningUi.fetchToList)
+        })
+
+        it('onPlanningPublished calls fetchToList', (done) => {
+            sinon.stub(planningUi, 'fetchToList').callsFake(() => (Promise.resolve()))
+
+            store.test(done, planningNotifications.onPlanningPublished({}, { item: 'p1' }))
+            .then(() => {
+                // Reloads selected Agenda Plannings
+                expect(planningUi.fetchToList.callCount).toBe(1)
+                expect(planningUi.fetchToList.args[0]).toEqual([{
+                    noAgendaAssigned: false,
+                    agendas: ['a1'],
+                    page: 1,
+                }])
+                done()
+            })
+        })
     })
 })

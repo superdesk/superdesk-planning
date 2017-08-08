@@ -4,7 +4,7 @@ import { ListItem, TimePlanning, DueDate, tooltips } from '../index'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import { ITEM_STATE } from '../../constants'
 import classNames from 'classnames'
-import { getCoverageIcon } from '../../utils/index'
+import { getCoverageIcon, isItemPublic } from '../../utils/index'
 import './style.scss'
 
 const PlanningItem = ({
@@ -35,6 +35,9 @@ const PlanningItem = ({
     const showUnspikeButton = (!itemLocked || itemLockedInThisSession) &&
         privileges.planning_planning_unspike === 1 && itemSpiked && !eventSpiked
 
+    const isPublic = isItemPublic(get(item, 'pubstatus'))
+    const isKilled = get(item, 'state') === 'killed'
+
     return (
         <ListItem
             item={item}
@@ -50,6 +53,12 @@ const PlanningItem = ({
                     }
                     {notForPublication &&
                         <span className="state-label not-for-publication">Not for Publication</span>
+                    }
+                    {isPublic &&
+                        <span className="state-label state-published">Public</span>
+                    }
+                    {isKilled &&
+                        <span className="state-label state-killed">Killed</span>
                     }
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {item.slugline &&
@@ -141,6 +150,7 @@ const PlanningItem = ({
         </ListItem>
     )
 }
+
 
 PlanningItem.propTypes = {
     item: PropTypes.object.isRequired,

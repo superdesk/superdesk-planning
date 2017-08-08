@@ -9,7 +9,7 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from .planning import PlanningResource
-from .common import ITEM_EXPIRY, ITEM_STATE, ITEM_SPIKED, ITEM_ACTIVE, set_item_expiry
+from .common import ITEM_EXPIRY, ITEM_STATE, ITEM_SPIKED, set_item_expiry
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from apps.auth import get_user
@@ -30,6 +30,7 @@ class PlanningSpikeService(BaseService):
     def update(self, id, updates, original):
         user = get_user(required=True)
 
+        updates['revert_state'] = original[ITEM_STATE]
         updates[ITEM_STATE] = ITEM_SPIKED
         set_item_expiry(updates)
 
@@ -52,7 +53,8 @@ class PlanningUnspikeService(BaseService):
     def update(self, id, updates, original):
         user = get_user(required=True)
 
-        updates[ITEM_STATE] = ITEM_ACTIVE
+        updates[ITEM_STATE] = original['revert_state']
+        updates['revert_state'] = None
         updates[ITEM_EXPIRY] = None
 
         item = self.backend.update(self.datasource, id, updates, original)

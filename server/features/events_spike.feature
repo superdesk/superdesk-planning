@@ -194,11 +194,11 @@ Feature: Events Spike
             {"_items": [{
                 "slugline": "TestPlan 1",
                 "event_item": "#events._id#",
-                "state": "active"
+                "state": "in_progress"
             }, {
                 "slugline": "TestPlan 2",
                 "event_item": "#events._id#",
-                "state": "active"
+                "state": "in_progress"
             }]}
         """
         When we spike events "#events._id#"
@@ -288,13 +288,13 @@ Feature: Events Spike
             {"_items": [{
                 "slugline": "TestPlan 1",
                 "event_item": "#events._id#",
-                "state": "active",
+                "state": "in_progress",
                 "lock_user": "#CONTEXT_USER_ID#",
                 "lock_session": "123"
             }, {
                 "slugline": "TestPlan 2",
                 "event_item": "#events._id#",
-                "state": "active"
+                "state": "in_progress"
             }]}
         """
         When we spike events "#events._id#"

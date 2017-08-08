@@ -29,6 +29,8 @@ describe('actions.planning.api', () => {
         sinon.stub(planningApi, 'saveAndDeleteCoverages').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'fetchPlanningById').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'fetchPlanningHistory').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningApi, 'publish').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningApi, 'unpublish').callsFake(() => (Promise.resolve()))
     })
 
     afterEach(() => {
@@ -41,6 +43,8 @@ describe('actions.planning.api', () => {
         restoreSinonStub(planningApi.saveAndDeleteCoverages)
         restoreSinonStub(planningApi.fetchPlanningById)
         restoreSinonStub(planningApi.fetchPlanningHistory)
+        restoreSinonStub(planningApi.publish)
+        restoreSinonStub(planningApi.unpublish)
     })
 
     describe('spike', () => {
@@ -819,6 +823,136 @@ describe('actions.planning.api', () => {
             return store.test(done, planningApi.fetchPlanningHistory('p2'))
             .then(() => {}, (error) => {
                 expect(error).toEqual(errorMessage)
+                done()
+            })
+        })
+    })
+
+    it('api.publish calls `planning` endpoint', (done) => {
+        restoreSinonStub(planningApi.publish)
+        store.test(done, planningApi.publish(data.plannings[0]))
+        .then(() => {
+            expect(services.api.save.callCount).toBe(1)
+            expect(services.api.save.args[0]).toEqual([
+                'planning_publish',
+                {
+                    planning: data.plannings[0]._id,
+                    etag: data.plannings[0]._etag,
+                    pubstatus: 'usable',
+                },
+            ])
+
+            done()
+        })
+    })
+
+    it('api.unpublish calls `planning` endpoint', (done) => {
+        restoreSinonStub(planningApi.unpublish)
+        store.test(done, planningApi.unpublish(data.plannings[0]))
+        .then(() => {
+            expect(services.api.save.callCount).toBe(1)
+            expect(services.api.save.args[0]).toEqual([
+                'planning_publish',
+                {
+                    planning: data.plannings[0]._id,
+                    etag: data.plannings[0]._etag,
+                    pubstatus: 'cancelled',
+                },
+            ])
+
+            done()
+        })
+    })
+
+    describe('api.saveAndPublish', () => {
+        it('saveAndPublish calls `planning.api.save` then `planning.api.publish`', (done) => {
+            restoreSinonStub(planningApi.save)
+            sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve(data.plannings[1])))
+            store.test(done, planningApi.saveAndPublish(data.plannings[0]))
+            .then(() => {
+                expect(planningApi.save.callCount).toBe(1)
+                expect(planningApi.save.args[0]).toEqual([data.plannings[0]])
+
+                expect(planningApi.publish.callCount).toBe(1)
+                expect(planningApi.publish.args[0]).toEqual([data.plannings[1]])
+
+                done()
+            })
+        })
+
+        it('saveAndPublish returns Promise.reject if `planning.api.save` fails', (done) => {
+            restoreSinonStub(planningApi.save)
+            sinon.stub(planningApi, 'save').callsFake(() => (Promise.reject(errorMessage)))
+            store.test(done, planningApi.saveAndPublish(data.plannings[0]))
+            .then(() => {}, (error) => {
+                expect(planningApi.save.callCount).toBe(1)
+                expect(planningApi.publish.callCount).toBe(0)
+
+                expect(error).toEqual(errorMessage)
+
+                done()
+            })
+        })
+
+        it('saveAndPublish returns Promise.reject if `planning.api.publish` fails', (done) => {
+            restoreSinonStub(planningApi.save)
+            restoreSinonStub(planningApi.publish)
+            sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve(data.plannings[1])))
+            sinon.stub(planningApi, 'publish').callsFake(() => (Promise.reject(errorMessage)))
+            store.test(done, planningApi.saveAndPublish(data.plannings[0]))
+            .then(() => {}, (error) => {
+                expect(planningApi.save.callCount).toBe(1)
+                expect(planningApi.publish.callCount).toBe(1)
+
+                expect(error).toEqual(errorMessage)
+
+                done()
+            })
+        })
+    })
+
+    describe('api.saveAndUnpublish', () => {
+        it('saveAndUnpublish calls `planning.api.save` then `planning.api.unpublish`', (done) => {
+            restoreSinonStub(planningApi.save)
+            sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve(data.plannings[1])))
+            store.test(done, planningApi.saveAndUnpublish(data.plannings[0]))
+            .then(() => {
+                expect(planningApi.save.callCount).toBe(1)
+                expect(planningApi.save.args[0]).toEqual([data.plannings[0]])
+
+                expect(planningApi.unpublish.callCount).toBe(1)
+                expect(planningApi.unpublish.args[0]).toEqual([data.plannings[1]])
+
+                done()
+            })
+        })
+
+        it('saveAndUnpublish returns Promise.reject if `planning.api.save` fails', (done) => {
+            restoreSinonStub(planningApi.save)
+            sinon.stub(planningApi, 'save').callsFake(() => (Promise.reject(errorMessage)))
+            store.test(done, planningApi.saveAndUnpublish(data.plannings[0]))
+            .then(() => {}, (error) => {
+                expect(planningApi.save.callCount).toBe(1)
+                expect(planningApi.unpublish.callCount).toBe(0)
+
+                expect(error).toEqual(errorMessage)
+
+                done()
+            })
+        })
+
+        it('saveAndUnpublish returns Promise.reject if `planning.api.unpublish` fails', (done) => {
+            restoreSinonStub(planningApi.save)
+            restoreSinonStub(planningApi.unpublish)
+            sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve(data.plannings[1])))
+            sinon.stub(planningApi, 'unpublish').callsFake(() => (Promise.reject(errorMessage)))
+            store.test(done, planningApi.saveAndUnpublish(data.plannings[0]))
+            .then(() => {}, (error) => {
+                expect(planningApi.save.callCount).toBe(1)
+                expect(planningApi.unpublish.callCount).toBe(1)
+
+                expect(error).toEqual(errorMessage)
+
                 done()
             })
         })

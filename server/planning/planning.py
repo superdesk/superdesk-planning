@@ -23,7 +23,7 @@ from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user
 from copy import deepcopy
 from eve.utils import config, ParsedRequest
-from .common import STATE_SCHEMA
+from .common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA
 from superdesk.utc import utcnow
 from bson.objectid import ObjectId
 
@@ -194,7 +194,7 @@ planning_schema = {
     'profile': metadata_schema['profile'],
 
     # These next two are for spiking/unspiking and purging of planning/agenda items
-    'state': STATE_SCHEMA,
+    'state': WORKFLOW_STATE_SCHEMA,
     'expiry': {
         'type': 'datetime',
         'nullable': True
@@ -212,6 +212,13 @@ planning_schema = {
                 metadata_schema['flags']['schema']['marked_for_not_publication']
         }
     },
+
+    # Public/Published status
+    'pubstatus': PUBLISHED_STATE_SCHEMA,
+
+    # The previous state the item was in before for example being spiked,
+    # when un-spiked it will revert to this state
+    'revert_state': metadata_schema['revert_state']
 }  # end planning_schema
 
 

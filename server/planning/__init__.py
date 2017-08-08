@@ -22,6 +22,7 @@ from .locations import LocationsResource, LocationsService
 from .events_history import EventsHistoryResource, EventsHistoryService
 from .planning_history import PlanningHistoryResource, PlanningHistoryService
 from .planning_lock import PlanningLockResource, PlanningLockService, PlanningUnlockResource, PlanningUnlockService
+from .planning_publish import PlanningPublishService, PlanningPublishResource
 from .events_lock import EventsLockResource, EventsLockService, EventsUnlockResource, EventsUnlockService
 from .agendas import AgendasResource, AgendasService
 from superdesk.io.registry import register_feeding_service, register_feed_parser
@@ -60,6 +61,9 @@ def init_app(app):
 
     planning_unspike_service = PlanningUnspikeService('planning_unspike', backend=superdesk.get_backend())
     PlanningUnspikeResource('planning_unspike', app=app, service=planning_unspike_service)
+
+    planning_publish_service = PlanningPublishService('planning_publish', backend=superdesk.get_backend())
+    PlanningPublishResource('planning_publish', app=app, service=planning_publish_service)
 
     agendas_service = AgendasService('agenda', backend=superdesk.get_backend())
     AgendasResource('agenda', app=app, service=agendas_service)

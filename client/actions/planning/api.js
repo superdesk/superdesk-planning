@@ -1,4 +1,4 @@
-import { PLANNING, ITEM_STATE } from '../../constants'
+import { PLANNING, ITEM_STATE, PUBLISHED_STATE } from '../../constants'
 import { get, cloneDeep, pickBy, isEqual, has } from 'lodash'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
@@ -497,6 +497,72 @@ const saveAndReloadCurrentAgenda = (item) => (
 )
 
 /**
+ * Set a Planning item as Published
+ * @param {string} plan - Planning item
+ */
+const publish = (plan) => (
+    (dispatch, getState, { api }) => (
+        api.save('planning_publish', {
+            planning: plan._id,
+            etag: plan._etag,
+            pubstatus: PUBLISHED_STATE.USABLE,
+        })
+    )
+)
+
+/**
+ * Save a Planning item, then Publish it
+ * @param {object} plan - Planning item
+ */
+const saveAndPublish = (plan) => (
+    (dispatch) => (
+        dispatch(self.save(plan))
+        .then(
+            (newItem) => (
+                dispatch(self.publish(newItem))
+                .then(
+                    () => (Promise.resolve(newItem)),
+                    (error) => (Promise.reject(error))
+                )
+            ), (error) => (Promise.reject(error))
+        )
+    )
+)
+
+/**
+ * Set a Planning item as not Published
+ * @param {string} plan - Planning item ID
+ */
+const unpublish = (plan) => (
+    (dispatch, getState, { api }) => (
+        api.save('planning_publish', {
+            planning: plan._id,
+            etag: plan._etag,
+            pubstatus: PUBLISHED_STATE.CANCELLED,
+        })
+    )
+)
+
+/**
+ * Save a Planning item then Unpublish it
+ * @param {object} plan - Planning item
+ */
+const saveAndUnpublish = (plan) => (
+    (dispatch) => (
+        dispatch(self.save(plan))
+        .then(
+            (newItem) => (
+                dispatch(self.unpublish(newItem))
+                .then(
+                    () => Promise.resolve(newItem),
+                    (error) => Promise.reject(error)
+                )
+            ), (error) => Promise.reject(error)
+        )
+    )
+)
+
+/**
  * Action for updating the list of planning items in the redux store
  * @param  {array, object} plannings - An array of planning item objects
  * @return action object
@@ -587,6 +653,10 @@ const self = {
     fetchPlanningHistory,
     receivePlanningHistory,
     loadPlanningByEventId,
+    publish,
+    unpublish,
+    saveAndPublish,
+    saveAndUnpublish,
 }
 
 export default self
