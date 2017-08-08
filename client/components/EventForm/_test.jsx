@@ -30,6 +30,7 @@ describe('events', () => {
             }],
             links: ['http://www.google.com'],
             _plannings: [],
+            state: 'active',
         }
 
         const createTestStoreForEventEditing = (event) => {

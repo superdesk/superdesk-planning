@@ -164,7 +164,7 @@ describe('Utils', function() {
                 interval: 1,
             }
 
-            expect(utils.doesRecurringEventsOverlap(start, end, rule)).toBe(true)
+            expect(utils.eventUtils.doesRecurringEventsOverlap(start, end, rule)).toBe(true)
         })
 
         it('returns false on daily', () => {
@@ -175,7 +175,7 @@ describe('Utils', function() {
                 interval: 1,
             }
 
-            expect(utils.doesRecurringEventsOverlap(start, end, rule)).toBe(false)
+            expect(utils.eventUtils.doesRecurringEventsOverlap(start, end, rule)).toBe(false)
         })
 
         it('returns true on weekly', () => {
@@ -187,7 +187,7 @@ describe('Utils', function() {
                 byday: 'MO TU WE TH FR SA SU',
             }
 
-            expect(utils.doesRecurringEventsOverlap(start, end, rule)).toBe(true)
+            expect(utils.eventUtils.doesRecurringEventsOverlap(start, end, rule)).toBe(true)
         })
     })
 })

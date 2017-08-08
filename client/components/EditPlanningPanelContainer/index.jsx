@@ -14,7 +14,7 @@ import { UserAvatar, UnlockItem } from '../'
 import classNames from 'classnames'
 import './style.scss'
 import { ItemActionsMenu } from '../index'
-import { getCreator } from '../../utils'
+import { getCreator, getLockedUser } from '../../utils'
 
 export class EditPlanningPanel extends React.Component {
 
@@ -70,7 +70,7 @@ export class EditPlanningPanel extends React.Component {
 
         const planningSpiked = planning ? get(planning, 'state', 'active') === ITEM_STATE.SPIKED : false
         const eventSpiked = event ? get(event, 'state', 'active') === ITEM_STATE.SPIKED : false
-        const lockedUser = this.getLockedUser(planning)
+        const lockedUser = getLockedUser(planning, this.props.users)
 
         let itemActions = []
 
