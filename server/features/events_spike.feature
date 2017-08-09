@@ -74,6 +74,7 @@ Feature: Events Spike
         [{
             "name": "TestEvent",
             "state": "spiked",
+            "revert_state": "active",
             "dates": {
                 "start": "2016-01-02",
                 "end": "2016-01-03"
@@ -227,7 +228,8 @@ Feature: Events Spike
                 "start": "2016-01-01",
                 "end": "2017-01-01"
             },
-            "state": "spiked"
+            "state": "spiked",
+            "revert_state": "active"
         }]
         """
         Given "planning"
