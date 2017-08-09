@@ -21,8 +21,8 @@ from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user
 from superdesk.users.services import current_user_has_privilege
 from superdesk.utc import utcnow
-from .common import STATE_SCHEMA, PUB_STATUS_VALUES, UPDATE_SINGLE, UPDATE_FUTURE, UPDATE_ALL, \
-    UPDATE_METHODS, get_max_recurrent_events, ITEM_ACTIVE
+from .common import UPDATE_SINGLE, UPDATE_FUTURE, UPDATE_ALL, UPDATE_METHODS, \
+    get_max_recurrent_events, WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -472,27 +472,9 @@ class EventsService(superdesk.Service):
         event_spike_service = get_resource_service('events_spike')
         events_with_plans = self._filter_events_with_planning_items(deleted_events)
 
-        """
-        Event state & pubstatus is currently broken, currently the different states are:
-        (action): (state) (pubstatus)
-        * default: active, usable
-        * spiked: spiked, canceled
-        * published: published, usable
-        * unpublished: killed, cancelled
-        * published then spiked: spiked, canceled
-        * unpublished then spiked: spiked, canceled
-
-        As you can see the following actions have the same state & pubstatus
-        * spiked
-        * published then spiked
-        * unpublished then spiked
-
-        Therefor for now we will only delete events that are in an 'active' state until this
-        problem is fixed.
-        """
         for event in deleted_events:
             if event[config.ID_FIELD] in events_with_plans or \
-                    event.get('state', ITEM_ACTIVE) != ITEM_ACTIVE:
+                    event.get('pubstatus', None) is not None:
                 # This event has Planning items, so spike this event and
                 # all Planning items
                 event_spike_service.patch(event[config.ID_FIELD], {})
@@ -800,18 +782,13 @@ events_schema = {
     },
 
     # These next two are for spiking/unspiking and purging events
-    'state': STATE_SCHEMA,
+    'state': WORKFLOW_STATE_SCHEMA,
     'expiry': {
         'type': 'datetime',
         'nullable': True
     },
     # says if the event is for internal usage or published
-    'pubstatus': {
-        'type': 'string',
-        'allowed': PUB_STATUS_VALUES,
-        'mapping': not_analyzed,
-        'nullable': True
-    },
+    'pubstatus': PUBLISHED_STATE_SCHEMA,
 
     'lock_user': metadata_schema['lock_user'],
     'lock_time': metadata_schema['lock_time'],

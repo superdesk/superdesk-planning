@@ -2,6 +2,7 @@ import { reducer as formReducer, actionTypes } from 'redux-form'
 import { cloneDeep, get } from 'lodash'
 import { EventUpdateMethods } from '../components/fields'
 import moment from 'moment'
+import { isItemSpiked } from '../utils/index'
 
 const forms = formReducer.plugin({
     // 'addEvent' is the name of the form given to reduxForm()
@@ -41,7 +42,7 @@ const forms = formReducer.plugin({
             if (action.payload.value === EventUpdateMethods[0].value) {
                 plannings = Object.keys(storedPlannings).filter((pid) => (
                     storedPlannings[pid].event_item === event._id &&
-                    storedPlannings[pid].state !== 'spiked'
+                    !isItemSpiked(storedPlannings[pid])
                 )).map((pid) => ({ ...storedPlannings[pid] }))
 
             // Spike selected and future events
@@ -51,14 +52,14 @@ const forms = formReducer.plugin({
                 )).map((e) => (e._id)) || []
                 plannings = Object.keys(storedPlannings).filter((pid) => (
                     (ids || []).indexOf(storedPlannings[pid].event_item) > -1 &&
-                    storedPlannings[pid].state !== 'spiked'
+                    !isItemSpiked(storedPlannings[pid])
                 )).map((pid) => ({ ...storedPlannings[pid] }))
 
             // Spike all events
             } else if (action.payload.value === EventUpdateMethods[2].value) {
                 plannings = Object.keys(storedPlannings).filter((pid) => (
                     (event._recurring.ids || []).indexOf(storedPlannings[pid].event_item) > -1 &&
-                    storedPlannings[pid].state !== 'spiked'
+                    !isItemSpiked(storedPlannings[pid])
                 )).map((pid) => ({ ...storedPlannings[pid] }))
             }
         }

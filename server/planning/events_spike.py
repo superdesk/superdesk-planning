@@ -10,8 +10,8 @@
 
 from .events import EventsResource
 from superdesk.errors import SuperdeskApiError
-from .common import ITEM_EXPIRY, ITEM_STATE, ITEM_SPIKED, set_item_expiry,\
-    PUB_STATUS_CANCELED, UPDATE_SINGLE, UPDATE_FUTURE
+from .common import ITEM_EXPIRY, ITEM_STATE, set_item_expiry, UPDATE_SINGLE, UPDATE_FUTURE, \
+    WORKFLOW_STATE
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from apps.archive.common import get_user
@@ -37,10 +37,8 @@ class EventsSpikeService(BaseService):
         self._validate(id)
 
         updates['revert_state'] = original[ITEM_STATE]
-        updates[ITEM_STATE] = ITEM_SPIKED
+        updates[ITEM_STATE] = WORKFLOW_STATE.SPIKED
         set_item_expiry(updates)
-        if original.get('pubstatus'):
-            updates['pubstatus'] = PUB_STATUS_CANCELED
 
         if 'update_method' in updates:
             update_method = updates['update_method']
@@ -125,7 +123,7 @@ class EventsUnspikeService(BaseService):
     def update(self, id, updates, original):
         user = get_user(required=True)
 
-        updates[ITEM_STATE] = original['revert_state']
+        updates[ITEM_STATE] = original.get('revert_state', WORKFLOW_STATE.IN_PROGRESS)
         updates['revert_state'] = None
         updates[ITEM_EXPIRY] = None
 

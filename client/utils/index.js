@@ -311,7 +311,7 @@ export const getLockedUser = (item, users) => (
             users.find((u) => (u._id === item.lock_user)) : null
 )
 
-export const getItemState = (item) => (get(item, 'state', 'in_progress'))
+export const getItemState = (item) => (get(item, 'state', WORKFLOW_STATE.IN_PROGRESS))
 
 export const isItemPublic = (pubstatus) =>
     pubstatus === PUBLISHED_STATE.USABLE || pubstatus === PUBLISHED_STATE.CANCELLED
@@ -325,3 +325,6 @@ export const isItemSpiked = (item) => item ?
  * @returns {Array}
  */
 export const getTimeZoneOffset = () => (moment().format('Z'))
+
+export const  getPublishedState = (item) => get(item, 'pubstatus', null)
+

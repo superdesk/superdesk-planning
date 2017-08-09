@@ -3,7 +3,7 @@ import planningApi from '../../planning/api'
 import sinon from 'sinon'
 import { EventUpdateMethods } from '../../../components/fields'
 import { getTestActionStore, restoreSinonStub } from '../../../utils/testUtils'
-import { ITEM_STATE } from '../../../constants'
+import { WORKFLOW_STATE, SPIKED_STATE } from '../../../constants'
 
 describe('actions.events.api', () => {
     let errorMessage
@@ -47,14 +47,14 @@ describe('actions.events.api', () => {
         })
 
         it('runs the query', (done) => (
-            store.test(done, eventsApi.loadEventsByRecurrenceId('r1', ITEM_STATE.ACTIVE))
+            store.test(done, eventsApi.loadEventsByRecurrenceId('r1', SPIKED_STATE.NOT_SPIKED))
             .then((items) => {
                 expect(items).toEqual(data.events)
 
                 expect(eventsApi.query.callCount).toBe(1)
                 expect(eventsApi.query.args[0]).toEqual([{
                     recurrenceId: 'r1',
-                    state: ITEM_STATE.ACTIVE,
+                    spikeState: SPIKED_STATE.NOT_SPIKED,
                     page: 1,
                     maxResults: 25,
                 }])
@@ -224,7 +224,7 @@ describe('actions.events.api', () => {
                             bool: {
                                 must: [],
                                 must_not: [
-                                    { term: { state: ITEM_STATE.SPIKED } },
+                                    { term: { state: WORKFLOW_STATE.SPIKED } },
                                 ],
                             },
                         },
@@ -251,7 +251,7 @@ describe('actions.events.api', () => {
                                     { terms: { _id: ['e1', 'e2'] } },
                                 ],
                                 must_not: [
-                                    { term: { state: ITEM_STATE.SPIKED } },
+                                    { term: { state: WORKFLOW_STATE.SPIKED } },
                                 ],
                             },
                         },
@@ -278,7 +278,7 @@ describe('actions.events.api', () => {
                                     { query_string: { query: 'Search Event*' } },
                                 ],
                                 must_not: [
-                                    { term: { state: ITEM_STATE.SPIKED } },
+                                    { term: { state: WORKFLOW_STATE.SPIKED } },
                                 ],
                             },
                         },
@@ -305,7 +305,7 @@ describe('actions.events.api', () => {
                                     { term: { recurrence_id: 'rec1' } },
                                 ],
                                 must_not: [
-                                    { term: { state: ITEM_STATE.SPIKED } },
+                                    { term: { state: WORKFLOW_STATE.SPIKED } },
                                 ],
                             },
                         },
@@ -344,7 +344,7 @@ describe('actions.events.api', () => {
                                         { term: { 'calendars.qcode': 'finance' } },
                                     ],
                                     must_not: [
-                                        { term: { state: ITEM_STATE.SPIKED } },
+                                        { term: { state: WORKFLOW_STATE.SPIKED } },
                                     ],
                                 },
                             },
@@ -422,7 +422,7 @@ describe('actions.events.api', () => {
                 expect(eventsApi.loadEventsByRecurrenceId.callCount).toBe(1)
                 expect(eventsApi.loadEventsByRecurrenceId.args[0]).toEqual([
                     'rec1',
-                    'all',
+                    'both',
                     1,
                     200,
                 ])

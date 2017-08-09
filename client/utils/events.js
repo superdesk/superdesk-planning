@@ -1,5 +1,11 @@
-import { isItemLockRestricted, getItemState } from './index'
-import { ITEM_STATE, PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS } from '../constants'
+import { PRIVILEGES, WORKFLOW_STATE, PUBLISHED_STATE, GENERIC_ITEM_ACTIONS } from '../constants'
+import {
+    isItemLockRestricted,
+    getItemState,
+    isItemSpiked,
+    isItemPublic,
+    getPublishedState,
+} from './index'
 import moment from 'moment'
 import RRule from 'rrule'
 
@@ -66,34 +72,33 @@ const doesRecurringEventsOverlap = (startingDate, endingDate, recurringRule) => 
 }
 
 const canSpikeEvent = (event, session, privileges) => (
-    getItemState(event) === ITEM_STATE.ACTIVE && !!privileges[PRIVILEGES.SPIKE_EVENT] &&
-        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemLockRestricted(event, session) &&
-        !event.pubstatus
+    !isItemPublic(event) && getItemState(event) === WORKFLOW_STATE.IN_PROGRESS &&
+        !!privileges[PRIVILEGES.SPIKE_EVENT] && !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
+        !isItemLockRestricted(event, session)
 )
 
 const canUnspikeEvent = (event, privileges) => (
-    getItemState(event) === ITEM_STATE.SPIKED && !!privileges[PRIVILEGES.UNSPIKE_EVENT] &&
+    isItemSpiked(event) && !!privileges[PRIVILEGES.UNSPIKE_EVENT] &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
 )
 
 const canDuplicateEvent = (event, session, privileges) => (
-    getItemState(event) !== ITEM_STATE.SPIKED && !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
+    !isItemSpiked(event) && !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemLockRestricted(event, session)
 )
 
 const canCreatePlanningFromEvent = (event, session, privileges) => (
-    getItemState(event) !== ITEM_STATE.SPIKED && !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+    !isItemSpiked(event) && !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isItemLockRestricted(event, session)
 )
 
-const canPublishEvent = (event, session, privileges) => {
-    const eventState = getItemState(event)
-    return eventState !== ITEM_STATE.SPIKED && eventState !== EVENTS.STATE.PUBLISHED &&
+const canPublishEvent = (event, session, privileges) => (
+    !isItemSpiked(event) && getPublishedState(event) !== PUBLISHED_STATE.USABLE &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemLockRestricted(event, session)
-}
+)
 
 const canUnpublishEvent = (event, privileges) => (
-    getItemState(event) === EVENTS.STATE.PUBLISHED && !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
+    getItemState(event) === WORKFLOW_STATE.PUBLISHED && !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
 )
 
 const getEventItemActions = (event, session, privileges, callBacks) => {

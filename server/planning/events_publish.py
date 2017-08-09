@@ -8,14 +8,14 @@ from superdesk.services import BaseService
 from apps.publish.enqueue import get_enqueue_service
 
 from .events import EventsResource
-from .common import PUB_STATUS_USABLE, PUB_STATUS_CANCELED, PLANNING_STATE
+from .common import WORKFLOW_STATE, PUBLISHED_STATE, published_state
 
 
 class EventsPublishResource(EventsResource):
     schema = {
         'event': Resource.rel('events', type='string', required=True),
         'etag': {'type': 'string', 'required': True},
-        'pubstatus': {'type': 'string', 'required': True, 'allowed': [PUB_STATUS_USABLE, PUB_STATUS_CANCELED]},
+        'pubstatus': {'type': 'string', 'required': True, 'allowed': published_state},
     }
 
     url = 'events/publish'
@@ -40,7 +40,7 @@ class EventsPublishService(BaseService):
 
     def validate_event(self, event):
         try:
-            assert event.get('pubstatus') in (PUB_STATUS_USABLE, PUB_STATUS_CANCELED)
+            assert event.get('pubstatus') in published_state
         except AssertionError:
             abort(409)
 
@@ -53,6 +53,6 @@ class EventsPublishService(BaseService):
         get_resource_service('events_history')._save_history(event, updates, 'publish')
 
     def _get_publish_state(self, event):
-        if event.get('pubstatus') == PUB_STATUS_CANCELED:
-            return PLANNING_STATE.KILLED
-        return PLANNING_STATE.PUBLISHED
+        if event.get('pubstatus') == PUBLISHED_STATE.CANCELLED:
+            return WORKFLOW_STATE.KILLED
+        return WORKFLOW_STATE.PUBLISHED

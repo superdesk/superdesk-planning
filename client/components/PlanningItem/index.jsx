@@ -2,9 +2,8 @@ import React, { PropTypes } from 'react'
 import { get, capitalize } from 'lodash'
 import { ListItem, TimePlanning, DueDate, tooltips } from '../index'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
-import { ITEM_STATE } from '../../constants'
 import classNames from 'classnames'
-import { getCoverageIcon, isItemPublic, planningUtils } from '../../utils/index'
+import { getCoverageIcon, isItemPublic, planningUtils, isItemSpiked } from '../../utils/index'
 import './style.scss'
 
 const PlanningItem = ({
@@ -25,8 +24,8 @@ const PlanningItem = ({
     const dueDates = get(item, '_coverages', []).map((c) => (get(c, 'scheduled'))).filter(d => (d))
     const coveragesTypes = planningUtils.mapCoverageByDate(get(item, 'coverages', []))
 
-    const itemSpiked = item && get(item, 'state', 'active') === ITEM_STATE.SPIKED
-    const eventSpiked = event ? get(event, 'state', 'active') === ITEM_STATE.SPIKED : false
+    const itemSpiked = isItemSpiked(item)
+    const eventSpiked = isItemSpiked(event)
     const notForPublication = item ? get(item, 'flags.marked_for_not_publication', false) : false
 
     const showSpikeButton = (!itemLocked || itemLockedInThisSession) &&

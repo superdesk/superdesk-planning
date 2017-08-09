@@ -15,38 +15,13 @@ from collections import namedtuple
 from superdesk.resource import not_analyzed
 
 ITEM_STATE = 'state'
-
-ITEM_ACTIVE = 'active'
-ITEM_SPIKED = 'spiked'
-ITEM_INGESTED = 'ingested'
-ITEM_PUBLISHED = 'published'
-ITEM_KILLED = 'killed'
-
-planning_state = [ITEM_ACTIVE, ITEM_SPIKED, ITEM_INGESTED, ITEM_PUBLISHED, ITEM_KILLED]
-PLANNING_STATE = namedtuple('CONTENT_STATE', ['ACTIVE', 'SPIKED', 'INGESTED', 'PUBLISHED', 'KILLED'])(*planning_state)
-
-STATE_SCHEMA = {
-    'type': 'string',
-    'allowed': planning_state,
-    'default': PLANNING_STATE.ACTIVE,
-    'mapping': not_analyzed
-}
-
 ITEM_EXPIRY = 'expiry'
-
-PUB_STATUS_USABLE = 'usable'
-PUB_STATUS_WITHHOLD = 'withhold'
-PUB_STATUS_CANCELED = 'canceled'
-PUB_STATUS_VALUES = (PUB_STATUS_USABLE, PUB_STATUS_WITHHOLD, PUB_STATUS_CANCELED)
 
 UPDATE_SINGLE = 'single'
 UPDATE_FUTURE = 'future'
 UPDATE_ALL = 'all'
 UPDATE_METHODS = (UPDATE_SINGLE, UPDATE_FUTURE, UPDATE_ALL)
 
-# These next states and schemas are the new WORKFLOW and PUBLISHED states
-# Currently these are only used for Planning items, but will later be used for Events
-# as well, replacing the above constants for STATE_SCHEMA and PUB_STATUS
 workflow_state = ['in_progress', 'ingested', 'published', 'killed',
                   'cancelled', 'rescheduled', 'postponed', 'spiked']
 

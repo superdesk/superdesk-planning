@@ -8,6 +8,7 @@ import {
     convertEventDatesToMoment,
 } from '../../../utils/testUtils'
 import { getTimeZoneOffset } from '../../../utils/index'
+import { SPIKED_STATE } from '../../../constants/index'
 
 describe('actions.planning.api', () => {
     let errorMessage
@@ -275,7 +276,7 @@ describe('actions.planning.api', () => {
         it('by spiked item state', (done) => (
             store.test(done, planningApi.query({
                 agendas: ['a1', 'a2'],
-                state: 'spiked',
+                spikeState: SPIKED_STATE.SPIKED,
             }))
             .then(() => {
                 expect(services.api('planning').query.callCount).toBe(1)
@@ -312,7 +313,7 @@ describe('actions.planning.api', () => {
         it('by non-spiked item state', (done) => (
             store.test(done, planningApi.query({
                 agendas: ['a1', 'a2'],
-                state: 'active',
+                spikeState: SPIKED_STATE.NOT_SPIKED,
             }))
             .then(() => {
                 expect(services.api('planning').query.callCount).toBe(1)
@@ -370,7 +371,7 @@ describe('actions.planning.api', () => {
         it('fetches planning items and linked events', (done) => {
             const params = {
                 agendas: ['a1'],
-                state: 'active',
+                spikeState: SPIKED_STATE.NOT_SPIKED,
             }
             return store.test(done, planningApi.fetch(params))
             .then((items) => {

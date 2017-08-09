@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect'
 import { get, sortBy, includes, isEmpty } from 'lodash'
 import moment from 'moment'
-import { isItemLockedInThisSession } from '../utils'
-import { ITEM_STATE, AGENDA } from '../constants'
+import { AGENDA, SPIKED_STATE } from '../constants'
+import { isItemLockedInThisSession, isItemSpiked } from '../utils'
 
 export const getAgendas = (state) => state.agenda.agendas
 export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
@@ -99,8 +99,8 @@ export const getFilteredPlanningList = createSelector(
         }
 
         return plannings.filter((p) =>
-            (onlySpike && p.state === ITEM_STATE.SPIKED) ||
-            (!onlySpike && p.state !== ITEM_STATE.SPIKED)
+            (onlySpike && isItemSpiked(p)) ||
+            (!onlySpike && !isItemSpiked(p))
         )
     }
 )
@@ -292,7 +292,7 @@ export const getPlanningFilterParams = createSelector(
             agendas: agenda ? [agenda._id] : null,
             page: 1,
             advancedSearch: planningSearch,
-            state: onlySpiked ? ITEM_STATE.SPIKED : ITEM_STATE.ACTIVE,
+            spikeState: onlySpiked ? SPIKED_STATE.SPIKED : SPIKED_STATE.NOT_SPIKED,
             fulltext: filterKeyword,
             onlyFuture: onlyFuture,
         }

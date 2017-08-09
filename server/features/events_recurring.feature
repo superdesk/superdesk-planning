@@ -924,10 +924,10 @@ Feature: Events Recurring
         Then we get list with 4 items
         """
         {"_items": [
-            { "_id": "#EVENT1._id#", "state": "active" },
+            { "_id": "#EVENT1._id#", "state": "in_progress" },
             { "_id": "#EVENT2._id#", "state": "spiked" },
-            { "_id": "#EVENT3._id#", "state": "active" },
-            { "_id": "#EVENT4._id#", "state": "active" }
+            { "_id": "#EVENT3._id#", "state": "in_progress" },
+            { "_id": "#EVENT4._id#", "state": "in_progress" }
         ]}
         """
 
@@ -964,7 +964,7 @@ Feature: Events Recurring
         Then we get list with 4 items
         """
         {"_items": [
-            { "_id": "#EVENT1._id#", "state": "active" },
+            { "_id": "#EVENT1._id#", "state": "in_progress" },
             { "_id": "#EVENT2._id#", "state": "spiked" },
             { "_id": "#EVENT3._id#", "state": "spiked" },
             { "_id": "#EVENT4._id#", "state": "spiked" }
@@ -1044,8 +1044,8 @@ Feature: Events Recurring
         Then we get list with 4 items
         """
         {"_items": [
-            { "_id": "#EVENT1._id#", "state": "active" },
-            { "_id": "#EVENT2._id#", "state": "active" },
+            { "_id": "#EVENT1._id#", "state": "in_progress" },
+            { "_id": "#EVENT2._id#", "state": "in_progress" },
             { "_id": "#EVENT3._id#", "state": "spiked" },
             { "_id": "#EVENT4._id#", "state": "spiked" }
         ]}
@@ -1518,7 +1518,7 @@ Feature: Events Recurring
                         "until": "2019-11-29T12:00:00+0000"
                     }
                 },
-                "state": "active"
+                "state": "in_progress"
             },
             {
                 "recurrence_id": "#EVENT1.recurrence_id#",
@@ -1533,7 +1533,7 @@ Feature: Events Recurring
                         "until": "2019-11-29T12:00:00+0000"
                     }
                 },
-                "state": "active"
+                "state": "in_progress"
             },
             {
                 "recurrence_id": "#NEW_RECURRING.recurrence_id#",
@@ -1549,7 +1549,7 @@ Feature: Events Recurring
                         "endRepeatMode": "count"
                     }
                 },
-                "state": "active"
+                "state": "in_progress"
             },
             {
                 "recurrence_id": "#NEW_RECURRING.recurrence_id#",
@@ -1565,7 +1565,7 @@ Feature: Events Recurring
                         "endRepeatMode": "count"
                     }
                 },
-                "state": "active"
+                "state": "in_progress"
             },
             {
                 "recurrence_id": "#NEW_RECURRING.recurrence_id#",
@@ -1581,7 +1581,7 @@ Feature: Events Recurring
                         "endRepeatMode": "count"
                     }
                 },
-                "state": "active"
+                "state": "in_progress"
             },
             {
                 "recurrence_id": "#EVENT1.recurrence_id#",
@@ -1596,8 +1596,7 @@ Feature: Events Recurring
                         "endRepeatMode": "count"
                     }
                 },
-                "state": "spiked",
-                "pubstatus": "canceled"
+                "state": "spiked"
             },
             {
                 "recurrence_id": "#EVENT1.recurrence_id#",

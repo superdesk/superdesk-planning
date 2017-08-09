@@ -1,9 +1,14 @@
-import { PLANNING, ITEM_STATE, PUBLISHED_STATE } from '../../constants'
 import { get, cloneDeep, pickBy, isEqual, has } from 'lodash'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
 import { getTimeZoneOffset } from '../../utils/index'
 import moment from 'moment'
+import {
+    PLANNING,
+    PUBLISHED_STATE,
+    SPIKED_STATE,
+    WORKFLOW_STATE,
+} from '../../constants'
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -41,16 +46,16 @@ const unspike = (item) => (
 )
 
 /**
- * Action dispatcher to perform fetch the list of planning items from the server
+ * Action dispatcher to perform fetch the list of planning items from the server.
  * @param {string} eventIds - An event ID to fetch Planning items for that event
- * @param {string} state - Planning item state
+ * @param {string} spikeState - Planning item's spiked state (SPIKED, NOT_SPIKED or BOTH)
  * @param {agendas} list of agenda ids
  * @param {int} page - The page number to query for
  * @return Promise
  */
 const query = ({
     eventIds,
-    state=ITEM_STATE.ALL,
+    spikeState=SPIKED_STATE.BOTH,
     agendas,
     noAgendaAssigned=false,
     page=1,
@@ -102,15 +107,15 @@ const query = ({
                 },
             },
             {
-                condition: () => (state === ITEM_STATE.SPIKED),
+                condition: () => (spikeState === SPIKED_STATE.SPIKED),
                 do: () => {
-                    must.push({ term: { state: ITEM_STATE.SPIKED } })
+                    must.push({ term: { state: WORKFLOW_STATE.SPIKED } })
                 },
             },
             {
-                condition: () => (state === ITEM_STATE.ACTIVE || !state),
+                condition: () => (spikeState === SPIKED_STATE.NOT_SPIKED || !spikeState),
                 do: () => {
-                    mustNot.push({ term: { state: ITEM_STATE.SPIKED } })
+                    mustNot.push({ term: { state: WORKFLOW_STATE.SPIKED } })
                 },
             },
             {
@@ -307,7 +312,7 @@ const fetchPlanningsEvents = (plannings) => (
 
         // load missing events, if there are any
         if (get(linkedEvents, 'length', 0) > 0) {
-            return dispatch(actions.silentlyFetchEventsById(linkedEvents, ITEM_STATE.ALL))
+            return dispatch(actions.silentlyFetchEventsById(linkedEvents, SPIKED_STATE.BOTH))
         }
 
         return Promise.resolve([])
@@ -414,15 +419,15 @@ const loadPlanning = (query) => (
  * Action dispatcher to load Planning items by ID from the API, and place them
  * in the local store. This does not update the list of visible Planning items
  * @param {Array} ids - An array of Planning item ids
- * @param {string} state - The state of the Planning items
+ * @param {string} spikeState - Planning item's spiked state (SPIKED, NOT_SPIKED or BOTH)
  * @return Promise
  */
-const loadPlanningById = (ids=[], state = ITEM_STATE.ALL) => (
+const loadPlanningById = (ids=[], spikeState = SPIKED_STATE.BOTH) => (
     (dispatch, getState, { api }) => {
         if (Array.isArray(ids)) {
             return dispatch(self.loadPlanning({
                 ids,
-                state,
+                spikeState,
             }))
         } else {
             return api('planning').getById(ids)
@@ -439,14 +444,14 @@ const loadPlanningById = (ids=[], state = ITEM_STATE.ALL) => (
  * Action dispatcher to load Planning items by Event ID from the API, and place them
  * in the local store. This does not update the list of visible Planning items
  * @param {string} eventIds - The Event ID used to query the API
- * @param {string} state - The state of the Planning items
+ * @param {string} spikeState - Planning item's spiked state (SPIKED, NOT_SPIKED or BOTH)
  * @return Promise
  */
-const loadPlanningByEventId = (eventIds, state = ITEM_STATE.ALL) => (
+const loadPlanningByEventId = (eventIds, spikeState = SPIKED_STATE.BOTH) => (
     (dispatch) => (
         dispatch(self.loadPlanning({
             eventIds,
-            state,
+            spikeState,
         }))
     )
 )

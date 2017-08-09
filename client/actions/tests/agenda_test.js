@@ -339,7 +339,7 @@ describe('agenda', () => {
                             agendas: ['a1'],
                             page: 1,
                             advancedSearch: undefined,
-                            state: 'active',
+                            spikeState: 'in_progress',
                             fulltext: undefined,
                             onlyFuture: true,
                         },
@@ -488,7 +488,7 @@ describe('agenda', () => {
                         agendas: ['a1'],
                         page: 1,
                         advancedSearch: undefined,
-                        state: 'active',
+                        spikeState: 'in_progress',
                         fulltext: undefined,
                         onlyFuture: true,
                     }])
@@ -507,7 +507,7 @@ describe('agenda', () => {
                         agendas: null,
                         page: 1,
                         advancedSearch: undefined,
-                        state: 'active',
+                        spikeState: 'in_progress',
                         fulltext: undefined,
                         onlyFuture: true,
                     }])

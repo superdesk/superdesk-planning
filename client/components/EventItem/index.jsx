@@ -4,9 +4,9 @@ import { get } from 'lodash'
 import { ListItem, TimeEvent, PubStatusLabel, Checkbox, ItemActionsMenu } from '../index'
 import './style.scss'
 import { OverlayTrigger } from 'react-bootstrap'
-import { ITEM_STATE, GENERIC_ITEM_ACTIONS } from '../../constants'
+import { GENERIC_ITEM_ACTIONS } from '../../constants'
 import { unspikeEventTooltip } from '../Tooltips'
-import { eventUtils, isItemLockedInThisSession } from '../../utils'
+import { eventUtils, isItemLockedInThisSession, isItemSpiked } from '../../utils'
 import classNames from 'classnames'
 
 export const EventItem = ({
@@ -24,12 +24,13 @@ export const EventItem = ({
         session,
     }) => {
     const hasBeenCanceled = get(event, 'occur_status.qcode') === 'eocstat:eos6'
-    const hasBeenSpiked = get(event, 'state', 'active') === ITEM_STATE.SPIKED
-    const hasUnspikePrivileges = get(privileges, 'planning_event_unspike', 0) === 1
     const itemLockedInThisSession = isItemLockedInThisSession(event, session)
 
     const callBacks = { [GENERIC_ITEM_ACTIONS.SPIKE.label]: () => onSpikeEvent(event) }
     const itemActions = eventUtils.getEventItemActions(event, session, privileges, callBacks)
+
+    const hasBeenSpiked = isItemSpiked(event)
+    const hasUnspikePrivileges = get(privileges, 'planning_event_unspike', 0) === 1
 
     return (
         <ListItem

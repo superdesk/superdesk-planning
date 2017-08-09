@@ -3,7 +3,7 @@ import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { Field, reduxForm, formValueSelector, propTypes } from 'redux-form'
 import { fields } from '../../components'
-import { ITEM_STATE } from '../../constants'
+import { SPIKED_STATE } from '../../constants'
 import { get } from 'lodash'
 import './style.scss'
 
@@ -33,7 +33,7 @@ function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting
                        component={fields.SubjectField}
                        label="Subject"/>
                 <Field name="state"
-                       component={fields.EventStateField}
+                       component={fields.SpikeStateField}
                        label="Event State"/>
                 <br/>&nbsp;From&nbsp;<br/>
                 <Field name="dates.start"
@@ -79,7 +79,7 @@ const mapDispatchToProps = (dispatch) => ({
     onSubmit: (form) => (
         dispatch(actions.fetchEvents({
             advancedSearch: form,
-            state: get(form, 'state.value', ITEM_STATE.ACTIVE),
+            spikeState: get(form, 'state.value', SPIKED_STATE.NOT_SPIKED),
         }))
     ),
     resetSearch: () => (dispatch(actions.fetchEvents())),
