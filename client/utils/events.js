@@ -1,5 +1,5 @@
 import { isItemLockRestricted, getItemState } from './index'
-import { ITEM_STATE, PRIVILEGES, EVENTS } from '../constants'
+import { ITEM_STATE, PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS } from '../constants'
 import moment from 'moment'
 import RRule from 'rrule'
 
@@ -67,7 +67,8 @@ const doesRecurringEventsOverlap = (startingDate, endingDate, recurringRule) => 
 
 const canSpikeEvent = (event, session, privileges) => (
     getItemState(event) === ITEM_STATE.ACTIVE && !!privileges[PRIVILEGES.SPIKE_EVENT] &&
-        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemLockRestricted(event, session)
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemLockRestricted(event, session) &&
+        !event.pubstatus
 )
 
 const canUnspikeEvent = (event, privileges) => (
@@ -95,6 +96,24 @@ const canUnpublishEvent = (event, privileges) => (
     getItemState(event) === EVENTS.STATE.PUBLISHED && !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
 )
 
+const getEventItemActions = (event, session, privileges, callBacks) => {
+    let itemActions = []
+    Object.keys(GENERIC_ITEM_ACTIONS).forEach((a) => {
+        const action = GENERIC_ITEM_ACTIONS[a]
+        switch (action.label) {
+            case GENERIC_ITEM_ACTIONS.SPIKE.label:
+                if (canSpikeEvent(event, session, privileges)) {
+                    itemActions.push({
+                        ...action,
+                        callback: callBacks[GENERIC_ITEM_ACTIONS.SPIKE.label],
+                    })
+                }
+        }
+    })
+
+    return itemActions
+}
+
 const self = {
     isEventAllDay,
     doesRecurringEventsOverlap,
@@ -104,6 +123,7 @@ const self = {
     canPublishEvent,
     canUnpublishEvent,
     canDuplicateEvent,
+    getEventItemActions,
 }
 
 export default self

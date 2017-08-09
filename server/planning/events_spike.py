@@ -14,7 +14,7 @@ from .common import ITEM_EXPIRY, ITEM_STATE, ITEM_SPIKED, set_item_expiry,\
     PUB_STATUS_CANCELED, UPDATE_SINGLE, UPDATE_FUTURE
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
-from apps.auth import get_user
+from apps.archive.common import get_user
 from superdesk import config, get_resource_service
 from superdesk.utc import utcnow
 from .item_lock import LOCK_USER, LOCK_SESSION
@@ -39,13 +39,19 @@ class EventsSpikeService(BaseService):
         updates['revert_state'] = original[ITEM_STATE]
         updates[ITEM_STATE] = ITEM_SPIKED
         set_item_expiry(updates)
-        updates['pubstatus'] = PUB_STATUS_CANCELED
+        if original.get('pubstatus'):
+            updates['pubstatus'] = PUB_STATUS_CANCELED
 
         if 'update_method' in updates:
             update_method = updates['update_method']
             del updates['update_method']
         else:
             update_method = UPDATE_SINGLE
+
+        # Mark item as unlocked directly in order to avoid more queries and notifications
+        # coming from lockservice.
+        updates.update({LOCK_USER: None, LOCK_SESSION: None, 'lock_time': None,
+                       'lock_action': None})
 
         item = self.backend.update(self.datasource, id, updates, original)
 

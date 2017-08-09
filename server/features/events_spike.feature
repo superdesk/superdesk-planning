@@ -308,3 +308,51 @@ Feature: Events Spike
             }
         }
         """
+
+    @auth
+    @notification
+    Scenario: Spiking a locked event unlocks the event after spiking it
+        Given "events"
+        """
+        [{
+            "name": "TestEvent",
+            "dates": {
+                "start": "2016-01-02",
+                "end": "2016-01-03"
+            },
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "session123"
+        }]
+        """
+        When we spike events "#events._id#"
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "events:spiked",
+            "extra": {
+                "item": "#events._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+        When we get "/events/#events._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#events._id#",
+            "name": "TestEvent",
+            "state": "spiked",
+            "lock_user": null,
+            "lock_session": null
+        }
+        """
+        When we get "/events_history?where=event_id==%22#events._id#%22"
+        Then we get list with 1 items
+        """
+        {"_items": [{
+            "event_id": "#events._id#",
+            "operation": "spiked",
+            "update": {"state" : "spiked"}
+        }]}
+        """

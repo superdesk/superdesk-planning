@@ -44,3 +44,10 @@ export const PUBLISHED_STATE = {
     USABLE: 'usable',
     CANCELLED: 'cancelled',
 }
+
+export const GENERIC_ITEM_ACTIONS = {
+    SPIKE: {
+        label: 'Spike',
+        icon: 'icon-trash',
+    },
+}

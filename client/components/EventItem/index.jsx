@@ -1,14 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { get } from 'lodash'
-import { ListItem, TimeEvent, PubStatusLabel, Checkbox } from '../index'
+import { ListItem, TimeEvent, PubStatusLabel, Checkbox, ItemActionsMenu } from '../index'
 import './style.scss'
 import { OverlayTrigger } from 'react-bootstrap'
-import { ITEM_STATE, EVENTS } from '../../constants'
-import {
-    spikeEventTooltip,
-    unspikeEventTooltip,
-} from '../Tooltips'
+import { ITEM_STATE, GENERIC_ITEM_ACTIONS } from '../../constants'
+import { unspikeEventTooltip } from '../Tooltips'
+import { eventUtils, isItemLockedInThisSession } from '../../utils'
 import classNames from 'classnames'
 
 export const EventItem = ({
@@ -22,14 +20,17 @@ export const EventItem = ({
         isSelected,
         onSelectChange,
         itemLocked,
-        itemLockedInThisSession,
         className,
+        session,
     }) => {
     const hasBeenCanceled = get(event, 'occur_status.qcode') === 'eocstat:eos6'
     const hasBeenSpiked = get(event, 'state', 'active') === ITEM_STATE.SPIKED
-    const hasSpikePrivileges = get(privileges, 'planning_event_spike', 0) === 1
     const hasUnspikePrivileges = get(privileges, 'planning_event_unspike', 0) === 1
-    const isPublished = get(event, 'state') === EVENTS.STATE.PUBLISHED
+    const itemLockedInThisSession = isItemLockedInThisSession(event, session)
+
+    const callBacks = { [GENERIC_ITEM_ACTIONS.SPIKE.label]: () => onSpikeEvent(event) }
+    const itemActions = eventUtils.getEventItemActions(event, session, privileges, callBacks)
+
     return (
         <ListItem
             item={event}
@@ -62,19 +63,7 @@ export const EventItem = ({
                 </div>
             </div>
             <div className="sd-list-item__action-menu">
-                {!hasBeenSpiked && hasSpikePrivileges &&
-                    (!itemLocked || itemLockedInThisSession) && !isPublished &&
-                    <OverlayTrigger placement="left" overlay={spikeEventTooltip}>
-                        <button
-                            className="dropdown__toggle"
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                onSpikeEvent(event)
-                            }}>
-                            <i className="icon-trash"/>
-                        </button>
-                    </OverlayTrigger>
-                }
+                {itemActions.length > 0 && <ItemActionsMenu actions={itemActions} />}
                 {hasBeenSpiked && hasUnspikePrivileges &&
                     (!itemLocked || itemLockedInThisSession) &&
                     <OverlayTrigger placement="left" overlay={unspikeEventTooltip}>
@@ -105,5 +94,5 @@ EventItem.propTypes = {
     isSelected: PropTypes.bool,
     onSelectChange: PropTypes.func.isRequired,
     itemLocked: React.PropTypes.bool,
-    itemLockedInThisSession: React.PropTypes.bool,
+    session: PropTypes.object,
 }

@@ -22,7 +22,7 @@ from apps.archive.common import set_original_creator, get_user
 from superdesk.users.services import current_user_has_privilege
 from superdesk.utc import utcnow
 from .common import STATE_SCHEMA, PUB_STATUS_VALUES, UPDATE_SINGLE, UPDATE_FUTURE, UPDATE_ALL, \
-    UPDATE_METHODS, PUB_STATUS_USABLE, get_max_recurrent_events, ITEM_ACTIVE
+    UPDATE_METHODS, get_max_recurrent_events, ITEM_ACTIVE
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -810,8 +810,7 @@ events_schema = {
         'type': 'string',
         'allowed': PUB_STATUS_VALUES,
         'mapping': not_analyzed,
-        'nullable': True,
-        'default': PUB_STATUS_USABLE,
+        'nullable': True
     },
 
     'lock_user': metadata_schema['lock_user'],
