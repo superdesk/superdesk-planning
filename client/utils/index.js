@@ -4,11 +4,13 @@ import planningApp from '../reducers'
 import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
 import { get, set } from 'lodash'
+import { PUBLISHED_STATE, WORKFLOW_STATE } from '../constants/index'
 
 export { default as checkPermission } from './checkPermission'
 export { default as retryDispatch } from './retryDispatch'
 export { default as registerNotifications } from './notifications'
 export { default as eventUtils } from './events'
+export { default as planningUtils } from './planning'
 
 export function createReducer(initialState, reducerMap) {
     return (state = initialState, action) => {
@@ -309,5 +311,11 @@ export const getLockedUser = (item, users) => (
             users.find((u) => (u._id === item.lock_user)) : null
 )
 
-export const getItemState = (item) => (get(item, 'state'))
+export const getItemState = (item) => (get(item, 'state', 'in_progress'))
+
+export const isItemPublic = (pubstatus) =>
+    pubstatus === PUBLISHED_STATE.USABLE || pubstatus === PUBLISHED_STATE.CANCELLED
+
+export const isItemSpiked = (item) => item ?
+    getItemState(item) === WORKFLOW_STATE.SPIKED : false
 

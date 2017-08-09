@@ -3,8 +3,8 @@ import PropTypes from 'prop-types'
 import { fields } from '../../components'
 import { connect } from 'react-redux'
 import { Field, FieldArray, reduxForm, propTypes, formValueSelector } from 'redux-form'
-import * as actions from '../../actions'
 import * as selectors from '../../selectors'
+import { isItemPublic } from '../../utils/index'
 import './style.scss'
 
 class Component extends React.Component {
@@ -14,16 +14,26 @@ class Component extends React.Component {
     }
 
     render() {
-        const { handleSubmit, readOnly, headline, slugline, users } = this.props
+        const {
+            handleSubmit,
+            readOnly,
+            headline,
+            slugline,
+            pubstatus,
+            users,
+        } = this.props
+        const isPublic = isItemPublic(pubstatus)
         return (
             <form onSubmit={handleSubmit} className="PlanningForm">
                 <div>
                     <fieldset>
-                        <Field
-                            name="flags.marked_for_not_publication"
-                            component={fields.ToggleField}
-                            label="Not for Publication"
-                            readOnly={readOnly}/>
+                        {!isPublic &&
+                            <Field
+                                name="flags.marked_for_not_publication"
+                                component={fields.ToggleField}
+                                label="Not for Publication"
+                                readOnly={readOnly}/>
+                        }
                         <Field
                             name="slugline"
                             component={fields.InputField}
@@ -89,8 +99,10 @@ Component.propTypes = {
     ...propTypes,
     headline: PropTypes.string,
     slugline: PropTypes.string,
+    pubstatus: PropTypes.string,
     users: PropTypes.array.isRequired,
     readOnly: PropTypes.bool,
+    onSubmit: PropTypes.func,
 }
 
 // Decorate the form component
@@ -104,19 +116,12 @@ const mapStateToProps = (state) => ({
     initialValues: selectors.getCurrentPlanning(state),
     headline: selector(state, 'headline'), // Used to parse current headline to new coverages
     slugline: selector(state, 'slugline'), // Used to parse current slugline to new coverages
+    pubstatus: selector(state, 'pubstatus'), // Used to determine `Published State`
     users: selectors.getUsers(state),
-})
-
-const mapDispatchToProps = (dispatch) => ({
-    /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (planning) => (
-        // save the planning through the API
-        dispatch(actions.planning.ui.saveAndReloadCurrentAgenda(planning))
-    ),
 })
 
 export const PlanningForm = connect(
     mapStateToProps,
-    mapDispatchToProps,
+    null,
     null,
     { withRef: true })(PlanningReduxForm)

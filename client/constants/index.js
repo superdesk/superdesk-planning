@@ -23,3 +23,24 @@ export const DATE_FORMATS = {
     DISPLAY_DAY_FORMAT: 'dddd, ',
     DISPLAY_TODAY_FORMAT: '[Today], ',
 }
+
+/**
+ * These next states are the new WORKFLOW and PUBLISHED states. Currently these are only
+ * used for Planning items, but will later be used for Events as well, replacing the above
+ * constant for ITEM_STATE along with events.PUB_STATUS and events.STATE
+ */
+export const WORKFLOW_STATE = {
+    IN_PROGRESS: 'in_progress',
+    INGESTED: 'ingested',
+    PUBLISHED: 'published',
+    KILLED: 'killed',
+    CANCELLED: 'cancelled',
+    RESCHEDULED: 'rescheduled',
+    POSTPONED: 'postponed',
+    SPIKED: 'spiked',
+}
+
+export const PUBLISHED_STATE = {
+    USABLE: 'usable',
+    CANCELLED: 'cancelled',
+}

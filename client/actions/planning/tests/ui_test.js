@@ -35,6 +35,11 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningUi, 'addToList').callsFake(() => ({ type: 'addToList' }))
         sinon.stub(planningUi, 'fetchToList').callsFake(() => (Promise.resolve()))
         sinon.stub(planningUi, 'fetchMoreToList').callsFake(() => (Promise.resolve()))
+
+        sinon.stub(planningApi, 'publish').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningApi, 'unpublish').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningApi, 'saveAndPublish').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningApi, 'saveAndUnpublish').callsFake(() => (Promise.resolve()))
     })
 
     afterEach(() => {
@@ -45,6 +50,10 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(planningApi.saveAndReloadCurrentAgenda)
         restoreSinonStub(planningApi.lock)
         restoreSinonStub(planningApi.unlock)
+        restoreSinonStub(planningApi.publish)
+        restoreSinonStub(planningApi.unpublish)
+        restoreSinonStub(planningApi.saveAndPublish)
+        restoreSinonStub(planningApi.saveAndUnpublish)
 
         restoreSinonStub(planningUi.openEditor)
         restoreSinonStub(planningUi.closeEditor)
@@ -524,4 +533,191 @@ describe('actions.planning.ui', () => {
         })
     })
 
+    describe('ui.publish', () => {
+        it('ui.publish notifies user on successful publish', (done) => (
+            store.test(done, planningUi.publish(data.plannings[1]))
+            .then(() => {
+                expect(planningApi.publish.callCount).toBe(1)
+                expect(planningApi.publish.args[0]).toEqual([data.plannings[1]])
+
+                expect(services.notify.success.callCount).toBe(1)
+                expect(services.notify.success.args[0]).toEqual(['Planning item published!'])
+                expect(services.notify.error.callCount).toBe(0)
+
+                done()
+            })
+        ))
+
+        it('ui.publish notifies user on failure to publish', (done) => {
+            restoreSinonStub(planningApi.publish)
+            sinon.stub(planningApi, 'publish').callsFake(() => (Promise.reject(errorMessage)))
+            store.test(done, planningUi.publish(data.plannings[1]))
+            .then(() => {
+                expect(planningApi.publish.callCount).toBe(1)
+
+                expect(services.notify.success.callCount).toBe(0)
+                expect(services.notify.error.callCount).toBe(1)
+                expect(services.notify.error.args[0]).toEqual(['Failed!'])
+
+                done()
+            })
+        })
+
+        it('ui.publish raises ACCESS_DENIED without permission', (done) => {
+            store.initialState.privileges.planning_planning_management = 0
+            store.test(done, planningUi.publish(data.plannings[1]))
+            .catch(() => {
+                expectAccessDenied({
+                    store,
+                    permission: PRIVILEGES.PLANNING_MANAGEMENT,
+                    action: '_publish',
+                    errorMessage: 'Unauthorised to publish a planning item!',
+                    args: [data.plannings[1]],
+                })
+                done()
+            })
+        })
+    })
+
+    describe('ui.unpublish', () => {
+        it('ui.unpublish notifies user on successful unpublish', (done) => (
+            store.test(done, planningUi.unpublish(data.plannings[1]))
+            .then(() => {
+                expect(planningApi.unpublish.callCount).toBe(1)
+                expect(planningApi.unpublish.args[0]).toEqual([data.plannings[1]])
+
+                expect(services.notify.success.callCount).toBe(1)
+                expect(services.notify.success.args[0]).toEqual(['Planning item unpublished!'])
+                expect(services.notify.error.callCount).toBe(0)
+
+                done()
+            })
+        ))
+
+        it('ui.unpublish notifies user on failure to unpublish', (done) => {
+            restoreSinonStub(planningApi.unpublish)
+            sinon.stub(planningApi, 'unpublish').callsFake(() => (Promise.reject(errorMessage)))
+            store.test(done, planningUi.unpublish(data.plannings[1]))
+            .then(() => {
+                expect(planningApi.unpublish.callCount).toBe(1)
+
+                expect(services.notify.success.callCount).toBe(0)
+                expect(services.notify.error.callCount).toBe(1)
+                expect(services.notify.error.args[0]).toEqual(['Failed!'])
+
+                done()
+            })
+        })
+
+        it('ui.unpublish raises ACCESS_DENIED without permission', (done) => {
+            store.initialState.privileges.planning_planning_management = 0
+            store.test(done, planningUi.unpublish(data.plannings[1]))
+            .catch(() => {
+                expectAccessDenied({
+                    store,
+                    permission: PRIVILEGES.PLANNING_MANAGEMENT,
+                    action: '_unpublish',
+                    errorMessage: 'Unauthorised to unpublish a planning item!',
+                    args: [data.plannings[1]],
+                })
+                done()
+            })
+        })
+    })
+
+    describe('ui.saveAndPublish', () => {
+        it('ui.saveAndPublish notifies user on successful save and publish', (done) => (
+            store.test(done, planningUi.saveAndPublish(data.plannings[1]))
+            .then(() => {
+                expect(planningApi.saveAndPublish.callCount).toBe(1)
+                expect(planningApi.saveAndPublish.args[0]).toEqual([data.plannings[1]])
+
+                expect(services.notify.success.callCount).toBe(1)
+                expect(services.notify.success.args[0]).toEqual(['Planning item published!'])
+                expect(services.notify.error.callCount).toBe(0)
+
+                done()
+            })
+        ))
+
+        it('ui.saveAndPublish notifies user on failulre to save and publish', (done) => {
+            restoreSinonStub(planningApi.saveAndPublish)
+            sinon.stub(planningApi, 'saveAndPublish').callsFake(
+                () => (Promise.reject(errorMessage))
+            )
+            store.test(done, planningUi.saveAndPublish(data.plannings[1]))
+            .then(() => {
+                expect(planningApi.saveAndPublish.callCount).toBe(1)
+
+                expect(services.notify.success.callCount).toBe(0)
+                expect(services.notify.error.callCount).toBe(1)
+                expect(services.notify.error.args[0]).toEqual(['Failed!'])
+
+                done()
+            })
+        })
+
+        it('ui.saveAndPublish raises ACCESS_DENIED without permission', (done) => {
+            store.initialState.privileges.planning_planning_management = 0
+            store.test(done, planningUi.saveAndPublish(data.plannings[1]))
+            .catch(() => {
+                expectAccessDenied({
+                    store,
+                    permission: PRIVILEGES.PLANNING_MANAGEMENT,
+                    action: '_saveAndPublish',
+                    errorMessage: 'Unauthorised to publish a planning item!',
+                    args: [data.plannings[1]],
+                })
+                done()
+            })
+        })
+    })
+
+    describe('ui.saveAndUnpublish', () => {
+        it('ui.saveAndUnpublish notifies user on successful save and unpublish', (done) => (
+            store.test(done, planningUi.saveAndUnpublish(data.plannings[1]))
+            .then(() => {
+                expect(planningApi.saveAndUnpublish.callCount).toBe(1)
+                expect(planningApi.saveAndUnpublish.args[0]).toEqual([data.plannings[1]])
+
+                expect(services.notify.success.callCount).toBe(1)
+                expect(services.notify.success.args[0]).toEqual(['Planning item unpublished!'])
+                expect(services.notify.error.callCount).toBe(0)
+
+                done()
+            })
+        ))
+
+        it('ui.saveAndUnpublish notifies user on failulre to save and publish', (done) => {
+            restoreSinonStub(planningApi.saveAndUnpublish)
+            sinon.stub(planningApi, 'saveAndUnpublish').callsFake(
+                () => (Promise.reject(errorMessage))
+            )
+            store.test(done, planningUi.saveAndUnpublish(data.plannings[1]))
+            .then(() => {
+                expect(planningApi.saveAndUnpublish.callCount).toBe(1)
+
+                expect(services.notify.success.callCount).toBe(0)
+                expect(services.notify.error.callCount).toBe(1)
+                expect(services.notify.error.args[0]).toEqual(['Failed!'])
+
+                done()
+            })
+        })
+
+        it('ui.saveAndUnpublish raises ACCESS_DENIED without permission', (done) => {
+            store.initialState.privileges.planning_planning_management = 0
+            store.test(done, planningUi.saveAndUnpublish(data.plannings[1]))
+            .catch(() => {
+                expectAccessDenied({
+                    store,
+                    permission: PRIVILEGES.PLANNING_MANAGEMENT,
+                    action: '_saveAndUnpublish',
+                    errorMessage: 'Unauthorised to unpublish a planning item!',
+                    args: [data.plannings[1]],
+                })
+                done()
+            })
+        })
+    })
 })

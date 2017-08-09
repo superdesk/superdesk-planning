@@ -5,6 +5,7 @@ import { PlanningForm, CoverageContainer } from '../index'
 import { CoveragesFieldArray } from '../fields'
 import React from 'react'
 import { Provider } from 'react-redux'
+import * as actions from '../../actions'
 
 describe('<PlanningForm />', () => {
     let store
@@ -36,7 +37,13 @@ describe('<PlanningForm />', () => {
     const getWrapper = (readOnly=false) => {
         const wrapper = mount(
             <Provider store={store}>
-                <PlanningForm readOnly={readOnly}/>
+                <PlanningForm
+                    onSubmit={
+                        (planning) => store.dispatch(
+                            actions.planning.ui.saveAndReloadCurrentAgenda(planning)
+                        )
+                    }
+                    readOnly={readOnly}/>
             </Provider>
         )
 

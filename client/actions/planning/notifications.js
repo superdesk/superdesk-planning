@@ -3,7 +3,7 @@ import planning from './index'
 import { getErrorMessage } from '../../utils'
 import * as selectors from '../../selectors'
 import { PLANNING } from '../../constants'
-import { showModal } from '../index'
+import { showModal, fetchSelectedAgendaPlannings } from '../index'
 
 /**
  * WS Action when a new Planning item is created
@@ -164,12 +164,23 @@ const onPlanningUnlocked = (_e, data) => (
     }
 )
 
+const onPlanningPublished = (_e, data) => (
+    (dispatch) => {
+        if (get(data, 'item')) {
+            return dispatch(fetchSelectedAgendaPlannings())
+        }
+
+        return Promise.resolve()
+    }
+)
+
 const self = {
     onPlanningCreated,
     onCoverageCreatedOrUpdated,
     onCoverageDeleted,
     onPlanningUpdated,
     onPlanningUnlocked,
+    onPlanningPublished,
 }
 
 // Map of notification name and Action Event to execute
@@ -183,6 +194,7 @@ self.events = {
     'planning:unspiked': () => (self.onPlanningUpdated),
     'planning:lock': () => (self.onPlanningUpdated),
     'planning:unlock': () => (self.onPlanningUnlocked),
+    'planning:published': () => (self.onPlanningPublished),
 }
 
 export default self

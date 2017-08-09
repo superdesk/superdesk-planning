@@ -304,6 +304,75 @@ const fetchMoreToList = () => (
 )
 
 /**
+ * Publish an item and notify user of success or failure
+ * @param {object} item - The planning item
+ */
+const _publish = (item) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.publish(item))
+        .then(() => (
+            notify.success('Planning item published!')
+        ), (error) => (
+            notify.error(
+                getErrorMessage(error, 'Failed to publish Planning item!')
+            )
+        ))
+    )
+)
+
+/**
+ * Unpublish an item and notify user of success or failure
+ * @param {object} item - The planning item
+ */
+const _unpublish = (item) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.unpublish(item))
+        .then(() => (
+            notify.success('Planning item unpublished!')
+        ), (error) => (
+            notify.error(
+                getErrorMessage(error, 'Failed to unpublish Planning item!')
+            )
+        ))
+    )
+)
+
+/**
+ * Save Planning item then Publish it
+ * @param {object} item - Planning item
+ */
+const _saveAndPublish = (item) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.saveAndPublish(item))
+        .then(() => (
+            notify.success('Planning item published!')
+        ), (error) => (
+            notify.error(
+                getErrorMessage(error, 'Failed to save Planning item!')
+            )
+        ))
+    )
+)
+
+/**
+ * Save Planning item then Unpublish it
+ * @param item
+ * @private
+ */
+const _saveAndUnpublish = (item) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.saveAndUnpublish(item))
+        .then(() => (
+            notify.success('Planning item unpublished!')
+        ), (error) => (
+            notify.error(
+                getErrorMessage(error, 'Failed to save Planning item!')
+            )
+        ))
+    )
+)
+
+/**
  * Action that states that there are Planning items currently loading
  * @param {object} params - Parameters used when querying for planning items
  */
@@ -349,6 +418,30 @@ const unlockAndOpenEditor = checkPermission(
     'Unauthorised to ed a planning item!'
 )
 
+const publish = checkPermission(
+    _publish,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to publish a planning item!'
+)
+
+const unpublish = checkPermission(
+    _unpublish,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to unpublish a planning item!'
+)
+
+const saveAndPublish = checkPermission(
+    _saveAndPublish,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to publish a planning item!'
+)
+
+const saveAndUnpublish = checkPermission(
+    _saveAndUnpublish,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to unpublish a planning item!'
+)
+
 const self = {
     spike,
     unspike,
@@ -369,6 +462,10 @@ const self = {
     setInList,
     addToList,
     fetchMoreToList,
+    publish,
+    unpublish,
+    saveAndPublish,
+    saveAndUnpublish,
 }
 
 export default self
