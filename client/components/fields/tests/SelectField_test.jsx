@@ -20,6 +20,7 @@ describe('<SelectField />', () => {
             vocabularies: {
                 eventoccurstatus: [{
                     name: 'occ',
+                    label: 'occ',
                     qcode: 'qcode',
                 }],
             },
@@ -32,7 +33,7 @@ describe('<SelectField />', () => {
         )
         wrapper.find('Select').props().onChange({
             name: 'lab',
-            value: { name: 'lab' },
+            value: { label: 'lab' },
         })
         expect(wrapper.find('Select').props().value.label).toEqual('lab')
         expect(wrapper.find('Select').props().options[0].label).toEqual('occ')

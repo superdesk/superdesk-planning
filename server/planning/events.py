@@ -695,7 +695,8 @@ events_schema = {
         'type': 'dict',
         'schema': {
             'qcode': {'type': 'string'},
-            'name': {'type': 'string'}
+            'name': {'type': 'string'},
+            'label': {'type': 'string'}
         }
     },
     'news_coverage_status': {

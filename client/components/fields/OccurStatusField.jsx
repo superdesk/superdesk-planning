@@ -6,12 +6,12 @@ const mapStateToProps = (state, ownProps) => ({
     clearable: false,
     options: state.vocabularies.eventoccurstatus.map((s) => (
         {
-            label: s.name,
+            label: s.label,
             value: s,
         }
     )),
     value: {
-        label: ownProps.input.value.name,
+        label: ownProps.input.value.label,
         value: ownProps.input.value,
     },
 })
