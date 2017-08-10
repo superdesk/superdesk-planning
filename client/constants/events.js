@@ -21,4 +21,5 @@ export const EVENTS = {
     // because url length must stay short
     // chunk size must be lower than page limit (25)
     FETCH_IDS_CHUNK_SIZE: 25,
+    ITEM_ACTIONS: { CREATE_PLANNING: { label: 'Create Planning Item' } },
 }

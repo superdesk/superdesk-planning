@@ -218,6 +218,8 @@ describe('events', () => {
                         handleSubmit={sinon.spy()}
                         unspikeEvent={() => {}}
                         spikeEvent={() => {}}
+                        duplicateEvent={() => {}}
+                        addEventToCurrentAgenda={() => {}}
                         privileges={priv}
                     />
                 )
@@ -229,6 +231,8 @@ describe('events', () => {
                         handleSubmit={sinon.spy()}
                         unspikeEvent={() => {}}
                         spikeEvent={() => {}}
+                        duplicateEvent={() => {}}
+                        addEventToCurrentAgenda={() => {}}
                         privileges={priv}
                     />
                 )
@@ -316,7 +320,7 @@ describe('events', () => {
                 wrapper.find('LinksFieldArray').find('.Link__add-btn').simulate('click')
                 expect(wrapper.find('ItemActionsMenu').props().actions.length).toBe(2)
                 expect(wrapper.find('ItemActionsMenu').props().actions[0].label).toBe('Create Planning Item')
-                expect(wrapper.find('ItemActionsMenu').props().actions[1].label).toBe('View Event History')
+                expect(wrapper.find('ItemActionsMenu').props().actions[1].label).toBe('View History')
             })
 
             describe('allDay Toggle', () => {
@@ -399,7 +403,7 @@ describe('events', () => {
                     const wrapper = mount(<Provider store={store}><EventForm initialValues={recEvent}
                         enableReinitialize={true}/></Provider>)
                     expect(wrapper.find('ItemActionsMenu').props().actions.length).toBe(1)
-                    expect(wrapper.find('ItemActionsMenu').props().actions[0].label).toBe('View Event History')
+                    expect(wrapper.find('ItemActionsMenu').props().actions[0].label).toBe('View History')
                     expect(wrapper.find('.btn--success').length).toBe(0) // Publish button
                 })
             })

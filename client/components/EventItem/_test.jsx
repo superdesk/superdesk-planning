@@ -98,26 +98,37 @@ describe('events', () => {
                 privileges.planning_event_spike = 1
                 event.state = 'spiked'
                 wrapper = getMountedWrapper()
-                expect(wrapper.find('.icon-dots-vertical').length).toBe(0)
+                expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
+
+                const itemActions2 = wrapper.find('ItemActionsMenu')
+                expect(itemActions2.props().actions.length).toBe(1)
+                expect(itemActions2.props().actions[0].label).not.toBe('Spike')
             })
 
-            it('shows `unspike` button', () => {
+            it('unspike is populated in item-actions according to privilege and event state', () => {
                 let wrapper
 
                 privileges.planning_event_unspike = 1
                 event.state = 'spiked'
-                wrapper = getShallowWrapper()
-                expect(wrapper.find('.icon-unspike').length).toBe(1)
+                wrapper = getMountedWrapper()
+                expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
+
+                const itemActions = wrapper.find('ItemActionsMenu')
+                expect(itemActions.props().actions.length).toBe(1)
+                expect(itemActions.props().actions[0].label).toBe('Unspike')
 
                 privileges.planning_event_unspike = 0
-                event.state = 'spiked'
-                wrapper = getShallowWrapper()
-                expect(wrapper.find('.icon-unspike').length).toBe(0)
+                wrapper = getMountedWrapper()
+                expect(wrapper.find('.icon-dots-vertical').length).toBe(0)
 
-                privileges.planning_event_unspike = 1
+                privileges.planning_event_uspike = 1
                 event.state = 'in_progress'
-                wrapper = getShallowWrapper()
-                expect(wrapper.find('.icon-unspike').length).toBe(0)
+                wrapper = getMountedWrapper()
+                expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
+
+                const itemActions2 = wrapper.find('ItemActionsMenu')
+                expect(itemActions2.props().actions.length).toBe(1)
+                expect(itemActions2.props().actions[0].label).not.toBe('Unspike')
             })
 
             it('shows the `spiked` badge', () => {
@@ -161,8 +172,8 @@ describe('events', () => {
             it('executes `onUnspikedEvent` callback', () => {
                 event.state = 'spiked'
                 let wrapper = getMountedWrapper()
-                const button = wrapper.find('.icon-unspike').first().parent()
-                button.simulate('click')
+                wrapper.find('.dropdown__toggle').first().simulate('click')
+                wrapper.find('.dropdown__menu li button').first().simulate('click')
                 expect(onUnspikeEvent.callCount).toBe(1)
                 expect(onUnspikeEvent.args[0][0]).toEqual(event)
             })

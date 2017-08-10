@@ -3,10 +3,8 @@ import PropTypes from 'prop-types'
 import { get } from 'lodash'
 import { ListItem, TimeEvent, PubStatusLabel, Checkbox, ItemActionsMenu } from '../index'
 import './style.scss'
-import { OverlayTrigger } from 'react-bootstrap'
 import { GENERIC_ITEM_ACTIONS } from '../../constants'
-import { unspikeEventTooltip } from '../Tooltips'
-import { eventUtils, isItemLockedInThisSession, isItemSpiked } from '../../utils'
+import { eventUtils, isItemSpiked } from '../../utils'
 import classNames from 'classnames'
 
 export const EventItem = ({
@@ -24,13 +22,11 @@ export const EventItem = ({
         session,
     }) => {
     const hasBeenCanceled = get(event, 'occur_status.qcode') === 'eocstat:eos6'
-    const itemLockedInThisSession = isItemLockedInThisSession(event, session)
-
-    const callBacks = { [GENERIC_ITEM_ACTIONS.SPIKE.label]: () => onSpikeEvent(event) }
+    const callBacks = {
+        [GENERIC_ITEM_ACTIONS.SPIKE.label]: onSpikeEvent.bind(null, event),
+        [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: onUnspikeEvent.bind(null, event),
+    }
     const itemActions = eventUtils.getEventItemActions(event, session, privileges, callBacks)
-
-    const hasBeenSpiked = isItemSpiked(event)
-    const hasUnspikePrivileges = get(privileges, 'planning_event_unspike', 0) === 1
 
     return (
         <ListItem
@@ -50,7 +46,7 @@ export const EventItem = ({
             </div>
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
                 <div className="sd-list-item__row">
-                    {hasBeenSpiked &&
+                    {isItemSpiked(event) &&
                         <span className="label label--alert">spiked</span>
                     }
                     <PubStatusLabel status={event.state}/>
@@ -65,19 +61,6 @@ export const EventItem = ({
             </div>
             <div className="sd-list-item__action-menu">
                 {itemActions.length > 0 && <ItemActionsMenu actions={itemActions} />}
-                {hasBeenSpiked && hasUnspikePrivileges &&
-                    (!itemLocked || itemLockedInThisSession) &&
-                    <OverlayTrigger placement="left" overlay={unspikeEventTooltip}>
-                        <button
-                            className="dropdown__toggle"
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                onUnspikeEvent(event)
-                            }}>
-                            <i className="icon-unspike"/>
-                        </button>
-                    </OverlayTrigger>
-                }
             </div>
         </ListItem>
     )
