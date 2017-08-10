@@ -10,3 +10,5 @@ export const editTooltip = <Tooltip id="editTT">Edit</Tooltip>
 export const closeTooltip = <Tooltip id="editTT">Close</Tooltip>
 export const deleteAgendaTooltip = <Tooltip id="deleteAgendaTT">Delete Agenda</Tooltip>
 export const repeatingEventTooltip = <Tooltip id="repeatingEventTT">Repeating Event</Tooltip>
+export const publishedStateTooltip = <Tooltip id="pubStatusUsuableTT">Published</Tooltip>
+export const withheldStateTooltip = <Tooltip id="pubStatusWithHoldTT">The event has been killed.</Tooltip>

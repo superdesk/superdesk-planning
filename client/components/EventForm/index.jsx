@@ -4,7 +4,7 @@ import * as actions from '../../actions'
 import { RelatedPlannings, RepeatEventForm, fields, Toggle, EventHistoryContainer, AuditInformation } from '../index'
 import { Field, FieldArray, reduxForm, formValueSelector, getFormValues } from 'redux-form'
 import { isNil, get, isEqual, remove } from 'lodash'
-import { PubStatusLabel } from '../index'
+import { StateLabel } from '../index'
 import moment from 'moment'
 import {
     ChainValidators,
@@ -25,7 +25,6 @@ import {
     getLockedUser,
     isItemLockedInThisSession,
     isItemLockRestricted,
-    getItemState,
     isItemSpiked,
 } from '../../utils'
 
@@ -291,7 +290,6 @@ export class Component extends React.Component {
                 </div>
                 {!this.state.previewHistory &&
                     <div className="EventForm__form">
-                    <PubStatusLabel status={getItemState(initialValues)} verbose={true}/>
                     <ItemActionsMenu actions={itemActions} />
                     <div>
                         {lockRestricted && (
@@ -315,6 +313,7 @@ export class Component extends React.Component {
                             createdAt={creationDate}
                             updatedAt={updatedDate} />
                     </div>
+                    {existingEvent && <StateLabel item={initialValues} verbose={true}/>}
                     { !forcedReadOnly && !metaDataEditable && <span className="error-block">Editing event's metadata disabled</span> }
                     { !forcedReadOnly && !recurringRulesEditable && <span className="error-block">Editing event's recurring rules values disabled</span> }
                     {error && <div className="error-block">{error}</div>}

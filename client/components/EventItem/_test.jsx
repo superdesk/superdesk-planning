@@ -1,5 +1,5 @@
 import React from 'react'
-import { shallow, mount } from 'enzyme'
+import { mount } from 'enzyme'
 import { EventItem } from './index'
 import sinon from 'sinon'
 import moment from 'moment'
@@ -14,19 +14,9 @@ describe('events', () => {
             let event
             let onSpikeEvent
             let onUnspikeEvent
+            let onDuplicateEvent
             let highlightedEvent
             let privileges
-
-            const getShallowWrapper = () => (
-                shallow(<EventItem
-                    onClick={onClick}
-                    event={event}
-                    onSpikeEvent={onSpikeEvent}
-                    onUnspikeEvent={onUnspikeEvent}
-                    highlightedEvent={highlightedEvent}
-                    privileges={privileges}
-                />)
-            )
 
             const getMountedWrapper = () => {
                 const store = createTestStore({})
@@ -37,6 +27,7 @@ describe('events', () => {
                             event={event}
                             onSpikeEvent={onSpikeEvent}
                             onUnspikeEvent={onUnspikeEvent}
+                            onDuplicateEvent={onDuplicateEvent}
                             highlightedEvent={highlightedEvent}
                             privileges={privileges} />
                     </Provider>
@@ -53,6 +44,7 @@ describe('events', () => {
                             event={event}
                             onSpikeEvent={onSpikeEvent}
                             onUnspikeEvent={onUnspikeEvent}
+                            onDuplicateEvent={onDuplicateEvent}
                             highlightedEvent={highlightedEvent}
                             privileges={privileges} />
                     </Provider>
@@ -64,6 +56,8 @@ describe('events', () => {
                 onDoubleClick = sinon.spy(() => (Promise.resolve()))
                 onSpikeEvent = sinon.spy(() => (Promise.resolve()))
                 onUnspikeEvent = sinon.spy(() => (Promise.resolve()))
+                onDuplicateEvent = sinon.spy(() => (Promise.resolve()))
+
                 event = {
                     state: 'in_progress',
                     name: 'Event 1',
@@ -88,21 +82,23 @@ describe('events', () => {
                 expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
 
                 const itemActions = wrapper.find('ItemActionsMenu')
-                expect(itemActions.props().actions.length).toBe(1)
+                expect(itemActions.props().actions.length).toBe(2)
                 expect(itemActions.props().actions[0].label).toBe('Spike')
 
                 privileges.planning_event_spike = 0
                 wrapper = getMountedWrapper()
-                expect(wrapper.find('.icon-dots-vertical').length).toBe(0)
+                expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
+                const itemActions2 = wrapper.find('ItemActionsMenu')
+                expect(itemActions2.props().actions[0].label).not.toBe('Spike')
 
                 privileges.planning_event_spike = 1
                 event.state = 'spiked'
                 wrapper = getMountedWrapper()
                 expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
 
-                const itemActions2 = wrapper.find('ItemActionsMenu')
-                expect(itemActions2.props().actions.length).toBe(1)
-                expect(itemActions2.props().actions[0].label).not.toBe('Spike')
+                const itemActions3 = wrapper.find('ItemActionsMenu')
+                expect(itemActions3.props().actions.length).toBe(1)
+                expect(itemActions3.props().actions[0].label).not.toBe('Spike')
             })
 
             it('unspike is populated in item-actions according to privilege and event state', () => {
@@ -126,22 +122,53 @@ describe('events', () => {
                 wrapper = getMountedWrapper()
                 expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
 
+                const itemActions3 = wrapper.find('ItemActionsMenu')
+                expect(itemActions3.props().actions.length).toBe(2)
+                expect(itemActions3.props().actions[0].label).not.toBe('Unspike')
+            })
+
+            it('duplicate is populated item-actions according to privilege and event state', () => {
+                let wrapper
+
+                wrapper = getMountedWrapper()
+                expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
+
+                const itemActions = wrapper.find('ItemActionsMenu')
+                expect(itemActions.props().actions.length).toBe(2)
+                expect(itemActions.props().actions[1].label).toBe('Duplicate')
+
+                event.state = 'spiked'
+                wrapper = getMountedWrapper()
+                expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
                 const itemActions2 = wrapper.find('ItemActionsMenu')
-                expect(itemActions2.props().actions.length).toBe(1)
-                expect(itemActions2.props().actions[0].label).not.toBe('Unspike')
+                expect(itemActions2.props().actions[0].label).not.toBe('Duplicate')
+
+                privileges.planning_event_management = 0
+                event.state = 'in_progress'
+                wrapper = getMountedWrapper()
+                expect(wrapper.find('.icon-dots-vertical').length).toBe(0)
             })
 
             it('shows the `spiked` badge', () => {
                 let wrapper
 
                 event.state = 'in_progress'
-                wrapper = getShallowWrapper()
+                wrapper = getMountedWrapper()
                 expect(wrapper.find('.label--alert').length).toBe(0)
 
                 event.state = 'spiked'
-                wrapper = getShallowWrapper()
+                wrapper = getMountedWrapper()
                 expect(wrapper.find('.label--alert').length).toBe(1)
                 expect(wrapper.find('.label--alert').first().text()).toBe('spiked')
+            })
+
+            it('shows the `in progress` badge', () => {
+                let wrapper
+
+                event.state = 'in_progress'
+                wrapper = getMountedWrapper()
+                expect(wrapper.find('.label--yellow2').length).toBe(1)
+                expect(wrapper.find('.label--yellow2').first().text()).toBe('in progress')
             })
 
             it('executes `onClick` callback', () => {

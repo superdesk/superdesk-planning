@@ -5,6 +5,7 @@ import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
 import { get, set } from 'lodash'
 import { PUBLISHED_STATE, WORKFLOW_STATE } from '../constants/index'
+import { tooltips } from '../components'
 
 export { default as checkPermission } from './checkPermission'
 export { default as retryDispatch } from './retryDispatch'
@@ -312,6 +313,35 @@ export const getLockedUser = (item, users) => (
 )
 
 export const getItemState = (item) => (get(item, 'state', WORKFLOW_STATE.IN_PROGRESS))
+
+export const getItemStateUiLabel = (item) => {
+    switch (getItemState(item)) {
+        case WORKFLOW_STATE.IN_PROGRESS:
+            return {
+                label: 'in progress',
+                iconType: 'yellow2',
+                iconHollow: true,
+            }
+        case WORKFLOW_STATE.SPIKED:
+            return {
+                label: 'spiked',
+                iconType: 'alert',
+            }
+        case WORKFLOW_STATE.PUBLISHED:
+            return {
+                label: 'P',
+                labelVerbose: 'Published',
+                iconType: 'success',
+                tooltip:  tooltips.publishedStateTooltip,
+            }
+        case WORKFLOW_STATE.KILLED:
+            return {
+                label: 'Killed',
+                iconType: 'warning',
+                tooltip: tooltips.withheldStateTooltip,
+            }
+    }
+}
 
 export const isItemPublic = (pubstatus) =>
     pubstatus === PUBLISHED_STATE.USABLE || pubstatus === PUBLISHED_STATE.CANCELLED
