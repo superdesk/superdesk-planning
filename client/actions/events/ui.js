@@ -82,7 +82,7 @@ const previewEvent = (event) => (
 
 /**
  * Action to close the Edit Event panel
- * @return object
+ * @return Promise
  */
 const closeEventDetails = () => (
     (dispatch, getState) => {
@@ -94,6 +94,37 @@ const closeEventDetails = () => (
         dispatch({ type: EVENTS.ACTIONS.CLOSE_EVENT_DETAILS })
         return Promise.resolve()
     }
+)
+
+/**
+ * Action to minimize the Edit Event panel
+ * @return object
+ */
+const minimizeEventDetails = () => (
+    { type: EVENTS.ACTIONS.CLOSE_EVENT_DETAILS }
+)
+
+/**
+ * Unlock a Event and close editor if opened - used when item closed from workqueue
+ * @param {object} item - The Event item to unlock
+ * @return Promise
+ */
+const unlockAndCloseEditor = (item) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(eventsApi.unlock({ _id: item._id }))
+        .then(() => {
+            if (selectors.getHighlightedEvent(getState()) === item._id) {
+                dispatch(self.minimizeEventDetails())
+            }
+
+            return Promise.resolve(item)
+        }, (error) => {
+            notify.error(
+                getErrorMessage(error, 'Could not unlock the event.')
+            )
+            return Promise.reject(error)
+        })
+    )
 )
 
 /**
@@ -551,6 +582,8 @@ const self = {
     _openMultiCancelModal,
     openCancelModal,
     updateTime,
+    minimizeEventDetails,
+    unlockAndCloseEditor,
 }
 
 export default self

@@ -11,6 +11,7 @@
 .Planning {
     @include absolute0;
     top: $nav-height;
+    bottom: 30px;
     .navbtn { // fix the (+) button. Needed because it's not a dropdown
         overflow: hidden;
         padding: 0;
@@ -77,6 +78,14 @@
           animation-delay: -1.0s;
         }
     }
+
+    .opened-articles ul > li {
+        padding: 0 25px 0 5px;
+        .item-label {
+            margin-left: 3px;
+        }
+    }
+
 }
 
 // a vertical align on this class ensure an aligned icon with text.
