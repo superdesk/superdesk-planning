@@ -39,6 +39,15 @@ export const GENERIC_ITEM_ACTIONS = {
         label: 'Spike',
         icon: 'icon-trash',
     },
+    UNSPIKE: {
+        label: 'Unspike',
+        icon: 'icon-unspike',
+    },
+    DUPLICATE: {
+        label: 'Duplicate',
+        icon: 'icon-copy',
+    },
+    HISTORY: { label: 'View History' },
 }
 
 export const SPIKED_STATE = {

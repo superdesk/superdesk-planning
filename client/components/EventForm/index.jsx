@@ -13,7 +13,7 @@ import {
     UntilDateValidator,
     EventMaxEndRepeatCount } from '../../validators'
 import './style.scss'
-import { PRIVILEGES } from '../../constants'
+import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS } from '../../constants'
 import * as selectors from '../../selectors'
 import { OverlayTrigger } from 'react-bootstrap'
 import { tooltips } from '../index'
@@ -209,64 +209,24 @@ export class Component extends React.Component {
             readOnly: !recurringRulesEditable,
         }
 
-        const eventActions = {
-            'EVENT_HISTORY': {
-                label: 'View Event History',
-                callback: this.viewEventHistory.bind(this),
-            },
-            'UNSPIKE_EVENT': {
-                label: 'Unspike Event',
-                callback: unspikeEvent.bind(null, initialValues),
-            },
-            'CREATE_PLANNING': {
-                label: 'Create Planning Item',
-                callback: () => addEventToCurrentAgenda(initialValues),
-            },
-            'DUPLICATE_EVENT': {
-                label: 'Duplicate Event',
-                callback: () => duplicateEvent(initialValues),
-            },
-            'SPIKE_EVENT': {
-                label: 'Spike Event',
-                callback: () => spikeEvent(initialValues),
-            },
-        }
         let itemActions = []
-
-        const populateItemActions = () => {
-            itemActions.unshift(eventActions.EVENT_HISTORY)
-
-            if (eventUtils.canCreatePlanningFromEvent(initialValues, session, privileges)) {
-                itemActions.unshift(eventActions.CREATE_PLANNING)
-            }
-
-            if (eventSpiked) {
-                if (eventUtils.canUnspikeEvent(initialValues, privileges)) {
-                    itemActions.unshift(eventActions.UNSPIKE_EVENT)
-                }
-
-                remove(itemActions, (action) =>
-                    action.label === eventActions.CREATE_PLANNING.label)
-            } else {
-                if (eventUtils.canDuplicateEvent(initialValues, session, privileges)) {
-                    itemActions.unshift(eventActions.DUPLICATE_EVENT)
-                }
-
-                if (eventUtils.canSpikeEvent(initialValues, session, privileges)) {
-                    itemActions.unshift(eventActions.SPIKE_EVENT)
-                }
-
-                // Cannot spike or create new events if it is a recurring event and
-                // only metadata was edited
-                if ( this.state.doesRepeat && metaDataEditable && !recurringRulesEditable) {
-                    remove(itemActions, (action) => action.label === eventActions.SPIKE_EVENT.label ||
-                        action.label === eventActions.DUPLICATE_EVENT.label)
-                }
-            }
-        }
-
         if (existingEvent) {
-            populateItemActions()
+            const callBacks = {
+                [GENERIC_ITEM_ACTIONS.SPIKE.label]: spikeEvent.bind(null, initialValues),
+                [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: unspikeEvent.bind(null, initialValues),
+                [GENERIC_ITEM_ACTIONS.HISTORY.label]: this.viewEventHistory.bind(this),
+                [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: duplicateEvent.bind(null, initialValues),
+                [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label]: addEventToCurrentAgenda.bind(
+                    null, initialValues),
+            }
+
+            itemActions = eventUtils.getEventItemActions(initialValues, session, privileges, callBacks)
+            // Cannot spike or create new events if it is a recurring event and
+            // only metadata was edited
+            if ( this.state.doesRepeat && metaDataEditable && !recurringRulesEditable) {
+                remove(itemActions, (action) => action.label === GENERIC_ITEM_ACTIONS.SPIKE.label ||
+                    action.label === GENERIC_ITEM_ACTIONS.DUPLICATE.label)
+            }
         }
 
         return (

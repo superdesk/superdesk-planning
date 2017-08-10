@@ -1,4 +1,5 @@
-import { PRIVILEGES, WORKFLOW_STATE, PUBLISHED_STATE, GENERIC_ITEM_ACTIONS } from '../constants'
+import { PRIVILEGES, WORKFLOW_STATE, PUBLISHED_STATE, EVENTS,
+    GENERIC_ITEM_ACTIONS } from '../constants'
 import {
     isItemLockRestricted,
     getItemState,
@@ -107,14 +108,59 @@ const getEventItemActions = (event, session, privileges, callBacks) => {
         const action = GENERIC_ITEM_ACTIONS[a]
         switch (action.label) {
             case GENERIC_ITEM_ACTIONS.SPIKE.label:
-                if (canSpikeEvent(event, session, privileges)) {
+                if (callBacks[GENERIC_ITEM_ACTIONS.SPIKE.label] &&
+                        canSpikeEvent(event, session, privileges)) {
                     itemActions.push({
                         ...action,
                         callback: callBacks[GENERIC_ITEM_ACTIONS.SPIKE.label],
                     })
                 }
+
+                break
+
+            case GENERIC_ITEM_ACTIONS.UNSPIKE.label:
+                if (callBacks[GENERIC_ITEM_ACTIONS.UNSPIKE.label] &&
+                        canUnspikeEvent(event, privileges)) {
+                    itemActions.push({
+                        ...action,
+                        callback: callBacks[GENERIC_ITEM_ACTIONS.UNSPIKE.label],
+                    })
+                }
+
+                break
+
+            case GENERIC_ITEM_ACTIONS.DUPLICATE.label:
+                if (callBacks[GENERIC_ITEM_ACTIONS.DUPLICATE.label] &&
+                    canDuplicateEvent(event, session, privileges)) {
+                    itemActions.push({
+                        ...action,
+                        callback: callBacks[GENERIC_ITEM_ACTIONS.DUPLICATE.label],
+                    })
+                }
+
+                break
+
+            case GENERIC_ITEM_ACTIONS.HISTORY.label:
+                if (callBacks[GENERIC_ITEM_ACTIONS.HISTORY.label]) {
+                    itemActions.push({
+                        ...action,
+                        callback: callBacks[GENERIC_ITEM_ACTIONS.HISTORY.label],
+                    })
+                }
+
+                break
         }
     })
+
+    // Extend with event specific actions
+    if (callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label] &&
+            canCreatePlanningFromEvent(event, session, privileges)) {
+        const insertPos = itemActions.length ? itemActions.length - 1 : 0
+        itemActions.splice(insertPos, 0, {
+            label: 'Create Planning Item',
+            callback: callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label],
+        })
+    }
 
     return itemActions
 }
