@@ -67,8 +67,8 @@ class PlanningPanel extends React.Component {
                         <div className="Planning-panel__searchbar subnav">
                             <SearchBar value={null} onSearch={handleSearch}/>
                             <label>
-                                Only future
-                                <Toggle value={onlyFuture} onChange={onFutureToggleChange}/>
+                                Only Future
+                                <Toggle value={onlyFuture} onChange={onFutureToggleChange} />
                             </label>
                             <label>
                                 Spiked
@@ -146,6 +146,7 @@ const mapStateToProps = (state) => ({
     onlyFuture: state.planning.onlyFuture,
     onlySpiked: state.planning.onlySpiked,
     privileges: selectors.getPrivileges(state),
+    filterPlanningTimeline: state.planning.filterPlanningTimeline,
 })
 
 const mapDispatchToProps = (dispatch) => ({

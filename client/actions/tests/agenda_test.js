@@ -77,7 +77,10 @@ describe('agenda', () => {
                     agendas,
                     currentAgendaId: 'a2',
                 },
-                planning: { plannings },
+                planning: {
+                    plannings,
+                    search: { currentSearch: undefined },
+                },
                 events: { events },
                 privileges: {
                     planning: 1,
@@ -330,11 +333,17 @@ describe('agenda', () => {
                     expect(services.$location.search.args[0]).toEqual(['agenda', 'a1'])
 
                     expect(planningUi.fetchToList.callCount).toBe(1)
-                    expect(planningUi.fetchToList.args[0]).toEqual([{
-                        noAgendaAssigned: false,
-                        agendas: ['a1'],
-                        page: 1,
-                    }])
+                    expect(planningUi.fetchToList.args[0]).toEqual([
+                        {
+                            noAgendaAssigned: false,
+                            agendas: ['a1'],
+                            page: 1,
+                            advancedSearch: undefined,
+                            state: 'active',
+                            fulltext: undefined,
+                            onlyFuture: true,
+                        },
+                    ])
 
                     done()
                 })
@@ -478,6 +487,10 @@ describe('agenda', () => {
                         noAgendaAssigned: false,
                         agendas: ['a1'],
                         page: 1,
+                        advancedSearch: undefined,
+                        state: 'active',
+                        fulltext: undefined,
+                        onlyFuture: true,
                     }])
                     done()
                 })
@@ -493,6 +506,10 @@ describe('agenda', () => {
                         noAgendaAssigned: true,
                         agendas: null,
                         page: 1,
+                        advancedSearch: undefined,
+                        state: 'active',
+                        fulltext: undefined,
+                        onlyFuture: true,
                     }])
                     done()
                 })

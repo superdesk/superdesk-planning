@@ -209,6 +209,7 @@ export const getTestActionStore = () => {
                     noAgendaAssigned: false,
                     page: 1,
                 },
+                search: { currentSearch: undefined },
             },
             events: {
                 events: {},
@@ -277,7 +278,6 @@ export const getTestActionStore = () => {
 
         test: (done, action) => {
             if (!store.ready) store.init()
-
             return action(store.dispatch, store.getState, store.services)
             .catch((error) => {
                 // If this is from a Promise.reject, then pass that on

@@ -11,4 +11,4 @@ icalendar==3.11.1
 coverage==4.3.4
 coveralls
 mock
--e git://github.com/superdesk/superdesk-core.git@e67645736#egg=Superdesk_Core
+-e git://github.com/superdesk/superdesk-core.git@f986cfee4#egg=Superdesk_Core

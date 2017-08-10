@@ -319,3 +319,9 @@ export const isItemPublic = (pubstatus) =>
 export const isItemSpiked = (item) => item ?
     getItemState(item) === WORKFLOW_STATE.SPIKED : false
 
+/**
+ * Get the timezone offset
+ * @param {Array} coverages
+ * @returns {Array}
+ */
+export const getTimeZoneOffset = () => (moment().format('Z'))

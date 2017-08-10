@@ -60,7 +60,8 @@ const _save = (item) => (
         dispatch(planning.api.save(item))
         .then((item) => {
             notify.success('The planning item has been saved.')
-            return Promise.resolve(item)
+            return dispatch(self.refetch())
+            .then(() => Promise.resolve(item))
         }, (error) => {
             notify.error(
                 getErrorMessage(error, 'Failed to save the Planning item!')
@@ -85,7 +86,9 @@ const _saveAndReloadCurrentAgenda = (item) => (
         dispatch(planning.api.saveAndReloadCurrentAgenda(item))
         .then((item) => {
             notify.success('The Planning item has been saved.')
-            return Promise.resolve(item)
+            return dispatch(self.refetch())
+            .then(() => (dispatch(planning.api.fetchPlanningById(item._id, true))))
+            .then((item) => (Promise.resolve(item)))
         }, (error) => {
             notify.error(getErrorMessage(error, 'Failed to save the Planning item!'))
             return Promise.reject(error)
@@ -210,14 +213,14 @@ const previewPlanningAndOpenAgenda = (pid, agenda) => (
  * @return Promise
  */
 const toggleOnlyFutureFilter = () => (
-    (dispatch, getState) => (
-        Promise.resolve(
-            dispatch({
-                type: PLANNING.ACTIONS.SET_ONLY_FUTURE,
-                payload: !getState().planning.onlyFuture,
-            })
-        )
-    )
+    (dispatch, getState) => {
+        dispatch({
+            type: PLANNING.ACTIONS.SET_ONLY_FUTURE,
+            payload: !getState().planning.onlyFuture,
+        })
+
+        return dispatch(actions.fetchSelectedAgendaPlannings())
+    }
 )
 
 /**
@@ -226,24 +229,28 @@ const toggleOnlyFutureFilter = () => (
  * to filter the list of planning items to display
  * @param {string} value - The filter string used to filter planning items
  */
-const filterByKeyword = (value) => ({
-    type: PLANNING.ACTIONS.PLANNING_FILTER_BY_KEYWORD,
-    payload: value && value.trim() || null,
-})
+const filterByKeyword = (value) => (
+    (dispatch) => {
+        dispatch({
+            type: PLANNING.ACTIONS.PLANNING_FILTER_BY_KEYWORD,
+            payload: value && value.trim() || null,
+        })
+        return dispatch(actions.fetchSelectedAgendaPlannings())
+    }
+)
 
 /**
  * Action dispatcher to toggle the `Spiked` toggle of the planning list
  * @return arrow function
  */
 const toggleOnlySpikedFilter = () => (
-    (dispatch, getState) => (
-        Promise.resolve(
-            dispatch({
-                type: PLANNING.ACTIONS.SET_ONLY_SPIKED,
-                payload: !getState().planning.onlySpiked,
-            })
-        )
-    )
+    (dispatch, getState) => {
+        dispatch({
+            type: PLANNING.ACTIONS.SET_ONLY_SPIKED,
+            payload: !getState().planning.onlySpiked,
+        })
+        return dispatch(actions.fetchSelectedAgendaPlannings())
+    }
 )
 
 /**
@@ -301,6 +308,23 @@ const fetchMoreToList = () => (
             items.map((p) => p._id)
         ))))
     }
+)
+
+const refetch = () => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.refetch())
+        .then(
+            (items) => {
+                dispatch(planning.ui.setInList(items.map((p) => p._id)))
+                return Promise.resolve(items)
+            }, (error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to update the planning list!')
+                )
+                return Promise.reject(error)
+            }
+        )
+    )
 )
 
 /**
@@ -466,6 +490,7 @@ const self = {
     unpublish,
     saveAndPublish,
     saveAndUnpublish,
+    refetch,
 }
 
 export default self

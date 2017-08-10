@@ -2,6 +2,7 @@ import planningUi from '../ui'
 import planningApi from '../api'
 import sinon from 'sinon'
 import { PRIVILEGES } from '../../../constants'
+import * as actions from '../../../actions/agenda'
 import { getTestActionStore, restoreSinonStub, expectAccessDenied } from '../../../utils/testUtils'
 
 describe('actions.planning.ui', () => {
@@ -19,6 +20,7 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningApi, 'spike').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'unspike').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'fetch').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningApi, 'refetch').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'save').callsFake((item) => (Promise.resolve(item)))
         sinon.stub(planningApi, 'saveAndReloadCurrentAgenda').callsFake(
             (item) => (Promise.resolve(item))
@@ -35,17 +37,18 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningUi, 'addToList').callsFake(() => ({ type: 'addToList' }))
         sinon.stub(planningUi, 'fetchToList').callsFake(() => (Promise.resolve()))
         sinon.stub(planningUi, 'fetchMoreToList').callsFake(() => (Promise.resolve()))
-
         sinon.stub(planningApi, 'publish').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'unpublish').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'saveAndPublish').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'saveAndUnpublish').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningUi, 'refetch').callsFake(() => (Promise.resolve()))
     })
 
     afterEach(() => {
         restoreSinonStub(planningApi.spike)
         restoreSinonStub(planningApi.unspike)
         restoreSinonStub(planningApi.fetch)
+        restoreSinonStub(planningApi.refetch)
         restoreSinonStub(planningApi.save)
         restoreSinonStub(planningApi.saveAndReloadCurrentAgenda)
         restoreSinonStub(planningApi.lock)
@@ -64,9 +67,15 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(planningUi.addToList)
         restoreSinonStub(planningUi.fetchToList)
         restoreSinonStub(planningUi.fetchMoreToList)
+        restoreSinonStub(planningUi.refetch)
     })
 
     describe('spike', () => {
+        afterEach(() => {
+            restoreSinonStub(planningApi.refetch)
+            restoreSinonStub(planningUi.refetch)
+        })
+
         it('ui.spike notifies end user on successful spike', (done) => (
             store.test(done, planningUi.spike(data.plannings[1]))
             .then((item) => {
@@ -133,6 +142,10 @@ describe('actions.planning.ui', () => {
     })
 
     describe('unspike', () => {
+        afterEach(() => {
+            restoreSinonStub(planningUi.refetch)
+        })
+
         it('ui.unspike notifies end user on successful unspike', (done) => (
             store.test(done, planningUi.unspike(data.plannings[1]))
             .then((item) => {
@@ -181,6 +194,40 @@ describe('actions.planning.ui', () => {
                     errorMessage: 'Unauthorised to unspike a planning item!',
                     args: [data.plannings[1]],
                 })
+                done()
+            })
+        })
+    })
+
+    describe('planning filters', () => {
+        beforeEach(() => {
+            sinon.stub(actions, 'fetchSelectedAgendaPlannings').callsFake(() => (Promise.resolve()))
+        })
+
+        afterEach(() => {
+            restoreSinonStub(actions.fetchSelectedAgendaPlannings)
+        })
+
+        it('toggle future only', (done) => {
+            store.test(done, planningUi.toggleOnlyFutureFilter())
+            .then(() => {
+                expect(store.dispatch.args[0][0]).toEqual({
+                    type: 'SET_ONLY_FUTURE',
+                    payload: false,
+                })
+                expect(actions.fetchSelectedAgendaPlannings.callCount).toBe(1)
+                done()
+            })
+        })
+
+        it('toggle spike only', (done) => {
+            store.test(done, planningUi.toggleOnlySpikedFilter())
+            .then(() => {
+                expect(store.dispatch.args[0][0]).toEqual({
+                    type: 'SET_ONLY_SPIKED',
+                    payload: true,
+                })
+                expect(actions.fetchSelectedAgendaPlannings.callCount).toBe(1)
                 done()
             })
         })
@@ -398,58 +445,6 @@ describe('actions.planning.ui', () => {
 
         expect(planningUi.preview.callCount).toBe(1)
         expect(planningUi.preview.args[0]).toEqual(['p1'])
-    })
-
-    it('toggleOnlyFutureFilter', (done) => {
-        store.initialState.planning.onlyFuture = true
-        store.dispatch(planningUi.toggleOnlyFutureFilter())
-        .then(() => {
-            store.initialState.planning.onlyFuture = false
-            store.dispatch(planningUi.toggleOnlyFutureFilter())
-            .then(() => {
-                expect(store.dispatch.callCount).toBe(4)
-                expect(store.dispatch.args[1]).toEqual([{
-                    type: 'SET_ONLY_FUTURE',
-                    payload: false,
-                }])
-
-                expect(store.dispatch.args[3]).toEqual([{
-                    type: 'SET_ONLY_FUTURE',
-                    payload: true,
-                }])
-                done()
-            })
-        })
-    })
-
-    it('filterByKeyword', () => {
-        expect(planningUi.filterByKeyword('Plan')).toEqual({
-            type: 'PLANNING_FILTER_BY_KEYWORD',
-            payload: 'Plan',
-        })
-    })
-
-    it('toggleOnlySpikedFilter', (done) => {
-        store.initialState.planning.onlySpiked = false
-        store.dispatch(planningUi.toggleOnlySpikedFilter())
-        .then(() => {
-            store.initialState.planning.onlySpiked = true
-            store.dispatch(planningUi.toggleOnlySpikedFilter())
-            .then(() => {
-                expect(store.dispatch.callCount).toBe(4)
-                expect(store.dispatch.args[1]).toEqual([{
-                    type: 'SET_ONLY_SPIKED',
-                    payload: true,
-                }])
-
-                expect(store.dispatch.args[3]).toEqual([{
-                    type: 'SET_ONLY_SPIKED',
-                    payload: false,
-                }])
-
-                done()
-            })
-        })
     })
 
     it('clearList', () => {

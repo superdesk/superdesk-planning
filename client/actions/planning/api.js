@@ -2,6 +2,7 @@ import { PLANNING, ITEM_STATE, PUBLISHED_STATE } from '../../constants'
 import { get, cloneDeep, pickBy, isEqual, has } from 'lodash'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
+import { getTimeZoneOffset } from '../../utils/index'
 import moment from 'moment'
 
 /**
@@ -53,6 +54,9 @@ const query = ({
     agendas,
     noAgendaAssigned=false,
     page=1,
+    advancedSearch={},
+    onlyFuture,
+    fulltext,
 }) => (
     (dispatch, getState, { api }) => {
         let query = {}
@@ -85,32 +89,145 @@ const query = ({
             }
         }
 
-        if (agendas) {
-            must.push({ terms: { agendas: agendas } })
-        } else if (noAgendaAssigned) {
-            mustNot.push({ constant_score: { filter: { exists: { field: 'agendas' } } } })
-        }
-
-        switch (state) {
-            case ITEM_STATE.SPIKED:
-                must.push({ term: { state: ITEM_STATE.SPIKED } })
-                break
-            case ITEM_STATE.ALL:
-                break
-            case ITEM_STATE.ACTIVE:
-            default:
-                mustNot.push({ term: { state: ITEM_STATE.SPIKED } })
-        }
+        [
+            {
+                condition: () => (true),
+                do: () => {
+                    if (agendas) {
+                        must.push({ terms: { agendas: agendas } })
+                    } else if (noAgendaAssigned) {
+                        let field = { field: 'agendas' }
+                        mustNot.push({ constant_score: { filter: { exists: field } } })
+                    }
+                },
+            },
+            {
+                condition: () => (state === ITEM_STATE.SPIKED),
+                do: () => {
+                    must.push({ term: { state: ITEM_STATE.SPIKED } })
+                },
+            },
+            {
+                condition: () => (state === ITEM_STATE.ACTIVE || !state),
+                do: () => {
+                    mustNot.push({ term: { state: ITEM_STATE.SPIKED } })
+                },
+            },
+            {
+                condition: () => (fulltext),
+                do: () => {
+                    let query = { bool: { should: [] } }
+                    let queryString = {
+                        query_string: {
+                            query: '(' + fulltext.replace(/\//g, '\\/') + ')',
+                            lenient: false,
+                            default_operator: 'AND',
+                        },
+                    }
+                    query.bool.should.push(queryString)
+                    query.bool.should.push({
+                        has_child: {
+                            type: 'coverage',
+                            query: { bool: { must: [queryString] } },
+                        },
+                    })
+                    must.push(query)
+                },
+            },
+            {
+                condition: () => (onlyFuture),
+                do: () => {
+                    must.push({
+                        nested: {
+                            path: '_coverages',
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            range: {
+                                                '_coverages.scheduled': {
+                                                    gte: 'now/d',
+                                                    time_zone: getTimeZoneOffset(),
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    })
+                },
+            },
+            {
+                condition: () => (!onlyFuture),
+                do: () => {
+                    must.push({
+                        nested: {
+                            path: '_coverages',
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            range: {
+                                                '_coverages.scheduled': {
+                                                    lt: 'now/d',
+                                                    time_zone: getTimeZoneOffset(),
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    })
+                },
+            },
+            {
+                condition: () => (advancedSearch),
+                do: () => (true),
+            },
+        ].forEach((action) => {
+            if (action.condition() && !eventIds) {
+                action.do()
+            }
+        })
 
         query.bool = {
             must,
             must_not: mustNot,
         }
 
+        let sort = [
+            {
+                '_coverages.scheduled': {
+                    order: onlyFuture ? 'asc' : 'desc',
+                    nested_path: '_coverages',
+                    nested_filter: {
+                        range: {
+                            '_coverages.scheduled': onlyFuture ? {
+                                gte: 'now/d',
+                                time_zone: getTimeZoneOffset(),
+                            } : {
+                                lt: 'now/d',
+                                time_zone: getTimeZoneOffset(),
+                            },
+                        },
+                    },
+                },
+            },
+        ]
+
+        if (eventIds) {
+            sort = [{ _planning_date: { order: 'asc' } }]
+        }
+
         // Query the API
         return api('planning').query({
             page,
-            source: JSON.stringify({ query }),
+            source: JSON.stringify({
+                query,
+                sort,
+            }),
             embedded: { original_creator: 1 }, // Nest creator to planning
             timestamp: new Date(),
         })
@@ -146,6 +263,31 @@ const fetch = (params={}) => (
             return Promise.reject(error)
         })
     )
+)
+
+/**
+ * Action Dispatcher to re-fetch the current list of planning
+ * It achieves this by performing a fetch using the params from
+ * the store value `planning.lastRequestParams`
+ */
+const refetch = (page=1, plannings=[]) => (
+    (dispatch, getState) => {
+        const prevParams = selectors.getPreviousPlanningRequestParams(getState())
+        let params = selectors.getPlanningFilterParams(getState())
+        params.page = page
+
+        return dispatch(self.query(params))
+        .then((items) => {
+            plannings = plannings.concat(items)
+            page++
+            if (get(prevParams, 'page', 1) >= page) {
+                return dispatch(self.refetch(page, plannings))
+            }
+
+            dispatch(self.receivePlannings(plannings))
+            return Promise.resolve(plannings)
+        }, (error) => (Promise.reject(error)))
+    }
 )
 
 /**
@@ -346,19 +488,27 @@ const save = (item, original=undefined) => (
                 item.agendas = item.agendas.map((agenda) => agenda._id || agenda)
             }
 
-            // Save through the api
-            return api('planning').save(cloneDeep(originalItem), item)
-            .then((item) => (
-                dispatch(self.saveAndDeleteCoverages(
-                    coverages,
-                    item,
-                    get(originalItem, 'coverages', [])
-                ))
+            if (!get(originalItem, '_id')) {
+                return api('planning').save(cloneDeep(originalItem), item)
                 .then(
-                    () => (Promise.resolve(item)),
+                    (item) => (Promise.resolve(item)),
+                    (error) => (Promise.reject(error))
+                )
+            }
+
+            return dispatch(self.saveAndDeleteCoverages(
+                    coverages,
+                    originalItem,
+                    get(originalItem, 'coverages', [])
+            ))
+            .then(() => (
+                api('planning').save(cloneDeep(originalItem), item)
+                .then(
+                    (item) => (Promise.resolve(item)),
                     (error) => (Promise.reject(error))
                 )
             ), (error) => (Promise.reject(error)))
+
         }, (error) => (Promise.reject(error)))
     )
 )
@@ -411,13 +561,6 @@ const saveAndDeleteCoverages = (coverages, item, originalCoverages) => (
                     )
                 }
             })
-        } else {
-            if (get(originalCoverages, 'length', 0) > 0) {
-                // There must always be at least one coverage associated with the planning item
-                var _errorMessage = { data: {} }
-                _errorMessage.data._message = 'The planning item must have at least one coverage.'
-                return Promise.reject(_errorMessage)
-            }
         }
 
         // Deletes coverages
@@ -482,16 +625,10 @@ const saveAndReloadCurrentAgenda = (item) => (
             }
 
             return dispatch(self.save(item, originalItem))
-            .then((item) => {
-                // If this is a new planning item, then re-fetch the selected
-                // agendas planning items
-                if (isEqual(originalItem, {})) {
-                    return dispatch(actions.fetchSelectedAgendaPlannings())
-                        .then(() => (Promise.resolve(item)), (error) => (Promise.reject(error)))
-                }
-
-                return Promise.resolve(item)
-            }, (error) => (Promise.reject(error)))
+            .then(
+                (item) => (Promise.resolve(item)),
+                (error) => (Promise.reject(error))
+            )
         })
     )
 )
@@ -657,6 +794,7 @@ const self = {
     unpublish,
     saveAndPublish,
     saveAndUnpublish,
+    refetch,
 }
 
 export default self

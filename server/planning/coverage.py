@@ -12,10 +12,12 @@
 
 import superdesk
 import logging
+from copy import deepcopy
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML, metadata_schema
 from superdesk.resource import not_analyzed
+from superdesk import get_resource_service
 from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user
 from eve.utils import config
@@ -53,12 +55,17 @@ class CoverageService(superdesk.Service):
     def on_created(self, docs):
         for doc in docs:
             CoverageService.notify('coverage:created', doc, doc.get('original_creator', ''))
+        get_resource_service('planning').sync_coverages(docs)
 
     def on_updated(self, updates, original):
         CoverageService.notify('coverage:updated', original, updates.get('version_creator', ''))
+        doc = deepcopy(original)
+        doc.update(updates)
+        get_resource_service('planning').sync_coverages([doc])
 
     def on_deleted(self, doc):
         CoverageService.notify('coverage:deleted', doc, doc.get('version_creator', ''))
+        get_resource_service('planning').sync_coverages([doc])
 
     def _set_assignment_information(self, doc):
         if doc.get('planning') and doc['planning'].get('assigned_to'):
@@ -85,7 +92,6 @@ class CoverageService(superdesk.Service):
 
 coverage_schema = {
     # Identifiers
-    '_id': metadata_schema['_id'],
     'guid': metadata_schema['guid'],
 
     # Audit Information
@@ -103,10 +109,10 @@ coverage_schema = {
         'type': 'dict',
         'schema': {
             'ednote': metadata_schema['ednote'],
-            'g2_content_type': {'type': 'string'},
-            'coverage_provider': {'type': 'string'},
-            'item_class': {'type': 'string'},
-            'item_count': {'type': 'string'},
+            'g2_content_type': {'type': 'string', 'mapping': not_analyzed},
+            'coverage_provider': {'type': 'string', 'mapping': not_analyzed},
+            'item_class': {'type': 'string', 'mapping': not_analyzed},
+            'item_count': {'type': 'string', 'mapping': not_analyzed},
             'scheduled': {'type': 'datetime'},
             'service': {
                 'type': 'list',
@@ -241,3 +247,11 @@ class CoverageResource(superdesk.Resource):
     privileges = {'POST': 'planning',
                   'PATCH': 'planning',
                   'DELETE': 'planning'}
+    datasource = {
+        'source': 'coverage',
+        'search_backend': 'elastic',
+        'elastic_parent': {
+            'type': 'planning',
+            'field': 'planning_item'
+        }
+    }
