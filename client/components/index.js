@@ -70,6 +70,8 @@ export { AuditInformation } from './AuditInformation/index'
 export { CoverageListItem } from './CoverageListItem/index'
 export { CoverageContainer } from './CoverageContainer/index'
 export { ToggleBox } from './ToggleBox/index'
+export { WorkqueueContainer } from './WorkqueueContainer/index'
+export { WorkqueueList } from './WorkqueueList/index'
 
 // This must go last, as it imports Modals from above modules
 export { ModalsContainer } from './ModalsContainer'

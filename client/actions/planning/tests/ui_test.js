@@ -328,14 +328,11 @@ describe('actions.planning.ui', () => {
         store.init()
         store.dispatch(planningUi.preview(data.plannings[1]._id))
 
-        expect(store.dispatch.callCount).toBe(3)
+        expect(store.dispatch.callCount).toBe(2)
 
-        expect(planningUi.closeEditor.callCount).toBe(1)
-        expect(planningUi.closeEditor.args[0]).toEqual([
-            data.plannings[0],
-        ])
+        expect(planningUi.closeEditor.callCount).toBe(0)
 
-        expect(store.dispatch.args[2]).toEqual([{
+        expect(store.dispatch.args[1]).toEqual([{
             type: 'PREVIEW_PLANNING',
             payload: 'p2',
         }])
@@ -357,6 +354,21 @@ describe('actions.planning.ui', () => {
         })
     })
 
+    it('unlockAndCloseEditor', (done) => {
+        store.initialState.planning.currentPlanningId = 'p1'
+        data.plannings[0].lock_user = store.initialState.session.identity._id
+        data.plannings[0].lock_session = store.initialState.session.sessionId
+
+        store.test(done, planningUi.unlockAndCloseEditor(data.plannings[0]))
+            .then(() => {
+                expect(planningApi.unlock.callCount).toBe(1)
+                expect(store.dispatch.callCount).toBe(2)
+                expect(store.dispatch.args[1]).toEqual([{ type: 'CLOSE_PLANNING_EDITOR' }])
+                expect(services.notify.error.callCount).toBe(0)
+                done()
+            })
+    })
+
     describe('openEditor', () => {
         it('opens the editor', (done) => {
             store.initialState.planning.currentPlanningId = 'p1'
@@ -365,10 +377,9 @@ describe('actions.planning.ui', () => {
             .then((lockedItem) => {
                 expect(lockedItem).toEqual(data.plannings[1])
 
-                expect(planningUi.closeEditor.callCount).toBe(1)
-                expect(planningUi.closeEditor.args[0]).toEqual([data.plannings[0]])
+                expect(planningUi.closeEditor.callCount).toBe(0)
 
-                expect(store.dispatch.args[3]).toEqual([{
+                expect(store.dispatch.args[2]).toEqual([{
                     type: 'OPEN_PLANNING_EDITOR',
                     payload: lockedItem,
                 }])
@@ -383,7 +394,7 @@ describe('actions.planning.ui', () => {
             restoreSinonStub(planningUi.openEditor)
             store.test(done, planningUi.openEditor(data.plannings[1]))
             .catch(() => {
-                expect(store.dispatch.args[2]).toEqual([{
+                expect(store.dispatch.args[1]).toEqual([{
                     type: 'PREVIEW_PLANNING',
                     payload: data.plannings[1],
                 }])
@@ -394,7 +405,7 @@ describe('actions.planning.ui', () => {
                     action: '_lockAndOpenEditor',
                     errorMessage: 'Unauthorised to edit a planning item!',
                     args: [data.plannings[1]],
-                    argPos: 3,
+                    argPos: 2,
                 })
 
                 done()

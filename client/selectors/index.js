@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect'
-import { get, sortBy, includes, isEmpty } from 'lodash'
+import { get, sortBy, includes, isEmpty, filter, matches, isNil } from 'lodash'
 import moment from 'moment'
 import { AGENDA, SPIKED_STATE } from '../constants'
 import { isItemLockedInThisSession, isItemSpiked } from '../utils'
@@ -310,5 +310,25 @@ export const getPlanningFilterParams = createSelector(
 export const isAdvancedDateSearch = createSelector(
     [getPlanningSearch], (currentSearch) => (
         !!get(currentSearch, 'advancedSearch.dates.range', false)
+    )
+)
+
+/** Returns the list of currently locked planning items */
+export const getLockedPlannings = createSelector(
+    [getStoredPlannings, getCurrentUserId],
+    (plannings, userId) => filter(plannings, matches({
+        lock_user: userId,
+        lock_action: 'edit',
+    }))
+)
+
+/** Returns the list of currently locked events */
+export const getLockedEvents = createSelector(
+    [getEvents, getCurrentUserId],
+    (events, userId) => (
+        filter(events, (e) => (
+                !isNil(e.lock_session) && e.lock_action === 'edit' && e.lock_user === userId
+            )
+        )
     )
 )

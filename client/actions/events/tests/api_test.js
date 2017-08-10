@@ -485,4 +485,30 @@ describe('actions.events.api', () => {
             payload: data.events,
         }))
     })
+
+    describe('loadLockedEventsByAction', () => {
+        it('calls events api and receive locked events', (done) => {
+            services.api('events').query = sinon.spy(() => (
+                Promise.resolve({ _items: data.locked_events }))
+            )
+            store.test(done, eventsApi.loadLockedEventsByAction('edit'))
+            .then((items) => {
+                const source = JSON.parse(services.api('events').query.args[0][0].source)
+
+                expect(source.query.bool.must).toEqual([
+                    { term: { lock_user: 'ident1' } },
+                    { term: { lock_action: 'edit' } },
+                ])
+
+                expect(services.api('events').query.callCount).toBe(1)
+                expect(items).toEqual(data.locked_events)
+
+                expect(store.dispatch.callCount).toBe(1)
+                expect(eventsApi.receiveEvents.callCount).toBe(1)
+                expect(eventsApi.receiveEvents.args[0]).toEqual([data.locked_events])
+
+                done()
+            })
+        })
+    })
 })

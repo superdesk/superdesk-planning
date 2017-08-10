@@ -195,6 +195,7 @@ export class Component extends React.Component {
             endingDate,
             recurringRule,
             formProfile,
+            onMinimize,
         } = this.props
 
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK]
@@ -325,6 +326,9 @@ export class Component extends React.Component {
                                     Unpublish
                                 </button>
                             }
+                            <button title="Minimize" className="navbtn navbtn--right" onClick={onMinimize.bind(this)}>
+                                <i className="big-icon--minimize" />
+                            </button>
                         </div>
                     )}
                     {forcedReadOnly && !this.state.previewHistory && (
@@ -507,6 +511,7 @@ Component.propTypes = {
     privileges: PropTypes.object,
     recurringRule: PropTypes.object,
     formProfile: PropTypes.object,
+    onMinimize: PropTypes.func,
 }
 
 // Decorate the form component
@@ -555,6 +560,7 @@ const mapDispatchToProps = (dispatch) => ({
     updateTime: (event) => dispatch(actions.events.ui.updateTime(event)),
     onUnlock: (event) => dispatch(actions.events.ui.unlockAndOpenEventDetails(event)),
     onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
+    onMinimize: () => dispatch(actions.events.ui.minimizeEventDetails()),
 })
 
 export const EventForm = connect(

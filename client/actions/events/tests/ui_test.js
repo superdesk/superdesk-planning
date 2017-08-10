@@ -470,4 +470,22 @@ describe('actions.events.ui', () => {
         })
     })
 
+    it('minimizeEventDetails', () => {
+        expect(eventsUi.minimizeEventDetails()).toEqual({ type: 'CLOSE_EVENT_DETAILS' })
+    })
+
+    it('unlockAndCloseEditor', (done) => {
+        store.initialState.events.highlightedEvent = 'e1'
+        data.events[0].lock_user = store.initialState.session.identity._id
+        data.events[0].lock_session = store.initialState.session.sessionId
+
+        store.test(done, eventsUi.unlockAndCloseEditor(data.events[0]))
+            .then(() => {
+                expect(eventsApi.unlock.callCount).toBe(1)
+                expect(store.dispatch.callCount).toBe(2)
+                expect(store.dispatch.args[1]).toEqual([{ type: 'CLOSE_EVENT_DETAILS' }])
+                expect(services.notify.error.callCount).toBe(0)
+                done()
+            })
+    })
 })

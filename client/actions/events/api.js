@@ -30,6 +30,30 @@ const loadEventsByRecurrenceId = (rid, spikeState = SPIKED_STATE.BOTH, page=1, m
 )
 
 /**
+ * Action dispatcher to load Current user's Locked Events by action from the API,
+ * and place them in the local store.
+ * @param {string} action - lock_action such as 'edit'
+ * @return Promise
+ */
+const loadLockedEventsByAction = (action) => (
+    (dispatch, getState, { api }) => {
+        let query = { bool: { must: [] } }
+
+        query.bool.must.push({ term: { lock_user: selectors.getCurrentUserId(getState()) } })
+        query.bool.must.push({ term: { lock_action: action } })
+
+        // Query the API
+        return api('events').query({ source: JSON.stringify({ query }) })
+        .then((data) => {
+            dispatch(self.receiveEvents(data._items))
+            return Promise.resolve(data._items)
+        }, (error) => (
+            Promise.reject(error)
+        ))
+    }
+)
+
+/**
  * Action dispatcher to mark an Event as spiked using the API.
  * @param {Array} events - An Array of Events to be spiked
  */
@@ -454,6 +478,7 @@ const markEventHasPlannings = (event) => ({
 
 const self = {
     loadEventsByRecurrenceId,
+    loadLockedEventsByAction,
     spike,
     unspike,
     query,

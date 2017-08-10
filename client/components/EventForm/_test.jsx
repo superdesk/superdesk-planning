@@ -83,11 +83,13 @@ describe('events', () => {
                     spikeEvent: () => {},
                 }
                 const priv = { planning_event_management: 1 }
+                const onMinimize =  sinon.stub().returns(Promise.resolve())
                 const props = {
                     submitting: submitting,
                     handleSubmit,
                     ...itemActions,
                     privileges: priv,
+                    onMinimize,
                 }
                 const subject = shallow(<Component {...props}/>)
                 subject.find('form').simulate('submit')
@@ -219,6 +221,7 @@ describe('events', () => {
                         addEventToCurrentAgenda={() => {}}
                         onCancelEvent={sinon.spy()}
                         privileges={priv}
+                        onMinimize={sinon.spy()}
                     />
                 )
                 expect(wrapper.find('[type="submit"]').length).toBe(0)
@@ -234,6 +237,7 @@ describe('events', () => {
                         addEventToCurrentAgenda={() => {}}
                         onCancelEvent={sinon.spy()}
                         privileges={priv}
+                        onMinimize={sinon.spy()}
                     />
                 )
                 expect(wrapper.find('[type="submit"]').length).toBe(1)

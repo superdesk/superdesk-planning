@@ -1070,4 +1070,30 @@ describe('actions.planning.api', () => {
             })
         })
     })
+
+    describe('loadLockedPlanningsByAction', () => {
+        it('calls planning api and recieve locked planning items', (done) => {
+            services.api('planning').query = sinon.spy(() => (
+                Promise.resolve({ _items: data.locked_plannings }))
+            )
+            store.test(done, planningApi.loadLockedPlanningsByAction('edit'))
+            .then((items) => {
+                const source = JSON.parse(services.api('planning').query.args[0][0].source)
+
+                expect(source.query.bool.must).toEqual([
+                    { term: { lock_user: 'ident1' } },
+                    { term: { lock_action: 'edit' } },
+                ])
+
+                expect(services.api('planning').query.callCount).toBe(1)
+                expect(items).toEqual(data.locked_plannings)
+
+                expect(store.dispatch.callCount).toBe(1)
+                expect(planningApi.receivePlannings.callCount).toBe(1)
+                expect(planningApi.receivePlannings.args[0]).toEqual([data.locked_plannings])
+
+                done()
+            })
+        })
+    })
 })

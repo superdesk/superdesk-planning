@@ -102,8 +102,7 @@ const _saveAndReloadCurrentAgenda = (item) => (
  * @return Promise
  */
 const preview = (item) => (
-    (dispatch, getState) => {
-        dispatch(self.closeEditor(selectors.getCurrentPlanning(getState())))
+    (dispatch) => {
         dispatch({
             type: PLANNING.ACTIONS.PREVIEW_PLANNING,
             payload: item,
@@ -133,6 +132,29 @@ const _unlockAndOpenEditor = (item) => (
 )
 
 /**
+ * Unlock a Planning item and close editor if opened - used when item closed from workqueue
+ * @param {object} item - The Planning item to unlock
+ * @return Promise
+ */
+const unlockAndCloseEditor = (item) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.unlock(item))
+        .then(() => {
+            if (selectors.getCurrentPlanningId(getState()) === item._id) {
+                dispatch({ type: PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR })
+            }
+
+            return Promise.resolve(item)
+        }, (error) => {
+            notify.error(
+                getErrorMessage(error, 'Could not unlock the planning item.')
+            )
+            return Promise.reject(error)
+        })
+    )
+)
+
+/**
  * Lock and open a Planning item for editing
  * @param {object} item - The Planning item to lock and edit
  * @return Promise
@@ -147,20 +169,17 @@ const _lockAndOpenEditor = (item) => (
             return Promise.resolve(planningInState)
         }
 
-        return dispatch(self.closeEditor(selectors.getCurrentPlanning(getState())))
-        .then(() => (
-            dispatch(planning.api.lock(item))
-            .then((lockedItem) => {
-                dispatch(self._openEditor(lockedItem))
-                return lockedItem
-            }, (error) => {
-                notify.error(
-                    getErrorMessage(error, 'Could not obtain lock on the planning item.')
-                )
-                dispatch(self._openEditor(item))
-                return Promise.reject(error)
-            })
-        ))
+        return dispatch(planning.api.lock(item))
+        .then((lockedItem) => {
+            dispatch(self._openEditor(lockedItem))
+            return Promise.resolve(lockedItem)
+        }, (error) => {
+            notify.error(
+                getErrorMessage(error, 'Could not obtain lock on the planning item.')
+            )
+            dispatch(self._openEditor(item))
+            return Promise.reject(error)
+        })
     }
 )
 
@@ -197,10 +216,9 @@ const _openEditor = (item) => ({
 })
 
 /**
- * Opens the Planning Editor
- * Also changes the currently selected agenda to the the agenda this planning
- * item is associated with
- * @param {string} pid - The Planning item id to open
+ * Previews the Planning Editor
+ * Also selects the associated agenda of this planning item
+ * @param {string} pid - The Planning item id to preview
  * @return Promise
  */
 const previewPlanningAndOpenAgenda = (pid, agenda) => (
@@ -212,6 +230,25 @@ const previewPlanningAndOpenAgenda = (pid, agenda) => (
 
         // open the planning details
         return dispatch(self.preview(pid))
+    }
+)
+
+/**
+ * Opens the Planning Editor
+ * Also selects the associated agenda of this planning item
+ * @param {Object} planning - The Planning item to open
+ * @param {string} agendaId - The agendaId to set associated agenda as selected
+ * @return Promise
+ */
+const openPlanningWithAgenda = (planning, agendaId) => (
+    (dispatch, getState) => {
+
+        if (agendaId && agendaId !== selectors.getCurrentAgendaId(getState())) {
+            dispatch(actions.selectAgenda(agendaId))
+        }
+
+        // open the planning details
+        return dispatch(self._openEditor(planning))
     }
 )
 
@@ -533,9 +570,11 @@ const self = {
     _openEditor,
     closeEditor,
     previewPlanningAndOpenAgenda,
+    openPlanningWithAgenda,
     toggleOnlyFutureFilter,
     filterByKeyword,
     unlockAndOpenEditor,
+    unlockAndCloseEditor,
     clearList,
     fetchToList,
     requestPlannings,

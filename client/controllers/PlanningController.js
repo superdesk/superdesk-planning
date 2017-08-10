@@ -39,6 +39,14 @@ export function PlanningController(
 
                 return Promise.resolve()
             }),
+
+            lockedEvents: store.dispatch(
+                actions.events.api.loadLockedEventsByAction('edit')
+            ),
+
+            lockedPlannings: store.dispatch(
+                actions.planning.api.loadLockedPlanningsByAction('edit')
+            ),
         })
         .then(() => {
             $scope.$on('$destroy', () => {

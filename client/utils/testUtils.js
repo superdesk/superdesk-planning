@@ -191,6 +191,53 @@ export const getTestActionStore = () => {
                     user_id: '5923ac531d41c81e3290a5ee',
                 },
             ],
+            locked_events: [
+                {
+                    _id: 'e1',
+                    name: 'Event 1',
+                    dates: {
+                        start: '2016-10-15T13:01:11',
+                        end: '2016-10-15T14:01:11',
+                    },
+                    lock_action: 'edit',
+                    lock_user: 'ident1',
+                    lock_session: 'session1',
+                },
+                {
+                    _id: 'e2',
+                    name: 'Event 2',
+                    dates: {
+                        start: '2014-10-15T14:01:11',
+                        end: '2014-10-15T15:01:11',
+                    },
+                    lock_action: 'edit',
+                    lock_user: 'ident1',
+                    lock_session: 'session1',
+                },
+            ],
+            locked_plannings: [
+                {
+                    _id: 'p1',
+                    slugline: 'Planning1',
+                    headline: 'Some Plan 1',
+                    coverages: [],
+                    agendas: [],
+                    lock_action: 'edit',
+                    lock_user: 'ident1',
+                    lock_session: 'session1',
+                },
+                {
+                    _id: 'p2',
+                    slugline: 'Planning2',
+                    headline: 'Some Plan 2',
+                    event_item: 'e1',
+                    coverages: [],
+                    agendas: ['a2'],
+                    lock_action: 'edit',
+                    lock_user: 'ident1',
+                    lock_session: 'session1',
+                },
+            ],
         },
 
         initialState: {
