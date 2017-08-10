@@ -45,6 +45,9 @@ class EventSchema(BaseSchema):
             'parent': {'nullable': True}
         }
     })
+    calendars = schema.ListField()
+    files = schema.ListField()
+    links = schema.ListField()
 
 
 class PlanningSchema(BaseSchema):
@@ -72,6 +75,8 @@ class PlanningSchema(BaseSchema):
             'parent': {'nullable': True}
         }
     })
+    agendas = schema.ListField()
+    flags = schema.DictField()
 
 
 class CoverageSchema(BaseSchema):
@@ -93,7 +98,10 @@ DEFAULT_EDITOR = [{
         'location': {'enable': True},
         'name': {'enable': True},
         'occur_status': {'enable': True},
-        'subject': {'enable': True}
+        'subject': {'enable': True},
+        'calendars': {'enable': True},
+        'files': {'enable': True},
+        'links': {'enable': True}
     },
     'schema': dict(EventSchema)},
     {
@@ -105,7 +113,9 @@ DEFAULT_EDITOR = [{
             'ednote': {'enabled': True},
             'headline': {'enabled': True},
             'internal_note': {'enabled': True},
-            'subject': {'enabled': True}
+            'subject': {'enabled': True},
+            'agendas': {'enabled': True},
+            'flags': {'enabled': True}
         },
         'schema': dict(PlanningSchema)},
     {

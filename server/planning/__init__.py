@@ -96,7 +96,6 @@ def init_app(app):
 
     planning_type_service = PlanningTypesService(PlanningTypesResource.endpoint_name, backend=superdesk.get_backend())
     PlanningTypesResource(PlanningTypesResource.endpoint_name, app=app, service=planning_type_service)
-    superdesk.intrinsic_privilege(PlanningTypesResource.endpoint_name, method=['GET'])
 
     app.on_updated_events += events_history_service.on_item_updated
     app.on_inserted_events += events_history_service.on_item_created
