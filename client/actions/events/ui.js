@@ -1,11 +1,16 @@
 import { showModal, hideModal } from '../index'
-import { checkPermission, getErrorMessage, isItemLockedInThisSession } from '../../utils'
-import { PRIVILEGES, EVENTS, ITEM_STATE } from '../../constants'
+import { PRIVILEGES, EVENTS } from '../../constants'
 import planning from '../planning'
 import eventsApi from './api'
 import { fetchSelectedAgendaPlannings } from '../agenda'
 import * as selectors from '../../selectors'
 import { get } from 'lodash'
+import {
+    checkPermission,
+    getErrorMessage,
+    isItemLockedInThisSession,
+    isItemSpiked,
+} from '../../utils'
 
 /**
  * Action to open the Edit Event panel with the supplied Event
@@ -29,7 +34,7 @@ const _openEventDetails = (event) => (
                 dispatch(openDetails)
                 return Promise.resolve(eventInState)
             } else {
-                if (eventInState.state === ITEM_STATE.SPIKED) {
+                if (isItemSpiked(eventInState)) {
                     dispatch(self.previewEvent(event))
                     return Promise.resolve(eventInState)
                 }

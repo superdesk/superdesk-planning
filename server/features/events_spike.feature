@@ -1,6 +1,6 @@
 Feature: Events Spike
     @auth
-    Scenario: Event state defaults to active
+    Scenario: Event state defaults to in_progress
         When we post to "events"
         """
         [{
@@ -18,7 +18,7 @@ Feature: Events Spike
         {
             "_id": "#events._id#",
             "name": "TestEvent",
-            "state": "active"
+            "state": "in_progress"
         }
         """
 
@@ -74,7 +74,7 @@ Feature: Events Spike
         [{
             "name": "TestEvent",
             "state": "spiked",
-            "revert_state": "active",
+            "revert_state": "in_progress",
             "dates": {
                 "start": "2016-01-02",
                 "end": "2016-01-03"
@@ -99,7 +99,7 @@ Feature: Events Spike
         {
             "_id": "#events._id#",
             "name": "TestEvent",
-            "state": "active"
+            "state": "in_progress"
         }
         """
         When we get "/events_history?where=event_id==%22#events._id#%22"
@@ -108,7 +108,7 @@ Feature: Events Spike
         {"_items": [{
             "event_id": "#events._id#",
             "operation": "unspiked",
-            "update": {"state" : "active"}
+            "update": {"state" : "in_progress"}
         }]}
         """
 
@@ -229,7 +229,7 @@ Feature: Events Spike
                 "end": "2017-01-01"
             },
             "state": "spiked",
-            "revert_state": "active"
+            "revert_state": "in_progress"
         }]
         """
         Given "planning"

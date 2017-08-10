@@ -30,7 +30,7 @@ describe('events', () => {
             }],
             links: ['http://www.google.com'],
             _plannings: [],
-            state: 'active',
+            state: 'in_progress',
         }
 
         const createTestStoreForEventEditing = (event) => {
@@ -225,7 +225,7 @@ describe('events', () => {
 
                 wrapper = shallow(
                     <Component
-                        initialValues={{ state: 'active' }}
+                        initialValues={{ state: 'in_progress' }}
                         handleSubmit={sinon.spy()}
                         unspikeEvent={() => {}}
                         spikeEvent={() => {}}

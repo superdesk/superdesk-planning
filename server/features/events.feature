@@ -253,7 +253,7 @@ Feature: Events
         """
         When we patch "/events/#events._id#"
         """
-        {"pubstatus": "withhold"}
+        {"pubstatus": "cancelled"}
         """
         When we get "/events_history"
         Then we get a list with 3 items
@@ -270,7 +270,7 @@ Feature: Events
                 {
                 "event_id": "#events._id#",
                 "operation": "update",
-                "update": {"pubstatus": "withhold"}
+                "update": {"pubstatus": "cancelled"}
                 }
             ]}
         """
@@ -345,7 +345,7 @@ Feature: Events
             {
                 "_id": "#duplicate._id#",
                 "name": "event 123",
-                "state": "active",
+                "state": "in_progress",
                 "occur_status": {"qcode": "eocstat:eos5"}
             }
         ]}

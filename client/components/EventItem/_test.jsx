@@ -65,7 +65,7 @@ describe('events', () => {
                 onSpikeEvent = sinon.spy(() => (Promise.resolve()))
                 onUnspikeEvent = sinon.spy(() => (Promise.resolve()))
                 event = {
-                    state: 'active',
+                    state: 'in_progress',
                     name: 'Event 1',
                     dates: {
                         start: moment('2016-10-15T13:01:00+0000'),
@@ -115,7 +115,7 @@ describe('events', () => {
                 expect(wrapper.find('.icon-unspike').length).toBe(0)
 
                 privileges.planning_event_unspike = 1
-                event.state = 'active'
+                event.state = 'in_progress'
                 wrapper = getShallowWrapper()
                 expect(wrapper.find('.icon-unspike').length).toBe(0)
             })
@@ -123,6 +123,7 @@ describe('events', () => {
             it('shows the `spiked` badge', () => {
                 let wrapper
 
+                event.state = 'in_progress'
                 wrapper = getShallowWrapper()
                 expect(wrapper.find('.label--alert').length).toBe(0)
 

@@ -5,7 +5,7 @@ import { SubmissionError, getFormInitialValues } from 'redux-form'
 import { saveLocation as _saveLocation } from './index'
 import { showModal, fetchSelectedAgendaPlannings } from './index'
 import { EventUpdateMethods } from '../components/fields'
-import { EVENTS, ITEM_STATE } from '../constants'
+import { EVENTS, SPIKED_STATE, PUBLISHED_STATE } from '../constants'
 import { getErrorMessage, retryDispatch } from '../utils'
 
 import eventsApi from './events/api'
@@ -35,11 +35,11 @@ function publishEvent(event) {
         return api.save('events_publish', {
             event: event._id,
             etag: event._etag,
-            pubstatus: EVENTS.PUB_STATUS.USABLE,
+            pubstatus: PUBLISHED_STATE.USABLE,
         })
         .then(() => {
             notify.success('The event has been published')
-            dispatch(silentlyFetchEventsById([event._id], ITEM_STATE.ALL))
+            dispatch(silentlyFetchEventsById([event._id], SPIKED_STATE.BOTH))
             dispatch(eventsUi.closeEventDetails())
         })
     }
@@ -55,11 +55,11 @@ function unpublishEvent(event) {
         return api.save('events_publish', {
             event: event._id,
             etag: event._etag,
-            pubstatus: EVENTS.PUB_STATUS.CANCELED,
+            pubstatus: PUBLISHED_STATE.CANCELLED,
         })
         .then(() => {
             notify.success('The event has been unpublished')
-            dispatch(silentlyFetchEventsById([event._id], ITEM_STATE.ALL))
+            dispatch(silentlyFetchEventsById([event._id], SPIKED_STATE.BOTH))
             dispatch(eventsUi.closeEventDetails())
         })
     }
@@ -324,15 +324,15 @@ const createDuplicate = (event) => (
  * Action Dispatcher to fetch events from the server,
  * and add them to the store without adding them to the events list
  * @param {array} ids - An array of Event IDs to fetch
- * @param {string} state - The item state to filter by
+ * @param {string} spikeState - Event's spiked state (SPIKED, NOT_SPIKED or BOTH)
  * @return arrow function
  */
-const silentlyFetchEventsById = (ids=[], state = ITEM_STATE.ACTIVE) => (
+const silentlyFetchEventsById = (ids=[], spikeState = SPIKED_STATE.NOT_SPIKED) => (
     (dispatch) => (
         dispatch(eventsApi.query({
             // distinct ids
             ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
-            state,
+            spikeState,
         }))
         .then(data => {
             dispatch(eventsApi.receiveEvents(data._items))
@@ -349,7 +349,7 @@ const silentlyFetchEventsById = (ids=[], state = ITEM_STATE.ACTIVE) => (
  * @return arrow function
  */
 const fetchEvents = (params={
-    state: ITEM_STATE.ACTIVE,
+    spikeState: SPIKED_STATE.NOT_SPIKED,
     page: 1,
 }) => (
     (dispatch, getState, { $timeout, $location }) => {
@@ -520,7 +520,7 @@ const onEventUpdated = (_e, data) => (
                 // then manually reload this event from the server
                 if (selectedEvents.indexOf(data.item) !== -1 &&
                     !events.find((event) => event._id === data.item)) {
-                    dispatch(silentlyFetchEventsById([data.item], ITEM_STATE.ALL))
+                    dispatch(silentlyFetchEventsById([data.item], SPIKED_STATE.BOTH))
                 }
 
                 // Get the list of Planning Item IDs that are associated with this Event

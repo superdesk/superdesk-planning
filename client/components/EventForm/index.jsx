@@ -13,14 +13,21 @@ import {
     UntilDateValidator,
     EventMaxEndRepeatCount } from '../../validators'
 import './style.scss'
-import { ITEM_STATE, PRIVILEGES } from '../../constants'
+import { PRIVILEGES } from '../../constants'
 import * as selectors from '../../selectors'
 import { OverlayTrigger } from 'react-bootstrap'
 import { tooltips } from '../index'
 import PropTypes from 'prop-types'
 import { ItemActionsMenu, UnlockItem, UserAvatar } from '../index'
-import { eventUtils, getLockedUser, isItemLockedInThisSession, isItemLockRestricted, getItemState } from '../../utils'
 import classNames from 'classnames'
+import {
+    eventUtils,
+    getLockedUser,
+    isItemLockedInThisSession,
+    isItemLockRestricted,
+    getItemState,
+    isItemSpiked,
+} from '../../utils'
 
 /**
 * Form for adding/editing an event
@@ -183,7 +190,7 @@ export class Component extends React.Component {
 
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK]
 
-        const eventSpiked = getItemState(initialValues) === ITEM_STATE.SPIKED
+        const eventSpiked = isItemSpiked(initialValues)
         const creationDate = get(initialValues, '_created')
         const updatedDate = get(initialValues, '_updated')
         const existingEvent = !!get(initialValues, '_id')

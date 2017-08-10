@@ -1,4 +1,4 @@
-import { EVENTS, ITEM_STATE } from '../../constants'
+import { EVENTS, SPIKED_STATE, WORKFLOW_STATE } from '../../constants'
 import { EventUpdateMethods } from '../../components/fields'
 import { get, isEqual, cloneDeep } from 'lodash'
 import * as selectors from '../../selectors'
@@ -10,13 +10,13 @@ import planningApi from '../planning/api'
  * Action dispatcher to load a series of recurring events into the local store.
  * This does not update the list of visible Events
  * @param rid
- * @param state
+ * @param spikeState
  */
-const loadEventsByRecurrenceId = (rid, state = ITEM_STATE.ALL, page=1, maxResults=25) => (
+const loadEventsByRecurrenceId = (rid, spikeState = SPIKED_STATE.BOTH, page=1, maxResults=25) => (
     (dispatch) => (
         dispatch(self.query({
             recurrenceId: rid,
-            state,
+            spikeState,
             page,
             maxResults,
         }))
@@ -99,7 +99,7 @@ const query = (
         startDateGreaterThan,
         page=1,
         maxResults=25,
-        state=ITEM_STATE.ACTIVE,
+        spikeState=SPIKED_STATE.NOT_SPIKED,
     }
 ) => (
     (dispatch, getState, { api }) => {
@@ -233,15 +233,15 @@ const query = (
             filter.range = { 'dates.end': { gte: 'now/d' } }
         }
 
-        switch (state) {
-            case ITEM_STATE.SPIKED:
-                must.push({ term: { state: ITEM_STATE.SPIKED } })
+        switch (spikeState) {
+            case SPIKED_STATE.SPIKED:
+                must.push({ term: { state: WORKFLOW_STATE.SPIKED } })
                 break
-            case ITEM_STATE.ALL:
+            case SPIKED_STATE.BOTH:
                 break
-            case ITEM_STATE.ACTIVE:
+            case SPIKED_STATE.NOT_SPIKED:
             default:
-                mustNot.push({ term: { state: ITEM_STATE.SPIKED } })
+                mustNot.push({ term: { state: WORKFLOW_STATE.SPIKED } })
         }
 
         query.bool = {
@@ -327,7 +327,7 @@ const loadRecurringEventsAndPlanningItems = (event) => (
         // Load all of the events from the series
         return dispatch(self.loadEventsByRecurrenceId(
             eventDetail.recurrence_id,
-            ITEM_STATE.ALL,
+            SPIKED_STATE.BOTH,
             1,
             200
         ))

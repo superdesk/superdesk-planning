@@ -14,7 +14,7 @@ from superdesk.resource import Resource
 from superdesk.services import BaseService
 from superdesk.metadata.utils import item_url
 from flask import request
-from .common import PUB_STATUS_USABLE, ITEM_STATE, PLANNING_STATE
+from .common import ITEM_STATE, WORKFLOW_STATE
 
 
 logger = logging.getLogger(__name__)
@@ -53,14 +53,13 @@ class EventsDuplicateService(BaseService):
     def _duplicate_doc(self, original):
         new_doc = original.copy()
 
-        for f in {'_id', 'guid', 'unique_name', 'unique_id', 'lock_user', 'lock_time', 'lock_session', 'lock_action',
-                  '_created', '_updated', '_etag'}:
+        for f in {'_id', 'guid', 'unique_name', 'unique_id', 'lock_user', 'lock_time',
+                  'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus'}:
             new_doc.pop(f, None)
         new_doc.get('dates').pop('recurring_rule', None)
         new_doc.pop('recurrence_id', None)
         new_doc.pop('previous_recurrence_id', None)
-        new_doc[ITEM_STATE] = PLANNING_STATE.ACTIVE
-        new_doc['pubstatus'] = PUB_STATUS_USABLE
+        new_doc[ITEM_STATE] = WORKFLOW_STATE.IN_PROGRESS
         eocstat_map = get_resource_service('vocabularies').find_one(req=None, _id='eventoccurstatus')
         new_doc['occur_status'] = [x for x in eocstat_map.get('items', []) if
                                    x['qcode'] == 'eocstat:eos5' and x.get('is_active', True)][0]

@@ -1,18 +1,18 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
-import { EVENTS } from '../../constants'
+import { WORKFLOW_STATE } from '../../constants'
 import classNames from 'classnames'
 import { get } from 'lodash'
 
 const STATUS_LABELS = {
-    [EVENTS.STATE.PUBLISHED]: {
+    [WORKFLOW_STATE.PUBLISHED]: {
         label: 'P',
         labelVerbose: 'Published',
         labelType: 'success',
         tooltip:  <Tooltip id="pubStatusUsuableTT">Published</Tooltip>,
     },
-    [EVENTS.STATE.KILLED]: {
+    [WORKFLOW_STATE.KILLED]: {
         label: 'Killed',
         labelType: 'warning',
         tooltip: (<Tooltip id="pubStatusWithHoldTT">

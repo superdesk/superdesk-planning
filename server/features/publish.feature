@@ -71,7 +71,7 @@ Feature: Publish
         """
 
     @auth
-    Scenario: Publish canceled event
+    Scenario: Publish cancelled event
         When we post to "/products" with success
         """
         {
@@ -97,7 +97,7 @@ Feature: Publish
             "slugline": "event-123",
             "definition_short": "short value",
             "definition_long": "long value",
-            "pubstatus": "canceled",
+            "pubstatus": "cancelled",
             "relationships":{
                 "broader": "broader value",
                 "narrower": "narrower value",
@@ -115,7 +115,7 @@ Feature: Publish
 
         When we post to "/events/publish"
         """
-        {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "canceled"}
+        {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "cancelled"}
         """
         Then we get OK response
 

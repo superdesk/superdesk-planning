@@ -1,19 +1,19 @@
 import React from 'react'
 import { SelectField } from './SelectField'
-import { ITEM_STATE } from '../../constants'
+import { SPIKED_STATE } from '../../constants'
 
 const states = [{
     label: 'Exclude spiked events',
-    value: ITEM_STATE.ACTIVE,
+    value: SPIKED_STATE.NOT_SPIKED,
 }, {
     label: 'Include spiked events',
-    value: ITEM_STATE.ALL,
+    value: SPIKED_STATE.BOTH,
 }, {
     label: 'Spiked only events',
-    value: ITEM_STATE.SPIKED,
+    value: SPIKED_STATE.SPIKED,
 }]
 
-export const EventStateField = (props) => {
+export const SpikeStateField = (props) => {
     const ownProps = {
         ...props,
         multi: false,
@@ -32,4 +32,4 @@ export const EventStateField = (props) => {
     return (<SelectField {...ownProps}/>)
 }
 
-EventStateField.propTypes = { input: React.PropTypes.object.isRequired }
+SpikeStateField.propTypes = { input: React.PropTypes.object.isRequired }
