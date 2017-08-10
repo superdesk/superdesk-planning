@@ -5,7 +5,6 @@ import { EventItem } from '../index'
 import { InfiniteLoader, List, AutoSizer } from 'react-virtualized'
 import { LIST_ITEM_1_LINE_HEIGHT, EVENT_LIST_DAY_HEADER_HEIGHT } from '../../constants'
 import './style.scss'
-import { isItemLockedInThisSession } from '../../utils'
 
 export class EventsList extends React.Component {
 
@@ -69,7 +68,7 @@ export class EventsList extends React.Component {
                     })}
                     privileges={this.props.privileges}
                     itemLocked={event.lock_user ? true : false}
-                    itemLockedInThisSession={isItemLockedInThisSession(event)} />
+                    session={this.props.session} />
             </div>
         )
     }
@@ -119,4 +118,5 @@ EventsList.propTypes = {
     privileges: PropTypes.object,
     selectedEvents: PropTypes.array.isRequired,
     onEventSelectChange: PropTypes.func.isRequired,
+    session: PropTypes.object,
 }

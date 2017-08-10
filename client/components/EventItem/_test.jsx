@@ -65,6 +65,7 @@ describe('events', () => {
                 onSpikeEvent = sinon.spy(() => (Promise.resolve()))
                 onUnspikeEvent = sinon.spy(() => (Promise.resolve()))
                 event = {
+                    state: 'active',
                     name: 'Event 1',
                     dates: {
                         start: moment('2016-10-15T13:01:00+0000'),
@@ -79,23 +80,25 @@ describe('events', () => {
                 }
             })
 
-            it('shows `spike` button', () => {
+            it('spike is populated in item-actions according to privilege and event state', () => {
                 let wrapper
 
                 privileges.planning_event_spike = 1
-                event.state = 'active'
-                wrapper = getShallowWrapper()
-                expect(wrapper.find('.icon-trash').length).toBe(1)
+                wrapper = getMountedWrapper()
+                expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
+
+                const itemActions = wrapper.find('ItemActionsMenu')
+                expect(itemActions.props().actions.length).toBe(1)
+                expect(itemActions.props().actions[0].label).toBe('Spike')
 
                 privileges.planning_event_spike = 0
-                event.state = 'active'
-                wrapper = getShallowWrapper()
-                expect(wrapper.find('.icon-trash').length).toBe(0)
+                wrapper = getMountedWrapper()
+                expect(wrapper.find('.icon-dots-vertical').length).toBe(0)
 
                 privileges.planning_event_spike = 1
                 event.state = 'spiked'
-                wrapper = getShallowWrapper()
-                expect(wrapper.find('.icon-trash').length).toBe(0)
+                wrapper = getMountedWrapper()
+                expect(wrapper.find('.icon-dots-vertical').length).toBe(0)
             })
 
             it('shows `unspike` button', () => {
@@ -120,7 +123,6 @@ describe('events', () => {
             it('shows the `spiked` badge', () => {
                 let wrapper
 
-                event.state = 'active'
                 wrapper = getShallowWrapper()
                 expect(wrapper.find('.label--alert').length).toBe(0)
 
@@ -149,8 +151,8 @@ describe('events', () => {
 
             it('executes `onSpikedEvent` callback', () => {
                 let wrapper = getMountedWrapper()
-                const button = wrapper.find('.icon-trash').first().parent()
-                button.simulate('click')
+                wrapper.find('.dropdown__toggle').first().simulate('click')
+                wrapper.find('.dropdown__menu li button').first().simulate('click')
                 expect(onSpikeEvent.callCount).toBe(1)
                 expect(onSpikeEvent.args[0][0]).toEqual(event)
             })
