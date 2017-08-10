@@ -11,6 +11,7 @@
 """Superdesk Planning Plugin."""
 
 import superdesk
+
 from .events import EventsResource, EventsService
 from .events_spike import EventsSpikeResource, EventsSpikeService, EventsUnspikeResource, EventsUnspikeService
 from .planning import PlanningResource, PlanningService
@@ -33,6 +34,7 @@ from .feeding_services.event_http_service import EventHTTPFeedingService
 from .feeding_services.event_email_service import EventEmailFeedingService
 from .events_duplicate import EventsDuplicateResource, EventsDuplicateService
 from .events_publish import EventsPublishService, EventsPublishResource
+from planning.planning_types import PlanningTypesService, PlanningTypesResource
 from .common import get_max_recurrent_events
 
 
@@ -91,6 +93,9 @@ def init_app(app):
 
     events_history_service = EventsHistoryService('events_history', backend=superdesk.get_backend())
     EventsHistoryResource('events_history', app=app, service=events_history_service)
+
+    planning_type_service = PlanningTypesService(PlanningTypesResource.endpoint_name, backend=superdesk.get_backend())
+    PlanningTypesResource(PlanningTypesResource.endpoint_name, app=app, service=planning_type_service)
 
     app.on_updated_events += events_history_service.on_item_updated
     app.on_inserted_events += events_history_service.on_item_created
