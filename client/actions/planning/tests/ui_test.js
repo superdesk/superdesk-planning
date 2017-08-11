@@ -219,18 +219,6 @@ describe('actions.planning.ui', () => {
                 done()
             })
         })
-
-        it('toggle spike only', (done) => {
-            store.test(done, planningUi.toggleOnlySpikedFilter())
-            .then(() => {
-                expect(store.dispatch.args[0][0]).toEqual({
-                    type: 'SET_ONLY_SPIKED',
-                    payload: true,
-                })
-                expect(actions.fetchSelectedAgendaPlannings.callCount).toBe(1)
-                done()
-            })
-        })
     })
 
     describe('save', () => {

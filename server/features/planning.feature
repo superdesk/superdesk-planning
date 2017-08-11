@@ -7,7 +7,7 @@ Feature: Planning
         Then we get list with 0 items
 
     @auth
-    @notification
+    @notification @wip
     Scenario: Create new planning item without agenda
         Given empty "users"
         Given empty "planning"
@@ -55,7 +55,7 @@ Feature: Planning
                 "slugline": "test slugline",
                 "_coverages": [
                     {
-                        "coverage_id": null,
+                        "coverage_id": "NO_COVERAGE",
                         "scheduled": "#planning_date#",
                         "g2_content_type": null
                     }
@@ -91,7 +91,7 @@ Feature: Planning
                 "slugline": "test test test",
                 "_coverages": [
                     {
-                        "coverage_id": null,
+                        "coverage_id": "NO_COVERAGE",
                         "scheduled": "#planning_date#",
                         "g2_content_type": null
                     }

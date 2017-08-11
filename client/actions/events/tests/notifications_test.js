@@ -58,6 +58,7 @@ describe('actions.events.notifications', () => {
                 done()
             }, delay)
         })
+
         it('`events:spiked` calls onEventSpiked', (done) => {
             $rootScope.$broadcast('events:spiked', { item: 'e1' })
 

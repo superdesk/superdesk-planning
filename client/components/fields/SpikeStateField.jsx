@@ -3,13 +3,13 @@ import { SelectField } from './SelectField'
 import { SPIKED_STATE } from '../../constants'
 
 const states = [{
-    label: 'Exclude spiked events',
+    label: 'Exclude spike',
     value: SPIKED_STATE.NOT_SPIKED,
 }, {
-    label: 'Include spiked events',
+    label: 'Include spike',
     value: SPIKED_STATE.BOTH,
 }, {
-    label: 'Spiked only events',
+    label: 'Spiked only',
     value: SPIKED_STATE.SPIKED,
 }]
 

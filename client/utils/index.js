@@ -358,3 +358,6 @@ export const getTimeZoneOffset = () => (moment().format('Z'))
 
 export const  getPublishedState = (item) => get(item, 'pubstatus', null)
 
+export const sanitizeTextForQuery = (text) => (
+    text.replace(/\//g, '\\/').replace(/[()]/g, '')
+)

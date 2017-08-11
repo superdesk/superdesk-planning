@@ -55,3 +55,8 @@ export const SPIKED_STATE = {
     NOT_SPIKED: WORKFLOW_STATE.IN_PROGRESS,
     BOTH: 'both',
 }
+
+export const ADVANCED_SEARCH_CONTEXT = {
+    EVENT: 'event',
+    PLANNING: 'planning',
+}

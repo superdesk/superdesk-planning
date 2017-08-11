@@ -11,11 +11,13 @@ const initialState  = {
     planningsAreLoading: false,
     onlyFuture: true,
     filterPlanningKeyword: null,
-    onlySpiked: false,
     readOnly: true,
     planningHistoryItems: [],
     lastRequestParams: { page: 1 },
-    search: { currentSearch: undefined },
+    search: {
+        currentSearch: undefined,
+        advancedSearchOpened: false,
+    },
 }
 
 let plannings
@@ -155,13 +157,6 @@ const planningReducer = createReducer(initialState, {
         }
     ),
 
-    [PLANNING.ACTIONS.SET_ONLY_SPIKED]: (state, payload) => (
-        {
-            ...state,
-            onlySpiked: payload,
-        }
-    ),
-
     [PLANNING.ACTIONS.RECEIVE_COVERAGE]: (state, payload) => {
         plannings = cloneDeep(state.plannings)
         plan = get(plannings, payload.planning_item, null)
@@ -207,6 +202,46 @@ const planningReducer = createReducer(initialState, {
         ...state,
         planningHistoryItems: payload,
     }),
+
+    [PLANNING.ACTIONS.OPEN_ADVANCED_SEARCH]: (state) => (
+        {
+            ...state,
+            search: {
+                ...state.search,
+                advancedSearchOpened: true,
+            },
+        }
+    ),
+
+    [PLANNING.ACTIONS.CLOSE_ADVANCED_SEARCH]: (state) => (
+        {
+            ...state,
+            search: {
+                ...state.search,
+                advancedSearchOpened: false,
+            },
+        }
+    ),
+
+    [PLANNING.ACTIONS.SET_ADVANCED_SEARCH]: (state, payload) => (
+        {
+            ...state,
+            search: {
+                ...state.search,
+                currentSearch: payload,
+            },
+        }
+    ),
+
+    [PLANNING.ACTIONS.CLEAR_ADVANCED_SEARCH]: (state) => (
+        {
+            ...state,
+            search: {
+                ...state.search,
+                currentSearch: undefined,
+            },
+        }
+    ),
 })
 
 export default planningReducer

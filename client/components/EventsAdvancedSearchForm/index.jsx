@@ -7,9 +7,9 @@ import { SPIKED_STATE } from '../../constants'
 import { get } from 'lodash'
 import './style.scss'
 
-function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting, error, resetSearch }) {
+function EventsAdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting, error, resetSearch }) {
     return (
-        <form onSubmit={handleSubmit} className="AdvancedSearchForm">
+        <form onSubmit={handleSubmit} className="EventsAdvancedSearchForm">
             <fieldset>
                 <Field name="name"
                        component={fields.InputField}
@@ -60,15 +60,15 @@ function AdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting
     )
 }
 
-AdvancedSearchFormComponent.propTypes = propTypes
+EventsAdvancedSearchFormComponent.propTypes = propTypes
 
 // Decorate the form component
 const FormComponent = reduxForm({
-    form: 'advanced-search', // a unique name for this form
+    form: 'event-advanced-search', // a unique name for this form
     enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
-})(AdvancedSearchFormComponent)
+})(EventsAdvancedSearchFormComponent)
 
-const selector = formValueSelector('advanced-search') // same as form name
+const selector = formValueSelector('event-advanced-search') // same as form name
 const mapStateToProps = (state) => ({
     startingDate: selector(state, 'dates.start'),
     endingDate: selector(state, 'dates.end'),
@@ -85,7 +85,7 @@ const mapDispatchToProps = (dispatch) => ({
     resetSearch: () => (dispatch(actions.fetchEvents())),
 })
 
-export const AdvancedSearchForm = connect(
+export const EventsAdvancedSearchForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,

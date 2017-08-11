@@ -333,6 +333,22 @@ const _previewEvent = (event) => ({
     payload: get(event, '_id'),
 })
 
+/**
+ * Action to open Event Advanced Search panel
+ * @return object
+ */
+const openAdvancedSearch = () => (
+    { type: EVENTS.ACTIONS.OPEN_ADVANCED_SEARCH }
+)
+
+/**
+ * Action to close the Event Advanced Search panel
+ * @return object
+ */
+const closeAdvancedSearch = () => (
+    { type: EVENTS.ACTIONS.CLOSE_ADVANCED_SEARCH }
+)
+
 const openSpikeModal = checkPermission(
     _openSpikeModal,
     PRIVILEGES.SPIKE_EVENT,
@@ -382,6 +398,8 @@ const self = {
     unlockAndOpenEventDetails,
     closeEventDetails,
     previewEvent,
+    openAdvancedSearch,
+    closeAdvancedSearch,
 }
 
 export default self

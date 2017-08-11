@@ -1,7 +1,6 @@
 Feature: Duplicate Planning
 
-    @auth
-    @notification
+    @auth @notification
     Scenario: Duplicate a Planning item
         When we post to "planning" with success
         """
@@ -80,7 +79,6 @@ Feature: Duplicate Planning
                 "headline": "test headline",
                 "slugline": "test slugline",
                 "state": "in_progress",
-                "pubstatus": "__no_value__",
                 "coverages": [
                     {
                         "planning_item": "#duplicate._id#",
@@ -104,6 +102,9 @@ Feature: Duplicate Planning
             }
         ]}
         """
+        When we get "/planning/#duplicate._id#"
+        Then we get OK response
+        Then we get "pubstatus" does not exist
         When we get "/planning_history"
         Then we get list with 4 items
         """
@@ -135,8 +136,7 @@ Feature: Duplicate Planning
                     "duplicate_id": "123",
                     "headline": "test headline",
                     "slugline": "test slugline",
-                    "state": "in_progress",
-                    "pubstatus": "__no_value__"
+                    "state": "in_progress"
                 }
             }
         ]}

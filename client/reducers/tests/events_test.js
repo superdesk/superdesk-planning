@@ -96,7 +96,7 @@ describe('events', () => {
         })
 
         it('OPEN_ADVANCED_SEARCH', () => {
-            const result = events(initialState, { type: 'OPEN_ADVANCED_SEARCH' })
+            const result = events(initialState, { type: 'EVENT_OPEN_ADVANCED_SEARCH' })
             expect(result.search).toEqual({
                 currentSearch: undefined,
                 advancedSearchOpened: true,
@@ -104,7 +104,7 @@ describe('events', () => {
         })
 
         it('CLOSE_ADVANCED_SEARCH', () => {
-            const result = events(initialState, { type: 'CLOSE_ADVANCED_SEARCH' })
+            const result = events(initialState, { type: 'EVENT_CLOSE_ADVANCED_SEARCH' })
             expect(result.search).toEqual({
                 currentSearch: undefined,
                 advancedSearchOpened: false,

@@ -64,6 +64,9 @@ export class DayPickerInput extends React.Component {
                 !nextProps.input.value.isSame(this.props.input.value, 'minute')) {
                 this.setStateFromDate(nextProps.input.value)
                 .then(() => this.updateValueFromState())
+            } else if (nextProps.input.value === '') {
+                this.setStateFromDate(false)
+                .then(() => this.updateValueFromState())
             }
         }
     }
