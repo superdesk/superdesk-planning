@@ -4,6 +4,7 @@ import * as actions from '../../actions'
 import { SelectAgenda, EditPlanningPanelContainer, PlanningList } from '../index'
 import { QuickAddPlanning, Toggle, SearchBar } from '../../components'
 import * as selectors from '../../selectors'
+import { AGENDA } from '../../constants'
 import './style.scss'
 
 class PlanningPanel extends React.Component {
@@ -105,8 +106,11 @@ class PlanningPanel extends React.Component {
                                         <div className="panel-info__icon">
                                             <i className="big-icon--add-to-list" />
                                         </div>
-                                        <h3 className="panel-info__heading">There are no planning items in this agenda.</h3>
-                                        <p className="panel-info__description">Drag an event here to start one.</p>
+                                        {currentAgendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED &&
+                                        <h3 className="panel-info__heading">There are no planning items without an assigned agenda.</h3>}
+                                        {currentAgendaId !== AGENDA.FILTER.NO_AGENDA_ASSIGNED &&
+                                        <h3 className="panel-info__heading">There are no planning items in this agenda.</h3>}
+                                        <p className="panel-info__description">Drag an event here to create a planning item.</p>
                                     </div>
                                 </div>
                         }
