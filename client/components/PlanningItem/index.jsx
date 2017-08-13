@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react'
-import { get, capitalize } from 'lodash'
+import { get, capitalize, some } from 'lodash'
 import { ListItem, TimePlanning, DueDate, tooltips } from '../index'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import classNames from 'classnames'
@@ -21,9 +21,10 @@ const PlanningItem = ({
         onAgendaClick,
     }) => {
     const location = get(event, 'location[0].name')
+    const coverages = get(item, 'coverages', [])
     const dueDates = get(item, '_coverages', []).map((c) => (get(c, 'scheduled'))).filter(d => (d))
-    const coveragesTypes = planningUtils.mapCoverageByDate(get(item, 'coverages', []))
-
+    const coveragesTypes = planningUtils.mapCoverageByDate(coverages)
+    const isScheduled = some(coverages, (c) => (get(c, 'planning.scheduled')))
     const itemSpiked = isItemSpiked(item)
     const eventSpiked = isItemSpiked(event)
     const notForPublication = item ? get(item, 'flags.marked_for_not_publication', false) : false
@@ -115,7 +116,7 @@ const PlanningItem = ({
                     {dueDates.length > 0 &&
                         <span className="PlanningItem__dueDate sd-no-wrap">
                             <DueDate dates={dueDates}/>
-                            <i className="icon-bell"/>
+                            {isScheduled && <i className="icon-bell"/>}
                         </span>
                     }
                 </div>
@@ -161,9 +162,9 @@ PlanningItem.propTypes = {
     onSpike: PropTypes.func,
     onUnspike: PropTypes.func,
     privileges: PropTypes.object,
-    itemLocked: React.PropTypes.bool,
-    itemLockedInThisSession: React.PropTypes.bool,
-    onAgendaClick: React.PropTypes.func,
+    itemLocked: PropTypes.bool,
+    itemLockedInThisSession: PropTypes.bool,
+    onAgendaClick: PropTypes.func,
 }
 
 export default PlanningItem

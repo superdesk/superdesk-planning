@@ -1,4 +1,6 @@
 import React from 'react'
+import { Provider } from 'react-redux'
+import { createTestStore } from '../../utils'
 import { mount, shallow } from 'enzyme'
 import PlanningItem from './index'
 import sinon from 'sinon'
@@ -21,18 +23,23 @@ describe('planning', () => {
             const onSpike = sinon.spy()
             const onUnspike = sinon.spy()
 
-            const getWrapper = () => (
-                mount(<PlanningItem
-                    item={item}
-                    event={event}
-                    agendas={[agenda]}
-                    active={active}
-                    onClick={onClick}
-                    onSpike={onSpike}
-                    onUnspike={onUnspike}
-                    privileges={privileges}
-                />)
-            )
+            const getWrapper = () => {
+                const store = createTestStore()
+                const wrapper = mount(
+                    <Provider store={store}>
+                        <PlanningItem
+                        item={item}
+                        event={event}
+                        agendas={[agenda]}
+                        active={active}
+                        onClick={onClick}
+                        onSpike={onSpike}
+                        onUnspike={onUnspike}
+                        privileges={privileges} />
+                    </Provider>
+                )
+                return wrapper
+            }
 
             // Creating this one separately as we cannot test click when doubleclick is used
             const getWrapperWithDoubleClickProp = () => (
@@ -91,6 +98,55 @@ describe('planning', () => {
                     slugline: 'Plan3',
                     headline: 'Planner3',
                     state: 'spiked',
+                }, {
+                    slugline: 'Plan4',
+                    headline: 'Planner4',
+                    state: 'in_progress',
+                    coverages: [
+                        {
+                            planning: {
+                                headline: 'plan4',
+                                scheduled: null,
+                            },
+                        },
+                    ],
+                    _coverages: [
+                        {
+                            scheduled: null,
+                            coverage_id: '1',
+                            g2_content_type: 'text',
+                        },
+                    ],
+                }, {
+                    slugline: 'Plan5',
+                    headline: 'Planner5',
+                    state: 'in_progress',
+                    coverages: [
+                        {
+                            planning: {
+                                headline: 'plan5-1',
+                                scheduled: '2016-10-15T13:01:00+0000',
+                            },
+                        },
+                        {
+                            planning: {
+                                headline: 'plan5-2',
+                                scheduled: null,
+                            },
+                        },
+                    ],
+                    _coverages: [
+                        {
+                            scheduled: '2016-10-15T13:01:00+0000',
+                            coverage_id: '1',
+                            g2_content_type: 'text',
+                        },
+                        {
+                            scheduled: null,
+                            coverage_id: '2',
+                            g2_content_type: 'text',
+                        },
+                    ],
                 }]
 
                 events = [{
@@ -253,6 +309,27 @@ describe('planning', () => {
                     },
                 })
                 expect(wrapper.find('.icon-unspike').length).toBe(0)
+            })
+
+            it('if no coverage then icon bell is hidden', () => {
+                item = items[0]
+                const wrapper = getWrapper()
+                // no coverage then icon bell is hidden
+                expect(wrapper.find('.icon-bell').length).toBe(0)
+            })
+
+            it('if coverage are not scheduled then icon bell is hidden', () => {
+                item = items[3]
+                const wrapper = getWrapper()
+                // no coverage then icon bell is hidden
+                expect(wrapper.find('.icon-bell').length).toBe(0)
+            })
+
+            it('if coverage are scheduled then icon bell is displayed', () => {
+                item = items[4]
+                const wrapper = getWrapper()
+                // icon bell is displayed
+                expect(wrapper.find('.icon-bell').length).toBe(1)
             })
         })
     })
