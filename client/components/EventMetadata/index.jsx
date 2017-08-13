@@ -12,7 +12,7 @@ const FIELDS = [
     ['Description', 'definition_long'],
     ['Internal note', 'internal_note'],
     ['Location', 'location[0].name'],
-    ['Status', 'occur_status.name'],
+    ['Status', 'occur_status.label'],
     ['Source', 'source'],
 ]
 
