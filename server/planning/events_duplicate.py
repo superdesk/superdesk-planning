@@ -61,7 +61,9 @@ class EventsDuplicateService(BaseService):
         new_doc.pop('previous_recurrence_id', None)
         new_doc[ITEM_STATE] = WORKFLOW_STATE.IN_PROGRESS
         eocstat_map = get_resource_service('vocabularies').find_one(req=None, _id='eventoccurstatus')
-        new_doc['occur_status'] = [x for x in eocstat_map.get('items', []) if
-                                   x['qcode'] == 'eocstat:eos5' and x.get('is_active', True)][0]
-        new_doc['occur_status'].pop('is_active', None)
+        if eocstat_map:
+            new_doc['occur_status'] = [x for x in eocstat_map.get('items', []) if
+                                       x['qcode'] == 'eocstat:eos5' and x.get('is_active', True)][0]
+            new_doc['occur_status'].pop('is_active', None)
+
         return new_doc

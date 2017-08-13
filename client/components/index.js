@@ -1,6 +1,6 @@
 import * as tooltips from './Tooltips'
 export { tooltips }
-export { default as PubStatusLabel } from './PubStatusLabel/index'
+export { default as StateLabel } from './StateLabel/index'
 export { ListItem } from './ListItem/index'
 export { EventItem } from './EventItem/index'
 export { EventsList } from './EventsList/index'

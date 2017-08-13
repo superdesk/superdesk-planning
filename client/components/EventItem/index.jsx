@@ -1,10 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { get } from 'lodash'
-import { ListItem, TimeEvent, PubStatusLabel, Checkbox, ItemActionsMenu } from '../index'
+import { ListItem, TimeEvent, StateLabel, Checkbox, ItemActionsMenu } from '../index'
 import './style.scss'
 import { GENERIC_ITEM_ACTIONS } from '../../constants'
-import { eventUtils, isItemSpiked } from '../../utils'
+import { eventUtils } from '../../utils'
 import classNames from 'classnames'
 
 export const EventItem = ({
@@ -13,6 +13,7 @@ export const EventItem = ({
         onDoubleClick,
         onSpikeEvent,
         onUnspikeEvent,
+        onDuplicateEvent,
         highlightedEvent,
         privileges,
         isSelected,
@@ -25,9 +26,9 @@ export const EventItem = ({
     const callBacks = {
         [GENERIC_ITEM_ACTIONS.SPIKE.label]: onSpikeEvent.bind(null, event),
         [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: onUnspikeEvent.bind(null, event),
+        [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: onDuplicateEvent.bind(null, event),
     }
     const itemActions = eventUtils.getEventItemActions(event, session, privileges, callBacks)
-
     return (
         <ListItem
             item={event}
@@ -46,10 +47,7 @@ export const EventItem = ({
             </div>
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
                 <div className="sd-list-item__row">
-                    {isItemSpiked(event) &&
-                        <span className="label label--alert">spiked</span>
-                    }
-                    <PubStatusLabel status={event.state}/>
+                    <StateLabel item={event}/>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow event__title">
                         {event.slugline &&
                             <span className="ListItem__slugline">{event.slugline}</span>
@@ -72,6 +70,7 @@ EventItem.propTypes = {
     event: PropTypes.object.isRequired,
     onSpikeEvent: PropTypes.func.isRequired,
     onUnspikeEvent: PropTypes.func.isRequired,
+    onDuplicateEvent: PropTypes.func.isRequired,
     highlightedEvent: PropTypes.string,
     className: PropTypes.string,
     privileges: PropTypes.object,

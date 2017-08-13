@@ -71,6 +71,7 @@ class EventsListComponent extends React.Component {
                                 onDoubleClick={this.props.openEventDetails}
                                 onEventSpike={this.props.spikeEvent}
                                 onEventUnspike={this.props.unspikeEvent}
+                                onEventDuplicate={this.props.duplicateEvent}
                                 highlightedEvent={this.props.highlightedEvent}
                                 loadMoreEvents={this.props.loadMoreEvents}
                                 selectedEvents={this.props.selectedEvents}
@@ -95,6 +96,7 @@ EventsListComponent.propTypes = {
     toggleEventsList: PropTypes.func,
     spikeEvent: PropTypes.func,
     unspikeEvent: PropTypes.func,
+    duplicateEvent: PropTypes.func,
     highlightedEvent: PropTypes.string,
     privileges: PropTypes.object.isRequired,
     loadMoreEvents: PropTypes.func.isRequired,
@@ -123,6 +125,7 @@ const mapDispatchToProps = (dispatch) => ({
     loadMoreEvents: () => (dispatch(actions.loadMoreEvents())),
     spikeEvent: (event) => dispatch(actions.events.ui.openSpikeModal(event)),
     unspikeEvent: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
+    duplicateEvent: (event) => dispatch(actions.duplicateEvent(event)),
     onEventSelectChange: (args) => dispatch(actions.toggleEventSelection(args)),
 })
 
