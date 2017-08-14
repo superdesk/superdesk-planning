@@ -22,6 +22,9 @@ describe('actions.events.notifications', () => {
             sinon.stub(eventsNotifications, 'onEventUnlocked').callsFake(
                 () => (Promise.resolve())
             )
+            sinon.stub(eventsNotifications, 'onEventSpiked').callsFake(
+                () => (Promise.resolve())
+            )
 
             $rootScope = _$rootScope_
             registerNotifications($rootScope, store)
@@ -31,6 +34,7 @@ describe('actions.events.notifications', () => {
         afterEach(() => {
             restoreSinonStub(eventsNotifications.onEventLocked)
             restoreSinonStub(eventsNotifications.onEventUnlocked)
+            restoreSinonStub(eventsNotifications.onEventSpiked)
         })
 
         it('`events:lock` calls onEventLocked', (done) => {
@@ -50,6 +54,16 @@ describe('actions.events.notifications', () => {
             setTimeout(() => {
                 expect(eventsNotifications.onEventUnlocked.callCount).toBe(1)
                 expect(eventsNotifications.onEventUnlocked.args[0][1]).toEqual({ item: 'e1' })
+
+                done()
+            }, delay)
+        })
+        it('`events:spiked` calls onEventSpiked', (done) => {
+            $rootScope.$broadcast('events:spiked', { item: 'e1' })
+
+            setTimeout(() => {
+                expect(eventsNotifications.onEventSpiked.callCount).toBe(1)
+                expect(eventsNotifications.onEventSpiked.args[0][1]).toEqual({ item: 'e1' })
 
                 done()
             }, delay)

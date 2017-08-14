@@ -210,26 +210,6 @@ describe('events', () => {
             })
         })
 
-        it('silentlyFetchEventsById', (done) => {
-            dispatch = dispatchRunFunction
-            const action = actions.silentlyFetchEventsById(['e1', 'e2', 'e3'])
-            return action(dispatch)
-            .then(() => {
-                expect(dispatch.callCount).toBe(2)
-                expect(dispatch.args[1]).toEqual([jasmine.objectContaining({
-                    type: 'ADD_EVENTS',
-                    payload: events,
-                })])
-
-                done()
-            })
-            .catch((error) => {
-                expect(error).toBe(null)
-                expect(error.stack).toBe(null)
-                done()
-            })
-        })
-
         describe('fetchEvents', () => {
 
             const store = createTestStore({ initialState })

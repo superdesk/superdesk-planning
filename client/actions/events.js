@@ -6,7 +6,7 @@ import { saveLocation as _saveLocation } from './index'
 import { showModal, fetchSelectedAgendaPlannings } from './index'
 import { EventUpdateMethods } from '../components/fields'
 import { EVENTS, SPIKED_STATE, PUBLISHED_STATE } from '../constants'
-import { getErrorMessage, retryDispatch } from '../utils'
+import { eventUtils, getErrorMessage, retryDispatch } from '../utils'
 
 import eventsApi from './events/api'
 import eventsUi from './events/ui'
@@ -39,7 +39,7 @@ function publishEvent(event) {
         })
         .then(() => {
             notify.success('The event has been published')
-            dispatch(silentlyFetchEventsById([event._id], SPIKED_STATE.BOTH))
+            dispatch(eventsApi.silentlyFetchEventsById([event._id], SPIKED_STATE.BOTH))
             dispatch(eventsUi.closeEventDetails())
         })
     }
@@ -59,7 +59,7 @@ function unpublishEvent(event) {
         })
         .then(() => {
             notify.success('The event has been unpublished')
-            dispatch(silentlyFetchEventsById([event._id], SPIKED_STATE.BOTH))
+            dispatch(eventsApi.silentlyFetchEventsById([event._id], SPIKED_STATE.BOTH))
             dispatch(eventsUi.closeEventDetails())
         })
     }
@@ -321,27 +321,6 @@ const createDuplicate = (event) => (
 )
 
 /**
- * Action Dispatcher to fetch events from the server,
- * and add them to the store without adding them to the events list
- * @param {array} ids - An array of Event IDs to fetch
- * @param {string} spikeState - Event's spiked state (SPIKED, NOT_SPIKED or BOTH)
- * @return arrow function
- */
-const silentlyFetchEventsById = (ids=[], spikeState = SPIKED_STATE.NOT_SPIKED) => (
-    (dispatch) => (
-        dispatch(eventsApi.query({
-            // distinct ids
-            ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
-            spikeState,
-        }))
-        .then(data => {
-            dispatch(eventsApi.receiveEvents(data._items))
-            return Promise.resolve(data._items)
-        })
-    )
-)
-
-/**
  * Action Dispatcher to fetch events from the server
  * This will add the events to the events list,
  * and update the URL for deep linking
@@ -520,16 +499,12 @@ const onEventUpdated = (_e, data) => (
                 // then manually reload this event from the server
                 if (selectedEvents.indexOf(data.item) !== -1 &&
                     !events.find((event) => event._id === data.item)) {
-                    dispatch(silentlyFetchEventsById([data.item], SPIKED_STATE.BOTH))
+                    dispatch(eventsApi.silentlyFetchEventsById([data.item], SPIKED_STATE.BOTH))
                 }
 
-                // Get the list of Planning Item IDs that are associated with this Event
-                const storedPlans = selectors.getStoredPlannings(getState())
-                const eventPlans = Object.keys(storedPlans)
-                    .filter((pid) => get(storedPlans[pid], 'event_item', null) === data.item)
-
                 // If there are any associated Planning Items, then update the list
-                if (eventPlans.length > 0) {
+                if (eventUtils.isEventAssociatedWithPlannings(data.item,
+                        selectors.getStoredPlannings(getState()))) {
                     dispatch(fetchSelectedAgendaPlannings())
                 }
             })
@@ -543,7 +518,6 @@ const eventNotifications = {
     'events:created:recurring': () => (onRecurringEventCreated),
     'events:updated': () => (onEventUpdated),
     'events:updated:recurring': () => (onEventUpdated),
-    'events:spiked': () => (onEventUpdated),
     'events:unspiked': () => (onEventUpdated),
 }
 
@@ -580,7 +554,6 @@ export {
     addToEventsList,
     fetchEvents,
     fetchEventHistory,
-    silentlyFetchEventsById,
     fetchEventById,
     saveFiles,
     uploadFilesAndSaveEvent,

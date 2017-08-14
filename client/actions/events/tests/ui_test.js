@@ -293,8 +293,6 @@ describe('actions.events.ui', () => {
                 expect(eventsApi.spike.callCount).toBe(1)
                 expect(eventsApi.spike.args[0]).toEqual([data.events[0]])
 
-                expect(eventsUi.refetchEvents.callCount).toBe(1)
-
                 expect(services.notify.success.callCount).toBe(1)
                 expect(services.notify.success.args[0]).toEqual(['The event(s) have been spiked'])
 

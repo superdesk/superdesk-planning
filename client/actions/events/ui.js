@@ -186,12 +186,7 @@ const spike = (event) => (
     (dispatch, getState, { notify }) => (
         dispatch(eventsApi.spike(event))
         .then((events) => (
-            Promise.all(
-                [
-                    dispatch(self.refetchEvents()),
-                    dispatch(fetchSelectedAgendaPlannings()),
-                ]
-            )
+            dispatch(fetchSelectedAgendaPlannings())
             .then(
                 () => {
                     dispatch(hideModal())

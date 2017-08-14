@@ -312,7 +312,8 @@ const fetchPlanningsEvents = (plannings) => (
 
         // load missing events, if there are any
         if (get(linkedEvents, 'length', 0) > 0) {
-            return dispatch(actions.silentlyFetchEventsById(linkedEvents, SPIKED_STATE.BOTH))
+            return dispatch(actions.events.api.silentlyFetchEventsById(linkedEvents,
+                SPIKED_STATE.BOTH))
         }
 
         return Promise.resolve([])
