@@ -92,16 +92,16 @@ DEFAULT_EDITOR = [{
     'editor': {
         'slugline': {'enabled': True},
         'anpa_category': {'enabled': True},
-        'definition_long': {'enable': True},
-        'definition_short': {'enable': True},
-        'internal_note': {'enable': True},
-        'location': {'enable': True},
-        'name': {'enable': True},
-        'occur_status': {'enable': True},
-        'subject': {'enable': True},
-        'calendars': {'enable': True},
-        'files': {'enable': True},
-        'links': {'enable': True}
+        'definition_long': {'enabled': True},
+        'definition_short': {'enabled': True},
+        'internal_note': {'enabled': True},
+        'location': {'enabled': True},
+        'name': {'enabled': True},
+        'occur_status': {'enabled': True},
+        'subject': {'enabled': True},
+        'calendars': {'enabled': True},
+        'files': {'enabled': True},
+        'links': {'enabled': True}
     },
     'schema': dict(EventSchema)},
     {

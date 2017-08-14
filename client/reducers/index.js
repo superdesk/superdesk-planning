@@ -14,6 +14,7 @@ import subjects from './subjects'
 import session from './session'
 import genres from './genres'
 import urgency from './urgency'
+import formsProfile from './formsProfile'
 
 const planningApp = combineReducers({
     modal,
@@ -31,6 +32,7 @@ const planningApp = combineReducers({
     desks,
     session,
     urgency,
+    formsProfile,
     deployConfig: (state) => (state || {}),
     genres,
 })
