@@ -131,6 +131,7 @@ describe('planning', () => {
                             sessionId: 123,
                         },
                         users: [{ _id: 'user' }],
+                        formsProfile: { planning: { editor: { slugline: { enabled: true } } } },
                     },
                 })
                 const wrapper = mount(

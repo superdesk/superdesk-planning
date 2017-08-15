@@ -76,6 +76,8 @@ export const getEventCalendars = (state) => get(state, 'vocabularies.event_calen
 
 export const getPlanningSearch = (state) => state.planning.search.currentSearch
 export const getEventsFormsProfile = (state) => state.formsProfile.events
+export const getPlanningsFormsProfile = (state) => state.formsProfile.planning
+export const getCoverageFormsProfile = (state) => state.formsProfile.coverage
 export const getPlanningsInList = createSelector(
     [getPlanningIdsInList, getStoredPlannings],
     (planningIds, storedPlannings) => (

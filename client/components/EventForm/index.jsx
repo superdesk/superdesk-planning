@@ -1,7 +1,7 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
-import { RelatedPlannings, RepeatEventForm, fields, Toggle, EventHistoryContainer, AuditInformation } from '../index'
+import { RelatedPlannings, RepeatEventForm, Toggle, EventHistoryContainer, AuditInformation } from '../index'
 import { reduxForm, formValueSelector, getFormValues } from 'redux-form'
 import { isNil, get, isEqual, remove } from 'lodash'
 import { StateLabel } from '../index'
@@ -320,19 +320,14 @@ export class Component extends React.Component {
                     { !forcedReadOnly && !recurringRulesEditable && <span className="error-block">Editing event's recurring rules values disabled</span> }
                     {error && <div className="error-block">{error}</div>}
 
-                    {get(formProfile, 'editor.slugline.enabled') && <fields.SluglineField readOnly={!metaDataEditable} />}
+                    {get(formProfile, 'editor.slugline.enabled') && fieldRenders.renderSlugline(!metaDataEditable)}
                     {get(formProfile, 'editor.name.enabled') && fieldRenders.renderName(!metaDataEditable)}
                     {get(formProfile, 'editor.calendars.enabled') && fieldRenders.renderCalender(!metaDataEditable)}
                     {get(formProfile, 'editor.anpa_category.enabled') && fieldRenders.renderCategory(!metaDataEditable)}
                     {get(formProfile, 'editor.subject.enabled') && fieldRenders.renderSubject(!metaDataEditable)}
-                    {get(formProfile, 'editor.definition_short.enabled') &&
-                        <fields.DescriptionField
-                            readOnly={!metaDataEditable}
-                            name='definition_short'
-                            label='Short Description'/>
-                    }
+                    {get(formProfile, 'editor.definition_short.enabled') && fieldRenders.renderDescription(!metaDataEditable)}
                     {get(formProfile, 'editor.definition_long.enabled') && fieldRenders.renderLongDescription(!metaDataEditable)}
-                    {get(formProfile, 'editor.internal_note.enabled') && <fields.InternalNoteField readOnly={!metaDataEditable} />}
+                    {get(formProfile, 'editor.internal_note.enabled') && fieldRenders.renderInternalNote(!metaDataEditable)}
                     {get(formProfile, 'editor.location.enabled') && fieldRenders.renderLocation(!metaDataEditable)}
                     {fieldRenders.renderDate(!recurringRulesEditable, true, occurrenceOverlaps)}
                     {fieldRenders.renderDate(!recurringRulesEditable)}
