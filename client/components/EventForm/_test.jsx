@@ -41,44 +41,6 @@ describe('events', () => {
                         events: { '5800d71930627218866f1e80' : event },
                         showEventDetails: '5800d71930627218866f1e80',
                     },
-                    users: [
-                        {
-                            _id: 'user123',
-                            display_name: 'foo',
-                        },
-                        {
-                            _id: 'somebodyelse',
-                            display_name: 'somebodyelse',
-                        },
-                    ],
-                    session: {
-                        identity: { _id: 'user123' },
-                        sessionId: 'session123',
-                    },
-                    privileges: {
-                        planning_event_management: 1,
-                        planning_planning_management: 1,
-                        planning_event_spike: 1,
-                    },
-                    formsProfile: {
-                        events: {
-                            editor: {
-                                slugline: { enabled: true },
-                                anpa_category: { enabled: true },
-                                definition_long: { enabled: true },
-                                definition_short: { enabled: true },
-                                internal_note: { enabled: true },
-                                location: { enabled: true },
-                                name: { enabled: true },
-                                dates: { enabled: true },
-                                occur_status: { enabled: true },
-                                subject: { enabled: true },
-                                calendars: { enabled: true },
-                                files: { enabled: true },
-                                links: { enabled: true },
-                            },
-                        },
-                    },
                 },
             })
 

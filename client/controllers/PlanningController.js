@@ -1,115 +1,59 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
-import { createStore, registerNotifications } from '../utils'
+import { registerNotifications } from '../utils'
 import * as actions from '../actions'
 import { PlanningApp } from '../components'
 
 PlanningController.$inject = [
     '$element',
     '$scope',
-    'api',
-    'config',
     '$location',
-    '$timeout',
-    'vocabularies',
-    'superdesk',
-    'upload',
-    'notify',
-    'privileges',
-    'notifyConnectionService',
-    'userList',
-    'desks',
-    'metadata',
-    'session',
-    'deployConfig',
-    'gettextCatalog',
+    'sdPlanningStore',
+    '$q',
 ]
 export function PlanningController(
     $element,
     $scope,
-    api,
-    config,
     $location,
-    $timeout,
-    vocabularies,
-    superdesk,
-    upload,
-    notify,
-    privileges,
-    notifyConnectionService,
-    userList,
-    desks,
-    metadata,
-    session,
-    deployConfig,
-    gettextCatalog
+    sdPlanningStore,
+    $q
 ) {
-    // wrap notify methods inside $timeout to ensure it get displayed ASAP
-    const _notify = {
-        pop: () => $timeout(() => notify.pop()),
-        success: (msg) => $timeout(() => notify.success(msg)),
-        error: (msg) => $timeout(() => notify.error(msg)),
-    }
-    // create the application store
-    const store = createStore({
-        initialState: {
-            config: config,
-            deployConfig: deployConfig.config,
-        },
-        extraArguments: {
-            api,
-            $location,
-            $scope,
-            $timeout,
-            vocabularies,
-            superdesk,
-            upload,
-            notify: _notify,
-            privileges,
-            notifyConnectionService,
-            userList,
-            desks,
-            metadata,
-            session,
-            deployConfig,
-            gettextCatalog,
-        },
-    })
-    // load data in the store
-    store.dispatch(actions.loadCVocabularies())
-    store.dispatch(actions.loadIngestProviders())
-    store.dispatch(actions.loadPrivileges())
-    store.dispatch(actions.loadSubjects())
-    store.dispatch(actions.loadGenres())
-    store.dispatch(actions.fetchEvents({
-        fulltext: JSON.parse(
-            $location.search().searchEvent || '{}'
-        ).fulltext,
-    }))
-    store.dispatch(actions.fetchAgendas())
-    .then(() => {
-        if ($location.search().agenda) {
-            return store.dispatch(actions.selectAgenda($location.search().agenda))
-        }
-    })
-    store.dispatch(actions.loadUsers())
-    store.dispatch(actions.loadDesks())
-    store.dispatch(actions.loadSessionDetails())
-    store.dispatch(actions.loadUrgency())
-    store.dispatch(actions.loadFormsProfile())
+    sdPlanningStore.getStore()
+    .then((store) => {
+        store.dispatch(actions.initStore())
+        registerNotifications($scope, store)
 
-    registerNotifications($scope, store)
-    $scope.$on('$destroy', () => {
-        // Unmount the React application
-        ReactDOM.unmountComponentAtNode($element.get(0))
-    })
+        $q.all({
+            events: store.dispatch(actions.fetchEvents({
+                fulltext: JSON.parse(
+                    $location.search().searchEvent || '{}'
+                ).fulltext,
+            })),
 
-    // render the planning application
-    ReactDOM.render(
-        <Provider store={store}>
-            <PlanningApp />
-        </Provider>,
-        $element.get(0)
-    )
+            agendas: store.dispatch(actions.fetchAgendas())
+            .then(() => {
+                if ($location.search().agenda) {
+                    return store.dispatch(actions.selectAgenda($location.search().agenda))
+                }
+
+                return Promise.resolve()
+            }),
+        })
+        .then(() => {
+            $scope.$on('$destroy', () => {
+                // Unmount the React application
+                ReactDOM.unmountComponentAtNode($element.get(0))
+                store.dispatch(actions.resetStore())
+            })
+
+            // render the planning application
+            ReactDOM.render(
+                <Provider store={store}>
+                    <PlanningApp />
+                </Provider>,
+                $element.get(0)
+            )
+        })
+    })
 }

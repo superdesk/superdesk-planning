@@ -62,3 +62,5 @@ export const ADVANCED_SEARCH_CONTEXT = {
     EVENT: 'event',
     PLANNING: 'planning',
 }
+export const RESET_STORE = 'RESET_STORE'
+export const INIT_STORE = 'INIT_STORE'

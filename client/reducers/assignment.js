@@ -1,4 +1,5 @@
 import { uniqBy, uniq } from 'lodash'
+import { RESET_STORE, INIT_STORE } from '../constants'
 
 const initialState = {
     desk: '',
@@ -10,6 +11,10 @@ const initialState = {
 
 const assignment = (state = initialState, action) => {
     switch (action.type) {
+        case RESET_STORE:
+            return null
+        case INIT_STORE:
+            return initialState
         case 'RECEIVED_ASSIGNMENTS':
             return {
                 ...state,

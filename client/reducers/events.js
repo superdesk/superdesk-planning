@@ -1,6 +1,6 @@
 import { orderBy, cloneDeep, uniq, get } from 'lodash'
 import moment from 'moment'
-import { EVENTS } from '../constants'
+import { EVENTS, RESET_STORE, INIT_STORE } from '../constants'
 import { createReducer } from '../utils'
 import { WORKFLOW_STATE } from '../constants'
 
@@ -104,6 +104,10 @@ const modifyEventsBeingAdded = (state, payload) => {
 }
 
 const eventsReducer = createReducer(initialState, {
+    [RESET_STORE]: () => (null),
+
+    [INIT_STORE]: () => (initialState),
+
     [EVENTS.ACTIONS.SELECT_EVENTS]: (state, payload) => (
         {
             ...state,

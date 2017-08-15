@@ -1,24 +1,19 @@
 export * from './events'
 export * from './locations'
 export * from './modal'
-export * from './vocabularies'
-export * from './ingest_providers'
-export * from './privileges'
 export * from './agenda'
 export * from './assignment'
-export * from './users'
-export * from './desks'
-export * from './subjects'
-export * from './session'
-export * from './genres'
-export * from './urgency'
-export * from './formsProfile'
 
 import planning from './planning/index'
 import events from './events/index'
 
 import { agendaNotifications } from './agenda'
 import { eventNotifications } from './events'
+
+import { RESET_STORE, INIT_STORE } from '../constants'
+
+const resetStore = () => ({ type: RESET_STORE })
+const initStore = () => ({ type: INIT_STORE })
 
 /**
  * Map WebSocket Notifications to Action Event
@@ -37,4 +32,6 @@ export {
     planning,
     notifications,
     events,
+    resetStore,
+    initStore,
 }

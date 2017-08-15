@@ -1,5 +1,5 @@
 import { cloneDeep, get, uniq } from 'lodash'
-import { PLANNING, WORKFLOW_STATE } from '../constants'
+import { PLANNING, WORKFLOW_STATE, RESET_STORE, INIT_STORE } from '../constants'
 import { createReducer } from '../utils'
 import moment from 'moment'
 
@@ -48,6 +48,10 @@ const modifyCoveragesForPlanning = (planning) => {
 }
 
 const planningReducer = createReducer(initialState, {
+    [RESET_STORE]: () => (null),
+
+    [INIT_STORE]: () => (initialState),
+
     [PLANNING.ACTIONS.SET_LIST]: (state, payload) => (
         {
             ...state,

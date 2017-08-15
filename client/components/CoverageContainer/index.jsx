@@ -23,7 +23,7 @@ export const CoverageContainer = ({
 
     const duplicateActions = contentTypes
     .filter((contentType) => (
-        contentType.qcode !== coverage.planning.g2_content_type
+        contentType.qcode !== get(coverage, 'planning.g2_content_type')
     ))
     .map((contentType) => ({
         label: contentType.name,
