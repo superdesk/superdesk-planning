@@ -2,7 +2,7 @@ import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { RelatedPlannings, RepeatEventForm, fields, Toggle, EventHistoryContainer, AuditInformation } from '../index'
-import { Field, FieldArray, reduxForm, formValueSelector, getFormValues } from 'redux-form'
+import { reduxForm, formValueSelector, getFormValues } from 'redux-form'
 import { isNil, get, isEqual, remove } from 'lodash'
 import { StateLabel } from '../index'
 import moment from 'moment'
@@ -27,6 +27,7 @@ import {
     isItemLockRestricted,
     isItemSpiked,
 } from '../../utils'
+import { fieldRenders } from './fieldRenders.jsx'
 
 /**
 * Form for adding/editing an event
@@ -185,6 +186,7 @@ export class Component extends React.Component {
             startingDate,
             endingDate,
             recurringRule,
+            formProfile,
         } = this.props
 
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK]
@@ -317,90 +319,23 @@ export class Component extends React.Component {
                     { !forcedReadOnly && !metaDataEditable && <span className="error-block">Editing event's metadata disabled</span> }
                     { !forcedReadOnly && !recurringRulesEditable && <span className="error-block">Editing event's recurring rules values disabled</span> }
                     {error && <div className="error-block">{error}</div>}
-                    <div>
-                        <label htmlFor="slugline">Slugline</label>
-                    </div>
-                    <div>
-                        <Field name="slugline"
-                            component={fields.InputField}
-                            type="text"
-                            readOnly={!metaDataEditable}/>
-                    </div>
-                    <div>
-                        <label htmlFor="name">Name</label>
-                    </div>
-                    <div>
-                        <Field name="name"
-                            component={fields.InputField}
-                            type="text"
-                            readOnly={!metaDataEditable}/>
-                    </div>
-                    <div>
-                        <Field name="calendars"
-                               component={fields.EventCalendarField}
-                               label="Calendars"
-                               readOnly={!metaDataEditable}/>
-                    </div>
-                    <div>
-                        <Field name="anpa_category"
-                            component={fields.CategoryField}
-                            label="Category"
-                            readOnly={!metaDataEditable}/>
-                    </div>
-                    <div>
-                        <Field name="subject"
-                            component={fields.SubjectField}
-                            label="Subject"
-                            readOnly={!metaDataEditable}/>
-                    </div>
-                    <div>
-                        <Field name="definition_short"
-                            component={fields.InputField}
-                            type="text"
-                            label="Short Description"
-                            readOnly={!metaDataEditable}/>
-                    </div>
-                    <div>
-                        <Field name="definition_long"
-                            component={fields.InputTextAreaField}
-                            multiLine={true}
-                            label="Description"
-                            readOnly={!metaDataEditable}/>
-                    </div>
-                    <div>
-                        <Field name="internal_note"
-                            component={fields.InputTextAreaField}
-                            label="Internal Note"
-                            readOnly={!metaDataEditable}/>
-                    </div>
-                    <div>
-                        <Field name="location[0]"
-                            component={fields.GeoLookupInput}
-                            label="Location"
-                            readOnly={!metaDataEditable}/>
-                    </div>
-                    <div>
-                        <label htmlFor="dates.start">From</label>
-                    </div>
-                    <div>
-                        <Field name="dates.start"
-                               component={fields.DayPickerInput}
-                               withTime={true}
-                               readOnly={!recurringRulesEditable}/>&nbsp;
-                        { occurrenceOverlaps && (
-                            <span className="error-block">Events Overlap!</span>
-                        )}
-                    </div>
-                    <div>
-                        <label htmlFor="dates.end">To</label>
-                    </div>
-                    <div>
-                        <Field name="dates.end"
-                               defaultDate={this.oneHourAfterStartingDate()}
-                               component={fields.DayPickerInput}
-                               withTime={true}
-                               readOnly={!recurringRulesEditable}/>
-                    </div>
+
+                    {get(formProfile, 'editor.slugline.enabled') && <fields.SluglineField readOnly={!metaDataEditable} />}
+                    {get(formProfile, 'editor.name.enabled') && fieldRenders.renderName(!metaDataEditable)}
+                    {get(formProfile, 'editor.calendars.enabled') && fieldRenders.renderCalender(!metaDataEditable)}
+                    {get(formProfile, 'editor.anpa_category.enabled') && fieldRenders.renderCategory(!metaDataEditable)}
+                    {get(formProfile, 'editor.subject.enabled') && fieldRenders.renderSubject(!metaDataEditable)}
+                    {get(formProfile, 'editor.definition_short.enabled') &&
+                        <fields.DescriptionField
+                            readOnly={!metaDataEditable}
+                            name='definition_short'
+                            label='Short Description'/>
+                    }
+                    {get(formProfile, 'editor.definition_long.enabled') && fieldRenders.renderLongDescription(!metaDataEditable)}
+                    {get(formProfile, 'editor.internal_note.enabled') && <fields.InternalNoteField readOnly={!metaDataEditable} />}
+                    {get(formProfile, 'editor.location.enabled') && fieldRenders.renderLocation(!metaDataEditable)}
+                    {fieldRenders.renderDate(!recurringRulesEditable, true, occurrenceOverlaps)}
+                    {fieldRenders.renderDate(!recurringRulesEditable)}
                     <label>
                         <Toggle
                             value={this.props.isAllDay}
@@ -422,20 +357,11 @@ export class Component extends React.Component {
                             <RepeatEventForm { ...RepeatEventFormProps } />
                         }
                     </div>
-                    <div>
-                        <Field name="occur_status"
-                            component={fields.OccurStatusField}
-                            label="Event Occurence Status"
-                            readOnly={!metaDataEditable}/>
-                    </div>
-                    <div>
-                        <label htmlFor="files">Attached files</label>
-                        <FieldArray name="files" component={fields.FilesFieldArray} readOnly={!metaDataEditable}/>
-                    </div>
-                    <div>
-                        <label htmlFor="links">External links</label>
-                        <FieldArray name="links" component={fields.LinksFieldArray} readOnly={!metaDataEditable} />
-                    </div>
+
+                    {get(formProfile, 'editor.occur_status.enabled') && fieldRenders.renderOccurStatus(!metaDataEditable)}
+                    {get(formProfile, 'editor.links.enabled') && fieldRenders.renderLinks(!metaDataEditable)}
+                    {get(formProfile, 'editor.files.enabled') && fieldRenders.renderFiles(!metaDataEditable)}
+
                     {initialValues && initialValues._plannings &&
                         initialValues._plannings.length > 0 &&
                         <div>
@@ -494,6 +420,7 @@ Component.propTypes = {
     onUnlock: PropTypes.func,
     privileges: PropTypes.object,
     recurringRule: PropTypes.object,
+    formProfile: PropTypes.object,
 }
 
 // Decorate the form component
@@ -501,7 +428,7 @@ export const FormComponent = reduxForm({
     form: 'addEvent', // a unique name for this form
     validate: ChainValidators([
         EndDateAfterStartDate,
-        RequiredFieldsValidatorFactory(['name', 'dates.start', 'dates.end']),
+        RequiredFieldsValidatorFactory(['dates.start', 'dates.end']),
         UntilDateValidator,
         EventMaxEndRepeatCount,
     ]),
@@ -525,6 +452,7 @@ const mapStateToProps = (state) => ({
     privileges: selectors.getPrivileges(state),
     maxRecurrentEvents: selectors.getMaxRecurrentEvents(state),
     recurringRule: selector(state, 'dates.recurring_rule'),
+    formProfile: selectors.getEventsFormsProfile(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

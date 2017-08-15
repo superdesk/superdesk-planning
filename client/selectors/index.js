@@ -75,6 +75,7 @@ export const getCurrentUserId = (state) => state.session.identity._id
 export const getEventCalendars = (state) => get(state, 'vocabularies.event_calendars', [])
 
 export const getPlanningSearch = (state) => state.planning.search.currentSearch
+export const getEventsFormsProfile = (state) => state.formsProfile.events
 export const getPlanningsInList = createSelector(
     [getPlanningIdsInList, getStoredPlannings],
     (planningIds, storedPlannings) => (

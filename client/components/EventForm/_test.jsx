@@ -60,6 +60,25 @@ describe('events', () => {
                         planning_planning_management: 1,
                         planning_event_spike: 1,
                     },
+                    formsProfile: {
+                        events: {
+                            editor: {
+                                slugline: { enabled: true },
+                                anpa_category: { enabled: true },
+                                definition_long: { enabled: true },
+                                definition_short: { enabled: true },
+                                internal_note: { enabled: true },
+                                location: { enabled: true },
+                                name: { enabled: true },
+                                dates: { enabled: true },
+                                occur_status: { enabled: true },
+                                subject: { enabled: true },
+                                calendars: { enabled: true },
+                                files: { enabled: true },
+                                links: { enabled: true },
+                            },
+                        },
+                    },
                 },
             })
 
@@ -76,6 +95,19 @@ describe('events', () => {
                     expect(e.files.length).toBe(newEvent.files.length)
                     done()
                 })
+            })
+
+            it('disabled fields are not displayed in the form', () => {
+                let store = createTestStoreForEventEditing()
+                store.getState().formsProfile.events.editor.links.enabled = false
+
+                const initialValues = event
+                const wrapper = mount(
+                    <Provider store={store}>
+                        <EventForm initialValues={initialValues} />
+                    </Provider>
+                )
+                expect(wrapper.find('LinkFieldComponent').length).toBe(0)
             })
 
             it('submit the form', () => {

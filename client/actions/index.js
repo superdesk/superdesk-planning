@@ -12,6 +12,7 @@ export * from './subjects'
 export * from './session'
 export * from './genres'
 export * from './urgency'
+export * from './formsProfile'
 
 import planning from './planning/index'
 import events from './events/index'

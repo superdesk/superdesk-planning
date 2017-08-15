@@ -97,6 +97,7 @@ export function PlanningController(
     store.dispatch(actions.loadDesks())
     store.dispatch(actions.loadSessionDetails())
     store.dispatch(actions.loadUrgency())
+    store.dispatch(actions.loadFormsProfile())
 
     registerNotifications($scope, store)
     $scope.$on('$destroy', () => {
