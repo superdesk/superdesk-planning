@@ -3,7 +3,7 @@ import planning from './index'
 import { getErrorMessage } from '../../utils'
 import * as selectors from '../../selectors'
 import { showModal } from '../index'
-import { PLANNING, AGENDA } from '../../constants'
+import { PLANNING, AGENDA, WORKFLOW_STATE } from '../../constants'
 
 /**
  * WS Action when a new Planning item is created
@@ -198,6 +198,25 @@ const onPlanningPublished = (_e, data) => (
 
 const onPlanningUpdateWithoutRefetch = (_e, data) => (self.onPlanningUpdated(_e, data, false))
 
+const onPlanningSpiked = (_e, data) => (
+    (dispatch, getState) => {
+        let planningItem = selectors.getStoredPlannings(getState())[data.item]
+        planningItem = {
+            ...planningItem,
+            lock_action: null,
+            lock_user: null,
+            lock_session: null,
+            lock_time: null,
+            state: WORKFLOW_STATE.SPIKED,
+            revert_state: data.revert_state,
+            _etag: data.etag,
+        }
+
+        dispatch(planning.api.receivePlannings([planningItem]))
+        return Promise.resolve()
+    }
+)
+
 const self = {
     onPlanningCreated,
     onCoverageCreatedOrUpdated,
@@ -207,6 +226,7 @@ const self = {
     onPlanningPublished,
     canRefetchPlanning,
     onPlanningUpdateWithoutRefetch,
+    onPlanningSpiked,
 }
 
 // Map of notification name and Action Event to execute
@@ -216,7 +236,7 @@ self.events = {
     'coverage:updated': () => (self.onCoverageCreatedOrUpdated),
     'coverage:deleted': () => (self.onCoverageDeleted),
     'planning:updated': () => (self.onPlanningUpdated),
-    'planning:spiked': () => (self.onPlanningUpdateWithoutRefetch),
+    'planning:spiked': () => (self.onPlanningSpiked),
     'planning:unspiked': () => (self.onPlanningUpdateWithoutRefetch),
     'planning:lock': () => (self.onPlanningUpdateWithoutRefetch),
     'planning:unlock': () => (self.onPlanningUnlocked),

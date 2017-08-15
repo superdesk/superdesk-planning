@@ -9,6 +9,7 @@ import {
 } from './index'
 import moment from 'moment'
 import RRule from 'rrule'
+import { get } from 'lodash'
 
 /**
  * Helper function to determine if the starting and ending dates
@@ -165,6 +166,11 @@ const getEventItemActions = (event, session, privileges, callBacks) => {
     return itemActions
 }
 
+const isEventAssociatedWithPlannings = (eventId, allPlannings) => (
+    Object.keys(allPlannings)
+        .filter((pid) => get(allPlannings[pid], 'event_item', null) === eventId).length > 0
+)
+
 const self = {
     isEventAllDay,
     doesRecurringEventsOverlap,
@@ -175,6 +181,7 @@ const self = {
     canUnpublishEvent,
     canDuplicateEvent,
     getEventItemActions,
+    isEventAssociatedWithPlannings,
 }
 
 export default self

@@ -14,6 +14,7 @@ from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from apps.auth import get_user
 from superdesk import config
+from .item_lock import LOCK_USER, LOCK_SESSION
 
 
 class PlanningSpikeResource(PlanningResource):
@@ -34,8 +35,15 @@ class PlanningSpikeService(BaseService):
         updates[ITEM_STATE] = WORKFLOW_STATE.SPIKED
         set_item_expiry(updates)
 
+        # Mark item as unlocked directly in order to avoid more queries and notifications
+        # coming from lockservice.
+        updates.update({LOCK_USER: None, LOCK_SESSION: None, 'lock_time': None,
+                        'lock_action': None})
+
         item = self.backend.update(self.datasource, id, updates, original)
-        push_notification('planning:spiked', item=str(id), user=str(user.get(config.ID_FIELD)))
+        push_notification('planning:spiked', item=str(id), user=str(user.get(config.ID_FIELD)),
+                          etag=item['_etag'], revert_state=item['revert_state'])
+
         return item
 
 

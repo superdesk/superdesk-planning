@@ -402,6 +402,29 @@ const unlock = (event) => (
     )
 )
 
+/**
+ * Action Dispatcher to fetch events from the server,
+ * and add them to the store without adding them to the events list
+ * @param {array} ids - An array of Event IDs to fetch
+ * @param {string} spikeState - Event's spiked state (SPIKED, NOT_SPIKED or BOTH)
+ * @return arrow function
+ */
+const silentlyFetchEventsById = (ids=[], spikeState = SPIKED_STATE.NOT_SPIKED) => (
+    (dispatch) => (
+        dispatch(self.query({
+            // distinct ids
+            ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
+            spikeState,
+        }))
+        .then(data => {
+            dispatch(self.receiveEvents(data._items))
+            return Promise.resolve(data._items)
+        }, (error) => (
+            Promise.reject(error)
+        ))
+    )
+)
+
 const self = {
     loadEventsByRecurrenceId,
     spike,
@@ -412,6 +435,7 @@ const self = {
     loadRecurringEventsAndPlanningItems,
     lock,
     unlock,
+    silentlyFetchEventsById,
 }
 
 export default self

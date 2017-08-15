@@ -53,7 +53,8 @@ class EventsSpikeService(BaseService):
 
         item = self.backend.update(self.datasource, id, updates, original)
 
-        push_notification('events:spiked', item=str(id), user=str(user.get(config.ID_FIELD)))
+        push_notification('events:spiked', item=str(id), user=str(user.get(config.ID_FIELD)),
+                          etag=item['_etag'], revert_state=item['revert_state'])
 
         if original.get('recurrence_id') and update_method != UPDATE_SINGLE:
             self._spike_recurring(updates, original, update_method)

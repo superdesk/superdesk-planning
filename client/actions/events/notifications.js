@@ -1,6 +1,8 @@
 import * as selectors from '../../selectors'
+import { WORKFLOW_STATE } from '../../constants'
 import { showModal } from '../index'
 import eventsApi from './api'
+import eventsUi from './ui'
 
 /**
  * Action Event when an Event gets unlocked
@@ -58,15 +60,45 @@ const onEventLocked = (_e, data) => (
     }
 )
 
+const onEventSpiked = (_e, data) => (
+    (dispatch, getState) => {
+        if (data && data.item) {
+            // Just update the event in store with updates and etag
+            let eventInStore = selectors.getEvents(getState())[data.item]
+            eventInStore = {
+                ...eventInStore,
+                lock_action: null,
+                lock_user: null,
+                lock_session: null,
+                lock_time: null,
+                state: WORKFLOW_STATE.SPIKED,
+                revert_state: data.revert_state,
+                _etag: data.etag,
+            }
+
+            // Update the event in store
+            dispatch(eventsApi.receiveEvents([eventInStore]))
+
+            // Update the event list
+            let newList = selectors.getEventsIdsToShowInList(getState())
+            newList.splice(newList.indexOf(data.item), 1)
+            dispatch(eventsUi.setEventsList(newList))
+        }
+    }
+
+)
+
 const self = {
     onEventLocked,
     onEventUnlocked,
+    onEventSpiked,
 }
 
 // Map of notification name and Action Event to execute
 self.events = {
     'events:lock': () => (self.onEventLocked),
     'events:unlock': () => (self.onEventUnlocked),
+    'events:spiked': () => (self.onEventSpiked),
 }
 
 export default self

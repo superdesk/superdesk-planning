@@ -46,6 +46,23 @@ describe('actions.events.api', () => {
             restoreSinonStub(eventsApi.loadEventsByRecurrenceId)
         })
 
+        it('silentlyFetchEventsById', (done) => {
+            store.test(done, eventsApi.silentlyFetchEventsById(['e1', 'e2', 'e3'],
+                SPIKED_STATE.BOTH))
+            .then(() => {
+                expect(eventsApi.query.callCount).toBe(1)
+                expect(eventsApi.query.args[0]).toEqual([{
+                    ids: ['e1', 'e2', 'e3'],
+                    spikeState: SPIKED_STATE.BOTH,
+                }])
+
+                expect(eventsApi.receiveEvents.callCount).toBe(1)
+                expect(eventsApi.receiveEvents.args[0]).toEqual([data.events])
+
+                done()
+            })
+        })
+
         it('runs the query', (done) => (
             store.test(done, eventsApi.loadEventsByRecurrenceId('r1', SPIKED_STATE.NOT_SPIKED))
             .then((items) => {

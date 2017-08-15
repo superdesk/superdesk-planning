@@ -42,6 +42,9 @@ describe('actions.planning.notifications', () => {
             sinon.stub(planningNotifications, 'onPlanningPublished').callsFake(
                 () => (Promise.resolve())
             )
+            sinon.stub(planningNotifications, 'onPlanningSpiked').callsFake(
+                () => (Promise.resolve())
+            )
 
             $rootScope = _$rootScope_
             registerNotifications($rootScope, store)
@@ -55,6 +58,7 @@ describe('actions.planning.notifications', () => {
             restoreSinonStub(planningNotifications.onPlanningUpdated)
             restoreSinonStub(planningNotifications.onPlanningUnlocked)
             restoreSinonStub(planningNotifications.onPlanningPublished)
+            restoreSinonStub(planningNotifications.onPlanningSpiked)
         })
 
         it('`planning:created` calls onPlanningCreated', (done) => {
@@ -114,12 +118,12 @@ describe('actions.planning.notifications', () => {
             }, delay)
         })
 
-        it('`planning:spiked` calls onPlanningUpdated', (done) => {
+        it('`planning:spiked` calls onPlanningSpiked', (done) => {
             $rootScope.$broadcast('planning:spiked', { item: 'p2' })
 
             setTimeout(() => {
-                expect(planningNotifications.onPlanningUpdated.callCount).toBe(1)
-                expect(planningNotifications.onPlanningUpdated.args[0][1]).toEqual({ item: 'p2' })
+                expect(planningNotifications.onPlanningSpiked.callCount).toBe(1)
+                expect(planningNotifications.onPlanningSpiked.args[0][1]).toEqual({ item: 'p2' })
 
                 done()
             }, delay)
