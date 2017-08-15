@@ -1,7 +1,12 @@
 import moment from 'moment-timezone'
-import { getItemState } from './index'
-import { WORKFLOW_STATE } from '../constants/index'
+import { WORKFLOW_STATE, GENERIC_ITEM_ACTIONS, PRIVILEGES } from '../constants/index'
 import { get } from 'lodash'
+import {
+    getItemState,
+    isItemLockRestricted,
+    isItemPublic,
+    isItemSpiked,
+} from './index'
 
 const canSavePlanning = (planning, event) => (
     getItemState(planning) !== WORKFLOW_STATE.SPIKED &&
@@ -36,6 +41,22 @@ const canEditPlanning = (
         !lockedUser
 )
 
+const canSpikePlanning = ({ plan, session, privileges }) => (
+    !isItemPublic(plan) && getItemState(plan) === WORKFLOW_STATE.IN_PROGRESS &&
+        !!privileges[PRIVILEGES.SPIKE_PLANNING] && !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !isItemLockRestricted(plan, session)
+)
+
+const canUnspikePlanning = ({ plan, event=null, privileges }) => (
+    isItemSpiked(plan) && !!privileges[PRIVILEGES.UNSPIKE_PLANNING] &&
+        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] && !isItemSpiked(event)
+)
+
+const canDuplicatePlanning = ({ plan, event=null, session, privileges }) => (
+    !isItemSpiked(plan) && !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !isItemLockRestricted(plan, session) && !isItemSpiked(event)
+)
+
 /**
  * Get the array of coverage content type and color base on the scheduled date
  * @param {Array} coverages
@@ -57,12 +78,79 @@ export const mapCoverageByDate = (coverages) => (
     })
 )
 
+export const getPlanningItemActions = ({ plan, event=null, session, privileges, callBacks }) => {
+    let itemActions = []
+    Object.keys(GENERIC_ITEM_ACTIONS).forEach((a) => {
+        const action = GENERIC_ITEM_ACTIONS[a]
+        switch (action.label) {
+            case GENERIC_ITEM_ACTIONS.SPIKE.label:
+                if (callBacks[GENERIC_ITEM_ACTIONS.SPIKE.label] &&
+                        canSpikePlanning({
+                            plan,
+                            session,
+                            privileges,
+                        })) {
+                    itemActions.push({
+                        ...action,
+                        callback: callBacks[GENERIC_ITEM_ACTIONS.SPIKE.label],
+                    })
+                }
+
+                break
+
+            case GENERIC_ITEM_ACTIONS.UNSPIKE.label:
+                if (callBacks[GENERIC_ITEM_ACTIONS.UNSPIKE.label] &&
+                        canUnspikePlanning({
+                            plan,
+                            event,
+                            privileges,
+                        })) {
+                    itemActions.push({
+                        ...action,
+                        callback: callBacks[GENERIC_ITEM_ACTIONS.UNSPIKE.label],
+                    })
+                }
+
+                break
+
+            case GENERIC_ITEM_ACTIONS.DUPLICATE.label:
+                if (callBacks[GENERIC_ITEM_ACTIONS.DUPLICATE.label] &&
+                        canDuplicatePlanning({
+                            plan,
+                            event,
+                            session,
+                            privileges,
+                        })) {
+                    itemActions.push({
+                        ...action,
+                        callback: callBacks[GENERIC_ITEM_ACTIONS.DUPLICATE.label],
+                    })
+                }
+
+                break
+
+            case GENERIC_ITEM_ACTIONS.HISTORY.label:
+                if (callBacks[GENERIC_ITEM_ACTIONS.HISTORY.label]) {
+                    itemActions.push({
+                        ...action,
+                        callback: callBacks[GENERIC_ITEM_ACTIONS.HISTORY.label],
+                    })
+                }
+
+                break
+        }
+    })
+
+    return itemActions
+}
+
 const self = {
     canSavePlanning,
     canPublishPlanning,
     canUnpublishPlanning,
     canEditPlanning,
     mapCoverageByDate,
+    getPlanningItemActions,
 }
 
 export default self

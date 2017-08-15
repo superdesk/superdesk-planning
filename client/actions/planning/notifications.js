@@ -221,6 +221,7 @@ self.events = {
     'planning:lock': () => (self.onPlanningUpdateWithoutRefetch),
     'planning:unlock': () => (self.onPlanningUnlocked),
     'planning:published': () => (self.onPlanningPublished),
+    'planning:duplicated': () => (self.onPlanningCreated),
 }
 
 export default self

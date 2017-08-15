@@ -14,6 +14,7 @@ import classNames from 'classnames'
 import './style.scss'
 import { ItemActionsMenu } from '../index'
 import { getCreator, getLockedUser, planningUtils, isItemSpiked } from '../../utils'
+import { GENERIC_ITEM_ACTIONS } from '../../constants/index'
 
 // Helper enum for Publish method when saving
 const saveMethods = {
@@ -113,6 +114,11 @@ export class EditPlanningPanel extends React.Component {
             users,
             planningManagementPrivilege,
             notForPublication,
+            session,
+            privileges,
+            onSpike,
+            onUnspike,
+            onDuplicate,
         } = this.props
 
         const creationDate = get(planning, '_created')
@@ -125,10 +131,20 @@ export class EditPlanningPanel extends React.Component {
         const planningSpiked = isItemSpiked(planning)
         const eventSpiked = isItemSpiked(event)
 
-        let itemActions = [{
-            label: 'View Planning History',
-            callback: this.viewPlanningHistory.bind(this),
-        }]
+        const callBacks = {
+            [GENERIC_ITEM_ACTIONS.SPIKE.label]: onSpike.bind(null, planning),
+            [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: onUnspike.bind(null, planning),
+            [GENERIC_ITEM_ACTIONS.HISTORY.label]: this.viewPlanningHistory.bind(this),
+            [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: onDuplicate.bind(null, planning),
+        }
+
+        const itemActions = planningUtils.getPlanningItemActions({
+            plan: planning,
+            event,
+            session,
+            privileges,
+            callBacks,
+        })
 
         // If the planning or event or agenda item is spiked,
         // or we don't hold a lock, enforce readOnly
@@ -270,7 +286,10 @@ export class EditPlanningPanel extends React.Component {
                                 <i className="icon-close-small" />
                             </a>
                         </div>
-                        <PlanningHistoryContainer currentPlanningId={planning._id} />
+                        <PlanningHistoryContainer
+                            currentPlanningId={planning._id}
+                            closePlanningHistory={this.closePlanningHistory.bind(this)}
+                        />
                     </div>
                 }
             </div>
@@ -301,6 +320,13 @@ EditPlanningPanel.propTypes = {
     publish: PropTypes.func,
     unpublish: PropTypes.func,
     notForPublication: PropTypes.bool,
+
+    privileges: PropTypes.object,
+    session: PropTypes.object,
+
+    onDuplicate: PropTypes.func,
+    onSpike: PropTypes.func,
+    onUnspike: PropTypes.func,
 }
 
 const selector = formValueSelector('planning') // Selector for the Planning form
@@ -313,6 +339,8 @@ const mapStateToProps = (state) => ({
     planningManagementPrivilege: selectors.getPrivileges(state).planning_planning_management ? true : false,
     lockedInThisSession: selectors.isCurrentPlanningLockedInThisSession(state),
     notForPublication: selector(state, 'flags.marked_for_not_publication'),
+    privileges: selectors.getPrivileges(state),
+    session: selectors.getSessionDetails(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -326,6 +354,10 @@ const mapDispatchToProps = (dispatch) => ({
 
     publish: (planning) => (dispatch(actions.planning.ui.publish(planning))),
     unpublish: (planning) => (dispatch(actions.planning.ui.unpublish(planning))),
+
+    onDuplicate: (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
+    onSpike: (planning) => (dispatch(actions.planning.ui.spike(planning))),
+    onUnspike: (planning) => (dispatch(actions.planning.ui.unspike(planning))),
 })
 
 export const EditPlanningPanelContainer = connect(

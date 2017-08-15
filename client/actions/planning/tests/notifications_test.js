@@ -168,6 +168,17 @@ describe('actions.planning.notifications', () => {
                 done()
             }, delay)
         })
+
+        it('`planning:duplicated` calls onPlanningCreated', (done) => {
+            $rootScope.$broadcast('planning:duplicated', { item: 'p2' })
+
+            setTimeout(() => {
+                expect(planningNotifications.onPlanningCreated.callCount).toBe(1)
+                expect(planningNotifications.onPlanningCreated.args[0][1]).toEqual({ item: 'p2' })
+
+                done()
+            }, delay)
+        })
     })
 
     describe('`planning:created`', () => {

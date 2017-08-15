@@ -2,6 +2,7 @@ import sinon from 'sinon'
 import moment from 'moment'
 import { get } from 'lodash'
 import { PRIVILEGES } from '../constants'
+import { ItemActionsMenu } from '../components/index'
 
 export const getTestActionStore = () => {
     let store = {
@@ -351,4 +352,16 @@ export const expectAccessDenied = ({ store, permission, action, errorMessage, ar
             args,
         },
     }])
+}
+
+export const itemActionExists = (wrapper, label) => {
+    if (wrapper.find('.icon-dots-vertical').length === 0) return false
+    const itemActions = wrapper.find(ItemActionsMenu)
+    return !!itemActions.props().actions.find((a) => a.label === label)
+}
+
+export const clickItemAction = (wrapper, icon) => {
+    const itemActions = wrapper.find(ItemActionsMenu)
+    itemActions.find('.dropdown__toggle').simulate('click')
+    itemActions.find(icon).parent().simulate('click')
 }

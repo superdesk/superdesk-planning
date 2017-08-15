@@ -638,6 +638,21 @@ const saveAndReloadCurrentAgenda = (item) => (
     )
 )
 
+const duplicate = (plan) => (
+    (dispatch, getState, { api }) => (
+        api('planning_duplicate', plan).save({})
+        .then((items) => {
+            if ('_items' in items) {
+                return Promise.resolve(items._items[0])
+            }
+
+            return Promise.resolve(items)
+        }, (error) => (
+            Promise.reject(error)
+        ))
+    )
+)
+
 /**
  * Set a Planning item as Published
  * @param {string} plan - Planning item
@@ -800,6 +815,7 @@ const self = {
     saveAndPublish,
     saveAndUnpublish,
     refetch,
+    duplicate,
 }
 
 export default self

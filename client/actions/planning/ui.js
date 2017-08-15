@@ -327,6 +327,28 @@ const refetch = () => (
     )
 )
 
+const duplicate = (plan) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.duplicate(plan))
+        .then((newPlan) => {
+            dispatch(self.refetch())
+            .then(() => {
+                dispatch(self.closeEditor(plan))
+                notify.success('Planning duplicated')
+                return dispatch(self.openEditor(newPlan._id))
+            }, (error) => (
+                notify.error(
+                    getErrorMessage(error, 'Failed to fetch Planning items')
+                )
+            ))
+        }, (error) => (
+            notify.error(
+                getErrorMessage(error, 'Failed to duplicate the Planning')
+            )
+        ))
+    )
+)
+
 /**
  * Publish an item and notify user of success or failure
  * @param {object} item - The planning item
@@ -491,6 +513,7 @@ const self = {
     saveAndPublish,
     saveAndUnpublish,
     refetch,
+    duplicate,
 }
 
 export default self
