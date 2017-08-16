@@ -4,7 +4,17 @@ import { fields } from '../index'
 import { Field, FieldArray } from 'redux-form'
 
 const renderSlugline = (readOnly) => (
-    (<fields.SluglineField readOnly={readOnly} />)
+    <div>
+        <div>
+            <label htmlFor="slugline">Slugline</label>
+        </div>
+        <div>
+            <Field name="slugline"
+                component={fields.InputField}
+                type="text"
+                readOnly={readOnly}/>
+        </div>
+    </div>
 )
 
 const renderName = (readOnly) => (
@@ -49,6 +59,15 @@ const renderSubject = (readOnly) => (
     </div>
 )
 
+const renderDescription = (readOnly) => (
+    <div>
+        <Field name='description_text'
+            component={fields.InputField}
+            type="text"
+            label="Short Description"
+            readOnly={readOnly}/>
+    </div>
+)
 
 const renderLongDescription = (readOnly) => (
     <div>
@@ -56,6 +75,15 @@ const renderLongDescription = (readOnly) => (
             component={fields.InputTextAreaField}
             multiLine={true}
             label="Description"
+            readOnly={readOnly}/>
+    </div>
+)
+
+const renderInternalNote = (readOnly) => (
+    <div>
+        <Field name="internal_note"
+            component={fields.InputTextAreaField}
+            label="Internal Note"
             readOnly={readOnly}/>
     </div>
 )
@@ -117,7 +145,9 @@ export const fieldRenders = {
     renderCalender,
     renderCategory,
     renderSubject,
+    renderDescription,
     renderLongDescription,
+    renderInternalNote,
     renderLocation,
     renderDate,
     renderOccurStatus,

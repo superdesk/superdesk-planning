@@ -32,6 +32,21 @@ describe('<PlanningForm />', () => {
                 notify: services.notify,
             },
         })
+        store.getState().formsProfile = {
+            planning: {
+                editor: {
+                    slugline: { enabled: true },
+                    anpa_category: { enabled: true },
+                    description_text: { enabled: true },
+                    ednote: { enabled: true },
+                    internal_note: { enabled: true },
+                    headline: { enabled: true },
+                    flags: { enabled: true },
+                    subject: { enabled: true },
+                    agendas: { enabled: true },
+                },
+            },
+        }
     }
 
     const getWrapper = (readOnly=false) => {
@@ -58,6 +73,21 @@ describe('<PlanningForm />', () => {
             coverageContainers: () => form.find(CoverageContainer),
         }
     }
+
+    describe('planning form', () => {
+        it('shows enabled fields', () => {
+            setStore()
+            const { form } = getWrapper()
+            expect(form.find('Field [name="slugline"]').length).toBe(1)
+        })
+
+        it('hides disabled fields', () => {
+            setStore()
+            store.getState().formsProfile.planning.editor.slugline.enabled = false
+            const { form } = getWrapper()
+            expect(form.find('Field [name="slugline"]').length).toBe(0)
+        })
+    })
 
     describe('coverages', () => {
         it('removes a coverage', (done) => {

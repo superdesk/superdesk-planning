@@ -6,6 +6,7 @@ import { Field, formValueSelector } from 'redux-form'
 import { connect } from 'react-redux'
 import classNames from 'classnames'
 import './style.scss'
+import { get } from 'lodash'
 
 function CoverageComponent({
     g2_content_type,
@@ -15,6 +16,7 @@ function CoverageComponent({
     desks,
     readOnly,
     content_type,
+    formProfile,
     }) {
     const isTextCoverage = content_type === 'text'
     return (
@@ -25,36 +27,37 @@ function CoverageComponent({
                 users={users}
                 desks={desks}
                 readOnly={readOnly} />
-            <Field
+            {get(formProfile, 'editor.description_text.enabled') && <Field
                 name={`${coverage}.planning.description_text`}
                 component={fields.InputField}
                 type="text"
                 label="Description"
-                readOnly={readOnly} />
-            <Field
+                readOnly={readOnly} />}
+            {get(formProfile, 'editor.ednote.enabled') && <Field
                 name={`${coverage}.planning.ednote`}
                 component={fields.InputField}
                 type="text"
                 label="Ed. Note"
-                readOnly={readOnly} />
-            <Field
+                readOnly={readOnly} />}
+            {get(formProfile, 'editor.slugline.enabled') && <Field
                 name={`${coverage}.planning.slugline`}
                 component={fields.InputField}
                 type="text"
                 label="Slugline"
-                readOnly={readOnly} />
-            <Field
+                readOnly={readOnly} />}
+            {get(formProfile, 'editor.headline.enabled') && <Field
                 name={`${coverage}.planning.headline`}
                 component={fields.InputField}
                 type="text"
                 label="Headline"
-                readOnly={readOnly} />
-            <Field name={`${coverage}.planning.internal_note`}
+                readOnly={readOnly} />}
+            {get(formProfile, 'editor.internal_note.enabled') && <Field
+                name={`${coverage}.planning.internal_note`}
                 component={fields.InputTextAreaField}
                 label="Internal Note"
-                readOnly={readOnly}/>
+                readOnly={readOnly}/>}
             <label>Type</label>
-            <Field
+            {get(formProfile, 'editor.g2_content_type.enabled') && <Field
                 name={`${coverage}.planning.g2_content_type`}
                 component="select"
                 className={classNames({ 'disabledInput': readOnly })}
@@ -63,8 +66,8 @@ function CoverageComponent({
                 {g2_content_type.map((t) => (
                     <option key={t.qcode} value={t.qcode}>{t.name}</option>
                 ))}
-            </Field>
-            {isTextCoverage && (
+            </Field>}
+            {get(formProfile, 'editor.genre.enabled') && isTextCoverage && (
                 <Field name={`${coverage}.planning.genre`}
                     component={fields.GenreField}
                     label="Genre"
@@ -82,11 +85,11 @@ function CoverageComponent({
                 ))}
             </Field>
             <label>Due</label>
-            <Field
+            {get(formProfile, 'editor.scheduled.enabled') && <Field
                 name={`${coverage}.planning.scheduled`}
                 component={fields.DayPickerInput}
                 withTime={true}
-                readOnly={readOnly} />
+                readOnly={readOnly} />}
         </fieldset>
     )
 }
@@ -99,6 +102,7 @@ CoverageComponent.propTypes = {
     users: PropTypes.array.isRequired,
     desks: PropTypes.array.isRequired,
     readOnly: PropTypes.bool,
+    formProfile: PropTypes.object,
 }
 
 const selector = formValueSelector('planning') // same as form name
@@ -108,6 +112,7 @@ const mapStateToProps = (state, ownProps) => ({
     desks: state.desks && state.desks.length > 0 ? state.desks : [],
     content_type: selector(state, ownProps.coverage + '.planning.g2_content_type'),
     coverage_providers: state.vocabularies.coverage_providers || [],
+    formProfile: selectors.getCoverageFormsProfile(state),
 })
 
 export const Coverage = connect(mapStateToProps)(CoverageComponent)
