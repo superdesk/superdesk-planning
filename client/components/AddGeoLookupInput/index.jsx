@@ -4,7 +4,7 @@ import * as Nominatim from 'nominatim-browser'
 import './style.scss'
 import classNames from 'classnames'
 import { formatAddress } from '../../utils'
-import { get, has } from 'lodash'
+import { get, has, isEmpty } from 'lodash'
 import TextareaAutosize from 'react-textarea-autosize'
 import { AddGeoLookupResultsPopUp } from './AddGeoLookupResultsPopUp'
 
@@ -15,24 +15,44 @@ class GeoLookupInput extends React.Component {
 
     constructor(props) {
         super(props)
-        this.state = { searchResults: [] }
+        this.state = {
+            searchResults: null,
+            searching: false,
+        }
     }
 
     handleInputChange(event) {
         this.refs.geolookup.onInputChange(event.target.value.replace(/(?:\r\n|\r|\n)/g, ' '))
         this.handleChange(event.target.value)
+        if (this.state.searchResults) {
+            this.resetSearchResults()
+        } else if (this.state.searching){
+            this.setState({ searching: false })
+        }
     }
 
     handleSearchClick() {
+        // Disable button before search
+        if (!isEmpty(this.props.initialValue) && this.props.initialValue.name) {
+            this.setState({ searching : true })
+        }
+
+        this.refs.geolookup.hideSuggests()
         this.refs.geolookup.onButtonClick()
     }
 
     onSuggestResults(suggests) {
-        this.setState({ searchResults : suggests })
+        this.setState({
+            searchResults : suggests,
+            searching: false,
+        })
     }
 
     resetSearchResults() {
-        this.setState({ searchResults : [] })
+        this.setState({
+            searchResults : null,
+            searching: false,
+        })
     }
 
     render() {
@@ -45,14 +65,22 @@ class GeoLookupInput extends React.Component {
                     onChange={this.handleInputChange.bind(this)} />
                 </span>
                 {!this.props.readOnly &&
-                    <span><button type='button' className='btn'
-                        onClick={this.handleSearchClick.bind(this)} >Search</button></span>}
-                {this.state.searchResults.length > 0 &&
+                    <span><button type='button' className='btn' disabled={this.state.searching}
+                        onClick={this.handleSearchClick.bind(this)} >
+                            <span>Search</span>
+                            {this.state.searching && <div className='spinner'>
+                              <div className='dot1' />
+                              <div className='dot2' />
+                            </div>}
+                        </button></span>}
+                {get(this.state.searchResults, 'length') > 0 &&
                     <AddGeoLookupResultsPopUp
                         suggests={this.state.searchResults}
                         onCancel={this.resetSearchResults.bind(this)}
                         onChange={this.onSuggestSelect.bind(this)} />
                 }
+                {get(this.state.searchResults, 'length') === 0 &&
+                    <div className="error-block" style={{ display: 'table-row' }}>No results found</div>}
                 {!this.props.readOnly && <Geolookup
                     disableAutoLookup={true}
                     onSuggestSelect={this.onSuggestSelect.bind(this)}
