@@ -16,3 +16,7 @@
 .icon--red {
 	color: $red;
 }
+
+.ReactVirtualized__Grid__innerScrollContainer {
+	overflow: visible !important;
+}

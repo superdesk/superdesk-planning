@@ -15,6 +15,12 @@ describe('planning', () => {
     describe('containers', () => {
 
         describe('<EditPlanningPanelContainer />', () => {
+            const privileges = {
+                planning: 1,
+                planning_planning_management: 1,
+                planning_planning_spike: 1,
+                planning_planning_unspike: 1,
+            }
 
             beforeEach(() => {
                 sinon.stub(planningApi, 'lock').callsFake((item) => (() => (Promise.resolve(item))))
@@ -27,10 +33,7 @@ describe('planning', () => {
             it('open the panel for read only preview', () => {
                 let store = createTestStore({
                     initialState: {
-                        privileges: {
-                            planning: 1,
-                            planning_planning_management: 1,
-                        },
+                        privileges,
                         session: {
                             identity: { _id: 'user' },
                             sessionId: 123,
@@ -64,10 +67,7 @@ describe('planning', () => {
 
                 const store = createTestStore({
                     initialState: {
-                        privileges: {
-                            planning: 1,
-                            planning_planning_management: 1,
-                        },
+                        privileges,
                         planning: {
                             plannings: { planning1 },
                             editorOpened: true,
@@ -108,10 +108,7 @@ describe('planning', () => {
             it('cancel', () => {
                 const store = createTestStore({
                     initialState: {
-                        privileges: {
-                            planning: 1,
-                            planning_planning_management: 1,
-                        },
+                        privileges,
                         planning: {
                             plannings: {
                                 planning1: {
@@ -171,6 +168,10 @@ describe('planning', () => {
                         planning={planning}
                         closePlanningEditor={sinon.spy()}
                         pristine={false}
+                        onDuplicate={sinon.spy()}
+                        onSpike={sinon.spy()}
+                        onUnspike={sinon.spy()}
+                        privileges={privileges}
                         submitting={false} />
                 )
 
@@ -198,6 +199,10 @@ describe('planning', () => {
                         event={event}
                         closePlanningEditor={sinon.spy()}
                         pristine={false}
+                        onDuplicate={sinon.spy()}
+                        onSpike={sinon.spy()}
+                        onUnspike={sinon.spy()}
+                        privileges={privileges}
                         submitting={false} />
                 )
 

@@ -14,7 +14,7 @@ import superdesk
 import logging
 from copy import deepcopy
 from superdesk.errors import SuperdeskApiError
-from superdesk.metadata.utils import generate_guid
+from superdesk.metadata.utils import generate_guid, item_url
 from superdesk.metadata.item import GUID_NEWSML, metadata_schema
 from superdesk.resource import not_analyzed
 from superdesk import get_resource_service
@@ -34,7 +34,10 @@ class CoverageService(superdesk.Service):
         """Set default metadata."""
 
         for doc in docs:
-            doc['guid'] = generate_guid(type=GUID_NEWSML)
+            if 'guid' not in doc:
+                doc['guid'] = generate_guid(type=GUID_NEWSML)
+            doc[config.ID_FIELD] = doc['guid']
+
             set_original_creator(doc)
             self._set_assignment_information(doc)
 
@@ -90,8 +93,12 @@ class CoverageService(superdesk.Service):
                              assignor=user.get('username'))
 
 
+planning_type = deepcopy(superdesk.Resource.rel('planning', type='string'))
+planning_type['mapping'] = not_analyzed
+
 coverage_schema = {
     # Identifiers
+    config.ID_FIELD: metadata_schema[config.ID_FIELD],
     'guid': metadata_schema['guid'],
 
     # Audit Information
@@ -101,7 +108,7 @@ coverage_schema = {
     'versioncreated': metadata_schema['versioncreated'],
 
     # Reference to Planning Item
-    'planning_item': superdesk.Resource.rel('planning'),
+    'planning_item': planning_type,
 
     # News Coverage Details
     # See IPTC-G2-Implementation_Guide 16.4
@@ -236,11 +243,8 @@ class CoverageResource(superdesk.Resource):
     """
 
     url = 'coverage'
+    item_url = item_url
     schema = coverage_schema
-    datasource = {
-        'source': 'coverage',
-        'search_backend': 'elastic',
-    }
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
     public_methods = ['GET']

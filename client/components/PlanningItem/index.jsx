@@ -1,9 +1,10 @@
 import React, { PropTypes } from 'react'
 import { get, capitalize, some } from 'lodash'
-import { ListItem, TimePlanning, DueDate, tooltips } from '../index'
+import { ListItem, TimePlanning, DueDate, ItemActionsMenu } from '../index'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import classNames from 'classnames'
 import { getCoverageIcon, isItemPublic, planningUtils, isItemSpiked } from '../../utils/index'
+import { GENERIC_ITEM_ACTIONS } from '../../constants/index'
 import './style.scss'
 
 const PlanningItem = ({
@@ -17,8 +18,9 @@ const PlanningItem = ({
         privileges,
         onDoubleClick,
         itemLocked,
-        itemLockedInThisSession,
         onAgendaClick,
+        onDuplicate,
+        session,
     }) => {
     const location = get(event, 'location[0].name')
     const coverages = get(item, 'coverages', [])
@@ -26,17 +28,24 @@ const PlanningItem = ({
     const coveragesTypes = planningUtils.mapCoverageByDate(coverages)
     const isScheduled = some(coverages, (c) => (get(c, 'planning.scheduled')))
     const itemSpiked = isItemSpiked(item)
-    const eventSpiked = isItemSpiked(event)
     const notForPublication = item ? get(item, 'flags.marked_for_not_publication', false) : false
-
-    const showSpikeButton = (!itemLocked || itemLockedInThisSession) &&
-        privileges.planning_planning_spike === 1 && !itemSpiked && !eventSpiked
-
-    const showUnspikeButton = (!itemLocked || itemLockedInThisSession) &&
-        privileges.planning_planning_unspike === 1 && itemSpiked && !eventSpiked
 
     const isPublic = isItemPublic(get(item, 'pubstatus'))
     const isKilled = get(item, 'state') === 'killed'
+
+    const callBacks = {
+        [GENERIC_ITEM_ACTIONS.SPIKE.label]: onSpike.bind(null, item),
+        [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: onUnspike.bind(null, item),
+        [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: onDuplicate.bind(null, item),
+    }
+
+    const itemActions = planningUtils.getPlanningItemActions({
+        plan: item,
+        event,
+        session,
+        privileges,
+        callBacks,
+    })
 
     return (
         <ListItem
@@ -122,35 +131,13 @@ const PlanningItem = ({
                 </div>
             </div>
             <div className="sd-list-item__action-menu">
-                {showSpikeButton &&
-                    <OverlayTrigger placement="left" overlay={tooltips.spikePlanningTooltip}>
-                        <button
-                            className="dropdown__toggle"
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                onSpike(item)
-                            }}>
-                            <i className="icon-trash"/>
-                        </button>
-                    </OverlayTrigger>
-                }
-                {showUnspikeButton &&
-                    <OverlayTrigger placement="left" overlay={tooltips.unspikePlanningTooltip}>
-                        <button
-                            className="dropdown__toggle"
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                onUnspike(item)
-                            }}>
-                            <i className="icon-unspike" />
-                        </button>
-                    </OverlayTrigger>
+                {itemActions.length > 0 &&
+                    <ItemActionsMenu actions={itemActions}/>
                 }
             </div>
         </ListItem>
     )
 }
-
 
 PlanningItem.propTypes = {
     item: PropTypes.object.isRequired,
@@ -163,8 +150,9 @@ PlanningItem.propTypes = {
     onUnspike: PropTypes.func,
     privileges: PropTypes.object,
     itemLocked: PropTypes.bool,
-    itemLockedInThisSession: PropTypes.bool,
     onAgendaClick: PropTypes.func,
+    onDuplicate: PropTypes.func,
+    session: PropTypes.object,
 }
 
 export default PlanningItem

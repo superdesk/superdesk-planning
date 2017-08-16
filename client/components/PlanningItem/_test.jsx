@@ -1,11 +1,12 @@
 import React from 'react'
 import { Provider } from 'react-redux'
 import { createTestStore } from '../../utils'
-import { mount, shallow } from 'enzyme'
+import { mount } from 'enzyme'
 import PlanningItem from './index'
 import sinon from 'sinon'
 import moment from 'moment'
 import { get } from 'lodash'
+import { itemActionExists, clickItemAction } from '../../utils/testUtils'
 
 describe('planning', () => {
     describe('components', () => {
@@ -22,10 +23,25 @@ describe('planning', () => {
             const onDoubleClick = sinon.spy()
             const onSpike = sinon.spy()
             const onUnspike = sinon.spy()
+            const onDuplicate = sinon.spy()
 
-            const getWrapper = () => {
+            const getWrapper = (params=null) => {
+                if (params !== null) {
+                    privileges.planning_planning_spike = get(params, 'privilege', 1)
+                    privileges.planning_planning_unspike = get(params, 'privilege', 1)
+                    item.state = get(params, 'states.planning', 'in_progress')
+
+                    if (get(params, 'states.event')) {
+                        event = events[0]
+                        event.state = get(params, 'states.event')
+                    } else {
+                        event = null
+                    }
+                }
+
                 const store = createTestStore()
-                const wrapper = mount(
+
+                return mount(
                     <Provider store={store}>
                         <PlanningItem
                         item={item}
@@ -35,10 +51,10 @@ describe('planning', () => {
                         onClick={onClick}
                         onSpike={onSpike}
                         onUnspike={onUnspike}
+                        onDuplicate={onDuplicate}
                         privileges={privileges} />
                     </Provider>
                 )
-                return wrapper
             }
 
             // Creating this one separately as we cannot test click when doubleclick is used
@@ -52,32 +68,10 @@ describe('planning', () => {
                     onDoubleClick={onDoubleClick}
                     onSpike={onSpike}
                     onUnspike={onUnspike}
+                    onDuplicate={onDuplicate}
                     privileges={privileges}
                 />)
             )
-
-            const getShallowWrapperWithStates = (params) => {
-                privileges.planning_planning_spike = get(params, 'privilege', 1)
-                privileges.planning_planning_unspike = get(params, 'privilege', 1)
-                item.state = get(params, 'states.planning', 'in_progress')
-
-                if (get(params, 'states.event')) {
-                    event = events[0]
-                    event.state = get(params, 'states.event')
-                } else {
-                    event = null
-                }
-                return shallow(<PlanningItem
-                    item={item}
-                    event={event}
-                    agenda={[agenda]}
-                    active={active}
-                    onClick={onClick}
-                    onSpike={onSpike}
-                    onUnspike={onUnspike}
-                    privileges={privileges}
-                />)
-            }
 
             beforeEach(() => {
                 privileges = {
@@ -171,30 +165,6 @@ describe('planning', () => {
                 onUnspike.reset()
             })
 
-            it('renders an active planning item', () => {
-                const wrapper = getWrapper()
-
-                // Doesnt show the `spiked` alert label
-                expect(wrapper.find('.label--alert').length).toBe(0)
-
-                // Shows Spike button and not Unspike button
-                expect(wrapper.find('.icon-trash').length).toBe(1)
-                expect(wrapper.find('.icon-unspike').length).toBe(0)
-            })
-
-            it('renders a spiked planning item', () => {
-                item = items[2]
-                const wrapper = getWrapper()
-
-                // Shows the `spiked` alert label
-                expect(wrapper.find('.label--alert').length).toBe(1)
-
-                // Shows Unspike button and not Spike button
-                expect(wrapper.find('.icon-trash').length).toBe(0)
-                expect(wrapper.find('.icon-unspike').length).toBe(1)
-
-            })
-
             // Creating this one separately as we cannot test click when doubleclick is used
             it('executes onDoubleClick callbacks', () => {
                 let wrapper = getWrapperWithDoubleClickProp()
@@ -207,7 +177,7 @@ describe('planning', () => {
             })
 
             it('executes callbacks onClick, onSpike and onUnspike', () => {
-                let wrapper = getWrapper()
+                const wrapper = getWrapper()
 
                 // onClick
                 wrapper.find('.ListItem').first().simulate('click')
@@ -215,16 +185,20 @@ describe('planning', () => {
                 expect(onClick.args[0][0]).toEqual(item)
 
                 // onSpike
-                wrapper.find('.icon-trash').first().parent().simulate('click')
+                clickItemAction(getWrapper(), '.icon-trash')
                 expect(onSpike.callCount).toBe(1)
                 expect(onSpike.args[0]).toEqual([item])
 
                 // onUnspike
                 item = items[2]
-                wrapper = getWrapper()
-                wrapper.find('.icon-unspike').first().parent().simulate('click')
+                clickItemAction(getWrapper(), '.icon-unspike')
                 expect(onUnspike.callCount).toBe(1)
                 expect(onUnspike.args[0]).toEqual([item])
+
+                item = items[0]
+                clickItemAction(getWrapper(), '.icon-copy')
+                expect(onDuplicate.callCount).toBe(1)
+                expect(onDuplicate.args[0]).toEqual([item])
             })
 
             /**
@@ -234,36 +208,27 @@ describe('planning', () => {
              * - Agenda is not spiked
              * - If associated event exists and not spiked
              */
-            it('shows `spike` button', () => {
-                let wrapper = getShallowWrapperWithStates({
+            it('shows `spike` action', () => {
+                let wrapper = getWrapper({
                     privilege: 1,
                     states: { planning: 'in_progress' },
                 })
-                expect(wrapper.find('.icon-trash').length).toBe(1)
+                expect(itemActionExists(wrapper, 'Spike')).toBe(true)
 
-                wrapper = getShallowWrapperWithStates({
+                wrapper = getWrapper({
                     privilege: 1,
                     states: {
                         planning: 'in_progress',
                         event: 'in_progress',
                     },
                 })
-                expect(wrapper.find('.icon-trash').length).toBe(1)
+                expect(itemActionExists(wrapper, 'Spike')).toBe(true)
 
-                wrapper = getShallowWrapperWithStates({
+                wrapper = getWrapper({
                     privilege: 0,
-                    states: { planning: 'in_progres' },
+                    states: { planning: 'in_progress' },
                 })
-                expect(wrapper.find('.icon-trash').length).toBe(0)
-
-                wrapper = getShallowWrapperWithStates({
-                    privilege: 1,
-                    states: {
-                        planning: 'in_progress',
-                        event: 'spiked',
-                    },
-                })
-                expect(wrapper.find('.icon-trash').length).toBe(0)
+                expect(itemActionExists(wrapper, 'Spike')).toBe(false)
             })
 
             /**
@@ -274,41 +239,41 @@ describe('planning', () => {
              * - If associated event exists and not spiked
              */
             it('shows `unspike` button', () => {
-                let wrapper = getShallowWrapperWithStates({
+                let wrapper = getWrapper({
                     privilege: 1,
                     states: { planning: 'in_progress' },
                 })
-                expect(wrapper.find('.icon-unspike').length).toBe(0)
+                expect(itemActionExists(wrapper, 'Unspike')).toBe(false)
 
-                wrapper = getShallowWrapperWithStates({
+                wrapper = getWrapper({
                     privilege: 1,
                     states: {
                         planning: 'spiked',
                         event: 'in_progress',
                     },
                 })
-                expect(wrapper.find('.icon-unspike').length).toBe(1)
+                expect(itemActionExists(wrapper, 'Unspike')).toBe(true)
 
-                wrapper = getShallowWrapperWithStates({
+                wrapper = getWrapper({
                     privilege: 0,
                     states: { planning: 'in_progress' },
                 })
-                expect(wrapper.find('.icon-unspike').length).toBe(0)
+                expect(itemActionExists(wrapper, 'Unspike')).toBe(false)
 
-                wrapper = getShallowWrapperWithStates({
+                wrapper = getWrapper({
                     privilege: 1,
                     states: { planning: 'spiked' },
                 })
-                expect(wrapper.find('.icon-unspike').length).toBe(1)
+                expect(itemActionExists(wrapper, 'Unspike')).toBe(true)
 
-                wrapper = getShallowWrapperWithStates({
+                wrapper = getWrapper({
                     privilege: 1,
                     states: {
                         planning: 'spiked',
                         event: 'spiked',
                     },
                 })
-                expect(wrapper.find('.icon-unspike').length).toBe(0)
+                expect(itemActionExists(wrapper, 'Unspike')).toBe(false)
             })
 
             it('if no coverage then icon bell is hidden', () => {

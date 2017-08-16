@@ -56,8 +56,11 @@ class PlanningList extends React.Component {
             onAgendaClick,
             privileges,
             openPlanningEditor,
+            handlePlanningDuplicate,
+            session,
         } = this.props
         const planning = plannings[index]
+
         return (
             <div key={key} style={style}>
                 <PlanningItem
@@ -69,12 +72,13 @@ class PlanningList extends React.Component {
                     event={planningsEvents[planning._id]}
                     onSpike={handlePlanningSpike}
                     onUnspike={handlePlanningUnspike}
+                    onDuplicate={handlePlanningDuplicate}
                     onClick={this.previewOrEditPlanning.bind(this, planning)}
                     onDoubleClick={openPlanningEditor}
                     onAgendaClick={onAgendaClick}
                     privileges={privileges}
-                    itemLocked={planning.lock_user && planning.lock_session ? true : false}
-                    itemLockedInThisSession={this.isPlanningLockedInThisSession(planning)} />
+                    session={session}
+                    itemLocked={planning.lock_user && planning.lock_session ? true : false} />
             </div>
         )
     }
@@ -123,6 +127,7 @@ PlanningList.propTypes = {
     session: PropTypes.object,
     onAgendaClick: PropTypes.func,
     loadMorePlannings: PropTypes.func,
+    handlePlanningDuplicate: PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -157,6 +162,8 @@ const mapDispatchToProps = (dispatch) => ({
     },
     onAgendaClick: (agendaId) => (dispatch(actions.selectAgenda(agendaId))),
     loadMorePlannings: () => (dispatch(actions.planning.ui.fetchMoreToList())),
+
+    handlePlanningDuplicate: (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningList)

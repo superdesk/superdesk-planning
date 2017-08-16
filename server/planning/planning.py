@@ -13,7 +13,7 @@ import superdesk
 import logging
 from flask import json
 from superdesk.errors import SuperdeskApiError
-from superdesk.metadata.utils import generate_guid
+from superdesk.metadata.utils import generate_guid, item_url
 from superdesk.metadata.item import GUID_NEWSML, metadata_schema
 from superdesk import get_resource_service
 from superdesk.resource import not_analyzed
@@ -53,7 +53,9 @@ class PlanningService(superdesk.Service):
         """Set default metadata."""
 
         for doc in docs:
-            doc['guid'] = generate_guid(type=GUID_NEWSML)
+            if 'guid' not in doc:
+                doc['guid'] = generate_guid(type=GUID_NEWSML)
+            doc[config.ID_FIELD] = doc['guid']
             set_original_creator(doc)
             self._set_planning_event_date(doc)
 
@@ -68,14 +70,38 @@ class PlanningService(superdesk.Service):
                 removed_agendas=[],
                 session=session_id
             )
+            self._update_event_history(doc)
 
-        if 'event_item' in doc:
-            events_service = get_resource_service('events')
-            original_event = events_service.find_one(req=None, _id=doc['event_item'])
-            events_service.system_update(doc['event_item'], {'expiry': None}, original_event)
-            get_resource_service('events_history').on_item_updated({'planning_id': doc.get('_id')},
-                                                                   original_event,
-                                                                   'planning created')
+    def _update_event_history(self, doc):
+        if 'event_item' not in doc:
+            return
+        events_service = get_resource_service('events')
+        original_event = events_service.find_one(req=None, _id=doc['event_item'])
+
+        events_service.system_update(
+            doc['event_item'],
+            {'expiry': None},
+            original_event
+        )
+
+        get_resource_service('events_history').on_item_updated(
+            {'planning_id': doc.get('_id')},
+            original_event,
+            'planning created'
+        )
+
+    def on_duplicated(self, doc, parent_id):
+        self._update_event_history(doc)
+        session_id = get_auth().get('_id')
+        push_notification(
+            'planning:duplicated',
+            item=str(doc.get(config.ID_FIELD)),
+            original=str(parent_id),
+            user=str(doc.get('original_creator', '')),
+            added_agendas=doc.get('agendas') or [],
+            removed_agendas=[],
+            session=session_id
+        )
 
     def on_locked_planning(self, item, user_id):
         item['coverages'] = list(self.__generate_related_coverages(item))
@@ -184,6 +210,7 @@ event_type['mapping'] = not_analyzed
 
 planning_schema = {
     # Identifiers
+    config.ID_FIELD: metadata_schema[config.ID_FIELD],
     'guid': metadata_schema['guid'],
 
     # Audit Information
@@ -286,6 +313,7 @@ class PlanningResource(superdesk.Resource):
     """
 
     url = 'planning'
+    item_url = item_url
     schema = planning_schema
     datasource = {
         'source': 'planning',
