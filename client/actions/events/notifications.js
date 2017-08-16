@@ -15,7 +15,7 @@ const onEventUnlocked = (_e, data) => (
             const event = selectors.getShowEventDetails(getState())
             // If this is the event currently being edited, show popup notification
             if (event === data.item &&
-                data.user !== selectors.getSessionDetails(getState).identity._id &&
+                data.lock_session !== selectors.getSessionDetails(getState()).sessionId &&
                 selectors.isEventDetailLockedInThisSession(getState())) {
                 const user =  selectors.getUsers(getState()).find((u) => u._id === data.user)
                 dispatch(showModal({

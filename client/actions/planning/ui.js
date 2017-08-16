@@ -147,18 +147,20 @@ const _lockAndOpenEditor = (item) => (
             return Promise.resolve(planningInState)
         }
 
-        dispatch(self.closeEditor(selectors.getCurrentPlanning(getState())))
-        return dispatch(planning.api.lock(item))
-        .then((lockedItem) => {
-            dispatch(self._openEditor(lockedItem))
-            return Promise.resolve(lockedItem)
-        }, (error) => {
-            notify.error(
-                getErrorMessage(error, 'Could not obtain lock on the planning item.')
-            )
-            dispatch(self._openEditor(item))
-            return Promise.reject(error)
-        })
+        return dispatch(self.closeEditor(selectors.getCurrentPlanning(getState())))
+        .then(() => (
+            dispatch(planning.api.lock(item))
+            .then((lockedItem) => {
+                dispatch(self._openEditor(lockedItem))
+                return lockedItem
+            }, (error) => {
+                notify.error(
+                    getErrorMessage(error, 'Could not obtain lock on the planning item.')
+                )
+                dispatch(self._openEditor(item))
+                return Promise.reject(error)
+            })
+        ))
     }
 )
 
@@ -168,15 +170,20 @@ const _lockAndOpenEditor = (item) => (
  */
 const closeEditor = (item) => (
     (dispatch, getState, { notify }) => {
-        if (selectors.isCurrentPlanningLockedInThisSession(getState())) {
-            dispatch(planning.api.unlock(item))
+        dispatch({ type: PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR })
+
+        if (!item) return Promise.resolve()
+
+        if (isItemLockedInThisSession(item, selectors.getSessionDetails(getState()))) {
+            return dispatch(planning.api.unlock(item))
+            .then(() => Promise.resolve(item))
             .catch(() => {
                 notify.error('Could not unlock the planning item.')
+                return Promise.resolve(item)
             })
+        } else {
+            return Promise.resolve(item)
         }
-
-        dispatch({ type: PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR })
-        return Promise.resolve(item)
     }
 )
 
