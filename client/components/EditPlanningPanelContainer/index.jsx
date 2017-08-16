@@ -13,8 +13,14 @@ import { UserAvatar, UnlockItem } from '../'
 import classNames from 'classnames'
 import './style.scss'
 import { ItemActionsMenu } from '../index'
-import { getCreator, getLockedUser, planningUtils, isItemSpiked } from '../../utils'
 import { GENERIC_ITEM_ACTIONS } from '../../constants/index'
+import {
+    getCreator,
+    getLockedUser,
+    planningUtils,
+    isItemSpiked,
+    isItemPublic,
+} from '../../utils'
 
 // Helper enum for Publish method when saving
 const saveMethods = {
@@ -156,6 +162,7 @@ export class EditPlanningPanel extends React.Component {
         const showSave = planningUtils.canSavePlanning(planning, event)
         const showPublish = planningUtils.canPublishPlanning(planning, event)
         const showUnpublish = planningUtils.canUnpublishPlanning(planning, event)
+        const isPublic = isItemPublic(planning)
         const showEdit = planningUtils.canEditPlanning(
             planning,
             event,
@@ -192,24 +199,38 @@ export class EditPlanningPanel extends React.Component {
                                     className="btn"
                                     type="reset"
                                     onClick={closePlanningEditor.bind(this, planning)}
-                                    disabled={submitting}>Cancel</button>
+                                    disabled={submitting}>
+                                    Cancel
+                                </button>
                             }
 
-                            {!forceReadOnly && showSave &&
+                            {!isPublic && !forceReadOnly && showSave &&
                                 <button
                                     className="btn btn--primary"
                                     onClick={this.handleSave.bind(this)}
                                     type="submit"
-                                    disabled={pristine || submitting}>Save</button>
+                                    disabled={pristine || submitting}>
+                                    Save
+                                </button>
                             }
 
-                            {showPublish &&
+                            {!isPublic && showPublish &&
                                 <button
                                     onClick={this.handleSaveAndPublish.bind(this)}
                                     type="button"
                                     className="btn btn--success"
                                     disabled={submitting || notForPublication}>
-                                    Publish
+                                    {pristine ? 'Publish' : 'Save and publish'}
+                                </button>
+                            }
+
+                            {!forceReadOnly && showUnpublish &&
+                                <button
+                                    onClick={this.handleSaveAndPublish.bind(this)}
+                                    type="button"
+                                    className="btn btn--primary"
+                                    disabled={pristine || submitting || notForPublication}>
+                                    Save and update
                                 </button>
                             }
 

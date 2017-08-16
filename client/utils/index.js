@@ -343,8 +343,10 @@ export const getItemStateUiLabel = (item) => {
     }
 }
 
-export const isItemPublic = (pubstatus) =>
-    pubstatus === PUBLISHED_STATE.USABLE || pubstatus === PUBLISHED_STATE.CANCELLED
+export const isItemPublic = (item={}) =>
+    typeof item === 'string' ?
+        item === PUBLISHED_STATE.USABLE || item === PUBLISHED_STATE.CANCELLED :
+        item.pubstatus === PUBLISHED_STATE.USABLE || item.pubstatus === PUBLISHED_STATE.CANCELLED
 
 export const isItemSpiked = (item) => item ?
     getItemState(item) === WORKFLOW_STATE.SPIKED : false
