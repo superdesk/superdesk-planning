@@ -168,6 +168,7 @@ const onPlanningUnlocked = (_e, data) => (
             // If this is the planning item currently being edited, show popup notification
             const currentPlanning = selectors.getCurrentPlanning(getState())
             if (currentPlanning && currentPlanning._id == data.item &&
+                data.lock_session !== selectors.getSessionDetails(getState()).sessionId &&
                 selectors.isCurrentPlanningLockedInThisSession(getState())) {
                 const user =  selectors.getUsers(getState()).find((u) => u._id === data.user)
                 dispatch(showModal({

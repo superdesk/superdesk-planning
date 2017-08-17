@@ -353,19 +353,20 @@ describe('actions.planning.ui', () => {
         }])
     })
 
-    it('closeEditor', () => {
+    it('closeEditor', (done) => {
         store.initialState.planning.currentPlanningId = 'p1'
         data.plannings[0].lock_user = store.initialState.session.identity._id
         data.plannings[0].lock_session = store.initialState.session.sessionId
 
         restoreSinonStub(planningUi.closeEditor)
         store.init()
-        store.dispatch(planningUi.closeEditor(data.plannings[1]))
+        store.dispatch(planningUi.closeEditor(data.plannings[0])).then(() => {
+            expect(planningApi.unlock.callCount).toBe(1)
+            expect(planningApi.unlock.args[0]).toEqual([data.plannings[0]])
+            expect(store.dispatch.args[1]).toEqual([{ type: 'CLOSE_PLANNING_EDITOR' }])
 
-        expect(planningApi.unlock.callCount).toBe(1)
-        expect(planningApi.unlock.args[0]).toEqual([data.plannings[1]])
-
-        expect(store.dispatch.args[2]).toEqual([{ type: 'CLOSE_PLANNING_EDITOR' }])
+            done()
+        })
     })
 
     describe('openEditor', () => {
