@@ -13,7 +13,7 @@ import { UserAvatar, UnlockItem } from '../'
 import classNames from 'classnames'
 import './style.scss'
 import { ItemActionsMenu } from '../index'
-import { GENERIC_ITEM_ACTIONS } from '../../constants/index'
+import { GENERIC_ITEM_ACTIONS, PRIVILEGES } from '../../constants/index'
 import {
     getCreator,
     getLockedUser,
@@ -118,7 +118,6 @@ export class EditPlanningPanel extends React.Component {
             readOnly,
             lockedInThisSession,
             users,
-            planningManagementPrivilege,
             notForPublication,
             session,
             privileges,
@@ -136,6 +135,8 @@ export class EditPlanningPanel extends React.Component {
         const lockedUser = getLockedUser(planning, this.props.users)
         const planningSpiked = isItemSpiked(planning)
         const eventSpiked = isItemSpiked(event)
+
+        const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK]
 
         const callBacks = {
             [GENERIC_ITEM_ACTIONS.SPIKE.label]: onSpike.bind(null, planning),
@@ -159,14 +160,14 @@ export class EditPlanningPanel extends React.Component {
             forceReadOnly = true
         }
 
-        const showSave = planningUtils.canSavePlanning(planning, event)
-        const showPublish = planningUtils.canPublishPlanning(planning, event)
-        const showUnpublish = planningUtils.canUnpublishPlanning(planning, event)
+        const showSave = planningUtils.canSavePlanning(planning, event, privileges)
+        const showPublish = planningUtils.canPublishPlanning(planning, event, privileges, session)
+        const showUnpublish = planningUtils.canUnpublishPlanning(planning, event, privileges, session)
         const isPublic = isItemPublic(planning)
         const showEdit = planningUtils.canEditPlanning(
             planning,
             event,
-            planningManagementPrivilege,
+            privileges,
             lockedInThisSession,
             lockedUser
         )
@@ -186,7 +187,7 @@ export class EditPlanningPanel extends React.Component {
                                     <UserAvatar user={lockedUser} withLoggedInfo={true} />
                                 </button>
                                 {this.state.openUnlockPopup && <UnlockItem user={lockedUser}
-                                    showUnlock={this.props.unlockPrivilege}
+                                    showUnlock={unlockPrivilege}
                                     onCancel={this.toggleOpenUnlockPopup.bind(this)}
                                     onUnlock={this.props.unlockItem.bind(this, planning)}/>}
                             </div>
@@ -331,8 +332,6 @@ EditPlanningPanel.propTypes = {
         PropTypes.object,
     ]),
     readOnly: PropTypes.bool,
-    unlockPrivilege: PropTypes.bool,
-    planningManagementPrivilege: PropTypes.bool,
     unlockItem: PropTypes.func,
     lockedInThisSession: PropTypes.bool,
     save: PropTypes.func,
@@ -356,8 +355,6 @@ const mapStateToProps = (state) => ({
     event: selectors.getCurrentPlanningEvent(state),
     users: selectors.getUsers(state),
     readOnly: selectors.getPlanningItemReadOnlyState(state),
-    unlockPrivilege: selectors.getPrivileges(state).planning_unlock ? true : false,
-    planningManagementPrivilege: selectors.getPrivileges(state).planning_planning_management ? true : false,
     lockedInThisSession: selectors.isCurrentPlanningLockedInThisSession(state),
     notForPublication: selector(state, 'flags.marked_for_not_publication'),
     privileges: selectors.getPrivileges(state),
