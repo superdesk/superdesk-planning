@@ -26,6 +26,7 @@ import {
     isItemLockedInThisSession,
     isItemLockRestricted,
     isItemSpiked,
+    isItemPublic,
 } from '../../utils'
 import { fieldRenders } from './fieldRenders.jsx'
 
@@ -141,11 +142,6 @@ export class Component extends React.Component {
         this.props.change('dates.end', newEnd)
     }
 
-    getLockedUser(event) {
-        return get(event, 'lock_user') && Array.isArray(this.props.users) ?
-            this.props.users.find((u) => (u._id === event.lock_user)) : null
-    }
-
     toggleOpenUnlockPopup() {
         this.setState({ openUnlockPopup: !this.state.openUnlockPopup })
     }
@@ -204,6 +200,9 @@ export class Component extends React.Component {
         const recurringRulesEditable =  !forcedReadOnly && this.isRecurringRulesEditable()
         const occurrenceOverlaps = eventUtils.doesRecurringEventsOverlap(startingDate, endingDate, recurringRule)
         const lockRestricted =  isItemLockRestricted(initialValues, session)
+        const isPublic = isItemPublic(initialValues)
+        const canPublish = eventUtils.canPublishEvent(initialValues, session, privileges)
+        const canUnpublish = eventUtils.canUnpublishEvent(initialValues, privileges)
 
         const RepeatEventFormProps = {
             ...this.props,
@@ -244,51 +243,84 @@ export class Component extends React.Component {
                         {!this.state.previewHistory && 'Event details'}
                         {this.state.previewHistory && 'Event history'}
                     </span>
-                    {!forcedReadOnly && (
-                        <div>
-                            <button type="button" className="btn" onClick={onBackClick}>Cancel</button>
-                            <button type="submit" className="btn btn--primary" disabled={pristine || submitting}>
-                                Save
+                    {!forcedReadOnly && !this.state.previewHistory && (
+                        <div className="subnav__actions">
+                            <button
+                                type="button"
+                                className="btn"
+                                disabled={submitting}
+                                onClick={onBackClick}>
+                                Cancel
                             </button>
-                            { eventUtils.canPublishEvent(initialValues, session, privileges) &&
+                            {!isPublic &&
+                                <button
+                                    type="submit"
+                                    className="btn btn--primary"
+                                    disabled={pristine || submitting}>
+                                    Save
+                                </button>
+                            }
+                            {!isPublic && canPublish &&
                                 <button
                                     onClick={handleSubmit(this.handleSaveAndPublish.bind(this))}
                                     type="button"
                                     className="btn btn--success"
                                     disabled={submitting}>
-                                    Save and publish
+                                    {pristine ? 'Publish' : 'Save and publish'}
+                                </button>
+                            }
+                            {canUnpublish &&
+                                <button
+                                    onClick={handleSubmit(this.handleSaveAndPublish.bind(this))}
+                                    type="button"
+                                    className="btn btn--primary"
+                                    disabled={pristine || submitting}>
+                                    Save and update
+                                </button>
+                            }
+                            {canUnpublish &&
+                                <button
+                                    onClick={unpublish.bind(null, initialValues)}
+                                    type="button"
+                                    disabled={submitting}
+                                    className="btn btn--hollow">
+                                    Unpublish
                                 </button>
                             }
                         </div>
                     )}
-                    {!this.state.previewHistory && (
+                    {forcedReadOnly && !this.state.previewHistory && (
                         <div className="subnav__actions">
                             <div>
-                                {forcedReadOnly && eventUtils.canPublishEvent(initialValues, session, privileges) &&
+                                {canPublish &&
                                     <button
-                                        onClick={() => publish(initialValues)}
+                                        onClick={publish.bind(null, initialValues)}
                                         type="button"
                                         className="btn btn--success">
                                         Publish</button>
                                 }
-                                {eventUtils.canUnpublishEvent(initialValues, privileges) &&
+                                {canUnpublish &&
                                     <button
-                                        onClick={() => unpublish(initialValues)}
+                                        onClick={unpublish.bind(null, initialValues)}
                                         type="button"
                                         className="btn btn--hollow">
                                         Unpublish</button>
                                 }
-                                {forcedReadOnly && !eventSpiked && !lockRestricted && (<OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
-                                    <button
-                                        type='button'
-                                        onClick={openEventDetails.bind(null, initialValues)}
-                                        className="navbtn navbtn--right">
-                                        <i className="icon-pencil"/>
-                                    </button>
-                                </OverlayTrigger>)}
+                                {!eventSpiked && !lockRestricted && (
+                                    <OverlayTrigger
+                                        placement="bottom"
+                                        overlay={tooltips.editTooltip}>
+                                        <button
+                                            type='button'
+                                            onClick={openEventDetails.bind(null, initialValues)}
+                                            className="navbtn navbtn--right">
+                                            <i className="icon-pencil"/>
+                                        </button>
+                                    </OverlayTrigger>
+                                )}
                             </div>
-                        </div>)
-                    }
+                        </div>
+                    )}
                 </div>
                 {!this.state.previewHistory &&
                     <div className="EventForm__form">
@@ -330,7 +362,7 @@ export class Component extends React.Component {
                     {get(formProfile, 'editor.internal_note.enabled') && fieldRenders.renderInternalNote(!metaDataEditable)}
                     {get(formProfile, 'editor.location.enabled') && fieldRenders.renderLocation(!metaDataEditable)}
                     {fieldRenders.renderDate(!recurringRulesEditable, true, occurrenceOverlaps)}
-                    {fieldRenders.renderDate(!recurringRulesEditable)}
+                    {fieldRenders.renderDate(!recurringRulesEditable, false, null, this.oneHourAfterStartingDate())}
                     <label>
                         <Toggle
                             value={this.props.isAllDay}

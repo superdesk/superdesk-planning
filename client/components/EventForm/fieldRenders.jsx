@@ -97,7 +97,7 @@ const renderLocation = (readOnly) => (
     </div>
 )
 
-const renderDate = (readOnly, start=false, occurrenceOverlaps=null) => {
+const renderDate = (readOnly, start=false, occurrenceOverlaps=null, defaultDate=null) => {
     const name = start ? 'dates.start' : 'dates.end'
     const label = start  ? 'From' : 'To'
     return (<div>
@@ -108,6 +108,7 @@ const renderDate = (readOnly, start=false, occurrenceOverlaps=null) => {
             <Field name={name}
                    component={fields.DayPickerInput}
                    withTime={true}
+                   defaultDate={defaultDate}
                    readOnly={readOnly}/>&nbsp;
             { start && occurrenceOverlaps && (
                 <span className="error-block">Events Overlap!</span>
