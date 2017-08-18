@@ -103,7 +103,7 @@ const askConfirmationBeforeSavingEvent = (event, publish=false) => (
         return dispatch(eventsApi.query({ recurrenceId: originalEvent.recurrence_id }))
         .then((relatedEvents) => (
             dispatch(showModal({
-                modalType: 'UPDATE_EVENT_MODAL',
+                modalType: 'ITEM_ACTIONS_MODAL',
                 modalProps: {
                     eventDetail: {
                         ...event,
@@ -112,6 +112,7 @@ const askConfirmationBeforeSavingEvent = (event, publish=false) => (
                         _events: [],
                         _originalEvent: originalEvent,
                     },
+                    actionType: 'save',
                 },
             }))
         ))

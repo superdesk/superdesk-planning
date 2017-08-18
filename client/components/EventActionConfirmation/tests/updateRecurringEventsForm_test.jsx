@@ -1,10 +1,10 @@
 import React from 'react'
 import { mount } from 'enzyme'
 import { Provider } from 'react-redux'
-import { UpdateRecurringEventsForm, UpdateRecurringEvents } from './form'
-import { EventUpdateMethodField } from '../fields'
-import { getTestActionStore } from '../../utils/testUtils'
-import { createTestStore } from '../../utils'
+import { UpdateRecurringEventsForm, UpdateRecurringEvents } from '../forms/updateRecurringEventsForm'
+import { EventUpdateMethodField } from '../../fields'
+import { getTestActionStore } from '../../../utils/testUtils'
+import { createTestStore } from '../../../utils'
 
 describe('<UpdateRecurringEventsForm />', () => {
     let store
