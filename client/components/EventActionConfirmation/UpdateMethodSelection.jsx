@@ -31,7 +31,6 @@ export const UpdateMethodSelection = ({
                 <button type="submit" style={{ visibility: 'hidden' }}>Submit</button>
             </form>}
 
-            // We are showing related planning irrespective of it being a recurring event or not
             { relatedPlannings.length > 0 && (
                 <div>
                     <div className="sd-alert sd-alert--hollow sd-alert--alert">
