@@ -1,14 +1,14 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import { Field, reduxForm, formValueSelector } from 'redux-form'
-import * as actions from '../../actions'
-import { getDateFormat } from '../../selectors'
+import { reduxForm, formValueSelector } from 'redux-form'
+import * as actions from '../../../actions'
+import { getDateFormat } from '../../../selectors'
 import moment from 'moment'
-import { EventUpdateMethodField, EventUpdateMethods } from '../fields'
-import { RelatedEvents } from '../index'
-import './style.scss'
+import { EventUpdateMethods } from '../../fields'
+import '../style.scss'
 import { get, isNil } from 'lodash'
+import { UpdateMethodSelection } from '../UpdateMethodSelection'
 
 const Component = ({ handleSubmit, initialValues, relatedEvents=[], dateFormat }) => {
     let event = initialValues
@@ -35,7 +35,7 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], dateFormat }
     }
 
     return (
-        <div className="UpdateEventConfirmation">
+        <div className="EventActionConfirmation">
             <div className="metadata-view">
                 <dl>
                     { event.slugline && (<dt>Slugline:</dt>) }
@@ -51,37 +51,13 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], dateFormat }
                 </dl>
             </div>
 
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <span>
-                        <strong>This event is a recurring event!</strong>
-                    </span>
-
-                    { showUpdateMethod ? (
-                        <Field name="update_method"
-                               component={EventUpdateMethodField}
-                               label={updateMethodLabel}/>
-                    ) : (
-                        <p>{ updateMethodLabel }</p>
-                    )}
-                </div>
-                <button type="submit" style={{ visibility: 'hidden' }}>Submit</button>
-            </form>
-
-            { showUpdateMethod && relatedEvents.length < 1 && (
-                <div className="spacing" />
-            )}
-
-            { showUpdateMethod && relatedEvents.length > 0 && (
-                <div>
-                    <div className="sd-alert sd-alert--hollow sd-alert--alert">
-                        <strong>This will also update the following events</strong>
-                        <RelatedEvents
-                            events={relatedEvents}
-                            dateFormat={dateFormat} />
-                    </div>
-                </div>
-            )}
+            {!showUpdateMethod && <p>{ updateMethodLabel }</p>}
+            <UpdateMethodSelection
+                showMethodSelection={showUpdateMethod}
+                updateMethodLabel={updateMethodLabel}
+                relatedEvents={relatedEvents}
+                dateFormat={dateFormat}
+                handleSubmit={handleSubmit} />
         </div>
     )
 }

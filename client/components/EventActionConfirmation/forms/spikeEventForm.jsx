@@ -1,12 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import { Field, reduxForm, formValueSelector } from 'redux-form'
-import { RelatedPlannings } from '../index'
-import * as actions from '../../actions'
+import { reduxForm, formValueSelector } from 'redux-form'
+import * as actions from '../../../actions'
 import moment from 'moment'
-import { EventUpdateMethodField, EventUpdateMethods } from '../fields/index'
-import './style.scss'
+import { EventUpdateMethods } from '../../fields/index'
+import '../style.scss'
+import { UpdateMethodSelection } from '../UpdateMethodSelection'
 
 const Component = ({ handleSubmit, initialValues, relatedPlannings=[] }) => {
     let event = initialValues
@@ -23,7 +23,7 @@ const Component = ({ handleSubmit, initialValues, relatedPlannings=[] }) => {
     const updateMethodLabel = 'Would you like to spike all recurring events or just this one?'
 
     return (
-        <div className="SpikeEvent">
+        <div className="EventActionConfirmation">
             <strong>{ event.name }</strong>
             <div className="metadata-view">
                 <dl>
@@ -38,35 +38,12 @@ const Component = ({ handleSubmit, initialValues, relatedPlannings=[] }) => {
                 </dl>
             </div>
 
-            <form onSubmit={handleSubmit} className="SpikeEventForm">
-                { showRecurring && (
-                    <div className="MethodSelect">
-                        <span>
-                            <strong>This event is a recurring event!</strong>
-                        </span>
-
-                        <Field name="update_method"
-                               component={EventUpdateMethodField}
-                               label={updateMethodLabel}/>
-                    </div>
-                )}
-                <button type="submit" style={{ visibility: 'hidden' }}>Submit</button>
-            </form>
-            { showRecurring && relatedPlannings.length <= 0 && (
-                <div className="Spacing" />
-            )}
-
-            { relatedPlannings && relatedPlannings.length > 0 && (
-                <div>
-                    <div className="sd-alert sd-alert--hollow sd-alert--alert">
-                        <strong>This will also spike the following planning items</strong>
-                        <RelatedPlannings
-                            plannings={relatedPlannings}
-                            openPlanningItem={true}
-                            short={true} />
-                    </div>
-                </div>
-            )}
+            {<UpdateMethodSelection
+                showMethodSelection={showRecurring}
+                updateMethodLabel={updateMethodLabel}
+                relatedPlannings={relatedPlannings}
+                handleSubmit={handleSubmit}
+                action='spike' />}
         </div>
     )
 }

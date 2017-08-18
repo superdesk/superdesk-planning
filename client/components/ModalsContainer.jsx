@@ -5,16 +5,14 @@ import {
     AgendaModal,
     ConfirmationModal,
     NotificationModal,
-    SpikeEventModal,
-    UpdateRecurringEventsModal } from './index'
+    EventActionConfirmationModal } from './index'
 
 const modals = {
     CONFIRMATION: ConfirmationModal,
     CREATE_AGENDA: AgendaModal,
     EDIT_AGENDA: AgendaModal,
     NOTIFICATION_MODAL: NotificationModal,
-    SPIKE_EVENT: SpikeEventModal,
-    UPDATE_EVENT_MODAL: UpdateRecurringEventsModal,
+    ITEM_ACTIONS_MODAL: EventActionConfirmationModal,
 }
 
 export function Modals({ modalType, modalProps, handleHide }) {

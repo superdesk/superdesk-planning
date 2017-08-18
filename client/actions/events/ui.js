@@ -1,5 +1,5 @@
 import { showModal, hideModal } from '../index'
-import { PRIVILEGES, EVENTS } from '../../constants'
+import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS } from '../../constants'
 import planning from '../planning'
 import eventsApi from './api'
 import { fetchSelectedAgendaPlannings } from '../agenda'
@@ -136,12 +136,13 @@ const _openSingleSpikeModal = (event) => (
         dispatch(planning.api.loadPlanningByEventId(event._id))
         .then((planningItems) => (
             dispatch(showModal({
-                modalType: 'SPIKE_EVENT',
+                modalType: 'ITEM_ACTIONS_MODAL',
                 modalProps: {
                     eventDetail: {
                         ...event,
                         _plannings: planningItems,
                     },
+                    actionType: GENERIC_ITEM_ACTIONS.SPIKE.label,
                 },
             }))
         ), (error) => {
@@ -162,8 +163,11 @@ const _openMultiSpikeModal = (event) => (
         dispatch(eventsApi.loadRecurringEventsAndPlanningItems(event))
         .then((events) => {
             dispatch(showModal({
-                modalType: 'SPIKE_EVENT',
-                modalProps: { eventDetail: events },
+                modalType: 'ITEM_ACTIONS_MODAL',
+                modalProps: {
+                    eventDetail: events,
+                    actionType: GENERIC_ITEM_ACTIONS.SPIKE.label,
+                },
             }))
             return Promise.resolve(events)
         }, (error) => {

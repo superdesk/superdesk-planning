@@ -142,12 +142,13 @@ describe('actions.events.ui', () => {
                 expect(store.dispatch.callCount).toBe(2)
                 expect(store.dispatch.args[1]).toEqual([{
                     type: 'SHOW_MODAL',
-                    modalType: 'SPIKE_EVENT',
+                    modalType: 'ITEM_ACTIONS_MODAL',
                     modalProps: {
                         eventDetail: {
                             ...data.events[1],
                             _plannings: data.plannings,
                         },
+                        actionType: 'Spike',
                     },
                 }])
 
@@ -190,8 +191,11 @@ describe('actions.events.ui', () => {
                 expect(store.dispatch.callCount).toBe(2)
                 expect(store.dispatch.args[1]).toEqual([{
                     type: 'SHOW_MODAL',
-                    modalType: 'SPIKE_EVENT',
-                    modalProps: { eventDetail: data.events[0] },
+                    modalType: 'ITEM_ACTIONS_MODAL',
+                    modalProps: {
+                        eventDetail: data.events[0],
+                        actionType: 'Spike',
+                    },
                 }])
 
                 done()
