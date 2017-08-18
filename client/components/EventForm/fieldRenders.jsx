@@ -61,7 +61,7 @@ const renderSubject = (readOnly) => (
 
 const renderDescription = (readOnly) => (
     <div>
-        <Field name='description_text'
+        <Field name='definition_short'
             component={fields.InputField}
             type="text"
             label="Short Description"
