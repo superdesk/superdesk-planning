@@ -1,5 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import classNames from 'classnames'
 import {
     AdvancedSearchPanelContainer,
     EventsList,
@@ -9,6 +10,7 @@ import {
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
+import { ADVANCED_SEARCH_CONTEXT } from '../../constants'
 import { get } from 'lodash'
 import './style.scss'
 
@@ -27,12 +29,9 @@ class EventsListComponent extends React.Component {
 
     render() {
         const { advancedSearchOpened, toggleEventsList, loadEvents, currentSearch, privileges, session } = this.props
-        const classes = [
-            'Events-list-container',
-            advancedSearchOpened ? 'Events-list-container--advanced-search-view' : null,
-        ]
         return (
-            <div className={classes.join(' ')}>
+            <div className={classNames('Events-list-container',
+                { 'Events-list-container--advanced-search-view': advancedSearchOpened })}>
                 <div className="Events-list-container__header subnav">
                     <div className="subnav__button-stack--square-buttons">
                         <div className="navbtn" title="Hide the list">
@@ -49,7 +48,8 @@ class EventsListComponent extends React.Component {
                     <label
                         className="trigger-icon advanced-search-open"
                         onClick={this.toggleAdvancedSearch.bind(this)}>
-                        <i className="icon-filter-large" />
+                        <i className={classNames('icon-filter-large',
+                            { 'icon--blue': get(currentSearch, 'advancedSearch') })} />
                     </label>
                     <SearchBar value={get(currentSearch, 'fulltext')} onSearch={(value) => loadEvents(value)}/>
                     {privileges.planning_event_management === 1 && (
@@ -65,7 +65,7 @@ class EventsListComponent extends React.Component {
                     </div>
                 }
                 <div className="Events-list-container__body">
-                    <AdvancedSearchPanelContainer  />
+                    <AdvancedSearchPanelContainer searchContext={ADVANCED_SEARCH_CONTEXT.EVENT}/>
                     <EventsList events={this.props.events}
                                 onClick={this.props.previewEvent}
                                 onDoubleClick={this.props.openEventDetails}
@@ -119,8 +119,8 @@ const mapDispatchToProps = (dispatch) => ({
     openEventDetails: (event) => dispatch(actions.events.ui.openEventDetails(event)),
     previewEvent: (event) => dispatch(actions.events.ui.previewEvent(event)),
     loadEvents: (keyword) => dispatch(actions.fetchEvents({ fulltext: keyword })),
-    openAdvancedSearch: () => (dispatch(actions.openAdvancedSearch())),
-    closeAdvancedSearch: () => (dispatch(actions.closeAdvancedSearch())),
+    openAdvancedSearch: () => (dispatch(actions.events.ui.openAdvancedSearch())),
+    closeAdvancedSearch: () => (dispatch(actions.events.ui.closeAdvancedSearch())),
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
     loadMoreEvents: () => (dispatch(actions.loadMoreEvents())),
     spikeEvent: (event) => dispatch(actions.events.ui.openSpikeModal(event)),

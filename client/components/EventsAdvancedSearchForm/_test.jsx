@@ -1,13 +1,13 @@
 import React from 'react'
 import { mount } from 'enzyme'
-import { AdvancedSearchForm } from '../index'
+import { EventsAdvancedSearchForm } from '../index'
 import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
 import moment from 'moment'
 
 describe('events', () => {
     describe('containers', () => {
-        describe('<AdvancedSearchForm />', () => {
+        describe('<EventsAdvancedSearchForm />', () => {
             function checkQueryForParameters({ params, expectedQuery }) {
                 return new Promise((resolve) => {
                     let store = createTestStore({
@@ -20,7 +20,7 @@ describe('events', () => {
                     })
                     const wrapper = mount(
                         <Provider store={store}>
-                            <AdvancedSearchForm initialValues={params} />
+                            <EventsAdvancedSearchForm initialValues={params} />
                         </Provider>
                     )
                     wrapper.find('form').simulate('submit')
@@ -31,7 +31,7 @@ describe('events', () => {
                 const store = createTestStore()
                 const wrapper = mount(
                     <Provider store={store}>
-                        <AdvancedSearchForm />
+                        <EventsAdvancedSearchForm />
                     </Provider>
                 )
                 wrapper.find('[name="clear"] button').simulate('click')

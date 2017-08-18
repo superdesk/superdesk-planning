@@ -403,22 +403,6 @@ const addToEventsList = (eventsIds) => ({
 })
 
 /**
- * Action to open Event Advanced Search panel
- * @return object
- */
-const openAdvancedSearch = () => (
-    { type: EVENTS.ACTIONS.OPEN_ADVANCED_SEARCH }
-)
-
-/**
- * Action to close the Event Advanced Search panel
- * @return object
- */
-const closeAdvancedSearch = () => (
-    { type: EVENTS.ACTIONS.CLOSE_ADVANCED_SEARCH }
-)
-
-/**
  * Action to receive the history of actions on Event and store them in the store
  * @param {array} eventHistoryItems - An array of Event History items
  * @return object
@@ -549,8 +533,6 @@ export {
     toggleEventSelection,
     toggleEventsList,
     receiveEventHistory,
-    closeAdvancedSearch,
-    openAdvancedSearch,
     addToEventsList,
     fetchEvents,
     fetchEventHistory,

@@ -132,7 +132,13 @@ class PlanningService(superdesk.Service):
             event = get_resource_service('events').find_one(req=None, _id=event_id)
 
         doc['_planning_date'] = event.get('dates', {}).get('start') if event else utcnow()
-        doc['_coverages'] = [{'coverage_id': None, 'scheduled': doc['_planning_date'], 'g2_content_type': None}]
+        doc['_coverages'] = [
+            {
+                'coverage_id': 'NO_COVERAGE',
+                'scheduled': doc['_planning_date'],
+                'g2_content_type': None
+            }
+        ]
 
     def _get_added_removed_agendas(self, updates, original):
         added_agendas = updates.get('agendas') or []

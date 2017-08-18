@@ -106,6 +106,40 @@ const forms = formReducer.plugin({
             },
         }
     },
+    // 'planningAdvancedSearch' is the name of the form given to reduxForm
+    planningAdvancedSearch: (state={}, action) => {
+        if (action.type !== actionTypes.CHANGE ||
+            get(action, 'meta.form', '') !== 'planningAdvancedSearch') {
+            return state
+        }
+
+        let values = state.values
+        if (get(action, 'meta.field', '') === 'dates.range' && get(values, 'dates.range') !== '') {
+            return {
+                ...state,
+                values: {
+                    ...values,
+                    dates: { range: get(values, 'dates.range') },
+                },
+            }
+        } else if ((get(action, 'meta.field', '') === 'dates.start' &&
+                moment.isMoment(get(values, 'dates.start'))) ||
+            (get(action, 'meta.field', '') === 'dates.end'  &&
+                moment.isMoment(get(values, 'dates.end')))) {
+            return {
+                ...state,
+                values: {
+                    ...values,
+                    dates: {
+                        start: get(values, 'dates.start', null),
+                        end: get(values, 'dates.end', null),
+                    },
+                },
+            }
+        } else {
+            return { ...state }
+        }
+    },
 })
 
 export default forms

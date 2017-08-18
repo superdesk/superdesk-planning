@@ -39,7 +39,9 @@ const canRefetchPlanning = (data) => (
         }
 
         const agendaId = selectors.getCurrentAgendaId(getState())
-        if (agendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED &&
+        if (agendaId === AGENDA.FILTER.ALL_PLANNING) {
+            updatePlanning = true
+        } else if (agendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED &&
             isEmpty(get(data, 'added_agendas', []))) {
             updatePlanning = true
         } else if (agendaId && (includes(get(data, 'added_agendas', []), agendaId) ||

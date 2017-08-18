@@ -20,7 +20,6 @@ export const getStoredPlannings = (state) => state.planning.plannings
 export const getPlanningIdsInList = (state) => state.planning.planningsInList
 export const isOnlyFutureFiltered = (state) => state.planning.onlyFuture
 export const filterPlanningKeyword = (state) => state.planning.filterPlanningKeyword
-export const isOnlySpikeFiltered = (state) => state.planning.onlySpiked
 export const getServerUrl = (state) => state.config.server.url
 export const getDateFormat = (state) => state.config.model.dateformat
 export const getTimeFormat = (state) => state.config.shortTimeFormat
@@ -86,20 +85,22 @@ export const getPlanningsInList = createSelector(
 )
 
 export const getFilteredPlanningList = createSelector(
-    [getCurrentAgenda, getCurrentAgendaId, getPlanningsInList, isOnlySpikeFiltered],
-    (currentAgenda, currentAgendaId, planningsInList, onlySpike) => {
+    [getCurrentAgenda, getCurrentAgendaId, getPlanningsInList, getPlanningSearch],
+    (currentAgenda, currentAgendaId, planningsInList, currentSearch) => {
 
-        let plannings = []
+        let plannings = planningsInList
 
         if (currentAgenda && currentAgenda._id) {
             plannings = planningsInList.filter(
                 (planning) => includes(planning.agendas, currentAgenda._id)
             )
-        } else if (currentAgendaId) {
+        } else if (currentAgendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED) {
             plannings = planningsInList.filter(
                 (planning) => !planning.agendas || isEmpty(planning.agendas)
             )
         }
+
+        let onlySpike = get(currentSearch, 'spikeState') === SPIKED_STATE.SPIKED
 
         return plannings.filter((p) =>
             (onlySpike && isItemSpiked(p)) ||
@@ -288,18 +289,24 @@ export const isEventDetailLockedInThisSession = createSelector(
 
 export const getPlanningFilterParams = createSelector(
     [getCurrentAgendaId, getCurrentAgenda, getPlanningSearch,
-        filterPlanningKeyword, isOnlySpikeFiltered, isOnlyFutureFiltered],
-    (agendaId, agenda, planningSearch, filterKeyword, onlySpiked, onlyFuture) => {
+        filterPlanningKeyword, isOnlyFutureFiltered],
+    (agendaId, agenda, planningSearch, filterKeyword, onlyFuture) => {
         const params = {
             noAgendaAssigned: agendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED,
             agendas: agenda ? [agenda._id] : null,
             page: 1,
-            advancedSearch: planningSearch,
-            spikeState: onlySpiked ? SPIKED_STATE.SPIKED : SPIKED_STATE.NOT_SPIKED,
+            advancedSearch: get(planningSearch, 'advancedSearch', {}),
+            spikeState: get(planningSearch, 'spikeState', SPIKED_STATE.NOT_SPIKED),
             fulltext: filterKeyword,
             onlyFuture: onlyFuture,
         }
 
         return params
     }
+)
+
+export const isAdvancedDateSearch = createSelector(
+    [getPlanningSearch], (currentSearch) => (
+        !!get(currentSearch, 'advancedSearch.dates.range', false)
+    )
 )

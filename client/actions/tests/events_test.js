@@ -1,5 +1,5 @@
 import sinon from 'sinon'
-import * as actions from '../events'
+import * as actions from '../../actions'
 import { EVENTS } from '../../constants'
 import { createTestStore, registerNotifications } from '../../utils'
 import { range, cloneDeep } from 'lodash'
@@ -349,13 +349,13 @@ describe('events', () => {
         })
 
         it('openAdvancedSearch', () => {
-            const action = actions.openAdvancedSearch()
-            expect(action).toEqual({ type: 'OPEN_ADVANCED_SEARCH' })
+            const action = actions.events.ui.openAdvancedSearch()
+            expect(action).toEqual({ type: 'EVENT_OPEN_ADVANCED_SEARCH' })
         })
 
         it('closeAdvancedSearch', () => {
-            const action = actions.closeAdvancedSearch()
-            expect(action).toEqual({ type: 'CLOSE_ADVANCED_SEARCH' })
+            const action = actions.events.ui.closeAdvancedSearch()
+            expect(action).toEqual({ type: 'EVENT_CLOSE_ADVANCED_SEARCH' })
         })
 
         it('toggleEventsList', () => {

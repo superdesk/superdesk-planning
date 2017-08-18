@@ -1,10 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import { connect } from 'react-redux'
+import classNames from 'classnames'
 import { fields, CoverageAssign } from '../../components'
 import * as selectors from '../../selectors'
 import { Field, formValueSelector } from 'redux-form'
-import { connect } from 'react-redux'
-import classNames from 'classnames'
 import './style.scss'
 import { get } from 'lodash'
 

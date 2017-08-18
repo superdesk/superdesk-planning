@@ -1,7 +1,7 @@
 import { get, cloneDeep, pickBy, isEqual, has } from 'lodash'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
-import { getTimeZoneOffset } from '../../utils/index'
+import { getTimeZoneOffset, sanitizeTextForQuery } from '../../utils'
 import moment from 'moment'
 import {
     PLANNING,
@@ -124,7 +124,7 @@ const query = ({
                     let query = { bool: { should: [] } }
                     let queryString = {
                         query_string: {
-                            query: '(' + fulltext.replace(/\//g, '\\/') + ')',
+                            query: '(' + sanitizeTextForQuery(fulltext) + ')',
                             lenient: false,
                             default_operator: 'AND',
                         },
@@ -140,7 +140,7 @@ const query = ({
                 },
             },
             {
-                condition: () => (onlyFuture),
+                condition: () => (!get(advancedSearch, 'dates') && onlyFuture),
                 do: () => {
                     must.push({
                         nested: {
@@ -164,7 +164,7 @@ const query = ({
                 },
             },
             {
-                condition: () => (!onlyFuture),
+                condition: () => (!get(advancedSearch, 'dates') && !onlyFuture),
                 do: () => {
                     must.push({
                         nested: {
@@ -188,11 +188,140 @@ const query = ({
                 },
             },
             {
-                condition: () => (advancedSearch),
-                do: () => (true),
+                condition: () => (get(advancedSearch, 'dates')),
+                do: () => {
+                    let range = { '_coverages.scheduled': { time_zone: getTimeZoneOffset() } }
+                    let rangeType = get(advancedSearch, 'dates.range', 'today')
+
+                    if (rangeType === 'today') {
+                        range['_coverages.scheduled'].gte = 'now/d'
+                        range['_coverages.scheduled'].lt = 'now+24h/d'
+                    } else if (rangeType === 'last24') {
+                        range['_coverages.scheduled'].gte = 'now-24h'
+                        range['_coverages.scheduled'].lt = 'now'
+                    } else if (rangeType === 'week') {
+                        range['_coverages.scheduled'].gte = 'now/w'
+                        range['_coverages.scheduled'].lt = 'now+1w/w'
+                    } else {
+                        if (get(advancedSearch, 'dates.start')) {
+                            range['_coverages.scheduled'].gte = get(advancedSearch, 'dates.start')
+                        }
+
+                        if (get(advancedSearch, 'dates.end')) {
+                            range['_coverages.scheduled'].lte = get(advancedSearch, 'dates.end')
+                        }
+                    }
+
+                    must.push({
+                        nested: {
+                            path: '_coverages',
+                            query: { bool: { must: [{ range: range }] } },
+                        },
+                    })
+                },
+            },
+            {
+                condition: () => (advancedSearch.slugline),
+                do: () => {
+                    let query = { bool: { should: [] } }
+                    let queryText = sanitizeTextForQuery(advancedSearch.slugline)
+                    let queryString = {
+                        query_string: {
+                            query: 'slugline:(' + queryText + ')',
+                            lenient: false,
+                            default_operator: 'AND',
+                        },
+                    }
+                    query.bool.should.push(queryString)
+                    queryString = cloneDeep(queryString)
+                    queryString.query_string.query = 'planning.slugline:(' + queryText + ')'
+                    if (!advancedSearch.noCoverage) {
+                        query.bool.should.push({
+                            has_child: {
+                                type: 'coverage',
+                                query: { bool: { must: [queryString] } },
+                            },
+                        })
+                    }
+
+                    must.push(query)
+                },
+            },
+            {
+                condition: () => (advancedSearch.headline),
+                do: () => {
+                    let query = { bool: { should: [] } }
+                    let queryText = sanitizeTextForQuery(advancedSearch.headline)
+                    let queryString = {
+                        query_string: {
+                            query: 'headline:(' + queryText + ')',
+                            lenient: false,
+                            default_operator: 'AND',
+                        },
+                    }
+                    query.bool.should.push(queryString)
+                    queryString = cloneDeep(queryString)
+                    queryString.query_string.query = 'planning.headline:(' + queryText + ')'
+                    if (!advancedSearch.noCoverage) {
+                        query.bool.should.push({
+                            has_child: {
+                                type: 'coverage',
+                                query: { bool: { must: [queryString] } },
+                            },
+                        })
+                    }
+
+                    must.push(query)
+                },
+            },
+            {
+                condition: () => (Array.isArray(advancedSearch.anpa_category) &&
+                advancedSearch.anpa_category.length > 0),
+                do: () => {
+                    const codes = advancedSearch.anpa_category.map((cat) => cat.qcode)
+                    must.push({ terms: { 'anpa_category.qcode': codes } })
+                },
+            },
+            {
+                condition: () => (Array.isArray(advancedSearch.subject) &&
+                advancedSearch.subject.length > 0),
+                do: () => {
+                    const codes = advancedSearch.subject.map((subject) => subject.qcode)
+                    must.push({ terms: { 'subject.qcode': codes } })
+                },
+            },
+            {
+                condition: () => (advancedSearch.urgency),
+                do: () => {
+                    must.push({ term: { urgency: advancedSearch.urgency } })
+                },
+            },
+            {
+                condition: () => (advancedSearch.g2_content_type),
+                do: () => {
+                    let term = { '_coverages.g2_content_type': advancedSearch.g2_content_type }
+                    must.push({
+                        nested: {
+                            path: '_coverages',
+                            query: { bool: { must: [{ term: term }] } },
+                        },
+                    })
+                },
+            },
+            {
+                condition: () => (advancedSearch.noCoverage),
+                do: () => {
+                    let noCoverageTerm = { term: { '_coverages.coverage_id': 'NO_COVERAGE' } }
+                    must.push({
+                        nested: {
+                            path: '_coverages',
+                            query: { bool: { must: [noCoverageTerm] } },
+                        },
+                    })
+                },
             },
         ].forEach((action) => {
-            if (action.condition() && !eventIds) {
+            if (!eventIds && action.condition()) {
                 action.do()
             }
         })

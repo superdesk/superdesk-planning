@@ -1,7 +1,7 @@
 import planning from './index'
 import { checkPermission, getErrorMessage, isItemLockedInThisSession } from '../../utils'
 import * as selectors from '../../selectors'
-import { PLANNING, PRIVILEGES } from '../../constants'
+import { PLANNING, PRIVILEGES, SPIKED_STATE } from '../../constants'
 import * as actions from '../index'
 import { get } from 'lodash'
 
@@ -247,20 +247,6 @@ const filterByKeyword = (value) => (
 )
 
 /**
- * Action dispatcher to toggle the `Spiked` toggle of the planning list
- * @return arrow function
- */
-const toggleOnlySpikedFilter = () => (
-    (dispatch, getState) => {
-        dispatch({
-            type: PLANNING.ACTIONS.SET_ONLY_SPIKED,
-            payload: !getState().planning.onlySpiked,
-        })
-        return dispatch(actions.fetchSelectedAgendaPlannings())
-    }
-)
-
-/**
  * Clears the Planning List
  */
 const clearList = () => ({ type: PLANNING.ACTIONS.CLEAR_LIST })
@@ -317,6 +303,9 @@ const fetchMoreToList = () => (
     }
 )
 
+/**
+ * Refetch planning items based on the current search
+ */
 const refetch = () => (
     (dispatch, getState, { notify }) => (
         dispatch(planning.api.refetch())
@@ -426,6 +415,45 @@ const _saveAndUnpublish = (item) => (
 )
 
 /**
+ * Close advanced search panel
+ */
+const closeAdvancedSearch = () => ({ type: PLANNING.ACTIONS.CLOSE_ADVANCED_SEARCH })
+
+/**
+ * Open advanced search panel
+ */
+const openAdvancedSearch = () => ({ type: PLANNING.ACTIONS.OPEN_ADVANCED_SEARCH })
+
+/**
+ * Set the advanced search params
+ * @param {object} params - Advanced search params
+ */
+const search = (params={ spikeState: SPIKED_STATE.NOT_SPIKED }) => (
+    (dispatch) => {
+        dispatch(self._setAdvancedSearch(params))
+        return dispatch(actions.fetchSelectedAgendaPlannings())
+    }
+)
+
+/**
+ * Set the advanced search params
+ * @param {object} params - Advanced search params
+ */
+const resetSearch = () => (
+    (dispatch) => {
+        dispatch(self._resetAdvancedSearch())
+        return dispatch(actions.fetchSelectedAgendaPlannings())
+    }
+)
+
+const _setAdvancedSearch = (params={}) => ({
+    type: PLANNING.ACTIONS.SET_ADVANCED_SEARCH,
+    payload: params,
+})
+
+const _resetAdvancedSearch = () => ({ type: PLANNING.ACTIONS.CLEAR_ADVANCED_SEARCH })
+
+/**
  * Action that states that there are Planning items currently loading
  * @param {object} params - Parameters used when querying for planning items
  */
@@ -507,7 +535,6 @@ const self = {
     previewPlanningAndOpenAgenda,
     toggleOnlyFutureFilter,
     filterByKeyword,
-    toggleOnlySpikedFilter,
     unlockAndOpenEditor,
     clearList,
     fetchToList,
@@ -521,6 +548,12 @@ const self = {
     saveAndUnpublish,
     refetch,
     duplicate,
+    closeAdvancedSearch,
+    openAdvancedSearch,
+    _setAdvancedSearch,
+    _resetAdvancedSearch,
+    search,
+    resetSearch,
 }
 
 export default self

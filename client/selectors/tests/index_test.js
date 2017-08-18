@@ -85,6 +85,10 @@ describe('selectors', () => {
             },
             planningsInList: ['a', 'b', 'd'],
             currentPlanningId: 'b',
+            search: {
+                currentSearch: undefined,
+                advancedSearchOpened: false,
+            },
         },
         agenda: {
             agendas: [{

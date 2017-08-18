@@ -9,7 +9,6 @@ describe('actions.planning.notifications', () => {
     let store
     let services
     let data
-
     const errorMessage = { data: { _message: 'Failed!' } }
 
     beforeEach(() => {
