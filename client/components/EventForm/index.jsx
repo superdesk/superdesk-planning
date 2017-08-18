@@ -186,6 +186,7 @@ export class Component extends React.Component {
         } = this.props
 
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK]
+        const eventMgmtPrivilege = !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
 
         const eventSpiked = isItemSpiked(initialValues)
         const creationDate = get(initialValues, '_created')
@@ -306,7 +307,7 @@ export class Component extends React.Component {
                                         className="btn btn--hollow">
                                         Unpublish</button>
                                 }
-                                {!eventSpiked && !lockRestricted && (
+                                {eventMgmtPrivilege && !eventSpiked && !lockRestricted && (
                                     <OverlayTrigger
                                         placement="bottom"
                                         overlay={tooltips.editTooltip}>

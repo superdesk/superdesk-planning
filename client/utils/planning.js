@@ -8,35 +8,38 @@ import {
     isItemSpiked,
 } from './index'
 
-const canSavePlanning = (planning, event) => (
+const canSavePlanning = (planning, event, privileges) => (
+    !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
     getItemState(planning) !== WORKFLOW_STATE.SPIKED &&
-        getItemState(event) !== WORKFLOW_STATE.SPIKED
+    getItemState(event) !== WORKFLOW_STATE.SPIKED
 )
 
-const canPublishPlanning = (planning, event) => {
+const canPublishPlanning = (planning, event, privileges, session) => {
     const planState = getItemState(planning)
     const eventState = getItemState(event)
-    return (planState === WORKFLOW_STATE.IN_PROGRESS || planState === WORKFLOW_STATE.KILLED) &&
-        eventState !== WORKFLOW_STATE.SPIKED
+    return !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !isItemLockRestricted(planning, session) && (planState === WORKFLOW_STATE.IN_PROGRESS ||
+        planState === WORKFLOW_STATE.KILLED) && eventState !== WORKFLOW_STATE.SPIKED
 }
 
-const canUnpublishPlanning = (planning, event) => {
+const canUnpublishPlanning = (planning, event, privileges, session) => {
     const planState = getItemState(planning)
     const eventState = getItemState(event)
-    return planState === WORKFLOW_STATE.PUBLISHED &&
+    return !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !isItemLockRestricted(planning, session) && planState === WORKFLOW_STATE.PUBLISHED &&
         eventState !== WORKFLOW_STATE.SPIKED
 }
 
 const canEditPlanning = (
     planning,
     event,
-    planningManagementPrivilege,
+    privileges,
     lockedInThisSession,
     lockedUser
 ) => (
     getItemState(planning) !== WORKFLOW_STATE.SPIKED &&
         getItemState(event) !== WORKFLOW_STATE.SPIKED &&
-        planningManagementPrivilege &&
+        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockedInThisSession &&
         !lockedUser
 )
