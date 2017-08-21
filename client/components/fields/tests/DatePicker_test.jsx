@@ -9,10 +9,13 @@ import sinon from 'sinon'
 class TestForm extends React.Component {
     render() {
         const { input, onChange, placeholder } = this.props
+        const inputProp = {
+            value: input,
+            onChange: onChange,
+        }
         return (
             <DatePicker
-            value={input}
-            onChange={onChange}
+            input={inputProp}
             placeholder={placeholder} />
         )
     }

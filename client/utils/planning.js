@@ -84,6 +84,7 @@ export const mapCoverageByDate = (coverages) => (
     })
 )
 
+/*eslint-disable complexity*/
 export const getPlanningItemActions = ({ plan, event=null, session, privileges, actions }) => {
     let itemActions = []
     let key = 1
@@ -95,10 +96,8 @@ export const getPlanningItemActions = ({ plan, event=null, session, privileges, 
                     plan,
                     session,
                     privileges,
-                })) {
+                }))
                     return
-
-                }
 
                 break
 
@@ -107,9 +106,8 @@ export const getPlanningItemActions = ({ plan, event=null, session, privileges, 
                     plan,
                     event,
                     privileges,
-                })) {
+                }))
                     return
-                }
 
                 break
 
@@ -119,9 +117,8 @@ export const getPlanningItemActions = ({ plan, event=null, session, privileges, 
                     event,
                     session,
                     privileges,
-                })) {
+                }))
                     return
-                }
 
                 break
 
@@ -130,6 +127,13 @@ export const getPlanningItemActions = ({ plan, event=null, session, privileges, 
                     return
 
                 action.label = 'Cancel Event'
+                break
+
+            case EVENTS.ITEM_ACTIONS.UPDATE_TIME.label:
+                if (!eventUtils.canEditEvent(event, session, privileges))
+                    return
+
+                action.label = 'Update Event Time'
                 break
         }
 

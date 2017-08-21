@@ -29,6 +29,7 @@ const PlanningItem = ({
         onDuplicate,
         session,
         onCancelEvent,
+        onUpdateEventTime,
     }) => {
     const location = get(event, 'location[0].name')
     const coverages = get(item, 'coverages', [])
@@ -62,6 +63,10 @@ const PlanningItem = ({
         {
             ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
             callback: onCancelEvent.bind(null, event),
+        },
+        {
+            ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+            callback: onUpdateEventTime.bind(null, event),
         },
     ]
 
@@ -182,6 +187,7 @@ PlanningItem.propTypes = {
     onDuplicate: PropTypes.func,
     session: PropTypes.object,
     onCancelEvent: PropTypes.func,
+    onUpdateEventTime: PropTypes.func,
 }
 
 export default PlanningItem

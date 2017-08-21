@@ -213,6 +213,7 @@ describe('events', () => {
                         unspikeEvent={() => {}}
                         spikeEvent={() => {}}
                         duplicateEvent={() => {}}
+                        updateTime={() => {}}
                         addEventToCurrentAgenda={() => {}}
                         onCancelEvent={sinon.spy()}
                         privileges={priv}
@@ -227,12 +228,33 @@ describe('events', () => {
                         unspikeEvent={() => {}}
                         spikeEvent={() => {}}
                         duplicateEvent={() => {}}
+                        updateTime={() => {}}
                         addEventToCurrentAgenda={() => {}}
                         onCancelEvent={sinon.spy()}
                         privileges={priv}
                     />
                 )
                 expect(wrapper.find('[type="submit"]').length).toBe(1)
+            })
+
+            it('Date and time fields are readonly for an existing event', () => {
+                const recEvent = {
+                    ...event,
+                    dates: {
+                        start: moment('2016-10-15T14:30+0000'),
+                        end: moment('2016-10-20T15:00+0000'),
+                        recurring_rule: {
+                            frequency: 'DAILY',
+                            endRepeatMode: 'count',
+                        },
+                    },
+                    lock_user: 'user123',
+                    lock_session: 'session123',
+                }
+                const store = createTestStoreForEventEditing(recEvent)
+                const wrapper = mount(<Provider store={store}><EventForm initialValues={recEvent}
+                    formValues={recEvent} /></Provider>)
+                expect(wrapper.find('DayPickerInput').at(0).props().readOnly).toBe(true)
             })
 
             it('Recurrence rules input fields are disabled when metadata is edited', () => {
@@ -282,19 +304,6 @@ describe('events', () => {
                 expect(wrapper.find('.error-block').get(0).textContent).toBe('Editing event\'s metadata disabled')
             })
 
-            it('Metadata and recurring rules can be edited for non-recurring event', () => {
-                const _event = {
-                    ...event,
-                    lock_user: 'user123',
-                    lock_session: 'session123',
-                }
-                const store = createTestStoreForEventEditing(_event)
-                const wrapper = mount(<Provider store={store}><EventForm initialValues={_event}/></Provider>)
-                expect(wrapper.find(FormComponent).props().doesRepeat).toBe(false)
-                expect(wrapper.find('FileFieldComponent').props().readOnly).toBe(false)
-                expect(wrapper.find('DayPickerInput').at(0).props().readOnly).toBe(false)
-            })
-
             it('Cannot spike/create new events if only metadata of a recurring event is edited', () => {
                 const recEvent = {
                     ...event,
@@ -314,7 +323,6 @@ describe('events', () => {
                     enableReinitialize={true}/></Provider>)
                 expect(wrapper.find(FormComponent).props().doesRepeat).toBe(true)
                 wrapper.find('LinksFieldArray').find('.Link__add-btn').simulate('click')
-
                 expect(wrapper.find('ItemActionsMenu').props().actions.length).toBe(3)
                 expect(itemActionExists(wrapper, 'View History')).toBe(true)
                 expect(itemActionExists(wrapper, 'Create Planning Item')).toBe(true)

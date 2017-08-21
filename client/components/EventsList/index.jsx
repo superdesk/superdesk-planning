@@ -19,6 +19,7 @@ export class EventsList extends React.Component {
     onEventUnspike(event) { this.props.onEventUnspike(event) }
     onEventDuplicate(event) { this.props.onEventDuplicate(event) }
     onCancelEvent(event) { this.props.onCancelEvent(event) }
+    onEventUpdateTime(event) {this.props.onEventUpdateTime(event)}
 
     getRowHeight({ index }) {
         const event = this.props.events[index]
@@ -64,6 +65,7 @@ export class EventsList extends React.Component {
                     onUnspikeEvent={this.onEventUnspike.bind(this, event)}
                     onDuplicateEvent={this.onEventDuplicate.bind(this, event)}
                     onCancelEvent={this.onCancelEvent.bind(this, event)}
+                    onUpdateEventTime={this.onEventUpdateTime.bind(this, event)}
                     highlightedEvent={this.props.highlightedEvent}
                     isSelected={this.props.selectedEvents.indexOf(event._id) > -1}
                     onSelectChange={(value) => this.props.onEventSelectChange({
@@ -120,6 +122,7 @@ EventsList.propTypes = {
     onEventUnspike: PropTypes.func,
     onEventDuplicate: PropTypes.func,
     onCancelEvent: PropTypes.func,
+    onEventUpdateTime: PropTypes.func,
     highlightedEvent: PropTypes.string,
     loadMoreEvents: PropTypes.func.isRequired,
     privileges: PropTypes.object,

@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { ModalWithForm } from '../index'
-import { SpikeEventForm, UpdateRecurringEventsForm, CancelEventForm } from './index'
+import { SpikeEventForm, UpdateRecurringEventsForm, CancelEventForm, UpdateTimeForm } from './index'
 import { get } from 'lodash'
 import { GENERIC_ITEM_ACTIONS, EVENTS } from '../../constants'
 
@@ -21,6 +21,11 @@ export const EventActionConfirmationModal = ({ handleHide, modalProps }) => {
             title = 'Cancel an event'
             saveText = 'OK'
             form = CancelEventForm
+            break
+
+        case EVENTS.ITEM_ACTIONS.UPDATE_TIME.label:
+            title = 'Update time'
+            form = UpdateTimeForm
             break
 
         default:

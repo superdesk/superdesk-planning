@@ -119,22 +119,28 @@ export class DayPickerInput extends React.Component {
     render() {
         const { withTime, readOnly } = this.props
         const { touched, error, warning } = this.props.meta
-        const { selectedDate, selectedTime } = this.state
+        const timePickerInput = {
+            value: this.state.selectedTime,
+            onChange: this.onTimeChange.bind(this),
+        }
+        const datePickerInput = {
+            value: this.state.selectedDate,
+            onChange: this.onDayChange.bind(this),
+        }
+
         return (
             <span className="day-picker-input">
                 <DatePicker
                     ref="datePicker"
-                    value={selectedDate}
+                    input={datePickerInput}
                     placeholder="Date"
-                    onChange={this.onDayChange.bind(this)}
                     readOnly={readOnly} />
                 {(withTime === true) && (
                     <span>
                         &nbsp;&nbsp;&nbsp;&nbsp;
                         <TimePicker
-                            value={selectedTime}
+                            input={timePickerInput}
                             placeholder="Time"
-                            onChange={this.onTimeChange.bind(this)}
                             readOnly={readOnly} />
                     </span>
                 )}

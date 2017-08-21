@@ -176,6 +176,7 @@ export class Component extends React.Component {
             publish,
             unpublish,
             duplicateEvent,
+            updateTime,
             highlightedEvent,
             session,
             privileges,
@@ -234,6 +235,10 @@ export class Component extends React.Component {
                     ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
                     callback: onCancelEvent.bind(null, initialValues),
                 },
+                {
+                    ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+                    callback: updateTime.bind(null, initialValues),
+                },
                 GENERIC_ITEM_ACTIONS.DIVIDER,
                 {
                     ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
@@ -247,7 +252,8 @@ export class Component extends React.Component {
             // only metadata was edited
             if ( this.state.doesRepeat && metaDataEditable && !recurringRulesEditable) {
                 remove(itemActions, (action) => action.label === GENERIC_ITEM_ACTIONS.SPIKE.label ||
-                    action.label === GENERIC_ITEM_ACTIONS.DUPLICATE.label)
+                    action.label === GENERIC_ITEM_ACTIONS.DUPLICATE.label ||
+                    action.label === EVENTS.ITEM_ACTIONS.UPDATE_TIME.label)
             }
         }
 
@@ -383,8 +389,9 @@ export class Component extends React.Component {
                     {get(formProfile, 'editor.definition_long.enabled') && fieldRenders.renderLongDescription(!metaDataEditable)}
                     {get(formProfile, 'editor.internal_note.enabled') && fieldRenders.renderInternalNote(!metaDataEditable)}
                     {get(formProfile, 'editor.location.enabled') && fieldRenders.renderLocation(!metaDataEditable)}
-                    {fieldRenders.renderDate(!recurringRulesEditable, true, occurrenceOverlaps)}
-                    {fieldRenders.renderDate(!recurringRulesEditable, false, null, this.oneHourAfterStartingDate())}
+                    {fieldRenders.renderDate(existingEvent, true, occurrenceOverlaps)}
+                    {fieldRenders.renderDate(existingEvent, false, null, this.oneHourAfterStartingDate())}
+
                     <label>
                         <Toggle
                             value={this.props.isAllDay}
@@ -464,6 +471,7 @@ Component.propTypes = {
     onCancelEvent: PropTypes.func.isRequired,
     addEventToCurrentAgenda: PropTypes.func.isRequired,
     duplicateEvent: PropTypes.func.isRequired,
+    updateTime: PropTypes.func.isRequired,
     isAllDay: PropTypes.bool,
     highlightedEvent: PropTypes.string,
     session: PropTypes.object,
@@ -516,6 +524,7 @@ const mapDispatchToProps = (dispatch) => ({
     unspikeEvent: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
     addEventToCurrentAgenda: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
     duplicateEvent: (event) => dispatch(actions.duplicateEvent(event)),
+    updateTime: (event) => dispatch(actions.events.ui.updateTime(event)),
     onUnlock: (event) => dispatch(actions.events.ui.unlockAndOpenEventDetails(event)),
     onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
 })
