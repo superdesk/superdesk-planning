@@ -44,7 +44,7 @@ function renderDict(event, label, ...keys) {
 export function EventMetadata ({ event }) {
 
     return (
-        <div className="metadata-view">
+        <div className="metadata-view EditPlanningPanel__body--event">
             <dl>
                 {FIELDS.map((arrayProps) => renderDict.bind(null, event).apply(null, arrayProps))}
             </dl>

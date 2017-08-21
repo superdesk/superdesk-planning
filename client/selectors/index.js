@@ -108,12 +108,13 @@ export const getFilteredPlanningList = createSelector(
             )
         }
 
-        let onlySpike = get(currentSearch, 'spikeState') === SPIKED_STATE.SPIKED
-
-        return plannings.filter((p) =>
-            (onlySpike && isItemSpiked(p)) ||
-            (!onlySpike && !isItemSpiked(p))
-        )
+        if (get(currentSearch, 'spikeState') === SPIKED_STATE.SPIKED) {
+            return plannings.filter((p) => isItemSpiked(p))
+        } else if (get(currentSearch, 'spikeState') === SPIKED_STATE.BOTH) {
+            return plannings
+        } else {
+            return plannings.filter((p) => !isItemSpiked(p))
+        }
     }
 )
 

@@ -42,6 +42,16 @@ $EDIT_PLANNING_WIDTH: 450px;
 .EditPlanningPanel__body {
     overflow: auto;
     padding: 20px;
+    .metadata-view {
+        dl {
+            > dd {
+                margin-bottom: 5px;
+            }
+        }
+    }
+    .TimeAndAuthor {
+        width: 370px;
+    }
 }
 .Planning-panel--edit-planning-view { // when the planning editor is open
     .EditPlanningPanel {

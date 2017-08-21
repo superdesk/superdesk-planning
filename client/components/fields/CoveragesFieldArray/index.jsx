@@ -2,7 +2,6 @@ import { CoverageContainer } from '../../index'
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
-import './style.scss'
 
 export class CoveragesFieldArrayComponent extends React.Component {
     newCoverage() {
@@ -44,24 +43,28 @@ export class CoveragesFieldArrayComponent extends React.Component {
             fields,
             readOnly,
             users,
+            desks,
             contentTypes,
         } = this.props
 
         return (
             <ul className="Coverage__list">
                 {fields.map((fieldName, index) => (
-                    <CoverageContainer
-                        key={fieldName}
-                        fieldName={fieldName}
-                        index={index}
-                        coverage={fields.get(index)}
-                        contentTypes={contentTypes}
-                        users={users}
-                        readOnly={readOnly}
-                        removeCoverage={this.removeCoverage.bind(this)}
-                        duplicateCoverage={this.duplicateCoverage.bind(this)}
-                        showRemoveAction={fields.length > 1}
-                    />
+                    <li key={index}>
+                        <CoverageContainer
+                            key={fieldName}
+                            fieldName={fieldName}
+                            index={index}
+                            coverage={fields.get(index)}
+                            contentTypes={contentTypes}
+                            users={users}
+                            desks={desks}
+                            readOnly={readOnly}
+                            removeCoverage={this.removeCoverage.bind(this)}
+                            duplicateCoverage={this.duplicateCoverage.bind(this)}
+                            showRemoveAction={fields.length > 1}
+                        />
+                    </li>
                 ))}
                 <li>
                     { !readOnly && <button
@@ -83,6 +86,7 @@ CoveragesFieldArrayComponent.propTypes = {
     slugline: PropTypes.string,
     users: PropTypes.array.isRequired,
     contentTypes: PropTypes.array.isRequired,
+    desks: PropTypes.array.isRequired,
 }
 
 CoveragesFieldArrayComponent.defaultProps = {

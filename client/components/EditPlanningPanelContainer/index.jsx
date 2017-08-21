@@ -4,7 +4,10 @@ import { reduxForm, formValueSelector } from 'redux-form'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { PlanningForm } from '../index'
-import { EventMetadata, PlanningHistoryContainer, AuditInformation } from '../../components'
+import {
+    PlanningHistoryContainer,
+    AuditInformation,
+} from '../../components'
 import * as selectors from '../../selectors'
 import { get } from 'lodash'
 import { OverlayTrigger } from 'react-bootstrap'
@@ -192,8 +195,7 @@ export class EditPlanningPanel extends React.Component {
         return (
             <div className="EditPlanningPanel">
                 <header className="subnav">
-                    <div className={classNames('TimeAndAuthor',
-                        'dropdown',
+                    <div className={classNames('dropdown',
                         'dropdown--drop-right',
                         'pull-left',
                         { open: this.state.openUnlockPopup })}>
@@ -295,27 +297,20 @@ export class EditPlanningPanel extends React.Component {
                                 updatedAt={updatedDate} />
                             <ItemActionsMenu actions={itemActions} />
                         </div>
-
-                        {planningSpiked &&
-                            <span className="PlanningSpiked label label--alert">planning spiked</span>
-                        }
-                        {eventSpiked &&
-                            <span className="EventSpiked label label--alert">event spiked</span>
-                        }
-                        {event &&
-                            <div>
-                                <h3>Associated event</h3>
-                                <EventMetadata event={event}/>
-                            </div>
-                        }
-                        <h3>Planning</h3>
-                        {(!creationDate || !author) &&
-                            <span>Create a new planning</span>
-                        }
+                        <div className="state">
+                            {planningSpiked &&
+                                <span className="PlanningSpiked label label--alert">planning spiked</span>
+                            }
+                            {eventSpiked &&
+                                <span className="EventSpiked label label--alert">event spiked</span>
+                            }
+                        </div>
                         <PlanningForm
                             ref="PlanningForm"
                             onSubmit={this.onSubmit.bind(this)}
-                            readOnly={forceReadOnly}/>
+                            event={event}
+                            readOnly={forceReadOnly}
+                        />
                     </div>
                 }
                 {this.state.previewHistory &&
