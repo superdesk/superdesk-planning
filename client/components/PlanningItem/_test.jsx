@@ -25,6 +25,7 @@ describe('planning', () => {
             const onUnspike = sinon.spy()
             const onDuplicate = sinon.spy()
             const onCancel = sinon.spy()
+            const onUpdateTime = sinon.spy()
 
             const getWrapper = (params=null) => {
                 if (params !== null) {
@@ -54,6 +55,7 @@ describe('planning', () => {
                         onUnspike={onUnspike}
                         onDuplicate={onDuplicate}
                         onCancelEvent={onCancel}
+                        onUpdateEventTime={onUpdateTime}
                         privileges={privileges} />
                     </Provider>
                 )
@@ -72,6 +74,7 @@ describe('planning', () => {
                     onUnspike={onUnspike}
                     onDuplicate={onDuplicate}
                     onCancelEvent={onCancel}
+                    onUpdateEventTime={onUpdateTime}
                     privileges={privileges}
                 />)
             )

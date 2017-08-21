@@ -15,7 +15,8 @@ export class TimePicker extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        const val = nextProps.value && moment.isMoment(nextProps.value) ? nextProps.value.format('HH:mm') : ''
+        const val = nextProps.input.value && moment.isMoment(nextProps.input.value) ?
+            nextProps.input.value.format('HH:mm') : ''
         this.setState({
             viewValue: val,
             previousValidValue: val,
@@ -24,7 +25,7 @@ export class TimePicker extends React.Component {
 
     componentDidMount() {
         // after first render, set value of the form input
-        const { value } = this.props
+        const value = this.props.input.value
         const viewValue = value && moment.isMoment(value) ? value.format('HH:mm') : ''
         this.setState({ viewValue })
     }
@@ -63,17 +64,20 @@ export class TimePicker extends React.Component {
         // Takes HH:mm as string. Then parses it and calls parents onChange with new moment object
         const inputs = value.split(':')
 
-        let newMoment = this.props.value && moment.isMoment(this.props.value) ? moment(this.props.value) : moment()
+        let newMoment = this.props.input.value && moment.isMoment(this.props.input.value) ?
+            moment(this.props.input.value) : moment()
         newMoment.hour(inputs[0])
         newMoment.minute(inputs[1])
 
-        if (!newMoment.isSame(this.props.value) || !this.props.value) {
-            this.props.onChange(newMoment)
+        if (!newMoment.isSame(this.props.input.value) || !this.props.input.value) {
+            this.props.input.onChange(newMoment)
         }
     }
 
     render() {
-        const { value, placeholder, readOnly } = this.props
+        const { placeholder, readOnly } = this.props
+        const { touched, error, warning } = this.props.meta
+
         return (
             <div className="timepickerInput">
                 <input type="text" className={ 'timepickerInput__textInput' + (this.state.invalid ? ' timepickerInput__textInput--invalid' : '')} disabled={readOnly ? 'disabled' : ''} value={this.state.viewValue} placeholder={placeholder} onChange={(e)=>(this.validateTimeText(e.target.value))}
@@ -82,17 +86,26 @@ export class TimePicker extends React.Component {
                     <i className="icon-time"/></button>
                 }
                 { this.state.openTimePicker && (
-                    <TimePickerCore value={value} onCancel={this.toggleOpenTimePicker.bind(this)}
+                    <TimePickerCore value={this.props.input.value} onCancel={this.toggleOpenTimePicker.bind(this)}
                     onChange={this.onChange.bind(this)}/>
                 )}
+                {
+                    touched && ((error && <div className="error-block">{error}</div>) ||
+                    (warning && <div className="day-picker-input__error">{warning}</div>))
+                }
             </div>
         )
     }
 }
 
 TimePicker.propTypes = {
-    value: PropTypes.object,
+    input: React.PropTypes.shape({
+        value: React.PropTypes.object,
+        onChange: React.PropTypes.func,
+    }).isRequired,
     placeholder: PropTypes.string,
-    onChange: React.PropTypes.func.isRequired,
     readOnly: PropTypes.bool,
+    meta: PropTypes.object,
 }
+
+TimePicker.defaultProps = { meta: {} }

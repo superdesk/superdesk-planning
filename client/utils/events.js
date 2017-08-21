@@ -11,6 +11,8 @@ import {
 import moment from 'moment'
 import RRule from 'rrule'
 import { get } from 'lodash'
+import { actionTypes } from 'redux-form'
+import { EventUpdateMethods } from '../components/fields'
 
 /**
  * Helper function to determine if the starting and ending dates
@@ -76,6 +78,41 @@ const doesRecurringEventsOverlap = (startingDate, endingDate, recurringRule) => 
     return nextEvent.isBetween(startingDate, endingDate) || nextEvent.isSame(endingDate)
 }
 
+const getRelatedEventsForRecurringEvent = (state={}, action) => {
+    if (action.type !== actionTypes.CHANGE ||
+        (get(action, 'meta.form', '') !== 'updateEventConfirmation' &&
+        get(action, 'meta.form', '') !== 'updateTime')) {
+        return state
+    }
+
+    let event = state.values
+    let eventsInSeries = get(event, '_recurring', [])
+    let events = []
+
+    switch (action.payload.value) {
+        case EventUpdateMethods[1].value: // Selected & Future Events
+            events = eventsInSeries.filter((e) => (
+                moment(e.dates.start).isSameOrAfter(moment(event.dates.start)) &&
+                e._id !== event._id
+            ))
+            break
+        case EventUpdateMethods[2].value: // All Events
+            events = eventsInSeries.filter((e) => e._id !== event._id)
+            break
+        case EventUpdateMethods[0].value: // Selected Event Only
+        default:
+            break
+    }
+
+    return {
+        ...state,
+        values: {
+            ...state.values,
+            _events: events,
+        },
+    }
+}
+
 const canSpikeEvent = (event, session, privileges) => (
     !isItemPublic(event) && getItemState(event) === WORKFLOW_STATE.IN_PROGRESS &&
         !!privileges[PRIVILEGES.SPIKE_EVENT] && !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
@@ -120,42 +157,29 @@ const canEditEvent = (event, session, privileges) => (
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
 )
 
-/*eslint-disable complexity*/
 const getEventItemActions = (event, session, privileges, actions) => {
     let itemActions = []
     let key = 1
 
+    const actionsValidator = {
+        [GENERIC_ITEM_ACTIONS.SPIKE.label]: (event, session=null, privileges=null) =>
+            canSpikeEvent(event, session, privileges),
+        [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: (event, session=null, privileges=null) =>
+            canUnspikeEvent(event, privileges),
+        [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: (event, session=null, privileges=null) =>
+            canDuplicateEvent(event, session, privileges),
+        [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: (event, session=null, privileges=null) =>
+            canCancelEvent(event, session, privileges),
+        [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label]: (event, session=null, privileges=null) =>
+            canCreatePlanningFromEvent(event, session, privileges),
+        [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: (event, session=null, privileges=null) =>
+            canEditEvent(event, session, privileges),
+    }
+
     actions.forEach((action) => {
-        switch (action.label) {
-            case GENERIC_ITEM_ACTIONS.SPIKE.label:
-                if (!canSpikeEvent(event, session, privileges))
-                    return
-
-                break
-
-            case GENERIC_ITEM_ACTIONS.UNSPIKE.label:
-                if (!canUnspikeEvent(event, privileges))
-                    return
-
-                break
-
-            case GENERIC_ITEM_ACTIONS.DUPLICATE.label:
-                if (!canDuplicateEvent(event, session, privileges))
-                    return
-
-                break
-
-            case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label:
-                if (!canCancelEvent(event, session, privileges))
-                    return
-
-                break
-
-            case EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label:
-                if (!canCreatePlanningFromEvent(event, session, privileges))
-                    return
-
-                break
+        if (actionsValidator[action.label] &&
+                !actionsValidator[action.label](event, session, privileges)) {
+            return
         }
 
         itemActions.push({
@@ -178,18 +202,18 @@ const isEventAssociatedWithPlannings = (eventId, allPlannings) => (
 const self = {
     isEventAllDay,
     doesRecurringEventsOverlap,
+    getRelatedEventsForRecurringEvent,
     canSpikeEvent,
     canUnspikeEvent,
     canCreatePlanningFromEvent,
     canPublishEvent,
     canUnpublishEvent,
-    canDuplicateEvent,
+    canEditEvent,
     getEventItemActions,
     isEventAssociatedWithPlannings,
     canCancelEvent,
     eventHasPlanning,
     isEventInUse,
-    canEditEvent,
 }
 
 export default self

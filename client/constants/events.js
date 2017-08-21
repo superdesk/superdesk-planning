@@ -26,5 +26,9 @@ export const EVENTS = {
     ITEM_ACTIONS: {
         CREATE_PLANNING: { label: 'Create Planning Item' },
         CANCEL_EVENT: { label: 'Cancel' },
+        UPDATE_TIME: {
+            label: 'Update time',
+            icon: 'icon-time',
+        },
     },
 }

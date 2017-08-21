@@ -32,6 +32,7 @@ import itertools
 import copy
 import pytz
 import re
+from deepdiff import DeepDiff
 
 logger = logging.getLogger(__name__)
 
@@ -376,6 +377,13 @@ class EventsService(superdesk.Service):
             original_start_date = new_series[0]['dates']['start']
             original_rule = new_series[0]['dates']['recurring_rule']
 
+        # Check if the updates contain only an update in event's time
+        update_time_only, new_start_time, new_end_time = self._is_only_time_updated(
+            original.get('dates'), updates.get('dates'))
+        if update_time_only:
+            self._set_series_time(new_series, new_start_time, new_end_time)
+            return
+
         # If original_series is empty, then we're modifying the entire series
         # Otherwise we will need to split the series in two, generating a new
         # recurrence_id for the new series
@@ -501,6 +509,23 @@ class EventsService(superdesk.Service):
                 self.delete_action(lookup={'_id': event[config.ID_FIELD]})
                 app.on_deleted_item_events(event)
 
+    def _set_series_time(self, series, new_start_time, new_end_time):
+        # Update the time for all event in the series
+        for event in series:
+            if event.get(config.ID_FIELD):
+                time_updates = self._get_empty_updates_for_recurring_event(event)
+                if new_start_time:
+                    time_updates['dates']['start'] = time_updates.get('dates').get('start').replace(
+                        hour=new_start_time.hour,
+                        minute=new_start_time.minute)
+
+                if new_end_time:
+                    time_updates['dates']['end'] = time_updates.get('dates').get('end').replace(
+                        hour=new_end_time.hour,
+                        minute=new_end_time.minute)
+
+                self._patch_event_in_recurrent_series(event[config.ID_FIELD], time_updates)
+
     def _set_series_end_date(self, series):
         for event in series:
             updates = self._get_empty_updates_for_recurring_event(event)
@@ -568,6 +593,29 @@ class EventsService(superdesk.Service):
                 future.append(event)
 
         return historic, past, future
+
+    def _is_only_time_updated(self, original_dates, updated_dates):
+        new_start_time = None
+        new_end_time = None
+
+        diffs = DeepDiff(original_dates, updated_dates, ignore_order=True)
+        values_changed = diffs.get('values_changed')
+        if values_changed:
+            for diff in values_changed:
+                if diff != 'root[\'start\']' and diff != 'root[\'end\']':
+                    # something other than start/end has changed
+                    return False, new_start_time, new_end_time
+                elif values_changed.get(diff).get('new_value').date() != \
+                        values_changed.get(diff).get('old_value').date():
+                    # date has changed, not just time
+                    return False, new_start_time, new_end_time
+                else:
+                    if diff == 'root[\'start\']':
+                        new_start_time = values_changed.get(diff).get('new_value').time()
+                    else:
+                        new_end_time = values_changed.get(diff).get('new_value').time()
+
+        return True, new_start_time, new_end_time
 
 
 events_schema = {

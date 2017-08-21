@@ -14,6 +14,7 @@ export const EventItem = ({
         onUnspikeEvent,
         onDuplicateEvent,
         onCancelEvent,
+        onUpdateEventTime,
         highlightedEvent,
         privileges,
         isSelected,
@@ -46,6 +47,10 @@ export const EventItem = ({
             ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
             callback: onCancelEvent.bind(null, event),
         },
+        {
+            ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+            callback: onUpdateEventTime.bind(null, event),
+        },
         GENERIC_ITEM_ACTIONS.DIVIDER,
         {
             ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
@@ -54,6 +59,7 @@ export const EventItem = ({
     ]
 
     const itemActions = eventUtils.getEventItemActions(event, session, privileges, actions)
+
     return (
         <ListItem
             item={event}
@@ -97,6 +103,7 @@ EventItem.propTypes = {
     onUnspikeEvent: PropTypes.func.isRequired,
     onDuplicateEvent: PropTypes.func.isRequired,
     onCancelEvent: PropTypes.func.isRequired,
+    onUpdateEventTime: PropTypes.func.isRequired,
     highlightedEvent: PropTypes.string,
     className: PropTypes.string,
     privileges: PropTypes.object,
