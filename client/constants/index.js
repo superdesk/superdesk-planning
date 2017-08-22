@@ -1,6 +1,7 @@
 export { PRIVILEGES } from './privileges'
 export { PLANNING } from './planning'
 export { AGENDA } from './agenda'
+export { ASSIGNMENTS } from './assignments'
 
 export const LIST_ITEM_1_LINE_HEIGHT = 38
 export const LIST_ITEM_2_LINES_HEIGHT = 56

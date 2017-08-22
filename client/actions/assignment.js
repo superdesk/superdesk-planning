@@ -1,4 +1,5 @@
 import * as selectors from '../selectors'
+import { ASSIGNMENTS } from '../constants'
 
 /**
  * Action dispatcher to load the list of assignments for current list settings.
@@ -99,7 +100,7 @@ const query = () =>
  * @return object
  */
 const changeListSettings = (filterBy, searchQuery, orderByField, orderDirection) => ({
-    type: 'CHANGE_LIST_SETTINGS',
+    type: ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS,
     payload: {
         filterBy,
         searchQuery,
@@ -114,7 +115,7 @@ const changeListSettings = (filterBy, searchQuery, orderByField, orderDirection)
  * @return object
  */
 const changeLastAssignmentLoadedPage = (lastAssignmentLoadedPage) => ({
-    type: 'CHANGE_LIST_SETTINGS',
+    type: ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS,
     payload: { lastAssignmentLoadedPage },
 })
 
@@ -124,7 +125,7 @@ const changeLastAssignmentLoadedPage = (lastAssignmentLoadedPage) => ({
  * @return object
  */
 const receivedAssignments = (assignments) => ({
-    type: 'RECEIVED_ASSIGNMENTS',
+    type: ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS,
     payload: assignments,
 })
 
@@ -134,41 +135,28 @@ const receivedAssignments = (assignments) => ({
  * @return object
  */
 const receivedMoreAssignments = (assignments) => ({
-    type: 'RECEIVED_MORE_ASSIGNMENTS',
+    type: ASSIGNMENTS.ACTIONS.RECEIVED_MORE_ASSIGNMENTS,
     payload: assignments,
 })
 
 /**
- * Action dispatcher to create a new assignment.
- * @param user
- * @param state
- */
-const createAssignment = () => (
-    () =>
-        // functionality not implemented yet
-        Promise.resolve()
-)
-
-/**
- * Opens assignment in preview mode
+ * Open assignment in preview mode
  * @param {object} assignment - The Assignment to preview
- * @return Promise
+ * @return object
  */
-const previewAssignment = () => (
-    () =>
-        // functionality not implemented yet
-        Promise.resolve()
+const previewAssignment = (assignment) => (
+    {
+        type: ASSIGNMENTS.ACTIONS.PREVIEW_ASSIGNMENT,
+        payload: assignment,
+    }
 )
 
 /**
- * Opens assignment in edit mode
- * @param {object} assignment - The Assignment to edit
- * @return Promise
+ * Close the preview assignment
+ * @return object
  */
-const openAssignmentDetails = () => (
-    () =>
-        // functionality not implemented yet
-        Promise.resolve()
+const closePreviewAssignment = () => (
+    { type: ASSIGNMENTS.ACTIONS.CLOSE_PREVIEW_ASSIGNMENT }
 )
 
 /**
@@ -178,7 +166,8 @@ const openAssignmentDetails = () => (
  */
 const toggleAssignmentSelection = ({ assignment, value }) => (
     {
-        type: value ? 'SELECT_ASSIGNMENTS' : 'DESELECT_ASSIGNMENT',
+        type: value ? ASSIGNMENTS.ACTIONS.SELECT_ASSIGNMENTS
+            : ASSIGNMENTS.ACTIONS.DESELECT_ASSIGNMENT,
         payload: value ? [assignment] : assignment,
     }
 )
@@ -188,8 +177,7 @@ export {
     loadAssignments,
     loadMoreAssignments,
     query,
-    createAssignment,
     previewAssignment,
-    openAssignmentDetails,
+    closePreviewAssignment,
     toggleAssignmentSelection,
 }

@@ -8,7 +8,6 @@ import { getCoverageIcon } from '../../utils/index'
 export const AssignmentItem = ({
         assignment,
         onClick,
-        onDoubleClick,
         isSelected,
         onSelectChange,
         className,
@@ -19,7 +18,6 @@ export const AssignmentItem = ({
         <ListItem
             item={assignment}
             onClick={onClick}
-            onDoubleClick={onDoubleClick}
             draggable={true}
             className={classNames('assignment', className)}
             active={isSelected}
@@ -70,7 +68,6 @@ export const AssignmentItem = ({
 AssignmentItem.propTypes = {
     assignment: PropTypes.object.isRequired,
     onClick: PropTypes.func,
-    onDoubleClick: PropTypes.func,
     className: PropTypes.string,
     assignedUser: PropTypes.object,
     isCurrentUser: PropTypes.bool,
