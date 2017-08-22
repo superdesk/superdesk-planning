@@ -4,6 +4,7 @@ import $ from 'jquery'
 import 'jquery-ui/ui/core'
 import 'jquery-ui/ui/resizable'
 import 'jquery-ui/themes/base/resizable.css'
+import { get } from 'lodash'
 
 export class ResizableEventsPanelComponent extends React.Component {
 
@@ -96,5 +97,5 @@ ResizableEventsPanelComponent.propTypes = {
     className: React.PropTypes.string,
     showEvents: React.PropTypes.bool,
 }
-const mapStateToProps = (state) => ({ showEvents: state.events.show })
+const mapStateToProps = (state) => ({ showEvents: get(state, 'events.show', true) })
 export const ResizableEventsPanel = connect(mapStateToProps)(ResizableEventsPanelComponent)

@@ -4,7 +4,6 @@ import { OccurStatusField } from '../index'
 import { createTestStore } from '../../../utils'
 import { Provider } from 'react-redux'
 import { reduxForm, Field } from 'redux-form'
-import * as actions from '../../../actions'
 
 const renderComponentField = (component) => (
     () => (
@@ -37,13 +36,5 @@ describe('<SelectField />', () => {
         })
         expect(wrapper.find('Select').props().value.label).toEqual('lab')
         expect(wrapper.find('Select').props().options[0].label).toEqual('occ')
-    })
-
-    it('loads categories', (done) => {
-        const store = createTestStore()
-        store.dispatch(actions.loadCVocabularies()).then(() => {
-            expect(store.getState().vocabularies.categories.length).toBe(2)
-            done()
-        })
     })
 })

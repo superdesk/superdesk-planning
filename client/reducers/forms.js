@@ -3,11 +3,17 @@ import { cloneDeep, get } from 'lodash'
 import { EventUpdateMethods } from '../components/fields'
 import moment from 'moment'
 import { isItemSpiked } from '../utils/index'
+import { RESET_STORE, INIT_STORE } from '../constants'
 
 const forms = formReducer.plugin({
     // 'addEvent' is the name of the form given to reduxForm()
     addEvent: (state={}, action) => {
-        if (action.type !== actionTypes.CHANGE || get(action, 'meta.form', '') !== 'addEvent') {
+        if (action.type === RESET_STORE) {
+            return null
+        } else if (action.type === INIT_STORE) {
+            return {}
+        } else if (action.type !== actionTypes.CHANGE ||
+            get(action, 'meta.form', '') !== 'addEvent') {
             return state
         }
 
@@ -25,9 +31,15 @@ const forms = formReducer.plugin({
 
         return state
     },
+
     // 'spikeEvent' is the name of the form given to reduxForm
     spikeEvent: (state={}, action) => {
-        if (action.type !== actionTypes.CHANGE || get(action, 'meta.form', '') !== 'spikeEvent') {
+        if (action.type === RESET_STORE) {
+            return null
+        } else if (action.type === INIT_STORE) {
+            return {}
+        } else if (action.type !== actionTypes.CHANGE ||
+            get(action, 'meta.form', '') !== 'spikeEvent') {
             return state
         }
 
@@ -72,9 +84,14 @@ const forms = formReducer.plugin({
             },
         }
     },
+
     // 'updateEventConfirmation' is the name of the form given to reduxForm
     updateEventConfirmation: (state={}, action) => {
-        if (action.type !== actionTypes.CHANGE ||
+        if (action.type === RESET_STORE) {
+            return null
+        } else if (action.type === INIT_STORE) {
+            return {}
+        } else if (action.type !== actionTypes.CHANGE ||
             get(action, 'meta.form', '') !== 'updateEventConfirmation') {
             return state
         }

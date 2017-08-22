@@ -4,32 +4,35 @@ import moment from 'moment'
 import { AGENDA, SPIKED_STATE } from '../constants'
 import { isItemLockedInThisSession, isItemSpiked } from '../utils'
 
-export const getAgendas = (state) => state.agenda.agendas
-export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
-export const getPlanningHistory = (state) => state.planning.planningHistoryItems
-export const eventSearchActive = (state) => (state.events.search.currentSearch.advancedSearch) ?
-    true : false
-export const getEvents = (state) => state.events.events
-export const getEventHistory = (state) => state.events.eventHistoryItems
-export const isEventListShown = (state) =>state.events.show
-export const getPreviousEventRequestParams = (state) => get(state.events, 'lastRequestParams', {})
+export const getAgendas = (state) => get(state, 'agenda.agendas', [])
+export const getCurrentPlanningId = (state) => get(state, 'planning.currentPlanningId')
+export const getPlanningHistory = (state) => get(state, 'planning.planningHistoryItems')
+export const eventSearchActive = (state) => !!get(
+    state,
+    'events.search.currentSearch.advancedSearch',
+    false
+)
+export const getEvents = (state) => get(state, 'events.events')
+export const getEventHistory = (state) => get(state, 'events.eventHistoryItems')
+export const isEventListShown = (state) => get(state, 'events.show')
+export const getPreviousEventRequestParams = (state) => get(state, 'events.lastRequestParams', {})
 export const getPreviousPlanningRequestParams = (state) =>
-    get(state.planning, 'lastRequestParams', {})
-export const getCurrentAgendaId = (state) => state.agenda.currentAgendaId
-export const getStoredPlannings = (state) => state.planning.plannings
-export const getPlanningIdsInList = (state) => state.planning.planningsInList
-export const isOnlyFutureFiltered = (state) => state.planning.onlyFuture
-export const filterPlanningKeyword = (state) => state.planning.filterPlanningKeyword
-export const getServerUrl = (state) => state.config.server.url
-export const getDateFormat = (state) => state.config.model.dateformat
-export const getTimeFormat = (state) => state.config.shortTimeFormat
-export const getIframelyKey = (state) => state.config.iframely ? state.config.iframely.key : null
+    get(state, 'planning.lastRequestParams', {})
+export const getCurrentAgendaId = (state) => get(state, 'agenda.currentAgendaId')
+export const getStoredPlannings = (state) => get(state, 'planning.plannings')
+export const getPlanningIdsInList = (state) => get(state, 'planning.planningsInList')
+export const isOnlyFutureFiltered = (state) => get(state, 'planning.onlyFuture')
+export const filterPlanningKeyword = (state) => get(state, 'planning.filterPlanningKeyword')
+export const getServerUrl = (state) => get(state, 'config.server.url')
+export const getDateFormat = (state) => get(state, 'config.model.dateformat')
+export const getTimeFormat = (state) => get(state, 'config.shortTimeFormat')
+export const getIframelyKey = (state) => get(state, 'config.iframely.key', null)
 export const getMaxRecurrentEvents = (state) => get(state, 'deployConfig.max_recurrent_events', 200)
-export const getShowEventDetails = (state) => state.events.showEventDetails
-export const getSelectedEvents = (state) => state.events.selectedEvents
-export const getHighlightedEvent = (state) => state.events.highlightedEvent === true ? null :
-    state.events.highlightedEvent
-export const getEventsIdsToShowInList = (state) => state.events.eventsInList
+export const getShowEventDetails = (state) => get(state, 'events.showEventDetails')
+export const getSelectedEvents = (state) => get(state, 'events.selectedEvents')
+export const getHighlightedEvent = (state) => get(state, 'events.highlightedEvent') === true ?
+    null : get(state, 'events.highlightedEvent')
+export const getEventsIdsToShowInList = (state) => get(state, 'events.eventsInList')
 export const getSelectedEventsObjects = createSelector(
     [getEvents, getSelectedEvents],
     (events, eventsIds) => (eventsIds.map((id) => events[id]))
@@ -43,40 +46,45 @@ export const getCurrentAgenda = createSelector(
     }
 )
 
-export const getAssignments = (state) => state.assignment.assignments
-export const getFilterBy = (state) => state.assignment.filterBy
-export const getSearchQuery = (state) => state.assignment.searchQuery
-export const getOrderByField = (state) => state.assignment.orderByField
-export const getOrderDirection = (state) => state.assignment.orderDirection
-export const getSelectedAssignments = (state) => state.assignment.selectedAssignments
+export const getAssignments = (state) => get(state, 'assignment.assignments', [])
+export const getFilterBy = (state) => get(state, 'assignment.filterBy')
+export const getSearchQuery = (state) => get(state, 'assignment.searchQuery')
+export const getOrderByField = (state) => get(state, 'assignment.orderByField')
+export const getOrderDirection = (state) => get(state, 'assignment.orderDirection')
+export const getSelectedAssignments = (state) => get(state, 'assignment.selectedAssignments', [])
 export const getAssignmentListSettings = (state) => ({
     filterBy: getFilterBy(state),
     searchQuery: getSearchQuery(state),
     orderByField: getOrderByField(state),
     orderDirection: getOrderDirection(state),
-    lastAssignmentLoadedPage: state.assignment.lastAssignmentLoadedPage,
+    lastAssignmentLoadedPage: get(state, 'assignment.lastAssignmentLoadedPage'),
 })
 export const getMyAssignmentsCount = (state) => {
     const assignments = getAssignments(state)
     const currentUserId = getCurrentUserId(state)
 
-    return assignments.reduce((previousValue, assignment) =>
-        previousValue + (assignment.planning.assigned_to.user === currentUserId ? 1 : 0),
-    0)
+    if (assignments && currentUserId) {
+        return assignments.reduce((previousValue, assignment) =>
+            previousValue + (
+                get(assignment, 'planning.assigned_to.user') === currentUserId ? 1 : 0
+            ), 0
+        )
+    }
 }
 
-export const getPrivileges = (state) => state.privileges
-export const getUsers = (state) => get(state, 'users.length', 0) > 0 ? state.users : []
-export const getPlanningItemReadOnlyState = (state) => state.planning.readOnly
-export const getEventReadOnlyState = (state) => state.events.readOnly
-export const getSessionDetails = (state) => state.session
-export const getCurrentUserId = (state) => state.session.identity._id
+export const getPrivileges = (state) => get(state, 'privileges')
+export const getUsers = (state) => get(state, 'users', [])
+export const getPlanningItemReadOnlyState = (state) => get(state, 'planning.readOnly')
+export const getEventReadOnlyState = (state) => get(state, 'events.readOnly')
+export const getSessionDetails = (state) => get(state, 'session')
+export const getCurrentUserId = (state) => get(state, 'session.identity._id')
 export const getEventCalendars = (state) => get(state, 'vocabularies.event_calendars', [])
 
-export const getPlanningSearch = (state) => state.planning.search.currentSearch
-export const getEventsFormsProfile = (state) => state.formsProfile.events
-export const getPlanningsFormsProfile = (state) => state.formsProfile.planning
-export const getCoverageFormsProfile = (state) => state.formsProfile.coverage
+export const getPlanningSearch = (state) => get(state, 'planning.search.currentSearch')
+export const getEventsFormsProfile = (state) => get(state, 'formsProfile.events')
+export const getPlanningsFormsProfile = (state) => get(state, 'formsProfile.planning')
+export const getCoverageFormsProfile = (state) => get(state, 'formsProfile.coverage')
+
 export const getPlanningsInList = createSelector(
     [getPlanningIdsInList, getStoredPlannings],
     (planningIds, storedPlannings) => (
@@ -220,7 +228,7 @@ export const getEventsOrderedByDay = createSelector(
 export const getEventToBeDetailed = createSelector(
     [getShowEventDetails, getEvents, getStoredPlannings, getAgendas],
     (showEventDetails, events, plannings, agendas) => {
-        const event = events[showEventDetails]
+        const event = events ? events[showEventDetails] : null
         if (event) {
             return {
                 ...event,

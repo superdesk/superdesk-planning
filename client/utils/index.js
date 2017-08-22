@@ -36,7 +36,274 @@ export const createTestStore = (params={}) => {
             model: { dateformat: 'DD/MM/YYYY' },
             shortTimeFormat: 'HH:mm',
         },
+
+        session: {
+            identity: { _id: 'user123' },
+            sessionId: 'session123',
+        },
+
+        privileges: {
+            planning: 1,
+            planning_planning_management: 1,
+            planning_planning_spike: 1,
+            planning_planning_unspike: 1,
+            planning_agenda_management: 1,
+            planning_agenda_spike: 1,
+            planning_agenda_unspike: 1,
+            planning_event_management: 1,
+            planning_event_spike: 1,
+            planning_event_unspike: 1,
+        },
+
+        formsProfile: {
+            events: {
+                editor: {
+                    slugline: { enabled: true },
+                    anpa_category: { enabled: true },
+                    definition_long: { enabled: true },
+                    definition_short: { enabled: true },
+                    internal_note: { enabled: true },
+                    location: { enabled: true },
+                    name: { enabled: true },
+                    dates: { enabled: true },
+                    occur_status: { enabled: true },
+                    subject: { enabled: true },
+                    calendars: { enabled: true },
+                    files: { enabled: true },
+                    links: { enabled: true },
+                },
+            },
+            coverage: {
+                editor: {
+                    description_text: { enabled: true },
+                    g2_content_type: { enabled: true },
+                    genre: { enabled: true },
+                    headline: { enabled: true },
+                    internal_note: { enabled: true },
+                    scheduled: { enabled: true },
+                    slugline: { enabled: true },
+                },
+            },
+            planning: {
+                editor: {
+                    agendas: { enabled: true },
+                    anpa_category: { enabled: true },
+                    description_text: { enabled: true },
+                    ednote: { enabled: true },
+                    flags: { enabled: true },
+                    headline: { enabled: true },
+                    internal_note: { enabled: true },
+                    slugline: { enabled: true },
+                    subject: { enabled: true },
+                },
+            },
+        },
+
+        users: [
+            {
+                _id: 'user123',
+                display_name: 'foo',
+            },
+            {
+                _id: 'somebodyelse',
+                display_name: 'somebodyelse',
+            },
+        ],
+
+        vocabularies: {
+            categories: [
+                {
+                    name: 'cat1',
+                    qcode: 'qcode1',
+                },
+                {
+                    name: 'cat2',
+                    qcode: 'qcode2',
+                },
+                {
+                    name: 'cat3',
+                    qcode: 'qcode3',
+                },
+            ],
+            g2_content_type: [
+                {
+                    name: 'Text',
+                    qcode: 'text',
+                },
+                {
+                    name: 'Video',
+                    qcode: 'video',
+                },
+                {
+                    name: 'Audio',
+                    qcode: 'audio',
+                },
+            ],
+            event_calendars: [
+                {
+                    name: 'Sport',
+                    qcode: 'sport',
+                },
+                {
+                    name: 'Finance',
+                    qcode: 'finance',
+                },
+            ],
+            eventoccurstatus: [
+                {
+                    name: 'Unplanned event',
+                    label: 'Unplanned',
+                    qcode: 'eocstat:eos0',
+                },
+                {
+                    name: 'Planned, occurrence planned only',
+                    label: 'Tentative',
+                    qcode: 'eocstat:eos1',
+                },
+                {
+                    name: 'Planned, occurrence highly uncertain',
+                    label: 'Unlikely',
+                    qcode: 'eocstat:eos2',
+                },
+                {
+                    name: 'Planned, may occur',
+                    label: 'Possible',
+                    qcode: 'eocstat:eos3',
+                },
+                {
+                    name: 'Planned, occurrence highly likely',
+                    label: 'Very likely',
+                    qcode: 'eocstat:eos4',
+                },
+                {
+                    name: 'Planned, occurs certainly',
+                    label: 'Confirmed',
+                    qcode: 'eocstat:eos5',
+                },
+                {
+                    name: 'Planned, then cancelled',
+                    label: 'Cancelled',
+                    qcode: 'eocstat:eos6',
+                },
+            ],
+            newscoveragestatus: [
+                {
+                    name: 'Coverage intended',
+                    label: 'Planned',
+                    qcode: 'ncostat:int',
+                },
+                {
+                    name: 'Coverage not decided yet',
+                    label: 'On merit',
+                    qcode: 'ncostat:notdec',
+                },
+                {
+                    name: 'Coverage not intended',
+                    label: 'Not planned',
+                    qcode: 'ncostat:notint',
+                },
+                {
+                    name: 'Coverage upong request',
+                    label: 'On request',
+                    qcode: 'ncostat:onreq',
+                },
+            ],
+        },
+
+        subjects: [
+            {
+                name: 'sub1',
+                qcode: 'qcode1',
+                parent: null,
+            },
+            {
+                name: 'sub1-1',
+                qcode: 'qcode1-1',
+                parent: 'qcode1',
+            },
+            {
+                name: 'sub2',
+                qcode: 'qcode2',
+                parent: null,
+            },
+            {
+                name: 'sub2-2',
+                qcode: 'qcode2-2',
+                parent: 'qcode2',
+            },
+        ],
+
+        desks: [
+            {
+                _id: 123,
+                name: 'Politic Desk',
+                members: [
+                    { user: 345 },
+                ],
+            },
+            {
+                _id: 234,
+                name: 'Sports Desk',
+            },
+        ],
+
+        genres: [
+            {
+                name: 'Article (news)',
+                qcode: 'Article',
+            },
+            {
+                name: 'Sidebar',
+                qcode: 'Sidebar',
+            },
+            {
+                name: 'Feature',
+                qcode: 'Feature',
+            },
+        ],
+
+        ingest: {
+            providers: [
+                {
+                    id: 'ip123',
+                    name: 'afp',
+                },
+                {
+                    id: 'ip456',
+                    name: 'Forbes RSS feed',
+                },
+            ],
+        },
+
+        urgency: {
+            label: 'News Value',
+            urgency: [
+                {
+                    name: '1',
+                    qcode: 1,
+                },
+                {
+                    name: '2',
+                    qcode: 2,
+                },
+                {
+                    name: '3',
+                    qcode: 3,
+                },
+                {
+                    name: '4',
+                    qcode: 4,
+                },
+                {
+                    name: '5',
+                    qcode: 5,
+                },
+            ],
+        },
+
+        deployConfig: {},
     }
+
     const mockedExtraArguments = {
         $timeout: extraArguments.timeout ? extraArguments.timeout : (cb) => (cb && cb()),
         $scope: { $apply: (cb) => (cb && cb()) },
