@@ -6,9 +6,15 @@ from planning.tests import TestCase
 
 
 class IcsTwoFeedParserTestCase(TestCase):
+    vocab = [{'_id': 'eventoccurstatus', 'items': [{
+        "is_active": True,
+        "qcode": "eocstat:eos5",
+        "name": "Planned, occurs certainly"
+    }]}]
 
     def setUp(self):
         super().setUp()
+        self.app.data.insert('vocabularies', self.vocab)
         dir_path = os.path.dirname(os.path.realpath(__file__))
         calendar = open(os.path.join(dir_path, 'events.ics'))
         self.calendar = Calendar.from_ical(calendar.read())
