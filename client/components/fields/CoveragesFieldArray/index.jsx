@@ -12,6 +12,7 @@ export class CoveragesFieldArrayComponent extends React.Component {
                 headline,
                 slugline,
             },
+            news_coverage_status:  { qcode: 'ncostat:int' },
         })
     }
 
@@ -34,6 +35,7 @@ export class CoveragesFieldArrayComponent extends React.Component {
                 assigned_to: null,
                 g2_content_type: contentType,
             },
+            news_coverage_status:  { qcode: 'ncostat:int' },
         })
     }
 

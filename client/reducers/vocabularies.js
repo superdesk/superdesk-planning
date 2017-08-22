@@ -6,6 +6,7 @@ const initialState = {
     eventoccurstatus: [],
     event_calendars: [],
     coverage_providers: [],
+    newscoveragestatus: [],
 }
 
 const vocabularies = (state=initialState, action) => {

@@ -230,7 +230,8 @@ coverage_schema = {
         'type': 'dict',
         'schema': {
             'qcode': {'type': 'string'},
-            'name': {'type': 'string'}
+            'name': {'type': 'string'},
+            'label': {'type': 'string'}
         }
     }
 }  # end coverage_schema

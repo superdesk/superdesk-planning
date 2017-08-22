@@ -17,6 +17,7 @@ function CoverageComponent({
     readOnly,
     content_type,
     formProfile,
+    newscoveragestatus,
     }) {
     const isTextCoverage = content_type === 'text'
     return (
@@ -84,6 +85,17 @@ function CoverageComponent({
                     <option key={p.qcode} value={p.qcode}>{p.name}</option>
                 ))}
             </Field>
+            <label>Coverage Status</label>
+            <Field
+                name={`${coverage}.news_coverage_status.qcode`}
+                component="select"
+                className={classNames({ 'disabledInput': readOnly })}
+                disabled={readOnly ? 'disabled' : ''} >
+                <option />
+                {newscoveragestatus.map((p) => (
+                    <option key={p.qcode} value={p.qcode}>{p.label}</option>
+                ))}
+            </Field>
             <label>Due</label>
             {get(formProfile, 'editor.scheduled.enabled') && <Field
                 name={`${coverage}.planning.scheduled`}
@@ -103,6 +115,7 @@ CoverageComponent.propTypes = {
     desks: PropTypes.array.isRequired,
     readOnly: PropTypes.bool,
     formProfile: PropTypes.object,
+    newscoveragestatus: PropTypes.array.isRequired,
 }
 
 const selector = formValueSelector('planning') // same as form name
@@ -113,6 +126,7 @@ const mapStateToProps = (state, ownProps) => ({
     content_type: selector(state, ownProps.coverage + '.planning.g2_content_type'),
     coverage_providers: state.vocabularies.coverage_providers || [],
     formProfile: selectors.getCoverageFormsProfile(state),
+    newscoveragestatus: state.vocabularies.newscoveragestatus || [],
 })
 
 export const Coverage = connect(mapStateToProps)(CoverageComponent)

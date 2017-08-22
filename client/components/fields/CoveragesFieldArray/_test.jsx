@@ -45,6 +45,7 @@ describe('<CoveragesFieldArray />', () => {
                 headline: 'Header',
                 slugline: 'Slugger',
             },
+            news_coverage_status:  { qcode: 'ncostat:int' },
         }])
     })
 
@@ -63,6 +64,7 @@ describe('<CoveragesFieldArray />', () => {
                 ...coverage.planning,
                 assigned_to: null,
             },
+            news_coverage_status:  { qcode: 'ncostat:int' },
         }])
     })
 
@@ -76,6 +78,7 @@ describe('<CoveragesFieldArray />', () => {
                 assigned_to: null,
                 g2_content_type: 'video',
             },
+            news_coverage_status:  { qcode: 'ncostat:int' },
         }])
     })
 })
