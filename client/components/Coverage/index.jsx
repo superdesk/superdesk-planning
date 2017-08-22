@@ -29,7 +29,9 @@ function CoverageComponent({
                 readOnly={readOnly} />
             {get(formProfile, 'editor.description_text.enabled') && <Field
                 name={`${coverage}.planning.description_text`}
-                component={fields.InputField}
+                component={fields.InputTextAreaField}
+                multiLine={true}
+                autoFocus={true}
                 type="text"
                 label="Description"
                 readOnly={readOnly} />}
