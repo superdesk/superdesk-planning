@@ -37,6 +37,20 @@ describe('selectors', () => {
             orderByField: 'Updated',
             orderDirection: 'Desc',
             lastAssignmentLoadedPage: 2,
+            previewOpened: true,
+            currentAssignment: {
+                _id: 1,
+                _created: '2017-07-13T13:55:41+0000',
+                _updated: '2017-07-28T11:16:36+0000',
+                planning: {
+                    assigned_to: {
+                        assigned_date: '2017-07-28T11:16:36+0000',
+                        desk: 'desk1',
+                        user: 'user1',
+                    },
+                },
+            },
+            readOnly: true,
         },
         events: {
             events: {
@@ -260,6 +274,32 @@ describe('selectors', () => {
         it('getMyAssignmentsCount', () => {
             const myAssignmentsCount = selectors.getMyAssignmentsCount(state)
             expect(myAssignmentsCount).toEqual(1)
+        })
+
+        it('getPreviewAssignmentOpened', () => {
+            const previewAssignmentOpened = selectors.getPreviewAssignmentOpened(state)
+            expect(previewAssignmentOpened).toBeTruthy()
+        })
+
+        it('getCurrentAssignment', () => {
+            const currentAssignment = selectors.getCurrentAssignment(state)
+            expect(currentAssignment).toEqual({
+                _id: 1,
+                _created: '2017-07-13T13:55:41+0000',
+                _updated: '2017-07-28T11:16:36+0000',
+                planning: {
+                    assigned_to: {
+                        assigned_date: '2017-07-28T11:16:36+0000',
+                        desk: 'desk1',
+                        user: 'user1',
+                    },
+                },
+            })
+        })
+
+        it('getReadOnlyAssignment', () => {
+            const readOnly = selectors.getReadOnlyAssignment(state)
+            expect(readOnly).toBeTruthy()
         })
     })
 })

@@ -78,6 +78,10 @@ export const getPlanningItemReadOnlyState = (state) => get(state, 'planning.read
 export const getEventReadOnlyState = (state) => get(state, 'events.readOnly')
 export const getSessionDetails = (state) => get(state, 'session')
 export const getCurrentUserId = (state) => get(state, 'session.identity._id')
+export const getPreviewAssignmentOpened = (state) => get(state, 'assignment.previewOpened')
+export const getCurrentAssignment = (state) => get(state, 'assignment.currentAssignment')
+export const getReadOnlyAssignment = (state) => get(state, 'assignment.readOnly')
+
 export const getEventCalendars = (state) => get(state, 'vocabularies.event_calendars', [])
 
 export const getPlanningSearch = (state) => get(state, 'planning.search.currentSearch')

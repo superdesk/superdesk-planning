@@ -1,53 +1,75 @@
 import { uniqBy, uniq } from 'lodash'
-import { RESET_STORE, INIT_STORE } from '../constants'
+import { ASSIGNMENTS, RESET_STORE, INIT_STORE } from '../constants'
+import { createReducer } from '../utils'
 
 const initialState = {
-    desk: '',
-    user: '',
     assignments: [],
-    filterByUser: true,
+    filterBy: 'All',
     selectedAssignments: [],
+    previewOpened: false,
 }
 
-const assignment = (state = initialState, action) => {
-    switch (action.type) {
-        case RESET_STORE:
-            return null
-        case INIT_STORE:
-            return initialState
-        case 'RECEIVED_ASSIGNMENTS':
-            return {
-                ...state,
-                assignments: action.payload,
-            }
-        case 'RECEIVED_MORE_ASSIGNMENTS':
-            return {
-                ...state,
-                assignments: uniqBy(
-                    [...state.assignments, ...action.payload],
-                    '_id'
-                ),
-            }
-        case 'CHANGE_LIST_SETTINGS':
-            return {
-                ...state,
-                ...action.payload,
-            }
-        case 'SELECT_ASSIGNMENTS':
-            return {
-                ...state,
-                selectedAssignments: uniq(
-                    [...state.selectedAssignments, ...action.payload]
-                ),
-            }
-        case 'DESELECT_ASSIGNMENT':
-            return {
-                ...state,
-                selectedAssignments: state.selectedAssignments.filter((e) => e !== action.payload),
-            }
-        default:
-            return state
-    }
-}
+const assignmentReducer = createReducer(initialState, {
+    [RESET_STORE]: () => (null),
 
-export default assignment
+    [INIT_STORE]: () => (initialState),
+
+    [ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS]: (state, payload) => (
+        {
+            ...state,
+            assignments: payload,
+        }
+    ),
+
+    [ASSIGNMENTS.ACTIONS.RECEIVED_MORE_ASSIGNMENTS]: (state, payload) => (
+        {
+            ...state,
+            assignments: uniqBy(
+                [...state.assignments, ...payload],
+                '_id'
+            ),
+        }
+    ),
+
+    [ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS]: (state, payload) => (
+        {
+            ...state,
+            ...payload,
+        }
+    ),
+
+    [ASSIGNMENTS.ACTIONS.SELECT_ASSIGNMENTS]: (state, payload) => (
+        {
+            ...state,
+            selectedAssignments: uniq(
+                [...state.selectedAssignments, ...payload]
+            ),
+        }
+    ),
+
+    [ASSIGNMENTS.ACTIONS.DESELECT_ASSIGNMENT]: (state, payload) => (
+        {
+            ...state,
+            selectedAssignments: state.selectedAssignments.filter((e) => e !== payload),
+        }
+    ),
+
+    [ASSIGNMENTS.ACTIONS.PREVIEW_ASSIGNMENT]: (state, payload) => (
+        {
+            ...state,
+            previewOpened: true,
+            currentAssignment: payload,
+            readOnly: true,
+        }
+    ),
+
+    [ASSIGNMENTS.ACTIONS.CLOSE_PREVIEW_ASSIGNMENT]: (state) => (
+        {
+            ...state,
+            previewOpened: false,
+            currentAssignment: null,
+        }
+    ),
+})
+
+export default assignmentReducer
