@@ -52,7 +52,7 @@ describe('<CoverageForm />', () => {
                     <FormComponent />
                 </Provider>)
 
-            expect(wrapper.find('InputField').first().props().label).toBe('Description')
+            expect(wrapper.find('InputTextAreaField').first().props().label).toBe('Description')
         })
 
         it('hides disabled fields', () => {
