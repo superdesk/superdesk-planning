@@ -5,6 +5,7 @@ import sinon from 'sinon'
 import moment from 'moment'
 import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
+import { itemActionExists } from '../../utils/testUtils'
 
 describe('events', () => {
     describe('components', () => {
@@ -15,6 +16,9 @@ describe('events', () => {
             let onSpikeEvent
             let onUnspikeEvent
             let onDuplicateEvent
+            let onCancelEvent
+            let onSelectChange
+            let addEventToCurrentAgenda
             let highlightedEvent
             let privileges
 
@@ -28,7 +32,10 @@ describe('events', () => {
                             onSpikeEvent={onSpikeEvent}
                             onUnspikeEvent={onUnspikeEvent}
                             onDuplicateEvent={onDuplicateEvent}
+                            onCancelEvent={onCancelEvent}
+                            onSelectChange={onSelectChange}
                             highlightedEvent={highlightedEvent}
+                            addEventToCurrentAgenda={addEventToCurrentAgenda}
                             privileges={privileges} />
                     </Provider>
                 )
@@ -45,7 +52,10 @@ describe('events', () => {
                             onSpikeEvent={onSpikeEvent}
                             onUnspikeEvent={onUnspikeEvent}
                             onDuplicateEvent={onDuplicateEvent}
+                            onCancelEvent={onCancelEvent}
+                            onSelectChange={onSelectChange}
                             highlightedEvent={highlightedEvent}
+                            addEventToCurrentAgenda={addEventToCurrentAgenda}
                             privileges={privileges} />
                     </Provider>
                 )
@@ -57,6 +67,9 @@ describe('events', () => {
                 onSpikeEvent = sinon.spy(() => (Promise.resolve()))
                 onUnspikeEvent = sinon.spy(() => (Promise.resolve()))
                 onDuplicateEvent = sinon.spy(() => (Promise.resolve()))
+                onCancelEvent = sinon.spy(() => (Promise.resolve()))
+                onSelectChange = sinon.spy(() => (Promise.resolve()))
+                addEventToCurrentAgenda = sinon.spy(()=>(Promise.resolve()))
 
                 event = {
                     state: 'in_progress',
@@ -79,26 +92,16 @@ describe('events', () => {
 
                 privileges.planning_event_spike = 1
                 wrapper = getMountedWrapper()
-                expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
-
-                const itemActions = wrapper.find('ItemActionsMenu')
-                expect(itemActions.props().actions.length).toBe(2)
-                expect(itemActions.props().actions[0].label).toBe('Spike')
+                expect(itemActionExists(wrapper, 'Spike')).toBe(true)
 
                 privileges.planning_event_spike = 0
                 wrapper = getMountedWrapper()
-                expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
-                const itemActions2 = wrapper.find('ItemActionsMenu')
-                expect(itemActions2.props().actions[0].label).not.toBe('Spike')
+                expect(itemActionExists(wrapper, 'Spike')).toBe(false)
 
                 privileges.planning_event_spike = 1
                 event.state = 'spiked'
                 wrapper = getMountedWrapper()
-                expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
-
-                const itemActions3 = wrapper.find('ItemActionsMenu')
-                expect(itemActions3.props().actions.length).toBe(1)
-                expect(itemActions3.props().actions[0].label).not.toBe('Spike')
+                expect(itemActionExists(wrapper, 'Spike')).toBe(false)
             })
 
             it('unspike is populated in item-actions according to privilege and event state', () => {
@@ -107,46 +110,32 @@ describe('events', () => {
                 privileges.planning_event_unspike = 1
                 event.state = 'spiked'
                 wrapper = getMountedWrapper()
-                expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
-
-                const itemActions = wrapper.find('ItemActionsMenu')
-                expect(itemActions.props().actions.length).toBe(1)
-                expect(itemActions.props().actions[0].label).toBe('Unspike')
+                expect(itemActionExists(wrapper, 'Unspike')).toBe(true)
 
                 privileges.planning_event_unspike = 0
                 wrapper = getMountedWrapper()
-                expect(wrapper.find('.icon-dots-vertical').length).toBe(0)
+                expect(itemActionExists(wrapper, 'Unspike')).toBe(false)
 
                 privileges.planning_event_uspike = 1
                 event.state = 'in_progress'
                 wrapper = getMountedWrapper()
-                expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
-
-                const itemActions3 = wrapper.find('ItemActionsMenu')
-                expect(itemActions3.props().actions.length).toBe(2)
-                expect(itemActions3.props().actions[0].label).not.toBe('Unspike')
+                expect(itemActionExists(wrapper, 'Unspike')).toBe(false)
             })
 
             it('duplicate is populated item-actions according to privilege and event state', () => {
                 let wrapper
 
                 wrapper = getMountedWrapper()
-                expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
-
-                const itemActions = wrapper.find('ItemActionsMenu')
-                expect(itemActions.props().actions.length).toBe(2)
-                expect(itemActions.props().actions[1].label).toBe('Duplicate')
+                expect(itemActionExists(wrapper, 'Duplicate')).toBe(true)
 
                 event.state = 'spiked'
                 wrapper = getMountedWrapper()
-                expect(wrapper.find('.icon-dots-vertical').length).toBe(1)
-                const itemActions2 = wrapper.find('ItemActionsMenu')
-                expect(itemActions2.props().actions[0].label).not.toBe('Duplicate')
+                expect(itemActionExists(wrapper, 'Duplicate')).toBe(false)
 
                 privileges.planning_event_management = 0
                 event.state = 'in_progress'
                 wrapper = getMountedWrapper()
-                expect(wrapper.find('.icon-dots-vertical').length).toBe(0)
+                expect(itemActionExists(wrapper, 'Duplicate')).toBe(false)
             })
 
             it('shows the `spiked` badge', () => {

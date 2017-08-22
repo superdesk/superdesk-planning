@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
 import { get } from 'lodash'
+import { GENERIC_ITEM_ACTIONS } from '../../constants'
 import './style.scss'
 
 export class ItemActionsMenu extends React.Component {
@@ -46,7 +47,16 @@ export class ItemActionsMenu extends React.Component {
         action.callback()
     }
 
+    ignoreAction(event) {
+        event.preventDefault()
+        event.stopPropagation()
+    }
+
     render() {
+        if (get(this.props, 'actions.length', 0) < 1) {
+            return null
+        }
+
         const toggleMenu = this.toggleMenu.bind(this)
         const menu = this.state.isOpen ? this.renderMenu(this.props.actions) : null
         const classes = classNames('dropdown', 'ItemActionsMenu', 'pull-right', { open: this.state.isOpen })
@@ -64,18 +74,18 @@ export class ItemActionsMenu extends React.Component {
     renderMenu(actions) {
         let items = actions.map(this.renderItem.bind(this))
 
-        if (!items.length) {
-            items = <li><button onClick={this.closeMenu.bind(this)}>There are no actions available.</button></li>
-        }
-
         return (
             <ul className="dropdown__menu">
+                <li onClick={this.ignoreAction.bind(this)}><div className="dropdown__menu-label">Actions</div></li>
+                <li className="dropdown__menu-divider" />
                 {items}
             </ul>
         )
     }
 
     renderItem(action) {
+        const key = action.key ? action.key : action.label
+
         if (Array.isArray(action.callback)) {
             let items = action.callback.map(this.renderItem.bind(this))
 
@@ -86,7 +96,7 @@ export class ItemActionsMenu extends React.Component {
             const submenuDirection = get(action, 'direction', 'left')
 
             return (
-                <li key={'submenu-' + action.label}>
+                <li key={'submenu-' + key}>
                     <div className="dropdown">
                         <button className="dropdown__toggle" onClick={this.closeMenu.bind(this)}>
                             {action.icon && (<i className={action.icon}/>)}
@@ -100,9 +110,13 @@ export class ItemActionsMenu extends React.Component {
             )
         }
 
+        if (action.label === GENERIC_ITEM_ACTIONS.DIVIDER.label) {
+            return <li key={key} className="dropdown__menu-divider" />
+        }
+
         const trigger = this.triggerAction.bind(this, action)
         return (
-            <li key={action.label}>
+            <li key={key}>
                 <button onClick={trigger}>
                     {action.icon && (<i className={action.icon}/>)}
                     {action.label}

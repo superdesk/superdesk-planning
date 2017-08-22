@@ -18,6 +18,7 @@ const events = {
         location: [{ name: 'location1' }],
         name: 'name1',
         files: [{}, {}],
+        has_planning: true,
     },
     '5800d73230627218866f1e82': {
         _id: '5800d73230627218866f1e82',
@@ -29,6 +30,7 @@ const events = {
         definition_short: '',
         location: [{ name: 'location1' }],
         name: 'name2',
+        has_planning: false,
     },
     '5800d73230627218866f1d82': {
         _id: '5800d73230627218866f1d82',
@@ -39,6 +41,7 @@ const events = {
         definition_short: '',
         location: [{ name: 'location2' }],
         name: 'name3',
+        has_planning: false,
     },
 }
 

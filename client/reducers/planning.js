@@ -1,5 +1,5 @@
 import { cloneDeep, get, uniq } from 'lodash'
-import { PLANNING } from '../constants'
+import { PLANNING, WORKFLOW_STATE } from '../constants'
 import { createReducer } from '../utils'
 import moment from 'moment'
 
@@ -242,6 +242,54 @@ const planningReducer = createReducer(initialState, {
             },
         }
     ),
+
+    [PLANNING.ACTIONS.MARK_PLANNING_CANCELLED]: (state, payload) => {
+        plannings = cloneDeep(state.plannings)
+        plan = get(plannings, payload.planning_item, null)
+
+        // If the planning item is not loaded, disregard this action
+        if (plan === null) return state
+
+        markPlaningCancelled(plan, payload)
+        plan.state = WORKFLOW_STATE.CANCELLED
+        plan.coverages.forEach((coverage) => markCoverageCancelled(coverage, payload))
+
+        return {
+            ...state,
+            plannings,
+        }
+    },
 })
+
+const markPlaningCancelled = (plan, payload) => {
+    let ednote = `------------------------------------------------------------
+Event cancelled
+`
+    if (get(payload, 'reason', null) !== null) {
+        ednote += `Reason: ${payload.reason}\n`
+    }
+
+    if (get(plan, 'ednote', null) !== null) {
+        ednote = `${plan.ednote}\n\n${ednote}`
+    }
+
+    plan.ednote = ednote
+}
+
+const markCoverageCancelled = (coverage, payload) => {
+    let note = `------------------------------------------------------------
+Event has been cancelled
+`
+    if (get(payload, 'reason', null) !== null) {
+        note += `Reason: ${payload.reason}\n`
+    }
+
+    if (get(coverage, 'planning.internal_note', null) !== null) {
+        note = `${coverage.planning.internal_note}\n\n${note}`
+    }
+
+    coverage.news_coverage_status = payload.coverage_state
+    coverage.planning.internal_note = note
+}
 
 export default planningReducer

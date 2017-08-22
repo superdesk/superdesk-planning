@@ -13,7 +13,6 @@ import { UserAvatar, UnlockItem } from '../'
 import classNames from 'classnames'
 import './style.scss'
 import { ItemActionsMenu } from '../index'
-import { GENERIC_ITEM_ACTIONS, PRIVILEGES } from '../../constants/index'
 import {
     getCreator,
     getLockedUser,
@@ -21,6 +20,7 @@ import {
     isItemSpiked,
     isItemPublic,
 } from '../../utils'
+import { GENERIC_ITEM_ACTIONS, PRIVILEGES, EVENTS } from '../../constants/index'
 
 // Helper enum for Publish method when saving
 const saveMethods = {
@@ -124,6 +124,7 @@ export class EditPlanningPanel extends React.Component {
             onSpike,
             onUnspike,
             onDuplicate,
+            onCancelEvent,
         } = this.props
 
         const creationDate = get(planning, '_created')
@@ -137,20 +138,36 @@ export class EditPlanningPanel extends React.Component {
         const eventSpiked = isItemSpiked(event)
 
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK]
-
-        const callBacks = {
-            [GENERIC_ITEM_ACTIONS.SPIKE.label]: onSpike.bind(null, planning),
-            [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: onUnspike.bind(null, planning),
-            [GENERIC_ITEM_ACTIONS.HISTORY.label]: this.viewPlanningHistory.bind(this),
-            [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: onDuplicate.bind(null, planning),
-        }
+        const actions = [
+            {
+                ...GENERIC_ITEM_ACTIONS.SPIKE,
+                callback: onSpike.bind(null, planning),
+            },
+            {
+                ...GENERIC_ITEM_ACTIONS.UNSPIKE,
+                callback: onUnspike.bind(null, planning),
+            },
+            {
+                ...GENERIC_ITEM_ACTIONS.HISTORY,
+                callback: this.viewPlanningHistory.bind(this),
+            },
+            {
+                ...GENERIC_ITEM_ACTIONS.DUPLICATE,
+                callback: onDuplicate.bind(null, planning),
+            },
+            GENERIC_ITEM_ACTIONS.DIVIDER,
+            {
+                ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+                callback: onCancelEvent.bind(null, event),
+            },
+        ]
 
         const itemActions = planningUtils.getPlanningItemActions({
             plan: planning,
             event,
             session,
             privileges,
-            callBacks,
+            actions,
         })
 
         // If the planning or event or agenda item is spiked,
@@ -347,6 +364,7 @@ EditPlanningPanel.propTypes = {
     onDuplicate: PropTypes.func,
     onSpike: PropTypes.func,
     onUnspike: PropTypes.func,
+    onCancelEvent: PropTypes.func,
 }
 
 const selector = formValueSelector('planning') // Selector for the Planning form
@@ -376,6 +394,7 @@ const mapDispatchToProps = (dispatch) => ({
     onDuplicate: (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
     onSpike: (planning) => (dispatch(actions.planning.ui.spike(planning))),
     onUnspike: (planning) => (dispatch(actions.planning.ui.unspike(planning))),
+    onCancelEvent: (event) => dispatch(actions.events.ui.cancelEvent(event)),
 })
 
 export const EditPlanningPanelContainer = connect(

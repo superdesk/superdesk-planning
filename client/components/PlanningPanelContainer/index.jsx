@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import classNames from 'classnames'
 import { get, isObject } from 'lodash'
@@ -12,6 +13,7 @@ import {
 import { QuickAddPlanning, Toggle, SearchBar, AdvancedSearchPanelContainer } from '../../components'
 import * as selectors from '../../selectors'
 import { AGENDA } from '../../constants'
+import { eventUtils } from '../../utils/index'
 import './style.scss'
 
 class PlanningPanel extends React.Component {
@@ -23,7 +25,13 @@ class PlanningPanel extends React.Component {
     handleEventDrop(e) {
         e.preventDefault()
         const event = JSON.parse(e.dataTransfer.getData('application/superdesk.item.events'))
-        if (event) {
+        const canCreatePlanning = event && eventUtils.canCreatePlanningFromEvent(
+            event,
+            this.props.session,
+            this.props.privileges
+        )
+
+        if (canCreatePlanning) {
             this.props.addEventToCurrentAgenda(event)
         }
     }
@@ -161,6 +169,7 @@ PlanningPanel.propTypes = {
     isAdvancedSearchSpecified: React.PropTypes.bool,
     closeAdvancedSearch: React.PropTypes.func,
     openAdvancedSearch: React.PropTypes.func,
+    session: PropTypes.object,
 }
 
 const mapStateToProps = (state) => ({
@@ -175,6 +184,7 @@ const mapStateToProps = (state) => ({
     advancedSearchOpened: get(state, 'planning.search.advancedSearchOpened', false),
     isAdvancedDateSearch: selectors.isAdvancedDateSearch(state),
     isAdvancedSearchSpecified: isObject(selectors.getPlanningSearch(state)),
+    session: selectors.getSessionDetails(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

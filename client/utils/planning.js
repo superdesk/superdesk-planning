@@ -1,11 +1,13 @@
 import moment from 'moment-timezone'
-import { WORKFLOW_STATE, GENERIC_ITEM_ACTIONS, PRIVILEGES } from '../constants/index'
+import { WORKFLOW_STATE, GENERIC_ITEM_ACTIONS, PRIVILEGES, EVENTS } from '../constants/index'
 import { get } from 'lodash'
 import {
     getItemState,
     isItemLockRestricted,
     isItemPublic,
     isItemSpiked,
+    eventUtils,
+    isItemCancelled,
 } from './index'
 
 const canSavePlanning = (planning, event, privileges) => (
@@ -41,7 +43,8 @@ const canEditPlanning = (
         getItemState(event) !== WORKFLOW_STATE.SPIKED &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockedInThisSession &&
-        !lockedUser
+        !lockedUser &&
+        !isItemCancelled(planning)
 )
 
 const canSpikePlanning = ({ plan, session, privileges }) => (
@@ -81,67 +84,61 @@ export const mapCoverageByDate = (coverages) => (
     })
 )
 
-export const getPlanningItemActions = ({ plan, event=null, session, privileges, callBacks }) => {
+export const getPlanningItemActions = ({ plan, event=null, session, privileges, actions }) => {
     let itemActions = []
-    Object.keys(GENERIC_ITEM_ACTIONS).forEach((a) => {
-        const action = GENERIC_ITEM_ACTIONS[a]
+    let key = 1
+
+    actions.forEach((action) => {
         switch (action.label) {
             case GENERIC_ITEM_ACTIONS.SPIKE.label:
-                if (callBacks[GENERIC_ITEM_ACTIONS.SPIKE.label] &&
-                        canSpikePlanning({
-                            plan,
-                            session,
-                            privileges,
-                        })) {
-                    itemActions.push({
-                        ...action,
-                        callback: callBacks[GENERIC_ITEM_ACTIONS.SPIKE.label],
-                    })
+                if (!canSpikePlanning({
+                    plan,
+                    session,
+                    privileges,
+                })) {
+                    return
+
                 }
 
                 break
 
             case GENERIC_ITEM_ACTIONS.UNSPIKE.label:
-                if (callBacks[GENERIC_ITEM_ACTIONS.UNSPIKE.label] &&
-                        canUnspikePlanning({
-                            plan,
-                            event,
-                            privileges,
-                        })) {
-                    itemActions.push({
-                        ...action,
-                        callback: callBacks[GENERIC_ITEM_ACTIONS.UNSPIKE.label],
-                    })
+                if (!canUnspikePlanning({
+                    plan,
+                    event,
+                    privileges,
+                })) {
+                    return
                 }
 
                 break
 
             case GENERIC_ITEM_ACTIONS.DUPLICATE.label:
-                if (callBacks[GENERIC_ITEM_ACTIONS.DUPLICATE.label] &&
-                        canDuplicatePlanning({
-                            plan,
-                            event,
-                            session,
-                            privileges,
-                        })) {
-                    itemActions.push({
-                        ...action,
-                        callback: callBacks[GENERIC_ITEM_ACTIONS.DUPLICATE.label],
-                    })
+                if (!canDuplicatePlanning({
+                    plan,
+                    event,
+                    session,
+                    privileges,
+                })) {
+                    return
                 }
 
                 break
 
-            case GENERIC_ITEM_ACTIONS.HISTORY.label:
-                if (callBacks[GENERIC_ITEM_ACTIONS.HISTORY.label]) {
-                    itemActions.push({
-                        ...action,
-                        callback: callBacks[GENERIC_ITEM_ACTIONS.HISTORY.label],
-                    })
-                }
+            case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label:
+                if (!eventUtils.canCancelEvent(event, session, privileges))
+                    return
 
+                action.label = 'Cancel Event'
                 break
         }
+
+        itemActions.push({
+            ...action,
+            key: `${action.label}-${key}`,
+        })
+
+        key++
     })
 
     return itemActions

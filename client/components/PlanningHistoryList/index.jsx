@@ -30,7 +30,7 @@ export class PlanningHistoryList extends React.Component {
                                 users &&
                                 includes(['create', 'update', 'spiked', 'unspiked', 'coverage created',
                                     'coverage updated', 'coverage deleted', 'publish', 'duplicate',
-                                    'duplicate_from'], historyItem.operation)
+                                    'duplicate_from', 'cancel'], historyItem.operation)
                                 &&
                                 <div>
                                     <strong>
@@ -43,6 +43,7 @@ export class PlanningHistoryList extends React.Component {
                                         {historyItem.operation === 'coverage deleted' && 'Coverage deleted by '}
                                         {historyItem.operation === 'duplicate_from' && 'Duplicate created by '}
                                         {historyItem.operation === 'duplicate' && 'Duplicated by '}
+                                        {historyItem.operation === 'cancel' && 'Cancelled by '}
 
                                         {historyItem.operation === 'publish' &&
                                             historyItem.update.state === 'published' &&

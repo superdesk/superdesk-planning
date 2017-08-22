@@ -7,6 +7,9 @@
 	&--locked {
 		border-left: 4px solid $red;
 	}
+	&--has-been-cancelled {
+        .PlanningItem__title { text-decoration: line-through; }
+    }
 }
 
 .icon--green {

@@ -8,7 +8,7 @@ import { cloneDeep } from 'lodash'
 import * as actions from '../../actions'
 import eventsUi from '../../actions/events/ui'
 import moment from 'moment'
-import { restoreSinonStub } from '../../utils/testUtils'
+import { restoreSinonStub, itemActionExists } from '../../utils/testUtils'
 
 describe('events', () => {
     describe('components', () => {
@@ -252,6 +252,7 @@ describe('events', () => {
                         spikeEvent={() => {}}
                         duplicateEvent={() => {}}
                         addEventToCurrentAgenda={() => {}}
+                        onCancelEvent={sinon.spy()}
                         privileges={priv}
                     />
                 )
@@ -265,6 +266,7 @@ describe('events', () => {
                         spikeEvent={() => {}}
                         duplicateEvent={() => {}}
                         addEventToCurrentAgenda={() => {}}
+                        onCancelEvent={sinon.spy()}
                         privileges={priv}
                     />
                 )
@@ -350,9 +352,10 @@ describe('events', () => {
                     enableReinitialize={true}/></Provider>)
                 expect(wrapper.find(FormComponent).props().doesRepeat).toBe(true)
                 wrapper.find('LinksFieldArray').find('.Link__add-btn').simulate('click')
-                expect(wrapper.find('ItemActionsMenu').props().actions.length).toBe(2)
-                expect(wrapper.find('ItemActionsMenu').props().actions[0].label).toBe('Create Planning Item')
-                expect(wrapper.find('ItemActionsMenu').props().actions[1].label).toBe('View History')
+
+                expect(wrapper.find('ItemActionsMenu').props().actions.length).toBe(3)
+                expect(itemActionExists(wrapper, 'View History')).toBe(true)
+                expect(itemActionExists(wrapper, 'Create Planning Item')).toBe(true)
             })
 
             describe('allDay Toggle', () => {
@@ -434,9 +437,8 @@ describe('events', () => {
                     const store = createTestStoreForEventEditing(recEvent)
                     const wrapper = mount(<Provider store={store}><EventForm initialValues={recEvent}
                         enableReinitialize={true}/></Provider>)
-                    expect(wrapper.find('ItemActionsMenu').props().actions.length).toBe(1)
-                    expect(wrapper.find('ItemActionsMenu').props().actions[0].label).toBe('View History')
-                    expect(wrapper.find('.btn--success').length).toBe(0) // Publish button
+                    expect(wrapper.find('ItemActionsMenu').props().actions.length).toBe(2)
+                    expect(itemActionExists(wrapper, 'View History')).toBe(true)
                 })
             })
         })

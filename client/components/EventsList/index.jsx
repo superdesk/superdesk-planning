@@ -18,6 +18,7 @@ export class EventsList extends React.Component {
     onEventSpike(event) { this.props.onEventSpike(event) }
     onEventUnspike(event) { this.props.onEventUnspike(event) }
     onEventDuplicate(event) { this.props.onEventDuplicate(event) }
+    onCancelEvent(event) { this.props.onCancelEvent(event) }
 
     getRowHeight({ index }) {
         const event = this.props.events[index]
@@ -62,6 +63,7 @@ export class EventsList extends React.Component {
                     onSpikeEvent={this.onEventSpike.bind(this, event)}
                     onUnspikeEvent={this.onEventUnspike.bind(this, event)}
                     onDuplicateEvent={this.onEventDuplicate.bind(this, event)}
+                    onCancelEvent={this.onCancelEvent.bind(this, event)}
                     highlightedEvent={this.props.highlightedEvent}
                     isSelected={this.props.selectedEvents.indexOf(event._id) > -1}
                     onSelectChange={(value) => this.props.onEventSelectChange({
@@ -70,6 +72,7 @@ export class EventsList extends React.Component {
                     })}
                     privileges={this.props.privileges}
                     itemLocked={event.lock_user ? true : false}
+                    addEventToCurrentAgenda={this.props.addEventToCurrentAgenda}
                     session={this.props.session} />
             </div>
         )
@@ -116,10 +119,12 @@ EventsList.propTypes = {
     onEventSpike: PropTypes.func,
     onEventUnspike: PropTypes.func,
     onEventDuplicate: PropTypes.func,
+    onCancelEvent: PropTypes.func,
     highlightedEvent: PropTypes.string,
     loadMoreEvents: PropTypes.func.isRequired,
     privileges: PropTypes.object,
     selectedEvents: PropTypes.array.isRequired,
     onEventSelectChange: PropTypes.func.isRequired,
     session: PropTypes.object,
+    addEventToCurrentAgenda: PropTypes.func,
 }

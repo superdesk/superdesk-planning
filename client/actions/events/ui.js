@@ -317,6 +317,90 @@ const refetchEvents = () => (
     )
 )
 
+const _openCancelModal = (event) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(eventsApi.lock(event, 'cancel'))
+        .then((lockedEvent) => {
+            if (!event.recurrence_id) {
+                return dispatch(self._openSingleCancelModal(lockedEvent))
+            } else {
+                return dispatch(self._openMultiCancelModal(lockedEvent))
+            }
+        }, (error) => {
+            notify.error(
+                getErrorMessage(error, 'Failed to obtain the Event lock')
+            )
+
+            return Promise.reject(error)
+        })
+    )
+)
+
+const _openSingleCancelModal = (event) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.loadPlanningByEventId(event._id))
+        .then((planningItems) => (
+            dispatch(showModal({
+                modalType: 'ITEM_ACTIONS_MODAL',
+                modalProps: {
+                    eventDetail: {
+                        ...event,
+                        _plannings: planningItems,
+                    },
+                    actionType: EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label,
+                },
+            }))
+        ), (error) => {
+            notify.error(
+                getErrorMessage(error, 'Failed to load associated Planning items.')
+            )
+
+            return Promise.reject(error)
+        })
+    )
+)
+
+const _openMultiCancelModal = (event) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(eventsApi.loadRecurringEventsAndPlanningItems(event))
+        .then((events) => {
+            dispatch(showModal({
+                modalType: 'ITEM_ACTIONS_MODAL',
+                modalProps: {
+                    eventDetail: events,
+                    actionType: EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label,
+                },
+            }))
+        }, (error) => {
+            notify.error(
+                getErrorMessage(error, 'Failed to load associated Planning items')
+            )
+
+            return Promise.reject(error)
+        })
+    )
+)
+
+const cancelEvent = (event) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(eventsApi.cancelEvent(event))
+        .then(() => {
+            dispatch(hideModal())
+            notify.success('Event has been cancelled')
+
+            return Promise.resolve()
+        }, (error) => {
+            dispatch(hideModal())
+
+            notify.error(
+                getErrorMessage(error, 'Failed to cancel the Event!')
+            )
+
+            return Promise.reject(error)
+        })
+    )
+)
+
 /**
  * Action to set the list of events in the current list
  * @param {Array} idsList - An array of Event IDs to assign to the current list
@@ -384,6 +468,12 @@ const unlockAndOpenEventDetails = checkPermission(
     'Unauthorised to edit an event!'
 )
 
+const openCancelModal = checkPermission(
+    _openCancelModal,
+    PRIVILEGES.EVENT_MANAGEMENT,
+    'Unauthorised to spike an Event'
+)
+
 const self = {
     _openEventDetails,
     _openSpikeModal,
@@ -404,6 +494,11 @@ const self = {
     previewEvent,
     openAdvancedSearch,
     closeAdvancedSearch,
+    cancelEvent,
+    _openCancelModal,
+    _openSingleCancelModal,
+    _openMultiCancelModal,
+    openCancelModal,
 }
 
 export default self

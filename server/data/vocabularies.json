@@ -34,7 +34,7 @@
                 "label": "Planned, occurence highly likely"},
             {"is_active": true, "qcode": "eocstat:eos5", "name": "Planned, occurs certainly",
                 "label": "Planned, occurs certainly"},
-            {"is_active": true, "qcode": "eocstat:eos6", "name": "Planned, then cancelled",
+            {"is_active": false, "qcode": "eocstat:eos6", "name": "Planned, then cancelled",
                 "label": "Planned, then cancelled"}
         ]
     },

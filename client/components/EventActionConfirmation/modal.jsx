@@ -1,20 +1,26 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { ModalWithForm } from '../index'
-import { SpikeEventForm, UpdateRecurringEventsForm } from './index'
+import { SpikeEventForm, UpdateRecurringEventsForm, CancelEventForm } from './index'
 import { get } from 'lodash'
-import { GENERIC_ITEM_ACTIONS } from '../../constants'
+import { GENERIC_ITEM_ACTIONS, EVENTS } from '../../constants'
 
 export const EventActionConfirmationModal = ({ handleHide, modalProps }) => {
     let title
     let form
     let saveText = 'Save'
 
-    switch(modalProps.actionType) {
+    switch (modalProps.actionType) {
         case GENERIC_ITEM_ACTIONS.SPIKE.label:
             title = 'Spike an event'
             saveText = 'Spike'
             form = SpikeEventForm
+            break
+
+        case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label:
+            title = 'Cancel an event'
+            saveText = 'OK'
+            form = CancelEventForm
             break
 
         default:

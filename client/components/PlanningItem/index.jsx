@@ -3,9 +3,16 @@ import { get, capitalize, some } from 'lodash'
 import { ListItem, TimePlanning, DueDate, ItemActionsMenu } from '../index'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import classNames from 'classnames'
-import { getCoverageIcon, isItemPublic, planningUtils, isItemSpiked } from '../../utils/index'
-import { GENERIC_ITEM_ACTIONS } from '../../constants/index'
+import { GENERIC_ITEM_ACTIONS, EVENTS } from '../../constants/index'
 import './style.scss'
+import {
+    getCoverageIcon,
+    isItemPublic,
+    planningUtils,
+    isItemSpiked,
+    isItemCancelled,
+    isItemKilled,
+} from '../../utils/index'
 
 const PlanningItem = ({
         item,
@@ -21,6 +28,7 @@ const PlanningItem = ({
         onAgendaClick,
         onDuplicate,
         session,
+        onCancelEvent,
     }) => {
     const location = get(event, 'location[0].name')
     const coverages = get(item, 'coverages', [])
@@ -30,30 +38,50 @@ const PlanningItem = ({
     const itemSpiked = isItemSpiked(item)
     const notForPublication = item ? get(item, 'flags.marked_for_not_publication', false) : false
 
-    const isPublic = isItemPublic(get(item, 'pubstatus'))
-    const isKilled = get(item, 'state') === 'killed'
+    const isPublic = isItemPublic(item)
+    const isKilled = isItemKilled(item)
+    const isCancelled = isItemCancelled(item)
 
-    const callBacks = {
-        [GENERIC_ITEM_ACTIONS.SPIKE.label]: onSpike.bind(null, item),
-        [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: onUnspike.bind(null, item),
-        [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: onDuplicate.bind(null, item),
-    }
+    const onEditOrPreview = planningUtils.canEditPlanning(item, session, privileges) ?
+        onDoubleClick : onClick
+
+    const actions = [
+        {
+            ...GENERIC_ITEM_ACTIONS.SPIKE,
+            callback: onSpike.bind(null, item),
+        },
+        {
+            ...GENERIC_ITEM_ACTIONS.UNSPIKE,
+            callback: onUnspike.bind(null, item),
+        },
+        {
+            ...GENERIC_ITEM_ACTIONS.DUPLICATE,
+            callback: onDuplicate.bind(null, item),
+        },
+        GENERIC_ITEM_ACTIONS.DIVIDER,
+        {
+            ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+            callback: onCancelEvent.bind(null, event),
+        },
+    ]
 
     const itemActions = planningUtils.getPlanningItemActions({
         plan: item,
         event,
         session,
         privileges,
-        callBacks,
+        actions,
     })
 
     return (
         <ListItem
             item={item}
             className={classNames('PlanningItem',
-            { 'PlanningItem--locked': itemLocked })}
+            { 'PlanningItem--locked': itemLocked },
+            { 'PlanningItem--has-been-cancelled': isCancelled }
+            )}
             onClick={onClick}
-            onDoubleClick={onDoubleClick}
+            onDoubleClick={onEditOrPreview}
             active={active}>
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
                 <div className="sd-list-item__row">
@@ -69,7 +97,7 @@ const PlanningItem = ({
                     {isKilled &&
                         <span className="state-label state-killed">Killed</span>
                     }
-                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                    <span className="sd-overflow-ellipsis sd-list-item--element-grow PlanningItem__title">
                         {item.slugline &&
                             <span className="ListItem__slugline">{item.slugline}</span>
                         }
@@ -153,6 +181,7 @@ PlanningItem.propTypes = {
     onAgendaClick: PropTypes.func,
     onDuplicate: PropTypes.func,
     session: PropTypes.object,
+    onCancelEvent: PropTypes.func,
 }
 
 export default PlanningItem

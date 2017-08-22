@@ -48,6 +48,8 @@ export const GENERIC_ITEM_ACTIONS = {
         icon: 'icon-copy',
     },
     HISTORY: { label: 'View History' },
+    DIVIDER: { label: 'Divider' },
+    LABEL: { label: 'Label' },
 }
 
 export const SPIKED_STATE = {

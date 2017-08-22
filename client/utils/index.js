@@ -283,7 +283,7 @@ export const getCreator = (item, creator, users) => {
 }
 
 export const isItemLockRestricted = (item, session) => (
-    get(item, 'lock_user') && !isItemLockedInThisSession(item, session)
+    get(item, 'lock_user') ? !isItemLockedInThisSession(item, session) : false
 )
 
 export const isItemLockedInThisSession = (item, session) => (
@@ -313,6 +313,8 @@ export const getLockedUser = (item, users) => (
 )
 
 export const getItemState = (item) => (get(item, 'state', WORKFLOW_STATE.IN_PROGRESS))
+export const isItemCancelled = (item) => getItemState(item) === WORKFLOW_STATE.CANCELLED
+export const isItemKilled = (item) => getItemState(item) === WORKFLOW_STATE.KILLED
 
 export const getItemStateUiLabel = (item) => {
     switch (getItemState(item)) {

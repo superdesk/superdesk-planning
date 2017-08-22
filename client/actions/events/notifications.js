@@ -3,6 +3,7 @@ import { WORKFLOW_STATE } from '../../constants'
 import { showModal } from '../index'
 import eventsApi from './api'
 import eventsUi from './ui'
+import { get } from 'lodash'
 
 /**
  * Action Event when an Event gets unlocked
@@ -88,10 +89,23 @@ const onEventSpiked = (_e, data) => (
 
 )
 
+const onEventCancelled = (e, data) => (
+    (dispatch) => {
+        if (get(data, 'item')) {
+            dispatch(eventsApi.markEventCancelled(
+                data.item,
+                data.reason,
+                data.occur_status
+            ))
+        }
+    }
+)
+
 const self = {
     onEventLocked,
     onEventUnlocked,
     onEventSpiked,
+    onEventCancelled,
 }
 
 // Map of notification name and Action Event to execute
@@ -99,6 +113,7 @@ self.events = {
     'events:lock': () => (self.onEventLocked),
     'events:unlock': () => (self.onEventUnlocked),
     'events:spiked': () => (self.onEventSpiked),
+    'events:cancelled': () => (self.onEventCancelled),
 }
 
 export default self

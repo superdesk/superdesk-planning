@@ -171,6 +171,7 @@ export class Component extends React.Component {
             openEventDetails,
             spikeEvent,
             unspikeEvent,
+            onCancelEvent,
             addEventToCurrentAgenda,
             publish,
             unpublish,
@@ -186,7 +187,6 @@ export class Component extends React.Component {
         } = this.props
 
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK]
-        const eventMgmtPrivilege = !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
 
         const eventSpiked = isItemSpiked(initialValues)
         const creationDate = get(initialValues, '_created')
@@ -204,6 +204,7 @@ export class Component extends React.Component {
         const isPublic = isItemPublic(initialValues)
         const canPublish = eventUtils.canPublishEvent(initialValues, session, privileges)
         const canUnpublish = eventUtils.canUnpublishEvent(initialValues, privileges)
+        const canEditEvent = eventUtils.canEditEvent(initialValues, session, privileges)
 
         const RepeatEventFormProps = {
             ...this.props,
@@ -212,16 +213,36 @@ export class Component extends React.Component {
 
         let itemActions = []
         if (existingEvent) {
-            const callBacks = {
-                [GENERIC_ITEM_ACTIONS.SPIKE.label]: spikeEvent.bind(null, initialValues),
-                [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: unspikeEvent.bind(null, initialValues),
-                [GENERIC_ITEM_ACTIONS.HISTORY.label]: this.viewEventHistory.bind(this),
-                [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: duplicateEvent.bind(null, initialValues),
-                [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label]: addEventToCurrentAgenda.bind(
-                    null, initialValues),
-            }
+            const actions = [
+                {
+                    ...GENERIC_ITEM_ACTIONS.SPIKE,
+                    callback: spikeEvent.bind(null, initialValues),
+                },
+                {
+                    ...GENERIC_ITEM_ACTIONS.UNSPIKE,
+                    callback: unspikeEvent.bind(null, initialValues),
+                },
+                {
+                    ...GENERIC_ITEM_ACTIONS.HISTORY,
+                    callback: this.viewEventHistory.bind(this),
+                },
+                {
+                    ...GENERIC_ITEM_ACTIONS.DUPLICATE,
+                    callback: duplicateEvent.bind(null, initialValues),
+                },
+                {
+                    ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+                    callback: onCancelEvent.bind(null, initialValues),
+                },
+                GENERIC_ITEM_ACTIONS.DIVIDER,
+                {
+                    ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
+                    callback: addEventToCurrentAgenda.bind(null, initialValues),
+                },
+            ]
 
-            itemActions = eventUtils.getEventItemActions(initialValues, session, privileges, callBacks)
+            itemActions = eventUtils.getEventItemActions(initialValues, session, privileges, actions)
+
             // Cannot spike or create new events if it is a recurring event and
             // only metadata was edited
             if ( this.state.doesRepeat && metaDataEditable && !recurringRulesEditable) {
@@ -307,7 +328,7 @@ export class Component extends React.Component {
                                         className="btn btn--hollow">
                                         Unpublish</button>
                                 }
-                                {eventMgmtPrivilege && !eventSpiked && !lockRestricted && (
+                                {canEditEvent && (
                                     <OverlayTrigger
                                         placement="bottom"
                                         overlay={tooltips.editTooltip}>
@@ -440,6 +461,7 @@ Component.propTypes = {
     saveAndPublish: PropTypes.func.isRequired,
     spikeEvent: PropTypes.func.isRequired,
     unspikeEvent: PropTypes.func.isRequired,
+    onCancelEvent: PropTypes.func.isRequired,
     addEventToCurrentAgenda: PropTypes.func.isRequired,
     duplicateEvent: PropTypes.func.isRequired,
     isAllDay: PropTypes.bool,
@@ -495,6 +517,7 @@ const mapDispatchToProps = (dispatch) => ({
     addEventToCurrentAgenda: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
     duplicateEvent: (event) => dispatch(actions.duplicateEvent(event)),
     onUnlock: (event) => dispatch(actions.events.ui.unlockAndOpenEventDetails(event)),
+    onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
 })
 
 export const EventForm = connect(

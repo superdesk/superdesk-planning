@@ -44,6 +44,9 @@ class HistoryService(Service):
     def on_unspike(self, updates, original):
         self.on_item_updated(updates, original, 'unspiked')
 
+    def on_cancel(self, updates, original):
+        self.on_item_updated(updates, original, 'cancel')
+
     def get_user_id(self):
         user = getattr(g, 'user', None)
         if user:

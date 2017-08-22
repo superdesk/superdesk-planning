@@ -109,3 +109,19 @@ def step_impl_when_unspike_resource(context, resource, item_id):
 
     context.response = context.client.patch(get_prefixed_url(context.app, unspike_url),
                                             data='{}', headers=headers)
+
+
+@when('we cancel {resource} "{item_id}"')
+def step_imp_when_cancel_resource(context, resource, item_id):
+    data = context.text or {}
+    resource = apply_placeholders(context, resource)
+    item_id = apply_placeholders(context, item_id)
+
+    item_url = '/{}/{}'.format(resource, item_id)
+    cancel_url = '/{}/cancel/{}'.format(resource, item_id)
+
+    res = get_res(item_url, context)
+    headers = if_match(context, res.get('_etag'))
+
+    context.response = context.client.patch(get_prefixed_url(context.app, cancel_url),
+                                            data=json.dumps(data), headers=headers)

@@ -8,10 +8,21 @@ import { isBoolean } from 'lodash'
 export class ModalWithForm extends React.Component {
     constructor(props) {
         super(props)
+
+        this.submit = this.submit.bind(this)
+        this.onHide = this.onHide.bind(this)
     }
 
     submit() {
         this.refs.form.getWrappedInstance().submit()
+    }
+
+    onHide() {
+        if ('onHide' in this.refs.form.getWrappedInstance().props) {
+            this.refs.form.getWrappedInstance().props.onHide(this.props.initialValues)
+        }
+
+        this.props.onHide()
     }
 
     render() {
@@ -36,12 +47,12 @@ export class ModalWithForm extends React.Component {
                     { form }
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button onClick={this.props.onHide}>
+                    <Button onClick={this.onHide}>
                         { this.props.cancelButtonText || 'Close' }
                     </Button>
                     <Button type="submit"
                             className="btn btn--primary"
-                            onClick={this.submit.bind(this)}
+                            onClick={this.submit}
                             disabled={this.props.pristine ||
                                 this.props.submitting}>
                         { this.props.saveButtonText || 'Save' }

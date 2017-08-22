@@ -37,74 +37,74 @@ Feature: Duplicate Planning
         [{}]
         """
         Then we get OK response
-        When we get "/planning"
-        Then we get list with 2 items
+        When we get "/planning/123"
+        Then we get existing resource
         """
-        {"_items": [
-            {
-                "_id": "123",
-                "guid": "123",
-                "headline": "test headline",
-                "slugline": "test slugline",
-                "state": "published",
-                "pubstatus": "usable",
-                "coverages": [
-                    {
-                        "guid": "456",
-                        "planning_item": "123",
-                        "planning": {
-                            "ednote": "test coverage, 250 words",
-                            "assigned_to": {
-                                "desk": "Some Desk",
-                                "user": "507f191e810c19729de860ea"
-                            },
-                            "headline": "test headline",
-                            "slugline": "test slugline",
-                            "scheduled": "2029-11-21T14:00:00+0000",
-                            "g2_content_type": "text"
-                        }
-                    }
-                ],
-                "_coverages": [
-                    {
-                        "coverage_id": "456",
+        {
+            "_id": "123",
+            "guid": "123",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "state": "published",
+            "pubstatus": "usable",
+            "coverages": [
+                {
+                    "guid": "456",
+                    "planning_item": "123",
+                    "planning": {
+                        "ednote": "test coverage, 250 words",
+                        "assigned_to": {
+                            "desk": "Some Desk",
+                            "user": "507f191e810c19729de860ea"
+                        },
+                        "headline": "test headline",
+                        "slugline": "test slugline",
                         "scheduled": "2029-11-21T14:00:00+0000",
                         "g2_content_type": "text"
                     }
-                ]
-            },
-            {
-                "_id": "#duplicate._id#",
-                "guid": "#duplicate._id#",
-                "headline": "test headline",
-                "slugline": "test slugline",
-                "state": "in_progress",
-                "coverages": [
-                    {
-                        "planning_item": "#duplicate._id#",
-                        "planning": {
-                            "ednote": "test coverage, 250 words",
-                            "assigned_to": "__no_value__",
-                            "headline": "test headline",
-                            "slugline": "test slugline",
-                            "scheduled": "__no_value__",
-                            "g2_content_type": "text"
-                        }
-                    }
-                ],
-                "_coverages": [
-                    {
-                        "coverage_id": "__any_value__",
-                        "scheduled": "__any_value__",
-                        "g2_content_type": "text"
-                    }
-                ]
-            }
-        ]}
+                }
+            ],
+            "_coverages": [
+                {
+                    "coverage_id": "456",
+                    "scheduled": "2029-11-21T14:00:00+0000",
+                    "g2_content_type": "text"
+                }
+            ]
+        }
         """
         When we get "/planning/#duplicate._id#"
-        Then we get OK response
-        Then we get "pubstatus" does not exist
+        Then we get existing resource
+        """
+        {
+            "_id": "#duplicate._id#",
+            "guid": "#duplicate._id#",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "state": "in_progress",
+            "pubstatus": "__no_value__",
+            "coverages": [
+                {
+                    "planning_item": "#duplicate._id#",
+                    "planning": {
+                        "ednote": "test coverage, 250 words",
+                        "assigned_to": "__no_value__",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "__no_value__",
+                        "g2_content_type": "text"
+                    }
+                }
+            ],
+            "_coverages": [
+                {
+                    "coverage_id": "__any_value__",
+                    "scheduled": "__any_value__",
+                    "g2_content_type": "text"
+                }
+            ]
+        }
+        """
         When we get "/planning_history"
         Then we get list with 4 items
         """

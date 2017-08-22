@@ -6,6 +6,7 @@ import {
     isItemSpiked,
     isItemPublic,
     getPublishedState,
+    isItemCancelled,
 } from './index'
 import moment from 'moment'
 import RRule from 'rrule'
@@ -25,6 +26,8 @@ const isEventAllDay = (startingDate, endingDate) => {
     return startingDate.isSame(startingDate.clone().startOf('day')) &&
         endingDate.isSame(endingDate.clone().endOf('day').seconds(0).milliseconds(0))
 }
+
+const eventHasPlanning = (event) => get(event, 'has_planning')
 
 /**
  * Helper function to determine if a recurring event instances overlap
@@ -91,80 +94,82 @@ const canDuplicateEvent = (event, session, privileges) => (
 
 const canCreatePlanningFromEvent = (event, session, privileges) => (
     !isItemSpiked(event) && !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isItemLockRestricted(event, session)
+        !isItemLockRestricted(event, session) && !isItemCancelled(event)
 )
 
 const canPublishEvent = (event, session, privileges) => (
     !isItemSpiked(event) && getPublishedState(event) !== PUBLISHED_STATE.USABLE &&
-        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemLockRestricted(event, session)
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemLockRestricted(event, session) &&
+        !isItemCancelled(event)
 )
 
 const canUnpublishEvent = (event, privileges) => (
     getItemState(event) === WORKFLOW_STATE.PUBLISHED && !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
 )
 
-const getEventItemActions = (event, session, privileges, callBacks) => {
+const canCancelEvent = (event, session, privileges) => (
+    event && !isItemSpiked(event) && !isItemCancelled(event) && isEventInUse(event) &&
+        !isItemLockRestricted(event, session) && !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
+)
+
+const isEventInUse = (event) => (
+    event && eventHasPlanning(event) || isItemPublic(event)
+)
+
+const canEditEvent = (event, session, privileges) => (
+    !isItemSpiked(event) && !isItemCancelled(event) && !isItemLockRestricted(event, session) &&
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
+)
+
+/*eslint-disable complexity*/
+const getEventItemActions = (event, session, privileges, actions) => {
     let itemActions = []
-    Object.keys(GENERIC_ITEM_ACTIONS).forEach((a) => {
-        const action = GENERIC_ITEM_ACTIONS[a]
+    let key = 1
+
+    actions.forEach((action) => {
         switch (action.label) {
             case GENERIC_ITEM_ACTIONS.SPIKE.label:
-                if (callBacks[GENERIC_ITEM_ACTIONS.SPIKE.label] &&
-                        canSpikeEvent(event, session, privileges)) {
-                    itemActions.push({
-                        ...action,
-                        callback: callBacks[GENERIC_ITEM_ACTIONS.SPIKE.label],
-                    })
-                }
+                if (!canSpikeEvent(event, session, privileges))
+                    return
 
                 break
 
             case GENERIC_ITEM_ACTIONS.UNSPIKE.label:
-                if (callBacks[GENERIC_ITEM_ACTIONS.UNSPIKE.label] &&
-                        canUnspikeEvent(event, privileges)) {
-                    itemActions.push({
-                        ...action,
-                        callback: callBacks[GENERIC_ITEM_ACTIONS.UNSPIKE.label],
-                    })
-                }
+                if (!canUnspikeEvent(event, privileges))
+                    return
 
                 break
 
             case GENERIC_ITEM_ACTIONS.DUPLICATE.label:
-                if (callBacks[GENERIC_ITEM_ACTIONS.DUPLICATE.label] &&
-                    canDuplicateEvent(event, session, privileges)) {
-                    itemActions.push({
-                        ...action,
-                        callback: callBacks[GENERIC_ITEM_ACTIONS.DUPLICATE.label],
-                    })
-                }
+                if (!canDuplicateEvent(event, session, privileges))
+                    return
 
                 break
 
-            case GENERIC_ITEM_ACTIONS.HISTORY.label:
-                if (callBacks[GENERIC_ITEM_ACTIONS.HISTORY.label]) {
-                    itemActions.push({
-                        ...action,
-                        callback: callBacks[GENERIC_ITEM_ACTIONS.HISTORY.label],
-                    })
-                }
+            case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label:
+                if (!canCancelEvent(event, session, privileges))
+                    return
+
+                break
+
+            case EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label:
+                if (!canCreatePlanningFromEvent(event, session, privileges))
+                    return
 
                 break
         }
-    })
 
-    // Extend with event specific actions
-    if (callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label] &&
-            canCreatePlanningFromEvent(event, session, privileges)) {
-        const insertPos = itemActions.length ? itemActions.length - 1 : 0
-        itemActions.splice(insertPos, 0, {
-            label: 'Create Planning Item',
-            callback: callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label],
+        itemActions.push({
+            ...action,
+            key: `${action.label}-${key}`,
         })
-    }
+
+        key++
+    })
 
     return itemActions
 }
+/*eslint-enable complexity*/
 
 const isEventAssociatedWithPlannings = (eventId, allPlannings) => (
     Object.keys(allPlannings)
@@ -182,6 +187,10 @@ const self = {
     canDuplicateEvent,
     getEventItemActions,
     isEventAssociatedWithPlannings,
+    canCancelEvent,
+    eventHasPlanning,
+    isEventInUse,
+    canEditEvent,
 }
 
 export default self
