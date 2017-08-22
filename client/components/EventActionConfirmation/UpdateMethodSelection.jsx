@@ -73,6 +73,6 @@ UpdateMethodSelection.propTypes = {
     relatedPlannings: PropTypes.array,
     relatedEvents: PropTypes.array,
     dateFormat: PropTypes.string,
-    action: PropTypes.object,
+    action: PropTypes.string,
     handleSubmit: PropTypes.func.isRequired,
 }

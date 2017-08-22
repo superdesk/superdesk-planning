@@ -2,6 +2,7 @@ import { orderBy, cloneDeep, uniq, get } from 'lodash'
 import moment from 'moment'
 import { EVENTS } from '../constants'
 import { createReducer } from '../utils'
+import { WORKFLOW_STATE } from '../constants'
 
 const initialLastRequest = { page: 1 }
 
@@ -211,6 +212,54 @@ const eventsReducer = createReducer(initialState, {
             eventHistoryItems: payload,
         }
     ),
+
+    [EVENTS.ACTIONS.MARK_EVENT_CANCELLED]: (state, payload) => {
+        let events = cloneDeep(state.events)
+        let event = get(events, payload.event_item, null)
+
+        // If the event is not loaded, disregard this action
+        if (event === null) return state
+
+        let definition = `------------------------------------------------------------
+Event Cancelled
+`
+
+        if (get(payload, 'reason', null) !== null) {
+            definition += `Reason: ${payload.reason}\n`
+        }
+
+        if (get(event, 'definition_long', null) !== null) {
+            definition = `${event.definition_long}\n\n${definition}`
+        }
+
+        event.definition_long = definition
+        event.state = WORKFLOW_STATE.CANCELLED
+        event.occur_status = payload.occur_status
+        event.lock_action = null
+        event.lock_user = null
+        event.lock_session = null
+        event.lock_time = null
+
+        return {
+            ...state,
+            events,
+        }
+    },
+
+    [EVENTS.ACTIONS.MARK_EVENT_HAS_PLANNINGS]: (state, payload) => {
+        let events = cloneDeep(state.events)
+        let event = get(events, payload.event_item, null)
+
+        // If the event is not loaded, disregard this action
+        if (event === null) return state
+
+        event.has_planning = true
+
+        return {
+            ...state,
+            events,
+        }
+    },
 })
 
 export default eventsReducer

@@ -920,6 +920,15 @@ const _convertCoverageGenreToObject = (coverage) => {
     return coverage
 }
 
+const markPlanningCancelled = (plan, reason, coverageState) => ({
+    type: PLANNING.ACTIONS.MARK_PLANNING_CANCELLED,
+    payload: {
+        planning_item: plan,
+        reason,
+        coverage_state: coverageState,
+    },
+})
+
 const self = {
     spike,
     unspike,
@@ -946,6 +955,7 @@ const self = {
     saveAndUnpublish,
     refetch,
     duplicate,
+    markPlanningCancelled,
 }
 
 export default self

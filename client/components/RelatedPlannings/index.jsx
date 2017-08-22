@@ -12,7 +12,7 @@ export const RelatedPlanningsComponent = ({ plannings, openPlanningItem, openPla
             slugline,
             headline,
             anpa_category,
-            _agendas,
+            _agendas=[],
             original_creator: { display_name },
             state,
         }) => {

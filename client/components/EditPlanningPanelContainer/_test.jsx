@@ -171,6 +171,8 @@ describe('planning', () => {
                         onDuplicate={sinon.spy()}
                         onSpike={sinon.spy()}
                         onUnspike={sinon.spy()}
+                        onCancelEvent={sinon.spy()}
+                        openPlanningEditor={sinon.spy()}
                         privileges={privileges}
                         submitting={false} />
                 )
@@ -196,12 +198,15 @@ describe('planning', () => {
                 }
                 const wrapper = shallow(
                     <EditPlanningPanel
+                        planning={{}}
                         event={event}
                         closePlanningEditor={sinon.spy()}
                         pristine={false}
                         onDuplicate={sinon.spy()}
                         onSpike={sinon.spy()}
                         onUnspike={sinon.spy()}
+                        onCancelEvent={sinon.spy()}
+                        openPlanningEditor={sinon.spy()}
                         privileges={privileges}
                         submitting={false} />
                 )

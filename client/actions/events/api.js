@@ -374,9 +374,9 @@ const receiveEvents = (events) => ({
     receivedAt: Date.now(),
 })
 
-const lock = (event) => (
+const lock = (event, action='edit') => (
     (dispatch, getState, { api, notify }) => (
-        api('events_lock', event).save({}, { lock_action: 'edit' })
+        api('events_lock', event).save({}, { lock_action: action })
        .then(
         (item) => {
             // On lock, file object in the event is lost, so, replace it from original event
@@ -425,6 +425,33 @@ const silentlyFetchEventsById = (ids=[], spikeState = SPIKED_STATE.NOT_SPIKED) =
     )
 )
 
+const cancelEvent = (event) => (
+    (dispatch, getState, { api }) => (
+        api.update(
+            'events_cancel',
+            event,
+            {
+                update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
+                reason: get(event, 'reason', undefined),
+            }
+        )
+    )
+)
+
+const markEventCancelled = (event, reason, occurStatus) => ({
+    type: EVENTS.ACTIONS.MARK_EVENT_CANCELLED,
+    payload: {
+        event_item: event,
+        reason,
+        occur_status: occurStatus,
+    },
+})
+
+const markEventHasPlannings = (event) => ({
+    type: EVENTS.ACTIONS.MARK_EVENT_HAS_PLANNINGS,
+    payload: { event_item: event },
+})
+
 const self = {
     loadEventsByRecurrenceId,
     spike,
@@ -436,6 +463,9 @@ const self = {
     lock,
     unlock,
     silentlyFetchEventsById,
+    cancelEvent,
+    markEventCancelled,
+    markEventHasPlannings,
 }
 
 export default self

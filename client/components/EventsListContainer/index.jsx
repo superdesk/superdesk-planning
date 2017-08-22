@@ -28,7 +28,16 @@ class EventsListComponent extends React.Component {
     }
 
     render() {
-        const { advancedSearchOpened, toggleEventsList, loadEvents, currentSearch, privileges, session } = this.props
+        const {
+            advancedSearchOpened,
+            toggleEventsList,
+            loadEvents,
+            currentSearch,
+            privileges,
+            session,
+            onCancelEvent,
+            addEventToCurrentAgenda,
+        } = this.props
         return (
             <div className={classNames('Events-list-container',
                 { 'Events-list-container--advanced-search-view': advancedSearchOpened })}>
@@ -72,11 +81,13 @@ class EventsListComponent extends React.Component {
                                 onEventSpike={this.props.spikeEvent}
                                 onEventUnspike={this.props.unspikeEvent}
                                 onEventDuplicate={this.props.duplicateEvent}
+                                onCancelEvent={onCancelEvent}
                                 highlightedEvent={this.props.highlightedEvent}
                                 loadMoreEvents={this.props.loadMoreEvents}
                                 selectedEvents={this.props.selectedEvents}
                                 onEventSelectChange={this.props.onEventSelectChange}
                                 privileges={privileges}
+                                addEventToCurrentAgenda={addEventToCurrentAgenda}
                                 session={session} />
                 </div>
             </div>
@@ -103,6 +114,8 @@ EventsListComponent.propTypes = {
     selectedEvents: PropTypes.array.isRequired,
     onEventSelectChange: PropTypes.func.isRequired,
     session: PropTypes.object,
+    onCancelEvent: PropTypes.func,
+    addEventToCurrentAgenda: PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -127,6 +140,9 @@ const mapDispatchToProps = (dispatch) => ({
     unspikeEvent: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
     duplicateEvent: (event) => dispatch(actions.duplicateEvent(event)),
     onEventSelectChange: (args) => dispatch(actions.toggleEventSelection(args)),
+
+    onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
+    addEventToCurrentAgenda: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
 })
 
 export const EventsListContainer = connect(

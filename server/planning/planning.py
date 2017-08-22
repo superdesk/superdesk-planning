@@ -68,7 +68,8 @@ class PlanningService(superdesk.Service):
                 user=str(doc.get('original_creator', '')),
                 added_agendas=doc.get('agendas') or [],
                 removed_agendas=[],
-                session=session_id
+                session=session_id,
+                event_item=doc.get('event_item', None)
             )
             self._update_event_history(doc)
 

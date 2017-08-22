@@ -1,10 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { get } from 'lodash'
 import { ListItem, TimeEvent, StateLabel, Checkbox, ItemActionsMenu } from '../index'
 import './style.scss'
-import { GENERIC_ITEM_ACTIONS } from '../../constants'
-import { eventUtils } from '../../utils'
+import { GENERIC_ITEM_ACTIONS, EVENTS } from '../../constants'
+import { eventUtils, isItemCancelled } from '../../utils'
 import classNames from 'classnames'
 
 export const EventItem = ({
@@ -14,6 +13,7 @@ export const EventItem = ({
         onSpikeEvent,
         onUnspikeEvent,
         onDuplicateEvent,
+        onCancelEvent,
         highlightedEvent,
         privileges,
         isSelected,
@@ -21,24 +21,49 @@ export const EventItem = ({
         itemLocked,
         className,
         session,
+        addEventToCurrentAgenda,
     }) => {
-    const hasBeenCanceled = get(event, 'occur_status.qcode') === 'eocstat:eos6'
-    const callBacks = {
-        [GENERIC_ITEM_ACTIONS.SPIKE.label]: onSpikeEvent.bind(null, event),
-        [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: onUnspikeEvent.bind(null, event),
-        [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: onDuplicateEvent.bind(null, event),
-    }
-    const itemActions = eventUtils.getEventItemActions(event, session, privileges, callBacks)
+    const hasBeenCancelled = isItemCancelled(event)
+    const hasPlanning = eventUtils.eventHasPlanning(event)
+
+    const onEditOrPreview = eventUtils.canEditEvent(event, session, privileges) ?
+        onDoubleClick : onClick
+
+    const actions = [
+        {
+            ...GENERIC_ITEM_ACTIONS.SPIKE,
+            callback: onSpikeEvent.bind(null, event),
+        },
+        {
+            ...GENERIC_ITEM_ACTIONS.UNSPIKE,
+            callback: onUnspikeEvent.bind(null, event),
+        },
+        {
+            ...GENERIC_ITEM_ACTIONS.DUPLICATE,
+            callback: onDuplicateEvent.bind(null, event),
+        },
+        {
+            ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+            callback: onCancelEvent.bind(null, event),
+        },
+        GENERIC_ITEM_ACTIONS.DIVIDER,
+        {
+            ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
+            callback: addEventToCurrentAgenda.bind(null, event),
+        },
+    ]
+
+    const itemActions = eventUtils.getEventItemActions(event, session, privileges, actions)
     return (
         <ListItem
             item={event}
             onClick={onClick}
-            onDoubleClick={onDoubleClick}
+            onDoubleClick={onEditOrPreview}
             draggable={true}
             className={classNames('event',
                 className,
-                { 'event--has-planning': event._hasPlanning },
-                { 'event--has-been-canceled': hasBeenCanceled },
+                { 'event--has-planning': hasPlanning },
+                { 'event--has-been-canceled': hasBeenCancelled },
                 { 'event--locked': itemLocked })}
             active={highlightedEvent === event._id || isSelected}
         >
@@ -71,6 +96,7 @@ EventItem.propTypes = {
     onSpikeEvent: PropTypes.func.isRequired,
     onUnspikeEvent: PropTypes.func.isRequired,
     onDuplicateEvent: PropTypes.func.isRequired,
+    onCancelEvent: PropTypes.func.isRequired,
     highlightedEvent: PropTypes.string,
     className: PropTypes.string,
     privileges: PropTypes.object,
@@ -78,4 +104,5 @@ EventItem.propTypes = {
     onSelectChange: PropTypes.func.isRequired,
     itemLocked: React.PropTypes.bool,
     session: PropTypes.object,
+    addEventToCurrentAgenda: PropTypes.func,
 }

@@ -2,7 +2,7 @@ import { get, includes, isEmpty } from 'lodash'
 import planning from './index'
 import { getErrorMessage } from '../../utils'
 import * as selectors from '../../selectors'
-import { showModal } from '../index'
+import { showModal, events } from '../index'
 import { PLANNING, AGENDA, WORKFLOW_STATE } from '../../constants'
 
 /**
@@ -13,6 +13,10 @@ import { PLANNING, AGENDA, WORKFLOW_STATE } from '../../constants'
 const onPlanningCreated = (_e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
+            if (get(data, 'event_item', null) !== null) {
+                dispatch(events.api.markEventHasPlannings(data.event_item))
+            }
+
             return dispatch(self.canRefetchPlanning(data))
             .then((result) => {
                 if (!result) {
@@ -220,6 +224,18 @@ const onPlanningSpiked = (_e, data) => (
     }
 )
 
+const onPlanningCancelled = (e, data) => (
+    (dispatch) => {
+        if (get(data, 'item')) {
+            dispatch(planning.api.markPlanningCancelled(
+                data.item,
+                get(data, 'reason'),
+                get(data, 'coverage_state')
+            ))
+        }
+    }
+)
+
 const self = {
     onPlanningCreated,
     onCoverageCreatedOrUpdated,
@@ -230,6 +246,7 @@ const self = {
     canRefetchPlanning,
     onPlanningUpdateWithoutRefetch,
     onPlanningSpiked,
+    onPlanningCancelled,
 }
 
 // Map of notification name and Action Event to execute
@@ -245,6 +262,7 @@ self.events = {
     'planning:unlock': () => (self.onPlanningUnlocked),
     'planning:published': () => (self.onPlanningPublished),
     'planning:duplicated': () => (self.onPlanningCreated),
+    'planning:cancelled': () => (self.onPlanningCancelled),
 }
 
 export default self

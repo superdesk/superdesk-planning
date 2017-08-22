@@ -26,7 +26,9 @@ export class EventHistoryList extends React.Component {
                         <li className="item" key={historyItem._id}>
                             {
                                 this.props.users &&
-                                includes(['create', 'update', 'spiked', 'unspiked', 'planning created', 'duplicate', 'duplicate_from', 'publish', 'unpublish'], historyItem.operation)
+                                includes(['create', 'update', 'spiked', 'unspiked',
+                                    'planning created', 'duplicate', 'duplicate_from',
+                                    'publish', 'unpublish', 'cancel'], historyItem.operation)
                                 &&
                                 <div>
                                     <strong>
@@ -39,6 +41,7 @@ export class EventHistoryList extends React.Component {
                                         {historyItem.operation === 'duplicate' && 'Duplicated by '}
                                         {historyItem.operation === 'publish' && 'Published by '}
                                         {historyItem.operation === 'unpublish' && 'Un-published by '}
+                                        {historyItem.operation === 'cancel' && 'Cancelled by '}
                                     </strong>
 
                                     <span className="user-name">{displayUser(historyItem.user_id)}</span>

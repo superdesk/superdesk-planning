@@ -124,7 +124,7 @@ export const getFilteredPlanningListEvents = createSelector(
 )
 
 export const getCurrentPlanning = createSelector(
-    [getCurrentPlanningId, getStoredPlannings, getAgendas],
+    [getCurrentPlanningId, getStoredPlannings],
     (currentPlanningId, storedPlannings) => {
         if (currentPlanningId) {
             return storedPlannings[currentPlanningId]
@@ -140,23 +140,12 @@ export const getCurrentPlanningEvent = createSelector(
 /** Used for the events list */
 export const getEventsWithMoreInfo = createSelector(
     [getEvents, getStoredPlannings, getEventsIdsToShowInList],
-    (events, storedPlannings, eventsIdsToBeShown) => {
-        function hasPlanning(event) {
-            return storedPlannings && Object.keys(storedPlannings).some((planningKey) => (
-                storedPlannings[planningKey].event_item === event._id
-            ))
-        }
-
-        return eventsIdsToBeShown.map((eventId) => {
-            const event = events[eventId]
-            if (!event) throw Error(`the event ${eventId} is missing in the store`)
-            return {
-                ...event,
-                _hasPlanning: hasPlanning(event),
-                _type: 'events', // _type can disapear in the object, like in a POST response
-            }
-        })
-    }
+    (events, storedPlannings, eventsIdsToBeShown) =>(
+        eventsIdsToBeShown.map((eventId) => ({
+            ...events[eventId],
+            _type: 'events', // _type can disappear in the obejct, like in a POST response
+        }))
+    )
 )
 
 /**

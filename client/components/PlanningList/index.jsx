@@ -58,6 +58,7 @@ class PlanningList extends React.Component {
             openPlanningEditor,
             handlePlanningDuplicate,
             session,
+            onCancelEvent,
         } = this.props
         const planning = plannings[index]
 
@@ -73,6 +74,7 @@ class PlanningList extends React.Component {
                     onSpike={handlePlanningSpike}
                     onUnspike={handlePlanningUnspike}
                     onDuplicate={handlePlanningDuplicate}
+                    onCancelEvent={onCancelEvent}
                     onClick={this.previewOrEditPlanning.bind(this, planning)}
                     onDoubleClick={openPlanningEditor}
                     onAgendaClick={onAgendaClick}
@@ -128,6 +130,7 @@ PlanningList.propTypes = {
     onAgendaClick: PropTypes.func,
     loadMorePlannings: PropTypes.func,
     handlePlanningDuplicate: PropTypes.func,
+    onCancelEvent: PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -164,6 +167,8 @@ const mapDispatchToProps = (dispatch) => ({
     loadMorePlannings: () => (dispatch(actions.planning.ui.fetchMoreToList())),
 
     handlePlanningDuplicate: (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
+
+    onCancelEvent: (event) => dispatch(actions.events.ui.cancelEvent(event)),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningList)

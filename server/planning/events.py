@@ -63,6 +63,22 @@ class EventsService(superdesk.Service):
         res = self.backend.update_in_mongo(self.datasource, id, document, original)
         return res
 
+    def on_fetched(self, docs):
+        for doc in docs['_items']:
+            self._set_has_planning_flag(doc)
+
+    def on_fetched_item(self, doc):
+        self._set_has_planning_flag(doc)
+
+    def _set_has_planning_flag(self, doc):
+        doc['has_planning'] = self.has_planning_items(doc)
+
+    def has_planning_items(self, doc):
+        plannings = list(get_resource_service('planning').find(where={
+            'event_item': doc[config.ID_FIELD]
+        }))
+        return len(plannings) > 0
+
     def set_ingest_provider_sequence(self, item, provider):
         """Sets the value of ingest_provider_sequence in item.
 

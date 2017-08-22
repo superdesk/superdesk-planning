@@ -141,13 +141,6 @@ describe('selectors', () => {
         })
     })
 
-    it('getEventsWithMoreInfo', () => {
-        const events = selectors.getEventsWithMoreInfo(state)
-        expect(events.length).toBe(2)
-        expect(events.find((e) => e._id === 'event1')._hasPlanning).toBe(true)
-        expect(events.find((e) => e._id === 'event2')._hasPlanning).toBe(false)
-    })
-
     it('getEventToBeDetailed', () => {
         const event = selectors.getEventToBeDetailed(state)
         expect(event._plannings.length).toBe(1)

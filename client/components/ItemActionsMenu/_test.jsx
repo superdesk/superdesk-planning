@@ -17,11 +17,10 @@ describe('<ItemActionsMenu />', () => {
         expect(callback.callCount).toBe(1)
     })
 
-    it('render without actions ', () => {
+    it('doesnt render without actions ', () => {
         const wrapper = mount(
             <ItemActionsMenu actions={[]}/>
         )
-        wrapper.find('.dropdown__toggle').simulate('click')
-        wrapper.find('li button').simulate('click')
+        expect(wrapper.find('.dropdown__toggle').length).toBe(0)
     })
 })
