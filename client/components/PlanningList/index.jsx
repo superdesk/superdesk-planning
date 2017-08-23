@@ -168,7 +168,7 @@ const mapDispatchToProps = (dispatch) => ({
 
     handlePlanningDuplicate: (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
 
-    onCancelEvent: (event) => dispatch(actions.events.ui.cancelEvent(event)),
+    onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningList)

@@ -389,7 +389,7 @@ const mapDispatchToProps = (dispatch) => ({
     onDuplicate: (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
     onSpike: (planning) => (dispatch(actions.planning.ui.spike(planning))),
     onUnspike: (planning) => (dispatch(actions.planning.ui.unspike(planning))),
-    onCancelEvent: (event) => dispatch(actions.events.ui.cancelEvent(event)),
+    onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
 })
 
 export const EditPlanningPanelContainer = connect(

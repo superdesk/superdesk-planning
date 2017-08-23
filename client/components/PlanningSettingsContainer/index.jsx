@@ -1,5 +1,5 @@
 import React from 'react'
-import { Tabs, Tab, TabContent, ModalsContainer, AgendasListContainer } from '../../components'
+import { Tabs, Tab, ModalsContainer, AgendasListContainer } from '../../components'
 
 export class PlanningSettingsContainer extends React.Component {
     constructor(props) {
@@ -14,18 +14,19 @@ export class PlanningSettingsContainer extends React.Component {
 
     render() {
         return (
-            <div className="split-content">
-                <Tabs>
-                    <Tab tabName={this.tabs.AGENDA}
-                         activeTab={this.state.activeTab}
-                         onChangeTab={this.onChangeTab.bind(this, this.tabs.AGENDA)}
-                         key={'settings-'+ this.tabs.AGENDA} />
-                </Tabs>
-                <div className="content">
-                    <TabContent tabName={this.tabs.AGENDA} activeTab={this.state.activeTab}>
-                        <AgendasListContainer />
-                    </TabContent>
+            <div>
+                <div className="sd-page__header sd-page__header--white">
+                    <h2 className="sd-page__page-heading">Planning</h2>
                 </div>
+                <div className="sd-page__header sd-page__header--white">
+                    <Tabs>
+                        <Tab tabName={this.tabs.AGENDA}
+                             activeTab={this.state.activeTab}
+                             onChangeTab={this.onChangeTab.bind(this, this.tabs.AGENDA)}
+                             key={'settings-'+ this.tabs.AGENDA} />
+                    </Tabs>
+                </div>
+                {this.tabs.AGENDA === this.state.activeTab && <AgendasListContainer />}
                 <ModalsContainer />
             </div>
         )
