@@ -19,24 +19,16 @@ export class QuickAddPlanning extends React.Component {
     }
 
     render() {
-        const { className } = this.props
         const { slugline } = this.state
-        const classes = [
-            'quick-add-planning',
-            className,
-        ].join(' ')
         return (
-            <li className={classes}>
+            <div className="ListItem quick-add-planning">
                 <i className="icon-plus-sign" onClick={this.handleSubmit.bind(this)}/>
                 <form onSubmit={this.handleSubmit.bind(this)}>
                     <input type="text" className="line-input" placeholder="Add" value={slugline} onChange={this.handleChange.bind(this)}/>
                 </form>
-            </li>
+            </div>
         )
     }
 }
 
-QuickAddPlanning.propTypes = {
-    className: React.PropTypes.string,
-    onPlanningCreation: React.PropTypes.func.isRequired,
-}
+QuickAddPlanning.propTypes = { onPlanningCreation: React.PropTypes.func.isRequired }

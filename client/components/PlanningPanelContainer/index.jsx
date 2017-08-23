@@ -102,15 +102,15 @@ class PlanningPanel extends React.Component {
                             </label>
                         </div>
                         <AdvancedSearchPanelContainer searchContext={ADVANCED_SEARCH_CONTEXT.PLANNING} />
-                        <ul className="list-view compact-view">
+                        <div className="list-view compact-view">
                             {((currentAgendaId || currentAgenda && currentAgenda.is_enabled) &&
                             privileges.planning_planning_management === 1 ) &&
-                                <QuickAddPlanning className="ListItem" onPlanningCreation={onPlanningCreation}/>
+                                <QuickAddPlanning onPlanningCreation={onPlanningCreation}/>
                             }
                             {(planningList && planningList.length > 0) &&
                                 <PlanningList />
                             }
-                        </ul>
+                        </div>
                         {
                             planningsAreLoading &&
                                 <div className="Planning-panel__empty-message">
