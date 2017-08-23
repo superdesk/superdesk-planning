@@ -6,7 +6,7 @@ function Checkbox({ value, checkedValue, onChange, label, labelPosition, readOnl
     const isRadio = type === 'radio'
     const onClick = (e) => {
         e.stopPropagation()
-        onChange({ target: { value: isRadio ? checkedValue : value } })
+        onChange({ target: { value: isRadio ? checkedValue : !value } })
     }
     const classNameLabel = readOnly ? 'sd-label--disabled' : ''
     const className = classNames(
