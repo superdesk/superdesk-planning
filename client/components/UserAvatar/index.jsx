@@ -5,6 +5,7 @@ import './style.scss'
 export const UserAvatar = ({ user, large, withLoggedInfo, isLoggedIn }) => (
     <figure className={classNames('avatar',
         { 'large' : large },
+        { 'avatar--small' : !large },
         'initials',
         'planning__initials',
         { 'avatar-with-info': withLoggedInfo },

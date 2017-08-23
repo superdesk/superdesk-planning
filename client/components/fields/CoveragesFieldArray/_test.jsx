@@ -31,7 +31,8 @@ describe('<CoveragesFieldArray />', () => {
                 headline="Header"
                 slugline="Slugger"
                 users={[]}
-                contentTypes={[]}/>
+                contentTypes={[]}
+                desks={[]}/>
         )
 
         instance = wrapper.instance()

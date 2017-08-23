@@ -128,6 +128,7 @@ describe('planning', () => {
                             sessionId: 123,
                         },
                         users: [{ _id: 'user' }],
+                        desks: [],
                         formsProfile: { planning: { editor: { slugline: { enabled: true } } } },
                     },
                 })

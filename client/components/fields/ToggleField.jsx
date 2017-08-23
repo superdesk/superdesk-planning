@@ -11,18 +11,20 @@ export const ToggleField = ({ input, label, readOnly, defaultValue=false, meta: 
     }
 
     return (
-        <label>
-            <Toggle
-                {...input}
-                onChange={
-                    () => {
-                        input.onChange(!input.value)
+        <div className="field">
+            <label>
+                <Toggle
+                    {...input}
+                    onChange={
+                        () => {
+                            input.onChange(!input.value)
+                        }
                     }
-                }
-                readOnly={readOnly}/> {label}
-            {touched && ((error && <span className="error-block">{error}</span>) ||
-                (warning && <span className="help-block">{warning}</span>))}
-        </label>
+                    readOnly={readOnly}/> {label}
+                {touched && ((error && <span className="error-block">{error}</span>) ||
+                    (warning && <span className="help-block">{warning}</span>))}
+            </label>
+        </div>
     )
 }
 
