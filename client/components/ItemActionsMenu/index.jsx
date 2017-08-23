@@ -52,8 +52,18 @@ export class ItemActionsMenu extends React.Component {
         event.stopPropagation()
     }
 
-    render() {
+    isEmptyActions() {
         if (get(this.props, 'actions.length', 0) < 1) {
+            return true
+        } else {
+            // Do we have only dividers ?
+            return this.props.actions.filter((action) =>
+                action.label !== GENERIC_ITEM_ACTIONS.DIVIDER.label).length <= 0
+        }
+    }
+
+    render() {
+        if (this.isEmptyActions()) {
             return null
         }
 

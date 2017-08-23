@@ -88,8 +88,7 @@ const canUnspikeEvent = (event, privileges) => (
 )
 
 const canDuplicateEvent = (event, session, privileges) => (
-    !isItemSpiked(event) && !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
-        !isItemLockRestricted(event, session)
+    canEditEvent(event, session, privileges)
 )
 
 const canCreatePlanningFromEvent = (event, session, privileges) => (
