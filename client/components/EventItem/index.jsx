@@ -68,9 +68,7 @@ export const EventItem = ({
             active={highlightedEvent === event._id || isSelected}
         >
             <div className="sd-list-item__action-menu">
-                <Checkbox value={isSelected}
-                          onChange={({ target }) => {onSelectChange(target.value)}}
-                />
+                <Checkbox value={isSelected} onChange={({ target }) => {onSelectChange(target.value)}}/>
             </div>
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
                 <div className="sd-list-item__row">
