@@ -20,6 +20,22 @@ const loadAssignments = (filterBy, searchQuery, orderByField, orderDirection) =>
     }
 
 /**
+ * Action dispatcher to load first page of the list of assignments for current list settings.
+ * @param getState
+ */
+const reloadAssignments = () =>
+    (dispatch) => {
+        dispatch(changeLastAssignmentLoadedPage(
+            { lastAssignmentLoadedPage: 1 }
+        ))
+
+        return dispatch(query())
+        .then((data) =>
+            dispatch(receivedAssignments(data._items))
+        )
+    }
+
+/**
  * Action dispatcher to load the next page of assignments.
  * @param getState
  */
@@ -186,6 +202,7 @@ const toggleAssignmentSelection = ({ assignment, value }) => (
 export {
     changeListSettings,
     loadAssignments,
+    reloadAssignments,
     loadMoreAssignments,
     query,
     createAssignment,
