@@ -30,55 +30,88 @@ class Component extends React.Component {
         return (
             <form onSubmit={handleSubmit} className="PlanningForm">
                 <fieldset>
-                    {get(formProfile, 'editor.slugline.enabled') && <Field
-                        name="slugline"
-                        component={fields.InputField}
-                        type="text"
-                        label="Slugline"
-                        readOnly={readOnly} /> }
-                    {get(formProfile, 'editor.internal_note.enabled') && <Field name="internal_note"
-                        component={fields.InputTextAreaField}
-                        label="Internal Note"
-                        readOnly={readOnly}/>}
-                    {get(formProfile, 'editor.agendas.enabled') && <Field
-                        name="agendas"
-                        component={fields.AgendaField}
-                        label="Agenda"
-                        readOnly={readOnly} />}
-                    <ToggleBox title="Details" isOpen={false}>
-                        {get(formProfile, 'editor.ednote.enabled') && <Field
-                            name="ednote"
-                            component={fields.InputTextAreaField}
-                            multiLine={true}
-                            type="text"
-                            label="Ed Note"
-                            readOnly={readOnly} />}
-                        {get(formProfile, 'editor.headline.enabled') && <Field
-                            name="headline"
-                            component={fields.InputField}
-                            type="text"
-                            label="Headline"
-                            readOnly={readOnly} />}
-                        {get(formProfile, 'editor.anpa_category.enabled') && <Field
-                            name="anpa_category"
-                            component={fields.CategoryField}
-                            label="Category"
-                            readOnly={readOnly} />}
-                        {get(formProfile, 'editor.subject.enabled') && <Field
-                            name="subject"
-                            component={fields.SubjectField}
-                            label="Subject"
-                            readOnly={readOnly} />}
-                        {get(formProfile, 'editor.urgency.enabled') && <Field
-                            name="urgency"
-                            component={fields.UrgencyField}
-                            readOnly={readOnly} />}
-                        {get(formProfile, 'editor.flags') && !isPublic &&
+                    {get(formProfile, 'editor.slugline.enabled') &&
+                        <div className="form__row">
                             <Field
-                                name="flags.marked_for_not_publication"
-                                component={fields.ToggleField}
-                                label="Not for Publication"
+                                name="slugline"
+                                component={fields.InputField}
+                                type="text"
+                                label="Slugline"
+                                readOnly={readOnly} />
+                        </div>
+                    }
+                    {get(formProfile, 'editor.internal_note.enabled') &&
+                        <div className="form__row">
+                            <Field name="internal_note"
+                                component={fields.InputTextAreaField}
+                                label="Internal Note"
                                 readOnly={readOnly}/>
+                        </div>
+                    }
+                    {get(formProfile, 'editor.agendas.enabled') &&
+                        <div className="form__row">
+                            <Field
+                                name="agendas"
+                                component={fields.AgendaField}
+                                label="Agenda"
+                                readOnly={readOnly} />
+                        </div>
+                    }
+                    <ToggleBox title="Details" isOpen={false}>
+                        {get(formProfile, 'editor.ednote.enabled') &&
+                        <div className="form__row">
+                            <Field
+                                name="ednote"
+                                component={fields.InputField}
+                                type="text"
+                                label="Ed Note"
+                                readOnly={readOnly} />
+                        </div>
+                        }
+                        {get(formProfile, 'editor.headline.enabled') &&
+                        <div className="form__row">
+                            <Field
+                                name="headline"
+                                component={fields.InputField}
+                                type="text"
+                                label="Headline"
+                                readOnly={readOnly} />
+                        </div>
+                        }
+                        {get(formProfile, 'editor.anpa_category.enabled') &&
+                        <div className="form__row">
+                            <Field
+                                name="anpa_category"
+                                component={fields.CategoryField}
+                                label="Category"
+                                readOnly={readOnly} />
+                        </div>
+                        }
+                        {get(formProfile, 'editor.subject.enabled') &&
+                        <div className="form__row">
+                            <Field
+                                name="subject"
+                                component={fields.SubjectField}
+                                label="Subject"
+                                readOnly={readOnly} />
+                        </div>
+                        }
+                        {get(formProfile, 'editor.urgency.enabled') &&
+                        <div className="form__row">
+                            <Field
+                                name="urgency"
+                                component={fields.UrgencyField}
+                                readOnly={readOnly} />
+                        </div>
+                        }
+                        {get(formProfile, 'editor.flags') && !isPublic &&
+                            <div className="form__row">
+                                <Field
+                                    name="flags.marked_for_not_publication"
+                                    component={fields.ToggleField}
+                                    label="Not for Publication"
+                                    readOnly={readOnly}/>
+                            </div>
                         }
                     </ToggleBox>
                 </fieldset>

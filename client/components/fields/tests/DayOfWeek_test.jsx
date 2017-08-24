@@ -1,5 +1,5 @@
 import React from 'react'
-import { shallow } from 'enzyme'
+import { mount } from 'enzyme'
 import { DaysOfWeek } from '../index'
 import sinon from 'sinon'
 
@@ -16,25 +16,10 @@ describe('<DaysOfWeek />', () => {
             onChange: onButtonClick,
             value: '',
         }
-        let wrapper = shallow(<DaysOfWeek input={input} meta={meta} />)
-        wrapper.find({ value: 'MO' }).simulate('change', {
-            target: {
-                value: 'MO',
-                checked: true,
-            },
-        })
-        wrapper.find({ value: 'WE' }).simulate('change', {
-            target: {
-                value: 'WE',
-                checked: true,
-            },
-        })
-        wrapper.find({ value: 'SA' }).simulate('change', {
-            target: {
-                value: 'SA',
-                checked: true,
-            },
-        })
+        let wrapper = mount(<DaysOfWeek input={input} meta={meta} />)
+        wrapper.find('.sd-checkbox').at(0).simulate('click')
+        wrapper.find('.sd-checkbox').at(2).simulate('click')
+        wrapper.find('.sd-checkbox').at(5).simulate('click')
         expect(onButtonClick.callCount).toBe(3)
     })
 
@@ -46,7 +31,7 @@ describe('<DaysOfWeek />', () => {
             }),
             value: 'MO TU SU',
         }
-        let wrapper = shallow(<DaysOfWeek input={input} meta={meta}/>)
+        let wrapper = mount(<DaysOfWeek input={input} meta={meta}/>)
         expect(wrapper.state().MO).toBe(true)
         expect(wrapper.state().TU).toBe(true)
         expect(wrapper.state().WE).toBe(false)
@@ -54,14 +39,9 @@ describe('<DaysOfWeek />', () => {
         expect(wrapper.state().FR).toBe(false)
         expect(wrapper.state().SA).toBe(false)
         expect(wrapper.state().SU).toBe(true)
-        expect(wrapper.find({ value: 'MO' }).props().checked).toBe(true)
-        expect(wrapper.find({ value: 'WE' }).props().checked).toBe(false)
-        wrapper.find({ value: 'SA' }).simulate('change', {
-            target: {
-                value: 'SA',
-                checked: true,
-            },
-        })
+        expect(wrapper.find('Checkbox').at(0).props().value).toBe(true)
+        expect(wrapper.find('Checkbox').at(2).props().value).toBe(false)
+        wrapper.find('.sd-checkbox').at(5).simulate('click')
         expect(input.onChange.calledOnce).toBe(true)
     })
 })

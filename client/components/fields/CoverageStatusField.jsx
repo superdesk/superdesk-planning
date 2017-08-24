@@ -1,8 +1,9 @@
 import { SelectField } from './SelectField'
 import { connect } from 'react-redux'
+import { get } from 'lodash'
 
 const mapStateToProps = (state) => ({
-    options: state.vocabularies.eventoccurstatus.map((state) => (
+    options: get(state, 'vocabularies.newscoveragestatus', []).map((state) => (
         {
             key: state.qcode,
             label: state.label,
@@ -11,8 +12,8 @@ const mapStateToProps = (state) => ({
     )),
 
     getOptionFromValue: (value, options) => options.find(
-        option => option.key === value.qcode
+        option => option.key === value
     ),
 })
 
-export const OccurStatusField = connect(mapStateToProps)(SelectField)
+export const CoverageStatusField = connect(mapStateToProps)(SelectField)

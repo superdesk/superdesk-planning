@@ -79,7 +79,7 @@ export class RepeatEventSummary  extends React.Component {
 
     render() {
         return (
-            <div>
+            <div className="recurring__summary">
                 <span><strong className='repeatSummary'>{'Repeat summary: ' + this.getRepeatSummary()}</strong>
                 </span>
             </div>
