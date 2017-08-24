@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { SelectField } from './SelectField'
 import { SPIKED_STATE } from '../../constants'
 
@@ -16,20 +17,20 @@ const states = [{
 export const SpikeStateField = (props) => {
     const ownProps = {
         ...props,
-        multi: false,
-        clearable: false,
         options: states.map((s) => (
             {
+                key: s.label,
                 label: s.label,
                 value: s,
             }
         )),
-        value: props.input.value ? {
-            label: props.input.value.label,
-            value: props.input.value,
-        } : states[0],
+
+        getOptionFromValue: (value, options) => options.find(
+            option => option.key === value.label
+        ),
     }
     return (<SelectField {...ownProps}/>)
 }
 
-SpikeStateField.propTypes = { input: React.PropTypes.object.isRequired }
+// eslint-disable-next-line react/no-unused-prop-types
+SpikeStateField.propTypes = { input: PropTypes.object.isRequired }

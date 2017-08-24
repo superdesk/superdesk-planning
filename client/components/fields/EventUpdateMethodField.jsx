@@ -1,5 +1,6 @@
+import React from 'react'
+import PropTypes from 'prop-types'
 import { SelectField } from './SelectField'
-import { connect } from 'react-redux'
 
 export const EventUpdateMethods = [
     {
@@ -14,19 +15,19 @@ export const EventUpdateMethods = [
     },
 ]
 
-const mapStateToProps = (state, ownProps) => ({
-    multi: false,
-    clearable: false,
-    options: EventUpdateMethods.map((opt) => (
-        {
-            label: opt.name,
-            value: opt,
-        }
-    )),
-    value: {
-        label: ownProps.input.value.name,
-        value: ownProps.input.value,
-    },
-})
+export const EventUpdateMethodField = (props) => {
+    const ownProps = {
+        ...props,
+        options: EventUpdateMethods.map((opt) => (
+            {
+                key: opt.name,
+                label: opt.name,
+                value: opt,
+            }
+        )),
+    }
+    return <SelectField {...ownProps}/>
+}
 
-export const EventUpdateMethodField = connect(mapStateToProps)(SelectField)
+// eslint-disable-next-line react/no-unused-prop-types
+EventUpdateMethodField.propTypes = { input: PropTypes.object.isRequired }

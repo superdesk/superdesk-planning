@@ -1,10 +1,8 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
-import { RelatedPlannings, RepeatEventForm, Toggle, EventHistoryContainer, AuditInformation } from '../index'
 import { reduxForm, formValueSelector, getFormValues } from 'redux-form'
 import { isNil, get, isEqual, remove } from 'lodash'
-import { StateLabel } from '../index'
 import moment from 'moment'
 import {
     ChainValidators,
@@ -16,9 +14,7 @@ import './style.scss'
 import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS } from '../../constants'
 import * as selectors from '../../selectors'
 import { OverlayTrigger } from 'react-bootstrap'
-import { tooltips } from '../index'
 import PropTypes from 'prop-types'
-import { ItemActionsMenu, UnlockItem, UserAvatar } from '../index'
 import classNames from 'classnames'
 import {
     eventUtils,
@@ -29,6 +25,20 @@ import {
     isItemPublic,
 } from '../../utils'
 import { fieldRenders } from './fieldRenders.jsx'
+
+import {
+    RelatedPlannings,
+    RepeatEventForm,
+    Toggle,
+    EventHistoryContainer,
+    AuditInformation,
+    ItemActionsMenu,
+    UnlockItem,
+    UserAvatar,
+    StateLabel,
+    tooltips,
+    ToggleBox,
+} from '../index'
 
 /**
 * Form for adding/editing an event
@@ -258,7 +268,7 @@ export class Component extends React.Component {
         }
 
         return (
-            <form onSubmit={handleSubmit} className="EventForm">
+            <form onSubmit={handleSubmit} className="EventForm Form">
                 <div className="subnav">
                     {pristine && forcedReadOnly && (
                         <div className="subnav__button-stack--square-buttons">
@@ -382,49 +392,68 @@ export class Component extends React.Component {
 
                     {get(formProfile, 'editor.slugline.enabled') && fieldRenders.renderSlugline(!metaDataEditable)}
                     {get(formProfile, 'editor.name.enabled') && fieldRenders.renderName(!metaDataEditable)}
-                    {get(formProfile, 'editor.calendars.enabled') && fieldRenders.renderCalender(!metaDataEditable)}
-                    {get(formProfile, 'editor.anpa_category.enabled') && fieldRenders.renderCategory(!metaDataEditable)}
-                    {get(formProfile, 'editor.subject.enabled') && fieldRenders.renderSubject(!metaDataEditable)}
                     {get(formProfile, 'editor.definition_short.enabled') && fieldRenders.renderDescription(!metaDataEditable)}
-                    {get(formProfile, 'editor.definition_long.enabled') && fieldRenders.renderLongDescription(!metaDataEditable)}
-                    {get(formProfile, 'editor.internal_note.enabled') && fieldRenders.renderInternalNote(!metaDataEditable)}
-                    {get(formProfile, 'editor.location.enabled') && fieldRenders.renderLocation(!metaDataEditable)}
-                    {fieldRenders.renderDate(existingEvent, true, occurrenceOverlaps)}
-                    {fieldRenders.renderDate(existingEvent, false, null, this.oneHourAfterStartingDate())}
+                    {get(formProfile, 'editor.occur_status.enabled') && fieldRenders.renderOccurStatus(!metaDataEditable)}
 
-                    <label>
-                        <Toggle
-                            value={this.props.isAllDay}
-                            onChange={this.handleAllDayChange.bind(this)}
-                            readOnly={!recurringRulesEditable}/> All Day
-                    </label>
-                    <div>
-                        <label>
+                    {fieldRenders.renderDate(existingEvent, true, occurrenceOverlaps)}
+                    {fieldRenders.renderDate(existingEvent, false, occurrenceOverlaps, this.oneHourAfterStartingDate())}
+
+                    <label className="form__row form__row--flex">
+                        <div className="form__row--item" style={{ width: '50%' }}>
                             <Toggle
                                 name="doesRepeat"
                                 value={this.state.doesRepeat}
                                 onChange={this.handleDoesRepeatChange.bind(this)}
-                                readOnly={!recurringRulesEditable}/> Repeat
-                        </label>
-                        {
-                            this.state.doesRepeat &&
-                            // as <RepeatEventForm/> contains fields, we provide the props in this form
-                            // see http://redux-form.com/6.2.0/docs/api/Props.md
-                            <RepeatEventForm { ...RepeatEventFormProps } />
-                        }
-                    </div>
+                                readOnly={!recurringRulesEditable}/>
+                            <span className="sd-line-input__label">
+                                Repeat
+                            </span>
+                        </div>
 
-                    {get(formProfile, 'editor.occur_status.enabled') && fieldRenders.renderOccurStatus(!metaDataEditable)}
-                    {get(formProfile, 'editor.links.enabled') && fieldRenders.renderLinks(!metaDataEditable)}
-                    {get(formProfile, 'editor.files.enabled') && fieldRenders.renderFiles(!metaDataEditable)}
+                        <div className="form__row--item">
+                            <span className="sd-line-input__label">All Day</span>
+                            <Toggle
+                                value={this.props.isAllDay}
+                                onChange={this.handleAllDayChange.bind(this)}
+                                readOnly={!recurringRulesEditable}/>
+                        </div>
+                    </label>
+
+                    {
+                        this.state.doesRepeat &&
+                        // as <RepeatEventForm/> contains fields, we provide the props in this form
+                        // see http://redux-form.com/6.2.0/docs/api/Props.md
+                        <RepeatEventForm { ...RepeatEventFormProps } />
+                    }
+
+                    {get(formProfile, 'editor.location.enabled') && fieldRenders.renderLocation(!metaDataEditable)}
+
+                    <ToggleBox title="Details" isOpen={false}>
+                        {get(formProfile, 'editor.calendars.enabled') && fieldRenders.renderCalender(!metaDataEditable)}
+                        {get(formProfile, 'editor.anpa_category.enabled') && fieldRenders.renderCategory(!metaDataEditable)}
+                        {get(formProfile, 'editor.subject.enabled') && fieldRenders.renderSubject(!metaDataEditable)}
+                        {get(formProfile, 'editor.definition_long.enabled') && fieldRenders.renderLongDescription(!metaDataEditable)}
+                        {get(formProfile, 'editor.internal_note.enabled') && fieldRenders.renderInternalNote(!metaDataEditable)}
+                    </ToggleBox>
+
+                    {get(formProfile, 'editor.files.enabled') &&
+                        <ToggleBox title="Attached Files" isOpen={false}>
+                            {fieldRenders.renderFiles(!metaDataEditable)}
+                        </ToggleBox>
+                    }
+
+                    {get(formProfile, 'editor.links.enabled') &&
+                        <ToggleBox title="External Links" isOpen={false}>
+                            {fieldRenders.renderLinks(!metaDataEditable)}
+                        </ToggleBox>
+                    }
 
                     {initialValues && initialValues._plannings &&
                         initialValues._plannings.length > 0 &&
-                        <div>
-                            <label htmlFor="links">Related planning items</label>
+                        <ToggleBox title="Related Planning Items" isOpen={false}>
                             <RelatedPlannings plannings={initialValues._plannings}
                                 openPlanningItem={true}/>
-                        </div>
+                        </ToggleBox>
                     }
                     </div>
                 }

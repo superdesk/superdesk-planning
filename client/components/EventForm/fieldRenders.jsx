@@ -4,44 +4,37 @@ import { fields } from '../index'
 import { Field, FieldArray } from 'redux-form'
 
 const renderSlugline = (readOnly) => (
-    <div>
-        <div>
-            <label htmlFor="slugline">Slugline</label>
-        </div>
-        <div>
-            <Field name="slugline"
-                component={fields.InputField}
-                type="text"
-                readOnly={readOnly}/>
-        </div>
+    <div className="form__row">
+        <Field name="slugline"
+            component={fields.InputField}
+            type="text"
+            label="Slugline"
+            readOnly={readOnly}/>
     </div>
 )
 
 const renderName = (readOnly) => (
-    <div>
-        <div>
-            <label htmlFor="name">Name</label>
-        </div>
-        <div>
-            <Field name="name"
-                component={fields.InputField}
-                type="text"
-                readOnly={readOnly}/>
-        </div>
+    <div className="form__row">
+        <Field name="name"
+            component={fields.InputField}
+            type="text"
+            label="Name"
+            required={true}
+            readOnly={readOnly}/>
     </div>
 )
 
 const renderCalender = (readOnly) => (
-    <div>
+    <div className="form__row">
         <Field name="calendars"
-               component={fields.EventCalendarField}
-               label="Calendars"
-               readOnly={readOnly}/>
+            component={fields.EventCalendarField}
+            label="Calendars"
+            readOnly={readOnly}/>
     </div>
 )
 
 const renderCategory = (readOnly) => (
-    <div>
+    <div className="form__row">
         <Field name="anpa_category"
             component={fields.CategoryField}
             label="Category"
@@ -49,9 +42,8 @@ const renderCategory = (readOnly) => (
     </div>
 )
 
-
 const renderSubject = (readOnly) => (
-    <div>
+    <div className="form__row">
         <Field name="subject"
             component={fields.SubjectField}
             label="Subject"
@@ -60,27 +52,26 @@ const renderSubject = (readOnly) => (
 )
 
 const renderDescription = (readOnly) => (
-    <div>
+    <div className="form__row">
         <Field name='definition_short'
             component={fields.InputField}
             type="text"
-            label="Short Description"
-            readOnly={readOnly}/>
-    </div>
-)
-
-const renderLongDescription = (readOnly) => (
-    <div>
-        <Field name="definition_long"
-            component={fields.InputTextAreaField}
-            multiLine={true}
             label="Description"
             readOnly={readOnly}/>
     </div>
 )
 
+const renderLongDescription = (readOnly) => (
+    <div className="form__row">
+        <Field name="definition_long"
+            component={fields.InputTextAreaField}
+            label="Long Description"
+            readOnly={readOnly}/>
+    </div>
+)
+
 const renderInternalNote = (readOnly) => (
-    <div>
+    <div className="form__row">
         <Field name="internal_note"
             component={fields.InputTextAreaField}
             label="Internal Note"
@@ -89,7 +80,7 @@ const renderInternalNote = (readOnly) => (
 )
 
 const renderLocation = (readOnly) => (
-    <div>
+    <div className="form__row">
         <Field name="location[0]"
             component={fields.GeoLookupInput}
             label="Location"
@@ -100,42 +91,32 @@ const renderLocation = (readOnly) => (
 const renderDate = (readOnly, start=false, occurrenceOverlaps=null, defaultDate=null) => {
     const name = start ? 'dates.start' : 'dates.end'
     const label = start  ? 'From' : 'To'
-    return (<div>
-        <div>
-            <label htmlFor={name}>{label}</label>
-        </div>
-        <div>
-            <Field name={name}
-                   component={fields.DayPickerInput}
-                   withTime={true}
-                   defaultDate={defaultDate}
-                   readOnly={readOnly}/>&nbsp;
-            { start && occurrenceOverlaps && (
-                <span className="error-block">Events Overlap!</span>
-            )}
-        </div>
-    </div>)
+    return <Field name={name}
+               component={fields.DayPickerInput}
+               label={label}
+               withTime={true}
+               defaultDate={defaultDate}
+               occurrenceOverlaps={occurrenceOverlaps}
+               readOnly={readOnly}/>
 }
 
 const renderOccurStatus = (readOnly) => (
-    <div>
+    <div className="form__row">
         <Field name="occur_status"
             component={fields.OccurStatusField}
-            label="Event Occurence Status"
+            label="Occurence Status"
             readOnly={readOnly}/>
     </div>
 )
 
 const renderLinks = (readOnly) => (
-    <div>
-        <label htmlFor="links">External links</label>
+    <div className="form__row">
         <FieldArray name="links" component={fields.LinksFieldArray} readOnly={readOnly} />
     </div>
 )
 
 const renderFiles = (readOnly) => (
-    <div>
-        <label htmlFor="files">Attached files</label>
+    <div className="form__row">
         <FieldArray name="files" component={fields.FilesFieldArray} readOnly={readOnly}/>
     </div>
 )

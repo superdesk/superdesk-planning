@@ -82,9 +82,9 @@ export class TimePicker extends React.Component {
             <div className="timepickerInput">
                 <input type="text" className={ 'timepickerInput__textInput' + (this.state.invalid ? ' timepickerInput__textInput--invalid' : '')} disabled={readOnly ? 'disabled' : ''} value={this.state.viewValue} placeholder={placeholder} onChange={(e)=>(this.validateTimeText(e.target.value))}
                 onBlur={this.handleInputBlur.bind(this)} />
-                { !readOnly && <button className="timepickerInput--btn" type="button" onClick={this.toggleOpenTimePicker.bind(this)}>
-                    <i className="icon-time"/></button>
-                }
+                <button className="timepickerInput--btn" type="button" onClick={!readOnly && this.toggleOpenTimePicker.bind(this)}>
+                    <i className="icon-time"/>
+                </button>
                 { this.state.openTimePicker && (
                     <TimePickerCore value={this.props.input.value} onCancel={this.toggleOpenTimePicker.bind(this)}
                     onChange={this.onChange.bind(this)}/>

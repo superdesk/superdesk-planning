@@ -3,7 +3,7 @@ import { mount } from 'enzyme'
 import { change, reduxForm } from 'redux-form'
 import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
-import { RepeatEventForm } from '../index'
+import { RepeatEventForm, fields } from '../index'
 import moment from 'moment'
 
 describe('<RepeatEventForm />', () => {
@@ -21,7 +21,8 @@ describe('<RepeatEventForm />', () => {
     })
 
     it('generates interval options', () => {
-        expect(wrapper.find('.recurring__interval option').length).toBe(30)
+        // expect(wrapper.find('.recurring__interval option').length).toBe(30)
+        expect(wrapper.find(fields.RepeatEveryField).find('option').length).toBe(30)
     })
 
     it('checks well radio btn for end of recurring dates', () => {
@@ -57,11 +58,5 @@ describe('<RepeatEventForm />', () => {
         })
         .simulate('change', { target: { value: 'count' } })
         expectEventToEnd('count')
-    })
-
-    it('show days of week when Weekly is selected', () => {
-        wrapper.find({ name: 'dates.recurring_rule.frequency' })
-        .simulate('change', { target: { value: 'WEEKLY' } })
-        expect(wrapper.find('DaysOfWeek').length).toEqual(1)
     })
 })

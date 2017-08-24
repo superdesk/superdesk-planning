@@ -17,7 +17,6 @@
         font-size: 17px;
         color: $gray;
     }
-    label { margin-top: 10px; }
     .addgeolookup {
         display: table;
         &__input-wrapper {
@@ -39,7 +38,7 @@
             }
             input[type="text"],input[type="number"] {
                 margin: 0 10px;
-                width: 120px;
+                width: 60px;
             }
         }
     }
@@ -62,6 +61,7 @@
             margin: 0;
         }
     }
+
 
     .history-preview {
         max-height: calc(100vh - 100px);

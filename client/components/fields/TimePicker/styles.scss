@@ -10,7 +10,6 @@
     width: auto;
     min-width: 130px;
     background-color: transparent;
-    width: 80px;
     position: relative;
     display: inline-block;
 
@@ -20,6 +19,9 @@
         background-color: transparent;
         padding: 0;
         height: 24px;
+        margin-bottom: 0;
+        border: 0 !important;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.15) !important;
         &__textInput {
             background-color: transparent;
             padding: 0;
@@ -32,6 +34,7 @@
             cursor: default;
         }
     }
+
 
     &--btn {
         background: #fff;

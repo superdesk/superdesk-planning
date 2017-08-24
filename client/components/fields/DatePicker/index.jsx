@@ -72,14 +72,14 @@ export class DatePicker extends React.Component {
     }
 
     render() {
-        const { placeholder, readOnly } = this.props
+        const { placeholder, readOnly, className } = this.props
         return (
-            <div className="datepickerInput">
+            <div className={'datepickerInput' + (className ? ` ${className}` : '')}>
                 <input type="text" className={ 'datepickerInput__textInput inputField' + (this.state.invalid ? ' datepickerInput__textInput--invalid' : '')} disabled={readOnly ? 'disabled' : ''} value={this.state.viewValue} placeholder={placeholder} onChange={(e)=>(this.validateTimeText(e.target.value))}
                 onBlur={this.handleInputBlur.bind(this)} />
-                { !readOnly && <button className="datepickerInput--btn" type="button" onClick={this.toggleOpenDatePicker.bind(this)}>
-                    <i className="icon-calendar"/></button>
-                }
+                <button className="datepickerInput--btn" type="button" onClick={!readOnly && this.toggleOpenDatePicker.bind(this)}>
+                    <i className="icon-calendar"/>
+                </button>
                 {this.state.openDatePicker && (
                     <DatePickerCore value={this.props.input.value} onCancel={this.toggleOpenDatePicker.bind(this)}
                     onChange={this.onChange.bind(this)}/>
@@ -96,4 +96,5 @@ DatePicker.propTypes = {
     }).isRequired,
     placeholder: PropTypes.string,
     readOnly: PropTypes.bool,
+    className: PropTypes.string,
 }

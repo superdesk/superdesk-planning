@@ -1,5 +1,6 @@
 import React, { PropTypes } from 'react'
 import { SelectFieldPopup } from './SelectFieldPopup'
+import classNames from 'classnames'
 import './style.scss'
 
 export class SelectMetaTermsField extends React.Component {
@@ -19,36 +20,66 @@ export class SelectMetaTermsField extends React.Component {
     }
 
     render() {
+        const { required, readOnly, label, value, options, onChange, labelLeft } = this.props
         const { touched, error, warning } = this.props.meta
-        return ( <div className='field'>
-            { this.props.label && <label>{this.props.label}</label> }
-            { !this.props.readOnly && <button type="button" className="Select__dropdownToggle" onClick={this.toggleOpenSelectPopup.bind(this)}>
-                <i className="icon--white icon-plus-large" />
-            </button> }
-            { this.props.value && this.props.value.length > 0 && (
-                <div className="terms-list">
-                    <ul>
-                        {this.props.value.map((v, index) => (
-                            <li key={index} className='pull-left'>
-                                { !this.props.readOnly &&
-                                <i className="icon-close-small" onClick={this.removeValue.bind(this, index)}/> }
-                                { v.label }
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            ) }
-            { this.state.openSelectPopup && (<SelectFieldPopup
-                options={this.props.options} value={this.props.value}
-                onCancel={this.toggleOpenSelectPopup.bind(this)}
-                onChange={(opt) => {
-                    this.props.onChange(opt, this.props)
-                    this.toggleOpenSelectPopup()
 
-                }} />) }
-            {touched && ((error && <span className="error-block">{error}</span>) ||
-            (warning && <span className="help-block">{warning}</span>))}
-        </div> )
+        const showMessage = touched && (error || warning)
+        const divClass = classNames(
+            'sd-line-input',
+            { 'sd-line-input--label-left': labelLeft },
+            { 'sd-line-input--invalid': showMessage },
+            { 'sd-line-input--no-margin': !showMessage },
+            { 'sd-line-input--required': required }
+        )
+
+        const inputClass = classNames(
+            'sd-line-input__input',
+            { 'sd-line-input--disabled': readOnly }
+        )
+
+        return <div className={divClass}>
+            { label &&
+                <label className='sd-line-input__label'>
+                    {label}
+                </label>
+            }
+
+            <div className={inputClass}>
+                { !readOnly && <button type="button" className="Select__dropdownToggle" onClick={this.toggleOpenSelectPopup.bind(this)}>
+                    <i className="icon--white icon-plus-large" />
+                </button> }
+                { value && value.length > 0 && (
+                    <div className="terms-list">
+                        <ul>
+                            {value.map((v, index) => (
+                                <li key={index} className='pull-left'>
+                                    { !readOnly &&
+                                    <i className="icon-close-small" onClick={this.removeValue.bind(this, index)}/> }
+                                    { v.label }
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                ) }
+            </div>
+            { this.state.openSelectPopup &&
+                <SelectFieldPopup
+                    value={value}
+                    options={options}
+                    onCancel={this.toggleOpenSelectPopup.bind(this)}
+                    onChange={(opt) => {
+                        onChange(opt, this.props)
+                        this.toggleOpenSelectPopup()
+                    }}
+
+                />
+            }
+
+            {touched && (
+                (error && <div className='sd-line-input__message'>{error}</div>) ||
+                (warning && <div className='sd-line-input__message'>{warning}</div>)
+            )}
+        </div>
     }
 }
 
@@ -71,6 +102,8 @@ SelectMetaTermsField.propTypes = {
     valueKey: PropTypes.string,
     readOnly: PropTypes.bool,
     onChange: PropTypes.func,
+    required: PropTypes.bool,
+    labelLeft: PropTypes.bool,
 }
 
 SelectMetaTermsField.defaultProps = {
@@ -87,4 +120,6 @@ SelectMetaTermsField.defaultProps = {
             props.input.onChange([opt.value])
         }
     },
+    required: false,
+    labelLeft: true,
 }

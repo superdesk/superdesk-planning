@@ -4,24 +4,27 @@ import { SelectField } from './SelectField'
 export const DeskSelectField = (props) => {
     const ownProps = {
         ...props,
-        multi: false,
-        clearable: false,
         options: props.desks.map((desk) => (
             {
+                key: desk.name,
                 label: desk.name,
                 value: desk,
             }
         )),
-        value: props.input && props.input.value ? {
-            label: props.input.value.name,
-            value: props.input.value,
-        } : null,
+
+        getOptionFromValue: (value, options) => value && options.find(
+            option => option.key === value.name
+        ),
+
         meta: { },
+
+        clearable: true,
     }
     return (<SelectField {...ownProps}/>)
 }
 
 DeskSelectField.propTypes = {
     desks: React.PropTypes.array.isRequired,
+    // eslint-disable-next-line react/no-unused-prop-types
     input: React.PropTypes.object.isRequired,
 }

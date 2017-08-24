@@ -110,23 +110,18 @@ describe('<UpdateRecurringEventsForm />', () => {
         })
 
         // Update the spike method to 'future', and ensure number of plannings is updated
-        updateMethod.find('Select').props().onChange({
-            name: 'This and all future events',
-            value: {
-                name: 'This and all future events',
-                value: 'future',
-            },
-        })
+        updateMethod.find('SelectField select').simulate(
+            'change',
+            { target: { value: 'This and all future events' } }
+        )
+
         expect(metaData.find('dd').at(4).text()).toBe('2')
 
         // Update the spike method to 'all', and ensure number of plannings is updated
-        updateMethod.find('Select').props().onChange({
-            name: 'All events',
-            value: {
-                name: 'All events',
-                value: 'all',
-            },
-        })
+        updateMethod.find('SelectField select').simulate(
+            'change',
+            { target: { value: 'All events' } }
+        )
         expect(metaData.find('dd').at(4).text()).toBe('3')
     })
 })
