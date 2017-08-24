@@ -7,11 +7,13 @@ import { AssignmentListContainer } from '../components'
 AssignmentController.$inject = [
     '$element',
     '$scope',
+    'desks',
     'sdPlanningStore',
 ]
 export function AssignmentController(
     $element,
     $scope,
+    desks,
     sdPlanningStore
 ) {
     sdPlanningStore.getStore()
@@ -19,6 +21,11 @@ export function AssignmentController(
         store.dispatch(actions.initStore())
         store.dispatch(actions.loadAssignments('All', null, 'Created', 'Asc'))
         .then(() => {
+            $scope.$watch(
+                () => desks.active,
+                () => store.dispatch(actions.reloadAssignments())
+            )
+
             $scope.$on('$destroy', () => {
                 // Unmount the React application
                 ReactDOM.unmountComponentAtNode($element.get(0))
