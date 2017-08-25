@@ -21,4 +21,13 @@
     .sd-alert {
         overflow-y: scroll;
     }
+
+    .timepicker--custom {
+        position: relative !important;
+    }
+
+    .timepickerPopup {
+        @extend .timepicker--custom;
+    }
 }
+

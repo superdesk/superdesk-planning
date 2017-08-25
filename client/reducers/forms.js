@@ -2,8 +2,8 @@ import { reducer as formReducer, actionTypes } from 'redux-form'
 import { cloneDeep, get } from 'lodash'
 import { EventUpdateMethods } from '../components/fields'
 import moment from 'moment'
-import { isItemSpiked } from '../utils/index'
 import { RESET_STORE, INIT_STORE } from '../constants'
+import { eventUtils, isItemSpiked } from '../utils/index'
 
 const forms = formReducer.plugin({
     // 'addEvent' is the name of the form given to reduxForm()
@@ -84,45 +84,11 @@ const forms = formReducer.plugin({
             },
         }
     },
-
     // 'updateEventConfirmation' is the name of the form given to reduxForm
-    updateEventConfirmation: (state={}, action) => {
-        if (action.type === RESET_STORE) {
-            return null
-        } else if (action.type === INIT_STORE) {
-            return {}
-        } else if (action.type !== actionTypes.CHANGE ||
-            get(action, 'meta.form', '') !== 'updateEventConfirmation') {
-            return state
-        }
+    updateEventConfirmation: (state, action) =>
+        (eventUtils.getRelatedEventsForRecurringEvent(state, action)),
+    updateTime: (state, action) => (eventUtils.getRelatedEventsForRecurringEvent(state, action)),
 
-        let event = state.values
-        let eventsInSeries = get(event, '_recurring', [])
-        let events = []
-
-        switch (action.payload.value) {
-            case EventUpdateMethods[1].value: // Selected & Future Events
-                events = eventsInSeries.filter((e) => (
-                    moment(e.dates.start).isSameOrAfter(moment(event.dates.start)) &&
-                    e._id !== event._id
-                ))
-                break
-            case EventUpdateMethods[2].value: // All Events
-                events = eventsInSeries.filter((e) => e._id !== event._id)
-                break
-            case EventUpdateMethods[0].value: // Selected Event Only
-            default:
-                break
-        }
-
-        return {
-            ...state,
-            values: {
-                ...state.values,
-                _events: events,
-            },
-        }
-    },
     // 'planningAdvancedSearch' is the name of the form given to reduxForm
     planningAdvancedSearch: (state={}, action) => {
         if (action.type !== actionTypes.CHANGE ||

@@ -7,9 +7,12 @@ import sinon from 'sinon'
 class TestForm extends React.Component {
     render() {
         const { input, onChange, placeholder } = this.props
+        const inputProp = {
+            value: input,
+            onChange: onChange,
+        }
         return (
-            <TimePicker value={input}
-            onChange={onChange}
+            <TimePicker input={inputProp}
             placeholder={placeholder} />
         )
     }

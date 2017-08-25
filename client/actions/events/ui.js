@@ -128,6 +128,57 @@ const _openSpikeModal = (event) => (
 )
 
 /**
+ * Open Update Time action modal
+ * @param {object} event - The Event to update
+ */
+const updateTime = (event, publish=false) => (
+    (dispatch, getState, { notify }) => {
+        if (!isItemLockedInThisSession(event, selectors.getSessionDetails(getState()))) {
+            return dispatch(eventsApi.lock(event, 'update_time'))
+                .then((lockedEvent) => {
+                    dispatch(_openUpdateTimeModal(lockedEvent, publish))
+                }, (error) => {
+                    notify.error(getErrorMessage(error, 'Failed to obtain the Event lock'))
+                    return Promise.reject(error)
+                })
+        } else {
+            dispatch(_openUpdateTimeModal(event, publish))
+        }
+    }
+)
+
+const _openUpdateTimeModal = (event, publish) => (
+    (dispatch) => {
+        if (get(event, 'recurrence_id')) {
+            return dispatch(eventsApi.query({ recurrenceId: event.recurrence_id }))
+            .then((relatedEvents) => {
+                dispatch(showModal({
+                    modalType: 'ITEM_ACTIONS_MODAL',
+                    modalProps: {
+                        eventDetail: {
+                            ...event,
+                            _recurring: get(relatedEvents, '_items', [event]),
+                            _publish: publish,
+                            _events: [],
+                            _originalEvent: event,
+                        },
+                        actionType: EVENTS.ITEM_ACTIONS.UPDATE_TIME.label,
+                    },
+                }))
+            })
+        }
+
+        return dispatch(showModal({
+            modalType: 'ITEM_ACTIONS_MODAL',
+            modalProps: {
+                eventDetail: { ...event },
+                actionType: EVENTS.ITEM_ACTIONS.UPDATE_TIME.label,
+            },
+        }))
+    }
+)
+
+/**
  * Open the Spike Single Modal
  * @param {object} event - The Event to be spiked
  */
@@ -499,6 +550,7 @@ const self = {
     _openSingleCancelModal,
     _openMultiCancelModal,
     openCancelModal,
+    updateTime,
 }
 
 export default self

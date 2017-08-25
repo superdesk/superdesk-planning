@@ -128,6 +128,7 @@ export class EditPlanningPanel extends React.Component {
             onUnspike,
             onDuplicate,
             onCancelEvent,
+            onUpdateEventTime,
         } = this.props
 
         const creationDate = get(planning, '_created')
@@ -162,6 +163,10 @@ export class EditPlanningPanel extends React.Component {
             {
                 ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
                 callback: onCancelEvent.bind(null, event),
+            },
+            {
+                ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+                callback: onUpdateEventTime.bind(null, event),
             },
         ]
 
@@ -360,6 +365,7 @@ EditPlanningPanel.propTypes = {
     onSpike: PropTypes.func,
     onUnspike: PropTypes.func,
     onCancelEvent: PropTypes.func,
+    onUpdateEventTime: PropTypes.func,
 }
 
 const selector = formValueSelector('planning') // Selector for the Planning form
@@ -390,6 +396,7 @@ const mapDispatchToProps = (dispatch) => ({
     onSpike: (planning) => (dispatch(actions.planning.ui.spike(planning))),
     onUnspike: (planning) => (dispatch(actions.planning.ui.unspike(planning))),
     onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
+    onUpdateEventTime: (event) => dispatch(actions.events.ui.updateTime(event)),
 })
 
 export const EditPlanningPanelContainer = connect(
