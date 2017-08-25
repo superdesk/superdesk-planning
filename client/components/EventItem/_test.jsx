@@ -180,7 +180,7 @@ describe('events', () => {
             it('executes `onSpikedEvent` callback', () => {
                 let wrapper = getMountedWrapper()
                 wrapper.find('.dropdown__toggle').first().simulate('click')
-                wrapper.find('.dropdown__menu li button').first().simulate('click')
+                wrapper.find('.dropdown__menu li button').at(1).simulate('click')
                 expect(onSpikeEvent.callCount).toBe(1)
                 expect(onSpikeEvent.args[0][0]).toEqual(event)
             })
@@ -189,7 +189,7 @@ describe('events', () => {
                 event.state = 'spiked'
                 let wrapper = getMountedWrapper()
                 wrapper.find('.dropdown__toggle').first().simulate('click')
-                wrapper.find('.dropdown__menu li button').first().simulate('click')
+                wrapper.find('.dropdown__menu li button').at(1).simulate('click')
                 expect(onUnspikeEvent.callCount).toBe(1)
                 expect(onUnspikeEvent.args[0][0]).toEqual(event)
             })

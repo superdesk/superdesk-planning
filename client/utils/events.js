@@ -168,7 +168,6 @@ const getEventItemActions = (event, session, privileges, actions) => {
 
     return itemActions
 }
-/*eslint-enable complexity*/
 
 const isEventAssociatedWithPlannings = (eventId, allPlannings) => (
     Object.keys(allPlannings)
