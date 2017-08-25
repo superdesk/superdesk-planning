@@ -36,11 +36,6 @@ class Component extends React.Component {
                         type="text"
                         label="Slugline"
                         readOnly={readOnly} /> }
-                    {get(formProfile, 'editor.description_text.enabled') && <Field
-                        name="description_text"
-                        component={fields.InputTextAreaField}
-                        label="Description"
-                        readOnly={readOnly} />}
                     {get(formProfile, 'editor.internal_note.enabled') && <Field name="internal_note"
                         component={fields.InputTextAreaField}
                         label="Internal Note"
@@ -53,9 +48,10 @@ class Component extends React.Component {
                     <ToggleBox title="Details" isOpen={false}>
                         {get(formProfile, 'editor.ednote.enabled') && <Field
                             name="ednote"
-                            component={fields.InputField}
+                            component={fields.InputTextAreaField}
+                            multiLine={true}
                             type="text"
-                            label="Ed. Note"
+                            label="Ed Note"
                             readOnly={readOnly} />}
                         {get(formProfile, 'editor.headline.enabled') && <Field
                             name="headline"

@@ -67,6 +67,7 @@ class LockService:
                                   item=str(item.get(config.ID_FIELD)),
                                   user=str(user_id), lock_time=updates['lock_time'],
                                   lock_session=str(session_id),
+                                  lock_action=updates.get('lock_action'),
                                   etag=updates['_etag'])
             else:
                 raise SuperdeskApiError.forbiddenError(message=error_message)

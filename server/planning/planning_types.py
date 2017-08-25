@@ -80,7 +80,7 @@ class PlanningSchema(BaseSchema):
 
 
 class CoverageSchema(BaseSchema):
-    description_text = schema.StringField()
+    ednote = schema.StringField()
     g2_content_type = schema.ListField()
     genre = schema.ListField()
     headline = schema.StringField()
@@ -109,7 +109,6 @@ DEFAULT_EDITOR = [{
         'editor': {
             'slugline': {'enabled': True},
             'anpa_category': {'enabled': True},
-            'description_text': {'enabled': True},
             'ednote': {'enabled': True},
             'headline': {'enabled': True},
             'internal_note': {'enabled': True},
@@ -122,7 +121,7 @@ DEFAULT_EDITOR = [{
         'name': 'coverage',
         'editor': {
             'slugline': {'enabled': True},
-            'description_text': {'enabled': True},
+            'ednote': {'enabled': True},
             'g2_content_type': {'enabled': True},
             'genre': {'enabled': True},
             'headline': {'enabled': True},

@@ -28,19 +28,13 @@ function CoverageComponent({
                 users={users}
                 desks={desks}
                 readOnly={readOnly} />
-            {get(formProfile, 'editor.description_text.enabled') && <Field
-                name={`${coverage}.planning.description_text`}
+            {get(formProfile, 'editor.ednote.enabled') && <Field
+                name={`${coverage}.planning.ednote`}
                 component={fields.InputTextAreaField}
                 multiLine={true}
                 autoFocus={true}
                 type="text"
-                label="Description"
-                readOnly={readOnly} />}
-            {get(formProfile, 'editor.ednote.enabled') && <Field
-                name={`${coverage}.planning.ednote`}
-                component={fields.InputField}
-                type="text"
-                label="Ed. Note"
+                label="Ed Note"
                 readOnly={readOnly} />}
             {get(formProfile, 'editor.slugline.enabled') && <Field
                 name={`${coverage}.planning.slugline`}
