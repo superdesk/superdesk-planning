@@ -28,6 +28,9 @@ describe('assignment', () => {
                     },
                 },
             ],
+            filterBy: 'All',
+            selectedAssignments: [],
+            previewOpened: false,
         }
 
         beforeEach(() => { initialState = assignment(stateTest, { type: null })})
@@ -89,6 +92,9 @@ describe('assignment', () => {
                         },
                     },
                 ],
+                filterBy: 'All',
+                selectedAssignments: [],
+                previewOpened: false,
             })
         })
 
@@ -156,6 +162,9 @@ describe('assignment', () => {
                         },
                     },
                 ],
+                filterBy: 'All',
+                selectedAssignments: [],
+                previewOpened: false,
             })
         })
     })
@@ -165,6 +174,8 @@ describe('assignment', () => {
         let stateTest = {
             assignments: [],
             selectedAssignments: ['assignment1', 'assignment2'],
+            filterBy: 'All',
+            previewOpened: false,
         }
 
         beforeEach(() => { initialState = assignment(stateTest, { type: null })})
@@ -181,6 +192,8 @@ describe('assignment', () => {
             expect(result).toEqual({
                 assignments: [],
                 selectedAssignments: ['assignment1', 'assignment2', 'assignment3'],
+                filterBy: 'All',
+                previewOpened: false,
             })
         })
 
@@ -192,6 +205,8 @@ describe('assignment', () => {
             expect(result).toEqual({
                 assignments: [],
                 selectedAssignments: ['assignment1'],
+                filterBy: 'All',
+                previewOpened: false,
             })
         })
     })
@@ -206,7 +221,7 @@ describe('assignment', () => {
             orderByField: 'Updated',
             orderDirection: 'Desc',
             lastAssignmentLoadedPage: 2,
-
+            previewOpened: false,
         }
 
         beforeEach(() => { initialState = assignment(stateTest, { type: null })})
@@ -233,6 +248,65 @@ describe('assignment', () => {
                 orderByField: 'Created',
                 orderDirection: 'Asc',
                 lastAssignmentLoadedPage: 3,
+                previewOpened: false,
+            })
+        })
+    })
+
+    describe('preview&edit assignment reducers', () => {
+        let initialState
+        let stateTest = {
+            assignments: [
+                {
+                    _id: 3,
+                    _created: '2017-07-13T15:55:41+0000',
+                    _updated: '2017-07-28T14:16:36+0000',
+                    planning: {
+                        assigned_to: {
+                            assigned_date: '2017-07-28T14:16:36+0000',
+                            desk: 'desk3',
+                        },
+                    },
+                },
+            ],
+            previewOpened: false,
+            currentAssignment: null,
+            filterBy: 'All',
+            selectedAssignments: [],
+        }
+
+        beforeEach(() => { initialState = assignment(stateTest, { type: null })})
+
+        it('initialState preview&edit assignment', () => {
+            expect(initialState).toEqual(stateTest)
+        })
+
+        it('PREVIEW_ASSIGNMENT', () => {
+            const result = assignment(initialState, {
+                type: 'PREVIEW_ASSIGNMENT',
+                payload: initialState.assignments[0],
+            })
+            expect(result).toEqual({
+                assignments: [initialState.assignments[0]],
+                previewOpened: true,
+                currentAssignment: initialState.assignments[0],
+                readOnly: true,
+                filterBy: 'All',
+                selectedAssignments: [],
+            })
+        })
+
+        it('CLOSE_PREVIEW_ASSIGNMENT', () => {
+            const result = assignment(initialState, {
+                type: 'CLOSE_PREVIEW_ASSIGNMENT',
+                payload: initialState.assignments[0],
+            })
+            expect(result).toEqual({
+                assignments: [initialState.assignments[0]],
+                previewOpened: false,
+                currentAssignment: null,
+                filterBy: 'All',
+                selectedAssignments: [],
             })
         })
     })

@@ -35,20 +35,6 @@ describe('assignments', () => {
                 )
             }
 
-            const getWrapperWithDoubleClickProp = () => {
-                const store = createTestStore({})
-                return mount(
-                    <Provider store={store}>
-                        <AssignmentItem
-                            onClick={onClick}
-                            onDoubleClick={onDoubleClick}
-                            onSelectChange={onSelectChange}
-                            assignment={assignment}
-                            isSelected={true} />
-                    </Provider>
-                )
-            }
-
             beforeEach(() => {
                 onClick = sinon.spy(() => (Promise.resolve()))
                 onDoubleClick = sinon.spy(() => (Promise.resolve()))
@@ -83,15 +69,6 @@ describe('assignments', () => {
                 item.simulate('click')
                 expect(onClick.callCount).toBe(1)
                 expect(onClick.args[0][0]).toEqual(assignment)
-            })
-
-            it('executes `onDoubleClick` callback', () => {
-                let wrapper = getWrapperWithDoubleClickProp()
-                const item = wrapper.find('.ListItem').first()
-                item.simulate('click')
-                item.simulate('click')
-                expect(onDoubleClick.callCount).toBe(1)
-                expect(onDoubleClick.args[0][0]).toEqual(assignment)
             })
         })
     })

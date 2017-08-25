@@ -51,8 +51,7 @@ export class AssignmentList extends React.Component {
                     key={assignment._id}
                     assignment={assignment}
                     isSelected={this.props.selectedAssignments.indexOf(assignment._id) > -1}
-                    onClick={this.props.onClick}
-                    onDoubleClick={this.props.onDoubleClick}
+                    onClick={this.props.onClick.bind(this, assignment)}
                     onSelectChange={(value) => this.props.onSelectChange({
                         assignment: assignment._id,
                         value,
@@ -108,7 +107,6 @@ AssignmentList.propTypes = {
     session: PropTypes.object,
     selectedAssignments: PropTypes.array.isRequired,
     onClick: PropTypes.func,
-    onDoubleClick: PropTypes.func,
     onSelectChange: PropTypes.func.isRequired,
     loadMoreAssignments: PropTypes.func.isRequired,
 }

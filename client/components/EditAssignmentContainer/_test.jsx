@@ -1,10 +1,10 @@
 import { createTestStore } from '../../utils'
 import { mount } from 'enzyme'
-import { AssignmentListContainer } from './index'
+import { EditAssignmentContainer } from './index'
 import React from 'react'
 import { Provider } from 'react-redux'
 
-describe('<AssignmentListContainer />', () => {
+describe('<EditAssignmentContainer />', () => {
     it('check container components', () => {
         const initialState = {
             assignment: {
@@ -24,12 +24,6 @@ describe('<AssignmentListContainer />', () => {
                         },
                     },
                 ],
-                selectedAssignments: ['1'],
-                filterBy: 'All',
-                searchQuery: 'test',
-                orderByField: 'Updated',
-                orderDirection: 'Desc',
-                lastAssignmentLoadedPage: 1,
                 previewOpened: true,
                 currentAssignment: {
                     _id: 1,
@@ -47,17 +41,16 @@ describe('<AssignmentListContainer />', () => {
                 },
                 readOnly: true,
             },
-            session: { identity: { _id: 'user1' } },
         }
         const store = createTestStore({ initialState })
         const wrapper = mount(
             <Provider store={store}>
-                <AssignmentListContainer />
+                <EditAssignmentContainer />
             </Provider>
         )
-        expect(wrapper.find('SearchBar').length).toBe(1)
-        expect(wrapper.find('OrderBar').length).toBe(1)
-        expect(wrapper.find('.search-handler').length).toBe(1)
-        expect(wrapper.find('EditAssignment').length).toBe(1)
+
+        expect(wrapper.find('AuditInformationComponent').length).toBe(1)
+        expect(wrapper.find('OverlayTrigger').length).toBe(1)
+        expect(wrapper.find('CoverageComponent').length).toBe(1)
     })
 })
