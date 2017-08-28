@@ -9,6 +9,7 @@ $ASSIGNMENT_LIST_CONTAINER_ZINDEX: 6;
 
 .Assignments-list-container__header {
     z-index: $ASSIGNMENT_LIST_CONTAINER_ZINDEX + 1;
+    flex-shrink: 0;
 }
 
 .Assignments-list-container__selection {
@@ -27,10 +28,9 @@ $ASSIGNMENT_LIST_CONTAINER_ZINDEX: 6;
     display: flex;
     z-index: $ASSIGNMENT_LIST_CONTAINER_ZINDEX !important;
     overflow: hidden;
-    .btn--primary, .btn--hollow {
-        white-space: nowrap;
-        margin: 10px;
-    }
+    align-items: center;
+    padding-left: 2rem;
+    flex-shrink: 0;
     .search-handler {
         padding-left: 0;
     }
@@ -57,6 +57,8 @@ $ASSIGNMENT_LIST_CONTAINER_ZINDEX: 6;
         }
     }
     .sortbar {
-        margin: 10px;
+        select { 
+            margin-top: 10px;
+        }
     }
 }

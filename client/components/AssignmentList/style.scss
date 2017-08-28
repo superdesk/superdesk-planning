@@ -25,7 +25,10 @@
         text-transform: uppercase;
         letter-spacing: .08em;
         margin-top: 20px;
-        padding-bottom: 5px;
+        padding-bottom: 10px;
+        span + span {
+            margin-left: 6px;
+        }
     }
     .media-box {
         padding-left: 0; // adapt to assignment (remove left padding)
