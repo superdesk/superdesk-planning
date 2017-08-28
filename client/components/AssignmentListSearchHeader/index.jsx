@@ -32,19 +32,22 @@ export class AssignmentListSearchHeader extends React.Component {
                 <button type="button" onClick={() => this.changeFilterBy('All')}
                     className={
                         classNames('btn', {
-                            'btn--primary': filterBy === 'All',
-                            'btn--hollow' : filterBy !== 'All',
+                            'btn--primary btn--small': filterBy === 'All',
+                            'btn--hollow btn--small' : filterBy !== 'All',
                         })
                     }
                 >All</button>
-                <button type="button" onClick={() => this.changeFilterBy('User')}
-                    className={
-                        classNames('btn', {
-                            'btn--primary': filterBy === 'User',
-                            'btn--hollow' : filterBy !== 'User',
-                        })
-                    }
-                >Assigned To Me<span className="badge badge--highlight">{myAssignmentsCount}</span></button>
+                <div className="element-with-badge">
+                    <button type="button" onClick={() => this.changeFilterBy('User')}
+                        className={
+                            classNames('btn', {
+                                'btn--primary btn--small': filterBy === 'User',
+                                'btn--hollow btn--small' : filterBy !== 'User',
+                            })
+                        }
+                    >Assigned To Me</button>
+                    <span className="badge badge--highlight">{myAssignmentsCount}</span>
+                </div>
                 <div className="subnav__page-title" />
                 <OrderBar
                     orderByField={orderByField}
