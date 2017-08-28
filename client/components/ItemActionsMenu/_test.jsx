@@ -13,7 +13,7 @@ describe('<ItemActionsMenu />', () => {
             }]}/>
         )
         wrapper.find('.dropdown__toggle').simulate('click')
-        wrapper.find('.dropdown__menu li button').simulate('click')
+        wrapper.find('.dropdown__menu li button').at(1).simulate('click')
         expect(callback.callCount).toBe(1)
     })
 

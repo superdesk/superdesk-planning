@@ -384,7 +384,7 @@ describe('events', () => {
                     const actionsMenu = wrapper.find('ItemActionsMenu')
 
                     actionsMenu.find('.dropdown__toggle').simulate('click')
-                    actionsMenu.find('li button').first().simulate('click')
+                    actionsMenu.find('li button').at(1).simulate('click')
 
                     expect(eventsUi.openSpikeModal.callCount).toBe(1)
                     expect(eventsUi.openSpikeModal.args[0]).toEqual([event])

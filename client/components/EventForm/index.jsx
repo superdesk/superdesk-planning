@@ -431,8 +431,7 @@ export class Component extends React.Component {
                 {this.state.previewHistory &&
                     <div className="history-preview">
                         <div className="close-history">
-                            <a onClick={this.closeEventHistory.bind(this)} className="close"
-                                style={{ opacity:'0.8' }}>
+                            <a onClick={this.closeEventHistory.bind(this)} className="close">
                                 <i className="icon-close-small" />
                             </a>
                         </div>

@@ -39,7 +39,7 @@ describe('<CoverageForm />', () => {
                 notify: services.notify,
             },
         })
-        store.getState().formsProfile = { coverage: { editor: { description_text: { enabled: true } } } }
+        store.getState().formsProfile = { coverage: { editor: { ednote: { enabled: true } } } }
     }
 
     describe('Coverage', () => {
@@ -52,12 +52,12 @@ describe('<CoverageForm />', () => {
                     <FormComponent />
                 </Provider>)
 
-            expect(wrapper.find('InputTextAreaField').first().props().label).toBe('Description')
+            expect(wrapper.find('InputTextAreaField').first().props().label).toBe('Ed Note')
         })
 
         it('hides disabled fields', () => {
             setStore()
-            store.getState().formsProfile.coverage.editor.description_text.enabled = false
+            store.getState().formsProfile.coverage.editor.ednote.enabled = false
             const form = 'coverage'
             const FormComponent = reduxForm({ form })(CoverageForm)
             const wrapper = mount(

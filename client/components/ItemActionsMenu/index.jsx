@@ -86,7 +86,12 @@ export class ItemActionsMenu extends React.Component {
 
         return (
             <ul className="dropdown__menu">
-                <li onClick={this.ignoreAction.bind(this)}><div className="dropdown__menu-label">Actions</div></li>
+                <li onClick={this.ignoreAction.bind(this)}>
+                    <div className="dropdown__menu-label">Actions<button className='dropdown__menu-close'
+                        onClick={this.toggleMenu.bind(this)}>
+                        <i className='icon-close-small' /></button>
+                    </div>
+                </li>
                 <li className="dropdown__menu-divider" />
                 {items}
             </ul>

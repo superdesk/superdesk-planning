@@ -50,7 +50,7 @@ const onEventLocked = (_e, data) => (
             let eventInStore = selectors.getEvents(getState())[data.item]
             eventInStore = {
                 ...eventInStore,
-                lock_action: 'edit',
+                lock_action: data.lock_action || 'edit',
                 lock_user: data.user,
                 lock_session: data.lock_session,
                 lock_time: data.lock_time,
