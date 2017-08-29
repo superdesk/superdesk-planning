@@ -157,10 +157,12 @@ Feature: Events Recurring
         ]}
         """
         When we get "/events_history"
-        Then we get list with 4 items
+        Then we get list with 5 items
         """
         {"_items": [
-            {"operation": "create", "event_id": "#EVENT_ID#"},
+            {"operation": "reschedule", "event_id": "__any_value__"},
+            {"operation": "create", "event_id": "__any_value__"},
+            {"operation": "create", "event_id": "__any_value__"},
             {"operation": "update", "event_id": "#EVENT_ID#", "update": {
                 "name": "Weekly Friday Club",
                 "dates": {
@@ -176,9 +178,132 @@ Feature: Events Recurring
                         "until": null
                     }
                 }
-            }},
+            }}
+        ]}
+        """
+
+    @auth
+    @notification
+    Scenario: Converting an event in use to be a recurring event will reschedule it
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "Friday Club",
+            "dates": {
+                "start": "2019-11-21T12:00:00.000Z",
+                "end": "2019-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "published",
+            "pubstatus": "usable",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "session123",
+            "lock_action": "reschedule",
+            "lock_time": "#DATE#"
+        }]
+        """
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "TestEvent",
+            "event_item": "event1",
+            "state": "published",
+            "pubstatus": "usable",
+            "ednote": "We planned this."
+        }]
+        """
+        Given "coverage"
+        """
+        [{
+            "_id": "cov1",
+            "guid": "cov1",
+            "planning_item": "plan1",
+            "planning": {
+                "internal_note": "Please write words."
+            }
+        }]
+        """
+        When we patch "/events/event1"
+        """
+        {
+            "name": "Weekly Friday Club",
+            "dates": {
+                "start": "2019-11-21T12:00:00.000Z",
+                "end": "2019-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "FR",
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
+            }
+        }
+        """
+        Then we get OK response
+        Then we store "NEW_RECURRING" from patch
+        When we get "/events"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            {
+                "_id": "event1",
+                "name": "Weekly Friday Club",
+                "dates": {
+                    "start": "2019-11-21T12:00:00+0000",
+                    "end": "2019-11-21T14:00:00+0000"
+                },
+                "state": "rescheduled",
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+            },
+            {
+                "name": "Weekly Friday Club",
+                "dates": {
+                    "start": "2019-11-22T12:00:00+0000",
+                    "end": "2019-11-22T14:00:00+0000"
+                },
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+            }, {
+                "name": "Weekly Friday Club",
+                "dates": {
+                    "start": "2019-11-29T12:00:00+0000",
+                    "end": "2019-11-29T14:00:00+0000"
+                },
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+            }, {
+                "name": "Weekly Friday Club",
+                "dates": {
+                    "start": "2019-12-06T12:00:00+0000",
+                    "end": "2019-12-06T14:00:00+0000"
+                },
+                "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+            }
+        ]}
+        """
+        When we get "/events/#events._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "event1",
+            "state": "rescheduled",
+            "recurrence_id": "#NEW_RECURRING.recurrence_id#"
+        }
+        """
+        When we get "/events_history"
+        Then we get list with 6 items
+        """
+        {"_items": [
+            {"operation": "planning created", "event_id": "#events._id#"},
+            {"operation": "reschedule_from", "event_id": "__any_value__"},
+            {"operation": "reschedule", "event_id": "#events._id#"},
             {"operation": "create", "event_id": "__any_value__"},
-            {"operation": "create", "event_id": "__any_value__"}
+            {"operation": "create", "event_id": "__any_value__"},
+            {"operation": "update", "event_id": "#events._id#"}
         ]}
         """
 

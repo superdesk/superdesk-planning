@@ -61,6 +61,7 @@ class PlanningList extends React.Component {
             onCancelEvent,
             onUpdateEventTime,
             onRescheduleEvent,
+            onConvertToRecurringEvent,
         } = this.props
         const planning = plannings[index]
 
@@ -77,6 +78,7 @@ class PlanningList extends React.Component {
                     onUnspike={handlePlanningUnspike}
                     onDuplicate={handlePlanningDuplicate}
                     onCancelEvent={onCancelEvent}
+                    onConvertToRecurringEvent={onConvertToRecurringEvent}
                     onUpdateEventTime={onUpdateEventTime}
                     onRescheduleEvent={onRescheduleEvent}
                     onClick={this.previewOrEditPlanning.bind(this, planning)}
@@ -137,6 +139,7 @@ PlanningList.propTypes = {
     onCancelEvent: PropTypes.func,
     onUpdateEventTime: PropTypes.func,
     onRescheduleEvent: PropTypes.func,
+    onConvertToRecurringEvent: PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -177,6 +180,7 @@ const mapDispatchToProps = (dispatch) => ({
     onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
     onUpdateEventTime: (event) => dispatch(actions.events.ui.updateTime(event)),
     onRescheduleEvent: (event) => dispatch(actions.events.ui.openRescheduleModal(event)),
+    onConvertToRecurringEvent: (event) => dispatch(actions.events.ui.convertToRecurringEvent(event)),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningList)

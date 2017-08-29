@@ -40,5 +40,9 @@ export const EVENTS = {
             label: 'Reschedule',
             icon: 'icon-calendar',
         },
+        CONVERT_TO_RECURRING: {
+            label: 'Convert to recurring event',
+            icon: 'icon-repeat',
+        },
     },
 }
