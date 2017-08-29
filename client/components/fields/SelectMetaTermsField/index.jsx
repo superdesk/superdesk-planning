@@ -1,12 +1,21 @@
 import React, { PropTypes } from 'react'
 import { SelectFieldPopup } from './SelectFieldPopup'
 import classNames from 'classnames'
+import { differenceBy } from 'lodash'
 import './style.scss'
 
 export class SelectMetaTermsField extends React.Component {
     constructor(props) {
         super(props)
-        this.state = { openSelectPopup: false }
+        this.state = {
+            multiLevel: false,
+            openSelectPopup: false,
+        }
+    }
+
+    componentWillMount() {
+        // There is at least one parent or multi-level option
+        this.setState({ multiLevel: this.props.options.filter((o) => (o.value.parent)).length > 0 })
     }
 
     toggleOpenSelectPopup() {
@@ -19,8 +28,16 @@ export class SelectMetaTermsField extends React.Component {
         this.props.input.onChange(newValues.map((v) => (v.value)))
     }
 
+    removeValuesFromOptions() {
+        if (!this.state.multiLevel) {
+            return differenceBy(this.props.options, this.props.value, 'value.qcode')
+        } else {
+            return this.props.options
+        }
+    }
+
     render() {
-        const { required, readOnly, label, value, options, onChange, labelLeft } = this.props
+        const { required, readOnly, label, value, onChange, labelLeft } = this.props
         const { touched, error, warning } = this.props.meta
 
         const showMessage = touched && (error || warning)
@@ -65,7 +82,8 @@ export class SelectMetaTermsField extends React.Component {
             { this.state.openSelectPopup &&
                 <SelectFieldPopup
                     value={value}
-                    options={options}
+                    multiLevel={this.state.multiLevel}
+                    options={this.removeValuesFromOptions()}
                     onCancel={this.toggleOpenSelectPopup.bind(this)}
                     onChange={(opt) => {
                         onChange(opt, this.props)
