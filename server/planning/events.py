@@ -22,7 +22,8 @@ from apps.archive.common import set_original_creator, get_user
 from superdesk.users.services import current_user_has_privilege
 from superdesk.utc import utcnow
 from .common import UPDATE_SINGLE, UPDATE_FUTURE, UPDATE_ALL, UPDATE_METHODS, \
-    get_max_recurrent_events, WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA
+    get_max_recurrent_events, WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA, \
+    WORKFLOW_STATE, ITEM_STATE, remove_lock_information
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -325,18 +326,35 @@ class EventsService(superdesk.Service):
 
     def _convert_to_recurring_event(self, updates, original):
         """Convert a single event to a series of recurring events"""
-        # Convert the single event to a series of recurring events
         updates['recurrence_id'] = generate_guid(type=GUID_NEWSML)
 
         merged = copy.deepcopy(original)
         merged.update(updates)
-        generated_events = generate_recurring_events(merged)
 
-        # Remove the first element in the list (the current event being updated)
-        # And update the start/end dates to be in line with the new recurring rules
+        # Generated new events will be in_progress
+        merged[ITEM_STATE] = WORKFLOW_STATE.IN_PROGRESS
+
+        generated_events = generate_recurring_events(merged)
         updated_event = generated_events.pop(0)
-        updates['dates']['start'] = updated_event['dates']['start']
-        updates['dates']['end'] = updated_event['dates']['end']
+
+        # Check to see if the first generated event is different from original
+        # If yes, mark original as rescheduled with generated recurrence_id
+        if updated_event['dates']['start'].date() != original['dates']['start'].date():
+            # Reschedule original event
+            updates['update_method'] = UPDATE_SINGLE
+            event_reschedule_service = get_resource_service('events_reschedule')
+            updates['dates'] = updated_event['dates']
+            event_reschedule_service.update(original.get(config.ID_FIELD),
+                                            updates,
+                                            original)
+            app.on_updated_events_reschedule(updates, original)
+        else:
+            # Original event falls as a part of the series
+            # Remove the first element in the list (the current event being updated)
+            # And update the start/end dates to be in line with the new recurring rules
+            updates['dates']['start'] = updated_event['dates']['start']
+            updates['dates']['end'] = updated_event['dates']['end']
+            remove_lock_information(item=updates)
 
         # Create the new events and generate their history
         self.create(generated_events)
@@ -368,11 +386,10 @@ class EventsService(superdesk.Service):
             original.get('dates'), updates.get('dates'))
 
         # Updating the recurring rules is only allowed via the `events_reschedule` endpoint
-        # So bail out here
-        if not update_time_only:
-            return
-
-        self._set_series_time(new_series, new_start_time, new_end_time)
+        # So last check is to see if only time is updated
+        if update_time_only:
+            self._set_series_time(new_series, new_start_time, new_end_time)
+            remove_lock_information(updates)
 
     def _set_series_time(self, series, new_start_time, new_end_time):
         # Update the time for all event in the series

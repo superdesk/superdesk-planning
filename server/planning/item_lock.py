@@ -23,6 +23,8 @@ from flask import current_app as app
 
 LOCK_USER = 'lock_user'
 LOCK_SESSION = 'lock_session'
+LOCK_TIME = 'lock_time'
+LOCK_ACTION = 'lock_action'
 logger = logging.getLogger(__name__)
 
 
