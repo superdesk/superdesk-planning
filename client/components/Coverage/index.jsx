@@ -9,7 +9,7 @@ import { get } from 'lodash'
 
 function CoverageComponent({
     coverage,
-    users,
+    usersMergedCoverageProviders,
     desks,
     readOnly,
     content_type,
@@ -21,7 +21,7 @@ function CoverageComponent({
             <Field
                 name={`${coverage}.planning.assigned_to`}
                 component={CoverageAssign}
-                users={users}
+                usersMergedCoverageProviders={usersMergedCoverageProviders}
                 desks={desks}
                 readOnly={readOnly} />
             {get(formProfile, 'editor.slugline.enabled') &&
@@ -85,16 +85,6 @@ function CoverageComponent({
                         readOnly={readOnly}/>
                 </div>
             )}
-
-            <div className="form__row">
-                <Field
-                    name={`${coverage}.planning.coverage_provider`}
-                    component={fields.CoverageProviderField}
-                    label="Provider"
-                    clearable={true}
-                    readOnly={readOnly} />
-            </div>
-
             <div className="form__row">
                 <Field
                     name={`${coverage}.news_coverage_status`}
@@ -119,7 +109,7 @@ function CoverageComponent({
 CoverageComponent.propTypes = {
     coverage: PropTypes.string.isRequired,
     content_type: PropTypes.string,
-    users: PropTypes.array.isRequired,
+    usersMergedCoverageProviders: PropTypes.array.isRequired,
     desks: PropTypes.array.isRequired,
     readOnly: PropTypes.bool,
     formProfile: PropTypes.object,
@@ -127,7 +117,8 @@ CoverageComponent.propTypes = {
 
 const selector = formValueSelector('planning') // same as form name
 const mapStateToProps = (state, ownProps) => ({
-    users: selectors.getUsers(state),
+    g2_content_type: state.vocabularies.g2_content_type,
+    usersMergedCoverageProviders: selectors.getUsersMergedCoverageProviders(state),
     desks: state.desks && state.desks.length > 0 ? state.desks : [],
     content_type: selector(state, ownProps.coverage + '.planning.g2_content_type'),
     formProfile: selectors.getCoverageFormsProfile(state),
