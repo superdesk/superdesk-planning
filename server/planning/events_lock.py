@@ -109,6 +109,7 @@ class EventsUnlockResource(Resource):
 class EventsUnlockService(BaseService):
 
     def create(self, docs, **kwargs):
+        updated_item = None
         user_id = get_user(required=True)['_id']
         session_id = get_auth()['_id']
         lock_service = LockService()

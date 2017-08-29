@@ -13,10 +13,9 @@ from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
-from .item_lock import LOCK_USER, LOCK_SESSION
 from eve.utils import config
 from apps.archive.common import get_user, get_auth, set_original_creator
-from .common import UPDATE_SINGLE, UPDATE_FUTURE, WORKFLOW_STATE, ITEM_STATE
+from .common import UPDATE_SINGLE, UPDATE_FUTURE, WORKFLOW_STATE, ITEM_STATE, remove_lock_information
 from copy import deepcopy
 from .events import EventsResource, events_schema, generate_recurring_dates, set_next_occurrence
 from flask import current_app as app
@@ -50,6 +49,8 @@ class EventsRescheduleService(BaseService):
         else:
             events_service = get_resource_service('events')
             update_method = updates.pop('update_method', UPDATE_SINGLE)
+            # Release the Lock on the selected Event
+            remove_lock_information(item=updates)
 
             # Run the specific methods based on if the original is a
             # single or a series of recurring events
@@ -81,14 +82,6 @@ class EventsRescheduleService(BaseService):
 
     def _reschedule_single_event(self, updates, original, events_service):
         has_plannings = events_service.has_planning_items(original)
-
-        # Release the Lock on this item
-        updates.update({
-            LOCK_USER: None,
-            LOCK_SESSION: None,
-            'lock_time': None,
-            'lock_action': None
-        })
 
         # If the Event is in use, then we will duplicate the original
         # and set the original's status to `rescheduled`
@@ -166,13 +159,6 @@ Event Rescheduled
     def _reschedule_recurring_events(self, updates, original, update_method, events_service):
         original_deleted = False
         rules_changed = updates['dates']['recurring_rule'] != original['dates']['recurring_rule']
-        # Release the Lock on the selected Event
-        updates.update({
-            LOCK_USER: None,
-            LOCK_SESSION: None,
-            'lock_time': None,
-            'lock_action': None
-        })
 
         historic, past, future = events_service.get_recurring_timeline(original)
 

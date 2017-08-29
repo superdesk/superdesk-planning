@@ -22,6 +22,7 @@ export class EventsList extends React.Component {
     onEventUpdateTime(event) {this.props.onEventUpdateTime(event)}
     onRescheduleEvent(event) { this.props.onRescheduleEvent(event) }
     onPostponeEvent(event) { this.props.onPostponeEvent(event) }
+    onConvertToRecurringEvent(event) {this.props.onConvertToRecurringEvent(event)}
 
     getRowHeight({ index }) {
         const event = this.props.events[index]
@@ -70,6 +71,7 @@ export class EventsList extends React.Component {
                     onUpdateEventTime={this.onEventUpdateTime.bind(this, event)}
                     onRescheduleEvent={this.onRescheduleEvent.bind(this, event)}
                     onPostponeEvent={this.onPostponeEvent.bind(this, event)}
+                    onConvertToRecurringEvent={this.onConvertToRecurringEvent.bind(this)}
                     highlightedEvent={this.props.highlightedEvent}
                     isSelected={this.props.selectedEvents.indexOf(event._id) > -1}
                     onSelectChange={(value) => this.props.onEventSelectChange({
@@ -129,6 +131,7 @@ EventsList.propTypes = {
     onEventUpdateTime: PropTypes.func,
     onRescheduleEvent: PropTypes.func,
     onPostponeEvent: PropTypes.func,
+    onConvertToRecurringEvent: PropTypes.func,
     highlightedEvent: PropTypes.string,
     loadMoreEvents: PropTypes.func.isRequired,
     privileges: PropTypes.object,

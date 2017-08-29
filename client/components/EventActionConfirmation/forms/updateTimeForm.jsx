@@ -113,10 +113,6 @@ const mapDispatchToProps = (dispatch) => ({
                 dispatch(actions.publishEvent(event._id))
             }
 
-            if (event.lock_action === 'update_time') {
-                dispatch(actions.events.api.unlock(event))
-            }
-
             dispatch(actions.hideModal())
         })
     ),
