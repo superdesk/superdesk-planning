@@ -18,6 +18,10 @@ const duplicateEvent = (event) => (
         return dispatch(createDuplicate(event))
         .then((dup) => {
             duplicate = dup[0]
+
+            // On duplicate, backend returns with just _ids for files
+            // Replace them with file media information from original event to be used in editor
+            duplicate.files = event.files
             dispatch(eventsUi.closeEventDetails(original))
         })
         .then(() => dispatch(eventsUi.refetchEvents()))
