@@ -60,17 +60,20 @@ export const EventItem = ({
 
     const itemActions = eventUtils.getEventItemActions(event, session, privileges, actions)
 
+    const canCreatePlanning = eventUtils.canCreatePlanningFromEvent(event, session, privileges)
+
     return (
         <ListItem
             item={event}
             onClick={onClick}
             onDoubleClick={onEditOrPreview}
-            draggable={true}
+            draggable={canCreatePlanning}
             className={classNames('event',
                 className,
                 { 'event--has-planning': hasPlanning },
                 { 'event--has-been-canceled': hasBeenCancelled },
-                { 'event--locked': itemLocked })}
+                { 'event--locked': itemLocked },
+                { 'event--not-draggable': !canCreatePlanning })}
             active={highlightedEvent === event._id || isSelected}
         >
             <div className="sd-list-item__action-menu">
