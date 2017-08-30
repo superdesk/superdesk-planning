@@ -175,6 +175,7 @@ describe('planning', () => {
                         onCancelEvent={sinon.spy()}
                         onUpdateEventTime={sinon.spy()}
                         openPlanningEditor={sinon.spy()}
+                        onRescheduleEvent={sinon.spy()}
                         privileges={privileges}
                         submitting={false} />
                 )
@@ -210,6 +211,7 @@ describe('planning', () => {
                         onCancelEvent={sinon.spy()}
                         onUpdateEventTime={sinon.spy()}
                         openPlanningEditor={sinon.spy()}
+                        onRescheduleEvent={sinon.spy()}
                         privileges={privileges}
                         submitting={false} />
                 )

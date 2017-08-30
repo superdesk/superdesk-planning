@@ -1,8 +1,9 @@
 import React, { PropTypes } from 'react'
-import { Field, formValueSelector } from 'redux-form'
+import { Field } from 'redux-form'
 import { fields, RepeatEventSummary } from '../components'
 import { connect } from 'react-redux'
 import classNames from 'classnames'
+import { get } from 'lodash'
 
 class RepeatEventFormComponent extends React.Component {
 
@@ -10,8 +11,21 @@ class RepeatEventFormComponent extends React.Component {
         super(props)
     }
 
+    getSchedule(props=null) {
+        const schedule = props === null ? this.props.schedule : props.schedule
+        return {
+            frequency: get(schedule, 'recurring_rule.frequency'),
+            endRepeatMode: get(schedule, 'recurring_rule.endRepeatMode'),
+            until: get(schedule, 'recurring_rule.until'),
+            count: get(schedule, 'recurring_rule.count'),
+            byDay: get(schedule, 'recurring_rule.byday'),
+            start: get(schedule, 'start'),
+            interval: get(schedule, 'recurring_rule.interval'),
+        }
+    }
+
     componentWillMount() {
-        const { endRepeatMode, frequency, interval, start } = this.props
+        const { endRepeatMode, frequency, interval, start } = this.getSchedule()
 
         const intervals = interval || 1
         const startDate = start || null
@@ -36,7 +50,8 @@ class RepeatEventFormComponent extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        const { endRepeatMode, until, count, frequency, start, interval } = nextProps
+        const { endRepeatMode, until, count, frequency, start, interval } = this.getSchedule(nextProps)
+        const schedule = this.getSchedule()
 
         if (until && endRepeatMode !== 'until') {
             // force the selection of 'until' for endRepeatMode
@@ -57,22 +72,22 @@ class RepeatEventFormComponent extends React.Component {
         }
 
         if (endRepeatMode && endRepeatMode !== this.state.endRepeatMode) {
-            this.setState({ endRepeatMode: endRepeatMode })
+            this.setState({ endRepeatMode })
             return
         }
 
-        if (frequency !== this.props.frequency) {
-            this.setState({ frequency: frequency })
+        if (frequency !== schedule.frequency) {
+            this.setState({ frequency })
             return
         }
 
-        if (start !== this.props.start) {
+        if (start !== schedule.start) {
             this.setState({ date: start })
             return
         }
 
-        if (interval !== this.props.interval) {
-            this.setState({ interval: interval })
+        if (interval !== schedule.interval) {
+            this.setState({ interval })
             return
         }
     }
@@ -98,11 +113,14 @@ class RepeatEventFormComponent extends React.Component {
     }
 
     render() {
-        const readOnly = this.props.readOnly
+        const { readOnly, showRepeatSummary } = this.props
         const readOnlyClasses = classNames(
             { disabledInput: readOnly }
         )
+
         const readOnlyAttr = readOnly ? 'disabled' : ''
+
+        const { frequency, byDay, until, count, start } = this.getSchedule()
 
         return (
             <div>
@@ -119,11 +137,11 @@ class RepeatEventFormComponent extends React.Component {
                         component={fields.RepeatEveryField}
                         disabled={readOnly}
                         label="Repeat Every"
-                        frequency={this.props.frequency}
+                        frequency={frequency}
                     />
 
                 </div>
-                { this.props.frequency === 'WEEKLY' &&
+                { frequency === 'WEEKLY' &&
                     <Field
                         name="dates.recurring_rule.byday"
                         component={fields.DaysOfWeek}
@@ -192,39 +210,25 @@ class RepeatEventFormComponent extends React.Component {
                     </div>
                 </div>
 
-                <RepeatEventSummary byDay={this.props.byDay}
+                {showRepeatSummary && <RepeatEventSummary byDay={byDay}
                         interval={this.state.interval}
-                        frequency={this.props.frequency}
+                        frequency={frequency}
                         endRepeatMode={this.state.endRepeatMode}
-                        until={this.props.until}
-                        count={this.props.count}
-                        startDate={this.props.start} />
+                        until={until}
+                        count={count}
+                        startDate={start} />}
             </div>
         )
     }
 }
+
 RepeatEventFormComponent.propTypes = {
     change: PropTypes.func.isRequired,
-    frequency: PropTypes.oneOf(['YEARLY', 'MONTHLY', 'WEEKLY', 'DAILY']),
-    endRepeatMode: PropTypes.oneOf(['count', 'until']),
-    until: PropTypes.object,
-    count: PropTypes.number,
-    byDay: PropTypes.string,
-    start: PropTypes.object,
-    interval: PropTypes.number,
     readOnly: PropTypes.bool,
+    schedule: PropTypes.object.isRequired,
+    showRepeatSummary: PropTypes.bool,
 }
 
-// This is the same name defined in EventForm.jsx because it is just a sub form
-const selector = formValueSelector('addEvent')
-const mapStateToProps = (state) => ({
-    frequency: selector(state, 'dates.recurring_rule.frequency'),
-    endRepeatMode: selector(state, 'dates.recurring_rule.endRepeatMode'),
-    until: selector(state, 'dates.recurring_rule.until'),
-    count: selector(state, 'dates.recurring_rule.count'),
-    byDay: selector(state, 'dates.recurring_rule.byday'),
-    start: selector(state, 'dates.start'),
-    interval: selector(state, 'dates.recurring_rule.interval'),
-})
+RepeatEventFormComponent.defaultProps = { showRepeatSummary: true }
 
-export const RepeatEventForm = connect(mapStateToProps)(RepeatEventFormComponent)
+export const RepeatEventForm = connect(null)(RepeatEventFormComponent)

@@ -581,6 +581,7 @@ export const getLockedUser = (item, users) => (
 
 export const getItemState = (item) => (get(item, 'state', WORKFLOW_STATE.IN_PROGRESS))
 export const isItemCancelled = (item) => getItemState(item) === WORKFLOW_STATE.CANCELLED
+export const isItemRescheduled = (item) => getItemState(item) === WORKFLOW_STATE.RESCHEDULED
 export const isItemKilled = (item) => getItemState(item) === WORKFLOW_STATE.KILLED
 
 export const getItemStateUiLabel = (item) => {
@@ -608,6 +609,11 @@ export const getItemStateUiLabel = (item) => {
                 label: 'Killed',
                 iconType: 'warning',
                 tooltip: tooltips.withheldStateTooltip,
+            }
+        case WORKFLOW_STATE.RESCHEDULED:
+            return {
+                label: 'Rescheduled',
+                iconType: 'warning',
             }
     }
 }

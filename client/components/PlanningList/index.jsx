@@ -60,6 +60,7 @@ class PlanningList extends React.Component {
             session,
             onCancelEvent,
             onUpdateEventTime,
+            onRescheduleEvent,
         } = this.props
         const planning = plannings[index]
 
@@ -77,6 +78,7 @@ class PlanningList extends React.Component {
                     onDuplicate={handlePlanningDuplicate}
                     onCancelEvent={onCancelEvent}
                     onUpdateEventTime={onUpdateEventTime}
+                    onRescheduleEvent={onRescheduleEvent}
                     onClick={this.previewOrEditPlanning.bind(this, planning)}
                     onDoubleClick={openPlanningEditor}
                     onAgendaClick={onAgendaClick}
@@ -134,6 +136,7 @@ PlanningList.propTypes = {
     handlePlanningDuplicate: PropTypes.func,
     onCancelEvent: PropTypes.func,
     onUpdateEventTime: PropTypes.func,
+    onRescheduleEvent: PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -157,6 +160,7 @@ const mapDispatchToProps = (dispatch) => ({
             },
         }))
     },
+
     handlePlanningUnspike: (item) => {
         dispatch(actions.showModal({
             modalType: 'CONFIRMATION',
@@ -166,11 +170,13 @@ const mapDispatchToProps = (dispatch) => ({
             },
         }))
     },
+
     onAgendaClick: (agendaId) => (dispatch(actions.selectAgenda(agendaId))),
     loadMorePlannings: () => (dispatch(actions.planning.ui.fetchMoreToList())),
     handlePlanningDuplicate: (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
     onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
     onUpdateEventTime: (event) => dispatch(actions.events.ui.updateTime(event)),
+    onRescheduleEvent: (event) => dispatch(actions.events.ui.openRescheduleModal(event)),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningList)

@@ -20,6 +20,7 @@ describe('events', () => {
             let onSelectChange
             let addEventToCurrentAgenda
             let onUpdateEventTime
+            let onRescheduleEvent
             let highlightedEvent
             let privileges
 
@@ -36,6 +37,7 @@ describe('events', () => {
                             onCancelEvent={onCancelEvent}
                             onSelectChange={onSelectChange}
                             onUpdateEventTime={onUpdateEventTime}
+                            onRescheduleEvent={onRescheduleEvent}
                             highlightedEvent={highlightedEvent}
                             addEventToCurrentAgenda={addEventToCurrentAgenda}
                             privileges={privileges} />
@@ -57,6 +59,7 @@ describe('events', () => {
                             onCancelEvent={onCancelEvent}
                             onSelectChange={onSelectChange}
                             onUpdateEventTime={onUpdateEventTime}
+                            onRescheduleEvent={onRescheduleEvent}
                             highlightedEvent={highlightedEvent}
                             addEventToCurrentAgenda={addEventToCurrentAgenda}
                             privileges={privileges} />
@@ -74,6 +77,7 @@ describe('events', () => {
                 onSelectChange = sinon.spy(() => (Promise.resolve()))
                 addEventToCurrentAgenda = sinon.spy(()=>(Promise.resolve()))
                 onUpdateEventTime = sinon.spy(() => (Promise.resolve()))
+                onRescheduleEvent = sinon.spy(() => (Promise.resolve()))
 
                 event = {
                     state: 'in_progress',

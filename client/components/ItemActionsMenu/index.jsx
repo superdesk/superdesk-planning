@@ -69,11 +69,21 @@ export class ItemActionsMenu extends React.Component {
 
         const toggleMenu = this.toggleMenu.bind(this)
         const menu = this.state.isOpen ? this.renderMenu(this.props.actions) : null
-        const classes = classNames('dropdown', 'ItemActionsMenu', 'pull-right', { open: this.state.isOpen })
+        const classes = classNames(
+            'dropdown',
+            'ItemActionsMenu',
+            'pull-right',
+            { open: this.state.isOpen }
+        )
+
+        const buttonClasses = classNames(
+            'dropdown__toggle',
+            { [this.props.buttonClass]: this.props.buttonClass }
+        )
 
         return (
             <div className={classes}>
-                <button className="dropdown__toggle" onClick={toggleMenu}>
+                <button className={buttonClasses} onClick={toggleMenu}>
                     <i className="icon-dots-vertical" />
                 </button>
                 {menu}
@@ -141,4 +151,7 @@ export class ItemActionsMenu extends React.Component {
     }
 }
 
-ItemActionsMenu.propTypes = { actions: PropTypes.array.isRequired }
+ItemActionsMenu.propTypes = {
+    actions: PropTypes.array.isRequired,
+    buttonClass: PropTypes.string,
+}

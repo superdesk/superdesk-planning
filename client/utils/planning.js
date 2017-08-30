@@ -84,56 +84,51 @@ export const mapCoverageByDate = (coverages) => (
     })
 )
 
-/*eslint-disable complexity*/
 export const getPlanningItemActions = ({ plan, event=null, session, privileges, actions }) => {
     let itemActions = []
     let key = 1
 
+    const actionsValidator = {
+        [GENERIC_ITEM_ACTIONS.SPIKE.label]: () => canSpikePlanning({
+            plan,
+            session,
+            privileges,
+        }),
+        [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: () => canUnspikePlanning({
+            plan,
+            event,
+            privileges,
+        }),
+        [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: () => canDuplicatePlanning({
+            plan,
+            event,
+            session,
+            privileges,
+        }),
+        [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
+            eventUtils.canCancelEvent(event, session, privileges),
+        [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: () =>
+            eventUtils.canEditEvent(event, session, privileges),
+        [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: () =>
+            eventUtils.canRescheduleEvent(event, session, privileges),
+    }
+
     actions.forEach((action) => {
+        if (actionsValidator[action.label] && !actionsValidator[action.label]()) {
+            return
+        }
+
         switch (action.label) {
-            case GENERIC_ITEM_ACTIONS.SPIKE.label:
-                if (!canSpikePlanning({
-                    plan,
-                    session,
-                    privileges,
-                }))
-                    return
-
-                break
-
-            case GENERIC_ITEM_ACTIONS.UNSPIKE.label:
-                if (!canUnspikePlanning({
-                    plan,
-                    event,
-                    privileges,
-                }))
-                    return
-
-                break
-
-            case GENERIC_ITEM_ACTIONS.DUPLICATE.label:
-                if (!canDuplicatePlanning({
-                    plan,
-                    event,
-                    session,
-                    privileges,
-                }))
-                    return
-
-                break
-
             case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label:
-                if (!eventUtils.canCancelEvent(event, session, privileges))
-                    return
-
                 action.label = 'Cancel Event'
                 break
 
             case EVENTS.ITEM_ACTIONS.UPDATE_TIME.label:
-                if (!eventUtils.canEditEvent(event, session, privileges))
-                    return
-
                 action.label = 'Update Event Time'
+                break
+
+            case EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label:
+                action.label = 'Reschedule Event'
                 break
         }
 

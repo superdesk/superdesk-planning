@@ -101,11 +101,20 @@ const onEventCancelled = (e, data) => (
     }
 )
 
+const onEventRescheduled = (e, data) => (
+    (dispatch) => {
+        if (get(data, 'item')) {
+            dispatch(eventsUi.refetchEvents())
+        }
+    }
+)
+
 const self = {
     onEventLocked,
     onEventUnlocked,
     onEventSpiked,
     onEventCancelled,
+    onEventRescheduled,
 }
 
 // Map of notification name and Action Event to execute
@@ -114,6 +123,7 @@ self.events = {
     'events:unlock': () => (self.onEventUnlocked),
     'events:spiked': () => (self.onEventSpiked),
     'events:cancelled': () => (self.onEventCancelled),
+    'events:rescheduled': () => (self.onEventRescheduled),
 }
 
 export default self

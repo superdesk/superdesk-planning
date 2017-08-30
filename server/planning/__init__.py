@@ -36,7 +36,9 @@ from .feeding_services.event_email_service import EventEmailFeedingService
 from .events_duplicate import EventsDuplicateResource, EventsDuplicateService
 from .events_publish import EventsPublishService, EventsPublishResource
 from .events_cancel import EventsCancelService, EventsCancelResource
+from .events_reschedule import EventsRescheduleService, EventsRescheduleResource
 from .planning_cancel import PlanningCancelService, PlanningCancelResource
+from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleResource
 from planning.planning_types import PlanningTypesService, PlanningTypesResource
 from .common import get_max_recurrent_events
 
@@ -112,11 +114,31 @@ def init_app(app):
                          app=app,
                          service=events_cancel_service)
 
+    events_reschedule_service = EventsRescheduleService(
+        EventsRescheduleResource.endpoint_name,
+        backend=superdesk.get_backend()
+    )
+    EventsRescheduleResource(
+        EventsRescheduleResource.endpoint_name,
+        app=app,
+        service=events_reschedule_service
+    )
+
     planning_cancel_service = PlanningCancelService(PlanningCancelResource.endpoint_name,
                                                     backend=superdesk.get_backend())
     PlanningCancelResource(PlanningCancelResource.endpoint_name,
                            app=app,
                            service=planning_cancel_service)
+
+    planning_reschedule_service = PlanningRescheduleService(
+        PlanningRescheduleResource.endpoint_name,
+        backend=superdesk.get_backend()
+    )
+    PlanningRescheduleResource(
+        PlanningRescheduleResource.endpoint_name,
+        app=app,
+        service=planning_reschedule_service
+    )
 
     app.on_updated_events += events_history_service.on_item_updated
     app.on_inserted_events += events_history_service.on_item_created
@@ -125,6 +147,7 @@ def init_app(app):
     app.on_updated_events_spike += events_history_service.on_spike
     app.on_updated_events_unspike += events_history_service.on_unspike
     app.on_updated_events_cancel += events_history_service.on_cancel
+    app.on_updated_events_reschedule += events_history_service.on_reschedule
 
     planning_history_service = PlanningHistoryService('planning_history', backend=superdesk.get_backend())
     PlanningHistoryResource('planning_history', app=app, service=planning_history_service)
@@ -134,6 +157,7 @@ def init_app(app):
     app.on_updated_planning_spike += planning_history_service.on_spike
     app.on_updated_planning_unspike += planning_history_service.on_unspike
     app.on_updated_planning_cancel += planning_history_service.on_cancel
+    app.on_updated_planning_reschedule += planning_history_service.on_reschedule
 
     app.on_locked_planning += planning_search_service.on_locked_planning
 

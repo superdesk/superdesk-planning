@@ -160,7 +160,7 @@ describe('actions.events.api', () => {
 
         it('returns Promise.reject if `events_spike` fails', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject(errorMessage)))
-            return store.test(done, planningApi.spike(data.events))
+            return store.test(done, eventsApi.spike(data.events[1]))
             .then(() => {}, (error) => {
                 expect(error).toEqual(errorMessage)
                 done()
@@ -507,6 +507,56 @@ describe('actions.events.api', () => {
                 expect(eventsApi.receiveEvents.callCount).toBe(1)
                 expect(eventsApi.receiveEvents.args[0]).toEqual([data.locked_events])
 
+                done()
+            })
+        })
+    })
+
+    describe('rescheduleEvent', () => {
+        it('can reschedule an event', (done) => {
+            data.events[1].reason = 'Changing the day'
+            store.test(done, eventsApi.rescheduleEvent(data.events[1]))
+            .then(() => {
+                expect(services.api.update.callCount).toBe(1)
+                expect(services.api.update.args[0]).toEqual([
+                    'events_reschedule',
+                    data.events[1],
+                    {
+                        update_method: 'single',
+                        dates: data.events[1].dates,
+                        reason: 'Changing the day',
+                    },
+                ])
+
+                done()
+            })
+        })
+
+        it('can send `future` when rescheduling', (done) => {
+            data.events[1].reason = 'Changing the day'
+            data.events[1].update_method = { value: 'future' }
+            store.test(done, eventsApi.rescheduleEvent(data.events[1]))
+            .then(() => {
+                expect(services.api.update.callCount).toBe(1)
+                expect(services.api.update.args[0]).toEqual([
+                    'events_reschedule',
+                    data.events[1],
+                    {
+                        update_method: 'future',
+                        dates: data.events[1].dates,
+                        reason: 'Changing the day',
+                    },
+                ])
+
+                done()
+            })
+        })
+
+        it('returns Promise.reject if `events_reschedule` fails', (done) => {
+            services.api.update = sinon.spy(() => (Promise.reject(errorMessage)))
+            store.test(done, eventsApi.rescheduleEvent(data.events[1]))
+            .then(() => {}, (error) => {
+                expect(error).toEqual(errorMessage)
                 done()
             })
         })

@@ -333,3 +333,5 @@ class PlanningResource(superdesk.Resource):
                   'PATCH': 'planning_planning_management',
                   'DELETE': 'planning'}
     etag_ignore_fields = ['_coverages', '_planning_date']
+
+    mongo_indexes = {'event_item': ([('event_item', 1)], {'background': True})}
