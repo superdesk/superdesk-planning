@@ -4,6 +4,7 @@ import {
     ModalsContainer,
     EventsPanelContainer,
     PlanningPanelContainer,
+    WorkqueueContainer,
 } from './index'
 import { get } from 'lodash'
 
@@ -17,6 +18,7 @@ const PlanningAppComponent = ({ showEvents }) => {
             <ModalsContainer />
             <EventsPanelContainer />
             <PlanningPanelContainer />
+            <WorkqueueContainer />
         </div>
     )
 }

@@ -546,6 +546,32 @@ const loadPlanning = (query) => (
 )
 
 /**
+ * Action dispatcher to load Current user's Locked Planning items by action from the API,
+ * and place them in the local store.
+ * @param {string} action - lock_action such as 'edit'
+ * @return Promise
+ */
+const loadLockedPlanningsByAction = (action) => (
+    (dispatch, getState, { api }) => {
+        let query = { bool: { must: [] } }
+        query.bool.must.push({ term: { lock_user: selectors.getCurrentUserId(getState()) } })
+        query.bool.must.push({ term: { lock_action: action } })
+
+        // Query the API
+        return api('planning').query({ source: JSON.stringify({ query }) })
+        .then((data) => {
+            if (get(data, '_items')) {
+                data._items.forEach(_convertCoveragesGenreToObject)
+                dispatch(self.receivePlannings(data._items))
+                return Promise.resolve(data._items)
+            } else {
+                return Promise.reject('Failed to retrieve items')
+            }
+        }, (error) => (Promise.reject(error)))
+    }
+)
+
+/**
  * Action dispatcher to load Planning items by ID from the API, and place them
  * in the local store. This does not update the list of visible Planning items
  * @param {Array} ids - An array of Planning item ids
@@ -946,6 +972,7 @@ const self = {
     lock,
     loadPlanning,
     loadPlanningById,
+    loadLockedPlanningsByAction,
     fetchPlanningHistory,
     receivePlanningHistory,
     loadPlanningByEventId,
