@@ -7,6 +7,7 @@ import {
     isItemPublic,
     getPublishedState,
     isItemCancelled,
+    isItemRescheduled,
 } from './index'
 import moment from 'moment'
 import RRule from 'rrule'
@@ -130,13 +131,14 @@ const canDuplicateEvent = (event, session, privileges) => (
 
 const canCreatePlanningFromEvent = (event, session, privileges) => (
     !isItemSpiked(event) && !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isItemLockRestricted(event, session) && !isItemCancelled(event)
+        !isItemLockRestricted(event, session) && !isItemCancelled(event) &&
+        !isItemRescheduled(event)
 )
 
 const canPublishEvent = (event, session, privileges) => (
     !isItemSpiked(event) && getPublishedState(event) !== PUBLISHED_STATE.USABLE &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemLockRestricted(event, session) &&
-        !isItemCancelled(event)
+        !isItemCancelled(event) && !isItemRescheduled(event)
 )
 
 const canUnpublishEvent = (event, privileges) => (
@@ -145,7 +147,8 @@ const canUnpublishEvent = (event, privileges) => (
 
 const canCancelEvent = (event, session, privileges) => (
     event && !isItemSpiked(event) && !isItemCancelled(event) && isEventInUse(event) &&
-        !isItemLockRestricted(event, session) && !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
+        !isItemLockRestricted(event, session) && !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
+         !isItemRescheduled(event)
 )
 
 const isEventInUse = (event) => (
@@ -154,7 +157,12 @@ const isEventInUse = (event) => (
 
 const canEditEvent = (event, session, privileges) => (
     !isItemSpiked(event) && !isItemCancelled(event) && !isItemLockRestricted(event, session) &&
-        !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemRescheduled(event)
+)
+
+const canRescheduleEvent = (event, session, privileges) => (
+    !isItemSpiked(event) && !isItemCancelled(event) && !isItemLockRestricted(event, session) &&
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemRescheduled(event)
 )
 
 const getEventItemActions = (event, session, privileges, actions) => {
@@ -174,6 +182,8 @@ const getEventItemActions = (event, session, privileges, actions) => {
             canCreatePlanningFromEvent(event, session, privileges),
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: (event, session=null, privileges=null) =>
             canEditEvent(event, session, privileges),
+        [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: (event, session=null, privileges=null) =>
+            canRescheduleEvent(event, session, privileges),
     }
 
     actions.forEach((action) => {
@@ -213,6 +223,7 @@ const self = {
     canCancelEvent,
     eventHasPlanning,
     isEventInUse,
+    canRescheduleEvent,
 }
 
 export default self

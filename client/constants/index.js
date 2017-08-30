@@ -48,7 +48,10 @@ export const GENERIC_ITEM_ACTIONS = {
         label: 'Duplicate',
         icon: 'icon-copy',
     },
-    HISTORY: { label: 'View History' },
+    HISTORY: {
+        label: 'View History',
+        icon: 'icon-time',
+    },
     DIVIDER: { label: 'Divider' },
     LABEL: { label: 'Label' },
 }

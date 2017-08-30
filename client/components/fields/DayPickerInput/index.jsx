@@ -158,7 +158,6 @@ export class DayPickerInput extends React.Component {
                             input={datePickerInput}
                             placeholder="Date"
                             className={inputClass}
-                            onChange={this.onDayChange.bind(this)}
                             readOnly={readOnly} />
 
                         {touched && (
@@ -177,7 +176,6 @@ export class DayPickerInput extends React.Component {
                                 <TimePicker
                                     input={timePickerInput}
                                     placeholder="Time"
-                                    onChange={this.onTimeChange.bind(this)}
                                     readOnly={readOnly} />
                             </span>
                         </div>

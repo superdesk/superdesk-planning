@@ -12,6 +12,7 @@ import {
     isItemSpiked,
     isItemCancelled,
     isItemKilled,
+    isItemRescheduled,
 } from '../../utils/index'
 
 const PlanningItem = ({
@@ -27,6 +28,7 @@ const PlanningItem = ({
         itemLocked,
         onAgendaClick,
         onDuplicate,
+        onRescheduleEvent,
         session,
         onCancelEvent,
         onUpdateEventTime,
@@ -42,6 +44,7 @@ const PlanningItem = ({
     const isPublic = isItemPublic(item)
     const isKilled = isItemKilled(item)
     const isCancelled = isItemCancelled(item)
+    const isRescheduled = isItemRescheduled(item)
 
     const onEditOrPreview = planningUtils.canEditPlanning(item, session, privileges) ?
         onDoubleClick : onClick
@@ -68,6 +71,10 @@ const PlanningItem = ({
             ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
             callback: onUpdateEventTime.bind(null, event),
         },
+        {
+            ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+            callback: onRescheduleEvent.bind(null, event),
+        },
     ]
 
     const itemActions = planningUtils.getPlanningItemActions({
@@ -82,8 +89,8 @@ const PlanningItem = ({
         <ListItem
             item={item}
             className={classNames('PlanningItem',
-            { 'PlanningItem--locked': itemLocked },
-            { 'PlanningItem--has-been-cancelled': isCancelled }
+                { 'PlanningItem--locked': itemLocked },
+                { 'PlanningItem--has-been-cancelled': isCancelled || isRescheduled }
             )}
             onClick={onClick}
             onDoubleClick={onEditOrPreview}
@@ -188,6 +195,7 @@ PlanningItem.propTypes = {
     session: PropTypes.object,
     onCancelEvent: PropTypes.func,
     onUpdateEventTime: PropTypes.func,
+    onRescheduleEvent: PropTypes.func,
 }
 
 export default PlanningItem

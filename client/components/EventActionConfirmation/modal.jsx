@@ -1,7 +1,13 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { ModalWithForm } from '../index'
-import { SpikeEventForm, UpdateRecurringEventsForm, CancelEventForm, UpdateTimeForm } from './index'
+import {
+    SpikeEventForm,
+    UpdateRecurringEventsForm,
+    CancelEventForm,
+    UpdateTimeForm,
+    RescheduleEventForm,
+} from './index'
 import { get } from 'lodash'
 import { GENERIC_ITEM_ACTIONS, EVENTS } from '../../constants'
 
@@ -28,6 +34,12 @@ export const EventActionConfirmationModal = ({ handleHide, modalProps }) => {
             form = UpdateTimeForm
             break
 
+        case EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label:
+            title = 'Reschedule an event'
+            saveText = 'Reschedule'
+            form = RescheduleEventForm
+            break
+
         default:
             title = get(modalProps, 'eventDetail._publish', false) ?
                 'Save Event & Publish' : 'Save Event'
@@ -42,6 +54,7 @@ export const EventActionConfirmationModal = ({ handleHide, modalProps }) => {
             initialValues={modalProps.eventDetail}
             saveButtonText={saveText}
             cancelButtonText="Cancel"
+            large={get(modalProps, 'large', false)}
             show={true}/>
     )
 }
@@ -51,5 +64,6 @@ EventActionConfirmationModal.propTypes = {
     modalProps: PropTypes.shape({
         eventDetail: PropTypes.object.isRequired,
         actionType: PropTypes.string,
+        large: PropTypes.bool,
     }),
 }

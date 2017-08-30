@@ -24,11 +24,21 @@ export const EVENTS = {
     // chunk size must be lower than page limit (25)
     FETCH_IDS_CHUNK_SIZE: 25,
     ITEM_ACTIONS: {
-        CREATE_PLANNING: { label: 'Create Planning Item' },
-        CANCEL_EVENT: { label: 'Cancel' },
+        CREATE_PLANNING: {
+            label: 'Create Planning Item',
+            icon: 'icon-new-doc',
+        },
+        CANCEL_EVENT: {
+            label: 'Cancel',
+            icon: 'icon-close-small',
+        },
         UPDATE_TIME: {
             label: 'Update time',
             icon: 'icon-time',
+        },
+        RESCHEDULE_EVENT: {
+            label: 'Reschedule',
+            icon: 'icon-calendar',
         },
     },
 }

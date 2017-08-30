@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { ListItem, TimeEvent, StateLabel, Checkbox, ItemActionsMenu } from '../index'
 import './style.scss'
 import { GENERIC_ITEM_ACTIONS, EVENTS } from '../../constants'
-import { eventUtils, isItemCancelled } from '../../utils'
+import { eventUtils, isItemCancelled, isItemRescheduled } from '../../utils'
 import classNames from 'classnames'
 
 export const EventItem = ({
@@ -15,6 +15,7 @@ export const EventItem = ({
         onDuplicateEvent,
         onCancelEvent,
         onUpdateEventTime,
+        onRescheduleEvent,
         highlightedEvent,
         privileges,
         isSelected,
@@ -25,6 +26,7 @@ export const EventItem = ({
         addEventToCurrentAgenda,
     }) => {
     const hasBeenCancelled = isItemCancelled(event)
+    const hasBeenRescheduled = isItemRescheduled(event)
     const hasPlanning = eventUtils.eventHasPlanning(event)
 
     const onEditOrPreview = eventUtils.canEditEvent(event, session, privileges) ?
@@ -51,6 +53,10 @@ export const EventItem = ({
             ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
             callback: onUpdateEventTime.bind(null, event),
         },
+        {
+            ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+            callback: onRescheduleEvent.bind(null, event),
+        },
         GENERIC_ITEM_ACTIONS.DIVIDER,
         {
             ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
@@ -71,7 +77,7 @@ export const EventItem = ({
             className={classNames('event',
                 className,
                 { 'event--has-planning': hasPlanning },
-                { 'event--has-been-canceled': hasBeenCancelled },
+                { 'event--has-been-canceled': hasBeenCancelled || hasBeenRescheduled },
                 { 'event--locked': itemLocked },
                 { 'event--not-draggable': !canCreatePlanning })}
             active={highlightedEvent === event._id || isSelected}
@@ -107,6 +113,7 @@ EventItem.propTypes = {
     onDuplicateEvent: PropTypes.func.isRequired,
     onCancelEvent: PropTypes.func.isRequired,
     onUpdateEventTime: PropTypes.func.isRequired,
+    onRescheduleEvent: PropTypes.func.isRequired,
     highlightedEvent: PropTypes.string,
     className: PropTypes.string,
     privileges: PropTypes.object,
