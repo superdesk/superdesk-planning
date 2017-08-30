@@ -171,6 +171,7 @@ describe('events', () => {
                 _event.lock_session = 'session123'
                 const store = createTestStoreForEventEditing(_event)
                 const wrapper = mount(<Provider store={store}><EventForm initialValues={event}/></Provider>)
+                wrapper.find('.toggle-box__header').at(1).simulate('click')
                 const field = wrapper.find('FileFieldComponent')
                 const file = field.props().file
                 expect(field.props().fieldName).toBe('files[0]')
@@ -188,6 +189,7 @@ describe('events', () => {
                 _event.lock_session = 'session123'
                 const store = createTestStoreForEventEditing(_event)
                 const wrapper = mount(<Provider store={store}><EventForm initialValues={event} /></Provider>)
+                wrapper.find('.toggle-box__header').at(2).simulate('click')
                 const field = wrapper.find('LinkFieldComponent')
                 const link = field.props().link
                 expect(field.props().fieldName).toBe('links[0]')
@@ -275,33 +277,10 @@ describe('events', () => {
                 const wrapper = mount(<Provider store={store}><EventForm initialValues={recEvent}
                     formValues={recEvent} /></Provider>)
                 expect(wrapper.find(FormComponent).props().doesRepeat).toBe(true)
+                wrapper.find('.toggle-box__header').at(2).simulate('click')
                 wrapper.find('LinksFieldArray').find('.Link__add-btn').simulate('click')
                 expect(wrapper.find('.error-block').length).toBe(1)
                 expect(wrapper.find('.error-block').get(0).textContent).toBe('Editing event\'s recurring rules values disabled')
-            })
-
-            it('Metadata input fields are disabled when recurring rule is edited', () => {
-                const recEvent = {
-                    ...event,
-                    dates: {
-                        start: moment('2016-10-15T14:30+0000'),
-                        end: moment('2016-10-20T15:00+0000'),
-                        recurring_rule: {
-                            frequency: 'DAILY',
-                            endRepeatMode: 'count',
-                        },
-                    },
-                    lock_user: 'user123',
-                    lock_session: 'session123',
-                }
-                const store = createTestStoreForEventEditing(recEvent)
-                const wrapper = mount(<Provider store={store}><EventForm initialValues={recEvent}
-                    formValues={recEvent} /></Provider>)
-                expect(wrapper.find(FormComponent).props().doesRepeat).toBe(true)
-                const allDayToggleBtn = wrapper.find('.sd-toggle').at(0)
-                allDayToggleBtn.find('span').first().simulate('click')
-                expect(wrapper.find('.error-block').length).toBe(1)
-                expect(wrapper.find('.error-block').get(0).textContent).toBe('Editing event\'s metadata disabled')
             })
 
             it('Cannot spike/create new events if only metadata of a recurring event is edited', () => {
@@ -322,6 +301,7 @@ describe('events', () => {
                 const wrapper = mount(<Provider store={store}><EventForm initialValues={recEvent}
                     enableReinitialize={true}/></Provider>)
                 expect(wrapper.find(FormComponent).props().doesRepeat).toBe(true)
+                wrapper.find('.toggle-box__header').at(2).simulate('click')
                 wrapper.find('LinksFieldArray').find('.Link__add-btn').simulate('click')
                 expect(wrapper.find('ItemActionsMenu').props().actions.length).toBe(3)
                 expect(itemActionExists(wrapper, 'View History')).toBe(true)

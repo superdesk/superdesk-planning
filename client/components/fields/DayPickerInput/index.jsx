@@ -2,6 +2,7 @@ import React, { PropTypes } from 'react'
 import { DatePicker } from '../index'
 import { TimePicker } from '../index'
 import moment from 'moment'
+import classNames from 'classnames'
 import 'react-datepicker/dist/react-datepicker.css'
 import './style.scss'
 
@@ -117,8 +118,9 @@ export class DayPickerInput extends React.Component {
     }
 
     render() {
-        const { withTime, readOnly } = this.props
+        const { withTime, readOnly, label, required, occurrenceOverlaps } = this.props
         const { touched, error, warning } = this.props.meta
+
         const timePickerInput = {
             value: this.state.selectedTime,
             onChange: this.onTimeChange.bind(this),
@@ -128,38 +130,77 @@ export class DayPickerInput extends React.Component {
             onChange: this.onDayChange.bind(this),
         }
 
+        const showMessage = (touched && (error || warning)) || occurrenceOverlaps
+        const divClass = classNames(
+            'sd-line-input',
+            'sd-line-input--label-left',
+            { 'sd-line-input--invalid': showMessage },
+            { 'sd-line-input--no-margin': !showMessage },
+            { 'sd-line-input--required': required }
+        )
+
+        const inputClass = classNames(
+            'sd-line-input__input',
+            { 'sd-line-input--disabled': readOnly }
+        )
+
         return (
-            <span className="day-picker-input">
-                <DatePicker
-                    ref="datePicker"
-                    input={datePickerInput}
-                    placeholder="Date"
-                    readOnly={readOnly} />
-                {(withTime === true) && (
-                    <span>
-                        &nbsp;&nbsp;&nbsp;&nbsp;
-                        <TimePicker
-                            input={timePickerInput}
-                            placeholder="Time"
+            <div className="form__row form__row--flex">
+                <div className="form__row--item">
+                    <div className={divClass}>
+                        {label &&
+                            <label className='sd-line-input__label'>
+                                {label}
+                            </label>
+                        }
+                        <DatePicker
+                            ref="datePicker"
+                            input={datePickerInput}
+                            placeholder="Date"
+                            className={inputClass}
+                            onChange={this.onDayChange.bind(this)}
                             readOnly={readOnly} />
-                    </span>
+
+                        {touched && (
+                            (error && <div className='sd-line-input__message'>{error}</div>) ||
+                            (warning && <div className='sd-line-input__message'>{warning}</div>)
+                        ) || occurrenceOverlaps && (
+                            <div className='sd-line-input__message'>Events Overlap!</div>
+                        )}
+                    </div>
+                </div>
+
+                {withTime && (
+                    <div className="form__row--item">
+                        <div className={divClass}>
+                            <span className={inputClass}>
+                                <TimePicker
+                                    input={timePickerInput}
+                                    placeholder="Time"
+                                    onChange={this.onTimeChange.bind(this)}
+                                    readOnly={readOnly} />
+                            </span>
+                        </div>
+                    </div>
                 )}
-                {
-                    touched && ((error && <div className="day-picker-input__error">{error}</div>) ||
-                    (warning && <div className="day-picker-input__error">{warning}</div>))
-                }
-            </span>
+            </div>
         )
     }
 }
+
 DayPickerInput.propTypes = {
     withTime: PropTypes.bool,
+    label: PropTypes.string,
     defaultDate: PropTypes.object,
     readOnly: PropTypes.bool,
     input: PropTypes.object,
     meta: PropTypes.object,
+    required: PropTypes.bool,
+    occurrenceOverlaps: PropTypes.bool,
 }
+
 DayPickerInput.defaultProps = {
     withTime: false,
     meta: {},
+    required: false,
 }

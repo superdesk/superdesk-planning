@@ -161,15 +161,11 @@ describe('<SpikeEventForm />', () => {
 
             // RelatedPlannings has only 1 planning item
             expect(relatedPlannings.props().plannings).toEqual([ data.plannings[1] ])
+            updateMethod.find('SelectField select').simulate(
+                'change',
+                { target: { value: 'This and all future events' } }
+            )
 
-            // Update the spike method to 'future', and ensure number of plannings is updated
-            updateMethod.find('Select').props().onChange({
-                name: 'This and all future events',
-                value: {
-                    name: 'This and all future events',
-                    value: 'future',
-                },
-            })
             expect(metaData.find('dd').at(3).text()).toBe('3')
             expect(relatedPlannings.props().plannings).toEqual([
                 data.plannings[1],
@@ -178,13 +174,10 @@ describe('<SpikeEventForm />', () => {
             ])
 
             // Update the spike method to 'all', and ensure number of plannings is updated
-            updateMethod.find('Select').props().onChange({
-                name: 'All events',
-                value: {
-                    name: 'All events',
-                    value: 'all',
-                },
-            })
+            updateMethod.find('SelectField select').simulate(
+                'change',
+                { target: { value: 'All events' } }
+            )
             expect(metaData.find('dd').at(3).text()).toBe('4')
             expect(relatedPlannings.props().plannings).toEqual([
                 data.plannings[0],

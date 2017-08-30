@@ -56,10 +56,15 @@ class GeoLookupInput extends React.Component {
     }
 
     render() {
+        const textAreaClassNames = classNames(
+            'sd-line-input__input',
+            { disabledInput: this.props.readOnly }
+        )
+
         return (
-            <div className='addgeolookup'>
+            <div className='addgeolookup sd-line-input__input'>
                 <span className='addgeolookup__input-wrapper'><TextareaAutosize
-                    className={classNames({ 'disabledInput': this.props.readOnly })}
+                    className={textAreaClassNames}
                     disabled={this.props.readOnly ? 'disabled' : ''}
                     value={get(this.props.initialValue, 'name')}
                     onChange={this.handleInputChange.bind(this)} />
