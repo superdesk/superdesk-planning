@@ -12,7 +12,7 @@ const mapStateToProps = (state) => ({
     )),
 
     getOptionFromValue: (value, options) => options.find(
-        option => option.key === value
+        option => option.key === value.qcode
     ),
 })
 
