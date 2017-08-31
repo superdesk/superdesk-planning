@@ -100,7 +100,7 @@ function CoverageComponent({
                     name={`${coverage}.news_coverage_status`}
                     component={fields.CoverageStatusField}
                     label="Coverage Status"
-                    clearable={true}
+                    clearable={false}
                     readOnly={readOnly} />
             </div>
 
