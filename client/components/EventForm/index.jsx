@@ -206,7 +206,8 @@ export class Component extends React.Component {
         const existingEvent = !!get(initialValues, '_id')
         const forcedReadOnly = existingEvent && (readOnly || eventSpiked ||
             !isItemLockedInThisSession(initialValues, session))
-        const author = get(initialValues, 'original_creator') && users ? users.find((u) => (u._id === initialValues.original_creator)) : null
+        const author = get(initialValues, 'original_creator') && users ?
+            users.find((u) => (u._id === initialValues.original_creator)) : get(initialValues, 'ingest_provider')
         const versionCreator = get(initialValues, 'version_creator') && users ? users.find((u) => (u._id === initialValues.version_creator)) : null
         const lockedUser = getLockedUser(initialValues, users)
         const metaDataEditable =  !forcedReadOnly && this.isMetaDataEditable()
