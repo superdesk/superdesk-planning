@@ -107,6 +107,40 @@ describe('<SelectMetaTermsField />', () => {
         expect(valueList.at(2).text()).toBe('cat3')
     })
 
+    it('Values are not repeated as options in selection dropdown', () => {
+        const input = {
+            value: [
+                {
+                    name: 'cat1',
+                    qcode: 'qcode1',
+                },
+                {
+                    name: 'cat2',
+                    qcode: 'qcode2',
+                },
+            ],
+        }
+
+        const FormComponent = reduxForm({ form: 'form' })(renderComponentFieldWithInput(CategoryField, input))
+        const initialState = { vocabularies: vocabularies }
+        const store = createTestStore({ initialState })
+        const wrapper = mount(
+            <Provider store={store}>
+                <FormComponent/>
+            </Provider>
+        )
+        const valueList = wrapper.find('ul').children()
+        expect(valueList.length).toBe(2)
+        expect(valueList.at(0).text()).toBe('cat1')
+        expect(valueList.at(1).text()).toBe('cat2')
+
+        wrapper.find('.Select__dropdownToggle').simulate('click')
+        expect(wrapper.find('.Select__popup__item').length).toBe(1)
+
+        const optionsLst = wrapper.find('.Select__popup__list')
+        expect(optionsLst.at(0).text()).toBe('cat3')
+    })
+
     it('Can cancel or delete value', () => {
         const input = {
             value: vocabularies.categories,
