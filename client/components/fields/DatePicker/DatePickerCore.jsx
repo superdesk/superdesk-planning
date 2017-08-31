@@ -100,15 +100,6 @@ export class DatePickerCore extends React.Component {
             case 2:
                 this.props.onChange(this.state.currentDate.clone().add(2, 'days'))
                 break
-            default:
-                if (this.state.mode !== 'day') {
-                    // If we are not in the day picking mode calender view,
-                    // as per original SD Datepicker, confirm will mean current date
-                    this.props.onChange(this.state.currentDate)
-                } else {
-                    this.props.onChange(this.state.selectedDate)
-                }
-                break
         }
 
         this.props.onCancel()
@@ -137,9 +128,6 @@ export class DatePickerCore extends React.Component {
     handleSelectChange(newDate) {
         let nextMode = ''
         switch (this.state.mode) {
-            case 'day':
-                nextMode = 'day'
-                break
             case 'month':
                 nextMode = 'day'
                 break
@@ -148,7 +136,10 @@ export class DatePickerCore extends React.Component {
                 break
         }
 
-        if (!(this.state.selectedDate.isSame(newDate) && this.state.mode === 'day')) {
+        if (this.state.mode === 'day') {
+            this.props.onChange(newDate)
+            this.props.onCancel()
+        } else {
             this.setState({
                 selectedDate: newDate,
                 mode: nextMode,
@@ -193,7 +184,6 @@ export class DatePickerCore extends React.Component {
                         <YearPicker startingYear={this.getStartingYearForYearPicker(this.state.selectedDate)} selectedDate={this.state.selectedDate} onChange={this.handleSelectChange.bind(this)} />
                     )}
                 </div>
-                <button className="btn btn--primary btn--small pull-right" type="button" onClick={this.handleConfirm.bind(this)}>Confirm</button>
                 <button className="btn btn--small pull-right" type="button" onClick={this.handleCancel.bind(this)}>Cancel</button>
             </div>
         )
