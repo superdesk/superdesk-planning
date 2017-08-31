@@ -10,9 +10,18 @@ export const AuditInformationComponent = ({
     updatedBy,
     updatedAt,
     users,
+    ingestProviders,
 }) => {
+    const getAuthor = (createdBy) => {
+        let user, provider
 
-    const creator = get(createdBy, 'display_name') ? createdBy : users.find((user) => user._id === createdBy)
+        user = get(createdBy, 'display_name') ? createdBy : users.find((u) => (u._id === createdBy))
+        provider = ingestProviders ? ingestProviders.find((p) => (p.id === createdBy)) : null
+
+        return user || provider
+    }
+
+    const creator = getAuthor(createdBy)
     const versionCreator = get(updatedBy, 'display_name') ? updatedBy : users.find((user) => user._id === updatedBy)
     const createdDateTime = createdAt ? moment(createdAt).fromNow() : null
     const modifiedDateTime = updatedAt ? moment(updatedAt).fromNow() : null
@@ -20,7 +29,7 @@ export const AuditInformationComponent = ({
     return (
         <div className="TimeAndAuthor">
             {createdDateTime && creator &&
-                <div>Created {createdDateTime} by <span className='TimeAndAuthor__author'> {creator.display_name}</span></div>
+                <div>Created {createdDateTime} by <span className='TimeAndAuthor__author'> {creator.display_name || creator.name}</span></div>
             }
             {modifiedDateTime && versionCreator &&
                 <div>Updated {modifiedDateTime} by <span className='TimeAndAuthor__author'> {versionCreator.display_name}</span></div>
@@ -34,12 +43,18 @@ AuditInformationComponent.propTypes = {
         React.PropTypes.array,
         React.PropTypes.object,
     ]),
+    ingestProviders: React.PropTypes.array,
     createdBy:React.PropTypes.any,
     createdAt:React.PropTypes.any,
     updatedBy:React.PropTypes.any,
     updatedAt:React.PropTypes.any,
 }
 
-const mapStateToProps = (state) => ({ users: selectors.getUsers(state) })
+const mapStateToProps = (state) => (
+    {
+        users: selectors.getUsers(state),
+        ingestProviders: selectors.getIngestProviders(state),
+    }
+)
 
 export const AuditInformation = connect(mapStateToProps)(AuditInformationComponent)
