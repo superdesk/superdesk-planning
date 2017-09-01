@@ -19,9 +19,9 @@ describe('<ModalWithForm />', () => {
                     show={true} />
             </Provider>
         )
-        expect(wrapper.find('ModalWithForm').props().title).toBe('Title')
-        expect(wrapper.find('ModalWithForm').props().show).toBe(true)
-        expect(wrapper.find('ModalWithForm').props().initialValues)
+        expect(wrapper.find('Component').props().title).toBe('Title')
+        expect(wrapper.find('Component').props().show).toBe(true)
+        expect(wrapper.find('Component').props().initialValues)
         .toEqual({ field: 'value' })
     })
 })
