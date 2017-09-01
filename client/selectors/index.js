@@ -89,6 +89,27 @@ export const getPlanningSearch = (state) => get(state, 'planning.search.currentS
 export const getEventsFormsProfile = (state) => get(state, 'formsProfile.events')
 export const getPlanningsFormsProfile = (state) => get(state, 'formsProfile.planning')
 export const getCoverageFormsProfile = (state) => get(state, 'formsProfile.coverage')
+export const getVocabularies = (state) => get(state, 'vocabularies')
+
+export const getUsersMergedCoverageProviders = createSelector(
+    [getUsers, getVocabularies],
+    (users, vocabularies) => {
+        if (!vocabularies.coverage_providers) {
+            return users
+        }
+
+        let mergedUsers = users
+        vocabularies.coverage_providers.forEach((provider) => {
+            mergedUsers.push({
+                _id: provider.qcode,
+                display_name: provider.name,
+                provider: true,
+            })
+        })
+
+        return mergedUsers
+    }
+)
 
 export const getPlanningsInList = createSelector(
     [getPlanningIdsInList, getStoredPlannings],

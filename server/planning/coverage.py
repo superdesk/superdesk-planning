@@ -12,6 +12,7 @@
 
 import superdesk
 import logging
+from bson import ObjectId
 from copy import deepcopy
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid, item_url
@@ -86,11 +87,17 @@ class CoverageService(superdesk.Service):
 
             planning['assigned_to']['assigned_date'] = utcnow()
             if planning['assigned_to'].get('user'):
-                add_activity(ACTIVITY_UPDATE,
-                             '{{assignor}} assigned a coverage to you',
-                             self.datasource,
-                             notify=[planning['assigned_to'].get('user')],
-                             assignor=user.get('username'))
+                # Done to avoid fetching users data for every assignment
+                # Because user assigned can also be a provider whose qcode
+                # might be an invalid GUID, check if the user assigned is a valid user (GUID)
+                # However, in a rare case where qcode of a provider is a valid GUID,
+                # This will create activity records - inappropirate
+                if ObjectId.is_valid(planning['assigned_to'].get('user')):
+                    add_activity(ACTIVITY_UPDATE,
+                                 '{{assignor}} assigned a coverage to you',
+                                 self.datasource,
+                                 notify=[planning['assigned_to'].get('user')],
+                                 assignor=user.get('username'))
 
 
 planning_type = deepcopy(superdesk.Resource.rel('planning', type='string'))
