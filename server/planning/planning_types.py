@@ -109,6 +109,7 @@ DEFAULT_EDITOR = [{
         'editor': {
             'slugline': {'enabled': True},
             'anpa_category': {'enabled': True},
+            'description_text': {'enabled': True},
             'ednote': {'enabled': True},
             'headline': {'enabled': True},
             'internal_note': {'enabled': True},

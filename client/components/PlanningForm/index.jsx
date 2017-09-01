@@ -40,6 +40,15 @@ class Component extends React.Component {
                                 readOnly={readOnly} />
                         </div>
                     }
+                    {get(formProfile, 'editor.description_text.enabled') &&
+                        <div className="form__row">
+                            <Field
+                            name="description_text"
+                            component={fields.InputTextAreaField}
+                            label="Description"
+                            readOnly={readOnly} />
+                        </div>
+                    }
                     {get(formProfile, 'editor.internal_note.enabled') &&
                         <div className="form__row">
                             <Field name="internal_note"
