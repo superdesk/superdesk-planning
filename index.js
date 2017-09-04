@@ -34,8 +34,8 @@ function configurePlanning(superdesk) {
         })
 }
 
-runPlanning.$inject = ['ingestSources', '$templateCache']
-function runPlanning(ingestSources, $templateCache) {
+runPlanning.$inject = ['ingestSources', '$templateCache', '$injector']
+function runPlanning(ingestSources, $templateCache, $injector) {
     // register new ingest feeding service and custom settings template
     $templateCache.put(
         'superdesk-planning/views/eventFileConfig.html',

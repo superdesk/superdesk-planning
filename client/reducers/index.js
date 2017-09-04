@@ -30,6 +30,7 @@ const planningApp = combineReducers({
     session: returnState,
     urgency: returnState,
     formsProfile: returnState,
+    workspace: returnState,
 })
 
 export default planningApp

@@ -1,4 +1,4 @@
-import { cloneDeep, get, uniq } from 'lodash'
+import { cloneDeep, get, uniq, without } from 'lodash'
 import { PLANNING, WORKFLOW_STATE, RESET_STORE, INIT_STORE } from '../constants'
 import { createReducer } from '../utils'
 import moment from 'moment'
@@ -6,6 +6,7 @@ import moment from 'moment'
 const initialState  = {
     plannings: {},
     planningsInList: [],
+    selectedItems: [],
     currentPlanningId: undefined,
     editorOpened: false,
     planningsAreLoading: false,
@@ -280,6 +281,26 @@ const planningReducer = createReducer(initialState, {
             plannings,
         }
     },
+
+    [PLANNING.ACTIONS.TOGGLE_SELECTED]: (state, payload) => {
+        const selected = state.selectedItems
+        const index = selected.indexOf(payload)
+
+        return {
+            ...state,
+            selectedItems: index === -1 ? selected.concat([payload]) : without(selected, payload),
+        }
+    },
+
+    [PLANNING.ACTIONS.DESELECT_ALL]: (state) => ({
+        ...state,
+        selectedItems: [],
+    }),
+
+    [PLANNING.ACTIONS.SELECT_ALL]: (state) => ({
+        ...state,
+        selectedItems: state.planningsInList.concat([]),
+    }),
 })
 
 const markPlaning = (plan, payload, action) => {

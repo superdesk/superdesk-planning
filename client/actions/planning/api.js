@@ -967,6 +967,26 @@ const markPlanningPostponed = (plan, reason) => ({
     },
 })
 
+/**
+ * Export selected planning items as a new article
+ */
+function exportAsArticle() {
+    return (dispatch, getState, { api, notify, gettext }) => {
+        const state = getState()
+
+        return api.save('planning_export', {
+            desk: state.workspace.currentDeskId,
+            items: state.planning.selectedItems,
+        })
+        .then(() => {
+            notify.success(gettext('Article was created'))
+            dispatch(actions.planning.ui.deselectAll())
+        }, () => {
+            notify.error(gettext('There was an error when exporting'))
+        })
+    }
+}
+
 const self = {
     spike,
     unspike,
@@ -996,6 +1016,7 @@ const self = {
     duplicate,
     markPlanningCancelled,
     markPlanningPostponed,
+    exportAsArticle,
 }
 
 export default self
