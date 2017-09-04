@@ -462,6 +462,20 @@ const cancelEvent = (event) => (
     )
 )
 
+const rescheduleEvent = (event) => (
+    (dispatch, getState, { api }) => (
+        api.update(
+            'events_reschedule',
+            event,
+            {
+                update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
+                dates: event.dates,
+                reason: get(event, 'reason', null),
+            }
+        )
+    )
+)
+
 const markEventCancelled = (event, reason, occurStatus) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_CANCELLED,
     payload: {
@@ -491,6 +505,7 @@ const self = {
     cancelEvent,
     markEventCancelled,
     markEventHasPlannings,
+    rescheduleEvent,
 }
 
 export default self

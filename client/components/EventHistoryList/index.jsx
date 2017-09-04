@@ -1,7 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { AbsoluteDate } from '../../components'
-import { includes } from 'lodash'
+import { includes, get } from 'lodash'
+import './style.scss'
 
 export class EventHistoryList extends React.Component {
     constructor(props) {
@@ -28,7 +29,8 @@ export class EventHistoryList extends React.Component {
                                 this.props.users &&
                                 includes(['create', 'update', 'spiked', 'unspiked',
                                     'planning created', 'duplicate', 'duplicate_from',
-                                    'publish', 'unpublish', 'cancel'], historyItem.operation)
+                                    'publish', 'unpublish', 'cancel', 'reschedule',
+                                    'reschedule_from'], historyItem.operation)
                                 &&
                                 <div>
                                     <strong>
@@ -42,6 +44,8 @@ export class EventHistoryList extends React.Component {
                                         {historyItem.operation === 'publish' && 'Published by '}
                                         {historyItem.operation === 'unpublish' && 'Un-published by '}
                                         {historyItem.operation === 'cancel' && 'Cancelled by '}
+                                        {historyItem.operation === 'reschedule' && 'Rescheduled by '}
+                                        {historyItem.operation === 'reschedule_from' && 'Rescheduled by '}
                                     </strong>
 
                                     <span className="user-name">{displayUser(historyItem.user_id)}</span>
@@ -55,29 +59,49 @@ export class EventHistoryList extends React.Component {
                                                 }
                                             </div>
                                         }
-                                        {historyItem.operation == 'planning created' && (
-                                            <div>
+                                        {historyItem.operation === 'planning created' && (
+                                            <div className="history-list__link">
                                                 <a onClick={this.props.openPlanningClick.bind(null, historyItem.update.planning_id)}>
                                                     View planning item
                                                 </a>
                                             </div>)
                                         }
-                                        {historyItem.operation == 'duplicate' && (
-                                            <div>
+                                        {historyItem.operation === 'duplicate' && (
+                                            <div className="history-list__link">
                                                 <a onClick={this.closeAndOpenDuplicate.bind(this,
                                                     historyItem.update.duplicate_id)}>
                                                     View duplicate event
                                                 </a>
                                             </div>
                                         )}
-                                        {historyItem.operation == 'duplicate_from' && (
-                                            <div>
+                                        {historyItem.operation === 'duplicate_from' && (
+                                            <div className="history-list__link">
                                                 <a onClick={this.closeAndOpenDuplicate.bind(this,
                                                     historyItem.update.duplicate_id)}>
                                                     View original event
                                                 </a>
                                             </div>
                                         )}
+
+                                        {historyItem.operation === 'reschedule' &&
+                                        get(historyItem, 'update.duplicate_to.length', 0) > 0 &&
+                                            <div className="history-list__link">
+                                                <a onClick={this.closeAndOpenDuplicate.bind(this,
+                                                    historyItem.update.duplicate_to.pop())}>
+                                                    View rescheduled event
+                                                </a>
+                                            </div>
+                                        }
+
+                                        {historyItem.operation === 'reschedule_from' &&
+                                        get(historyItem, 'update.duplicate_from') &&
+                                            <div className="history-list__link">
+                                                <a onClick={this.closeAndOpenDuplicate.bind(this,
+                                                    historyItem.update.duplicate_from)}>
+                                                    View original event
+                                                </a>
+                                            </div>
+                                        }
                                     </div>
                                 </div>
                             }
@@ -88,8 +112,6 @@ export class EventHistoryList extends React.Component {
         )
 
     }
-
-
 }
 
 EventHistoryList.propTypes = {

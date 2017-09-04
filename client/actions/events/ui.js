@@ -4,12 +4,14 @@ import planning from '../planning'
 import eventsApi from './api'
 import { fetchSelectedAgendaPlannings } from '../agenda'
 import * as selectors from '../../selectors'
-import { get } from 'lodash'
+import { get, last } from 'lodash'
+import moment from 'moment'
 import {
     checkPermission,
     getErrorMessage,
     isItemLockedInThisSession,
     isItemSpiked,
+    isItemRescheduled,
 } from '../../utils'
 
 /**
@@ -139,7 +141,7 @@ const _unlockAndOpenEventDetails = (event) => (
             // Call openPlanningEditor to obtain a new lock for editing
             // Recurring events item resolved might not be the item we want to open
             // So, use original parameter (event) to open
-            dispatch(_openEventDetails(event))
+            dispatch(self._openEventDetails(event))
         }, () => (Promise.reject()))
     )
 )
@@ -483,6 +485,101 @@ const cancelEvent = (event) => (
     )
 )
 
+const rescheduleEvent = (event) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(eventsApi.rescheduleEvent(event))
+        .then((updatedEvent) => {
+            const duplicatedEvent = last(get(updatedEvent, 'duplicate_to', []))
+            if (isItemRescheduled(updatedEvent) && duplicatedEvent) {
+                dispatch(self._openEventDetails({ _id: duplicatedEvent }))
+            } else {
+                dispatch(self._openEventDetails(event))
+            }
+
+            dispatch(hideModal())
+            notify.success('Event has been rescheduled')
+
+            return Promise.resolve()
+        }, (error) => {
+            dispatch(hideModal())
+
+            notify.error(
+                getErrorMessage(error, 'Failed to reschedule the Event!')
+            )
+
+            return Promise.reject(error)
+        })
+    )
+)
+
+const _openRescheduleModal = (event) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(eventsApi.lock(event, 'reschedule'))
+        .then((lockedEvent) => {
+            // The form fields expects the date/time to be a moment instance
+            // So convert them before opening the modal
+            lockedEvent.dates.start = moment(lockedEvent.dates.start)
+            lockedEvent.dates.end = moment(lockedEvent.dates.end)
+            if (!event.recurrence_id) {
+                return dispatch(self._openSingleRescheduleModal(lockedEvent))
+            } else {
+                return dispatch(self._openMultiRescheduleModal(lockedEvent))
+            }
+        }, (error) => {
+            notify.error(
+                getErrorMessage(error, 'Failed to obtain the Event lock')
+            )
+
+            return Promise.reject(error)
+        })
+    )
+)
+
+const _openSingleRescheduleModal = (event) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.loadPlanningByEventId(event._id))
+        .then((planningItems) => (
+            dispatch(showModal({
+                modalType: 'ITEM_ACTIONS_MODAL',
+                modalProps: {
+                    eventDetail: {
+                        ...event,
+                        _plannings: planningItems,
+                    },
+                    actionType: EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label,
+                },
+            }))
+        ), (error) => {
+            notify.error(
+                getErrorMessage(error, 'Failed to load associated Planning items.')
+            )
+
+            return Promise.reject(error)
+        })
+    )
+)
+
+const _openMultiRescheduleModal = (event) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(eventsApi.loadRecurringEventsAndPlanningItems(event))
+        .then((events) => {
+            dispatch(showModal({
+                modalType: 'ITEM_ACTIONS_MODAL',
+                modalProps: {
+                    eventDetail: events,
+                    actionType: EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label,
+                },
+            }))
+        }, (error) => {
+            notify.error(
+                getErrorMessage(error, 'Failed to load associated Planning items.')
+            )
+
+            return Promise.reject(error)
+        })
+    )
+)
+
 /**
  * Action to set the list of events in the current list
  * @param {Array} idsList - An array of Event IDs to assign to the current list
@@ -556,6 +653,12 @@ const openCancelModal = checkPermission(
     'Unauthorised to spike an Event'
 )
 
+const openRescheduleModal = checkPermission(
+    _openRescheduleModal,
+    PRIVILEGES.EVENT_MANAGEMENT,
+    'Unauthorised to reschedule an Event'
+)
+
 const self = {
     _openEventDetails,
     _openSpikeModal,
@@ -584,6 +687,11 @@ const self = {
     updateTime,
     minimizeEventDetails,
     unlockAndCloseEditor,
+    _openRescheduleModal,
+    _openSingleRescheduleModal,
+    _openMultiRescheduleModal,
+    openRescheduleModal,
+    rescheduleEvent,
 }
 
 export default self

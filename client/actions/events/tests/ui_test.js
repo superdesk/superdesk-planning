@@ -60,6 +60,8 @@ describe('actions.events.ui', () => {
         sinon.stub(eventsUi, '_openEventDetails').callsFake(() => (Promise.resolve()))
         sinon.stub(eventsApi, 'lock').callsFake((item) => (Promise.resolve(item)))
         sinon.stub(eventsApi, 'unlock').callsFake((item) => (Promise.resolve(item)))
+
+        sinon.stub(eventsApi, 'rescheduleEvent').callsFake(() => (Promise.resolve()))
     })
 
     afterEach(() => {
@@ -77,6 +79,7 @@ describe('actions.events.ui', () => {
         restoreSinonStub(eventsUi._openEventDetails)
         restoreSinonStub(eventsApi.lock)
         restoreSinonStub(eventsApi.unlock)
+        restoreSinonStub(eventsApi.rescheduleEvent)
         restoreSinonStub(planningApi.loadPlanningByEventId)
         restoreSinonStub(planningApi.fetch)
     })
@@ -487,5 +490,56 @@ describe('actions.events.ui', () => {
                 expect(services.notify.error.callCount).toBe(0)
                 done()
             })
+    })
+
+    describe('_openRescheduleModal', () => {
+        it('loads planning items and shows single reschedule modal', (done) => (
+            store.test(done, eventsUi._openSingleRescheduleModal(data.events[1]))
+            .then(() => {
+                expect(planningApi.loadPlanningByEventId.callCount).toBe(1)
+                expect(planningApi.loadPlanningByEventId.args[0]).toEqual([data.events[1]._id])
+
+                expect(store.dispatch.callCount).toBe(2)
+                expect(store.dispatch.args[1]).toEqual([{
+                    type: 'SHOW_MODAL',
+                    modalType: 'ITEM_ACTIONS_MODAL',
+                    modalProps: {
+                        eventDetail: {
+                            ...data.events[1],
+                            _plannings: data.plannings,
+                        },
+                        actionType: 'Reschedule',
+                    },
+                }])
+
+                expect(services.notify.error.callCount).toBe(0)
+
+                done()
+            })
+        ))
+
+        it('loads planning items and shows recurring reschedule modal', (done) => {
+            data.events[0].recurrence_id = 'rec1'
+            store.test(done, eventsUi._openMultiRescheduleModal(data.events[0]))
+            .then(() => {
+                expect(eventsApi.loadRecurringEventsAndPlanningItems.callCount).toBe(1)
+                expect(eventsApi.loadRecurringEventsAndPlanningItems.args[0])
+                    .toEqual([data.events[0]])
+
+                expect(store.dispatch.callCount).toBe(2)
+                expect(store.dispatch.args[1]).toEqual([{
+                    type: 'SHOW_MODAL',
+                    modalType: 'ITEM_ACTIONS_MODAL',
+                    modalProps: {
+                        eventDetail: data.events[0],
+                        actionType: 'Reschedule',
+                    },
+                }])
+
+                expect(services.notify.error.callCount).toBe(0)
+
+                done()
+            })
+        })
     })
 })

@@ -333,30 +333,38 @@ Feature: Events
         [{}]
         """
         Then we get OK response
-        When we get "/events"
-        Then we get list with 2 items
+        When we get "/events/123"
+        Then we get existing resource
         """
-        {"_items": [
-            {
-                "_id": "123",
-                "name": "event 123",
-                "state": "published"
-            },
-            {
-                "_id": "#duplicate._id#",
-                "name": "event 123",
-                "state": "in_progress",
-                "occur_status": {"qcode": "eocstat:eos5"}
-            }
-        ]}
+        {
+            "_id": "123",
+            "name": "event 123",
+            "state": "published",
+            "duplicate_to": ["#duplicate._id#"]
+        }
+        """
+        When we get "/events/#duplicate._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#duplicate._id#",
+            "name": "event 123",
+            "state": "in_progress",
+            "occur_status": {"qcode": "eocstat:eos5"},
+            "duplicate_from": "123"
+        }
         """
         When we get "/events_history"
-        Then we get list with 5 items
+        Then we get list with 6 items
         """
         {"_items": [
             {
                 "operation": "create",
                 "event_id": "123"
+            },
+            {
+                "operation": "publish",
+                "update": { "state" : "published", "pubstatus": "usable" }
             },
             {
                 "operation": "create",
@@ -371,8 +379,8 @@ Feature: Events
                 "update": { "duplicate_id" : "123"}
             },
             {
-                "operation": "publish",
-                "update": { "state" : "published"}
+                "operation": "update",
+                "update": { "duplicate_to": ["#duplicate._id#"] }
             }
         ]}
         """
@@ -452,7 +460,7 @@ Feature: Events
         ]}
         """
         When we get "/events_history"
-        Then we get list with 4 items
+        Then we get list with 5 items
         """
         {"_items": [
             {
@@ -470,6 +478,10 @@ Feature: Events
             {
                 "operation": "duplicate_from",
                 "update": { "duplicate_id" : "#eventId#"}
+            },
+            {
+                "operation": "update",
+                "update": { "duplicate_to": ["#duplicate._id#"] }
             }
         ]}
         """

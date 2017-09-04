@@ -13,8 +13,9 @@ from superdesk import get_resource_service
 from superdesk.resource import Resource
 from superdesk.services import BaseService
 from superdesk.metadata.utils import item_url
-from flask import request
+from flask import request, current_app as app
 from .common import ITEM_STATE, WORKFLOW_STATE
+from eve.utils import config
 
 
 logger = logging.getLogger(__name__)
@@ -34,20 +35,28 @@ class EventsDuplicateResource(Resource):
 
 class EventsDuplicateService(BaseService):
     def create(self, docs, **kwargs):
+        events_service = get_resource_service('events')
         history_service = get_resource_service('events_history')
         parent_id = request.view_args['item_id']
 
-        parent_event = get_resource_service('events').find_one(req=None, _id=parent_id)
+        parent_event = events_service.find_one(req=None, _id=parent_id)
 
         new_event_ids = []
         for doc in docs:
             new_event = self._duplicate_doc(parent_event)
-            new_ids = get_resource_service('events').post([new_event])
+            new_ids = events_service.post([new_event])
             history_service.on_item_created([new_event])
             new_event_ids = new_ids
             for new_id in new_ids:
                 history_service.on_item_updated({'duplicate_id': new_id}, parent_event, 'duplicate')
             history_service.on_item_updated({'duplicate_id': parent_id}, new_event, 'duplicate_from')
+
+        duplicate_ids = parent_event.get('duplicate_to', [])
+        duplicate_ids.extend(new_event_ids)
+
+        events_service.patch(parent_id, {'duplicate_to': duplicate_ids})
+        app.on_updated_events({'duplicate_to': duplicate_ids}, {'_id': parent_id})
+
         return new_event_ids
 
     def _duplicate_doc(self, original):
@@ -60,6 +69,7 @@ class EventsDuplicateService(BaseService):
         new_doc.pop('recurrence_id', None)
         new_doc.pop('previous_recurrence_id', None)
         new_doc[ITEM_STATE] = WORKFLOW_STATE.IN_PROGRESS
+        new_doc['duplicate_from'] = original[config.ID_FIELD]
         eocstat_map = get_resource_service('vocabularies').find_one(req=None, _id='eventoccurstatus')
         if eocstat_map:
             new_doc['occur_status'] = [x for x in eocstat_map.get('items', []) if

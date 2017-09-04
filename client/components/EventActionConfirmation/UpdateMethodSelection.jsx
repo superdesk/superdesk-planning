@@ -13,6 +13,7 @@ export const UpdateMethodSelection = ({
         dateFormat,
         action,
         handleSubmit,
+        showSpace,
     }) => {
     return (
         <div>
@@ -54,7 +55,7 @@ export const UpdateMethodSelection = ({
                 </div>
             )}
 
-            { showMethodSelection && relatedPlannings.length === 0 && relatedEvents.length === 0 && (
+            { showSpace && showMethodSelection && relatedPlannings.length === 0 && relatedEvents.length === 0 && (
                 <div className="spacing" />
             )}
         </div>
@@ -65,6 +66,7 @@ UpdateMethodSelection.defaultProps = {
     relatedPlannings: [],
     relatedEvents: [],
     action: 'affect',
+    showSpace: true,
 }
 
 UpdateMethodSelection.propTypes = {
@@ -75,4 +77,5 @@ UpdateMethodSelection.propTypes = {
     dateFormat: PropTypes.string,
     action: PropTypes.string,
     handleSubmit: PropTypes.func.isRequired,
+    showSpace: PropTypes.bool,
 }

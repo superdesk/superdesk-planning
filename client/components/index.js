@@ -72,6 +72,8 @@ export { CoverageContainer } from './CoverageContainer/index'
 export { ToggleBox } from './ToggleBox/index'
 export { WorkqueueContainer } from './WorkqueueContainer/index'
 export { WorkqueueList } from './WorkqueueList/index'
+export { EventScheduleForm } from './EventScheduleForm'
+export { EventScheduleSummary } from './EventScheduleSummary'
 
 // This must go last, as it imports Modals from above modules
 export { ModalsContainer } from './ModalsContainer'

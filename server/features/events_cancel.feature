@@ -20,7 +20,7 @@ Feature: Events Cancel
             "lock_session": "session123"
         }]
         """
-        When we cancel events "event1"
+        When we perform cancel on events "event1"
         Then we get OK response
         And we get notifications
         """
@@ -88,7 +88,7 @@ Feature: Events Cancel
             "state": "in_progress"
         }]
         """
-        When we cancel events "event1"
+        When we perform cancel on events "event1"
         Then we get OK response
         And we get notifications
         """
@@ -213,7 +213,7 @@ Feature: Events Cancel
         }]
         """
         Then we get OK response
-        When we cancel events "#EVENT3._id#"
+        When we perform cancel on events "#EVENT3._id#"
         """
         {"update_method": "all"}
         """
@@ -279,7 +279,7 @@ Feature: Events Cancel
             }
         }]
         """
-        When we cancel events "event1"
+        When we perform cancel on events "event1"
         """
         {"reason": "Not happening anymore!"}
         """
