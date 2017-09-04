@@ -4,8 +4,10 @@ import { Modal } from '../index'
 import { Button } from 'react-bootstrap'
 import './style.scss'
 import { isBoolean } from 'lodash'
+import { isPristine, isSubmitting } from 'redux-form'
+import { connect } from 'react-redux'
 
-export class ModalWithForm extends React.Component {
+export class Component extends React.Component {
     constructor(props) {
         super(props)
 
@@ -30,6 +32,7 @@ export class ModalWithForm extends React.Component {
             initialValues: this.props.initialValues,
             ref: 'form',
         })
+
         return (
             <Modal show={this.props.show}
                    onHide={this.props.onHide}
@@ -53,8 +56,7 @@ export class ModalWithForm extends React.Component {
                     <Button type="submit"
                             className="btn btn--primary"
                             onClick={this.submit}
-                            disabled={this.props.pristine ||
-                                this.props.submitting}>
+                            disabled={this.props.pristine || this.props.submitting}>
                         { this.props.saveButtonText || 'Save' }
                     </Button>
                 </Modal.Footer>
@@ -63,8 +65,10 @@ export class ModalWithForm extends React.Component {
     }
 }
 
-ModalWithForm.propTypes = {
+Component.propTypes = {
     form: PropTypes.func.isRequired,
+    // eslint-disable-next-line react/no-unused-prop-types
+    formNameForPristineCheck: PropTypes.string,
     initialValues: PropTypes.object,
     title: PropTypes.string,
     show: PropTypes.bool,
@@ -73,8 +77,21 @@ ModalWithForm.propTypes = {
     submitting: PropTypes.func,
     cancelButtonText: PropTypes.string,
     saveButtonText: PropTypes.string,
-    large: React.PropTypes.bool,
-    fill: React.PropTypes.bool,
-    fullscreen: React.PropTypes.bool,
-    white: React.PropTypes.bool,
+    large: PropTypes.bool,
+    fill: PropTypes.bool,
+    fullscreen: PropTypes.bool,
+    white: PropTypes.bool,
 }
+
+
+const mapStateToProps = (state, ownProps) => ({
+    pristine: ownProps.formNameForPristineCheck ?
+        isPristine(ownProps.formNameForPristineCheck)(state) : false,
+    submitting: ownProps.formNameForPristineCheck ?
+        isSubmitting(ownProps.formNameForPristineCheck)(state) : false,
+})
+
+export const ModalWithForm = connect(
+    mapStateToProps,
+    null
+)(Component)

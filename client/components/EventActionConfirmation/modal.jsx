@@ -9,11 +9,12 @@ import {
     RescheduleEventForm,
 } from './index'
 import { get } from 'lodash'
-import { GENERIC_ITEM_ACTIONS, EVENTS } from '../../constants'
+import { GENERIC_ITEM_ACTIONS, EVENTS, FORM_NAMES } from '../../constants'
 
 export const EventActionConfirmationModal = ({ handleHide, modalProps }) => {
     let title
     let form
+    let formNameForPristineCheck
     let saveText = 'Save'
 
     switch (modalProps.actionType) {
@@ -27,11 +28,13 @@ export const EventActionConfirmationModal = ({ handleHide, modalProps }) => {
             title = 'Cancel an event'
             saveText = 'OK'
             form = CancelEventForm
+            formNameForPristineCheck = FORM_NAMES.CancelEventForm
             break
 
         case EVENTS.ITEM_ACTIONS.UPDATE_TIME.label:
             title = 'Update time'
             form = UpdateTimeForm
+            formNameForPristineCheck = FORM_NAMES.UpdateTimeForm
             break
 
         case EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label:
@@ -51,6 +54,7 @@ export const EventActionConfirmationModal = ({ handleHide, modalProps }) => {
             title={title}
             onHide={handleHide}
             form={form}
+            formNameForPristineCheck={formNameForPristineCheck}
             initialValues={modalProps.eventDetail}
             saveButtonText={saveText}
             cancelButtonText="Cancel"
