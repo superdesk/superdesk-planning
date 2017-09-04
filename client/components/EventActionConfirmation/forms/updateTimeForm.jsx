@@ -9,7 +9,6 @@ import '../style.scss'
 import { get } from 'lodash'
 import { UpdateMethodSelection } from '../UpdateMethodSelection'
 import { ChainValidators, EndDateAfterStartDate } from '../../../validators'
-import moment from 'moment'
 
 export class Component extends React.Component {
     constructor(props) {
@@ -29,8 +28,6 @@ export class Component extends React.Component {
 
         let event = initialValues
         let isRecurring = !!event.recurrence_id
-        event.dates.start = moment(event.dates.start)
-        event.dates.end = moment(event.dates.end)
 
         const dateStr = event.dates.start.format('MMMM Do YYYY')
 

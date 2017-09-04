@@ -583,6 +583,7 @@ export const getItemState = (item) => (get(item, 'state', WORKFLOW_STATE.IN_PROG
 export const isItemCancelled = (item) => getItemState(item) === WORKFLOW_STATE.CANCELLED
 export const isItemRescheduled = (item) => getItemState(item) === WORKFLOW_STATE.RESCHEDULED
 export const isItemKilled = (item) => getItemState(item) === WORKFLOW_STATE.KILLED
+export const isItemPostponed = (item) => getItemState(item) === WORKFLOW_STATE.POSTPONED
 
 export const getItemStateUiLabel = (item) => {
     switch (getItemState(item)) {
@@ -614,6 +615,17 @@ export const getItemStateUiLabel = (item) => {
             return {
                 label: 'Rescheduled',
                 iconType: 'warning',
+            }
+        case WORKFLOW_STATE.CANCELLED:
+            return {
+                label: 'Cancelled',
+                iconType: 'yellow2',
+            }
+        case WORKFLOW_STATE.POSTPONED:
+            return {
+                label: 'Postponed',
+                iconType: 'yellow2',
+
             }
     }
 }

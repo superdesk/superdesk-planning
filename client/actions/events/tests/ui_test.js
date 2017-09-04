@@ -35,15 +35,7 @@ describe('actions.events.ui', () => {
 
         sinon.stub(eventsApi, 'refetchEvents').callsFake(() => (Promise.resolve()))
 
-        sinon.stub(eventsUi, '_openSpikeModal').callsFake(
-            () => (Promise.resolve())
-        )
-
-        sinon.stub(eventsUi, '_openSingleSpikeModal').callsFake(
-            () => (Promise.resolve())
-        )
-
-        sinon.stub(eventsUi, '_openMultiSpikeModal').callsFake(
+        sinon.stub(eventsUi, '_openActionModal').callsFake(
             () => (Promise.resolve())
         )
 
@@ -56,6 +48,9 @@ describe('actions.events.ui', () => {
         sinon.stub(planningApi, 'fetch').callsFake(() => (Promise.resolve([])))
 
         sinon.stub(eventsUi, 'setEventsList').callsFake(() => (Promise.resolve()))
+        sinon.stub(eventsApi, 'loadEventDataForAction').callsFake(
+            (event) => (Promise.resolve(event))
+        )
 
         sinon.stub(eventsUi, '_openEventDetails').callsFake(() => (Promise.resolve()))
         sinon.stub(eventsApi, 'lock').callsFake((item) => (Promise.resolve(item)))
@@ -71,12 +66,11 @@ describe('actions.events.ui', () => {
         restoreSinonStub(eventsApi.loadEventsByRecurrenceId)
         restoreSinonStub(eventsApi.loadRecurringEventsAndPlanningItems)
         restoreSinonStub(eventsApi.refetchEvents)
-        restoreSinonStub(eventsUi._openSpikeModal)
-        restoreSinonStub(eventsUi._openSingleSpikeModal)
-        restoreSinonStub(eventsUi._openMultiSpikeModal)
+        restoreSinonStub(eventsUi._openActionModal)
         restoreSinonStub(eventsUi.refetchEvents)
         restoreSinonStub(eventsUi.setEventsList)
         restoreSinonStub(eventsUi._openEventDetails)
+        restoreSinonStub(eventsApi.loadEventDataForAction)
         restoreSinonStub(eventsApi.lock)
         restoreSinonStub(eventsApi.unlock)
         restoreSinonStub(eventsApi.rescheduleEvent)
@@ -84,140 +78,153 @@ describe('actions.events.ui', () => {
         restoreSinonStub(planningApi.fetch)
     })
 
-    describe('openSpikeModal', () => {
+    it('openSpikeModal calls `_openActionModal`', (done) => (
+        store.test(done, eventsUi.openSpikeModal(data.events[1]))
+        .then(() => {
+            expect(eventsUi._openActionModal.callCount).toBe(1)
+            expect(eventsUi._openActionModal.args[0]).toEqual([
+                data.events[1],
+                'Spike',
+                null,
+                true,
+                false,
+            ])
+
+            done()
+        })
+    ))
+
+    it('openCancelModal calls `_openActionModal`', (done) => (
+        store.test(done, eventsUi.openCancelModal(data.events[1]))
+        .then(() => {
+            expect(eventsUi._openActionModal.callCount).toBe(1)
+            expect(eventsUi._openActionModal.args[0]).toEqual([
+                data.events[1],
+                'Cancel',
+                'cancel_event',
+                true,
+                false,
+            ])
+
+            done()
+        })
+    ))
+
+    it('openPostponeModal calls `_openActionModal`', (done) => (
+        store.test(done, eventsUi.openPostponeModal(data.events[1]))
+        .then(() => {
+            expect(eventsUi._openActionModal.callCount).toBe(1)
+            expect(eventsUi._openActionModal.args[0]).toEqual([
+                data.events[1],
+                'Mark as Postponed',
+                'postpone_event',
+                true,
+                false,
+            ])
+
+            done()
+        })
+    ))
+
+    it('updateTime calls `_openActionModal`', (done) => (
+        store.test(done, eventsUi.updateTime(data.events[1]))
+        .then(() => {
+            expect(eventsUi._openActionModal.callCount).toBe(1)
+            expect(eventsUi._openActionModal.args[0]).toEqual([
+                data.events[1],
+                'Update time',
+                'update_time',
+                false,
+                false,
+            ])
+
+            done()
+        })
+    ))
+
+    it('openRescheduleModal calls `_openActionModal`', (done) => (
+        store.test(done, eventsUi.openRescheduleModal(data.events[1]))
+        .then(() => {
+            expect(eventsUi._openActionModal.callCount).toBe(1)
+            expect(eventsUi._openActionModal.args[0]).toEqual([
+                data.events[1],
+                'Reschedule',
+                'reschedule_event',
+                true,
+                false,
+                true,
+            ])
+
+            done()
+        })
+    ))
+
+    describe('openActionModal', () => {
         beforeEach(() => {
-            restoreSinonStub(eventsUi._openSpikeModal)
+            restoreSinonStub(eventsUi._openActionModal)
         })
 
-        it('calls _openSingleSpikeModal', () => {
-            const action = eventsUi._openSpikeModal(data.events[1])
-            action(store.dispatch)
+        it('openActionModal locks event, calls loadEventDataForAction then shows modal', (done) => (
+            store.test(done, eventsUi._openActionModal(
+                data.events[1],
+                'Cancel Event',
+                'cancel_event',
+                true,
+                false
+            )).then(() => {
+                expect(eventsApi.lock.callCount).toBe(1)
+                expect(eventsApi.lock.args[0]).toEqual([data.events[1], 'cancel_event'])
 
-            // Opens the Single Spike modal
-            expect(eventsUi._openSingleSpikeModal.callCount).toBe(1)
-            expect(eventsUi._openSingleSpikeModal.args[0]).toEqual([data.events[1]])
+                expect(eventsApi.loadEventDataForAction.callCount).toBe(1)
+                expect(eventsApi.loadEventDataForAction.args[0]).toEqual([
+                    data.events[1],
+                    true,
+                    false,
+                ])
 
-            // Doesn't open the Multi Spike modal
-            expect(eventsUi._openMultiSpikeModal.callCount).toBe(0)
-        })
-
-        it('calls _openMultiSpikeModal', () => {
-            data.events[1].recurrence_id = 'rec1'
-            const action = eventsUi._openSpikeModal(data.events[1])
-            action(store.dispatch)
-
-            // Doesn't open the Single Spike modal
-            expect(eventsUi._openSingleSpikeModal.callCount).toBe(0)
-
-            // Opens the Multi Spike modal
-            expect(eventsUi._openMultiSpikeModal.callCount).toBe(1)
-            expect(eventsUi._openMultiSpikeModal.args[0]).toEqual([data.events[1]])
-        })
-
-        it('openSpikeModal raises ACCESS_DENIED without permission', (done) => {
-            store.initialState.privileges.planning_event_spike = 0
-            return store.test(done, eventsUi.openSpikeModal(data.events[1]))
-            .catch(() => {
-                expectAccessDenied({
-                    store,
-                    permission: PRIVILEGES.SPIKE_EVENT,
-                    action: '_openSpikeModal',
-                    errorMessage: 'Unauthorised to spike an Event',
-                    args: [data.events[1]],
-                })
-
-                done()
-            })
-        })
-    })
-
-    describe('_openSingleSpikeModal', () => {
-        beforeEach(() => {
-            restoreSinonStub(eventsUi._openSingleSpikeModal)
-        })
-
-        it('loads planning items and shows the modal', (done) => (
-            store.test(done, eventsUi._openSingleSpikeModal(data.events[1]))
-            .then(() => {
-                expect(planningApi.loadPlanningByEventId.callCount).toBe(1)
-                expect(planningApi.loadPlanningByEventId.args[0]).toEqual([data.events[1]._id])
-
-                expect(store.dispatch.callCount).toBe(2)
-                expect(store.dispatch.args[1]).toEqual([{
+                expect(store.dispatch.callCount).toBe(3)
+                expect(store.dispatch.args[2]).toEqual([{
                     type: 'SHOW_MODAL',
                     modalType: 'ITEM_ACTIONS_MODAL',
                     modalProps: {
-                        eventDetail: {
-                            ...data.events[1],
-                            _plannings: data.plannings,
-                        },
-                        actionType: 'Spike',
+                        eventDetail: data.events[1],
+                        actionType: 'Cancel Event',
+                        large: false,
                     },
                 }])
-
-                expect(services.notify.error.callCount).toBe(0)
 
                 done()
             })
         ))
 
-        it('notifies user upon loadPlanningByEventId error', (done) => {
-            restoreSinonStub(planningApi.loadPlanningByEventId)
-            sinon.stub(planningApi, 'loadPlanningByEventId').callsFake(
-                () => (Promise.reject(errorMessage))
-            )
-            return store.test(done, eventsUi._openSingleSpikeModal(data.events[1]))
-            .then(() => {}, (error) => {
+        it('openActionModal displays error message if lock fails', (done) => {
+            restoreSinonStub(eventsApi.lock)
+            sinon.stub(eventsApi, 'lock').callsFake(() => (Promise.reject(errorMessage)))
+            return store.test(done, eventsUi._openActionModal(
+                data.events[1],
+                'Cancel Event',
+                'cancel_event',
+                true,
+                false
+            )).then(() => {}, (error) => {
                 expect(error).toEqual(errorMessage)
-
-                expect(services.notify.error.callCount).toBe(1)
-                expect(services.notify.error.args[0]).toEqual(['Failed!'])
-
                 done()
             })
         })
-    })
 
-    describe('_openMultiSpikeModal', () => {
-        beforeEach(() => {
-            restoreSinonStub(eventsUi._openMultiSpikeModal)
-            data.events[0].recurrence_id = 'rec1'
-        })
-
-        it('loads events/planning items and shows the modal', (done) => (
-            store.test(done, eventsUi._openMultiSpikeModal(data.events[0]))
-            .then(() => {
-                expect(eventsApi.loadRecurringEventsAndPlanningItems.callCount).toBe(1)
-                expect(eventsApi.loadRecurringEventsAndPlanningItems.args[0])
-                    .toEqual([data.events[0]])
-
-                expect(store.dispatch.callCount).toBe(2)
-                expect(store.dispatch.args[1]).toEqual([{
-                    type: 'SHOW_MODAL',
-                    modalType: 'ITEM_ACTIONS_MODAL',
-                    modalProps: {
-                        eventDetail: data.events[0],
-                        actionType: 'Spike',
-                    },
-                }])
-
-                done()
-            })
-        ))
-
-        it('notifies user if failed to load associated items', (done) => {
-            restoreSinonStub(eventsApi.loadRecurringEventsAndPlanningItems)
-            sinon.stub(eventsApi, 'loadRecurringEventsAndPlanningItems').callsFake(
+        it('openActionModal displays error message if loadEvents fails', (done) => {
+            restoreSinonStub(eventsApi.loadEventDataForAction)
+            sinon.stub(eventsApi, 'loadEventDataForAction').callsFake(
                 () => (Promise.reject(errorMessage))
             )
-
-            return store.test(done, eventsUi._openMultiSpikeModal(data.events[0]))
-            .then(() => {}, (error) => {
+            return store.test(done, eventsUi._openActionModal(
+                data.events[1],
+                'Cancel Event',
+                'cancel_event',
+                true,
+                false
+            )).then(() => {}, (error) => {
                 expect(error).toEqual(errorMessage)
-
-                expect(services.notify.error.callCount).toBe(1)
-                expect(services.notify.error.args[0]).toEqual(['Failed!'])
-
                 done()
             })
         })
@@ -490,56 +497,5 @@ describe('actions.events.ui', () => {
                 expect(services.notify.error.callCount).toBe(0)
                 done()
             })
-    })
-
-    describe('_openRescheduleModal', () => {
-        it('loads planning items and shows single reschedule modal', (done) => (
-            store.test(done, eventsUi._openSingleRescheduleModal(data.events[1]))
-            .then(() => {
-                expect(planningApi.loadPlanningByEventId.callCount).toBe(1)
-                expect(planningApi.loadPlanningByEventId.args[0]).toEqual([data.events[1]._id])
-
-                expect(store.dispatch.callCount).toBe(2)
-                expect(store.dispatch.args[1]).toEqual([{
-                    type: 'SHOW_MODAL',
-                    modalType: 'ITEM_ACTIONS_MODAL',
-                    modalProps: {
-                        eventDetail: {
-                            ...data.events[1],
-                            _plannings: data.plannings,
-                        },
-                        actionType: 'Reschedule',
-                    },
-                }])
-
-                expect(services.notify.error.callCount).toBe(0)
-
-                done()
-            })
-        ))
-
-        it('loads planning items and shows recurring reschedule modal', (done) => {
-            data.events[0].recurrence_id = 'rec1'
-            store.test(done, eventsUi._openMultiRescheduleModal(data.events[0]))
-            .then(() => {
-                expect(eventsApi.loadRecurringEventsAndPlanningItems.callCount).toBe(1)
-                expect(eventsApi.loadRecurringEventsAndPlanningItems.args[0])
-                    .toEqual([data.events[0]])
-
-                expect(store.dispatch.callCount).toBe(2)
-                expect(store.dispatch.args[1]).toEqual([{
-                    type: 'SHOW_MODAL',
-                    modalType: 'ITEM_ACTIONS_MODAL',
-                    modalProps: {
-                        eventDetail: data.events[0],
-                        actionType: 'Reschedule',
-                    },
-                }])
-
-                expect(services.notify.error.callCount).toBe(0)
-
-                done()
-            })
-        })
     })
 })

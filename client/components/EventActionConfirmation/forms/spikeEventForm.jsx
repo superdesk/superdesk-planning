@@ -8,17 +8,17 @@ import { EventUpdateMethods } from '../../fields/index'
 import '../style.scss'
 import { UpdateMethodSelection } from '../UpdateMethodSelection'
 
-const Component = ({ handleSubmit, initialValues, relatedPlannings=[] }) => {
+const Component = ({ handleSubmit, initialValues, relatedEvents=[], relatedPlannings=[] }) => {
     let event = initialValues
+    const isRecurring = !!event.recurrence_id
 
     // Default the update_method to 'Spike this event only'
     event.update_method = EventUpdateMethods[0]
     let startStr = moment(event.dates.start).format('MMMM Do YYYY, h:mm:ss a')
     let endStr = moment(event.dates.end).format('MMMM Do YYYY, h:mm:ss a')
-    let showRecurring = event.recurrence_id &&
-            event._recurring &&
-            event._recurring.events &&
-            event._recurring.events.length > 1
+
+    const numEvents = relatedEvents.length + 1
+    const numPlannings = relatedPlannings.length
 
     const updateMethodLabel = 'Would you like to spike all recurring events or just this one?'
 
@@ -31,15 +31,15 @@ const Component = ({ handleSubmit, initialValues, relatedPlannings=[] }) => {
                     <dd>{ startStr }</dd>
                     <dt>Ends:</dt>
                     <dd>{ endStr }</dd>
-                    { showRecurring && (<dt>Events:</dt>)}
-                    { showRecurring && (<dd>{ event._recurring.events.length }</dd>)}
-                    { showRecurring && (<dt>Plannings:</dt>)}
-                    { showRecurring && (<dd>{ relatedPlannings.length }</dd>)}
+                    { isRecurring && (<dt>Events:</dt>)}
+                    { isRecurring && (<dd>{ numEvents }</dd>)}
+                    { isRecurring && (<dt>Plannings:</dt>)}
+                    { isRecurring && (<dd>{ numPlannings }</dd>)}
                 </dl>
             </div>
 
             {<UpdateMethodSelection
-                showMethodSelection={showRecurring}
+                showMethodSelection={isRecurring}
                 updateMethodLabel={updateMethodLabel}
                 relatedPlannings={relatedPlannings}
                 handleSubmit={handleSubmit}
@@ -51,6 +51,7 @@ const Component = ({ handleSubmit, initialValues, relatedPlannings=[] }) => {
 Component.propTypes = {
     handleSubmit: PropTypes.func.isRequired,
     initialValues: PropTypes.object.isRequired,
+    relatedEvents: PropTypes.array,
     relatedPlannings: PropTypes.array,
 }
 
@@ -58,7 +59,10 @@ Component.propTypes = {
 export const SpikeEvent = reduxForm({ form: 'spikeEvent' })(Component)
 
 const selector = formValueSelector('spikeEvent')
-const mapStateToProps = (state) => ({ relatedPlannings: selector(state, '_plannings') })
+const mapStateToProps = (state) => ({
+    relatedPlannings: selector(state, '_relatedPlannings'),
+    relatedEvents: selector(state, '_events'),
+})
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */

@@ -58,6 +58,9 @@ class HistoryService(Service):
             'reschedule_from'
         )
 
+    def on_postpone(self, updates, original):
+        self.on_item_updated(updates, original, 'postpone')
+
     def get_user_id(self):
         user = getattr(g, 'user', None)
         if user:

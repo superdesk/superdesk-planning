@@ -37,6 +37,7 @@ class EventsListComponent extends React.Component {
             session,
             onCancelEvent,
             onRescheduleEvent,
+            onPostponeEvent,
             addEventToCurrentAgenda,
         } = this.props
         return (
@@ -83,6 +84,7 @@ class EventsListComponent extends React.Component {
                                 onEventUnspike={this.props.unspikeEvent}
                                 onEventDuplicate={this.props.duplicateEvent}
                                 onCancelEvent={onCancelEvent}
+                                onPostponeEvent={onPostponeEvent}
                                 onEventUpdateTime={this.props.updateEventTime}
                                 onRescheduleEvent={onRescheduleEvent}
                                 highlightedEvent={this.props.highlightedEvent}
@@ -120,6 +122,7 @@ EventsListComponent.propTypes = {
     session: PropTypes.object,
     onCancelEvent: PropTypes.func,
     onRescheduleEvent: PropTypes.func,
+    onPostponeEvent: PropTypes.func,
     addEventToCurrentAgenda: PropTypes.func,
 }
 
@@ -150,6 +153,7 @@ const mapDispatchToProps = (dispatch) => ({
     onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
     onRescheduleEvent: (event) => dispatch(actions.events.ui.openRescheduleModal(event)),
     addEventToCurrentAgenda: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
+    onPostponeEvent: (event) => dispatch(actions.events.ui.openPostponeModal(event)),
 })
 
 export const EventsListContainer = connect(

@@ -27,6 +27,7 @@ describe('planning', () => {
             const onCancel = sinon.spy()
             const onUpdateTime = sinon.spy()
             const onRescheduleEvent = sinon.spy()
+            const onPostponeEvent = sinon.spy()
 
             const getWrapper = (params=null) => {
                 if (params !== null) {
@@ -58,6 +59,7 @@ describe('planning', () => {
                         onCancelEvent={onCancel}
                         onUpdateEventTime={onUpdateTime}
                         onRescheduleEvent={onRescheduleEvent}
+                        onPostponeEvent={onPostponeEvent}
                         privileges={privileges} />
                     </Provider>
                 )
@@ -78,6 +80,7 @@ describe('planning', () => {
                     onCancelEvent={onCancel}
                     onUpdateEventTime={onUpdateTime}
                     onRescheduleEvent={onRescheduleEvent}
+                    onPostponeEvent={onPostponeEvent}
                     privileges={privileges}
                 />)
             )

@@ -535,11 +535,14 @@ const receivePlanningHistory = (planningHistoryItems) => ({
  * @param {object} query - The query used to query the Planning items
  * @return Promise
  */
-const loadPlanning = (query) => (
+const loadPlanning = (query, loadToStore=true) => (
     (dispatch) => (
         dispatch(self.query(query))
         .then((data) => {
-            dispatch(self.receivePlannings(data))
+            if (loadToStore) {
+                dispatch(self.receivePlannings(data))
+            }
+
             return Promise.resolve(data)
         }, (error) => (Promise.reject(error)))
     )
@@ -603,11 +606,12 @@ const loadPlanningById = (ids=[], spikeState = SPIKED_STATE.BOTH) => (
  * @param {string} spikeState - Planning item's spiked state (SPIKED, NOT_SPIKED or BOTH)
  * @return Promise
  */
-const loadPlanningByEventId = (eventIds, spikeState = SPIKED_STATE.BOTH) => (
+const loadPlanningByEventId = (eventIds, spikeState = SPIKED_STATE.BOTH, loadToStore=true) => (
     (dispatch) => (
         dispatch(self.loadPlanning({
             eventIds,
             spikeState,
+            loadToStore,
         }))
     )
 )
@@ -955,6 +959,14 @@ const markPlanningCancelled = (plan, reason, coverageState) => ({
     },
 })
 
+const markPlanningPostponed = (plan, reason) => ({
+    type: PLANNING.ACTIONS.MARK_PLANNING_POSTPONED,
+    payload: {
+        planning_item: plan,
+        reason,
+    },
+})
+
 const self = {
     spike,
     unspike,
@@ -983,6 +995,7 @@ const self = {
     refetch,
     duplicate,
     markPlanningCancelled,
+    markPlanningPostponed,
 }
 
 export default self

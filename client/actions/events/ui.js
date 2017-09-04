@@ -5,7 +5,6 @@ import eventsApi from './api'
 import { fetchSelectedAgendaPlannings } from '../agenda'
 import * as selectors from '../../selectors'
 import { get, last } from 'lodash'
-import moment from 'moment'
 import {
     checkPermission,
     getErrorMessage,
@@ -147,126 +146,6 @@ const _unlockAndOpenEventDetails = (event) => (
 )
 
 /**
- * Helper function to open the appropriate Spike Modal
- * @param {object} event - The Event to be spiked
- */
-const _openSpikeModal = (event) => (
-    (dispatch) => {
-        if (!event.recurrence_id) {
-            return dispatch(self._openSingleSpikeModal(event))
-        } else {
-            return dispatch(self._openMultiSpikeModal(event))
-        }
-    }
-)
-
-/**
- * Open Update Time action modal
- * @param {object} event - The Event to update
- */
-const updateTime = (event, publish=false) => (
-    (dispatch, getState, { notify }) => {
-        if (!isItemLockedInThisSession(event, selectors.getSessionDetails(getState()))) {
-            return dispatch(eventsApi.lock(event, 'update_time'))
-                .then((lockedEvent) => {
-                    dispatch(_openUpdateTimeModal(lockedEvent, publish))
-                }, (error) => {
-                    notify.error(getErrorMessage(error, 'Failed to obtain the Event lock'))
-                    return Promise.reject(error)
-                })
-        } else {
-            dispatch(_openUpdateTimeModal(event, publish))
-        }
-    }
-)
-
-const _openUpdateTimeModal = (event, publish) => (
-    (dispatch) => {
-        if (get(event, 'recurrence_id')) {
-            return dispatch(eventsApi.query({ recurrenceId: event.recurrence_id }))
-            .then((relatedEvents) => {
-                dispatch(showModal({
-                    modalType: 'ITEM_ACTIONS_MODAL',
-                    modalProps: {
-                        eventDetail: {
-                            ...event,
-                            _recurring: get(relatedEvents, '_items', [event]),
-                            _publish: publish,
-                            _events: [],
-                            _originalEvent: event,
-                        },
-                        actionType: EVENTS.ITEM_ACTIONS.UPDATE_TIME.label,
-                    },
-                }))
-            })
-        }
-
-        return dispatch(showModal({
-            modalType: 'ITEM_ACTIONS_MODAL',
-            modalProps: {
-                eventDetail: { ...event },
-                actionType: EVENTS.ITEM_ACTIONS.UPDATE_TIME.label,
-            },
-        }))
-    }
-)
-
-/**
- * Open the Spike Single Modal
- * @param {object} event - The Event to be spiked
- */
-const _openSingleSpikeModal = (event) => (
-    (dispatch, getState, { notify }) => (
-        dispatch(planning.api.loadPlanningByEventId(event._id))
-        .then((planningItems) => (
-            dispatch(showModal({
-                modalType: 'ITEM_ACTIONS_MODAL',
-                modalProps: {
-                    eventDetail: {
-                        ...event,
-                        _plannings: planningItems,
-                    },
-                    actionType: GENERIC_ITEM_ACTIONS.SPIKE.label,
-                },
-            }))
-        ), (error) => {
-            notify.error(
-                getErrorMessage(error, 'Failed to load associated Planning items.')
-            )
-            return Promise.reject(error)
-        })
-    )
-)
-
-/**
- * Open the Spike Multiple Modal
- * @param {object} event - The Event to be spiked
- */
-const _openMultiSpikeModal = (event) => (
-    (dispatch, getState, { notify }) => (
-        dispatch(eventsApi.loadRecurringEventsAndPlanningItems(event))
-        .then((events) => {
-            dispatch(showModal({
-                modalType: 'ITEM_ACTIONS_MODAL',
-                modalProps: {
-                    eventDetail: events,
-                    actionType: GENERIC_ITEM_ACTIONS.SPIKE.label,
-                },
-            }))
-            return Promise.resolve(events)
-        }, (error) => {
-            notify.error(
-                getErrorMessage(
-                    error,
-                    'Failed to load associated planning items'
-                )
-            )
-            return Promise.reject(error)
-        })
-    )
-)
-
-/**
  * Spike an event and notify the user of the result
  * @param {object} event - The event to spike
  */
@@ -401,70 +280,6 @@ const refetchEvents = () => (
     )
 )
 
-const _openCancelModal = (event) => (
-    (dispatch, getState, { notify }) => (
-        dispatch(eventsApi.lock(event, 'cancel'))
-        .then((lockedEvent) => {
-            if (!event.recurrence_id) {
-                return dispatch(self._openSingleCancelModal(lockedEvent))
-            } else {
-                return dispatch(self._openMultiCancelModal(lockedEvent))
-            }
-        }, (error) => {
-            notify.error(
-                getErrorMessage(error, 'Failed to obtain the Event lock')
-            )
-
-            return Promise.reject(error)
-        })
-    )
-)
-
-const _openSingleCancelModal = (event) => (
-    (dispatch, getState, { notify }) => (
-        dispatch(planning.api.loadPlanningByEventId(event._id))
-        .then((planningItems) => (
-            dispatch(showModal({
-                modalType: 'ITEM_ACTIONS_MODAL',
-                modalProps: {
-                    eventDetail: {
-                        ...event,
-                        _plannings: planningItems,
-                    },
-                    actionType: EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label,
-                },
-            }))
-        ), (error) => {
-            notify.error(
-                getErrorMessage(error, 'Failed to load associated Planning items.')
-            )
-
-            return Promise.reject(error)
-        })
-    )
-)
-
-const _openMultiCancelModal = (event) => (
-    (dispatch, getState, { notify }) => (
-        dispatch(eventsApi.loadRecurringEventsAndPlanningItems(event))
-        .then((events) => {
-            dispatch(showModal({
-                modalType: 'ITEM_ACTIONS_MODAL',
-                modalProps: {
-                    eventDetail: events,
-                    actionType: EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label,
-                },
-            }))
-        }, (error) => {
-            notify.error(
-                getErrorMessage(error, 'Failed to load associated Planning items')
-            )
-
-            return Promise.reject(error)
-        })
-    )
-)
-
 const cancelEvent = (event) => (
     (dispatch, getState, { notify }) => (
         dispatch(eventsApi.cancelEvent(event))
@@ -478,6 +293,115 @@ const cancelEvent = (event) => (
 
             notify.error(
                 getErrorMessage(error, 'Failed to cancel the Event!')
+            )
+
+            return Promise.reject(error)
+        })
+    )
+)
+
+const postponeEvent = (event) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(eventsApi.postponeEvent(event))
+        .then(() => {
+            dispatch(hideModal())
+            notify.success('Event has been postponed')
+
+            return Promise.resolve()
+        }, (error) => {
+            dispatch(hideModal())
+
+            notify.error(
+                getErrorMessage(error, 'Failed to postpone the Event!')
+            )
+
+            return Promise.reject(error)
+        })
+    )
+)
+
+const updateTime = (event, publish=false) => (
+    (dispatch) => dispatch(self._openActionModal(
+        event,
+        EVENTS.ITEM_ACTIONS.UPDATE_TIME.label,
+        'update_time',
+        false,
+        publish
+    ))
+)
+
+const openSpikeModal = (event, publish=false) => (
+    (dispatch) => dispatch(self._openActionModal(
+        event,
+        GENERIC_ITEM_ACTIONS.SPIKE.label,
+        null,
+        true,
+        publish
+    ))
+)
+
+const openCancelModal = (event, publish=false) => (
+    (dispatch) => dispatch(self._openActionModal(
+        event,
+        EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label,
+        'cancel_event',
+        true,
+        publish
+    ))
+)
+
+const openPostponeModal = (event, publish=false) => (
+    (dispatch) => dispatch(self._openActionModal(
+        event,
+        EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label,
+        'postpone_event',
+        true,
+        publish
+    ))
+)
+
+const openRescheduleModal = (event, publish=false) => (
+    (dispatch) => dispatch(self._openActionModal(
+        event,
+        EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label,
+        'reschedule_event',
+        true,
+        publish,
+        true
+    ))
+)
+
+const _openActionModal = (
+    event,
+    action,
+    lockAction=null,
+    loadPlannings=false,
+    publish=false,
+    large=false
+) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(eventsApi.lock(event, lockAction))
+        .then((lockedEvent) => (
+            dispatch(eventsApi.loadEventDataForAction(lockedEvent, loadPlannings, publish))
+            .then((eventDetail) => (
+                dispatch(showModal({
+                    modalType: 'ITEM_ACTIONS_MODAL',
+                    modalProps: {
+                        eventDetail,
+                        actionType: action,
+                        large,
+                    },
+                }))
+            ), (error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to load associated Events')
+                )
+
+                return Promise.reject(error)
+            })
+        ), (error) => {
+            notify.error(
+                getErrorMessage(error, 'Failed to obtain the Event lock')
             )
 
             return Promise.reject(error)
@@ -505,74 +429,6 @@ const rescheduleEvent = (event) => (
 
             notify.error(
                 getErrorMessage(error, 'Failed to reschedule the Event!')
-            )
-
-            return Promise.reject(error)
-        })
-    )
-)
-
-const _openRescheduleModal = (event) => (
-    (dispatch, getState, { notify }) => (
-        dispatch(eventsApi.lock(event, 'reschedule'))
-        .then((lockedEvent) => {
-            // The form fields expects the date/time to be a moment instance
-            // So convert them before opening the modal
-            lockedEvent.dates.start = moment(lockedEvent.dates.start)
-            lockedEvent.dates.end = moment(lockedEvent.dates.end)
-            if (!event.recurrence_id) {
-                return dispatch(self._openSingleRescheduleModal(lockedEvent))
-            } else {
-                return dispatch(self._openMultiRescheduleModal(lockedEvent))
-            }
-        }, (error) => {
-            notify.error(
-                getErrorMessage(error, 'Failed to obtain the Event lock')
-            )
-
-            return Promise.reject(error)
-        })
-    )
-)
-
-const _openSingleRescheduleModal = (event) => (
-    (dispatch, getState, { notify }) => (
-        dispatch(planning.api.loadPlanningByEventId(event._id))
-        .then((planningItems) => (
-            dispatch(showModal({
-                modalType: 'ITEM_ACTIONS_MODAL',
-                modalProps: {
-                    eventDetail: {
-                        ...event,
-                        _plannings: planningItems,
-                    },
-                    actionType: EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label,
-                },
-            }))
-        ), (error) => {
-            notify.error(
-                getErrorMessage(error, 'Failed to load associated Planning items.')
-            )
-
-            return Promise.reject(error)
-        })
-    )
-)
-
-const _openMultiRescheduleModal = (event) => (
-    (dispatch, getState, { notify }) => (
-        dispatch(eventsApi.loadRecurringEventsAndPlanningItems(event))
-        .then((events) => {
-            dispatch(showModal({
-                modalType: 'ITEM_ACTIONS_MODAL',
-                modalProps: {
-                    eventDetail: events,
-                    actionType: EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label,
-                },
-            }))
-        }, (error) => {
-            notify.error(
-                getErrorMessage(error, 'Failed to load associated Planning items.')
             )
 
             return Promise.reject(error)
@@ -616,12 +472,6 @@ const closeAdvancedSearch = () => (
     { type: EVENTS.ACTIONS.CLOSE_ADVANCED_SEARCH }
 )
 
-const openSpikeModal = checkPermission(
-    _openSpikeModal,
-    PRIVILEGES.SPIKE_EVENT,
-    'Unauthorised to spike an Event'
-)
-
 const openBulkSpikeModal = checkPermission(
     _openBulkSpikeModal,
     PRIVILEGES.SPIKE_EVENT,
@@ -647,23 +497,8 @@ const unlockAndOpenEventDetails = checkPermission(
     'Unauthorised to edit an event!'
 )
 
-const openCancelModal = checkPermission(
-    _openCancelModal,
-    PRIVILEGES.EVENT_MANAGEMENT,
-    'Unauthorised to spike an Event'
-)
-
-const openRescheduleModal = checkPermission(
-    _openRescheduleModal,
-    PRIVILEGES.EVENT_MANAGEMENT,
-    'Unauthorised to reschedule an Event'
-)
-
 const self = {
     _openEventDetails,
-    _openSpikeModal,
-    _openSingleSpikeModal,
-    _openMultiSpikeModal,
     _unlockAndOpenEventDetails,
     _previewEvent,
     spike,
@@ -680,18 +515,16 @@ const self = {
     openAdvancedSearch,
     closeAdvancedSearch,
     cancelEvent,
-    _openCancelModal,
-    _openSingleCancelModal,
-    _openMultiCancelModal,
     openCancelModal,
     updateTime,
     minimizeEventDetails,
     unlockAndCloseEditor,
-    _openRescheduleModal,
-    _openSingleRescheduleModal,
-    _openMultiRescheduleModal,
     openRescheduleModal,
     rescheduleEvent,
+
+    postponeEvent,
+    openPostponeModal,
+    _openActionModal,
 }
 
 export default self

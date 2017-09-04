@@ -402,11 +402,14 @@ describe('actions.events.api', () => {
             data.events[0].recurrence_id = 'rec1'
         })
 
-        it('returns Promise.reject if not a recurring event', (done) => {
+        it('loadRecurringEventsAndPlanningItems for single event and no planning items', (done) => {
             delete data.events[0].recurrence_id
-            store.test(done, eventsApi.loadRecurringEventsAndPlanningItems(data.events[0]))
-            .then(() => {}, (error) => {
-                expect(error).toBe('Supplied event is not a recurring event!')
+            store.test(done, eventsApi.loadRecurringEventsAndPlanningItems(data.events[0], false))
+            .then((data) => {
+                expect(data).toEqual({
+                    events: [],
+                    plannings: [],
+                })
                 done()
             })
         })
@@ -415,25 +418,11 @@ describe('actions.events.api', () => {
             store.test(done, eventsApi.loadRecurringEventsAndPlanningItems(data.events[0]))
             .then((events) => {
                 expect(events).toEqual({
-                    ...data.events[0],
-                    _recurring: {
-                        events: data.events,
-                        ids: ['e1', 'e2', 'e3'],
-                        plannings: [
-                            {
-                                ...data.plannings[0],
-                                _agendas: [],
-                            },
-                            {
-                                ...data.plannings[1],
-                                _agendas: [data.agendas[1]],
-                            },
-                        ],
-                    },
-                    _plannings: [{
-                        ...data.plannings[1],
-                        _agendas: [data.agendas[1]],
-                    }],
+                    events: data.events,
+                    plannings: [
+                        data.plannings[0],
+                        data.plannings[1],
+                    ],
                 })
 
                 expect(eventsApi.loadEventsByRecurrenceId.callCount).toBe(1)
@@ -442,10 +431,15 @@ describe('actions.events.api', () => {
                     'both',
                     1,
                     200,
+                    false,
                 ])
 
                 expect(planningApi.loadPlanningByEventId.callCount).toBe(1)
-                expect(planningApi.loadPlanningByEventId.args[0]).toEqual([['e1', 'e2', 'e3']])
+                expect(planningApi.loadPlanningByEventId.args[0]).toEqual([
+                    ['e1', 'e2', 'e3'],
+                    'both',
+                    false,
+                ])
 
                 done()
             })

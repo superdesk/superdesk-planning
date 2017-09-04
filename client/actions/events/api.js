@@ -1,7 +1,8 @@
 import { EVENTS, SPIKED_STATE, WORKFLOW_STATE } from '../../constants'
 import { EventUpdateMethods } from '../../components/fields'
-import { get, isEqual, cloneDeep } from 'lodash'
+import { get, isEqual, map } from 'lodash'
 import * as selectors from '../../selectors'
+import { isItemLockedInThisSession } from '../../utils'
 import moment from 'moment'
 
 import planningApi from '../planning/api'
@@ -12,7 +13,13 @@ import planningApi from '../planning/api'
  * @param rid
  * @param spikeState
  */
-const loadEventsByRecurrenceId = (rid, spikeState = SPIKED_STATE.BOTH, page=1, maxResults=25) => (
+const loadEventsByRecurrenceId = (
+    rid,
+    spikeState=SPIKED_STATE.BOTH,
+    page=1,
+    maxResults=25,
+    loadToStore=true
+) => (
     (dispatch) => (
         dispatch(self.query({
             recurrenceId: rid,
@@ -21,7 +28,10 @@ const loadEventsByRecurrenceId = (rid, spikeState = SPIKED_STATE.BOTH, page=1, m
             maxResults,
         }))
         .then((data) => {
-            dispatch(self.receiveEvents(data._items))
+            if (loadToStore) {
+                dispatch(self.receiveEvents(data._items))
+            }
+
             return Promise.resolve(data._items)
         }, (error) => (
             Promise.reject(error)
@@ -338,53 +348,76 @@ const refetchEvents = () => (
  * then load their associated planning items.
  * @param {object} event - Any event from the series of recurring events
  */
-const loadRecurringEventsAndPlanningItems = (event) => (
-    (dispatch, getState) => {
-        // Make sure we're dealing with a recurring event
-        if (!get(event, 'recurrence_id')) {
-            return Promise.reject('Supplied event is not a recurring event!')
-        }
+const loadRecurringEventsAndPlanningItems = (event, loadPlannings=true) => (
+    (dispatch) => {
+        if (get(event, 'recurrence_id')) {
+            return dispatch(self.loadEventsByRecurrenceId(
+                event.recurrence_id,
+                SPIKED_STATE.BOTH,
+                1,
+                200,
+                false
+            )).then((relatedEvents) => {
+                if (!loadPlannings) {
+                    return Promise.resolve({
+                        events: relatedEvents,
+                        plannings: [],
+                    })
+                }
 
-        // Clone the original so that we can modify its contents
-        const eventDetail = cloneDeep(event)
-
-        // Load all of the events from the series
-        return dispatch(self.loadEventsByRecurrenceId(
-            eventDetail.recurrence_id,
-            SPIKED_STATE.BOTH,
-            1,
-            200
-        ))
-        .then((events) => {
-            // Store the events, and an array of their ids
-            eventDetail._recurring = {
-                events,
-                ids: events.map((e) => (e._id)),
+                return dispatch(planningApi.loadPlanningByEventId(
+                    map(relatedEvents, '_id'),
+                    SPIKED_STATE.BOTH,
+                    false
+                ))
+                .then((plannings) => (
+                    Promise.resolve({
+                        events: relatedEvents,
+                        plannings: plannings,
+                    })
+                ), (error) => Promise.reject(error))
+            }, (error) => Promise.reject(error))
+        } else {
+            if (!loadPlannings || !get(event, 'has_planning', false)) {
+                return Promise.resolve({
+                    events: [],
+                    plannings: [],
+                })
             }
 
-            // Load all the Planning items from all events in the series
-            return dispatch(planningApi.loadPlanningByEventId(
-                eventDetail._recurring.ids
+            return dispatch(planningApi.loadPlanningByEventId(event._id))
+            .then((plannings) => (
+                Promise.resolve({
+                    events: [],
+                    plannings: plannings,
+                })
             ))
-            .then((items) => {
-                // Map the list of Agendas to each Planning item
-                const agendas = selectors.getAgendas(getState())
-                items = items.map((p) => ({
-                    ...p,
-                    _agendas: !p.agendas ? [] : p.agendas.map((id) =>
-                        agendas.find((agenda) => agenda._id === id)
-                    ),
-                }))
-
-                // Store the associated planning items with the event
-                eventDetail._recurring.plannings = items
-                eventDetail._plannings = items.filter((p) => (p.event_item === eventDetail._id))
-
-                // Return the newly created event object
-                return Promise.resolve(eventDetail)
-            }, (error) => (Promise.reject(error)))
-        }, (error) => (Promise.reject(error)))
+        }
     }
+)
+
+const loadEventDataForAction = (event, loadPlanning=true, publish=false) => (
+    (dispatch) => (
+        dispatch(self.loadRecurringEventsAndPlanningItems(event, loadPlanning))
+        .then((relatedEvents) => (
+            Promise.resolve({
+                ...event,
+                dates: {
+                    ...event.dates,
+                    start: moment(event.dates.start),
+                    end: moment(event.dates.end),
+                },
+                _recurring: relatedEvents.events,
+                _publish: publish,
+                _events: [],
+                _originalEvent: event,
+                _plannings: relatedEvents.plannings,
+                _relatedPlannings: relatedEvents.plannings.filter(
+                    (p) => p.event_item === event._id
+                ),
+            })
+        ), (error) => Promise.reject(error))
+    )
 )
 
 /**
@@ -399,19 +432,25 @@ const receiveEvents = (events) => ({
 })
 
 const lock = (event, action='edit') => (
-    (dispatch, getState, { api, notify }) => (
-        api('events_lock', event).save({}, { lock_action: action })
-       .then(
-        (item) => {
-            // On lock, file object in the event is lost, so, replace it from original event
-            item.files = event.files
-            return item
-        }, (error) => {
-            const msg = get(error, 'data._message') || 'Could not lock the event.'
-            notify.error(msg)
-            if (error) throw error
-        })
-    )
+    (dispatch, getState, { api, notify }) => {
+        if (action === null ||
+            isItemLockedInThisSession(event, selectors.getSessionDetails(getState()))
+        ) {
+            return Promise.resolve(event)
+        }
+
+        return api('events_lock', event).save({}, { lock_action: action })
+        .then(
+            (item) => {
+                // On lock, file object in the event is lost, so, replace it from original event
+                item.files = event.files
+                return item
+            }, (error) => {
+                const msg = get(error, 'data._message') || 'Could not lock the event.'
+                notify.error(msg)
+                if (error) throw error
+            })
+    }
 )
 
 const unlock = (event) => (
@@ -476,12 +515,33 @@ const rescheduleEvent = (event) => (
     )
 )
 
+const postponeEvent = (event) => (
+    (dispatch, getState, { api }) => (
+        api.update(
+            'events_postpone',
+            event,
+            {
+                update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
+                reason: get(event, 'reason', undefined),
+            }
+        )
+    )
+)
+
 const markEventCancelled = (event, reason, occurStatus) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_CANCELLED,
     payload: {
         event_item: event,
         reason,
         occur_status: occurStatus,
+    },
+})
+
+const markEventPostponed = (event, reason) => ({
+    type: EVENTS.ACTIONS.MARK_EVENT_POSTPONED,
+    payload: {
+        event_item: event,
+        reason,
     },
 })
 
@@ -506,6 +566,9 @@ const self = {
     markEventCancelled,
     markEventHasPlannings,
     rescheduleEvent,
+    markEventPostponed,
+    postponeEvent,
+    loadEventDataForAction,
 }
 
 export default self

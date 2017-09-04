@@ -7,6 +7,7 @@ import { PlanningForm } from '../index'
 import {
     PlanningHistoryContainer,
     AuditInformation,
+    StateLabel,
 } from '../../components'
 import * as selectors from '../../selectors'
 import { get } from 'lodash'
@@ -307,6 +308,7 @@ export class EditPlanningPanel extends React.Component {
                                 updatedAt={updatedDate} />
                             <ItemActionsMenu actions={itemActions} />
                         </div>
+                        <StateLabel item={planning} verbose={true}/>
                         <div className="state">
                             {planningSpiked &&
                                 <span className="PlanningSpiked label label--alert">planning spiked</span>

@@ -1,19 +1,11 @@
 import React, { PropTypes } from 'react'
 import { get, capitalize, some } from 'lodash'
-import { ListItem, TimePlanning, DueDate, ItemActionsMenu } from '../index'
+import { ListItem, TimePlanning, DueDate, ItemActionsMenu, StateLabel } from '../index'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import classNames from 'classnames'
 import { GENERIC_ITEM_ACTIONS, EVENTS } from '../../constants/index'
 import './style.scss'
-import {
-    getCoverageIcon,
-    isItemPublic,
-    planningUtils,
-    isItemSpiked,
-    isItemCancelled,
-    isItemKilled,
-    isItemRescheduled,
-} from '../../utils/index'
+import { getCoverageIcon, planningUtils, isItemCancelled, isItemRescheduled } from '../../utils/index'
 
 const PlanningItem = ({
         item,
@@ -32,17 +24,15 @@ const PlanningItem = ({
         session,
         onCancelEvent,
         onUpdateEventTime,
+        onPostponeEvent,
     }) => {
     const location = get(event, 'location[0].name')
     const coverages = get(item, 'coverages', [])
     const dueDates = get(item, '_coverages', []).map((c) => (get(c, 'scheduled'))).filter(d => (d))
     const coveragesTypes = planningUtils.mapCoverageByDate(coverages)
     const isScheduled = some(coverages, (c) => (get(c, 'planning.scheduled')))
-    const itemSpiked = isItemSpiked(item)
     const notForPublication = item ? get(item, 'flags.marked_for_not_publication', false) : false
 
-    const isPublic = isItemPublic(item)
-    const isKilled = isItemKilled(item)
     const isCancelled = isItemCancelled(item)
     const isRescheduled = isItemRescheduled(item)
 
@@ -75,6 +65,10 @@ const PlanningItem = ({
             ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
             callback: onRescheduleEvent.bind(null, event),
         },
+        {
+            ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+            callback: onPostponeEvent.bind(null, event),
+        },
     ]
 
     const itemActions = planningUtils.getPlanningItemActions({
@@ -97,17 +91,9 @@ const PlanningItem = ({
             active={active}>
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
                 <div className="sd-list-item__row">
-                    {itemSpiked &&
-                        <span className="label label--alert">spiked</span>
-                    }
+                    <StateLabel item={item}/>
                     {notForPublication &&
                         <span className="state-label not-for-publication">Not for Publication</span>
-                    }
-                    {isPublic &&
-                        <span className="state-label state-published">Public</span>
-                    }
-                    {isKilled &&
-                        <span className="state-label state-killed">Killed</span>
                     }
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow PlanningItem__title">
                         {item.slugline &&
@@ -196,6 +182,7 @@ PlanningItem.propTypes = {
     onCancelEvent: PropTypes.func,
     onUpdateEventTime: PropTypes.func,
     onRescheduleEvent: PropTypes.func,
+    onPostponeEvent: PropTypes.func,
 }
 
 export default PlanningItem
