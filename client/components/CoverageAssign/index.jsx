@@ -43,7 +43,8 @@ export class CoverageAssign  extends React.Component {
             return
         }
 
-        return this.props.users.find((user) => user._id === this.props.input.value.user)
+        return this.props.usersMergedCoverageProviders.find((user) =>
+            user._id === this.props.input.value.user)
     }
 
     getAvatar(deskAssigned, userAssigned) {
@@ -102,7 +103,7 @@ export class CoverageAssign  extends React.Component {
                     {
                         this.state.openCoverageAssignSelect &&
                         (<CoverageAssignSelect
-                            users={this.props.users}
+                            usersMergedCoverageProviders={this.props.usersMergedCoverageProviders}
                             desks={this.props.desks}
                             onCancel={this.toggleCoverageAssignSelect.bind(this)}
                             input={coverageAssignSelectInput} />)
@@ -114,7 +115,7 @@ export class CoverageAssign  extends React.Component {
 }
 
 CoverageAssign.propTypes = {
-    users: React.PropTypes.array.isRequired,
+    usersMergedCoverageProviders: React.PropTypes.array.isRequired,
     desks: React.PropTypes.array.isRequired,
     input: React.PropTypes.object,
     readOnly: React.PropTypes.bool,

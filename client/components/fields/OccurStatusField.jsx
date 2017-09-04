@@ -1,19 +1,18 @@
 import { SelectField } from './SelectField'
 import { connect } from 'react-redux'
 
-const mapStateToProps = (state, ownProps) => ({
-    multi: false,
-    clearable: false,
-    options: state.vocabularies.eventoccurstatus.map((s) => (
+const mapStateToProps = (state) => ({
+    options: state.vocabularies.eventoccurstatus.map((state) => (
         {
-            label: s.name,
-            value: s,
+            key: state.qcode,
+            label: state.label,
+            value: state,
         }
     )),
-    value: {
-        label: ownProps.input.value.name,
-        value: ownProps.input.value,
-    },
+
+    getOptionFromValue: (value, options) => options.find(
+        option => option.key === value.qcode
+    ),
 })
 
 export const OccurStatusField = connect(mapStateToProps)(SelectField)

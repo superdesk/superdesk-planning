@@ -9,7 +9,6 @@
             {"is_active": true, "name": "Photo", "qcode": "photo"},
             {"is_active": true, "name": "Video", "qcode": "video"},
             {"is_active": true, "name": "Audio", "qcode": "audio"},
-            {"is_active": true, "name": "Video", "qcode": "video"},
             {"is_active": true, "name": "Infographics", "qcode": "infographics"},
             {"is_active": true, "name": "Live video", "qcode": "live_video"},
             {"is_active": true, "name": "Live blog", "qcode": "live_blog"}
@@ -22,13 +21,20 @@
         "type": "manageable",
         "unique_field": "qcode",
         "items": [
-            {"is_active": true, "qcode": "eocstat:eos0", "name": "Unplanned event"},
-            {"is_active": true, "qcode": "eocstat:eos1", "name": "Planned, occurence planned only"},
-            {"is_active": true, "qcode": "eocstat:eos2", "name": "Planned, occurence highly uncertain"},
-            {"is_active": true, "qcode": "eocstat:eos3", "name": "Planned, May occur"},
-            {"is_active": true, "qcode": "eocstat:eos4", "name": "Planned, occurence highly likely"},
-            {"is_active": true, "qcode": "eocstat:eos5", "name": "Planned, occurs certainly"},
-            {"is_active": true, "qcode": "eocstat:eos6", "name": "Planned, then cancelled"}
+            {"is_active": true, "qcode": "eocstat:eos0", "name": "Unplanned event",
+                "label": "Unplanned event"},
+            {"is_active": true, "qcode": "eocstat:eos1", "name": "Planned, occurence planned only",
+                "label": "Planned, occurence planned only"},
+            {"is_active": true, "qcode": "eocstat:eos2", "name": "Planned, occurence highly uncertain",
+                "label": "Planned, occurence highly uncertain"},
+            {"is_active": true, "qcode": "eocstat:eos3", "name": "Planned, May occur",
+                "label": "Planned, May occur"},
+            {"is_active": true, "qcode": "eocstat:eos4", "name": "Planned, occurence highly likely",
+                "label": "Planned, occurence highly likely"},
+            {"is_active": true, "qcode": "eocstat:eos5", "name": "Planned, occurs certainly",
+                "label": "Planned, occurs certainly"},
+            {"is_active": false, "qcode": "eocstat:eos6", "name": "Planned, then cancelled",
+                "label": "Planned, then cancelled"}
         ]
     },
     {
@@ -37,10 +43,13 @@
         "type": "manageable",
         "unique_field": "qcode",
         "items": [
-            {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended"},
-            {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet"},
-            {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended"},
-            {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request"}
+            {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+            {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
+                "label": "On merit"},
+            {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
+                "label": "Not planned"},
+            {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
+                "label": "On request"}
         ]
     },
     {
@@ -68,6 +77,17 @@
                     {"name": "Email", "qcode": "email"},
                     {"name": "NTB Event", "qcode": "ntb_event"}
                 ]}
+        ]
+    },
+    {
+        "_id": "event_calendars",
+        "display_name": "Event Calendars",
+        "type": "manageable",
+        "unique_field": "qcode",
+        "items": [
+            {"is_active": true, "name": "Sport", "qcode": "sport"},
+            {"is_active": true, "name": "Finance", "qcode": "finance"},
+            {"is_active": true, "name": "Entertainment", "qcode": "entertainment"}
         ]
     }
 ]

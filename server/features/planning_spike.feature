@@ -1,6 +1,6 @@
 Feature: Planning Spike
     @auth
-    Scenario: Planning state defaults to active
+    Scenario: Planning state defaults to in_progress
         When we post to "planning"
         """
         [{
@@ -14,7 +14,7 @@ Feature: Planning Spike
         {
             "_id": "#planning._id#",
             "slugline": "TestPlan",
-            "state": "active"
+            "state": "in_progress"
         }
         """
 
@@ -24,7 +24,8 @@ Feature: Planning Spike
         Given "planning"
         """
         [{
-            "slugline": "TestPlan"
+            "slugline": "TestPlan",
+            "state": "in_progress"
         }]
         """
         When we spike planning "#planning._id#"
@@ -45,20 +46,17 @@ Feature: Planning Spike
         {
             "_id": "#planning._id#",
             "slugline": "TestPlan",
-            "state": "spiked"
+            "state": "spiked",
+            "revert_state": "in_progress"
         }
         """
         When we get "/planning_history?where=planning_id==%22#planning._id#%22"
-        Then we get list with 2 items
+        Then we get list with 1 items
         """
         {"_items": [{
             "planning_id": "#planning._id#",
             "operation": "spiked",
-            "update": {"state" : "spiked"}},
-            {
-            "planning_id": "#planning._id#",
-            "operation": "coverage created"
-            }
+            "update": {"state" : "spiked", "revert_state": "in_progress"}}
             ]}
         """
 
@@ -69,7 +67,8 @@ Feature: Planning Spike
         """
         [{
             "slugline": "TestPlan",
-            "state": "spiked"
+            "state": "spiked",
+            "revert_state": "in_progress"
         }]
         """
         When we unspike planning "#planning._id#"
@@ -90,20 +89,17 @@ Feature: Planning Spike
         {
             "_id": "#planning._id#",
             "slugline": "TestPlan",
-            "state": "active"
+            "state": "in_progress"
         }
         """
         When we get "/planning_history?where=planning_id==%22#planning._id#%22"
-        Then we get list with 2 items
+        Then we get list with 1 items
         """
         {"_items": [{
             "planning_id": "#planning._id#",
             "operation": "unspiked",
-            "update": {"state" : "active"}},
-            {
-            "planning_id": "#planning._id#",
-            "operation": "coverage created"
-            }]}
+            "update": {"state" : "in_progress"}}
+        ]}
         """
 
     @auth

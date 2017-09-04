@@ -17,12 +17,12 @@
         font-size: 17px;
         color: $gray;
     }
-    label { margin-top: 10px; }
-    .geolookup {
+    .addgeolookup {
         display: table;
         &__input-wrapper {
             display: table-cell;
             width: 100%;
+            padding: 5px 10px 0px 0px;
         }
         &__suggests-wrapper {
             display: table-row;
@@ -38,8 +38,12 @@
             }
             input[type="text"],input[type="number"] {
                 margin: 0 10px;
-                width: 120px;
+                width: 60px;
             }
+        }
+
+        &__summary {
+            margin-bottom: 24px;
         }
     }
 
@@ -62,13 +66,17 @@
         }
     }
 
+
     .history-preview {
         max-height: calc(100vh - 100px);
         overflow-y: scroll;
     }
+}
 
-    .close-history {
-        margin: 15px;
+.close-history {
+    margin: 15px;
+
+    > a {
+        opacity: 0.8;
     }
-
 }

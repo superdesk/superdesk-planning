@@ -1,14 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { get } from 'lodash'
-import { ListItem, TimeEvent, PubStatusLabel, Checkbox } from '../index'
+import { ListItem, TimeEvent, StateLabel, Checkbox, ItemActionsMenu } from '../index'
 import './style.scss'
-import { OverlayTrigger } from 'react-bootstrap'
-import { ITEM_STATE, EVENTS } from '../../constants'
-import {
-    spikeEventTooltip,
-    unspikeEventTooltip,
-} from '../Tooltips'
+import { GENERIC_ITEM_ACTIONS, EVENTS } from '../../constants'
+import { eventUtils, isItemCancelled, isItemRescheduled } from '../../utils'
 import classNames from 'classnames'
 
 export const EventItem = ({
@@ -17,30 +12,74 @@ export const EventItem = ({
         onDoubleClick,
         onSpikeEvent,
         onUnspikeEvent,
+        onDuplicateEvent,
+        onCancelEvent,
+        onUpdateEventTime,
+        onRescheduleEvent,
         highlightedEvent,
         privileges,
         isSelected,
         onSelectChange,
         itemLocked,
-        itemLockedInThisSession,
         className,
+        session,
+        addEventToCurrentAgenda,
     }) => {
-    const hasBeenCanceled = get(event, 'occur_status.qcode') === 'eocstat:eos6'
-    const hasBeenSpiked = get(event, 'state', 'active') === ITEM_STATE.SPIKED
-    const hasSpikePrivileges = get(privileges, 'planning_event_spike', 0) === 1
-    const hasUnspikePrivileges = get(privileges, 'planning_event_unspike', 0) === 1
-    const isPublished = get(event, 'state') === EVENTS.STATE.PUBLISHED
+    const hasBeenCancelled = isItemCancelled(event)
+    const hasBeenRescheduled = isItemRescheduled(event)
+    const hasPlanning = eventUtils.eventHasPlanning(event)
+
+    const onEditOrPreview = eventUtils.canEditEvent(event, session, privileges) ?
+        onDoubleClick : onClick
+
+    const actions = [
+        {
+            ...GENERIC_ITEM_ACTIONS.SPIKE,
+            callback: onSpikeEvent.bind(null, event),
+        },
+        {
+            ...GENERIC_ITEM_ACTIONS.UNSPIKE,
+            callback: onUnspikeEvent.bind(null, event),
+        },
+        {
+            ...GENERIC_ITEM_ACTIONS.DUPLICATE,
+            callback: onDuplicateEvent.bind(null, event),
+        },
+        {
+            ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+            callback: onCancelEvent.bind(null, event),
+        },
+        {
+            ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+            callback: onUpdateEventTime.bind(null, event),
+        },
+        {
+            ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+            callback: onRescheduleEvent.bind(null, event),
+        },
+        GENERIC_ITEM_ACTIONS.DIVIDER,
+        {
+            ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
+            callback: addEventToCurrentAgenda.bind(null, event),
+        },
+    ]
+
+    const itemActions = eventUtils.getEventItemActions(event, session, privileges, actions)
+
+    const canCreatePlanning = eventUtils.canCreatePlanningFromEvent(event, session, privileges)
+
     return (
         <ListItem
             item={event}
             onClick={onClick}
-            onDoubleClick={onDoubleClick}
-            draggable={true}
+            onDoubleClick={onEditOrPreview}
+            draggable={canCreatePlanning}
             className={classNames('event',
                 className,
-                { 'event--has-planning': event._hasPlanning },
-                { 'event--has-been-canceled': hasBeenCanceled },
-                { 'event--locked': itemLocked })}
+                { 'event--has-planning': hasPlanning },
+                { 'event--has-been-canceled': hasBeenCancelled || hasBeenRescheduled },
+                { 'event--locked': itemLocked },
+                { 'event--not-draggable': !canCreatePlanning })}
             active={highlightedEvent === event._id || isSelected}
         >
             <div className="sd-list-item__action-menu">
@@ -48,10 +87,7 @@ export const EventItem = ({
             </div>
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
                 <div className="sd-list-item__row">
-                    {hasBeenSpiked &&
-                        <span className="label label--alert">spiked</span>
-                    }
-                    <PubStatusLabel status={event.state}/>
+                    <StateLabel item={event}/>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow event__title">
                         {event.slugline &&
                             <span className="ListItem__slugline">{event.slugline}</span>
@@ -62,32 +98,7 @@ export const EventItem = ({
                 </div>
             </div>
             <div className="sd-list-item__action-menu">
-                {!hasBeenSpiked && hasSpikePrivileges &&
-                    (!itemLocked || itemLockedInThisSession) && !isPublished &&
-                    <OverlayTrigger placement="left" overlay={spikeEventTooltip}>
-                        <button
-                            className="dropdown__toggle"
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                onSpikeEvent(event)
-                            }}>
-                            <i className="icon-trash"/>
-                        </button>
-                    </OverlayTrigger>
-                }
-                {hasBeenSpiked && hasUnspikePrivileges &&
-                    (!itemLocked || itemLockedInThisSession) &&
-                    <OverlayTrigger placement="left" overlay={unspikeEventTooltip}>
-                        <button
-                            className="dropdown__toggle"
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                onUnspikeEvent(event)
-                            }}>
-                            <i className="icon-unspike"/>
-                        </button>
-                    </OverlayTrigger>
-                }
+                {itemActions.length > 0 && <ItemActionsMenu actions={itemActions} />}
             </div>
         </ListItem>
     )
@@ -99,11 +110,16 @@ EventItem.propTypes = {
     event: PropTypes.object.isRequired,
     onSpikeEvent: PropTypes.func.isRequired,
     onUnspikeEvent: PropTypes.func.isRequired,
+    onDuplicateEvent: PropTypes.func.isRequired,
+    onCancelEvent: PropTypes.func.isRequired,
+    onUpdateEventTime: PropTypes.func.isRequired,
+    onRescheduleEvent: PropTypes.func.isRequired,
     highlightedEvent: PropTypes.string,
     className: PropTypes.string,
     privileges: PropTypes.object,
     isSelected: PropTypes.bool,
     onSelectChange: PropTypes.func.isRequired,
     itemLocked: React.PropTypes.bool,
-    itemLockedInThisSession: React.PropTypes.bool,
+    session: PropTypes.object,
+    addEventToCurrentAgenda: PropTypes.func,
 }

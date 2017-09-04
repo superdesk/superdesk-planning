@@ -44,6 +44,20 @@ class HistoryService(Service):
     def on_unspike(self, updates, original):
         self.on_item_updated(updates, original, 'unspiked')
 
+    def on_cancel(self, updates, original):
+        self.on_item_updated(updates, original, 'cancel')
+
+    def on_reschedule(self, updates, original):
+        self.on_item_updated(updates, original, 'reschedule')
+
+    def on_reschedule_from(self, item):
+        new_item = deepcopy(item)
+        self._save_history(
+            {config.ID_FIELD: str(item[config.ID_FIELD])},
+            new_item,
+            'reschedule_from'
+        )
+
     def get_user_id(self):
         user = getattr(g, 'user', None)
         if user:

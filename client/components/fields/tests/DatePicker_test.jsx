@@ -9,10 +9,13 @@ import sinon from 'sinon'
 class TestForm extends React.Component {
     render() {
         const { input, onChange, placeholder } = this.props
+        const inputProp = {
+            value: input,
+            onChange: onChange,
+        }
         return (
             <DatePicker
-            value={input}
-            onChange={onChange}
+            input={inputProp}
             placeholder={placeholder} />
         )
     }
@@ -63,7 +66,7 @@ describe('<DatePicker />', () => {
         const wrapper = mount(<TestForm placeholder='Date' onChange={() => {}}/>)
         wrapper.find('.datepickerInput--btn').simulate('click')
         expect(wrapper.find('.datepickerPopup').length).toBe(1)
-        const cancelBtn = wrapper.find('.btn--small').at(1)
+        const cancelBtn = wrapper.find('.btn--small').at(0)
         cancelBtn.simulate('click')
         expect(wrapper.find('.datepickerPopup').length).toBe(0)
     })
@@ -193,17 +196,15 @@ describe('<DatePicker />', () => {
         expect(rows.at(3).find('td').at(4).text()).toBe('2020')
     })
 
-    it('date can be manually selected', () => {
+    it('selecting date closes the popup', () => {
         const inputDate = moment('2014-01-08T14:00')
         const wrapper = mount(<TestForm placeholder='Date' input={inputDate} onChange={() => {}}/>)
         wrapper.find('.datepickerInput--btn').simulate('click')
         const rows = wrapper.find('.datepickerPopup__core').find('table').find('tbody').find('tr')
         const targetDate = rows.at(1).find('td').at(5)
         expect(targetDate.at(0).text()).toBe('10')
-        targetDate.childAt(0).simulate('click')
-        const btns = wrapper.find('.active')
-        expect(btns.length).toBe(1)
-        expect(btns.at(0).childAt(0).text()).toBe('10')
+        targetDate.at(0).childAt(0).simulate('click')
+        expect(wrapper.find('.datepickerPopup').length).toBe(0)
     })
 
     it('month can be manually selected', () => {
@@ -270,7 +271,7 @@ describe('<DatePicker />', () => {
         expect(datePickerCoreState.mode).toBe('month')
     })
 
-    it('confirm will invoke onChange function with selected date', () => {
+    it('selecting a date will invoke onChange function with selected date', () => {
         let onChange = sinon.spy((_date) => {
             expect(_date.format('DD/MM/YYYY')).toBe('10/01/2014')
         })
@@ -281,8 +282,6 @@ describe('<DatePicker />', () => {
         const targetDate = rows.at(1).find('td').at(5)
         expect(targetDate.at(0).text()).toBe('10')
         targetDate.childAt(0).simulate('click')
-        const submitButton = wrapper.find('.btn--primary').at(0)
-        submitButton.simulate('click')
         expect(onChange.calledOnce).toBe(true)
     })
 })

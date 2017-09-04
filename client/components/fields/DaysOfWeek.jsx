@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react'
-import classNames from 'classnames'
+import { Checkbox } from '../index'
 
 export class DaysOfWeek extends React.Component {
     constructor(props) {
@@ -21,9 +21,9 @@ export class DaysOfWeek extends React.Component {
         this.state = days
     }
 
-    handleOnChange(e) {
+    handleOnChange(e, day) {
         // update the state with the new (un)checked day
-        this.setState({ [e.target.value]: e.target.checked }, () => {
+        this.setState({ [day]: e.target.value }, () => {
             // keep only the checked days
             let daysInString = Object.keys(this.state).map((d) => {
                 if (this.state[d]) {
@@ -40,21 +40,23 @@ export class DaysOfWeek extends React.Component {
 
     render() {
         const { touched, error, warning } = this.props.meta
-        const readOnly = this.props.readOnly
+        const { readOnly, label } = this.props
 
         return (
-            <div>
+            <div className="form__row form__row--flex">
                 {Object.keys(this.state).map((d) => (
-                    <label key={d}>
-                        <input
-                            type="checkbox"
-                            className={classNames({ 'disabledInput': readOnly })}
+                    <div key={d} className="sd-line-input sd-line-input--no-margin">
+                        {label && d === 'MO' &&
+                            <label className="sd-line-input__label">{label}</label>
+                        }
+                        <Checkbox
                             disabled={readOnly ? 'disabled' : ''}
-                            value={d}
-                            checked={this.state[d]}
-                            onChange={this.handleOnChange.bind(this)} />
-                        {d}
-                    </label>
+                            value={this.state[d]}
+                            onChange={(e) => this.handleOnChange(e, d)}
+                            labelPosition="inside"
+                            label={d}
+                        />
+                    </div>
                 ))}
                 {touched && ((error && <span className="error-block">{error}</span>) ||
                  (warning && <span className="help-block">{warning}</span>))}
@@ -67,4 +69,5 @@ DaysOfWeek.propTypes = {
     input: PropTypes.object,
     meta: React.PropTypes.object.isRequired,
     readOnly: PropTypes.bool,
+    label: PropTypes.string,
 }

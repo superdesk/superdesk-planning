@@ -29,6 +29,10 @@ describe('actions.events.ui', () => {
             () => (Promise.resolve(data.events))
         )
 
+        sinon.stub(eventsApi, 'unspike').callsFake(
+            () => (Promise.resolve(data.events))
+        )
+
         sinon.stub(eventsApi, 'refetchEvents').callsFake(() => (Promise.resolve()))
 
         sinon.stub(eventsUi, '_openSpikeModal').callsFake(
@@ -56,11 +60,14 @@ describe('actions.events.ui', () => {
         sinon.stub(eventsUi, '_openEventDetails').callsFake(() => (Promise.resolve()))
         sinon.stub(eventsApi, 'lock').callsFake((item) => (Promise.resolve(item)))
         sinon.stub(eventsApi, 'unlock').callsFake((item) => (Promise.resolve(item)))
+
+        sinon.stub(eventsApi, 'rescheduleEvent').callsFake(() => (Promise.resolve()))
     })
 
     afterEach(() => {
         restoreSinonStub(eventsApi.fetch)
         restoreSinonStub(eventsApi.spike)
+        restoreSinonStub(eventsApi.unspike)
         restoreSinonStub(eventsApi.loadEventsByRecurrenceId)
         restoreSinonStub(eventsApi.loadRecurringEventsAndPlanningItems)
         restoreSinonStub(eventsApi.refetchEvents)
@@ -72,6 +79,7 @@ describe('actions.events.ui', () => {
         restoreSinonStub(eventsUi._openEventDetails)
         restoreSinonStub(eventsApi.lock)
         restoreSinonStub(eventsApi.unlock)
+        restoreSinonStub(eventsApi.rescheduleEvent)
         restoreSinonStub(planningApi.loadPlanningByEventId)
         restoreSinonStub(planningApi.fetch)
     })
@@ -137,12 +145,13 @@ describe('actions.events.ui', () => {
                 expect(store.dispatch.callCount).toBe(2)
                 expect(store.dispatch.args[1]).toEqual([{
                     type: 'SHOW_MODAL',
-                    modalType: 'SPIKE_EVENT',
+                    modalType: 'ITEM_ACTIONS_MODAL',
                     modalProps: {
                         eventDetail: {
                             ...data.events[1],
                             _plannings: data.plannings,
                         },
+                        actionType: 'Spike',
                     },
                 }])
 
@@ -185,8 +194,11 @@ describe('actions.events.ui', () => {
                 expect(store.dispatch.callCount).toBe(2)
                 expect(store.dispatch.args[1]).toEqual([{
                     type: 'SHOW_MODAL',
-                    modalType: 'SPIKE_EVENT',
-                    modalProps: { eventDetail: data.events[0] },
+                    modalType: 'ITEM_ACTIONS_MODAL',
+                    modalProps: {
+                        eventDetail: data.events[0],
+                        actionType: 'Spike',
+                    },
                 }])
 
                 done()
@@ -211,19 +223,82 @@ describe('actions.events.ui', () => {
         })
     })
 
-    describe('spike', () => {
-        it('calls `api.spike`', (done) => {
-            restoreSinonStub(eventsUi.refetchEvents)
-            sinon.stub(eventsUi, 'refetchEvents').callsFake(() => (Promise.resolve()))
+    describe('openBulkSpikeModal', () => {
+        it('shows the spike modal', (done) => (
+            store.test(done, eventsUi.openBulkSpikeModal(data.events))
+            .then(() => {
+                expect(store.dispatch.callCount).toBe(2)
+                expect(store.dispatch.args[1]).toEqual([{
+                    type: 'SHOW_MODAL',
+                    modalType: 'CONFIRMATION',
+                    modalProps: jasmine.objectContaining(
+                        { body: 'Do you want to spike these 3 events?' }
+                    ),
+                }])
 
-            return store.test(done, eventsUi.spike(data.events[0]))
+                done()
+            })
+        ))
+
+        it('openBulkSpikeModal raises ACCESS_DENIED without permission', (done) => {
+            store.initialState.privileges.planning_event_spike = 0
+            return store.test(done, eventsUi.openBulkSpikeModal(data.events))
+            .catch(() => {
+                expectAccessDenied({
+                    store,
+                    permission: PRIVILEGES.SPIKE_EVENT,
+                    action: '_openBulkSpikeModal',
+                    errorMessage: 'Unauthorised to spike an Event',
+                    args: [data.events],
+                })
+
+                done()
+            })
+        })
+    })
+
+    describe('openUnspikeModal', () => {
+        it('shows the unspike modal', (done) => (
+            store.test(done, eventsUi.openUnspikeModal(data.events))
+            .then(() => {
+                expect(store.dispatch.callCount).toBe(2)
+                expect(store.dispatch.args[1]).toEqual([{
+                    type: 'SHOW_MODAL',
+                    modalType: 'CONFIRMATION',
+                    modalProps: jasmine.objectContaining(
+                        { body: 'Do you want to unspike these 3 events?' }
+                    ),
+                }])
+
+                done()
+            })
+        ))
+
+        it('openUnspikeModal raises ACCESS_DENIED without permission', (done) => {
+            store.initialState.privileges.planning_event_unspike = 0
+            return store.test(done, eventsUi.openUnspikeModal(data.events))
+            .catch(() => {
+                expectAccessDenied({
+                    store,
+                    permission: PRIVILEGES.UNSPIKE_EVENT,
+                    action: '_openUnspikeModal',
+                    errorMessage: 'Unauthorised to unspike an Event',
+                    args: [data.events],
+                })
+
+                done()
+            })
+        })
+    })
+
+    describe('spike', () => {
+        it('calls `api.spike`', (done) => (
+            store.test(done, eventsUi.spike(data.events[0]))
             .then((items) => {
                 expect(items).toEqual(data.events)
 
                 expect(eventsApi.spike.callCount).toBe(1)
                 expect(eventsApi.spike.args[0]).toEqual([data.events[0]])
-
-                expect(eventsUi.refetchEvents.callCount).toBe(1)
 
                 expect(services.notify.success.callCount).toBe(1)
                 expect(services.notify.success.args[0]).toEqual(['The event(s) have been spiked'])
@@ -232,13 +307,51 @@ describe('actions.events.ui', () => {
 
                 done()
             })
-        })
+        ))
 
         it('notifies user if `api.spike` fails', (done) => {
             restoreSinonStub(eventsApi.spike)
             sinon.stub(eventsApi, 'spike').callsFake(() => (Promise.reject(errorMessage)))
 
             return store.test(done, eventsUi.spike(data.events[0]))
+            .then(() => {}, (error) => {
+                expect(error).toEqual(errorMessage)
+
+                expect(services.notify.success.callCount).toBe(0)
+
+                expect(services.notify.error.callCount).toBe(1)
+                expect(services.notify.error.args[0]).toEqual(['Failed!'])
+
+                done()
+            })
+        })
+    })
+
+    describe('unspike', () => {
+        it('calls `api.unspike`', (done) => (
+            store.test(done, eventsUi.unspike(data.events[0]))
+            .then((items) => {
+                expect(items).toEqual(data.events)
+
+                expect(eventsApi.unspike.callCount).toBe(1)
+                expect(eventsApi.unspike.args[0]).toEqual([data.events[0]])
+
+                expect(eventsUi.refetchEvents.callCount).toBe(1)
+
+                expect(services.notify.success.callCount).toBe(1)
+                expect(services.notify.success.args[0]).toEqual(['The event(s) have been unspiked'])
+
+                expect(services.notify.error.callCount).toBe(0)
+
+                done()
+            })
+        ))
+
+        it('notifies user if `api.unspike` fails', (done) => {
+            restoreSinonStub(eventsApi.unspike)
+            sinon.stub(eventsApi, 'unspike').callsFake(() => (Promise.reject(errorMessage)))
+
+            return store.test(done, eventsUi.unspike(data.events[0]))
             .then(() => {}, (error) => {
                 expect(error).toEqual(errorMessage)
 
@@ -322,16 +435,22 @@ describe('actions.events.ui', () => {
             })
         })
 
-        it('openEventDetails raises ACCESS_DENIED without permission', (done) => {
+        it('openEventDetails dispatches previewEvent if insufficient privileges', (done) => {
             store.initialState.privileges.planning_event_management = 0
             store.test(done, eventsUi.openEventDetails(data.events[0]))
             .catch(() => {
+                expect(store.dispatch.args[1]).toEqual([{
+                    type: 'PREVIEW_EVENT',
+                    payload: data.events[0]._id,
+                }])
+
                 expectAccessDenied({
                     store,
                     permission: PRIVILEGES.EVENT_MANAGEMENT,
                     action: '_openEventDetails',
                     errorMessage: 'Unauthorised to edit an event!',
                     args: [data.events[0]],
+                    argPos: 2,
                 })
 
                 done()
@@ -354,4 +473,73 @@ describe('actions.events.ui', () => {
         })
     })
 
+    it('minimizeEventDetails', () => {
+        expect(eventsUi.minimizeEventDetails()).toEqual({ type: 'CLOSE_EVENT_DETAILS' })
+    })
+
+    it('unlockAndCloseEditor', (done) => {
+        store.initialState.events.highlightedEvent = 'e1'
+        data.events[0].lock_user = store.initialState.session.identity._id
+        data.events[0].lock_session = store.initialState.session.sessionId
+
+        store.test(done, eventsUi.unlockAndCloseEditor(data.events[0]))
+            .then(() => {
+                expect(eventsApi.unlock.callCount).toBe(1)
+                expect(store.dispatch.callCount).toBe(2)
+                expect(store.dispatch.args[1]).toEqual([{ type: 'CLOSE_EVENT_DETAILS' }])
+                expect(services.notify.error.callCount).toBe(0)
+                done()
+            })
+    })
+
+    describe('_openRescheduleModal', () => {
+        it('loads planning items and shows single reschedule modal', (done) => (
+            store.test(done, eventsUi._openSingleRescheduleModal(data.events[1]))
+            .then(() => {
+                expect(planningApi.loadPlanningByEventId.callCount).toBe(1)
+                expect(planningApi.loadPlanningByEventId.args[0]).toEqual([data.events[1]._id])
+
+                expect(store.dispatch.callCount).toBe(2)
+                expect(store.dispatch.args[1]).toEqual([{
+                    type: 'SHOW_MODAL',
+                    modalType: 'ITEM_ACTIONS_MODAL',
+                    modalProps: {
+                        eventDetail: {
+                            ...data.events[1],
+                            _plannings: data.plannings,
+                        },
+                        actionType: 'Reschedule',
+                    },
+                }])
+
+                expect(services.notify.error.callCount).toBe(0)
+
+                done()
+            })
+        ))
+
+        it('loads planning items and shows recurring reschedule modal', (done) => {
+            data.events[0].recurrence_id = 'rec1'
+            store.test(done, eventsUi._openMultiRescheduleModal(data.events[0]))
+            .then(() => {
+                expect(eventsApi.loadRecurringEventsAndPlanningItems.callCount).toBe(1)
+                expect(eventsApi.loadRecurringEventsAndPlanningItems.args[0])
+                    .toEqual([data.events[0]])
+
+                expect(store.dispatch.callCount).toBe(2)
+                expect(store.dispatch.args[1]).toEqual([{
+                    type: 'SHOW_MODAL',
+                    modalType: 'ITEM_ACTIONS_MODAL',
+                    modalProps: {
+                        eventDetail: data.events[0],
+                        actionType: 'Reschedule',
+                    },
+                }])
+
+                expect(services.notify.error.callCount).toBe(0)
+
+                done()
+            })
+        })
+    })
 })

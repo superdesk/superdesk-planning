@@ -1,6 +1,9 @@
 import * as selectors from '../../selectors'
+import { WORKFLOW_STATE } from '../../constants'
 import { showModal } from '../index'
 import eventsApi from './api'
+import eventsUi from './ui'
+import { get } from 'lodash'
 
 /**
  * Action Event when an Event gets unlocked
@@ -12,7 +15,9 @@ const onEventUnlocked = (_e, data) => (
         if (data && data.item) {
             const event = selectors.getShowEventDetails(getState())
             // If this is the event currently being edited, show popup notification
-            if (event === data.item && selectors.isEventDetailLockedInThisSession(getState())) {
+            if (event === data.item &&
+                data.lock_session !== selectors.getSessionDetails(getState()).sessionId &&
+                selectors.isEventDetailLockedInThisSession(getState())) {
                 const user =  selectors.getUsers(getState()).find((u) => u._id === data.user)
                 dispatch(showModal({
                     modalType: 'NOTIFICATION_MODAL',
@@ -45,7 +50,7 @@ const onEventLocked = (_e, data) => (
             let eventInStore = selectors.getEvents(getState())[data.item]
             eventInStore = {
                 ...eventInStore,
-                lock_action: 'edit',
+                lock_action: data.lock_action || 'edit',
                 lock_user: data.user,
                 lock_session: data.lock_session,
                 lock_time: data.lock_time,
@@ -56,15 +61,69 @@ const onEventLocked = (_e, data) => (
     }
 )
 
+const onEventSpiked = (_e, data) => (
+    (dispatch, getState) => {
+        if (data && data.item) {
+            // Just update the event in store with updates and etag
+            let eventInStore = selectors.getEvents(getState())[data.item]
+            eventInStore = {
+                ...eventInStore,
+                lock_action: null,
+                lock_user: null,
+                lock_session: null,
+                lock_time: null,
+                state: WORKFLOW_STATE.SPIKED,
+                revert_state: data.revert_state,
+                _etag: data.etag,
+            }
+
+            // Update the event in store
+            dispatch(eventsApi.receiveEvents([eventInStore]))
+
+            // Update the event list
+            let newList = selectors.getEventsIdsToShowInList(getState())
+            newList.splice(newList.indexOf(data.item), 1)
+            dispatch(eventsUi.setEventsList(newList))
+        }
+    }
+
+)
+
+const onEventCancelled = (e, data) => (
+    (dispatch) => {
+        if (get(data, 'item')) {
+            dispatch(eventsApi.markEventCancelled(
+                data.item,
+                data.reason,
+                data.occur_status
+            ))
+        }
+    }
+)
+
+const onEventRescheduled = (e, data) => (
+    (dispatch) => {
+        if (get(data, 'item')) {
+            dispatch(eventsUi.refetchEvents())
+        }
+    }
+)
+
 const self = {
     onEventLocked,
     onEventUnlocked,
+    onEventSpiked,
+    onEventCancelled,
+    onEventRescheduled,
 }
 
 // Map of notification name and Action Event to execute
 self.events = {
     'events:lock': () => (self.onEventLocked),
     'events:unlock': () => (self.onEventUnlocked),
+    'events:spiked': () => (self.onEventSpiked),
+    'events:cancelled': () => (self.onEventCancelled),
+    'events:rescheduled': () => (self.onEventRescheduled),
 }
 
 export default self

@@ -5,6 +5,7 @@ import { PlanningForm, CoverageContainer } from '../index'
 import { CoveragesFieldArray } from '../fields'
 import React from 'react'
 import { Provider } from 'react-redux'
+import * as actions from '../../actions'
 
 describe('<PlanningForm />', () => {
     let store
@@ -31,12 +32,33 @@ describe('<PlanningForm />', () => {
                 notify: services.notify,
             },
         })
+        store.getState().formsProfile = {
+            planning: {
+                editor: {
+                    slugline: { enabled: true },
+                    anpa_category: { enabled: true },
+                    description_text: { enabled: true },
+                    ednote: { enabled: true },
+                    internal_note: { enabled: true },
+                    headline: { enabled: true },
+                    flags: { enabled: true },
+                    subject: { enabled: true },
+                    agendas: { enabled: true },
+                },
+            },
+        }
     }
 
     const getWrapper = (readOnly=false) => {
         const wrapper = mount(
             <Provider store={store}>
-                <PlanningForm readOnly={readOnly}/>
+                <PlanningForm
+                    onSubmit={
+                        (planning) => store.dispatch(
+                            actions.planning.ui.saveAndReloadCurrentAgenda(planning)
+                        )
+                    }
+                    readOnly={readOnly}/>
             </Provider>
         )
 
@@ -51,6 +73,21 @@ describe('<PlanningForm />', () => {
             coverageContainers: () => form.find(CoverageContainer),
         }
     }
+
+    describe('planning form', () => {
+        it('shows enabled fields', () => {
+            setStore()
+            const { form } = getWrapper()
+            expect(form.find('Field [name="slugline"]').length).toBe(1)
+        })
+
+        it('hides disabled fields', () => {
+            setStore()
+            store.getState().formsProfile.planning.editor.slugline.enabled = false
+            const { form } = getWrapper()
+            expect(form.find('Field [name="slugline"]').length).toBe(0)
+        })
+    })
 
     describe('coverages', () => {
         it('removes a coverage', (done) => {

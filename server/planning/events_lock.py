@@ -16,7 +16,6 @@ from superdesk.metadata.utils import item_url
 from apps.archive.common import get_user, get_auth
 from superdesk.services import BaseService
 from .item_lock import LockService
-from eve.utils import config
 from superdesk import get_resource_service
 
 CUSTOM_HATEOAS = {'self': {'title': 'Events', 'href': '/events/{_id}'}}
@@ -55,7 +54,7 @@ class EventsLockService(BaseService):
         resource_service = get_resource_service('events')
         item = resource_service.find_one(req=None, _id=item_id)
 
-        self._validate(lock_service, resource_service, item, user_id, session_id)
+        self._validate(resource_service, item)
         if item.get('recurrence_id'):
             updated_item = lock_service.lock(item, user_id, session_id, lock_action, 'events', 'recurrence_id')
         else:
@@ -63,17 +62,9 @@ class EventsLockService(BaseService):
 
         return _update_returned_document(docs[0], updated_item)
 
-    def _validate(self, lock_service, resource_service, item, user_id, session_id):
+    def _validate(self, resource_service, item):
         if not item:
             raise SuperdeskApiError.notFoundError()
-
-        # Check to see if we have any related planning items for that event which is locked
-        planning_service = get_resource_service('planning')
-        for planning in list(planning_service.find(where={'event_item': item.get(config.ID_FIELD)})):
-            if planning.get(LOCK_USER) or planning.get(LOCK_SESSION):
-                # A related planning item is locked - throw an error
-                raise SuperdeskApiError.forbiddenError(message="One or more related planning items "
-                                                               "are locked. Cannot lock the event.")
 
         # If the event is a recurrent event, ensure no event in that series is already locked
         if item.get('recurrence_id') and not item.get(LOCK_USER):

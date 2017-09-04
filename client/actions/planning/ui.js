@@ -1,7 +1,7 @@
 import planning from './index'
-import { checkPermission, getErrorMessage } from '../../utils'
+import { checkPermission, getErrorMessage, isItemLockedInThisSession } from '../../utils'
 import * as selectors from '../../selectors'
-import { PLANNING, PRIVILEGES } from '../../constants'
+import { PLANNING, PRIVILEGES, SPIKED_STATE } from '../../constants'
 import * as actions from '../index'
 import { get } from 'lodash'
 
@@ -60,7 +60,8 @@ const _save = (item) => (
         dispatch(planning.api.save(item))
         .then((item) => {
             notify.success('The planning item has been saved.')
-            return Promise.resolve(item)
+            return dispatch(self.refetch())
+            .then(() => Promise.resolve(item))
         }, (error) => {
             notify.error(
                 getErrorMessage(error, 'Failed to save the Planning item!')
@@ -85,7 +86,9 @@ const _saveAndReloadCurrentAgenda = (item) => (
         dispatch(planning.api.saveAndReloadCurrentAgenda(item))
         .then((item) => {
             notify.success('The Planning item has been saved.')
-            return Promise.resolve(item)
+            return dispatch(self.refetch())
+            .then(() => (dispatch(planning.api.fetchPlanningById(item._id, true))))
+            .then((item) => (Promise.resolve(item)))
         }, (error) => {
             notify.error(getErrorMessage(error, 'Failed to save the Planning item!'))
             return Promise.reject(error)
@@ -99,8 +102,7 @@ const _saveAndReloadCurrentAgenda = (item) => (
  * @return Promise
  */
 const preview = (item) => (
-    (dispatch, getState) => {
-        dispatch(self.closeEditor(selectors.getCurrentPlanning(getState())))
+    (dispatch) => {
         dispatch({
             type: PLANNING.ACTIONS.PREVIEW_PLANNING,
             payload: item,
@@ -130,6 +132,29 @@ const _unlockAndOpenEditor = (item) => (
 )
 
 /**
+ * Unlock a Planning item and close editor if opened - used when item closed from workqueue
+ * @param {object} item - The Planning item to unlock
+ * @return Promise
+ */
+const unlockAndCloseEditor = (item) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.unlock(item))
+        .then(() => {
+            if (selectors.getCurrentPlanningId(getState()) === item._id) {
+                dispatch({ type: PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR })
+            }
+
+            return Promise.resolve(item)
+        }, (error) => {
+            notify.error(
+                getErrorMessage(error, 'Could not unlock the planning item.')
+            )
+            return Promise.reject(error)
+        })
+    )
+)
+
+/**
  * Lock and open a Planning item for editing
  * @param {object} item - The Planning item to lock and edit
  * @return Promise
@@ -138,14 +163,12 @@ const _lockAndOpenEditor = (item) => (
     (dispatch, getState, { notify }) => {
         // If the user already has a lock, don't obtain a new lock, open it directly
         const planningInState = selectors.getStoredPlannings(getState())[item]
-        const session = selectors.getSessionDetails(getState())
-        if (planningInState && planningInState.lock_user === session.identity._id &&
-                planningInState.lock_session === session.sessionId) {
+        if (planningInState && isItemLockedInThisSession(planningInState,
+                selectors.getSessionDetails(getState()))) {
             dispatch(self._openEditor(planningInState))
             return Promise.resolve(planningInState)
         }
 
-        dispatch(self.closeEditor(selectors.getCurrentPlanning(getState())))
         return dispatch(planning.api.lock(item))
         .then((lockedItem) => {
             dispatch(self._openEditor(lockedItem))
@@ -166,15 +189,20 @@ const _lockAndOpenEditor = (item) => (
  */
 const closeEditor = (item) => (
     (dispatch, getState, { notify }) => {
-        if (selectors.isCurrentPlanningLockedInThisSession(getState())) {
-            dispatch(planning.api.unlock(item))
+        dispatch({ type: PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR })
+
+        if (!item) return Promise.resolve()
+
+        if (isItemLockedInThisSession(item, selectors.getSessionDetails(getState()))) {
+            return dispatch(planning.api.unlock(item))
+            .then(() => Promise.resolve(item))
             .catch(() => {
                 notify.error('Could not unlock the planning item.')
+                return Promise.resolve(item)
             })
+        } else {
+            return Promise.resolve(item)
         }
-
-        dispatch({ type: PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR })
-        return Promise.resolve(item)
     }
 )
 
@@ -188,10 +216,9 @@ const _openEditor = (item) => ({
 })
 
 /**
- * Opens the Planning Editor
- * Also changes the currently selected agenda to the the agenda this planning
- * item is associated with
- * @param {string} pid - The Planning item id to open
+ * Previews the Planning Editor
+ * Also selects the associated agenda of this planning item
+ * @param {string} pid - The Planning item id to preview
  * @return Promise
  */
 const previewPlanningAndOpenAgenda = (pid, agenda) => (
@@ -207,18 +234,37 @@ const previewPlanningAndOpenAgenda = (pid, agenda) => (
 )
 
 /**
+ * Opens the Planning Editor
+ * Also selects the associated agenda of this planning item
+ * @param {Object} planning - The Planning item to open
+ * @param {string} agendaId - The agendaId to set associated agenda as selected
+ * @return Promise
+ */
+const openPlanningWithAgenda = (planning, agendaId) => (
+    (dispatch, getState) => {
+
+        if (agendaId && agendaId !== selectors.getCurrentAgendaId(getState())) {
+            dispatch(actions.selectAgenda(agendaId))
+        }
+
+        // open the planning details
+        return dispatch(self._openEditor(planning))
+    }
+)
+
+/**
  * Action dispatcher to toggle the `future` toggle of the planning list
  * @return Promise
  */
 const toggleOnlyFutureFilter = () => (
-    (dispatch, getState) => (
-        Promise.resolve(
-            dispatch({
-                type: PLANNING.ACTIONS.SET_ONLY_FUTURE,
-                payload: !getState().planning.onlyFuture,
-            })
-        )
-    )
+    (dispatch, getState) => {
+        dispatch({
+            type: PLANNING.ACTIONS.SET_ONLY_FUTURE,
+            payload: !getState().planning.onlyFuture,
+        })
+
+        return dispatch(actions.fetchSelectedAgendaPlannings())
+    }
 )
 
 /**
@@ -227,24 +273,14 @@ const toggleOnlyFutureFilter = () => (
  * to filter the list of planning items to display
  * @param {string} value - The filter string used to filter planning items
  */
-const filterByKeyword = (value) => ({
-    type: PLANNING.ACTIONS.PLANNING_FILTER_BY_KEYWORD,
-    payload: value && value.trim() || null,
-})
-
-/**
- * Action dispatcher to toggle the `Spiked` toggle of the planning list
- * @return arrow function
- */
-const toggleOnlySpikedFilter = () => (
-    (dispatch, getState) => (
-        Promise.resolve(
-            dispatch({
-                type: PLANNING.ACTIONS.SET_ONLY_SPIKED,
-                payload: !getState().planning.onlySpiked,
-            })
-        )
-    )
+const filterByKeyword = (value) => (
+    (dispatch) => {
+        dispatch({
+            type: PLANNING.ACTIONS.PLANNING_FILTER_BY_KEYWORD,
+            payload: value && value.trim() || null,
+        })
+        return dispatch(actions.fetchSelectedAgendaPlannings())
+    }
 )
 
 /**
@@ -305,6 +341,156 @@ const fetchMoreToList = () => (
 )
 
 /**
+ * Refetch planning items based on the current search
+ */
+const refetch = () => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.refetch())
+        .then(
+            (items) => {
+                dispatch(planning.ui.setInList(items.map((p) => p._id)))
+                return Promise.resolve(items)
+            }, (error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to update the planning list!')
+                )
+                return Promise.reject(error)
+            }
+        )
+    )
+)
+
+const duplicate = (plan) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.duplicate(plan))
+        .then((newPlan) => {
+            dispatch(self.refetch())
+            .then(() => {
+                dispatch(self.closeEditor(plan))
+                notify.success('Planning duplicated')
+                return dispatch(self.openEditor(newPlan._id))
+            }, (error) => (
+                notify.error(
+                    getErrorMessage(error, 'Failed to fetch Planning items')
+                )
+            ))
+        }, (error) => (
+            notify.error(
+                getErrorMessage(error, 'Failed to duplicate the Planning')
+            )
+        ))
+    )
+)
+
+/**
+ * Publish an item and notify user of success or failure
+ * @param {object} item - The planning item
+ */
+const _publish = (item) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.publish(item))
+        .then(() => (
+            notify.success('Planning item published!')
+        ), (error) => (
+            notify.error(
+                getErrorMessage(error, 'Failed to publish Planning item!')
+            )
+        ))
+    )
+)
+
+/**
+ * Unpublish an item and notify user of success or failure
+ * @param {object} item - The planning item
+ */
+const _unpublish = (item) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.unpublish(item))
+        .then(() => (
+            notify.success('Planning item unpublished!')
+        ), (error) => (
+            notify.error(
+                getErrorMessage(error, 'Failed to unpublish Planning item!')
+            )
+        ))
+    )
+)
+
+/**
+ * Save Planning item then Publish it
+ * @param {object} item - Planning item
+ */
+const _saveAndPublish = (item) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.saveAndPublish(item))
+        .then(() => (
+            notify.success('Planning item published!')
+        ), (error) => (
+            notify.error(
+                getErrorMessage(error, 'Failed to save Planning item!')
+            )
+        ))
+    )
+)
+
+/**
+ * Save Planning item then Unpublish it
+ * @param item
+ * @private
+ */
+const _saveAndUnpublish = (item) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.saveAndUnpublish(item))
+        .then(() => (
+            notify.success('Planning item unpublished!')
+        ), (error) => (
+            notify.error(
+                getErrorMessage(error, 'Failed to save Planning item!')
+            )
+        ))
+    )
+)
+
+/**
+ * Close advanced search panel
+ */
+const closeAdvancedSearch = () => ({ type: PLANNING.ACTIONS.CLOSE_ADVANCED_SEARCH })
+
+/**
+ * Open advanced search panel
+ */
+const openAdvancedSearch = () => ({ type: PLANNING.ACTIONS.OPEN_ADVANCED_SEARCH })
+
+/**
+ * Set the advanced search params
+ * @param {object} params - Advanced search params
+ */
+const search = (params={ spikeState: SPIKED_STATE.NOT_SPIKED }) => (
+    (dispatch) => {
+        dispatch(self._setAdvancedSearch(params))
+        return dispatch(actions.fetchSelectedAgendaPlannings())
+    }
+)
+
+/**
+ * Set the advanced search params
+ * @param {object} params - Advanced search params
+ */
+const resetSearch = () => (
+    (dispatch) => {
+        dispatch(self._resetAdvancedSearch())
+        return dispatch(actions.fetchSelectedAgendaPlannings())
+    }
+)
+
+const _setAdvancedSearch = (params={}) => ({
+    type: PLANNING.ACTIONS.SET_ADVANCED_SEARCH,
+    payload: params,
+})
+
+const _resetAdvancedSearch = () => ({ type: PLANNING.ACTIONS.CLEAR_ADVANCED_SEARCH })
+
+/**
  * Action that states that there are Planning items currently loading
  * @param {object} params - Parameters used when querying for planning items
  */
@@ -340,13 +526,38 @@ const saveAndReloadCurrentAgenda = checkPermission(
 const openEditor = checkPermission(
     _lockAndOpenEditor,
     PRIVILEGES.PLANNING_MANAGEMENT,
-    'Unauthorised to edit a planning item!'
+    'Unauthorised to edit a planning item!',
+    preview
 )
 
 const unlockAndOpenEditor = checkPermission(
     _unlockAndOpenEditor,
     PRIVILEGES.PLANNING_UNLOCK,
     'Unauthorised to ed a planning item!'
+)
+
+const publish = checkPermission(
+    _publish,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to publish a planning item!'
+)
+
+const unpublish = checkPermission(
+    _unpublish,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to unpublish a planning item!'
+)
+
+const saveAndPublish = checkPermission(
+    _saveAndPublish,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to publish a planning item!'
+)
+
+const saveAndUnpublish = checkPermission(
+    _saveAndUnpublish,
+    PRIVILEGES.PLANNING_MANAGEMENT,
+    'Unauthorised to unpublish a planning item!'
 )
 
 const self = {
@@ -359,16 +570,29 @@ const self = {
     _openEditor,
     closeEditor,
     previewPlanningAndOpenAgenda,
+    openPlanningWithAgenda,
     toggleOnlyFutureFilter,
     filterByKeyword,
-    toggleOnlySpikedFilter,
     unlockAndOpenEditor,
+    unlockAndCloseEditor,
     clearList,
     fetchToList,
     requestPlannings,
     setInList,
     addToList,
     fetchMoreToList,
+    publish,
+    unpublish,
+    saveAndPublish,
+    saveAndUnpublish,
+    refetch,
+    duplicate,
+    closeAdvancedSearch,
+    openAdvancedSearch,
+    _setAdvancedSearch,
+    _resetAdvancedSearch,
+    search,
+    resetSearch,
 }
 
 export default self

@@ -13,14 +13,30 @@ export class CoverageAssignSelect extends React.Component {
     }
 
     filterUsers(deskAssigned) {
-        if (!deskAssigned) return this.props.users
+        if (!deskAssigned) return this.props.usersMergedCoverageProviders
 
-        return this.props.users.filter((user) =>
+        let filteredUsersWithProviders = this.props.usersMergedCoverageProviders.filter((user) =>
             map(deskAssigned.members, 'user').indexOf(user._id) !== -1)
+
+        // Append providers as they belong to all desks
+        const providers = this.props.usersMergedCoverageProviders.filter((u) => u.provider)
+        filteredUsersWithProviders = [
+            ...filteredUsersWithProviders,
+            ...providers,
+        ]
+
+        return filteredUsersWithProviders
     }
 
     filterDesks(userAssigned) {
         if (!userAssigned) return this.props.desks
+
+        // If user assigned is a provider, show all desks
+        const selectedUser = this.props.usersMergedCoverageProviders.find((u) =>
+            u._id === userAssigned)
+        if (selectedUser.provider) {
+            return this.props.desks
+        }
 
         return this.props.desks.filter((desk) =>
             map(desk.members, 'user').indexOf(userAssigned) !== -1)
@@ -79,8 +95,10 @@ export class CoverageAssignSelect extends React.Component {
         // Change desk list to user's desks
         this.setState({
             filteredDeskList: this.filterDesks(value),
-            userAssigned: this.props.users.find((user) => user._id === value),
+            userAssigned: this.props.usersMergedCoverageProviders.find((user) =>
+                user._id === value),
         })
+        this.refs.searchBar.resetSearch()
     }
 
     onChange(value) {
@@ -113,7 +131,7 @@ export class CoverageAssignSelect extends React.Component {
                 </div> }
             { this.state.filteredUserList.length > 0 && <div className='coverageassignselect__search'>
                 <SearchBar onSearch={(value) => {this.filterUserList(value)}} minLength={1}
-                    extendOnOpen={true} />
+                    extendOnOpen={true} ref='searchBar'/>
             </div> }
             <ul className='coverageassignselect__list'>
                 {this.state.filteredUserList.map((user, index) => (
@@ -142,7 +160,7 @@ export class CoverageAssignSelect extends React.Component {
 }
 
 CoverageAssignSelect.propTypes = {
-    users: React.PropTypes.array.isRequired,
+    usersMergedCoverageProviders: React.PropTypes.array.isRequired,
     desks: React.PropTypes.array.isRequired,
     onCancel: React.PropTypes.func.isRequired,
     input: React.PropTypes.object.isRequired,

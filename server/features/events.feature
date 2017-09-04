@@ -235,7 +235,7 @@ Feature: Events
         Then we get OK response
         When we post to "/events/publish"
         """
-        {"event": "#events._id#", "etag": "#events._etag#"}
+        {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
         """
         When we get "/events_history"
         Then we get a list with 2 items
@@ -253,7 +253,7 @@ Feature: Events
         """
         When we patch "/events/#events._id#"
         """
-        {"pubstatus": "withhold"}
+        {"pubstatus": "cancelled"}
         """
         When we get "/events_history"
         Then we get a list with 3 items
@@ -270,13 +270,31 @@ Feature: Events
                 {
                 "event_id": "#events._id#",
                 "operation": "update",
-                "update": {"pubstatus": "withhold"}
+                "update": {"pubstatus": "cancelled"}
                 }
             ]}
         """
 
     @auth
     Scenario: Duplicate an event
+        Given "vocabularies"
+        """
+        [{
+            "_id": "eventoccurstatus",
+                    "display_name": "Event Occurence Status",
+                    "type": "manageable",
+                    "unique_field": "qcode",
+                    "items": [
+                        {"is_active": true, "qcode": "eocstat:eos0", "name": "Unplanned event"},
+                        {"is_active": true, "qcode": "eocstat:eos1", "name": "Planned, occurence planned only"},
+                        {"is_active": true, "qcode": "eocstat:eos2", "name": "Planned, occurence highly uncertain"},
+                        {"is_active": true, "qcode": "eocstat:eos3", "name": "Planned, May occur"},
+                        {"is_active": true, "qcode": "eocstat:eos4", "name": "Planned, occurence highly likely"},
+                        {"is_active": true, "qcode": "eocstat:eos5", "name": "Planned, occurs certainly"},
+                        {"is_active": true, "qcode": "eocstat:eos6", "name": "Planned, then cancelled"}
+                    ]
+        }]
+        """
         Given empty "users"
         When we post to "users"
         """
@@ -306,32 +324,47 @@ Feature: Events
         ]
         """
         Then we get OK response
+        When we post to "/events/publish"
+        """
+        {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
+        """
         When we post to "/events/#events._id#/duplicate"
         """
         [{}]
         """
         Then we get OK response
-        When we get "/events"
-        Then we get list with 2 items
+        When we get "/events/123"
+        Then we get existing resource
         """
-        {"_items": [
-            {
-                "_id": "123",
-                "name": "event 123"
-            },
-            {
-                "_id": "#duplicate._id#",
-                "name": "event 123"
-            }
-        ]}
+        {
+            "_id": "123",
+            "name": "event 123",
+            "state": "published",
+            "duplicate_to": ["#duplicate._id#"]
+        }
+        """
+        When we get "/events/#duplicate._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#duplicate._id#",
+            "name": "event 123",
+            "state": "in_progress",
+            "occur_status": {"qcode": "eocstat:eos5"},
+            "duplicate_from": "123"
+        }
         """
         When we get "/events_history"
-        Then we get list with 4 items
+        Then we get list with 6 items
         """
         {"_items": [
             {
                 "operation": "create",
                 "event_id": "123"
+            },
+            {
+                "operation": "publish",
+                "update": { "state" : "published", "pubstatus": "usable" }
             },
             {
                 "operation": "create",
@@ -344,6 +377,111 @@ Feature: Events
             {
                 "operation": "duplicate_from",
                 "update": { "duplicate_id" : "123"}
+            },
+            {
+                "operation": "update",
+                "update": { "duplicate_to": ["#duplicate._id#"] }
+            }
+        ]}
+        """
+
+    @auth
+    Scenario: Duplicate a recurrent event
+        Given "vocabularies"
+        """
+        [{
+            "_id": "eventoccurstatus",
+                    "display_name": "Event Occurence Status",
+                    "type": "manageable",
+                    "unique_field": "qcode",
+                    "items": [
+                        {"is_active": true, "qcode": "eocstat:eos5", "name": "Planned, occurs certainly"}
+                    ]
+        }]
+        """
+        Given empty "users"
+        When we post to "users"
+        """
+        {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
+        """
+        When we post to "/events"
+        """
+        [
+            {
+                "guid": "123",
+                "name": "event 123",
+                "slugline": "event-123",
+                "definition_short": "short value",
+                "definition_long": "long value",
+                "recurrence_id": "432",
+                "previous_recurrence_id": "765",
+                "relationships":{
+                    "broader": "broader value",
+                    "narrower": "narrower value",
+                    "related": "related value"
+                },
+                "dates": {
+                    "start": "2016-01-02",
+                    "end": "2016-01-03",
+                    "recurring_rule" : {
+                        "frequency" : "WEEKLY",
+                        "until" : null,
+                        "count" : 1,
+                        "endRepeatMode" : "count",
+                        "interval" : 1,
+                        "byday" : "MO"
+                    }
+                },
+                "subject": [{"qcode": "test qcaode", "name": "test name"}],
+                "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}]
+            }
+        ]
+        """
+        Then we get OK response
+        Then we store "eventId" with value "#events._id#" to context
+        When we post to "/events/#eventId#/duplicate"
+        """
+        [{}]
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {
+                "_id": "#eventId#",
+                "name": "event 123"
+            },
+            {
+                "_id": "#duplicate._id#",
+                "name": "event 123",
+                "occur_status": {"qcode": "eocstat:eos5"}
+            }
+        ]}
+        """
+        When we get "/events_history"
+        Then we get list with 5 items
+        """
+        {"_items": [
+            {
+                "operation": "create",
+                "event_id": "#eventId#"
+            },
+            {
+                "operation": "create",
+                "event_id": "#duplicate._id#"
+            },
+            {
+                "operation": "duplicate",
+                "update": { "duplicate_id" : "#duplicate._id#"}
+            },
+            {
+                "operation": "duplicate_from",
+                "update": { "duplicate_id" : "#eventId#"}
+            },
+            {
+                "operation": "update",
+                "update": { "duplicate_to": ["#duplicate._id#"] }
             }
         ]}
         """

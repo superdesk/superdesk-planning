@@ -1,36 +1,39 @@
 import { createSelector } from 'reselect'
-import { orderBy, get, sortBy, includes, isEmpty } from 'lodash'
-// import { isAllDay } from '../utils'
+import { get, sortBy, includes, isEmpty, filter, matches, isNil } from 'lodash'
 import moment from 'moment'
-import { ITEM_STATE } from '../constants'
+import { AGENDA, SPIKED_STATE } from '../constants'
+import { isItemLockedInThisSession, isItemSpiked } from '../utils'
 
-export const getAgendas = (state) => state.agenda.agendas
-export const getCurrentPlanningId = (state) => state.planning.currentPlanningId
-export const getPlanningHistory = (state) => state.planning.planningHistoryItems
-export const eventSearchActive = (state) => (state.events.search.currentSearch.advancedSearch) ?
-    true : false
-export const getEvents = (state) => state.events.events
-export const getEventHistory = (state) => state.events.eventHistoryItems
-export const isEventListShown = (state) =>state.events.show
-export const getPreviousEventRequestParams = (state) => get(state.events, 'lastRequestParams', {})
+export const getIngestProviders = (state) => get(state, 'ingest.providers')
+export const getAgendas = (state) => get(state, 'agenda.agendas', [])
+export const getCurrentPlanningId = (state) => get(state, 'planning.currentPlanningId')
+export const getPlanningHistory = (state) => get(state, 'planning.planningHistoryItems')
+export const eventSearchActive = (state) => !!get(
+    state,
+    'events.search.currentSearch.advancedSearch',
+    false
+)
+export const getEvents = (state) => get(state, 'events.events')
+export const getEventHistory = (state) => get(state, 'events.eventHistoryItems')
+export const isEventListShown = (state) => get(state, 'events.show')
+export const getPreviousEventRequestParams = (state) => get(state, 'events.lastRequestParams', {})
 export const getPreviousPlanningRequestParams = (state) =>
-    get(state.planning, 'lastRequestParams', {})
-export const getCurrentAgendaId = (state) => state.agenda.currentAgendaId
-export const getStoredPlannings = (state) => state.planning.plannings
-export const getPlanningIdsInList = (state) => state.planning.planningsInList
-export const isOnlyFutureFiltered = (state) => state.planning.onlyFuture
-export const filterPlanningKeyword = (state) => state.planning.filterPlanningKeyword
-export const isOnlySpikeFiltered = (state) => state.planning.onlySpiked
-export const getServerUrl = (state) => state.config.server.url
-export const getDateFormat = (state) => state.config.model.dateformat
-export const getTimeFormat = (state) => state.config.shortTimeFormat
-export const getIframelyKey = (state) => state.config.iframely ? state.config.iframely.key : null
+    get(state, 'planning.lastRequestParams', {})
+export const getCurrentAgendaId = (state) => get(state, 'agenda.currentAgendaId')
+export const getStoredPlannings = (state) => get(state, 'planning.plannings')
+export const getPlanningIdsInList = (state) => get(state, 'planning.planningsInList')
+export const isOnlyFutureFiltered = (state) => get(state, 'planning.onlyFuture')
+export const filterPlanningKeyword = (state) => get(state, 'planning.filterPlanningKeyword')
+export const getServerUrl = (state) => get(state, 'config.server.url')
+export const getDateFormat = (state) => get(state, 'config.model.dateformat')
+export const getTimeFormat = (state) => get(state, 'config.shortTimeFormat')
+export const getIframelyKey = (state) => get(state, 'config.iframely.key', null)
 export const getMaxRecurrentEvents = (state) => get(state, 'deployConfig.max_recurrent_events', 200)
-export const getShowEventDetails = (state) => state.events.showEventDetails
-export const getSelectedEvents = (state) => state.events.selectedEvents
-export const getHighlightedEvent = (state) => state.events.highlightedEvent === true ? null :
-    state.events.highlightedEvent
-export const getEventsIdsToShowInList = (state) => state.events.eventsInList
+export const getShowEventDetails = (state) => get(state, 'events.showEventDetails')
+export const getSelectedEvents = (state) => get(state, 'events.selectedEvents')
+export const getHighlightedEvent = (state) => get(state, 'events.highlightedEvent') === true ?
+    null : get(state, 'events.highlightedEvent')
+export const getEventsIdsToShowInList = (state) => get(state, 'events.eventsInList')
 export const getSelectedEventsObjects = createSelector(
     [getEvents, getSelectedEvents],
     (events, eventsIds) => (eventsIds.map((id) => events[id]))
@@ -43,11 +46,70 @@ export const getCurrentAgenda = createSelector(
         }
     }
 )
-export const getPrivileges = (state) => state.privileges
-export const getUsers = (state) => get(state, 'users.length', 0) > 0 ? state.users : []
-export const getPlanningItemReadOnlyState = (state) => state.planning.readOnly
-export const getEventReadOnlyState = (state) => state.events.readOnly
-export const getSessionDetails = (state) => state.session
+
+export const getAssignments = (state) => get(state, 'assignment.assignments', [])
+export const getFilterBy = (state) => get(state, 'assignment.filterBy')
+export const getSearchQuery = (state) => get(state, 'assignment.searchQuery')
+export const getOrderByField = (state) => get(state, 'assignment.orderByField')
+export const getOrderDirection = (state) => get(state, 'assignment.orderDirection')
+export const getSelectedAssignments = (state) => get(state, 'assignment.selectedAssignments', [])
+export const getAssignmentListSettings = (state) => ({
+    filterBy: getFilterBy(state),
+    searchQuery: getSearchQuery(state),
+    orderByField: getOrderByField(state),
+    orderDirection: getOrderDirection(state),
+    lastAssignmentLoadedPage: get(state, 'assignment.lastAssignmentLoadedPage'),
+})
+export const getMyAssignmentsCount = (state) => {
+    const assignments = getAssignments(state)
+    const currentUserId = getCurrentUserId(state)
+
+    if (assignments && currentUserId) {
+        return assignments.reduce((previousValue, assignment) =>
+            previousValue + (
+                get(assignment, 'planning.assigned_to.user') === currentUserId ? 1 : 0
+            ), 0
+        )
+    }
+}
+
+export const getPrivileges = (state) => get(state, 'privileges')
+export const getUsers = (state) => get(state, 'users', [])
+export const getPlanningItemReadOnlyState = (state) => get(state, 'planning.readOnly')
+export const getEventReadOnlyState = (state) => get(state, 'events.readOnly')
+export const getSessionDetails = (state) => get(state, 'session')
+export const getCurrentUserId = (state) => get(state, 'session.identity._id')
+export const getPreviewAssignmentOpened = (state) => get(state, 'assignment.previewOpened')
+export const getCurrentAssignment = (state) => get(state, 'assignment.currentAssignment')
+export const getReadOnlyAssignment = (state) => get(state, 'assignment.readOnly')
+
+export const getEventCalendars = (state) => get(state, 'vocabularies.event_calendars', [])
+
+export const getPlanningSearch = (state) => get(state, 'planning.search.currentSearch')
+export const getEventsFormsProfile = (state) => get(state, 'formsProfile.events')
+export const getPlanningsFormsProfile = (state) => get(state, 'formsProfile.planning')
+export const getCoverageFormsProfile = (state) => get(state, 'formsProfile.coverage')
+export const getVocabularies = (state) => get(state, 'vocabularies')
+
+export const getUsersMergedCoverageProviders = createSelector(
+    [getUsers, getVocabularies],
+    (users, vocabularies) => {
+        if (!vocabularies.coverage_providers) {
+            return users
+        }
+
+        let mergedUsers = users
+        vocabularies.coverage_providers.forEach((provider) => {
+            mergedUsers.push({
+                _id: provider.qcode,
+                display_name: provider.name,
+                provider: true,
+            })
+        })
+
+        return mergedUsers
+    }
+)
 
 export const getPlanningsInList = createSelector(
     [getPlanningIdsInList, getStoredPlannings],
@@ -56,77 +118,29 @@ export const getPlanningsInList = createSelector(
     )
 )
 
-// export const getCurrentAgendaPlannings = createSelector(
 export const getFilteredPlanningList = createSelector(
-    [getCurrentAgenda, getCurrentAgendaId, getPlanningsInList, isOnlyFutureFiltered, getEvents,
-        filterPlanningKeyword, isOnlySpikeFiltered],
-    (currentAgenda, currentAgendaId, planningsInList, isOnlyFutureFiltered, events,
-        filterPlanningKeyword, isOnlySpikeFiltered) => {
-        /** Return true if the planning has a future scheduled due date for a coverage
-        or an associated event with a future end date.
-        see: https://dev.sourcefabric.org/browse/SDESK-1103
-        */
-        function isFuture(planning) {
-            const endDate = get(events[planning.event_item], 'dates.end')
-            // planning has no coverage due date and no event ending date
-            if (!endDate && !get(planning, 'coverages', []).some(
-                (c) => (get(c, 'planning.scheduled'))
-            )) {
-                return true
-            }
-            // event ending date is future
-            else if (endDate && endDate.isSameOrAfter(new Date(), 'day')) {
-                return true
-            }
-            // or a coverage due date is future
-            else if (get(planning, 'coverages', []).some((c) => (
-                    moment(c.planning.scheduled).isSameOrAfter(new Date(), 'day')
-            ))) {
-                return true
-            }
-            // it's an old planning
-            return false
-        }
+    [getCurrentAgenda, getCurrentAgendaId, getPlanningsInList, getPlanningSearch],
+    (currentAgenda, currentAgendaId, planningsInList, currentSearch) => {
 
-        function freetextSearch(planning) {
-            // compose a string with the fields we want to seach in.
-            const textToSearchIn = `
-                ${JSON.stringify(planning)}
-                ${JSON.stringify(events[planning.event_item])}
-            `.toLowerCase()
-            return filterPlanningKeyword
-                .toLowerCase()
-                .split(' ').every((keyword) => (
-                    textToSearchIn.indexOf(keyword) !== -1
-                ))
-        }
-
-        let plannings = []
+        let plannings = planningsInList
 
         if (currentAgenda && currentAgenda._id) {
             plannings = planningsInList.filter(
                 (planning) => includes(planning.agendas, currentAgenda._id)
             )
-        } else if (currentAgendaId) {
+        } else if (currentAgendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED) {
             plannings = planningsInList.filter(
                 (planning) => !planning.agendas || isEmpty(planning.agendas)
             )
         }
 
-        plannings = plannings
-        // remove undefined
-        .filter((p) => p !== undefined)
-        // if "only future" filter is enabled, keep only future planning
-        .filter((p) => !isOnlyFutureFiltered || isFuture(p))
-        // filter by keyword
-        .filter((p) => !filterPlanningKeyword || freetextSearch(p))
-        // if "only active" filter is enabled, keep only active planning
-        .filter((p) =>
-            (isOnlySpikeFiltered && p.state === ITEM_STATE.SPIKED) ||
-            (!isOnlySpikeFiltered && p.state !== ITEM_STATE.SPIKED)
-        )
-        // sort by new created first, or by name
-        return orderBy(plannings, ['_created'], ['desc'])
+        if (get(currentSearch, 'spikeState') === SPIKED_STATE.SPIKED) {
+            return plannings.filter((p) => isItemSpiked(p))
+        } else if (get(currentSearch, 'spikeState') === SPIKED_STATE.BOTH) {
+            return plannings
+        } else {
+            return plannings.filter((p) => !isItemSpiked(p))
+        }
     }
 )
 
@@ -145,7 +159,7 @@ export const getFilteredPlanningListEvents = createSelector(
 )
 
 export const getCurrentPlanning = createSelector(
-    [getCurrentPlanningId, getStoredPlannings, getAgendas],
+    [getCurrentPlanningId, getStoredPlannings],
     (currentPlanningId, storedPlannings) => {
         if (currentPlanningId) {
             return storedPlannings[currentPlanningId]
@@ -161,23 +175,12 @@ export const getCurrentPlanningEvent = createSelector(
 /** Used for the events list */
 export const getEventsWithMoreInfo = createSelector(
     [getEvents, getStoredPlannings, getEventsIdsToShowInList],
-    (events, storedPlannings, eventsIdsToBeShown) => {
-        function hasPlanning(event) {
-            return storedPlannings && Object.keys(storedPlannings).some((planningKey) => (
-                storedPlannings[planningKey].event_item === event._id
-            ))
-        }
-
-        return eventsIdsToBeShown.map((eventId) => {
-            const event = events[eventId]
-            if (!event) throw Error(`the event ${eventId} is missing in the store`)
-            return {
-                ...event,
-                _hasPlanning: hasPlanning(event),
-                _type: 'events', // _type can disapear in the object, like in a POST response
-            }
-        })
-    }
+    (events, storedPlannings, eventsIdsToBeShown) =>(
+        eventsIdsToBeShown.map((eventId) => ({
+            ...events[eventId],
+            _type: 'events', // _type can disappear in the obejct, like in a POST response
+        }))
+    )
 )
 
 /**
@@ -252,7 +255,7 @@ export const getEventsOrderedByDay = createSelector(
 export const getEventToBeDetailed = createSelector(
     [getShowEventDetails, getEvents, getStoredPlannings, getAgendas],
     (showEventDetails, events, plannings, agendas) => {
-        const event = events[showEventDetails]
+        const event = events ? events[showEventDetails] : null
         if (event) {
             return {
                 ...event,
@@ -296,8 +299,7 @@ export const getDisabledAgendas = createSelector(
 export const isCurrentPlanningLockedInThisSession = createSelector(
     [getCurrentPlanning, getSessionDetails],
     (currentPlanning, session) => (
-            currentPlanning && currentPlanning.lock_user === session.identity._id &&
-        currentPlanning.lock_session === session.sessionId ? true : false
+        currentPlanning && isItemLockedInThisSession(currentPlanning, session)
     )
 )
 
@@ -305,7 +307,50 @@ export const isEventDetailLockedInThisSession = createSelector(
     [getShowEventDetails, getEvents, getSessionDetails],
     (showEventDetails, events, session) => {
         const event = events[showEventDetails]
-        return event && (event.lock_user === session.identity._id &&
-        event.lock_session === session.sessionId) ? true : false
+        return event && isItemLockedInThisSession(event, session)
     }
+)
+
+export const getPlanningFilterParams = createSelector(
+    [getCurrentAgendaId, getCurrentAgenda, getPlanningSearch,
+        filterPlanningKeyword, isOnlyFutureFiltered],
+    (agendaId, agenda, planningSearch, filterKeyword, onlyFuture) => {
+        const params = {
+            noAgendaAssigned: agendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED,
+            agendas: agenda ? [agenda._id] : null,
+            page: 1,
+            advancedSearch: get(planningSearch, 'advancedSearch', {}),
+            spikeState: get(planningSearch, 'spikeState', SPIKED_STATE.NOT_SPIKED),
+            fulltext: filterKeyword,
+            onlyFuture: onlyFuture,
+        }
+
+        return params
+    }
+)
+
+export const isAdvancedDateSearch = createSelector(
+    [getPlanningSearch], (currentSearch) => (
+        !!get(currentSearch, 'advancedSearch.dates.range', false)
+    )
+)
+
+/** Returns the list of currently locked planning items */
+export const getLockedPlannings = createSelector(
+    [getStoredPlannings, getCurrentUserId],
+    (plannings, userId) => filter(plannings, matches({
+        lock_user: userId,
+        lock_action: 'edit',
+    }))
+)
+
+/** Returns the list of currently locked events */
+export const getLockedEvents = createSelector(
+    [getEvents, getCurrentUserId],
+    (events, userId) => (
+        filter(events, (e) => (
+                !isNil(e.lock_session) && e.lock_action === 'edit' && e.lock_user === userId
+            )
+        )
+    )
 )

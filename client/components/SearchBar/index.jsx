@@ -60,7 +60,7 @@ export default class SearchBar extends React.Component {
                     </label>
                     <DebounceInput
                         minLength={minLength}
-                        debounceTimeout={500}
+                        debounceTimeout={800}
                         value={this.state.searchInputValue}
                         onChange={this.onSearchChange.bind(this)}
                         id={uniqueId}

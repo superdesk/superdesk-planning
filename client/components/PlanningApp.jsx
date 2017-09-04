@@ -4,7 +4,9 @@ import {
     ModalsContainer,
     EventsPanelContainer,
     PlanningPanelContainer,
+    WorkqueueContainer,
 } from './index'
+import { get } from 'lodash'
 
 const PlanningAppComponent = ({ showEvents }) => {
     const classes = [
@@ -16,12 +18,13 @@ const PlanningAppComponent = ({ showEvents }) => {
             <ModalsContainer />
             <EventsPanelContainer />
             <PlanningPanelContainer />
+            <WorkqueueContainer />
         </div>
     )
 }
 
 PlanningAppComponent.propTypes = { showEvents: React.PropTypes.bool }
 
-const mapStateToProps = (state) => ({ showEvents: state.events.show })
+const mapStateToProps = (state) => ({ showEvents: get(state, 'events.show', true) })
 
 export const PlanningApp = connect(mapStateToProps)(PlanningAppComponent)

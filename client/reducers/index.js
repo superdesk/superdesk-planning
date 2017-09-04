@@ -4,33 +4,32 @@ import modal from './modal'
 import forms from './forms'
 import planning from './planning'
 import vocabularies from './vocabularies'
-import ingest from './ingest_providers'
-import privileges from './privileges'
 import agenda from './agenda'
-import users from './users'
-import desks from './desks'
-import subjects from './subjects'
-import session from './session'
-import genres from './genres'
-import urgency from './urgency'
+import assignment from './assignment'
+
+const returnState = (state) => state || {}
 
 const planningApp = combineReducers({
     modal,
     events,
     vocabularies,
-    ingest,
     planning,
-    privileges,
     agenda,
-    subjects,
+    assignment,
     form: forms,
-    config: (state) => (state || {}),
-    users,
-    desks,
-    session,
-    urgency,
-    deployConfig: (state) => (state || {}),
-    genres,
+
+    // The following doesn't require reducers as they are loaded using sdPlanningService
+    config: returnState,
+    deployConfig: returnState,
+    ingest: returnState,
+    privileges: returnState,
+    subjects: returnState,
+    genres: returnState,
+    users: returnState,
+    desks: returnState,
+    session: returnState,
+    urgency: returnState,
+    formsProfile: returnState,
 })
 
 export default planningApp

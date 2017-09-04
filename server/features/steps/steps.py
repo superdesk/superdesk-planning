@@ -8,7 +8,6 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-# from superdesk.tests.steps import *  # noqa
 from superdesk.tests.steps import (then, when, step_impl_then_get_existing, get_json_data,
                                    assert_200, unique_headers, get_prefixed_url,
                                    if_match, assert_404, apply_placeholders, get_res)
@@ -53,6 +52,13 @@ def steip_impl_store_indexed_item_to_ctx(context, tag, index):
 def step_imp_store_item_from_patch(context, tag):
     data = get_json_data(context.response)
     setattr(context, tag, data)
+
+
+@then('we store "{tag}" from last duplicated item')
+def step_imp_store_last_duplicate_item(context, tag):
+    data = get_json_data(context.response)
+    new_id = data['duplicate_to'][-1]
+    setattr(context, tag, {'id': new_id})
 
 
 @then('we get an event file reference')
@@ -109,3 +115,19 @@ def step_impl_when_unspike_resource(context, resource, item_id):
 
     context.response = context.client.patch(get_prefixed_url(context.app, unspike_url),
                                             data='{}', headers=headers)
+
+
+@when('we perform {action} on {resource} "{item_id}"')
+def step_imp_when_action_resource(context, action, resource, item_id):
+    data = context.text or {}
+    resource = apply_placeholders(context, resource)
+    item_id = apply_placeholders(context, item_id)
+
+    item_url = '/{}/{}'.format(resource, item_id)
+    action_url = '/{}/{}/{}'.format(resource, action, item_id)
+
+    res = get_res(item_url, context)
+    headers = if_match(context, res.get('_etag'))
+
+    context.response = context.client.patch(get_prefixed_url(context.app, action_url),
+                                            data=json.dumps(data), headers=headers)

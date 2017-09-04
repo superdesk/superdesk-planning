@@ -39,7 +39,7 @@ export class Tabs extends React.Component {
         const tabs = (Array.isArray(children) ? children : [children]).map((child) => (this.renderTab(child)))
 
         return (
-            <ul className="nav-tabs">
+            <ul className="nav nav-tabs">
                 { tabs }
             </ul>
         )

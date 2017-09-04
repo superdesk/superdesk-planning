@@ -1,8 +1,14 @@
-import { PLANNING, ITEM_STATE } from '../../constants'
 import { get, cloneDeep, pickBy, isEqual, has } from 'lodash'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
+import { getTimeZoneOffset, sanitizeTextForQuery } from '../../utils'
 import moment from 'moment'
+import {
+    PLANNING,
+    PUBLISHED_STATE,
+    SPIKED_STATE,
+    WORKFLOW_STATE,
+} from '../../constants'
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -40,19 +46,22 @@ const unspike = (item) => (
 )
 
 /**
- * Action dispatcher to perform fetch the list of planning items from the server
+ * Action dispatcher to perform fetch the list of planning items from the server.
  * @param {string} eventIds - An event ID to fetch Planning items for that event
- * @param {string} state - Planning item state
+ * @param {string} spikeState - Planning item's spiked state (SPIKED, NOT_SPIKED or BOTH)
  * @param {agendas} list of agenda ids
  * @param {int} page - The page number to query for
  * @return Promise
  */
 const query = ({
     eventIds,
-    state=ITEM_STATE.ALL,
+    spikeState=SPIKED_STATE.BOTH,
     agendas,
     noAgendaAssigned=false,
     page=1,
+    advancedSearch={},
+    onlyFuture,
+    fulltext,
 }) => (
     (dispatch, getState, { api }) => {
         let query = {}
@@ -85,32 +94,274 @@ const query = ({
             }
         }
 
-        if (agendas) {
-            must.push({ terms: { agendas: agendas } })
-        } else if (noAgendaAssigned) {
-            mustNot.push({ exists: { field: 'agendas' } })
-        }
+        [
+            {
+                condition: () => (true),
+                do: () => {
+                    if (agendas) {
+                        must.push({ terms: { agendas: agendas } })
+                    } else if (noAgendaAssigned) {
+                        let field = { field: 'agendas' }
+                        mustNot.push({ constant_score: { filter: { exists: field } } })
+                    }
+                },
+            },
+            {
+                condition: () => (spikeState === SPIKED_STATE.SPIKED),
+                do: () => {
+                    must.push({ term: { state: WORKFLOW_STATE.SPIKED } })
+                },
+            },
+            {
+                condition: () => (spikeState === SPIKED_STATE.NOT_SPIKED || !spikeState),
+                do: () => {
+                    mustNot.push({ term: { state: WORKFLOW_STATE.SPIKED } })
+                },
+            },
+            {
+                condition: () => (fulltext),
+                do: () => {
+                    let query = { bool: { should: [] } }
+                    let queryString = {
+                        query_string: {
+                            query: '(' + sanitizeTextForQuery(fulltext) + ')',
+                            lenient: false,
+                            default_operator: 'AND',
+                        },
+                    }
+                    query.bool.should.push(queryString)
+                    query.bool.should.push({
+                        has_child: {
+                            type: 'coverage',
+                            query: { bool: { must: [queryString] } },
+                        },
+                    })
+                    must.push(query)
+                },
+            },
+            {
+                condition: () => (!get(advancedSearch, 'dates') && onlyFuture),
+                do: () => {
+                    must.push({
+                        nested: {
+                            path: '_coverages',
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            range: {
+                                                '_coverages.scheduled': {
+                                                    gte: 'now/d',
+                                                    time_zone: getTimeZoneOffset(),
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    })
+                },
+            },
+            {
+                condition: () => (!get(advancedSearch, 'dates') && !onlyFuture),
+                do: () => {
+                    must.push({
+                        nested: {
+                            path: '_coverages',
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            range: {
+                                                '_coverages.scheduled': {
+                                                    lt: 'now/d',
+                                                    time_zone: getTimeZoneOffset(),
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    })
+                },
+            },
+            {
+                condition: () => (get(advancedSearch, 'dates')),
+                do: () => {
+                    let range = { '_coverages.scheduled': { time_zone: getTimeZoneOffset() } }
+                    let rangeType = get(advancedSearch, 'dates.range', 'today')
 
-        switch (state) {
-            case ITEM_STATE.SPIKED:
-                must.push({ term: { state: ITEM_STATE.SPIKED } })
-                break
-            case ITEM_STATE.ALL:
-                break
-            case ITEM_STATE.ACTIVE:
-            default:
-                mustNot.push({ term: { state: ITEM_STATE.SPIKED } })
-        }
+                    if (rangeType === 'today') {
+                        range['_coverages.scheduled'].gte = 'now/d'
+                        range['_coverages.scheduled'].lt = 'now+24h/d'
+                    } else if (rangeType === 'last24') {
+                        range['_coverages.scheduled'].gte = 'now-24h'
+                        range['_coverages.scheduled'].lt = 'now'
+                    } else if (rangeType === 'week') {
+                        range['_coverages.scheduled'].gte = 'now/w'
+                        range['_coverages.scheduled'].lt = 'now+1w/w'
+                    } else {
+                        if (get(advancedSearch, 'dates.start')) {
+                            range['_coverages.scheduled'].gte = get(advancedSearch, 'dates.start')
+                        }
+
+                        if (get(advancedSearch, 'dates.end')) {
+                            range['_coverages.scheduled'].lte = get(advancedSearch, 'dates.end')
+                        }
+                    }
+
+                    must.push({
+                        nested: {
+                            path: '_coverages',
+                            query: { bool: { must: [{ range: range }] } },
+                        },
+                    })
+                },
+            },
+            {
+                condition: () => (advancedSearch.slugline),
+                do: () => {
+                    let query = { bool: { should: [] } }
+                    let queryText = sanitizeTextForQuery(advancedSearch.slugline)
+                    let queryString = {
+                        query_string: {
+                            query: 'slugline:(' + queryText + ')',
+                            lenient: false,
+                            default_operator: 'AND',
+                        },
+                    }
+                    query.bool.should.push(queryString)
+                    queryString = cloneDeep(queryString)
+                    queryString.query_string.query = 'planning.slugline:(' + queryText + ')'
+                    if (!advancedSearch.noCoverage) {
+                        query.bool.should.push({
+                            has_child: {
+                                type: 'coverage',
+                                query: { bool: { must: [queryString] } },
+                            },
+                        })
+                    }
+
+                    must.push(query)
+                },
+            },
+            {
+                condition: () => (advancedSearch.headline),
+                do: () => {
+                    let query = { bool: { should: [] } }
+                    let queryText = sanitizeTextForQuery(advancedSearch.headline)
+                    let queryString = {
+                        query_string: {
+                            query: 'headline:(' + queryText + ')',
+                            lenient: false,
+                            default_operator: 'AND',
+                        },
+                    }
+                    query.bool.should.push(queryString)
+                    queryString = cloneDeep(queryString)
+                    queryString.query_string.query = 'planning.headline:(' + queryText + ')'
+                    if (!advancedSearch.noCoverage) {
+                        query.bool.should.push({
+                            has_child: {
+                                type: 'coverage',
+                                query: { bool: { must: [queryString] } },
+                            },
+                        })
+                    }
+
+                    must.push(query)
+                },
+            },
+            {
+                condition: () => (Array.isArray(advancedSearch.anpa_category) &&
+                advancedSearch.anpa_category.length > 0),
+                do: () => {
+                    const codes = advancedSearch.anpa_category.map((cat) => cat.qcode)
+                    must.push({ terms: { 'anpa_category.qcode': codes } })
+                },
+            },
+            {
+                condition: () => (Array.isArray(advancedSearch.subject) &&
+                advancedSearch.subject.length > 0),
+                do: () => {
+                    const codes = advancedSearch.subject.map((subject) => subject.qcode)
+                    must.push({ terms: { 'subject.qcode': codes } })
+                },
+            },
+            {
+                condition: () => (advancedSearch.urgency),
+                do: () => {
+                    must.push({ term: { urgency: advancedSearch.urgency } })
+                },
+            },
+            {
+                condition: () => (advancedSearch.g2_content_type),
+                do: () => {
+                    let term = { '_coverages.g2_content_type': advancedSearch.g2_content_type }
+                    must.push({
+                        nested: {
+                            path: '_coverages',
+                            query: { bool: { must: [{ term: term }] } },
+                        },
+                    })
+                },
+            },
+            {
+                condition: () => (advancedSearch.noCoverage),
+                do: () => {
+                    let noCoverageTerm = { term: { '_coverages.coverage_id': 'NO_COVERAGE' } }
+                    must.push({
+                        nested: {
+                            path: '_coverages',
+                            query: { bool: { must: [noCoverageTerm] } },
+                        },
+                    })
+                },
+            },
+        ].forEach((action) => {
+            if (!eventIds && action.condition()) {
+                action.do()
+            }
+        })
 
         query.bool = {
             must,
             must_not: mustNot,
         }
 
+        let sort = [
+            {
+                '_coverages.scheduled': {
+                    order: onlyFuture ? 'asc' : 'desc',
+                    nested_path: '_coverages',
+                    nested_filter: {
+                        range: {
+                            '_coverages.scheduled': onlyFuture ? {
+                                gte: 'now/d',
+                                time_zone: getTimeZoneOffset(),
+                            } : {
+                                lt: 'now/d',
+                                time_zone: getTimeZoneOffset(),
+                            },
+                        },
+                    },
+                },
+            },
+        ]
+
+        if (eventIds) {
+            sort = [{ _planning_date: { order: 'asc' } }]
+        }
+
         // Query the API
         return api('planning').query({
             page,
-            source: JSON.stringify({ query }),
+            source: JSON.stringify({
+                query,
+                sort,
+            }),
             embedded: { original_creator: 1 }, // Nest creator to planning
             timestamp: new Date(),
         })
@@ -149,6 +400,31 @@ const fetch = (params={}) => (
 )
 
 /**
+ * Action Dispatcher to re-fetch the current list of planning
+ * It achieves this by performing a fetch using the params from
+ * the store value `planning.lastRequestParams`
+ */
+const refetch = (page=1, plannings=[]) => (
+    (dispatch, getState) => {
+        const prevParams = selectors.getPreviousPlanningRequestParams(getState())
+        let params = selectors.getPlanningFilterParams(getState())
+        params.page = page
+
+        return dispatch(self.query(params))
+        .then((items) => {
+            plannings = plannings.concat(items)
+            page++
+            if (get(prevParams, 'page', 1) >= page) {
+                return dispatch(self.refetch(page, plannings))
+            }
+
+            dispatch(self.receivePlannings(plannings))
+            return Promise.resolve(plannings)
+        }, (error) => (Promise.reject(error)))
+    }
+)
+
+/**
  * Action dispatcher to fetch Events associated with Planning items
  * and place them in the local store.
  * @param {Array} plannings - An array of Planning items
@@ -165,7 +441,8 @@ const fetchPlanningsEvents = (plannings) => (
 
         // load missing events, if there are any
         if (get(linkedEvents, 'length', 0) > 0) {
-            return dispatch(actions.silentlyFetchEventsById(linkedEvents, ITEM_STATE.ALL))
+            return dispatch(actions.events.api.silentlyFetchEventsById(linkedEvents,
+                SPIKED_STATE.BOTH))
         }
 
         return Promise.resolve([])
@@ -269,18 +546,44 @@ const loadPlanning = (query) => (
 )
 
 /**
+ * Action dispatcher to load Current user's Locked Planning items by action from the API,
+ * and place them in the local store.
+ * @param {string} action - lock_action such as 'edit'
+ * @return Promise
+ */
+const loadLockedPlanningsByAction = (action) => (
+    (dispatch, getState, { api }) => {
+        let query = { bool: { must: [] } }
+        query.bool.must.push({ term: { lock_user: selectors.getCurrentUserId(getState()) } })
+        query.bool.must.push({ term: { lock_action: action } })
+
+        // Query the API
+        return api('planning').query({ source: JSON.stringify({ query }) })
+        .then((data) => {
+            if (get(data, '_items')) {
+                data._items.forEach(_convertCoveragesGenreToObject)
+                dispatch(self.receivePlannings(data._items))
+                return Promise.resolve(data._items)
+            } else {
+                return Promise.reject('Failed to retrieve items')
+            }
+        }, (error) => (Promise.reject(error)))
+    }
+)
+
+/**
  * Action dispatcher to load Planning items by ID from the API, and place them
  * in the local store. This does not update the list of visible Planning items
  * @param {Array} ids - An array of Planning item ids
- * @param {string} state - The state of the Planning items
+ * @param {string} spikeState - Planning item's spiked state (SPIKED, NOT_SPIKED or BOTH)
  * @return Promise
  */
-const loadPlanningById = (ids=[], state = ITEM_STATE.ALL) => (
+const loadPlanningById = (ids=[], spikeState = SPIKED_STATE.BOTH) => (
     (dispatch, getState, { api }) => {
         if (Array.isArray(ids)) {
             return dispatch(self.loadPlanning({
                 ids,
-                state,
+                spikeState,
             }))
         } else {
             return api('planning').getById(ids)
@@ -297,14 +600,14 @@ const loadPlanningById = (ids=[], state = ITEM_STATE.ALL) => (
  * Action dispatcher to load Planning items by Event ID from the API, and place them
  * in the local store. This does not update the list of visible Planning items
  * @param {string} eventIds - The Event ID used to query the API
- * @param {string} state - The state of the Planning items
+ * @param {string} spikeState - Planning item's spiked state (SPIKED, NOT_SPIKED or BOTH)
  * @return Promise
  */
-const loadPlanningByEventId = (eventIds, state = ITEM_STATE.ALL) => (
+const loadPlanningByEventId = (eventIds, spikeState = SPIKED_STATE.BOTH) => (
     (dispatch) => (
         dispatch(self.loadPlanning({
             eventIds,
-            state,
+            spikeState,
         }))
     )
 )
@@ -346,19 +649,27 @@ const save = (item, original=undefined) => (
                 item.agendas = item.agendas.map((agenda) => agenda._id || agenda)
             }
 
-            // Save through the api
-            return api('planning').save(cloneDeep(originalItem), item)
-            .then((item) => (
-                dispatch(self.saveAndDeleteCoverages(
-                    coverages,
-                    item,
-                    get(originalItem, 'coverages', [])
-                ))
+            if (!get(originalItem, '_id')) {
+                return api('planning').save(cloneDeep(originalItem), item)
                 .then(
-                    () => (Promise.resolve(item)),
+                    (item) => (Promise.resolve(item)),
+                    (error) => (Promise.reject(error))
+                )
+            }
+
+            return dispatch(self.saveAndDeleteCoverages(
+                    coverages,
+                    originalItem,
+                    get(originalItem, 'coverages', [])
+            ))
+            .then(() => (
+                api('planning').save(cloneDeep(originalItem), item)
+                .then(
+                    (item) => (Promise.resolve(item)),
                     (error) => (Promise.reject(error))
                 )
             ), (error) => (Promise.reject(error)))
+
         }, (error) => (Promise.reject(error)))
     )
 )
@@ -411,13 +722,6 @@ const saveAndDeleteCoverages = (coverages, item, originalCoverages) => (
                     )
                 }
             })
-        } else {
-            if (get(originalCoverages, 'length', 0) > 0) {
-                // There must always be at least one coverage associated with the planning item
-                var _errorMessage = { data: {} }
-                _errorMessage.data._message = 'The planning item must have at least one coverage.'
-                return Promise.reject(_errorMessage)
-            }
         }
 
         // Deletes coverages
@@ -482,17 +786,92 @@ const saveAndReloadCurrentAgenda = (item) => (
             }
 
             return dispatch(self.save(item, originalItem))
-            .then((item) => {
-                // If this is a new planning item, then re-fetch the selected
-                // agendas planning items
-                if (isEqual(originalItem, {})) {
-                    return dispatch(actions.fetchSelectedAgendaPlannings())
-                        .then(() => (Promise.resolve(item)), (error) => (Promise.reject(error)))
-                }
-
-                return Promise.resolve(item)
-            }, (error) => (Promise.reject(error)))
+            .then(
+                (item) => (Promise.resolve(item)),
+                (error) => (Promise.reject(error))
+            )
         })
+    )
+)
+
+const duplicate = (plan) => (
+    (dispatch, getState, { api }) => (
+        api('planning_duplicate', plan).save({})
+        .then((items) => {
+            if ('_items' in items) {
+                return Promise.resolve(items._items[0])
+            }
+
+            return Promise.resolve(items)
+        }, (error) => (
+            Promise.reject(error)
+        ))
+    )
+)
+
+/**
+ * Set a Planning item as Published
+ * @param {string} plan - Planning item
+ */
+const publish = (plan) => (
+    (dispatch, getState, { api }) => (
+        api.save('planning_publish', {
+            planning: plan._id,
+            etag: plan._etag,
+            pubstatus: PUBLISHED_STATE.USABLE,
+        })
+    )
+)
+
+/**
+ * Save a Planning item, then Publish it
+ * @param {object} plan - Planning item
+ */
+const saveAndPublish = (plan) => (
+    (dispatch) => (
+        dispatch(self.save(plan))
+        .then(
+            (newItem) => (
+                dispatch(self.publish(newItem))
+                .then(
+                    () => (Promise.resolve(newItem)),
+                    (error) => (Promise.reject(error))
+                )
+            ), (error) => (Promise.reject(error))
+        )
+    )
+)
+
+/**
+ * Set a Planning item as not Published
+ * @param {string} plan - Planning item ID
+ */
+const unpublish = (plan) => (
+    (dispatch, getState, { api }) => (
+        api.save('planning_publish', {
+            planning: plan._id,
+            etag: plan._etag,
+            pubstatus: PUBLISHED_STATE.CANCELLED,
+        })
+    )
+)
+
+/**
+ * Save a Planning item then Unpublish it
+ * @param {object} plan - Planning item
+ */
+const saveAndUnpublish = (plan) => (
+    (dispatch) => (
+        dispatch(self.save(plan))
+        .then(
+            (newItem) => (
+                dispatch(self.unpublish(newItem))
+                .then(
+                    () => Promise.resolve(newItem),
+                    (error) => Promise.reject(error)
+                )
+            ), (error) => Promise.reject(error)
+        )
     )
 )
 
@@ -567,6 +946,15 @@ const _convertCoverageGenreToObject = (coverage) => {
     return coverage
 }
 
+const markPlanningCancelled = (plan, reason, coverageState) => ({
+    type: PLANNING.ACTIONS.MARK_PLANNING_CANCELLED,
+    payload: {
+        planning_item: plan,
+        reason,
+        coverage_state: coverageState,
+    },
+})
+
 const self = {
     spike,
     unspike,
@@ -584,9 +972,17 @@ const self = {
     lock,
     loadPlanning,
     loadPlanningById,
+    loadLockedPlanningsByAction,
     fetchPlanningHistory,
     receivePlanningHistory,
     loadPlanningByEventId,
+    publish,
+    unpublish,
+    saveAndPublish,
+    saveAndUnpublish,
+    refetch,
+    duplicate,
+    markPlanningCancelled,
 }
 
 export default self

@@ -1,5 +1,6 @@
 import * as utils from './index'
 import sinon from 'sinon'
+import moment from 'moment'
 
 describe('Utils', function() {
     it('create a store', function() {
@@ -151,6 +152,42 @@ describe('Utils', function() {
                 expect(1).toBe(0, 'Should never get executed')
                 done()
             })
+        })
+    })
+
+    describe('doesRecurringEventsOverlap', () => {
+        it('returns true on daily', () => {
+            const start = moment('2029-10-15T00:00:00')
+            const end = moment('2029-10-16T00:05:00')
+            const rule = {
+                frequency: 'DAILY',
+                interval: 1,
+            }
+
+            expect(utils.eventUtils.doesRecurringEventsOverlap(start, end, rule)).toBe(true)
+        })
+
+        it('returns false on daily', () => {
+            const start = moment('2029-10-15T00:00:00')
+            const end = moment('2029-10-15T23:59:00')
+            const rule = {
+                frequency: 'DAILY',
+                interval: 1,
+            }
+
+            expect(utils.eventUtils.doesRecurringEventsOverlap(start, end, rule)).toBe(false)
+        })
+
+        it('returns true on weekly', () => {
+            const start = moment('2029-10-15T00:00:00')
+            const end = moment('2029-10-16T00:05:00')
+            const rule = {
+                frequency: 'WEEKLY',
+                interval: 1,
+                byday: 'MO TU WE TH FR SA SU',
+            }
+
+            expect(utils.eventUtils.doesRecurringEventsOverlap(start, end, rule)).toBe(true)
         })
     })
 })

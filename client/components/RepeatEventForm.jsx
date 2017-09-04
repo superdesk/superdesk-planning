@@ -1,8 +1,9 @@
 import React, { PropTypes } from 'react'
-import { Field, formValueSelector } from 'redux-form'
+import { Field } from 'redux-form'
 import { fields, RepeatEventSummary } from '../components'
 import { connect } from 'react-redux'
 import classNames from 'classnames'
+import { get } from 'lodash'
 
 class RepeatEventFormComponent extends React.Component {
 
@@ -10,8 +11,21 @@ class RepeatEventFormComponent extends React.Component {
         super(props)
     }
 
+    getSchedule(props=null) {
+        const schedule = props === null ? this.props.schedule : props.schedule
+        return {
+            frequency: get(schedule, 'recurring_rule.frequency'),
+            endRepeatMode: get(schedule, 'recurring_rule.endRepeatMode'),
+            until: get(schedule, 'recurring_rule.until'),
+            count: get(schedule, 'recurring_rule.count'),
+            byDay: get(schedule, 'recurring_rule.byday'),
+            start: get(schedule, 'start'),
+            interval: get(schedule, 'recurring_rule.interval'),
+        }
+    }
+
     componentWillMount() {
-        const { endRepeatMode, frequency, interval, start } = this.props
+        const { endRepeatMode, frequency, interval, start } = this.getSchedule()
 
         const intervals = interval || 1
         const startDate = start || null
@@ -36,7 +50,8 @@ class RepeatEventFormComponent extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        const { endRepeatMode, until, count, frequency, start, interval } = nextProps
+        const { endRepeatMode, until, count, frequency, start, interval } = this.getSchedule(nextProps)
+        const schedule = this.getSchedule()
 
         if (until && endRepeatMode !== 'until') {
             // force the selection of 'until' for endRepeatMode
@@ -57,22 +72,22 @@ class RepeatEventFormComponent extends React.Component {
         }
 
         if (endRepeatMode && endRepeatMode !== this.state.endRepeatMode) {
-            this.setState({ endRepeatMode: endRepeatMode })
+            this.setState({ endRepeatMode })
             return
         }
 
-        if (frequency !== this.props.frequency) {
-            this.setState({ frequency: frequency })
+        if (frequency !== schedule.frequency) {
+            this.setState({ frequency })
             return
         }
 
-        if (start !== this.props.start) {
+        if (start !== schedule.start) {
             this.setState({ date: start })
             return
         }
 
-        if (interval !== this.props.interval) {
-            this.setState({ interval: interval })
+        if (interval !== schedule.interval) {
+            this.setState({ interval })
             return
         }
     }
@@ -98,122 +113,122 @@ class RepeatEventFormComponent extends React.Component {
     }
 
     render() {
-        const frequences = {
-            YEARLY: 'years',
-            MONTHLY: 'months',
-            WEEKLY: 'weeks',
-            DAILY: 'days',
-        }
+        const { readOnly, showRepeatSummary } = this.props
+        const readOnlyClasses = classNames(
+            { disabledInput: readOnly }
+        )
 
-        const readOnly = this.props.readOnly
-        const readOnlyClasses = classNames({ 'disabledInput': readOnly })
         const readOnlyAttr = readOnly ? 'disabled' : ''
+
+        const { frequency, byDay, until, count, start } = this.getSchedule()
 
         return (
             <div>
-                <div>
-                    <label>Repeats</label>
-                    <Field name="dates.recurring_rule.frequency" component="select"
-                        className={readOnlyClasses}
-                        disabled={readOnlyAttr} >
-                        {/* values come from http://tinyurl.com/hqol55p */}
-                        <option value="YEARLY">Yearly</option>
-                        <option value="MONTHLY">Monthly</option>
-                        <option value="WEEKLY">Weekly</option>
-                        <option value="DAILY">Daily</option>
-                    </Field>
+                <div className="form__row form__row--flex">
+                    <Field
+                        name="dates.recurring_rule.frequency"
+                        component={fields.RepeatsField}
+                        disabled={readOnly}
+                        label="Repeats"
+                    />
+
+                    <Field
+                        name="dates.recurring_rule.interval"
+                        component={fields.RepeatEveryField}
+                        disabled={readOnly}
+                        label="Repeat Every"
+                        frequency={frequency}
+                    />
+
                 </div>
-                <div className="recurring__interval">
-                    <label>Repeat every</label>
-                    <Field name="dates.recurring_rule.interval" component="select"
-                        className={readOnlyClasses}
-                        type="number"
-                        disabled={readOnlyAttr}>
-                        {/* Create 30 options with 1...30 values */}
-                        {Array.apply(null, { length: 30 }).map(Number.call, Number).map((n) => (
-                            <option key={n + 1} value={n + 1}>
-                                {n + 1} { n === 0 && this.props.frequency ? frequences[this.props.frequency].slice(0, -1) :
-                                    frequences[this.props.frequency]}
-                            </option>
-                        ))}
-                    </Field>
-                </div>
-                { this.props.frequency === 'WEEKLY' &&
-                    <div>
-                        <label htmlFor="dates.recurring_rule.byday">Repeat on</label>
-                        <Field name="dates.recurring_rule.byday" component={fields.DaysOfWeek} readOnly={readOnly}/>
-                    </div>
+                { frequency === 'WEEKLY' &&
+                    <Field
+                        name="dates.recurring_rule.byday"
+                        component={fields.DaysOfWeek}
+                        label="Repeat On"
+                        readOnly={readOnly}/>
                 }
-                <div className="recurring__ends">
-                    <label>Ends</label>
-                    <label>
-                        <input
-                            name="endRepeatMode"
-                            checked={this.state.endRepeatMode === 'count'}
-                            className={readOnlyClasses}
-                            disabled={readOnlyAttr}
-                            onChange={this.handleEndRepeatModeChange.bind(this)}
-                            value="count"
-                            type="radio"/>
-                        After
-                        <Field name="dates.recurring_rule.count"
-                            text="occurrences"
-                            withRef={true}
-                            ref="recurring_rule--count"
-                            component={fields.InputIntegerField}
-                            type="number"
-                            readOnly={readOnly} />
-                    </label>
-                    <label>
-                        <input
-                            name="endRepeatMode"
-                            className={readOnlyClasses}
-                            disabled={readOnlyAttr}
-                            checked={this.state.endRepeatMode === 'until'}
-                            onChange={this.handleEndRepeatModeChange.bind(this)}
-                            value="until"
-                            type="radio"/>
-                        <span htmlFor="dates.recurring_rule.until">On</span>
-                        <Field name="dates.recurring_rule.until"
-                           withRef={true}
-                           ref="recurring_rule--until"
-                           component={fields.DayPickerInput}
-                           readOnly={readOnly} />
-                    </label>
-                    <RepeatEventSummary byDay={this.props.byDay}
-                        interval={this.state.interval}
-                        frequency={this.props.frequency}
-                        endRepeatMode={this.state.endRepeatMode}
-                        until={this.props.until}
-                        count={this.props.count}
-                        startDate={this.props.start} />
+
+                <div className="form__row">
+                    <div className="sd-line-input sd-line-input--no-margin">
+                        <label className="sd-line-input__label">Ends</label>
+                    </div>
                 </div>
+
+                <div className="recurring__ends form__row form__row--flex">
+                    <div className="sd-line-input sd-line-input--label-left sd-line-input--no-margin">
+                        <div>
+                            <input
+                                name="endRepeatMode"
+                                checked={this.state.endRepeatMode === 'count'}
+                                className={readOnlyClasses}
+                                disabled={readOnlyAttr}
+                                onChange={this.handleEndRepeatModeChange.bind(this)}
+                                value="count"
+                                type="radio"/>
+                            <span htmlFor="dates.recurring_rule.until" className="sd-line-input__label">
+                                After
+                            </span>
+                        </div>
+                    </div>
+                    <div className="sd-line-input sd-line-input--label-left sd-line-input--no-margin">
+                        <div>
+                            <Field name="dates.recurring_rule.count"
+                                withRef={true}
+                                ref="recurring_rule--count"
+                                component={fields.InputIntegerField}
+                                type="number"
+                                labelLeft={false}
+                                readOnly={readOnly} />
+
+                            <span className="sd-line-input__label">
+                                Occurrences
+                            </span>
+                        </div>
+                    </div>
+                    <div className="sd-line-input sd-line-input--label-left sd-line-input--no-margin">
+                        <div>
+                            <input
+                                name="endRepeatMode"
+                                className={readOnlyClasses}
+                                disabled={readOnlyAttr}
+                                checked={this.state.endRepeatMode === 'until'}
+                                onChange={this.handleEndRepeatModeChange.bind(this)}
+                                value="until"
+                                type="radio"/>
+                            <span className="sd-line-input__label">
+                                On
+                            </span>
+                        </div>
+                    </div>
+                    <div className="sd-line-input sd-line-input--no-margin">
+                        <Field name="dates.recurring_rule.until"
+                               withRef={true}
+                               ref="recurring_rule--until"
+                               component={fields.DayPickerInput}
+                               readOnly={readOnly} />
+                    </div>
+                </div>
+
+                {showRepeatSummary && <RepeatEventSummary byDay={byDay}
+                        interval={this.state.interval}
+                        frequency={frequency}
+                        endRepeatMode={this.state.endRepeatMode}
+                        until={until}
+                        count={count}
+                        startDate={start} />}
             </div>
         )
     }
 }
+
 RepeatEventFormComponent.propTypes = {
     change: PropTypes.func.isRequired,
-    frequency: PropTypes.oneOf(['YEARLY', 'MONTHLY', 'WEEKLY', 'DAILY']),
-    endRepeatMode: PropTypes.oneOf(['count', 'until']),
-    until: PropTypes.object,
-    count: PropTypes.number,
-    byDay: PropTypes.string,
-    start: PropTypes.object,
-    interval: PropTypes.number,
     readOnly: PropTypes.bool,
+    schedule: PropTypes.object.isRequired,
+    showRepeatSummary: PropTypes.bool,
 }
 
-// This is the same name defined in EventForm.jsx because it is just a sub form
-const selector = formValueSelector('addEvent')
-const mapStateToProps = (state) => ({
-    frequency: selector(state, 'dates.recurring_rule.frequency'),
-    endRepeatMode: selector(state, 'dates.recurring_rule.endRepeatMode'),
-    until: selector(state, 'dates.recurring_rule.until'),
-    count: selector(state, 'dates.recurring_rule.count'),
-    byDay: selector(state, 'dates.recurring_rule.byday'),
-    start: selector(state, 'dates.start'),
-    interval: selector(state, 'dates.recurring_rule.interval'),
-})
+RepeatEventFormComponent.defaultProps = { showRepeatSummary: true }
 
-export const RepeatEventForm = connect(mapStateToProps)(RepeatEventFormComponent)
+export const RepeatEventForm = connect(null)(RepeatEventFormComponent)

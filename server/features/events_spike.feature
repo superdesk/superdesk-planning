@@ -1,6 +1,6 @@
 Feature: Events Spike
     @auth
-    Scenario: Event state defaults to active
+    Scenario: Event state defaults to in_progress
         When we post to "events"
         """
         [{
@@ -18,7 +18,7 @@ Feature: Events Spike
         {
             "_id": "#events._id#",
             "name": "TestEvent",
-            "state": "active"
+            "state": "in_progress"
         }
         """
 
@@ -74,6 +74,7 @@ Feature: Events Spike
         [{
             "name": "TestEvent",
             "state": "spiked",
+            "revert_state": "in_progress",
             "dates": {
                 "start": "2016-01-02",
                 "end": "2016-01-03"
@@ -98,7 +99,7 @@ Feature: Events Spike
         {
             "_id": "#events._id#",
             "name": "TestEvent",
-            "state": "active"
+            "state": "in_progress"
         }
         """
         When we get "/events_history?where=event_id==%22#events._id#%22"
@@ -107,7 +108,7 @@ Feature: Events Spike
         {"_items": [{
             "event_id": "#events._id#",
             "operation": "unspiked",
-            "update": {"state" : "active"}
+            "update": {"state" : "in_progress"}
         }]}
         """
 
@@ -194,11 +195,11 @@ Feature: Events Spike
             {"_items": [{
                 "slugline": "TestPlan 1",
                 "event_item": "#events._id#",
-                "state": "active"
+                "state": "in_progress"
             }, {
                 "slugline": "TestPlan 2",
                 "event_item": "#events._id#",
-                "state": "active"
+                "state": "in_progress"
             }]}
         """
         When we spike events "#events._id#"
@@ -227,7 +228,8 @@ Feature: Events Spike
                 "start": "2016-01-01",
                 "end": "2017-01-01"
             },
-            "state": "spiked"
+            "state": "spiked",
+            "revert_state": "in_progress"
         }]
         """
         Given "planning"
@@ -256,4 +258,101 @@ Feature: Events Spike
                 "event_item": "#events._id#",
                 "state": "spiked"
             }]}
+        """
+
+    @auth
+    Scenario: Spiking an Event fails if an associated Planning items is locked
+        Given "events"
+        """
+        [{
+            "name": "TestEvent",
+            "dates": {
+                "start": "2016-01-01",
+                "end": "2017-01-01"
+            }
+        }]
+        """
+        Given "planning"
+        """
+        [{
+            "slugline": "TestPlan 1",
+            "event_item": "#events._id#",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "123"
+        }, {
+            "slugline": "TestPlan 2",
+            "event_item": "#events._id#"
+        }]
+        """
+        When we get "/planning"
+        Then we get list with 2 items
+        """
+            {"_items": [{
+                "slugline": "TestPlan 1",
+                "event_item": "#events._id#",
+                "state": "in_progress",
+                "lock_user": "#CONTEXT_USER_ID#",
+                "lock_session": "123"
+            }, {
+                "slugline": "TestPlan 2",
+                "event_item": "#events._id#",
+                "state": "in_progress"
+            }]}
+        """
+        When we spike events "#events._id#"
+        Then we get error 400
+        """
+        {
+            "_issues": {
+                "validator exception": "403: Spike failed. One or more related planning items are locked."
+            }
+        }
+        """
+
+    @auth
+    @notification
+    Scenario: Spiking a locked event unlocks the event after spiking it
+        Given "events"
+        """
+        [{
+            "name": "TestEvent",
+            "dates": {
+                "start": "2016-01-02",
+                "end": "2016-01-03"
+            },
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "session123"
+        }]
+        """
+        When we spike events "#events._id#"
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "events:spiked",
+            "extra": {
+                "item": "#events._id#",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+        When we get "/events/#events._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#events._id#",
+            "name": "TestEvent",
+            "state": "spiked",
+            "lock_user": null,
+            "lock_session": null
+        }
+        """
+        When we get "/events_history?where=event_id==%22#events._id#%22"
+        Then we get list with 1 items
+        """
+        {"_items": [{
+            "event_id": "#events._id#",
+            "operation": "spiked",
+            "update": {"state" : "spiked"}
+        }]}
         """

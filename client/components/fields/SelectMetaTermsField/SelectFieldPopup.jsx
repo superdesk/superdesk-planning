@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react'
 import ReactDOM from 'react-dom'
 import { SearchBar } from '../../index'
+import { differenceBy } from 'lodash'
 import $ from 'jquery'
 import './style.scss'
 
@@ -8,7 +9,6 @@ export class SelectFieldPopup extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            multiLevel: false,
             currentParent: null,
             selectedAncestry: [],
             search: false,
@@ -61,7 +61,7 @@ export class SelectFieldPopup extends React.Component {
     }
 
     handleEnterKey() {
-        if (this.state.multiLevel) {
+        if (this.props.multiLevel) {
             if (this.state.activeOptionIndex !== -1) {
                 this.onSelect(this.state.filteredList[this.state.activeOptionIndex])
             } else {
@@ -122,14 +122,7 @@ export class SelectFieldPopup extends React.Component {
     }
 
     componentWillMount() {
-        const multi = this.props.options.filter((o) => (o.value.parent)).length > 0 ?
-            true : false
-
-        // There is at least one parent or multi-level option
-        this.setState({
-            multiLevel: multi,
-            filteredList: this.getFilteredOptionList(multi),
-        })
+        this.setState({ filteredList: this.getFilteredOptionList() })
     }
 
     componentDidMount() {
@@ -154,8 +147,8 @@ export class SelectFieldPopup extends React.Component {
         this.props.onChange(opt)
     }
 
-    getFilteredOptionList(multiLevel, currentParent, searchList) {
-        if (multiLevel) {
+    getFilteredOptionList(currentParent, searchList) {
+        if (this.props.multiLevel) {
             let filteredList
 
             if (searchList) {
@@ -180,8 +173,7 @@ export class SelectFieldPopup extends React.Component {
                 this.setState({
                     currentParent: opt,
                     selectedAncestry: [...this.state.selectedAncestry, opt],
-                    filteredList: this.getFilteredOptionList(this.state.multiLevel,
-                        opt, null),
+                    filteredList: this.getFilteredOptionList(opt, null),
                     activeOptionIndex: 0,
                 })
             }
@@ -207,8 +199,7 @@ export class SelectFieldPopup extends React.Component {
         this.setState({
             currentParent: opt,
             selectedAncestry: this.state.selectedAncestry.splice(0, len - 1),
-            filteredList: this.getFilteredOptionList(this.state.multiLevel,
-                opt, null),
+            filteredList: this.getFilteredOptionList(opt, null),
             activeOptionIndex: activeOption,
         })
     }
@@ -217,22 +208,24 @@ export class SelectFieldPopup extends React.Component {
         if (!val) {
             this.setState({
                 search: false,
-                filteredList: this.getFilteredOptionList(this.state.multiLevel,
-                    null),
+                filteredList: this.getFilteredOptionList(null),
             })
             return
         }
 
         const valueNoCase = val.toLowerCase()
-        const searchResults = this.props.options.filter((opt) => (
+        let searchResults = this.props.options.filter((opt) => (
             opt[this.props.valueKey].toLowerCase().substr(0, val.length) === valueNoCase ||
                 opt[this.props.valueKey].toLowerCase().indexOf(valueNoCase) >= 0
         ))
 
+        if (this.props.multiLevel && this.props.value) {
+            searchResults = differenceBy(searchResults, this.props.value, 'value.qcode')
+        }
+
         this.setState({
             search: true,
-            filteredList: this.getFilteredOptionList(this.state.multiLevel,
-                null, searchResults),
+            filteredList: this.getFilteredOptionList(null, searchResults),
         })
     }
 
@@ -290,7 +283,7 @@ export class SelectFieldPopup extends React.Component {
     }
 
     render() {
-        return this.state.multiLevel ? this.renderMultiLevelSelect() : this.renderSingleLevelSelect()
+        return this.props.multiLevel ? this.renderMultiLevelSelect() : this.renderSingleLevelSelect()
     }
 }
 
@@ -302,6 +295,11 @@ SelectFieldPopup.propTypes = {
     onCancel: PropTypes.func.isRequired,
     onChange: PropTypes.func.isRequired,
     valueKey: PropTypes.string,
+    multiLevel: PropTypes.bool,
+    value: PropTypes.arrayOf(PropTypes.shape({
+        label: PropTypes.string,
+        value: PropTypes.object,
+    })),
 }
 
 SelectFieldPopup.defaultProps = { valueKey: 'label' }

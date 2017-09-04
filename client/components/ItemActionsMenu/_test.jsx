@@ -13,15 +13,14 @@ describe('<ItemActionsMenu />', () => {
             }]}/>
         )
         wrapper.find('.dropdown__toggle').simulate('click')
-        wrapper.find('.dropdown__menu li button').simulate('click')
+        wrapper.find('.dropdown__menu li button').at(1).simulate('click')
         expect(callback.callCount).toBe(1)
     })
 
-    it('render without actions ', () => {
+    it('doesnt render without actions ', () => {
         const wrapper = mount(
             <ItemActionsMenu actions={[]}/>
         )
-        wrapper.find('.dropdown__toggle').simulate('click')
-        wrapper.find('li button').simulate('click')
+        expect(wrapper.find('.dropdown__toggle').length).toBe(0)
     })
 })

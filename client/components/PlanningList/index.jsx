@@ -56,8 +56,14 @@ class PlanningList extends React.Component {
             onAgendaClick,
             privileges,
             openPlanningEditor,
+            handlePlanningDuplicate,
+            session,
+            onCancelEvent,
+            onUpdateEventTime,
+            onRescheduleEvent,
         } = this.props
         const planning = plannings[index]
+
         return (
             <div key={key} style={style}>
                 <PlanningItem
@@ -69,12 +75,16 @@ class PlanningList extends React.Component {
                     event={planningsEvents[planning._id]}
                     onSpike={handlePlanningSpike}
                     onUnspike={handlePlanningUnspike}
+                    onDuplicate={handlePlanningDuplicate}
+                    onCancelEvent={onCancelEvent}
+                    onUpdateEventTime={onUpdateEventTime}
+                    onRescheduleEvent={onRescheduleEvent}
                     onClick={this.previewOrEditPlanning.bind(this, planning)}
                     onDoubleClick={openPlanningEditor}
                     onAgendaClick={onAgendaClick}
                     privileges={privileges}
-                    itemLocked={planning.lock_user && planning.lock_session ? true : false}
-                    itemLockedInThisSession={this.isPlanningLockedInThisSession(planning)} />
+                    session={session}
+                    itemLocked={planning.lock_user && planning.lock_session ? true : false} />
             </div>
         )
     }
@@ -123,6 +133,10 @@ PlanningList.propTypes = {
     session: PropTypes.object,
     onAgendaClick: PropTypes.func,
     loadMorePlannings: PropTypes.func,
+    handlePlanningDuplicate: PropTypes.func,
+    onCancelEvent: PropTypes.func,
+    onUpdateEventTime: PropTypes.func,
+    onRescheduleEvent: PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -146,6 +160,7 @@ const mapDispatchToProps = (dispatch) => ({
             },
         }))
     },
+
     handlePlanningUnspike: (item) => {
         dispatch(actions.showModal({
             modalType: 'CONFIRMATION',
@@ -155,8 +170,13 @@ const mapDispatchToProps = (dispatch) => ({
             },
         }))
     },
+
     onAgendaClick: (agendaId) => (dispatch(actions.selectAgenda(agendaId))),
     loadMorePlannings: () => (dispatch(actions.planning.ui.fetchMoreToList())),
+    handlePlanningDuplicate: (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
+    onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
+    onUpdateEventTime: (event) => dispatch(actions.events.ui.updateTime(event)),
+    onRescheduleEvent: (event) => dispatch(actions.events.ui.openRescheduleModal(event)),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningList)

@@ -13,24 +13,21 @@ import superdesk
 import logging
 from flask import json
 from superdesk.errors import SuperdeskApiError
-from superdesk.metadata.utils import generate_guid
-from superdesk.metadata.item import GUID_NEWSML
+from superdesk.metadata.utils import generate_guid, item_url
+from superdesk.metadata.item import GUID_NEWSML, metadata_schema
 from superdesk import get_resource_service
-from superdesk.resource import Resource
+from superdesk.resource import not_analyzed
 from superdesk.users.services import current_user_has_privilege
 from superdesk.resource import build_custom_hateoas
 from superdesk.notification import push_notification
-from apps.archive.common import set_original_creator, get_user
+from apps.archive.common import set_original_creator, get_user, get_auth
 from copy import deepcopy
 from eve.utils import config, ParsedRequest
-from .common import STATE_SCHEMA
+from .common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA
 from superdesk.utc import utcnow
-from bson.objectid import ObjectId
+
 
 logger = logging.getLogger(__name__)
-
-not_analyzed = {'type': 'string', 'index': 'not_analyzed'}
-not_indexed = {'type': 'string', 'index': 'no'}
 
 
 class PlanningService(superdesk.Service):
@@ -56,44 +53,56 @@ class PlanningService(superdesk.Service):
         """Set default metadata."""
 
         for doc in docs:
-            doc['guid'] = generate_guid(type=GUID_NEWSML)
+            if 'guid' not in doc:
+                doc['guid'] = generate_guid(type=GUID_NEWSML)
+            doc[config.ID_FIELD] = doc['guid']
             set_original_creator(doc)
+            self._set_planning_event_date(doc)
 
     def on_created(self, docs):
+        session_id = get_auth().get('_id')
         for doc in docs:
             push_notification(
                 'planning:created',
                 item=str(doc.get(config.ID_FIELD)),
-                user=str(doc.get('original_creator', ''))
+                user=str(doc.get('original_creator', '')),
+                added_agendas=doc.get('agendas') or [],
+                removed_agendas=[],
+                session=session_id,
+                event_item=doc.get('event_item', None)
             )
+            self._update_event_history(doc)
 
-            # Create a place holder coverage item
-            coverage = {'planning_item': ObjectId(doc.get(config.ID_FIELD))}
-            coverage_status = get_resource_service('vocabularies').find_one(req=None, _id='newscoveragestatus')
-            if coverage_status is not None:
-                coverage['news_coverage_status'] = \
-                    [x for x in coverage_status.get('items', []) if x['qcode'] == 'ncostat:notdec'][0]
-                coverage['news_coverage_status'].pop('is_active')
+    def _update_event_history(self, doc):
+        if 'event_item' not in doc:
+            return
+        events_service = get_resource_service('events')
+        original_event = events_service.find_one(req=None, _id=doc['event_item'])
 
-            # remove event expiry if it is linked to the planning
-            if 'event_item' in doc:
-                events_service = get_resource_service('events')
-                original_event = events_service.find_one(req=None, _id=doc['event_item'])
-                events_service.system_update(doc['event_item'], {'expiry': None}, original_event)
-                get_resource_service('events_history').on_item_updated({'planning_id': doc.get('_id')}, original_event,
-                                                                       'planning created')
-                # if the planning item is related to an event the default coverage schedule time is inherited from the
-                # event else it is set to now
-                coverage['planning'] = {'scheduled': original_event.get('dates', {}).get('start', None)}
-            else:
-                coverage['planning'] = {'scheduled': utcnow()}
+        events_service.system_update(
+            doc['event_item'],
+            {'expiry': None},
+            original_event
+        )
 
-            # Copy metadata from the planning item to the coverage
-            coverage['planning']['headline'] = doc.get('headline', '')
-            coverage['planning']['slugline'] = doc.get('slugline', '')
+        get_resource_service('events_history').on_item_updated(
+            {'planning_id': doc.get('_id')},
+            original_event,
+            'planning created'
+        )
 
-            get_resource_service('coverage').post([coverage])
-            get_resource_service('coverage_history').on_item_created([coverage])
+    def on_duplicated(self, doc, parent_id):
+        self._update_event_history(doc)
+        session_id = get_auth().get('_id')
+        push_notification(
+            'planning:duplicated',
+            item=str(doc.get(config.ID_FIELD)),
+            original=str(parent_id),
+            user=str(doc.get('original_creator', '')),
+            added_agendas=doc.get('agendas') or [],
+            removed_agendas=[],
+            session=session_id
+        )
 
     def on_locked_planning(self, item, user_id):
         item['coverages'] = list(self.__generate_related_coverages(item))
@@ -113,11 +122,40 @@ class PlanningService(superdesk.Service):
         if user and user.get(config.ID_FIELD):
             updates['version_creator'] = user[config.ID_FIELD]
 
+    def _set_planning_event_date(self, doc):
+        """Set the planning event date
+
+        :param dict doc: planning document
+        """
+        event_id = doc.get('event_item')
+        event = {}
+        if event_id:
+            event = get_resource_service('events').find_one(req=None, _id=event_id)
+
+        doc['_planning_date'] = event.get('dates', {}).get('start') if event else utcnow()
+        doc['_coverages'] = [
+            {
+                'coverage_id': 'NO_COVERAGE',
+                'scheduled': doc['_planning_date'],
+                'g2_content_type': None
+            }
+        ]
+
+    def _get_added_removed_agendas(self, updates, original):
+        added_agendas = updates.get('agendas') or []
+        existing_agendas = original.get('agendas') or []
+        removed_agendas = list(set(existing_agendas) - set(added_agendas))
+        return added_agendas, removed_agendas
+
     def on_updated(self, updates, original):
+        added, removed = self._get_added_removed_agendas(updates, original)
+        session_id = get_auth().get('_id')
         push_notification(
             'planning:updated',
             item=str(original[config.ID_FIELD]),
-            user=str(updates.get('version_creator', ''))
+            user=str(updates.get('version_creator', '')),
+            added_agendas=added, removed_agendas=removed,
+            session=session_id
         )
 
     def can_edit(self, item, user_id):
@@ -141,58 +179,52 @@ class PlanningService(superdesk.Service):
         req.args = {'source': json.dumps(query)}
         return super().get(req=req, lookup=None)
 
+    def sync_coverages(self, docs):
+        """Sync the coverage information between planning an coverages
+
+        :param list docs: list of coverage docs
+        """
+        if not docs:
+            return
+        ids = set([doc.get('planning_item') for doc in docs])
+        service = get_resource_service('coverage')
+        for planning_id in ids:
+            planning = self.find_one(req=None, _id=planning_id)
+            coverages = list(service.get_from_mongo(req=None, lookup={'planning_item': planning_id}))
+            updates = []
+            add_default_coverage = True
+            for doc in coverages:
+                if doc.get('planning', {}).get('scheduled'):
+                    add_default_coverage = False
+                updates.append({
+                    'coverage_id': doc.get(config.ID_FIELD),
+                    'scheduled': doc.get('planning', {}).get('scheduled'),
+                    'g2_content_type': doc.get('planning', {}).get('g2_content_type')
+                })
+
+            if add_default_coverage:
+                updates.append({
+                    'coverage_id': None,
+                    'scheduled': planning.get('_planning_date') or utcnow(),
+                    'g2_content_type': None
+                })
+
+            self.system_update(planning_id, {'_coverages': updates}, planning)
+
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
 event_type['mapping'] = not_analyzed
 
 planning_schema = {
     # Identifiers
-    'guid': {
-        'type': 'string',
-        'unique': True,
-        'mapping': not_analyzed
-    },
-    'unique_id': {
-        'type': 'integer',
-        'unique': True,
-    },
-    'unique_name': {
-        'type': 'string',
-        'unique': True,
-        'mapping': not_analyzed
-    },
-    'version': {
-        'type': 'integer'
-    },
-    'ingest_id': {
-        'type': 'string',
-        'mapping': not_analyzed
-    },
+    config.ID_FIELD: metadata_schema[config.ID_FIELD],
+    'guid': metadata_schema['guid'],
 
     # Audit Information
-    'original_creator': superdesk.Resource.rel('users'),
-    'version_creator': superdesk.Resource.rel('users'),
-    'firstcreated': {
-        'type': 'datetime'
-    },
-    'versioncreated': {
-        'type': 'datetime'
-    },
-
-    # Ingest Details
-    'ingest_provider': superdesk.Resource.rel('ingest_providers'),
-    'source': {     # The value is copied from the ingest_providers vocabulary
-        'type': 'string',
-        'mapping': not_analyzed
-    },
-    'original_source': {    # This value is extracted from the ingest
-        'type': 'string',
-        'mapping': not_analyzed
-    },
-    'ingest_provider_sequence': {
-        'type': 'string',
-        'mapping': not_analyzed
-    },
+    'original_creator': metadata_schema['original_creator'],
+    'version_creator': metadata_schema['version_creator'],
+    'firstcreated': metadata_schema['firstcreated'],
+    'versioncreated': metadata_schema['versioncreated'],
 
     # Agenda Item details
     'agendas': {
@@ -212,125 +244,72 @@ planning_schema = {
         'type': 'string',
         'default': 'plinat:newscoverage'
     },
-    'ednote': {
-        'type': 'string',
-        'nullable': True,
-    },
-    'description_text': {
+    'ednote': metadata_schema['ednote'],
+    'description_text': metadata_schema['description_text'],
+    'internal_note': {
         'type': 'string',
         'nullable': True
     },
-    'anpa_category': {
-        'type': 'list',
-        'nullable': True,
-        'mapping': {
-            'type': 'object',
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed,
-            }
-        }
-    },
-    'subject': {
-        'type': 'list',
-        'mapping': {
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed
-            }
-        }
-    },
-    'genre': {
-        'type': 'list',
-        'nullable': True,
-        'mapping': {
-            'type': 'object',
-            'properties': {
-                'name': not_analyzed,
-                'qcode': not_analyzed
-            }
-        }
-    },
-    'company_codes': {
-        'type': 'list',
-        'mapping': {
-            'type': 'object',
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed,
-                'security_exchange': not_analyzed
-            }
-        }
-    },
+    'anpa_category': metadata_schema['anpa_category'],
+    'subject': metadata_schema['subject'],
+    'genre': metadata_schema['genre'],
+    'company_codes': metadata_schema['company_codes'],
 
     # Content Metadata - See IPTC-G2-Implementation_Guide 16.2
-    'language': {
-        'type': 'string',
-        'mapping': not_analyzed,
-        'nullable': True,
-    },
-    'abstract': {
-        'type': 'string',
-        'nullable': True,
-    },
-    'headline': {
-        'type': 'string'
-    },
-    'slugline': {
-        'type': 'string',
-        'mapping': {
-            'type': 'string',
-            'fields': {
-                'phrase': {
-                    'type': 'string',
-                    'analyzer': 'phrase_prefix_analyzer',
-                    'search_analyzer': 'phrase_prefix_analyzer'
-                }
-            }
-        }
-    },
-    'keywords': {
-        'type': 'list',
-        'mapping': {
-            'type': 'string'
-        }
-    },
-    'word_count': {
-        'type': 'integer'
-    },
-    'priority': {
-        'type': 'integer',
-        'nullable': True
-    },
-    'urgency': {
-        'type': 'integer',
-        'nullable': True
-    },
-    'profile': {
-        'type': 'string',
-        'nullable': True
-    },
+    'language': metadata_schema['language'],
+    'abstract': metadata_schema['abstract'],
+    'headline': metadata_schema['headline'],
+    'slugline': metadata_schema['slugline'],
+    'keywords': metadata_schema['keywords'],
+    'word_count': metadata_schema['word_count'],
+    'priority': metadata_schema['priority'],
+    'urgency': metadata_schema['urgency'],
+    'profile': metadata_schema['profile'],
 
     # These next two are for spiking/unspiking and purging of planning/agenda items
-    'state': STATE_SCHEMA,
+    'state': WORKFLOW_STATE_SCHEMA,
     'expiry': {
         'type': 'datetime',
         'nullable': True
     },
 
-    'lock_user': Resource.rel('users'),
-    'lock_time': {
-        'type': 'datetime',
-        'versioned': False
+    'lock_user': metadata_schema['lock_user'],
+    'lock_time': metadata_schema['lock_time'],
+    'lock_session': metadata_schema['lock_session'],
+    'lock_action': metadata_schema['lock_action'],
+    # field to sync coverage information on planning
+    # to be used for sorting/filtering on scheduled
+    '_coverages': {
+        'type': 'list',
+        'mapping': {
+            'type': 'nested',
+            'properties': {
+                'coverage_id': not_analyzed,
+                'scheduled': {'type': 'date'},
+                'g2_content_type': not_analyzed
+            }
+        }
     },
-    'lock_session': Resource.rel('auth'),
-
-    'lock_action': {
-        'type': 'string',
-        'mapping': not_analyzed,
+    # date to hold the event date when planning item is created from event or _created
+    '_planning_date': {
+        'type': 'datetime',
         'nullable': True
-    }
+    },
 
+    'flags': {
+        'type': 'dict',
+        'schema': {
+            'marked_for_not_publication':
+                metadata_schema['flags']['schema']['marked_for_not_publication']
+        }
+    },
+
+    # Public/Published status
+    'pubstatus': PUBLISHED_STATE_SCHEMA,
+
+    # The previous state the item was in before for example being spiked,
+    # when un-spiked it will revert to this state
+    'revert_state': metadata_schema['revert_state']
 }  # end planning_schema
 
 
@@ -341,6 +320,7 @@ class PlanningResource(superdesk.Resource):
     """
 
     url = 'planning'
+    item_url = item_url
     schema = planning_schema
     datasource = {
         'source': 'planning',
@@ -352,3 +332,6 @@ class PlanningResource(superdesk.Resource):
     privileges = {'POST': 'planning_planning_management',
                   'PATCH': 'planning_planning_management',
                   'DELETE': 'planning'}
+    etag_ignore_fields = ['_coverages', '_planning_date']
+
+    mongo_indexes = {'event_item': ([('event_item', 1)], {'background': True})}

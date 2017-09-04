@@ -12,7 +12,7 @@ const FileFieldComponent = ({ onRemove, file, createLink, fieldName, readOnly })
                 ({Math.round(file.media.length / 1024)}kB)
             </a>
         }
-        {!file.media &&
+        {!file.media && !readOnly &&
             <Field
             name={fieldName}
             component="input"

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import './style.scss'
 import * as actions from '../../actions'
+import { WORKFLOW_STATE } from '../../constants/index'
 
 export const RelatedPlanningsComponent = ({ plannings, openPlanningItem, openPlanningClick, short }) => (
     <ul className="related-plannings">
@@ -11,7 +12,7 @@ export const RelatedPlanningsComponent = ({ plannings, openPlanningItem, openPla
             slugline,
             headline,
             anpa_category,
-            _agendas,
+            _agendas=[],
             original_creator: { display_name },
             state,
         }) => {
@@ -30,7 +31,7 @@ export const RelatedPlanningsComponent = ({ plannings, openPlanningItem, openPla
             return (
                 <li key={_id}>
                     <i className="icon-list-alt"/>&nbsp;
-                        {state && state === 'spiked' &&
+                        {state && state === WORKFLOW_STATE.SPIKED &&
                             <span className="label label--alert">spiked</span>
                         }
                     { short ? (

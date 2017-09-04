@@ -1,4 +1,4 @@
-import { AGENDA } from '../constants'
+import { AGENDA, RESET_STORE, INIT_STORE } from '../constants'
 /**
  * Creates a new agenda if it doesn't exist, otherwise updates the existing one
  * @param {array, object} agendas - Array of current loaded Agendas
@@ -24,6 +24,10 @@ const initialState = {
 
 const agendaReducer = (state=initialState, action) => {
     switch (action.type) {
+        case RESET_STORE:
+            return null
+        case INIT_STORE:
+            return initialState
         case AGENDA.ACTIONS.REQUEST_AGENDAS:
             return {
                 ...state,

@@ -11,10 +11,20 @@ class PlanningHistoryComponent extends React.Component {
     }
 
     render() {
-        const { planningHistoryItems, users } = this.props
+        const {
+            planningHistoryItems,
+            users,
+            closePlanningHistory,
+            openPlanningPreview,
+        } = this.props
         return (
             <div>
-                <PlanningHistoryList planningHistoryItems={planningHistoryItems} users={users} />
+                <PlanningHistoryList
+                    planningHistoryItems={planningHistoryItems}
+                    users={users}
+                    closePlanningHistory={closePlanningHistory}
+                    openPlanningPreview={openPlanningPreview}
+                />
             </div>
         )
     }
@@ -32,6 +42,8 @@ PlanningHistoryComponent.propTypes = {
     ]),
     currentPlanningId: PropTypes.string,
     fetchPlanningHistory: PropTypes.func,
+    closePlanningHistory: PropTypes.func,
+    openPlanningPreview: PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -42,6 +54,9 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
     fetchPlanningHistory: (currentPlanningId) => (
         dispatch(actions.planning.api.fetchPlanningHistory(currentPlanningId))
+    ),
+    openPlanningPreview: (planningId) => (
+        dispatch(actions.planning.ui.preview(planningId))
     ),
 })
 

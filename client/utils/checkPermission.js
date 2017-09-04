@@ -13,24 +13,28 @@ import { getPrivileges } from '../selectors'
  * @param {object} args - Arguments to supply to the action on ACCESS_GRANTED
  * @return thunk function
  */
-const checkPermission = (action, permission, errorMessage) => (
+const checkPermission = (action, permission, errorMessage, fallbackAction=null) => (
     (...args) => (
         function checkPermission(dispatch, getState, { $timeout, notify }) {
             const privileges = getPrivileges(getState())
             if (permission in privileges && privileges[permission] === 1) {
                 return Promise.resolve(dispatch(action(...args)))
-            }
+            } else {
+                if (fallbackAction) {
+                    dispatch(fallbackAction(...args))
+                }
 
-            $timeout(() => (notify.error(errorMessage)))
-            return Promise.reject(dispatch({
-                type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
-                payload: {
-                    action: action.name,
-                    permission,
-                    errorMessage,
-                    args,
-                },
-            }))
+                $timeout(() => (notify.error(errorMessage)))
+                return Promise.reject(dispatch({
+                    type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
+                    payload: {
+                        action: action.name,
+                        permission,
+                        errorMessage,
+                        args,
+                    },
+                }))
+            }
         }
     )
 )

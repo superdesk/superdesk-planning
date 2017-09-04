@@ -27,4 +27,18 @@ $ADVANCED_SEARCH_WIDTH: 580px;
             width: $ADVANCED_SEARCH_WIDTH;
         }
     }
+
+    .Planning-panel__list--advanced-search-view { // when the advanced search is open
+        .Planning__advanced-search {
+            width: 370px;
+            z-index: 1;
+            float: left;
+            height: calc(100vh - 142px);
+            .subnav__page-title {
+                padding: 1rem 2rem;
+                flex-grow: 1;
+                font-weight: 400;
+            }
+        }
+    }
 }

@@ -11,6 +11,7 @@
 """Superdesk Planning Plugin."""
 
 import superdesk
+
 from .events import EventsResource, EventsService
 from .events_spike import EventsSpikeResource, EventsSpikeService, EventsUnspikeResource, EventsUnspikeService
 from .planning import PlanningResource, PlanningService
@@ -22,6 +23,8 @@ from .locations import LocationsResource, LocationsService
 from .events_history import EventsHistoryResource, EventsHistoryService
 from .planning_history import PlanningHistoryResource, PlanningHistoryService
 from .planning_lock import PlanningLockResource, PlanningLockService, PlanningUnlockResource, PlanningUnlockService
+from .planning_publish import PlanningPublishService, PlanningPublishResource
+from .planning_duplicate import PlanningDuplicateService, PlanningDuplicateResource
 from .events_lock import EventsLockResource, EventsLockService, EventsUnlockResource, EventsUnlockService
 from .agendas import AgendasResource, AgendasService
 from superdesk.io.registry import register_feeding_service, register_feed_parser
@@ -32,6 +35,11 @@ from .feeding_services.event_http_service import EventHTTPFeedingService
 from .feeding_services.event_email_service import EventEmailFeedingService
 from .events_duplicate import EventsDuplicateResource, EventsDuplicateService
 from .events_publish import EventsPublishService, EventsPublishResource
+from .events_cancel import EventsCancelService, EventsCancelResource
+from .events_reschedule import EventsRescheduleService, EventsRescheduleResource
+from .planning_cancel import PlanningCancelService, PlanningCancelResource
+from .planning_reschedule import PlanningRescheduleService, PlanningRescheduleResource
+from planning.planning_types import PlanningTypesService, PlanningTypesResource
 from .common import get_max_recurrent_events
 
 
@@ -61,6 +69,12 @@ def init_app(app):
     planning_unspike_service = PlanningUnspikeService('planning_unspike', backend=superdesk.get_backend())
     PlanningUnspikeResource('planning_unspike', app=app, service=planning_unspike_service)
 
+    planning_publish_service = PlanningPublishService('planning_publish', backend=superdesk.get_backend())
+    PlanningPublishResource('planning_publish', app=app, service=planning_publish_service)
+
+    planning_duplicate_service = PlanningDuplicateService('planning_duplicate', backend=superdesk.get_backend())
+    PlanningDuplicateResource('planning_duplicate', app=app, service=planning_duplicate_service)
+
     agendas_service = AgendasService('agenda', backend=superdesk.get_backend())
     AgendasResource('agenda', app=app, service=agendas_service)
 
@@ -88,12 +102,52 @@ def init_app(app):
     events_history_service = EventsHistoryService('events_history', backend=superdesk.get_backend())
     EventsHistoryResource('events_history', app=app, service=events_history_service)
 
+    planning_type_service = PlanningTypesService(PlanningTypesResource.endpoint_name,
+                                                 backend=superdesk.get_backend())
+    PlanningTypesResource(PlanningTypesResource.endpoint_name,
+                          app=app,
+                          service=planning_type_service)
+
+    events_cancel_service = EventsCancelService(EventsCancelResource.endpoint_name,
+                                                backend=superdesk.get_backend())
+    EventsCancelResource(EventsCancelResource.endpoint_name,
+                         app=app,
+                         service=events_cancel_service)
+
+    events_reschedule_service = EventsRescheduleService(
+        EventsRescheduleResource.endpoint_name,
+        backend=superdesk.get_backend()
+    )
+    EventsRescheduleResource(
+        EventsRescheduleResource.endpoint_name,
+        app=app,
+        service=events_reschedule_service
+    )
+
+    planning_cancel_service = PlanningCancelService(PlanningCancelResource.endpoint_name,
+                                                    backend=superdesk.get_backend())
+    PlanningCancelResource(PlanningCancelResource.endpoint_name,
+                           app=app,
+                           service=planning_cancel_service)
+
+    planning_reschedule_service = PlanningRescheduleService(
+        PlanningRescheduleResource.endpoint_name,
+        backend=superdesk.get_backend()
+    )
+    PlanningRescheduleResource(
+        PlanningRescheduleResource.endpoint_name,
+        app=app,
+        service=planning_reschedule_service
+    )
+
     app.on_updated_events += events_history_service.on_item_updated
     app.on_inserted_events += events_history_service.on_item_created
     app.on_deleted_item_events -= events_history_service.on_item_deleted
     app.on_deleted_item_events += events_history_service.on_item_deleted
     app.on_updated_events_spike += events_history_service.on_spike
     app.on_updated_events_unspike += events_history_service.on_unspike
+    app.on_updated_events_cancel += events_history_service.on_cancel
+    app.on_updated_events_reschedule += events_history_service.on_reschedule
 
     planning_history_service = PlanningHistoryService('planning_history', backend=superdesk.get_backend())
     PlanningHistoryResource('planning_history', app=app, service=planning_history_service)
@@ -102,6 +156,8 @@ def init_app(app):
     app.on_updated_planning += planning_history_service.on_item_updated
     app.on_updated_planning_spike += planning_history_service.on_spike
     app.on_updated_planning_unspike += planning_history_service.on_unspike
+    app.on_updated_planning_cancel += planning_history_service.on_cancel
+    app.on_updated_planning_reschedule += planning_history_service.on_reschedule
 
     app.on_locked_planning += planning_search_service.on_locked_planning
 

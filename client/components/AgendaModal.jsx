@@ -1,5 +1,6 @@
 import React from 'react'
 import { ModalWithForm, CreateEditAgendaForm } from './index'
+import { FORM_NAMES } from '../constants'
 
 /**
 * Modal for adding and editing an agenda
@@ -20,6 +21,7 @@ export const AgendaModal = ({ handleHide, modalProps }) => {
             title={title}
             onHide={handleHide}
             form={CreateEditAgendaForm}
+            formNameForPristineCheck={FORM_NAMES.CreateEditAgendaForm}
             show={true}
             large={true}
             initialValues={initialValues}/>

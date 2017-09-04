@@ -54,3 +54,7 @@ $EVENT_LIST_CONTAINER_ZINDEX: 6;
         }
     }
 }
+
+.ReactVirtualized__Grid__innerScrollContainer {
+    overflow: visible !important;
+}

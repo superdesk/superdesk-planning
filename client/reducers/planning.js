@@ -1,6 +1,7 @@
 import { cloneDeep, get, uniq } from 'lodash'
-import { PLANNING } from '../constants'
+import { PLANNING, WORKFLOW_STATE, RESET_STORE, INIT_STORE } from '../constants'
 import { createReducer } from '../utils'
+import moment from 'moment'
 
 const initialState  = {
     plannings: {},
@@ -10,17 +11,47 @@ const initialState  = {
     planningsAreLoading: false,
     onlyFuture: true,
     filterPlanningKeyword: null,
-    onlySpiked: false,
     readOnly: true,
     planningHistoryItems: [],
     lastRequestParams: { page: 1 },
+    search: {
+        currentSearch: undefined,
+        advancedSearchOpened: false,
+    },
 }
 
 let plannings
 let plan
 let index
 
+const modifyPlanningsBeingAdded = (state, payload) => {
+    // payload must be an array. If not, we transform
+    payload = Array.isArray(payload) ? payload : [payload]
+    // clone plannings
+    plannings = cloneDeep(state.plannings)
+    // add to state.plannings, use _id as key
+    payload.forEach((planning) => {
+        // Make sure that the Planning item has the coverages array
+        planning.coverages = get(planning, 'coverages', [])
+        modifyCoveragesForPlanning(planning)
+        plannings[planning._id] = planning
+    })
+}
+
+const modifyCoveragesForPlanning = (planning) => {
+    // As with events, change the coverage dates to moment objects
+    planning.coverages.forEach((cov) => {
+        if (get(cov, 'planning.scheduled')) {
+            cov.planning.scheduled = moment(cov.planning.scheduled)
+        }
+    })
+}
+
 const planningReducer = createReducer(initialState, {
+    [RESET_STORE]: () => (null),
+
+    [INIT_STORE]: () => (initialState),
+
     [PLANNING.ACTIONS.SET_LIST]: (state, payload) => (
         {
             ...state,
@@ -59,16 +90,7 @@ const planningReducer = createReducer(initialState, {
     ),
 
     [PLANNING.ACTIONS.RECEIVE_PLANNINGS]: (state, payload) => {
-        // payload must be an array. If not, we transform
-        payload = Array.isArray(payload) ? payload : [payload]
-        // clone plannings
-        plannings = cloneDeep(state.plannings)
-        // add to state.plannings, use _id as key
-        payload.forEach((planning) => {
-            // Make sure that the Planning item has the coverages array
-            planning.coverages = get(planning, 'coverages', [])
-            plannings[planning._id] = planning
-        })
+        modifyPlanningsBeingAdded(state, payload)
         // return new state
         return {
             ...state,
@@ -132,13 +154,10 @@ const planningReducer = createReducer(initialState, {
         {
             ...state,
             onlyFuture: payload,
-        }
-    ),
-
-    [PLANNING.ACTIONS.SET_ONLY_SPIKED]: (state, payload) => (
-        {
-            ...state,
-            onlySpiked: payload,
+            search: {
+                ...state.search,
+                currentSearch: payload,
+            },
         }
     ),
 
@@ -156,6 +175,8 @@ const planningReducer = createReducer(initialState, {
         } else {
             plan.coverages.splice(index, 1, payload)
         }
+
+        modifyCoveragesForPlanning(plan)
 
         return {
             ...state,
@@ -185,6 +206,94 @@ const planningReducer = createReducer(initialState, {
         ...state,
         planningHistoryItems: payload,
     }),
+
+    [PLANNING.ACTIONS.OPEN_ADVANCED_SEARCH]: (state) => (
+        {
+            ...state,
+            search: {
+                ...state.search,
+                advancedSearchOpened: true,
+            },
+        }
+    ),
+
+    [PLANNING.ACTIONS.CLOSE_ADVANCED_SEARCH]: (state) => (
+        {
+            ...state,
+            search: {
+                ...state.search,
+                advancedSearchOpened: false,
+            },
+        }
+    ),
+
+    [PLANNING.ACTIONS.SET_ADVANCED_SEARCH]: (state, payload) => (
+        {
+            ...state,
+            search: {
+                ...state.search,
+                currentSearch: payload,
+            },
+        }
+    ),
+
+    [PLANNING.ACTIONS.CLEAR_ADVANCED_SEARCH]: (state) => (
+        {
+            ...state,
+            search: {
+                ...state.search,
+                currentSearch: undefined,
+            },
+        }
+    ),
+
+    [PLANNING.ACTIONS.MARK_PLANNING_CANCELLED]: (state, payload) => {
+        plannings = cloneDeep(state.plannings)
+        plan = get(plannings, payload.planning_item, null)
+
+        // If the planning item is not loaded, disregard this action
+        if (plan === null) return state
+
+        markPlaningCancelled(plan, payload)
+        plan.state = WORKFLOW_STATE.CANCELLED
+        plan.coverages.forEach((coverage) => markCoverageCancelled(coverage, payload))
+
+        return {
+            ...state,
+            plannings,
+        }
+    },
 })
+
+const markPlaningCancelled = (plan, payload) => {
+    let ednote = `------------------------------------------------------------
+Event cancelled
+`
+    if (get(payload, 'reason', null) !== null) {
+        ednote += `Reason: ${payload.reason}\n`
+    }
+
+    if (get(plan, 'ednote', null) !== null) {
+        ednote = `${plan.ednote}\n\n${ednote}`
+    }
+
+    plan.ednote = ednote
+}
+
+const markCoverageCancelled = (coverage, payload) => {
+    let note = `------------------------------------------------------------
+Event has been cancelled
+`
+    if (get(payload, 'reason', null) !== null) {
+        note += `Reason: ${payload.reason}\n`
+    }
+
+    if (get(coverage, 'planning.internal_note', null) !== null) {
+        note = `${coverage.planning.internal_note}\n\n${note}`
+    }
+
+    coverage.news_coverage_status = payload.coverage_state
+    coverage.planning.internal_note = note
+}
 
 export default planningReducer
