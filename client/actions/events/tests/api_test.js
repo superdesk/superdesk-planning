@@ -3,7 +3,7 @@ import planningApi from '../../planning/api'
 import sinon from 'sinon'
 import { EventUpdateMethods } from '../../../components/fields'
 import { getTestActionStore, restoreSinonStub } from '../../../utils/testUtils'
-import { ITEM_STATE } from '../../../constants'
+import { WORKFLOW_STATE, SPIKED_STATE } from '../../../constants'
 
 describe('actions.events.api', () => {
     let errorMessage
@@ -46,15 +46,32 @@ describe('actions.events.api', () => {
             restoreSinonStub(eventsApi.loadEventsByRecurrenceId)
         })
 
+        it('silentlyFetchEventsById', (done) => {
+            store.test(done, eventsApi.silentlyFetchEventsById(['e1', 'e2', 'e3'],
+                SPIKED_STATE.BOTH))
+            .then(() => {
+                expect(eventsApi.query.callCount).toBe(1)
+                expect(eventsApi.query.args[0]).toEqual([{
+                    ids: ['e1', 'e2', 'e3'],
+                    spikeState: SPIKED_STATE.BOTH,
+                }])
+
+                expect(eventsApi.receiveEvents.callCount).toBe(1)
+                expect(eventsApi.receiveEvents.args[0]).toEqual([data.events])
+
+                done()
+            })
+        })
+
         it('runs the query', (done) => (
-            store.test(done, eventsApi.loadEventsByRecurrenceId('r1', ITEM_STATE.ACTIVE))
+            store.test(done, eventsApi.loadEventsByRecurrenceId('r1', SPIKED_STATE.NOT_SPIKED))
             .then((items) => {
                 expect(items).toEqual(data.events)
 
                 expect(eventsApi.query.callCount).toBe(1)
                 expect(eventsApi.query.args[0]).toEqual([{
                     recurrenceId: 'r1',
-                    state: ITEM_STATE.ACTIVE,
+                    spikeState: SPIKED_STATE.NOT_SPIKED,
                     page: 1,
                     maxResults: 25,
                 }])
@@ -96,7 +113,7 @@ describe('actions.events.api', () => {
 
                 expect(store.dispatch.args[0]).toEqual([{
                     type: 'SPIKE_EVENT',
-                    payload: [data.events[1]],
+                    payload: [data.events[1]._id],
                 }])
 
                 done()
@@ -119,7 +136,7 @@ describe('actions.events.api', () => {
 
                 expect(store.dispatch.args[0]).toEqual([{
                     type: 'SPIKE_EVENT',
-                    payload: data.events,
+                    payload: data.events.map((event) => event._id),
                 }])
 
                 done()
@@ -143,7 +160,62 @@ describe('actions.events.api', () => {
 
         it('returns Promise.reject if `events_spike` fails', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject(errorMessage)))
-            return store.test(done, planningApi.spike(data.events))
+            return store.test(done, eventsApi.spike(data.events[1]))
+            .then(() => {}, (error) => {
+                expect(error).toEqual(errorMessage)
+                done()
+            })
+        })
+    })
+
+    describe('unspike', () => {
+        it('can unspike a single event', (done) => (
+            store.test(done, eventsApi.unspike(data.events[1]))
+            .then((items) => {
+                expect(items).toEqual([data.events[1]])
+
+                expect(services.api.update.callCount).toBe(1)
+                expect(services.api.update.args[0]).toEqual([
+                    'events_unspike',
+                    data.events[1],
+                    {},
+                ])
+
+                expect(store.dispatch.args[0]).toEqual([{
+                    type: 'UNSPIKE_EVENT',
+                    payload: [data.events[1]._id],
+                }])
+
+                done()
+            })
+        ))
+
+        it('can unspike multiple events', (done) => (
+            store.test(done, eventsApi.unspike(data.events))
+            .then((items) => {
+                expect(items).toEqual(data.events)
+
+                expect(services.api.update.callCount).toBe(data.events.length)
+                for (let i = 0; i < data.events.length; i++) {
+                    expect(services.api.update.args[i]).toEqual([
+                        'events_unspike',
+                        data.events[i],
+                        {},
+                    ])
+                }
+
+                expect(store.dispatch.args[0]).toEqual([{
+                    type: 'UNSPIKE_EVENT',
+                    payload: data.events.map((event) => event._id),
+                }])
+
+                done()
+            })
+        ))
+
+        it('returns Promise.reject if `events_unspike` fails', (done) => {
+            services.api.update = sinon.spy(() => (Promise.reject(errorMessage)))
+            return store.test(done, eventsApi.unspike(data.events))
             .then(() => {}, (error) => {
                 expect(error).toEqual(errorMessage)
                 done()
@@ -169,7 +241,7 @@ describe('actions.events.api', () => {
                             bool: {
                                 must: [],
                                 must_not: [
-                                    { term: { state: ITEM_STATE.SPIKED } },
+                                    { term: { state: WORKFLOW_STATE.SPIKED } },
                                 ],
                             },
                         },
@@ -196,7 +268,7 @@ describe('actions.events.api', () => {
                                     { terms: { _id: ['e1', 'e2'] } },
                                 ],
                                 must_not: [
-                                    { term: { state: ITEM_STATE.SPIKED } },
+                                    { term: { state: WORKFLOW_STATE.SPIKED } },
                                 ],
                             },
                         },
@@ -223,7 +295,7 @@ describe('actions.events.api', () => {
                                     { query_string: { query: 'Search Event*' } },
                                 ],
                                 must_not: [
-                                    { term: { state: ITEM_STATE.SPIKED } },
+                                    { term: { state: WORKFLOW_STATE.SPIKED } },
                                 ],
                             },
                         },
@@ -250,7 +322,7 @@ describe('actions.events.api', () => {
                                     { term: { recurrence_id: 'rec1' } },
                                 ],
                                 must_not: [
-                                    { term: { state: ITEM_STATE.SPIKED } },
+                                    { term: { state: WORKFLOW_STATE.SPIKED } },
                                 ],
                             },
                         },
@@ -260,6 +332,46 @@ describe('actions.events.api', () => {
 
                 done()
             })
+        })
+
+        describe('advancedSearch', () => {
+            it('by calendars', (done) => (
+                store.test(done, eventsApi.query({
+                    advancedSearch: {
+                        calendars: [{
+                            qcode: 'sport',
+                            name: 'Sport',
+                        }, {
+                            qcode: 'finance',
+                            name: 'Finance',
+                        }],
+                    },
+                }))
+                .then(() => {
+                    expect(services.api('events').query.callCount).toBe(1)
+                    expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
+                        page: 1,
+                        sort: '[("dates.start",1)]',
+                        embedded: { files: 1 },
+                        source: JSON.stringify({
+                            query: {
+                                bool: {
+                                    must: [
+                                        { term: { 'calendars.qcode': 'sport' } },
+                                        { term: { 'calendars.qcode': 'finance' } },
+                                    ],
+                                    must_not: [
+                                        { term: { state: WORKFLOW_STATE.SPIKED } },
+                                    ],
+                                },
+                            },
+                            filter: {},
+                        }),
+                    })])
+
+                    done()
+                })
+            ))
         })
     })
 
@@ -327,7 +439,7 @@ describe('actions.events.api', () => {
                 expect(eventsApi.loadEventsByRecurrenceId.callCount).toBe(1)
                 expect(eventsApi.loadEventsByRecurrenceId.args[0]).toEqual([
                     'rec1',
-                    'all',
+                    'both',
                     1,
                     200,
                 ])
@@ -372,5 +484,81 @@ describe('actions.events.api', () => {
             type: 'ADD_EVENTS',
             payload: data.events,
         }))
+    })
+
+    describe('loadLockedEventsByAction', () => {
+        it('calls events api and receive locked events', (done) => {
+            services.api('events').query = sinon.spy(() => (
+                Promise.resolve({ _items: data.locked_events }))
+            )
+            store.test(done, eventsApi.loadLockedEventsByAction('edit'))
+            .then((items) => {
+                const source = JSON.parse(services.api('events').query.args[0][0].source)
+
+                expect(source.query.bool.must).toEqual([
+                    { term: { lock_user: 'ident1' } },
+                    { term: { lock_action: 'edit' } },
+                ])
+
+                expect(services.api('events').query.callCount).toBe(1)
+                expect(items).toEqual(data.locked_events)
+
+                expect(store.dispatch.callCount).toBe(1)
+                expect(eventsApi.receiveEvents.callCount).toBe(1)
+                expect(eventsApi.receiveEvents.args[0]).toEqual([data.locked_events])
+
+                done()
+            })
+        })
+    })
+
+    describe('rescheduleEvent', () => {
+        it('can reschedule an event', (done) => {
+            data.events[1].reason = 'Changing the day'
+            store.test(done, eventsApi.rescheduleEvent(data.events[1]))
+            .then(() => {
+                expect(services.api.update.callCount).toBe(1)
+                expect(services.api.update.args[0]).toEqual([
+                    'events_reschedule',
+                    data.events[1],
+                    {
+                        update_method: 'single',
+                        dates: data.events[1].dates,
+                        reason: 'Changing the day',
+                    },
+                ])
+
+                done()
+            })
+        })
+
+        it('can send `future` when rescheduling', (done) => {
+            data.events[1].reason = 'Changing the day'
+            data.events[1].update_method = { value: 'future' }
+            store.test(done, eventsApi.rescheduleEvent(data.events[1]))
+            .then(() => {
+                expect(services.api.update.callCount).toBe(1)
+                expect(services.api.update.args[0]).toEqual([
+                    'events_reschedule',
+                    data.events[1],
+                    {
+                        update_method: 'future',
+                        dates: data.events[1].dates,
+                        reason: 'Changing the day',
+                    },
+                ])
+
+                done()
+            })
+        })
+
+        it('returns Promise.reject if `events_reschedule` fails', (done) => {
+            services.api.update = sinon.spy(() => (Promise.reject(errorMessage)))
+            store.test(done, eventsApi.rescheduleEvent(data.events[1]))
+            .then(() => {}, (error) => {
+                expect(error).toEqual(errorMessage)
+                done()
+            })
+        })
     })
 })

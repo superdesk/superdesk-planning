@@ -1,9 +1,9 @@
-import { get } from 'lodash'
+import { get, includes, isEmpty } from 'lodash'
 import planning from './index'
 import { getErrorMessage } from '../../utils'
 import * as selectors from '../../selectors'
-import { PLANNING } from '../../constants'
-import { showModal } from '../index'
+import { showModal, events } from '../index'
+import { PLANNING, AGENDA, WORKFLOW_STATE } from '../../constants'
 
 /**
  * WS Action when a new Planning item is created
@@ -11,25 +11,49 @@ import { showModal } from '../index'
  * @param {object} data - Planning and User IDs
  */
 const onPlanningCreated = (_e, data) => (
-    (dispatch, getState, { notify }) => {
+    (dispatch) => {
         if (get(data, 'item')) {
-            return dispatch(planning.api.fetchPlanningById(data.item, true))
-            .then(
-                (item) => {
-                    dispatch(planning.ui.addToList([item._id]))
-                    return Promise.resolve(item)
-                },
+            if (get(data, 'event_item', null) !== null) {
+                dispatch(events.api.markEventHasPlannings(data.event_item))
+            }
 
-                (error) => {
-                    notify.error(
-                        getErrorMessage(error, 'Failed to get a new Planning Item!')
-                    )
-                    return Promise.reject(error)
+            return dispatch(self.canRefetchPlanning(data))
+            .then((result) => {
+                if (!result) {
+                    return Promise.resolve()
                 }
-            )
+
+                return dispatch(planning.ui.refetch())
+            })
         }
 
         return Promise.resolve()
+    }
+)
+
+const canRefetchPlanning = (data) => (
+    (dispatch, getState) => {
+        const session = selectors.getSessionDetails(getState())
+
+        let updatePlanning = false
+
+        if (get(session, 'identity._id') === get(data, 'user') &&
+            get(session, 'sessionId') === get(data, 'session')) {
+            return Promise.resolve(updatePlanning)
+        }
+
+        const agendaId = selectors.getCurrentAgendaId(getState())
+        if (agendaId === AGENDA.FILTER.ALL_PLANNING) {
+            updatePlanning = true
+        } else if (agendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED &&
+            isEmpty(get(data, 'added_agendas', []))) {
+            updatePlanning = true
+        } else if (agendaId && (includes(get(data, 'added_agendas', []), agendaId) ||
+            includes(get(data, 'removed_agendas', []), agendaId))) {
+            updatePlanning = true
+        }
+
+        return Promise.resolve(updatePlanning)
     }
 )
 
@@ -95,15 +119,19 @@ const onCoverageDeleted = (_e, data) => (
  * @param {object} _e - Event object
  * @param {object} data - Planning and User IDs
  */
-const onPlanningUpdated = (_e, data) => (
+const onPlanningUpdated = (_e, data, refetch=true) => (
     (dispatch, getState, { notify }) => {
         if (get(data, 'item')) {
-            const storedPlans = selectors.getStoredPlannings(getState())
-            const plan = get(storedPlans, data.item, null)
+            if (refetch) {
+                return dispatch(self.canRefetchPlanning(data))
+                .then((result) => {
+                    if (!result) {
+                        return Promise.resolve()
+                    }
 
-            // If we haven't got this planning loaded,
-            // no need to respond to this event
-            if (plan === null) return Promise.resolve()
+                    return dispatch(planning.ui.refetch())
+                })
+            }
 
             // Otherwise send an Action to update the store
             return dispatch(planning.api.loadPlanningById(data.item, true))
@@ -146,6 +174,7 @@ const onPlanningUnlocked = (_e, data) => (
             // If this is the planning item currently being edited, show popup notification
             const currentPlanning = selectors.getCurrentPlanning(getState())
             if (currentPlanning && currentPlanning._id == data.item &&
+                data.lock_session !== selectors.getSessionDetails(getState()).sessionId &&
                 selectors.isCurrentPlanningLockedInThisSession(getState())) {
                 const user =  selectors.getUsers(getState()).find((u) => u._id === data.user)
                 dispatch(showModal({
@@ -164,12 +193,69 @@ const onPlanningUnlocked = (_e, data) => (
     }
 )
 
+const onPlanningPublished = (_e, data) => (
+    (dispatch) => {
+        if (get(data, 'item')) {
+            return dispatch(planning.ui.refetch())
+        }
+
+        return Promise.resolve()
+    }
+)
+
+const onPlanningUpdateWithoutRefetch = (_e, data) => (self.onPlanningUpdated(_e, data, false))
+
+const onPlanningSpiked = (_e, data) => (
+    (dispatch, getState) => {
+        let planningItem = selectors.getStoredPlannings(getState())[data.item]
+        planningItem = {
+            ...planningItem,
+            lock_action: null,
+            lock_user: null,
+            lock_session: null,
+            lock_time: null,
+            state: WORKFLOW_STATE.SPIKED,
+            revert_state: data.revert_state,
+            _etag: data.etag,
+        }
+
+        dispatch(planning.api.receivePlannings([planningItem]))
+        return Promise.resolve()
+    }
+)
+
+const onPlanningCancelled = (e, data) => (
+    (dispatch) => {
+        if (get(data, 'item')) {
+            dispatch(planning.api.markPlanningCancelled(
+                data.item,
+                get(data, 'reason'),
+                get(data, 'coverage_state')
+            ))
+        }
+    }
+)
+
+const onPlanningRescheduled = (e, data) => (
+    (dispatch) => {
+        if (get(data, 'item')) {
+            dispatch(planning.api.loadPlanningById(data.item))
+        }
+    }
+)
+
 const self = {
     onPlanningCreated,
     onCoverageCreatedOrUpdated,
     onCoverageDeleted,
     onPlanningUpdated,
     onPlanningUnlocked,
+    onPlanningPublished,
+    canRefetchPlanning,
+    onPlanningUpdateWithoutRefetch,
+    onPlanningSpiked,
+    onPlanningCancelled,
+    onPlanningRescheduled,
 }
 
 // Map of notification name and Action Event to execute
@@ -179,10 +265,14 @@ self.events = {
     'coverage:updated': () => (self.onCoverageCreatedOrUpdated),
     'coverage:deleted': () => (self.onCoverageDeleted),
     'planning:updated': () => (self.onPlanningUpdated),
-    'planning:spiked': () => (self.onPlanningUpdated),
-    'planning:unspiked': () => (self.onPlanningUpdated),
-    'planning:lock': () => (self.onPlanningUpdated),
+    'planning:spiked': () => (self.onPlanningSpiked),
+    'planning:unspiked': () => (self.onPlanningUpdateWithoutRefetch),
+    'planning:lock': () => (self.onPlanningUpdateWithoutRefetch),
     'planning:unlock': () => (self.onPlanningUnlocked),
+    'planning:published': () => (self.onPlanningPublished),
+    'planning:duplicated': () => (self.onPlanningCreated),
+    'planning:cancelled': () => (self.onPlanningCancelled),
+    'planning:rescheduled': () => (self.onPlanningRescheduled),
 }
 
 export default self

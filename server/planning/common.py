@@ -11,31 +11,40 @@
 from flask import current_app as app
 from superdesk.utc import utcnow
 from datetime import timedelta
+from collections import namedtuple
+from superdesk.resource import not_analyzed
 
-
-NOT_ANALYZED = {'type': 'string', 'index': 'not_analyzed'}
-
-STATE_SCHEMA = {
-    'type': 'string',
-    'allowed': ['active', 'spiked', 'ingested'],
-    'default': 'active',
-    'mapping': NOT_ANALYZED
-}
-
-ITEM_EXPIRY = 'expiry'
 ITEM_STATE = 'state'
-ITEM_SPIKED = 'spiked'
-ITEM_ACTIVE = 'active'
-
-PUB_STATUS_USABLE = 'usable'
-PUB_STATUS_WITHHOLD = 'withhold'
-PUB_STATUS_CANCELED = 'canceled'
-PUB_STATUS_VALUES = (PUB_STATUS_USABLE, PUB_STATUS_WITHHOLD, PUB_STATUS_CANCELED)
+ITEM_EXPIRY = 'expiry'
 
 UPDATE_SINGLE = 'single'
 UPDATE_FUTURE = 'future'
 UPDATE_ALL = 'all'
 UPDATE_METHODS = (UPDATE_SINGLE, UPDATE_FUTURE, UPDATE_ALL)
+
+workflow_state = ['in_progress', 'ingested', 'published', 'killed',
+                  'cancelled', 'rescheduled', 'postponed', 'spiked']
+
+WORKFLOW_STATE = namedtuple('WORKFLOW_STATE', ['IN_PROGRESS', 'INGESTED', 'PUBLISHED', 'KILLED',
+                                               'CANCELLED', 'RESCHEDULED', 'POSTPONED', 'SPIKED']
+                            )(*workflow_state)
+
+published_state = ['usable', 'cancelled']
+PUBLISHED_STATE = namedtuple('PUBLISHED_STATE', ['USABLE', 'CANCELLED'])(*published_state)
+
+PUBLISHED_STATE_SCHEMA = {
+    'type': 'string',
+    'allowed': published_state,
+    'nullable': True,
+    'mapping': not_analyzed
+}
+
+WORKFLOW_STATE_SCHEMA = {
+    'type': 'string',
+    'allowed': workflow_state,
+    'default': WORKFLOW_STATE.IN_PROGRESS,
+    'mapping': not_analyzed
+}
 
 
 def set_item_expiry(doc):

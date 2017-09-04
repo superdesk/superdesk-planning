@@ -7,6 +7,8 @@ import {
     restoreSinonStub,
     convertEventDatesToMoment,
 } from '../../../utils/testUtils'
+import { getTimeZoneOffset } from '../../../utils/index'
+import { SPIKED_STATE } from '../../../constants/index'
 
 describe('actions.planning.api', () => {
     let errorMessage
@@ -29,6 +31,8 @@ describe('actions.planning.api', () => {
         sinon.stub(planningApi, 'saveAndDeleteCoverages').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'fetchPlanningById').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'fetchPlanningHistory').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningApi, 'publish').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningApi, 'unpublish').callsFake(() => (Promise.resolve()))
     })
 
     afterEach(() => {
@@ -41,6 +45,8 @@ describe('actions.planning.api', () => {
         restoreSinonStub(planningApi.saveAndDeleteCoverages)
         restoreSinonStub(planningApi.fetchPlanningById)
         restoreSinonStub(planningApi.fetchPlanningHistory)
+        restoreSinonStub(planningApi.publish)
+        restoreSinonStub(planningApi.unpublish)
     })
 
     describe('spike', () => {
@@ -108,45 +114,149 @@ describe('actions.planning.api', () => {
             restoreSinonStub(planningApi.query)
         })
 
-        it('by list of agendas', (done) => (
-            store.test(done, planningApi.query({ agendas: ['a1', 'a2'] }))
+        it('list planning items of agendas in future', (done) => (
+            store.test(done, planningApi.query(
+                {
+                    agendas: ['a1', 'a2'],
+                    onlyFuture: true,
+                }
+            ))
             .then(() => {
                 expect(services.api('planning').query.callCount).toBe(1)
-                expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
-                    source: JSON.stringify({
-                        query: {
-                            bool: {
-                                must: [
-                                    { terms: { agendas: ['a1', 'a2'] } },
-                                ],
-                                must_not: [],
+                const source = JSON.parse(services.api('planning').query.args[0][0].source)
+                expect(source.query.bool.must).toEqual([
+                    { terms: { agendas: ['a1', 'a2'] } },
+                    {
+                        nested: {
+                            path: '_coverages',
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            range: {
+                                                '_coverages.scheduled': {
+                                                    gte: 'now/d',
+                                                    time_zone: getTimeZoneOffset(),
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
                             },
                         },
-                    }),
-                    embedded: { original_creator: 1 },
-                })])
+                    },
+                ])
+                expect(source.query.bool.must_not).toEqual([])
+                expect(source.sort).toEqual(
+                    [
+                        {
+                            '_coverages.scheduled': {
+                                order: 'asc',
+                                nested_path: '_coverages',
+                                nested_filter: {
+                                    range: {
+                                        '_coverages.scheduled': {
+                                            gte: 'now/d',
+                                            time_zone: getTimeZoneOffset(),
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    ]
+                )
+                done()
+            })
+        ))
 
+        it('list planning items of agendas in past', (done) => (
+            store.test(done, planningApi.query(
+                {
+                    agendas: ['a1', 'a2'],
+                    onlyFuture: false,
+                }
+            ))
+            .then(() => {
+                expect(services.api('planning').query.callCount).toBe(1)
+                const source = JSON.parse(services.api('planning').query.args[0][0].source)
+                expect(source.query.bool.must).toEqual([
+                    { terms: { agendas: ['a1', 'a2'] } },
+                    {
+                        nested: {
+                            path: '_coverages',
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            range: {
+                                                '_coverages.scheduled': {
+                                                    lt: 'now/d',
+                                                    time_zone: getTimeZoneOffset(),
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                ])
+                expect(source.query.bool.must_not).toEqual([])
+                expect(source.sort).toEqual(
+                    [
+                        {
+                            '_coverages.scheduled': {
+                                order: 'desc',
+                                nested_path: '_coverages',
+                                nested_filter: {
+                                    range: {
+                                        '_coverages.scheduled': {
+                                            lt: 'now/d',
+                                            time_zone: getTimeZoneOffset(),
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    ]
+                )
                 done()
             })
         ))
 
         it('by list of planning not in any agendas', (done) => (
-            store.test(done, planningApi.query({ noAgendaAssigned: true }))
+            store.test(done, planningApi.query({
+                noAgendaAssigned: true,
+                onlyFuture: false,
+            }))
             .then(() => {
+                let noAgenda = { constant_score: { filter: { exists: { field: 'agendas' } } } }
                 expect(services.api('planning').query.callCount).toBe(1)
-                expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
-                    source: JSON.stringify({
-                        query: {
-                            bool: {
-                                must: [],
-                                must_not: [
-                                    { exists: { field: 'agendas' } },
-                                ],
+                const source = JSON.parse(services.api('planning').query.args[0][0].source)
+
+                expect(source.query.bool.must).toEqual([
+                    {
+                        nested: {
+                            path: '_coverages',
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            range: {
+                                                '_coverages.scheduled': {
+                                                    lt: 'now/d',
+                                                    time_zone: getTimeZoneOffset(),
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
                             },
                         },
-                    }),
-                    embedded: { original_creator: 1 },
-                })])
+                    },
+                ])
+
+                expect(source.query.bool.must_not).toEqual([noAgenda])
 
                 done()
             })
@@ -156,20 +266,9 @@ describe('actions.planning.api', () => {
             store.test(done, planningApi.query({ eventIds: 'e1' }))
             .then(() => {
                 expect(services.api('planning').query.callCount).toBe(1)
-                expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
-                    source: JSON.stringify({
-                        query: {
-                            bool: {
-                                must: [
-                                    { term: { event_item: 'e1' } },
-                                ],
-                                must_not: [],
-                            },
-                        },
-                    }),
-                    embedded: { original_creator: 1 },
-                })])
-
+                const source = JSON.parse(services.api('planning').query.args[0][0].source)
+                expect(source.query.bool.must).toEqual([{ term: { event_item: 'e1' } }])
+                expect(source.sort).toEqual([{ _planning_date: { order: 'asc' } }])
                 done()
             })
         ))
@@ -177,25 +276,36 @@ describe('actions.planning.api', () => {
         it('by spiked item state', (done) => (
             store.test(done, planningApi.query({
                 agendas: ['a1', 'a2'],
-                state: 'spiked',
+                spikeState: SPIKED_STATE.SPIKED,
             }))
             .then(() => {
                 expect(services.api('planning').query.callCount).toBe(1)
-                expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
-                    source: JSON.stringify({
-                        query: {
-                            bool: {
-                                must: [
-                                    { terms: { agendas: ['a1', 'a2'] } },
-                                    { term: { state: 'spiked' } },
-                                ],
-                                must_not: [],
+                const source = JSON.parse(services.api('planning').query.args[0][0].source)
+                expect(source.query.bool.must).toEqual([
+                    { terms: { agendas: ['a1', 'a2'] } },
+                    { term: { state: 'spiked' } },
+                    {
+                        nested: {
+                            path: '_coverages',
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            range: {
+                                                '_coverages.scheduled': {
+                                                    lt: 'now/d',
+                                                    time_zone: getTimeZoneOffset(),
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
                             },
                         },
-                    }),
-                    embedded: { original_creator: 1 },
-                })])
+                    },
+                ])
 
+                expect(source.query.bool.must_not).toEqual([])
                 done()
             })
         ))
@@ -203,29 +313,52 @@ describe('actions.planning.api', () => {
         it('by non-spiked item state', (done) => (
             store.test(done, planningApi.query({
                 agendas: ['a1', 'a2'],
-                state: 'active',
+                spikeState: SPIKED_STATE.NOT_SPIKED,
             }))
             .then(() => {
                 expect(services.api('planning').query.callCount).toBe(1)
-                expect(services.api('planning').query.args[0]).toEqual([jasmine.objectContaining({
-                    source: JSON.stringify({
-                        query: {
-                            bool: {
-                                must: [
-                                    { terms: { agendas: ['a1', 'a2'] } },
-                                ],
-                                must_not: [
-                                    { term: { state: 'spiked' } },
-                                ],
+                const source = JSON.parse(services.api('planning').query.args[0][0].source)
+                expect(source.query.bool.must).toEqual([
+                    { terms: { agendas: ['a1', 'a2'] } },
+                    {
+                        nested: {
+                            path: '_coverages',
+                            query: {
+                                bool: {
+                                    must: [
+                                        {
+                                            range: {
+                                                '_coverages.scheduled': {
+                                                    lt: 'now/d',
+                                                    time_zone: getTimeZoneOffset(),
+                                                },
+                                            },
+                                        },
+                                    ],
+                                },
                             },
                         },
-                    }),
-                    embedded: { original_creator: 1 },
-                })])
+                    },
+                ])
+
+                expect(source.query.bool.must_not).toEqual([{ term: { state: 'spiked' } }])
 
                 done()
             })
         ))
+
+        it('refetch', (done) => {
+            sinon.stub(planningApi, 'query').callsFake(() => (Promise.resolve(['item'])))
+            store.initialState.planning.lastRequestParams.page = 3
+
+            store.test(done, planningApi.refetch())
+            .then((items) => {
+                expect(planningApi.query.callCount).toBe(3)
+                expect(items.length).toBe(3)
+                expect(items).toEqual(['item', 'item', 'item'])
+                done()
+            })
+        })
     })
 
     describe('fetch', () => {
@@ -238,7 +371,7 @@ describe('actions.planning.api', () => {
         it('fetches planning items and linked events', (done) => {
             const params = {
                 agendas: ['a1'],
-                state: 'active',
+                spikeState: SPIKED_STATE.NOT_SPIKED,
             }
             return store.test(done, planningApi.fetch(params))
             .then((items) => {
@@ -474,17 +607,7 @@ describe('actions.planning.api', () => {
                     },
                 ])
 
-                expect(planningApi.saveAndDeleteCoverages.callCount).toBe(1)
-                expect(planningApi.saveAndDeleteCoverages.args[0]).toEqual([
-                    [],
-                    {
-                        _id: 'p3',
-                        slugline: 'Planning3',
-                        headline: 'Some Plan 3',
-                    },
-                    [],
-                ])
-
+                expect(planningApi.saveAndDeleteCoverages.callCount).toBe(0)
                 done()
             })
         })
@@ -522,7 +645,7 @@ describe('actions.planning.api', () => {
                 expect(planningApi.saveAndDeleteCoverages.callCount).toBe(1)
                 expect(planningApi.saveAndDeleteCoverages.args[0]).toEqual([
                     planningItem.coverages,
-                    planningItem,
+                    data.plannings[0],
                     data.plannings[0].coverages,
                 ])
 
@@ -689,13 +812,6 @@ describe('actions.planning.api', () => {
                 expect(planningApi.save.callCount).toBe(1)
                 expect(planningApi.save.args[0]).toEqual([newItem, {}])
 
-                expect(planningApi.fetch.callCount).toBe(1)
-                expect(planningApi.fetch.args[0]).toEqual([{
-                    noAgendaAssigned: false,
-                    agendas: ['a1'],
-                    page: 1,
-                }])
-
                 done()
             })
         })
@@ -820,6 +936,162 @@ describe('actions.planning.api', () => {
             return store.test(done, planningApi.fetchPlanningHistory('p2'))
             .then(() => {}, (error) => {
                 expect(error).toEqual(errorMessage)
+                done()
+            })
+        })
+    })
+
+    it('api.publish calls `planning` endpoint', (done) => {
+        restoreSinonStub(planningApi.publish)
+        store.test(done, planningApi.publish(data.plannings[0]))
+        .then(() => {
+            expect(services.api.save.callCount).toBe(1)
+            expect(services.api.save.args[0]).toEqual([
+                'planning_publish',
+                {
+                    planning: data.plannings[0]._id,
+                    etag: data.plannings[0]._etag,
+                    pubstatus: 'usable',
+                },
+            ])
+
+            done()
+        })
+    })
+
+    it('api.unpublish calls `planning` endpoint', (done) => {
+        restoreSinonStub(planningApi.unpublish)
+        store.test(done, planningApi.unpublish(data.plannings[0]))
+        .then(() => {
+            expect(services.api.save.callCount).toBe(1)
+            expect(services.api.save.args[0]).toEqual([
+                'planning_publish',
+                {
+                    planning: data.plannings[0]._id,
+                    etag: data.plannings[0]._etag,
+                    pubstatus: 'cancelled',
+                },
+            ])
+
+            done()
+        })
+    })
+
+    describe('api.saveAndPublish', () => {
+        it('saveAndPublish calls `planning.api.save` then `planning.api.publish`', (done) => {
+            restoreSinonStub(planningApi.save)
+            sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve(data.plannings[1])))
+            store.test(done, planningApi.saveAndPublish(data.plannings[0]))
+            .then(() => {
+                expect(planningApi.save.callCount).toBe(1)
+                expect(planningApi.save.args[0]).toEqual([data.plannings[0]])
+
+                expect(planningApi.publish.callCount).toBe(1)
+                expect(planningApi.publish.args[0]).toEqual([data.plannings[1]])
+
+                done()
+            })
+        })
+
+        it('saveAndPublish returns Promise.reject if `planning.api.save` fails', (done) => {
+            restoreSinonStub(planningApi.save)
+            sinon.stub(planningApi, 'save').callsFake(() => (Promise.reject(errorMessage)))
+            store.test(done, planningApi.saveAndPublish(data.plannings[0]))
+            .then(() => {}, (error) => {
+                expect(planningApi.save.callCount).toBe(1)
+                expect(planningApi.publish.callCount).toBe(0)
+
+                expect(error).toEqual(errorMessage)
+
+                done()
+            })
+        })
+
+        it('saveAndPublish returns Promise.reject if `planning.api.publish` fails', (done) => {
+            restoreSinonStub(planningApi.save)
+            restoreSinonStub(planningApi.publish)
+            sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve(data.plannings[1])))
+            sinon.stub(planningApi, 'publish').callsFake(() => (Promise.reject(errorMessage)))
+            store.test(done, planningApi.saveAndPublish(data.plannings[0]))
+            .then(() => {}, (error) => {
+                expect(planningApi.save.callCount).toBe(1)
+                expect(planningApi.publish.callCount).toBe(1)
+
+                expect(error).toEqual(errorMessage)
+
+                done()
+            })
+        })
+    })
+
+    describe('api.saveAndUnpublish', () => {
+        it('saveAndUnpublish calls `planning.api.save` then `planning.api.unpublish`', (done) => {
+            restoreSinonStub(planningApi.save)
+            sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve(data.plannings[1])))
+            store.test(done, planningApi.saveAndUnpublish(data.plannings[0]))
+            .then(() => {
+                expect(planningApi.save.callCount).toBe(1)
+                expect(planningApi.save.args[0]).toEqual([data.plannings[0]])
+
+                expect(planningApi.unpublish.callCount).toBe(1)
+                expect(planningApi.unpublish.args[0]).toEqual([data.plannings[1]])
+
+                done()
+            })
+        })
+
+        it('saveAndUnpublish returns Promise.reject if `planning.api.save` fails', (done) => {
+            restoreSinonStub(planningApi.save)
+            sinon.stub(planningApi, 'save').callsFake(() => (Promise.reject(errorMessage)))
+            store.test(done, planningApi.saveAndUnpublish(data.plannings[0]))
+            .then(() => {}, (error) => {
+                expect(planningApi.save.callCount).toBe(1)
+                expect(planningApi.unpublish.callCount).toBe(0)
+
+                expect(error).toEqual(errorMessage)
+
+                done()
+            })
+        })
+
+        it('saveAndUnpublish returns Promise.reject if `planning.api.unpublish` fails', (done) => {
+            restoreSinonStub(planningApi.save)
+            restoreSinonStub(planningApi.unpublish)
+            sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve(data.plannings[1])))
+            sinon.stub(planningApi, 'unpublish').callsFake(() => (Promise.reject(errorMessage)))
+            store.test(done, planningApi.saveAndUnpublish(data.plannings[0]))
+            .then(() => {}, (error) => {
+                expect(planningApi.save.callCount).toBe(1)
+                expect(planningApi.unpublish.callCount).toBe(1)
+
+                expect(error).toEqual(errorMessage)
+
+                done()
+            })
+        })
+    })
+
+    describe('loadLockedPlanningsByAction', () => {
+        it('calls planning api and recieve locked planning items', (done) => {
+            services.api('planning').query = sinon.spy(() => (
+                Promise.resolve({ _items: data.locked_plannings }))
+            )
+            store.test(done, planningApi.loadLockedPlanningsByAction('edit'))
+            .then((items) => {
+                const source = JSON.parse(services.api('planning').query.args[0][0].source)
+
+                expect(source.query.bool.must).toEqual([
+                    { term: { lock_user: 'ident1' } },
+                    { term: { lock_action: 'edit' } },
+                ])
+
+                expect(services.api('planning').query.callCount).toBe(1)
+                expect(items).toEqual(data.locked_plannings)
+
+                expect(store.dispatch.callCount).toBe(1)
+                expect(planningApi.receivePlannings.callCount).toBe(1)
+                expect(planningApi.receivePlannings.args[0]).toEqual([data.locked_plannings])
+
                 done()
             })
         })

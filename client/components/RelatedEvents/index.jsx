@@ -1,6 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import moment from 'moment'
+import { WORKFLOW_STATE } from '../../constants/index'
 
 export const RelatedEvents = ({ events, dateFormat }) => (
     <ul className="related-events">
@@ -15,7 +16,7 @@ export const RelatedEvents = ({ events, dateFormat }) => (
             return (
             <li key={_id}>
                 <i className="icon-list-alt"/>&nbsp;
-                {state && state === 'spiked' &&
+                {state && state === WORKFLOW_STATE.SPIKED &&
                     <span className="label label--alert">spiked</span>
                 }
 

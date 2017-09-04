@@ -25,6 +25,13 @@ function configurePlanning(superdesk) {
             priority: 2000,
             privileges: { planning: 1 },
         })
+        .activity('/workspace/assignments', {
+            label: gettext('Assignments'),
+            priority: 100,
+            template: require('./client/views/assignment.html'),
+            topTemplateUrl: 'scripts/apps/dashboard/views/workspace-topnav.html',
+            sideTemplateUrl: 'scripts/apps/workspace/views/workspace-sidenav.html'
+        })
 }
 
 runPlanning.$inject = ['ingestSources', '$templateCache']

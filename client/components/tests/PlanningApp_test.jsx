@@ -14,6 +14,10 @@ describe('<PlanningApp />', () => {
                 search: { currentSearch: {} },
                 show: false,
             },
+            session: {
+                identity: { _id: 'ident1' },
+                sessionId: 'session1',
+            },
         }
         const store = createTestStore({ initialState })
         const wrapper = mount(

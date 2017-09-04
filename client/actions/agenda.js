@@ -1,9 +1,9 @@
 import { hideModal } from './modal'
 import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
-import { cloneDeep, pick, get } from 'lodash'
-import { PRIVILEGES, ITEM_STATE, AGENDA } from '../constants'
-import { checkPermission, getErrorMessage } from '../utils'
+import { cloneDeep, pick } from 'lodash'
+import { PRIVILEGES, AGENDA } from '../constants'
+import { checkPermission, getErrorMessage, isItemSpiked } from '../utils'
 import { planning, showModal } from './index'
 
 /**
@@ -221,7 +221,7 @@ const _createPlanningFromEvent = (event) => (
             error = 'No Agenda is currently selected.'
         } else if (currentAgenda && !currentAgenda.is_enabled) {
             error = 'Cannot create a new planning item in a disabled Agenda!'
-        } else if (get(event, 'state', 'active') === ITEM_STATE.SPIKED) {
+        } else if (isItemSpiked(event)) {
             error = 'Cannot create a Planning item from a spiked event!'
         }
 
@@ -251,19 +251,12 @@ const _createPlanningFromEvent = (event) => (
 const fetchSelectedAgendaPlannings = () => (
     (dispatch, getState) => {
         const agendaId = selectors.getCurrentAgendaId(getState())
-
         if (!agendaId) {
             dispatch(planning.ui.clearList())
             return Promise.resolve()
         }
 
-        const agenda = selectors.getCurrentAgenda(getState())
-        const params = {
-            noAgendaAssigned: agendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED,
-            agendas: agenda ? [agenda._id] : null,
-            page: 1,
-        }
-
+        const params = selectors.getPlanningFilterParams(getState())
         return dispatch(planning.ui.fetchToList(params))
     }
 )

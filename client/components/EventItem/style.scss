@@ -8,4 +8,9 @@
     &--locked {
 		border-left: 4px solid #e51c23;
 	}
+	&--not-draggable {
+		&:active {
+			cursor: no-drop;
+		}
+	}
 }

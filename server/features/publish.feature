@@ -45,7 +45,7 @@ Feature: Publish
 
         When we post to "/events/publish"
         """
-        {"event": "#events._id#", "etag": "#events._etag#"}
+        {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
         """
         Then we get OK response
         When we get "/events/#events._id#"
@@ -71,30 +71,7 @@ Feature: Publish
         """
 
     @auth
-    Scenario: Publish non usable event
-        When we post to "/events" with success
-        """
-        {
-            "guid": "123",
-            "unique_id": "123",
-            "unique_name": "123 name",
-            "name": "event 123",
-            "slugline": "event-123",
-            "pubstatus": "withhold",
-            "dates": {
-                "start": "2016-01-02",
-                "end": "2016-01-03"
-            }
-        }
-        """
-        When we post to "/events/publish"
-        """
-        {"event": "#events._id#", "etag": "#events._etag#"}
-        """
-        Then we get error 409
-
-    @auth
-    Scenario: Publish canceled event
+    Scenario: Publish cancelled event
         When we post to "/products" with success
         """
         {
@@ -120,7 +97,7 @@ Feature: Publish
             "slugline": "event-123",
             "definition_short": "short value",
             "definition_long": "long value",
-            "pubstatus": "canceled",
+            "pubstatus": "cancelled",
             "relationships":{
                 "broader": "broader value",
                 "narrower": "narrower value",
@@ -138,7 +115,7 @@ Feature: Publish
 
         When we post to "/events/publish"
         """
-        {"event": "#events._id#", "etag": "#events._etag#"}
+        {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "cancelled"}
         """
         Then we get OK response
 

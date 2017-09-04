@@ -12,6 +12,7 @@ from superdesk import Resource
 from .history import HistoryService
 import logging
 from eve.utils import config
+from copy import deepcopy
 
 logger = logging.getLogger(__name__)
 
@@ -57,3 +58,19 @@ class PlanningHistoryService(HistoryService):
 
     def on_unspike(self, updates, original):
         super().on_unspike(updates, original)
+
+    def on_duplicate(self, parent, duplicate):
+        self._save_history(
+            {config.ID_FIELD: str(parent[config.ID_FIELD])},
+            {'duplicate_id': str(duplicate[config.ID_FIELD])},
+            'duplicate'
+        )
+
+    def on_duplicate_from(self, item, duplicate_id):
+        new_plan = deepcopy(item)
+        new_plan['duplicate_id'] = duplicate_id
+        self._save_history(
+            {config.ID_FIELD: str(item[config.ID_FIELD])},
+            new_plan,
+            'duplicate_from'
+        )

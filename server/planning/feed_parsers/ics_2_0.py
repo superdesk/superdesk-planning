@@ -14,7 +14,7 @@ import datetime
 from superdesk.errors import ParserError
 from superdesk.io.feed_parsers import FileFeedParser
 from superdesk.metadata.utils import generate_guid
-from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE, GUID_FIELD, GUID_NEWSML, FORMAT, FORMATS
+from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE, GUID_FIELD, GUID_NEWSML, FORMAT, FORMATS, CONTENT_STATE
 from superdesk.utc import utcnow
 from icalendar import vRecur, vCalAddress, vGeo
 from icalendar.parser import tzid_from_dt
@@ -55,6 +55,13 @@ class IcsTwoFeedParser(FileFeedParser):
                     item['definition_short'] = component.get('summary')
                     item['definition_long'] = component.get('description')
                     item['original_source'] = component.get('uid')
+                    item['state'] = CONTENT_STATE.PROGRESS
+                    item['pubstatus'] = None
+                    eocstat_map = get_resource_service('vocabularies').find_one(req=None, _id='eventoccurstatus')
+                    if eocstat_map:
+                        item['occur_status'] = [x for x in eocstat_map.get('items', []) if
+                                                x['qcode'] == 'eocstat:eos5' and x.get('is_active', True)][0]
+                        item['occur_status'].pop('is_active', None)
 
                     # add dates
                     # check if component .dt return date instead of datetime, if so, convert to datetime

@@ -15,9 +15,9 @@ export function AgendasListComponent({
     privileges,
 }) {
     return (
-        <div className="split-content AgendaList">
-            <div className="header">
-                <h2>Manage Agendas</h2>
+        <div className="sd-page__flex-helper">
+            <div className="sd-page__header">
+                <span className="sd-page__element-grow"/>
                 {privileges.planning_agenda_management === 1 && (
                     <Button type="button"
                             bsClass="btn btn--primary"
@@ -29,33 +29,33 @@ export function AgendasListComponent({
                     </Button>
                 )}
             </div>
-            <div className="content">
-                <div className="agenda-group">
-                    <span className="form-label"><strong>Active Agendas</strong></span>
-                    {enabledAgendas.length > 0 &&
-                        <AgendaList
-                            privileges={privileges}
-                            openEditAgenda={openEditAgenda}
-                            agendas={enabledAgendas}
-                            deleteAgenda={deleteAgenda}
-                            classNames="sd-list-item-group sd-list-item-group--space-between-items"/>
-                    ||
-                        <p>There are no active agendas.</p>
-                    }
-                </div>
-                <div className="agenda-group">
-                    <span className="form-label"><strong>Disable Agendas</strong></span>
-                    {disabledAgendas.length > 0 &&
-                        <AgendaList
-                            privileges={privileges}
-                            openEditAgenda={openEditAgenda}
-                            agendas={disabledAgendas}
-                            deleteAgenda={deleteAgenda}
-                            classNames="sd-list-item-group sd-list-item-group--space-between-items"/>
-                    ||
-                        <p>There are no disabled agendas.</p>
-                    }
-                </div>
+            <div className="sd-page__content AgendaList">
+                 <div className="agenda-group">
+                     <span className="form-label"><strong>Active Agendas</strong></span>
+                     {enabledAgendas.length > 0 &&
+                         <AgendaList
+                             privileges={privileges}
+                             openEditAgenda={openEditAgenda}
+                             agendas={enabledAgendas}
+                             deleteAgenda={deleteAgenda}
+                             classNames="sd-list-item-group sd-list-item-group--space-between-items"/>
+                     ||
+                         <p>There are no active agendas.</p>
+                     }
+                 </div>
+                 <div className="agenda-group">
+                     <span className="form-label"><strong>Disable Agendas</strong></span>
+                     {disabledAgendas.length > 0 &&
+                         <AgendaList
+                             privileges={privileges}
+                             openEditAgenda={openEditAgenda}
+                             agendas={disabledAgendas}
+                             deleteAgenda={deleteAgenda}
+                             classNames="sd-list-item-group sd-list-item-group--space-between-items"/>
+                     ||
+                         <p>There are no disabled agendas.</p>
+                     }
+                 </div>
             </div>
         </div>
     )

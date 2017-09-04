@@ -41,7 +41,7 @@ describe('<SelectAgendaComponent />', () => {
 
         // One option for `Select an agenda` and another
         // option for the divider
-        expect(wrapper.find('option').length).toBe(7)
+        expect(wrapper.find('option').length).toBe(8)
     })
 
     it('selects an agenda within container', () => {

@@ -150,8 +150,6 @@ Feature: Agenda
         """
         [
             {
-                "unique_id": "123",
-                "unique_name": "123 name",
                 "item_class": "item class value",
                 "headline": "test headline",
                 "agendas": ["#agenda._id#"]

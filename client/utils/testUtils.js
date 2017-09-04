@@ -2,6 +2,7 @@ import sinon from 'sinon'
 import moment from 'moment'
 import { get } from 'lodash'
 import { PRIVILEGES } from '../constants'
+import { ItemActionsMenu } from '../components/index'
 
 export const getTestActionStore = () => {
     let store = {
@@ -190,6 +191,53 @@ export const getTestActionStore = () => {
                     user_id: '5923ac531d41c81e3290a5ee',
                 },
             ],
+            locked_events: [
+                {
+                    _id: 'e1',
+                    name: 'Event 1',
+                    dates: {
+                        start: '2016-10-15T13:01:11',
+                        end: '2016-10-15T14:01:11',
+                    },
+                    lock_action: 'edit',
+                    lock_user: 'ident1',
+                    lock_session: 'session1',
+                },
+                {
+                    _id: 'e2',
+                    name: 'Event 2',
+                    dates: {
+                        start: '2014-10-15T14:01:11',
+                        end: '2014-10-15T15:01:11',
+                    },
+                    lock_action: 'edit',
+                    lock_user: 'ident1',
+                    lock_session: 'session1',
+                },
+            ],
+            locked_plannings: [
+                {
+                    _id: 'p1',
+                    slugline: 'Planning1',
+                    headline: 'Some Plan 1',
+                    coverages: [],
+                    agendas: [],
+                    lock_action: 'edit',
+                    lock_user: 'ident1',
+                    lock_session: 'session1',
+                },
+                {
+                    _id: 'p2',
+                    slugline: 'Planning2',
+                    headline: 'Some Plan 2',
+                    event_item: 'e1',
+                    coverages: [],
+                    agendas: ['a2'],
+                    lock_action: 'edit',
+                    lock_user: 'ident1',
+                    lock_session: 'session1',
+                },
+            ],
         },
 
         initialState: {
@@ -209,6 +257,7 @@ export const getTestActionStore = () => {
                     noAgendaAssigned: false,
                     page: 1,
                 },
+                search: { currentSearch: undefined },
             },
             events: {
                 events: {},
@@ -277,7 +326,6 @@ export const getTestActionStore = () => {
 
         test: (done, action) => {
             if (!store.ready) store.init()
-
             return action(store.dispatch, store.getState, store.services)
             .catch((error) => {
                 // If this is from a Promise.reject, then pass that on
@@ -336,13 +384,13 @@ export const convertEventDatesToMoment = (events) => {
     return events
 }
 
-export const expectAccessDenied = ({ store, permission, action, errorMessage, args }) => {
+export const expectAccessDenied = ({ store, permission, action, errorMessage, args, argPos=0 }) => {
     expect(store.services.$timeout.callCount).toBe(1)
 
     expect(store.services.notify.error.callCount).toBe(1)
     expect(store.services.notify.error.args[0]).toEqual([errorMessage])
 
-    expect(store.dispatch.args[0]).toEqual([{
+    expect(store.dispatch.args[argPos]).toEqual([{
         type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
         payload: {
             action,
@@ -351,4 +399,16 @@ export const expectAccessDenied = ({ store, permission, action, errorMessage, ar
             args,
         },
     }])
+}
+
+export const itemActionExists = (wrapper, label) => {
+    if (wrapper.find('.icon-dots-vertical').length === 0) return false
+    const itemActions = wrapper.find(ItemActionsMenu)
+    return !!itemActions.props().actions.find((a) => a.label === label)
+}
+
+export const clickItemAction = (wrapper, icon) => {
+    const itemActions = wrapper.find(ItemActionsMenu)
+    itemActions.find('.dropdown__toggle').simulate('click')
+    itemActions.find(icon).parent().simulate('click')
 }

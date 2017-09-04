@@ -1,4 +1,4 @@
-import { EVENTS, ITEM_STATE } from '../../constants'
+import { EVENTS, SPIKED_STATE, WORKFLOW_STATE } from '../../constants'
 import { EventUpdateMethods } from '../../components/fields'
 import { get, isEqual, cloneDeep } from 'lodash'
 import * as selectors from '../../selectors'
@@ -10,13 +10,13 @@ import planningApi from '../planning/api'
  * Action dispatcher to load a series of recurring events into the local store.
  * This does not update the list of visible Events
  * @param rid
- * @param state
+ * @param spikeState
  */
-const loadEventsByRecurrenceId = (rid, state = ITEM_STATE.ALL, page=1, maxResults=25) => (
+const loadEventsByRecurrenceId = (rid, spikeState = SPIKED_STATE.BOTH, page=1, maxResults=25) => (
     (dispatch) => (
         dispatch(self.query({
             recurrenceId: rid,
-            state,
+            spikeState,
             page,
             maxResults,
         }))
@@ -27,6 +27,30 @@ const loadEventsByRecurrenceId = (rid, state = ITEM_STATE.ALL, page=1, maxResult
             Promise.reject(error)
         ))
     )
+)
+
+/**
+ * Action dispatcher to load Current user's Locked Events by action from the API,
+ * and place them in the local store.
+ * @param {string} action - lock_action such as 'edit'
+ * @return Promise
+ */
+const loadLockedEventsByAction = (action) => (
+    (dispatch, getState, { api }) => {
+        let query = { bool: { must: [] } }
+
+        query.bool.must.push({ term: { lock_user: selectors.getCurrentUserId(getState()) } })
+        query.bool.must.push({ term: { lock_action: action } })
+
+        // Query the API
+        return api('events').query({ source: JSON.stringify({ query }) })
+        .then((data) => {
+            dispatch(self.receiveEvents(data._items))
+            return Promise.resolve(data._items)
+        }, (error) => (
+            Promise.reject(error)
+        ))
+    }
 )
 
 /**
@@ -52,7 +76,26 @@ const spike = (events) => (
         .then(() => {
             dispatch({
                 type: EVENTS.ACTIONS.SPIKE_EVENT,
-                payload: events,
+                payload: events.map((event) => event._id),
+            })
+            return Promise.resolve(events)
+        }, (error) => (Promise.reject(error)))
+    }
+)
+
+const unspike = (events) => (
+    (dispatch, getState, { api }) => {
+        if (!Array.isArray(events)) {
+            events = [events]
+        }
+
+        return Promise.all(
+            events.map((event) => api.update('events_unspike', event, {}))
+        )
+        .then(() => {
+            dispatch({
+                type: EVENTS.ACTIONS.UNSPIKE_EVENT,
+                payload: events.map((event) => event._id),
             })
             return Promise.resolve(events)
         }, (error) => (Promise.reject(error)))
@@ -80,7 +123,7 @@ const query = (
         startDateGreaterThan,
         page=1,
         maxResults=25,
-        state=ITEM_STATE.ACTIVE,
+        spikeState=SPIKED_STATE.NOT_SPIKED,
     }
 ) => (
     (dispatch, getState, { api }) => {
@@ -157,6 +200,16 @@ const query = (
                 },
             },
             {
+                condition: () => (advancedSearch.calendars),
+                do: () => {
+                    const codes = advancedSearch.calendars.map((cat) => cat.qcode)
+                    const queries = codes.map((code) => (
+                        { term: { 'calendars.qcode': code } }
+                    ))
+                    must.push(...queries)
+                },
+            },
+            {
                 condition: () => (advancedSearch.anpa_category),
                 do: () => {
                     const codes = advancedSearch.anpa_category.map((cat) => cat.qcode)
@@ -204,15 +257,15 @@ const query = (
             filter.range = { 'dates.end': { gte: 'now/d' } }
         }
 
-        switch (state) {
-            case ITEM_STATE.SPIKED:
-                must.push({ term: { state: ITEM_STATE.SPIKED } })
+        switch (spikeState) {
+            case SPIKED_STATE.SPIKED:
+                must.push({ term: { state: WORKFLOW_STATE.SPIKED } })
                 break
-            case ITEM_STATE.ALL:
+            case SPIKED_STATE.BOTH:
                 break
-            case ITEM_STATE.ACTIVE:
+            case SPIKED_STATE.NOT_SPIKED:
             default:
-                mustNot.push({ term: { state: ITEM_STATE.SPIKED } })
+                mustNot.push({ term: { state: WORKFLOW_STATE.SPIKED } })
         }
 
         query.bool = {
@@ -298,7 +351,7 @@ const loadRecurringEventsAndPlanningItems = (event) => (
         // Load all of the events from the series
         return dispatch(self.loadEventsByRecurrenceId(
             eventDetail.recurrence_id,
-            ITEM_STATE.ALL,
+            SPIKED_STATE.BOTH,
             1,
             200
         ))
@@ -345,15 +398,19 @@ const receiveEvents = (events) => ({
     receivedAt: Date.now(),
 })
 
-const lock = (event) => (
+const lock = (event, action='edit') => (
     (dispatch, getState, { api, notify }) => (
-        api('events_lock', event).save({}, { lock_action: 'edit' })
-           .then((item) => (item),
-                (error) => {
-                    const msg = get(error, 'data._message') || 'Could not lock the event.'
-                    notify.error(msg)
-                    if (error) throw error
-                })
+        api('events_lock', event).save({}, { lock_action: action })
+       .then(
+        (item) => {
+            // On lock, file object in the event is lost, so, replace it from original event
+            item.files = event.files
+            return item
+        }, (error) => {
+            const msg = get(error, 'data._message') || 'Could not lock the event.'
+            notify.error(msg)
+            if (error) throw error
+        })
     )
 )
 
@@ -369,15 +426,86 @@ const unlock = (event) => (
     )
 )
 
+/**
+ * Action Dispatcher to fetch events from the server,
+ * and add them to the store without adding them to the events list
+ * @param {array} ids - An array of Event IDs to fetch
+ * @param {string} spikeState - Event's spiked state (SPIKED, NOT_SPIKED or BOTH)
+ * @return arrow function
+ */
+const silentlyFetchEventsById = (ids=[], spikeState = SPIKED_STATE.NOT_SPIKED) => (
+    (dispatch) => (
+        dispatch(self.query({
+            // distinct ids
+            ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
+            spikeState,
+        }))
+        .then(data => {
+            dispatch(self.receiveEvents(data._items))
+            return Promise.resolve(data._items)
+        }, (error) => (
+            Promise.reject(error)
+        ))
+    )
+)
+
+const cancelEvent = (event) => (
+    (dispatch, getState, { api }) => (
+        api.update(
+            'events_cancel',
+            event,
+            {
+                update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
+                reason: get(event, 'reason', undefined),
+            }
+        )
+    )
+)
+
+const rescheduleEvent = (event) => (
+    (dispatch, getState, { api }) => (
+        api.update(
+            'events_reschedule',
+            event,
+            {
+                update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
+                dates: event.dates,
+                reason: get(event, 'reason', null),
+            }
+        )
+    )
+)
+
+const markEventCancelled = (event, reason, occurStatus) => ({
+    type: EVENTS.ACTIONS.MARK_EVENT_CANCELLED,
+    payload: {
+        event_item: event,
+        reason,
+        occur_status: occurStatus,
+    },
+})
+
+const markEventHasPlannings = (event) => ({
+    type: EVENTS.ACTIONS.MARK_EVENT_HAS_PLANNINGS,
+    payload: { event_item: event },
+})
+
 const self = {
     loadEventsByRecurrenceId,
+    loadLockedEventsByAction,
     spike,
+    unspike,
     query,
     refetchEvents,
     receiveEvents,
     loadRecurringEventsAndPlanningItems,
     lock,
     unlock,
+    silentlyFetchEventsById,
+    cancelEvent,
+    markEventCancelled,
+    markEventHasPlannings,
+    rescheduleEvent,
 }
 
 export default self

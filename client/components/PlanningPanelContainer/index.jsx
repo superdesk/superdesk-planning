@@ -1,9 +1,19 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
+import classNames from 'classnames'
+import { get, isObject } from 'lodash'
 import * as actions from '../../actions'
-import { SelectAgenda, EditPlanningPanelContainer, PlanningList } from '../index'
-import { QuickAddPlanning, Toggle, SearchBar } from '../../components'
+import { ADVANCED_SEARCH_CONTEXT } from '../../constants'
+import {
+    SelectAgenda,
+    EditPlanningPanelContainer,
+    PlanningList,
+} from '../index'
+import { QuickAddPlanning, Toggle, SearchBar, AdvancedSearchPanelContainer } from '../../components'
 import * as selectors from '../../selectors'
+import { AGENDA } from '../../constants'
+import { eventUtils } from '../../utils/index'
 import './style.scss'
 
 class PlanningPanel extends React.Component {
@@ -15,8 +25,22 @@ class PlanningPanel extends React.Component {
     handleEventDrop(e) {
         e.preventDefault()
         const event = JSON.parse(e.dataTransfer.getData('application/superdesk.item.events'))
-        if (event) {
+        const canCreatePlanning = event && eventUtils.canCreatePlanningFromEvent(
+            event,
+            this.props.session,
+            this.props.privileges
+        )
+
+        if (canCreatePlanning) {
             this.props.addEventToCurrentAgenda(event)
+        }
+    }
+
+    toggleAdvancedSearch() {
+        if (this.props.advancedSearchOpened) {
+            this.props.closeAdvancedSearch()
+        } else {
+            this.props.openAdvancedSearch()
         }
     }
 
@@ -31,18 +55,17 @@ class PlanningPanel extends React.Component {
             isEventListShown,
             toggleEventsList,
             onlyFuture,
-            onlySpiked,
             onFutureToggleChange,
             handleSearch,
-            onSpikedToggleChange,
             privileges,
+            advancedSearchOpened,
+            isAdvancedDateSearch,
+            isAdvancedSearchSpecified,
         } = this.props
-        const listClasses = [
-            'Planning-panel',
-            editPlanningViewOpen ? 'Planning-panel--edit-planning-view' : null,
-        ].join(' ')
+
         return (
-            <div className={listClasses}
+            <div className={classNames('Planning-panel',
+                { 'Planning-panel--edit-planning-view': editPlanningViewOpen })}
                  onDrop={this.handleEventDrop.bind(this)}
                  onDragOver={(e) => e.preventDefault()}
                  onDragEnter={this.handleDragEnter.bind(this)}
@@ -55,7 +78,7 @@ class PlanningPanel extends React.Component {
                     }
                     <h3 className="subnav__page-title">
                         <span>
-                            <span>Agenda</span>
+                            <span>Agenda:</span>
                         </span>
                     </h3>
                     <div  className="Planning-panel__select-agenda">
@@ -63,27 +86,31 @@ class PlanningPanel extends React.Component {
                     </div>
                 </div>
                 <div className="Planning-panel__container">
-                    <div className="Planning-panel__list">
+                    <div className={classNames('Planning-panel__list',
+                        { 'Planning-panel__list--advanced-search-view':  advancedSearchOpened })}>
                         <div className="Planning-panel__searchbar subnav">
+                            <label
+                                className="trigger-icon advanced-search-open"
+                                onClick={this.toggleAdvancedSearch.bind(this)}>
+                                <i className={classNames('icon-filter-large ',
+                                    { 'icon--blue': isAdvancedSearchSpecified })} />
+                            </label>
                             <SearchBar value={null} onSearch={handleSearch}/>
                             <label>
-                                Only future
-                                <Toggle value={onlyFuture} onChange={onFutureToggleChange}/>
-                            </label>
-                            <label>
-                                Spiked
-                                <Toggle value={onlySpiked} onChange={onSpikedToggleChange} />
+                                Only Future
+                                <Toggle value={onlyFuture} onChange={onFutureToggleChange} readOnly={isAdvancedDateSearch} />
                             </label>
                         </div>
-                        <ul className="list-view compact-view">
+                        <AdvancedSearchPanelContainer searchContext={ADVANCED_SEARCH_CONTEXT.PLANNING} />
+                        <div className="list-view compact-view">
                             {((currentAgendaId || currentAgenda && currentAgenda.is_enabled) &&
                             privileges.planning_planning_management === 1 ) &&
-                                <QuickAddPlanning className="ListItem" onPlanningCreation={onPlanningCreation}/>
+                                <QuickAddPlanning onPlanningCreation={onPlanningCreation}/>
                             }
                             {(planningList && planningList.length > 0) &&
                                 <PlanningList />
                             }
-                        </ul>
+                        </div>
                         {
                             planningsAreLoading &&
                                 <div className="Planning-panel__empty-message">
@@ -105,8 +132,13 @@ class PlanningPanel extends React.Component {
                                         <div className="panel-info__icon">
                                             <i className="big-icon--add-to-list" />
                                         </div>
-                                        <h3 className="panel-info__heading">There are no planning items in this agenda.</h3>
-                                        <p className="panel-info__description">Drag an event here to start one.</p>
+                                        {currentAgendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED &&
+                                        <h3 className="panel-info__heading">There are no planning items without an assigned agenda.</h3>}
+                                        {currentAgendaId === AGENDA.FILTER.ALL_PLANNING &&
+                                        <h3 className="panel-info__heading">There are no planning items.</h3>}
+                                        {currentAgendaId !== AGENDA.FILTER.NO_AGENDA_ASSIGNED && currentAgendaId !== AGENDA.FILTER.ALL_PLANNING &&
+                                        <h3 className="panel-info__heading">There are no planning items in this agenda.</h3>}
+                                        <p className="panel-info__description">Drag an event here to create a planning item.</p>
                                     </div>
                                 </div>
                         }
@@ -129,11 +161,15 @@ PlanningPanel.propTypes = {
     toggleEventsList: React.PropTypes.func,
     isEventListShown: React.PropTypes.bool,
     onlyFuture: React.PropTypes.bool,
-    onlySpiked: React.PropTypes.bool,
     onFutureToggleChange: React.PropTypes.func,
     handleSearch: React.PropTypes.func.isRequired,
-    onSpikedToggleChange: React.PropTypes.func,
     privileges: React.PropTypes.object.isRequired,
+    advancedSearchOpened: React.PropTypes.bool,
+    isAdvancedDateSearch: React.PropTypes.bool,
+    isAdvancedSearchSpecified: React.PropTypes.bool,
+    closeAdvancedSearch: React.PropTypes.func,
+    openAdvancedSearch: React.PropTypes.func,
+    session: PropTypes.object,
 }
 
 const mapStateToProps = (state) => ({
@@ -144,8 +180,11 @@ const mapStateToProps = (state) => ({
     editPlanningViewOpen: state.planning.editorOpened,
     isEventListShown: selectors.isEventListShown(state),
     onlyFuture: state.planning.onlyFuture,
-    onlySpiked: state.planning.onlySpiked,
     privileges: selectors.getPrivileges(state),
+    advancedSearchOpened: get(state, 'planning.search.advancedSearchOpened', false),
+    isAdvancedDateSearch: selectors.isAdvancedDateSearch(state),
+    isAdvancedSearchSpecified: isObject(selectors.getPlanningSearch(state)),
+    session: selectors.getSessionDetails(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -160,7 +199,8 @@ const mapDispatchToProps = (dispatch) => ({
     addEventToCurrentAgenda: (event) => (dispatch(actions.addEventToCurrentAgenda(event))),
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
     onFutureToggleChange: () => (dispatch(actions.planning.ui.toggleOnlyFutureFilter())),
-    onSpikedToggleChange: () => (dispatch(actions.planning.ui.toggleOnlySpikedFilter())),
+    closeAdvancedSearch: () =>(dispatch(actions.planning.ui.closeAdvancedSearch())),
+    openAdvancedSearch: () =>(dispatch(actions.planning.ui.openAdvancedSearch())),
 })
 
 export const PlanningPanelContainer = connect(

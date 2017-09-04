@@ -5,7 +5,6 @@ import { Datetime } from '../index'
 const formatDate = (d) => React.createElement(Datetime, { date: d })
 const FIELDS = [
     // 'Label', 'key1', 'key2', ['key3', func(value)] etc...
-    ['Slugline', 'slugline'],
     ['Name', 'name'],
     ['From', ['dates.start', formatDate]],
     ['To', ['dates.end', formatDate]],
@@ -13,9 +12,7 @@ const FIELDS = [
     ['Description', 'definition_long'],
     ['Internal note', 'internal_note'],
     ['Location', 'location[0].name'],
-    ['Status', 'occur_status.name'],
-    ['Categories', ['anpa_category', (d) => (d.map((c) => c.name).join(', '))]],
-    ['Created', ['_created', formatDate]],
+    ['Status', 'occur_status.label'],
     ['Source', 'source'],
 ]
 
@@ -47,7 +44,7 @@ function renderDict(event, label, ...keys) {
 export function EventMetadata ({ event }) {
 
     return (
-        <div className="metadata-view">
+        <div className="metadata-view EditPlanningPanel__body--event">
             <dl>
                 {FIELDS.map((arrayProps) => renderDict.bind(null, event).apply(null, arrayProps))}
             </dl>
@@ -57,7 +54,6 @@ export function EventMetadata ({ event }) {
 
 EventMetadata.propTypes = {
     event: React.PropTypes.shape({
-        slugline: React.PropTypes.string,
         name: React.PropTypes.string.isRequired,
         dates: React.PropTypes.object.isRequired,
         definition_short: React.PropTypes.string,
@@ -65,7 +61,6 @@ EventMetadata.propTypes = {
         internal_note: React.PropTypes.string,
         location: React.PropTypes.array,
         occur_status: React.PropTypes.object,
-        _created: React.PropTypes.string,
         source: React.PropTypes.string,
     }),
 }

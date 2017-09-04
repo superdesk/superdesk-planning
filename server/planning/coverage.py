@@ -12,10 +12,13 @@
 
 import superdesk
 import logging
+from bson import ObjectId
+from copy import deepcopy
 from superdesk.errors import SuperdeskApiError
-from superdesk.metadata.utils import generate_guid
+from superdesk.metadata.utils import generate_guid, item_url
 from superdesk.metadata.item import GUID_NEWSML, metadata_schema
 from superdesk.resource import not_analyzed
+from superdesk import get_resource_service
 from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user
 from eve.utils import config
@@ -32,7 +35,10 @@ class CoverageService(superdesk.Service):
         """Set default metadata."""
 
         for doc in docs:
-            doc['guid'] = generate_guid(type=GUID_NEWSML)
+            if 'guid' not in doc:
+                doc['guid'] = generate_guid(type=GUID_NEWSML)
+            doc[config.ID_FIELD] = doc['guid']
+
             set_original_creator(doc)
             self._set_assignment_information(doc)
 
@@ -53,12 +59,17 @@ class CoverageService(superdesk.Service):
     def on_created(self, docs):
         for doc in docs:
             CoverageService.notify('coverage:created', doc, doc.get('original_creator', ''))
+        get_resource_service('planning').sync_coverages(docs)
 
     def on_updated(self, updates, original):
         CoverageService.notify('coverage:updated', original, updates.get('version_creator', ''))
+        doc = deepcopy(original)
+        doc.update(updates)
+        get_resource_service('planning').sync_coverages([doc])
 
     def on_deleted(self, doc):
         CoverageService.notify('coverage:deleted', doc, doc.get('version_creator', ''))
+        get_resource_service('planning').sync_coverages([doc])
 
     def _set_assignment_information(self, doc):
         if doc.get('planning') and doc['planning'].get('assigned_to'):
@@ -76,21 +87,26 @@ class CoverageService(superdesk.Service):
 
             planning['assigned_to']['assigned_date'] = utcnow()
             if planning['assigned_to'].get('user'):
-                add_activity(ACTIVITY_UPDATE,
-                             '{{assignor}} assigned a coverage to you',
-                             self.datasource,
-                             notify=[planning['assigned_to'].get('user')],
-                             assignor=user.get('username'))
+                # Done to avoid fetching users data for every assignment
+                # Because user assigned can also be a provider whose qcode
+                # might be an invalid GUID, check if the user assigned is a valid user (GUID)
+                # However, in a rare case where qcode of a provider is a valid GUID,
+                # This will create activity records - inappropirate
+                if ObjectId.is_valid(planning['assigned_to'].get('user')):
+                    add_activity(ACTIVITY_UPDATE,
+                                 '{{assignor}} assigned a coverage to you',
+                                 self.datasource,
+                                 notify=[planning['assigned_to'].get('user')],
+                                 assignor=user.get('username'))
 
+
+planning_type = deepcopy(superdesk.Resource.rel('planning', type='string'))
+planning_type['mapping'] = not_analyzed
 
 coverage_schema = {
     # Identifiers
-    '_id': metadata_schema['_id'],
+    config.ID_FIELD: metadata_schema[config.ID_FIELD],
     'guid': metadata_schema['guid'],
-    'unique_id': metadata_schema['unique_id'],
-    'unique_name': metadata_schema['unique_name'],
-    'version': metadata_schema['version'],
-    'ingest_id': metadata_schema['ingest_id'],
 
     # Audit Information
     'original_creator': metadata_schema['original_creator'],
@@ -98,14 +114,8 @@ coverage_schema = {
     'firstcreated': metadata_schema['firstcreated'],
     'versioncreated': metadata_schema['versioncreated'],
 
-    # Ingest Details
-    'ingest_provider': metadata_schema['ingest_provider'],
-    'source': metadata_schema['source'],
-    'original_source': metadata_schema['original_source'],
-    'ingest_provider_sequence': metadata_schema['ingest_provider_sequence'],
-
     # Reference to Planning Item
-    'planning_item': superdesk.Resource.rel('planning'),
+    'planning_item': planning_type,
 
     # News Coverage Details
     # See IPTC-G2-Implementation_Guide 16.4
@@ -113,10 +123,10 @@ coverage_schema = {
         'type': 'dict',
         'schema': {
             'ednote': metadata_schema['ednote'],
-            'g2_content_type': {'type': 'string'},
-            'coverage_provider': {'type': 'string'},
-            'item_class': {'type': 'string'},
-            'item_count': {'type': 'string'},
+            'g2_content_type': {'type': 'string', 'mapping': not_analyzed},
+            'coverage_provider': {'type': 'string', 'mapping': not_analyzed},
+            'item_class': {'type': 'string', 'mapping': not_analyzed},
+            'item_count': {'type': 'string', 'mapping': not_analyzed},
             'scheduled': {'type': 'datetime'},
             'service': {
                 'type': 'list',
@@ -227,7 +237,8 @@ coverage_schema = {
         'type': 'dict',
         'schema': {
             'qcode': {'type': 'string'},
-            'name': {'type': 'string'}
+            'name': {'type': 'string'},
+            'label': {'type': 'string'}
         }
     }
 }  # end coverage_schema
@@ -240,6 +251,7 @@ class CoverageResource(superdesk.Resource):
     """
 
     url = 'coverage'
+    item_url = item_url
     schema = coverage_schema
     resource_methods = ['GET', 'POST']
     item_methods = ['GET', 'PATCH', 'PUT', 'DELETE']
@@ -247,3 +259,11 @@ class CoverageResource(superdesk.Resource):
     privileges = {'POST': 'planning',
                   'PATCH': 'planning',
                   'DELETE': 'planning'}
+    datasource = {
+        'source': 'coverage',
+        'search_backend': 'elastic',
+        'elastic_parent': {
+            'type': 'planning',
+            'field': 'planning_item'
+        }
+    }

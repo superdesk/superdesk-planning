@@ -8,13 +8,14 @@ from superdesk.services import BaseService
 from apps.publish.enqueue import get_enqueue_service
 
 from .events import EventsResource
-from .common import PUB_STATUS_USABLE, PUB_STATUS_CANCELED
+from .common import WORKFLOW_STATE, PUBLISHED_STATE, published_state
 
 
 class EventsPublishResource(EventsResource):
     schema = {
         'event': Resource.rel('events', type='string', required=True),
         'etag': {'type': 'string', 'required': True},
+        'pubstatus': {'type': 'string', 'required': True, 'allowed': published_state},
     }
 
     url = 'events/publish'
@@ -29,6 +30,7 @@ class EventsPublishService(BaseService):
         for doc in docs:
             event = get_resource_service('events').find_one(req=None, _id=doc['event'], _etag=doc['etag'])
             if event:
+                event['pubstatus'] = doc['pubstatus']
                 self.validate_event(event)
                 self.publish_event(event)
                 ids.append(doc['event'])
@@ -38,7 +40,7 @@ class EventsPublishService(BaseService):
 
     def validate_event(self, event):
         try:
-            assert event.get('pubstatus') in (PUB_STATUS_USABLE, PUB_STATUS_CANCELED)
+            assert event.get('pubstatus') in published_state
         except AssertionError:
             abort(409)
 
@@ -46,11 +48,11 @@ class EventsPublishService(BaseService):
         event.setdefault(config.VERSION, 1)
         event.setdefault('item_id', event['_id'])
         get_enqueue_service('publish').enqueue_item(event, 'event')
-        updates = {'state': self._get_publish_state(event)}
+        updates = {'state': self._get_publish_state(event), 'pubstatus': event['pubstatus']}
         get_resource_service('events').update(event['_id'], updates, event)
         get_resource_service('events_history')._save_history(event, updates, 'publish')
 
     def _get_publish_state(self, event):
-        if event.get('pubstatus') == PUB_STATUS_CANCELED:
-            return 'killed'
-        return 'published'
+        if event.get('pubstatus') == PUBLISHED_STATE.CANCELLED:
+            return WORKFLOW_STATE.KILLED
+        return WORKFLOW_STATE.PUBLISHED

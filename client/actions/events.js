@@ -3,12 +3,10 @@ import moment from 'moment-timezone'
 import * as selectors from '../selectors'
 import { SubmissionError, getFormInitialValues } from 'redux-form'
 import { saveLocation as _saveLocation } from './index'
-import { showModal, hideModal, fetchSelectedAgendaPlannings } from './index'
-import { SpikeEvent } from '../components/index'
+import { showModal, fetchSelectedAgendaPlannings } from './index'
 import { EventUpdateMethods } from '../components/fields'
-import React from 'react'
-import { PRIVILEGES, EVENTS, ITEM_STATE } from '../constants'
-import { checkPermission, getErrorMessage, retryDispatch } from '../utils'
+import { EVENTS, SPIKED_STATE, PUBLISHED_STATE } from '../constants'
+import { eventUtils, getErrorMessage, retryDispatch } from '../utils'
 
 import eventsApi from './events/api'
 import eventsUi from './events/ui'
@@ -20,6 +18,10 @@ const duplicateEvent = (event) => (
         return dispatch(createDuplicate(event))
         .then((dup) => {
             duplicate = dup[0]
+
+            // On duplicate, backend returns with just _ids for files
+            // Replace them with file media information from original event to be used in editor
+            duplicate.files = event.files
             dispatch(eventsUi.closeEventDetails(original))
         })
         .then(() => dispatch(eventsUi.refetchEvents()))
@@ -27,58 +29,45 @@ const duplicateEvent = (event) => (
     }
 )
 
-const _setEventStatus = ({ eventId, status }) => (
-    (dispatch, getState) => {
-        // clone event in order to not modify the store
-        const event = { ...selectors.getEvents(getState())[eventId] }
-        event.pubstatus = status
-        return dispatch(saveEvent(event))
-        .then((events) => {
-            dispatch(eventsUi.previewEvent(events[0]))
-            return events
-        })
-    }
-)
-
 /**
  * Set event.pubstatus usable and publish event.
+ *
+ * @param {Object} event
  */
-const publishEvent = (eventId) => (
-    (dispatch, getState, { api, notify }) => {
-        dispatch(setEventStatus({
-            eventId,
-            status: EVENTS.PUB_STATUS.USABLE,
-        }))
-        .then((events) => api.save('events_publish', {
-            event: eventId,
-            etag: events[0]._etag,
-        }))
+function publishEvent(event) {
+    return function (dispatch, getState, { api, notify }) {
+        return api.save('events_publish', {
+            event: event._id,
+            etag: event._etag,
+            pubstatus: PUBLISHED_STATE.USABLE,
+        })
         .then(() => {
             notify.success('The event has been published')
-            dispatch(eventsUi.refetchEvents())
+            dispatch(eventsApi.silentlyFetchEventsById([event._id], SPIKED_STATE.BOTH))
+            dispatch(eventsUi.closeEventDetails())
         })
     }
-)
+}
 
 /**
  * Set event.pubstatus canceled and publish event.
+ *
+ * @param {Object} event
  */
-const unpublishEvent = (eventId) => (
-    (dispatch, getState, { api, notify }) => {
-        dispatch(setEventStatus({
-            eventId,
-            status: EVENTS.PUB_STATUS.CANCELED,
-        }))
-        .then((events) => api.save('events_publish', {
-            event: eventId,
-            etag: events[0]._etag,
-        }))
+function unpublishEvent(event) {
+    return function (dispatch, getState, { api, notify }) {
+        return api.save('events_publish', {
+            event: event._id,
+            etag: event._etag,
+            pubstatus: PUBLISHED_STATE.CANCELLED,
+        })
         .then(() => {
             notify.success('The event has been unpublished')
-            dispatch(eventsUi.refetchEvents())
+            dispatch(eventsApi.silentlyFetchEventsById([event._id], SPIKED_STATE.BOTH))
+            dispatch(eventsUi.closeEventDetails())
         })
     }
-)
+}
 
 const toggleEventSelection = ({ event, value }) => (
     {
@@ -107,9 +96,9 @@ const askConfirmationBeforeSavingEvent = (event, publish=false) => (
         // If this is not from a recurring series, then simply save this event
         if (!get(originalEvent, 'recurrence_id')) {
             return dispatch(uploadFilesAndSaveEvent(event))
-            .then(() => {
+            .then((events) => {
                 if (publish) {
-                    dispatch(publishEvent(event._id))
+                    dispatch(publishEvent(events[0]))
                 }
             })
         }
@@ -118,7 +107,7 @@ const askConfirmationBeforeSavingEvent = (event, publish=false) => (
         return dispatch(eventsApi.query({ recurrenceId: originalEvent.recurrence_id }))
         .then((relatedEvents) => (
             dispatch(showModal({
-                modalType: 'UPDATE_EVENT_MODAL',
+                modalType: 'ITEM_ACTIONS_MODAL',
                 modalProps: {
                     eventDetail: {
                         ...event,
@@ -127,6 +116,7 @@ const askConfirmationBeforeSavingEvent = (event, publish=false) => (
                         _events: [],
                         _originalEvent: originalEvent,
                     },
+                    actionType: 'save',
                 },
             }))
         ))
@@ -188,41 +178,14 @@ const uploadFilesAndSaveEvent = (event) => {
         .then((events) => {
             if (events.length > 0 && selectors.getShowEventDetails(getState()) === true) {
                 dispatch(eventsUi.closeEventDetails())
-                dispatch(eventsUi.openEventDetails(events[0]))
+                return dispatch(eventsUi.openEventDetails(events[0]))
+                    .then(() => events)
             }
 
             return events
         })
     )
 }
-
-/**
- * Action dispatcher that marks an Event as active
- * @param {object} event - The Event to unspike
- * @return Promise
- */
-const unspikeEvent = (event) => (
-    (dispatch, getState, { api, notify }) => (
-        api.update('events_unspike', event, {})
-        .then(() => {
-            notify.success('The Event has been unspiked.')
-            dispatch({
-                type: EVENTS.ACTIONS.UNSPIKE_EVENT,
-                payload: event,
-            })
-
-            // Close Unspike event modal
-            dispatch(hideModal())
-
-            // Fetch events to reload latest events list
-            return dispatch(eventsUi.refetchEvents())
-        }, (error) => (
-            notify.error(
-                getErrorMessage(error, 'There was a problem, Event was not unspiked!')
-            )
-        ))
-    )
-)
 
 /**
  * Action Dispatcher for uploading files
@@ -318,7 +281,9 @@ const saveEvent = (newEvent) => (
         newEvent = cloneDeep(newEvent) || {}
 
         // save the timezone. This is useful for recurring events
-        newEvent.dates.tz = moment.tz.guess()
+        if (newEvent.dates) {
+            newEvent.dates.tz = moment.tz.guess()
+        }
 
         // remove all properties starting with _,
         // otherwise it will fail for "unknown field" with `_type`
@@ -361,27 +326,6 @@ const createDuplicate = (event) => (
 )
 
 /**
- * Action Dispatcher to fetch events from the server,
- * and add them to the store without adding them to the events list
- * @param {array} ids - An array of Event IDs to fetch
- * @param {string} state - The item state to filter by
- * @return arrow function
- */
-const silentlyFetchEventsById = (ids=[], state = ITEM_STATE.ACTIVE) => (
-    (dispatch) => (
-        dispatch(eventsApi.query({
-            // distinct ids
-            ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
-            state,
-        }))
-        .then(data => {
-            dispatch(eventsApi.receiveEvents(data._items))
-            return Promise.resolve(data._items)
-        })
-    )
-)
-
-/**
  * Action Dispatcher to fetch events from the server
  * This will add the events to the events list,
  * and update the URL for deep linking
@@ -389,7 +333,7 @@ const silentlyFetchEventsById = (ids=[], state = ITEM_STATE.ACTIVE) => (
  * @return arrow function
  */
 const fetchEvents = (params={
-    state: ITEM_STATE.ACTIVE,
+    spikeState: SPIKED_STATE.NOT_SPIKED,
     page: 1,
 }) => (
     (dispatch, getState, { $timeout, $location }) => {
@@ -464,22 +408,6 @@ const addToEventsList = (eventsIds) => ({
 })
 
 /**
- * Action to open Event Advanced Search panel
- * @return object
- */
-const openAdvancedSearch = () => (
-    { type: EVENTS.ACTIONS.OPEN_ADVANCED_SEARCH }
-)
-
-/**
- * Action to close the Event Advanced Search panel
- * @return object
- */
-const closeAdvancedSearch = () => (
-    { type: EVENTS.ACTIONS.CLOSE_ADVANCED_SEARCH }
-)
-
-/**
  * Action to receive the history of actions on Event and store them in the store
  * @param {array} eventHistoryItems - An array of Event History items
  * @return object
@@ -495,43 +423,6 @@ const receiveEventHistory = (eventHistoryItems) => ({
  */
 const toggleEventsList = () => (
     { type: EVENTS.ACTIONS.TOGGLE_EVENT_LIST }
-)
-
-/**
- * Action Dispatcher to open the Unspike Event modal
- * @param {object} event - The Event to be unspiked
- */
-const _openUnspikeEvent = (event) => (
-    (dispatch, getState) => {
-        const storedPlannings = selectors.getStoredPlannings(getState())
-        // Get _plannings for the event
-        const eventWithPlannings = {
-            ...event,
-            _plannings: Object.keys(storedPlannings).filter((pKey) => (
-                storedPlannings[pKey].event_item === event._id
-            )).map((pKey) => ({ ...storedPlannings[pKey] })),
-        }
-
-        return dispatch(showModal({
-            modalType: 'CONFIRMATION',
-            modalProps: {
-                body: React.createElement(SpikeEvent, { eventDetail: eventWithPlannings }),
-                action: () => dispatch(unspikeEvent(eventWithPlannings)),
-            },
-        }))
-    }
-)
-
-const setEventStatus = checkPermission(
-    _setEventStatus,
-    PRIVILEGES.EVENT_MANAGEMENT,
-    'Unauthorised to change the status of an event!'
-)
-
-const openUnspikeEvent = checkPermission(
-    _openUnspikeEvent,
-    PRIVILEGES.UNSPIKE_EVENT,
-    'Unauthorised to unspike an event!'
 )
 
 // WebSocket Notifications
@@ -590,18 +481,22 @@ const onEventUpdated = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
             dispatch(eventsUi.refetchEvents())
+            .then((events) => {
+                const selectedEvents = selectors.getSelectedEvents(getState())
 
-            // Get the list of Planning Item IDs that are associated with this Event
-            const storedPlans = selectors.getStoredPlannings(getState())
-            const eventPlans = Object.keys(storedPlans)
-                .filter((pid) => get(storedPlans[pid], 'event_item', null) === data.item)
+                // If the event is currently selected and not loaded from refetchEvents,
+                // then manually reload this event from the server
+                if (selectedEvents.indexOf(data.item) !== -1 &&
+                    !events.find((event) => event._id === data.item)) {
+                    dispatch(eventsApi.silentlyFetchEventsById([data.item], SPIKED_STATE.BOTH))
+                }
 
-            // If there are any associated Planning Items, then update the list
-            if (eventPlans.length > 0) {
-                // Re-fetch the Event, just in case it wasn't loaded by the refetchEvents action
-                dispatch(silentlyFetchEventsById([data.item], ITEM_STATE.ALL))
-                .then(() => (dispatch(fetchSelectedAgendaPlannings())))
-            }
+                // If there are any associated Planning Items, then update the list
+                if (eventUtils.isEventAssociatedWithPlannings(data.item,
+                        selectors.getStoredPlannings(getState()))) {
+                    dispatch(fetchSelectedAgendaPlannings())
+                }
+            })
         }
     }
 )
@@ -612,7 +507,6 @@ const eventNotifications = {
     'events:created:recurring': () => (onRecurringEventCreated),
     'events:updated': () => (onEventUpdated),
     'events:updated:recurring': () => (onEventUpdated),
-    'events:spiked': () => (onEventUpdated),
     'events:unspiked': () => (onEventUpdated),
 }
 
@@ -642,16 +536,11 @@ export {
     publishEvent,
     unpublishEvent,
     toggleEventSelection,
-    unspikeEvent,
-    openUnspikeEvent,
     toggleEventsList,
     receiveEventHistory,
-    closeAdvancedSearch,
-    openAdvancedSearch,
     addToEventsList,
     fetchEvents,
     fetchEventHistory,
-    silentlyFetchEventsById,
     fetchEventById,
     saveFiles,
     uploadFilesAndSaveEvent,

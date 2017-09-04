@@ -28,10 +28,13 @@ describe('planning', () => {
                 planningsAreLoading: false,
                 onlyFuture: true,
                 filterPlanningKeyword: null,
-                onlySpiked: false,
                 readOnly: true,
                 planningHistoryItems: [],
                 lastRequestParams: { page: 1 },
+                search: {
+                    currentSearch: undefined,
+                    advancedSearchOpened: false,
+                },
             })
         })
 
@@ -86,6 +89,22 @@ describe('planning', () => {
         it('CLEAR_LIST', () => {
             const result = planning(initialState, { type: 'CLEAR_PLANNING_LIST' })
             expect(result.planningsInList).toEqual([])
+        })
+
+        it('OPEN_ADVANCED_SEARCH', () => {
+            const result = planning(initialState, { type: 'PLANNING_OPEN_ADVANCED_SEARCH' })
+            expect(result.search).toEqual({
+                currentSearch: undefined,
+                advancedSearchOpened: true,
+            })
+        })
+
+        it('CLOSE_ADVANCED_SEARCH', () => {
+            const result = planning(initialState, { type: 'PLANNING_CLOSE_ADVANCED_SEARCH' })
+            expect(result.search).toEqual({
+                currentSearch: undefined,
+                advancedSearchOpened: false,
+            })
         })
 
         describe('RECEIVE_PLANNINGS', () => {
@@ -200,26 +219,6 @@ describe('planning', () => {
                 }
             )
             expect(result.onlyFuture).toBe(true)
-        })
-
-        it('SET_ONLY_SPIKED', () => {
-            let result = planning(
-                initialState,
-                {
-                    type: 'SET_ONLY_SPIKED',
-                    payload: true,
-                }
-            )
-            expect(result.onlySpiked).toBe(true)
-
-            result = planning(
-                initialState,
-                {
-                    type: 'SET_ONLY_SPIKED',
-                    payload: false,
-                }
-            )
-            expect(result.onlySpiked).toBe(false)
         })
 
         it('PLANNING_FILTER_BY_KEYWORD', () => {
