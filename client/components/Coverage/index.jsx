@@ -45,17 +45,6 @@ function CoverageComponent({
                     readOnly={readOnly} />
                 </div>
             }
-            {get(formProfile, 'editor.headline.enabled') &&
-                <div className="form__row">
-                    <Field
-                        name={`${coverage}.planning.headline`}
-                        component={fields.InputField}
-                        type="text"
-                        label="Headline"
-                        labelLeft={false}
-                        readOnly={readOnly} />
-                </div>
-            }
             {get(formProfile, 'editor.internal_note.enabled') &&
                 <div className="form__row">
                     <Field

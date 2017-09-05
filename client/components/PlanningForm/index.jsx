@@ -77,16 +77,6 @@ class Component extends React.Component {
                                 readOnly={readOnly} />
                         </div>
                         }
-                        {get(formProfile, 'editor.headline.enabled') &&
-                        <div className="form__row">
-                            <Field
-                                name="headline"
-                                component={fields.InputField}
-                                type="text"
-                                label="Headline"
-                                readOnly={readOnly} />
-                        </div>
-                        }
                         {get(formProfile, 'editor.anpa_category.enabled') &&
                         <div className="form__row">
                             <Field
