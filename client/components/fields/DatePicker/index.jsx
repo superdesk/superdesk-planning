@@ -65,6 +65,10 @@ export class DatePicker extends React.Component {
     }
 
     onChange(value) {
+        if (!moment.isMoment(value)) {
+            value = moment(value)
+        }
+
         if (value.isValid() && (!value.isSame(this.props.input.value)) || !this.props.input.value) {
             // Set the time to 00:00 as per requirement
             this.props.input.onChange(value.clone().hour(0).minute(0))
