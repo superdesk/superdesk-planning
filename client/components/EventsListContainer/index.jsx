@@ -85,6 +85,7 @@ class EventsListComponent extends React.Component {
                                 onCancelEvent={onCancelEvent}
                                 onEventUpdateTime={this.props.updateEventTime}
                                 onRescheduleEvent={onRescheduleEvent}
+                                onConvertToRecurringEvent={this.props.onConvertToRecurringEvent}
                                 highlightedEvent={this.props.highlightedEvent}
                                 loadMoreEvents={this.props.loadMoreEvents}
                                 selectedEvents={this.props.selectedEvents}
@@ -120,6 +121,7 @@ EventsListComponent.propTypes = {
     session: PropTypes.object,
     onCancelEvent: PropTypes.func,
     onRescheduleEvent: PropTypes.func,
+    onConvertToRecurringEvent: PropTypes.func,
     addEventToCurrentAgenda: PropTypes.func,
 }
 
@@ -145,8 +147,8 @@ const mapDispatchToProps = (dispatch) => ({
     unspikeEvent: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
     duplicateEvent: (event) => dispatch(actions.duplicateEvent(event)),
     updateEventTime: (event) => dispatch(actions.events.ui.updateTime(event)),
+    onConvertToRecurringEvent: (event) => dispatch(actions.events.ui.convertToRecurringEvent(event)),
     onEventSelectChange: (args) => dispatch(actions.toggleEventSelection(args)),
-
     onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
     onRescheduleEvent: (event) => dispatch(actions.events.ui.openRescheduleModal(event)),
     addEventToCurrentAgenda: (event) => dispatch(actions.addEventToCurrentAgenda(event)),

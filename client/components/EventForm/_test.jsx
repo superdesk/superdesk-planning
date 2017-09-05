@@ -44,6 +44,7 @@ describe('events', () => {
             addEventToCurrentAgenda: sinon.spy(),
             duplicateEvent: sinon.spy(),
             updateTime: sinon.spy(),
+            convertToRecurringEvent: sinon.spy(),
             handleSubmit: sinon.spy(),
         }
 

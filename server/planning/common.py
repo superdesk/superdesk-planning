@@ -13,6 +13,7 @@ from superdesk.utc import utcnow
 from datetime import timedelta
 from collections import namedtuple
 from superdesk.resource import not_analyzed
+from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
 
 ITEM_STATE = 'state'
 ITEM_EXPIRY = 'expiry'
@@ -59,3 +60,12 @@ def get_max_recurrent_events(current_app=None):
     if current_app is not None:
         return int(current_app.config.get('MAX_RECURRENT_EVENTS', 200))
     return int(app.config.get('MAX_RECURRENT_EVENTS', 200))
+
+
+def remove_lock_information(item):
+        item.update({
+            LOCK_USER: None,
+            LOCK_SESSION: None,
+            LOCK_TIME: None,
+            LOCK_ACTION: None
+        })

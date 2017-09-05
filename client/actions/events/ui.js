@@ -180,6 +180,37 @@ const updateTime = (event, publish=false) => (
     }
 )
 
+const convertToRecurringEvent = (event, publish=false) => (
+    (dispatch, getState, { notify }) => {
+        if (!isItemLockedInThisSession(event, selectors.getSessionDetails(getState()))) {
+            return dispatch(eventsApi.lock(event, 'convert_recurring'))
+                .then((lockedEvent) => {
+                    dispatch(_openConvertToRecurringEventModal(lockedEvent, publish))
+                }, (error) => {
+                    notify.error(getErrorMessage(error, 'Failed to obtain the Event lock'))
+                    return Promise.reject(error)
+                })
+        } else {
+            dispatch(_openConvertToRecurringEventModal(event, publish))
+        }
+    }
+)
+
+const _openConvertToRecurringEventModal = (event, publish) => (
+    (dispatch) => (
+        dispatch(showModal({
+            modalType: 'ITEM_ACTIONS_MODAL',
+            modalProps: {
+                eventDetail: {
+                    ...event,
+                    _publish: publish,
+                },
+                actionType: EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label,
+            },
+        }))
+    )
+)
+
 const _openUpdateTimeModal = (event, publish) => (
     (dispatch) => {
         if (get(event, 'recurrence_id')) {
@@ -692,6 +723,7 @@ const self = {
     _openMultiRescheduleModal,
     openRescheduleModal,
     rescheduleEvent,
+    convertToRecurringEvent,
 }
 
 export default self

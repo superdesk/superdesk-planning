@@ -93,6 +93,7 @@ export class Component extends React.Component {
             unpublish,
             duplicateEvent,
             updateTime,
+            convertToRecurringEvent,
             highlightedEvent,
             session,
             privileges,
@@ -139,24 +140,35 @@ export class Component extends React.Component {
                     ...GENERIC_ITEM_ACTIONS.DUPLICATE,
                     callback: duplicateEvent.bind(null, initialValues),
                 },
-                {
-                    ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
-                    callback: onCancelEvent.bind(null, initialValues),
-                },
-                {
-                    ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
-                    callback: updateTime.bind(null, initialValues),
-                },
-                {
-                    ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
-                    callback: onRescheduleEvent.bind(null, initialValues),
-                },
+            ]
+
+            // Don't show these actions if editing
+            if (forcedReadOnly && !lockRestricted) {
+                actions.push(
+                    {
+                        ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+                        callback: onCancelEvent.bind(null, initialValues),
+                    },
+                    {
+                        ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+                        callback: updateTime.bind(null, initialValues),
+                    },
+                    {
+                        ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+                        callback: onRescheduleEvent.bind(null, initialValues),
+                    },
+                    {
+                        ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
+                        callback: convertToRecurringEvent.bind(null, initialValues),
+                    })
+            }
+
+            actions.push(
                 GENERIC_ITEM_ACTIONS.DIVIDER,
                 {
                     ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
                     callback: addEventToCurrentAgenda.bind(null, initialValues),
-                },
-            ]
+                })
 
             itemActions = eventUtils.getEventItemActions(initialValues, session, privileges, actions)
         }
@@ -382,6 +394,7 @@ Component.propTypes = {
     addEventToCurrentAgenda: PropTypes.func.isRequired,
     duplicateEvent: PropTypes.func.isRequired,
     updateTime: PropTypes.func.isRequired,
+    convertToRecurringEvent: PropTypes.func.isRequired,
     highlightedEvent: PropTypes.string,
     session: PropTypes.object,
     onUnlock: PropTypes.func,
@@ -428,6 +441,7 @@ const mapDispatchToProps = (dispatch) => ({
     addEventToCurrentAgenda: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
     duplicateEvent: (event) => dispatch(actions.duplicateEvent(event)),
     updateTime: (event) => dispatch(actions.events.ui.updateTime(event)),
+    convertToRecurringEvent: (event) => dispatch(actions.events.ui.convertToRecurringEvent(event)),
     onUnlock: (event) => dispatch(actions.events.ui.unlockAndOpenEventDetails(event)),
     onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
     onMinimize: () => dispatch(actions.events.ui.minimizeEventDetails()),
