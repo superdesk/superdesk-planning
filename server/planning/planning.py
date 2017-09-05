@@ -57,7 +57,7 @@ class PlanningService(superdesk.Service):
                 doc['guid'] = generate_guid(type=GUID_NEWSML)
             doc[config.ID_FIELD] = doc['guid']
             set_original_creator(doc)
-            self._set_planning_event_date(doc)
+            self._set_planning_event_info(doc)
 
     def on_created(self, docs):
         session_id = get_auth().get('_id')
@@ -122,17 +122,23 @@ class PlanningService(superdesk.Service):
         if user and user.get(config.ID_FIELD):
             updates['version_creator'] = user[config.ID_FIELD]
 
-    def _set_planning_event_date(self, doc):
+    def _set_planning_event_info(self, doc):
         """Set the planning event date
 
         :param dict doc: planning document
         """
+
+        doc['_planning_date'] = utcnow()
+
         event_id = doc.get('event_item')
         event = {}
         if event_id:
             event = get_resource_service('events').find_one(req=None, _id=event_id)
+            if event:
+                doc['_planning_date'] = event.get('dates', {}).get('start')
+                if event.get('recurrence_id'):
+                    doc['recurrence_id'] = event.get('recurrence_id')
 
-        doc['_planning_date'] = event.get('dates', {}).get('start') if event else utcnow()
         doc['_coverages'] = [
             {
                 'coverage_id': 'NO_COVERAGE',

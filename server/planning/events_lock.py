@@ -17,6 +17,7 @@ from apps.archive.common import get_user, get_auth
 from superdesk.services import BaseService
 from .item_lock import LockService
 from superdesk import get_resource_service
+from eve.utils import config
 
 CUSTOM_HATEOAS = {'self': {'title': 'Events', 'href': '/events/{_id}'}}
 LOCK_USER = 'lock_user'
@@ -66,6 +67,8 @@ class EventsLockService(BaseService):
         if not item:
             raise SuperdeskApiError.notFoundError()
 
+        plannings = []
+
         # If the event is a recurrent event, ensure no event in that series is already locked
         if item.get('recurrence_id') and not item.get(LOCK_USER):
             historic, past, future = resource_service.get_recurring_timeline(item)
@@ -75,6 +78,23 @@ class EventsLockService(BaseService):
                 if event.get(LOCK_USER):
                     raise SuperdeskApiError.forbiddenError(
                         message="An event in this recurring series is already locked.")
+
+            # Get all plannings of this recurring relationship
+            plannings = get_resource_service('planning').find(where={
+                'recurrence_id': item.get('recurrence_id')
+            })
+        else:
+            # Get all plannings associated with this event
+            plannings = get_resource_service('planning').find(where={
+                'event_item': item[config.ID_FIELD]
+            })
+
+        # If the event has any associated planning item already locked, deny event lock
+        for planning in plannings:
+            # Check if any of these plannings are locked
+            if planning .get(LOCK_USER):
+                raise SuperdeskApiError.forbiddenError(
+                    message="An associated planning item is already locked.")
 
 
 class EventsUnlockResource(Resource):

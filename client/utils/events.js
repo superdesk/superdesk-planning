@@ -30,7 +30,7 @@ const isEventAllDay = (startingDate, endingDate) => {
         endingDate.isSame(endingDate.clone().endOf('day').seconds(0).milliseconds(0))
 }
 
-const eventHasPlanning = (event) => get(event, 'has_planning')
+const eventHasPlanning = (event) => get(event, 'planning_ids', []).length > 0
 
 /**
  * Helper function to determine if a recurring event instances overlap
