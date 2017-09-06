@@ -30,8 +30,8 @@ class AdvancedSearchPanelComponent extends React.Component {
                         <i className="icon-close-small" />
                     </a>
                 </header>
-                { searchContext === ADVANCED_SEARCH_CONTEXT.EVENT && <EventsAdvancedSearchForm initialValues={{}}/> }
-                { searchContext === ADVANCED_SEARCH_CONTEXT.PLANNING && <PlanningAdvancedSearchForm initialValues={{}}/> }
+                { searchContext === ADVANCED_SEARCH_CONTEXT.EVENT && <EventsAdvancedSearchForm /> }
+                { searchContext === ADVANCED_SEARCH_CONTEXT.PLANNING && <PlanningAdvancedSearchForm /> }
             </div>
         )
     }
