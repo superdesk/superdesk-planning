@@ -78,11 +78,14 @@ export class EventScheduleForm extends React.Component {
         })
     }
 
-    oneHourAfterStartingDate() {
+    endOfStartingDate() {
         if (!isNil(this.props.currentSchedule)) {
             const { start, end } = this.props.currentSchedule
             if (start && !end) {
-                return moment(start).add(1, 'h')
+                return moment(start).set({
+                    hour: 23,
+                    minute: 59,
+                })
             }
         }
     }
@@ -155,7 +158,7 @@ export class EventScheduleForm extends React.Component {
                 readOnly,
                 false,
                 overlaps,
-                this.oneHourAfterStartingDate()
+                this.endOfStartingDate()
             )}
 
             <label className="form__row form__row--flex">
