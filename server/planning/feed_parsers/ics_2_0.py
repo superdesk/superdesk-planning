@@ -55,7 +55,7 @@ class IcsTwoFeedParser(FileFeedParser):
                     item['definition_short'] = component.get('summary')
                     item['definition_long'] = component.get('description')
                     item['original_source'] = component.get('uid')
-                    item['state'] = CONTENT_STATE.PROGRESS
+                    item['state'] = CONTENT_STATE.INGESTED
                     item['pubstatus'] = None
                     eocstat_map = get_resource_service('vocabularies').find_one(req=None, _id='eventoccurstatus')
                     if eocstat_map:
