@@ -10,14 +10,13 @@
 
 from flask import request
 import logging
-from superdesk.errors import SuperdeskApiError
 from superdesk.resource import Resource, build_custom_hateoas
 from superdesk.metadata.utils import item_url
 from apps.archive.common import get_user, get_auth
 from superdesk.services import BaseService
 from .item_lock import LockService
 from superdesk import get_resource_service
-from eve.utils import config
+
 
 CUSTOM_HATEOAS = {'self': {'title': 'Events', 'href': '/events/{_id}'}}
 LOCK_USER = 'lock_user'
@@ -52,49 +51,12 @@ class EventsLockService(BaseService):
         lock_service = LockService()
 
         item_id = request.view_args['item_id']
-        resource_service = get_resource_service('events')
-        item = resource_service.find_one(req=None, _id=item_id)
+        item = get_resource_service('events').find_one(req=None, _id=item_id)
 
-        self._validate(resource_service, item)
-        if item.get('recurrence_id'):
-            updated_item = lock_service.lock(item, user_id, session_id, lock_action, 'events', 'recurrence_id')
-        else:
-            updated_item = lock_service.lock(item, user_id, session_id, lock_action, 'events')
+        lock_service.validate_relationship_locks(item, 'events')
+        updated_item = lock_service.lock(item, user_id, session_id, lock_action, 'events')
 
         return _update_returned_document(docs[0], updated_item)
-
-    def _validate(self, resource_service, item):
-        if not item:
-            raise SuperdeskApiError.notFoundError()
-
-        plannings = []
-
-        # If the event is a recurrent event, ensure no event in that series is already locked
-        if item.get('recurrence_id') and not item.get(LOCK_USER):
-            historic, past, future = resource_service.get_recurring_timeline(item)
-            series = historic + past + future
-
-            for event in series:
-                if event.get(LOCK_USER):
-                    raise SuperdeskApiError.forbiddenError(
-                        message="An event in this recurring series is already locked.")
-
-            # Get all plannings of this recurring relationship
-            plannings = get_resource_service('planning').find(where={
-                'recurrence_id': item.get('recurrence_id')
-            })
-        else:
-            # Get all plannings associated with this event
-            plannings = get_resource_service('planning').find(where={
-                'event_item': item[config.ID_FIELD]
-            })
-
-        # If the event has any associated planning item already locked, deny event lock
-        for planning in plannings:
-            # Check if any of these plannings are locked
-            if planning .get(LOCK_USER):
-                raise SuperdeskApiError.forbiddenError(
-                    message="An associated planning item is already locked.")
 
 
 class EventsUnlockResource(Resource):

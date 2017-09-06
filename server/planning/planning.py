@@ -25,6 +25,7 @@ from copy import deepcopy
 from eve.utils import config, ParsedRequest
 from .common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA
 from superdesk.utc import utcnow
+from itertools import chain
 
 
 logger = logging.getLogger(__name__)
@@ -185,6 +186,25 @@ class PlanningService(superdesk.Service):
         req.args = {'source': json.dumps(query)}
         return super().get(req=req, lookup=None)
 
+    def get_all_items_in_relationship(self, item):
+        all_items = []
+        if item.get('event_item'):
+            if item.get('recurrence_id'):
+                event_param = {
+                    '_id': item.get('event_item'),
+                    'recurrence_id': item.get('recurrence_id')
+                }
+                # One call wil get all items in the recurring series from event service
+                return get_resource_service('events').get_all_items_in_relationship(event_param)
+            else:
+                event_param = {'_id': item.get('event_item')}
+                # Get associated event
+                all_items = get_resource_service('events').find(where={'_id': item.get('event_item')})
+                # Get all associated planning items
+                return chain(all_items, get_resource_service('events').get_plannings_for_event(event_param))
+        else:
+            return all_items
+
     def sync_coverages(self, docs):
         """Sync the coverage information between planning an coverages
 
@@ -241,6 +261,12 @@ planning_schema = {
 
     # Event Item
     'event_item': event_type,
+
+    'recurrence_id': {
+        'type': 'string',
+        'mapping': not_analyzed,
+        'nullable': True,
+    },
 
     # Planning Details
     # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 16
