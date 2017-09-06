@@ -67,19 +67,24 @@ class EventsService(superdesk.Service):
 
     def on_fetched(self, docs):
         for doc in docs['_items']:
-            self._set_has_planning_flag(doc)
+            self._set_planning_ids(doc)
 
     def on_fetched_item(self, doc):
-        self._set_has_planning_flag(doc)
+        self._set_planning_ids(doc)
 
-    def _set_has_planning_flag(self, doc):
-        doc['has_planning'] = self.has_planning_items(doc)
+    def get_plannings_for_event(self, event):
+        return get_resource_service('planning').find(where={
+            'event_item': event[config.ID_FIELD]
+        })
+
+    def _set_planning_ids(self, doc):
+        plannings = self.get_plannings_for_event(doc)
+
+        if plannings.count() > 0:
+            doc['planning_ids'] = [planning.get('_id') for planning in plannings]
 
     def has_planning_items(self, doc):
-        plannings = list(get_resource_service('planning').find(where={
-            'event_item': doc[config.ID_FIELD]
-        }))
-        return len(plannings) > 0
+        return self.get_plannings_for_event(doc).count() > 0
 
     def set_ingest_provider_sequence(self, item, provider):
         """Sets the value of ingest_provider_sequence in item.
@@ -325,7 +330,7 @@ class EventsService(superdesk.Service):
 
     def _convert_to_recurring_event(self, updates, original):
         """Convert a single event to a series of recurring events"""
-        # Convert the single event to a series of recurring events
+
         updates['recurrence_id'] = generate_guid(type=GUID_NEWSML)
 
         merged = copy.deepcopy(original)

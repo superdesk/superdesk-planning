@@ -13,9 +13,11 @@ from copy import deepcopy
 from flask import g
 from eve.utils import config
 from bson import ObjectId
+from .item_lock import LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION
 
 
-fields_to_remove = ['_id', '_etag', '_current_version', '_updated', '_created', '_links', 'version_creator', 'guid']
+fields_to_remove = ['_id', '_etag', '_current_version', '_updated', '_created', '_links', 'version_creator', 'guid',
+                    LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION]
 
 
 class HistoryService(Service):
