@@ -1,6 +1,7 @@
 import React from 'react'
 import { get, some } from 'lodash'
-import { Datetime } from '../index'
+import { Datetime, StateLabel } from '../index'
+import { InputTextAreaField } from '../fields'
 
 const formatDate = (d) => React.createElement(Datetime, { date: d })
 const FIELDS = [
@@ -9,11 +10,11 @@ const FIELDS = [
     ['From', ['dates.start', formatDate]],
     ['To', ['dates.end', formatDate]],
     ['Short Description', 'definition_short'],
-    ['Description', 'definition_long'],
     ['Internal note', 'internal_note'],
     ['Location', 'location[0].name'],
     ['Status', 'occur_status.label'],
     ['Source', 'source'],
+    ['Description', 'definition_long'],
 ]
 
 function renderDict(event, label, ...keys) {
@@ -35,16 +36,26 @@ function renderDict(event, label, ...keys) {
         return [
             <dt>{label}</dt>,
             ...keys.map((key) => (
-                <dd>{getValue(key)}</dd>
+                (key === 'definition_long') ? (
+                    <InputTextAreaField
+                        input={{
+                            value: getValue(key),
+                            name: key,
+                        }}
+                        meta={{}}
+                    />
+                ) : (
+                    <dd>{getValue(key)}</dd>
+                )
             )),
         ]
     }
 }
 // eslint-disable-next-line react/no-multi-comp
 export function EventMetadata ({ event }) {
-
     return (
         <div className="metadata-view EditPlanningPanel__body--event">
+            <StateLabel item={event} verbose={true}/>
             <dl>
                 {FIELDS.map((arrayProps) => renderDict.bind(null, event).apply(null, arrayProps))}
             </dl>

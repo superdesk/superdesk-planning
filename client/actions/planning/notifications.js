@@ -244,6 +244,17 @@ const onPlanningRescheduled = (e, data) => (
     }
 )
 
+const onPlanningPostponed = (e, data) => (
+    (dispatch) => {
+        if (get(data, 'item')) {
+            dispatch(planning.api.markPlanningPostponed(
+                data.item,
+                get(data, 'reason')
+            ))
+        }
+    }
+)
+
 const self = {
     onPlanningCreated,
     onCoverageCreatedOrUpdated,
@@ -256,6 +267,7 @@ const self = {
     onPlanningSpiked,
     onPlanningCancelled,
     onPlanningRescheduled,
+    onPlanningPostponed,
 }
 
 // Map of notification name and Action Event to execute
@@ -273,6 +285,7 @@ self.events = {
     'planning:duplicated': () => (self.onPlanningCreated),
     'planning:cancelled': () => (self.onPlanningCancelled),
     'planning:rescheduled': () => (self.onPlanningRescheduled),
+    'planning:postponed': () => (self.onPlanningPostponed),
 }
 
 export default self

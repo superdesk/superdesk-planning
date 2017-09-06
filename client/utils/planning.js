@@ -111,6 +111,8 @@ export const getPlanningItemActions = ({ plan, event=null, session, privileges, 
             eventUtils.canEditEvent(event, session, privileges),
         [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: () =>
             eventUtils.canRescheduleEvent(event, session, privileges),
+        [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: () =>
+            eventUtils.canPostponeEvent(event, session, privileges),
     }
 
     actions.forEach((action) => {
@@ -129,6 +131,9 @@ export const getPlanningItemActions = ({ plan, event=null, session, privileges, 
 
             case EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label:
                 action.label = 'Reschedule Event'
+                break
+            case EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label:
+                action.label = 'Mark Event as Postponed'
                 break
         }
 

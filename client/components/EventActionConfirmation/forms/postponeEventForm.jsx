@@ -12,7 +12,7 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], relatedPlann
     let event = initialValues
     const isRecurring = !!event.recurrence_id
 
-    // Default the update_method to 'Cancel this event only'
+    // Default the update_method to 'Postpone this event only'
     event.update_method = EventUpdateMethods[0]
     let startStr = moment(event.dates.start).format('MMMM Do YYYY, h:mm:ss a')
     let endStr = moment(event.dates.end).format('MMMM Do YYYY, h:mm:ss a')
@@ -20,7 +20,7 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], relatedPlann
     const numEvents = relatedEvents.length + 1
     const numPlannings = relatedPlannings.length
 
-    const updateMethodLabel = 'Would you like to cancel all recurring events or just this one?'
+    const updateMethodLabel = 'Would you like to postpone all recurring events or just this one?'
 
     return (
         <div className="EventActionConfirmation">
@@ -43,9 +43,9 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], relatedPlann
                 updateMethodLabel={updateMethodLabel}
                 relatedPlannings={relatedPlannings}
                 handleSubmit={handleSubmit}
-                action='cancel' />}
+                action='postpone' />}
 
-            <label>Reason for Event cancellation:</label>
+            <label>Reason for Event postponement:</label>
             <Field name="reason"
                 component={InputTextAreaField}
                 type="text"
@@ -65,9 +65,9 @@ Component.propTypes = {
     onHide: PropTypes.func,
 }
 
-export const CancelEvent = reduxForm({ form: 'cancelEvent' })(Component)
+export const PostponeEvent = reduxForm({ form: 'postponeEvent' })(Component)
 
-const selector = formValueSelector('cancelEvent')
+const selector = formValueSelector('postponeEvent')
 const mapStateToProps = (state) => ({
     relatedPlannings: selector(state, '_relatedPlannings'),
     relatedEvents: selector(state, '_events'),
@@ -75,17 +75,17 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event) => dispatch(actions.events.ui.cancelEvent(event)),
+    onSubmit: (event) => dispatch(actions.events.ui.postponeEvent(event)),
     onHide: (event) => {
-        if (event.lock_action === 'cancel_event') {
+        if (event.lock_action === 'postpone_event') {
             dispatch(actions.events.api.unlock(event))
         }
     },
 })
 
-export const CancelEventForm = connect(
+export const PostponeEventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
     { withRef: true }
-)(CancelEvent)
+)(PostponeEvent)

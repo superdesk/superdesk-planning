@@ -74,5 +74,5 @@ export const FORM_NAMES = {
     UpdateTimeForm: 'updateTime',
     UpdateRecurringEventsForm: 'updateEventConfirmation',
     CreateEditAgendaForm: 'createEditAgenda',
+    RescheduleForm: 'rescheduleEvent',
 }
-

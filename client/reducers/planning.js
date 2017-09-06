@@ -254,9 +254,26 @@ const planningReducer = createReducer(initialState, {
         // If the planning item is not loaded, disregard this action
         if (plan === null) return state
 
-        markPlaningCancelled(plan, payload)
+        markPlaning(plan, payload, 'cancelled')
         plan.state = WORKFLOW_STATE.CANCELLED
-        plan.coverages.forEach((coverage) => markCoverageCancelled(coverage, payload))
+        plan.coverages.forEach((coverage) => markCoverage(coverage, payload, 'cancelled'))
+
+        return {
+            ...state,
+            plannings,
+        }
+    },
+
+    [PLANNING.ACTIONS.MARK_PLANNING_POSTPONED]: (state, payload) => {
+        plannings = cloneDeep(state.plannings)
+        plan = get(plannings, payload.planning_item, null)
+
+        // If the planning item is not loaded, disregard this action
+        if (plan === null) return state
+
+        markPlaning(plan, payload, 'postponed')
+        plan.state = WORKFLOW_STATE.POSTPONED
+        plan.coverages.forEach((coverage) => markCoverage(coverage, payload, 'postponed'))
 
         return {
             ...state,
@@ -265,9 +282,9 @@ const planningReducer = createReducer(initialState, {
     },
 })
 
-const markPlaningCancelled = (plan, payload) => {
+const markPlaning = (plan, payload, action) => {
     let ednote = `------------------------------------------------------------
-Event cancelled
+Event ${action}
 `
     if (get(payload, 'reason', null) !== null) {
         ednote += `Reason: ${payload.reason}\n`
@@ -280,9 +297,9 @@ Event cancelled
     plan.ednote = ednote
 }
 
-const markCoverageCancelled = (coverage, payload) => {
+const markCoverage = (coverage, payload, action) => {
     let note = `------------------------------------------------------------
-Event has been cancelled
+Event has been ${action}
 `
     if (get(payload, 'reason', null) !== null) {
         note += `Reason: ${payload.reason}\n`
@@ -292,7 +309,10 @@ Event has been cancelled
         note = `${coverage.planning.internal_note}\n\n${note}`
     }
 
-    coverage.news_coverage_status = payload.coverage_state
+    if ('coverage_state' in payload) {
+        coverage.news_coverage_status = payload.coverage_state
+    }
+
     coverage.planning.internal_note = note
 }
 

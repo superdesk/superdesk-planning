@@ -264,6 +264,38 @@ Event Cancelled
             events,
         }
     },
+
+    [EVENTS.ACTIONS.MARK_EVENT_POSTPONED]: (state, payload) => {
+        let events = cloneDeep(state.events)
+        let event = get(events, payload.event_item, null)
+
+        // If the event is not loaded, disregard this action
+        if (event === null) return state
+
+        let definition = `------------------------------------------------------------
+Event Postponed
+`
+
+        if (get(payload, 'reason', null) !== null) {
+            definition += `Reason: ${payload.reason}\n`
+        }
+
+        if (get(event, 'definition_long', null) !== null) {
+            definition = `${event.definition_long}\n\n${definition}`
+        }
+
+        event.definition_long = definition
+        event.state = WORKFLOW_STATE.POSTPONED
+        event.lock_action = null
+        event.lock_user = null
+        event.lock_session = null
+        event.lock_time = null
+
+        return {
+            ...state,
+            events,
+        }
+    },
 })
 
 export default eventsReducer

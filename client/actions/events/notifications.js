@@ -109,12 +109,24 @@ const onEventRescheduled = (e, data) => (
     }
 )
 
+const onEventPostponed = (e, data) => (
+    (dispatch) => {
+        if (get(data, 'item')) {
+            dispatch(eventsApi.markEventPostponed(
+                data.item,
+                data.reason
+            ))
+        }
+    }
+)
+
 const self = {
     onEventLocked,
     onEventUnlocked,
     onEventSpiked,
     onEventCancelled,
     onEventRescheduled,
+    onEventPostponed,
 }
 
 // Map of notification name and Action Event to execute
@@ -124,6 +136,7 @@ self.events = {
     'events:spiked': () => (self.onEventSpiked),
     'events:cancelled': () => (self.onEventCancelled),
     'events:rescheduled': () => (self.onEventRescheduled),
+    'events:postponed': () => (self.onEventPostponed),
 }
 
 export default self

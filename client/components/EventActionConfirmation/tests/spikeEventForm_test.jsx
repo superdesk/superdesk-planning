@@ -4,11 +4,11 @@ import sinon from 'sinon'
 import { Provider } from 'react-redux'
 import { SpikeEventForm, SpikeEvent } from '../forms/spikeEventForm'
 import { EventUpdateMethodField } from '../../fields'
-import { RelatedPlanningsComponent } from '../../RelatedPlannings'
 import { getTestActionStore, restoreSinonStub } from '../../../utils/testUtils'
 import { createTestStore } from '../../../utils'
 import eventsApi from '../../../actions/events/api'
 import eventsUi from '../../../actions/events/ui'
+import moment from 'moment'
 
 describe('<SpikeEventForm />', () => {
     let store
@@ -26,8 +26,8 @@ describe('<SpikeEventForm />', () => {
                 _id: 'e1',
                 name: 'Event 1',
                 dates: {
-                    start: '2099-10-15T13:01:11',
-                    end: '2099-10-15T14:01:11',
+                    start: moment('2099-10-15T13:01:11'),
+                    end: moment('2099-10-15T14:01:11'),
                 },
                 recurrence_id: 'rec1',
             },
@@ -35,8 +35,8 @@ describe('<SpikeEventForm />', () => {
                 _id: 'e2',
                 name: 'Event 2',
                 dates: {
-                    start: '2099-10-16T13:01:11',
-                    end: '2099-10-16T14:01:11',
+                    start: moment('2099-10-16T13:01:11'),
+                    end: moment('2099-10-16T14:01:11'),
                 },
                 recurrence_id: 'rec1',
             },
@@ -44,8 +44,8 @@ describe('<SpikeEventForm />', () => {
                 _id: 'e3',
                 name: 'Event 3',
                 dates: {
-                    start: '2099-10-17T13:01:11',
-                    end: '2099-10-17T14:01:11',
+                    start: moment('2099-10-17T13:01:11'),
+                    end: moment('2099-10-17T14:01:11'),
                 },
                 recurrence_id: 'rec1',
             },
@@ -117,7 +117,7 @@ describe('<SpikeEventForm />', () => {
     })
 
     it('renders and updates on update_method change', (done) => {
-        return store.dispatch(eventsApi.loadRecurringEventsAndPlanningItems(data.events[1]))
+        return store.dispatch(eventsApi.loadEventDataForAction(data.events[1], true))
         .then((eventDetail) => {
             const wrapper = mount(
                 <Provider store={store}>
@@ -130,7 +130,6 @@ describe('<SpikeEventForm />', () => {
             const form = wrapper.find(SpikeEvent)
             const metaData = wrapper.find('.metadata-view')
             const updateMethod = form.find(EventUpdateMethodField)
-            const relatedPlannings = form.find(RelatedPlanningsComponent)
 
             // Check name on the form
             expect(wrapper.find('strong').first().text()).toBe('Event 2')
@@ -146,7 +145,7 @@ describe('<SpikeEventForm />', () => {
             expect(metaData.find('dd').at(1).text()).toBe('October 16th 2099, 2:01:11 pm')
 
             expect(metaData.find('dt').at(2).text()).toBe('Events:')
-            expect(metaData.find('dd').at(2).text()).toBe('3')
+            expect(metaData.find('dd').at(2).text()).toBe('1')
 
             expect(metaData.find('dt').at(3).text()).toBe('Plannings:')
             expect(metaData.find('dd').at(3).text()).toBe('1')
@@ -158,16 +157,21 @@ describe('<SpikeEventForm />', () => {
                 name: 'This event only',
                 value: 'single',
             })
+            expect(form.props().relatedEvents).toEqual([])
+            expect(form.props().relatedPlannings).toEqual([data.plannings[1]])
 
             // RelatedPlannings has only 1 planning item
-            expect(relatedPlannings.props().plannings).toEqual([ data.plannings[1] ])
+            // expect(relatedPlannings.props().plannings).toEqual([ data.plannings[1] ])
             updateMethod.find('SelectField select').simulate(
                 'change',
                 { target: { value: 'This and all future events' } }
             )
-
+            expect(metaData.find('dd').at(2).text()).toBe('2')
             expect(metaData.find('dd').at(3).text()).toBe('3')
-            expect(relatedPlannings.props().plannings).toEqual([
+            expect(form.props().relatedEvents).toEqual([
+                data.events[2],
+            ])
+            expect(form.props().relatedPlannings).toEqual([
                 data.plannings[1],
                 data.plannings[2],
                 data.plannings[3],
@@ -178,8 +182,13 @@ describe('<SpikeEventForm />', () => {
                 'change',
                 { target: { value: 'All events' } }
             )
+            expect(metaData.find('dd').at(2).text()).toBe('3')
             expect(metaData.find('dd').at(3).text()).toBe('4')
-            expect(relatedPlannings.props().plannings).toEqual([
+            expect(form.props().relatedEvents).toEqual([
+                data.events[0],
+                data.events[2],
+            ])
+            expect(form.props().relatedPlannings).toEqual([
                 data.plannings[0],
                 data.plannings[1],
                 data.plannings[2],

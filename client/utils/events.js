@@ -8,10 +8,11 @@ import {
     getPublishedState,
     isItemCancelled,
     isItemRescheduled,
+    isItemPostponed,
 } from './index'
 import moment from 'moment'
 import RRule from 'rrule'
-import { get } from 'lodash'
+import { get, map } from 'lodash'
 import { actionTypes } from 'redux-form'
 import { EventUpdateMethods } from '../components/fields'
 
@@ -80,15 +81,14 @@ const doesRecurringEventsOverlap = (startingDate, endingDate, recurringRule) => 
 }
 
 const getRelatedEventsForRecurringEvent = (state={}, action) => {
-    if (action.type !== actionTypes.CHANGE ||
-        (get(action, 'meta.form', '') !== 'updateEventConfirmation' &&
-        get(action, 'meta.form', '') !== 'updateTime')) {
+    if (action.type !== actionTypes.CHANGE || get(action, 'meta.field') !== 'update_method') {
         return state
     }
 
     let event = state.values
     let eventsInSeries = get(event, '_recurring', [])
     let events = []
+    let plannings = get(event, '_plannings', [])
 
     switch (action.payload.value) {
         case EventUpdateMethods[1].value: // Selected & Future Events
@@ -105,11 +105,19 @@ const getRelatedEventsForRecurringEvent = (state={}, action) => {
             break
     }
 
+    if (plannings.length > 0) {
+        const eventIds = map(events, '_id')
+        plannings = plannings.filter(
+            (p) => (eventIds.indexOf(p.event_item) > -1 || p.event_item === event._id)
+        )
+    }
+
     return {
         ...state,
         values: {
             ...state.values,
             _events: events,
+            _relatedPlannings: plannings,
         },
     }
 }
@@ -165,6 +173,11 @@ const canRescheduleEvent = (event, session, privileges) => (
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemRescheduled(event)
 )
 
+const canPostponeEvent = (event, session, privileges) => (
+    !isItemSpiked(event) && !isItemCancelled(event) && !isItemLockRestricted(event, session) &&
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemPostponed(event)
+)
+
 const getEventItemActions = (event, session, privileges, actions) => {
     let itemActions = []
     let key = 1
@@ -184,6 +197,8 @@ const getEventItemActions = (event, session, privileges, actions) => {
             canEditEvent(event, session, privileges),
         [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: (event, session=null, privileges=null) =>
             canRescheduleEvent(event, session, privileges),
+        [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: () =>
+            canPostponeEvent(event, session, privileges),
     }
 
     actions.forEach((action) => {
@@ -224,6 +239,7 @@ const self = {
     eventHasPlanning,
     isEventInUse,
     canRescheduleEvent,
+    canPostponeEvent,
 }
 
 export default self

@@ -17,6 +17,7 @@ export const EVENTS = {
         DESELECT_EVENT: 'DESELECT_EVENT',
         DESELECT_ALL_EVENT: 'DESELECT_ALL_EVENT',
         MARK_EVENT_CANCELLED: 'MARK_EVENT_CANCELLED',
+        MARK_EVENT_POSTPONED: 'MARK_EVENT_POSTPONED',
         MARK_EVENT_HAS_PLANNINGS: 'MARK_EVENT_HAS_PLANNINGS',
     },
     // Number of ids to look for by single request
@@ -39,6 +40,10 @@ export const EVENTS = {
         RESCHEDULE_EVENT: {
             label: 'Reschedule',
             icon: 'icon-calendar',
+        },
+        POSTPONE_EVENT: {
+            label: 'Mark as Postponed',
+            icon: 'icon-calendar-list',
         },
     },
 }

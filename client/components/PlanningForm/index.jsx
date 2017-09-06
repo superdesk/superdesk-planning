@@ -71,8 +71,7 @@ class Component extends React.Component {
                         <div className="form__row">
                             <Field
                                 name="ednote"
-                                component={fields.InputField}
-                                type="text"
+                                component={fields.InputTextAreaField}
                                 label="Ed Note"
                                 readOnly={readOnly} />
                         </div>

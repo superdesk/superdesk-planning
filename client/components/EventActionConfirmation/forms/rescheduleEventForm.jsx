@@ -16,15 +16,15 @@ import {
 import { getMaxRecurrentEvents } from '../../../selectors'
 import '../style.scss'
 
-const Component = ({ handleSubmit, initialValues, relatedPlannings=[], currentSchedule, change, pristine, currentUpdateMethod }) => {
+const Component = ({ handleSubmit, initialValues, relatedEvents=[], relatedPlannings=[], currentSchedule, change, pristine, currentUpdateMethod }) => {
     let event = initialValues
+    const isRecurring = !!event.recurrence_id
 
     // Default the update_method to 'Cancel this event only'
     event.update_method = EventUpdateMethods[0]
-    let showRecurring = event.recurrence_id &&
-            event._recurring &&
-            event._recurring.events &&
-            event._recurring.events.length > 1
+
+    const numEvents = relatedEvents.length + 1
+    const numPlannings = relatedPlannings.length
 
     const updateMethodLabel = 'Would you like to reschedule all recurring events or just this one?'
     const showRepeat = currentUpdateMethod && currentUpdateMethod.value !== EventUpdateMethods[0].value
@@ -32,19 +32,19 @@ const Component = ({ handleSubmit, initialValues, relatedPlannings=[], currentSc
     return (
         <div className="EventActionConfirmation Form">
             <strong>{ event.name }</strong>
-            {showRecurring &&
+            {isRecurring &&
                 <div className="metadata-view">
                     <dl>
-                        {showRecurring && (<dt>Events:</dt>)}
-                        {showRecurring && (<dd>{event._recurring.events.length}</dd>)}
-                        {showRecurring && (<dt>Plannings:</dt>)}
-                        {showRecurring && (<dd>{relatedPlannings.length}</dd>)}
+                        {isRecurring && (<dt>Events:</dt>)}
+                        {isRecurring && (<dd>{numEvents}</dd>)}
+                        {isRecurring && (<dt>Plannings:</dt>)}
+                        {isRecurring && (<dd>{numPlannings}</dd>)}
                     </dl>
                 </div>
             }
 
             {<UpdateMethodSelection
-                showMethodSelection={showRecurring}
+                showMethodSelection={isRecurring}
                 updateMethodLabel={updateMethodLabel}
                 relatedPlannings={relatedPlannings}
                 handleSubmit={handleSubmit}
@@ -74,6 +74,7 @@ const Component = ({ handleSubmit, initialValues, relatedPlannings=[], currentSc
 Component.propTypes = {
     handleSubmit: PropTypes.func.isRequired,
     initialValues: PropTypes.object.isRequired,
+    relatedEvents: PropTypes.array,
     relatedPlannings: PropTypes.array,
     currentSchedule: PropTypes.object,
     change: PropTypes.func,
@@ -89,7 +90,7 @@ Component.propTypes = {
     onHide: PropTypes.func,
 }
 
-export const CancelEvent = reduxForm({
+export const RescheduleEvent = reduxForm({
     form: 'rescheduleEvent',
     validate: ChainValidators([
         EndDateAfterStartDate,
@@ -101,7 +102,8 @@ export const CancelEvent = reduxForm({
 
 const selector = formValueSelector('rescheduleEvent')
 const mapStateToProps = (state) => ({
-    relatedPlannings: selector(state, '_plannings'),
+    relatedPlannings: selector(state, '_relatedPlannings'),
+    relatedEvents: selector(state, '_events'),
     currentSchedule: selector(state, 'dates'),
     currentUpdateMethod: selector(state, 'update_method'),
     maxRecurrentEvents: getMaxRecurrentEvents(state),
@@ -118,4 +120,4 @@ export const RescheduleEventForm = connect(
     mapDispatchToProps,
     null,
     { withRef: true }
-)(CancelEvent)
+)(RescheduleEvent)

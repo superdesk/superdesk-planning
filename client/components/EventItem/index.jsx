@@ -16,6 +16,7 @@ export const EventItem = ({
         onCancelEvent,
         onUpdateEventTime,
         onRescheduleEvent,
+        onPostponeEvent,
         highlightedEvent,
         privileges,
         isSelected,
@@ -56,6 +57,10 @@ export const EventItem = ({
         {
             ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
             callback: onRescheduleEvent.bind(null, event),
+        },
+        {
+            ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+            callback: onPostponeEvent.bind(null, event),
         },
         GENERIC_ITEM_ACTIONS.DIVIDER,
         {
@@ -114,6 +119,7 @@ EventItem.propTypes = {
     onCancelEvent: PropTypes.func.isRequired,
     onUpdateEventTime: PropTypes.func.isRequired,
     onRescheduleEvent: PropTypes.func.isRequired,
+    onPostponeEvent: PropTypes.func.isRequired,
     highlightedEvent: PropTypes.string,
     className: PropTypes.string,
     privileges: PropTypes.object,

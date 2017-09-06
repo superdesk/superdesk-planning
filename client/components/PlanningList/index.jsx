@@ -61,6 +61,7 @@ class PlanningList extends React.Component {
             onCancelEvent,
             onUpdateEventTime,
             onRescheduleEvent,
+            onPostponeEvent,
         } = this.props
         const planning = plannings[index]
 
@@ -79,6 +80,7 @@ class PlanningList extends React.Component {
                     onCancelEvent={onCancelEvent}
                     onUpdateEventTime={onUpdateEventTime}
                     onRescheduleEvent={onRescheduleEvent}
+                    onPostponeEvent={onPostponeEvent}
                     onClick={this.previewOrEditPlanning.bind(this, planning)}
                     onDoubleClick={openPlanningEditor}
                     onAgendaClick={onAgendaClick}
@@ -137,6 +139,7 @@ PlanningList.propTypes = {
     onCancelEvent: PropTypes.func,
     onUpdateEventTime: PropTypes.func,
     onRescheduleEvent: PropTypes.func,
+    onPostponeEvent: PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -177,6 +180,7 @@ const mapDispatchToProps = (dispatch) => ({
     onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
     onUpdateEventTime: (event) => dispatch(actions.events.ui.updateTime(event)),
     onRescheduleEvent: (event) => dispatch(actions.events.ui.openRescheduleModal(event)),
+    onPostponeEvent: (event) => dispatch(actions.events.ui.openPostponeModal(event)),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningList)
