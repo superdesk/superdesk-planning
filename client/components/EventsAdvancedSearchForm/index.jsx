@@ -66,6 +66,7 @@ EventsAdvancedSearchFormComponent.propTypes = propTypes
 const FormComponent = reduxForm({
     form: 'event-advanced-search', // a unique name for this form
     enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
+    destroyOnUnmount: false,
 })(EventsAdvancedSearchFormComponent)
 
 const selector = formValueSelector('event-advanced-search') // same as form name

@@ -109,6 +109,7 @@ PlanningAdvancedSearchFormComponent.propTypes = propTypes
 const FormComponent = reduxForm({
     form: 'planningAdvancedSearch', // a unique name for this form
     enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
+    destroyOnUnmount: false,
 })(PlanningAdvancedSearchFormComponent)
 
 const selector = formValueSelector('planningAdvancedSearch') // same as form name
