@@ -111,7 +111,6 @@ DEFAULT_EDITOR = [{
             'anpa_category': {'enabled': True},
             'description_text': {'enabled': True},
             'ednote': {'enabled': True},
-            'headline': {'enabled': True},
             'internal_note': {'enabled': True},
             'subject': {'enabled': True},
             'agendas': {'enabled': True},
@@ -125,7 +124,6 @@ DEFAULT_EDITOR = [{
             'ednote': {'enabled': True},
             'g2_content_type': {'enabled': True},
             'genre': {'enabled': True},
-            'headline': {'enabled': True},
             'internal_note': {'enabled': True},
             'scheduled': {'enabled': True}
         },
