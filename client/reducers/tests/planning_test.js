@@ -1,4 +1,5 @@
 import planning from '../planning'
+import actions from '../../actions/planning'
 
 describe('planning', () => {
     describe('reducers', () => {
@@ -35,6 +36,7 @@ describe('planning', () => {
                     currentSearch: undefined,
                     advancedSearchOpened: false,
                 },
+                selectedItems: [],
             })
         })
 
@@ -348,6 +350,30 @@ describe('planning', () => {
                 )
 
                 expect(result.plannings.p1.coverages).toEqual([])
+            })
+        })
+
+        describe('toggle selected items', () => {
+            it('can select an item, select all and deselect', () => {
+                initialState.planningsInList = ['foo', 'bar']
+                expect(initialState.selectedItems).toEqual([])
+
+                let state
+
+                state = planning(initialState, actions.ui.toggleItemSelected('foo'))
+                expect(state.selectedItems).toEqual(['foo'])
+
+                state = planning(state, actions.ui.toggleItemSelected('bar'))
+                expect(state.selectedItems).toEqual(['foo', 'bar'])
+
+                state = planning(state, actions.ui.toggleItemSelected('foo'))
+                expect(state.selectedItems).toEqual(['bar'])
+
+                state = planning(state, actions.ui.selectAll())
+                expect(state.selectedItems).toEqual(['foo', 'bar'])
+
+                state = planning(state, actions.ui.deselectAll())
+                expect(state.selectedItems).toEqual([])
             })
         })
     })

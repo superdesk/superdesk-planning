@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react'
 import { get, capitalize, some } from 'lodash'
-import { ListItem, TimePlanning, DueDate, ItemActionsMenu, StateLabel } from '../index'
+import { ListItem, TimePlanning, DueDate, ItemActionsMenu, StateLabel, Checkbox } from '../index'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import classNames from 'classnames'
 import { GENERIC_ITEM_ACTIONS, EVENTS } from '../../constants/index'
@@ -26,6 +26,8 @@ const PlanningItem = ({
         onUpdateEventTime,
         onPostponeEvent,
         onConvertToRecurringEvent,
+        onSelectItem,
+        isSelected,
     }) => {
     const location = get(event, 'location[0].name')
     const coverages = get(item, 'coverages', [])
@@ -94,6 +96,9 @@ const PlanningItem = ({
             onClick={onClick}
             onDoubleClick={onEditOrPreview}
             active={active}>
+            <div className="sd-list-item__action-menu">
+                <Checkbox value={isSelected} onChange={onSelectItem}/>
+            </div>
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
                 <div className="sd-list-item__row">
                     <StateLabel item={item}/>
@@ -189,6 +194,8 @@ PlanningItem.propTypes = {
     onRescheduleEvent: PropTypes.func,
     onPostponeEvent: PropTypes.func,
     onConvertToRecurringEvent: PropTypes.func,
+    isSelected: PropTypes.bool,
+    onSelectItem: PropTypes.func.isRequired,
 }
 
 export default PlanningItem

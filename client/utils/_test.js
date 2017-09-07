@@ -190,4 +190,10 @@ describe('Utils', function() {
             expect(utils.eventUtils.doesRecurringEventsOverlap(start, end, rule)).toBe(true)
         })
     })
+
+    describe('gettext', () => {
+        it('can return string', () => {
+            expect(utils.gettext('foo')).toBe('foo')
+        })
+    })
 })

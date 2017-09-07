@@ -11,9 +11,10 @@ import {
     PlanningList,
 } from '../index'
 import { QuickAddPlanning, Toggle, SearchBar, AdvancedSearchPanelContainer } from '../../components'
+import MultiSelectionActions from '../MultiSelectionActions'
 import * as selectors from '../../selectors'
 import { AGENDA } from '../../constants'
-import { eventUtils } from '../../utils/index'
+import { eventUtils, gettext } from '../../utils'
 import './style.scss'
 
 class PlanningPanel extends React.Component {
@@ -61,7 +62,18 @@ class PlanningPanel extends React.Component {
             advancedSearchOpened,
             isAdvancedDateSearch,
             isAdvancedSearchSpecified,
+            selected,
+            selectAll,
+            deselectAll,
+            exportAsArticle,
         } = this.props
+
+        const multiActions = [
+            {
+                name: gettext('Export as Article'),
+                run: exportAsArticle,
+            },
+        ]
 
         return (
             <div className={classNames('Planning-panel',
@@ -102,13 +114,25 @@ class PlanningPanel extends React.Component {
                             </label>
                         </div>
                         <AdvancedSearchPanelContainer searchContext={ADVANCED_SEARCH_CONTEXT.PLANNING} />
+
+                        {(selected.length > 0) &&
+                            <div className="Planning-panel__searchbar subnav">
+                                <MultiSelectionActions
+                                    actions={multiActions}
+                                    selected={selected}
+                                    selectAll={selectAll}
+                                    deselectAll={deselectAll}
+                                />
+                            </div>
+                        }
+
                         <div className="list-view compact-view">
                             {((currentAgendaId || currentAgenda && currentAgenda.is_enabled) &&
                             privileges.planning_planning_management === 1 ) &&
                                 <QuickAddPlanning onPlanningCreation={onPlanningCreation}/>
                             }
-                            {(planningList && planningList.length > 0) &&
-                                <PlanningList />
+                            {(planningList.length > 0) &&
+                                <PlanningList selected={selected} />
                             }
                         </div>
                         {
@@ -151,25 +175,29 @@ class PlanningPanel extends React.Component {
 }
 
 PlanningPanel.propTypes = {
-    currentAgendaId: React.PropTypes.string,
-    currentAgenda: React.PropTypes.object,
-    planningList: React.PropTypes.array.isRequired,
-    planningsAreLoading: React.PropTypes.bool,
-    onPlanningCreation: React.PropTypes.func,
-    editPlanningViewOpen: React.PropTypes.bool,
-    addEventToCurrentAgenda: React.PropTypes.func,
-    toggleEventsList: React.PropTypes.func,
-    isEventListShown: React.PropTypes.bool,
-    onlyFuture: React.PropTypes.bool,
-    onFutureToggleChange: React.PropTypes.func,
-    handleSearch: React.PropTypes.func.isRequired,
-    privileges: React.PropTypes.object.isRequired,
-    advancedSearchOpened: React.PropTypes.bool,
-    isAdvancedDateSearch: React.PropTypes.bool,
-    isAdvancedSearchSpecified: React.PropTypes.bool,
-    closeAdvancedSearch: React.PropTypes.func,
-    openAdvancedSearch: React.PropTypes.func,
+    currentAgendaId: PropTypes.string,
+    currentAgenda: PropTypes.object,
+    planningList: PropTypes.array.isRequired,
+    planningsAreLoading: PropTypes.bool,
+    onPlanningCreation: PropTypes.func,
+    editPlanningViewOpen: PropTypes.bool,
+    addEventToCurrentAgenda: PropTypes.func,
+    toggleEventsList: PropTypes.func,
+    isEventListShown: PropTypes.bool,
+    onlyFuture: PropTypes.bool,
+    onFutureToggleChange: PropTypes.func,
+    handleSearch: PropTypes.func.isRequired,
+    privileges: PropTypes.object.isRequired,
+    advancedSearchOpened: PropTypes.bool,
+    isAdvancedDateSearch: PropTypes.bool,
+    isAdvancedSearchSpecified: PropTypes.bool,
+    closeAdvancedSearch: PropTypes.func,
+    openAdvancedSearch: PropTypes.func,
     session: PropTypes.object,
+    selected: PropTypes.array.isRequired,
+    selectAll: PropTypes.func,
+    deselectAll: PropTypes.func,
+    exportAsArticle: PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -185,6 +213,7 @@ const mapStateToProps = (state) => ({
     isAdvancedDateSearch: selectors.isAdvancedDateSearch(state),
     isAdvancedSearchSpecified: isObject(selectors.getPlanningSearch(state)),
     session: selectors.getSessionDetails(state),
+    selected: selectors.getSelectedPlanningItems(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -201,6 +230,9 @@ const mapDispatchToProps = (dispatch) => ({
     onFutureToggleChange: () => (dispatch(actions.planning.ui.toggleOnlyFutureFilter())),
     closeAdvancedSearch: () =>(dispatch(actions.planning.ui.closeAdvancedSearch())),
     openAdvancedSearch: () =>(dispatch(actions.planning.ui.openAdvancedSearch())),
+    selectAll: () => dispatch(actions.planning.ui.selectAll()),
+    deselectAll: () => dispatch(actions.planning.ui.deselectAll()),
+    exportAsArticle: () => dispatch(actions.planning.api.exportAsArticle()),
 })
 
 export const PlanningPanelContainer = connect(

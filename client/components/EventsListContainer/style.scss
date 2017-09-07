@@ -13,7 +13,6 @@ $EVENT_LIST_CONTAINER_ZINDEX: 6;
 
 .Events-list-container__selection {
     z-index: $EVENT_LIST_CONTAINER_ZINDEX - 1 !important;
-    padding: 0 5px 0 16px;
 }
 .Events-list-container__body {
     display: flex;

@@ -43,6 +43,7 @@ from .events_postpone import EventsPostponeService, EventsPostponeResource
 from .planning_postpone import PlanningPostponeService, PlanningPostponeResource
 from planning.planning_types import PlanningTypesService, PlanningTypesResource
 from .common import get_max_recurrent_events
+from .planning_export import PlanningExportResource, PlanningExportService
 
 
 def init_app(app):
@@ -153,6 +154,14 @@ def init_app(app):
     PlanningPostponeResource(PlanningPostponeResource.endpoint_name,
                              app=app,
                              service=planning_postpone_service)
+
+    superdesk.register_resource(
+        'planning_export',
+        PlanningExportResource,
+        PlanningExportService,
+        privilege='planning',
+        _app=app
+    )
 
     app.on_updated_events += events_history_service.on_item_updated
     app.on_inserted_events += events_history_service.on_item_created

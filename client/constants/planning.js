@@ -23,6 +23,9 @@ export const PLANNING = {
         CLEAR_ADVANCED_SEARCH: 'CLEAR_ADVANCED_SEARCH',
         MARK_PLANNING_CANCELLED: 'MARK_PLANNING_CANCELLED',
         MARK_PLANNING_POSTPONED: 'MARK_PLANNING_POSTPONED',
+        TOGGLE_SELECTED: 'TOGGLE_SELECTED',
+        SELECT_ALL: 'SELECT_ALL',
+        DESELECT_ALL: 'DESELECT_ALL',
     },
     // Number of ids to look for by single request
     // because url length must stay short

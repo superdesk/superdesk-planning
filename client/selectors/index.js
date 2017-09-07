@@ -90,6 +90,7 @@ export const getEventsFormsProfile = (state) => get(state, 'formsProfile.events'
 export const getPlanningsFormsProfile = (state) => get(state, 'formsProfile.planning')
 export const getCoverageFormsProfile = (state) => get(state, 'formsProfile.coverage')
 export const getVocabularies = (state) => get(state, 'vocabularies')
+export const getSelectedPlanningItems = (state) => get(state, 'planning.selectedItems')
 
 export const getUsersMergedCoverageProviders = createSelector(
     [getUsers, getVocabularies],
