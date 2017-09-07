@@ -86,7 +86,7 @@ describe('selectors', () => {
                 },
                 b: {
                     name: 'name b',
-                    state: 'in_progress',
+                    state: 'draft',
                     agendas: ['1', '2'],
                 },
                 c: { name: 'plan c' },

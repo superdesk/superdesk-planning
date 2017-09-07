@@ -55,4 +55,4 @@ class EventsPublishService(BaseService):
     def _get_publish_state(self, event):
         if event.get('pubstatus') == PUBLISHED_STATE.CANCELLED:
             return WORKFLOW_STATE.KILLED
-        return WORKFLOW_STATE.PUBLISHED
+        return WORKFLOW_STATE.SCHEDULED

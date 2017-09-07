@@ -51,7 +51,7 @@ Feature: Publish
         When we get "/events/#events._id#"
         Then we get existing resource
         """
-        {"state": "published"}
+        {"state": "scheduled"}
         """
 
         When we get "publish_queue"

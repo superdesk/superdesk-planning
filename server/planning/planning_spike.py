@@ -61,7 +61,7 @@ class PlanningUnspikeService(BaseService):
     def update(self, id, updates, original):
         user = get_user(required=True)
 
-        updates[ITEM_STATE] = original.get('revert_state', WORKFLOW_STATE.IN_PROGRESS)
+        updates[ITEM_STATE] = original.get('revert_state', WORKFLOW_STATE.DRAFT)
         updates['revert_state'] = None
         updates[ITEM_EXPIRY] = None
 

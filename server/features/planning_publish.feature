@@ -21,5 +21,5 @@ Feature: Publish Planning
         When we get "/planning/#planning._id#"
         Then we get existing resource
         """
-        {"state": "published"}
+        {"state": "scheduled"}
         """

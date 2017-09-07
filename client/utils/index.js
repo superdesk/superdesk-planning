@@ -579,17 +579,17 @@ export const getLockedUser = (item, users) => (
             users.find((u) => (u._id === item.lock_user)) : null
 )
 
-export const getItemState = (item) => (get(item, 'state', WORKFLOW_STATE.IN_PROGRESS))
-export const isItemCancelled = (item) => getItemState(item) === WORKFLOW_STATE.CANCELLED
-export const isItemRescheduled = (item) => getItemState(item) === WORKFLOW_STATE.RESCHEDULED
-export const isItemKilled = (item) => getItemState(item) === WORKFLOW_STATE.KILLED
-export const isItemPostponed = (item) => getItemState(item) === WORKFLOW_STATE.POSTPONED
+export const getItemWorkflowState = (item) => (get(item, 'state', WORKFLOW_STATE.DRAFT))
+export const isItemCancelled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.CANCELLED
+export const isItemRescheduled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.RESCHEDULED
+export const isItemKilled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.KILLED
+export const isItemPostponed = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.POSTPONED
 
-export const getItemStateUiLabel = (item) => {
-    switch (getItemState(item)) {
-        case WORKFLOW_STATE.IN_PROGRESS:
+export const getItemWorkflowStateLabel = (item) => {
+    switch (getItemWorkflowState(item)) {
+        case WORKFLOW_STATE.DRAFT:
             return {
-                label: 'in progress',
+                label: 'draft',
                 iconType: 'yellow2',
                 iconHollow: true,
             }
@@ -598,12 +598,12 @@ export const getItemStateUiLabel = (item) => {
                 label: 'spiked',
                 iconType: 'alert',
             }
-        case WORKFLOW_STATE.PUBLISHED:
+        case WORKFLOW_STATE.SCHEDULED:
             return {
-                label: 'P',
-                labelVerbose: 'Published',
+                label: 'Scheduled',
+                labelVerbose: 'Scheduled',
                 iconType: 'success',
-                tooltip:  tooltips.publishedStateTooltip,
+                tooltip:  tooltips.scheduledStateTooltip,
             }
         case WORKFLOW_STATE.KILLED:
             return {
@@ -630,13 +630,31 @@ export const getItemStateUiLabel = (item) => {
     }
 }
 
+export const getItemPublishedStateLabel = (item) => {
+    switch (getPublishedState(item)) {
+        case PUBLISHED_STATE.USABLE:
+            return {
+                label: 'P',
+                labelVerbose: 'Published',
+                iconType: 'success',
+                tooltip:  tooltips.publishedStateTooltip,
+            }
+
+        case PUBLISHED_STATE.CANCELLED:
+            return {
+                label: 'Cancelled',
+                iconType: 'yellow2',
+            }
+    }
+}
+
 export const isItemPublic = (item={}) =>
     typeof item === 'string' ?
         item === PUBLISHED_STATE.USABLE || item === PUBLISHED_STATE.CANCELLED :
         item.pubstatus === PUBLISHED_STATE.USABLE || item.pubstatus === PUBLISHED_STATE.CANCELLED
 
 export const isItemSpiked = (item) => item ?
-    getItemState(item) === WORKFLOW_STATE.SPIKED : false
+    getItemWorkflowState(item) === WORKFLOW_STATE.SPIKED : false
 
 /**
  * Get the timezone offset

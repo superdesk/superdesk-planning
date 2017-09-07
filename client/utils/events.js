@@ -2,7 +2,7 @@ import { PRIVILEGES, WORKFLOW_STATE, PUBLISHED_STATE, EVENTS,
     GENERIC_ITEM_ACTIONS } from '../constants'
 import {
     isItemLockRestricted,
-    getItemState,
+    getItemWorkflowState,
     isItemSpiked,
     isItemPublic,
     getPublishedState,
@@ -123,7 +123,7 @@ const getRelatedEventsForRecurringEvent = (state={}, action) => {
 }
 
 const canSpikeEvent = (event, session, privileges) => (
-    !isItemPublic(event) && getItemState(event) === WORKFLOW_STATE.IN_PROGRESS &&
+    !isItemPublic(event) && getItemWorkflowState(event) === WORKFLOW_STATE.DRAFT &&
         !!privileges[PRIVILEGES.SPIKE_EVENT] && !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemLockRestricted(event, session)
 )
@@ -150,7 +150,8 @@ const canPublishEvent = (event, session, privileges) => (
 )
 
 const canUnpublishEvent = (event, privileges) => (
-    getItemState(event) === WORKFLOW_STATE.PUBLISHED && !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
+    getItemWorkflowState(event) === WORKFLOW_STATE.SCHEDULED &&
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
 )
 
 const canCancelEvent = (event, session, privileges) => (

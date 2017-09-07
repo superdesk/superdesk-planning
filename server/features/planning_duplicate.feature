@@ -8,7 +8,7 @@ Feature: Duplicate Planning
             "guid": "123",
             "headline": "test headline",
             "slugline": "test slugline",
-            "state": "published",
+            "state": "scheduled",
             "pubstatus": "usable"
         }]
         """
@@ -45,7 +45,7 @@ Feature: Duplicate Planning
             "guid": "123",
             "headline": "test headline",
             "slugline": "test slugline",
-            "state": "published",
+            "state": "scheduled",
             "pubstatus": "usable",
             "coverages": [
                 {
@@ -81,7 +81,7 @@ Feature: Duplicate Planning
             "guid": "#duplicate._id#",
             "headline": "test headline",
             "slugline": "test slugline",
-            "state": "in_progress",
+            "state": "draft",
             "pubstatus": "__no_value__",
             "coverages": [
                 {
@@ -115,7 +115,7 @@ Feature: Duplicate Planning
                 "update": {
                     "headline": "test headline",
                     "slugline": "test slugline",
-                    "state": "published",
+                    "state": "scheduled",
                     "pubstatus": "usable"
                 }
             },
@@ -136,7 +136,7 @@ Feature: Duplicate Planning
                     "duplicate_id": "123",
                     "headline": "test headline",
                     "slugline": "test slugline",
-                    "state": "in_progress"
+                    "state": "draft"
                 }
             }
         ]}
@@ -170,7 +170,7 @@ Feature: Duplicate Planning
             "guid": "123",
             "headline": "test headline",
             "slugline": "test slugline",
-            "state": "published",
+            "state": "scheduled",
             "pubstatus": "usable"
         }]
         """

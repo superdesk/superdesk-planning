@@ -1,6 +1,6 @@
 Feature: Planning Spike
     @auth
-    Scenario: Planning state defaults to in_progress
+    Scenario: Planning state defaults to draft
         When we post to "planning"
         """
         [{
@@ -14,7 +14,7 @@ Feature: Planning Spike
         {
             "_id": "#planning._id#",
             "slugline": "TestPlan",
-            "state": "in_progress"
+            "state": "draft"
         }
         """
 
@@ -25,7 +25,7 @@ Feature: Planning Spike
         """
         [{
             "slugline": "TestPlan",
-            "state": "in_progress"
+            "state": "draft"
         }]
         """
         When we spike planning "#planning._id#"
@@ -47,7 +47,7 @@ Feature: Planning Spike
             "_id": "#planning._id#",
             "slugline": "TestPlan",
             "state": "spiked",
-            "revert_state": "in_progress"
+            "revert_state": "draft"
         }
         """
         When we get "/planning_history?where=planning_id==%22#planning._id#%22"
@@ -56,7 +56,7 @@ Feature: Planning Spike
         {"_items": [{
             "planning_id": "#planning._id#",
             "operation": "spiked",
-            "update": {"state" : "spiked", "revert_state": "in_progress"}}
+            "update": {"state" : "spiked", "revert_state": "draft"}}
             ]}
         """
 
@@ -68,7 +68,7 @@ Feature: Planning Spike
         [{
             "slugline": "TestPlan",
             "state": "spiked",
-            "revert_state": "in_progress"
+            "revert_state": "draft"
         }]
         """
         When we unspike planning "#planning._id#"
@@ -89,7 +89,7 @@ Feature: Planning Spike
         {
             "_id": "#planning._id#",
             "slugline": "TestPlan",
-            "state": "in_progress"
+            "state": "draft"
         }
         """
         When we get "/planning_history?where=planning_id==%22#planning._id#%22"
@@ -98,7 +98,7 @@ Feature: Planning Spike
         {"_items": [{
             "planning_id": "#planning._id#",
             "operation": "unspiked",
-            "update": {"state" : "in_progress"}}
+            "update": {"state" : "draft"}}
         ]}
         """
 

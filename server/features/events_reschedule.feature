@@ -15,7 +15,7 @@ Feature: Events Reschedule
                 "end": "2029-11-21T14:00:00.000Z",
                 "tz": "Australia/Sydney"
             },
-            "state": "published",
+            "state": "scheduled",
             "pubstatus": "usable",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "session123",
@@ -50,7 +50,7 @@ Feature: Events Reschedule
         Then we get existing resource
         """
         {
-            "state": "in_progress",
+            "state": "draft",
             "duplicate_from": "event1",
             "lock_user": "__no_value__",
             "lock_session": "__no_value__",
@@ -108,7 +108,7 @@ Feature: Events Reschedule
                 "end": "2029-11-21T14:00:00.000Z",
                 "tz": "Australia/Sydney"
             },
-            "state": "published",
+            "state": "scheduled",
             "pubstatus": "usable",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "session123",
@@ -123,7 +123,7 @@ Feature: Events Reschedule
             "guid": "plan1",
             "slugline": "TestEvent",
             "event_item": "event1",
-            "state": "published",
+            "state": "scheduled",
             "pubstatus": "usable",
             "ednote": "We planned this."
         }]
@@ -202,7 +202,7 @@ Feature: Events Reschedule
                     "endRepeatMode": "count"
                 }
             },
-            "state": "in_progress"
+            "state": "draft"
         }]
         """
         Then we get OK response
@@ -216,7 +216,7 @@ Feature: Events Reschedule
             "slugline": "Weekly Meetings",
             "headline": "Friday Club",
             "event_item": "#EVENT3._id#",
-            "state": "in_progress"
+            "state": "draft"
         }]
         """
         Then we get OK response
@@ -244,7 +244,7 @@ Feature: Events Reschedule
         """
         {"_items": [
             {
-                "state": "in_progress",
+                "state": "draft",
                 "dates": {
                     "start": "2099-11-22T13:00:00+0000",
                     "end": "2099-11-22T15:00:00+0000"
@@ -262,7 +262,7 @@ Feature: Events Reschedule
                 "definition_long": "------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n"
             },
             {
-                "state": "in_progress",
+                "state": "draft",
                 "dates": {
                     "start": "2099-11-23T13:00:00+0000",
                     "end": "2099-11-23T15:00:00+0000"
@@ -270,7 +270,7 @@ Feature: Events Reschedule
                 "recurrence_id": "#EVENT1.recurrence_id#"
             },
             {
-                "state": "in_progress",
+                "state": "draft",
                 "dates": {
                     "start": "2099-11-24T13:00:00+0000",
                     "end": "2099-11-24T15:00:00+0000"
@@ -278,7 +278,7 @@ Feature: Events Reschedule
                 "recurrence_id": "#EVENT1.recurrence_id#"
             },
             {
-                "state": "in_progress",
+                "state": "draft",
                 "dates": {
                     "start": "2099-11-25T13:00:00+0000",
                     "end": "2099-11-25T15:00:00+0000"

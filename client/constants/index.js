@@ -20,9 +20,9 @@ export const DATE_FORMATS = {
 }
 
 export const WORKFLOW_STATE = {
-    IN_PROGRESS: 'in_progress',
+    DRAFT: 'draft',
     INGESTED: 'ingested',
-    PUBLISHED: 'published',
+    SCHEDULED: 'scheduled',
     KILLED: 'killed',
     CANCELLED: 'cancelled',
     RESCHEDULED: 'rescheduled',
@@ -58,7 +58,7 @@ export const GENERIC_ITEM_ACTIONS = {
 
 export const SPIKED_STATE = {
     SPIKED: WORKFLOW_STATE.SPIKED,
-    NOT_SPIKED: WORKFLOW_STATE.IN_PROGRESS,
+    NOT_SPIKED: WORKFLOW_STATE.DRAFT,
     BOTH: 'both',
 }
 

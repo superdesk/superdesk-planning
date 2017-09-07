@@ -34,7 +34,7 @@ describe('planning', () => {
                 if (params !== null) {
                     privileges.planning_planning_spike = get(params, 'privilege', 1)
                     privileges.planning_planning_unspike = get(params, 'privilege', 1)
-                    item.state = get(params, 'states.planning', 'in_progress')
+                    item.state = get(params, 'states.planning', 'draft')
 
                     if (get(params, 'states.event')) {
                         event = events[0]
@@ -102,7 +102,7 @@ describe('planning', () => {
                 }, {
                     slugline: 'Plan2',
                     headline: 'Planner2',
-                    state: 'in_progress',
+                    state: 'draft',
                 }, {
                     slugline: 'Plan3',
                     headline: 'Planner3',
@@ -110,7 +110,7 @@ describe('planning', () => {
                 }, {
                     slugline: 'Plan4',
                     headline: 'Planner4',
-                    state: 'in_progress',
+                    state: 'draft',
                     coverages: [
                         {
                             planning: {
@@ -129,7 +129,7 @@ describe('planning', () => {
                 }, {
                     slugline: 'Plan5',
                     headline: 'Planner5',
-                    state: 'in_progress',
+                    state: 'draft',
                     coverages: [
                         {
                             planning: {
@@ -226,22 +226,22 @@ describe('planning', () => {
             it('shows `spike` action', () => {
                 let wrapper = getWrapper({
                     privilege: 1,
-                    states: { planning: 'in_progress' },
+                    states: { planning: 'draft' },
                 })
                 expect(itemActionExists(wrapper, 'Spike')).toBe(true)
 
                 wrapper = getWrapper({
                     privilege: 1,
                     states: {
-                        planning: 'in_progress',
-                        event: 'in_progress',
+                        planning: 'draft',
+                        event: 'draft',
                     },
                 })
                 expect(itemActionExists(wrapper, 'Spike')).toBe(true)
 
                 wrapper = getWrapper({
                     privilege: 0,
-                    states: { planning: 'in_progress' },
+                    states: { planning: 'draft' },
                 })
                 expect(itemActionExists(wrapper, 'Spike')).toBe(false)
             })
@@ -256,7 +256,7 @@ describe('planning', () => {
             it('shows `unspike` button', () => {
                 let wrapper = getWrapper({
                     privilege: 1,
-                    states: { planning: 'in_progress' },
+                    states: { planning: 'draft' },
                 })
                 expect(itemActionExists(wrapper, 'Unspike')).toBe(false)
 
@@ -264,14 +264,14 @@ describe('planning', () => {
                     privilege: 1,
                     states: {
                         planning: 'spiked',
-                        event: 'in_progress',
+                        event: 'draft',
                     },
                 })
                 expect(itemActionExists(wrapper, 'Unspike')).toBe(true)
 
                 wrapper = getWrapper({
                     privilege: 0,
-                    states: { planning: 'in_progress' },
+                    states: { planning: 'draft' },
                 })
                 expect(itemActionExists(wrapper, 'Unspike')).toBe(false)
 

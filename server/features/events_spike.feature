@@ -1,6 +1,6 @@
 Feature: Events Spike
     @auth
-    Scenario: Event state defaults to in_progress
+    Scenario: Event state defaults to draft
         When we post to "events"
         """
         [{
@@ -18,7 +18,7 @@ Feature: Events Spike
         {
             "_id": "#events._id#",
             "name": "TestEvent",
-            "state": "in_progress"
+            "state": "draft"
         }
         """
 
@@ -74,7 +74,7 @@ Feature: Events Spike
         [{
             "name": "TestEvent",
             "state": "spiked",
-            "revert_state": "in_progress",
+            "revert_state": "draft",
             "dates": {
                 "start": "2016-01-02",
                 "end": "2016-01-03"
@@ -99,7 +99,7 @@ Feature: Events Spike
         {
             "_id": "#events._id#",
             "name": "TestEvent",
-            "state": "in_progress"
+            "state": "draft"
         }
         """
         When we get "/events_history?where=event_id==%22#events._id#%22"
@@ -108,7 +108,7 @@ Feature: Events Spike
         {"_items": [{
             "event_id": "#events._id#",
             "operation": "unspiked",
-            "update": {"state" : "in_progress"}
+            "update": {"state" : "draft"}
         }]}
         """
 
@@ -195,11 +195,11 @@ Feature: Events Spike
             {"_items": [{
                 "slugline": "TestPlan 1",
                 "event_item": "#events._id#",
-                "state": "in_progress"
+                "state": "draft"
             }, {
                 "slugline": "TestPlan 2",
                 "event_item": "#events._id#",
-                "state": "in_progress"
+                "state": "draft"
             }]}
         """
         When we spike events "#events._id#"
@@ -229,7 +229,7 @@ Feature: Events Spike
                 "end": "2017-01-01"
             },
             "state": "spiked",
-            "revert_state": "in_progress"
+            "revert_state": "draft"
         }]
         """
         Given "planning"
@@ -290,13 +290,13 @@ Feature: Events Spike
             {"_items": [{
                 "slugline": "TestPlan 1",
                 "event_item": "#events._id#",
-                "state": "in_progress",
+                "state": "draft",
                 "lock_user": "#CONTEXT_USER_ID#",
                 "lock_session": "123"
             }, {
                 "slugline": "TestPlan 2",
                 "event_item": "#events._id#",
-                "state": "in_progress"
+                "state": "draft"
             }]}
         """
         When we spike events "#events._id#"

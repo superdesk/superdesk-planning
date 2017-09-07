@@ -196,7 +196,7 @@ Feature: Events Recurring
                 "end": "2019-11-21T14:00:00.000Z",
                 "tz": "Australia/Sydney"
             },
-            "state": "published",
+            "state": "scheduled",
             "pubstatus": "usable",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "session123",
@@ -211,7 +211,7 @@ Feature: Events Recurring
             "guid": "plan1",
             "slugline": "TestEvent",
             "event_item": "event1",
-            "state": "published",
+            "state": "scheduled",
             "pubstatus": "usable",
             "ednote": "We planned this."
         }]
@@ -669,10 +669,10 @@ Feature: Events Recurring
         Then we get list with 4 items
         """
         {"_items": [
-            { "_id": "#EVENT1._id#", "state": "in_progress" },
+            { "_id": "#EVENT1._id#", "state": "draft" },
             { "_id": "#EVENT2._id#", "state": "spiked" },
-            { "_id": "#EVENT3._id#", "state": "in_progress" },
-            { "_id": "#EVENT4._id#", "state": "in_progress" }
+            { "_id": "#EVENT3._id#", "state": "draft" },
+            { "_id": "#EVENT4._id#", "state": "draft" }
         ]}
         """
 
@@ -709,7 +709,7 @@ Feature: Events Recurring
         Then we get list with 4 items
         """
         {"_items": [
-            { "_id": "#EVENT1._id#", "state": "in_progress" },
+            { "_id": "#EVENT1._id#", "state": "draft" },
             { "_id": "#EVENT2._id#", "state": "spiked" },
             { "_id": "#EVENT3._id#", "state": "spiked" },
             { "_id": "#EVENT4._id#", "state": "spiked" }
@@ -789,8 +789,8 @@ Feature: Events Recurring
         Then we get list with 4 items
         """
         {"_items": [
-            { "_id": "#EVENT1._id#", "state": "in_progress" },
-            { "_id": "#EVENT2._id#", "state": "in_progress" },
+            { "_id": "#EVENT1._id#", "state": "draft" },
+            { "_id": "#EVENT2._id#", "state": "draft" },
             { "_id": "#EVENT3._id#", "state": "spiked" },
             { "_id": "#EVENT4._id#", "state": "spiked" }
         ]}

@@ -2,7 +2,7 @@ import moment from 'moment-timezone'
 import { WORKFLOW_STATE, GENERIC_ITEM_ACTIONS, PRIVILEGES, EVENTS } from '../constants/index'
 import { get } from 'lodash'
 import {
-    getItemState,
+    getItemWorkflowState,
     isItemLockRestricted,
     isItemPublic,
     isItemSpiked,
@@ -12,23 +12,23 @@ import {
 
 const canSavePlanning = (planning, event, privileges) => (
     !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-    getItemState(planning) !== WORKFLOW_STATE.SPIKED &&
-    getItemState(event) !== WORKFLOW_STATE.SPIKED
+    getItemWorkflowState(planning) !== WORKFLOW_STATE.SPIKED &&
+    getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED
 )
 
 const canPublishPlanning = (planning, event, privileges, session) => {
-    const planState = getItemState(planning)
-    const eventState = getItemState(event)
+    const planState = getItemWorkflowState(planning)
+    const eventState = getItemWorkflowState(event)
     return !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isItemLockRestricted(planning, session) && (planState === WORKFLOW_STATE.IN_PROGRESS ||
+        !isItemLockRestricted(planning, session) && (planState === WORKFLOW_STATE.DRAFT ||
         planState === WORKFLOW_STATE.KILLED) && eventState !== WORKFLOW_STATE.SPIKED
 }
 
 const canUnpublishPlanning = (planning, event, privileges, session) => {
-    const planState = getItemState(planning)
-    const eventState = getItemState(event)
+    const planState = getItemWorkflowState(planning)
+    const eventState = getItemWorkflowState(event)
     return !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isItemLockRestricted(planning, session) && planState === WORKFLOW_STATE.PUBLISHED &&
+        !isItemLockRestricted(planning, session) && planState === WORKFLOW_STATE.SCHEDULED &&
         eventState !== WORKFLOW_STATE.SPIKED
 }
 
@@ -39,8 +39,8 @@ const canEditPlanning = (
     lockedInThisSession,
     lockedUser
 ) => (
-    getItemState(planning) !== WORKFLOW_STATE.SPIKED &&
-        getItemState(event) !== WORKFLOW_STATE.SPIKED &&
+    getItemWorkflowState(planning) !== WORKFLOW_STATE.SPIKED &&
+        getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !lockedInThisSession &&
         !lockedUser &&
@@ -48,7 +48,7 @@ const canEditPlanning = (
 )
 
 const canSpikePlanning = ({ plan, session, privileges }) => (
-    !isItemPublic(plan) && getItemState(plan) === WORKFLOW_STATE.IN_PROGRESS &&
+    !isItemPublic(plan) && getItemWorkflowState(plan) === WORKFLOW_STATE.DRAFT &&
         !!privileges[PRIVILEGES.SPIKE_PLANNING] && !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isItemLockRestricted(plan, session)
 )

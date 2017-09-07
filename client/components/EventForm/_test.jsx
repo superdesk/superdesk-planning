@@ -30,7 +30,7 @@ describe('events', () => {
             }],
             links: ['http://www.google.com'],
             _plannings: [],
-            state: 'in_progress',
+            state: 'draft',
         }
 
         const requiredProps = {
@@ -217,7 +217,7 @@ describe('events', () => {
                 wrapper = shallow(
                     <Component
                         {...requiredProps}
-                        initialValues={{ state: 'in_progress' }}
+                        initialValues={{ state: 'draft' }}
                         privileges={priv}
                         onMinimize={sinon.spy()}
                     />

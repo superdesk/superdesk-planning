@@ -145,7 +145,7 @@ Event Rescheduled
                   'reason', 'duplicate_to'}:
             new_event.pop(f, None)
 
-        new_event[ITEM_STATE] = WORKFLOW_STATE.IN_PROGRESS
+        new_event[ITEM_STATE] = WORKFLOW_STATE.DRAFT
         new_event['guid'] = generate_guid(type=GUID_NEWSML)
         new_event['_id'] = new_event['guid']
         new_event['duplicate_from'] = original[config.ID_FIELD]

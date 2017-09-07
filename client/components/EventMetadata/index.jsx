@@ -54,11 +54,13 @@ function renderDict(event, label, ...keys) {
 // eslint-disable-next-line react/no-multi-comp
 export function EventMetadata ({ event }) {
     return (
-        <div className="metadata-view EditPlanningPanel__body--event">
+        <div>
             <StateLabel item={event} verbose={true}/>
-            <dl>
-                {FIELDS.map((arrayProps) => renderDict.bind(null, event).apply(null, arrayProps))}
-            </dl>
+            <div className="metadata-view EditPlanningPanel__body--event">
+                <dl>
+                    {FIELDS.map((arrayProps) => renderDict.bind(null, event).apply(null, arrayProps))}
+                </dl>
+            </div>
         </div>
     )
 }
