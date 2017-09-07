@@ -371,6 +371,17 @@ const openRescheduleModal = (event, publish=false) => (
     ))
 )
 
+const convertToRecurringEvent = (event, publish) => (
+    (dispatch) => dispatch(self._openActionModal(
+        event,
+        EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label,
+        'convert_recurring',
+        false,
+        publish,
+        true
+    ))
+)
+
 const _openActionModal = (
     event,
     action,
@@ -521,10 +532,10 @@ const self = {
     unlockAndCloseEditor,
     openRescheduleModal,
     rescheduleEvent,
-
     postponeEvent,
     openPostponeModal,
     _openActionModal,
+    convertToRecurringEvent,
 }
 
 export default self

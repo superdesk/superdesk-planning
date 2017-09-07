@@ -163,6 +163,10 @@ const isEventInUse = (event) => (
     event && eventHasPlanning(event) || isItemPublic(event)
 )
 
+const canConvertToRecurringEvent = (event, session, privileges) => (
+    !event.recurrence_id && canEditEvent(event, session, privileges)
+)
+
 const canEditEvent = (event, session, privileges) => (
     !isItemSpiked(event) && !isItemCancelled(event) && !isItemLockRestricted(event, session) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemRescheduled(event)
@@ -199,6 +203,8 @@ const getEventItemActions = (event, session, privileges, actions) => {
             canRescheduleEvent(event, session, privileges),
         [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: () =>
             canPostponeEvent(event, session, privileges),
+        [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: (event, session=null, privileges=null) =>
+            canConvertToRecurringEvent(event, session, privileges),
     }
 
     actions.forEach((action) => {

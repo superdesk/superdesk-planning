@@ -25,6 +25,7 @@ const PlanningItem = ({
         onCancelEvent,
         onUpdateEventTime,
         onPostponeEvent,
+        onConvertToRecurringEvent,
     }) => {
     const location = get(event, 'location[0].name')
     const coverages = get(item, 'coverages', [])
@@ -68,6 +69,10 @@ const PlanningItem = ({
         {
             ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
             callback: onPostponeEvent.bind(null, event),
+        },
+        {
+            ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
+            callback: onConvertToRecurringEvent.bind(null, event),
         },
     ]
 
@@ -183,6 +188,7 @@ PlanningItem.propTypes = {
     onUpdateEventTime: PropTypes.func,
     onRescheduleEvent: PropTypes.func,
     onPostponeEvent: PropTypes.func,
+    onConvertToRecurringEvent: PropTypes.func,
 }
 
 export default PlanningItem

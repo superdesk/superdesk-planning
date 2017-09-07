@@ -8,6 +8,7 @@ import {
     UpdateTimeForm,
     RescheduleEventForm,
     PostponeEventForm,
+    ConvertToRecurringEventForm,
 } from './index'
 import { get } from 'lodash'
 import { GENERIC_ITEM_ACTIONS, EVENTS, FORM_NAMES } from '../../constants'
@@ -48,6 +49,11 @@ export const EventActionConfirmationModal = ({ handleHide, modalProps }) => {
             title = 'Postpone an event'
             saveText = 'Postpone'
             form = PostponeEventForm
+            break
+
+        case EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label:
+            title = EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label
+            form = ConvertToRecurringEventForm
             break
 
         default:

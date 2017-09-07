@@ -45,5 +45,9 @@ export const EVENTS = {
             label: 'Mark as Postponed',
             icon: 'icon-calendar-list',
         },
+        CONVERT_TO_RECURRING: {
+            label: 'Convert to recurring event',
+            icon: 'icon-repeat',
+        },
     },
 }

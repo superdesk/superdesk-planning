@@ -17,6 +17,7 @@ export const EventItem = ({
         onUpdateEventTime,
         onRescheduleEvent,
         onPostponeEvent,
+        onConvertToRecurringEvent,
         highlightedEvent,
         privileges,
         isSelected,
@@ -61,6 +62,10 @@ export const EventItem = ({
         {
             ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
             callback: onPostponeEvent.bind(null, event),
+        },
+        {
+            ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
+            callback: onConvertToRecurringEvent.bind(null, event),
         },
         GENERIC_ITEM_ACTIONS.DIVIDER,
         {
@@ -120,6 +125,7 @@ EventItem.propTypes = {
     onUpdateEventTime: PropTypes.func.isRequired,
     onRescheduleEvent: PropTypes.func.isRequired,
     onPostponeEvent: PropTypes.func.isRequired,
+    onConvertToRecurringEvent: PropTypes.func.isRequired,
     highlightedEvent: PropTypes.string,
     className: PropTypes.string,
     privileges: PropTypes.object,
