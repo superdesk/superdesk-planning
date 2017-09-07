@@ -68,8 +68,9 @@ describe('planning', () => {
             }
 
             // Creating this one separately as we cannot test click when doubleclick is used
-            const getWrapperWithDoubleClickProp = () => (
-                mount(<PlanningItem
+            const getWrapperWithDoubleClickProp = () => {
+                const store = createTestStore()
+                return mount(<PlanningItem
                     item={item}
                     event={event}
                     agendas={[agenda]}
@@ -85,8 +86,9 @@ describe('planning', () => {
                     onPostponeEvent={onPostponeEvent}
                     onConvertToRecurringEvent={onConvertToRecurringEvent}
                     privileges={privileges}
+                    store={store}
                 />)
-            )
+            }
 
             beforeEach(() => {
                 privileges = {
