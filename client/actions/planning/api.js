@@ -969,21 +969,41 @@ const markPlanningPostponed = (plan, reason) => ({
 
 /**
  * Export selected planning items as a new article
+ *
+ * First opens a modal where user can sort those and
+ * then it sends it to server.
  */
 function exportAsArticle() {
     return (dispatch, getState, { api, notify, gettext }) => {
         const state = getState()
 
-        return api.save('planning_export', {
-            desk: state.workspace.currentDeskId,
-            items: state.planning.selectedItems,
-        })
-        .then(() => {
-            notify.success(gettext('Article was created'))
-            dispatch(actions.planning.ui.deselectAll())
-        }, () => {
-            notify.error(gettext('There was an error when exporting'))
-        })
+        const label = (item) => item.headline || item.slugline || item.description_text
+
+        const sortableItems = state.planning.selectedItems.map((id) => ({
+            id,
+            label: label(state.planning.plannings[id]),
+        }))
+
+        return dispatch(actions.showModal({
+            modalType: 'SORT_SELECTED',
+            modalProps: {
+                items: sortableItems,
+                action: handleSorted,
+            },
+        }))
+
+        function handleSorted(sorted) {
+            return api.save('planning_export', {
+                desk: state.workspace.currentDeskId,
+                items: sorted.map((item) => item.id),
+            })
+            .then(() => {
+                notify.success(gettext('Article was created'))
+                dispatch(actions.planning.ui.deselectAll())
+            }, () => {
+                notify.error(gettext('There was an error when exporting'))
+            })
+        }
     }
 }
 

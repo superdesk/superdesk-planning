@@ -17,9 +17,10 @@ TEMPLATE = '''
 <p>Location: {{ item.event.location[0].name }}.</p>
 {% endif %}
 <p>Editorial note: {{ item.ednote }}</p>
-<p>Planned coverage: {% for coverage in item._coverages %}
-    {{ coverage.g2_content_type }}{% if not loop.last %}, {% endif %}
-{% endfor %}</p>
+{% if item.coverages %}
+<p>Planned coverage: {{ item.coverages | join(', ') }}
+{% endif %}
+<p>---</p>
 {% endfor %}
 '''
 
@@ -48,23 +49,34 @@ def get_item(_id):
 def generate_body(ids):
     items = [get_item(_id) for _id in ids]
     template = current_app.config.get('PLANNING_EXPORT_BODY_TEMPLATE', TEMPLATE)
+    cv = superdesk.get_resource_service('vocabularies').find_one(req=None, _id='g2_content_type')
+    if cv:
+        labels = {_type['qcode']: _type['name'] for _type in cv['items']}
+    else:
+        labels = {}
+    for item in items:
+        item['coverages'] = [labels.get(coverage['g2_content_type'], coverage['g2_content_type'])
+                             for coverage in item.get('_coverages', [])
+                             if coverage.get('g2_content_type')]
     return render_template_string(template, items=items)
+
+
+def get_desk_template(desk):
+    return superdesk.get_resource_service('content_templates').find_one(req=None, _id=desk['default_content_template'])
 
 
 class PlanningExportService(superdesk.Service):
     def create(self, docs):
         ids = []
-        template = superdesk.get_resource_service('content_templates').find_one(req=None,
-                                                                                template_type='planning_export')
-        if not template:
-            template = {'data': {}}
         production = superdesk.get_resource_service('archive')
         for doc in docs:
-            desk = superdesk.get_resource_service('desks').find_one(req=None, _id=doc.pop('desk'))
             planning_items = doc.pop('items', [])
+            desk = superdesk.get_resource_service('desks').find_one(req=None, _id=doc.pop('desk'))
+            template = get_desk_template(desk)
             item = get_item_from_template(template)
             item[current_app.config['VERSION']] = 1
             item.setdefault('type', 'text')
+            item.setdefault('slugline', 'Planning')
             item['body_html'] = generate_body(planning_items)
             item['task'] = {
                 'desk': desk['_id'],

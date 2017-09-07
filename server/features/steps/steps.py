@@ -131,3 +131,9 @@ def step_imp_when_action_resource(context, action, resource, item_id):
 
     context.response = context.client.patch(get_prefixed_url(context.app, action_url),
                                             data=json.dumps(data), headers=headers)
+
+
+@then('we get text in "{field}"')
+def then_we_get_text_in_response_field(context, field):
+    response = get_json_data(context.response)[field]
+    assert context.text in response, response
