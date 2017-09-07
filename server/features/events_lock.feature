@@ -260,7 +260,7 @@ Feature: Events Locking
         """
         Then we get error 403
         """
-        {"_message": "An associated planning item is already locked."}
+        {"_message": "An associated planning item in this recurring series is already locked."}
         """
 
     @auth
@@ -447,6 +447,9 @@ Feature: Events Locking
       {"lock_action": "edit"}
       """
       Then we get error 403
+      """
+      {"_message": "Another event in this recurring series is already locked."}
+      """
 
     @auth
     Scenario: Unlocking an event from a recurring series unlocks the actual locked event

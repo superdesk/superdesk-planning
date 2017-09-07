@@ -86,6 +86,17 @@ class EventsService(superdesk.Service):
     def has_planning_items(self, doc):
         return self.get_plannings_for_event(doc).count() > 0
 
+    def get_all_items_in_relationship(self, item):
+        # Get recurring items
+        if item.get('recurrence_id'):
+            all_items = self.find(where={'recurrence_id': item.get('recurrence_id')})
+            # Now, get associated planning items with the same recurrence
+            return itertools.chain(all_items, get_resource_service('planning').find(
+                where={'recurrence_id': item.get('recurrence_id')}))
+        else:
+            # Get associated planning items
+            return self.get_plannings_for_event(item)
+
     def set_ingest_provider_sequence(self, item, provider):
         """Sets the value of ingest_provider_sequence in item.
 

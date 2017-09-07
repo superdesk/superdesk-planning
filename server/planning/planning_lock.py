@@ -44,8 +44,11 @@ class PlanningLockService(BaseService):
         item_id = request.view_args['item_id']
         lock_action = docs[0].get('lock_action', 'edit')
         lock_service = LockService()
-        resource_service = get_resource_service('planning')
-        item = resource_service.find_one(req=None, _id=item_id)
+        item = get_resource_service('planning').find_one(req=None, _id=item_id)
+
+        if item and item.get('event_item'):
+            lock_service.validate_relationship_locks(item, 'planning')
+
         updated_item = lock_service.lock(item, user_id, session_id, lock_action, 'planning')
         return _update_returned_document(docs[0], updated_item)
 
