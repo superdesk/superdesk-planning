@@ -1,90 +1,99 @@
-/* eslint-disable react/no-multi-comp */
+/* eslint-disable react/no-multi-comp, react/prop-types */
 import React from 'react'
 import { fields } from '../index'
 import { Field, FieldArray } from 'redux-form'
 
-const renderSlugline = (readOnly) => (
+
+const renderSlugline = (props) => (
     <div className="form__row">
         <Field name="slugline"
             component={fields.InputField}
             type="text"
             label="Slugline"
-            readOnly={readOnly}/>
+            required={props.fieldSchema.required}
+            readOnly={props.readOnly} />
     </div>
 )
 
-const renderName = (readOnly) => (
+const renderName = (props) => (
     <div className="form__row">
         <Field name="name"
             component={fields.InputField}
             type="text"
             label="Name"
-            required={true}
-            readOnly={readOnly}/>
+            required={props.fieldSchema.required}
+            readOnly={props.readOnly} />
     </div>
 )
 
-const renderCalender = (readOnly) => (
+const renderCalender = (props) => (
     <div className="form__row">
         <Field name="calendars"
             component={fields.EventCalendarField}
             label="Calendars"
-            readOnly={readOnly}/>
+            required={props.fieldSchema.required}
+            readOnly={props.readOnly} />
     </div>
 )
 
-const renderCategory = (readOnly) => (
+const renderCategory = (props) => (
     <div className="form__row">
         <Field name="anpa_category"
             component={fields.CategoryField}
             label="Category"
-            readOnly={readOnly}/>
+            required={props.fieldSchema.required}
+            readOnly={props.readOnly} />
     </div>
 )
 
-const renderSubject = (readOnly) => (
+const renderSubject = (props) => (
     <div className="form__row">
         <Field name="subject"
             component={fields.SubjectField}
             label="Subject"
-            readOnly={readOnly}/>
+            required={props.fieldSchema.required}
+            readOnly={props.readOnly} />
     </div>
 )
 
-const renderDescription = (readOnly) => (
+const renderDescription = (props) => (
     <div className="form__row">
         <Field name='definition_short'
             component={fields.InputField}
             type="text"
             label="Description"
-            readOnly={readOnly}/>
+            required={props.fieldSchema.required}
+            readOnly={props.readOnly}/>
     </div>
 )
 
-const renderLongDescription = (readOnly) => (
+const renderLongDescription = (props) => (
     <div className="form__row">
         <Field name="definition_long"
             component={fields.InputTextAreaField}
             label="Long Description"
-            readOnly={readOnly}/>
+            required={props.fieldSchema.required}
+            readOnly={props.readOnly} />
     </div>
 )
 
-const renderInternalNote = (readOnly) => (
+const renderInternalNote = (props) => (
     <div className="form__row">
         <Field name="internal_note"
             component={fields.InputTextAreaField}
             label="Internal Note"
-            readOnly={readOnly}/>
+            required={props.fieldSchema.required}
+            readOnly={props.readOnly} />
     </div>
 )
 
-const renderLocation = (readOnly) => (
+const renderLocation = (props) => (
     <div className="form__row">
         <Field name="location[0]"
             component={fields.GeoLookupInput}
             label="Location"
-            readOnly={readOnly}/>
+            required={props.fieldSchema.required}
+            readOnly={props.readOnly} />
     </div>
 )
 
@@ -97,27 +106,35 @@ const renderDate = (readOnly, start=false, occurrenceOverlaps=null, defaultDate=
                withTime={true}
                defaultDate={defaultDate}
                occurrenceOverlaps={occurrenceOverlaps}
+               required={true}
                readOnly={readOnly}/>
 }
 
-const renderOccurStatus = (readOnly) => (
+const renderOccurStatus = (props) => (
     <div className="form__row">
         <Field name="occur_status"
             component={fields.OccurStatusField}
             label="Occurence Status"
-            readOnly={readOnly}/>
+            required={props.fieldSchema.required}
+            readOnly={props.readOnly} />
     </div>
 )
 
-const renderLinks = (readOnly) => (
+const renderLinks = (props) => (
     <div className="form__row">
-        <FieldArray name="links" component={fields.LinksFieldArray} readOnly={readOnly} />
+        <FieldArray name="links"
+            component={fields.LinksFieldArray}
+            required={props.fieldSchema.required}
+            readOnly={props.readOnly} />
     </div>
 )
 
-const renderFiles = (readOnly) => (
+const renderFiles = (props) => (
     <div className="form__row">
-        <FieldArray name="files" component={fields.FilesFieldArray} readOnly={readOnly}/>
+        <FieldArray name="files"
+            component={fields.FilesFieldArray}
+            required={props.fieldSchema.required}
+            readOnly={props.readOnly}/>
     </div>
 )
 

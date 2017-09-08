@@ -31,6 +31,7 @@ function CoverageComponent({
                         component={fields.InputField}
                         type="text"
                         label="Slugline"
+                        required={get(formProfile, 'schema.slugline.required')}
                         readOnly={readOnly} />
                 </div>
             }
@@ -42,6 +43,7 @@ function CoverageComponent({
                     autoFocus={true}
                     type="text"
                     label="Ed Note"
+                    required={get(formProfile, 'schema.ednote.required')}
                     readOnly={readOnly} />
                 </div>
             }
@@ -51,6 +53,7 @@ function CoverageComponent({
                         name={`${coverage}.planning.internal_note`}
                         component={fields.InputTextAreaField}
                         label="Internal Note"
+                        required={get(formProfile, 'schema.internal_note.required')}
                         readOnly={readOnly}/>
                 </div>
             }
@@ -62,6 +65,7 @@ function CoverageComponent({
                         component={fields.ContentTypeField}
                         label="Type"
                         clearable={true}
+                        required={get(formProfile, 'schema.g2_content_type.required')}
                         readOnly={readOnly} />
                 </div>
             }
