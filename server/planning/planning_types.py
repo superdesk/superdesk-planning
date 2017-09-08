@@ -114,7 +114,8 @@ DEFAULT_EDITOR = [{
             'internal_note': {'enabled': True},
             'subject': {'enabled': True},
             'agendas': {'enabled': True},
-            'flags': {'enabled': True}
+            'flags': {'enabled': True},
+            'urgency': {'enabled': True}
         },
         'schema': dict(PlanningSchema)},
     {
