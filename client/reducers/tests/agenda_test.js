@@ -15,6 +15,7 @@ describe('agenda', () => {
             expect(initialState).toEqual({
                 agendas: [],
                 currentPlanningId: undefined,
+                currentAgendaId: 'ALL_PLANNING',
                 agendasAreLoading: false,
             })
         })
@@ -39,7 +40,7 @@ describe('agenda', () => {
         })
 
         it('SELECT_AGENDA', () => {
-            expect(initialState.currentAgendaId).toBe(undefined)
+            expect(initialState.currentAgendaId).toBe('ALL_PLANNING')
             const result = agenda(
                 initialState,
                 {

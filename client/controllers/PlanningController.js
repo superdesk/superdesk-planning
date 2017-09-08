@@ -40,6 +40,10 @@ export function PlanningController(
                 return Promise.resolve()
             }),
 
+            plannings: store.dispatch(
+                actions.fetchSelectedAgendaPlannings()
+            ),
+
             lockedEvents: store.dispatch(
                 actions.events.api.loadLockedEventsByAction('edit')
             ),
