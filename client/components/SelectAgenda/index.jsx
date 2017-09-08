@@ -26,7 +26,7 @@ export const SelectAgendaComponent = ({ enabledAgendas, disabledAgendas, onChang
         ))}
         <option disabled>──────────</option>
         <option value={AGENDA.FILTER.NO_AGENDA_ASSIGNED}>No Agenda Assigned</option>
-        <option value={AGENDA.FILTER.ALL_PLANNING}>All Planning</option>
+        <option value={AGENDA.FILTER.ALL_PLANNING}>All planning items</option>
     </select>
 )
 
