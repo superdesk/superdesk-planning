@@ -68,7 +68,7 @@ class EventsDuplicateService(BaseService):
         new_doc.get('dates').pop('recurring_rule', None)
         new_doc.pop('recurrence_id', None)
         new_doc.pop('previous_recurrence_id', None)
-        new_doc[ITEM_STATE] = WORKFLOW_STATE.IN_PROGRESS
+        new_doc[ITEM_STATE] = WORKFLOW_STATE.DRAFT
         new_doc['duplicate_from'] = original[config.ID_FIELD]
         eocstat_map = get_resource_service('vocabularies').find_one(req=None, _id='eventoccurstatus')
         if eocstat_map:

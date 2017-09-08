@@ -348,8 +348,8 @@ class EventsService(superdesk.Service):
         merged = copy.deepcopy(original)
         merged.update(updates)
 
-        # Generated new events will be in_progress
-        merged[ITEM_STATE] = WORKFLOW_STATE.IN_PROGRESS
+        # Generated new events will be "draft"
+        merged[ITEM_STATE] = WORKFLOW_STATE.DRAFT
 
         generated_events = generate_recurring_events(merged)
         updated_event = generated_events.pop(0)

@@ -88,7 +88,7 @@ describe('events', () => {
                 onConvertToRecurringEvent = sinon.spy(() => (Promise.resolve()))
 
                 event = {
-                    state: 'in_progress',
+                    state: 'draft',
                     name: 'Event 1',
                     dates: {
                         start: moment('2016-10-15T13:01:00+0000'),
@@ -133,7 +133,7 @@ describe('events', () => {
                 expect(itemActionExists(wrapper, 'Unspike')).toBe(false)
 
                 privileges.planning_event_uspike = 1
-                event.state = 'in_progress'
+                event.state = 'draft'
                 wrapper = getMountedWrapper()
                 expect(itemActionExists(wrapper, 'Unspike')).toBe(false)
             })
@@ -149,7 +149,7 @@ describe('events', () => {
                 expect(itemActionExists(wrapper, 'Duplicate')).toBe(false)
 
                 privileges.planning_event_management = 0
-                event.state = 'in_progress'
+                event.state = 'draft'
                 wrapper = getMountedWrapper()
                 expect(itemActionExists(wrapper, 'Duplicate')).toBe(false)
             })
@@ -157,7 +157,7 @@ describe('events', () => {
             it('shows the `spiked` badge', () => {
                 let wrapper
 
-                event.state = 'in_progress'
+                event.state = 'draft'
                 wrapper = getMountedWrapper()
                 expect(wrapper.find('.label--alert').length).toBe(0)
 
@@ -167,13 +167,13 @@ describe('events', () => {
                 expect(wrapper.find('.label--alert').first().text()).toBe('spiked')
             })
 
-            it('shows the `in progress` badge', () => {
+            it('shows the `draft` badge', () => {
                 let wrapper
 
-                event.state = 'in_progress'
+                event.state = 'draft'
                 wrapper = getMountedWrapper()
                 expect(wrapper.find('.label--yellow2').length).toBe(1)
-                expect(wrapper.find('.label--yellow2').first().text()).toBe('in progress')
+                expect(wrapper.find('.label--yellow2').first().text()).toBe('draft')
             })
 
             it('executes `onClick` callback', () => {

@@ -81,4 +81,4 @@ class PlanningPublishService(BaseService):
     def _get_publish_state(self, plan):
         if plan.get('pubstatus') == PUBLISHED_STATE.CANCELLED:
             return WORKFLOW_STATE.KILLED
-        return WORKFLOW_STATE.PUBLISHED
+        return WORKFLOW_STATE.SCHEDULED

@@ -15,7 +15,7 @@ Feature: Events Postpone
                 "end": "2029-11-21T14:00:00.000Z",
                 "tz": "Australia/Sydney"
             },
-            "state": "in_progress",
+            "state": "draft",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "session123"
         }]
@@ -68,7 +68,7 @@ Feature: Events Postpone
                 "end": "2029-11-21T14:00:00.000Z",
                 "tz": "Australia/Sydney"
             },
-            "state": "in_progress"
+            "state": "draft"
         }]
         """
         Given "planning"
@@ -78,14 +78,14 @@ Feature: Events Postpone
             "guid": "plan1",
             "slugline": "TestPlan 1",
             "event_item": "event1",
-            "state": "in_progress"
+            "state": "draft"
         },
         {
             "_id": "plan2",
             "guid": "plan2",
             "slugline": "TestPlan 2",
             "event_item": "event1",
-            "state": "in_progress"
+            "state": "draft"
         }]
         """
         When we perform postpone on events "event1"
@@ -196,7 +196,7 @@ Feature: Events Postpone
                     "endRepeatMode": "count"
                 }
             },
-            "state": "in_progress"
+            "state": "draft"
         }]
         """
         Then we get OK response
@@ -249,7 +249,7 @@ Feature: Events Postpone
                 "qcode": "eocstat:eos5",
                 "name": "Planned, occurs certainly"
             },
-            "state": "in_progress"
+            "state": "draft"
         }]
         """
         Given "planning"
@@ -260,7 +260,7 @@ Feature: Events Postpone
             "slugline": "TestPlan 1",
             "event_item": "event1",
             "ednote": "We're covering this Event",
-            "state": "in_progress"
+            "state": "draft"
         }]
         """
         Given "coverage"

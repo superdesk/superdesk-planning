@@ -247,7 +247,7 @@ Feature: Events
                 {
                 "event_id": "#events._id#",
                 "operation": "publish",
-                "update": {"state": "published"}
+                "update": {"state": "scheduled"}
                 }
             ]}
         """
@@ -265,7 +265,7 @@ Feature: Events
                 {
                 "event_id": "#events._id#",
                 "operation": "publish",
-                "update": {"state": "published"}
+                "update": {"state": "scheduled"}
                 },
                 {
                 "event_id": "#events._id#",
@@ -339,7 +339,7 @@ Feature: Events
         {
             "_id": "123",
             "name": "event 123",
-            "state": "published",
+            "state": "scheduled",
             "duplicate_to": ["#duplicate._id#"]
         }
         """
@@ -349,7 +349,7 @@ Feature: Events
         {
             "_id": "#duplicate._id#",
             "name": "event 123",
-            "state": "in_progress",
+            "state": "draft",
             "occur_status": {"qcode": "eocstat:eos5"},
             "duplicate_from": "123"
         }
@@ -364,7 +364,7 @@ Feature: Events
             },
             {
                 "operation": "publish",
-                "update": { "state" : "published", "pubstatus": "usable" }
+                "update": { "state" : "scheduled", "pubstatus": "usable" }
             },
             {
                 "operation": "create",

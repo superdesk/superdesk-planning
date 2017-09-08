@@ -63,7 +63,7 @@ class PlanningDuplicateService(BaseService):
                   'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus'):
             new_plan.pop(f, None)
 
-        new_plan[ITEM_STATE] = WORKFLOW_STATE.IN_PROGRESS
+        new_plan[ITEM_STATE] = WORKFLOW_STATE.DRAFT
         new_plan['guid'] = generate_guid(type=GUID_NEWSML)
 
         return new_plan
