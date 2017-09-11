@@ -21,6 +21,7 @@ class EventsPublishResource(EventsResource):
     url = 'events/publish'
     resource_title = endpoint_name = 'events_publish'
     resource_methods = ['POST']
+    privileges = {'POST': 'planning_event_publish'}
     item_methods = []
 
 

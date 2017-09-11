@@ -97,7 +97,7 @@ describe('events', () => {
                     duplicateEvent: () => {},
                     spikeEvent: () => {},
                 }
-                const priv = { planning_event_management: 1 }
+                const priv = { planning_event_publish: 1 }
                 const onMinimize =  sinon.stub().returns(Promise.resolve())
                 const props = {
                     ...requiredProps,

@@ -33,6 +33,7 @@ class PlanningPublishResource(PlanningResource):
     url = 'planning/publish'
     resource_title = endpoint_name = 'planning_publish'
     resource_methods = ['POST']
+    privileges = {'POST': 'planning_planning_publish'}
     item_methods = []
 
 
