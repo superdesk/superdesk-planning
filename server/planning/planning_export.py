@@ -13,7 +13,7 @@ TEMPLATE = '''
 <p><b>{{ item.headline or item.slugline }}</b></p>
 <p>{{ item.description_text }}</p>
 <p></p>
-{% if item.get('event') %}
+{% if item.get('event', {}).get('location') %}
 <p>Location: {{ item.event.location[0].name }}.</p>
 {% endif %}
 <p>Editorial note: {{ item.ednote }}</p>
