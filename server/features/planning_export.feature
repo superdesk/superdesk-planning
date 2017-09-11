@@ -30,13 +30,21 @@ Feature: Export planning items
         ]
         """
 
+        Given "events"
+        """
+        [
+            {"name": "test", "dates": {}, "location": []}
+        ]
+        """
+
         Given "planning"
         """
         [
             {
                 "headline": "Planning 1",
                 "slugline": "planning-1",
-                "description_text": "desc"
+                "description_text": "desc",
+                "event_item": "#events._id#"
             }
         ]
         """
