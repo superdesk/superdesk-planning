@@ -1,15 +1,7 @@
 Feature: Export planning items
 
-    @wip
     @auth
     Scenario: Export planning items as an article
-        Given "desks"
-        """
-        [
-            {"name": "sports"}
-        ]
-        """
-
         Given "content_templates"
         """
         [
@@ -21,10 +13,49 @@ Feature: Export planning items
         ]
         """
 
+        Given "desks"
+        """
+        [
+            {"name": "sports", "default_content_template": "#content_templates._id#"}
+        ]
+        """
+
+        Given "vocabularies"
+        """
+        [
+            {"_id": "g2_content_type", "items": [
+                {"is_active": true, "name": "Text", "qcode": "text"},
+                {"is_active": true, "name": "Photo", "qcode": "photo"}
+            ]}
+        ]
+        """
+
         Given "planning"
         """
         [
-            {"headline": "Planning 1", "slugline": "planning-1", "description_text": "desc"}
+            {
+                "headline": "Planning 1",
+                "slugline": "planning-1",
+                "description_text": "desc"
+            }
+        ]
+        """
+
+        Given "coverage"
+        """
+        [
+            {
+                "planning_item": "#planning._id#",
+                "planning": {
+                    "g2_content_type": "text"
+                }
+            },
+            {
+                "planning_item": "#planning._id#",
+                "planning": {
+                    "g2_content_type": "photo"
+                }
+            }
         ]
         """
 
@@ -39,6 +70,10 @@ Feature: Export planning items
             "slugline": "Foo",
             "task": {"desk": "#desks._id#", "stage": "#desks.working_stage#"}
         }
+        """
+        And we get text in "body_html"
+        """
+        Planned coverage: Text, Photo
         """
         When we get "archive"
         Then we get list with 1 items
