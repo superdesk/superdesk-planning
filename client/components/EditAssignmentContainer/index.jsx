@@ -90,4 +90,7 @@ const mapDispatchToProps = (dispatch) => (
 
 export const EditAssignmentContainer = connect(
     mapStateToProps, mapDispatchToProps
-)(reduxForm({ form: 'assignment' })(EditAssignment))
+)(reduxForm({
+    form: 'assignment',
+    enableReinitialize: true,
+})(EditAssignment))
