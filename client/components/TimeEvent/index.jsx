@@ -1,9 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import momentPropTypes from 'react-moment-proptypes'
-import { OverlayTrigger } from 'react-bootstrap'
-import { Datetime, tooltips } from '../index'
+import { Datetime } from '../index'
 import { eventUtils } from '../../utils'
+import { TOOLTIPS } from '../../constants'
 import { get } from 'lodash'
 import './style.scss'
 
@@ -41,12 +41,11 @@ export const TimeEvent = ({ event, withDate=false }) => {
     // in a Tooltip overlay and display the icon-repeat
     if (isRecurringEvent) {
         return (
-            <OverlayTrigger placement="bottom" overlay={tooltips.repeatingEventTooltip}>
-                <span className="TimeEvent">
-                    {label}
-                    <i className="icon-repeat"/>
-                </span>
-            </OverlayTrigger>
+            <span className="TimeEvent" data-sd-tooltip={TOOLTIPS.repeatingEvent}
+                data-flow='down'>
+                {label}
+                <i className="icon-repeat"/>
+            </span>
         )
     // Otherwise simply return the date/time component
     } else {

@@ -1,7 +1,6 @@
 /* eslint-disable react/no-multi-comp */
 import React from 'react'
 import PropTypes from 'prop-types'
-import { OverlayTrigger } from 'react-bootstrap'
 import classNames from 'classnames'
 import { get } from 'lodash'
 import { getItemWorkflowStateLabel, getItemPublishedStateLabel } from '../../utils'
@@ -26,9 +25,9 @@ export const StateLabel = ({ item, verbose, withPubStatus }) => {
 
         if (state.tooltip) {
             return (
-                <OverlayTrigger placement="bottom" overlay={state.tooltip}>
+                <span data-sd-tooltip={state.tooltip} data-flow='down'>
                     {label}
-                </OverlayTrigger>
+                </span>
             )
         } else {
             return label

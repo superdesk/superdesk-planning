@@ -11,8 +11,6 @@ import {
 } from '../../components'
 import * as selectors from '../../selectors'
 import { get } from 'lodash'
-import { OverlayTrigger } from 'react-bootstrap'
-import { tooltips } from '../index'
 import { UserAvatar, UnlockItem } from '../'
 import classNames from 'classnames'
 import './style.scss'
@@ -24,7 +22,7 @@ import {
     isItemSpiked,
     isItemPublic,
 } from '../../utils'
-import { GENERIC_ITEM_ACTIONS, PRIVILEGES, EVENTS } from '../../constants/index'
+import { GENERIC_ITEM_ACTIONS, PRIVILEGES, EVENTS, TOOLTIPS } from '../../constants/index'
 
 // Helper enum for Publish method when saving
 const saveMethods = {
@@ -281,23 +279,23 @@ export class EditPlanningPanel extends React.Component {
                             }
 
                             {forceReadOnly && showEdit &&
-                                <OverlayTrigger placement="bottom" overlay={tooltips.editTooltip}>
-                                    <button
-                                        className="EditPlanningPanel__actions__edit navbtn navbtn--right"
-                                        onClick={openPlanningEditor.bind(this, get(planning, '_id'))}>
-                                        <i className="icon-pencil"/>
-                                    </button>
-                                </OverlayTrigger>
+                                <button
+                                    className={'EditPlanningPanel__actions__edit navbtn navbtn--right'
+                                        + ' tooltipVisibleElement'}
+                                    onClick={openPlanningEditor.bind(this, get(planning, '_id'))}
+                                    data-sd-tooltip={TOOLTIPS.edit} data-flow='down'>
+                                    <i className="icon-pencil"/>
+                                </button>
                             }
 
                             {forceReadOnly &&
-                                <OverlayTrigger placement="bottom" overlay={tooltips.closeTooltip}>
-                                    <button
-                                        className="EditPlanningPanel__actions__edit navbtn navbtn--right"
-                                        onClick={closePlanningEditor.bind(null, null)}>
-                                        <i className="icon-close-small"/>
-                                    </button>
-                                </OverlayTrigger>
+                                <button
+                                    className={'EditPlanningPanel__actions__edit navbtn navbtn--right'
+                                        + ' tooltipVisibleElement'}
+                                    onClick={closePlanningEditor.bind(null, null)}
+                                    data-sd-tooltip={TOOLTIPS.close} data-flow='down'>
+                                    <i className="icon-close-small"/>
+                                </button>
                             }
                         </div>
                     }

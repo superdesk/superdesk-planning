@@ -27,3 +27,21 @@
 		cursor: default;
 	}
 }
+
+[data-sd-tooltip] {
+	z-index: 1000 !important;
+	opacity: 1 !important;
+}
+
+
+.sd-list-item__column {
+	overflow: visible !important;
+}
+
+.sd-list-item__row {
+	overflow: visible !important;
+}
+
+.tooltipVisibleElement {
+	overflow: visible !important;
+}

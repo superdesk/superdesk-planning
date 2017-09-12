@@ -10,9 +10,8 @@ import {
     UntilDateValidator,
     EventMaxEndRepeatCount } from '../../validators'
 import './style.scss'
-import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS } from '../../constants'
+import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS, TOOLTIPS } from '../../constants'
 import * as selectors from '../../selectors'
-import { OverlayTrigger } from 'react-bootstrap'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
 import {
@@ -33,7 +32,6 @@ import {
     UnlockItem,
     UserAvatar,
     StateLabel,
-    tooltips,
     EventScheduleForm,
     EventScheduleSummary,
     ToggleBox,
@@ -254,16 +252,13 @@ export class Component extends React.Component {
                                         Unpublish</button>
                                 }
                                 {canEditEvent && (
-                                    <OverlayTrigger
-                                        placement="bottom"
-                                        overlay={tooltips.editTooltip}>
-                                        <button
-                                            type='button'
-                                            onClick={openEventDetails.bind(null, initialValues)}
-                                            className="navbtn navbtn--right">
-                                            <i className="icon-pencil"/>
-                                        </button>
-                                    </OverlayTrigger>
+                                    <button
+                                        type='button'
+                                        onClick={openEventDetails.bind(null, initialValues)}
+                                        className="navbtn navbtn--right tooltipVisibleElement"
+                                        data-sd-tooltip={TOOLTIPS.edit} data-flow='down'>
+                                        <i className="icon-pencil"/>
+                                    </button>
                                 )}
                             </div>
                         </div>
