@@ -7,6 +7,10 @@ import * as selectors from '../../selectors'
 import { isItemPublic } from '../../utils/index'
 import './style.scss'
 import { get } from 'lodash'
+import {
+    ChainValidators,
+    RequiredFieldsValidatorFactory,
+    MaxLengthValidatorFactory } from '../../validators'
 
 class Component extends React.Component {
 
@@ -30,34 +34,37 @@ class Component extends React.Component {
         return (
             <form onSubmit={handleSubmit} className="PlanningForm">
                 <fieldset>
-                    {get(formProfile, 'editor.slugline.enabled') &&
+                    {get(formProfile.planning, 'editor.slugline.enabled') &&
                         <div className="form__row">
                             <Field
                                 name="slugline"
                                 component={fields.InputField}
                                 type="text"
                                 label="Slugline"
+                                required={get(formProfile.planning, 'schema.slugline.required')}
                                 readOnly={readOnly} />
                         </div>
                     }
-                    {get(formProfile, 'editor.description_text.enabled') &&
+                    {get(formProfile.planning, 'editor.description_text.enabled') &&
                         <div className="form__row">
                             <Field
                             name="description_text"
                             component={fields.InputTextAreaField}
                             label="Description"
+                            required={get(formProfile.planning, 'schema.description_text.required')}
                             readOnly={readOnly} />
                         </div>
                     }
-                    {get(formProfile, 'editor.internal_note.enabled') &&
+                    {get(formProfile.planning, 'editor.internal_note.enabled') &&
                         <div className="form__row">
                             <Field name="internal_note"
                                 component={fields.InputTextAreaField}
                                 label="Internal Note"
+                                required={get(formProfile.planning, 'schema.internal_note.required')}
                                 readOnly={readOnly}/>
                         </div>
                     }
-                    {get(formProfile, 'editor.agendas.enabled') &&
+                    {get(formProfile.planning, 'editor.agendas.enabled') &&
                         <div className="form__row">
                             <Field
                                 name="agendas"
@@ -67,34 +74,37 @@ class Component extends React.Component {
                         </div>
                     }
                     <ToggleBox title="Details" isOpen={false}>
-                        {get(formProfile, 'editor.ednote.enabled') &&
+                        {get(formProfile.planning, 'editor.ednote.enabled') &&
                         <div className="form__row">
                             <Field
                                 name="ednote"
                                 component={fields.InputTextAreaField}
                                 label="Ed Note"
+                                required={get(formProfile.planning, 'schema.ednote.required')}
                                 readOnly={readOnly} />
                         </div>
                         }
-                        {get(formProfile, 'editor.anpa_category.enabled') &&
+                        {get(formProfile.planning, 'editor.anpa_category.enabled') &&
                         <div className="form__row">
                             <Field
                                 name="anpa_category"
                                 component={fields.CategoryField}
                                 label="Category"
+                                required={get(formProfile.planning, 'schema.anpa_category.required')}
                                 readOnly={readOnly} />
                         </div>
                         }
-                        {get(formProfile, 'editor.subject.enabled') &&
+                        {get(formProfile.planning, 'editor.subject.enabled') &&
                         <div className="form__row">
                             <Field
                                 name="subject"
                                 component={fields.SubjectField}
                                 label="Subject"
+                                required={get(formProfile.planning, 'schema.subject.required')}
                                 readOnly={readOnly} />
                         </div>
                         }
-                        {get(formProfile, 'editor.urgency.enabled') &&
+                        {get(formProfile.planning, 'editor.urgency.enabled') &&
                         <div className="form__row">
                             <Field
                                 name="urgency"
@@ -102,7 +112,7 @@ class Component extends React.Component {
                                 readOnly={readOnly} />
                         </div>
                         }
-                        {get(formProfile, 'editor.flags') && !isPublic &&
+                        {get(formProfile.planning, 'editor.flags') && !isPublic &&
                             <div className="form__row">
                                 <Field
                                     name="flags.marked_for_not_publication"
@@ -148,6 +158,10 @@ Component.propTypes = {
 // Decorate the form component
 const PlanningReduxForm = reduxForm({
     form: 'planning', // a unique name for this form
+    validate: ChainValidators([
+        RequiredFieldsValidatorFactory(),
+        MaxLengthValidatorFactory(),
+    ]),
     enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
@@ -159,7 +173,7 @@ const mapStateToProps = (state) => ({
     pubstatus: selector(state, 'pubstatus'), // Used to determine `Published State`
     users: selectors.getUsers(state),
     desks: state.desks && state.desks.length > 0 ? state.desks : [],
-    formProfile: selectors.getPlanningsFormsProfile(state),
+    formProfile: selectors.getPlanningTypeProfile(state),
 })
 
 export const PlanningForm = connect(

@@ -92,6 +92,16 @@ export const getCoverageFormsProfile = (state) => get(state, 'formsProfile.cover
 export const getVocabularies = (state) => get(state, 'vocabularies')
 export const getSelectedPlanningItems = (state) => get(state, 'planning.selectedItems')
 
+export const getPlanningTypeProfile = createSelector(
+    [getPlanningsFormsProfile, getCoverageFormsProfile],
+    (planningProfile, coverageProfile) => (
+        {
+            planning: planningProfile,
+            coverage: coverageProfile,
+        }
+    )
+)
+
 export const getUsersMergedCoverageProviders = createSelector(
     [getUsers, getVocabularies],
     (users, vocabularies) => {

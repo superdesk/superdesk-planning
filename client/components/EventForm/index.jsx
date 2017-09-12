@@ -7,6 +7,7 @@ import {
     ChainValidators,
     EndDateAfterStartDate,
     RequiredFieldsValidatorFactory,
+    MaxLengthValidatorFactory,
     UntilDateValidator,
     EventMaxEndRepeatCount } from '../../validators'
 import './style.scss'
@@ -302,16 +303,33 @@ export class Component extends React.Component {
                     </div>
                     {existingEvent && <StateLabel item={initialValues} verbose={true}/>}
                     {error && <div className="error-block">{error}</div>}
-
                     {existingEvent &&
                         <EventScheduleSummary schedule={currentSchedule}/>
                     }
-
-                    {get(formProfile, 'editor.slugline.enabled') && fieldRenders.renderSlugline(forcedReadOnly)}
-                    {get(formProfile, 'editor.name.enabled') && fieldRenders.renderName(forcedReadOnly)}
-                    {get(formProfile, 'editor.definition_short.enabled') && fieldRenders.renderDescription(forcedReadOnly)}
-                    {get(formProfile, 'editor.occur_status.enabled') && fieldRenders.renderOccurStatus(forcedReadOnly)}
-
+                    {get(formProfile, 'editor.slugline.enabled') && fieldRenders.renderSlugline(
+                        {
+                            readOnly: forcedReadOnly,
+                            fieldSchema: formProfile.schema.slugline,
+                        }
+                    )}
+                    {get(formProfile, 'editor.name.enabled') && fieldRenders.renderName(
+                        {
+                            readOnly: forcedReadOnly,
+                            fieldSchema: get(formProfile, 'schema.name'),
+                        }
+                    )}
+                    {get(formProfile, 'editor.definition_short.enabled') && fieldRenders.renderDescription(
+                        {
+                            readOnly: forcedReadOnly,
+                            fieldSchema: get(formProfile, 'schema.definition_short'),
+                        }
+                    )}
+                    {get(formProfile, 'editor.occur_status.enabled') && fieldRenders.renderOccurStatus(
+                        {
+                            readOnly: forcedReadOnly,
+                            fieldSchema: get(formProfile, 'schema.occur_status'),
+                        }
+                    )}
                     {!existingEvent &&
                         <EventScheduleForm
                             readOnly={false}
@@ -321,29 +339,64 @@ export class Component extends React.Component {
                             pristine={pristine}
                         />
                     }
-
-                    {get(formProfile, 'editor.location.enabled') && fieldRenders.renderLocation(forcedReadOnly)}
-
+                    {get(formProfile, 'editor.location.enabled') && fieldRenders.renderLocation(
+                        {
+                            readOnly: forcedReadOnly,
+                            fieldSchema: get(formProfile, 'schema.location'),
+                        }
+                    )}
                     <ToggleBox title="Details" isOpen={false}>
-                        {get(formProfile, 'editor.calendars.enabled') && fieldRenders.renderCalender(forcedReadOnly)}
-                        {get(formProfile, 'editor.anpa_category.enabled') && fieldRenders.renderCategory(forcedReadOnly)}
-                        {get(formProfile, 'editor.subject.enabled') && fieldRenders.renderSubject(forcedReadOnly)}
-                        {get(formProfile, 'editor.definition_long.enabled') && fieldRenders.renderLongDescription(forcedReadOnly)}
-                        {get(formProfile, 'editor.internal_note.enabled') && fieldRenders.renderInternalNote(forcedReadOnly)}
+                        {get(formProfile, 'editor.calendars.enabled') && fieldRenders.renderCalender(
+                            {
+                                readOnly: forcedReadOnly,
+                                fieldSchema: get(formProfile, 'schema.calendars'),
+                            }
+                        )}
+                        {get(formProfile, 'editor.anpa_category.enabled') && fieldRenders.renderCategory(
+                            {
+                                readOnly: forcedReadOnly,
+                                fieldSchema: get(formProfile, 'schema.anpa_category'),
+                            }
+                        )}
+                        {get(formProfile, 'editor.subject.enabled') && fieldRenders.renderSubject(
+                            {
+                                readOnly: forcedReadOnly,
+                                fieldSchema: get(formProfile, 'schema.subject'),
+                            }
+                        )}
+                        {get(formProfile, 'editor.definition_long.enabled') && fieldRenders.renderLongDescription(
+                            {
+                                readOnly: forcedReadOnly,
+                                fieldSchema: get(formProfile, 'schema.definition_long'),
+                            }
+                        )}
+                        {get(formProfile, 'editor.internal_note.enabled') && fieldRenders.renderInternalNote(
+                            {
+                                readOnly: forcedReadOnly,
+                                fieldSchema: get(formProfile, 'schema.internal_note'),
+                            }
+                        )}
                     </ToggleBox>
-
                     {get(formProfile, 'editor.files.enabled') &&
                         <ToggleBox title="Attached Files" isOpen={false}>
-                            {fieldRenders.renderFiles(forcedReadOnly)}
+                            {fieldRenders.renderFiles(
+                                {
+                                    readOnly: forcedReadOnly,
+                                    fieldSchema: get(formProfile, 'schema.files'),
+                                }
+                            )}
                         </ToggleBox>
                     }
-
                     {get(formProfile, 'editor.links.enabled') &&
                         <ToggleBox title="External Links" isOpen={false}>
-                            {fieldRenders.renderLinks(forcedReadOnly)}
+                            {fieldRenders.renderLinks(
+                                {
+                                    readOnly: forcedReadOnly,
+                                    fieldSchema: get(formProfile, 'schema.links'),
+                                }
+                            )}
                         </ToggleBox>
                     }
-
                     {initialValues && initialValues._plannings &&
                         initialValues._plannings.length > 0 &&
                         <ToggleBox title="Related Planning Items" isOpen={false}>
@@ -410,6 +463,7 @@ export const FormComponent = reduxForm({
     validate: ChainValidators([
         EndDateAfterStartDate,
         RequiredFieldsValidatorFactory(['dates.start', 'dates.end']),
+        MaxLengthValidatorFactory(),
         UntilDateValidator,
         EventMaxEndRepeatCount,
     ]),
