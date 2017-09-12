@@ -1,11 +1,14 @@
 import React, { PropTypes } from 'react'
 import { get, capitalize, some } from 'lodash'
 import { ListItem, TimePlanning, DueDate, ItemActionsMenu, StateLabel, Checkbox } from '../index'
+import { connect } from 'react-redux'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import classNames from 'classnames'
 import { GENERIC_ITEM_ACTIONS, EVENTS } from '../../constants/index'
 import './style.scss'
 import { getCoverageIcon, planningUtils, isItemCancelled, isItemRescheduled } from '../../utils/index'
+import { getCurrentAgendaId } from '../../selectors'
+
 
 const PlanningItem = ({
         item,
@@ -28,6 +31,7 @@ const PlanningItem = ({
         onConvertToRecurringEvent,
         onSelectItem,
         isSelected,
+        currentAgendaId,
     }) => {
     const location = get(event, 'location[0].name')
     const coverages = get(item, 'coverages', [])
@@ -109,7 +113,7 @@ const PlanningItem = ({
                         {item.slugline &&
                             <span className="ListItem__slugline">{item.slugline}</span>
                         }
-                        <span className="ListItem__headline">{item.headline}</span>
+                        <span className="ListItem__headline">{item.description_text}</span>
                     </span>
                     {event &&
                         <span className="PlanningItem__event sd-no-wrap">
@@ -145,6 +149,10 @@ const PlanningItem = ({
                                     return null
                                 }
 
+                                if (agenda._id === currentAgendaId) {
+                                    return null
+                                }
+
                                 let style = agenda.is_enabled ? 'label--primary label--hollow' : 'label--hollow'
 
                                 return ( <span key={'agenda-label-'+ agenda._id}
@@ -175,6 +183,8 @@ const PlanningItem = ({
     )
 }
 
+const mapStateToProps = (state) => ({ currentAgendaId: getCurrentAgendaId(state) })
+
 PlanningItem.propTypes = {
     item: PropTypes.object.isRequired,
     agendas: PropTypes.array.isRequired,
@@ -196,6 +206,7 @@ PlanningItem.propTypes = {
     onConvertToRecurringEvent: PropTypes.func,
     isSelected: PropTypes.bool,
     onSelectItem: PropTypes.func.isRequired,
+    currentAgendaId: PropTypes.string,
 }
 
-export default PlanningItem
+export default connect(mapStateToProps)(PlanningItem)
