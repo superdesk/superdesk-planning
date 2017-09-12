@@ -19,15 +19,15 @@ const canSavePlanning = (planning, event, privileges) => (
 const canPublishPlanning = (planning, event, privileges, session) => {
     const planState = getItemWorkflowState(planning)
     const eventState = getItemWorkflowState(event)
-    return !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isItemLockRestricted(planning, session) && (planState === WORKFLOW_STATE.DRAFT ||
-        planState === WORKFLOW_STATE.KILLED) && eventState !== WORKFLOW_STATE.SPIKED
+    return !!privileges[PRIVILEGES.PUBLISH_PLANNING] && !isItemLockRestricted(planning, session) &&
+        (planState === WORKFLOW_STATE.DRAFT || planState === WORKFLOW_STATE.KILLED) &&
+        eventState !== WORKFLOW_STATE.SPIKED
 }
 
 const canUnpublishPlanning = (planning, event, privileges, session) => {
     const planState = getItemWorkflowState(planning)
     const eventState = getItemWorkflowState(event)
-    return !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+    return !!privileges[PRIVILEGES.PUBLISH_PLANNING] &&
         !isItemLockRestricted(planning, session) && planState === WORKFLOW_STATE.SCHEDULED &&
         eventState !== WORKFLOW_STATE.SPIKED
 }

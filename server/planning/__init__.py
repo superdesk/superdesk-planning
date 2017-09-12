@@ -263,6 +263,18 @@ def init_app(app):
         description='Ability to unspike an Event'
     )
 
+    superdesk.privilege(
+        name='planning_event_publish',
+        label='Planning - Publish Event Items',
+        description='Ability to publish an Event'
+    )
+
+    superdesk.privilege(
+        name='planning_planning_publish',
+        label='Planning - Publish Planning Items',
+        description='Ability to publish a Planning Item'
+    )
+
     superdesk.intrinsic_privilege(PlanningUnlockResource.endpoint_name, method=['POST'])
     superdesk.intrinsic_privilege(EventsUnlockResource.endpoint_name, method=['POST'])
 

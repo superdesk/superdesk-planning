@@ -145,13 +145,13 @@ const canCreatePlanningFromEvent = (event, session, privileges) => (
 
 const canPublishEvent = (event, session, privileges) => (
     !isItemSpiked(event) && getPublishedState(event) !== PUBLISHED_STATE.USABLE &&
-        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemLockRestricted(event, session) &&
+        !!privileges[PRIVILEGES.PUBLISH_EVENT] && !isItemLockRestricted(event, session) &&
         !isItemCancelled(event) && !isItemRescheduled(event)
 )
 
 const canUnpublishEvent = (event, privileges) => (
     getItemWorkflowState(event) === WORKFLOW_STATE.SCHEDULED &&
-        !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
+        !!privileges[PRIVILEGES.PUBLISH_EVENT]
 )
 
 const canCancelEvent = (event, session, privileges) => (
