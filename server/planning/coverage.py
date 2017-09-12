@@ -94,10 +94,13 @@ class CoverageService(superdesk.Service):
                 # This will create activity records - inappropirate
                 if ObjectId.is_valid(planning['assigned_to'].get('user')):
                     add_activity(ACTIVITY_UPDATE,
-                                 '{{assignor}} assigned a coverage to you',
+                                 '{{assignor}} assigned a coverage to {{assignee}}',
                                  self.datasource,
                                  notify=[planning['assigned_to'].get('user')],
-                                 assignor=user.get('username'))
+                                 assignor=user.get('username') if str(user.get(config.ID_FIELD, None)) != planning[
+                                     'assigned_to'].get('user') else 'You',
+                                 assignee='you' if str(user.get(config.ID_FIELD, None)) != planning['assigned_to'].get(
+                                     'user') else 'yourself')
 
 
 planning_type = deepcopy(superdesk.Resource.rel('planning', type='string'))
