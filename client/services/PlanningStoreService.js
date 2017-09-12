@@ -59,8 +59,9 @@ export function PlanningStoreService(
     this.createStore = function() {
         const _notify = {
             pop: () => $timeout(() => notify.pop()),
-            success: (msg) => $timeout(() => notify.success(msg)),
-            error: (msg) => $timeout(() => notify.error(msg)),
+            error: (msg, ttl, options) => $timeout(() => notify.error(msg, ttl, options)),
+            success: (msg, ttl, options) => $timeout(() => notify.success(msg, ttl, options)),
+            warning: (msg, ttl, options) => $timeout(() => notify.warning(msg, ttl, options)),
         }
 
         return $q.all({
