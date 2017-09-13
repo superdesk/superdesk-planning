@@ -92,6 +92,10 @@ describe('<PlanningForm />', () => {
     describe('coverages', () => {
         it('removes a coverage', (done) => {
             setStore()
+            const pid = data.plannings[0]._id
+            store.getState().planning.plannings[pid].coverages.forEach((cov) => {
+                delete cov.assigned_to
+            })
             const { form, coverageContainers } = getWrapper()
 
             expect(coverageContainers().length).toBe(3)
@@ -107,16 +111,33 @@ describe('<PlanningForm />', () => {
             form.simulate('submit')
 
             setTimeout(() => {
-                expect(services.api('coverage').remove.callCount).toBe(2)
-                expect(services.api('coverage').remove.args[0]).toEqual([data.coverages[0]])
-                expect(services.api('coverage').remove.args[1]).toEqual([data.coverages[1]])
+                expect(services.api('planning').save.callCount).toBe(1)
 
                 done()
             }, 500)
         })
 
+        it('cannot remove a coverage if assigned', (done) => {
+            setStore()
+            const { coverageContainers } = getWrapper()
+
+            expect(coverageContainers().length).toBe(3)
+
+            coverageContainers().at(0).find('.dropdown__toggle').simulate('click')
+            expect(coverageContainers().at(0).find('li button .icon-trash').length).toBe(0)
+
+            coverageContainers().at(1).find('.dropdown__toggle').simulate('click')
+            expect(coverageContainers().at(1).find('li button .icon-trash').length).toBe(0)
+
+            done()
+        })
+
         it('cannot remove all coverages', () => {
             setStore()
+            const pid = data.plannings[0]._id
+            store.getState().planning.plannings[pid].coverages.forEach((cov) => {
+                delete cov.assigned_to
+            })
             const { coverageContainers } = getWrapper()
 
             expect(coverageContainers().length).toBe(3)
@@ -141,10 +162,8 @@ describe('<PlanningForm />', () => {
             expect(coverageContainers().length).toBe(4)
 
             const coveragesProps = coveragesField.props()
-            expect(coveragesProps.headline).toBe('Some Plan 1')
             expect(coveragesProps.slugline).toBe('Planning1')
             expect(coveragesProps.fields.length).toBe(4)
-            expect(coveragesProps.fields.get(3).planning.headline).toBe('Some Plan 1')
             expect(coveragesProps.fields.get(3).planning.slugline).toBe('Planning1')
 
         })

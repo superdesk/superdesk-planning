@@ -49,19 +49,18 @@ class PlanningCancelService(BaseService):
     def update(self, id, updates, original):
         user = get_user(required=True).get(config.ID_FIELD, '')
         session = get_auth().get(config.ID_FIELD, '')
-        coverage_service = get_resource_service('coverage')
         coverage_states = get_resource_service('vocabularies').find_one(
             req=None,
             _id='newscoveragestatus'
         )
 
-        event_cancellation = updates.get('event_cancellation', False)
-        coverage_cancellation_only = updates.get('coverage_cancellation_only', False)
+        event_cancellation = updates.pop('event_cancellation', False)
+        coverage_cancellation_only = updates.pop('coverage_cancellation_only', False)
 
         coverage_cancel_state = None
         if coverage_states:
-            coverage_cancel_state = [x for x in coverage_states.get('items', []) if
-                                     x['qcode'] == 'ncostat:notint'][0]
+            coverage_cancel_state = next((x for x in coverage_states.get('items', [])
+                                          if x['qcode'] == 'ncostat:notint'), None)
             coverage_cancel_state.pop('is_active', None)
 
         # Formulate the right 'note' for the scenario
@@ -72,26 +71,20 @@ Planning cancelled
             note = '''------------------------------------------------------------
 Event cancelled
 '''
-            del updates['event_cancellation']
-
         elif coverage_cancellation_only:
             note = '''------------------------------------------------------------
 Coverage cancelled
 '''
-            del updates['coverage_cancellation_only']
-
-        coverages = list(coverage_service.find(
-            where={'planning_item': original[config.ID_FIELD]}
-        ))
-
         ids = []
+        updates['coverages'] = deepcopy(original.get('coverages'))
+        coverages = updates.get('coverages') or []
+        reason = updates.pop('reason', None)
+
         for coverage in coverages:
             if coverage_cancel_state and coverage.get('news_coverage_status')['qcode'] !=\
                     coverage_cancel_state['qcode']:
-                ids.append(coverage.get(config.ID_FIELD))
-                self._cancel_coverage(updates, coverage, coverage_service, coverage_cancel_state, note)
-
-        reason = updates.get('reason', None)
+                ids.append(coverage.get('coverage_id'))
+                self._cancel_coverage(coverage, coverage_cancel_state, note, reason)
 
         if coverage_cancellation_only:
             push_notification(
@@ -103,12 +96,11 @@ Coverage cancelled
                 coverage_state=coverage_cancel_state,
                 ids=ids
             )
-            return
-        else:
-            self._cancel_plan(updates, original, note)
 
-        if reason:
-            del updates['reason']
+            item = self.backend.update(self.datasource, id, updates, original)
+            return item
+
+        self._cancel_plan(updates, original, note, reason)
 
         item = self.backend.update(self.datasource, id, updates, original)
 
@@ -124,9 +116,9 @@ Coverage cancelled
 
         return item
 
-    def _cancel_plan(self, updates, original, ednote):
-        if updates.get('reason', None) is not None:
-            ednote += 'Reason: {}\n'.format(updates['reason'])
+    def _cancel_plan(self, updates, original, ednote, reason):
+        if reason:
+            ednote += 'Reason: {}\n'.format(reason)
 
         if 'ednote' in original:
             ednote = original['ednote'] + '\n\n' + ednote
@@ -134,22 +126,13 @@ Coverage cancelled
         updates['ednote'] = ednote
         updates[ITEM_STATE] = WORKFLOW_STATE.CANCELLED
 
-    def _cancel_coverage(self, updates, coverage, coverage_service, coverage_cancel_state, note):
-        if updates.get('reason', None) is not None:
-            note += 'Reason: {}\n'.format(updates['reason'])
+    def _cancel_coverage(self, coverage, coverage_cancel_state, note, reason):
+        if reason:
+            note += 'Reason: {}\n'.format(reason)
 
-        if 'internal_note' in coverage.get('planning', {}):
-            note = coverage['planning']['internal_note'] + '\n\n' + note
+        if not coverage.get('planning'):
+            coverage['planning'] = {}
 
-        updates = {
-            'planning': deepcopy(coverage.get('planning', {})),
-            'news_coverage_status': coverage_cancel_state
-        }
-
-        updates['planning']['internal_note'] = note
-
-        coverage_service.update(
-            coverage[config.ID_FIELD],
-            updates,
-            coverage
-        )
+        coverage['planning']['internal_note'] = (coverage['planning'].get('internal_note') or '') + '\n\n' + note
+        coverage['news_coverage_status'] = coverage_cancel_state
+        coverage.pop('assigned_to', None)

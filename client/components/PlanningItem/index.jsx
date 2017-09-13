@@ -39,7 +39,7 @@ const PlanningItem = ({
     }) => {
     const location = get(event, 'location[0].name')
     const coverages = get(item, 'coverages', [])
-    const dueDates = get(item, '_coverages', []).map((c) => (get(c, 'scheduled'))).filter(d => (d))
+    const dueDates = get(item, 'coverages', []).map((c) => (get(c, 'planning.scheduled'))).filter(d => (d))
     const coveragesTypes = planningUtils.mapCoverageByDate(coverages)
     const isScheduled = some(coverages, (c) => (get(c, 'planning.scheduled')))
     const notForPublication = item ? get(item, 'flags.marked_for_not_publication', false) : false
@@ -140,8 +140,8 @@ const PlanningItem = ({
                 </div>
                 <div className="sd-list-item__row" style={{ overflow: 'visible' }}>
                     {coveragesTypes.map((c, i) => {
-                        const assignedUserId = get(c, 'planning.assigned_to.user')
-                        const assignedDeskId = get(c, 'planning.assigned_to.desk')
+                        const assignedUserId = get(c, 'assigned_to.user')
+                        const assignedDeskId = get(c, 'assigned_to.desk')
 
                         const user = !assignedUserId ? null :
                             usersMergedCoverageProviders.find((u) => (u._id === assignedUserId))
@@ -157,7 +157,7 @@ const PlanningItem = ({
                                         {(!user && !desk) && 'Unassigned'}
                                         {desk && ('Desk: ' + desk.name)}
                                         <br />
-                                        {user && ('User: ' + user.name)}
+                                        {user && ('User: ' + user.display_name)}
                                     </Tooltip>
                                     }>
                                     <i className={getCoverageIcon(c.g2_content_type) + ` ${c.iconColor}`}/>

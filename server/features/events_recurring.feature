@@ -213,18 +213,15 @@ Feature: Events Recurring
             "event_item": "event1",
             "state": "scheduled",
             "pubstatus": "usable",
-            "ednote": "We planned this."
-        }]
-        """
-        Given "coverage"
-        """
-        [{
-            "_id": "cov1",
-            "guid": "cov1",
-            "planning_item": "plan1",
-            "planning": {
-                "internal_note": "Please write words."
-            }
+            "ednote": "We planned this.",
+            "coverages": [
+                {
+                    "coverage_id": "cov1",
+                    "planning": {
+                        "internal_note": "Please write words."
+                    }
+                }
+            ]
         }]
         """
         When we patch "/events/event1"

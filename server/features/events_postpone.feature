@@ -314,23 +314,19 @@ Feature: Events Postpone
             "slugline": "TestPlan 1",
             "event_item": "event1",
             "ednote": "We're covering this Event",
-            "state": "draft"
-        }]
-        """
-        Given "coverage"
-        """
-        [{
-            "_id": "cov1",
-            "guid": "cov1",
-            "slugline": "TestCoverage 1",
-            "planning": {
-                "internal_note": "Cover something please!"
-            },
-            "planning_item": "plan1",
-            "news_coverage_status": {
-                "qcode": "ncostat:int",
-                "name": "Coverage intended"
-            }
+            "state": "draft",
+            "coverages": [{
+                "coverage_id": "cov1",
+                "slugline": "TestCoverage 1",
+                "planning": {
+                    "internal_note": "Cover something please!"
+                },
+                "planning_item": "plan1",
+                "news_coverage_status": {
+                    "qcode": "ncostat:int",
+                    "name": "Coverage intended"
+                }
+            }]
         }]
         """
         When we perform postpone on events "event1"
@@ -355,7 +351,7 @@ Feature: Events Postpone
             "state": "postponed",
             "ednote": "We're covering this Event\n\n------------------------------------------------------------\nEvent Postponed\nReason: Not happening anymore!\n",
             "coverages": [{
-                "_id": "cov1",
+                "coverage_id": "cov1",
                 "planning": {
                     "internal_note": "Cover something please!\n\n------------------------------------------------------------\nEvent has been postponed\nReason: Not happening anymore!\n"
                 }

@@ -13,7 +13,7 @@ export const eventSearchActive = (state) => !!get(
     'events.search.currentSearch.advancedSearch',
     false
 )
-export const getEvents = (state) => get(state, 'events.events')
+export const getEvents = (state) => get(state, 'events.events', {})
 export const getEventHistory = (state) => get(state, 'events.eventHistoryItems')
 export const isEventListShown = (state) => get(state, 'events.show')
 export const getPreviousEventRequestParams = (state) => get(state, 'events.lastRequestParams', {})
@@ -30,7 +30,7 @@ export const getTimeFormat = (state) => get(state, 'config.shortTimeFormat')
 export const getIframelyKey = (state) => get(state, 'config.iframely.key', null)
 export const getMaxRecurrentEvents = (state) => get(state, 'deployConfig.max_recurrent_events', 200)
 export const getShowEventDetails = (state) => get(state, 'events.showEventDetails')
-export const getSelectedEvents = (state) => get(state, 'events.selectedEvents')
+export const getSelectedEvents = (state) => get(state, 'events.selectedEvents', [])
 export const getHighlightedEvent = (state) => get(state, 'events.highlightedEvent') === true ?
     null : get(state, 'events.highlightedEvent')
 export const getEventsIdsToShowInList = (state) => get(state, 'events.eventsInList', [])
@@ -47,7 +47,8 @@ export const getCurrentAgenda = createSelector(
     }
 )
 
-export const getAssignments = (state) => get(state, 'assignment.assignments', [])
+export const getStoredAssignments = (state) => get(state, 'assignment.assignments', {})
+export const getAssignmentsInList = (state) => get(state, 'assignment.assignmentsInList', [])
 export const getFilterBy = (state) => get(state, 'assignment.filterBy')
 export const getSearchQuery = (state) => get(state, 'assignment.searchQuery')
 export const getOrderByField = (state) => get(state, 'assignment.orderByField')
@@ -60,18 +61,6 @@ export const getAssignmentListSettings = (state) => ({
     orderDirection: getOrderDirection(state),
     lastAssignmentLoadedPage: get(state, 'assignment.lastAssignmentLoadedPage'),
 })
-export const getMyAssignmentsCount = (state) => {
-    const assignments = getAssignments(state)
-    const currentUserId = getCurrentUserId(state)
-
-    if (assignments && currentUserId) {
-        return assignments.reduce((previousValue, assignment) =>
-            previousValue + (
-                get(assignment, 'planning.assigned_to.user') === currentUserId ? 1 : 0
-            ), 0
-        )
-    }
-}
 
 export const getPrivileges = (state) => get(state, 'privileges')
 export const getUsers = (state) => get(state, 'users', [])
@@ -80,7 +69,7 @@ export const getEventReadOnlyState = (state) => get(state, 'events.readOnly')
 export const getSessionDetails = (state) => get(state, 'session')
 export const getCurrentUserId = (state) => get(state, 'session.identity._id')
 export const getPreviewAssignmentOpened = (state) => get(state, 'assignment.previewOpened')
-export const getCurrentAssignment = (state) => get(state, 'assignment.currentAssignment')
+export const getCurrentAssignmentId = (state) => get(state, 'assignment.currentAssignmentId')
 export const getReadOnlyAssignment = (state) => get(state, 'assignment.readOnly')
 
 export const getEventCalendars = (state) => get(state, 'vocabularies.event_calendars', [])
@@ -97,6 +86,10 @@ export const getLockedItems = (state) => get(state, 'locks', {
     recurring: {},
 })
 
+export const getCurrentDeskId = (state) => get(state, 'workspace.currentDeskId', null)
+export const getCurrentStageId = (state) => get(state, 'workspace.currentStageId', null)
+export const getDesks = (state) => get(state, 'desks', [])
+
 export const getPlanningTypeProfile = createSelector(
     [getPlanningsFormsProfile, getCoverageFormsProfile],
     (planningProfile, coverageProfile) => (
@@ -104,6 +97,33 @@ export const getPlanningTypeProfile = createSelector(
             planning: planningProfile,
             coverage: coverageProfile,
         }
+    )
+)
+
+export const getAssignments = createSelector(
+    [getAssignmentsInList, getStoredAssignments],
+    (assignmentIds, storedAssignments) => (
+        assignmentIds.map((aid) => (storedAssignments[aid]))
+    )
+)
+
+export const getMyAssignmentsCount = createSelector(
+    [getAssignments, getCurrentUserId],
+    (assignments, userId) => {
+        if (assignments && userId) {
+            return assignments.reduce((previousValue, assignment) =>
+                previousValue + (
+                    get(assignment, 'assigned_to.user') === userId ? 1 : 0
+                ), 0
+            )
+        }
+    }
+)
+
+export const getCurrentAssignment = createSelector(
+    [getCurrentAssignmentId, getStoredAssignments],
+    (assignmentId, storedAssignments) => (
+        get(storedAssignments, assignmentId, null)
     )
 )
 
@@ -165,7 +185,7 @@ export const getFilteredPlanningListEvents = createSelector(
     (plannings, events) => {
         const eventsByPlanningId = {}
         plannings.forEach((p) => {
-            const e = events[p.event_item]
+            const e = get(events, p.event_item)
             if (e) {
                 eventsByPlanningId[p._id] = e
             }

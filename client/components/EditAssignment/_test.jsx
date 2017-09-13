@@ -1,7 +1,6 @@
 import React from 'react'
 import { mount } from 'enzyme'
-import { CoverageAssign } from './index'
-import sinon from 'sinon'
+import { EditAssignment } from './index'
 
 const desks = [{
     _id: 123,
@@ -34,10 +33,10 @@ class TestForm extends React.Component {
     render() {
         const i = this.props.input ? this.props.input : {}
         return (
-            <CoverageAssign
+            <EditAssignment
                 input={i}
                 usersMergedCoverageProviders={this.props.users}
-                desks={this.props.desks} />
+                desks={this.props.desks} context="coverage"/>
         )
     }
 }
@@ -48,24 +47,23 @@ TestForm.propTypes = {
     input: React.PropTypes.object,
 }
 
-describe('<CoverAssign />', () => {
+describe('<EditAssignment />', () => {
 
     it('Opens assignment popup', () => {
         const wrapper = mount(<TestForm users={users}
                 desks={desks} />)
-
-        wrapper.find('.coverageassign__action').at(1).simulate('click')
-        expect(wrapper.find('.coverageassignselect').length).toBe(1)
+        wrapper.find('.assignment__action').simulate('click')
+        expect(wrapper.find('.assignmentselect').length).toBe(1)
     })
 
     it('Users are populated', () => {
         const wrapper = mount(<TestForm users={users}
                 desks={desks} />)
 
-        wrapper.find('.coverageassign__action').at(1).simulate('click')
+        wrapper.find('.assignment__action').simulate('click')
         const lst = wrapper.find('ul')
         expect(lst.children().length).toBe(3)
-        const lbls = lst.at(0).find('.coverageassignselect__label')
+        const lbls = lst.at(0).find('.assignmentselect__label')
         expect(lbls.get(0).textContent).toBe('firstname lastname')
         expect(lbls.get(1).textContent).toBe('firstname2 lastname2')
         expect(lbls.get(2).textContent).toBe('prvdr_firstname prvdr_lastname')
@@ -74,7 +72,7 @@ describe('<CoverAssign />', () => {
     it('Desks are populated', () => {
         const wrapper = mount(<TestForm users={users}
                 desks={desks} />)
-        wrapper.find('.coverageassign__action').at(1).simulate('click')
+        wrapper.find('.assignment__action').simulate('click')
         const deskSelectFieldComponent = wrapper.find('DeskSelectField')
         expect(deskSelectFieldComponent.props().desks.length).toBe(2)
         expect(deskSelectFieldComponent.props().desks[0].name).toBe('Politic Desk')
@@ -85,10 +83,10 @@ describe('<CoverAssign />', () => {
         const input = { value: { desk: 123 } }
         const wrapper = mount(<TestForm users={users}
                 desks={desks} input={input} />)
-        wrapper.find('.coverageassign__action').at(1).simulate('click')
+        wrapper.find('.assignment__action').simulate('click')
         const lst = wrapper.find('ul')
         expect(lst.children().length).toBe(2)
-        const lbls = lst.at(0).find('.coverageassignselect__label')
+        const lbls = lst.at(0).find('.assignmentselect__label')
         expect(lbls.get(0).textContent).toBe('firstname lastname')
         expect(lbls.get(1).textContent).toBe('prvdr_firstname prvdr_lastname')
     })
@@ -96,7 +94,7 @@ describe('<CoverAssign />', () => {
     it('Selecting a user populates only that user desk', () => {
         const wrapper = mount(<TestForm users={users}
                 desks={desks} />)
-        wrapper.find('.coverageassign__action').at(1).simulate('click')
+        wrapper.find('.assignment__action').simulate('click')
 
         const deskSelectFieldComponent = wrapper.find('DeskSelectField')
         expect(deskSelectFieldComponent.props().desks.length).toBe(2)
@@ -113,29 +111,12 @@ describe('<CoverAssign />', () => {
     it('Cannot save until a desk is selected', () => {
         const wrapper = mount(<TestForm users={users}
                 desks={desks} />)
-        wrapper.find('.coverageassign__action').at(1).simulate('click')
+        wrapper.find('.assignment__action').simulate('click')
 
         const lst = wrapper.find('ul')
         lst.children().first().find('button').simulate('click')
 
         expect(wrapper.find('.btn--primary').length).toBe(0)
-    })
-
-    it('Can unassign', () => {
-        const input = {
-            value: { desk: 123 },
-            onChange: sinon.spy((value) => {
-                expect(value).toEqual({
-                    desk: null,
-                    user: null,
-                })
-            }),
-        }
-        const wrapper = mount(<TestForm users={users}
-                desks={desks} input={input} />)
-        wrapper.find('.coverageassign__action').at(0).simulate('click')
-
-        expect(input.onChange.calledOnce).toBe(true)
     })
 
     it('Shows desk assignment correctly with right avatar', () => {
@@ -165,10 +146,10 @@ describe('<CoverAssign />', () => {
         let input = { value: { desk: 123 } }
         const wrapper = mount(<TestForm users={users}
                 desks={desks} input={input} />)
-        wrapper.find('.coverageassign__action').at(1).simulate('click')
+        wrapper.find('.assignment__action').simulate('click')
         let lst = wrapper.find('ul')
         expect(lst.children().length).toBe(2)
-        let lbls = lst.at(0).find('.coverageassignselect__label')
+        let lbls = lst.at(0).find('.assignmentselect__label')
         expect(lbls.get(0).textContent).toBe('firstname lastname')
         expect(lbls.get(1).textContent).toBe('prvdr_firstname prvdr_lastname')
 
@@ -176,17 +157,17 @@ describe('<CoverAssign />', () => {
         input = { value: { desk: 234 } }
         const wrapper2 = mount(<TestForm users={users}
                 desks={desks} input={input} />)
-        wrapper2.find('.coverageassign__action').at(1).simulate('click')
+        wrapper2.find('.assignment__action').simulate('click')
         lst = wrapper2.find('ul')
         expect(lst.children().length).toBe(1)
-        lbls = lst.at(0).find('.coverageassignselect__label')
+        lbls = lst.at(0).find('.assignmentselect__label')
         expect(lbls.get(0).textContent).toBe('prvdr_firstname prvdr_lastname')
     })
 
     it('Selecting a coverage provider displays all desks', () => {
         const wrapper = mount(<TestForm users={users}
                 desks={desks} />)
-        wrapper.find('.coverageassign__action').at(1).simulate('click')
+        wrapper.find('.assignment__action').simulate('click')
 
         const deskSelectFieldComponent = wrapper.find('DeskSelectField')
         expect(deskSelectFieldComponent.props().desks.length).toBe(2)
@@ -195,7 +176,7 @@ describe('<CoverAssign />', () => {
 
         const lst = wrapper.find('ul')
         const providerOption = lst.children().at(2)
-        expect(providerOption.find('.coverageassignselect__label').get(0).textContent).toBe('prvdr_firstname prvdr_lastname')
+        expect(providerOption.find('.assignmentselect__label').get(0).textContent).toBe('prvdr_firstname prvdr_lastname')
         providerOption.find('button').simulate('click')
 
         expect(deskSelectFieldComponent.props().desks.length).toBe(2)

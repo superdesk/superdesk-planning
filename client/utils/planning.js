@@ -116,17 +116,12 @@ const isPlanningLockRestricted = (plan, session, locks) =>
  * @param {Array} coverages
  * @returns {Array}
  */
-export const mapCoverageByDate = (coverages) => (
+export const mapCoverageByDate = (coverages=[]) => (
     coverages.map((c) => {
         let coverage = {
             g2_content_type: c.planning.g2_content_type || '',
             iconColor: '',
-            planning: {
-                assigned_to: {
-                    user: get(c, 'planning.assigned_to.user'),
-                    desk: get(c, 'planning.assigned_to.desk'),
-                },
-            },
+            assigned_to: get(c, 'assigned_to'),
         }
 
         if (get(c, 'planning.scheduled')) {
@@ -202,6 +197,31 @@ export const getPlanningItemActions = (plan, event=null, session, privileges, ac
     return itemActions
 }
 
+/**
+ * Utility to convert a genre from an Array to an Object
+ * @param {object} plan - The planning item to modify it's coverages
+ * @return {object} planning item provided
+ */
+export const convertCoveragesGenreToObject = (plan) => {
+    get(plan, 'coverages', []).forEach(convertGenreToObject)
+    return plan
+}
+
+/**
+ * Utility to convert genre from an Array to an Object
+ * @param {object} coverage - The coverage to modify
+ * @return {object} coverage item provided
+ */
+export const convertGenreToObject = (coverage) => {
+    // Make sure the coverage has a planning field
+    if (!('planning' in coverage)) coverage.planning = {}
+
+    // Convert genre from an Array to an Object
+    coverage.planning.genre = get(coverage, 'planning.genre[0]')
+
+    return coverage
+}
+
 const self = {
     canSavePlanning,
     canPublishPlanning,
@@ -212,6 +232,8 @@ const self = {
     isPlanningLocked,
     isPlanningLockRestricted,
     isPlanAdHoc,
+    convertCoveragesGenreToObject,
+    convertGenreToObject,
 }
 
 export default self

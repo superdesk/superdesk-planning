@@ -55,9 +55,10 @@ def generate_body(ids):
     else:
         labels = {}
     for item in items:
-        item['coverages'] = [labels.get(coverage['g2_content_type'], coverage['g2_content_type'])
-                             for coverage in item.get('_coverages', [])
-                             if coverage.get('g2_content_type')]
+        item['coverages'] = [labels.get(coverage.get('planning').get('g2_content_type'),
+                                        coverage.get('planning').get('g2_content_type'))
+                             for coverage in item.get('coverages', [])
+                             if (coverage.get('planning') or {}).get('g2_content_type')]
     return render_template_string(template, items=items)
 
 

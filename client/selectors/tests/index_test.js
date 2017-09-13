@@ -6,50 +6,36 @@ import { AGENDA } from '../../constants'
 describe('selectors', () => {
     const state = {
         assignment: {
-            assignments: [
-                {
+            assignments: {
+                1: {
                     _id: 1,
                     _created: '2017-07-13T13:55:41+0000',
                     _updated: '2017-07-28T11:16:36+0000',
-                    planning: {
-                        assigned_to: {
-                            assigned_date: '2017-07-28T11:16:36+0000',
-                            desk: 'desk1',
-                            user: 'user1',
-                        },
-                    },
-                },
-                {
-                    _id: 2,
-                    _created: '2017-07-13T14:55:41+0000',
-                    _updated: '2017-07-28T13:16:36+0000',
-                    planning: {
-                        assigned_to: {
-                            assigned_date: '2017-07-28T13:16:36+0000',
-                            desk: 'desk2',
-                        },
-                    },
-                },
-            ],
-            selectedAssignments: ['1', '2'],
-            filterBy: 'All',
-            searchQuery: 'test',
-            orderByField: 'Updated',
-            orderDirection: 'Desc',
-            lastAssignmentLoadedPage: 2,
-            previewOpened: true,
-            currentAssignment: {
-                _id: 1,
-                _created: '2017-07-13T13:55:41+0000',
-                _updated: '2017-07-28T11:16:36+0000',
-                planning: {
                     assigned_to: {
                         assigned_date: '2017-07-28T11:16:36+0000',
                         desk: 'desk1',
                         user: 'user1',
                     },
                 },
+                2: {
+                    _id: 2,
+                    _created: '2017-07-13T14:55:41+0000',
+                    _updated: '2017-07-28T13:16:36+0000',
+                    assigned_to: {
+                        assigned_date: '2017-07-28T13:16:36+0000',
+                        desk: 'desk2',
+                    },
+                },
             },
+            selectedAssignments: ['1', '2'],
+            assignmentsInList: [1, 2],
+            filterBy: 'All',
+            searchQuery: 'test',
+            orderByField: 'Updated',
+            orderDirection: 'Desc',
+            lastAssignmentLoadedPage: 2,
+            previewOpened: true,
+            currentAssignmentId: 1,
             readOnly: true,
         },
         events: {
@@ -208,23 +194,19 @@ describe('selectors', () => {
                     _id: 1,
                     _created: '2017-07-13T13:55:41+0000',
                     _updated: '2017-07-28T11:16:36+0000',
-                    planning: {
-                        assigned_to: {
-                            assigned_date: '2017-07-28T11:16:36+0000',
-                            desk: 'desk1',
-                            user: 'user1',
-                        },
+                    assigned_to: {
+                        assigned_date: '2017-07-28T11:16:36+0000',
+                        desk: 'desk1',
+                        user: 'user1',
                     },
                 },
                 {
                     _id: 2,
                     _created: '2017-07-13T14:55:41+0000',
                     _updated: '2017-07-28T13:16:36+0000',
-                    planning: {
-                        assigned_to: {
-                            assigned_date: '2017-07-28T13:16:36+0000',
-                            desk: 'desk2',
-                        },
+                    assigned_to: {
+                        assigned_date: '2017-07-28T13:16:36+0000',
+                        desk: 'desk2',
                     },
                 },
             ])
@@ -287,12 +269,10 @@ describe('selectors', () => {
                 _id: 1,
                 _created: '2017-07-13T13:55:41+0000',
                 _updated: '2017-07-28T11:16:36+0000',
-                planning: {
-                    assigned_to: {
-                        assigned_date: '2017-07-28T11:16:36+0000',
-                        desk: 'desk1',
-                        user: 'user1',
-                    },
+                assigned_to: {
+                    assigned_date: '2017-07-28T11:16:36+0000',
+                    desk: 'desk1',
+                    user: 'user1',
                 },
             })
         })

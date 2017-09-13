@@ -9,6 +9,8 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 """Superdesk Planning"""
+from bson import ObjectId
+
 import superdesk
 import logging
 from flask import json
@@ -18,7 +20,6 @@ from superdesk.metadata.item import GUID_NEWSML, metadata_schema
 from superdesk import get_resource_service
 from superdesk.resource import not_analyzed
 from superdesk.users.services import current_user_has_privilege
-from superdesk.resource import build_custom_hateoas
 from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user, get_auth
 from copy import deepcopy
@@ -34,21 +35,45 @@ logger = logging.getLogger(__name__)
 class PlanningService(superdesk.Service):
     """Service class for the planning model."""
 
-    def __generate_related_coverages(self, planning):
-        custom_coverage_hateoas = {'self': {'title': 'Coverage', 'href': '/coverage/{_id}'}}
-        for coverage in get_resource_service('coverage').find(where={'planning_item': planning.get(config.ID_FIELD)}):
-            build_custom_hateoas(custom_coverage_hateoas, coverage)
-            yield coverage
-
-    def get(self, req, lookup):
-        docs = super().get(req, lookup)
-        # nest coverages
+    def __generate_related_assignments(self, docs):
+        coverages = {}
         for doc in docs:
-            doc['coverages'] = list(self.__generate_related_coverages(doc))
-        return docs
+            if not doc.get('coverages'):
+                doc['coverages'] = []
+
+            for cov in (doc.get('coverages') or []):
+                coverages[cov.get('coverage_id')] = cov
+
+            doc.pop('_planning_schedule', None)
+
+        if not coverages:
+            return
+
+        ids = list(coverages.keys())
+
+        assignments = list(get_resource_service('assignments').get_from_mongo(req=None,
+                                                                              lookup={
+                                                                                  'coverage_item': {'$in': ids}
+                                                                              }))
+
+        coverage_assignment = {assign.get('coverage_item'): assign for assign in assignments}
+
+        for coverage_id, coverage in coverages.items():
+            if not coverage.get('assigned_to'):
+                coverage['assigned_to'] = {}
+            if coverage_assignment.get(coverage_id):
+                assignment = coverage_assignment.get(coverage_id)
+                coverage['assigned_to']['desk'] = assignment.get('assigned_to', {}).get('desk')
+                coverage['assigned_to']['user'] = assignment.get('assigned_to', {}).get('user')
+                coverage['assigned_to']['state'] = assignment.get('assigned_to', {}).get('state')
+                coverage['assigned_to']['assigned_by'] = assignment.get('assigned_to', {}).get('assigned_by')
+                coverage['assigned_to']['assigned_date'] = assignment.get('assigned_to', {}).get('assigned_date')
+
+    def on_fetched(self, docs):
+        self.__generate_related_assignments(docs.get(config.ITEMS))
 
     def on_fetched_item(self, doc):
-        doc['coverages'] = list(self.__generate_related_coverages(doc))
+        self.__generate_related_assignments([doc])
 
     def on_create(self, docs):
         """Set default metadata."""
@@ -59,6 +84,8 @@ class PlanningService(superdesk.Service):
             doc[config.ID_FIELD] = doc['guid']
             set_original_creator(doc)
             self._set_planning_event_info(doc)
+            self._set_coverage(doc)
+            self.set_planning_schedule(doc)
 
     def on_created(self, docs):
         session_id = get_auth().get('_id')
@@ -73,6 +100,7 @@ class PlanningService(superdesk.Service):
                 event_item=doc.get('event_item', None)
             )
             self._update_event_history(doc)
+        self.__generate_related_assignments(docs)
 
     def _update_event_history(self, doc):
         if 'event_item' not in doc:
@@ -106,7 +134,7 @@ class PlanningService(superdesk.Service):
         )
 
     def on_locked_planning(self, item, user_id):
-        item['coverages'] = list(self.__generate_related_coverages(item))
+        self.__generate_related_assignments([item])
 
     def update(self, id, updates, original):
         item = self.backend.update(self.datasource, id, updates, original)
@@ -122,6 +150,9 @@ class PlanningService(superdesk.Service):
 
         if user and user.get(config.ID_FIELD):
             updates['version_creator'] = user[config.ID_FIELD]
+
+        self._set_coverage(updates, original)
+        self.set_planning_schedule(updates, original)
 
     def _set_planning_event_info(self, doc):
         """Set the planning event date
@@ -140,14 +171,6 @@ class PlanningService(superdesk.Service):
                 if event.get('recurrence_id'):
                     doc['recurrence_id'] = event.get('recurrence_id')
 
-        doc['_coverages'] = [
-            {
-                'coverage_id': 'NO_COVERAGE',
-                'scheduled': doc['_planning_date'],
-                'g2_content_type': None
-            }
-        ]
-
     def _get_added_removed_agendas(self, updates, original):
         added_agendas = updates.get('agendas') or []
         existing_agendas = original.get('agendas') or []
@@ -164,6 +187,10 @@ class PlanningService(superdesk.Service):
             added_agendas=added, removed_agendas=removed,
             session=session_id
         )
+        doc = deepcopy(original)
+        doc.update(updates)
+        self.__generate_related_assignments([doc])
+        updates['coverages'] = doc.get('coverages') or []
 
     def can_edit(self, item, user_id):
         # Check privileges
@@ -205,41 +232,249 @@ class PlanningService(superdesk.Service):
         else:
             return all_items
 
-    def sync_coverages(self, docs):
-        """Sync the coverage information between planning an coverages
-
-        :param list docs: list of coverage docs
-        """
-        if not docs:
+    def _set_coverage(self, updates, original=None):
+        if not updates.get('coverages'):
             return
-        ids = set([doc.get('planning_item') for doc in docs])
-        service = get_resource_service('coverage')
-        for planning_id in ids:
-            planning = self.find_one(req=None, _id=planning_id)
-            coverages = list(service.get_from_mongo(req=None, lookup={'planning_item': planning_id}))
-            updates = []
-            add_default_coverage = True
-            for doc in coverages:
-                if doc.get('planning', {}).get('scheduled'):
-                    add_default_coverage = False
-                updates.append({
-                    'coverage_id': doc.get(config.ID_FIELD),
-                    'scheduled': doc.get('planning', {}).get('scheduled'),
-                    'g2_content_type': doc.get('planning', {}).get('g2_content_type')
-                })
 
-            if add_default_coverage:
-                updates.append({
-                    'coverage_id': None,
-                    'scheduled': planning.get('_planning_date') or utcnow(),
-                    'g2_content_type': None
-                })
+        if not original:
+            original = {}
 
-            self.system_update(planning_id, {'_coverages': updates}, planning)
+        for coverage in original.get('coverages') or []:
+            updated_coverage = next((cov for cov in updates.get('coverages') or []
+                                     if cov.get('coverage_id') == coverage.get('coverage_id')), None)
+
+            if not updated_coverage and (coverage.get('assigned_to') or {}).get('assignment_id'):
+                raise SuperdeskApiError.badRequestError('Assignment already exists. Coverage cannot be deleted.')
+
+        for coverage in (updates.get('coverages') or []):
+            original_coverage = None
+            coverage_id = coverage.get('coverage_id')
+            if not coverage_id:
+                # coverage to be created
+                coverage['coverage_id'] = generate_guid(type=GUID_NEWSML)
+                coverage['firstcreated'] = utcnow()
+                set_original_creator(coverage)
+            else:
+                original_coverage = next((cov for cov in original.get('coverages') or []
+                                          if cov['coverage_id'] == coverage_id), None)
+                if not original_coverage:
+                    continue
+
+                if coverage != original_coverage:
+                    user = get_user()
+                    coverage['version_creator'] = str(user.get(config.ID_FIELD)) if user else None
+                    coverage['versioncreated'] = utcnow()
+
+            self._create_update_assignment(original.get(config.ID_FIELD), coverage, original_coverage)
+
+    def set_planning_schedule(self, updates, original=None):
+        """This set the list of schedule based on the coverage and planning.
+
+        Sorting currently works on two fields "_planning_date" and "scheduled" date.
+        "_planning_date" is stored on the planning and is equal to event start date for planning items
+        created from event or current date for adhoc planning item
+        "scheduled" is stored on the coverage nested document and it is optional.
+        Hence to sort and filter planning based on these two dates a
+        nested documents of scheduled date is required
+
+        :param dict updates: planning update document
+        :param dict original: planning original document
+        """
+
+        coverages = updates.get('coverages') or (original or {}).get('coverages') or []
+        planning_date = updates.get('_planning_date') or (original or {}).get('_planning_date') or utcnow()
+
+        add_default_schedule = True
+        schedule = []
+        for coverage in coverages:
+            if coverage.get('planning', {}).get('scheduled'):
+                add_default_schedule = False
+
+            schedule.append({
+                'coverage_id': coverage.get('coverage_id'),
+                'scheduled': coverage.get('planning', {}).get('scheduled')
+            })
+
+        if add_default_schedule:
+            schedule.append({
+                'coverage_id': None,
+                'scheduled': planning_date or utcnow()
+            })
+
+        updates['_planning_schedule'] = schedule
+
+    def _create_update_assignment(self, planning_id, updates, original=None):
+        """Create or update the assignment.
+
+        :param str planning_id: planning id of the coverage
+        :param dict updates: coverage update document
+        :param dict original: coverage original document
+        """
+        if not original:
+            original = {}
+
+        doc = deepcopy(original)
+        doc.update(updates)
+        assignment_service = get_resource_service('assignments')
+        assigned_to = updates.get('assigned_to') or original.get('assigned_to')
+        if not assigned_to:
+            return
+
+        if not planning_id:
+            raise SuperdeskApiError.badRequestError('Planning item is required to create assignments.')
+
+        if not assigned_to.get('assignment_id') and (assigned_to.get('user') or assigned_to.get('desk')):
+            assignment = {
+                'assigned_to': {
+                    'user': assigned_to.get('user'),
+                    'desk': assigned_to.get('desk'),
+                },
+                'planning_item': planning_id,
+                'coverage_item': doc.get('coverage_id'),
+                'planning': doc.get('planning'),
+                'is_active': True
+            }
+
+            assignment_id = assignment_service.post([assignment])
+            updates['assigned_to']['assignment_id'] = str(assignment_id[0])
+        elif assigned_to.get('assignment_id'):
+            # update the assignment using the coverage details
+            original_assignment = assignment_service.find_one(req=None,
+                                                              _id=assigned_to.get('assignment_id'))
+
+            if not original:
+                raise SuperdeskApiError.badRequestError(
+                    'Assignment related to the coverage does not exists.')
+
+            assignment = {
+                'planning': doc.get('planning')
+            }
+
+            assignment_service.system_update(ObjectId(assigned_to.get('assignment_id')),
+                                             assignment, original_assignment)
+
+        updates.get('assigned_to', {}).pop('user', None)
+        updates.get('assigned_to', {}).pop('desk', None)
 
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
 event_type['mapping'] = not_analyzed
+
+coverage_schema = {
+    # Identifiers
+    'coverage_id': {
+        'type': 'string',
+        'mapping': not_analyzed
+    },
+    'guid': metadata_schema['guid'],
+
+    # Audit Information
+    'original_creator': metadata_schema['original_creator'],
+    'version_creator': metadata_schema['version_creator'],
+    'firstcreated': metadata_schema['firstcreated'],
+    'versioncreated': metadata_schema['versioncreated'],
+
+    # News Coverage Details
+    # See IPTC-G2-Implementation_Guide 16.4
+    'planning': {
+        'type': 'dict',
+        'schema': {
+            'ednote': metadata_schema['ednote'],
+            'g2_content_type': {'type': 'string', 'mapping': not_analyzed},
+            'coverage_provider': {'type': 'string', 'mapping': not_analyzed},
+            'item_class': {'type': 'string', 'mapping': not_analyzed},
+            'item_count': {'type': 'string', 'mapping': not_analyzed},
+            'scheduled': {'type': 'datetime'},
+            'service': {
+                'type': 'list',
+                'mapping': {
+                    'properties': {
+                        'qcode': not_analyzed,
+                        'name': not_analyzed
+                    }
+                }
+            },
+            'news_content_characteristics': {
+                'type': 'list',
+                'mapping': {
+                    'properties': {
+                        'name': not_analyzed,
+                        'value': not_analyzed
+                    }
+                }
+            },
+            'planning_ext_property': {
+                'type': 'list',
+                'mapping': {
+                    'properties': {
+                        'qcode': not_analyzed,
+                        'value': not_analyzed,
+                        'name': not_analyzed
+                    }
+                }
+            },
+            # Metadata hints.  See IPTC-G2-Implementation_Guide 16.5.1.1
+            'by': {
+                'type': 'list',
+                'mapping': {
+                    'type': 'string'
+                }
+            },
+            'credit_line': {
+                'type': 'list',
+                'mapping': {
+                    'type': 'string'
+                }
+            },
+            'dateline': {
+                'type': 'list',
+                'mapping': {
+                    'type': 'string'
+                }
+            },
+            'description_text': metadata_schema['description_text'],
+            'genre': metadata_schema['genre'],
+            'headline': metadata_schema['headline'],
+            'keyword': {
+                'type': 'list',
+                'mapping': {
+                    'type': 'string'
+                }
+            },
+            'language': {
+                'type': 'list',
+                'mapping': {
+                    'type': 'string'
+                }
+            },
+            'slugline': metadata_schema['slugline'],
+            'subject': metadata_schema['subject'],
+            'internal_note': {
+                'type': 'string'
+            }
+        }  # end planning dict schema
+    },  # end planning
+
+    'news_coverage_status': {
+        'type': 'dict',
+        'schema': {
+            'qcode': {'type': 'string'},
+            'name': {'type': 'string'},
+            'label': {'type': 'string'}
+        }
+    },
+    'assigned_to': {
+        'type': 'dict',
+        'mapping': {
+            'type': 'object',
+            'properties': {
+                'assignment_id': not_analyzed,
+                'state': not_analyzed
+            }
+        }
+    },
+
+}  # end coverage_schema
 
 planning_schema = {
     # Identifiers
@@ -309,16 +544,53 @@ planning_schema = {
     'lock_time': metadata_schema['lock_time'],
     'lock_session': metadata_schema['lock_session'],
     'lock_action': metadata_schema['lock_action'],
-    # field to sync coverage information on planning
+
+    'coverages': {
+        'type': 'list',
+        'default': [],
+        'schema': {
+            'type': 'dict',
+            'schema': coverage_schema
+        },
+        'mapping': {
+            'type': 'nested',
+            'properties': {
+                'coverage_id': not_analyzed,
+                'planning': {
+                    'type': 'object',
+                    'properties': {
+                        'slugline': {
+                            'type': 'string',
+                            'fields': {
+                                'phrase': {
+                                    'type': 'string',
+                                    'analyzer': 'phrase_prefix_analyzer',
+                                    'search_analyzer': 'phrase_prefix_analyzer'
+                                }
+                            }
+                        },
+
+                    }
+                },
+                'assigned_to': {
+                    'type': 'object',
+                    'properties': {
+                        'assignment_id': not_analyzed,
+                        'state': not_analyzed
+                    }
+                }
+            }
+        }
+    },
+    # field to sync coverage scheduled information
     # to be used for sorting/filtering on scheduled
-    '_coverages': {
+    '_planning_schedule': {
         'type': 'list',
         'mapping': {
             'type': 'nested',
             'properties': {
                 'coverage_id': not_analyzed,
                 'scheduled': {'type': 'date'},
-                'g2_content_type': not_analyzed
             }
         }
     },
@@ -364,6 +636,6 @@ class PlanningResource(superdesk.Resource):
     privileges = {'POST': 'planning_planning_management',
                   'PATCH': 'planning_planning_management',
                   'DELETE': 'planning'}
-    etag_ignore_fields = ['_coverages', '_planning_date']
+    etag_ignore_fields = ['_planning_schedule', '_planning_date']
 
     mongo_indexes = {'event_item': ([('event_item', 1)], {'background': True})}

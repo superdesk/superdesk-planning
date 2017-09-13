@@ -44,29 +44,24 @@ Feature: Export planning items
                 "headline": "Planning 1",
                 "slugline": "planning-1",
                 "description_text": "desc",
-                "event_item": "#events._id#"
+                "event_item": "#events._id#",
+                "coverages": [
+                    {
+                        "coverage_id": "123",
+                        "planning": {
+                            "g2_content_type": "text"
+                        }
+                    },
+                    {
+                        "coverage_id": "456",
+                        "planning": {
+                            "g2_content_type": "photo"
+                        }
+                    }
+                ]
             }
         ]
         """
-
-        Given "coverage"
-        """
-        [
-            {
-                "planning_item": "#planning._id#",
-                "planning": {
-                    "g2_content_type": "text"
-                }
-            },
-            {
-                "planning_item": "#planning._id#",
-                "planning": {
-                    "g2_content_type": "photo"
-                }
-            }
-        ]
-        """
-
         When we post to "planning_export"
         """
         {"items": ["#planning._id#"], "desk": "#desks._id#"}

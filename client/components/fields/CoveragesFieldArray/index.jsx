@@ -2,15 +2,13 @@ import { CoverageContainer } from '../../index'
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
+import { get } from 'lodash'
 
 export class CoveragesFieldArrayComponent extends React.Component {
     newCoverage() {
-        const { fields, headline, slugline } = this.props
+        const { fields, slugline } = this.props
         fields.push({
-            planning: {
-                headline,
-                slugline,
-            },
+            planning: { slugline },
             news_coverage_status:  { qcode: 'ncostat:int' },
         })
     }
@@ -31,7 +29,6 @@ export class CoveragesFieldArrayComponent extends React.Component {
         fields.push({
             planning: {
                 ...existingCoverage.planning,
-                assigned_to: null,
                 g2_content_type: contentType,
             },
             news_coverage_status:  { qcode: 'ncostat:int' },
@@ -62,7 +59,8 @@ export class CoveragesFieldArrayComponent extends React.Component {
                             readOnly={readOnly}
                             removeCoverage={this.removeCoverage.bind(this)}
                             duplicateCoverage={this.duplicateCoverage.bind(this)}
-                            showRemoveAction={fields.length > 1}
+                            showRemoveAction={fields.length > 1 &&
+                            !get(fields.get(index), 'assigned_to.assignment_id')}
                         />
                     </li>
                 ))}
@@ -80,9 +78,8 @@ export class CoveragesFieldArrayComponent extends React.Component {
 }
 
 CoveragesFieldArrayComponent.propTypes = {
-    fields: PropTypes.object.isRequired,
+    fields: PropTypes.object,
     readOnly: PropTypes.bool,
-    headline: PropTypes.string,
     slugline: PropTypes.string,
     users: PropTypes.array.isRequired,
     contentTypes: PropTypes.array.isRequired,
@@ -90,8 +87,8 @@ CoveragesFieldArrayComponent.propTypes = {
 }
 
 CoveragesFieldArrayComponent.defaultProps = {
-    headline: '',
     slugline: '',
+    fields: {},
 }
 
 const mapStateToProps = (state) => ({ contentTypes: state.vocabularies.g2_content_type })

@@ -32,6 +32,7 @@ const options = [
 class ColoredValueSelectFieldForm extends React.Component {
     render() {
         return (
+
             <ColoredValueSelectField
                 options={options}
                 iconName='urgency-label' />

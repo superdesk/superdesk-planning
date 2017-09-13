@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { Button } from 'react-bootstrap'
 import * as selectors from '../../selectors'
@@ -62,12 +63,12 @@ export function AgendasListComponent({
 }
 
 AgendasListComponent.propTypes = {
-    enabledAgendas: React.PropTypes.array,
-    disabledAgendas: React.PropTypes.array,
-    privileges: React.PropTypes.object.isRequired,
-    openCreateAgenda: React.PropTypes.func,
-    openEditAgenda: React.PropTypes.func,
-    deleteAgenda: React.PropTypes.func,
+    enabledAgendas: PropTypes.array,
+    disabledAgendas: PropTypes.array,
+    privileges: PropTypes.object.isRequired,
+    openCreateAgenda: PropTypes.func,
+    openEditAgenda: PropTypes.func,
+    deleteAgenda: PropTypes.func,
 }
 
 const mapStateToProps = (state) => (

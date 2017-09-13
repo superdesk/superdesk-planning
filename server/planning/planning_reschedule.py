@@ -8,7 +8,6 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from superdesk import get_resource_service
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth
@@ -40,18 +39,15 @@ class PlanningRescheduleResource(PlanningResource):
 
 class PlanningRescheduleService(BaseService):
     def update(self, id, updates, original):
-        coverage_service = get_resource_service('coverage')
+        reason = updates.pop('reason', None)
+        self._reschedule_plan(updates, original, reason)
 
-        self._reschedule_plan(updates, original)
-
-        coverages = list(coverage_service.find(
-            where={'planning_item': original[config.ID_FIELD]}
-        ))
+        updates['coverages'] = deepcopy(original.get('coverages'))
+        coverages = updates.get('coverages') or []
 
         for coverage in coverages:
-            self._reschedule_coverage(updates, coverage, coverage_service)
+            self._reschedule_coverage(coverage, reason)
 
-        updates.pop('reason', None)
         return self.backend.update(self.datasource, id, updates, original)
 
     def on_updated(self, updates, original):
@@ -65,12 +61,12 @@ class PlanningRescheduleService(BaseService):
             session=str(session)
         )
 
-    def _reschedule_plan(self, updates, original):
+    def _reschedule_plan(self, updates, original, reason):
         ednote = '''------------------------------------------------------------
 Event Rescheduled
 '''
-        if updates.get('reason', None) is not None:
-            ednote += 'Reason: {}\n'.format(updates['reason'])
+        if reason:
+            ednote += 'Reason: {}\n'.format(reason)
 
         if 'ednote' in original:
             ednote = original['ednote'] + '\n\n' + ednote
@@ -78,24 +74,14 @@ Event Rescheduled
         updates['ednote'] = ednote
         updates[ITEM_STATE] = WORKFLOW_STATE.RESCHEDULED
 
-    def _reschedule_coverage(self, updates, coverage, coverage_service):
+    def _reschedule_coverage(self, coverage, reason):
         note = '''------------------------------------------------------------
 Event has been rescheduled
 '''
-        if updates.get('reason', None) is not None:
-            note += 'Reason: {}\n'.format(updates['reason'])
+        if reason:
+            note += 'Reason: {}\n'.format(reason)
 
-        if 'internal_note' in coverage.get('planning', {}):
-            note = coverage['planning']['internal_note'] + '\n\n' + note
+        if not coverage.get('planning'):
+            coverage['planning'] = {}
 
-        updates = {
-            'planning': deepcopy(coverage.get('planning', {}))
-        }
-
-        updates['planning']['internal_note'] = note
-
-        coverage_service.update(
-            coverage[config.ID_FIELD],
-            updates,
-            coverage
-        )
+        coverage['planning']['internal_note'] = (coverage['planning'].get('internal_note') or '') + '\n\n' + note

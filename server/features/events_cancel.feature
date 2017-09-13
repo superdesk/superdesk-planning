@@ -231,7 +231,7 @@ Feature: Events Cancel
 
     @auth
     @notification
-    @vocabulary
+    @vocabulary @wip
     Scenario: Cancelling an Event sets states and notes
         Given "events"
         """
@@ -260,23 +260,19 @@ Feature: Events Cancel
             "slugline": "TestPlan 1",
             "event_item": "event1",
             "ednote": "We're covering this Event",
-            "state": "draft"
-        }]
-        """
-        Given "coverage"
-        """
-        [{
-            "_id": "cov1",
-            "guid": "cov1",
-            "slugline": "TestCoverage 1",
-            "planning": {
-                "internal_note": "Cover something please!"
-            },
-            "planning_item": "plan1",
-            "news_coverage_status": {
-                "qcode": "ncostat:int",
-                "name": "Coverage intended"
-            }
+            "state": "draft",
+            "coverages": [{
+                "coverage_id": "cov1",
+                "slugline": "TestCoverage 1",
+                "planning": {
+                    "internal_note": "Cover something please!"
+                },
+                "planning_item": "plan1",
+                "news_coverage_status": {
+                    "qcode": "ncostat:int",
+                    "name": "Coverage intended"
+                }
+            }]
         }]
         """
         When we perform cancel on events "event1"
@@ -302,9 +298,9 @@ Feature: Events Cancel
             "state": "cancelled",
             "ednote": "We're covering this Event\n\n------------------------------------------------------------\nEvent cancelled\nReason: Not happening anymore!\n",
             "coverages": [{
-                "_id": "cov1",
+                "coverage_id": "cov1",
                 "planning": {
-                    "internal_note": "Cover something please!\n\n------------------------------------------------------------\nEvent cancelled\nReason: Not happening anymore!\n"
+                    "internal_note" : "Cover something please!\n\n------------------------------------------------------------\nEvent cancelled\nReason: Not happening anymore!\n"
                 },
                 "news_coverage_status": {"qcode": "ncostat:notint"}
             }]

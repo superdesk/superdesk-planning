@@ -28,7 +28,6 @@ describe('<CoveragesFieldArray />', () => {
         wrapper = shallow(
             <CoveragesFieldArrayComponent
                 fields={fields}
-                headline="Header"
                 slugline="Slugger"
                 users={[]}
                 contentTypes={[]}
@@ -42,10 +41,7 @@ describe('<CoveragesFieldArray />', () => {
         instance.newCoverage()
         expect(fields.push.callCount).toBe(1)
         expect(fields.push.args[0]).toEqual([{
-            planning: {
-                headline: 'Header',
-                slugline: 'Slugger',
-            },
+            planning: { slugline: 'Slugger' },
             news_coverage_status:  { qcode: 'ncostat:int' },
         }])
     })
@@ -61,10 +57,7 @@ describe('<CoveragesFieldArray />', () => {
 
         expect(fields.push.callCount).toBe(1)
         expect(fields.push.args[0]).toEqual([{
-            planning: {
-                ...coverage.planning,
-                assigned_to: null,
-            },
+            planning: { ...coverage.planning },
             news_coverage_status:  { qcode: 'ncostat:int' },
         }])
     })
@@ -76,7 +69,6 @@ describe('<CoveragesFieldArray />', () => {
         expect(fields.push.args[0]).toEqual([{
             planning: {
                 ...coverage.planning,
-                assigned_to: null,
                 g2_content_type: 'video',
             },
             news_coverage_status:  { qcode: 'ncostat:int' },

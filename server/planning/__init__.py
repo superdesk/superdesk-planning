@@ -17,8 +17,8 @@ from .events_spike import EventsSpikeResource, EventsSpikeService, EventsUnspike
 from .planning import PlanningResource, PlanningService
 from .planning_spike import PlanningSpikeResource, PlanningSpikeService, PlanningUnspikeResource, PlanningUnspikeService
 from .events_files import EventsFilesResource, EventsFilesService
-from .coverage import CoverageResource, CoverageService
-from .coverage_history import CoverageHistoryResource, CoverageHistoryService
+# from .coverage import CoverageResource, CoverageService
+# from .coverage_history import CoverageHistoryResource, CoverageHistoryService
 from .locations import LocationsResource, LocationsService
 from .events_history import EventsHistoryResource, EventsHistoryService
 from .planning_history import PlanningHistoryResource, PlanningHistoryService
@@ -46,7 +46,7 @@ from .common import get_max_recurrent_events
 from .planning_export import PlanningExportResource, PlanningExportService
 from apps.common.components.utils import register_component
 from .item_lock import LockService
-
+from .assignments import AssignmentsResource, AssignmentsService
 from .commands import *  # noqa
 
 
@@ -84,9 +84,6 @@ def init_app(app):
 
     agendas_service = AgendasService('agenda', backend=superdesk.get_backend())
     AgendasResource('agenda', app=app, service=agendas_service)
-
-    coverage_search_service = CoverageService('coverage', backend=superdesk.get_backend())
-    CoverageResource('coverage', app=app, service=coverage_search_service)
 
     events_search_service = EventsService('events', backend=superdesk.get_backend())
     EventsResource('events', app=app, service=events_search_service)
@@ -167,6 +164,9 @@ def init_app(app):
         _app=app
     )
 
+    assignments_publish_service = AssignmentsService('assignments', backend=superdesk.get_backend())
+    AssignmentsResource('assignments', app=app, service=assignments_publish_service)
+
     app.on_updated_events += events_history_service.on_item_updated
     app.on_inserted_events += events_history_service.on_item_created
     app.on_deleted_item_events -= events_history_service.on_item_deleted
@@ -190,14 +190,6 @@ def init_app(app):
 
     app.on_locked_planning += planning_search_service.on_locked_planning
     app.on_locked_events += events_search_service.on_locked_event
-
-    coverage_history_service = CoverageHistoryService('coverage_history', backend=superdesk.get_backend())
-    CoverageHistoryResource('coverage_history', app=app, service=coverage_history_service)
-
-    app.on_updated_coverage += coverage_history_service.on_item_updated
-    app.on_inserted_coverage += coverage_history_service.on_item_created
-    app.on_deleted_item_coverage -= coverage_history_service.on_item_deleted
-    app.on_deleted_item_coverage += coverage_history_service.on_item_deleted
 
     events_duplicate_service = EventsDuplicateService('events_duplicate', backend=superdesk.get_backend())
     EventsDuplicateResource('events_duplicate', app=app, service=events_duplicate_service)

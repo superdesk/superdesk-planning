@@ -69,6 +69,7 @@ describe('planning', () => {
                     _id: 'planning1',
                     lock_user: 'user',
                     lock_session: 123,
+                    coverages: [],
                 }
 
                 const store = createTestStore({
@@ -125,7 +126,7 @@ describe('planning', () => {
                                 planning1: {
                                     _id: 'planning1',
                                     slugline: 'slug',
-                                    coverages: [{ _id: 'coverage1' }],
+                                    coverages: [{ coverage_id: 'coverage1' }],
                                     lock_user: 'user',
                                     lock_session: 123,
                                 },

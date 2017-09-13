@@ -84,17 +84,7 @@ export class Component extends React.Component {
 
     cancelForm() {
         if (!this.props.pristine) {
-            return this.props.dispatch(actions.showModal({
-                modalType: 'CONFIRMATION',
-                modalProps: {
-                    title: 'Save changes?',
-                    body: 'There are some unsaved changes, do you want to save it now?',
-                    okText: 'Save',
-                    showIgnore: true,
-                    action: this.saveAndClose,
-                    ignore: this.props.onBackClick,
-                },
-            }))
+            return this.props.openCancelModal(this.saveAndClose, this.props.onBackClick)
         }
 
         return this.props.onBackClick()
@@ -518,7 +508,7 @@ Component.propTypes = {
     onMinimize: PropTypes.func,
     currentSchedule: PropTypes.object,
     lockedItems: PropTypes.object,
-    dispatch: PropTypes.func,
+    openCancelModal: PropTypes.func,
     valid: PropTypes.bool,
 }
 
@@ -567,6 +557,17 @@ const mapDispatchToProps = (dispatch) => ({
     onMinimize: () => dispatch(actions.events.ui.minimizeEventDetails()),
     onRescheduleEvent: (event) => dispatch(actions.events.ui.openRescheduleModal(event)),
     onPostponeEvent: (event) => dispatch(actions.events.ui.openPostponeModal(event)),
+    openCancelModal: (actionCallback, ignoreCallback) => dispatch(actions.showModal({
+        modalType: 'CONFIRMATION',
+        modalProps: {
+            title: 'Save changes?',
+            body: 'There are some unsaved changes, do you want to save it now?',
+            okText: 'Save',
+            showIgnore: true,
+            action: actionCallback,
+            ignore: ignoreCallback,
+        },
+    })),
 })
 
 export const EventForm = connect(

@@ -1,7 +1,7 @@
 @import '~superdesk-core/styles/sass/mixins.scss';
 @import '~superdesk-core/styles/sass/variables.scss';
 
-.coverageassign {
+.assignment {
 	margin-top: 15px;
 	height: 45px;
 
@@ -19,7 +19,7 @@
 	}
 }
 
-.coverageassignselect {
+.assignmentselect {
     position: absolute;
     top: 60px; left: 100px;
     z-index: 2000;
@@ -73,8 +73,11 @@
     		margin-right: 4px;
     	}
     }
+	&__assignment {
+		left: 40px;
+	}
 }
 
-.coverageassign__action {
+.assignment__action {
 	opacity: 0;
 }

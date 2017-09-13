@@ -2,10 +2,17 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import classNames from 'classnames'
-import { AssignmentList, AssignmentListHeader, AssignmentListSearchHeader, EditAssignmentContainer } from '../index'
+import {
+    AssignmentList,
+    AssignmentListHeader,
+    AssignmentListSearchHeader,
+    EditAssignmentPanelContainer,
+    ModalsContainer,
+} from '../index'
 import * as selectors from '../../selectors'
 import * as actions from '../../actions'
 import './style.scss'
+
 
 class AssignmentListComponent extends React.Component {
 
@@ -44,11 +51,12 @@ class AssignmentListComponent extends React.Component {
                         users={this.props.users}
                         session={this.props.session}
                         selectedAssignments={this.props.selectedAssignments}
-                        onClick={this.props.previewAssignment}
+                        onClick={this.props.preview}
                         onSelectChange={this.props.onAssignmentSelectChange}
                     />
-                    {this.props.previewOpened && <EditAssignmentContainer /> }
+                    {this.props.previewOpened && <EditAssignmentPanelContainer /> }
                 </div>
+                <ModalsContainer />
             </div>
         )
     }
@@ -59,16 +67,16 @@ AssignmentListComponent.propTypes = {
     searchQuery: PropTypes.string,
     orderByField: PropTypes.string,
     orderDirection: PropTypes.string,
-    assignments: PropTypes.array,
     myAssignmentsCount: PropTypes.number,
     session: PropTypes.object,
     users: PropTypes.array,
     selectedAssignments: PropTypes.array.isRequired,
     previewOpened: PropTypes.bool,
-    previewAssignment: PropTypes.func,
+    preview: PropTypes.func,
     onAssignmentSelectChange: PropTypes.func.isRequired,
     loadAssignments: PropTypes.func.isRequired,
     loadMoreAssignments: PropTypes.func.isRequired,
+    assignments: PropTypes.array,
 }
 
 const mapStateToProps = (state) => ({
@@ -76,20 +84,20 @@ const mapStateToProps = (state) => ({
     searchQuery: selectors.getSearchQuery(state),
     orderByField: selectors.getOrderByField(state),
     orderDirection: selectors.getOrderDirection(state),
-    assignments: selectors.getAssignments(state),
     myAssignmentsCount: selectors.getMyAssignmentsCount(state),
     selectedAssignments: selectors.getSelectedAssignments(state),
     previewOpened: selectors.getPreviewAssignmentOpened(state),
     session: selectors.getSessionDetails(state),
     users: selectors.getUsers(state),
+    assignments: selectors.getAssignments(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
     loadAssignments: (filterBy, searchQuery, orderByField, orderDirection) =>
-        dispatch(actions.loadAssignments(filterBy, searchQuery, orderByField, orderDirection)),
-    loadMoreAssignments: () => dispatch(actions.loadMoreAssignments()),
-    previewAssignment: (assignment) => dispatch(actions.previewAssignment(assignment)),
-    onAssignmentSelectChange: (value) => dispatch(actions.toggleAssignmentSelection(value)),
+        dispatch(actions.assignments.ui.loadAssignments(filterBy, searchQuery, orderByField, orderDirection)),
+    loadMoreAssignments: () => dispatch(actions.assignments.ui.loadMoreAssignments()),
+    preview: (assignment) => dispatch(actions.assignments.ui.preview(assignment)),
+    onAssignmentSelectChange: (value) => dispatch(actions.assignments.ui.toggleAssignmentSelection(value)),
 })
 
 export const AssignmentListContainer = connect(mapStateToProps, mapDispatchToProps)(AssignmentListComponent)

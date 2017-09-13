@@ -1,6 +1,5 @@
 import planningApi from '../api'
 import sinon from 'sinon'
-import moment from 'moment'
 import { cloneDeep } from 'lodash'
 import {
     getTestActionStore,
@@ -26,9 +25,7 @@ describe('actions.planning.api', () => {
         sinon.stub(planningApi, 'fetch').callsFake(() => (Promise.resolve([])))
         sinon.stub(planningApi, 'query').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'receivePlannings').callsFake(() => (Promise.resolve()))
-        sinon.stub(planningApi, 'receiveCoverage').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'fetchPlanningsEvents').callsFake(() => (Promise.resolve()))
-        sinon.stub(planningApi, 'saveAndDeleteCoverages').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'fetchPlanningById').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'fetchPlanningHistory').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'publish').callsFake(() => (Promise.resolve()))
@@ -40,9 +37,7 @@ describe('actions.planning.api', () => {
         restoreSinonStub(planningApi.fetch)
         restoreSinonStub(planningApi.query)
         restoreSinonStub(planningApi.receivePlannings)
-        restoreSinonStub(planningApi.receiveCoverage)
         restoreSinonStub(planningApi.fetchPlanningsEvents)
-        restoreSinonStub(planningApi.saveAndDeleteCoverages)
         restoreSinonStub(planningApi.fetchPlanningById)
         restoreSinonStub(planningApi.fetchPlanningHistory)
         restoreSinonStub(planningApi.publish)
@@ -118,13 +113,13 @@ describe('actions.planning.api', () => {
                     { terms: { agendas: ['a1', 'a2'] } },
                     {
                         nested: {
-                            path: '_coverages',
+                            path: '_planning_schedule',
                             query: {
                                 bool: {
                                     must: [
                                         {
                                             range: {
-                                                '_coverages.scheduled': {
+                                                '_planning_schedule.scheduled': {
                                                     gte: 'now/d',
                                                     time_zone: getTimeZoneOffset(),
                                                 },
@@ -140,12 +135,12 @@ describe('actions.planning.api', () => {
                 expect(source.sort).toEqual(
                     [
                         {
-                            '_coverages.scheduled': {
+                            '_planning_schedule.scheduled': {
                                 order: 'asc',
-                                nested_path: '_coverages',
+                                nested_path: '_planning_schedule',
                                 nested_filter: {
                                     range: {
-                                        '_coverages.scheduled': {
+                                        '_planning_schedule.scheduled': {
                                             gte: 'now/d',
                                             time_zone: getTimeZoneOffset(),
                                         },
@@ -173,13 +168,13 @@ describe('actions.planning.api', () => {
                     { terms: { agendas: ['a1', 'a2'] } },
                     {
                         nested: {
-                            path: '_coverages',
+                            path: '_planning_schedule',
                             query: {
                                 bool: {
                                     must: [
                                         {
                                             range: {
-                                                '_coverages.scheduled': {
+                                                '_planning_schedule.scheduled': {
                                                     lt: 'now/d',
                                                     time_zone: getTimeZoneOffset(),
                                                 },
@@ -195,12 +190,12 @@ describe('actions.planning.api', () => {
                 expect(source.sort).toEqual(
                     [
                         {
-                            '_coverages.scheduled': {
+                            '_planning_schedule.scheduled': {
                                 order: 'desc',
-                                nested_path: '_coverages',
+                                nested_path: '_planning_schedule',
                                 nested_filter: {
                                     range: {
-                                        '_coverages.scheduled': {
+                                        '_planning_schedule.scheduled': {
                                             lt: 'now/d',
                                             time_zone: getTimeZoneOffset(),
                                         },
@@ -227,13 +222,13 @@ describe('actions.planning.api', () => {
                 expect(source.query.bool.must).toEqual([
                     {
                         nested: {
-                            path: '_coverages',
+                            path: '_planning_schedule',
                             query: {
                                 bool: {
                                     must: [
                                         {
                                             range: {
-                                                '_coverages.scheduled': {
+                                                '_planning_schedule.scheduled': {
                                                     lt: 'now/d',
                                                     time_zone: getTimeZoneOffset(),
                                                 },
@@ -276,13 +271,13 @@ describe('actions.planning.api', () => {
                     { term: { state: 'spiked' } },
                     {
                         nested: {
-                            path: '_coverages',
+                            path: '_planning_schedule',
                             query: {
                                 bool: {
                                     must: [
                                         {
                                             range: {
-                                                '_coverages.scheduled': {
+                                                '_planning_schedule.scheduled': {
                                                     lt: 'now/d',
                                                     time_zone: getTimeZoneOffset(),
                                                 },
@@ -312,13 +307,13 @@ describe('actions.planning.api', () => {
                     { terms: { agendas: ['a1', 'a2'] } },
                     {
                         nested: {
-                            path: '_coverages',
+                            path: '_planning_schedule',
                             query: {
                                 bool: {
                                     must: [
                                         {
                                             range: {
-                                                '_coverages.scheduled': {
+                                                '_planning_schedule.scheduled': {
                                                     lt: 'now/d',
                                                     time_zone: getTimeZoneOffset(),
                                                 },
@@ -534,36 +529,6 @@ describe('actions.planning.api', () => {
         ))
     })
 
-    describe('fetchCoverageById', () => {
-        beforeEach(() => {
-            restoreSinonStub(planningApi.fetchCoverageById)
-        })
-
-        it('fetches using coverage id', (done) => (
-            store.test(done, planningApi.fetchCoverageById('c1'))
-            .then((item) => {
-                expect(item).toEqual(data.coverages[0])
-
-                expect(services.api('coverage').getById.callCount).toBe(1)
-                expect(services.api('coverage').getById.args[0]).toEqual(['c1'])
-
-                expect(planningApi.receiveCoverage.callCount).toBe(1)
-                expect(planningApi.receiveCoverage.args[0]).toEqual([data.coverages[0]])
-
-                done()
-            })
-        ))
-
-        it('returns Promise.reject on get error', (done) => {
-            services.api('coverage').getById = sinon.spy(() => (Promise.reject('Failed!')))
-            return store.test(done, planningApi.fetchCoverageById('c1'))
-            .then(() => {}, (error) => {
-                expect(error).toBe('Failed!')
-                done()
-            })
-        })
-    })
-
     describe('save', () => {
         beforeEach(() => {
             restoreSinonStub(planningApi.save)
@@ -573,7 +538,6 @@ describe('actions.planning.api', () => {
         it('creates new planning item', (done) => {
             let planningItem = {
                 slugline: 'Planning3',
-                headline: 'Some Plan 3',
                 coverages: [],
             }
 
@@ -583,7 +547,7 @@ describe('actions.planning.api', () => {
             .then((item) => {
                 expect(item).toEqual(jasmine.objectContaining({
                     slugline: 'Planning3',
-                    headline: 'Some Plan 3',
+                    coverages: [],
                 }))
 
                 expect(planningApi.fetchPlanningById.callCount).toBe(0)
@@ -593,11 +557,10 @@ describe('actions.planning.api', () => {
                     {},
                     {
                         slugline: 'Planning3',
-                        headline: 'Some Plan 3',
+                        coverages: [],
                     },
                 ])
 
-                expect(planningApi.saveAndDeleteCoverages.callCount).toBe(0)
                 done()
             })
         })
@@ -629,14 +592,46 @@ describe('actions.planning.api', () => {
                         slugline: 'New Slugger',
                         headline: 'Some Plan 1',
                         agendas: [],
+                        coverages: [
+                            {
+                                coverage_id: 'c1',
+                                planning_item: 'p1',
+                                planning: {
+                                    ednote: 'Text coverage',
+                                    scheduled: '2016-10-15T13:01:11',
+                                    g2_content_type: 'text',
+                                },
+                                assigned_to: {
+                                    user: 'ident1',
+                                    desk: 'desk1',
+                                    assignment_id: 'as1',
+                                },
+                            },
+                            {
+                                coverage_id: 'c2',
+                                planning_item: 'p1',
+                                planning: {
+                                    ednote: 'Photo coverage',
+                                    scheduled: '2016-10-15T14:01:11',
+                                    g2_content_type: 'photo',
+                                },
+                                assigned_to: {
+                                    user: 'ident1',
+                                    desk: 'desk2',
+                                    assignment_id: 'as2',
+                                },
+                            },
+                            {
+                                coverage_id: 'c3',
+                                planning_item: 'p1',
+                                planning: {
+                                    ednote: 'Video coverage',
+                                    scheduled: '2016-10-15T16:01:11',
+                                    g2_content_type: 'video',
+                                },
+                            },
+                        ],
                     },
-                ])
-
-                expect(planningApi.saveAndDeleteCoverages.callCount).toBe(1)
-                expect(planningApi.saveAndDeleteCoverages.args[0]).toEqual([
-                    planningItem.coverages,
-                    data.plannings[0],
-                    data.plannings[0].coverages,
                 ])
 
                 done()
@@ -654,7 +649,6 @@ describe('actions.planning.api', () => {
 
                 expect(planningApi.fetchPlanningById.callCount).toBe(1)
                 expect(services.api('planning').save.callCount).toBe(0)
-                expect(planningApi.saveAndDeleteCoverages.callCount).toBe(0)
                 done()
             })
         })
@@ -677,99 +671,6 @@ describe('actions.planning.api', () => {
 
                 expect(services.api('planning').getById.callCount).toBe(0)
                 expect(services.api('planning').save.callCount).toBe(1)
-                expect(planningApi.saveAndDeleteCoverages.callCount).toBe(0)
-                done()
-            })
-        })
-    })
-
-    describe('saveAndDeleteCoverages', () => {
-        beforeEach(() => {
-            restoreSinonStub(planningApi.saveAndDeleteCoverages)
-        })
-
-        it('only saves new and modified coverages', (done) => {
-            // Clone the original coverages and remove the last one
-            // (the one that doesn't belong to the first Planning item
-            const origCoverages = cloneDeep(data.coverages)
-            origCoverages.pop()
-            const newCoverages = cloneDeep(origCoverages)
-
-            newCoverages[1].planning.ednote = 'Texting my coverage'
-            newCoverages[1].planning.g2_content_type = 'text'
-            newCoverages.push({
-                planning: {
-                    ednote: 'Video coverage',
-                    scheduled: '2016-10-15T16:00:00',
-                    g2_content_type: 'video',
-                },
-            })
-
-            return store.test(done, planningApi.saveAndDeleteCoverages(
-                newCoverages,
-                { _id: 'p1' },
-                origCoverages
-            ))
-            .then(() => {
-                expect(services.api('coverage').save.callCount).toBe(2)
-                expect(services.api('coverage').remove.callCount).toBe(0)
-
-                expect(services.api('coverage').save.args[0]).toEqual([
-                    {
-                        _id: 'c2',
-                        planning_item: 'p1',
-                        planning: {
-                            ednote: 'Photo coverage',
-                            scheduled: moment('2016-10-15T14:01:11'),
-                            g2_content_type: 'photo',
-                        },
-                    },
-                    {
-                        _id: 'c2',
-                        planning_item: 'p1',
-                        planning: {
-                            ednote: 'Texting my coverage',
-                            scheduled: moment('2016-10-15T14:01:11'),
-                            g2_content_type: 'text',
-                        },
-                    },
-                ])
-
-                expect(services.api('coverage').save.args[1]).toEqual([
-                    {},
-                    {
-                        planning_item: 'p1',
-                        planning: {
-                            ednote: 'Video coverage',
-                            scheduled: moment('2016-10-15T16:00:00'),
-                            g2_content_type: 'video',
-                        },
-                    },
-                ])
-
-                done()
-            })
-        })
-
-        it('deletes coverages', (done) => {
-            // Clone the original coverages and remove the last one
-            // (the one that doesn't belong to the first Planning item
-            const origCoverages = cloneDeep(data.coverages)
-            origCoverages.pop()
-            const newCoverages = cloneDeep(origCoverages)
-            // Remove the last coverage
-            newCoverages.pop()
-
-            return store.test(done, planningApi.saveAndDeleteCoverages(
-                newCoverages,
-                { _id: 'p1' },
-                origCoverages
-            ))
-            .then(() => {
-                expect(services.api('coverage').save.callCount).toBe(0)
-                expect(services.api('coverage').remove.callCount).toBe(1)
-
-                expect(services.api('coverage').remove.args[0]).toEqual([origCoverages[2]])
                 done()
             })
         })
@@ -883,13 +784,13 @@ describe('actions.planning.api', () => {
         })
     })
 
-    it('receiveCoverage', () => {
-        restoreSinonStub(planningApi.receiveCoverage)
-        expect(planningApi.receiveCoverage(data.coverages[0])).toEqual({
-            type: 'RECEIVE_COVERAGE',
-            payload: data.coverages[0],
-        })
-    })
+    // it('receiveCoverage', () => {
+    //     restoreSinonStub(planningApi.receiveCoverage)
+    //     expect(planningApi.receiveCoverage(data.coverages[0])).toEqual({
+    //         type: 'RECEIVE_COVERAGE',
+    //         payload: data.coverages[0],
+    //     })
+    // })
 
     describe('fetchPlanningHistory', () => {
         beforeEach(() => {

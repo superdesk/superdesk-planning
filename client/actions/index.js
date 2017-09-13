@@ -2,11 +2,12 @@ export * from './events'
 export * from './locations'
 export * from './modal'
 export * from './agenda'
-export * from './assignment'
+export * from './assignments'
 
 import planning from './planning/index'
 import events from './events/index'
 import locks from './locks'
+import assignments from './assignments/index'
 
 import { agendaNotifications } from './agenda'
 import { eventNotifications } from './events'
@@ -27,6 +28,7 @@ const notifications = {
     ...planning.notifications.events,
     ...eventNotifications,
     ...events.notifications.events,
+    ...assignments.notifications.events,
 }
 
 export {
@@ -36,4 +38,5 @@ export {
     resetStore,
     initStore,
     locks,
+    assignments,
 }

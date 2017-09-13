@@ -20,27 +20,57 @@ export class ColoredValueSelectField extends React.Component {
     }
 
     render() {
-        return ( <div className='field'>
-            { this.props.label && <label>{this.props.label}</label> }
-            <button type="button"
-                className='dropdown__toggle'
-                disabled={this.props.readOnly}
-                onClick={this.toggleOpenPopup.bind(this)}>
-                <span className={this.getIconClasses(this.props.value)}>
-                    {this.props.value ? this.props.value.label : 'None'}
-                </span>
-                &nbsp;&nbsp;{get(this.props.value, 'label')}
-                {!this.props.readOnly && <b className='dropdown__caret' />}
-            </button>
-            { this.state.openPopup && <ColoredValueSelectFieldPopup
-                title={this.props.label}
-                options={this.props.options}
-                getClassNamesForOption={this.getIconClasses.bind(this)}
-                onChange={(val) => {
-                    this.props.input.onChange(val.value.qcode)
-                    this.toggleOpenPopup()
-                }}
-                onCancel={this.toggleOpenPopup.bind(this)} /> }
+        const {
+            required,
+            meta,
+            input,
+            value,
+            label,
+            readOnly,
+            labelLeft,
+        } = this.props
+
+        const touched = get(meta, 'touched')
+        const error = get(meta, 'error')
+        const warning = get(meta, 'warning')
+        const showMessage = touched && (error || warning)
+        const divClasses = classNames(
+        'sd-line-input',
+        { 'sd-line-input--label-left': labelLeft },
+        { 'sd-line-input--invalid': showMessage },
+        { 'sd-line-input--no-margin': !showMessage },
+        { 'sd-line-input--required': required }
+        )
+
+        return ( <div className={divClasses}>
+            { label && <label className="sd-line-input__label" htmlFor={input.name}>
+                {label}
+                </label> }
+            <div className="sd-line-input__input">
+                <button type="button"
+                    className='dropdown__toggle'
+                    disabled={readOnly}
+                    onClick={this.toggleOpenPopup.bind(this)}>
+                    <span className={this.getIconClasses(value)}>
+                        {get(value, 'label', 'None')}
+                    </span>
+                    &nbsp;&nbsp;{get(value, 'label')}
+                    {!readOnly && <b className='dropdown__caret' />}
+                </button>
+                { this.state.openPopup && <ColoredValueSelectFieldPopup
+                    title={label}
+                    options={this.props.options}
+                    getClassNamesForOption={this.getIconClasses.bind(this)}
+                    onChange={(val) => {
+                        this.props.input.onChange(val.value.qcode)
+                        this.toggleOpenPopup()
+                    }}
+                    onCancel={this.toggleOpenPopup.bind(this)} /> }
+            </div>
+            {touched && (
+                (error && <div className='sd-line-input__message'>{error}</div>) ||
+                (warning && <div className='sd-line-input__message'>{warning}</div>)
+            )}
         </div> )
     }
 }
@@ -55,4 +85,13 @@ ColoredValueSelectField.propTypes = {
     label: PropTypes.string,
     readOnly: PropTypes.bool,
     iconName: PropTypes.string.isRequired,
+    meta: PropTypes.object,
+    required: PropTypes.bool,
+    labelLeft: PropTypes.bool,
+}
+
+ColoredValueSelectField.defaultValues = {
+    meta: {},
+    required: false,
+    labelLeft: false,
 }

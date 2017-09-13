@@ -1,5 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import { get } from 'lodash'
 import { AssignmentItem } from '../index'
 import { InfiniteLoader, List, AutoSizer } from 'react-virtualized'
 import { LIST_ITEM_2_LINES_HEIGHT } from '../../constants'
@@ -42,7 +43,7 @@ export class AssignmentList extends React.Component {
     rowRenderer({ index, key, style }) {
         const assignment = this.props.assignments[index]
         const { users, session } = this.props
-        const assignedUser = users.find((user) => assignment.planning.assigned_to && user._id === assignment.planning.assigned_to.user)
+        const assignedUser = users.find((user) => get(assignment, 'assigned_to.user') === user._id)
         const isCurrentUser = assignedUser && assignedUser._id === session.identity._id
 
         return (
