@@ -20,6 +20,10 @@
 	color: $red;
 }
 
+.ReactVirtualized__Grid__list {
+	overflow: visible !important;
+}
+
 .ReactVirtualized__Grid__innerScrollContainer {
 	overflow: visible !important;
 }

@@ -2,11 +2,10 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { reduxForm } from 'redux-form'
-import { OverlayTrigger } from 'react-bootstrap'
 import * as actions from '../../actions'
 import { AuditInformation, Coverage } from '../../components'
 import * as selectors from '../../selectors'
-import { tooltips } from '../index'
+import { TOOLTIPS } from '../../constants'
 import { getCreator } from '../../utils'
 import classNames from 'classnames'
 import { get } from 'lodash'
@@ -46,12 +45,11 @@ export class EditAssignment extends React.Component {
                             updatedAt={updatedDate} />
                     </div>
                     <div className="EditAssignmentPanel__actions">
-                        <OverlayTrigger placement="bottom" overlay={tooltips.closeTooltip}>
-                            <button className="EditAssignmentPanel__actions__edit"
-                                onClick={closePreviewAssignment.bind(null, null)}>
-                                <i className="icon-close-small"/>
-                            </button>
-                        </OverlayTrigger>
+                        <button className="EditAssignmentPanel__actions__edit"
+                            onClick={closePreviewAssignment.bind(null, null)}
+                            data-sd-tooltip={TOOLTIPS.close} data-flow='down'>
+                            <i className="icon-close-small"/>
+                        </button>
                     </div>
                 </header>
 

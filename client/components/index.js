@@ -1,5 +1,3 @@
-import * as tooltips from './Tooltips'
-export { tooltips }
 export { StateLabel } from './StateLabel/index'
 export { ListItem } from './ListItem/index'
 export { EventItem } from './EventItem/index'

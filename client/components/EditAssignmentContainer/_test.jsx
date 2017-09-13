@@ -50,7 +50,7 @@ describe('<EditAssignmentContainer />', () => {
         )
 
         expect(wrapper.find('AuditInformationComponent').length).toBe(1)
-        expect(wrapper.find('OverlayTrigger').length).toBe(1)
+        expect(wrapper.find('.icon-close-small').length).toBe(1)
         expect(wrapper.find('CoverageComponent').length).toBe(1)
     })
 })

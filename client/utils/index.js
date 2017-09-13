@@ -4,9 +4,7 @@ import planningApp from '../reducers'
 import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
 import { get, set } from 'lodash'
-import { PUBLISHED_STATE, WORKFLOW_STATE } from '../constants/index'
-import { tooltips } from '../components'
-
+import { PUBLISHED_STATE, WORKFLOW_STATE, TOOLTIPS } from '../constants/index'
 export { default as checkPermission } from './checkPermission'
 export { default as retryDispatch } from './retryDispatch'
 export { default as registerNotifications } from './notifications'
@@ -603,13 +601,13 @@ export const getItemWorkflowStateLabel = (item) => {
                 label: 'Scheduled',
                 labelVerbose: 'Scheduled',
                 iconType: 'success',
-                tooltip:  tooltips.scheduledStateTooltip,
+                tooltip: TOOLTIPS.scheduledState,
             }
         case WORKFLOW_STATE.KILLED:
             return {
                 label: 'Killed',
                 iconType: 'warning',
-                tooltip: tooltips.withheldStateTooltip,
+                tooltip: TOOLTIPS.withheldState,
             }
         case WORKFLOW_STATE.RESCHEDULED:
             return {
@@ -637,7 +635,7 @@ export const getItemPublishedStateLabel = (item) => {
                 label: 'P',
                 labelVerbose: 'Published',
                 iconType: 'success',
-                tooltip:  tooltips.publishedStateTooltip,
+                tooltip:  TOOLTIPS.publishedState,
             }
 
         case PUBLISHED_STATE.CANCELLED:

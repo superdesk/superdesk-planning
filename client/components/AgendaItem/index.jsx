@@ -1,7 +1,6 @@
 import React, { PropTypes } from 'react'
 import moment from 'moment'
-import { tooltips } from '../index'
-import { OverlayTrigger } from 'react-bootstrap'
+import { TOOLTIPS } from '../../constants'
 
 export const AgendaItem = ({ agenda, deleteAgenda, editAgenda, privileges }) => {
     return (
@@ -15,16 +14,14 @@ export const AgendaItem = ({ agenda, deleteAgenda, editAgenda, privileges }) => 
             </div>
             {privileges.planning_agenda_management === 1 &&
                 <div className="sd-list-item__action-menu sd-list-item__action-menu--direction-row">
-                    <OverlayTrigger placement="bottom" overlay={tooltips.editAgendaTooltip}>
-                        <button onClick={editAgenda.bind(this, agenda)} className="dropdown__toggle">
-                            <i className="icon-pencil"/>
-                        </button>
-                    </OverlayTrigger>
-                    <OverlayTrigger placement="bottom" overlay={tooltips.deleteAgendaTooltip}>
-                        <button onClick={deleteAgenda.bind(this, agenda)} className="dropdown__toggle">
-                            <i className="icon-trash"/>
-                        </button>
-                    </OverlayTrigger>
+                    <button onClick={editAgenda.bind(this, agenda)} className="dropdown__toggle"
+                        data-sd-tooltip={TOOLTIPS.editAgenda} data-flow='down'>
+                        <i className="icon-pencil"/>
+                    </button>
+                    <button onClick={deleteAgenda.bind(this, agenda)} className="dropdown__toggle"
+                        data-sd-tooltip={TOOLTIPS.deleteAgenda} data-flow='down'>
+                        <i className="icon-trash"/>
+                    </button>
                 </div>
             }
         </div>
