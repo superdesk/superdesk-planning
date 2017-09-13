@@ -30,7 +30,8 @@ export class SelectMetaTermsField extends React.Component {
 
     removeValuesFromOptions() {
         if (!this.state.multiLevel) {
-            return differenceBy(this.props.options, this.props.value, 'value.qcode')
+            const key = this.props.valueKey ? this.props.valueKey : 'label'
+            return differenceBy(this.props.options, this.props.value, key)
         } else {
             return this.props.options
         }
