@@ -56,6 +56,13 @@ export class EventScheduleForm extends React.Component {
                 recurringRuleEdited: recurringRuleNextState,
             })
         }
+
+        const oldStartDate = get(this.props, 'currentSchedule.start')
+        const newStartDate = get(nextProps, 'currentSchedule.start')
+
+        if (oldStartDate !== newStartDate) {
+            this.props.change('dates.end', moment(newStartDate).clone().add(1, 'h'))
+        }
     }
 
     getNextRecurringRuleState(nextProps) {
@@ -76,18 +83,6 @@ export class EventScheduleForm extends React.Component {
                 return true
             }
         })
-    }
-
-    endOfStartingDate() {
-        if (!isNil(this.props.currentSchedule)) {
-            const { start, end } = this.props.currentSchedule
-            if (start && !end) {
-                return moment(start).set({
-                    hour: 23,
-                    minute: 59,
-                })
-            }
-        }
     }
 
     handleAllDayChange(event) {
@@ -157,8 +152,7 @@ export class EventScheduleForm extends React.Component {
             {fieldRenders.renderDate(
                 readOnly,
                 false,
-                overlaps,
-                this.endOfStartingDate()
+                overlaps
             )}
 
             <label className="form__row form__row--flex">
