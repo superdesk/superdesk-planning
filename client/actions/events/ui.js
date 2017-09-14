@@ -1,6 +1,5 @@
-import { showModal, hideModal } from '../index'
+import { showModal, hideModal, locks } from '../index'
 import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS } from '../../constants'
-import planning from '../planning'
 import eventsApi from './api'
 import { fetchSelectedAgendaPlannings } from '../agenda'
 import * as selectors from '../../selectors'
@@ -27,27 +26,37 @@ const _openEventDetails = (event) => (
                 payload: id,
             }
 
-            // In sessions with multiple tabs, state values of showEventDetails are different
-            // So, explicitly get the event from the store and see if we hold the lock on it
-            const eventInState = { ...selectors.getEvents(getState())[id] }
-            if (eventInState && isItemLockedInThisSession(eventInState,
-                    selectors.getSessionDetails(getState()))) {
-                dispatch(openDetails)
-                return Promise.resolve(eventInState)
-            } else {
+            // Load associated Planning items to ensure the 'Related Planning Items'
+            // Toggle box shows relevant Planning items
+            return dispatch(eventsApi.loadAssociatedPlannings(event))
+            .then(() => {
+                // In sessions with multiple tabs, state values of showEventDetails are different
+                // So, explicitly get the event from the store and see if we hold the lock on it
+                const eventInState = { ...selectors.getEvents(getState())[id] }
+                const eventLockedInThisSession = isItemLockedInThisSession(
+                    eventInState,
+                    selectors.getSessionDetails(getState())
+                )
+
+                if (eventInState && eventLockedInThisSession) {
+                    dispatch(openDetails)
+                    return Promise.resolve(eventInState)
+                }
+
                 if (isItemSpiked(eventInState)) {
                     dispatch(self.previewEvent(event))
                     return Promise.resolve(eventInState)
                 }
 
-                return dispatch(eventsApi.lock(event)).then((item) => {
+                return dispatch(eventsApi.lock(event))
+                .then((item) => {
                     dispatch(openDetails)
-                    dispatch(eventsApi.receiveEvents([item]))
-                    return item
+                    return Promise.resolve(item)
                 }, () => {
                     dispatch(openDetails)
+                    return Promise.resolve(event)
                 })
-            }
+            })
         } else {
             dispatch({
                 type: EVENTS.ACTIONS.OPEN_EVENT_DETAILS,
@@ -135,8 +144,8 @@ const unlockAndCloseEditor = (item) => (
  */
 const _unlockAndOpenEventDetails = (event) => (
     (dispatch) => (
-        dispatch(eventsApi.unlock(event)).then((item) => {
-            dispatch(eventsApi.receiveEvents([item]))
+        dispatch(locks.unlock(event))
+        .then(() => {
             // Call openPlanningEditor to obtain a new lock for editing
             // Recurring events item resolved might not be the item we want to open
             // So, use original parameter (event) to open
@@ -152,36 +161,11 @@ const _unlockAndOpenEventDetails = (event) => (
 const spike = (event) => (
     (dispatch, getState, { notify }) => (
         dispatch(eventsApi.spike(event))
-        .then((events) => (
-            dispatch(fetchSelectedAgendaPlannings())
-            .then(
-                () => {
-                    dispatch(hideModal())
-                    const currentPlanId = selectors.getCurrentPlanningId(getState())
-
-                    events.forEach((e) => {
-                        if (e._plannings) {
-                            const planIds = e._plannings.map((p) => (p._id))
-                            if (planIds.indexOf(currentPlanId) > -1) {
-                                dispatch(planning.ui.closeEditor())
-                            }
-                        }
-                    })
-
-                    notify.success('The event(s) have been spiked')
-                    return Promise.resolve(events)
-                },
-
-                (error) => {
-                    notify.error(
-                        getErrorMessage(error, 'Failed to load events and plannings')
-                    )
-
-                    return Promise.reject(error)
-                }
-            )
-
-        ), (error) => {
+        .then((events) => {
+            dispatch(hideModal())
+            notify.success('The event(s) have been spiked')
+            return Promise.resolve(events)
+        }, (error) => {
             dispatch(hideModal())
             notify.error(
                 getErrorMessage(error, 'Failed to spike the event(s)')

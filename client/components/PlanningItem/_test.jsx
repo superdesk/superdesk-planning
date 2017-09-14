@@ -18,6 +18,7 @@ describe('planning', () => {
             let event
             let events
             let active
+            let locks
 
             const onClick = sinon.spy()
             const onDoubleClick = sinon.spy()
@@ -49,20 +50,22 @@ describe('planning', () => {
                 return mount(
                     <Provider store={store}>
                         <PlanningItem
-                        item={item}
-                        event={event}
-                        agendas={[agenda]}
-                        active={active}
-                        onClick={onClick}
-                        onSpike={onSpike}
-                        onUnspike={onUnspike}
-                        onDuplicate={onDuplicate}
-                        onCancelEvent={onCancel}
-                        onUpdateEventTime={onUpdateTime}
-                        onRescheduleEvent={onRescheduleEvent}
-                        onPostponeEvent={onPostponeEvent}
-                        onConvertToRecurringEvent={onConvertToRecurringEvent}
-                        privileges={privileges} />
+                            item={item}
+                            event={event}
+                            agendas={[agenda]}
+                            active={active}
+                            onClick={onClick}
+                            onSpike={onSpike}
+                            onUnspike={onUnspike}
+                            onDuplicate={onDuplicate}
+                            onCancelEvent={onCancel}
+                            onUpdateEventTime={onUpdateTime}
+                            onRescheduleEvent={onRescheduleEvent}
+                            onPostponeEvent={onPostponeEvent}
+                            onConvertToRecurringEvent={onConvertToRecurringEvent}
+                            privileges={privileges}
+                            lockedItems={locks}
+                        />
                     </Provider>
                 )
             }
@@ -87,6 +90,7 @@ describe('planning', () => {
                     onConvertToRecurringEvent={onConvertToRecurringEvent}
                     privileges={privileges}
                     store={store}
+                    lockedItems={locks}
                 />)
             }
 
@@ -170,6 +174,12 @@ describe('planning', () => {
                 agenda = {
                     name: 'Agenda1',
                     is_enabled: true,
+                }
+
+                locks = {
+                    events: {},
+                    planning: {},
+                    recurring: {},
                 }
 
                 item = items[0]

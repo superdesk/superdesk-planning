@@ -29,7 +29,8 @@ class PlanningPanel extends React.Component {
         const canCreatePlanning = event && eventUtils.canCreatePlanningFromEvent(
             event,
             this.props.session,
-            this.props.privileges
+            this.props.privileges,
+            this.props.lockedItems
         )
 
         if (canCreatePlanning) {
@@ -198,6 +199,7 @@ PlanningPanel.propTypes = {
     selectAll: PropTypes.func,
     deselectAll: PropTypes.func,
     exportAsArticle: PropTypes.func,
+    lockedItems: PropTypes.object,
 }
 
 const mapStateToProps = (state) => ({
@@ -214,6 +216,7 @@ const mapStateToProps = (state) => ({
     isAdvancedSearchSpecified: isObject(selectors.getPlanningSearch(state)),
     session: selectors.getSessionDetails(state),
     selected: selectors.getSelectedPlanningItems(state),
+    lockedItems: selectors.getLockedItems(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

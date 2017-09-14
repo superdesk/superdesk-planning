@@ -60,11 +60,6 @@ describe('actions.planning.api', () => {
                     {},
                 ])
 
-                expect(store.dispatch.args[0]).toEqual([{
-                    type: 'SPIKE_PLANNING',
-                    payload: data.plannings[1],
-                }])
-
                 done()
             })
         ))
@@ -89,11 +84,6 @@ describe('actions.planning.api', () => {
                     data.plannings[1],
                     {},
                 ])
-
-                expect(store.dispatch.args[0]).toEqual([{
-                    type: 'UNSPIKE_PLANNING',
-                    payload: data.plannings[1],
-                }])
 
                 done()
             })
@@ -1071,26 +1061,37 @@ describe('actions.planning.api', () => {
         })
     })
 
-    describe('loadLockedPlanningsByAction', () => {
-        it('calls planning api and recieve locked planning items', (done) => {
-            services.api('planning').query = sinon.spy(() => (
-                Promise.resolve({ _items: data.locked_plannings }))
-            )
-            store.test(done, planningApi.loadLockedPlanningsByAction('edit'))
-            .then((items) => {
-                const source = JSON.parse(services.api('planning').query.args[0][0].source)
+    describe('getPlanning', () => {
+        it('returns the Planning if it is already in the store', (done) => (
+            store.test(done, planningApi.getPlanning(data.plannings[1]._id))
+            .then((plan) => {
+                expect(plan).toEqual(data.plannings[1])
+                expect(services.api('planning').getById.callCount).toBe(0)
 
-                expect(source.query.bool.must).toEqual([
-                    { term: { lock_user: 'ident1' } },
-                    { term: { lock_action: 'edit' } },
-                ])
+                done()
+            })
+        ))
 
-                expect(services.api('planning').query.callCount).toBe(1)
-                expect(items).toEqual(data.locked_plannings)
+        it('loads the Planning if it is not in the store', (done) => {
+            store.init()
+            store.initialState.planning.plannings = {}
+            store.test(done, planningApi.getPlanning(data.plannings[1]._id))
+            .then((plan) => {
+                expect(plan).toEqual(data.plannings[1])
+                expect(services.api('planning').getById.callCount).toBe(1)
+                expect(services.api('planning').getById.args[0]).toEqual([data.plannings[1]._id])
 
-                expect(store.dispatch.callCount).toBe(1)
-                expect(planningApi.receivePlannings.callCount).toBe(1)
-                expect(planningApi.receivePlannings.args[0]).toEqual([data.locked_plannings])
+                done()
+            })
+        })
+
+        it('returns Promsie.reject if getById fails', (done) => {
+            store.init()
+            store.initialState.planning.plannings = {}
+            services.api('planning').getById = sinon.spy(() => Promise.reject(errorMessage))
+            store.test(done, planningApi.getPlanning(data.plannings[1]._id))
+            .then(() => {}, (error) => {
+                expect(error).toEqual(errorMessage)
 
                 done()
             })

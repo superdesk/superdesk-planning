@@ -3,7 +3,7 @@ import { createStore as _createStore, applyMiddleware } from 'redux'
 import planningApp from '../reducers'
 import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
-import { get, set } from 'lodash'
+import { get, set, isNil } from 'lodash'
 import { PUBLISHED_STATE, WORKFLOW_STATE, TOOLTIPS } from '../constants/index'
 export { default as checkPermission } from './checkPermission'
 export { default as retryDispatch } from './retryDispatch'
@@ -300,6 +300,12 @@ export const createTestStore = (params={}) => {
         },
 
         deployConfig: {},
+
+        locks: {
+            events: {},
+            planning: {},
+            recurring: {},
+        },
     }
 
     const mockedExtraArguments = {
@@ -425,9 +431,25 @@ export const createTestStore = (params={}) => {
     )
 }
 
+/**
+ * Some action dispatchers (specifically thunk with promises)
+ * do not catch javascript exceptions.
+ * This middleware ensures that uncaught exceptions are still thrown
+ * displaying the error in the console.
+ */
+const crashReporter = () => next => action => {
+    try {
+        return next(action)
+    } catch (err) {
+        throw err
+    }
+}
+
 export const createStore = (params={}) => {
     const { initialState={}, extraArguments={} } = params
     const middlewares = [
+        crashReporter,
+
         // adds the extra arguments to actions
         thunkMiddleware.withExtraArgument(extraArguments),
 
@@ -547,13 +569,9 @@ export const getCreator = (item, creator, users) => {
     }
 }
 
-export const isItemLockRestricted = (item, session) => (
-    get(item, 'lock_user') ? !isItemLockedInThisSession(item, session) : false
-)
-
 export const isItemLockedInThisSession = (item, session) => (
-    item.lock_user === get(session, 'identity._id') &&
-        item.lock_session === get(session, 'sessionId')
+    get(item, 'lock_user') === get(session, 'identity._id') &&
+        get(item, 'lock_session') === get(session, 'sessionId')
 )
 
 /**
@@ -572,10 +590,27 @@ export const getCoverageIcon = (type) => {
     return get(coverageIcons, type, 'icon-file')
 }
 
-export const getLockedUser = (item, users) => (
-    get(item, 'lock_user') && Array.isArray(users) ?
-            users.find((u) => (u._id === item.lock_user)) : null
-)
+export const getLockedUser = (item, locks, users) => {
+    const lock = getLock(item, locks)
+    return lock !== null && Array.isArray(users) ?
+        users.find((u) => (u._id === lock.user)) : null
+}
+
+export const getLock = (item, locks) => {
+    if (isNil(item)) {
+        return null
+    } else if (item._id in locks.events) {
+        return locks.events[item._id]
+    } else if (item._id in locks.planning) {
+        return locks.planning[item._id]
+    } else if (get(item, 'event_item') in locks.events) {
+        return locks.events[item.event_item]
+    } else if (get(item, 'recurrence_id') in locks.recurring) {
+        return locks.recurring[item.recurrence_id]
+    }
+
+    return null
+}
 
 export const getItemWorkflowState = (item) => (get(item, 'state', WORKFLOW_STATE.DRAFT))
 export const isItemCancelled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.CANCELLED

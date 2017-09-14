@@ -6,6 +6,7 @@ export * from './assignment'
 
 import planning from './planning/index'
 import events from './events/index'
+import locks from './locks'
 
 import { agendaNotifications } from './agenda'
 import { eventNotifications } from './events'
@@ -34,4 +35,5 @@ export {
     events,
     resetStore,
     initStore,
+    locks,
 }

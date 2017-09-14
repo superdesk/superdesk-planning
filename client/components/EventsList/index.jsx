@@ -53,6 +53,7 @@ export class EventsList extends React.Component {
     }
 
     rowRenderer({ index, key, style }) {
+        const { lockedItems } = this.props
         const { event, date } = this.props.events[index]
         const isFirst = !!date
         return (
@@ -79,7 +80,7 @@ export class EventsList extends React.Component {
                         value,
                     })}
                     privileges={this.props.privileges}
-                    itemLocked={event.lock_user ? true : false}
+                    lockedItems={lockedItems}
                     addEventToCurrentAgenda={this.props.addEventToCurrentAgenda}
                     session={this.props.session} />
             </div>
@@ -139,4 +140,5 @@ EventsList.propTypes = {
     onEventSelectChange: PropTypes.func.isRequired,
     session: PropTypes.object,
     addEventToCurrentAgenda: PropTypes.func,
+    lockedItems: PropTypes.object,
 }

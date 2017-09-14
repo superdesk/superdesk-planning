@@ -4,6 +4,7 @@ import sinon from 'sinon'
 import { EventUpdateMethods } from '../../../components/fields'
 import { getTestActionStore, restoreSinonStub } from '../../../utils/testUtils'
 import { WORKFLOW_STATE, SPIKED_STATE } from '../../../constants'
+import moment from 'moment'
 
 describe('actions.events.api', () => {
     let errorMessage
@@ -41,26 +42,25 @@ describe('actions.events.api', () => {
         restoreSinonStub(planningApi.loadPlanningByEventId)
     })
 
+    it('silentlyFetchEventsById', (done) => {
+        store.test(done, eventsApi.silentlyFetchEventsById(['e1', 'e2', 'e3'], SPIKED_STATE.BOTH))
+        .then(() => {
+            expect(eventsApi.query.callCount).toBe(1)
+            expect(eventsApi.query.args[0]).toEqual([{
+                ids: ['e1', 'e2', 'e3'],
+                spikeState: SPIKED_STATE.BOTH,
+            }])
+
+            expect(eventsApi.receiveEvents.callCount).toBe(1)
+            expect(eventsApi.receiveEvents.args[0]).toEqual([data.events])
+
+            done()
+        })
+    })
+
     describe('loadEventsByRecurrenceId', () => {
         beforeEach(() => {
             restoreSinonStub(eventsApi.loadEventsByRecurrenceId)
-        })
-
-        it('silentlyFetchEventsById', (done) => {
-            store.test(done, eventsApi.silentlyFetchEventsById(['e1', 'e2', 'e3'],
-                SPIKED_STATE.BOTH))
-            .then(() => {
-                expect(eventsApi.query.callCount).toBe(1)
-                expect(eventsApi.query.args[0]).toEqual([{
-                    ids: ['e1', 'e2', 'e3'],
-                    spikeState: SPIKED_STATE.BOTH,
-                }])
-
-                expect(eventsApi.receiveEvents.callCount).toBe(1)
-                expect(eventsApi.receiveEvents.args[0]).toEqual([data.events])
-
-                done()
-            })
         })
 
         it('runs the query', (done) => (
@@ -111,11 +111,6 @@ describe('actions.events.api', () => {
                     { update_method: EventUpdateMethods[0].value },
                 ])
 
-                expect(store.dispatch.args[0]).toEqual([{
-                    type: 'SPIKE_EVENT',
-                    payload: [data.events[1]._id],
-                }])
-
                 done()
             })
         ))
@@ -133,11 +128,6 @@ describe('actions.events.api', () => {
                         { update_method: EventUpdateMethods[0].value },
                     ])
                 }
-
-                expect(store.dispatch.args[0]).toEqual([{
-                    type: 'SPIKE_EVENT',
-                    payload: data.events.map((event) => event._id),
-                }])
 
                 done()
             })
@@ -181,11 +171,6 @@ describe('actions.events.api', () => {
                     {},
                 ])
 
-                expect(store.dispatch.args[0]).toEqual([{
-                    type: 'UNSPIKE_EVENT',
-                    payload: [data.events[1]._id],
-                }])
-
                 done()
             })
         ))
@@ -203,11 +188,6 @@ describe('actions.events.api', () => {
                         {},
                     ])
                 }
-
-                expect(store.dispatch.args[0]).toEqual([{
-                    type: 'UNSPIKE_EVENT',
-                    payload: data.events.map((event) => event._id),
-                }])
 
                 done()
             })
@@ -437,7 +417,6 @@ describe('actions.events.api', () => {
                 expect(planningApi.loadPlanningByEventId.callCount).toBe(1)
                 expect(planningApi.loadPlanningByEventId.args[0]).toEqual([
                     ['e1', 'e2', 'e3'],
-                    'both',
                     false,
                 ])
 
@@ -478,32 +457,6 @@ describe('actions.events.api', () => {
             type: 'ADD_EVENTS',
             payload: data.events,
         }))
-    })
-
-    describe('loadLockedEventsByAction', () => {
-        it('calls events api and receive locked events', (done) => {
-            services.api('events').query = sinon.spy(() => (
-                Promise.resolve({ _items: data.locked_events }))
-            )
-            store.test(done, eventsApi.loadLockedEventsByAction('edit'))
-            .then((items) => {
-                const source = JSON.parse(services.api('events').query.args[0][0].source)
-
-                expect(source.query.bool.must).toEqual([
-                    { term: { lock_user: 'ident1' } },
-                    { term: { lock_action: 'edit' } },
-                ])
-
-                expect(services.api('events').query.callCount).toBe(1)
-                expect(items).toEqual(data.locked_events)
-
-                expect(store.dispatch.callCount).toBe(1)
-                expect(eventsApi.receiveEvents.callCount).toBe(1)
-                expect(eventsApi.receiveEvents.args[0]).toEqual([data.locked_events])
-
-                done()
-            })
-        })
     })
 
     describe('rescheduleEvent', () => {
@@ -551,6 +504,103 @@ describe('actions.events.api', () => {
             store.test(done, eventsApi.rescheduleEvent(data.events[1]))
             .then(() => {}, (error) => {
                 expect(error).toEqual(errorMessage)
+                done()
+            })
+        })
+    })
+
+    describe('loadAssociatedPlannings', () => {
+        it('returns if no associated Planning items', (done) => (
+            store.test(done, eventsApi.loadAssociatedPlannings(data.events[1]))
+            .then((items) => {
+                expect(items).toEqual([])
+                expect(planningApi.loadPlanningByEventId.callCount).toBe(0)
+
+                done()
+            })
+        ))
+
+        it('loads associated Planning items', (done) => (
+            store.test(done, eventsApi.loadAssociatedPlannings(data.events[0]))
+            .then((items) => {
+                expect(items).toEqual(data.plannings)
+                expect(planningApi.loadPlanningByEventId.callCount).toBe(1)
+                expect(planningApi.loadPlanningByEventId.args[0]).toEqual([data.events[0]._id])
+
+                done()
+            })
+        ))
+    })
+
+    describe('queryLockedEvents', () => {
+        it('queries Events api for locked events', (done) => (
+            store.test(done, eventsApi.queryLockedEvents())
+            .then(() => {
+                const query = { constant_score: { filter: { exists: { field: 'lock_session' } } } }
+                expect(services.api('events').query.callCount).toBe(1)
+                expect(services.api('events').query.args[0]).toEqual([
+                    { source: JSON.stringify({ query }) },
+                ])
+                done()
+            })
+        ))
+
+        it('returns reject is lock query fails', (done) => {
+            services.api('events').query = sinon.spy(() => Promise.reject(errorMessage))
+            store.test(done, eventsApi.queryLockedEvents())
+            .then(() => {}, (error) => {
+                expect(error).toEqual(errorMessage)
+                done()
+            })
+        })
+    })
+
+    describe('getEvent', () => {
+        it('returns the Event if it is already in the store', (done) => (
+            store.test(done, eventsApi.getEvent(data.events[0]._id))
+            .then((event) => {
+                expect(event).toEqual({
+                    ...data.events[0],
+                    dates: {
+                        ...data.events[0].dates,
+                        start: moment(data.events[0].dates.start),
+                        end: moment(data.events[0].dates.end),
+                    },
+                })
+                expect(services.api('events').getById.callCount).toBe(0)
+
+                done()
+            })
+        ))
+
+        it('loads the Event if it is not in the store', (done) => {
+            store.init()
+            store.initialState.events.events = {}
+            store.test(done, eventsApi.getEvent(data.events[0]._id))
+            .then((event) => {
+                expect(event).toEqual({
+                    ...data.events[0],
+                    dates: {
+                        ...data.events[0].dates,
+                        start: moment(data.events[0].dates.start),
+                        end: moment(data.events[0].dates.end),
+                    },
+                })
+                expect(services.api('events').getById.callCount).toBe(1)
+                expect(services.api('events').getById.args[0]).toEqual([data.events[0]._id])
+
+                done()
+            })
+        })
+
+        it('returns Promise.reject if getById fails', (done) => {
+            store.init()
+            store.initialState.events.events = {}
+            services.api('events').getById = sinon.spy(() => Promise.reject(errorMessage))
+            store.test(done, eventsApi.getEvent(data.events[0]._id))
+            .then(() => {}, (error) => {
+                expect(error).toEqual(errorMessage)
+
                 done()
             })
         })

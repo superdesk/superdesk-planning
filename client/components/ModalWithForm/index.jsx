@@ -74,7 +74,10 @@ Component.propTypes = {
     show: PropTypes.bool,
     onHide: PropTypes.func,
     pristine: PropTypes.bool,
-    submitting: PropTypes.func,
+    submitting: PropTypes.oneOfType([
+        PropTypes.func,
+        PropTypes.bool,
+    ]),
     cancelButtonText: PropTypes.string,
     saveButtonText: PropTypes.string,
     large: PropTypes.bool,
@@ -82,7 +85,6 @@ Component.propTypes = {
     fullscreen: PropTypes.bool,
     white: PropTypes.bool,
 }
-
 
 const mapStateToProps = (state, ownProps) => ({
     pristine: ownProps.formNameForPristineCheck ?

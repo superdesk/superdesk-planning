@@ -162,9 +162,22 @@ describe('events', () => {
                             },
                         },
                     },
+                    locks: {
+                        events: {
+                            '5800d71930627218866f1e80': {
+                                action: 'edit',
+                                user: 'somebodyelse',
+                                session: 'someothersession',
+                                item_type: 'events',
+                                item_id: '5800d71930627218866f1e80',
+                                time: '2016-10-15T14:30+0000',
+                            },
+                        },
+                        planning: {},
+                        recurring: {},
+                    },
                 },
             })
-
         }
 
         describe('<EventForm />', () => {
@@ -213,29 +226,15 @@ describe('events', () => {
                     privileges: priv,
                     onMinimize,
                     initialValues: {},
+                    lockedItems: {
+                        events: {},
+                        planning: {},
+                        recurring: {},
+                    },
                 }
                 const subject = shallow(<Component {...props}/>)
                 subject.find('form').simulate('submit')
                 expect(handleSubmit.callCount).toBe(2)
-            })
-
-            it('save the event', () => {
-                const getState = () => ({ events: { events: {} } })
-                const dispatch = sinon.spy(() => (Promise.resolve()))
-                const api = () => ({
-                    save: sinon.spy((original, newEvent) => {
-                        expect(newEvent.dates.tz).toEqual(jasmine.any(String))
-                        expect(newEvent.dates.start).toEqual(event.dates.start)
-                        return Promise.resolve()
-                    }),
-                })
-                const action = actions.uploadFilesAndSaveEvent(event)
-                action(dispatch, getState, { api })
-            })
-
-            it('duplicate an event', () => {
-                const store = createTestStore()
-                store.dispatch(actions.duplicateEvent(event))
             })
 
             it('compute right dates', () => {
@@ -271,8 +270,14 @@ describe('events', () => {
                 let _event = event
                 _event.lock_user = 'user123'
                 _event.lock_session = 'session123'
+
                 const store = createTestStoreForEventEditing(_event)
-                const wrapper = mount(<Provider store={store}><EventForm initialValues={event}/></Provider>)
+                const wrapper = mount(
+                    <Provider store={store}>
+                        <EventForm initialValues={event}/>
+                    </Provider>
+                )
+
                 wrapper.find('.toggle-box__header').at(1).simulate('click')
                 const field = wrapper.find('FileFieldComponent')
                 const file = field.props().file
@@ -289,8 +294,14 @@ describe('events', () => {
                 let _event = event
                 _event.lock_user = 'user123'
                 _event.lock_session = 'session123'
+
                 const store = createTestStoreForEventEditing(_event)
-                const wrapper = mount(<Provider store={store}><EventForm initialValues={event} /></Provider>)
+                const wrapper = mount(
+                    <Provider store={store}>
+                        <EventForm initialValues={event} />
+                    </Provider>
+                )
+
                 wrapper.find('.toggle-box__header').at(2).simulate('click')
                 const field = wrapper.find('LinkFieldComponent')
                 const link = field.props().link
@@ -316,6 +327,11 @@ describe('events', () => {
                         }}
                         privileges={priv}
                         onMinimize={sinon.spy()}
+                        lockedItems={{
+                            events: {},
+                            planning: {},
+                            recurring: {},
+                        }}
                     />
                 )
                 expect(wrapper.find('[type="submit"]').length).toBe(0)
@@ -326,6 +342,11 @@ describe('events', () => {
                         initialValues={{ state: 'draft' }}
                         privileges={priv}
                         onMinimize={sinon.spy()}
+                        lockedItems={{
+                            events: {},
+                            planning: {},
+                            recurring: {},
+                        }}
                     />
                 )
                 expect(wrapper.find('[type="submit"]').length).toBe(1)
@@ -371,9 +392,16 @@ describe('events', () => {
                         lock_user: 'somebodyelse',
                         lock_session: 'someothersession',
                     }
+
                     const store = createTestStoreForEventEditing(recEvent)
-                    const wrapper = mount(<Provider store={store}><EventForm initialValues={recEvent}
-                        enableReinitialize={true}/></Provider>)
+                    const wrapper = mount(
+                        <Provider store={store}>
+                            <EventForm
+                                initialValues={recEvent}
+                                enableReinitialize={true}
+                            />
+                        </Provider>
+                    )
                     expect(wrapper.find('ItemActionsMenu').props().actions.length).toBe(2)
                     expect(itemActionExists(wrapper, 'View History')).toBe(true)
                 })

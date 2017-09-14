@@ -18,14 +18,25 @@ function MultiEventsSelectionActions({
     unspike,
     privileges,
     session,
+    lockedItems,
 }) {
     const count = selectedEvents.length
     const classes = classNames('MultiSelectionActions', className)
 
-    const showSpike = every(selectedEvents, (event) => eventUtils.canSpikeEvent(event, session, privileges))
-    const showUnspike = some(selectedEvents, (event) => eventUtils.canUnspikeEvent(event, privileges))
-    const showCreatePlan = every(selectedEvents, (event) => eventUtils.canCreatePlanningFromEvent(event,
-        session, privileges))
+    const showSpike = every(
+        selectedEvents,
+        (event) => eventUtils.canSpikeEvent(event, session, privileges, lockedItems)
+    )
+
+    const showUnspike = some(
+        selectedEvents,
+        (event) => eventUtils.canUnspikeEvent(event, privileges)
+    )
+
+    const showCreatePlan = every(
+        selectedEvents,
+        (event) => eventUtils.canCreatePlanningFromEvent(event, session, privileges, lockedItems)
+    )
 
     return (
         <div className={classes}>
@@ -71,12 +82,14 @@ MultiEventsSelectionActions.propTypes = {
     unspike: PropTypes.func.isRequired,
     privileges: PropTypes.object.isRequired,
     session: PropTypes.object.isRequired,
+    lockedItems: PropTypes.object,
 }
 
 const mapStateToProps = (state) => ({
     selectedEvents: getSelectedEventsObjects(state),
     privileges: selectors.getPrivileges(state),
     session: selectors.getSessionDetails(state),
+    lockedItems: selectors.getLockedItems(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

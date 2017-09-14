@@ -33,7 +33,7 @@ export const getShowEventDetails = (state) => get(state, 'events.showEventDetail
 export const getSelectedEvents = (state) => get(state, 'events.selectedEvents')
 export const getHighlightedEvent = (state) => get(state, 'events.highlightedEvent') === true ?
     null : get(state, 'events.highlightedEvent')
-export const getEventsIdsToShowInList = (state) => get(state, 'events.eventsInList')
+export const getEventsIdsToShowInList = (state) => get(state, 'events.eventsInList', [])
 export const getSelectedEventsObjects = createSelector(
     [getEvents, getSelectedEvents],
     (events, eventsIds) => (eventsIds.map((id) => events[id]))
@@ -91,6 +91,11 @@ export const getPlanningsFormsProfile = (state) => get(state, 'formsProfile.plan
 export const getCoverageFormsProfile = (state) => get(state, 'formsProfile.coverage')
 export const getVocabularies = (state) => get(state, 'vocabularies')
 export const getSelectedPlanningItems = (state) => get(state, 'planning.selectedItems')
+export const getLockedItems = (state) => get(state, 'locks', {
+    events: {},
+    planning: {},
+    recurring: {},
+})
 
 export const getPlanningTypeProfile = createSelector(
     [getPlanningsFormsProfile, getCoverageFormsProfile],

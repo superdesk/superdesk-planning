@@ -22,7 +22,7 @@ export const EventItem = ({
         privileges,
         isSelected,
         onSelectChange,
-        itemLocked,
+        lockedItems,
         className,
         session,
         addEventToCurrentAgenda,
@@ -30,9 +30,9 @@ export const EventItem = ({
     const hasBeenCancelled = isItemCancelled(event)
     const hasBeenRescheduled = isItemRescheduled(event)
     const hasPlanning = eventUtils.eventHasPlanning(event)
-
-    const onEditOrPreview = eventUtils.canEditEvent(event, session, privileges) ?
+    const onEditOrPreview = eventUtils.canEditEvent(event, session, privileges, lockedItems) ?
         onDoubleClick : onClick
+    const isItemLocked = eventUtils.isEventLocked(event, lockedItems)
 
     const actions = [
         {
@@ -74,9 +74,20 @@ export const EventItem = ({
         },
     ]
 
-    const itemActions = eventUtils.getEventItemActions(event, session, privileges, actions)
+    const itemActions = eventUtils.getEventItemActions(
+        event,
+        session,
+        privileges,
+        actions,
+        lockedItems
+    )
 
-    const canCreatePlanning = eventUtils.canCreatePlanningFromEvent(event, session, privileges)
+    const canCreatePlanning = eventUtils.canCreatePlanningFromEvent(
+        event,
+        session,
+        privileges,
+        lockedItems
+    )
 
     return (
         <ListItem
@@ -88,7 +99,7 @@ export const EventItem = ({
                 className,
                 { 'event--has-planning': hasPlanning },
                 { 'event--has-been-canceled': hasBeenCancelled || hasBeenRescheduled },
-                { 'event--locked': itemLocked },
+                { 'event--locked': isItemLocked },
                 { 'event--not-draggable': !canCreatePlanning })}
             active={highlightedEvent === event._id || isSelected}
         >
@@ -131,7 +142,7 @@ EventItem.propTypes = {
     privileges: PropTypes.object,
     isSelected: PropTypes.bool,
     onSelectChange: PropTypes.func.isRequired,
-    itemLocked: React.PropTypes.bool,
+    lockedItems: PropTypes.object,
     session: PropTypes.object,
     addEventToCurrentAgenda: PropTypes.func,
 }

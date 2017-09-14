@@ -19,6 +19,8 @@ export const EVENTS = {
         MARK_EVENT_CANCELLED: 'MARK_EVENT_CANCELLED',
         MARK_EVENT_POSTPONED: 'MARK_EVENT_POSTPONED',
         MARK_EVENT_HAS_PLANNINGS: 'MARK_EVENT_HAS_PLANNINGS',
+        LOCK_EVENT: 'LOCK_EVENT',
+        UNLOCK_EVENT: 'UNLOCK_EVENT',
     },
     // Number of ids to look for by single request
     // because url length must stay short

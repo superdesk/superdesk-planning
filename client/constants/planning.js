@@ -26,6 +26,8 @@ export const PLANNING = {
         TOGGLE_SELECTED: 'TOGGLE_SELECTED',
         SELECT_ALL: 'SELECT_ALL',
         DESELECT_ALL: 'DESELECT_ALL',
+        LOCK_PLANNING: 'LOCK_PLANNING',
+        UNLOCK_PLANNING: 'UNLOCK_PLANNING',
     },
     // Number of ids to look for by single request
     // because url length must stay short

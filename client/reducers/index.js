@@ -6,6 +6,7 @@ import planning from './planning'
 import vocabularies from './vocabularies'
 import agenda from './agenda'
 import assignment from './assignment'
+import locks from './locks'
 
 const returnState = (state) => state || {}
 
@@ -17,6 +18,7 @@ const planningApp = combineReducers({
     agenda,
     assignment,
     form: forms,
+    locks,
 
     // The following doesn't require reducers as they are loaded using sdPlanningService
     config: returnState,

@@ -1,6 +1,6 @@
 import { orderBy, cloneDeep, uniq, get } from 'lodash'
 import moment from 'moment'
-import { EVENTS, RESET_STORE, INIT_STORE } from '../constants'
+import { EVENTS, RESET_STORE, INIT_STORE, LOCKS, SPIKED_STATE } from '../constants'
 import { createReducer } from '../utils'
 import { WORKFLOW_STATE } from '../constants'
 
@@ -23,8 +23,7 @@ const initialState = {
 }
 
 const modifyEventsBeingAdded = (state, payload) => {
-    var _events = cloneDeep(state.events)
-    let updateRecurrences = []
+    let _events = cloneDeep(state.events)
 
     payload.forEach((e) => {
         _events[e._id] = e
@@ -35,69 +34,7 @@ const modifyEventsBeingAdded = (state, payload) => {
             if (get(e, 'dates.recurring_rule.until')) {
                 e.dates.recurring_rule.until = moment(e.dates.recurring_rule.until)
             }
-
-            // We are not locking every event in the recurring series for efficiency reasons
-            // However, backend manages to disallow lock if another recurrent event is locked
-            // So, we have to superficially in the UI show that all events in the series are locked
-            if (e.recurrence_id) {
-                if (Object.keys(state.events).length > 0) {
-                    // If it exists in store
-                    const eventInStore = state.events[e._id]
-                    if (eventInStore && e.lock_user !== eventInStore.lock_user) {
-                        if (e.lock_user) {
-                            updateRecurrences.push({
-                                originalEventLocked: e._id,
-                                recurrenceId: e.recurrence_id,
-                                lockUser: e.lock_user,
-                                lockSession: e.lock_session,
-                                lockTime: e.lock_time,
-                                etag: e._etag,
-                            })
-                        } else if (eventInStore.lock_session) {
-                            updateRecurrences.push({
-                                originalEventLocked: e._id,
-                                recurrenceId: e.recurrence_id,
-                                lockUser: null,
-                                lockSession: null,
-                                lockTime: null,
-                                etag: e._etag,
-                            })
-                        }
-
-                    }
-                } else if (e.lock_user) {
-                    updateRecurrences.push({
-                        originalEventLocked: e._id,
-                        recurrenceId: e.recurrence_id,
-                        lockUser: e.lock_user,
-                        lockSession: e.lock_session,
-                        lockTime: e.lock_time,
-                        etag: e._etag,
-                    })
-                }
-
-            }
         }
-    })
-
-    updateRecurrences.forEach((recurrence) => {
-        // Update all recurring events of that series: that they are locked/unlocked as well.
-        Object.keys(_events).forEach((eKey) => {
-            if (_events[eKey].recurrence_id === recurrence.recurrenceId) {
-                _events[eKey] = {
-                    ..._events[eKey],
-                    lock_action: 'edit',
-                    lock_user: recurrence.lockUser,
-                    lock_time: recurrence.lockTime,
-                    lock_session: null, // null to differentiate actual object being locked
-                }
-
-                if (eKey === recurrence.originalEventLocked) {
-                    _events[eKey].lock_session = recurrence.lockSession
-                    _events[eKey]._etag = recurrence.etag
-                }
-            }
-        })
     })
 
     return _events
@@ -218,11 +155,11 @@ const eventsReducer = createReducer(initialState, {
     ),
 
     [EVENTS.ACTIONS.MARK_EVENT_CANCELLED]: (state, payload) => {
-        let events = cloneDeep(state.events)
-        let event = get(events, payload.event_item, null)
-
         // If the event is not loaded, disregard this action
-        if (event === null) return state
+        if (!(payload.event._id in state.events)) return state
+
+        let events = cloneDeep(state.events)
+        let event = events[payload.event._id]
 
         let definition = `------------------------------------------------------------
 Event Cancelled
@@ -251,13 +188,52 @@ Event Cancelled
     },
 
     [EVENTS.ACTIONS.MARK_EVENT_HAS_PLANNINGS]: (state, payload) => {
-        let events = cloneDeep(state.events)
-        let event = get(events, payload.event_item, null)
-
         // If the event is not loaded, disregard this action
-        if (event === null) return state
+        if (!(payload.event_item in state.events)) return state
 
-        event.has_planning = true
+        let events = cloneDeep(state.events)
+        let event = events[payload.event_item]
+
+        const planningIds = get(event, 'planning_ids', [])
+        planningIds.push(payload.planning_item)
+        event.planning_ids = planningIds
+
+        return {
+            ...state,
+            events,
+        }
+    },
+
+    [EVENTS.ACTIONS.LOCK_EVENT]: (state, payload) => {
+        let events = cloneDeep(state.events)
+        const newEvent = payload.event
+        let event = get(events, newEvent._id, payload.event)
+
+        event.lock_action = newEvent.lock_action
+        event.lock_user = newEvent.lock_user
+        event.lock_time = newEvent.lock_time
+        event.lock_session = newEvent.lock_session
+        event._etag = newEvent._etag
+
+        return {
+            ...state,
+            events,
+        }
+    },
+
+    [EVENTS.ACTIONS.UNLOCK_EVENT]: (state, payload) => {
+        // If the event is not loaded, disregard this action
+        if (!(payload.event._id in state.events)) return state
+
+        let events = cloneDeep(state.events)
+        const newEvent = payload.event
+        let event = events[newEvent._id]
+
+        delete event.lock_action
+        delete event.lock_user
+        delete event.lock_time
+        delete event.lock_session
+        event._etag = newEvent._etag
 
         return {
             ...state,
@@ -266,11 +242,11 @@ Event Cancelled
     },
 
     [EVENTS.ACTIONS.MARK_EVENT_POSTPONED]: (state, payload) => {
-        let events = cloneDeep(state.events)
-        let event = get(events, payload.event_item, null)
-
         // If the event is not loaded, disregard this action
-        if (event === null) return state
+        if (!(payload.event._id in state.events)) return state
+
+        let events = cloneDeep(state.events)
+        let event = events[payload.event._id]
 
         let definition = `------------------------------------------------------------
 Event Postponed
@@ -293,6 +269,83 @@ Event Postponed
 
         return {
             ...state,
+            events,
+        }
+    },
+
+    [LOCKS.ACTIONS.RECEIVE]: (state, payload) => (
+        get(payload, 'events.length', 0) <= 0 ?
+            state :
+            eventsReducer(state, {
+                type: EVENTS.ACTIONS.ADD_EVENTS,
+                payload: payload.events,
+            })
+    ),
+
+    [EVENTS.ACTIONS.SPIKE_EVENT]: (state, payload) => {
+        // If the event is not loaded, disregard this action
+        if (!(payload.event._id in state.events)) return state
+
+        let events = cloneDeep(state.events)
+        const newEvent = payload.event
+        let event = events[newEvent._id]
+
+        delete event.lock_action
+        delete event.lock_user
+        delete event.lock_time
+        delete event.lock_session
+        event._etag = newEvent._etag
+        event.state = newEvent.state
+        event.revert_state = newEvent.revert_state
+
+        let showEventDetails = get(state, 'showEventDetails', null)
+        if (showEventDetails === event._id) {
+            showEventDetails = null
+        }
+
+        // If the user is currently not showing spiked Events,
+        // Then remove this Event from the list (if it exists in the list)
+        const spikeState = get(state, 'search.currentSearch.spikeState', SPIKED_STATE.NOT_SPIKED)
+        let eventsInList = state.eventsInList
+        if (eventsInList.indexOf(event._id) > -1 && spikeState === SPIKED_STATE.NOT_SPIKED) {
+            eventsInList.splice(eventsInList.indexOf(event._id), 1)
+        }
+
+        return {
+            ...state,
+            eventsInList,
+            events,
+            showEventDetails,
+        }
+    },
+
+    [EVENTS.ACTIONS.UNSPIKE_EVENT]: (state, payload) => {
+        // If the event is not loaded, disregard this action
+        if (!(payload.event._id in state.events)) return state
+
+        let events = cloneDeep(state.events)
+        const newEvent = payload.event
+        let event = events[newEvent._id]
+
+        delete event.lock_action
+        delete event.lock_user
+        delete event.lock_time
+        delete event.lock_session
+        event._etag = newEvent._etag
+        event.state = newEvent.state
+        event.revert_state = newEvent.revert_state
+
+        // If the user is currently showing spiked only Events,
+        // Then remove this Event from the list (if it exists in the list)
+        const spikeState = get(state, 'search.currentSearch.spikeState', SPIKED_STATE.NOT_SPIKED)
+        let eventsInList = state.eventsInList
+        if (eventsInList.indexOf(event._id) > -1 && spikeState === SPIKED_STATE.SPIKED) {
+            eventsInList.splice(eventsInList.indexOf(event._id), 1)
+        }
+
+        return {
+            ...state,
+            eventsInList,
             events,
         }
     },
