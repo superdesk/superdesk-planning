@@ -88,6 +88,9 @@ export const getPlanningItemActions = ({ plan, event=null, session, privileges, 
     let itemActions = []
     let key = 1
 
+    // ad hoc plan created directly from planning list and not from an event
+    const isPlanAdHoc = !_.get(plan, 'event_item')
+
     const actionsValidator = {
         [GENERIC_ITEM_ACTIONS.SPIKE.label]: () => canSpikePlanning({
             plan,
@@ -106,13 +109,15 @@ export const getPlanningItemActions = ({ plan, event=null, session, privileges, 
             privileges,
         }),
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
-            eventUtils.canCancelEvent(event, session, privileges),
+            !isPlanAdHoc && eventUtils.canCancelEvent(event, session, privileges),
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: () =>
-            eventUtils.canEditEvent(event, session, privileges),
+            !isPlanAdHoc && eventUtils.canUpdateEventTime(event, session, privileges),
         [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: () =>
-            eventUtils.canRescheduleEvent(event, session, privileges),
+            !isPlanAdHoc && eventUtils.canRescheduleEvent(event, session, privileges),
         [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: () =>
-            eventUtils.canPostponeEvent(event, session, privileges),
+            !isPlanAdHoc && eventUtils.canPostponeEvent(event, session, privileges),
+        [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: () =>
+            !isPlanAdHoc && eventUtils.canConvertToRecurringEvent(event, session, privileges),
     }
 
     actions.forEach((action) => {

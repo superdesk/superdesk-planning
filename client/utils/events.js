@@ -123,9 +123,10 @@ const getRelatedEventsForRecurringEvent = (state={}, action) => {
 }
 
 const canSpikeEvent = (event, session, privileges) => (
-    !isItemPublic(event) && getItemWorkflowState(event) === WORKFLOW_STATE.DRAFT &&
-        !!privileges[PRIVILEGES.SPIKE_EVENT] && !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
-        !isItemLockRestricted(event, session)
+    !isItemPublic(event) && (getItemWorkflowState(event) === WORKFLOW_STATE.DRAFT ||
+        isItemPostponed(event)) && !!privileges[PRIVILEGES.SPIKE_EVENT] &&
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
+        !isItemLockRestricted(event, session) && !isEventInUse(event)
 )
 
 const canUnspikeEvent = (event, privileges) => (
@@ -134,13 +135,14 @@ const canUnspikeEvent = (event, privileges) => (
 )
 
 const canDuplicateEvent = (event, session, privileges) => (
-    canEditEvent(event, session, privileges)
+    !isItemSpiked(event) && !isItemLockRestricted(event, session) &&
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemRescheduled(event)
 )
 
 const canCreatePlanningFromEvent = (event, session, privileges) => (
     !isItemSpiked(event) && !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isItemLockRestricted(event, session) && !isItemCancelled(event) &&
-        !isItemRescheduled(event)
+        !isItemRescheduled(event) && !isItemPostponed(event)
 )
 
 const canPublishEvent = (event, session, privileges) => (
@@ -165,12 +167,17 @@ const isEventInUse = (event) => (
 )
 
 const canConvertToRecurringEvent = (event, session, privileges) => (
-    !event.recurrence_id && canEditEvent(event, session, privileges)
+    event && !event.recurrence_id && canEditEvent(event, session, privileges) &&
+        !isItemPostponed(event)
 )
 
 const canEditEvent = (event, session, privileges) => (
     !isItemSpiked(event) && !isItemCancelled(event) && !isItemLockRestricted(event, session) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemRescheduled(event)
+)
+
+const canUpdateEventTime = (event, session, privileges) => (
+    canEditEvent(event, session, privileges) && !isItemPostponed(event)
 )
 
 const canRescheduleEvent = (event, session, privileges) => (
@@ -199,7 +206,7 @@ const getEventItemActions = (event, session, privileges, actions) => {
         [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label]: (event, session=null, privileges=null) =>
             canCreatePlanningFromEvent(event, session, privileges),
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: (event, session=null, privileges=null) =>
-            canEditEvent(event, session, privileges),
+            canUpdateEventTime(event, session, privileges),
         [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: (event, session=null, privileges=null) =>
             canRescheduleEvent(event, session, privileges),
         [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: () =>
@@ -247,6 +254,8 @@ const self = {
     isEventInUse,
     canRescheduleEvent,
     canPostponeEvent,
+    canUpdateEventTime,
+    canConvertToRecurringEvent,
 }
 
 export default self
