@@ -9,7 +9,7 @@ import { gettext } from '../../utils'
 import './style.scss'
 
 const SortableItem = SortableElement(({ label }) =>
-    <li className="sortable-list__item">{label}</li>
+    <li className="sortable-list__item draggable-list__item">{label}</li>
 )
 
 const SortableList = SortableContainer(({ items }) =>
@@ -26,6 +26,7 @@ class SortItemsModal extends React.Component {
         this.state = { items: this.props.modalProps.items }
         this.done = this.done.bind(this)
         this.onSortEnd = this.onSortEnd.bind(this)
+        this.onSortStart = this.onSortStart.bind(this)
     }
 
     done() {
@@ -35,6 +36,13 @@ class SortItemsModal extends React.Component {
 
     onSortEnd({ oldIndex, newIndex }) {
         this.setState({ items: arrayMove(this.state.items, oldIndex, newIndex) })
+        document.body.style.cursor = this.cursor
+    }
+
+    // set cursor to move during whole drag
+    onSortStart() {
+        this.cursor = document.body.style.cursor
+        document.body.style.cursor = 'move'
     }
 
     render() {
@@ -44,7 +52,10 @@ class SortItemsModal extends React.Component {
                     <h3>{gettext('Reorder Items')}</h3>
                 </Modal.Header>
                 <Modal.Body>
-                    <SortableList items={this.state.items} onSortEnd={this.onSortEnd} />
+                    <SortableList items={this.state.items}
+                        onSortEnd={this.onSortEnd}
+                        onSortStart={this.onSortStart}
+                    />
                 </Modal.Body>
                 <Modal.Footer>
                     <Button type="button"

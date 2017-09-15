@@ -974,15 +974,43 @@ const markPlanningPostponed = (plan, reason) => ({
  * then it sends it to server.
  */
 function exportAsArticle() {
-    return (dispatch, getState, { api, notify, gettext }) => {
+    return (dispatch, getState, { api, notify, gettext, superdesk, $location }) => {
         const state = getState()
-
+        const sortableItems = []
         const label = (item) => item.headline || item.slugline || item.description_text
 
-        const sortableItems = state.planning.selectedItems.map((id) => ({
-            id,
-            label: label(state.planning.plannings[id]),
-        }))
+        state.planning.selectedItems.forEach((id) => {
+            const item = state.planning.plannings[id]
+
+            if (item.lock_user || get(item, 'flags.marked_for_not_publication')) {
+                return
+            }
+
+            sortableItems.push({
+                id,
+                label: label(item),
+            })
+        })
+
+        if (sortableItems.length < state.planning.selectedItems.length) {
+            const count = state.planning.selectedItems.length - sortableItems.length
+
+            if (count === 1) {
+                notify.warning(gettext('1 item was not included in the export.'))
+            } else {
+                notify.warning(
+                    gettext('{{ count }} items were not included in the export.', { count })
+                )
+            }
+        }
+
+        if (!sortableItems.length) { // nothing to sort, stop
+            return
+        }
+
+        if (sortableItems.length === 1) { // 1 item to sort - skip it
+            return handleSorted(sortableItems)
+        }
 
         return dispatch(actions.showModal({
             modalType: 'SORT_SELECTED',
@@ -997,11 +1025,19 @@ function exportAsArticle() {
                 desk: state.workspace.currentDeskId,
                 items: sorted.map((item) => item.id),
             })
-            .then(() => {
-                notify.success(gettext('Article was created'))
+            .then((item) => {
                 dispatch(actions.planning.ui.deselectAll())
+                notify.success(gettext('Article was created.'), 5000, {
+                    button: {
+                        label: gettext('Open'),
+                        onClick: () => {
+                            $location.url('/workspace/monitoring')
+                            superdesk.intent('edit', 'item', item)
+                        },
+                    },
+                })
             }, () => {
-                notify.error(gettext('There was an error when exporting'))
+                notify.error(gettext('There was an error when exporting.'))
             })
         }
     }
