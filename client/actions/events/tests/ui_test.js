@@ -40,6 +40,7 @@ describe('actions.events.ui', () => {
         )
 
         sinon.stub(eventsUi, 'refetchEvents').callsFake(() => (Promise.resolve()))
+        sinon.stub(eventsUi, 'closeEventDetails').callsFake(() => (Promise.resolve()))
 
         sinon.stub(planningApi, 'loadPlanningByEventId').callsFake(
             () => (Promise.resolve(data.plannings))
@@ -57,6 +58,7 @@ describe('actions.events.ui', () => {
         sinon.stub(eventsApi, 'unlock').callsFake((item) => (Promise.resolve(item)))
 
         sinon.stub(eventsApi, 'rescheduleEvent').callsFake(() => (Promise.resolve()))
+        sinon.stub(eventsApi, 'publishEvent').callsFake((e) => (Promise.resolve(e)))
     })
 
     afterEach(() => {
@@ -70,10 +72,12 @@ describe('actions.events.ui', () => {
         restoreSinonStub(eventsUi.refetchEvents)
         restoreSinonStub(eventsUi.setEventsList)
         restoreSinonStub(eventsUi._openEventDetails)
+        restoreSinonStub(eventsUi.closeEventDetails)
         restoreSinonStub(eventsApi.loadEventDataForAction)
         restoreSinonStub(eventsApi.lock)
         restoreSinonStub(eventsApi.unlock)
         restoreSinonStub(eventsApi.rescheduleEvent)
+        restoreSinonStub(eventsApi.publishEvent)
         restoreSinonStub(planningApi.loadPlanningByEventId)
         restoreSinonStub(planningApi.fetch)
     })
@@ -466,6 +470,7 @@ describe('actions.events.ui', () => {
     })
 
     it('closeEventDetails', (done) => {
+        restoreSinonStub(eventsUi.closeEventDetails)
         store.test(done, eventsUi.closeEventDetails())
             .then(() => {
                 expect(store.dispatch.args[0]).toEqual([{ type: 'CLOSE_EVENT_DETAILS' }])
@@ -497,5 +502,60 @@ describe('actions.events.ui', () => {
                 expect(services.notify.error.callCount).toBe(0)
                 done()
             })
+    })
+
+    describe('publishEvent', () => {
+        it('publishes a single event', (done) => (
+            store.test(done, eventsUi.publishEvent(data.events[0]))
+            .then((publishedEvent) => {
+                expect(publishedEvent).toEqual(data.events[0])
+
+                expect(eventsApi.publishEvent.callCount).toBe(1)
+                expect(eventsApi.publishEvent.args[0]).toEqual([data.events[0]])
+
+                expect(services.notify.success.callCount).toBe(1)
+                expect(services.notify.success.args[0]).toEqual(['The event has been published'])
+
+                expect(eventsUi.closeEventDetails.callCount).toBe(1)
+
+                done()
+            })
+        ))
+
+        it('publishes series of recurring events', (done) => {
+            const event = {
+                _id: 'e1',
+                _recurring: [
+                    { _id: 'e1' },
+                    { _id: 'e2' },
+                    { _id: 'e3' },
+                    { _id: 'e4' },
+                    { _id: 'e5' },
+                    { _id: 'e6' },
+                ],
+            }
+
+            store.test(done, eventsUi.publishEvent(event))
+            .then((publishedEvents) => {
+                expect(publishedEvents).toEqual(event._recurring)
+
+                expect(eventsApi.publishEvent.callCount).toBe(6)
+                expect(eventsApi.publishEvent.args[0]).toEqual([event._recurring[0]])
+                expect(eventsApi.publishEvent.args[1]).toEqual([event._recurring[1]])
+                expect(eventsApi.publishEvent.args[2]).toEqual([event._recurring[2]])
+                expect(eventsApi.publishEvent.args[3]).toEqual([event._recurring[3]])
+                expect(eventsApi.publishEvent.args[4]).toEqual([event._recurring[4]])
+                expect(eventsApi.publishEvent.args[5]).toEqual([event._recurring[5]])
+
+                expect(services.notify.pop.callCount).toBe(2)
+                expect(services.notify.success.callCount).toBe(2)
+                expect(services.notify.success.args[0]).toEqual(['Published 5/6 Events'])
+                expect(services.notify.success.args[1]).toEqual(['Published 6 Events'])
+
+                expect(eventsUi.closeEventDetails.callCount).toBe(1)
+
+                done()
+            })
+        })
     })
 })

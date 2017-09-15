@@ -431,6 +431,81 @@ const rescheduleEvent = (event) => (
     )
 )
 
+const publishWithConfirmation = (event) => (
+    (dispatch, getState) => {
+        const events = selectors.getEvents(getState())
+        const originalEvent = get(events, event._id, {})
+        const maxRecurringEvents = selectors.getMaxRecurrentEvents(getState())
+
+        // If this is not from a recurring series, then simply publish this event
+        if (!get(originalEvent, 'recurrence_id')) {
+            return dispatch(self.publishEvent(event))
+        }
+
+        return dispatch(eventsApi.query({
+            recurrenceId: originalEvent.recurrence_id,
+            maxResults: maxRecurringEvents,
+        }))
+        .then((relatedEvents) => (
+            dispatch(showModal({
+                modalType: 'ITEM_ACTIONS_MODAL',
+                modalProps: {
+                    eventDetail: {
+                        ...event,
+                        _recurring: get(relatedEvents, '_items', [event]),
+                        _publish: true,
+                        _save: false,
+                        _events: [],
+                        _originalEvent: originalEvent,
+                    },
+                    actionType: 'save',
+                },
+            }))
+        ))
+    }
+)
+
+const publishEvent = (event) => (
+    (dispatch, getState, { notify }) => {
+        if (get(event, '_recurring.length', 0) > 0) {
+            const recurring = event._recurring
+            const chunkSize = 5
+            let promise = Promise.resolve()
+            let events = []
+
+            for (let i = 0; i < Math.ceil(recurring.length / chunkSize); i++) {
+                let eventsChunk = recurring.slice(i * chunkSize, (i + 1) * chunkSize)
+                promise = promise.then(() => (
+                    Promise.all(
+                        eventsChunk.map((e) => dispatch(eventsApi.publishEvent(e)))
+                    )
+                    .then((data) => {
+                        data.forEach((e) => events.push(e))
+                        notify.pop()
+                        if (events.length < recurring.length) {
+                            notify.success(`Published ${events.length}/${recurring.length} Events`)
+                        }
+                    })
+                ))
+            }
+
+            return promise
+            .then(() => {
+                notify.success(`Published ${recurring.length} Events`)
+                dispatch(self.closeEventDetails())
+                return Promise.resolve(events)
+            })
+        }
+
+        return dispatch(eventsApi.publishEvent(event))
+        .then((publishedEvent) => {
+            notify.success('The event has been published')
+            dispatch(self.closeEventDetails())
+            return Promise.resolve(publishedEvent)
+        })
+    }
+)
+
 /**
  * Action to set the list of events in the current list
  * @param {Array} idsList - An array of Event IDs to assign to the current list
@@ -520,6 +595,8 @@ const self = {
     openPostponeModal,
     _openActionModal,
     convertToRecurringEvent,
+    publishWithConfirmation,
+    publishEvent,
 }
 
 export default self

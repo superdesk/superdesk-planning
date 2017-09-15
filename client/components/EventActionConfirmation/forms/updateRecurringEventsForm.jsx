@@ -75,21 +75,35 @@ export const UpdateRecurringEvents = reduxForm({ form: 'updateEventConfirmation'
 const selector = formValueSelector('updateEventConfirmation')
 
 const mapStateToProps = (state) => ({
-    relatedEvents: selector(state, '_events' ),
+    relatedEvents: selector(state, '_events'),
     dateFormat: getDateFormat(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event) => (
-        dispatch(actions.uploadFilesAndSaveEvent(event))
-        .then(() => {
-            if (get(event, '_publish', false)) {
-                dispatch(actions.publishEvent(event._id))
+    onSubmit: (event) => {
+        const publish = get(event, '_publish', false)
+        const save = get(event, '_save', true)
+
+        if (!save) {
+            if (publish) {
+                return dispatch(actions.events.ui.publishEvent(event))
+                .then(() => Promise.resolve(dispatch(actions.hideModal())))
             }
-            dispatch(actions.hideModal())
+
+            return Promise.resolve(dispatch(actions.hideModal()))
+        }
+
+        dispatch(actions.uploadFilesAndSaveEvent(event))
+        .then((events) => {
+            if (publish) {
+                return dispatch(actions.events.ui.publishEvent(events[0]))
+                .then(() => Promise.resolve(dispatch(actions.hideModal())))
+            }
+
+            return Promise.resolve(dispatch(actions.hideModal()))
         })
-    ),
+    },
 })
 
 export const UpdateRecurringEventsForm = connect(

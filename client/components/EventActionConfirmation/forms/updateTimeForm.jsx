@@ -110,7 +110,7 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.uploadFilesAndSaveEvent(event))
         .then(() => {
             if (get(event, '_publish', false)) {
-                dispatch(actions.publishEvent(event._id))
+                dispatch(actions.events.ui.publishEvent(event._id))
             }
 
             dispatch(actions.hideModal())

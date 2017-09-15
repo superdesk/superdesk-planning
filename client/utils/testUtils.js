@@ -84,6 +84,7 @@ export const getTestActionStore = () => {
                         end: '2016-10-15T14:01:11',
                     },
                     planning_ids: ['p2'],
+                    _etag: 'e123',
                 },
                 {
                     _id: 'e2',

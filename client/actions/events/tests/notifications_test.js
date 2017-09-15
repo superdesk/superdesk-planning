@@ -37,6 +37,10 @@ describe('actions.events.notifications', () => {
                 () => (Promise.resolve())
             )
 
+            sinon.stub(eventsNotifications, 'onEventPublishChanged').callsFake(
+                () => (Promise.resolve())
+            )
+
             $rootScope = _$rootScope_
             registerNotifications($rootScope, store)
             $rootScope.$digest()
@@ -48,6 +52,7 @@ describe('actions.events.notifications', () => {
             restoreSinonStub(eventsNotifications.onEventSpiked)
             restoreSinonStub(eventsNotifications.onEventUnspiked)
             restoreSinonStub(eventsNotifications.onEventRescheduled)
+            restoreSinonStub(eventsNotifications.onEventPublishChanged)
         })
 
         it('`events:lock` calls onEventLocked', (done) => {
@@ -104,6 +109,88 @@ describe('actions.events.notifications', () => {
                 done()
             }, delay)
         })
+
+        it('`events:published` calls onEventPublishChanged', (done) => {
+            $rootScope.$broadcast('events:published', { item: 'e1' })
+
+            setTimeout(() => {
+                expect(eventsNotifications.onEventPublishChanged.callCount).toBe(1)
+                expect(eventsNotifications.onEventPublishChanged.args[0][1]).toEqual({ item: 'e1' })
+
+                done()
+            }, delay)
+        })
+
+        it('`events:unpublished` calls onEventPublishChanged', (done) => {
+            $rootScope.$broadcast('events:unpublished', { item: 'e1' })
+
+            setTimeout(() => {
+                expect(eventsNotifications.onEventPublishChanged.callCount).toBe(1)
+                expect(eventsNotifications.onEventPublishChanged.args[0][1]).toEqual({ item: 'e1' })
+
+                done()
+            }, delay)
+        })
+    })
+
+    describe('onEventPublishChanged', () => {
+        beforeEach(() => {
+            restoreSinonStub(eventsNotifications.onEventPublishChanged)
+        })
+
+        it('dispatches `MARK_EVENT_PUBLISHED`', (done) => (
+            store.test(done, eventsNotifications.onEventPublishChanged(
+                {},
+                {
+                    item: data.events[0]._id,
+                    state: 'scheduled',
+                    pubstatus: 'usable',
+                    etag: 'e123',
+                }
+            ))
+            .then(() => {
+                expect(store.dispatch.callCount).toBe(1)
+                expect(store.dispatch.args[0]).toEqual([{
+                    type: 'MARK_EVENT_PUBLISHED',
+                    payload: {
+                        event: {
+                            ...store.initialState.events.events.e1,
+                            state: 'scheduled',
+                            pubstatus: 'usable',
+                            _etag: 'e123',
+                        },
+                    },
+                }])
+                done()
+            })
+        ))
+
+        it('dispatches `MARK_EVENT_UNPUBLISHED`', (done) => (
+            store.test(done, eventsNotifications.onEventPublishChanged(
+                {},
+                {
+                    item: data.events[0]._id,
+                    state: 'killed',
+                    pubstatus: 'cancelled',
+                    etag: 'e123',
+                }
+            ))
+            .then(() => {
+                expect(store.dispatch.callCount).toBe(1)
+                expect(store.dispatch.args[0]).toEqual([{
+                    type: 'MARK_EVENT_UNPUBLISHED',
+                    payload: {
+                        event: {
+                            ...store.initialState.events.events.e1,
+                            state: 'killed',
+                            pubstatus: 'cancelled',
+                            _etag: 'e123',
+                        },
+                    },
+                }])
+                done()
+            })
+        ))
     })
 
     describe('onEventLocked', () => {

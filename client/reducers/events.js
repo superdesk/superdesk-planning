@@ -349,6 +349,32 @@ Event Postponed
             events,
         }
     },
+
+    [EVENTS.ACTIONS.MARK_EVENT_PUBLISHED]: (state, payload) => (
+        onEventPublishChanged(state, payload)
+    ),
+
+    [EVENTS.ACTIONS.MARK_EVENT_UNPUBLISHED]: (state, payload) => (
+        onEventPublishChanged(state, payload)
+    ),
 })
+
+const onEventPublishChanged = (state, payload) => {
+    // If the event is not loaded, disregard this action
+    if (!(payload.event._id in state.events)) return state
+
+    let events = cloneDeep(state.events)
+    const newEvent = payload.event
+    let event = events[newEvent._id]
+
+    event.state = newEvent.state
+    event.pubstatus = newEvent.pubstatus
+    event._etag = newEvent._etag
+
+    return {
+        ...state,
+        events,
+    }
+}
 
 export default eventsReducer

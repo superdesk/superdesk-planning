@@ -187,6 +187,35 @@ const onEventPostponed = (e, data) => (
     }
 )
 
+const onEventPublishChanged = (e, data) => (
+    (dispatch, getState) => {
+        if (get(data, 'item')) {
+            // Just update the event in store with updates and etag
+            const events = selectors.getEvents(getState())
+
+            let eventInStore = get(events, data.item, {})
+            eventInStore = {
+                ...eventInStore,
+                _id: data.item,
+                state: data.state,
+                pubstatus: data.pubstatus,
+                _etag: data.etag,
+            }
+
+            dispatch({
+                type: data.state === WORKFLOW_STATE.SCHEDULED ?
+                    EVENTS.ACTIONS.MARK_EVENT_PUBLISHED :
+                    EVENTS.ACTIONS.MARK_EVENT_UNPUBLISHED,
+                payload: { event: eventInStore },
+            })
+
+            return Promise.resolve(eventInStore)
+        }
+
+        return Promise.resolve()
+    }
+)
+
 const self = {
     onEventLocked,
     onEventUnlocked,
@@ -195,6 +224,7 @@ const self = {
     onEventCancelled,
     onEventRescheduled,
     onEventPostponed,
+    onEventPublishChanged,
 }
 
 // Map of notification name and Action Event to execute
@@ -206,6 +236,8 @@ self.events = {
     'events:cancelled': () => (self.onEventCancelled),
     'events:rescheduled': () => (self.onEventRescheduled),
     'events:postponed': () => (self.onEventPostponed),
+    'events:published': () => (self.onEventPublishChanged),
+    'events:unpublished': () => (self.onEventPublishChanged),
 }
 
 export default self
