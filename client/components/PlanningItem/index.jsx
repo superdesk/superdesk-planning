@@ -1,5 +1,5 @@
 import React, { PropTypes } from 'react'
-import { get, capitalize, some } from 'lodash'
+import { get, some } from 'lodash'
 import { ListItem, TimePlanning, DueDate, ItemActionsMenu, StateLabel, Checkbox } from '../index'
 import { connect } from 'react-redux'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
@@ -25,6 +25,8 @@ const PlanningItem = ({
         onDuplicate,
         onRescheduleEvent,
         session,
+        usersMergedCoverageProviders,
+        desks,
         onCancelEvent,
         onUpdateEventTime,
         onPostponeEvent,
@@ -103,7 +105,8 @@ const PlanningItem = ({
             <div className="sd-list-item__action-menu">
                 <Checkbox value={isSelected} onChange={onSelectItem}/>
             </div>
-            <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
+            <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border"
+                style={{ overflow: 'visible' }}>
                 <div className="sd-list-item__row">
                     <StateLabel item={item}/>
                     {notForPublication &&
@@ -122,21 +125,33 @@ const PlanningItem = ({
                         </span>
                     }
                 </div>
-                <div className="sd-list-item__row">
-                    {coveragesTypes.map((c, i) => (
-                        <span key={i} style={{ display:'inherit' }}>
-                            <OverlayTrigger
+                <div className="sd-list-item__row" style={{ overflow: 'visible' }}>
+                    {coveragesTypes.map((c, i) => {
+                        const assignedUserId = get(c, 'planning.assigned_to.user')
+                        const assignedDeskId = get(c, 'planning.assigned_to.desk')
+
+                        const user = !assignedUserId ? null :
+                            usersMergedCoverageProviders.find((u) => (u._id === assignedUserId))
+
+                        const desk = !assignedDeskId ? null :
+                            desks.find((d) => (d._id === assignedDeskId))
+
+                        return (<span key={i} style={{ display:'inherit' }}>
+                                <OverlayTrigger
                                 placement="bottom"
                                 overlay={
                                     <Tooltip id={`${i}${c.g2_content_type}`}>
-                                        {capitalize(c.g2_content_type).replace(/_/g, ' ')}
+                                        {(!user && !desk) && 'Unassigned'}
+                                        {desk && ('Desk: ' + desk.name)}
+                                        <br />
+                                        {user && ('User: ' + user.name)}
                                     </Tooltip>
-                                }>
-                                <i className={getCoverageIcon(c.g2_content_type) + ` ${c.iconColor}`}/>
-                            </OverlayTrigger>
+                                    }>
+                                    <i className={getCoverageIcon(c.g2_content_type) + ` ${c.iconColor}`}/>
+                                </OverlayTrigger>
                             &nbsp;
-                        </span>
-                    ))}
+                        </span>)
+                    })}
                     <span className="sd-overflow-ellipsis">
                         {location}
                     </span>&nbsp;
@@ -188,6 +203,8 @@ const mapStateToProps = (state) => ({ currentAgendaId: getCurrentAgendaId(state)
 PlanningItem.propTypes = {
     item: PropTypes.object.isRequired,
     agendas: PropTypes.array.isRequired,
+    usersMergedCoverageProviders: PropTypes.array.isRequired,
+    desks: PropTypes.array.isRequired,
     event: PropTypes.object,
     active: PropTypes.bool,
     onClick: PropTypes.func,

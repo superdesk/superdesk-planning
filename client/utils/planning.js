@@ -73,6 +73,12 @@ export const mapCoverageByDate = (coverages) => (
         let coverage = {
             g2_content_type: c.planning.g2_content_type || '',
             iconColor: '',
+            planning: {
+                assigned_to: {
+                    user: get(c, 'planning.assigned_to.user'),
+                    desk: get(c, 'planning.assigned_to.desk'),
+                },
+            },
         }
 
         if (get(c, 'planning.scheduled')) {
