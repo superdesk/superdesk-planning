@@ -95,11 +95,6 @@ export class EditPlanningPanel extends React.Component {
         this.setState({ openUnlockPopup: !this.state.openUnlockPopup })
     }
 
-    getLockedUser(planning) {
-        return get(planning, 'lock_user') && Array.isArray(this.props.users) ?
-            this.props.users.find((u) => (u._id === planning.lock_user)) : null
-    }
-
     viewPlanningHistory() {
         this.setState({ previewHistory: true })
     }
@@ -130,6 +125,7 @@ export class EditPlanningPanel extends React.Component {
             onUpdateEventTime,
             onRescheduleEvent,
             onConvertToRecurringEvent,
+            lockedItems,
         } = this.props
 
         const creationDate = get(planning, '_created')
@@ -138,7 +134,7 @@ export class EditPlanningPanel extends React.Component {
         const author = getCreator(planning, 'original_creator', users)
         const versionCreator = getCreator(planning, 'version_creator', users)
 
-        const lockedUser = getLockedUser(planning, this.props.users)
+        const lockedUser = getLockedUser(planning, lockedItems, this.props.users)
         const planningSpiked = isItemSpiked(planning)
         const eventSpiked = isItemSpiked(event)
 
@@ -179,13 +175,14 @@ export class EditPlanningPanel extends React.Component {
             },
         ]
 
-        const itemActions = planningUtils.getPlanningItemActions({
-            plan: planning,
+        const itemActions = planningUtils.getPlanningItemActions(
+            planning,
             event,
             session,
             privileges,
             actions,
-        })
+            lockedItems
+        )
 
         // If the planning or event or agenda item is spiked,
         // or we don't hold a lock, enforce readOnly
@@ -195,8 +192,8 @@ export class EditPlanningPanel extends React.Component {
         }
 
         const showSave = planningUtils.canSavePlanning(planning, event, privileges)
-        const showPublish = planningUtils.canPublishPlanning(planning, event, privileges, session)
-        const showUnpublish = planningUtils.canUnpublishPlanning(planning, event, privileges, session)
+        const showPublish = planningUtils.canPublishPlanning(planning, event, privileges, session, lockedItems)
+        const showUnpublish = planningUtils.canUnpublishPlanning(planning, event, privileges, session, lockedItems)
         const isPublic = isItemPublic(planning)
         const showEdit = planningUtils.canEditPlanning(
             planning,
@@ -378,6 +375,7 @@ EditPlanningPanel.propTypes = {
     onUpdateEventTime: PropTypes.func,
     onRescheduleEvent: PropTypes.func,
     onConvertToRecurringEvent: PropTypes.func,
+    lockedItems: PropTypes.object,
 }
 
 const selector = formValueSelector('planning') // Selector for the Planning form
@@ -390,6 +388,7 @@ const mapStateToProps = (state) => ({
     notForPublication: selector(state, 'flags.marked_for_not_publication'),
     privileges: selectors.getPrivileges(state),
     session: selectors.getSessionDetails(state),
+    lockedItems: selectors.getLockedItems(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

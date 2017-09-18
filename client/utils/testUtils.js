@@ -14,7 +14,7 @@ export const getTestActionStore = () => {
                     getById: sinon.spy((id) => {
                         const planning = store.data.plannings.find((p) => (p._id === id))
                         if (!planning) {
-                            return Promise.reject('Not found!')
+                            return Promise.reject(`Planning '${id}' not found!`)
                         }
 
                         return Promise.resolve(planning)
@@ -26,7 +26,7 @@ export const getTestActionStore = () => {
                     getById: sinon.spy((id) => {
                         const agenda = store.data.agendas.find((a) => (a._id === id))
                         if (!agenda) {
-                            return Promise.reject('Not found!')
+                            return Promise.reject(`Agenda '${id}' not found!`)
                         }
 
                         return Promise.resolve(agenda)
@@ -38,7 +38,7 @@ export const getTestActionStore = () => {
                     getById: sinon.spy((id) => {
                         const event = store.data.events.find((e) => (e._id === id))
                         if (!event) {
-                            return Promise.reject('Not found!')
+                            return Promise.reject(`Event '${id}' not found!`)
                         }
 
                         return Promise.resolve(event)
@@ -50,7 +50,7 @@ export const getTestActionStore = () => {
                     getById: sinon.spy((id) => {
                         const coverage = store.data.coverages.find((c) => (c._id === id))
                         if (!coverage) {
-                            return Promise.reject('Not found!')
+                            return Promise.reject(`Coverage '${id}' not found!`)
                         }
 
                         return Promise.resolve(coverage)
@@ -83,6 +83,7 @@ export const getTestActionStore = () => {
                         start: '2016-10-15T13:01:11',
                         end: '2016-10-15T14:01:11',
                     },
+                    planning_ids: ['p2'],
                 },
                 {
                     _id: 'e2',
@@ -91,6 +92,7 @@ export const getTestActionStore = () => {
                         start: '2014-10-15T14:01:11',
                         end: '2014-10-15T15:01:11',
                     },
+                    planning_ids: [],
                 },
                 {
                     _id: 'e3',
@@ -282,6 +284,8 @@ export const getTestActionStore = () => {
                 planning_event_management: 1,
                 planning_event_spike: 1,
                 planning_event_unspike: 1,
+                planning_event_publish: 1,
+                planning_planning_publish: 1,
             },
             session: {
                 identity: { _id: 'ident1' },
@@ -403,6 +407,11 @@ export const getTestActionStore = () => {
                     },
                 },
             },
+            locks: {
+                events: {},
+                planning: {},
+                recurring: {},
+            },
         },
 
         getState: sinon.spy(() => (store.initialState)),
@@ -431,7 +440,7 @@ export const getTestActionStore = () => {
         },
 
         test: (done, action) => {
-            if (!store.ready) store.init()
+            if (!store._ready) store.init()
             return action(store.dispatch, store.getState, store.services)
             .catch((error) => {
                 // If this is from a Promise.reject, then pass that on

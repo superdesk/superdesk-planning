@@ -67,6 +67,7 @@ class PlanningList extends React.Component {
             onConvertToRecurringEvent,
             onSelectItem,
             selected,
+            lockedItems,
         } = this.props
         const planning = plannings[index]
         const isSelected = selected.indexOf(planning._id) > -1
@@ -95,7 +96,7 @@ class PlanningList extends React.Component {
                     session={session}
                     usersMergedCoverageProviders={usersMergedCoverageProviders}
                     desks={desks}
-                    itemLocked={planning.lock_user && planning.lock_session ? true : false}
+                    lockedItems={lockedItems}
                     onSelectItem={() => onSelectItem(planning._id)}
                     isSelected={isSelected}
                     />
@@ -157,6 +158,7 @@ PlanningList.propTypes = {
     onConvertToRecurringEvent: PropTypes.func,
     onSelectItem: PropTypes.func,
     selected: PropTypes.array,
+    lockedItems: PropTypes.object,
 }
 
 const mapStateToProps = (state) => ({
@@ -168,6 +170,7 @@ const mapStateToProps = (state) => ({
     session: selectors.getSessionDetails(state),
     usersMergedCoverageProviders: selectors.getUsersMergedCoverageProviders(state),
     desks: state.desks && state.desks.length > 0 ? state.desks : [],
+    lockedItems: selectors.getLockedItems(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

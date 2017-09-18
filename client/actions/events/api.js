@@ -40,30 +40,6 @@ const loadEventsByRecurrenceId = (
 )
 
 /**
- * Action dispatcher to load Current user's Locked Events by action from the API,
- * and place them in the local store.
- * @param {string} action - lock_action such as 'edit'
- * @return Promise
- */
-const loadLockedEventsByAction = (action) => (
-    (dispatch, getState, { api }) => {
-        let query = { bool: { must: [] } }
-
-        query.bool.must.push({ term: { lock_user: selectors.getCurrentUserId(getState()) } })
-        query.bool.must.push({ term: { lock_action: action } })
-
-        // Query the API
-        return api('events').query({ source: JSON.stringify({ query }) })
-        .then((data) => {
-            dispatch(self.receiveEvents(data._items))
-            return Promise.resolve(data._items)
-        }, (error) => (
-            Promise.reject(error)
-        ))
-    }
-)
-
-/**
  * Action dispatcher to mark an Event as spiked using the API.
  * @param {Array} events - An Array of Events to be spiked
  */
@@ -83,13 +59,10 @@ const spike = (events) => (
                 )
             })
         )
-        .then(() => {
-            dispatch({
-                type: EVENTS.ACTIONS.SPIKE_EVENT,
-                payload: events.map((event) => event._id),
-            })
-            return Promise.resolve(events)
-        }, (error) => (Promise.reject(error)))
+        .then(
+            () => Promise.resolve(events),
+            (error) => (Promise.reject(error))
+        )
     }
 )
 
@@ -102,13 +75,10 @@ const unspike = (events) => (
         return Promise.all(
             events.map((event) => api.update('events_unspike', event, {}))
         )
-        .then(() => {
-            dispatch({
-                type: EVENTS.ACTIONS.UNSPIKE_EVENT,
-                payload: events.map((event) => event._id),
-            })
-            return Promise.resolve(events)
-        }, (error) => (Promise.reject(error)))
+        .then(
+            () => Promise.resolve(events),
+            (error) => (Promise.reject(error))
+        )
     }
 )
 
@@ -367,7 +337,6 @@ const loadRecurringEventsAndPlanningItems = (event, loadPlannings=true) => (
 
                 return dispatch(planningApi.loadPlanningByEventId(
                     map(relatedEvents, '_id'),
-                    SPIKED_STATE.BOTH,
                     false
                 ))
                 .then((plannings) => (
@@ -421,6 +390,66 @@ const loadEventDataForAction = (event, loadPlanning=true, publish=false) => (
 )
 
 /**
+ * Action dispatcher to load all Planning items associated with an Event
+ * @param {object} event - The Event to load Planning items for
+ * @return Array of Planning items loaded
+ */
+const loadAssociatedPlannings = (event) => (
+    (dispatch) => {
+        if (get(event, 'planning_ids.length', 0) === 0) {
+            return Promise.resolve([])
+        }
+
+        return dispatch(planningApi.loadPlanningByEventId(event._id))
+    }
+)
+
+/**
+ * Action dispatcher to query the API for all Events that are currently locked
+ * @return Array of locked Events
+ */
+const queryLockedEvents = () => (
+    (dispatch, getState, { api }) => (
+        api('events').query({
+            source: JSON.stringify(
+                { query: { constant_score: { filter: { exists: { field: 'lock_session' } } } } }
+            ),
+        })
+        .then(
+            (data) => Promise.resolve(data._items),
+            (error) => Promise.reject(error)
+        )
+    )
+)
+
+/**
+ * Action dispatcher to get a single Event
+ * If the Event is already stored in the Redux store, then return that
+ * Otherwise fetch the Event from the server and optionally
+ * save the Event in the Redux store
+ * @param {string} eventId - The ID of the Event to retrieve
+ * @param {boolean} saveToStore - If true, save the Event in the Redux store
+ */
+const getEvent = (eventId, saveToStore=true) => (
+    (dispatch, getState) => {
+        const events = selectors.getEvents(getState())
+        if (eventId in events) {
+            return Promise.resolve(events[eventId])
+        }
+
+        return dispatch(self.silentlyFetchEventsById(eventId, SPIKED_STATE.BOTH, saveToStore))
+        .then((items) => (Promise.resolve({
+            ...items[0],
+            dates: {
+                ...items[0].dates,
+                start: moment(items[0].dates.start),
+                end: moment(items[0].dates.end),
+            },
+        })), (error) => Promise.reject(error))
+    }
+)
+
+/**
  * Action to receive the list of Events and store them in the store
  * @param {Array} events - An array of Event items
  * @return object
@@ -468,20 +497,38 @@ const unlock = (event) => (
 /**
  * Action Dispatcher to fetch events from the server,
  * and add them to the store without adding them to the events list
- * @param {array} ids - An array of Event IDs to fetch
+ * @param {Array, string} ids - Either an array of Event IDs or a single Event ID to fetch
  * @param {string} spikeState - Event's spiked state (SPIKED, NOT_SPIKED or BOTH)
+ * @param {boolean} saveToStore - If true, save the Event in the Redux store
  * @return arrow function
  */
-const silentlyFetchEventsById = (ids=[], spikeState = SPIKED_STATE.NOT_SPIKED) => (
-    (dispatch) => (
-        dispatch(self.query({
-            // distinct ids
-            ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
-            spikeState,
-        }))
-        .then(data => {
-            dispatch(self.receiveEvents(data._items))
-            return Promise.resolve(data._items)
+const silentlyFetchEventsById = (ids, spikeState=SPIKED_STATE.NOT_SPIKED, saveToStore=true) => (
+    (dispatch, getState, { api }) => (
+        new Promise((resolve, reject) => {
+            if (Array.isArray(ids)) {
+                dispatch(self.query({
+                    // distinct ids
+                    ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
+                    spikeState,
+                }))
+                .then(
+                    (data) => resolve(data._items),
+                    (error) => reject(error)
+                )
+            } else {
+                api('events').getById(ids)
+                .then(
+                    (item) => resolve([item]),
+                    (error) => reject(error)
+                )
+            }
+        })
+        .then(items => {
+            if (saveToStore) {
+                dispatch(self.receiveEvents(items))
+            }
+
+            return Promise.resolve(items)
         }, (error) => (
             Promise.reject(error)
         ))
@@ -531,7 +578,7 @@ const postponeEvent = (event) => (
 const markEventCancelled = (event, reason, occurStatus) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_CANCELLED,
     payload: {
-        event_item: event,
+        event: event,
         reason,
         occur_status: occurStatus,
     },
@@ -540,19 +587,21 @@ const markEventCancelled = (event, reason, occurStatus) => ({
 const markEventPostponed = (event, reason) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_POSTPONED,
     payload: {
-        event_item: event,
+        event: event,
         reason,
     },
 })
 
-const markEventHasPlannings = (event) => ({
+const markEventHasPlannings = (event, planning) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_HAS_PLANNINGS,
-    payload: { event_item: event },
+    payload: {
+        event_item: event,
+        planning_item: planning,
+    },
 })
 
 const self = {
     loadEventsByRecurrenceId,
-    loadLockedEventsByAction,
     spike,
     unspike,
     query,
@@ -569,6 +618,9 @@ const self = {
     markEventPostponed,
     postponeEvent,
     loadEventDataForAction,
+    queryLockedEvents,
+    getEvent,
+    loadAssociatedPlannings,
 }
 
 export default self

@@ -98,6 +98,9 @@ class EventsService(superdesk.Service):
             # Get associated planning items
             return self.get_plannings_for_event(item)
 
+    def on_locked_event(self, doc, user_id):
+        self._set_planning_ids(doc)
+
     def set_ingest_provider_sequence(self, item, provider):
         """Sets the value of ingest_provider_sequence in item.
 

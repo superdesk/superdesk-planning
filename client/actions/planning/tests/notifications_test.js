@@ -35,6 +35,9 @@ describe('actions.planning.notifications', () => {
             sinon.stub(planningNotifications, 'onPlanningUpdated').callsFake(
                 () => (Promise.resolve())
             )
+            sinon.stub(planningNotifications, 'onPlanningLocked').callsFake(
+                () => (Promise.resolve())
+            )
             sinon.stub(planningNotifications, 'onPlanningUnlocked').callsFake(
                 () => (Promise.resolve())
             )
@@ -42,6 +45,9 @@ describe('actions.planning.notifications', () => {
                 () => (Promise.resolve())
             )
             sinon.stub(planningNotifications, 'onPlanningSpiked').callsFake(
+                () => (Promise.resolve())
+            )
+            sinon.stub(planningNotifications, 'onPlanningUnspiked').callsFake(
                 () => (Promise.resolve())
             )
 
@@ -55,9 +61,11 @@ describe('actions.planning.notifications', () => {
             restoreSinonStub(planningNotifications.onCoverageCreatedOrUpdated)
             restoreSinonStub(planningNotifications.onCoverageDeleted)
             restoreSinonStub(planningNotifications.onPlanningUpdated)
+            restoreSinonStub(planningNotifications.onPlanningLocked)
             restoreSinonStub(planningNotifications.onPlanningUnlocked)
             restoreSinonStub(planningNotifications.onPlanningPublished)
             restoreSinonStub(planningNotifications.onPlanningSpiked)
+            restoreSinonStub(planningNotifications.onPlanningUnspiked)
         })
 
         it('`planning:created` calls onPlanningCreated', (done) => {
@@ -128,23 +136,23 @@ describe('actions.planning.notifications', () => {
             }, delay)
         })
 
-        it('`planning:unspiked` calls onPlanningUpdated', (done) => {
+        it('`planning:unspiked` calls onPlanningUnspiked', (done) => {
             $rootScope.$broadcast('planning:unspiked', { item: 'p2' })
 
             setTimeout(() => {
-                expect(planningNotifications.onPlanningUpdated.callCount).toBe(1)
-                expect(planningNotifications.onPlanningUpdated.args[0][1]).toEqual({ item: 'p2' })
+                expect(planningNotifications.onPlanningUnspiked.callCount).toBe(1)
+                expect(planningNotifications.onPlanningUnspiked.args[0][1]).toEqual({ item: 'p2' })
 
                 done()
             }, delay)
         })
 
-        it('`planning:lock` calls onPlanningUpdated', (done) => {
+        it('`planning:lock` calls onPlanningLocked', (done) => {
             $rootScope.$broadcast('planning:lock', { item: 'p2' })
 
             setTimeout(() => {
-                expect(planningNotifications.onPlanningUpdated.callCount).toBe(1)
-                expect(planningNotifications.onPlanningUpdated.args[0][1]).toEqual({ item: 'p2' })
+                expect(planningNotifications.onPlanningLocked.callCount).toBe(1)
+                expect(planningNotifications.onPlanningLocked.args[0][1]).toEqual({ item: 'p2' })
 
                 done()
             }, delay)
@@ -460,12 +468,57 @@ describe('actions.planning.notifications', () => {
         })
     })
 
-    describe('`planning:unlocked`', () => {
+    describe('onPlanningLocked', () => {
+        beforeEach(() => {
+            sinon.stub(planningApi, 'getPlanning').returns(Promise.resolve(data.plannings[0]))
+        })
+
+        afterEach(() => {
+            restoreSinonStub(planningApi.getPlanning)
+        })
+
+        it('calls getPlanning and dispatches the LOCK_PLANNING action', (done) => (
+            store.test(done, planningNotifications.onPlanningLocked(
+                {},
+                {
+                    item: 'p1',
+                    lock_action: 'edit',
+                    lock_session: 'sess123',
+                    lock_time: '2099-10-15T14:30+0000',
+                    user: 'user456',
+                    etag: 'e789',
+                }
+            ))
+            .then(() => {
+                expect(planningApi.getPlanning.callCount).toBe(1)
+                expect(planningApi.getPlanning.args[0]).toEqual([
+                    'p1',
+                    false,
+                ])
+                expect(store.dispatch.args[1]).toEqual([{
+                    type: 'LOCK_PLANNING',
+                    payload: {
+                        plan: {
+                            ...data.plannings[0],
+                            lock_action: 'edit',
+                            lock_user: 'user456',
+                            lock_session: 'sess123',
+                            lock_time: '2099-10-15T14:30+0000',
+                            _etag: 'e789',
+                        },
+                    },
+                }])
+
+                done()
+            })
+        ))
+    })
+
+    describe('onPlanningUnlocked', () => {
         beforeEach(() => {
             store.initialState.planning.currentPlanningId = 'p1'
             store.initialState.planning.plannings.p1.lock_user = 'ident1'
             store.initialState.planning.plannings.p1.lock_session = 'session1'
-            store.ready = true
         })
 
         it('dispatches notification modal if item unlocked is being edited', (done) => (
@@ -490,26 +543,30 @@ describe('actions.planning.notifications', () => {
             })
         ))
 
-        it('dispatches receivePlannings', (done) => (
+        it('dispatches `UNLOCK_PLANNING` action', (done) => (
             store.test(done, planningNotifications.onPlanningUnlocked({},
                 {
                     item: 'p1',
                     user: 'ident2',
-                })) .then(() => {
-                    expect(store.dispatch.args[1]).toEqual([{
-                        type: 'RECEIVE_PLANNINGS',
-                        payload: [{
+                    etag: 'e123',
+                }))
+            .then(() => {
+                expect(store.dispatch.args[1]).toEqual([{
+                    type: 'UNLOCK_PLANNING',
+                    payload: {
+                        plan: {
                             ...data.plannings[0],
                             lock_action: null,
                             lock_user: null,
                             lock_session: null,
                             lock_time: null,
-                            _etag: undefined,
-                        }],
-                    }])
+                            _etag: 'e123',
+                        },
+                    },
+                }])
 
-                    done()
-                })
+                done()
+            })
         ))
     })
 
@@ -527,6 +584,62 @@ describe('actions.planning.notifications', () => {
                 expect(planningUi.refetch.callCount).toBe(1)
                 done()
             })
+        })
+    })
+
+    it('onPlanningSpiked dispatches `SPIKE_PLANNING` action', (done) => {
+        restoreSinonStub(planningNotifications.onPlanningSpiked)
+        store.test(done, planningNotifications.onPlanningSpiked({}, {
+            item: data.plannings[0]._id,
+            revert_state: 'draft',
+            etag: 'e123',
+        }))
+        .then(() => {
+            expect(store.dispatch.args[0]).toEqual([{
+                type: 'SPIKE_PLANNING',
+                payload: {
+                    plan: {
+                        ...data.plannings[0],
+                        lock_action: null,
+                        lock_user: null,
+                        lock_session: null,
+                        lock_time: null,
+                        state: 'spiked',
+                        revert_state: 'draft',
+                        _etag: 'e123',
+                    },
+                },
+            }])
+
+            done()
+        })
+    })
+
+    it('onPlanningUnspiked dispatches `UNSPIKE_PLANNING` action', (done) => {
+        restoreSinonStub(planningNotifications.onPlanningUnspiked)
+        store.test(done, planningNotifications.onPlanningUnspiked({}, {
+            item: data.plannings[0]._id,
+            state: 'draft',
+            etag: 'e456',
+        }))
+        .then(() => {
+            expect(store.dispatch.args[0]).toEqual([{
+                type: 'UNSPIKE_PLANNING',
+                payload: {
+                    plan: {
+                        ...data.plannings[0],
+                        lock_action: null,
+                        lock_user: null,
+                        lock_session: null,
+                        lock_time: null,
+                        state: 'draft',
+                        revert_state: null,
+                        _etag: 'e456',
+                    },
+                },
+            }])
+
+            done()
         })
     })
 })

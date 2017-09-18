@@ -44,6 +44,11 @@ describe('planning', () => {
                                 display_name: 'foo',
                             },
                         ],
+                        locks: {
+                            events: {},
+                            planning: {},
+                            recurring: {},
+                        },
                     },
                 })
                 const wrapper = mount(
@@ -84,6 +89,11 @@ describe('planning', () => {
                                 display_name: 'foo',
                             },
                         ],
+                        locks: {
+                            events: {},
+                            planning: {},
+                            recurring: {},
+                        },
                     },
                 })
 
@@ -130,6 +140,11 @@ describe('planning', () => {
                         users: [{ _id: 'user' }],
                         desks: [],
                         formsProfile: { planning: { editor: { slugline: { enabled: true } } } },
+                        locks: {
+                            events: {},
+                            planning: {},
+                            recurring: {},
+                        },
                     },
                 })
                 const wrapper = mount(
@@ -178,7 +193,13 @@ describe('planning', () => {
                         openPlanningEditor={sinon.spy()}
                         onRescheduleEvent={sinon.spy()}
                         privileges={privileges}
-                        submitting={false} />
+                        lockedItems={{
+                            events: {},
+                            planning: {},
+                            recurring: {},
+                        }}
+                        submitting={false}
+                    />
                 )
 
                 const badge = wrapper.find('.PlanningSpiked').first()
@@ -215,7 +236,13 @@ describe('planning', () => {
                         openPlanningEditor={sinon.spy()}
                         onRescheduleEvent={sinon.spy()}
                         privileges={privileges}
-                        submitting={false} />
+                        lockedItems={{
+                            events: {},
+                            planning: {},
+                            recurring: {},
+                        }}
+                        submitting={false}
+                    />
                 )
 
                 const badge = wrapper.find('.EventSpiked').first()

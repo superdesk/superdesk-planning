@@ -18,12 +18,10 @@ import {
 const spike = (item) => (
     (dispatch, getState, { api }) => (
         api.update('planning_spike', { ...item }, {})
-        .then(() => {
-            dispatch({
-                type: PLANNING.ACTIONS.SPIKE_PLANNING,
-                payload: item,
-            })
-        }, (error) => (Promise.reject(error)))
+        .then(
+            () => Promise.resolve(item),
+            (error) => Promise.reject(error)
+        )
     )
 )
 
@@ -35,13 +33,10 @@ const spike = (item) => (
 const unspike = (item) => (
     (dispatch, getState, { api }) => (
         api.update('planning_unspike', { ...item }, {})
-
-        .then(() => {
-            dispatch({
-                type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
-                payload: item,
-            })
-        }, (error) => (Promise.reject(error)))
+        .then(
+            () => Promise.resolve(item),
+            (error) => Promise.reject(error)
+        )
     )
 )
 
@@ -533,13 +528,14 @@ const receivePlanningHistory = (planningHistoryItems) => ({
  * Action dispatcher to load a Planning item from the API, and place them
  * in the local store. This does not update the list of visible Planning items
  * @param {object} query - The query used to query the Planning items
+ * @param {boolean} saveToStore - If true, save the Planning item in the Redux store
  * @return Promise
  */
-const loadPlanning = (query, loadToStore=true) => (
+const loadPlanning = (query, saveToStore=true) => (
     (dispatch) => (
         dispatch(self.query(query))
         .then((data) => {
-            if (loadToStore) {
+            if (saveToStore) {
                 dispatch(self.receivePlannings(data))
             }
 
@@ -549,39 +545,14 @@ const loadPlanning = (query, loadToStore=true) => (
 )
 
 /**
- * Action dispatcher to load Current user's Locked Planning items by action from the API,
- * and place them in the local store.
- * @param {string} action - lock_action such as 'edit'
- * @return Promise
- */
-const loadLockedPlanningsByAction = (action) => (
-    (dispatch, getState, { api }) => {
-        let query = { bool: { must: [] } }
-        query.bool.must.push({ term: { lock_user: selectors.getCurrentUserId(getState()) } })
-        query.bool.must.push({ term: { lock_action: action } })
-
-        // Query the API
-        return api('planning').query({ source: JSON.stringify({ query }) })
-        .then((data) => {
-            if (get(data, '_items')) {
-                data._items.forEach(_convertCoveragesGenreToObject)
-                dispatch(self.receivePlannings(data._items))
-                return Promise.resolve(data._items)
-            } else {
-                return Promise.reject('Failed to retrieve items')
-            }
-        }, (error) => (Promise.reject(error)))
-    }
-)
-
-/**
  * Action dispatcher to load Planning items by ID from the API, and place them
  * in the local store. This does not update the list of visible Planning items
- * @param {Array} ids - An array of Planning item ids
+ * @param {Array, string} ids - Either an array of Planning IDs or a single Planning ID to fetch
  * @param {string} spikeState - Planning item's spiked state (SPIKED, NOT_SPIKED or BOTH)
+ * @param {boolean} saveToStore - If true, save the Planning item in the Redux store
  * @return Promise
  */
-const loadPlanningById = (ids=[], spikeState = SPIKED_STATE.BOTH) => (
+const loadPlanningById = (ids=[], spikeState = SPIKED_STATE.BOTH, saveToStore=true) => (
     (dispatch, getState, { api }) => {
         if (Array.isArray(ids)) {
             return dispatch(self.loadPlanning({
@@ -592,7 +563,10 @@ const loadPlanningById = (ids=[], spikeState = SPIKED_STATE.BOTH) => (
             return api('planning').getById(ids)
             .then((item) => {
                 _convertCoveragesGenreToObject(item)
-                dispatch(self.receivePlannings([item]))
+                if (saveToStore) {
+                    dispatch(self.receivePlannings([item]))
+                }
+
                 return Promise.resolve([item])
             }, (error) => (Promise.reject(error)))
         }
@@ -603,17 +577,68 @@ const loadPlanningById = (ids=[], spikeState = SPIKED_STATE.BOTH) => (
  * Action dispatcher to load Planning items by Event ID from the API, and place them
  * in the local store. This does not update the list of visible Planning items
  * @param {string} eventIds - The Event ID used to query the API
- * @param {string} spikeState - Planning item's spiked state (SPIKED, NOT_SPIKED or BOTH)
+ * @param {boolean} loadToStore - If true, save the Planning Items to the Redux Store
  * @return Promise
  */
-const loadPlanningByEventId = (eventIds, spikeState = SPIKED_STATE.BOTH, loadToStore=true) => (
-    (dispatch) => (
-        dispatch(self.loadPlanning({
-            eventIds,
-            spikeState,
-            loadToStore,
-        }))
+const loadPlanningByEventId = (eventIds, loadToStore=true) => (
+    (dispatch, getState, { api }) => (
+        api('planning').query({
+            source: JSON.stringify(
+                Array.isArray((eventIds)) ?
+                    { query: { terms: { event_item: eventIds } } } :
+                    { query: { term: { event_item: eventIds } } }
+            ),
+        })
+        .then((data) => {
+            if (loadToStore) {
+                dispatch(self.receivePlannings(data._items))
+            }
+
+            return Promise.resolve(data._items)
+        }, (error) => Promise.reject(error))
     )
+)
+
+/**
+ * Action dispatcher to query the API for all Planning items
+ * that are currently locked
+ * @return Array of locked Planning items
+ */
+const queryLockedPlanning = () => (
+    (dispatch, getState, { api }) => (
+        api('planning').query({
+            source: JSON.stringify(
+                { query: { constant_score: { filter: { exists: { field: 'lock_session' } } } } }
+            ),
+        })
+        .then(
+            (data) => Promise.resolve(data._items),
+            (error) => Promise.reject(error)
+        )
+    )
+)
+
+/**
+ * Action Dispatcher to get a single Planning item
+ * If the Planning item is already stored in the Redux store, then return that
+ * Otherwise fetch the Planning item from the server and optionally
+ * save the Planning item in the Redux store
+ * @param {string} planId - The ID of the Planning item to retrieve
+ * @param {boolean} saveToStore - If true, save the Planning item in the Redux store
+ */
+const getPlanning = (planId, saveToStore=true) => (
+    (dispatch, getState) => {
+        const plannings = selectors.getStoredPlannings(getState())
+        if (planId in plannings) {
+            return Promise.resolve(plannings[planId])
+        }
+
+        return dispatch(self.loadPlanningById(planId, SPIKED_STATE.BOTH, saveToStore))
+        .then(
+            (items) => Promise.resolve(items[0]),
+            (error) => Promise.reject(error)
+        )
+    }
 )
 
 /**
@@ -1060,7 +1085,6 @@ const self = {
     lock,
     loadPlanning,
     loadPlanningById,
-    loadLockedPlanningsByAction,
     fetchPlanningHistory,
     receivePlanningHistory,
     loadPlanningByEventId,
@@ -1073,6 +1097,8 @@ const self = {
     markPlanningCancelled,
     markPlanningPostponed,
     exportAsArticle,
+    queryLockedPlanning,
+    getPlanning,
 }
 
 export default self

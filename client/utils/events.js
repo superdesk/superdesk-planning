@@ -1,8 +1,13 @@
-import { PRIVILEGES, WORKFLOW_STATE, PUBLISHED_STATE, EVENTS,
-    GENERIC_ITEM_ACTIONS } from '../constants'
 import {
-    isItemLockRestricted,
+    PRIVILEGES,
+    WORKFLOW_STATE,
+    PUBLISHED_STATE,
+    EVENTS,
+    GENERIC_ITEM_ACTIONS,
+} from '../constants'
+import {
     getItemWorkflowState,
+    isItemLockedInThisSession,
     isItemSpiked,
     isItemPublic,
     getPublishedState,
@@ -12,7 +17,7 @@ import {
 } from './index'
 import moment from 'moment'
 import RRule from 'rrule'
-import { get, map } from 'lodash'
+import { get, map, isNil } from 'lodash'
 import { actionTypes } from 'redux-form'
 import { EventUpdateMethods } from '../components/fields'
 
@@ -32,6 +37,16 @@ const isEventAllDay = (startingDate, endingDate) => {
 }
 
 const eventHasPlanning = (event) => get(event, 'planning_ids', []).length > 0
+
+const isEventLocked = (event, locks) =>
+    !isNil(event) && (
+        event._id in locks.events ||
+        get(event, 'recurrence_id') in locks.recurring
+    )
+
+const isEventLockRestricted = (event, session, locks) =>
+    isEventLocked(event, locks) &&
+    !isItemLockedInThisSession(event, session)
 
 /**
  * Helper function to determine if a recurring event instances overlap
@@ -122,97 +137,135 @@ const getRelatedEventsForRecurringEvent = (state={}, action) => {
     }
 }
 
-const canSpikeEvent = (event, session, privileges) => (
-    !isItemPublic(event) && (getItemWorkflowState(event) === WORKFLOW_STATE.DRAFT ||
-        isItemPostponed(event)) && !!privileges[PRIVILEGES.SPIKE_EVENT] &&
+const canSpikeEvent = (event, session, privileges, locks) => (
+    !isNil(event) &&
+        !isItemPublic(event) &&
+        (getItemWorkflowState(event) === WORKFLOW_STATE.DRAFT || isItemPostponed(event)) &&
+        !!privileges[PRIVILEGES.SPIKE_EVENT] &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
-        !isItemLockRestricted(event, session) && !isEventInUse(event)
+        !isEventLockRestricted(event, session, locks) &&
+        !isEventInUse(event)
 )
 
 const canUnspikeEvent = (event, privileges) => (
-    isItemSpiked(event) && !!privileges[PRIVILEGES.UNSPIKE_EVENT] &&
+    !isNil(event) &&
+        isItemSpiked(event) &&
+        !!privileges[PRIVILEGES.UNSPIKE_EVENT] &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
 )
 
-const canDuplicateEvent = (event, session, privileges) => (
-    !isItemSpiked(event) && !isItemLockRestricted(event, session) &&
-        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemRescheduled(event)
+const canDuplicateEvent = (event, session, privileges, locks) => (
+    !isNil(event) &&
+        !isItemSpiked(event) &&
+        !isEventLockRestricted(event, session, locks) &&
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
+        !isItemRescheduled(event)
 )
 
-const canCreatePlanningFromEvent = (event, session, privileges) => (
-    !isItemSpiked(event) && !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isItemLockRestricted(event, session) && !isItemCancelled(event) &&
-        !isItemRescheduled(event) && !isItemPostponed(event)
-)
-
-const canPublishEvent = (event, session, privileges) => (
-    !isItemSpiked(event) && getPublishedState(event) !== PUBLISHED_STATE.USABLE &&
-        !!privileges[PRIVILEGES.PUBLISH_EVENT] && !isItemLockRestricted(event, session) &&
-        !isItemCancelled(event) && !isItemRescheduled(event)
-)
-
-const canUnpublishEvent = (event, privileges) => (
-    getItemWorkflowState(event) === WORKFLOW_STATE.SCHEDULED &&
-        !!privileges[PRIVILEGES.PUBLISH_EVENT]
-)
-
-const canCancelEvent = (event, session, privileges) => (
-    event && !isItemSpiked(event) && !isItemCancelled(event) && isEventInUse(event) &&
-        !isItemLockRestricted(event, session) && !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
-         !isItemRescheduled(event)
-)
-
-const isEventInUse = (event) => (
-    event && eventHasPlanning(event) || isItemPublic(event)
-)
-
-const canConvertToRecurringEvent = (event, session, privileges) => (
-    event && !event.recurrence_id && canEditEvent(event, session, privileges) &&
+const canCreatePlanningFromEvent = (event, session, privileges, locks) => (
+    !isNil(event) &&
+        !isItemSpiked(event) &&
+        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !isEventLockRestricted(event, session, locks) &&
+        !isItemCancelled(event) &&
+        !isItemRescheduled(event) &&
         !isItemPostponed(event)
 )
 
-const canEditEvent = (event, session, privileges) => (
-    !isItemSpiked(event) && !isItemCancelled(event) && !isItemLockRestricted(event, session) &&
-        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemRescheduled(event)
+const canPublishEvent = (event, session, privileges, locks) => (
+    !isNil(event) &&
+        !isItemSpiked(event) &&
+        getPublishedState(event) !== PUBLISHED_STATE.USABLE &&
+        !!privileges[PRIVILEGES.PUBLISH_EVENT] &&
+        !isEventLockRestricted(event, session, locks) &&
+        !isItemCancelled(event) &&
+        !isItemRescheduled(event)
 )
 
-const canUpdateEventTime = (event, session, privileges) => (
-    canEditEvent(event, session, privileges) && !isItemPostponed(event)
+const canUnpublishEvent = (event, privileges) => (
+    !isNil(event) &&
+        getItemWorkflowState(event) === WORKFLOW_STATE.SCHEDULED &&
+        !!privileges[PRIVILEGES.PUBLISH_EVENT]
 )
 
-const canRescheduleEvent = (event, session, privileges) => (
-    !isItemSpiked(event) && !isItemCancelled(event) && !isItemLockRestricted(event, session) &&
-        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemRescheduled(event)
+const canCancelEvent = (event, session, privileges, locks) => (
+    !isNil(event) &&
+        !isItemSpiked(event) &&
+        !isItemCancelled(event) &&
+        isEventInUse(event) &&
+        !isEventLockRestricted(event, session, locks) &&
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
+        !isItemRescheduled(event)
 )
 
-const canPostponeEvent = (event, session, privileges) => (
-    !isItemSpiked(event) && !isItemCancelled(event) && !isItemLockRestricted(event, session) &&
-        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] && !isItemPostponed(event)
+const isEventInUse = (event) => (
+    !isNil(event) &&
+        (eventHasPlanning(event) || isItemPublic(event))
 )
 
-const getEventItemActions = (event, session, privileges, actions) => {
+const canConvertToRecurringEvent = (event, session, privileges, locks) => (
+    !isNil(event) &&
+        !event.recurrence_id &&
+        canEditEvent(event, session, privileges, locks) &&
+        !isItemPostponed(event)
+)
+
+const canEditEvent = (event, session, privileges, locks) => (
+    !isNil(event) &&
+        !isItemSpiked(event) &&
+        !isItemCancelled(event) &&
+        !isEventLockRestricted(event, session, locks) &&
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
+        !isItemRescheduled(event)
+)
+
+const canUpdateEventTime = (event, session, privileges, locks) => (
+    !isNil(event) &&
+        canEditEvent(event, session, privileges, locks) &&
+        !isItemPostponed(event)
+)
+
+const canRescheduleEvent = (event, session, privileges, locks) => (
+    !isNil(event) &&
+        !isItemSpiked(event) &&
+        !isItemCancelled(event) &&
+        !isEventLockRestricted(event, session, locks) &&
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
+        !isItemRescheduled(event)
+)
+
+const canPostponeEvent = (event, session, privileges, locks) => (
+    !isNil(event) &&
+        !isItemSpiked(event) &&
+        !isItemCancelled(event) &&
+        !isEventLockRestricted(event, session, locks) &&
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
+        !isItemPostponed(event)
+)
+
+const getEventItemActions = (event, session, privileges, actions, locks) => {
     let itemActions = []
     let key = 1
 
     const actionsValidator = {
-        [GENERIC_ITEM_ACTIONS.SPIKE.label]: (event, session=null, privileges=null) =>
-            canSpikeEvent(event, session, privileges),
-        [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: (event, session=null, privileges=null) =>
-            canUnspikeEvent(event, privileges),
-        [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: (event, session=null, privileges=null) =>
-            canDuplicateEvent(event, session, privileges),
-        [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: (event, session=null, privileges=null) =>
-            canCancelEvent(event, session, privileges),
-        [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label]: (event, session=null, privileges=null) =>
-            canCreatePlanningFromEvent(event, session, privileges),
-        [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: (event, session=null, privileges=null) =>
-            canUpdateEventTime(event, session, privileges),
-        [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: (event, session=null, privileges=null) =>
-            canRescheduleEvent(event, session, privileges),
+        [GENERIC_ITEM_ACTIONS.SPIKE.label]: () =>
+            canSpikeEvent(event, session, privileges, locks),
+        [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: () =>
+            canUnspikeEvent(event, privileges, locks),
+        [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: () =>
+            canDuplicateEvent(event, session, privileges, locks),
+        [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
+            canCancelEvent(event, session, privileges, locks),
+        [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.label]: () =>
+            canCreatePlanningFromEvent(event, session, privileges, locks),
+        [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: () =>
+            canUpdateEventTime(event, session, privileges, locks),
+        [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: () =>
+            canRescheduleEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: () =>
-            canPostponeEvent(event, session, privileges),
-        [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: (event, session=null, privileges=null) =>
-            canConvertToRecurringEvent(event, session, privileges),
+            canPostponeEvent(event, session, privileges, locks),
+        [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: () =>
+            canConvertToRecurringEvent(event, session, privileges, locks),
     }
 
     actions.forEach((action) => {
@@ -256,6 +309,8 @@ const self = {
     canPostponeEvent,
     canUpdateEventTime,
     canConvertToRecurringEvent,
+    isEventLocked,
+    isEventLockRestricted,
 }
 
 export default self

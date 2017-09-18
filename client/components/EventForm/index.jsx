@@ -19,7 +19,6 @@ import {
     eventUtils,
     getLockedUser,
     isItemLockedInThisSession,
-    isItemLockRestricted,
     isItemSpiked,
     isItemPublic,
 } from '../../utils'
@@ -100,6 +99,7 @@ export class Component extends React.Component {
             formProfile,
             onMinimize,
             currentSchedule,
+            lockedItems,
         } = this.props
 
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK]
@@ -113,12 +113,12 @@ export class Component extends React.Component {
         const author = get(initialValues, 'original_creator') && users ?
             users.find((u) => (u._id === initialValues.original_creator)) : get(initialValues, 'ingest_provider')
         const versionCreator = get(initialValues, 'version_creator') && users ? users.find((u) => (u._id === initialValues.version_creator)) : null
-        const lockedUser = getLockedUser(initialValues, users)
-        const lockRestricted =  isItemLockRestricted(initialValues, session)
+        const lockedUser = getLockedUser(initialValues, lockedItems, users)
+        const lockRestricted =  eventUtils.isEventLockRestricted(initialValues, session, lockedItems)
         const isPublic = isItemPublic(initialValues)
-        const canPublish = eventUtils.canPublishEvent(initialValues, session, privileges)
+        const canPublish = eventUtils.canPublishEvent(initialValues, session, privileges, lockedItems)
         const canUnpublish = eventUtils.canUnpublishEvent(initialValues, privileges)
-        const canEditEvent = eventUtils.canEditEvent(initialValues, session, privileges)
+        const canEditEvent = eventUtils.canEditEvent(initialValues, session, privileges, lockedItems)
 
         let itemActions = []
         if (existingEvent) {
@@ -169,7 +169,13 @@ export class Component extends React.Component {
                     callback: addEventToCurrentAgenda.bind(null, initialValues),
                 })
 
-            itemActions = eventUtils.getEventItemActions(initialValues, session, privileges, actions)
+            itemActions = eventUtils.getEventItemActions(
+                initialValues,
+                session,
+                privileges,
+                actions,
+                lockedItems
+            )
         }
 
         return (
@@ -280,13 +286,20 @@ export class Component extends React.Component {
                                 'dropdown--dropright',
                                 { open: this.state.openUnlockPopup })} >
                                 <div className="lock-avatar">
-                                    <button type='button' onClick={this.toggleOpenUnlockPopup.bind(this)}>
+                                    <button
+                                        type='button'
+                                        onClick={this.toggleOpenUnlockPopup.bind(this)}
+                                    >
                                         <UserAvatar user={lockedUser} withLoggedInfo={true} />
                                     </button>
-                                    {this.state.openUnlockPopup && <UnlockItem user={lockedUser}
-                                        showUnlock={unlockPrivilege}
-                                        onCancel={this.toggleOpenUnlockPopup.bind(this)}
-                                        onUnlock={onUnlock.bind(this, initialValues)}/>}
+                                    {this.state.openUnlockPopup &&
+                                        <UnlockItem
+                                            user={lockedUser}
+                                            showUnlock={unlockPrivilege}
+                                            onCancel={this.toggleOpenUnlockPopup.bind(this)}
+                                            onUnlock={onUnlock.bind(this, initialValues)}
+                                        />
+                                    }
                                 </div>
                             </div>
                         )}
@@ -450,6 +463,7 @@ Component.propTypes = {
     formProfile: PropTypes.object,
     onMinimize: PropTypes.func,
     currentSchedule: PropTypes.object,
+    lockedItems: PropTypes.object,
 }
 
 // Decorate the form component
@@ -476,6 +490,7 @@ const mapStateToProps = (state) => ({
     maxRecurrentEvents: selectors.getMaxRecurrentEvents(state),
     formProfile: selectors.getEventsFormsProfile(state),
     currentSchedule: selector(state, 'dates'),
+    lockedItems: selectors.getLockedItems(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

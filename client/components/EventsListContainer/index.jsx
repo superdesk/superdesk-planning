@@ -39,6 +39,7 @@ class EventsListComponent extends React.Component {
             onRescheduleEvent,
             onPostponeEvent,
             addEventToCurrentAgenda,
+            lockedItems,
         } = this.props
         return (
             <div className={classNames('Events-list-container',
@@ -94,6 +95,7 @@ class EventsListComponent extends React.Component {
                                 onEventSelectChange={this.props.onEventSelectChange}
                                 privileges={privileges}
                                 addEventToCurrentAgenda={addEventToCurrentAgenda}
+                                lockedItems={lockedItems}
                                 session={session} />
                 </div>
             </div>
@@ -126,6 +128,7 @@ EventsListComponent.propTypes = {
     onPostponeEvent: PropTypes.func,
     onConvertToRecurringEvent: PropTypes.func,
     addEventToCurrentAgenda: PropTypes.func,
+    lockedItems: PropTypes.object,
 }
 
 const mapStateToProps = (state) => ({
@@ -136,6 +139,7 @@ const mapStateToProps = (state) => ({
     privileges: selectors.getPrivileges(state),
     selectedEvents: selectors.getSelectedEvents(state),
     session: selectors.getSessionDetails(state),
+    lockedItems: selectors.getLockedItems(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

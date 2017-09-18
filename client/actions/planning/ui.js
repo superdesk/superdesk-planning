@@ -1,4 +1,5 @@
 import planning from './index'
+import { locks } from '../index'
 import { checkPermission, getErrorMessage, isItemLockedInThisSession } from '../../utils'
 import * as selectors from '../../selectors'
 import { PLANNING, PRIVILEGES, SPIKED_STATE } from '../../constants'
@@ -118,7 +119,7 @@ const preview = (item) => (
  */
 const _unlockAndOpenEditor = (item) => (
     (dispatch, getState, { notify }) => (
-        dispatch(planning.api.unlock(item))
+        dispatch(locks.unlock(item))
         .then(() => {
             dispatch(self.openEditor(item._id))
             return Promise.resolve(item)

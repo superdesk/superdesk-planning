@@ -185,6 +185,7 @@ def init_app(app):
     app.on_updated_planning_postpone += planning_history_service.on_postpone
 
     app.on_locked_planning += planning_search_service.on_locked_planning
+    app.on_locked_events += events_search_service.on_locked_event
 
     coverage_history_service = CoverageHistoryService('coverage_history', backend=superdesk.get_backend())
     CoverageHistoryResource('coverage_history', app=app, service=coverage_history_service)

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
 import { registerNotifications } from '../utils'
 import * as actions from '../actions'
+import { locks } from '../actions'
 import { PlanningApp } from '../components'
 
 PlanningController.$inject = [
@@ -37,20 +38,12 @@ export function PlanningController(
                     return store.dispatch(actions.selectAgenda($location.search().agenda))
                 }
 
-                return Promise.resolve()
+                return store.dispatch(
+                    actions.fetchSelectedAgendaPlannings()
+                )
             }),
 
-            plannings: store.dispatch(
-                actions.fetchSelectedAgendaPlannings()
-            ),
-
-            lockedEvents: store.dispatch(
-                actions.events.api.loadLockedEventsByAction('edit')
-            ),
-
-            lockedPlannings: store.dispatch(
-                actions.planning.api.loadLockedPlanningsByAction('edit')
-            ),
+            locks: store.dispatch(locks.loadAllLocks()),
         })
         .then(() => {
             $scope.$on('$destroy', () => {

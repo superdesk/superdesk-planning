@@ -14,7 +14,10 @@ const onPlanningCreated = (_e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
             if (get(data, 'event_item', null) !== null) {
-                dispatch(events.api.markEventHasPlannings(data.event_item))
+                dispatch(events.api.markEventHasPlannings(
+                    data.event_item,
+                    data.item
+                ))
             }
 
             return dispatch(self.canRefetchPlanning(data))
@@ -150,6 +153,33 @@ const onPlanningUpdated = (_e, data, refetch=true) => (
     }
 )
 
+const onPlanningLocked = (e, data) => (
+    (dispatch) => {
+        if (get(data, 'item')) {
+            return dispatch(planning.api.getPlanning(data.item, false))
+            .then((planInStore) => {
+                planInStore = {
+                    ...planInStore,
+                    lock_action: data.lock_action,
+                    lock_user: data.user,
+                    lock_session: data.lock_session,
+                    lock_time: data.lock_time,
+                    _etag: data.etag,
+                }
+
+                dispatch({
+                    type: PLANNING.ACTIONS.LOCK_PLANNING,
+                    payload: { plan: planInStore },
+                })
+
+                return Promise.resolve(planInStore)
+            })
+        }
+
+        return Promise.resolve()
+    }
+)
+
 /**
  * WS Action when a Planning item gets unlocked
  * If the Planning Item is unlocked don't fetch it. Just update the store directly by a dispatch.
@@ -162,20 +192,13 @@ const onPlanningUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
             let planningItem = selectors.getStoredPlannings(getState())[data.item]
-            planningItem = {
-                ...planningItem,
-                lock_action: null,
-                lock_user: null,
-                lock_session: null,
-                lock_time: null,
-                _etag: data.etag,
-            }
 
             // If this is the planning item currently being edited, show popup notification
-            const currentPlanning = selectors.getCurrentPlanning(getState())
-            if (currentPlanning && currentPlanning._id == data.item &&
+            const currentPlanningId = selectors.getCurrentPlanningId(getState())
+            if (currentPlanningId === data.item &&
                 data.lock_session !== selectors.getSessionDetails(getState()).sessionId &&
-                selectors.isCurrentPlanningLockedInThisSession(getState())) {
+                selectors.isCurrentPlanningLockedInThisSession(getState())
+            ) {
                 const user =  selectors.getUsers(getState()).find((u) => u._id === data.user)
                 dispatch(showModal({
                     modalType: 'NOTIFICATION_MODAL',
@@ -187,7 +210,21 @@ const onPlanningUnlocked = (_e, data) => (
                 }))
             }
 
-            dispatch(planning.api.receivePlannings([planningItem]))
+            planningItem = {
+                ...planningItem,
+                _id: data.item,
+                lock_action: null,
+                lock_user: null,
+                lock_session: null,
+                lock_time: null,
+                _etag: data.etag,
+            }
+
+            dispatch({
+                type: PLANNING.ACTIONS.UNLOCK_PLANNING,
+                payload: { plan: planningItem },
+            })
+
             return Promise.resolve()
         }
     }
@@ -203,23 +240,62 @@ const onPlanningPublished = (_e, data) => (
     }
 )
 
-const onPlanningUpdateWithoutRefetch = (_e, data) => (self.onPlanningUpdated(_e, data, false))
-
 const onPlanningSpiked = (_e, data) => (
     (dispatch, getState) => {
-        let planningItem = selectors.getStoredPlannings(getState())[data.item]
-        planningItem = {
-            ...planningItem,
-            lock_action: null,
-            lock_user: null,
-            lock_session: null,
-            lock_time: null,
-            state: WORKFLOW_STATE.SPIKED,
-            revert_state: data.revert_state,
-            _etag: data.etag,
+        if (data && data.item) {
+            const plans = selectors.getStoredPlannings(getState())
+
+            let planningItem = get(plans, data.item, {})
+            planningItem = {
+                ...planningItem,
+                _id: data.item,
+                lock_action: null,
+                lock_user: null,
+                lock_session: null,
+                lock_time: null,
+                state: WORKFLOW_STATE.SPIKED,
+                revert_state: data.revert_state,
+                _etag: data.etag,
+            }
+
+            dispatch({
+                type: PLANNING.ACTIONS.SPIKE_PLANNING,
+                payload: { plan: planningItem },
+            })
+
+            return Promise.resolve(planningItem)
         }
 
-        dispatch(planning.api.receivePlannings([planningItem]))
+        return Promise.resolve()
+    }
+)
+
+const onPlanningUnspiked = (_e, data) => (
+    (dispatch, getState) => {
+        if (data && data.item) {
+            const plans = selectors.getStoredPlannings(getState())
+
+            let planningItem = get(plans, data.item, {})
+            planningItem = {
+                ...planningItem,
+                _id: data.item,
+                lock_action: null,
+                lock_user: null,
+                lock_session: null,
+                lock_time: null,
+                state: data.state,
+                revert_state: null,
+                _etag: data.etag,
+            }
+
+            dispatch({
+                type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
+                payload: { plan: planningItem },
+            })
+
+            return Promise.resolve(planningItem)
+        }
+
         return Promise.resolve()
     }
 )
@@ -263,11 +339,12 @@ const self = {
     onPlanningUnlocked,
     onPlanningPublished,
     canRefetchPlanning,
-    onPlanningUpdateWithoutRefetch,
     onPlanningSpiked,
+    onPlanningUnspiked,
     onPlanningCancelled,
     onPlanningRescheduled,
     onPlanningPostponed,
+    onPlanningLocked,
 }
 
 // Map of notification name and Action Event to execute
@@ -278,8 +355,8 @@ self.events = {
     'coverage:deleted': () => (self.onCoverageDeleted),
     'planning:updated': () => (self.onPlanningUpdated),
     'planning:spiked': () => (self.onPlanningSpiked),
-    'planning:unspiked': () => (self.onPlanningUpdateWithoutRefetch),
-    'planning:lock': () => (self.onPlanningUpdateWithoutRefetch),
+    'planning:unspiked': () => (self.onPlanningUnspiked),
+    'planning:lock': () => (self.onPlanningLocked),
     'planning:unlock': () => (self.onPlanningUnlocked),
     'planning:published': () => (self.onPlanningPublished),
     'planning:duplicated': () => (self.onPlanningCreated),

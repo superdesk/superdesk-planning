@@ -20,7 +20,7 @@ const PlanningItem = ({
         onUnspike,
         privileges,
         onDoubleClick,
-        itemLocked,
+        lockedItems,
         onAgendaClick,
         onDuplicate,
         onRescheduleEvent,
@@ -47,6 +47,8 @@ const PlanningItem = ({
 
     const onEditOrPreview = planningUtils.canEditPlanning(item, session, privileges) ?
         onDoubleClick : onClick
+
+    const isItemLocked = planningUtils.isPlanningLocked(item, lockedItems)
 
     const actions = [
         {
@@ -84,19 +86,20 @@ const PlanningItem = ({
         },
     ]
 
-    const itemActions = planningUtils.getPlanningItemActions({
-        plan: item,
+    const itemActions = planningUtils.getPlanningItemActions(
+        item,
         event,
         session,
         privileges,
         actions,
-    })
+        lockedItems
+    )
 
     return (
         <ListItem
             item={item}
             className={classNames('PlanningItem',
-                { 'PlanningItem--locked': itemLocked },
+                { 'PlanningItem--locked': isItemLocked },
                 { 'PlanningItem--has-been-cancelled': isCancelled || isRescheduled }
             )}
             onClick={onClick}
@@ -212,7 +215,7 @@ PlanningItem.propTypes = {
     onSpike: PropTypes.func,
     onUnspike: PropTypes.func,
     privileges: PropTypes.object,
-    itemLocked: PropTypes.bool,
+    lockedItems: PropTypes.object,
     onAgendaClick: PropTypes.func,
     onDuplicate: PropTypes.func,
     session: PropTypes.object,

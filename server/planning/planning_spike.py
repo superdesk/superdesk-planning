@@ -66,5 +66,11 @@ class PlanningUnspikeService(BaseService):
         updates[ITEM_EXPIRY] = None
 
         item = self.backend.update(self.datasource, id, updates, original)
-        push_notification('planning:unspiked', item=str(id), user=str(user.get(config.ID_FIELD)))
+        push_notification(
+            'planning:unspiked',
+            item=str(id),
+            user=str(user.get(config.ID_FIELD)),
+            etag=item['_etag'],
+            state=item[ITEM_STATE]
+        )
         return item

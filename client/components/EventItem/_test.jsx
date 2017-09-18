@@ -25,6 +25,7 @@ describe('events', () => {
             let onConvertToRecurringEvent
             let highlightedEvent
             let privileges
+            let locks
 
             const getMountedWrapper = () => {
                 const store = createTestStore({})
@@ -44,7 +45,9 @@ describe('events', () => {
                             onConvertToRecurringEvent={onConvertToRecurringEvent}
                             highlightedEvent={highlightedEvent}
                             addEventToCurrentAgenda={addEventToCurrentAgenda}
-                            privileges={privileges} />
+                            privileges={privileges}
+                            lockedItems={locks}
+                        />
                     </Provider>
                 )
             }
@@ -68,7 +71,9 @@ describe('events', () => {
                             onConvertToRecurringEvent={onConvertToRecurringEvent}
                             highlightedEvent={highlightedEvent}
                             addEventToCurrentAgenda={addEventToCurrentAgenda}
-                            privileges={privileges} />
+                            privileges={privileges}
+                            lockedItems={locks}
+                        />
                     </Provider>
                 )
             }
@@ -100,6 +105,12 @@ describe('events', () => {
                     planning_event_management: 1,
                     planning_event_spike: 1,
                     planning_event_unspike: 1,
+                }
+
+                locks = {
+                    events: {},
+                    planning: {},
+                    recurring: {},
                 }
             })
 

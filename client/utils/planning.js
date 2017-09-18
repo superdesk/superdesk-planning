@@ -1,9 +1,9 @@
 import moment from 'moment-timezone'
 import { WORKFLOW_STATE, GENERIC_ITEM_ACTIONS, PRIVILEGES, EVENTS } from '../constants/index'
-import { get } from 'lodash'
+import { get, isNil } from 'lodash'
 import {
     getItemWorkflowState,
-    isItemLockRestricted,
+    isItemLockedInThisSession,
     isItemPublic,
     isItemSpiked,
     eventUtils,
@@ -12,23 +12,25 @@ import {
 
 const canSavePlanning = (planning, event, privileges) => (
     !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-    getItemWorkflowState(planning) !== WORKFLOW_STATE.SPIKED &&
-    getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED
+        getItemWorkflowState(planning) !== WORKFLOW_STATE.SPIKED &&
+        getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED
 )
 
-const canPublishPlanning = (planning, event, privileges, session) => {
+const canPublishPlanning = (planning, event, privileges, session, locks) => {
     const planState = getItemWorkflowState(planning)
     const eventState = getItemWorkflowState(event)
-    return !!privileges[PRIVILEGES.PUBLISH_PLANNING] && !isItemLockRestricted(planning, session) &&
+    return !!privileges[PRIVILEGES.PUBLISH_PLANNING] &&
+        !isPlanningLockRestricted(planning, session, locks) &&
         (planState === WORKFLOW_STATE.DRAFT || planState === WORKFLOW_STATE.KILLED) &&
         eventState !== WORKFLOW_STATE.SPIKED
 }
 
-const canUnpublishPlanning = (planning, event, privileges, session) => {
+const canUnpublishPlanning = (planning, event, privileges, session, locks) => {
     const planState = getItemWorkflowState(planning)
     const eventState = getItemWorkflowState(event)
     return !!privileges[PRIVILEGES.PUBLISH_PLANNING] &&
-        !isItemLockRestricted(planning, session) && planState === WORKFLOW_STATE.SCHEDULED &&
+        !isPlanningLockRestricted(planning, session, locks) &&
+        planState === WORKFLOW_STATE.SCHEDULED &&
         eventState !== WORKFLOW_STATE.SPIKED
 }
 
@@ -47,21 +49,38 @@ const canEditPlanning = (
         !isItemCancelled(planning)
 )
 
-const canSpikePlanning = ({ plan, session, privileges }) => (
-    !isItemPublic(plan) && getItemWorkflowState(plan) === WORKFLOW_STATE.DRAFT &&
-        !!privileges[PRIVILEGES.SPIKE_PLANNING] && !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isItemLockRestricted(plan, session)
+const canSpikePlanning = (plan, session, privileges, locks) => (
+    !isItemPublic(plan) &&
+        getItemWorkflowState(plan) === WORKFLOW_STATE.DRAFT &&
+        !!privileges[PRIVILEGES.SPIKE_PLANNING] &&
+        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !isPlanningLockRestricted(plan, session, locks)
 )
 
-const canUnspikePlanning = ({ plan, event=null, privileges }) => (
-    isItemSpiked(plan) && !!privileges[PRIVILEGES.UNSPIKE_PLANNING] &&
-        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] && !isItemSpiked(event)
+const canUnspikePlanning = (plan, event=null, privileges) => (
+    isItemSpiked(plan) &&
+        !!privileges[PRIVILEGES.UNSPIKE_PLANNING] &&
+        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !isItemSpiked(event)
 )
 
-const canDuplicatePlanning = ({ plan, event=null, session, privileges }) => (
-    !isItemSpiked(plan) && !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isItemLockRestricted(plan, session) && !isItemSpiked(event)
+const canDuplicatePlanning = (plan, event=null, session, privileges, locks) => (
+    !isItemSpiked(plan) &&
+        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !self.isPlanningLockRestricted(plan, session, locks) &&
+        !isItemSpiked(event)
 )
+
+const isPlanningLocked = (plan, locks) =>
+    !isNil(plan) && (
+        plan._id in locks.planning ||
+        get(plan, 'event_item') in locks.events ||
+        get(plan, 'recurrence_id') in locks.recurring
+    )
+
+const isPlanningLockRestricted = (plan, session, locks) =>
+    isPlanningLocked(plan, locks) &&
+        !isItemLockedInThisSession(plan, session)
 
 /**
  * Get the array of coverage content type and color base on the scheduled date
@@ -90,40 +109,31 @@ export const mapCoverageByDate = (coverages) => (
     })
 )
 
-export const getPlanningItemActions = ({ plan, event=null, session, privileges, actions }) => {
+// ad hoc plan created directly from planning list and not from an event
+const isPlanAdHoc = (plan) => !get(plan, 'event_item')
+
+export const getPlanningItemActions = (plan, event=null, session, privileges, actions, locks) => {
     let itemActions = []
     let key = 1
 
-    // ad hoc plan created directly from planning list and not from an event
-    const isPlanAdHoc = !_.get(plan, 'event_item')
-
     const actionsValidator = {
-        [GENERIC_ITEM_ACTIONS.SPIKE.label]: () => canSpikePlanning({
-            plan,
-            session,
-            privileges,
-        }),
-        [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: () => canUnspikePlanning({
-            plan,
-            event,
-            privileges,
-        }),
-        [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: () => canDuplicatePlanning({
-            plan,
-            event,
-            session,
-            privileges,
-        }),
+        [GENERIC_ITEM_ACTIONS.SPIKE.label]: () =>
+            canSpikePlanning(plan, session, privileges, locks),
+        [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: () =>
+            canUnspikePlanning(plan, event, privileges),
+        [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: () =>
+            canDuplicatePlanning(plan, event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
-            !isPlanAdHoc && eventUtils.canCancelEvent(event, session, privileges),
+            !isPlanAdHoc(plan) && eventUtils.canCancelEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: () =>
-            !isPlanAdHoc && eventUtils.canUpdateEventTime(event, session, privileges),
+            !isPlanAdHoc(plan) && eventUtils.canEditEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: () =>
-            !isPlanAdHoc && eventUtils.canRescheduleEvent(event, session, privileges),
+            !isPlanAdHoc(plan) && eventUtils.canRescheduleEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: () =>
-            !isPlanAdHoc && eventUtils.canPostponeEvent(event, session, privileges),
+            !isPlanAdHoc(plan) && eventUtils.canPostponeEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: () =>
-            !isPlanAdHoc && eventUtils.canConvertToRecurringEvent(event, session, privileges),
+            !isPlanAdHoc(plan) &&
+            eventUtils.canConvertToRecurringEvent(event, session, privileges, locks),
     }
 
     actions.forEach((action) => {
@@ -166,6 +176,9 @@ const self = {
     canEditPlanning,
     mapCoverageByDate,
     getPlanningItemActions,
+    isPlanningLocked,
+    isPlanningLockRestricted,
+    isPlanAdHoc,
 }
 
 export default self
