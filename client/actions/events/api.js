@@ -1,6 +1,6 @@
 import { EVENTS, SPIKED_STATE, WORKFLOW_STATE } from '../../constants'
 import { EventUpdateMethods } from '../../components/fields'
-import { get, isEqual, map } from 'lodash'
+import { get, isEqual } from 'lodash'
 import * as selectors from '../../selectors'
 import { isItemLockedInThisSession } from '../../utils'
 import moment from 'moment'
@@ -335,8 +335,8 @@ const loadRecurringEventsAndPlanningItems = (event, loadPlannings=true) => (
                     })
                 }
 
-                return dispatch(planningApi.loadPlanningByEventId(
-                    map(relatedEvents, '_id'),
+                return dispatch(planningApi.loadPlanningByRecurrenceId(
+                    event.recurrence_id,
                     false
                 ))
                 .then((plannings) => (
