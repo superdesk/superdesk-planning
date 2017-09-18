@@ -3,16 +3,15 @@ import { get } from 'lodash'
 
 export function saveNominatim(nominatim) {
     return (dispatch, getState, { api }) => {
-        const { shortName, address } = formatAddress(nominatim)
+        const { address } = formatAddress(nominatim)
         return api('locations').save({}, {
             unique_name: nominatim.display_name,
-            name: shortName,
+            name: nominatim.namedetails.name,
             address: address,
             position: {
                 latitude: nominatim.lat,
                 longitude: nominatim.lon,
             },
-            type: nominatim.type,
         })
     }
 }
@@ -50,7 +49,6 @@ export function saveLocation(newLocation) {
         .then(data => {
             const eventData = {
                 name: data.name,
-                type: data.type,
                 qcode: data.guid,
             }
 
@@ -59,6 +57,10 @@ export function saveLocation(newLocation) {
                     lat: data.position.latitude,
                     lon: data.position.longitude,
                 }
+            }
+
+            if (get(data, 'address.external.nominatim.address')) {
+                eventData.address = data.address.external.nominatim.address
             }
 
             return eventData

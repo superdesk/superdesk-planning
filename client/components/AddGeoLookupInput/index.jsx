@@ -61,14 +61,42 @@ class GeoLookupInput extends React.Component {
             { disabledInput: this.props.readOnly }
         )
 
+
+        let locationName = locationName = get(this.props.initialValue, 'name')
+        let formattedAddress = ''
+        let displayText = locationName
+
+        if (get(this.props.initialValue, 'address')) {
+            // Location from local locations collection in database
+            formattedAddress = formatAddress(this.props.initialValue).formattedAddress
+            displayText = displayText + '\n' + formattedAddress
+        } else if (get(this.props.initialValue, 'nominatim.address')) {
+            // Location select from lookup suggests
+            locationName = get(this.props.initialValue.nominatim, 'namedetails.name')
+            formattedAddress = formatAddress(this.props.initialValue.nominatim).formattedAddress
+            displayText = locationName + '\n' + formattedAddress
+        }
+
         return (
             <div className='addgeolookup sd-line-input__input'>
-                <span className='addgeolookup__input-wrapper'><TextareaAutosize
+                {this.props.readOnly &&
+                    <span className='addgeolookup__input-wrapper'>
+                        {locationName}
+                        <span style={{
+                            'font-style': 'italic',
+                            'font-size': 'small',
+                        }}>
+                            <br />
+                            {formattedAddress}
+                        </span>
+                    </span>
+                }
+                {!this.props.readOnly && <span className='addgeolookup__input-wrapper'><TextareaAutosize
                     className={textAreaClassNames}
                     disabled={this.props.readOnly ? 'disabled' : ''}
-                    value={get(this.props.initialValue, 'name')}
+                    value={displayText}
                     onChange={this.handleInputChange.bind(this)} />
-                </span>
+                </span>}
                 {!this.props.readOnly &&
                     <span><button type='button' className='btn' disabled={this.state.searching}
                         onClick={this.handleSearchClick.bind(this)} >

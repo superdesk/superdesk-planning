@@ -32,8 +32,7 @@ export class AddGeoLookupResultsPopUp extends React.Component {
                     const shortName = formatAddress(suggest.raw).shortName
                     return (<li key={index} className='addgeolookup__item'
                                 onClick={this.props.onChange.bind(null, suggest)}>
-                            <span><span className='label addgeolookup__suggestItemLabel'>{suggest.raw.type.replace('_', ' ')}</span>
-                            &nbsp;&nbsp;{shortName}</span>
+                            <span>&nbsp;&nbsp;{shortName}</span>
                     </li>)
                 })}
             </ul>

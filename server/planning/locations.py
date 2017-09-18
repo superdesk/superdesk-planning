@@ -90,8 +90,7 @@ locations_schema = {
     # the field where we store the formatted address, which can have variations (street number vs number street)
     # for the same address
     'name': {
-        'type': 'string',
-        'unique': True,
+        'type': 'string'
     },
     'type': {
         'type': 'string',

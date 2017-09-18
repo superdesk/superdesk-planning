@@ -499,8 +499,8 @@ export const formatAddress = (nominatim) => {
         postal_code: nominatim.address.postcode,
         external: { nominatim },
     }
-    const shortName = [
-        get(address, 'title'),
+
+    const formattedAddress = [
         get(address, 'line[0]'),
         get(address, 'area'),
         get(address, 'locality'),
@@ -508,8 +508,12 @@ export const formatAddress = (nominatim) => {
         get(address, 'country'),
     ].filter(d => d).join(', ')
 
+    const shortName = get(address, 'title') ? get(address, 'title') + ', ' + formattedAddress :
+        formattedAddress
+
     return {
         address,
+        formattedAddress,
         shortName,
     }
 }

@@ -21,12 +21,13 @@ const nominatimLocation = {
             postcode: 'postcode',
             country: 'country',
         },
+        namedetails: { name: 'Location' },
     },
 }
 
 const formattedLocation = {
     unique_name: 'display location',
-    name: '123 road, town, state, postcode, country',
+    name: 'Location',
     address: {
         line: ['123 road'],
         locality: 'state',
@@ -76,7 +77,6 @@ describe('<AddGeoLookupInput />', () => {
             expect(savedLocation).toEqual({
                 qcode: 'location-guid',
                 name: '123 road, town, state, postcode, country',
-                type: 'residential',
             })
         })
     })
@@ -105,6 +105,7 @@ describe('<AddGeoLookupInput />', () => {
                 country: 'France',
                 country_code: 'fr',
             },
+            namedetails: { name: 'Paris, France' },
         })
         action(dispatch, getState, { api })
     })

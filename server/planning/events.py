@@ -696,8 +696,8 @@ events_schema = {
             'properties': {
                 'qcode': {'type': 'string'},
                 'name': {'type': 'string'},
+                'address': {'type': 'object'},
                 'geo': {'type': 'string'},
-                'type': {'type': 'string'},
                 'location': {'type': 'geo_point'},
             }
         }
