@@ -5,13 +5,13 @@
         "type": "manageable",
         "unique_field": "qcode",
         "items": [
-            {"is_active": true, "name": "Text", "qcode": "text"},
-            {"is_active": true, "name": "Photo", "qcode": "photo"},
-            {"is_active": true, "name": "Video", "qcode": "video"},
-            {"is_active": true, "name": "Audio", "qcode": "audio"},
-            {"is_active": true, "name": "Infographics", "qcode": "infographics"},
-            {"is_active": true, "name": "Live video", "qcode": "live_video"},
-            {"is_active": true, "name": "Live blog", "qcode": "live_blog"}
+            {"is_active": true, "name": "Text", "qcode": "text", "content item type": "text"},
+            {"is_active": true, "name": "Photo", "qcode": "photo", "content item type": "picture"},
+            {"is_active": true, "name": "Video", "qcode": "video", "content item type": "video"},
+            {"is_active": true, "name": "Audio", "qcode": "audio", "content item type": "audio"},
+            {"is_active": true, "name": "Infographics", "qcode": "infographics", "content item type": ""},
+            {"is_active": true, "name": "Live video", "qcode": "live_video", "content item type": ""},
+            {"is_active": true, "name": "Live blog", "qcode": "live_blog", "content item type": ""}
 
         ]
     },
