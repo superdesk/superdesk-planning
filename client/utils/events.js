@@ -240,7 +240,8 @@ const canPostponeEvent = (event, session, privileges, locks) => (
         !isItemCancelled(event) &&
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
-        !isItemPostponed(event)
+        !isItemPostponed(event) &&
+        isEventInUse(event)
 )
 
 const getEventItemActions = (event, session, privileges, actions, locks) => {

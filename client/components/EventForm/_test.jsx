@@ -41,6 +41,7 @@ describe('events', () => {
             unspikeEvent: sinon.spy(),
             onCancelEvent: sinon.spy(),
             onRescheduleEvent: sinon.spy(),
+            onPostponeEvent: sinon.spy(),
             addEventToCurrentAgenda: sinon.spy(),
             duplicateEvent: sinon.spy(),
             updateTime: sinon.spy(),
