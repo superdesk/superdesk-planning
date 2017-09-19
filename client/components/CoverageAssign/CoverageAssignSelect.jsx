@@ -43,12 +43,12 @@ export class CoverageAssignSelect extends React.Component {
     }
 
     componentWillMount() {
-        this.state = {
+        this.setState({
             filteredUserList: this.filterUsers(this.props.input.value.deskAssigned),
             filteredDeskList: this.filterDesks(get(this.props.input.value.userAssigned, '_id')),
             userAssigned: this.props.input.value.userAssigned,
             deskAssigned: this.props.input.value.deskAssigned,
-        }
+        })
     }
 
     filterUserList(value) {

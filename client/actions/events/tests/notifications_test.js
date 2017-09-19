@@ -169,7 +169,7 @@ describe('actions.events.notifications', () => {
             ))
             .then(() => {
                 const modalStr = 'The event you were editing was unlocked' +
-                    ' by \"firstname2 lastname2\"'
+                    ' by "firstname2 lastname2"'
                 expect(store.dispatch.args[0]).toEqual([{
                     type: 'SHOW_MODAL',
                     modalType: 'NOTIFICATION_MODAL',

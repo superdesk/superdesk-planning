@@ -204,8 +204,8 @@ const onPlanningUnlocked = (_e, data) => (
                     modalType: 'NOTIFICATION_MODAL',
                     modalProps: {
                         title: 'Item Unlocked',
-                        body: 'The planning item you were editing was unlocked by \"' +
-                            user.display_name + '\"',
+                        body: 'The planning item you were editing was unlocked by "' +
+                            user.display_name + '"',
                     },
                 }))
             }
