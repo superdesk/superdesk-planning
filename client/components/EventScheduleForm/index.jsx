@@ -58,10 +58,20 @@ export class EventScheduleForm extends React.Component {
         }
 
         const oldStartDate = get(this.props, 'currentSchedule.start')
+        const oldEndDate = get(this.props, 'currentSchedule.end')
         const newStartDate = get(nextProps, 'currentSchedule.start')
 
-        if (oldStartDate !== newStartDate) {
-            this.props.change('dates.end', moment(newStartDate).clone().add(1, 'h'))
+        if (newStartDate && (!oldStartDate || !oldStartDate.isSame(newStartDate, 'minute'))) {
+            if (!oldEndDate) {
+                const newEndTime = {
+                    hour: 23,
+                    minute: 59,
+                }
+
+                this.props.change('dates.end', moment(newStartDate).clone().set(newEndTime))
+            } else {
+                this.props.change('dates.end', moment(newStartDate).clone().add(1, 'h'))
+            }
         }
     }
 
