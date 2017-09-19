@@ -26,8 +26,8 @@ const onEventUnlocked = (_e, data) => (
                     modalType: 'NOTIFICATION_MODAL',
                     modalProps: {
                         title: 'Item Unlocked',
-                        body: 'The event you were editing was unlocked by \"' +
-                            user.display_name + '\"',
+                        body: 'The event you were editing was unlocked by "' +
+                            user.display_name + '"',
                     },
                 }))
             }

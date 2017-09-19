@@ -11,7 +11,7 @@ import { AddGeoLookupResultsPopUp } from './AddGeoLookupResultsPopUp'
 /**
 * Modal for adding/editing a location with nominatim search
 */
-class GeoLookupInput extends React.Component {
+export class AddGeoLookupInput extends React.Component {
 
     constructor(props) {
         super(props)
@@ -175,10 +175,8 @@ class GeoLookupInput extends React.Component {
 
 }
 
-GeoLookupInput.propTypes = {
+AddGeoLookupInput.propTypes = {
     initialValue: PropTypes.object,
     onChange: PropTypes.func,
     readOnly: PropTypes.bool,
 }
-
-export const AddGeoLookupInput = GeoLookupInput

@@ -55,11 +55,6 @@ module.exports = {
         'jasmine/no-disabled-tests': 'warn',
         'block-scoped-var': 2,
         complexity: [2, 10],
-        indent: [
-            'error',
-            4,
-            { SwitchCase: 1 }
-        ],
         'linebreak-style': [
             'error',
             'unix'

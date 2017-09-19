@@ -31,20 +31,20 @@ class RepeatEventFormComponent extends React.Component {
         const startDate = start || null
 
         if (endRepeatMode) {
-            this.state = {
+            this.setState({
                 endRepeatMode: endRepeatMode,
                 interval: intervals,
                 frequency: frequency,
                 date: startDate,
-            }
+            })
         } else {
             // if endRepeatMode not present set the default value for it
-            this.state = {
+            this.setState({
                 endRepeatMode: 'count',
                 interval: intervals,
                 frequency: frequency,
                 date: startDate,
-            }
+            })
             this.props.change('dates.recurring_rule.endRepeatMode', 'count')
         }
     }

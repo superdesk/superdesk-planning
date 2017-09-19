@@ -1,22 +1,22 @@
 var path = require('path')
 
 module.exports = {
-    entry: './index.js',
+    entry: [path.join(__dirname, 'index')],
     devtool: 'inline-source-map', //just do inline source maps instead of the default
     output: {
         path: path.join(process.cwd(), 'dist'),
         filename: 'app.bundle.js',
     },
     resolve: {
-        extensions: ['', '.js', '.jsx', '.json']
+        extensions: ['.js', '.jsx', '.json']
     },
     module: {
-        loaders: [
+        rules: [
             {
                 test: /\.jsx?$/,
                 exclude: /node_modules/,
-                loader: 'babel',
-                query: {
+                loader: 'babel-loader',
+                options: {
                     plugins: ['transform-object-rest-spread'],
                     cacheDirectory: true,
                     presets: ['es2015', 'react'],
@@ -24,32 +24,40 @@ module.exports = {
             },
             {
                 test: /\.html$/,
-                loader: 'html'
+                loader: 'html-loader'
             },
             {
-                test: /\.css/,
-                loader: 'style!css'
+                test: /\.css$/,
+                use: [
+                    'style-loader',
+                    'css-loader'
+                ]
             },
             {
                 test: /\.scss$/,
-                loader: 'style!css!sass'
+                use: [
+                    'style-loader',
+                    'css-loader',
+                    'sass-loader'
+                ]
             },
             {
-                include: /\.json$/,
-                loaders: ['json-loader']
+                test: /\.json$/,
+                use: ['json-loader']
+            },
+            {
+                enforce: 'post',
+                test: /\.jsx?/,
+                loader: 'istanbul-instrumenter-loader',
+                exclude: [
+                    /node_modules\//,
+                    /client\/index\.js/,
+                    /_test\.jsx?/,
+                    /tests\.js/,
+                    /client\/controllers\//
+                ]
             }
         ],
-        postLoaders: [{
-            test: /\.jsx?/,
-            exclude: [
-                /node_modules\//,
-                /client\/index\.js/,
-                /_test\.jsx?/,
-                /tests\.js/,
-                /client\/controllers\//,
-            ],
-            loader: 'istanbul-instrumenter'
-        }]
     },
     externals: {
         cheerio: 'window',

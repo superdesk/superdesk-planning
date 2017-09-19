@@ -529,7 +529,7 @@ describe('actions.planning.notifications', () => {
                 }))
             .then(() => {
                 const modalStr = 'The planning item you were editing was unlocked' +
-                    ' by \"firstname2 lastname2\"'
+                    ' by "firstname2 lastname2"'
                 expect(store.dispatch.args[0]).toEqual([{
                     type: 'SHOW_MODAL',
                     modalType: 'NOTIFICATION_MODAL',

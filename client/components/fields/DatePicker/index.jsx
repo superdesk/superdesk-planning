@@ -39,7 +39,7 @@ export class DatePicker extends React.Component {
     }
 
     validateTimeText(val) {
-        let regex = new RegExp('[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9][0-9][0-9]', 'i')
+        let regex = new RegExp('[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]', 'i')
         if (val.match(regex) && moment(val, 'DD/MM/YYYY').isValid()) {
             this.setState({
                 invalid: false,
