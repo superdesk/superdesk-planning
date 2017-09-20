@@ -126,6 +126,7 @@ export class EditPlanningPanel extends React.Component {
             onRescheduleEvent,
             onConvertToRecurringEvent,
             lockedItems,
+            onPostponeEvent,
         } = this.props
 
         const creationDate = get(planning, '_created')
@@ -172,6 +173,10 @@ export class EditPlanningPanel extends React.Component {
             {
                 ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
                 callback: onConvertToRecurringEvent.bind(null, event),
+            },
+            {
+                ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+                callback: onPostponeEvent.bind(null, event),
             },
         ]
 
@@ -376,6 +381,7 @@ EditPlanningPanel.propTypes = {
     onRescheduleEvent: PropTypes.func,
     onConvertToRecurringEvent: PropTypes.func,
     lockedItems: PropTypes.object,
+    onPostponeEvent: PropTypes.func,
 }
 
 const selector = formValueSelector('planning') // Selector for the Planning form
@@ -410,6 +416,7 @@ const mapDispatchToProps = (dispatch) => ({
     onUpdateEventTime: (event) => dispatch(actions.events.ui.updateTime(event)),
     onRescheduleEvent: (event) => dispatch(actions.events.ui.openRescheduleModal(event)),
     onConvertToRecurringEvent: (event) => dispatch(actions.events.ui.convertToRecurringEvent(event)),
+    onPostponeEvent: (event) => dispatch(actions.events.ui.openPostponeModal(event)),
 })
 
 export const EditPlanningPanelContainer = connect(

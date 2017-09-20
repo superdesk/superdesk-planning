@@ -192,6 +192,7 @@ describe('planning', () => {
                         onConvertToRecurringEvent={sinon.spy()}
                         openPlanningEditor={sinon.spy()}
                         onRescheduleEvent={sinon.spy()}
+                        onPostponeEvent={sinon.spy()}
                         privileges={privileges}
                         lockedItems={{
                             events: {},
@@ -235,6 +236,7 @@ describe('planning', () => {
                         onConvertToRecurringEvent={sinon.spy()}
                         openPlanningEditor={sinon.spy()}
                         onRescheduleEvent={sinon.spy()}
+                        onPostponeEvent={sinon.spy()}
                         privileges={privileges}
                         lockedItems={{
                             events: {},

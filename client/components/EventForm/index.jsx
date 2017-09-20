@@ -86,6 +86,7 @@ export class Component extends React.Component {
             unspikeEvent,
             onCancelEvent,
             onRescheduleEvent,
+            onPostponeEvent,
             addEventToCurrentAgenda,
             publish,
             unpublish,
@@ -159,6 +160,10 @@ export class Component extends React.Component {
                     {
                         ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
                         callback: convertToRecurringEvent.bind(null, initialValues),
+                    },
+                    {
+                        ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+                        callback: onPostponeEvent.bind(null, initialValues),
                     })
             }
 
@@ -452,6 +457,7 @@ Component.propTypes = {
     unspikeEvent: PropTypes.func.isRequired,
     onCancelEvent: PropTypes.func.isRequired,
     onRescheduleEvent: PropTypes.func.isRequired,
+    onPostponeEvent: PropTypes.func.isRequired,
     addEventToCurrentAgenda: PropTypes.func.isRequired,
     duplicateEvent: PropTypes.func.isRequired,
     updateTime: PropTypes.func.isRequired,
@@ -510,6 +516,7 @@ const mapDispatchToProps = (dispatch) => ({
     onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
     onMinimize: () => dispatch(actions.events.ui.minimizeEventDetails()),
     onRescheduleEvent: (event) => dispatch(actions.events.ui.openRescheduleModal(event)),
+    onPostponeEvent: (event) => dispatch(actions.events.ui.openPostponeModal(event)),
 })
 
 export const EventForm = connect(
