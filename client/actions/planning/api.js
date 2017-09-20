@@ -599,6 +599,23 @@ const loadPlanningByEventId = (eventIds, loadToStore=true) => (
     )
 )
 
+const loadPlanningByRecurrenceId = (recurrenceId, loadToStore=true) => (
+    (dispatch, getState, { api }) => (
+        api('planning').query({
+            source: JSON.stringify(
+                { query: { term: { recurrence_id: recurrenceId } } }
+            ),
+        })
+        .then((data) => {
+            if (loadToStore) {
+                dispatch(self.receivePlannings(data._items))
+            }
+
+            return Promise.resolve(data._items)
+        }, (error) => Promise.reject(error))
+    )
+)
+
 /**
  * Action dispatcher to query the API for all Planning items
  * that are currently locked
@@ -1099,6 +1116,7 @@ const self = {
     exportAsArticle,
     queryLockedPlanning,
     getPlanning,
+    loadPlanningByRecurrenceId,
 }
 
 export default self

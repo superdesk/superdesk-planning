@@ -115,10 +115,8 @@ Event Postponed
         })
 
     def _postpone_recurring_events(self, updates, original):
-        events_service = get_resource_service('events')
-        events_spike_service = get_resource_service('events_spike')
         update_method = updates.get('update_method', UPDATE_SINGLE)
-        historic, past, future = events_service.get_recurring_timeline(original)
+        historic, past, future = get_resource_service('events').get_recurring_timeline(original)
 
         # Determine if the selected event is the first one, if so then
         # act as if we're changing future events
@@ -133,32 +131,16 @@ Event Postponed
         self._set_event_postponed(updates, original)
 
         for event in postponed_events:
-            has_plannings = events_service.has_planning_items(event)
             cloned_updates = deepcopy(updates)
 
-            if not has_plannings and 'pubstatus' not in event:
-                if 'reason' in cloned_updates:
-                    del cloned_updates['reason']
+            # Mark the Event as being Postponed
+            self._postpone_event_plannings(cloned_updates, event)
+            cloned_updates['skip_on_update'] = True
 
-                if 'update_method' in cloned_updates:
-                    del cloned_updates['update_method']
-
-                # Spike this Event as it is not in use
-                updated_event = events_spike_service.patch(event[config.ID_FIELD], cloned_updates)
-                app.on_updated_events_spike(
-                    updated_event,
-                    event
-                )
-
-            else:
-                # Postpone this Event as it is in use
-                self._postpone_event_plannings(cloned_updates, event)
-                cloned_updates['skip_on_update'] = True
-
-                self.update(
-                    event[config.ID_FIELD],
-                    cloned_updates,
-                    event
-                )
+            self.update(
+                event[config.ID_FIELD],
+                cloned_updates,
+                event
+            )
 
         self._postpone_event_plannings(updates, original)

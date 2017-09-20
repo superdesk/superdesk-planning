@@ -31,6 +31,9 @@ describe('actions.events.api', () => {
         sinon.stub(planningApi, 'loadPlanningByEventId').callsFake(
             () => (Promise.resolve(data.plannings))
         )
+        sinon.stub(planningApi, 'loadPlanningByRecurrenceId').callsFake(
+            () => (Promise.resolve(data.plannings))
+        )
     })
 
     afterEach(() => {
@@ -40,6 +43,7 @@ describe('actions.events.api', () => {
         restoreSinonStub(eventsApi.loadEventsByRecurrenceId)
         restoreSinonStub(planningApi.fetch)
         restoreSinonStub(planningApi.loadPlanningByEventId)
+        restoreSinonStub(planningApi.loadPlanningByRecurrenceId)
     })
 
     it('silentlyFetchEventsById', (done) => {
@@ -414,9 +418,9 @@ describe('actions.events.api', () => {
                     false,
                 ])
 
-                expect(planningApi.loadPlanningByEventId.callCount).toBe(1)
-                expect(planningApi.loadPlanningByEventId.args[0]).toEqual([
-                    ['e1', 'e2', 'e3'],
+                expect(planningApi.loadPlanningByRecurrenceId.callCount).toBe(1)
+                expect(planningApi.loadPlanningByRecurrenceId.args[0]).toEqual([
+                    'rec1',
                     false,
                 ])
 
@@ -438,8 +442,8 @@ describe('actions.events.api', () => {
         })
 
         it('returns Promise.reject if failed to load planning items', (done) => {
-            restoreSinonStub(planningApi.loadPlanningByEventId)
-            sinon.stub(planningApi, 'loadPlanningByEventId').callsFake(
+            restoreSinonStub(planningApi.loadPlanningByRecurrenceId)
+            sinon.stub(planningApi, 'loadPlanningByRecurrenceId').callsFake(
                 () => (Promise.reject(errorMessage))
             )
 

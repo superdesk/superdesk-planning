@@ -1097,4 +1097,29 @@ describe('actions.planning.api', () => {
             })
         })
     })
+
+    describe('loadPlanningByRecurrenceId', () => {
+        it('queries the api for planning items by recurrence_id', (done) => (
+            store.test(done, planningApi.loadPlanningByRecurrenceId('rec1'))
+            .then(() => {
+                expect(services.api('planning').query.callCount).toBe(1)
+                expect(services.api('planning').query.args[0]).toEqual([{
+                    source: JSON.stringify(
+                        { query: { term: { recurrence_id: 'rec1' } } }
+                    ),
+                }])
+
+                done()
+            })
+        ))
+
+        it('returns Promise.reject if recurrence_id query fails', (done) => {
+            services.api('planning').query = sinon.spy(() => Promise.reject(errorMessage))
+            store.test(done, planningApi.loadPlanningByRecurrenceId('rec1'))
+            .then(() => {}, (error) => {
+                expect(error).toEqual(errorMessage)
+                done()
+            })
+        })
+    })
 })
