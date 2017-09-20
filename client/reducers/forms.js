@@ -1,7 +1,7 @@
 import { reducer as formReducer, actionTypes } from 'redux-form'
 import { cloneDeep, get } from 'lodash'
 import moment from 'moment'
-import { RESET_STORE, INIT_STORE } from '../constants'
+import { RESET_STORE, INIT_STORE, LOCATIONS } from '../constants'
 import { eventUtils } from '../utils/index'
 
 const forms = formReducer.plugin({
@@ -11,6 +11,18 @@ const forms = formReducer.plugin({
             return null
         } else if (action.type === INIT_STORE) {
             return {}
+        } else if (action.type === LOCATIONS.ACTIONS.SET_LOCATION_SEARCH_RESULTS) {
+            let newState = cloneDeep(state)
+            let results = null
+            if (get(action.payload, 'length') > 0) {
+                results = action.payload.map((l) => ({
+                    ...l,
+                    existingLocation: true,
+                }))
+            }
+
+            newState.values._locationSearchResults = results
+            return newState
         } else if (action.type !== actionTypes.CHANGE ||
             get(action, 'meta.form', '') !== 'addEvent') {
             return state
