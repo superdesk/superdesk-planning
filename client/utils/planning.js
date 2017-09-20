@@ -113,6 +113,8 @@ export const getPlanningItemActions = ({ plan, event=null, session, privileges, 
             eventUtils.canRescheduleEvent(event, session, privileges),
         [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: () =>
             eventUtils.canPostponeEvent(event, session, privileges),
+        [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: () =>
+            eventUtils.canConvertToRecurringEvent(event, session, privileges),
     }
 
     actions.forEach((action) => {

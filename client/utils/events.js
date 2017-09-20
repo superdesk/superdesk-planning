@@ -247,6 +247,7 @@ const self = {
     isEventInUse,
     canRescheduleEvent,
     canPostponeEvent,
+    canConvertToRecurringEvent,
 }
 
 export default self
