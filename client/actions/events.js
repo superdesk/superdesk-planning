@@ -30,26 +30,6 @@ const duplicateEvent = (event) => (
 )
 
 /**
- * Set event.pubstatus usable and publish event.
- *
- * @param {Object} event
- */
-function publishEvent(event) {
-    return function (dispatch, getState, { api, notify }) {
-        return api.save('events_publish', {
-            event: event._id,
-            etag: event._etag,
-            pubstatus: PUBLISHED_STATE.USABLE,
-        })
-        .then(() => {
-            notify.success('The event has been published')
-            dispatch(eventsApi.silentlyFetchEventsById([event._id], SPIKED_STATE.BOTH))
-            dispatch(eventsUi.closeEventDetails())
-        })
-    }
-}
-
-/**
  * Set event.pubstatus canceled and publish event.
  *
  * @param {Object} event
@@ -98,7 +78,7 @@ const askConfirmationBeforeSavingEvent = (event, publish=false) => (
             return dispatch(uploadFilesAndSaveEvent(event))
             .then((events) => {
                 if (publish) {
-                    dispatch(publishEvent(events[0]))
+                    dispatch(eventsUi.publishEvent(events[0]))
                 }
             })
         }
@@ -113,6 +93,7 @@ const askConfirmationBeforeSavingEvent = (event, publish=false) => (
                         ...event,
                         _recurring: get(relatedEvents, '_items', [event]),
                         _publish: publish,
+                        _save: true,
                         _events: [],
                         _originalEvent: originalEvent,
                     },
@@ -533,7 +514,6 @@ const fetchEventHistory = (eventId) => (
 
 export {
     duplicateEvent,
-    publishEvent,
     unpublishEvent,
     toggleEventSelection,
     toggleEventsList,

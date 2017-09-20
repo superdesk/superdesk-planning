@@ -201,6 +201,7 @@ Feature: Events
         """
 
     @auth
+    @notification
     Scenario: Track publish history for event
         Given empty "users"
         When we post to "users"
@@ -237,6 +238,18 @@ Feature: Events
         """
         {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
         """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "events:published",
+            "extra": {
+                "item": "#events._id#",
+                "state": "scheduled",
+                "pubstatus": "usable"
+            }
+        }]
+        """
         When we get "/events_history"
         Then we get a list with 2 items
         """
@@ -251,9 +264,21 @@ Feature: Events
                 }
             ]}
         """
-        When we patch "/events/#events._id#"
+        When we post to "/events/publish"
         """
-        {"pubstatus": "cancelled"}
+        {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "cancelled"}
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "events:unpublished",
+            "extra": {
+                "item": "#events._id#",
+                "state": "killed",
+                "pubstatus": "cancelled"
+            }
+        }]
         """
         When we get "/events_history"
         Then we get a list with 3 items
@@ -269,7 +294,7 @@ Feature: Events
                 },
                 {
                 "event_id": "#events._id#",
-                "operation": "update",
+                "operation": "publish",
                 "update": {"pubstatus": "cancelled"}
                 }
             ]}

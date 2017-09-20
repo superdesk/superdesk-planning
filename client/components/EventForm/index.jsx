@@ -71,6 +71,86 @@ export class Component extends React.Component {
         this.setState({ openUnlockPopup: !this.state.openUnlockPopup })
     }
 
+    getEventActions(readOnly, lockRestricted, session, privileges) {
+        const {
+            initialValues,
+            spikeEvent,
+            unspikeEvent,
+            duplicateEvent,
+            onCancelEvent,
+            updateTime,
+            onRescheduleEvent,
+            convertToRecurringEvent,
+            addEventToCurrentAgenda,
+            onPostponeEvent,
+            lockedItems,
+        } = this.props
+        if (!('_id' in initialValues)) {
+            return []
+        }
+
+        const actions = [
+            {
+                ...GENERIC_ITEM_ACTIONS.SPIKE,
+                callback: spikeEvent.bind(null, initialValues),
+            },
+            {
+                ...GENERIC_ITEM_ACTIONS.UNSPIKE,
+                callback: unspikeEvent.bind(null, initialValues),
+            },
+            {
+                ...GENERIC_ITEM_ACTIONS.HISTORY,
+                callback: this.viewEventHistory.bind(this),
+            },
+            {
+                ...GENERIC_ITEM_ACTIONS.DUPLICATE,
+                callback: duplicateEvent.bind(null, initialValues),
+            },
+        ]
+
+        // Don't show these actions if editing
+        if (readOnly && !lockRestricted) {
+            actions.push(
+                {
+                    ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+                    callback: onCancelEvent.bind(null, initialValues),
+                },
+                {
+                    ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+                    callback: updateTime.bind(null, initialValues),
+                },
+                {
+                    ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+                    callback: onRescheduleEvent.bind(null, initialValues),
+                },
+                {
+                    ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
+                    callback: convertToRecurringEvent.bind(null, initialValues),
+                },
+                {
+                    ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+                    callback: onPostponeEvent.bind(null, initialValues),
+                }
+            )
+        }
+
+        actions.push(
+            GENERIC_ITEM_ACTIONS.DIVIDER,
+            {
+                ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
+                callback: addEventToCurrentAgenda.bind(null, initialValues),
+            }
+        )
+
+        return eventUtils.getEventItemActions(
+            initialValues,
+            session,
+            privileges,
+            actions,
+            lockedItems
+        )
+    }
+
     render() {
         const {
             pristine,
@@ -82,17 +162,8 @@ export class Component extends React.Component {
             users,
             readOnly,
             openEventDetails,
-            spikeEvent,
-            unspikeEvent,
-            onCancelEvent,
-            onRescheduleEvent,
-            onPostponeEvent,
-            addEventToCurrentAgenda,
             publish,
             unpublish,
-            duplicateEvent,
-            updateTime,
-            convertToRecurringEvent,
             highlightedEvent,
             session,
             privileges,
@@ -121,67 +192,12 @@ export class Component extends React.Component {
         const canUnpublish = eventUtils.canUnpublishEvent(initialValues, privileges)
         const canEditEvent = eventUtils.canEditEvent(initialValues, session, privileges, lockedItems)
 
-        let itemActions = []
-        if (existingEvent) {
-            const actions = [
-                {
-                    ...GENERIC_ITEM_ACTIONS.SPIKE,
-                    callback: spikeEvent.bind(null, initialValues),
-                },
-                {
-                    ...GENERIC_ITEM_ACTIONS.UNSPIKE,
-                    callback: unspikeEvent.bind(null, initialValues),
-                },
-                {
-                    ...GENERIC_ITEM_ACTIONS.HISTORY,
-                    callback: this.viewEventHistory.bind(this),
-                },
-                {
-                    ...GENERIC_ITEM_ACTIONS.DUPLICATE,
-                    callback: duplicateEvent.bind(null, initialValues),
-                },
-            ]
-
-            // Don't show these actions if editing
-            if (forcedReadOnly && !lockRestricted) {
-                actions.push(
-                    {
-                        ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
-                        callback: onCancelEvent.bind(null, initialValues),
-                    },
-                    {
-                        ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
-                        callback: updateTime.bind(null, initialValues),
-                    },
-                    {
-                        ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
-                        callback: onRescheduleEvent.bind(null, initialValues),
-                    },
-                    {
-                        ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
-                        callback: convertToRecurringEvent.bind(null, initialValues),
-                    },
-                    {
-                        ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
-                        callback: onPostponeEvent.bind(null, initialValues),
-                    })
-            }
-
-            actions.push(
-                GENERIC_ITEM_ACTIONS.DIVIDER,
-                {
-                    ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
-                    callback: addEventToCurrentAgenda.bind(null, initialValues),
-                })
-
-            itemActions = eventUtils.getEventItemActions(
-                initialValues,
-                session,
-                privileges,
-                actions,
-                lockedItems
-            )
-        }
+        const itemActions = this.getEventActions(
+            forcedReadOnly,
+            lockRestricted,
+            session,
+            privileges
+        )
 
         return (
             <form onSubmit={handleSubmit} className="EventForm Form">
@@ -216,7 +232,10 @@ export class Component extends React.Component {
                             }
                             {!isPublic && canPublish &&
                                 <button
-                                    onClick={handleSubmit(this.handleSaveAndPublish.bind(this))}
+                                    onClick={pristine ?
+                                        handleSubmit(publish.bind(null, initialValues)) :
+                                        handleSubmit(this.handleSaveAndPublish.bind(this))
+                                    }
                                     type="button"
                                     className="btn btn--success"
                                     disabled={submitting}>
@@ -504,7 +523,7 @@ const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event) => dispatch(actions.saveEventWithConfirmation(event)),
     openEventDetails: (event) => dispatch(actions.events.ui.openEventDetails(event)),
     saveAndPublish: (event) => dispatch(actions.saveAndPublish(event)),
-    publish: (event) => dispatch(actions.publishEvent(event)),
+    publish: (event) => dispatch(actions.events.ui.publishWithConfirmation(event)),
     unpublish: (event) => dispatch(actions.unpublishEvent(event)),
     spikeEvent: (event) => dispatch(actions.events.ui.openSpikeModal(event)),
     unspikeEvent: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),

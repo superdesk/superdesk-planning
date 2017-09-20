@@ -6,6 +6,7 @@ from superdesk import get_resource_service
 from superdesk.resource import Resource
 from superdesk.services import BaseService
 from apps.publish.enqueue import get_enqueue_service
+from superdesk.notification import push_notification
 
 from .events import EventsResource
 from .common import WORKFLOW_STATE, PUBLISHED_STATE, published_state
@@ -50,8 +51,20 @@ class EventsPublishService(BaseService):
         event.setdefault('item_id', event['_id'])
         get_enqueue_service('publish').enqueue_item(event, 'event')
         updates = {'state': self._get_publish_state(event), 'pubstatus': event['pubstatus']}
-        get_resource_service('events').update(event['_id'], updates, event)
+        updatedEvent = get_resource_service('events').update(event['_id'], updates, event)
         get_resource_service('events_history')._save_history(event, updates, 'publish')
+
+        event_type = 'events:published'
+        if updatedEvent['state'] == WORKFLOW_STATE.KILLED:
+            event_type = 'events:unpublished'
+
+        push_notification(
+            event_type,
+            item=event[config.ID_FIELD],
+            etag=updatedEvent['_etag'],
+            pubstatus=updatedEvent['pubstatus'],
+            state=updatedEvent['state']
+        )
 
     def _get_publish_state(self, event):
         if event.get('pubstatus') == PUBLISHED_STATE.CANCELLED:

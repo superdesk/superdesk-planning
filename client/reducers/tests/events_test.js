@@ -25,18 +25,18 @@ describe('events', () => {
         })
 
         const items = {
-            1: {
-                _id: '1',
+            e1: {
+                _id: 'e1',
                 name: 'name 1',
                 dates: { start: '2016-10-15T13:01:11+0000' },
             },
-            2: {
-                _id: '2',
+            e2: {
+                _id: 'e2',
                 name: 'name 2',
                 dates: { start: '2014-10-15T14:01:11+0000' },
             },
-            3: {
-                _id: '3',
+            e3: {
+                _id: 'e3',
                 name: 'name 3',
                 dates: { start: '2015-10-15T14:01:11+0000' },
             },
@@ -61,7 +61,7 @@ describe('events', () => {
         it('ADD_EVENTS', () => {
             initialState.events = items
             const newEvent = {
-                _id: '4',
+                _id: 'e4',
                 name: 'name 4',
                 dates: { start: '2016-10-15T14:30+0000' },
             }
@@ -71,28 +71,28 @@ describe('events', () => {
             })
             expect(result).not.toBe(initialState)
             expect(result).not.toEqual(initialState)
-            expect(Object.keys(result.events)).toEqual(['1', '2', '3', '4'])
+            expect(Object.keys(result.events)).toEqual(['e1', 'e2', 'e3', 'e4'])
         })
 
         it('SET_EVENTS_LIST with right order', () => {
             initialState.events = items
             const result = events(initialState, {
                 type: 'SET_EVENTS_LIST',
-                payload: ['1', '2', '3'],
+                payload: ['e1', 'e2', 'e3'],
             })
-            expect(result.eventsInList).toEqual(['1', '3', '2'])
+            expect(result.eventsInList).toEqual(['e1', 'e3', 'e2'])
         })
 
         it('ADD_TO_EVENTS_LIST', () => {
             initialState.events = items
             const result = events({
                 ...initialState,
-                eventsInList: ['1', '2'],
+                eventsInList: ['e1', 'e2'],
             }, {
                 type: 'ADD_TO_EVENTS_LIST',
-                payload: ['3', '1'],
+                payload: ['e3', 'e1'],
             })
-            expect(result.eventsInList).toEqual(['1', '3', '2'])
+            expect(result.eventsInList).toEqual(['e1', 'e3', 'e2'])
         })
 
         it('OPEN_ADVANCED_SEARCH', () => {
@@ -114,16 +114,60 @@ describe('events', () => {
         it('OPEN_EVENT_DETAILS', () => {
             const result = events(initialState, {
                 type: 'OPEN_EVENT_DETAILS',
-                payload: '1',
+                payload: 'e1',
             })
-            expect(result.showEventDetails).toBe('1')
-            expect(result.highlightedEvent).toBe('1')
+            expect(result.showEventDetails).toBe('e1')
+            expect(result.highlightedEvent).toBe('e1')
             expect(result.readOnly).toBe(false)
         })
 
         it('CLOSE_EVENT_DETAILS', () => {
             const result = events(initialState, { type: 'CLOSE_EVENT_DETAILS' })
             expect(result.showEventDetails).toBe(null)
+        })
+
+        it('MARK_EVENT_PUBLISHED', () => {
+            initialState.events = items
+            const result = events(initialState, {
+                type: 'MARK_EVENT_PUBLISHED',
+                payload: {
+                    event: {
+                        _id: 'e1',
+                        state: 'scheduled',
+                        pubstatus: 'usable',
+                        _etag: 'e123',
+                    },
+                },
+            })
+
+            expect(result.events.e1).toEqual({
+                ...items.e1,
+                state: 'scheduled',
+                pubstatus: 'usable',
+                _etag: 'e123',
+            })
+        })
+
+        it('MARK_EVENT_UNPUBLISHED', () => {
+            initialState.events = items
+            const result = events(initialState, {
+                type: 'MARK_EVENT_UNPUBLISHED',
+                payload: {
+                    event: {
+                        _id: 'e1',
+                        state: 'killed',
+                        pubstatus: 'cancelled',
+                        _etag: 'e123',
+                    },
+                },
+            })
+
+            expect(result.events.e1).toEqual({
+                ...items.e1,
+                state: 'killed',
+                pubstatus: 'cancelled',
+                _etag: 'e123',
+            })
         })
     })
 })

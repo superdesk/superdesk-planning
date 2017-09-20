@@ -1,4 +1,4 @@
-import { EVENTS, SPIKED_STATE, WORKFLOW_STATE } from '../../constants'
+import { EVENTS, SPIKED_STATE, WORKFLOW_STATE, PUBLISHED_STATE } from '../../constants'
 import { EventUpdateMethods } from '../../components/fields'
 import { get, isEqual } from 'lodash'
 import * as selectors from '../../selectors'
@@ -575,6 +575,16 @@ const postponeEvent = (event) => (
     )
 )
 
+const publishEvent = (event) => (
+    (dispatch, getState, { api }) => (
+        api.save('events_publish', {
+            event: event._id,
+            etag: event._etag,
+            pubstatus: PUBLISHED_STATE.USABLE,
+        })
+    )
+)
+
 const markEventCancelled = (event, reason, occurStatus) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_CANCELLED,
     payload: {
@@ -621,6 +631,7 @@ const self = {
     queryLockedEvents,
     getEvent,
     loadAssociatedPlannings,
+    publishEvent,
 }
 
 export default self
