@@ -1,42 +1,75 @@
 import React, { PropTypes } from 'react'
+import ReactDOM from 'react-dom'
+import { connect } from 'react-redux'
+import { formValueSelector } from 'redux-form'
+import * as actions from '../../actions'
 import Geolookup from 'react-geolookup'
+import DebounceInput from 'react-debounce-input'
 import * as Nominatim from 'nominatim-browser'
 import './style.scss'
 import classNames from 'classnames'
 import { formatAddress } from '../../utils'
-import { get, has, isEmpty } from 'lodash'
+import { LOCATIONS } from '../../constants'
+import { get, has } from 'lodash'
 import TextareaAutosize from 'react-textarea-autosize'
 import { AddGeoLookupResultsPopUp } from './AddGeoLookupResultsPopUp'
 
 /**
 * Modal for adding/editing a location with nominatim search
 */
-export class AddGeoLookupInput extends React.Component {
+
+export class GeoLookupInputComponent extends React.Component {
 
     constructor(props) {
         super(props)
         this.state = {
             searchResults: null,
-            searching: false,
+            openSuggestsPopUp: false,
+            unsavedInput: null,
+        }
+        this.handleClickOutside = this.handleClickOutside.bind(this)
+    }
+
+    handleClickOutside(event) {
+        const domNode = ReactDOM.findDOMNode(this)
+
+        if ((!domNode || !domNode.contains(event.target))) {
+            this.resetSearchResults()
+        }
+    }
+
+    componentDidMount() {
+        document.addEventListener('click', this.handleClickOutside, true)
+    }
+
+    componentWillUnmount() {
+        document.removeEventListener('click', this.handleClickOutside, true)
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (!get(nextProps.initialValue, 'name')) {
+            this.resetSearchResults(true)
+        } else if (get(nextProps.initialValue, 'name.length') > 1) {
+            if (nextProps.initialValue !== this.props.initialValue) {
+                this.props.searchLocalLocations(nextProps.initialValue.name.trim())
+            }
         }
     }
 
     handleInputChange(event) {
         this.refs.geolookup.onInputChange(event.target.value.replace(/(?:\r\n|\r|\n)/g, ' '))
         this.handleChange(event.target.value)
-        if (this.state.searchResults) {
-            this.resetSearchResults()
-        } else if (this.state.searching){
-            this.setState({ searching: false })
+
+        // Open pop-up to show external search option
+        if (get(event.target, 'value.length') > 1 && !this.state.openSuggestsPopUp) {
+            this.setState({
+                openSuggestsPopUp : true,
+                unsavedInput: event.target.value,
+            })
         }
     }
 
     handleSearchClick() {
-        // Disable button before search
-        if (!isEmpty(this.props.initialValue) && this.props.initialValue.name) {
-            this.setState({ searching : true })
-        }
-
         this.refs.geolookup.hideSuggests()
         this.refs.geolookup.onButtonClick()
     }
@@ -44,15 +77,25 @@ export class AddGeoLookupInput extends React.Component {
     onSuggestResults(suggests) {
         this.setState({
             searchResults : suggests,
-            searching: false,
+            openSuggestsPopUp: true,
         })
     }
 
-    resetSearchResults() {
-        this.setState({
-            searchResults : null,
-            searching: false,
-        })
+    resetSearchResults(resetInputText) {
+        const textState = resetInputText ? { unsavedInput: null } : null
+        if (this.state.searchResults || this.state.openSuggestsPopUp) {
+            this.setState({
+                ...textState,
+                searchResults : null,
+                openSuggestsPopUp: false,
+            })
+        } else {
+            this.setState({ ...textState })
+        }
+
+        if (this.props.localSearchResults) {
+            this.props.resetLocalSearchResults()
+        }
     }
 
     render() {
@@ -62,7 +105,7 @@ export class AddGeoLookupInput extends React.Component {
         )
 
 
-        let locationName = locationName = get(this.props.initialValue, 'name')
+        let locationName = get(this.props.initialValue, 'name') || this.state.unsavedInput
         let formattedAddress = ''
         let displayText = locationName
 
@@ -91,26 +134,24 @@ export class AddGeoLookupInput extends React.Component {
                         </span>
                     </span>
                 }
-                {!this.props.readOnly && <span className='addgeolookup__input-wrapper'><TextareaAutosize
-                    className={textAreaClassNames}
-                    disabled={this.props.readOnly ? 'disabled' : ''}
+                {!this.props.readOnly && <span className='addgeolookup__input-wrapper'>
+                <DebounceInput
+                    minLength={2}
+                    debounceTimeout={500}
                     value={displayText}
-                    onChange={this.handleInputChange.bind(this)} />
+                    onChange={this.handleInputChange.bind(this)}
+                    placeholder="Location"
+                    element={TextareaAutosize}
+                    className={textAreaClassNames}
+                    disabled={this.props.readOnly ? 'disabled' : ''} />
                 </span>}
-                {!this.props.readOnly &&
-                    <span><button type='button' className='btn' disabled={this.state.searching}
-                        onClick={this.handleSearchClick.bind(this)} >
-                            <span>Search</span>
-                            {this.state.searching && <div className='spinner'>
-                              <div className='dot1' />
-                              <div className='dot2' />
-                            </div>}
-                        </button></span>}
-                {get(this.state.searchResults, 'length') > 0 &&
-                    <AddGeoLookupResultsPopUp
+                {this.state.openSuggestsPopUp && <AddGeoLookupResultsPopUp
+                        localSuggests={this.props.localSearchResults}
                         suggests={this.state.searchResults}
                         onCancel={this.resetSearchResults.bind(this)}
-                        onChange={this.onSuggestSelect.bind(this)} />
+                        onChange={this.onSuggestSelect.bind(this)}
+                        handleSearchClick={this.handleSearchClick.bind(this)}
+                        showExternalSearch={!this.props.readOnly} />
                 }
                 {get(this.state.searchResults, 'length') === 0 &&
                     <div className="error-block" style={{ display: 'table-row' }}>No results found</div>}
@@ -154,18 +195,23 @@ export class AddGeoLookupInput extends React.Component {
     onGeocodeSuggest(suggest) {
         if (!suggest) return null
 
-        const { shortName } = has(suggest, 'raw') ? formatAddress(suggest.raw) : {}
+        if (suggest.existingLocation) {
+            return { ...suggest }
 
-        return {
-            nominatim: get(suggest, 'raw', {}),
-            location: {
-                lat: get(suggest, 'raw.lat'),
-                lon: get(suggest, 'raw.lon'),
-            },
-            placeId: get(suggest, 'placeId'),
-            label: shortName,
-            // used for the field value
-            name: shortName,
+        } else {
+            const { shortName } = has(suggest, 'raw') ? formatAddress(suggest.raw) : {}
+
+            return {
+                nominatim: get(suggest, 'raw', {}),
+                location: {
+                    lat: get(suggest, 'raw.lat'),
+                    lon: get(suggest, 'raw.lon'),
+                },
+                placeId: get(suggest, 'placeId'),
+                label: shortName,
+                // used for the field value
+                name: shortName,
+            }
         }
     }
 
@@ -175,8 +221,24 @@ export class AddGeoLookupInput extends React.Component {
 
 }
 
-AddGeoLookupInput.propTypes = {
+GeoLookupInputComponent.propTypes = {
     initialValue: PropTypes.object,
     onChange: PropTypes.func,
     readOnly: PropTypes.bool,
+    localSearchResults: PropTypes.array,
+    searchLocalLocations: PropTypes.func,
+    resetLocalSearchResults: PropTypes.func,
 }
+
+const selector = formValueSelector('addEvent') // same as form name
+const mapStateToProps = (state) => ({ localSearchResults: selector(state, '_locationSearchResults') })
+
+const mapDispatchToProps = (dispatch) => ({
+    searchLocalLocations: (text) => (dispatch(actions.searchLocation(text))),
+    resetLocalSearchResults: () => (dispatch({ type: LOCATIONS.ACTIONS.SET_LOCATION_SEARCH_RESULTS })),
+})
+
+export const AddGeoLookupInput = connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(GeoLookupInputComponent)

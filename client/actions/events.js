@@ -225,6 +225,13 @@ const saveLocation = (event) => (
         if (!get(event, 'location[0].name')) {
             event.location = []
             return event
+        } else if (get(event, 'location[0].existingLocation')) {
+            event.location[0] = {
+                name: event.location[0].name,
+                qcode: event.location[0].guid,
+                address: event.location[0].address,
+            }
+            return event
         }
         // the location is set, but doesn't have a qcode (not registered in the location collection)
         else if (get(event, 'location[0]') && isNil(event.location[0].qcode)) {

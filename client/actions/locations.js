@@ -1,5 +1,6 @@
 import { formatAddress } from '../utils'
 import { get } from 'lodash'
+import { LOCATIONS } from '../constants'
 
 export function saveNominatim(nominatim) {
     return (dispatch, getState, { api }) => {
@@ -26,13 +27,13 @@ export function saveFreeTextLocation(location) {
 }
 
 export function saveLocation(newLocation) {
-    return (dispatch, getState, { api }) => {
+    return (dispatch) => {
         const uniqueName = get(newLocation, 'nominatim.display_name')
             || get(newLocation, 'name')
             || newLocation
         // Check if the newLocation is already saved in internal
         // locations resources, if so just return the name and guid as qcode
-        return api('locations').query({ source: { query: { term: { unique_name: uniqueName } } } })
+        return dispatch(getLocation(uniqueName, true))
         .then(data => {
             if (data._items.length) {
                 // we have this location stored already
@@ -67,3 +68,27 @@ export function saveLocation(newLocation) {
         })
     }
 }
+
+export const getLocation = (searchText, unique=false) => (
+    (dispatch, getState, { api }) => {
+        if (unique) {
+            return api('locations').query(
+                { source: { query: { term: { uniqueName: searchText } } } })
+        } else {
+            const s = 'name:*' + searchText + '*'
+            return api('locations')
+                .query({ source: { query: { bool: { must: [{ query_string: { query: s } }] } } } })
+        }
+    }
+)
+
+export const searchLocation = (searchText) => (
+    (dispatch) => (
+        dispatch(getLocation(searchText)).then(data => (
+            dispatch({
+                type: LOCATIONS.ACTIONS.SET_LOCATION_SEARCH_RESULTS,
+                payload: data._items,
+            })
+        ))
+    )
+)
