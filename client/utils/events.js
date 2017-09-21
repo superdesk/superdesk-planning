@@ -32,8 +32,8 @@ const isEventAllDay = (startingDate, endingDate) => {
     startingDate = moment(startingDate).clone()
     endingDate = moment(endingDate).clone()
 
-    return startingDate.isSame(startingDate.clone().startOf('day')) &&
-        endingDate.isSame(endingDate.clone().endOf('day').seconds(0).milliseconds(0))
+    return startingDate.isSame(startingDate.clone().startOf('day'), 'minute') &&
+        endingDate.isSame(endingDate.clone().endOf('day'), 'minute')
 }
 
 const eventHasPlanning = (event) => get(event, 'planning_ids', []).length > 0
