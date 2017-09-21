@@ -444,6 +444,7 @@ describe('events', () => {
         let spyQuery
         let $rootScope
         let spyQueryResult
+        const delay = 0
 
         // Store the window.setTimeout so we can restore it after our tests
         let originalSetTimeout = window.setTimeout
@@ -528,7 +529,7 @@ describe('events', () => {
                         },
                     })
                     done()
-                }, 250)
+                }, delay)
             })
 
             it('Silently returns if no event provided', (done) => {
@@ -548,7 +549,7 @@ describe('events', () => {
                         },
                     })
                     done()
-                }, 250)
+                }, delay)
             })
         })
 
@@ -613,7 +614,7 @@ describe('events', () => {
                     })
 
                     done()
-                }, 500)
+                }, delay)
             })
 
             it('Silently returns if no recurring event provided', (done) => {
@@ -633,7 +634,7 @@ describe('events', () => {
                         },
                     })
                     done()
-                }, 250)
+                }, delay)
             })
         })
 
@@ -665,7 +666,7 @@ describe('events', () => {
                         },
                     })
                     done()
-                }, 250)
+                }, delay)
             })
 
             it('Event silently returns if no event provided', (done) => {
@@ -684,7 +685,7 @@ describe('events', () => {
                         },
                     })
                     done()
-                }, 250)
+                }, delay)
             })
         })
     })

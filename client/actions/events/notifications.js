@@ -216,6 +216,24 @@ const onEventPublishChanged = (e, data) => (
     }
 )
 
+const onRecurringEventSpiked = (e, data) => (
+    (dispatch) => {
+        if (get(data, 'items')) {
+            dispatch({
+                type: EVENTS.ACTIONS.SPIKE_RECURRING_EVENTS,
+                payload: {
+                    events: data.items,
+                    recurrence_id: data.recurrence_id,
+                },
+            })
+
+            return Promise.resolve(data.items)
+        }
+
+        return Promise.resolve([])
+    }
+)
+
 const self = {
     onEventLocked,
     onEventUnlocked,
@@ -225,6 +243,7 @@ const self = {
     onEventRescheduled,
     onEventPostponed,
     onEventPublishChanged,
+    onRecurringEventSpiked,
 }
 
 // Map of notification name and Action Event to execute
@@ -238,6 +257,7 @@ self.events = {
     'events:postponed': () => (self.onEventPostponed),
     'events:published': () => (self.onEventPublishChanged),
     'events:unpublished': () => (self.onEventPublishChanged),
+    'events:spiked:recurring': () => (self.onRecurringEventSpiked),
 }
 
 export default self

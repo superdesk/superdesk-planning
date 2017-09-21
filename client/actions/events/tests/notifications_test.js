@@ -16,7 +16,7 @@ describe('actions.events.notifications', () => {
     })
 
     describe('websocket', () => {
-        const delay = 250
+        const delay = 0
         let $rootScope
 
         beforeEach(inject((_$rootScope_) => {
@@ -41,6 +41,10 @@ describe('actions.events.notifications', () => {
                 () => (Promise.resolve())
             )
 
+            sinon.stub(eventsNotifications, 'onRecurringEventSpiked').callsFake(
+                () => (Promise.resolve())
+            )
+
             $rootScope = _$rootScope_
             registerNotifications($rootScope, store)
             $rootScope.$digest()
@@ -53,6 +57,7 @@ describe('actions.events.notifications', () => {
             restoreSinonStub(eventsNotifications.onEventUnspiked)
             restoreSinonStub(eventsNotifications.onEventRescheduled)
             restoreSinonStub(eventsNotifications.onEventPublishChanged)
+            restoreSinonStub(eventsNotifications.onRecurringEventSpiked)
         })
 
         it('`events:lock` calls onEventLocked', (done) => {
@@ -128,6 +133,22 @@ describe('actions.events.notifications', () => {
                 expect(eventsNotifications.onEventPublishChanged.callCount).toBe(1)
                 expect(eventsNotifications.onEventPublishChanged.args[0][1]).toEqual({ item: 'e1' })
 
+                done()
+            }, delay)
+        })
+
+        it('`events:spiked:recurring` calls onRecurringEventSpiked', (done) => {
+            $rootScope.$broadcast('events:spiked:recurring', {
+                items: data.events,
+                recurrence_id: 'rec1',
+            })
+
+            setTimeout(() => {
+                expect(eventsNotifications.onRecurringEventSpiked.callCount).toBe(1)
+                expect(eventsNotifications.onRecurringEventSpiked.args[0][1]).toEqual({
+                    items: data.events,
+                    recurrence_id: 'rec1',
+                })
                 done()
             }, delay)
         })
@@ -353,6 +374,25 @@ describe('actions.events.notifications', () => {
                         revert_state: null,
                         _etag: 'e456',
                     },
+                },
+            }])
+
+            done()
+        })
+    })
+
+    it('onRecurringEventSpiked dispatches `SPIKE_RECURRING_EVENTS` action', (done) => {
+        restoreSinonStub(eventsNotifications.onRecurringEventSpiked)
+        store.test(done, eventsNotifications.onRecurringEventSpiked({}, {
+            items: data.events,
+            recurrence_id: 'rec1',
+        }))
+        .then(() => {
+            expect(store.dispatch.args[0]).toEqual([{
+                type: 'SPIKE_RECURRING_EVENTS',
+                payload: {
+                    events: data.events,
+                    recurrence_id: 'rec1',
                 },
             }])
 

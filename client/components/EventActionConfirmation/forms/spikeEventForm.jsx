@@ -7,8 +7,11 @@ import moment from 'moment'
 import { EventUpdateMethods } from '../../fields/index'
 import '../style.scss'
 import { UpdateMethodSelection } from '../UpdateMethodSelection'
+import { RelatedEvents } from '../../index'
+import { getDateFormat } from '../../../selectors'
+import { get } from 'lodash'
 
-const Component = ({ handleSubmit, initialValues, relatedEvents=[], relatedPlannings=[] }) => {
+const Component = ({ handleSubmit, initialValues, relatedEvents=[], dateFormat }) => {
     let event = initialValues
     const isRecurring = !!event.recurrence_id
 
@@ -17,10 +20,13 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], relatedPlann
     let startStr = moment(event.dates.start).format('MMMM Do YYYY, h:mm:ss a')
     let endStr = moment(event.dates.end).format('MMMM Do YYYY, h:mm:ss a')
 
-    const numEvents = relatedEvents.length + 1
-    const numPlannings = relatedPlannings.length
-
     const updateMethodLabel = 'Would you like to spike all recurring events or just this one?'
+
+    const eventsInUse = relatedEvents.filter((e) => (
+        get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
+    ))
+
+    const numEvents = relatedEvents.length + 1 - eventsInUse.length
 
     return (
         <div className="EventActionConfirmation">
@@ -33,17 +39,24 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], relatedPlann
                     <dd>{ endStr }</dd>
                     { isRecurring && (<dt>Events:</dt>)}
                     { isRecurring && (<dd>{ numEvents }</dd>)}
-                    { isRecurring && (<dt>Plannings:</dt>)}
-                    { isRecurring && (<dd>{ numPlannings }</dd>)}
                 </dl>
             </div>
 
-            {<UpdateMethodSelection
+            <UpdateMethodSelection
                 showMethodSelection={isRecurring}
                 updateMethodLabel={updateMethodLabel}
-                relatedPlannings={relatedPlannings}
                 handleSubmit={handleSubmit}
-                action='spike' />}
+                showSpace={false}
+                action='spike' />
+
+            {eventsInUse.length > 0 &&
+                <div className="sd-alert sd-alert--hollow sd-alert--alert">
+                    <strong>The following Events are in use and will not be spiked:</strong>
+                    <RelatedEvents
+                        events={eventsInUse}
+                        dateFormat={dateFormat}/>
+                </div>
+            }
         </div>
     )
 }
@@ -52,7 +65,7 @@ Component.propTypes = {
     handleSubmit: PropTypes.func.isRequired,
     initialValues: PropTypes.object.isRequired,
     relatedEvents: PropTypes.array,
-    relatedPlannings: PropTypes.array,
+    dateFormat: PropTypes.string.isRequired,
 }
 
 // Decorate the form container
@@ -60,8 +73,8 @@ export const SpikeEvent = reduxForm({ form: 'spikeEvent' })(Component)
 
 const selector = formValueSelector('spikeEvent')
 const mapStateToProps = (state) => ({
-    relatedPlannings: selector(state, '_relatedPlannings'),
     relatedEvents: selector(state, '_events'),
+    dateFormat: getDateFormat(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

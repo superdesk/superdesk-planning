@@ -19,7 +19,7 @@ describe('actions.planning.notifications', () => {
     })
 
     describe('websocket', () => {
-        const delay = 250
+        const delay = 0
         let $rootScope
 
         beforeEach(inject((_$rootScope_) => {
