@@ -158,8 +158,7 @@ const canDuplicateEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
         !isItemSpiked(event) &&
         !isEventLockRestricted(event, session, locks) &&
-        !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
-        !isItemRescheduled(event)
+        !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
 )
 
 const canCreatePlanningFromEvent = (event, session, privileges, locks) => (
@@ -241,7 +240,8 @@ const canPostponeEvent = (event, session, privileges, locks) => (
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemPostponed(event) &&
-        isEventInUse(event)
+        isEventInUse(event) &&
+        !isItemRescheduled(event)
 )
 
 const getEventItemActions = (event, session, privileges, actions, locks) => {
