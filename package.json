@@ -32,12 +32,12 @@
     "whatwg-fetch": "^2.0.3"
   },
   "devDependencies": {
-    "enzyme": "~2.8.0",
-    "eslint-plugin-jasmine": "~2.4.0",
+    "enzyme": "~2.9.1",
+    "eslint-plugin-jasmine": "~2.8.4",
     "istanbul-instrumenter-loader": "0.2.0",
-    "jasmine": "2.7.0",
+    "jasmine": "2.8.0",
     "jscs": "^3.0.7",
-    "karma": "1.7.0",
+    "karma": "1.7.1",
     "karma-cli": "^1.0.1",
     "karma-chrome-launcher": "2.2.0",
     "karma-coverage": "1.1.1",
@@ -46,10 +46,10 @@
     "karma-sourcemap-loader": "~0.3.7",
     "karma-verbose-reporter": "0.0.6",
     "karma-webpack": "2.0.4",
-    "react-addons-test-utils": "~15.5.1",
-    "react-test-renderer": "~15.5.1",
+    "react-addons-test-utils": "~15.6.0",
+    "react-test-renderer": "~15.6.1",
     "simulant": "^0.2.2",
-    "sinon": "~2.1.0",
+    "sinon": "~3.3.0",
     "superdesk-core": "superdesk/superdesk-client-core#42959f5"
   }
 }
