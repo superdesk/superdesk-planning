@@ -9,15 +9,17 @@ import {
     RescheduleEventForm,
     PostponeEventForm,
     ConvertToRecurringEventForm,
+    CancelPlanningForm,
 } from './index'
 import { get } from 'lodash'
-import { GENERIC_ITEM_ACTIONS, EVENTS, FORM_NAMES } from '../../constants'
+import { GENERIC_ITEM_ACTIONS, EVENTS, FORM_NAMES, PLANNING } from '../../constants'
 
-export const EventActionConfirmationModal = ({ handleHide, modalProps }) => {
+export const ItemActionConfirmationModal = ({ handleHide, modalProps }) => {
     let title
     let form
     let formNameForPristineCheck
     let saveText = 'Save'
+    let propToForm = modalProps.eventDetail
 
     switch (modalProps.actionType) {
         case GENERIC_ITEM_ACTIONS.SPIKE.label:
@@ -56,6 +58,12 @@ export const EventActionConfirmationModal = ({ handleHide, modalProps }) => {
             form = ConvertToRecurringEventForm
             break
 
+        case PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label:
+            title = PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label
+            propToForm = modalProps.planning
+            form = CancelPlanningForm
+            break
+
         default:
             title = get(modalProps, 'eventDetail._publish', false) ?
                 'Save Event & Publish' : 'Save Event'
@@ -68,7 +76,7 @@ export const EventActionConfirmationModal = ({ handleHide, modalProps }) => {
             onHide={handleHide}
             form={form}
             formNameForPristineCheck={formNameForPristineCheck}
-            initialValues={modalProps.eventDetail}
+            initialValues={propToForm}
             saveButtonText={saveText}
             cancelButtonText="Cancel"
             large={get(modalProps, 'large', false)}
@@ -76,10 +84,11 @@ export const EventActionConfirmationModal = ({ handleHide, modalProps }) => {
     )
 }
 
-EventActionConfirmationModal.propTypes = {
+ItemActionConfirmationModal.propTypes = {
     handleHide: PropTypes.func.isRequired,
     modalProps: PropTypes.shape({
-        eventDetail: PropTypes.object.isRequired,
+        eventDetail: PropTypes.object,
+        planning: PropTypes.object,
         actionType: PropTypes.string,
         large: PropTypes.bool,
     }),

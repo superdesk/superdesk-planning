@@ -65,6 +65,7 @@ class PlanningList extends React.Component {
             onRescheduleEvent,
             onPostponeEvent,
             onConvertToRecurringEvent,
+            onCancelPlanning,
             onSelectItem,
             selected,
             lockedItems,
@@ -89,6 +90,7 @@ class PlanningList extends React.Component {
                     onUpdateEventTime={onUpdateEventTime}
                     onRescheduleEvent={onRescheduleEvent}
                     onPostponeEvent={onPostponeEvent}
+                    onCancelPlanning={onCancelPlanning}
                     onClick={this.previewOrEditPlanning.bind(this, planning)}
                     onDoubleClick={openPlanningEditor}
                     onAgendaClick={onAgendaClick}
@@ -156,6 +158,7 @@ PlanningList.propTypes = {
     onRescheduleEvent: PropTypes.func,
     onPostponeEvent: PropTypes.func,
     onConvertToRecurringEvent: PropTypes.func,
+    onCancelPlanning: PropTypes.func,
     onSelectItem: PropTypes.func,
     selected: PropTypes.array,
     lockedItems: PropTypes.object,
@@ -175,7 +178,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     previewPlanning: (item) => (dispatch(actions.planning.ui.preview(item._id))),
-    openPlanningEditor: (item) => (dispatch(actions.planning.ui.openEditor(item._id))),
+    openPlanningEditor: (item) => (dispatch(actions.planning.ui.openEditor(item))),
     handlePlanningSpike: (item) => {
         dispatch(actions.showModal({
             modalType: 'CONFIRMATION',
@@ -204,6 +207,7 @@ const mapDispatchToProps = (dispatch) => ({
     onRescheduleEvent: (event) => dispatch(actions.events.ui.openRescheduleModal(event)),
     onPostponeEvent: (event) => dispatch(actions.events.ui.openPostponeModal(event)),
     onConvertToRecurringEvent: (event) => dispatch(actions.events.ui.convertToRecurringEvent(event)),
+    onCancelPlanning: (planning) => dispatch(actions.planning.ui.openCancelPlanningModal(planning)),
     onSelectItem: (itemId) => dispatch(actions.planning.ui.toggleItemSelected(itemId)),
 })
 

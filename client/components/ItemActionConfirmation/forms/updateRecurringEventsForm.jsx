@@ -35,7 +35,7 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], dateFormat }
     }
 
     return (
-        <div className="EventActionConfirmation">
+        <div className="ItemActionConfirmation">
             <div className="metadata-view">
                 <dl>
                     { event.slugline && (<dt>Slugline:</dt>) }

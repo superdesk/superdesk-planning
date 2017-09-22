@@ -23,7 +23,7 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], relatedPlann
     const updateMethodLabel = 'Would you like to cancel all recurring events or just this one?'
 
     return (
-        <div className="EventActionConfirmation">
+        <div className="ItemActionConfirmation">
             <strong>{ event.name }</strong>
             <div className="metadata-view">
                 <dl>

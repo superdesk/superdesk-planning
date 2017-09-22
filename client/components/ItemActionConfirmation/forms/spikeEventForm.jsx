@@ -29,7 +29,7 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], dateFormat }
     const numEvents = relatedEvents.length + 1 - eventsInUse.length
 
     return (
-        <div className="EventActionConfirmation">
+        <div className="ItemActionConfirmation">
             <strong>{ event.name }</strong>
             <div className="metadata-view">
                 <dl>

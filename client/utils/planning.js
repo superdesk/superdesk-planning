@@ -1,5 +1,9 @@
 import moment from 'moment-timezone'
-import { WORKFLOW_STATE, GENERIC_ITEM_ACTIONS, PRIVILEGES, EVENTS } from '../constants/index'
+import { WORKFLOW_STATE,
+    GENERIC_ITEM_ACTIONS,
+    PRIVILEGES,
+    EVENTS,
+    PLANNING } from '../constants/index'
 import { get, isNil } from 'lodash'
 import {
     getItemWorkflowState,
@@ -71,6 +75,15 @@ const canDuplicatePlanning = (plan, event=null, session, privileges, locks) => (
         !isItemSpiked(event)
 )
 
+const canCancelPlanning = (planning, event=null, session, privileges, locks) => {
+    const planState = getItemWorkflowState(planning)
+    const eventState = getItemWorkflowState(event)
+    return !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !isPlanningLockRestricted(planning, session, locks) &&
+        planState === WORKFLOW_STATE.SCHEDULED &&
+        eventState !== WORKFLOW_STATE.SPIKED
+}
+
 const isPlanningLocked = (plan, locks) =>
     !isNil(plan) && (
         plan._id in locks.planning ||
@@ -123,6 +136,8 @@ export const getPlanningItemActions = (plan, event=null, session, privileges, ac
             canUnspikePlanning(plan, event, privileges),
         [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: () =>
             canDuplicatePlanning(plan, event, session, privileges, locks),
+        [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: () =>
+            canCancelPlanning(plan, event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
             !isPlanAdHoc(plan) && eventUtils.canCancelEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: () =>

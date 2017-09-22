@@ -30,6 +30,7 @@ describe('planning', () => {
             const onRescheduleEvent = sinon.spy()
             const onPostponeEvent = sinon.spy()
             const onConvertToRecurringEvent = sinon.spy()
+            const onCancelPlanning = sinon.spy()
 
             const getWrapper = (params=null) => {
                 if (params !== null) {
@@ -63,6 +64,7 @@ describe('planning', () => {
                             onRescheduleEvent={onRescheduleEvent}
                             onPostponeEvent={onPostponeEvent}
                             onConvertToRecurringEvent={onConvertToRecurringEvent}
+                            onCancelPlanning={onCancelPlanning}
                             privileges={privileges}
                             lockedItems={locks}
                         />
@@ -88,6 +90,7 @@ describe('planning', () => {
                     onRescheduleEvent={onRescheduleEvent}
                     onPostponeEvent={onPostponeEvent}
                     onConvertToRecurringEvent={onConvertToRecurringEvent}
+                    onCancelPlanning={onCancelPlanning}
                     privileges={privileges}
                     store={store}
                     lockedItems={locks}

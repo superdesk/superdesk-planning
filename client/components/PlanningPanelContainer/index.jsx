@@ -224,7 +224,7 @@ const mapDispatchToProps = (dispatch) => ({
         // save planning and open the planning editor
         dispatch(actions.planning.ui.saveAndReloadCurrentAgenda(planning))
         .then((planning) => (
-            dispatch(actions.planning.ui.openEditor(planning._id))
+            dispatch(actions.planning.ui.openEditor(planning))
         ))
     ),
     handleSearch: (text) => (dispatch(actions.planning.ui.filterByKeyword(text))),

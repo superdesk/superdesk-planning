@@ -204,6 +204,7 @@ describe('planning', () => {
                         openPlanningEditor={sinon.spy()}
                         onRescheduleEvent={sinon.spy()}
                         onPostponeEvent={sinon.spy()}
+                        onCancelPlanning={sinon.spy()}
                         privileges={privileges}
                         lockedItems={{
                             events: {},
@@ -248,6 +249,7 @@ describe('planning', () => {
                         openPlanningEditor={sinon.spy()}
                         onRescheduleEvent={sinon.spy()}
                         onPostponeEvent={sinon.spy()}
+                        onCancelPlanning={sinon.spy()}
                         privileges={privileges}
                         lockedItems={{
                             events: {},

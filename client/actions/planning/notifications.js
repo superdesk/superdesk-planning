@@ -306,7 +306,8 @@ const onPlanningCancelled = (e, data) => (
             dispatch(planning.api.markPlanningCancelled(
                 data.item,
                 get(data, 'reason'),
-                get(data, 'coverage_state')
+                get(data, 'coverage_state'),
+                get(data, 'event_cancellation')
             ))
         }
     }

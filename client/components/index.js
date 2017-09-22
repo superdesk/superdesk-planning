@@ -59,8 +59,8 @@ export { EventHistoryList } from './EventHistoryList/index'
 export { AbsoluteDate } from './AbsoluteDate'
 export { PlanningHistoryContainer } from './PlanningHistoryContainer/index'
 export { PlanningHistoryList } from './PlanningHistoryList/index'
-export { EventActionConfirmationModal }
-    from './EventActionConfirmation'
+export { ItemActionConfirmationModal }
+    from './ItemActionConfirmation'
 export { RelatedEvents } from './RelatedEvents/index'
 export { Tabs, Tab, TabContent } from './Tabs/index'
 export { PlanningSettingsApp } from './PlanningSettingsApp'
