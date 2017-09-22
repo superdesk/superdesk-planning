@@ -22,6 +22,7 @@ PlanningStoreService.$inject = [
     'gettext',
     'gettextCatalog',
     '$q',
+    '$interpolate',
 ]
 export function PlanningStoreService(
     $rootScope,
@@ -42,7 +43,8 @@ export function PlanningStoreService(
     deployConfig,
     gettext,
     gettextCatalog,
-    $q
+    $q,
+    $interpolate
 ) {
     let self = this
 
@@ -136,6 +138,7 @@ export function PlanningStoreService(
                     deployConfig,
                     gettextCatalog,
                     gettext,
+                    $interpolate,
                 },
             })
 
