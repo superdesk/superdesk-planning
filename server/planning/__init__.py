@@ -45,6 +45,8 @@ from planning.planning_types import PlanningTypesService, PlanningTypesResource
 from .common import get_max_recurrent_events
 from .planning_export import PlanningExportResource, PlanningExportService
 
+from .commands import *  # noqa
+
 
 def init_app(app):
     """Initialize planning plugin.
