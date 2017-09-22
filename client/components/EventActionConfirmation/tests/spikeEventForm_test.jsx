@@ -4,6 +4,7 @@ import sinon from 'sinon'
 import { Provider } from 'react-redux'
 import { SpikeEventForm, SpikeEvent } from '../forms/spikeEventForm'
 import { EventUpdateMethodField } from '../../fields'
+import { RelatedEvents } from '../../RelatedEvents'
 import { getTestActionStore, restoreSinonStub } from '../../../utils/testUtils'
 import { createTestStore } from '../../../utils'
 import eventsApi from '../../../actions/events/api'
@@ -39,6 +40,7 @@ describe('<SpikeEventForm />', () => {
                     end: moment('2099-10-16T14:01:11'),
                 },
                 recurrence_id: 'rec1',
+                pubstatus: 'usable',
             },
             {
                 _id: 'e3',
@@ -49,57 +51,44 @@ describe('<SpikeEventForm />', () => {
                 },
                 recurrence_id: 'rec1',
             },
+            {
+                _id: 'e4',
+                name: 'Event 4',
+                dates: {
+                    start: moment('2099-10-18T13:01:11'),
+                    end: moment('2099-10-18T14:01:11'),
+                },
+                recurrence_id: 'rec1',
+            },
+            {
+                _id: 'e5',
+                name: 'Event 5',
+                dates: {
+                    start: moment('2099-10-19T13:01:11'),
+                    end: moment('2099-10-19T14:01:11'),
+                },
+                recurrence_id: 'rec1',
+                planning_ids: ['p1'],
+            },
         ]
 
-        data.plannings = [
-            {
-                _id: 'p1',
-                slugline: 'Planning1',
-                headline: 'Some Plan 1',
-                agendas: [data.agendas[1]._id],
-                coverages: [],
-                event_item: 'e1',
-                original_creator: { display_name: 'Hue Man' },
-                _agendas: [data.agendas[1]],
-            },
-            {
-                _id: 'p2',
-                slugline: 'Planning2',
-                headline: 'Some Plan 2',
-                agendas: [],
-                coverages: [],
-                event_item: 'e2',
-                original_creator: { display_name: 'Hue Man' },
-                _agendas: [],
-            },
-            {
-                _id: 'p3',
-                slugline: 'Planning3',
-                headline: 'Some Plan 3',
-                agendas: [],
-                coverages: [],
-                event_item: 'e3',
-                original_creator: { display_name: 'Hue Man' },
-                _agendas: [],
-            },
-            {
-                _id: 'p4',
-                slugline: 'Planning4',
-                headline: 'Some Plan 4',
-                agendas: [],
-                coverages: [],
-                event_item: 'e3',
-                original_creator: { display_name: 'Hue Man' },
-                _agendas: [],
-            },
-        ]
+        data.plannings = [{
+            _id: 'p1',
+            slugline: 'Planning1',
+            headline: 'Some Plan 1',
+            agendas: [data.agendas[1]._id],
+            coverages: [],
+            event_item: 'e5',
+            original_creator: { display_name: 'Hue Man' },
+            _agendas: [data.agendas[1]],
+        }]
 
         data.coverages = []
 
         astore.init()
 
         // Clear the initial state to only have our first event
-        astore.initialState.events.events = { e1: data.events[0] }
+        astore.initialState.events.events = { e3: data.events[0] }
         astore.initialState.planning.plannings = {}
 
         store = createTestStore({
@@ -116,8 +105,8 @@ describe('<SpikeEventForm />', () => {
         restoreSinonStub(eventsUi.spike)
     })
 
-    it('renders and updates on update_method change', (done) => {
-        return store.dispatch(eventsApi.loadEventDataForAction(data.events[1], true))
+    it('renders and updates on update_method change', (done) => (
+        store.dispatch(eventsApi.loadEventDataForAction(data.events[2], true))
         .then((eventDetail) => {
             const wrapper = mount(
                 <Provider store={store}>
@@ -130,25 +119,23 @@ describe('<SpikeEventForm />', () => {
             const form = wrapper.find(SpikeEvent)
             const metaData = wrapper.find('.metadata-view')
             const updateMethod = form.find(EventUpdateMethodField)
+            // const relatedEvents = wrapper.find(RelatedEvents)
 
             // Check name on the form
-            expect(wrapper.find('strong').first().text()).toBe('Event 2')
+            expect(wrapper.find('strong').first().text()).toBe('Event 3')
 
             // Ensure the metadata section renders correctly
-            expect(metaData.find('dd').length).toBe(4)
-            expect(metaData.find('dt').length).toBe(4)
+            expect(metaData.find('dd').length).toBe(3)
+            expect(metaData.find('dt').length).toBe(3)
 
             expect(metaData.find('dt').at(0).text()).toBe('Starts:')
-            expect(metaData.find('dd').at(0).text()).toBe('October 16th 2099, 1:01:11 pm')
+            expect(metaData.find('dd').at(0).text()).toBe('October 17th 2099, 1:01:11 pm')
 
             expect(metaData.find('dt').at(1).text()).toBe('Ends:')
-            expect(metaData.find('dd').at(1).text()).toBe('October 16th 2099, 2:01:11 pm')
+            expect(metaData.find('dd').at(1).text()).toBe('October 17th 2099, 2:01:11 pm')
 
             expect(metaData.find('dt').at(2).text()).toBe('Events:')
             expect(metaData.find('dd').at(2).text()).toBe('1')
-
-            expect(metaData.find('dt').at(3).text()).toBe('Plannings:')
-            expect(metaData.find('dd').at(3).text()).toBe('1')
 
             // Spike method defaults to single event
             expect(updateMethod.props().label)
@@ -158,23 +145,20 @@ describe('<SpikeEventForm />', () => {
                 value: 'single',
             })
             expect(form.props().relatedEvents).toEqual([])
-            expect(form.props().relatedPlannings).toEqual([data.plannings[1]])
 
-            // RelatedPlannings has only 1 planning item
-            // expect(relatedPlannings.props().plannings).toEqual([ data.plannings[1] ])
+            // Update the spike method to 'future'
             updateMethod.find('SelectField select').simulate(
                 'change',
                 { target: { value: 'This and all future events' } }
             )
             expect(metaData.find('dd').at(2).text()).toBe('2')
-            expect(metaData.find('dd').at(3).text()).toBe('3')
             expect(form.props().relatedEvents).toEqual([
-                data.events[2],
+                data.events[3],
+                data.events[4],
             ])
-            expect(form.props().relatedPlannings).toEqual([
-                data.plannings[1],
-                data.plannings[2],
-                data.plannings[3],
+            // Related Event warning for Events in use
+            expect(wrapper.find(RelatedEvents).props().events).toEqual([
+                data.events[4],
             ])
 
             // Update the spike method to 'all', and ensure number of plannings is updated
@@ -183,16 +167,16 @@ describe('<SpikeEventForm />', () => {
                 { target: { value: 'All events' } }
             )
             expect(metaData.find('dd').at(2).text()).toBe('3')
-            expect(metaData.find('dd').at(3).text()).toBe('4')
             expect(form.props().relatedEvents).toEqual([
                 data.events[0],
-                data.events[2],
+                data.events[1],
+                data.events[3],
+                data.events[4],
             ])
-            expect(form.props().relatedPlannings).toEqual([
-                data.plannings[0],
-                data.plannings[1],
-                data.plannings[2],
-                data.plannings[3],
+            // Related Event warning for Events in use
+            expect(wrapper.find(RelatedEvents).props().events).toEqual([
+                data.events[1],
+                data.events[4],
             ])
 
             form.find('form').simulate('submit')
@@ -205,5 +189,5 @@ describe('<SpikeEventForm />', () => {
             expect(error.stack).toBe(null)
             done()
         })
-    })
+    ))
 })

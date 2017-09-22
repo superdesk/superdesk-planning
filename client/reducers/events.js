@@ -40,6 +40,57 @@ const modifyEventsBeingAdded = (state, payload) => {
     return _events
 }
 
+const removeLock = (event, etag=null) => {
+    delete event.lock_action
+    delete event.lock_user
+    delete event.lock_time
+    delete event.lock_session
+
+    if (etag !== null) {
+        event._etag = etag
+    }
+}
+
+export const spikeEvent = (state, payload) => {
+    const spikeState = get(state, 'search.currentSearch.spikeState', SPIKED_STATE.NOT_SPIKED)
+    let event = state.events[payload._id]
+
+    removeLock(event, payload._etag)
+    event.state = WORKFLOW_STATE.SPIKED
+    event.revert_state = payload.revert_state
+
+    if (state.showEventDetails === event._id) {
+        state.showEventDetails = null
+    }
+
+    const eventIndex = state.eventsInList.indexOf(event._id)
+    if (eventIndex > -1 && spikeState === SPIKED_STATE.NOT_SPIKED) {
+        state.eventsInList.splice(eventIndex, 1)
+    }
+
+    return state
+}
+
+export const unspikeEvent = (state, payload) => {
+    const spikeState = get(state, 'search.currentSearch.spikeState', SPIKED_STATE.NOT_SPIKED)
+    let event = state.events[payload._id]
+
+    removeLock(event, payload._etag)
+    event.state = payload.state
+    delete event.revert_state
+
+    if (state.showEventDetails === event._id) {
+        state.showEventDetails = null
+    }
+
+    const eventIndex = state.eventsInList.indexOf(event._id)
+    if (eventIndex > -1 && spikeState === SPIKED_STATE.SPIKED) {
+        state.eventsInList.splice(eventIndex, 1)
+    }
+
+    return state
+}
+
 const eventsReducer = createReducer(initialState, {
     [RESET_STORE]: () => (null),
 
@@ -176,10 +227,8 @@ Event Cancelled
         event.definition_long = definition
         event.state = WORKFLOW_STATE.CANCELLED
         event.occur_status = payload.occur_status
-        event.lock_action = null
-        event.lock_user = null
-        event.lock_session = null
-        event.lock_time = null
+
+        removeLock(event)
 
         return {
             ...state,
@@ -229,11 +278,7 @@ Event Cancelled
         const newEvent = payload.event
         let event = events[newEvent._id]
 
-        delete event.lock_action
-        delete event.lock_user
-        delete event.lock_time
-        delete event.lock_session
-        event._etag = newEvent._etag
+        removeLock(event, newEvent._etag)
 
         return {
             ...state,
@@ -262,10 +307,8 @@ Event Postponed
 
         event.definition_long = definition
         event.state = WORKFLOW_STATE.POSTPONED
-        event.lock_action = null
-        event.lock_user = null
-        event.lock_session = null
-        event.lock_time = null
+
+        removeLock(event)
 
         return {
             ...state,
@@ -283,71 +326,29 @@ Event Postponed
     ),
 
     [EVENTS.ACTIONS.SPIKE_EVENT]: (state, payload) => {
-        // If the event is not loaded, disregard this action
-        if (!(payload.event._id in state.events)) return state
+        if (!(get(payload, 'event._id') in state.events))
+            return state
 
-        let events = cloneDeep(state.events)
-        const newEvent = payload.event
-        let event = events[newEvent._id]
-
-        delete event.lock_action
-        delete event.lock_user
-        delete event.lock_time
-        delete event.lock_session
-        event._etag = newEvent._etag
-        event.state = newEvent.state
-        event.revert_state = newEvent.revert_state
-
-        let showEventDetails = get(state, 'showEventDetails', null)
-        if (showEventDetails === event._id) {
-            showEventDetails = null
-        }
-
-        // If the user is currently not showing spiked Events,
-        // Then remove this Event from the list (if it exists in the list)
-        const spikeState = get(state, 'search.currentSearch.spikeState', SPIKED_STATE.NOT_SPIKED)
-        let eventsInList = state.eventsInList
-        if (eventsInList.indexOf(event._id) > -1 && spikeState === SPIKED_STATE.NOT_SPIKED) {
-            eventsInList.splice(eventsInList.indexOf(event._id), 1)
-        }
-
-        return {
-            ...state,
-            eventsInList,
-            events,
-            showEventDetails,
-        }
+        return spikeEvent(cloneDeep(state), payload.event)
     },
 
     [EVENTS.ACTIONS.UNSPIKE_EVENT]: (state, payload) => {
         // If the event is not loaded, disregard this action
-        if (!(payload.event._id in state.events)) return state
+        if (!(get(payload, 'event._id') in state.events))
+            return state
 
-        let events = cloneDeep(state.events)
-        const newEvent = payload.event
-        let event = events[newEvent._id]
+        return unspikeEvent(cloneDeep(state), payload.event)
+    },
 
-        delete event.lock_action
-        delete event.lock_user
-        delete event.lock_time
-        delete event.lock_session
-        event._etag = newEvent._etag
-        event.state = newEvent.state
-        event.revert_state = newEvent.revert_state
+    [EVENTS.ACTIONS.SPIKE_RECURRING_EVENTS]: (state, payload) => {
+        let newState = cloneDeep(state)
+        payload.events.forEach((event) => {
+            if (get(event, '_id') in state.events) {
+                spikeEvent(newState, event)
+            }
+        })
 
-        // If the user is currently showing spiked only Events,
-        // Then remove this Event from the list (if it exists in the list)
-        const spikeState = get(state, 'search.currentSearch.spikeState', SPIKED_STATE.NOT_SPIKED)
-        let eventsInList = state.eventsInList
-        if (eventsInList.indexOf(event._id) > -1 && spikeState === SPIKED_STATE.SPIKED) {
-            eventsInList.splice(eventsInList.indexOf(event._id), 1)
-        }
-
-        return {
-            ...state,
-            eventsInList,
-            events,
-        }
+        return newState
     },
 
     [EVENTS.ACTIONS.MARK_EVENT_PUBLISHED]: (state, payload) => (
