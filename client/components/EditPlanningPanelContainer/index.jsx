@@ -46,6 +46,8 @@ export class EditPlanningPanel extends React.Component {
         }
 
         this.handleSave = this.handleSave.bind(this)
+        this.saveAndClose = this.saveAndClose.bind(this)
+        this.cancelForm = this.cancelForm.bind(this)
     }
 
     onSubmit(planning) {
@@ -101,6 +103,33 @@ export class EditPlanningPanel extends React.Component {
 
     closePlanningHistory() {
         this.setState({ previewHistory: false })
+    }
+
+    saveAndClose() {
+        const { valid, closePlanningEditor, planning } = this.props
+        const rtn = this.handleSave()
+        if (valid) {
+            rtn.then(closePlanningEditor.bind(this, planning))
+        }
+    }
+
+    cancelForm() {
+        const { planning, pristine, dispatch, closePlanningEditor } = this.props
+        if (!pristine) {
+            return dispatch(actions.showModal({
+                modalType: 'CONFIRMATION',
+                modalProps: {
+                    title: 'Save changes?',
+                    body: 'There are some unsaved changes, do you want to save it now?',
+                    okText: 'Save',
+                    showIgnore: true,
+                    action: this.saveAndClose,
+                    ignore: closePlanningEditor.bind(this, planning),
+                },
+            }))
+        }
+
+        return closePlanningEditor(planning)
     }
 
     /*eslint-disable complexity*/
@@ -234,9 +263,9 @@ export class EditPlanningPanel extends React.Component {
                                 <button
                                     className="btn"
                                     type="reset"
-                                    onClick={closePlanningEditor.bind(this, planning)}
+                                    onClick={this.cancelForm}
                                     disabled={submitting}>
-                                    Cancel
+                                    Close
                                 </button>
                             }
 
@@ -382,6 +411,8 @@ EditPlanningPanel.propTypes = {
     onConvertToRecurringEvent: PropTypes.func,
     lockedItems: PropTypes.object,
     onPostponeEvent: PropTypes.func,
+    dispatch: PropTypes.func,
+    valid: PropTypes.bool,
 }
 
 const selector = formValueSelector('planning') // Selector for the Planning form

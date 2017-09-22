@@ -158,7 +158,6 @@ const uploadFilesAndSaveEvent = (event) => {
         // If event was just created, open it in editing mode
         .then((events) => {
             if (events.length > 0 && selectors.getShowEventDetails(getState()) === true) {
-                dispatch(eventsUi.closeEventDetails())
                 return dispatch(eventsUi.openEventDetails(events[0]))
                     .then(() => events)
             }
