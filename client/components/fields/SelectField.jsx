@@ -61,7 +61,7 @@ export class SelectField extends React.Component {
 
     render() {
         const { touched, error, warning } = this.props.meta
-        const { labelLeft, required, readOnly, label, options, clearable } = this.props
+        const { labelLeft, required, readOnly, label, options, clearable, autoFocus } = this.props
 
         const showMessage = touched && (error || warning)
         const divClass = classNames(
@@ -93,6 +93,7 @@ export class SelectField extends React.Component {
                     className={inputClass}
                     disabled={readOnly}
                     onChange={this.onChange}
+                    autoFocus={autoFocus}
                 >
                     {clearable && <option value=""/>}
                     {options.map((opt) => (
@@ -130,6 +131,7 @@ SelectField.propTypes = {
     })),
     getOptionFromValue: PropTypes.func,
     clearable: PropTypes.bool,
+    autoFocus: PropTypes.bool,
 }
 
 SelectField.defaultProps = {
@@ -140,4 +142,5 @@ SelectField.defaultProps = {
         option => option.value === value
     ),
     clearable: false,
+    autoFocus: false,
 }
