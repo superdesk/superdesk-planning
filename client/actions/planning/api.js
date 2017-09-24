@@ -848,6 +848,8 @@ const publish = (plan) => (
             planning: plan._id,
             etag: plan._etag,
             pubstatus: PUBLISHED_STATE.USABLE,
+        }).then(() => {
+            dispatch(self.fetchPlanningById(plan._id, true))
         })
     )
 )
