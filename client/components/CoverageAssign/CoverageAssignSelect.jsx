@@ -120,6 +120,7 @@ export class CoverageAssignSelect extends React.Component {
                         <span className="error-block">Must select a desk.</span> }
             <fields.DeskSelectField
                 desks={this.state.filteredDeskList}
+                autoFocus={true}
                 input={deskSelectFieldInput} />
             { this.state.userAssigned &&
                 <div className='coverageassignselect__user'>
@@ -131,7 +132,7 @@ export class CoverageAssignSelect extends React.Component {
                 </div> }
             { this.state.filteredUserList.length > 0 && <div className='coverageassignselect__search'>
                 <SearchBar onSearch={(value) => {this.filterUserList(value)}} minLength={1}
-                    extendOnOpen={true} ref='searchBar'/>
+                    extendOnOpen={false} ref='searchBar'/>
             </div> }
             <ul className='coverageassignselect__list'>
                 {this.state.filteredUserList.map((user, index) => (

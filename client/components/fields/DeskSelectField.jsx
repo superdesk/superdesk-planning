@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { SelectField } from './SelectField'
 
 export const DeskSelectField = (props) => {
@@ -24,7 +25,8 @@ export const DeskSelectField = (props) => {
 }
 
 DeskSelectField.propTypes = {
-    desks: React.PropTypes.array.isRequired,
+    desks: PropTypes.array.isRequired,
     // eslint-disable-next-line react/no-unused-prop-types
-    input: React.PropTypes.object.isRequired,
+    input: PropTypes.object.isRequired,
+    autoFocus: PropTypes.bool,
 }
