@@ -49,6 +49,9 @@ export class Component extends React.Component {
             previewHistory: false,
             openUnlockPopup: false,
         }
+
+        this.cancelForm = this.cancelForm.bind(this)
+        this.saveAndClose = this.saveAndClose.bind(this)
     }
 
     componentDidMount() {
@@ -69,6 +72,32 @@ export class Component extends React.Component {
 
     toggleOpenUnlockPopup() {
         this.setState({ openUnlockPopup: !this.state.openUnlockPopup })
+    }
+
+    saveAndClose() {
+        const { handleSubmit, valid, onBackClick } = this.props
+        const rtn = handleSubmit()
+        if (valid) {
+            rtn.then(onBackClick)
+        }
+    }
+
+    cancelForm() {
+        if (!this.props.pristine) {
+            return this.props.dispatch(actions.showModal({
+                modalType: 'CONFIRMATION',
+                modalProps: {
+                    title: 'Save changes?',
+                    body: 'There are some unsaved changes, do you want to save it now?',
+                    okText: 'Save',
+                    showIgnore: true,
+                    action: this.saveAndClose,
+                    ignore: this.props.onBackClick,
+                },
+            }))
+        }
+
+        return this.props.onBackClick()
     }
 
     getEventActions(readOnly, lockRestricted, session, privileges) {
@@ -219,8 +248,8 @@ export class Component extends React.Component {
                                 type="button"
                                 className="btn"
                                 disabled={submitting}
-                                onClick={onBackClick}>
-                                Cancel
+                                onClick={this.cancelForm}>
+                                Close
                             </button>
                             {!isPublic &&
                                 <button
@@ -489,6 +518,8 @@ Component.propTypes = {
     onMinimize: PropTypes.func,
     currentSchedule: PropTypes.object,
     lockedItems: PropTypes.object,
+    dispatch: PropTypes.func,
+    valid: PropTypes.bool,
 }
 
 // Decorate the form component

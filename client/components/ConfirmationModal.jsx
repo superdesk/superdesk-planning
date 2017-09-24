@@ -14,6 +14,14 @@ export function ConfirmationModal({ handleHide, modalProps }) {
             modalProps.onCancel()
         }
     }
+
+    const handleIgnore = () => {
+        handleHide()
+        if (modalProps.ignore) {
+            modalProps.ignore()
+        }
+    }
+
     return (
         <Modal show={true} onHide={handleCancel}>
             <Modal.Header>
@@ -28,8 +36,11 @@ export function ConfirmationModal({ handleHide, modalProps }) {
                 </div>
             </Modal.Body>
             <Modal.Footer>
-                <Button type="button" onClick={handleCancel}>Cancel</Button>
-                <Button className="btn--primary" type="submit" onClick={action}>Ok</Button>
+                {modalProps.showIgnore &&
+                    <Button type="reset" onClick={handleIgnore}>{modalProps.ignoreText || 'Ignore'}</Button>
+                }
+                <Button type="button" onClick={handleCancel}>{modalProps.cancelText || 'Cancel'}</Button>
+                <Button className="btn--primary" type="submit" onClick={action}>{modalProps.okText || 'Ok'}</Button>
             </Modal.Footer>
         </Modal>
     )
@@ -39,6 +50,11 @@ ConfirmationModal.propTypes = {
     handleHide: PropTypes.func.isRequired,
     modalProps: PropTypes.shape({
         onCancel: PropTypes.func,
+        cancelText: PropTypes.string,
+        ignore: PropTypes.func,
+        showIgnore: PropTypes.bool,
+        ignoreText: PropTypes.string,
+        okText: PropTypes.string,
         action: PropTypes.func.isRequired,
         title: PropTypes.string,
         body: PropTypes.oneOfType([

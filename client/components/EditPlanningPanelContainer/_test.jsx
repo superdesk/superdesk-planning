@@ -1,6 +1,7 @@
 import React from 'react'
-import { shallow, mount } from 'enzyme'
+import { shallow, mount, ReactWrapper } from 'enzyme'
 import { EditPlanningPanelContainer, EditPlanningPanel } from './index'
+import { ModalsContainer } from '../index'
 import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
@@ -149,7 +150,10 @@ describe('planning', () => {
                 })
                 const wrapper = mount(
                     <Provider store={store}>
-                        <EditPlanningPanelContainer />
+                        <div>
+                            <ModalsContainer />
+                            <EditPlanningPanelContainer />
+                        </div>
                     </Provider>
                 )
 
@@ -167,6 +171,13 @@ describe('planning', () => {
 
                 // Cancel the modifications and ensure the save & cancel button disappear once again
                 cancelButton.simulate('click')
+
+                const confirmationModal = wrapper.find('ConfirmationModal')
+                const dialog = wrapper.find('Portal')
+                const modal = new ReactWrapper(<Provider store={store}>{dialog.node.props.children}</Provider>)
+                expect(confirmationModal.length).toBe(1)
+                modal.find('button[type="reset"]').simulate('click')
+
                 expect(store.getState().planning.editorOpened).toBe(false)
                 store.dispatch(actions.planning.ui.preview('planning1'))
                 expect(sluglineInput.props().value).toBe('slug')
