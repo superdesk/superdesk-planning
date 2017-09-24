@@ -1,5 +1,5 @@
 import { showModal, hideModal, locks } from '../index'
-import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS } from '../../constants'
+import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS, PUBLISHED_STATE } from '../../constants'
 import eventsApi from './api'
 import { fetchSelectedAgendaPlannings } from '../agenda'
 import * as selectors from '../../selectors'
@@ -11,6 +11,7 @@ import {
     isItemSpiked,
     isItemRescheduled,
 } from '../../utils'
+import { EventUpdateMethods } from '../../components/fields/EventUpdateMethodField'
 
 /**
  * Action to open the Edit Event panel with the supplied Event
@@ -467,8 +468,24 @@ const publishWithConfirmation = (event) => (
 
 const publishEvent = (event) => (
     (dispatch, getState, { notify }) => {
-        if (get(event, '_recurring.length', 0) > 0) {
-            const recurring = event._recurring
+        const updateMethod = get(event, 'update_method.value', EventUpdateMethods[0].value)
+        if (get(event, '_recurring.length', 0) > 0 && updateMethod !== 'single') {
+            let recurring
+            switch (updateMethod) {
+                case 'future':
+                    recurring = event._recurring.filter((e) =>
+                        e.dates.start.isSameOrAfter(event.dates.start) &&
+                        get(e, 'pubstatus') !== PUBLISHED_STATE.USABLE
+                    )
+                    break
+                case 'all':
+                default:
+                    recurring = event._recurring.filter((e) =>
+                        get(e, 'pubstatus') !== PUBLISHED_STATE.USABLE
+                    )
+                    break
+            }
+
             const chunkSize = 5
             let promise = Promise.resolve()
             let events = []
