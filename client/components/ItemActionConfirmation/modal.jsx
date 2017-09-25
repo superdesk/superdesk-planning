@@ -56,6 +56,7 @@ export const ItemActionConfirmationModal = ({ handleHide, modalProps }) => {
         case EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label:
             title = EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label
             form = ConvertToRecurringEventForm
+            formNameForPristineCheck = FORM_NAMES.ConvertEventToRecurringForm
             break
 
         case PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label:

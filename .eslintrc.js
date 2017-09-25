@@ -66,6 +66,7 @@ module.exports = {
         semi: [
             'error',
             'never'
-        ]
+        ],
+        'jasmine/new-line-before-expect': 0,
     }
 }

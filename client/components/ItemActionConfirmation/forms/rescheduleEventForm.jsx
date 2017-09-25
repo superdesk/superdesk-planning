@@ -14,6 +14,7 @@ import {
     EventMaxEndRepeatCount,
 } from '../../../validators'
 import { getMaxRecurrentEvents } from '../../../selectors'
+import { FORM_NAMES } from '../../../constants'
 import '../style.scss'
 
 const Component = ({ handleSubmit, initialValues, relatedEvents=[], relatedPlannings=[], currentSchedule, change, pristine, currentUpdateMethod }) => {
@@ -91,7 +92,7 @@ Component.propTypes = {
 }
 
 export const RescheduleEvent = reduxForm({
-    form: 'rescheduleEvent',
+    form: FORM_NAMES.RescheduleForm,
     validate: ChainValidators([
         EndDateAfterStartDate,
         RequiredFieldsValidatorFactory(['dates.start', 'dates.end']),
@@ -100,7 +101,7 @@ export const RescheduleEvent = reduxForm({
     ]),
 })(Component)
 
-const selector = formValueSelector('rescheduleEvent')
+const selector = formValueSelector(FORM_NAMES.RescheduleForm)
 const mapStateToProps = (state) => ({
     relatedPlannings: selector(state, '_relatedPlannings'),
     relatedEvents: selector(state, '_events'),

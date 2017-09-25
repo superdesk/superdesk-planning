@@ -150,7 +150,7 @@ class RepeatEventFormComponent extends React.Component {
                 }
 
                 <div className="form__row">
-                    <div className="sd-line-input sd-line-input--no-margin">
+                    <div className="sd-line-input sd-line-input--no-margin sd-line-input--required">
                         <label className="sd-line-input__label">Ends</label>
                     </div>
                 </div>
