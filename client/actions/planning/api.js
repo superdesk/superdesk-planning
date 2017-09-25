@@ -2,6 +2,7 @@ import { get, cloneDeep, pickBy, isEqual, has } from 'lodash'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
 import { getTimeZoneOffset, sanitizeTextForQuery, isItemLockedInThisSession } from '../../utils'
+import planningUtils from '../../utils/planning'
 import moment from 'moment'
 import {
     PLANNING,
@@ -1035,15 +1036,18 @@ const markPlanningPostponed = (plan, reason) => ({
  * then it sends it to server.
  */
 function exportAsArticle() {
-    return (dispatch, getState, { api, notify, gettext, superdesk, $location }) => {
+    return (dispatch, getState, { api, notify, gettext, superdesk, $interpolate, $location }) => {
         const state = getState()
         const sortableItems = []
         const label = (item) => item.headline || item.slugline || item.description_text
+        const locks = selectors.getLockedItems(state)
 
         state.planning.selectedItems.forEach((id) => {
             const item = state.planning.plannings[id]
+            const isLocked = planningUtils.isPlanningLocked(item, locks)
+            const isNotForPublication = get(item, 'flags.marked_for_not_publication')
 
-            if (item.lock_user || get(item, 'flags.marked_for_not_publication')) {
+            if (isLocked || isNotForPublication) {
                 return
             }
 
@@ -1059,9 +1063,8 @@ function exportAsArticle() {
             if (count === 1) {
                 notify.warning(gettext('1 item was not included in the export.'))
             } else {
-                notify.warning(
-                    gettext('{{ count }} items were not included in the export.', { count })
-                )
+                const message = gettext('{{ count }} items were not included in the export.')
+                notify.warning($interpolate(message)({ count }))
             }
         }
 
