@@ -37,7 +37,7 @@ export class Component extends React.Component {
         let updateMethodLabel = 'Would you like to update all recurring events or just this one?'
 
         return (
-            <div className='EventActionConfirmation'>
+            <div className='ItemActionConfirmation'>
                 <form onSubmit={handleSubmit}>
                     <div className="metadata-view">
                         <dl>
@@ -113,7 +113,9 @@ const mapDispatchToProps = (dispatch) => ({
                 dispatch(actions.events.ui.publishEvent(event._id))
             }
 
-            dispatch(actions.hideModal())
+            if (event.lock_action === 'update_time') {
+                dispatch(actions.events.api.unlock(event))
+            }
         })
     ),
     onHide: (event) => {

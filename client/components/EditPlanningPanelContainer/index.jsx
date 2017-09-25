@@ -22,7 +22,7 @@ import {
     isItemSpiked,
     isItemPublic,
 } from '../../utils'
-import { GENERIC_ITEM_ACTIONS, PRIVILEGES, EVENTS, TOOLTIPS } from '../../constants/index'
+import { GENERIC_ITEM_ACTIONS, PRIVILEGES, EVENTS, TOOLTIPS, PLANNING } from '../../constants/index'
 
 // Helper enum for Publish method when saving
 const saveMethods = {
@@ -156,6 +156,7 @@ export class EditPlanningPanel extends React.Component {
             onConvertToRecurringEvent,
             lockedItems,
             onPostponeEvent,
+            onCancelPlanning,
         } = this.props
 
         const creationDate = get(planning, '_created')
@@ -185,6 +186,10 @@ export class EditPlanningPanel extends React.Component {
             {
                 ...GENERIC_ITEM_ACTIONS.DUPLICATE,
                 callback: onDuplicate.bind(null, planning),
+            },
+            {
+                ...PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
+                callback: onCancelPlanning.bind(null, planning),
             },
             GENERIC_ITEM_ACTIONS.DIVIDER,
             {
@@ -413,6 +418,7 @@ EditPlanningPanel.propTypes = {
     onPostponeEvent: PropTypes.func,
     dispatch: PropTypes.func,
     valid: PropTypes.bool,
+    onCancelPlanning: PropTypes.func,
 }
 
 const selector = formValueSelector('planning') // Selector for the Planning form
@@ -430,7 +436,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     closePlanningEditor: (planning) => dispatch(actions.planning.ui.closeEditor(planning)),
-    openPlanningEditor: (planning) => (dispatch(actions.planning.ui.openEditor(planning))),
+    openPlanningEditor: (planning) => (dispatch(actions.planning.ui.openEditor({ _id: planning }))),
     unlockItem: (planning) => (dispatch(actions.planning.ui.unlockAndOpenEditor(planning))),
 
     save: (planning) => (dispatch(actions.planning.ui.saveAndReloadCurrentAgenda(planning))),
@@ -448,6 +454,7 @@ const mapDispatchToProps = (dispatch) => ({
     onRescheduleEvent: (event) => dispatch(actions.events.ui.openRescheduleModal(event)),
     onConvertToRecurringEvent: (event) => dispatch(actions.events.ui.convertToRecurringEvent(event)),
     onPostponeEvent: (event) => dispatch(actions.events.ui.openPostponeModal(event)),
+    onCancelPlanning: (planning) => dispatch(actions.planning.ui.openCancelPlanningModal(planning)),
 })
 
 export const EditPlanningPanelContainer = connect(

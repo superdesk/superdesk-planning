@@ -431,8 +431,14 @@ const planningReducer = createReducer(initialState, {
 
 const markPlaning = (plan, payload, action) => {
     let ednote = `------------------------------------------------------------
+Planning ${action}
+`
+    if (payload.event_cancellation) {
+        ednote = `------------------------------------------------------------
 Event ${action}
 `
+    }
+
     if (get(payload, 'reason', null) !== null) {
         ednote += `Reason: ${payload.reason}\n`
     }
@@ -446,8 +452,15 @@ Event ${action}
 
 const markCoverage = (coverage, payload, action) => {
     let note = `------------------------------------------------------------
+Planning has been ${action}
+`
+
+    if (payload.event_cancellation) {
+        note = `------------------------------------------------------------
 Event has been ${action}
 `
+    }
+
     if (get(payload, 'reason', null) !== null) {
         note += `Reason: ${payload.reason}\n`
     }

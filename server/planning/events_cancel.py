@@ -97,7 +97,7 @@ class EventsCancelService(BaseService):
         for plan in plans:
             updated_plan = planning_cancel_service.patch(
                 plan[config.ID_FIELD],
-                {'reason': reason}
+                {'reason': reason, 'event_cancellation': True}
             )
             app.on_updated_planning_cancel(
                 updated_plan,

@@ -1,3 +1,4 @@
+import { showModal, hideModal } from '../index'
 import planning from './index'
 import { locks } from '../index'
 import { checkPermission, getErrorMessage, isItemLockedInThisSession } from '../../utils'
@@ -163,11 +164,10 @@ const unlockAndCloseEditor = (item) => (
 const _lockAndOpenEditor = (item) => (
     (dispatch, getState, { notify }) => {
         // If the user already has a lock, don't obtain a new lock, open it directly
-        const planningInState = selectors.getStoredPlannings(getState())[item]
-        if (planningInState && isItemLockedInThisSession(planningInState,
+        if (item && isItemLockedInThisSession(item,
                 selectors.getSessionDetails(getState()))) {
-            dispatch(self._openEditor(planningInState))
-            return Promise.resolve(planningInState)
+            dispatch(self._openEditor(item))
+            return Promise.resolve(item)
         }
 
         return dispatch(planning.api.lock(item))
@@ -383,6 +383,64 @@ const duplicate = (plan) => (
     )
 )
 
+const cancelPlanning = (plan) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.cancel(plan))
+        .then((plan) => {
+            dispatch(hideModal())
+            notify.success('Planning Item has been cancelled')
+
+            return Promise.resolve(plan)
+        }, (error) => {
+            dispatch(hideModal())
+
+            notify.error(
+                getErrorMessage(error, 'Failed to cancel the Planning Item!')
+            )
+
+            return Promise.reject(error)
+        })
+    )
+)
+
+const openCancelPlanningModal = (plan, publish=false) => (
+    (dispatch) => dispatch(self._openActionModal(
+        plan,
+        PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label,
+        'planning_cancel',
+        publish
+    ))
+)
+
+const _openActionModal = (plan,
+    action,
+    lockAction=null,
+    publish=false,
+    large=false
+) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(planning.api.lock(plan, lockAction))
+        .then((lockedPlanning) => {
+                lockedPlanning._publish = publish
+                return dispatch(showModal({
+                    modalType: 'ITEM_ACTIONS_MODAL',
+                    modalProps: {
+                        planning: lockedPlanning,
+                        actionType: action,
+                        large,
+                    },
+                }))
+            }, (error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to obtain the lock on Planning Item')
+                )
+
+                return Promise.reject(error)
+            }
+        )
+    )
+)
+
 /**
  * Publish an item and notify user of success or failure
  * @param {object} item - The planning item
@@ -592,6 +650,7 @@ const self = {
     save,
     saveAndReloadCurrentAgenda,
     preview,
+    _openActionModal,
     openEditor,
     _openEditor,
     closeEditor,
@@ -622,6 +681,8 @@ const self = {
     toggleItemSelected,
     selectAll,
     deselectAll,
+    openCancelPlanningModal,
+    cancelPlanning,
 }
 
 export default self

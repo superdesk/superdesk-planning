@@ -166,7 +166,7 @@ describe('planning', () => {
                     expect(store.getState().planning.plannings['RefreshedplanningId'].agendas[0])
                         .toEqual(initialState.agenda.agendas[0]._id)
                     // open the planning
-                    return store.dispatch(actions.planning.ui.openEditor(planningCreated._id))
+                    return store.dispatch(actions.planning.ui.openEditor(planningCreated))
                     .then(() => {
                         // the planning editor has been opened with the saved planning
                         expect(store.getState().planning.editorOpened).toBe(true)

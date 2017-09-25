@@ -304,7 +304,7 @@ Feature: Events Cancel
             "coverages": [{
                 "_id": "cov1",
                 "planning": {
-                    "internal_note": "Cover something please!\n\n------------------------------------------------------------\nEvent has been cancelled\nReason: Not happening anymore!\n"
+                    "internal_note": "Cover something please!\n\n------------------------------------------------------------\nEvent cancelled\nReason: Not happening anymore!\n"
                 },
                 "news_coverage_status": {"qcode": "ncostat:notint"}
             }]

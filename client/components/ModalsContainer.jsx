@@ -5,7 +5,7 @@ import {
     AgendaModal,
     ConfirmationModal,
     NotificationModal,
-    EventActionConfirmationModal,
+    ItemActionConfirmationModal,
  } from './index'
 
 import SortItemsModal from './SortItemsModal'
@@ -15,7 +15,7 @@ const modals = {
     CREATE_AGENDA: AgendaModal,
     EDIT_AGENDA: AgendaModal,
     NOTIFICATION_MODAL: NotificationModal,
-    ITEM_ACTIONS_MODAL: EventActionConfirmationModal,
+    ITEM_ACTIONS_MODAL: ItemActionConfirmationModal,
     SORT_SELECTED: SortItemsModal,
 }
 

@@ -23,6 +23,10 @@ planning_cancel_schema['reason'] = {
     'type': 'string',
     'nullable': True
 }
+planning_cancel_schema['event_cancellation'] = {
+    'type': 'boolean',
+    'nullable': True
+}
 
 
 class PlanningCancelResource(PlanningResource):
@@ -33,7 +37,6 @@ class PlanningCancelResource(PlanningResource):
     resource_methods = []
     item_methods = ['PATCH']
     privileges = {'PATCH': 'planning_planning_management'}
-    internal_resource = True
 
     schema = planning_cancel_schema
 
@@ -46,18 +49,30 @@ class PlanningCancelService(BaseService):
             _id='newscoveragestatus'
         )
 
-        coverage_cancel_state = [x for x in coverage_states.get('items', []) if
-                                 x['qcode'] == 'ncostat:notint'][0]
-        coverage_cancel_state.pop('is_active', None)
+        coverage_cancel_state = None
+        if coverage_states:
+            coverage_cancel_state = [x for x in coverage_states.get('items', []) if
+                                     x['qcode'] == 'ncostat:notint'][0]
+            coverage_cancel_state.pop('is_active', None)
 
-        self._cancel_plan(updates, original)
+        note = '''------------------------------------------------------------
+Planning cancelled
+'''
+        event_cancellation = updates.get('event_cancellation', False)
+        if event_cancellation:
+            note = '''------------------------------------------------------------
+Event cancelled
+'''
+            del updates['event_cancellation']
+
+        self._cancel_plan(updates, original, note)
 
         coverages = list(coverage_service.find(
             where={'planning_item': original[config.ID_FIELD]}
         ))
 
         for coverage in coverages:
-            self._cancel_coverage(updates, coverage, coverage_service, coverage_cancel_state)
+            self._cancel_coverage(updates, coverage, coverage_service, coverage_cancel_state, note)
 
         reason = updates.get('reason', None)
         if 'reason' in updates:
@@ -74,15 +89,13 @@ class PlanningCancelService(BaseService):
             user=str(user),
             session=str(session),
             reason=reason,
-            coverage_state=coverage_cancel_state
+            coverage_state=coverage_cancel_state,
+            event_cancellation=event_cancellation
         )
 
         return item
 
-    def _cancel_plan(self, updates, original):
-        ednote = '''------------------------------------------------------------
-Event cancelled
-'''
+    def _cancel_plan(self, updates, original, ednote):
         if updates.get('reason', None) is not None:
             ednote += 'Reason: {}\n'.format(updates['reason'])
 
@@ -92,10 +105,7 @@ Event cancelled
         updates['ednote'] = ednote
         updates[ITEM_STATE] = WORKFLOW_STATE.CANCELLED
 
-    def _cancel_coverage(self, updates, coverage, coverage_service, coverage_cancel_state):
-        note = '''------------------------------------------------------------
-Event has been cancelled
-'''
+    def _cancel_coverage(self, updates, coverage, coverage_service, coverage_cancel_state, note):
         if updates.get('reason', None) is not None:
             note += 'Reason: {}\n'.format(updates['reason'])
 

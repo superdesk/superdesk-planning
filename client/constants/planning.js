@@ -38,4 +38,10 @@ export const PLANNING = {
         PAST: 'PAST',
         NOT_SCHEDULED: 'NOT_SCHEDULED',
     },
+    ITEM_ACTIONS: {
+        CANCEL_PLANNING: {
+            label: 'Cancel planning',
+            icon: 'icon-close-small',
+        },
+    },
 }

@@ -4,7 +4,7 @@ import { ListItem, TimePlanning, DueDate, ItemActionsMenu, StateLabel, Checkbox 
 import { connect } from 'react-redux'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import classNames from 'classnames'
-import { GENERIC_ITEM_ACTIONS, EVENTS } from '../../constants/index'
+import { GENERIC_ITEM_ACTIONS, EVENTS, PLANNING } from '../../constants/index'
 import './style.scss'
 import { getCoverageIcon, planningUtils, isItemCancelled, isItemRescheduled } from '../../utils/index'
 import { getCurrentAgendaId } from '../../selectors'
@@ -31,6 +31,7 @@ const PlanningItem = ({
         onUpdateEventTime,
         onPostponeEvent,
         onConvertToRecurringEvent,
+        onCancelPlanning,
         onSelectItem,
         isSelected,
         currentAgendaId,
@@ -62,6 +63,10 @@ const PlanningItem = ({
         {
             ...GENERIC_ITEM_ACTIONS.DUPLICATE,
             callback: onDuplicate.bind(null, item),
+        },
+        {
+            ...PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
+            callback: onCancelPlanning.bind(null, item),
         },
         GENERIC_ITEM_ACTIONS.DIVIDER,
         {
@@ -224,6 +229,7 @@ PlanningItem.propTypes = {
     onRescheduleEvent: PropTypes.func,
     onPostponeEvent: PropTypes.func,
     onConvertToRecurringEvent: PropTypes.func,
+    onCancelPlanning: PropTypes.func,
     isSelected: PropTypes.bool,
     onSelectItem: PropTypes.func.isRequired,
     currentAgendaId: PropTypes.string,

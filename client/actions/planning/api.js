@@ -1,7 +1,7 @@
 import { get, cloneDeep, pickBy, isEqual, has } from 'lodash'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
-import { getTimeZoneOffset, sanitizeTextForQuery } from '../../utils'
+import { getTimeZoneOffset, sanitizeTextForQuery, isItemLockedInThisSession } from '../../utils'
 import moment from 'moment'
 import {
     PLANNING,
@@ -36,6 +36,16 @@ const unspike = (item) => (
         .then(
             () => Promise.resolve(item),
             (error) => Promise.reject(error)
+        )
+    )
+)
+
+const cancel = (item) => (
+    (dispatch, getState, { api }) => (
+        api.update(
+            'planning_cancel',
+            item,
+            { reason: get(item, 'reason', undefined) }
         )
     )
 )
@@ -956,15 +966,21 @@ const unlock = (item) => (
  * @param {object} item - The Planning item to lock
  * @return Promise
  */
-const lock = (item) => (
-    (dispatch, getState, { api }) => (
-        api.save(
+const lock = (planning, lockAction='edit') => (
+    (dispatch, getState, { api }) => {
+        if (lockAction === null ||
+            isItemLockedInThisSession(planning, selectors.getSessionDetails(getState()))
+        ) {
+            return Promise.resolve(planning)
+        }
+
+        return api.save(
             'planning_lock',
             {},
-            { lock_action: 'edit' },
-            { _id: item }
+            { lock_action: lockAction },
+            { _id: planning._id }
         )
-    )
+    }
 )
 
 /**
@@ -992,12 +1008,13 @@ const _convertCoverageGenreToObject = (coverage) => {
     return coverage
 }
 
-const markPlanningCancelled = (plan, reason, coverageState) => ({
+const markPlanningCancelled = (plan, reason, coverageState, eventCancellation) => ({
     type: PLANNING.ACTIONS.MARK_PLANNING_CANCELLED,
     payload: {
         planning_item: plan,
         reason,
         coverage_state: coverageState,
+        event_cancellation: eventCancellation,
     },
 })
 
@@ -1117,6 +1134,7 @@ const self = {
     queryLockedPlanning,
     getPlanning,
     loadPlanningByRecurrenceId,
+    cancel,
 }
 
 export default self
