@@ -75,9 +75,22 @@ export const getLocation = (searchText, unique=false) => (
             return api('locations').query(
                 { source: { query: { term: { uniqueName: searchText } } } })
         } else {
-            const s = 'name:*' + searchText + '*'
             return api('locations')
-                .query({ source: { query: { bool: { must: [{ query_string: { query: s } }] } } } })
+                .query({
+                            source:
+                                {
+                                    query: {
+                                        bool: {
+                                            must: [{
+                                                query_string: {
+                                                    default_field: 'name',
+                                                    query: '*' + searchText + '*',
+                                                },
+                                            }],
+                                        },
+                                    },
+                                },
+                        })
         }
     }
 )
