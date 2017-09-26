@@ -313,6 +313,19 @@ const onPlanningCancelled = (e, data) => (
     }
 )
 
+const onCoverageCancelled = (e, data) => (
+    (dispatch) => {
+        if (get(data, 'planning_item') && get(data, 'ids')) {
+            dispatch(planning.api.markCoverageCancelled(
+                data.planning_item,
+                get(data, 'reason'),
+                get(data, 'coverage_state'),
+                data.ids
+            ))
+        }
+    }
+)
+
 const onPlanningRescheduled = (e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
@@ -343,6 +356,7 @@ const self = {
     onPlanningSpiked,
     onPlanningUnspiked,
     onPlanningCancelled,
+    onCoverageCancelled,
     onPlanningRescheduled,
     onPlanningPostponed,
     onPlanningLocked,
@@ -362,6 +376,7 @@ self.events = {
     'planning:published': () => (self.onPlanningPublished),
     'planning:duplicated': () => (self.onPlanningCreated),
     'planning:cancelled': () => (self.onPlanningCancelled),
+    'coverage:cancelled': () => (self.onCoverageCancelled),
     'planning:rescheduled': () => (self.onPlanningRescheduled),
     'planning:postponed': () => (self.onPlanningPostponed),
 }

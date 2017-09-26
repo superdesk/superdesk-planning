@@ -9,7 +9,7 @@ import {
     RescheduleEventForm,
     PostponeEventForm,
     ConvertToRecurringEventForm,
-    CancelPlanningForm,
+    CancelPlanningCoveragesForm,
 } from './index'
 import { get } from 'lodash'
 import { GENERIC_ITEM_ACTIONS, EVENTS, FORM_NAMES, PLANNING } from '../../constants'
@@ -61,7 +61,16 @@ export const ItemActionConfirmationModal = ({ handleHide, modalProps }) => {
         case PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label:
             title = PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label
             propToForm = modalProps.planning
-            form = CancelPlanningForm
+            form = CancelPlanningCoveragesForm
+            break
+
+        case PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label:
+            title = PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label
+            propToForm = {
+                ...modalProps.planning,
+                _cancelAllCoverage: true,
+            }
+            form = CancelPlanningCoveragesForm
             break
 
         default:

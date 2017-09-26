@@ -272,6 +272,25 @@ const planningReducer = createReducer(initialState, {
         }
     },
 
+    [PLANNING.ACTIONS.MARK_ALL_COVERAGE_CANCELLED]: (state, payload) => {
+        plannings = cloneDeep(state.plannings)
+        plan = get(plannings, payload.planning_item, null)
+
+        // If the planning item is not loaded, disregard this action
+        if (plan === null) return state
+
+        plan.coverages.forEach((coverage) => {
+            if (payload.ids.indexOf(coverage._id) !== -1) {
+                markCoverage(coverage, payload, 'cancelled')
+            }
+        })
+
+        return {
+            ...state,
+            plannings,
+        }
+    },
+
     [PLANNING.ACTIONS.MARK_PLANNING_POSTPONED]: (state, payload) => {
         plannings = cloneDeep(state.plannings)
         plan = get(plannings, payload.planning_item, null)
@@ -458,6 +477,10 @@ Planning has been ${action}
     if (payload.event_cancellation) {
         note = `------------------------------------------------------------
 Event has been ${action}
+`
+    } else if (payload.ids) {
+        note = `------------------------------------------------------------
+Coverage ${action}
 `
     }
 

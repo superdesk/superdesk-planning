@@ -66,6 +66,7 @@ class PlanningList extends React.Component {
             onPostponeEvent,
             onConvertToRecurringEvent,
             onCancelPlanning,
+            onCancelAllCoverage,
             onSelectItem,
             selected,
             lockedItems,
@@ -91,6 +92,7 @@ class PlanningList extends React.Component {
                     onRescheduleEvent={onRescheduleEvent}
                     onPostponeEvent={onPostponeEvent}
                     onCancelPlanning={onCancelPlanning}
+                    onCancelAllCoverage={onCancelAllCoverage}
                     onClick={this.previewOrEditPlanning.bind(this, planning)}
                     onDoubleClick={openPlanningEditor}
                     onAgendaClick={onAgendaClick}
@@ -159,6 +161,7 @@ PlanningList.propTypes = {
     onPostponeEvent: PropTypes.func,
     onConvertToRecurringEvent: PropTypes.func,
     onCancelPlanning: PropTypes.func,
+    onCancelAllCoverage: PropTypes.func,
     onSelectItem: PropTypes.func,
     selected: PropTypes.array,
     lockedItems: PropTypes.object,
@@ -208,6 +211,7 @@ const mapDispatchToProps = (dispatch) => ({
     onPostponeEvent: (event) => dispatch(actions.events.ui.openPostponeModal(event)),
     onConvertToRecurringEvent: (event) => dispatch(actions.events.ui.convertToRecurringEvent(event)),
     onCancelPlanning: (planning) => dispatch(actions.planning.ui.openCancelPlanningModal(planning)),
+    onCancelAllCoverage: (planning) => dispatch(actions.planning.ui.openCancelAllCoverageModal(planning)),
     onSelectItem: (itemId) => dispatch(actions.planning.ui.toggleItemSelected(itemId)),
 })
 

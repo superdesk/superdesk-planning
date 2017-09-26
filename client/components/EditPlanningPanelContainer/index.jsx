@@ -157,6 +157,7 @@ export class EditPlanningPanel extends React.Component {
             lockedItems,
             onPostponeEvent,
             onCancelPlanning,
+            onCancelAllCoverage,
         } = this.props
 
         const creationDate = get(planning, '_created')
@@ -190,6 +191,10 @@ export class EditPlanningPanel extends React.Component {
             {
                 ...PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
                 callback: onCancelPlanning.bind(null, planning),
+            },
+            {
+                ...PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
+                callback: onCancelAllCoverage.bind(null, planning),
             },
             GENERIC_ITEM_ACTIONS.DIVIDER,
             {
@@ -419,6 +424,7 @@ EditPlanningPanel.propTypes = {
     dispatch: PropTypes.func,
     valid: PropTypes.bool,
     onCancelPlanning: PropTypes.func,
+    onCancelAllCoverage: PropTypes.func,
 }
 
 const selector = formValueSelector('planning') // Selector for the Planning form
@@ -455,6 +461,7 @@ const mapDispatchToProps = (dispatch) => ({
     onConvertToRecurringEvent: (event) => dispatch(actions.events.ui.convertToRecurringEvent(event)),
     onPostponeEvent: (event) => dispatch(actions.events.ui.openPostponeModal(event)),
     onCancelPlanning: (planning) => dispatch(actions.planning.ui.openCancelPlanningModal(planning)),
+    onCancelAllCoverage: (planning) => dispatch(actions.planning.ui.openCancelAllCoverageModal(planning)),
 })
 
 export const EditPlanningPanelContainer = connect(

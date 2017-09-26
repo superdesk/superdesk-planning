@@ -63,6 +63,24 @@ Feature: Cancel all coverage
     @notification
     @vocabulary
     Scenario: Changes coverage status to `coverage not intended`
+      Given "vocabularies"
+      """
+      [{
+          "_id": "newscoveragestatus",
+          "display_name": "News Coverage Status",
+          "type": "manageable",
+          "unique_field": "qcode",
+          "items": [
+              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
+                  "label": "On merit"},
+              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
+                  "label": "Not planned"},
+              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
+                  "label": "On request"}
+          ]
+      }]
+      """
       When we post to "planning" with success
       """
       [{
@@ -89,6 +107,11 @@ Feature: Cancel all coverage
                   "slugline": "test slugline",
                   "scheduled": "2029-11-21T14:00:00.000Z",
                   "g2_content_type": "text"
+              },
+              "news_coverage_status": {
+                  "qcode": "ncostat:int",
+                  "name": "coverage intended",
+                  "label": "Planned"
               }
           }
       ]
@@ -124,6 +147,39 @@ Feature: Cancel all coverage
     @notification
     @vocabulary
     Scenario: Associated event remains unchanged
+      Given "vocabularies"
+      """
+      [{
+          "_id": "newscoveragestatus",
+          "display_name": "News Coverage Status",
+          "type": "manageable",
+          "unique_field": "qcode",
+          "items": [
+              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
+                  "label": "On merit"},
+              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
+                  "label": "Not planned"},
+              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
+                  "label": "On request"}
+          ]
+      },
+      {
+          "_id": "eventoccurstatus",
+          "display_name": "Event Occurence Status",
+          "type": "manageable",
+          "unique_field": "qcode",
+          "items": [
+              {"is_active": true, "qcode": "eocstat:eos0", "name": "Unplanned event"},
+              {"is_active": true, "qcode": "eocstat:eos1", "name": "Planned, occurence planned only"},
+              {"is_active": true, "qcode": "eocstat:eos2", "name": "Planned, occurence highly uncertain"},
+              {"is_active": true, "qcode": "eocstat:eos3", "name": "Planned, May occur"},
+              {"is_active": true, "qcode": "eocstat:eos4", "name": "Planned, occurence highly likely"},
+              {"is_active": true, "qcode": "eocstat:eos5", "name": "Planned, occurs certainly"},
+              {"is_active": true, "qcode": "eocstat:eos6", "name": "Planned, then cancelled"}
+          ]
+        }]
+      """
       Given "events"
       """
       [
@@ -189,6 +245,11 @@ Feature: Cancel all coverage
                   "slugline": "test slugline",
                   "scheduled": "2029-11-21T14:00:00.000Z",
                   "g2_content_type": "text"
+              },
+              "news_coverage_status": {
+                  "qcode": "ncostat:int",
+                  "name": "coverage intended",
+                  "label": "Planned"
               }
           }
       ]
@@ -222,5 +283,250 @@ Feature: Cancel all coverage
               "qcode": "eocstat:eos5"
           },
           "state": "draft"
+      }
+      """
+
+    @auth
+    @notification
+    Scenario: Changes coverage status on cancel all coverage
+      Given "vocabularies"
+      """
+      [{
+          "_id": "newscoveragestatus",
+          "display_name": "News Coverage Status",
+          "type": "manageable",
+          "unique_field": "qcode",
+          "items": [
+              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
+                  "label": "On merit"},
+              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
+                  "label": "Not planned"},
+              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
+                  "label": "On request"}
+          ]
+      }]
+      """
+      When we post to "planning" with success
+      """
+      [{
+          "guid": "123",
+          "headline": "test headline",
+          "slugline": "test slugline",
+          "state": "scheduled",
+          "pubstatus": "usable"
+      }]
+      """
+      When we post to "coverage" with success
+      """
+      [
+          {
+              "guid": "456",
+              "planning_item": "123",
+              "planning": {
+                  "ednote": "test coverage, 250 words",
+                  "assigned_to": {
+                      "desk": "Some Desk",
+                      "user": "507f191e810c19729de860ea"
+                  },
+                  "headline": "test headline",
+                  "slugline": "test slugline",
+                  "scheduled": "2029-11-21T14:00:00.000Z",
+                  "g2_content_type": "text"
+              },
+              "news_coverage_status": {
+                  "qcode": "ncostat:int",
+                  "name": "coverage intended",
+                  "label": "Planned"
+              }
+          },
+          {
+              "guid": "789",
+              "planning_item": "123",
+              "planning": {
+                  "ednote": "test coverage2, 250 words",
+                  "assigned_to": {
+                      "desk": "Some Desk",
+                      "user": "507f191e810c19729de860ea"
+                  },
+                  "headline": "test headline2",
+                  "slugline": "test slugline2",
+                  "scheduled": "2029-11-21T14:00:00.000Z",
+                  "g2_content_type": "text"
+              },
+              "news_coverage_status": {
+                  "qcode": "ncostat:int",
+                  "name": "coverage intended",
+                  "label": "Planned"
+              }
+          }
+      ]
+      """
+      When we perform cancel on planning "123"
+      """
+      { "coverage_cancellation_only": true }
+      """
+      Then we get OK response
+      And we get notifications
+      """
+      [{
+          "event": "planning:created",
+          "extra": {"item": "123"}
+      },
+      {
+          "event": "coverage:cancelled",
+          "extra": {"planning_item": "123","ids": ["456", "789"]}
+      }]
+      """
+      When we get "/coverage"
+      Then we get list with 2 items
+      """
+      {"_items":
+        [{
+            "guid": "456",
+            "planning_item": "123",
+            "news_coverage_status": { "name": "coverage not intended" },
+            "planning": {
+                "slugline": "test slugline",
+                "internal_note": "------------------------------------------------------------\nCoverage cancelled\n"
+            }
+        },
+        {
+            "guid": "789",
+            "planning_item": "123",
+            "news_coverage_status": { "name": "coverage not intended" },
+            "planning": {
+                "slugline": "test slugline2",
+                "internal_note": "------------------------------------------------------------\nCoverage cancelled\n"
+            }
+        }]
+      }
+      """
+
+      @auth
+    @notification
+    Scenario: On cancel all coverage associated planning item remains unchanged
+      Given "vocabularies"
+      """
+      [{
+          "_id": "newscoveragestatus",
+          "display_name": "News Coverage Status",
+          "type": "manageable",
+          "unique_field": "qcode",
+          "items": [
+              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
+                  "label": "On merit"},
+              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
+                  "label": "Not planned"},
+              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
+                  "label": "On request"}
+          ]
+      }]
+      """
+      When we post to "planning" with success
+      """
+      [{
+          "guid": "123",
+          "headline": "test headline",
+          "slugline": "test slugline",
+          "state": "scheduled",
+          "pubstatus": "usable"
+      }]
+      """
+      When we post to "coverage" with success
+      """
+      [
+          {
+              "guid": "456",
+              "planning_item": "123",
+              "planning": {
+                  "ednote": "test coverage, 250 words",
+                  "assigned_to": {
+                      "desk": "Some Desk",
+                      "user": "507f191e810c19729de860ea"
+                  },
+                  "headline": "test headline",
+                  "slugline": "test slugline",
+                  "scheduled": "2029-11-21T14:00:00.000Z",
+                  "g2_content_type": "text"
+              },
+              "news_coverage_status": {
+                  "qcode": "ncostat:int",
+                  "name": "coverage intended",
+                  "label": "Planned"
+              }
+          },
+          {
+              "guid": "789",
+              "planning_item": "123",
+              "planning": {
+                  "ednote": "test coverage2, 250 words",
+                  "assigned_to": {
+                      "desk": "Some Desk",
+                      "user": "507f191e810c19729de860ea"
+                  },
+                  "headline": "test headline2",
+                  "slugline": "test slugline2",
+                  "scheduled": "2029-11-21T14:00:00.000Z",
+                  "g2_content_type": "text"
+              },
+              "news_coverage_status": {
+                  "qcode": "ncostat:int",
+                  "name": "coverage intended",
+                  "label": "Planned"
+              }
+          }
+      ]
+      """
+      When we perform cancel on planning "123"
+      """
+      { "coverage_cancellation_only": true }
+      """
+      Then we get OK response
+      And we get notifications
+      """
+      [{
+          "event": "planning:created",
+          "extra": {"item": "123"}
+      },
+      {
+          "event": "coverage:cancelled",
+          "extra": {"planning_item": "123","ids": ["456", "789"]}
+      }]
+      """
+      When we get "/coverage"
+      Then we get list with 2 items
+      """
+      {"_items":
+        [{
+            "guid": "456",
+            "planning_item": "123",
+            "news_coverage_status": { "name": "coverage not intended" },
+            "planning": {
+                "slugline": "test slugline",
+                "internal_note": "------------------------------------------------------------\nCoverage cancelled\n"
+            }
+        },
+        {
+            "guid": "789",
+            "planning_item": "123",
+            "news_coverage_status": { "name": "coverage not intended" },
+            "planning": {
+                "slugline": "test slugline2",
+                "internal_note": "------------------------------------------------------------\nCoverage cancelled\n"
+            }
+        }]
+      }
+      """
+      When we get "planning/#planning._id#"
+      Then we get existing resource
+      """
+      {
+        "guid": "123",
+        "headline": "test headline",
+        "slugline": "test slugline",
+        "state": "scheduled",
+        "pubstatus": "usable"
       }
       """

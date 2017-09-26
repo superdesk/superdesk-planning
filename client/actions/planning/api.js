@@ -51,6 +51,19 @@ const cancel = (item) => (
     )
 )
 
+const cancelAllCoverage = (item) => (
+    (dispatch, getState, { api }) => (
+        api.update(
+            'planning_cancel',
+            item,
+            {
+                reason: get(item, 'reason', undefined),
+                coverage_cancellation_only: true,
+            }
+        )
+    )
+)
+
 /**
  * Action dispatcher to perform fetch the list of planning items from the server.
  * @param {string} eventIds - An event ID to fetch Planning items for that event
@@ -1021,6 +1034,16 @@ const markPlanningCancelled = (plan, reason, coverageState, eventCancellation) =
     },
 })
 
+const markCoverageCancelled = (plan, reason, coverageState, ids) => ({
+    type: PLANNING.ACTIONS.MARK_ALL_COVERAGE_CANCELLED,
+    payload: {
+        planning_item: plan,
+        reason,
+        coverage_state: coverageState,
+        ids: ids,
+    },
+})
+
 const markPlanningPostponed = (plan, reason) => ({
     type: PLANNING.ACTIONS.MARK_PLANNING_POSTPONED,
     payload: {
@@ -1134,12 +1157,14 @@ const self = {
     refetch,
     duplicate,
     markPlanningCancelled,
+    markCoverageCancelled,
     markPlanningPostponed,
     exportAsArticle,
     queryLockedPlanning,
     getPlanning,
     loadPlanningByRecurrenceId,
     cancel,
+    cancelAllCoverage,
 }
 
 export default self

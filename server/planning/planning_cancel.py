@@ -27,6 +27,10 @@ planning_cancel_schema['event_cancellation'] = {
     'type': 'boolean',
     'nullable': True
 }
+planning_cancel_schema['coverage_cancellation_only'] = {
+    'type': 'boolean',
+    'nullable': True
+}
 
 
 class PlanningCancelResource(PlanningResource):
@@ -43,11 +47,16 @@ class PlanningCancelResource(PlanningResource):
 
 class PlanningCancelService(BaseService):
     def update(self, id, updates, original):
+        user = get_user(required=True).get(config.ID_FIELD, '')
+        session = get_auth().get(config.ID_FIELD, '')
         coverage_service = get_resource_service('coverage')
         coverage_states = get_resource_service('vocabularies').find_one(
             req=None,
             _id='newscoveragestatus'
         )
+
+        event_cancellation = updates.get('event_cancellation', False)
+        coverage_cancellation_only = updates.get('coverage_cancellation_only', False)
 
         coverage_cancel_state = None
         if coverage_states:
@@ -55,33 +64,53 @@ class PlanningCancelService(BaseService):
                                      x['qcode'] == 'ncostat:notint'][0]
             coverage_cancel_state.pop('is_active', None)
 
+        # Formulate the right 'note' for the scenario
         note = '''------------------------------------------------------------
 Planning cancelled
 '''
-        event_cancellation = updates.get('event_cancellation', False)
         if event_cancellation:
             note = '''------------------------------------------------------------
 Event cancelled
 '''
             del updates['event_cancellation']
 
-        self._cancel_plan(updates, original, note)
+        elif coverage_cancellation_only:
+            note = '''------------------------------------------------------------
+Coverage cancelled
+'''
+            del updates['coverage_cancellation_only']
 
         coverages = list(coverage_service.find(
             where={'planning_item': original[config.ID_FIELD]}
         ))
 
+        ids = []
         for coverage in coverages:
-            self._cancel_coverage(updates, coverage, coverage_service, coverage_cancel_state, note)
+            if coverage_cancel_state and coverage.get('news_coverage_status')['qcode'] !=\
+                    coverage_cancel_state['qcode']:
+                ids.append(coverage.get(config.ID_FIELD))
+                self._cancel_coverage(updates, coverage, coverage_service, coverage_cancel_state, note)
 
         reason = updates.get('reason', None)
-        if 'reason' in updates:
+
+        if coverage_cancellation_only:
+            push_notification(
+                'coverage:cancelled',
+                planning_item=str(original[config.ID_FIELD]),
+                user=str(user),
+                session=str(session),
+                reason=reason,
+                coverage_state=coverage_cancel_state,
+                ids=ids
+            )
+            return
+        else:
+            self._cancel_plan(updates, original, note)
+
+        if reason:
             del updates['reason']
 
         item = self.backend.update(self.datasource, id, updates, original)
-
-        user = get_user(required=True).get(config.ID_FIELD, '')
-        session = get_auth().get(config.ID_FIELD, '')
 
         push_notification(
             'planning:cancelled',
