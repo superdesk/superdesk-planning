@@ -78,4 +78,5 @@ export const FORM_NAMES = {
     UpdateRecurringEventsForm: 'updateEventConfirmation',
     CreateEditAgendaForm: 'createEditAgenda',
     RescheduleForm: 'rescheduleEvent',
+    ConvertEventToRecurringForm: 'convertEventToRecurring',
 }

@@ -5,9 +5,15 @@ import { reduxForm, formValueSelector } from 'redux-form'
 import * as actions from '../../../actions'
 import '../style.scss'
 import { get } from 'lodash'
-import { ChainValidators, EndDateAfterStartDate } from '../../../validators'
+import {
+    ChainValidators,
+    EndDateAfterStartDate,
+    RequiredFieldsValidatorFactory,
+    UntilDateValidator,
+    EventMaxEndRepeatCount } from '../../../validators'
 import { EventScheduleForm, EventScheduleSummary } from '../../index'
 import moment from 'moment'
+import { FORM_NAMES } from '../../../constants'
 
 export class Component extends React.Component {
     constructor(props) {
@@ -74,14 +80,20 @@ Component.propTypes = {
 
 // Decorate the form container
 export const UpdateTime = reduxForm({
-    form: 'addEvent',
-    validate: ChainValidators([EndDateAfterStartDate]),
+    form: FORM_NAMES.ConvertEventToRecurringForm,
+    validate: ChainValidators([
+        EndDateAfterStartDate,
+        RequiredFieldsValidatorFactory(['dates.start', 'dates.end']),
+        UntilDateValidator,
+        EventMaxEndRepeatCount,
+    ]),
+    enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
-const selector = formValueSelector('addEvent')
+const selector = formValueSelector(FORM_NAMES.ConvertEventToRecurringForm)
 
 const mapStateToProps = (state) => ({
-    relatedEvents: selector(state, '_events' ),
+    relatedEvents: selector(state, '_events'),
     currentSchedule: selector(state, 'dates'),
 })
 

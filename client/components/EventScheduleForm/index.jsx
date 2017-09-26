@@ -36,6 +36,11 @@ export class EventScheduleForm extends React.Component {
             get(nextProps, 'currentSchedule.end')
         )
 
+        const wasAllDay = eventUtils.isEventAllDay(
+            get(this.props, 'currentSchedule.start'),
+            get(this.props, 'currentSchedule.end')
+        )
+
         if (isAllDay !== this.state.isAllDay) {
             this.setState({ isAllDay })
         }
@@ -58,13 +63,25 @@ export class EventScheduleForm extends React.Component {
         }
 
         const oldStartDate = get(this.props, 'currentSchedule.start')
-        const oldEndDate = get(this.props, 'currentSchedule.end')
         const newStartDate = get(nextProps, 'currentSchedule.start')
+        const newEndDate = get(nextProps, 'currentSchedule.end')
 
-        if (newStartDate && (!oldStartDate || !oldStartDate.isSame(newStartDate, 'minute') && !isAllDay)) {
-            if (!oldEndDate) {
+        if (!this.props.initialSchedule) {
+            // This should only occur when creating a new Event
+            if (newStartDate && !newEndDate) {
+                // If we have a new start date with no end date set,
+                // then set the end date to be 'All Day'
                 this.props.change('dates.end', moment(newStartDate).clone().endOf('day'))
-            } else {
+            } else if (wasAllDay && !isAllDay && !oldStartDate.isSame(newStartDate, 'minute')) {
+                // Otherwise if only the time has been changed for the startDate
+                // then set the end time to be 1 hour after the start time
+                this.props.change('dates.end', moment(newStartDate).clone().add(1, 'h'))
+            }
+        } else {
+            // This should only occur when performing an action on an Event
+            if (wasAllDay && !isAllDay && !oldStartDate.isSame(newStartDate, 'minute')) {
+                // If only the time has been changed for the startDate
+                // then set the end time to be 1 hour after the start time
                 this.props.change('dates.end', moment(newStartDate).clone().add(1, 'h'))
             }
         }
@@ -102,7 +119,7 @@ export class EventScheduleForm extends React.Component {
             // If allDay is disabled, then set the new dates to the initial values
             // since last save
             newStart = get(this.props, 'initialSchedule.start', moment()).clone()
-            newEnd = get(this.props, 'initialSchedule.end', moment().clone().add(1, 'h'))
+            newEnd = get(this.props, 'initialSchedule.end', moment()).clone()
 
             // If the initial values were all day, then set the end minutes to 55
             // So that the allDay toggle is turned off
