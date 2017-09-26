@@ -74,9 +74,11 @@ export const INIT_STORE = 'INIT_STORE'
 export const FORM_NAMES = {
     SpikeEventForm: 'spikeEvent',
     CancelEventForm: 'cancelEvent',
+    CancelPlanningForm: 'cancelPlanning',
     UpdateTimeForm: 'updateTime',
     UpdateRecurringEventsForm: 'updateEventConfirmation',
     CreateEditAgendaForm: 'createEditAgenda',
     RescheduleForm: 'rescheduleEvent',
     ConvertEventToRecurringForm: 'convertEventToRecurring',
+    PostponeEventForm: 'postponeEvent',
 }

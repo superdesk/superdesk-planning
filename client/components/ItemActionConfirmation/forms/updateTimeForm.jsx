@@ -9,6 +9,7 @@ import '../style.scss'
 import { get } from 'lodash'
 import { UpdateMethodSelection } from '../UpdateMethodSelection'
 import { ChainValidators, EndDateAfterStartDate } from '../../../validators'
+import { FORM_NAMES } from '../../../constants'
 
 export class Component extends React.Component {
     constructor(props) {
@@ -24,7 +25,7 @@ export class Component extends React.Component {
     }
 
     render() {
-        const { handleSubmit, initialValues, relatedEvents=[], dateFormat } = this.props
+        const { handleSubmit, initialValues, relatedEvents=[], dateFormat, submitting } = this.props
 
         let event = initialValues
         let isRecurring = !!event.recurrence_id
@@ -58,6 +59,7 @@ export class Component extends React.Component {
                         <Field
                             name='dates.start'
                             component={TimePicker}
+                            readOnly={submitting}
                             placeholder="Time" />
                     </div>
                     <div>
@@ -67,6 +69,7 @@ export class Component extends React.Component {
                         <Field
                             name='dates.end'
                             component={TimePicker}
+                            readOnly={submitting}
                             placeholder="Time" />
                     </div>
                 </form>
@@ -76,6 +79,7 @@ export class Component extends React.Component {
                     updateMethodLabel={updateMethodLabel}
                     relatedEvents={relatedEvents}
                     dateFormat={dateFormat}
+                    readOnly={submitting}
                     handleSubmit={handleSubmit} />
 
             </div>
@@ -89,18 +93,19 @@ Component.propTypes = {
     relatedEvents: PropTypes.array,
     dateFormat: PropTypes.string.isRequired,
     change: PropTypes.func,
+    submitting: PropTypes.bool,
 }
 
 // Decorate the form container
 export const UpdateTime = reduxForm({
-    form: 'updateTime',
+    form: FORM_NAMES.UpdateTimeForm,
     validate: ChainValidators([EndDateAfterStartDate]),
 })(Component)
 
-const selector = formValueSelector('updateTime')
+const selector = formValueSelector(FORM_NAMES.UpdateTimeForm)
 
 const mapStateToProps = (state) => ({
-    relatedEvents: selector(state, '_events' ),
+    relatedEvents: selector(state, '_events'),
     dateFormat: getDateFormat(state),
 })
 
@@ -116,6 +121,8 @@ const mapDispatchToProps = (dispatch) => ({
             if (event.lock_action === 'update_time') {
                 dispatch(actions.events.api.unlock(event))
             }
+
+            dispatch(actions.hideModal())
         })
     ),
     onHide: (event) => {

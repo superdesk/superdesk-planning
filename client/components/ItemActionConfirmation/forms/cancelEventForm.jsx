@@ -6,9 +6,16 @@ import * as actions from '../../../actions'
 import moment from 'moment'
 import { EventUpdateMethods, InputTextAreaField } from '../../fields/index'
 import { UpdateMethodSelection } from '../UpdateMethodSelection'
+import { FORM_NAMES } from '../../../constants'
 import '../style.scss'
 
-const Component = ({ handleSubmit, initialValues, relatedEvents=[], relatedPlannings=[] }) => {
+const Component = ({
+    handleSubmit,
+    initialValues,
+    relatedEvents=[],
+    relatedPlannings=[],
+    submitting,
+}) => {
     let event = initialValues
     const isRecurring = !!event.recurrence_id
 
@@ -38,18 +45,19 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], relatedPlann
                 </dl>
             </div>
 
-            {<UpdateMethodSelection
+            <UpdateMethodSelection
                 showMethodSelection={isRecurring}
                 updateMethodLabel={updateMethodLabel}
                 relatedPlannings={relatedPlannings}
                 handleSubmit={handleSubmit}
-                action='cancel' />}
+                readOnly={submitting}
+                action='cancel' />
 
             <label>Reason for Event cancellation:</label>
             <Field name="reason"
                 component={InputTextAreaField}
                 type="text"
-                readOnly={false}/>
+                readOnly={submitting}/>
         </div>
     )
 }
@@ -63,11 +71,12 @@ Component.propTypes = {
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
     onHide: PropTypes.func,
+    submitting: PropTypes.bool,
 }
 
-export const CancelEvent = reduxForm({ form: 'cancelEvent' })(Component)
+export const CancelEvent = reduxForm({ form: FORM_NAMES.CancelEventForm })(Component)
 
-const selector = formValueSelector('cancelEvent')
+const selector = formValueSelector(FORM_NAMES.CancelEventForm)
 const mapStateToProps = (state) => ({
     relatedPlannings: selector(state, '_relatedPlannings'),
     relatedEvents: selector(state, '_events'),
