@@ -369,6 +369,29 @@ describe('actions.planning.ui', () => {
             })
     })
 
+    it('unlockAndOpenEditor', (done) => {
+        store.init()
+        const lock = data.locked_plannings[0]
+        store.initialState.locks.planning = {
+            p1: {
+                action: lock.lock_action,
+                user: lock.lock_user,
+                session: lock.lock_session,
+                item_id: data.plannings[0]._id,
+                item_type: 'planning',
+            },
+        }
+        store.test(done, planningUi.unlockAndOpenEditor(data.plannings[0]))
+        .then(() => {
+            expect(planningApi.unlock.callCount).toBe(1)
+            expect(planningApi.unlock.args[0]).toEqual([{ _id: data.plannings[0]._id }])
+            expect(planningUi.openEditor.callCount).toBe(1)
+            expect(planningUi.openEditor.args[0]).toEqual([data.plannings[0]])
+
+            done()
+        })
+    })
+
     describe('openEditor', () => {
         it('opens the editor', (done) => {
             store.initialState.planning.currentPlanningId = 'p1'

@@ -111,20 +111,17 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event) => (
-        dispatch(actions.uploadFilesAndSaveEvent(event))
-        .then(() => {
-            if (get(event, '_publish', false)) {
-                dispatch(actions.events.ui.publishEvent(event._id))
-            }
+    onSubmit: (event) => dispatch(actions.events.ui.saveAndPublish(
+        event,
+        get(event, '_save', true),
+        get(event, '_publish', false)
+    ))
+    .then(() => {
+        if (event.lock_action === 'update_time') {
+            dispatch(actions.events.api.unlock(event))
+        }
+    }),
 
-            if (event.lock_action === 'update_time') {
-                dispatch(actions.events.api.unlock(event))
-            }
-
-            dispatch(actions.hideModal())
-        })
-    ),
     onHide: (event) => {
         if (event.lock_action === 'update_time') {
             dispatch(actions.events.api.unlock(event))
