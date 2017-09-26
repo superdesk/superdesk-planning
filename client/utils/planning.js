@@ -84,6 +84,22 @@ const canCancelPlanning = (planning, event=null, session, privileges, locks) => 
         eventState !== WORKFLOW_STATE.SPIKED
 }
 
+const canCancelAllCoverage = (planning, event=null, session, privileges, locks) => {
+    const planState = getItemWorkflowState(planning)
+    const eventState = getItemWorkflowState(event)
+    return !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !isPlanningLockRestricted(planning, session, locks) &&
+        planState === WORKFLOW_STATE.SCHEDULED &&
+        eventState !== WORKFLOW_STATE.SPIKED &&
+        !isAllCoverageCancelled(planning)
+}
+
+const isAllCoverageCancelled = (planning) => (
+    planning.coverages &&
+        planning.coverages.filter((c) =>
+            c.news_coverage_status.qcode !== 'ncostat:notint').length === 0
+)
+
 const isPlanningLocked = (plan, locks) =>
     !isNil(plan) && (
         plan._id in locks.planning ||
@@ -138,6 +154,8 @@ export const getPlanningItemActions = (plan, event=null, session, privileges, ac
             canDuplicatePlanning(plan, event, session, privileges, locks),
         [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: () =>
             canCancelPlanning(plan, event, session, privileges, locks),
+        [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label]: () =>
+            canCancelAllCoverage(plan, event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
             !isPlanAdHoc(plan) && eventUtils.canCancelEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: () =>

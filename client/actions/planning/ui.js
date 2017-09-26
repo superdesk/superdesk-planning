@@ -403,11 +403,43 @@ const cancelPlanning = (plan) => (
     )
 )
 
+const cancelAllCoverage = (plan) => (
+    (dispatch, getState, { notify }) => {
+        // delete _cancelAllCoverage used for UI purposes
+        delete plan._cancelAllCoverage
+
+        return dispatch(planning.api.cancelAllCoverage(plan))
+        .then((plan) => {
+            dispatch(hideModal())
+            notify.success('All Coverage has been cancelled')
+
+            return Promise.resolve(plan)
+        }, (error) => {
+            dispatch(hideModal())
+
+            notify.error(
+                getErrorMessage(error, 'Failed to cancel all coverage!')
+            )
+
+            return Promise.reject(error)
+        })
+    }
+)
+
 const openCancelPlanningModal = (plan, publish=false) => (
     (dispatch) => dispatch(self._openActionModal(
         plan,
         PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label,
         'planning_cancel',
+        publish
+    ))
+)
+
+const openCancelAllCoverageModal = (plan, publish=false) => (
+    (dispatch) => dispatch(self._openActionModal(
+        plan,
+        PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label,
+        'cancel_all_coverage',
         publish
     ))
 )
@@ -682,7 +714,9 @@ const self = {
     selectAll,
     deselectAll,
     openCancelPlanningModal,
+    openCancelAllCoverageModal,
     cancelPlanning,
+    cancelAllCoverage,
 }
 
 export default self

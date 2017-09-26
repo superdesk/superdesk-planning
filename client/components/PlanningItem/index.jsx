@@ -32,6 +32,7 @@ const PlanningItem = ({
         onPostponeEvent,
         onConvertToRecurringEvent,
         onCancelPlanning,
+        onCancelAllCoverage,
         onSelectItem,
         isSelected,
         currentAgendaId,
@@ -67,6 +68,10 @@ const PlanningItem = ({
         {
             ...PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
             callback: onCancelPlanning.bind(null, item),
+        },
+        {
+            ...PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
+            callback: onCancelAllCoverage.bind(null, item),
         },
         GENERIC_ITEM_ACTIONS.DIVIDER,
         {
@@ -230,6 +235,7 @@ PlanningItem.propTypes = {
     onPostponeEvent: PropTypes.func,
     onConvertToRecurringEvent: PropTypes.func,
     onCancelPlanning: PropTypes.func,
+    onCancelAllCoverage: PropTypes.func,
     isSelected: PropTypes.bool,
     onSelectItem: PropTypes.func.isRequired,
     currentAgendaId: PropTypes.string,

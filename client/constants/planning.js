@@ -22,6 +22,7 @@ export const PLANNING = {
         SET_ADVANCED_SEARCH: 'SET_ADVANCED_SEARCH',
         CLEAR_ADVANCED_SEARCH: 'CLEAR_ADVANCED_SEARCH',
         MARK_PLANNING_CANCELLED: 'MARK_PLANNING_CANCELLED',
+        MARK_ALL_COVERAGE_CANCELLED: 'MARK_ALL_COVERAGE_CANCELLED',
         MARK_PLANNING_POSTPONED: 'MARK_PLANNING_POSTPONED',
         TOGGLE_SELECTED: 'TOGGLE_SELECTED',
         SELECT_ALL: 'SELECT_ALL',
@@ -41,6 +42,10 @@ export const PLANNING = {
     ITEM_ACTIONS: {
         CANCEL_PLANNING: {
             label: 'Cancel planning',
+            icon: 'icon-close-small',
+        },
+        CANCEL_ALL_COVERAGE: {
+            label: 'Cancel all coverage',
             icon: 'icon-close-small',
         },
     },
