@@ -122,7 +122,7 @@ const _unlockAndOpenEditor = (item) => (
     (dispatch, getState, { notify }) => (
         dispatch(locks.unlock(item))
         .then(() => {
-            dispatch(self.openEditor(item._id))
+            dispatch(self.openEditor(item))
             return Promise.resolve(item)
         }, (error) => {
             notify.error(

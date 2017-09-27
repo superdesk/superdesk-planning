@@ -314,8 +314,7 @@ class EventsService(superdesk.Service):
             events.extend(future)
 
         for e in events:
-            self.patch(e[config.ID_FIELD], updates)
-            app.on_updated_events(updates, {'_id': e[config.ID_FIELD]})
+            self._patch_event_in_recurrent_series(e[config.ID_FIELD], updates)
 
     def _patch_event_in_recurrent_series(self, event_id, updated_event):
         updated_event['skip_on_update'] = True

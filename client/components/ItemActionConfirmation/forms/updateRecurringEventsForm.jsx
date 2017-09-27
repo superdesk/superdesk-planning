@@ -84,29 +84,11 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event) => {
-        const publish = get(event, '_publish', false)
-        const save = get(event, '_save', true)
-
-        if (!save) {
-            if (publish) {
-                return dispatch(actions.events.ui.publishEvent(event))
-                .then(() => Promise.resolve(dispatch(actions.hideModal())))
-            }
-
-            return Promise.resolve(dispatch(actions.hideModal()))
-        }
-
-        dispatch(actions.uploadFilesAndSaveEvent(event))
-        .then(() => {
-            if (publish) {
-                return dispatch(actions.events.ui.publishEvent(event))
-                .then(() => Promise.resolve(dispatch(actions.hideModal())))
-            }
-
-            return Promise.resolve(dispatch(actions.hideModal()))
-        })
-    },
+    onSubmit: (event) => dispatch(actions.events.ui.saveAndPublish(
+        event,
+        get(event, '_save', true),
+        get(event, '_publish', false)
+    )),
 })
 
 export const UpdateRecurringEventsForm = connect(

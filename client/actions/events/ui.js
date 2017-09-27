@@ -1,4 +1,4 @@
-import { showModal, hideModal, locks } from '../index'
+import { showModal, hideModal, locks, uploadFilesAndSaveEvent } from '../index'
 import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS, PUBLISHED_STATE } from '../../constants'
 import eventsApi from './api'
 import { fetchSelectedAgendaPlannings } from '../agenda'
@@ -432,7 +432,30 @@ const rescheduleEvent = (event) => (
     )
 )
 
-const publishWithConfirmation = (event) => (
+const saveAndPublish = (event, save=true, publish=false) => (
+    (dispatch) => {
+        if (!save) {
+            if (publish) {
+                return dispatch(self.publishEvent(event))
+                .then(() => Promise.resolve(dispatch(hideModal())))
+            }
+
+            return Promise.resolve(dispatch(hideModal()))
+        }
+
+        return dispatch(uploadFilesAndSaveEvent(event))
+        .then(() => {
+            if (publish) {
+                return dispatch(self.publishEvent(event))
+                .then(() => Promise.resolve(dispatch(hideModal())))
+            }
+
+            return Promise.resolve(dispatch(hideModal()))
+        })
+    }
+)
+
+const saveWithConfirmation = (event, save=true, publish=false) => (
     (dispatch, getState) => {
         const events = selectors.getEvents(getState())
         const originalEvent = get(events, event._id, {})
@@ -440,7 +463,7 @@ const publishWithConfirmation = (event) => (
 
         // If this is not from a recurring series, then simply publish this event
         if (!get(originalEvent, 'recurrence_id')) {
-            return dispatch(self.publishEvent(event))
+            return dispatch(self.saveAndPublish(event, save, publish))
         }
 
         return dispatch(eventsApi.query({
@@ -454,8 +477,8 @@ const publishWithConfirmation = (event) => (
                     eventDetail: {
                         ...event,
                         _recurring: get(relatedEvents, '_items', [event]),
-                        _publish: true,
-                        _save: false,
+                        _publish: publish,
+                        _save: save,
                         _events: [],
                         _originalEvent: originalEvent,
                     },
@@ -612,8 +635,9 @@ const self = {
     openPostponeModal,
     _openActionModal,
     convertToRecurringEvent,
-    publishWithConfirmation,
     publishEvent,
+    saveAndPublish,
+    saveWithConfirmation,
 }
 
 export default self

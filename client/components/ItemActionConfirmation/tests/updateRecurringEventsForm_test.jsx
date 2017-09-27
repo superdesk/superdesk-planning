@@ -3,8 +3,10 @@ import { mount } from 'enzyme'
 import { Provider } from 'react-redux'
 import { UpdateRecurringEventsForm, UpdateRecurringEvents } from '../forms/updateRecurringEventsForm'
 import { EventUpdateMethodField } from '../../fields'
-import { getTestActionStore } from '../../../utils/testUtils'
+import { getTestActionStore, restoreSinonStub } from '../../../utils/testUtils'
 import { createTestStore } from '../../../utils'
+import * as actions from '../../../actions'
+import sinon from 'sinon'
 
 describe('<UpdateRecurringEventsForm />', () => {
     let store
@@ -59,10 +61,12 @@ describe('<UpdateRecurringEventsForm />', () => {
             initialState: astore.initialState,
             extraArguments: { api: services.api },
         })
+
+        sinon.stub(actions.events.ui, 'saveAndPublish').returns({ type: 'Test' })
     })
 
     afterEach(() => {
-
+        restoreSinonStub(actions.events.ui.saveAndPublish)
     })
 
     it('renders event metadata', () => {
@@ -123,5 +127,42 @@ describe('<UpdateRecurringEventsForm />', () => {
             { target: { value: 'All events' } }
         )
         expect(metaData.find('dd').at(4).text()).toBe('3')
+    })
+
+    it('calls `events.ui.saveAndPublish` on submit', () => {
+        const wrapper = mount(
+            <Provider store={store}>
+                <UpdateRecurringEventsForm
+                    initialValues={{
+                        ...data.events[1],
+                        _recurring: data.events,
+                        _events: [],
+                        _originalEvent: data.events[1],
+                        _save: true,
+                        _publish: false,
+                    }}
+                />
+            </Provider>
+        )
+        const form = wrapper.find(UpdateRecurringEvents)
+        form.find('form').simulate('submit')
+
+        expect(actions.events.ui.saveAndPublish.callCount).toBe(1)
+        expect(actions.events.ui.saveAndPublish.args[0]).toEqual([
+            {
+                ...data.events[1],
+                _recurring: data.events,
+                _events: [],
+                _originalEvent: data.events[1],
+                _save: true,
+                _publish: false,
+                update_method: Object({
+                    name: 'This event only',
+                    value: 'single',
+                }),
+            },
+            true,
+            false,
+        ])
     })
 })

@@ -1,9 +1,9 @@
 import { pickBy, cloneDeep, get, isEmpty, isNil, isEqual } from 'lodash'
 import moment from 'moment-timezone'
 import * as selectors from '../selectors'
-import { SubmissionError, getFormInitialValues } from 'redux-form'
+import { SubmissionError } from 'redux-form'
 import { saveLocation as _saveLocation } from './index'
-import { showModal, fetchSelectedAgendaPlannings } from './index'
+import { fetchSelectedAgendaPlannings } from './index'
 import { EventUpdateMethods } from '../components/fields'
 import { EVENTS, SPIKED_STATE, PUBLISHED_STATE } from '../constants'
 import { eventUtils, getErrorMessage, retryDispatch } from '../utils'
@@ -67,60 +67,6 @@ const selectAllTheEventList = () => (
 
 const deselectAllTheEventList = () => (
     { type: EVENTS.ACTIONS.DESELECT_ALL_EVENT }
-)
-
-const askConfirmationBeforeSavingEvent = (event, publish=false) => (
-    (dispatch, getState) => {
-        const originalEvent = getFormInitialValues('addEvent')(getState())
-
-        // If this is not from a recurring series, then simply save this event
-        if (!get(originalEvent, 'recurrence_id')) {
-            return dispatch(uploadFilesAndSaveEvent(event))
-            .then((events) => {
-                if (publish) {
-                    dispatch(eventsUi.publishEvent(events[0]))
-                }
-            })
-        }
-
-        // Otherwise get events in the series and display the confirmation modal
-        return dispatch(eventsApi.query({ recurrenceId: originalEvent.recurrence_id }))
-        .then((relatedEvents) => (
-            dispatch(showModal({
-                modalType: 'ITEM_ACTIONS_MODAL',
-                modalProps: {
-                    eventDetail: {
-                        ...event,
-                        _recurring: get(relatedEvents, '_items', [event]),
-                        _publish: publish,
-                        _save: true,
-                        _events: [],
-                        _originalEvent: originalEvent,
-                    },
-                    actionType: 'save',
-                },
-            }))
-        ))
-    }
-)
-
-/**
- * Action Dispatcher for saving an event with confirmation
- * @param {object} event - The event item to save
- * @return arrow function
- */
-const saveEventWithConfirmation = (event) => (
-    (dispatch) => (dispatch(askConfirmationBeforeSavingEvent(event, false)))
-)
-
-/**
- * Action Dispatcher for saving an event with confirmation
- * and then publish the event
- * @param {object} event - The event item to save and publish
- * @return arrow function
- */
-const saveAndPublish = (event) => (
-    (dispatch) => (dispatch(askConfirmationBeforeSavingEvent(event, true)))
 )
 
 /**
@@ -532,9 +478,6 @@ export {
     uploadFilesAndSaveEvent,
     loadMoreEvents,
     eventNotifications,
-    askConfirmationBeforeSavingEvent,
     selectAllTheEventList,
     deselectAllTheEventList,
-    saveEventWithConfirmation,
-    saveAndPublish,
 }

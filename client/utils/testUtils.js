@@ -287,6 +287,7 @@ export const getTestActionStore = () => {
                 planning_event_unspike: 1,
                 planning_event_publish: 1,
                 planning_planning_publish: 1,
+                planning_unlock: 1,
             },
             session: {
                 identity: { _id: 'ident1' },
