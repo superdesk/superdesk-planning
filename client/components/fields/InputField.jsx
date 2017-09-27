@@ -62,4 +62,5 @@ InputField.propTypes = {
 InputField.defaultProps = {
     required: false,
     labelLeft: true,
+    meta: {},
 }

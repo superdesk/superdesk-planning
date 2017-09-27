@@ -83,6 +83,7 @@ class CoverageSchema(BaseSchema):
     ednote = schema.StringField()
     g2_content_type = schema.ListField()
     genre = schema.ListField()
+    keyword = schema.ListField()
     headline = schema.StringField()
     internal_note = schema.StringField()
 
@@ -122,6 +123,7 @@ DEFAULT_EDITOR = [{
         'name': 'coverage',
         'editor': {
             'slugline': {'enabled': True},
+            'keyword': {'enabled': False},
             'ednote': {'enabled': True},
             'g2_content_type': {'enabled': True},
             'genre': {'enabled': True},

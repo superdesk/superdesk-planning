@@ -84,7 +84,7 @@ export const getCurrentAssignment = (state) => get(state, 'assignment.currentAss
 export const getReadOnlyAssignment = (state) => get(state, 'assignment.readOnly')
 
 export const getEventCalendars = (state) => get(state, 'vocabularies.event_calendars', [])
-
+export const getKeywords = (state) => get(state, 'vocabularies.keywords', [])
 export const getPlanningSearch = (state) => get(state, 'planning.search.currentSearch')
 export const getEventsFormsProfile = (state) => get(state, 'formsProfile.events')
 export const getPlanningsFormsProfile = (state) => get(state, 'formsProfile.planning')

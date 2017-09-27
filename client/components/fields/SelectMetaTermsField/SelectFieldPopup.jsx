@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react'
 import ReactDOM from 'react-dom'
 import { SearchBar } from '../../index'
 import { differenceBy } from 'lodash'
-import $ from 'jquery'
+import { uiUtils } from '../../../utils'
 import './style.scss'
 
 export class SelectFieldPopup extends React.Component {
@@ -82,7 +82,7 @@ export class SelectFieldPopup extends React.Component {
             this.setState({ activeOptionIndex: 0 })
         } else if ( this.state.activeOptionIndex < this.state.filteredList.length - 1 ) {
             this.setState({ activeOptionIndex: this.state.activeOptionIndex + 1 })
-            this.scrollListItemIfNeeded(this.state.activeOptionIndex + 1)
+            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex + 1, this.refs.itemList)
         }
     }
 
@@ -99,25 +99,7 @@ export class SelectFieldPopup extends React.Component {
             }
         } else {
             this.setState({ activeOptionIndex: this.state.activeOptionIndex - 1 })
-            this.scrollListItemIfNeeded(this.state.activeOptionIndex - 1)
-        }
-    }
-
-    scrollListItemIfNeeded(index)
-    {
-        if (this.refs.itemList.children.length > 0) {
-            let activeElement = this.refs.itemList.children[index]
-            if (activeElement) {
-                let distanceOfSelItemFromVisibleTop = $(activeElement).offset().top - $(document).scrollTop() -
-                $(this.refs.itemList).offset().top - $(document).scrollTop()
-
-                // If the selected item goes beyond container view, scroll it to middle.
-                if (distanceOfSelItemFromVisibleTop >= this.refs.itemList.clientHeight ||
-                    distanceOfSelItemFromVisibleTop < 0) {
-                    $(this.refs.itemList).scrollTop($(this.refs.itemList).scrollTop() + distanceOfSelItemFromVisibleTop -
-                    this.refs.itemList.offsetHeight * 0.5)
-                }
-            }
+            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex - 1, this.refs.itemList)
         }
     }
 
