@@ -426,8 +426,10 @@ const fetch = (params={}) => (
 const refetch = (page=1, plannings=[]) => (
     (dispatch, getState) => {
         const prevParams = selectors.getPreviousPlanningRequestParams(getState())
-        let params = selectors.getPlanningFilterParams(getState())
-        params.page = page
+        let params = {
+            ...selectors.getPlanningFilterParams(getState()),
+            page,
+        }
 
         return dispatch(self.query(params))
         .then((items) => {

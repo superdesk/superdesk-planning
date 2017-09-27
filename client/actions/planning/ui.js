@@ -369,7 +369,7 @@ const duplicate = (plan) => (
             .then(() => {
                 dispatch(self.closeEditor(plan))
                 notify.success('Planning duplicated')
-                return dispatch(self.openEditor(newPlan._id))
+                return dispatch(self.openEditor(newPlan))
             }, (error) => (
                 notify.error(
                     getErrorMessage(error, 'Failed to fetch Planning items')
