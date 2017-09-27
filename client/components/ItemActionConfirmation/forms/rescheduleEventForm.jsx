@@ -17,7 +17,17 @@ import { getMaxRecurrentEvents } from '../../../selectors'
 import { FORM_NAMES } from '../../../constants'
 import '../style.scss'
 
-const Component = ({ handleSubmit, initialValues, relatedEvents=[], relatedPlannings=[], currentSchedule, change, pristine, currentUpdateMethod }) => {
+const Component = ({
+    handleSubmit,
+    initialValues,
+    relatedEvents=[],
+    relatedPlannings=[],
+    currentSchedule,
+    change,
+    pristine,
+    currentUpdateMethod,
+    submitting,
+}) => {
     let event = initialValues
     const isRecurring = !!event.recurrence_id
 
@@ -44,16 +54,17 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], relatedPlann
                 </div>
             }
 
-            {<UpdateMethodSelection
+            <UpdateMethodSelection
                 showMethodSelection={isRecurring}
                 updateMethodLabel={updateMethodLabel}
                 relatedPlannings={relatedPlannings}
                 handleSubmit={handleSubmit}
                 showSpace={false}
-                action='reschedule' />}
+                readOnly={submitting}
+                action='reschedule' />
 
             <EventScheduleForm
-                readOnly={false}
+                readOnly={submitting}
                 currentSchedule={currentSchedule}
                 initialSchedule={event.dates}
                 change={change}
@@ -67,7 +78,7 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], relatedPlann
             <Field name="reason"
                 component={InputTextAreaField}
                 type="text"
-                readOnly={false}/>
+                readOnly={submitting}/>
         </div>
     )
 }
@@ -89,6 +100,7 @@ Component.propTypes = {
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
     onHide: PropTypes.func,
+    submitting: PropTypes.bool,
 }
 
 export const RescheduleEvent = reduxForm({

@@ -6,9 +6,10 @@ import * as actions from '../../../actions'
 import { InputTextAreaField } from '../../fields/index'
 import { isItemCancelled } from '../../../utils'
 import { get } from 'lodash'
+import { FORM_NAMES } from '../../../constants'
 import '../style.scss'
 
-const Component = ({ handleSubmit, initialValues }) => {
+const Component = ({ handleSubmit, initialValues, submitting }) => {
     let planning = initialValues
     const labelText = initialValues._cancelAllCoverage ? 'Reason for cancelling all coverage:' :
         'Reason for cancelling the planning item:'
@@ -20,7 +21,7 @@ const Component = ({ handleSubmit, initialValues }) => {
                 <Field name="reason"
                     component={InputTextAreaField}
                     type="text"
-                    readOnly={false}/>
+                    readOnly={submitting}/>
             </form>
         </div>
     )
@@ -33,9 +34,10 @@ Component.propTypes = {
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
     onHide: PropTypes.func,
+    submitting: PropTypes.bool,
 }
 
-export const CancelPlanningCoverages = reduxForm({ form: 'cancelPlanning' })(Component)
+export const CancelPlanningCoverages = reduxForm({ form: FORM_NAMES.CancelPlanningForm })(Component)
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
@@ -44,17 +46,20 @@ const mapDispatchToProps = (dispatch) => ({
         if (plan._cancelAllCoverage) {
             cancelDispatch = () => (dispatch(actions.planning.ui.cancelAllCoverage(plan)))
         }
-    return cancelDispatch()
-    .then((plan) => {
-        if (get(plan, '_publish', false)) {
-            dispatch(actions.planning.ui.publish(plan))
-        }
 
-        if (plan.lock_action === 'cancel_all_coverage' ||
-                isItemCancelled(plan)) {
-            dispatch(actions.planning.api.unlock(plan))
-        }
-    })},
+        return cancelDispatch()
+        .then((plan) => {
+            if (get(plan, '_publish', false)) {
+                dispatch(actions.planning.ui.publish(plan))
+            }
+
+            if (plan.lock_action === 'cancel_all_coverage' ||
+                    isItemCancelled(plan)) {
+                dispatch(actions.planning.api.unlock(plan))
+            }
+        })
+    },
+
     onHide: (planning) => {
         if (planning.lock_action === 'planning_cancel' ||
                 planning.lock_action === 'cancel_all_coverage') {

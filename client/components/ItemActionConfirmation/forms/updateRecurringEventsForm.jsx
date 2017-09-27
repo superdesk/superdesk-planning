@@ -9,8 +9,9 @@ import { EventUpdateMethods } from '../../fields'
 import '../style.scss'
 import { get, isNil } from 'lodash'
 import { UpdateMethodSelection } from '../UpdateMethodSelection'
+import { FORM_NAMES } from '../../../constants'
 
-const Component = ({ handleSubmit, initialValues, relatedEvents=[], dateFormat }) => {
+const Component = ({ handleSubmit, initialValues, relatedEvents=[], dateFormat, submitting }) => {
     let event = initialValues
     const originalEvent = event._originalEvent
     let startStr = moment(event.dates.start).format('MMMM Do YYYY, h:mm:ss a')
@@ -57,6 +58,7 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], dateFormat }
                 updateMethodLabel={updateMethodLabel}
                 relatedEvents={relatedEvents}
                 dateFormat={dateFormat}
+                readOnly={submitting}
                 handleSubmit={handleSubmit} />
         </div>
     )
@@ -67,12 +69,13 @@ Component.propTypes = {
     initialValues: PropTypes.object.isRequired,
     relatedEvents: PropTypes.array,
     dateFormat: PropTypes.string.isRequired,
+    submitting: PropTypes.bool,
 }
 
 // Decorate the form container
-export const UpdateRecurringEvents = reduxForm({ form: 'updateEventConfirmation' })(Component)
+export const UpdateRecurringEvents = reduxForm({ form: FORM_NAMES.UpdateRecurringEventsForm })(Component)
 
-const selector = formValueSelector('updateEventConfirmation')
+const selector = formValueSelector(FORM_NAMES.UpdateRecurringEventsForm)
 
 const mapStateToProps = (state) => ({
     relatedEvents: selector(state, '_events'),

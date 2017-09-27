@@ -14,6 +14,7 @@ export const UpdateMethodSelection = ({
         action,
         handleSubmit,
         showSpace,
+        readOnly,
     }) => {
     return (
         <div>
@@ -26,6 +27,7 @@ export const UpdateMethodSelection = ({
 
                     <Field name="update_method"
                            component={EventUpdateMethodField}
+                           readOnly={readOnly}
                            label={updateMethodLabel}/>
                 </div>
 
@@ -67,6 +69,7 @@ UpdateMethodSelection.defaultProps = {
     relatedEvents: [],
     action: 'affect',
     showSpace: true,
+    readOnly: false,
 }
 
 UpdateMethodSelection.propTypes = {
@@ -78,4 +81,5 @@ UpdateMethodSelection.propTypes = {
     action: PropTypes.string,
     handleSubmit: PropTypes.func.isRequired,
     showSpace: PropTypes.bool,
+    readOnly: PropTypes.bool,
 }

@@ -37,7 +37,7 @@ export class Component extends React.Component {
     }
 
     render() {
-        const { handleSubmit, initialValues, currentSchedule, change } = this.props
+        const { handleSubmit, initialValues, currentSchedule, change, submitting } = this.props
 
         let event = initialValues
         event.dates.start = moment(event.dates.start)
@@ -58,7 +58,7 @@ export class Component extends React.Component {
                     <EventScheduleSummary schedule={currentSchedule}/>
 
                     <EventScheduleForm
-                        readOnly={false}
+                        readOnly={submitting}
                         currentSchedule={currentSchedule}
                         initialSchedule={event.dates}
                         change={change}
@@ -76,6 +76,7 @@ Component.propTypes = {
     initialValues: PropTypes.object.isRequired,
     change: PropTypes.func,
     currentSchedule: PropTypes.object,
+    submitting: PropTypes.bool,
 }
 
 // Decorate the form container

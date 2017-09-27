@@ -30,4 +30,7 @@ export const EventUpdateMethodField = (props) => {
 }
 
 // eslint-disable-next-line react/no-unused-prop-types
-EventUpdateMethodField.propTypes = { input: PropTypes.object.isRequired }
+EventUpdateMethodField.propTypes = {
+    input: PropTypes.object.isRequired,
+    readOnly: PropTypes.bool,
+}

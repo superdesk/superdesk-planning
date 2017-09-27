@@ -10,8 +10,9 @@ import { UpdateMethodSelection } from '../UpdateMethodSelection'
 import { RelatedEvents } from '../../index'
 import { getDateFormat } from '../../../selectors'
 import { get } from 'lodash'
+import { FORM_NAMES } from '../../../constants'
 
-const Component = ({ handleSubmit, initialValues, relatedEvents=[], dateFormat }) => {
+const Component = ({ handleSubmit, initialValues, relatedEvents=[], dateFormat, submitting }) => {
     let event = initialValues
     const isRecurring = !!event.recurrence_id
 
@@ -47,6 +48,7 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], dateFormat }
                 updateMethodLabel={updateMethodLabel}
                 handleSubmit={handleSubmit}
                 showSpace={false}
+                readOnly={submitting}
                 action='spike' />
 
             {eventsInUse.length > 0 &&
@@ -66,12 +68,13 @@ Component.propTypes = {
     initialValues: PropTypes.object.isRequired,
     relatedEvents: PropTypes.array,
     dateFormat: PropTypes.string.isRequired,
+    submitting: PropTypes.bool,
 }
 
 // Decorate the form container
-export const SpikeEvent = reduxForm({ form: 'spikeEvent' })(Component)
+export const SpikeEvent = reduxForm({ form: FORM_NAMES.SpikeEventForm })(Component)
 
-const selector = formValueSelector('spikeEvent')
+const selector = formValueSelector(FORM_NAMES.SpikeEventForm)
 const mapStateToProps = (state) => ({
     relatedEvents: selector(state, '_events'),
     dateFormat: getDateFormat(state),

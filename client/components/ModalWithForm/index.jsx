@@ -50,7 +50,10 @@ export class Component extends React.Component {
                     { form }
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button onClick={this.onHide}>
+                    <Button
+                        onClick={this.onHide}
+                        disabled={this.props.submitting}
+                    >
                         { this.props.cancelButtonText || 'Close' }
                     </Button>
                     <Button type="submit"

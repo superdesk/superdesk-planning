@@ -78,6 +78,7 @@ export const ItemActionConfirmationModal = ({ handleHide, modalProps }) => {
             title = get(modalProps, 'eventDetail._publish', false) ?
                 'Save Event & Publish' : 'Save Event'
             form = UpdateRecurringEventsForm
+            formNameForPristineCheck = FORM_NAMES.UpdateRecurringEventsForm
     }
 
     return (
