@@ -18,7 +18,7 @@ from superdesk.utc import utcnow
 from superdesk.lock import lock, unlock
 from eve.utils import config
 from superdesk import get_resource_service, get_resource_privileges
-from flask import current_app as app
+from apps.common.components.base_component import BaseComponent
 
 
 LOCK_USER = 'lock_user'
@@ -28,10 +28,14 @@ LOCK_TIME = 'lock_time'
 logger = logging.getLogger(__name__)
 
 
-class LockService:
-    def __init__(self):
+class LockService(BaseComponent):
+    def __init__(self, app):
         self.app = app
         self.app.on_session_end += self.on_session_end
+
+    @classmethod
+    def name(cls):
+        return 'planning_item_lock'
 
     def lock(self, item, user_id, session_id, action, resource):
         if not item:
@@ -127,13 +131,14 @@ class LockService:
 
     def unlock_session(self, user_id, session_id):
         self.unlock_session_for_resource(user_id, session_id, 'planning')
+        self.unlock_session_for_resource(user_id, session_id, 'events')
 
     def unlock_session_for_resource(self, user_id, session_id, resource):
         item_service = get_resource_service(resource)
         items = item_service.find(where={'lock_session': session_id})
 
         for item in items:
-            self.unlock(item.get(config.ID_FIELD), user_id, session_id, resource)
+            self.unlock(item, user_id, session_id, resource)
 
     def can_lock(self, item, user_id, session_id, resource):
         """

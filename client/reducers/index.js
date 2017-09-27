@@ -7,6 +7,7 @@ import vocabularies from './vocabularies'
 import agenda from './agenda'
 import assignment from './assignment'
 import locks from './locks'
+import session from './session'
 
 const returnState = (state) => state || {}
 
@@ -19,6 +20,7 @@ const planningApp = combineReducers({
     assignment,
     form: forms,
     locks,
+    session,
 
     // The following doesn't require reducers as they are loaded using sdPlanningService
     config: returnState,
@@ -29,7 +31,6 @@ const planningApp = combineReducers({
     genres: returnState,
     users: returnState,
     desks: returnState,
-    session: returnState,
     urgency: returnState,
     formsProfile: returnState,
     workspace: returnState,

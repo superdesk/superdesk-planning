@@ -160,5 +160,16 @@ export function PlanningStoreService(
         })
     }
 
+    $rootScope.$watch(
+        () => session.sessionId,
+        () => self.store.dispatch({
+            type: 'RECEIVE_SESSION',
+            payload: {
+                sessionId: session.sessionId,
+                identity: session.identity,
+            },
+        })
+    )
+
     $rootScope.$on('vocabularies:updated', angular.bind(this, this._reloadVocabularies))
 }
