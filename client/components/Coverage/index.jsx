@@ -14,6 +14,7 @@ function CoverageComponent({
     readOnly,
     content_type,
     formProfile,
+    keywords,
     }) {
     const isTextCoverage = content_type === 'text'
     return (
@@ -32,6 +33,17 @@ function CoverageComponent({
                         type="text"
                         label="Slugline"
                         required={get(formProfile, 'schema.slugline.required')}
+                        readOnly={readOnly} />
+                </div>
+            }
+            {get(formProfile, 'editor.keyword.enabled') &&
+                <div className="form__row">
+                    <Field
+                        name={`${coverage}.planning.keyword`}
+                        component={fields.TagSelectField}
+                        label="Keywords"
+                        required={get(formProfile, 'schema.keyword.required')}
+                        options={keywords}
                         readOnly={readOnly} />
                 </div>
             }
@@ -106,6 +118,7 @@ CoverageComponent.propTypes = {
     desks: PropTypes.array.isRequired,
     readOnly: PropTypes.bool,
     formProfile: PropTypes.object,
+    keywords: PropTypes.array,
 }
 
 const selector = formValueSelector('planning') // same as form name
@@ -115,6 +128,7 @@ const mapStateToProps = (state, ownProps) => ({
     desks: state.desks && state.desks.length > 0 ? state.desks : [],
     content_type: selector(state, ownProps.coverage + '.planning.g2_content_type'),
     formProfile: selectors.getCoverageFormsProfile(state),
+    keywords: selectors.getKeywords(state),
 })
 
 export const Coverage = connect(mapStateToProps)(CoverageComponent)
