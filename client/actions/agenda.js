@@ -1,7 +1,7 @@
 import { hideModal } from './modal'
 import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
-import { cloneDeep, pick } from 'lodash'
+import { cloneDeep, pick, get } from 'lodash'
 import { PRIVILEGES, AGENDA } from '../constants'
 import { checkPermission, getErrorMessage, isItemSpiked } from '../utils'
 import { planning, showModal } from './index'
@@ -29,10 +29,10 @@ const _createOrUpdateAgenda = (newAgenda) => (
             dispatch(hideModal())
             dispatch(addOrReplaceAgenda(agenda))
         }, (error) => {
-            let errorMessage = getErrorMessage(
-                error,
-                'There was a problem, Agenda is not created/updated.'
-            )
+            let errorMessage = getErrorMessage(error)
+            if (!errorMessage && get(error, 'data._issues.name.unique') === 1) {
+                errorMessage = 'An agenda with this name already exists'
+            }
 
             notify.error(errorMessage)
             throw new SubmissionError({
