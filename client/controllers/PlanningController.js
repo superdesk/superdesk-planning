@@ -5,6 +5,7 @@ import { registerNotifications } from '../utils'
 import * as actions from '../actions'
 import { locks } from '../actions'
 import { PlanningApp } from '../components'
+import { WORKSPACE } from '../constants'
 
 PlanningController.$inject = [
     '$element',
@@ -22,7 +23,7 @@ export function PlanningController(
 ) {
     sdPlanningStore.getStore()
     .then((store) => {
-        store.dispatch(actions.initStore())
+        store.dispatch(actions.initStore(WORKSPACE.PLANNING))
         registerNotifications($scope, store)
 
         $q.all({

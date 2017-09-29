@@ -1,0 +1,46 @@
+.AddToPlanning {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    overflow: hidden;
+
+    .Planning {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 70px;
+        bottom: 0;
+    }
+
+    .Planning-panel {
+        position: relative;
+
+        &__container {
+            overflow-y: scroll;
+            top: 0;
+        }
+
+        .Planning__advanced-search {
+            height: 100%;
+            overflow-y: scroll;
+            position: relative;
+        }
+    }
+
+    .metadata-view {
+        padding: 10px;
+        dl {
+            margin-top: 0;
+            > dt {
+                width: 90px;
+                line-height: 20px;
+            }
+            > dd {
+                padding-left: 90px;
+                line-height: 20px;
+            }
+        }
+    }
+}

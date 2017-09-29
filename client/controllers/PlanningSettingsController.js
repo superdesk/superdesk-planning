@@ -4,6 +4,7 @@ import { Provider } from 'react-redux'
 import { registerNotifications } from '../utils'
 import * as actions from '../actions'
 import { PlanningSettingsApp } from '../components'
+import { WORKSPACE } from '../constants'
 
 PlanningSettingsController.$inject = [
     '$scope',
@@ -17,7 +18,7 @@ export function PlanningSettingsController(
 ) {
     sdPlanningStore.getStore()
     .then((store) => {
-        store.dispatch(actions.initStore())
+        store.dispatch(actions.initStore(WORKSPACE.SETTINGS))
         registerNotifications($scope, store)
 
         // load data in the store

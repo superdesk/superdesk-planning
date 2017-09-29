@@ -26,7 +26,7 @@ describe('actions.planning.ui', () => {
             (item) => (Promise.resolve(item))
         )
         sinon.stub(planningApi, 'lock').callsFake((item) => (Promise.resolve(item)))
-        sinon.stub(planningApi, 'unlock').callsFake((item) => (Promise.resolve(item)))
+        sinon.stub(planningApi, 'unlock').callsFake(() => (Promise.resolve(data.plannings[0])))
         sinon.stub(planningUi, 'openEditor').callsFake(() => (Promise.resolve()))
         sinon.stub(planningUi, 'closeEditor').callsFake(() => (Promise.resolve()))
         sinon.stub(planningUi, 'preview').callsFake(() => (Promise.resolve()))

@@ -307,6 +307,12 @@ export const createTestStore = (params={}) => {
             planning: {},
             recurring: {},
         },
+
+        workspace: {
+            currentDeskId: null,
+            currentStageId: null,
+            currentWorkspace: 'PLANNING',
+        },
     }
 
     const mockedExtraArguments = {

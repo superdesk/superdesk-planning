@@ -85,6 +85,7 @@ export const getLockedItems = (state) => get(state, 'locks', {
     planning: {},
     recurring: {},
 })
+export const getCurrentWorkspace = (state) => get(state, 'workspace.currentWorkspace', null)
 
 export const getCurrentDeskId = (state) => get(state, 'workspace.currentDeskId', null)
 export const getCurrentStageId = (state) => get(state, 'workspace.currentStageId', null)

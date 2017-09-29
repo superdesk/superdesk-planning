@@ -1,12 +1,18 @@
+import { INIT_STORE } from '../constants'
+
 const initialState = {
-    workspace: {
-        currentDeskId: undefined,
-        currentStageId: undefined,
-    },
+    currentDeskId: null,
+    currentStageId: null,
+    currentWorkspace: null,
 }
 
 const workspace = (state=initialState, action) => {
     switch (action.type) {
+        case INIT_STORE:
+            return {
+                ...state,
+                currentWorkspace: action.payload,
+            }
         case 'WORKSPACE_CHANGE':
             return {
                 ...state,
