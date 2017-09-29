@@ -142,6 +142,7 @@ const askForAddEventToCurrentAgenda = (events) => (
                 modalProps: {
                     body: message,
                     action: () => dispatch(addEventToCurrentAgenda(events)),
+                    deselectEventsAfterAction: true,
                 },
             }))
         } else {
