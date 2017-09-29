@@ -4,7 +4,7 @@ import { ListItem, TimePlanning, DueDate, ItemActionsMenu, StateLabel, Checkbox 
 import { connect } from 'react-redux'
 import { OverlayTrigger, Tooltip } from 'react-bootstrap'
 import classNames from 'classnames'
-import { GENERIC_ITEM_ACTIONS, EVENTS, PLANNING } from '../../constants/index'
+import { GENERIC_ITEM_ACTIONS, EVENTS, PLANNING, WORKSPACE } from '../../constants'
 import './style.scss'
 import { getCoverageIcon, planningUtils, isItemCancelled, isItemRescheduled } from '../../utils/index'
 import { getCurrentAgendaId } from '../../selectors'
@@ -36,6 +36,7 @@ const PlanningItem = ({
         onSelectItem,
         isSelected,
         currentAgendaId,
+        currentWorkspace,
     }) => {
     const location = get(event, 'location[0].name')
     const coverages = get(item, 'coverages', [])
@@ -52,58 +53,63 @@ const PlanningItem = ({
 
     const isItemLocked = planningUtils.isPlanningLocked(item, lockedItems)
 
-    const actions = [
-        {
-            ...GENERIC_ITEM_ACTIONS.SPIKE,
-            callback: onSpike.bind(null, item),
-        },
-        {
-            ...GENERIC_ITEM_ACTIONS.UNSPIKE,
-            callback: onUnspike.bind(null, item),
-        },
-        {
-            ...GENERIC_ITEM_ACTIONS.DUPLICATE,
-            callback: onDuplicate.bind(null, item),
-        },
-        {
-            ...PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
-            callback: onCancelPlanning.bind(null, item),
-        },
-        {
-            ...PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
-            callback: onCancelAllCoverage.bind(null, item),
-        },
-        GENERIC_ITEM_ACTIONS.DIVIDER,
-        {
-            ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
-            callback: onCancelEvent.bind(null, event),
-        },
-        {
-            ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
-            callback: onUpdateEventTime.bind(null, event),
-        },
-        {
-            ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
-            callback: onRescheduleEvent.bind(null, event),
-        },
-        {
-            ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
-            callback: onPostponeEvent.bind(null, event),
-        },
-        {
-            ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
-            callback: onConvertToRecurringEvent.bind(null, event),
-        },
-    ]
+    const inPlanning = currentWorkspace === WORKSPACE.PLANNING
 
-    const itemActions = planningUtils.getPlanningItemActions(
-        item,
-        event,
-        session,
-        privileges,
-        actions,
-        lockedItems
-    )
+    let itemActions = []
+    if (inPlanning) {
+        const actions = [
+            {
+                ...GENERIC_ITEM_ACTIONS.SPIKE,
+                callback: onSpike.bind(null, item),
+            },
+            {
+                ...GENERIC_ITEM_ACTIONS.UNSPIKE,
+                callback: onUnspike.bind(null, item),
+            },
+            {
+                ...GENERIC_ITEM_ACTIONS.DUPLICATE,
+                callback: onDuplicate.bind(null, item),
+            },
+            {
+                ...PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
+                callback: onCancelPlanning.bind(null, item),
+            },
+            {
+                ...PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
+                callback: onCancelAllCoverage.bind(null, item),
+            },
+            GENERIC_ITEM_ACTIONS.DIVIDER,
+            {
+                ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+                callback: onCancelEvent.bind(null, event),
+            },
+            {
+                ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+                callback: onUpdateEventTime.bind(null, event),
+            },
+            {
+                ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+                callback: onRescheduleEvent.bind(null, event),
+            },
+            {
+                ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+                callback: onPostponeEvent.bind(null, event),
+            },
+            {
+                ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
+                callback: onConvertToRecurringEvent.bind(null, event),
+            },
+        ]
+
+        itemActions = planningUtils.getPlanningItemActions(
+            item,
+            event,
+            session,
+            privileges,
+            actions,
+            lockedItems
+        )
+    }
 
     return (
         <ListItem
@@ -113,11 +119,13 @@ const PlanningItem = ({
                 { 'PlanningItem--has-been-cancelled': isCancelled || isRescheduled }
             )}
             onClick={onClick}
-            onDoubleClick={onEditOrPreview}
+            onDoubleClick={inPlanning ? onEditOrPreview : null}
             active={active}>
-            <div className="sd-list-item__action-menu">
-                <Checkbox value={isSelected} onChange={onSelectItem}/>
-            </div>
+            {inPlanning &&
+                <div className="sd-list-item__action-menu">
+                    <Checkbox value={isSelected} onChange={onSelectItem}/>
+                </div>
+            }
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border"
                 style={{ overflow: 'visible' }}>
                 <div className="sd-list-item__row">
@@ -206,6 +214,14 @@ const PlanningItem = ({
                 {itemActions.length > 0 &&
                     <ItemActionsMenu actions={itemActions}/>
                 }
+                {!inPlanning && !isItemLocked &&
+                    <a data-sd-tooltip="Add as coverage" data-flow="left">
+                        <button className="navbtn dropdown sd-create-btn">
+                            <i className="icon-plus-large" />
+                            <span className="circle" />
+                        </button>
+                    </a>
+                }
             </div>
         </ListItem>
     )
@@ -239,6 +255,7 @@ PlanningItem.propTypes = {
     isSelected: PropTypes.bool,
     onSelectItem: PropTypes.func.isRequired,
     currentAgendaId: PropTypes.string,
+    currentWorkspace: PropTypes.string,
 }
 
 export default connect(mapStateToProps)(PlanningItem)

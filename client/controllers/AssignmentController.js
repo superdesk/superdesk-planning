@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
 import * as actions from '../actions'
 import { AssignmentListContainer } from '../components'
+import { WORKSPACE } from '../constants'
 
 AssignmentController.$inject = [
     '$element',
@@ -18,7 +19,7 @@ export function AssignmentController(
 ) {
     sdPlanningStore.getStore()
     .then((store) => {
-        store.dispatch(actions.initStore())
+        store.dispatch(actions.initStore(WORKSPACE.ASSIGNMENTS))
         store.dispatch(actions.loadAssignments('All', null, 'Created', 'Asc'))
         .then(() => {
             $scope.$watch(

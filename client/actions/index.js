@@ -14,7 +14,10 @@ import { eventNotifications } from './events'
 import { RESET_STORE, INIT_STORE } from '../constants'
 
 const resetStore = () => ({ type: RESET_STORE })
-const initStore = () => ({ type: INIT_STORE })
+const initStore = (workspace) => ({
+    type: INIT_STORE,
+    payload: workspace,
+})
 
 /**
  * Map WebSocket Notifications to Action Event

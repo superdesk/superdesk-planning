@@ -3,7 +3,7 @@ import planning from './index'
 import { locks } from '../index'
 import { checkPermission, getErrorMessage, isItemLockedInThisSession } from '../../utils'
 import * as selectors from '../../selectors'
-import { PLANNING, PRIVILEGES, SPIKED_STATE } from '../../constants'
+import { PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE } from '../../constants'
 import * as actions from '../index'
 import { get } from 'lodash'
 
@@ -121,9 +121,9 @@ const preview = (item) => (
 const _unlockAndOpenEditor = (item) => (
     (dispatch, getState, { notify }) => (
         dispatch(locks.unlock(item))
-        .then(() => {
-            dispatch(self.openEditor(item))
-            return Promise.resolve(item)
+        .then((unlockedItem) => {
+            dispatch(self.openEditor(unlockedItem))
+            return Promise.resolve(unlockedItem)
         }, (error) => {
             notify.error(
                 getErrorMessage(error, 'Could not unlock the planning item.')
@@ -163,6 +163,12 @@ const unlockAndCloseEditor = (item) => (
  */
 const _lockAndOpenEditor = (item) => (
     (dispatch, getState, { notify }) => {
+        const currentWorkspace = selectors.getCurrentWorkspace(getState())
+        if (currentWorkspace !== WORKSPACE.PLANNING) {
+            dispatch(self._openEditor(item))
+            return Promise.resolve(item)
+        }
+
         // If the user already has a lock, don't obtain a new lock, open it directly
         if (item && isItemLockedInThisSession(item,
                 selectors.getSessionDetails(getState()))) {

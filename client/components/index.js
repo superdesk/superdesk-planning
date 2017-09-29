@@ -72,6 +72,7 @@ export { WorkqueueContainer } from './WorkqueueContainer/index'
 export { WorkqueueList } from './WorkqueueList/index'
 export { EventScheduleForm } from './EventScheduleForm'
 export { EventScheduleSummary } from './EventScheduleSummary'
+export { AddToPlanningModal } from './AddToPlanningModal'
 
 // This must go last, as it imports Modals from above modules
 export { ModalsContainer } from './ModalsContainer'

@@ -22,7 +22,7 @@ import {
     isItemSpiked,
     isItemPublic,
 } from '../../utils'
-import { GENERIC_ITEM_ACTIONS, PRIVILEGES, EVENTS, TOOLTIPS, PLANNING } from '../../constants/index'
+import { GENERIC_ITEM_ACTIONS, PRIVILEGES, EVENTS, TOOLTIPS, PLANNING, WORKSPACE } from '../../constants'
 
 // Helper enum for Publish method when saving
 const saveMethods = {
@@ -158,6 +158,7 @@ export class EditPlanningPanel extends React.Component {
             onPostponeEvent,
             onCancelPlanning,
             onCancelAllCoverage,
+            currentWorkspace,
         } = this.props
 
         const creationDate = get(planning, '_created')
@@ -170,63 +171,67 @@ export class EditPlanningPanel extends React.Component {
         const planningSpiked = isItemSpiked(planning)
         const eventSpiked = isItemSpiked(event)
 
-        const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK]
-        const actions = [
-            {
-                ...GENERIC_ITEM_ACTIONS.SPIKE,
-                callback: onSpike.bind(null, planning),
-            },
-            {
-                ...GENERIC_ITEM_ACTIONS.UNSPIKE,
-                callback: onUnspike.bind(null, planning),
-            },
-            {
-                ...GENERIC_ITEM_ACTIONS.HISTORY,
-                callback: this.viewPlanningHistory.bind(this),
-            },
-            {
-                ...GENERIC_ITEM_ACTIONS.DUPLICATE,
-                callback: onDuplicate.bind(null, planning),
-            },
-            {
-                ...PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
-                callback: onCancelPlanning.bind(null, planning),
-            },
-            {
-                ...PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
-                callback: onCancelAllCoverage.bind(null, planning),
-            },
-            GENERIC_ITEM_ACTIONS.DIVIDER,
-            {
-                ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
-                callback: onCancelEvent.bind(null, event),
-            },
-            {
-                ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
-                callback: onUpdateEventTime.bind(null, event),
-            },
-            {
-                ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
-                callback: onRescheduleEvent.bind(null, event),
-            },
-            {
-                ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
-                callback: onConvertToRecurringEvent.bind(null, event),
-            },
-            {
-                ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
-                callback: onPostponeEvent.bind(null, event),
-            },
-        ]
+        const inPlanning = currentWorkspace === WORKSPACE.PLANNING
 
-        const itemActions = planningUtils.getPlanningItemActions(
-            planning,
-            event,
-            session,
-            privileges,
-            actions,
-            lockedItems
-        )
+        const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK]
+        let itemActions = []
+        if (inPlanning) {
+            const actions = [{
+                    ...GENERIC_ITEM_ACTIONS.SPIKE,
+                    callback: onSpike.bind(null, planning),
+                },
+                {
+                    ...GENERIC_ITEM_ACTIONS.UNSPIKE,
+                    callback: onUnspike.bind(null, planning),
+                },
+                {
+                    ...GENERIC_ITEM_ACTIONS.HISTORY,
+                    callback: this.viewPlanningHistory.bind(this),
+                },
+                {
+                    ...GENERIC_ITEM_ACTIONS.DUPLICATE,
+                    callback: onDuplicate.bind(null, planning),
+                },
+                {
+                    ...PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
+                    callback: onCancelPlanning.bind(null, planning),
+                },
+                {
+                    ...PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
+                    callback: onCancelAllCoverage.bind(null, planning),
+                },
+                GENERIC_ITEM_ACTIONS.DIVIDER,
+                {
+                    ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+                    callback: onCancelEvent.bind(null, event),
+                },
+                {
+                    ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+                    callback: onUpdateEventTime.bind(null, event),
+                },
+                {
+                    ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+                    callback: onRescheduleEvent.bind(null, event),
+                },
+                {
+                    ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
+                    callback: onConvertToRecurringEvent.bind(null, event),
+                },
+                {
+                    ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+                    callback: onPostponeEvent.bind(null, event),
+                },
+            ]
+
+            itemActions = planningUtils.getPlanningItemActions(
+                planning,
+                event,
+                session,
+                privileges,
+                actions,
+                lockedItems
+            )
+        }
 
         // If the planning or event or agenda item is spiked,
         // or we don't hold a lock, enforce readOnly
@@ -235,11 +240,11 @@ export class EditPlanningPanel extends React.Component {
             forceReadOnly = true
         }
 
-        const showSave = planningUtils.canSavePlanning(planning, event, privileges)
-        const showPublish = planningUtils.canPublishPlanning(planning, event, privileges, session, lockedItems)
-        const showUnpublish = planningUtils.canUnpublishPlanning(planning, event, privileges, session, lockedItems)
+        const showSave = inPlanning && planningUtils.canSavePlanning(planning, event, privileges)
+        const showPublish = inPlanning && planningUtils.canPublishPlanning(planning, event, privileges, session, lockedItems)
+        const showUnpublish = inPlanning && planningUtils.canUnpublishPlanning(planning, event, privileges, session, lockedItems)
         const isPublic = isItemPublic(planning)
-        const showEdit = planningUtils.canEditPlanning(
+        const showEdit = inPlanning && planningUtils.canEditPlanning(
             planning,
             event,
             privileges,
@@ -254,7 +259,7 @@ export class EditPlanningPanel extends React.Component {
                         'dropdown--drop-right',
                         'pull-left',
                         { open: this.state.openUnlockPopup })}>
-                        {(!lockedInThisSession && lockedUser)
+                        {((!lockedInThisSession || !inPlanning) && lockedUser)
                             && (
                             <div className="lock-avatar">
                                 <button type='button' onClick={this.toggleOpenUnlockPopup.bind(this)}>
@@ -350,7 +355,9 @@ export class EditPlanningPanel extends React.Component {
                                 updatedBy={versionCreator}
                                 createdAt={creationDate}
                                 updatedAt={updatedDate} />
-                            <ItemActionsMenu actions={itemActions} />
+                            {itemActions.length > 0 &&
+                                <ItemActionsMenu actions={itemActions} />
+                            }
                         </div>
                         <StateLabel item={planning} verbose={true}/>
                         <div className="state">
@@ -425,6 +432,7 @@ EditPlanningPanel.propTypes = {
     valid: PropTypes.bool,
     onCancelPlanning: PropTypes.func,
     onCancelAllCoverage: PropTypes.func,
+    currentWorkspace: PropTypes.string,
 }
 
 const selector = formValueSelector('planning') // Selector for the Planning form
@@ -438,6 +446,7 @@ const mapStateToProps = (state) => ({
     privileges: selectors.getPrivileges(state),
     session: selectors.getSessionDetails(state),
     lockedItems: selectors.getLockedItems(state),
+    currentWorkspace: selectors.getCurrentWorkspace(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

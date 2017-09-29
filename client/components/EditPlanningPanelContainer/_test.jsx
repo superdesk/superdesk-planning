@@ -146,6 +146,11 @@ describe('planning', () => {
                             planning: {},
                             recurring: {},
                         },
+                        workspace: {
+                            currentDeskId: null,
+                            currentStageId: null,
+                            currentWorkspace: 'PLANNING',
+                        },
                     },
                 })
                 const wrapper = mount(

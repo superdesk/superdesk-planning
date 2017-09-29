@@ -414,6 +414,11 @@ export const getTestActionStore = () => {
                 planning: {},
                 recurring: {},
             },
+            workspace: {
+                currentDeskId: null,
+                currentStageId: null,
+                currentWorkspace: 'PLANNING',
+            },
         },
 
         getState: sinon.spy(() => (store.initialState)),

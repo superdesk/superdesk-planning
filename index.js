@@ -32,6 +32,19 @@ function configurePlanning(superdesk) {
             topTemplateUrl: 'scripts/apps/dashboard/views/workspace-topnav.html',
             sideTemplateUrl: 'scripts/apps/workspace/views/workspace-sidenav.html'
         })
+        .activity('planning.addto', {
+            label: gettext('Add to Planning'),
+            modal: true,
+            priority: 2000,
+            icon: 'package-create',
+            controller: ctrl.AddToPlanningController,
+            filters: [{
+                action: 'list',
+                type: 'archive',
+            }],
+            group: 'packaging',
+            privileges: { planning_planning_management: 1 },
+        })
 }
 
 runPlanning.$inject = ['ingestSources', '$templateCache', '$injector']

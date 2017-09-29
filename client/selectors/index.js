@@ -96,6 +96,7 @@ export const getLockedItems = (state) => get(state, 'locks', {
     planning: {},
     recurring: {},
 })
+export const getCurrentWorkspace = (state) => get(state, 'workspace.currentWorkspace', null)
 
 export const getPlanningTypeProfile = createSelector(
     [getPlanningsFormsProfile, getCoverageFormsProfile],
