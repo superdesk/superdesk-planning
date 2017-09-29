@@ -1,8 +1,8 @@
 import { get, includes, isEmpty } from 'lodash'
 import planning from './index'
-import { getErrorMessage } from '../../utils'
+import { getErrorMessage, getLock } from '../../utils'
 import * as selectors from '../../selectors'
-import { showModal, events } from '../index'
+import { showModal, hideModal, events } from '../index'
 import { PLANNING, AGENDA, WORKFLOW_STATE } from '../../constants'
 
 /**
@@ -192,14 +192,17 @@ const onPlanningUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
             let planningItem = selectors.getStoredPlannings(getState())[data.item]
+            const locks = selectors.getLockedItems(getState())
+            const itemLock = getLock(planningItem, locks)
+            const sessionId = selectors.getSessionDetails(getState()).sessionId
 
             // If this is the planning item currently being edited, show popup notification
-            const currentPlanningId = selectors.getCurrentPlanningId(getState())
-            if (currentPlanningId === data.item &&
-                data.lock_session !== selectors.getSessionDetails(getState()).sessionId &&
-                selectors.isCurrentPlanningLockedInThisSession(getState())
+            if (itemLock !== null &&
+                data.lock_session !== sessionId &&
+                itemLock.session === sessionId
             ) {
                 const user =  selectors.getUsers(getState()).find((u) => u._id === data.user)
+                dispatch(hideModal())
                 dispatch(showModal({
                     modalType: 'NOTIFICATION_MODAL',
                     modalProps: {

@@ -267,18 +267,29 @@ describe('actions.events.notifications', () => {
             store.initialState.events.events.e1.lock_session = 'session1'
         })
 
-        it('dispatches notification modal if the Event unlocked is being edited', (done) => (
+        it('dispatches notification modal if the Event unlocked is being edited', (done) => {
+            store.initialState.locks.events = {
+                e1: {
+                    action: 'edit',
+                    user: 'ident1',
+                    session: 'session1',
+                    item_id: 'e1',
+                    item_type: 'event',
+                },
+            }
             store.test(done, eventsNotifications.onEventUnlocked(
                 {},
                 {
                     item: 'e1',
                     user: 'ident2',
+                    session: 'session2',
                 }
             ))
             .then(() => {
                 const modalStr = 'The event you were editing was unlocked' +
                     ' by "firstname2 lastname2"'
-                expect(store.dispatch.args[0]).toEqual([{
+                expect(store.dispatch.args[0]).toEqual([{ type: 'HIDE_MODAL' }])
+                expect(store.dispatch.args[1]).toEqual([{
                     type: 'SHOW_MODAL',
                     modalType: 'NOTIFICATION_MODAL',
                     modalProps: {
@@ -289,7 +300,7 @@ describe('actions.events.notifications', () => {
 
                 done()
             })
-        ))
+        })
 
         it('dispatches `UNLOCK_EVENT` action', (done) => (
             store.test(done, eventsNotifications.onEventUnlocked(
@@ -301,7 +312,7 @@ describe('actions.events.notifications', () => {
                 }
             ))
             .then(() => {
-                expect(store.dispatch.args[1]).toEqual([{
+                expect(store.dispatch.args[0]).toEqual([{
                     type: 'UNLOCK_EVENT',
                     payload: {
                         event: {
