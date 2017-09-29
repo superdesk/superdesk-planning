@@ -61,7 +61,8 @@ export function saveLocation(newLocation) {
             }
 
             if (get(data, 'address.external.nominatim.address')) {
-                eventData.address = data.address.external.nominatim.address
+                eventData.address = data.address
+                delete eventData.address.external
             }
 
             return eventData
@@ -84,7 +85,7 @@ export const getLocation = (searchText, unique=false) => (
                                             must: [{
                                                 query_string: {
                                                     default_field: 'name',
-                                                    query: '*' + searchText + '*',
+                                                    query: searchText + '*',
                                                 },
                                             }],
                                         },

@@ -25,7 +25,7 @@ export class GeoLookupInputComponent extends React.Component {
         this.state = {
             searchResults: null,
             openSuggestsPopUp: false,
-            unsavedInput: null,
+            unsavedInput: '',
         }
         this.handleClickOutside = this.handleClickOutside.bind(this)
     }
@@ -82,14 +82,14 @@ export class GeoLookupInputComponent extends React.Component {
     }
 
     resetSearchResults(resetInputText) {
-        const textState = resetInputText ? { unsavedInput: null } : null
+        const textState = resetInputText ? { unsavedInput: '' } : ''
         if (this.state.searchResults || this.state.openSuggestsPopUp) {
             this.setState({
                 ...textState,
                 searchResults : null,
                 openSuggestsPopUp: false,
             })
-        } else {
+        } else if (this.state.unsavedInput !== textState) {
             this.setState({ ...textState })
         }
 

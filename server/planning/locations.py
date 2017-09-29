@@ -123,7 +123,10 @@ locations_schema = {
             'area': {'type': 'string'},
             'country': {'type': 'string'},
             'postal_code': {'type': 'string'},
-            'external': {'type': 'dict'}
+            'external': {
+                'type': 'dict',
+                'mapping': not_indexed
+            }
         },
     },
     'access': {

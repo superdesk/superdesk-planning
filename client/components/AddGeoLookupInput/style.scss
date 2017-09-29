@@ -32,6 +32,7 @@
             overflow: hidden;
             border-width: 0;
         }
+        max-height: 200px;
     }
     &__item {
         font-weight: normal;
@@ -58,8 +59,7 @@
             cursor: default;
         }
         &--active {
-            background: #267dc0;
-            color: #fff;
+            background: $sd-hover;
         }
     }
     &__input--nominatim {

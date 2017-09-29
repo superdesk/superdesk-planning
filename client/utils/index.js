@@ -466,61 +466,66 @@ export const createStore = (params={}) => {
 }
 
 export const formatAddress = (nominatim) => {
-    const localityHierarchy = [
-        'city',
-        'state',
-        'state_district',
-        'region',
-        'county',
-        'island',
-        'town',
-        'moor',
-        'waterways',
-        'village',
-        'district',
-        'borough',
-    ]
+    let address = nominatim.address
+    if (!get(address, 'line[0]')) {
+        // Address from nominatim search
+        const localityHierarchy = [
+            'city',
+            'state',
+            'state_district',
+            'region',
+            'county',
+            'island',
+            'town',
+            'moor',
+            'waterways',
+            'village',
+            'district',
+            'borough',
+        ]
 
-    const localityField = localityHierarchy.find((locality) =>
-        nominatim.address.hasOwnProperty(locality)
-    )
-    // Map nominatim fields to NewsML area
-    const areaHierarchy = [
-        'island',
-        'town',
-        'moor',
-        'waterways',
-        'village',
-        'hamlet',
-        'municipality',
-        'district',
-        'borough',
-        'airport',
-        'national_park',
-        'suburb',
-        'croft',
-        'subdivision',
-        'farm',
-        'locality',
-        'islet',
-    ]
-    const areaField = areaHierarchy.find((area) =>
-        nominatim.address.hasOwnProperty(area)
-    )
+        const localityField = localityHierarchy.find((locality) =>
+            nominatim.address.hasOwnProperty(locality)
+        )
+        // Map nominatim fields to NewsML area
+        const areaHierarchy = [
+            'island',
+            'town',
+            'moor',
+            'waterways',
+            'village',
+            'hamlet',
+            'municipality',
+            'district',
+            'borough',
+            'airport',
+            'national_park',
+            'suburb',
+            'croft',
+            'subdivision',
+            'farm',
+            'locality',
+            'islet',
+        ]
+        const areaField = areaHierarchy.find((area) =>
+            nominatim.address.hasOwnProperty(area)
+        )
 
-    const address = {
-        title: (localityHierarchy.indexOf(nominatim.type) === -1 &&
-            areaHierarchy.indexOf(nominatim.type) === -1) ?
-            get(nominatim.address, nominatim.type) : null,
-        line: [
-            `${get(nominatim.address, 'house_number', '')} ${get(nominatim.address, 'road', '')}`
-            .trim(),
-        ],
-        locality: get(nominatim.address, localityField),
-        area: get(nominatim.address, areaField),
-        country: nominatim.address.country,
-        postal_code: nominatim.address.postcode,
-        external: { nominatim },
+        address = {
+            title: (localityHierarchy.indexOf(nominatim.type) === -1 &&
+                areaHierarchy.indexOf(nominatim.type) === -1) ?
+                get(nominatim.address, nominatim.type) : null,
+            line: [
+                (`${get(nominatim.address, 'house_number', '')} ` +
+                `${get(nominatim.address, 'road', '')}`)
+                .trim(),
+            ],
+            locality: get(nominatim.address, localityField),
+            area: get(nominatim.address, areaField),
+            country: nominatim.address.country,
+            postal_code: nominatim.address.postcode,
+            external: { nominatim },
+        }
     }
 
     const formattedAddress = [
