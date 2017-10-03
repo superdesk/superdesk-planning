@@ -1,9 +1,10 @@
 import * as selectors from '../../selectors'
 import { WORKFLOW_STATE, EVENTS } from '../../constants'
-import { showModal } from '../index'
+import { showModal, hideModal } from '../index'
 import eventsApi from './api'
 import eventsUi from './ui'
 import { get } from 'lodash'
+import { getLock } from '../../utils'
 
 /**
  * Action Event when an Event gets unlocked
@@ -14,14 +15,18 @@ const onEventUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
             const events = selectors.getEvents(getState())
-            const currentEventId = selectors.getShowEventDetails(getState())
+            const locks = selectors.getLockedItems(getState())
+            let eventInStore = get(events, data.item, {})
+            const itemLock = getLock(eventInStore, locks)
+            const sessionId = selectors.getSessionDetails(getState()).sessionId
 
-            // If this is the event currently being edited, show popup notification
-            if (currentEventId === data.item &&
-                data.lock_session !== selectors.getSessionDetails(getState()).sessionId &&
-                selectors.isEventDetailLockedInThisSession(getState())
+            // If this is the event item currently being edited, show popup notification
+            if (itemLock !== null &&
+                data.lock_session !== sessionId &&
+                itemLock.session === sessionId
             ) {
                 const user =  selectors.getUsers(getState()).find((u) => u._id === data.user)
+                dispatch(hideModal())
                 dispatch(showModal({
                     modalType: 'NOTIFICATION_MODAL',
                     modalProps: {
@@ -32,7 +37,6 @@ const onEventUnlocked = (_e, data) => (
                 }))
             }
 
-            let eventInStore = get(events, data.item, {})
             eventInStore = {
                 ...eventInStore,
                 _id: data.item,

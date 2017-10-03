@@ -521,7 +521,16 @@ describe('actions.planning.notifications', () => {
             store.initialState.planning.plannings.p1.lock_session = 'session1'
         })
 
-        it('dispatches notification modal if item unlocked is being edited', (done) => (
+        it('dispatches notification modal if item unlocked is being edited', (done) => {
+            store.initialState.locks.planning = {
+                p1: {
+                    action: 'edit',
+                    user: 'ident1',
+                    session: 'session1',
+                    item_id: 'p1',
+                    item_type: 'planning',
+                },
+            }
             store.test(done, planningNotifications.onPlanningUnlocked({},
                 {
                     item: 'p1',
@@ -530,7 +539,8 @@ describe('actions.planning.notifications', () => {
             .then(() => {
                 const modalStr = 'The planning item you were editing was unlocked' +
                     ' by "firstname2 lastname2"'
-                expect(store.dispatch.args[0]).toEqual([{
+                expect(store.dispatch.args[0]).toEqual([{ type: 'HIDE_MODAL' }])
+                expect(store.dispatch.args[1]).toEqual([{
                     type: 'SHOW_MODAL',
                     modalType: 'NOTIFICATION_MODAL',
                     modalProps: {
@@ -541,7 +551,7 @@ describe('actions.planning.notifications', () => {
 
                 done()
             })
-        ))
+        })
 
         it('dispatches `UNLOCK_PLANNING` action', (done) => (
             store.test(done, planningNotifications.onPlanningUnlocked({},
@@ -551,7 +561,7 @@ describe('actions.planning.notifications', () => {
                     etag: 'e123',
                 }))
             .then(() => {
-                expect(store.dispatch.args[1]).toEqual([{
+                expect(store.dispatch.args[0]).toEqual([{
                     type: 'UNLOCK_PLANNING',
                     payload: {
                         plan: {
