@@ -67,7 +67,7 @@ export class Component extends React.Component {
     }
 
     handleSaveAndPublish(event) {
-        this.props.saveAndPublish(event)
+        this.props.saveAndPublish(event, this.props.pristine)
     }
 
     toggleOpenUnlockPopup() {
@@ -553,7 +553,7 @@ const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (event) => dispatch(actions.events.ui.saveWithConfirmation(event, true, false)),
     openEventDetails: (event) => dispatch(actions.events.ui.openEventDetails(event)),
-    saveAndPublish: (event) => dispatch(actions.events.ui.saveWithConfirmation(event, true, true)),
+    saveAndPublish: (event, pristine) => dispatch(actions.events.ui.saveWithConfirmation(event, !pristine, true)),
     publish: (event) => dispatch(actions.events.ui.saveWithConfirmation(event, false, true)),
     unpublish: (event) => dispatch(actions.unpublishEvent(event)),
     spikeEvent: (event) => dispatch(actions.events.ui.openSpikeModal(event)),

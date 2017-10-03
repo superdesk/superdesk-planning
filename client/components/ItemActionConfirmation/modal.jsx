@@ -21,6 +21,16 @@ export const ItemActionConfirmationModal = ({ handleHide, modalProps }) => {
     let saveText = 'Save'
     let propToForm = modalProps.eventDetail
 
+    const getSaveAndPublishTitle = () => {
+        const publish = get(modalProps, 'eventDetail._publish', false)
+        const save = get(modalProps, 'eventDetail._save', true)
+        if (save && publish)
+            return 'Save & Publish Event'
+        else if (publish)
+            return 'Publish Event'
+        return 'Save Event'
+    }
+
     switch (modalProps.actionType) {
         case GENERIC_ITEM_ACTIONS.SPIKE.label:
             title = 'Spike an event'
@@ -75,10 +85,8 @@ export const ItemActionConfirmationModal = ({ handleHide, modalProps }) => {
             break
 
         default:
-            title = get(modalProps, 'eventDetail._publish', false) ?
-                'Save Event & Publish' : 'Save Event'
+            title = getSaveAndPublishTitle()
             form = UpdateRecurringEventsForm
-            formNameForPristineCheck = FORM_NAMES.UpdateRecurringEventsForm
     }
 
     return (
