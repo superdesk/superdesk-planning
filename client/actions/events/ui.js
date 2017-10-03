@@ -188,6 +188,7 @@ const _openBulkSpikeModal = (events) => (
             modalProps: {
                 body: `Do you want to spike these ${events.length} events?`,
                 action: () => dispatch(self.spike(events)),
+                deselectEventsAfterAction: true,
             },
         }))
     }
@@ -204,6 +205,7 @@ const _openUnspikeModal = (events) => (
             modalProps: {
                 body: `Do you want to unspike these ${events.length} events?`,
                 action: () => dispatch(self.unspike(events)),
+                deselectEventsAfterAction: true,
             },
         }))
     }

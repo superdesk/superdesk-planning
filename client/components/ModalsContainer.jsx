@@ -1,6 +1,6 @@
 import React from 'react'
 import { connect } from 'react-redux'
-import { hideModal } from '../actions'
+import { hideModal, deselectAllTheEventList } from '../actions'
 import {
     AgendaModal,
     ConfirmationModal,
@@ -41,5 +41,12 @@ const mapStateToProps = (state) => ({
     modalType: state.modal.modalType,
     modalProps: state.modal.modalProps,
 })
-const mapDispatchToProps = (dispatch) => ({ handleHide: () => dispatch(hideModal()) })
+const mapDispatchToProps = (dispatch) => ({
+    handleHide: (deselectEvents) => {
+        dispatch(hideModal())
+        if (deselectEvents) {
+            dispatch(deselectAllTheEventList())
+        }
+    },
+})
 export const ModalsContainer = connect(mapStateToProps, mapDispatchToProps)(Modals)
