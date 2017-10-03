@@ -44,6 +44,8 @@ from .planning_postpone import PlanningPostponeService, PlanningPostponeResource
 from planning.planning_types import PlanningTypesService, PlanningTypesResource
 from .common import get_max_recurrent_events
 from .planning_export import PlanningExportResource, PlanningExportService
+from apps.common.components.utils import register_component
+from .item_lock import LockService
 
 from .commands import *  # noqa
 
@@ -199,6 +201,8 @@ def init_app(app):
 
     events_duplicate_service = EventsDuplicateService('events_duplicate', backend=superdesk.get_backend())
     EventsDuplicateResource('events_duplicate', app=app, service=events_duplicate_service)
+
+    register_component(LockService(app))
 
     superdesk.privilege(
         name='planning',

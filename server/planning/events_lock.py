@@ -16,6 +16,7 @@ from apps.archive.common import get_user, get_auth
 from superdesk.services import BaseService
 from .item_lock import LockService
 from superdesk import get_resource_service
+from apps.common.components.utils import get_component
 
 
 CUSTOM_HATEOAS = {'self': {'title': 'Events', 'href': '/events/{_id}'}}
@@ -48,7 +49,7 @@ class EventsLockService(BaseService):
         session_id = get_auth()['_id']
 
         lock_action = docs[0].get('lock_action', 'edit')
-        lock_service = LockService()
+        lock_service = get_component(LockService)
 
         item_id = request.view_args['item_id']
         item = get_resource_service('events').find_one(req=None, _id=item_id)
@@ -74,7 +75,7 @@ class EventsUnlockService(BaseService):
         updated_item = None
         user_id = get_user(required=True)['_id']
         session_id = get_auth()['_id']
-        lock_service = LockService()
+        lock_service = get_component(LockService)
 
         # If the event is a recurrent event, unlock all other events in this series
         item_id = request.view_args['item_id']

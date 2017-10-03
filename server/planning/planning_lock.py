@@ -15,6 +15,7 @@ from apps.archive.common import get_user, get_auth
 from superdesk.services import BaseService
 from .item_lock import LockService
 from superdesk import get_resource_service
+from apps.common.components.utils import get_component
 
 CUSTOM_HATEOAS = {'self': {'title': 'Planning', 'href': '/planning/{_id}'}}
 
@@ -43,7 +44,7 @@ class PlanningLockService(BaseService):
         session_id = get_auth()['_id']
         item_id = request.view_args['item_id']
         lock_action = docs[0].get('lock_action', 'edit')
-        lock_service = LockService()
+        lock_service = get_component(LockService)
         item = get_resource_service('planning').find_one(req=None, _id=item_id)
 
         if item and item.get('event_item'):
@@ -68,7 +69,7 @@ class PlanningUnlockService(BaseService):
         user_id = get_user(required=True)['_id']
         session_id = get_auth()['_id']
         item_id = request.view_args['item_id']
-        lock_service = LockService()
+        lock_service = get_component(LockService)
         resource_service = get_resource_service('planning')
         item = resource_service.find_one(req=None, _id=item_id)
         updated_item = lock_service.unlock(item, user_id, session_id, 'planning')
