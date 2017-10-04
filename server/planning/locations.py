@@ -125,7 +125,10 @@ locations_schema = {
             'postal_code': {'type': 'string'},
             'external': {
                 'type': 'dict',
-                'mapping': not_indexed
+                'mapping': {
+                    'type': 'object',
+                    'enabled': False
+                }
             }
         },
     },
