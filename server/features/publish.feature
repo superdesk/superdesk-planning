@@ -17,6 +17,10 @@ Feature: Publish
             "destinations": [{"name":"events", "format": "ntb_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
         }
         """
+        Given "contacts"
+        """
+        [{"first_name": "Albert", "last_name": "Foo"}]
+        """
         When we post to "/events" with success
         """
         {
@@ -39,7 +43,7 @@ Feature: Publish
             },
             "subject": [{"qcode": "test qcaode", "name": "test name"}],
             "location": [{"qcode": "test qcaode", "name": "test name"}],
-            "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}]
+            "event_contact_info": ["#contacts._id#"]
         }
         """
 
@@ -88,6 +92,10 @@ Feature: Publish
         "destinations": [{"name":"events", "format": "ntb_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
     }
     """
+    Given "contacts"
+    """
+        [{"first_name": "Albert", "last_name": "Foo"}]
+    """
     When we post to "/events" with success
     """
     {
@@ -110,7 +118,7 @@ Feature: Publish
         },
         "subject": [{"qcode": "test qcaode", "name": "test name"}],
         "location": [{"qcode": "test qcaode", "name": "test name"}],
-        "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}]
+        "event_contact_info": ["#contacts._id#"]
     }
     """
     When we patch "/users/#CONTEXT_USER_ID#"
@@ -140,6 +148,10 @@ Feature: Publish
             "destinations": [{"name":"events", "format": "ntb_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
         }
         """
+        Given "contacts"
+        """
+            [{"first_name": "Albert", "last_name": "Foo"}]
+        """
         When we post to "/events" with success
         """
         {
@@ -162,7 +174,7 @@ Feature: Publish
             },
             "subject": [{"qcode": "test qcaode", "name": "test name"}],
             "location": [{"qcode": "test qcaode", "name": "test name"}],
-            "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}]
+            "event_contact_info": ["#contacts._id#"]
         }
         """
 
