@@ -180,6 +180,10 @@ Feature: Cancel all coverage
           ]
         }]
       """
+      Given "contacts"
+      """
+        [{"first_name": "Albert", "last_name": "Foo"}]
+      """
       Given "events"
       """
       [
@@ -201,7 +205,7 @@ Feature: Cancel all coverage
                   "end": "2016-01-03"
               },
               "subject": [{"qcode": "test qcaode", "name": "test name"}],
-              "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}],
+              "event_contact_info": ["#contacts._id#"],
               "occur_status": {
                   "name": "Planned, occurs certainly",
                   "qcode": "eocstat:eos5"
@@ -277,7 +281,7 @@ Feature: Cancel all coverage
               "end": "2016-01-03T00:00:00+0000"
           },
           "subject": [{"qcode": "test qcaode", "name": "test name"}],
-          "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}],
+          "event_contact_info": ["#contacts._id#"],
           "occur_status": {
               "name": "Planned, occurs certainly",
               "qcode": "eocstat:eos5"

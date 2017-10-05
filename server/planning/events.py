@@ -733,12 +733,8 @@ events_schema = {
     },
     'event_contact_info': {
         'type': 'list',
-        'mapping': {
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed
-            }
-        }
+        'schema': superdesk.Resource.rel('contacts'),
+        'mapping': not_analyzed
     },
     'event_language': {  # TODO: this is only placeholder schema
         'type': 'list',

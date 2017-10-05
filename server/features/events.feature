@@ -11,6 +11,10 @@ Feature: Events
     Scenario: Create new events item
         Given empty "users"
         Given empty "locations"
+        Given "contacts"
+        """
+        [{"first_name": "Albert", "last_name": "Foo"}]
+        """
         When we post to "users"
         """
         {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
@@ -42,7 +46,7 @@ Feature: Events
                 },
                 "subject": [{"qcode": "test qcaode", "name": "test name"}],
                 "location": [{"qcode": "test qcaode", "name": "test name"}],
-                "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}]
+                "event_contact_info": ["#contacts._id#"]
             }
         ]
         """
@@ -204,6 +208,10 @@ Feature: Events
     @notification
     Scenario: Track publish history for event
         Given empty "users"
+        Given "contacts"
+        """
+        [{"first_name": "Albert", "last_name": "Foo"}]
+        """
         When we post to "users"
         """
         {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
@@ -229,7 +237,7 @@ Feature: Events
                     "end": "2016-01-03"
                 },
                 "subject": [{"qcode": "test qcaode", "name": "test name"}],
-                "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}]
+                "event_contact_info": ["#contacts._id#"]
             }
         ]
         """
@@ -320,6 +328,10 @@ Feature: Events
                     ]
         }]
         """
+        Given "contacts"
+        """
+        [{"first_name": "Albert", "last_name": "Foo"}]
+        """
         Given empty "users"
         When we post to "users"
         """
@@ -344,7 +356,7 @@ Feature: Events
                     "end": "2016-01-03"
                 },
                 "subject": [{"qcode": "test qcaode", "name": "test name"}],
-                "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}]
+                "event_contact_info": ["#contacts._id#"]
             }
         ]
         """
@@ -424,6 +436,10 @@ Feature: Events
                     ]
         }]
         """
+        Given "contacts"
+        """
+        [{"first_name": "Albert", "last_name": "Foo"}]
+        """
         Given empty "users"
         When we post to "users"
         """
@@ -458,7 +474,7 @@ Feature: Events
                     }
                 },
                 "subject": [{"qcode": "test qcaode", "name": "test name"}],
-                "event_contact_info": [{"qcode": "test qcaode", "name": "test name"}]
+                "event_contact_info": ["#contacts._id#"]
             }
         ]
         """
