@@ -15,8 +15,8 @@ function PlanningAdvancedSearchFormComponent({
     submitting,
     error,
     resetSearch,
-    g2_content_type,
     daterange,
+
 }) {
     return (
         <form onSubmit={handleSubmit} className="PlanningAdvancedSearchForm">
@@ -25,10 +25,6 @@ function PlanningAdvancedSearchFormComponent({
                        component={fields.InputField}
                        type="text"
                        label="Slugline"/>
-                <Field name="headline"
-                       component={fields.InputField}
-                       type="text"
-                       label="Headline"/>
                 <Field name="anpa_category"
                        component={fields.CategoryField}
                        label="Category"/>
@@ -37,20 +33,16 @@ function PlanningAdvancedSearchFormComponent({
                        label="Subject"/>
                 <Field name="urgency"
                        component={fields.UrgencyField}
+                       labelLeft={true}
                        label="Urgency"/>
                 <Field name="noCoverage"
                        defaultValue={false}
                        component={fields.ToggleField}
                        label="No Coverage"/>
-                <label>Type</label>
                 <Field
                     name="g2_content_type"
-                    component="select">
-                    <option />
-                    {g2_content_type.map((t) => (
-                        <option key={t.qcode} value={t.qcode}>{t.name}</option>
-                    ))}
-                </Field>
+                    component={fields.ContentTypeField}
+                    label="Type"/>
                 <Field name="state"
                        component={fields.SpikeStateField}
                        label="Planning State"/>
@@ -97,13 +89,13 @@ function PlanningAdvancedSearchFormComponent({
                 onClick={()=>{reset(); resetSearch()}}
                 type="button"
                 name="clear"
-                disabled={pristine || submitting}>Clear</button>
+                disabled={submitting}>Clear</button>
             {error && <div><strong>{error}</strong></div>}
         </form>
     )
 }
 
-PlanningAdvancedSearchFormComponent.propTypes = propTypes
+PlanningAdvancedSearchFormComponent.propTypes = { ...propTypes }
 
 // Decorate the form component
 const FormComponent = reduxForm({

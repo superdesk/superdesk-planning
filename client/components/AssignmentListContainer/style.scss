@@ -10,6 +10,7 @@ $ASSIGNMENT_LIST_CONTAINER_ZINDEX: 6;
 .Assignments-list-container__header {
     z-index: $ASSIGNMENT_LIST_CONTAINER_ZINDEX + 1;
     flex-shrink: 0;
+    top: 48px;
 }
 
 .Assignments-list-container__selection {
@@ -31,6 +32,7 @@ $ASSIGNMENT_LIST_CONTAINER_ZINDEX: 6;
     align-items: center;
     padding-left: 2rem;
     flex-shrink: 0;
+    top:48px;
     .search-handler {
         padding-left: 0;
     }

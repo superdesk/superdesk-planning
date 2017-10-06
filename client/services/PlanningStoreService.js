@@ -141,7 +141,6 @@ export function PlanningStoreService(
                     $interpolate,
                 },
             })
-
             return self.store
         })
     }

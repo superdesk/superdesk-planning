@@ -47,6 +47,11 @@ WORKFLOW_STATE_SCHEMA = {
     'mapping': not_analyzed
 }
 
+assignment_workflow_state = ['assigned', 'in_progress', 'completed', 'submitted', 'cancelled']
+ASSIGNMENT_WORKFLOW_STATE = namedtuple('ASSIGNMENT_WORKFLOW_STATE',
+                                       ['ASSIGNED', 'IN_PROGRESS',
+                                        'COMPLETED', 'SUBMITTED', 'cancelled'])(*assignment_workflow_state)
+
 
 def set_item_expiry(doc):
     expiry_minutes = app.settings.get('PLANNING_EXPIRY_MINUTES', None)

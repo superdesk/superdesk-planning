@@ -45,6 +45,42 @@ class PlanningHistoryService(HistoryService):
         }
         self.post([history])
 
+    def on_item_updated(self, updates, original, operation=None):
+        item = deepcopy(original)
+        if list(item.keys()) == ['_id']:
+            diff = updates
+        else:
+            diff = self._changes(original, updates)
+            if updates:
+                item.update(updates)
+
+        self._save_history(item, diff, operation or 'update')
+        self._save_coverage_history(updates, original)
+
+    def _save_coverage_history(self, updates, original):
+        """Save the coverage history for the planning item"""
+        item = deepcopy(original)
+        original_coverages = {c.get('coverage_id'): c for c in (original or {}).get('coverages') or []}
+        updates_coverages = {c.get('coverage_id'): c for c in (updates or {}).get('coverages') or []}
+        added, deleted, updated = [], [], []
+
+        for coverage_id, coverage in updates_coverages.items():
+            if not original_coverages.get(coverage_id):
+                added.append(coverage)
+            elif original_coverages.get(coverage_id) != updates_coverages.get(coverage_id):
+                updated.append(coverage)
+
+        deleted = [coverage for cid, coverage in original_coverages.items() if cid not in updates_coverages]
+
+        for cov in added:
+            self._save_history(item, {'coverage_id': cov.get('coverage_id')}, 'coverage created')
+
+        for cov in updated:
+            self._save_history(item, {'coverage_id': cov.get('coverage_id')}, 'coverage updated')
+
+        for cov in deleted:
+            self._save_history(item, {'coverage_id': cov.get('coverage_id')}, 'coverage deleted')
+
     def on_spike(self, updates, original):
         """Spike event
 

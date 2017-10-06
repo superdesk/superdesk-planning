@@ -10,7 +10,7 @@
 
 from superdesk.tests.steps import (then, when, step_impl_then_get_existing, get_json_data,
                                    assert_200, unique_headers, get_prefixed_url,
-                                   if_match, assert_404, apply_placeholders, get_res)
+                                   if_match, assert_404, apply_placeholders, get_res, set_placeholder)
 from flask import json
 
 
@@ -137,3 +137,32 @@ def step_imp_when_action_resource(context, action, resource, item_id):
 def then_we_get_text_in_response_field(context, field):
     response = get_json_data(context.response)[field]
     assert context.text in response, response
+
+
+@then('we store assignment id in "{tag}" from coverage {index}')
+def then_we_store_assignment_id(context, tag, index):
+    index = int(index)
+    response = get_json_data(context.response)
+    assert len(response.get('coverages')), 'Coverage are not defined.'
+    coverage = response.get('coverages')[index]
+    assignment_id = coverage.get('assigned_to', {}).get('assignment_id')
+    set_placeholder(context, tag, assignment_id)
+
+
+@then('we store coverage id in "{tag}" from coverage {index}')
+def then_we_store_assignment_id(context, tag, index):
+    index = int(index)
+    response = get_json_data(context.response)
+    assert len(response.get('coverages')), 'Coverage are not defined.'
+    coverage = response.get('coverages')[index]
+    coverage_id = coverage.get('coverage_id')
+    set_placeholder(context, tag, coverage_id)
+
+
+@then('the assignment not created for coverage {index}')
+def then_we_store_assignment_id(context, index):
+    index = int(index)
+    response = get_json_data(context.response)
+    assert len(response.get('coverages')), 'Coverage are not defined.'
+    coverage = response.get('coverages')[index]
+    assert not coverage.get('assigned_to', {}).get('assignment_id'), 'Coverage has an assignment'

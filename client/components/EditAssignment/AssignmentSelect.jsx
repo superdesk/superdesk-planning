@@ -1,12 +1,14 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { SearchBar } from '../../components'
 import { fields } from '../index'
 import ReactDOM from 'react-dom'
 import { UserAvatar } from '../'
 import { map, get } from 'lodash'
+import classNames from 'classnames'
 import './style.scss'
 
-export class CoverageAssignSelect extends React.Component {
+export class AssignmentSelect extends React.Component {
     constructor(props) {
         super(props)
         this.handleClickOutside = this.handleClickOutside.bind(this)
@@ -114,38 +116,44 @@ export class CoverageAssignSelect extends React.Component {
             onChange: this.onDeskAssignChange.bind(this),
         }
 
-        return (<div className='coverageassignselect'>
-            <label>Assign</label>
-            { this.state.userAssigned && !this.state.deskAssigned &&
+        const { context } = this.props
+        const classes = classNames('assignmentselect',
+            { 'assignmentselect__assignment': context === 'assignment' })
+
+        return (<div className={classes}>
+            { context !== 'search' &&  <label>Assign</label> || <label>Select</label>}
+            { context !== 'search' && this.state.userAssigned && !this.state.deskAssigned &&
                         <span className="error-block">Must select a desk.</span> }
+
             <fields.DeskSelectField
                 desks={this.state.filteredDeskList}
                 autoFocus={true}
                 input={deskSelectFieldInput} />
             { this.state.userAssigned &&
-                <div className='coverageassignselect__user'>
+                <div className='assignmentselect__user'>
                     <UserAvatar user={this.state.userAssigned} />
-                    <div className='coverageassignselect__label'>{this.state.userAssigned.display_name}</div>
+                    <div className='assignmentselect__label'>{this.state.userAssigned.display_name}</div>
                     <button type='button' onClick={this.onUserAssignChange.bind(this, null)}>
                         <i className="icon-close-small"/>
                     </button>
                 </div> }
-            { this.state.filteredUserList.length > 0 && <div className='coverageassignselect__search'>
+            { this.state.filteredUserList.length > 0 && <div className='assignmentselect__search'>
                 <SearchBar onSearch={(value) => {this.filterUserList(value)}} minLength={1}
                     extendOnOpen={false} ref='searchBar'/>
             </div> }
-            <ul className='coverageassignselect__list'>
+            <ul className='assignmentselect__list'>
                 {this.state.filteredUserList.map((user, index) => (
-                    <li key={index} className='coverageassignselect__item'>
+                    <li key={index} className='assignmentselect__item'>
                         <button type='button' onClick={this.onUserAssignChange.bind(this, user._id)}>
                             <UserAvatar user={user} />
-                            <div className='coverageassignselect__label'>{user.display_name}</div>
+                            <div className='assignmentselect__label'>{user.display_name}</div>
                         </button>
                     </li>
                 ))}
             </ul>
-            <div className='coverageassignselect__action'>
-                { this.state.deskAssigned && <button type="button" className="btn btn--primary"
+            <div className='assignmentselect__action'>
+                { this.state.deskAssigned &&
+                <button type="button" className="btn btn--primary"
                     onClick={this.onChange.bind(this, {
                         user: this.state.userAssigned,
                         desk: this.state.deskAssigned,
@@ -160,9 +168,10 @@ export class CoverageAssignSelect extends React.Component {
     }
 }
 
-CoverageAssignSelect.propTypes = {
-    usersMergedCoverageProviders: React.PropTypes.array.isRequired,
-    desks: React.PropTypes.array.isRequired,
-    onCancel: React.PropTypes.func.isRequired,
-    input: React.PropTypes.object.isRequired,
+AssignmentSelect.propTypes = {
+    usersMergedCoverageProviders: PropTypes.array.isRequired,
+    desks: PropTypes.array.isRequired,
+    onCancel: PropTypes.func.isRequired,
+    input: PropTypes.object.isRequired,
+    context: PropTypes.string,
 }

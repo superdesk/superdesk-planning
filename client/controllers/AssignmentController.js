@@ -1,6 +1,8 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
+import { get } from 'lodash'
+import { registerNotifications } from '../utils'
 import * as actions from '../actions'
 import { AssignmentListContainer } from '../components'
 
@@ -19,11 +21,22 @@ export function AssignmentController(
     sdPlanningStore.getStore()
     .then((store) => {
         store.dispatch(actions.initStore())
-        store.dispatch(actions.loadAssignments('All', null, 'Created', 'Asc'))
+        registerNotifications($scope, store)
+        store.dispatch(actions.assignments.ui.loadAssignments('All', null, 'Created', 'Asc'))
         .then(() => {
             $scope.$watch(
                 () => desks.active,
-                () => store.dispatch(actions.reloadAssignments())
+                () => {
+                    // update the store with workspace
+                    store.dispatch({
+                        type: 'WORKSPACE_CHANGE',
+                        payload: {
+                            currentDeskId: get(desks, 'active.desk'),
+                            currentStageId: get(desks, 'active.stage'),
+                        },
+                    })
+                    return store.dispatch(actions.assignments.ui.reloadAssignments())
+                }
             )
 
             $scope.$on('$destroy', () => {

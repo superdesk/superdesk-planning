@@ -1,9 +1,12 @@
 import { get, cloneDeep, pickBy, isEqual, has } from 'lodash'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
-import { getTimeZoneOffset, sanitizeTextForQuery, isItemLockedInThisSession } from '../../utils'
+import {
+    getTimeZoneOffset,
+    sanitizeTextForQuery,
+    isItemLockedInThisSession,
+} from '../../utils'
 import planningUtils from '../../utils/planning'
-import moment from 'moment'
 import {
     PLANNING,
     PUBLISHED_STATE,
@@ -140,7 +143,6 @@ const query = ({
             {
                 condition: () => (fulltext),
                 do: () => {
-                    let query = { bool: { should: [] } }
                     let queryString = {
                         query_string: {
                             query: '(' + sanitizeTextForQuery(fulltext) + ')',
@@ -148,14 +150,7 @@ const query = ({
                             default_operator: 'AND',
                         },
                     }
-                    query.bool.should.push(queryString)
-                    query.bool.should.push({
-                        has_child: {
-                            type: 'coverage',
-                            query: { bool: { must: [queryString] } },
-                        },
-                    })
-                    must.push(query)
+                    must.push(queryString)
                 },
             },
             {
@@ -163,13 +158,13 @@ const query = ({
                 do: () => {
                     must.push({
                         nested: {
-                            path: '_coverages',
+                            path: '_planning_schedule',
                             query: {
                                 bool: {
                                     must: [
                                         {
                                             range: {
-                                                '_coverages.scheduled': {
+                                                '_planning_schedule.scheduled': {
                                                     gte: 'now/d',
                                                     time_zone: getTimeZoneOffset(),
                                                 },
@@ -187,13 +182,13 @@ const query = ({
                 do: () => {
                     must.push({
                         nested: {
-                            path: '_coverages',
+                            path: '_planning_schedule',
                             query: {
                                 bool: {
                                     must: [
                                         {
                                             range: {
-                                                '_coverages.scheduled': {
+                                                '_planning_schedule.scheduled': {
                                                     lt: 'now/d',
                                                     time_zone: getTimeZoneOffset(),
                                                 },
@@ -209,31 +204,32 @@ const query = ({
             {
                 condition: () => (get(advancedSearch, 'dates')),
                 do: () => {
-                    let range = { '_coverages.scheduled': { time_zone: getTimeZoneOffset() } }
+                    let fieldName = '_planning_schedule.scheduled'
+                    let range = { fieldName: { time_zone: getTimeZoneOffset() } }
                     let rangeType = get(advancedSearch, 'dates.range', 'today')
 
                     if (rangeType === 'today') {
-                        range['_coverages.scheduled'].gte = 'now/d'
-                        range['_coverages.scheduled'].lt = 'now+24h/d'
+                        range[fieldName].gte = 'now/d'
+                        range[fieldName].lt = 'now+24h/d'
                     } else if (rangeType === 'last24') {
-                        range['_coverages.scheduled'].gte = 'now-24h'
-                        range['_coverages.scheduled'].lt = 'now'
+                        range[fieldName].gte = 'now-24h'
+                        range[fieldName].lt = 'now'
                     } else if (rangeType === 'week') {
-                        range['_coverages.scheduled'].gte = 'now/w'
-                        range['_coverages.scheduled'].lt = 'now+1w/w'
+                        range[fieldName].gte = 'now/w'
+                        range[fieldName].lt = 'now+1w/w'
                     } else {
                         if (get(advancedSearch, 'dates.start')) {
-                            range['_coverages.scheduled'].gte = get(advancedSearch, 'dates.start')
+                            range[fieldName].gte = get(advancedSearch, 'dates.start')
                         }
 
                         if (get(advancedSearch, 'dates.end')) {
-                            range['_coverages.scheduled'].lte = get(advancedSearch, 'dates.end')
+                            range[fieldName].lte = get(advancedSearch, 'dates.end')
                         }
                     }
 
                     must.push({
                         nested: {
-                            path: '_coverages',
+                            path: '_planning_schedule',
                             query: { bool: { must: [{ range: range }] } },
                         },
                     })
@@ -253,38 +249,12 @@ const query = ({
                     }
                     query.bool.should.push(queryString)
                     queryString = cloneDeep(queryString)
-                    queryString.query_string.query = 'planning.slugline:(' + queryText + ')'
-                    if (!advancedSearch.noCoverage) {
-                        query.bool.should.push({
-                            has_child: {
-                                type: 'coverage',
-                                query: { bool: { must: [queryString] } },
-                            },
-                        })
-                    }
+                    queryString.query_string.query = 'coverages.planning.slugline:(' + queryText + ')' // jscs: disable
 
-                    must.push(query)
-                },
-            },
-            {
-                condition: () => (advancedSearch.headline),
-                do: () => {
-                    let query = { bool: { should: [] } }
-                    let queryText = sanitizeTextForQuery(advancedSearch.headline)
-                    let queryString = {
-                        query_string: {
-                            query: 'headline:(' + queryText + ')',
-                            lenient: false,
-                            default_operator: 'AND',
-                        },
-                    }
-                    query.bool.should.push(queryString)
-                    queryString = cloneDeep(queryString)
-                    queryString.query_string.query = 'planning.headline:(' + queryText + ')'
                     if (!advancedSearch.noCoverage) {
                         query.bool.should.push({
-                            has_child: {
-                                type: 'coverage',
+                            nested: {
+                                path: 'coverages',
                                 query: { bool: { must: [queryString] } },
                             },
                         })
@@ -318,10 +288,10 @@ const query = ({
             {
                 condition: () => (advancedSearch.g2_content_type),
                 do: () => {
-                    let term = { '_coverages.g2_content_type': advancedSearch.g2_content_type }
+                    let term = { 'coverages.planning.g2_content_type': advancedSearch.g2_content_type } // jscs:ignore maximumLineLength
                     must.push({
                         nested: {
-                            path: '_coverages',
+                            path: 'coverages',
                             query: { bool: { must: [{ term: term }] } },
                         },
                     })
@@ -330,10 +300,10 @@ const query = ({
             {
                 condition: () => (advancedSearch.noCoverage),
                 do: () => {
-                    let noCoverageTerm = { term: { '_coverages.coverage_id': 'NO_COVERAGE' } }
+                    let noCoverageTerm = { term: { 'coverages.coverage_id': 'NO_COVERAGE' } }
                     must.push({
                         nested: {
-                            path: '_coverages',
+                            path: 'coverages',
                             query: { bool: { must: [noCoverageTerm] } },
                         },
                     })
@@ -352,12 +322,12 @@ const query = ({
 
         let sort = [
             {
-                '_coverages.scheduled': {
+                '_planning_schedule.scheduled': {
                     order: onlyFuture ? 'asc' : 'desc',
-                    nested_path: '_coverages',
+                    nested_path: '_planning_schedule',
                     nested_filter: {
                         range: {
-                            '_coverages.scheduled': onlyFuture ? {
+                            '_planning_schedule.scheduled': onlyFuture ? {
                                 gte: 'now/d',
                                 time_zone: getTimeZoneOffset(),
                             } : {
@@ -386,7 +356,7 @@ const query = ({
         })
         .then((data) => {
             if (get(data, '_items')) {
-                data._items.forEach(_convertCoveragesGenreToObject)
+                data._items.forEach(planningUtils.convertCoveragesGenreToObject)
                 return Promise.resolve(data._items)
             } else {
                 return Promise.reject('Failed to retrieve items')
@@ -490,7 +460,7 @@ const fetchPlanningById = (pid, force=false) => (
 
         return api('planning').getById(pid)
         .then((item) => (
-            dispatch(self.fetchPlanningsEvents([_convertCoveragesGenreToObject(item)]))
+            dispatch(self.fetchPlanningsEvents([planningUtils.convertCoveragesGenreToObject(item)]))
             .then(() => {
                 dispatch(self.receivePlannings([item]))
                 return Promise.resolve(item)
@@ -500,23 +470,6 @@ const fetchPlanningById = (pid, force=false) => (
             return Promise.reject(error)
         })
     }
-)
-
-/**
- * Action Dispatcher that fetches a Coverage by ID and adds or updates it
- * in the redux store for the associated Planning item
- * @param {string} cid - The ID of the Coverage to fetch
- * @return Promise
- */
-const fetchCoverageById = (cid) => (
-    (dispatch, getState, { api }) => (
-        api('coverage').getById(cid)
-        .then((coverage) => {
-            _convertCoverageGenreToObject(coverage)
-            dispatch(self.receiveCoverage(coverage))
-            return Promise.resolve(coverage)
-        }, (error) => (Promise.reject(error)))
-    )
 )
 
 /**
@@ -588,7 +541,7 @@ const loadPlanningById = (ids=[], spikeState = SPIKED_STATE.BOTH, saveToStore=tr
         } else {
             return api('planning').getById(ids)
             .then((item) => {
-                _convertCoveragesGenreToObject(item)
+                planningUtils.convertCoveragesGenreToObject(item)
                 if (saveToStore) {
                     dispatch(self.receivePlannings([item]))
                 }
@@ -711,9 +664,7 @@ const save = (item, original=undefined) => (
             // remove all properties starting with _,
             // otherwise it will fail for "unknown field" with `_type`
             item = pickBy(item, (v, k) => (!k.startsWith('_')))
-            // clone and remove the nested coverages to save them later
-            const coverages = cloneDeep(item.coverages)
-            delete item.coverages
+
             // remove nested original creator
             delete item.original_creator
 
@@ -721,99 +672,23 @@ const save = (item, original=undefined) => (
                 item.agendas = item.agendas.map((agenda) => agenda._id || agenda)
             }
 
-            if (!get(originalItem, '_id')) {
-                return api('planning').save(cloneDeep(originalItem), item)
-                .then(
-                    (item) => (Promise.resolve(item)),
-                    (error) => (Promise.reject(error))
-                )
-            }
-
-            return dispatch(self.saveAndDeleteCoverages(
-                    coverages,
-                    originalItem,
-                    get(originalItem, 'coverages', [])
-            ))
-            .then(() => (
-                api('planning').save(cloneDeep(originalItem), item)
-                .then(
-                    (item) => (Promise.resolve(item)),
-                    (error) => (Promise.reject(error))
-                )
-            ), (error) => (Promise.reject(error)))
-
-        }, (error) => (Promise.reject(error)))
-    )
-)
-
-/**
- * Saves or deletes coverages through the API to
- * the given planning based on the original coverages
- * @param {array, object} coverages - An array of coverage objects
- * @param {object} item - The associated planning item
- * @param {object} originalCoverages - The original version of the coverage list
- * @return Promise
- */
-const saveAndDeleteCoverages = (coverages, item, originalCoverages) => (
-    (dispatch, getState, { api }) => {
-        const promises = []
-
-        // Saves coverages
-        if (get(coverages, 'length', 0) > 0) {
-            coverages.forEach((coverage) => {
-                // patch or post ? look for an original coverage
-                const originalCoverage = originalCoverages.find((c) => (
-                    c._id === coverage._id
-                ))
-
-                // If the coverage is scheduled, convert it to a moment instance
-                // so the lodash.isEqual function can compare it with the new coverage
-                if (get(originalCoverage, 'planning.scheduled')) {
-                    originalCoverage.planning.scheduled = moment(
-                        originalCoverage.planning.scheduled
-                    )
-                }
-
-                // Make sure that the updated coverage schedule is
-                // a moment instance as well
-                if (get(coverage, 'planning.scheduled')) {
-                    coverage.planning.scheduled = moment(coverage.planning.scheduled)
-                }
-
-                // Only update the coverage if it has changed
-                if (!isEqual(coverage, originalCoverage)) {
-                    coverage.planning_item = item._id
-
+            // Saves coverages
+            if (Array.isArray(get(item, 'coverages'))) {
+                get(item, 'coverages').forEach((coverage) => {
                     // Convert genre back to an Array
                     if (get(coverage, 'planning.genre')) {
                         coverage.planning.genre = [coverage.planning.genre]
                     }
+                })
+            }
 
-                    promises.push(
-                        api('coverage').save(cloneDeep(originalCoverage || {}), coverage)
-                    )
-                }
-            })
-        }
-
-        // Deletes coverages
-        if (get(originalCoverages, 'length', 0) > 0) {
-            originalCoverages.forEach((originalCoverage) => {
-                // if there is a coverage in the original planning that is not anymore
-                // in the planning, we delete it
-                if (coverages.findIndex((c) => (
-                    c._id && c._id === originalCoverage._id
-                )) === -1) {
-                    promises.push(
-                        api('coverage').remove(originalCoverage)
-                    )
-                }
-            })
-        }
-
-        // returns the up to date planning when all is done
-        return Promise.all(promises)
-    }
+            return api('planning').save(cloneDeep(originalItem), item)
+            .then(
+                (item) => (Promise.resolve(item)),
+                (error) => (Promise.reject(error))
+            )
+        }, (error) => (Promise.reject(error)))
+    )
 )
 
 /**
@@ -959,14 +834,6 @@ const receivePlannings = (plannings) => ({
     payload: plannings,
 })
 
-/**
- * Action for updating Planning item's coverage in the redux store
- * @param {object} coverage - The Coverage to add to the store
- */
-const receiveCoverage = (coverage) => ({
-    type: PLANNING.ACTIONS.RECEIVE_COVERAGE,
-    payload: coverage,
-})
 
 /**
  * Action dispatcher that attempts to unlock a Planning item through the API
@@ -977,6 +844,10 @@ const unlock = (item) => (
     (dispatch, getState, { api }) => (
         api('planning_unlock', item).save({})
     )
+    .then((item) => {
+        planningUtils.convertCoveragesGenreToObject(item)
+        return Promise.resolve(item)
+    }, (error) => Promise.reject(error))
 )
 
 /**
@@ -998,33 +869,12 @@ const lock = (planning, lockAction='edit') => (
             { lock_action: lockAction },
             { _id: planning._id }
         )
+        .then((item) => {
+            planningUtils.convertCoveragesGenreToObject(item)
+            return Promise.resolve(item)
+        }, (error) => Promise.reject(error))
     }
 )
-
-/**
- * Utility to convert a Planning item's coverage's genre from an Array to an Object
- * @param {object} plan - The planning item to modify it's coverages
- * @return {object} planning item provided
- */
-const _convertCoveragesGenreToObject = (plan) => {
-    get(plan, 'coverages', []).forEach(_convertCoverageGenreToObject)
-    return plan
-}
-
-/**
- * Utility to convert coverage genre from an Array to an Object
- * @param {object} coverage - The coverage to modify
- * @return {object} coverage item provided
- */
-const _convertCoverageGenreToObject = (coverage) => {
-    // Make sure the coverage has a planning field
-    if (!('planning' in coverage)) coverage.planning = {}
-
-    // Convert genre from an Array to an Object
-    coverage.planning.genre = get(coverage, 'planning.genre[0]')
-
-    return coverage
-}
 
 const markPlanningCancelled = (plan, reason, coverageState, eventCancellation) => ({
     type: PLANNING.ACTIONS.MARK_PLANNING_CANCELLED,
@@ -1138,11 +988,8 @@ const self = {
     query,
     fetch,
     receivePlannings,
-    receiveCoverage,
     save,
-    saveAndDeleteCoverages,
     saveAndReloadCurrentAgenda,
-    fetchCoverageById,
     fetchPlanningById,
     fetchPlanningsEvents,
     unlock,

@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { reduxForm, formValueSelector } from 'redux-form'
+import { formValueSelector, isValid, isSubmitting, isPristine } from 'redux-form'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
 import { PlanningForm } from '../index'
@@ -114,19 +114,9 @@ export class EditPlanningPanel extends React.Component {
     }
 
     cancelForm() {
-        const { planning, pristine, dispatch, closePlanningEditor } = this.props
+        const { planning, pristine, openCancelModal, closePlanningEditor } = this.props
         if (!pristine) {
-            return dispatch(actions.showModal({
-                modalType: 'CONFIRMATION',
-                modalProps: {
-                    title: 'Save changes?',
-                    body: 'There are some unsaved changes, do you want to save it now?',
-                    okText: 'Save',
-                    showIgnore: true,
-                    action: this.saveAndClose,
-                    ignore: closePlanningEditor.bind(this, planning),
-                },
-            }))
+            return openCancelModal(this.saveAndClose, closePlanningEditor.bind(this, planning))
         }
 
         return closePlanningEditor(planning)
@@ -421,10 +411,10 @@ EditPlanningPanel.propTypes = {
     onConvertToRecurringEvent: PropTypes.func,
     lockedItems: PropTypes.object,
     onPostponeEvent: PropTypes.func,
-    dispatch: PropTypes.func,
     valid: PropTypes.bool,
     onCancelPlanning: PropTypes.func,
     onCancelAllCoverage: PropTypes.func,
+    openCancelModal: PropTypes.func.isRequired,
 }
 
 const selector = formValueSelector('planning') // Selector for the Planning form
@@ -438,6 +428,9 @@ const mapStateToProps = (state) => ({
     privileges: selectors.getPrivileges(state),
     session: selectors.getSessionDetails(state),
     lockedItems: selectors.getLockedItems(state),
+    pristine: isPristine('planning')(state),
+    valid: isValid('planning')(state),
+    submitting: isSubmitting('planning')(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -462,9 +455,20 @@ const mapDispatchToProps = (dispatch) => ({
     onPostponeEvent: (event) => dispatch(actions.events.ui.openPostponeModal(event)),
     onCancelPlanning: (planning) => dispatch(actions.planning.ui.openCancelPlanningModal(planning)),
     onCancelAllCoverage: (planning) => dispatch(actions.planning.ui.openCancelAllCoverageModal(planning)),
+    openCancelModal: (actionCallBack, ignoreCallBack) => dispatch(actions.showModal({
+        modalType: 'CONFIRMATION',
+        modalProps: {
+            title: 'Save changes?',
+            body: 'There are some unsaved changes, do you want to save it now?',
+            okText: 'Save',
+            showIgnore: true,
+            action: actionCallBack,
+            ignore: ignoreCallBack,
+        },
+    })),
 })
 
 export const EditPlanningPanelContainer = connect(
     mapStateToProps, mapDispatchToProps
 // connect to the form in order to have pristine and submitting in props
-)(reduxForm({ form: 'planning' })(EditPlanningPanel))
+)(EditPlanningPanel)

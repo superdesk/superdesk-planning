@@ -7,7 +7,7 @@ Feature: Planning
         Then we get list with 0 items
 
     @auth
-    @notification @wip
+    @notification
     Scenario: Create new planning item without agenda
         Given empty "users"
         Given empty "planning"
@@ -52,14 +52,7 @@ Feature: Planning
                 "original_creator": "__any_value__",
                 "item_class": "item class value",
                 "headline": "test headline",
-                "slugline": "test slugline",
-                "_coverages": [
-                    {
-                        "coverage_id": "NO_COVERAGE",
-                        "scheduled": "#planning_date#",
-                        "g2_content_type": null
-                    }
-                ]
+                "slugline": "test slugline"
             }]}
         """
         When we get "/planning_history"
@@ -88,14 +81,7 @@ Feature: Planning
                 "original_creator": "__any_value__",
                 "item_class": "item class value",
                 "headline": "test headline",
-                "slugline": "test test test",
-                "_coverages": [
-                    {
-                        "coverage_id": "NO_COVERAGE",
-                        "scheduled": "#planning_date#",
-                        "g2_content_type": null
-                    }
-                ]
+                "slugline": "test test test"
             }]}
         """
 
@@ -251,51 +237,229 @@ Feature: Planning
 
     @auth
     @notification
-    Scenario: Plannings contain nested coverages
-        Given "planning"
+    Scenario: Create and update coverages for planning with assignments.
+        Given empty "planning"
+        When we post to "planning"
         """
         [{
+            "guid": "123",
             "item_class": "item class value",
             "headline": "test headline",
             "slugline": "test slugline"
         }]
         """
-        Given "coverage"
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
         """
-        [{
-            "planning_item": "#planning._id#",
-            "planning": {
-                "ednote": "test coverage, I want 250 words",
-                "assigned_to": {
-                    "desk": "Politic Desk",
-                    "user": "507f191e810c19729de860ea"
-                },
-                "headline": "test headline",
-                "slugline": "test slugline"
-            }
-        }]
+        {
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
         """
-        When we get "/planning"
-        Then we get list with 1 items
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then the assignment not created for coverage 0
+        Then we get existing resource
         """
-        {"_items": [{
+        {
             "_id": "#planning._id#",
+            "guid": "123",
             "item_class": "item class value",
             "headline": "test headline",
-            "coverages": [{
-                "planning_item": "#planning._id#",
-                "planning": {
-                    "ednote": "test coverage, I want 250 words",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
                     "assigned_to": {
                         "desk": "Politic Desk",
-                        "user": "507f191e810c19729de860ea"
-                    },
-                    "headline": "test headline",
-                    "slugline": "test slugline"
+                        "user": "507f191e810c19729de870eb"
+                    }
                 }
-            }]
-        }]}
+            ]
+        }
         """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "#firstassignment#"
+                    }
+                }
+            ]
+        }
+        """
+        When we get "assignments/#firstassignment#"
+        Then we get OK response
+
+
+    @auth
+    @notification
+    Scenario: Coverage cannot be deleted after assignment is created.
+        Given empty "planning"
+        When we post to "planning"
+        """
+        [{
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then the assignment not created for coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    }
+                }
+            ]
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": []
+        }
+        """
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": []
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "guid": "123",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "#firstassignment#"
+                    }
+                }
+            ]
+        }
+        """
+        When we get "assignments/#firstassignment#"
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": []
+        }
+        """
+        Then we get error 200
 
     @auth
     @notification

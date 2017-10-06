@@ -22,7 +22,6 @@ class Component extends React.Component {
         const {
             handleSubmit,
             readOnly,
-            headline,
             slugline,
             pubstatus,
             users,
@@ -109,6 +108,9 @@ class Component extends React.Component {
                             <Field
                                 name="urgency"
                                 component={fields.UrgencyField}
+                                labelLeft={true}
+                                label="Urgency"
+                                required={get(formProfile.planning, 'schema.urgency.required')}
                                 readOnly={readOnly} />
                         </div>
                         }
@@ -132,7 +134,6 @@ class Component extends React.Component {
                 <FieldArray
                     name="coverages"
                     component={fields.CoveragesFieldArray}
-                    headline={headline}
                     slugline={slugline}
                     users={users}
                     readOnly={readOnly}
@@ -144,7 +145,6 @@ class Component extends React.Component {
 
 Component.propTypes = {
     ...propTypes,
-    headline: PropTypes.string,
     slugline: PropTypes.string,
     pubstatus: PropTypes.string,
     users: PropTypes.array.isRequired,
@@ -168,11 +168,10 @@ const PlanningReduxForm = reduxForm({
 const selector = formValueSelector('planning') // same as form name
 const mapStateToProps = (state) => ({
     initialValues: selectors.getCurrentPlanning(state),
-    headline: selector(state, 'headline'), // Used to parse current headline to new coverages
     slugline: selector(state, 'slugline'), // Used to parse current slugline to new coverages
     pubstatus: selector(state, 'pubstatus'), // Used to determine `Published State`
     users: selectors.getUsers(state),
-    desks: state.desks && state.desks.length > 0 ? state.desks : [],
+    desks: selectors.getDesks(state),
     formProfile: selectors.getPlanningTypeProfile(state),
 })
 

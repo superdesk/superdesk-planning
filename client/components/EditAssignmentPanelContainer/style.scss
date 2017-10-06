@@ -33,6 +33,8 @@ $EDIT_ASSIGNMENT_WIDTH: 450px;
 }
 .EditAssignmentPanel__actions {
     white-space: nowrap;
+    position: absolute;
+    right: 0px;
     &__edit {
         padding-right: 20px;
     }

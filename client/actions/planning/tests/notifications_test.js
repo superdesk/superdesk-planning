@@ -26,12 +26,6 @@ describe('actions.planning.notifications', () => {
             sinon.stub(planningNotifications, 'onPlanningCreated').callsFake(
                 () => (Promise.resolve())
             )
-            sinon.stub(planningNotifications, 'onCoverageCreatedOrUpdated').callsFake(
-                () => (Promise.resolve())
-            )
-            sinon.stub(planningNotifications, 'onCoverageDeleted').callsFake(
-                () => (Promise.resolve())
-            )
             sinon.stub(planningNotifications, 'onPlanningUpdated').callsFake(
                 () => (Promise.resolve())
             )
@@ -58,8 +52,6 @@ describe('actions.planning.notifications', () => {
 
         afterEach(() => {
             restoreSinonStub(planningNotifications.onPlanningCreated)
-            restoreSinonStub(planningNotifications.onCoverageCreatedOrUpdated)
-            restoreSinonStub(planningNotifications.onCoverageDeleted)
             restoreSinonStub(planningNotifications.onPlanningUpdated)
             restoreSinonStub(planningNotifications.onPlanningLocked)
             restoreSinonStub(planningNotifications.onPlanningUnlocked)
@@ -74,41 +66,6 @@ describe('actions.planning.notifications', () => {
             setTimeout(() => {
                 expect(planningNotifications.onPlanningCreated.callCount).toBe(1)
                 expect(planningNotifications.onPlanningCreated.args[0][1]).toEqual({ item: 'p2' })
-
-                done()
-            }, delay)
-        })
-
-        it('`coverage:created` calls onCoverageCreatedOrUpdated', (done) => {
-            $rootScope.$broadcast('coverage:created', { item: 'p2' })
-
-            setTimeout(() => {
-                expect(planningNotifications.onCoverageCreatedOrUpdated.callCount).toBe(1)
-                expect(planningNotifications.onCoverageCreatedOrUpdated.args[0][1])
-                .toEqual({ item: 'p2' })
-
-                done()
-            }, delay)
-        })
-
-        it('`coverage:updated` calls onCoverageCreatedOrUpdated', (done) => {
-            $rootScope.$broadcast('coverage:updated', { item: 'p2' })
-
-            setTimeout(() => {
-                expect(planningNotifications.onCoverageCreatedOrUpdated.callCount).toBe(1)
-                expect(planningNotifications.onCoverageCreatedOrUpdated.args[0][1])
-                .toEqual({ item: 'p2' })
-
-                done()
-            }, delay)
-        })
-
-        it('`coverage:deleted` calls onCoverageDeleted', (done) => {
-            $rootScope.$broadcast('coverage:deleted', { item: 'p2' })
-
-            setTimeout(() => {
-                expect(planningNotifications.onCoverageDeleted.callCount).toBe(1)
-                expect(planningNotifications.onCoverageDeleted.args[0][1]).toEqual({ item: 'p2' })
 
                 done()
             }, delay)
@@ -330,72 +287,6 @@ describe('actions.planning.notifications', () => {
             })
         })
     })
-
-    describe('onCoverageCreatedOrUpdated', () => {
-        afterEach(() => {
-            restoreSinonStub(planningApi.fetchCoverageById)
-        })
-
-        it('calls fetchCoverageById', (done) => {
-            sinon.stub(planningApi, 'fetchCoverageById').callsFake(
-                () => (Promise.resolve(data.coverages[1]))
-            )
-
-            return store.test(done, planningNotifications.onCoverageCreatedOrUpdated(
-                {},
-                {
-                    item: 'c2',
-                    planning: 'p1',
-                }
-            ))
-            .then((item) => {
-                expect(item).toEqual(data.coverages[1])
-                expect(planningApi.fetchCoverageById.callCount).toBe(1)
-                expect(planningApi.fetchCoverageById.args[0]).toEqual(['c2', true])
-                done()
-            })
-        })
-
-        it('notifies user if fetchCoverageById failed', (done) => {
-            sinon.stub(planningApi, 'fetchCoverageById').callsFake(
-                () => (Promise.reject(errorMessage))
-            )
-
-            return store.test(done, planningNotifications.onCoverageCreatedOrUpdated(
-                {},
-                {
-                    item: 'c1',
-                    planning: 'p1',
-                }
-            ))
-            .then(() => {}, (error) => {
-                expect(error).toEqual(errorMessage)
-                expect(services.notify.error.callCount).toBe(1)
-                expect(services.notify.error.args[0]).toEqual(['Failed!'])
-                done()
-            })
-        })
-    })
-
-    it('onCoverageDeleted', (done) => (
-        store.test(done, planningNotifications.onCoverageDeleted(
-            {},
-            {
-                item: 'c2',
-                planning: 'p1',
-            }
-        ))
-        .then(() => {
-            expect(store.dispatch.args[0]).toEqual([{
-                type: 'COVERAGE_DELETED',
-                payload: {
-                    _id: 'c2',
-                    planning_item: 'p1',
-                },
-            }])
-            done()
-        })
-    ))
 
     describe('onPlanningUpdated', () => {
         afterEach(() => {

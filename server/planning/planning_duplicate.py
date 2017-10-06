@@ -43,15 +43,11 @@ class PlanningDuplicateService(BaseService):
         parent_plan = planning_service.find_one(req=None, _id=parent_id)
         new_plan = self._duplicate_planning(parent_plan)
 
-        new_coverages = self._duplicate_coverages(parent_id, new_plan['guid'])
-
         planning_service.on_create([new_plan])
         planning_service.create([new_plan])
-        planning_service.sync_coverages(new_coverages)
 
         history_service.on_duplicate(parent_plan, new_plan)
         history_service.on_duplicate_from(new_plan, parent_id)
-
         planning_service.on_duplicated(new_plan, parent_id)
 
         return [new_plan['guid']]
@@ -59,33 +55,17 @@ class PlanningDuplicateService(BaseService):
     def _duplicate_planning(self, original):
         new_plan = deepcopy(original)
 
-        for f in ('_id', 'guid', 'lock_user', 'lock_time', 'original_creator', '_coverages'
+        for f in ('_id', 'guid', 'lock_user', 'lock_time', 'original_creator', '_planning_schedule'
                   'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus'):
             new_plan.pop(f, None)
 
         new_plan[ITEM_STATE] = WORKFLOW_STATE.DRAFT
         new_plan['guid'] = generate_guid(type=GUID_NEWSML)
 
+        for cov in new_plan.get('coverages') or []:
+            cov.pop('assigned_to', None)
+            cov.get('planning', {}).pop('scheduled', None)
+            cov['coverage_id'] = generate_guid(type=GUID_NEWSML)
+            cov['news_coverage_status'] = {'qcode': 'ncostat:int'}
+
         return new_plan
-
-    def _duplicate_coverages(self, parent_plan_id, new_plan_id):
-        coverage_service = get_resource_service('coverage')
-        parent_coverages = list(coverage_service.find(where={'planning_item': parent_plan_id}))
-
-        if len(parent_coverages) == 0:
-            return []
-
-        new_coverages = []
-        for coverage in parent_coverages:
-            new_coverage = deepcopy(coverage)
-            for f in ('_id', 'guid', '_created', '_updated', '_etag'):
-                new_coverage.pop(f, None)
-
-            new_coverage.get('planning', {}).pop('assigned_to', None)
-            new_coverage.get('planning', {}).pop('scheduled', None)
-            new_coverage['planning_item'] = new_plan_id
-            new_coverages.append(new_coverage)
-
-        coverage_service.on_create(new_coverages)
-        coverage_service.create(new_coverages)
-        return new_coverages

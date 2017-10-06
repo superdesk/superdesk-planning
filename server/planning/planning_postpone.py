@@ -8,7 +8,6 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from superdesk import get_resource_service
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth
@@ -40,15 +39,12 @@ class PlanningPostponeResource(PlanningResource):
 
 class PlanningPostponeService(BaseService):
     def update(self, id, updates, original):
-        coverage_service = get_resource_service('coverage')
         self._postpone_plan(updates, original)
-
-        coverages = list(coverage_service.find(
-            where={'planning_item': original[config.ID_FIELD]}
-        ))
+        updates['coverages'] = deepcopy(original.get('coverages'))
+        coverages = updates.get('coverages') or []
 
         for coverage in coverages:
-            self._postpone_coverage(updates, coverage, coverage_service)
+            self._postpone_coverage(updates, coverage)
 
         reason = updates.get('reason', None)
         if 'reason' in updates:
@@ -82,24 +78,14 @@ Event Postponed
         updates['ednote'] = ednote
         updates[ITEM_STATE] = WORKFLOW_STATE.POSTPONED
 
-    def _postpone_coverage(self, updates, coverage, coverage_service):
+    def _postpone_coverage(self, updates, coverage):
         note = '''------------------------------------------------------------
 Event has been postponed
 '''
         if updates.get('reason', None) is not None:
             note += 'Reason: {}\n'.format(updates['reason'])
 
-        if 'internal_note' in coverage.get('planning', {}):
-            note = coverage['planning']['internal_note'] + '\n\n' + note
+        if not coverage.get('planning'):
+            coverage['planning'] = {}
 
-        updates = {
-            'planning': deepcopy(coverage.get('planning', {}))
-        }
-
-        updates['planning']['internal_note'] = note
-
-        coverage_service.update(
-            coverage[config.ID_FIELD],
-            updates,
-            coverage
-        )
+        coverage['planning']['internal_note'] = note = coverage['planning']['internal_note'] + '\n\n' + note

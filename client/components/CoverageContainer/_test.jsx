@@ -8,7 +8,7 @@ import { EditPlanningPanelContainer, CoverageListItem, Coverage } from '../../co
 describe('<CoverageContainer />', () => {
 
     const coverage = {
-        _id: 'foo',
+        coverage_id: 'foo',
         planning: {
             slugline: 'slugline',
             headline: 'headline',

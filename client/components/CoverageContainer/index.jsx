@@ -9,7 +9,7 @@ import { get } from 'lodash'
 export class CoverageContainer extends React.Component {
     constructor(props) {
         super(props)
-        this.state = { displayForm: get(this.props, 'coverage._id') ? false : true }
+        this.state = { displayForm: get(this.props, 'coverage.coverage_id') ? false : true }
         this.handleClick = this.handleClick.bind(this)
         this.scrollToView = this.scrollToView.bind(this)
     }

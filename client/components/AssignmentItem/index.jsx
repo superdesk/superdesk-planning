@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { ListItem, Checkbox, UserAvatar, AbsoluteDate } from '../index'
 import classNames from 'classnames'
 import moment from 'moment'
+import { get } from 'lodash'
 import { getCoverageIcon } from '../../utils/index'
 
 export const AssignmentItem = ({
@@ -19,7 +20,7 @@ export const AssignmentItem = ({
             item={assignment}
             onClick={onClick}
             draggable={true}
-            className={classNames('assignment', className)}
+            className={classNames('assignmentItem', className)}
             active={isSelected}
         >
             <div className="sd-list-item__action-menu">
@@ -34,14 +35,13 @@ export const AssignmentItem = ({
                         {assignment.planning.slugline && (
                             <span className="ListItem__slugline">{assignment.planning.slugline}</span>
                         )}
-                        <span className="ListItem__headline">{assignment.planning.headline}</span>
                     </span>
                 </div>
                 <div className="sd-list-item__row">
                     <span className="ListItem__headline">
                             <i className="icon-time"/>
-                            {assignment.planning.scheduled ? (
-                                <AbsoluteDate date={assignment.planning.scheduled} />
+                            {get(assignment, 'planning.scheduled') ? (
+                                <AbsoluteDate date={get(assignment, 'planning.scheduled').toString()} />
                             ) : (<time><span>'not scheduled yet'</span></time>)}
                     </span>
                 </div>

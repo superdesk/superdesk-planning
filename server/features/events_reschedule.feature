@@ -125,18 +125,13 @@ Feature: Events Reschedule
             "event_item": "event1",
             "state": "scheduled",
             "pubstatus": "usable",
-            "ednote": "We planned this."
-        }]
-        """
-        Given "coverage"
-        """
-        [{
-            "_id": "cov1",
-            "guid": "cov1",
-            "planning_item": "plan1",
-            "planning": {
-                "internal_note": "Please write words."
-            }
+            "ednote": "We planned this.",
+            "coverages": [{
+                "coverage_id": "cov1",
+                "planning": {
+                    "internal_note": "Please write words."
+                }
+            }]
         }]
         """
         When we perform reschedule on events "event1"
@@ -173,9 +168,9 @@ Feature: Events Reschedule
         {
             "state": "rescheduled",
             "pubstatus": "usable",
-            "ednote": "We planned this.\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Changing to the next day!\n",
+            "ednote" : "We planned this.\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Changing to the next day!\n",
             "coverages": [{
-                "_id": "cov1",
+                "coverage_id": "cov1",
                 "planning": {
                     "internal_note": "Please write words.\n\n------------------------------------------------------------\nEvent has been rescheduled\nReason: Changing to the next day!\n"
                 }

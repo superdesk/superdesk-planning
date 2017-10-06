@@ -1,6 +1,6 @@
 Feature: Duplicate Planning
 
-    @auth @notification
+    @auth @notification @wip
     Scenario: Duplicate a Planning item
         When we post to "planning" with success
         """
@@ -12,25 +12,25 @@ Feature: Duplicate Planning
             "pubstatus": "usable"
         }]
         """
-        When we post to "coverage" with success
+        When we patch "/planning/#planning._id#"
         """
-        [
-            {
-                "guid": "456",
-                "planning_item": "123",
-                "planning": {
-                    "ednote": "test coverage, 250 words",
-                    "assigned_to": {
-                        "desk": "Some Desk",
-                        "user": "507f191e810c19729de860ea"
+        {
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z",
+                        "g2_content_type": "text"
                     },
-                    "headline": "test headline",
-                    "slugline": "test slugline",
-                    "scheduled": "2029-11-21T14:00:00.000Z",
-                    "g2_content_type": "text"
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
                 }
-            }
-        ]
+            ]
+        }
         """
         When we post to "/planning/123/duplicate"
         """
@@ -49,26 +49,19 @@ Feature: Duplicate Planning
             "pubstatus": "usable",
             "coverages": [
                 {
-                    "guid": "456",
-                    "planning_item": "123",
+                    "coverage_id": "__any_value__",
                     "planning": {
                         "ednote": "test coverage, 250 words",
-                        "assigned_to": {
-                            "desk": "Some Desk",
-                            "user": "507f191e810c19729de860ea"
-                        },
                         "headline": "test headline",
                         "slugline": "test slugline",
                         "scheduled": "2029-11-21T14:00:00+0000",
                         "g2_content_type": "text"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "__any_value__"
                     }
-                }
-            ],
-            "_coverages": [
-                {
-                    "coverage_id": "456",
-                    "scheduled": "2029-11-21T14:00:00+0000",
-                    "g2_content_type": "text"
                 }
             ]
         }
@@ -85,28 +78,20 @@ Feature: Duplicate Planning
             "pubstatus": "__no_value__",
             "coverages": [
                 {
-                    "planning_item": "#duplicate._id#",
                     "planning": {
                         "ednote": "test coverage, 250 words",
-                        "assigned_to": "__no_value__",
                         "headline": "test headline",
                         "slugline": "test slugline",
                         "scheduled": "__no_value__",
                         "g2_content_type": "text"
-                    }
-                }
-            ],
-            "_coverages": [
-                {
-                    "coverage_id": "__any_value__",
-                    "scheduled": "__any_value__",
-                    "g2_content_type": "text"
+                    },
+                    "assigned_to": {}
                 }
             ]
         }
         """
         When we get "/planning_history"
-        Then we get list with 4 items
+        Then we get list with 5 items
         """
         {"_items": [
             {
@@ -120,9 +105,13 @@ Feature: Duplicate Planning
                 }
             },
             {
+                "operation": "update",
+                "planning_id": "123"
+            },
+            {
                 "operation": "coverage created",
                 "planning_id": "123",
-                "update": {"coverage_id": "456"}
+                "update": {"coverage_id": "__any_value__"}
             },
             {
                 "operation": "duplicate",
@@ -147,10 +136,6 @@ Feature: Duplicate Planning
             {
                 "event": "planning:created",
                 "extra": {"item": "123"}
-            },
-            {
-                "event": "coverage:created",
-                "extra": {"item": "456", "planning": "123"}
             },
             {
                 "event": "planning:duplicated",

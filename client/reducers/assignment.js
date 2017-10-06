@@ -1,12 +1,26 @@
-import { uniqBy, uniq } from 'lodash'
+import { uniq, keyBy, get } from 'lodash'
 import { ASSIGNMENTS, RESET_STORE, INIT_STORE } from '../constants'
+import moment from 'moment'
 import { createReducer } from '../utils'
 
 const initialState = {
-    assignments: [],
+    assignments: {},
     filterBy: 'All',
     selectedAssignments: [],
     previewOpened: false,
+    assignmentsInList: [],
+    currentAssignmentId: null,
+}
+
+const modifyAssignmentBeingAdded = (payload) => {
+    // payload must be an array. If not, we transform
+    payload = Array.isArray(payload) ? payload : [payload]
+    payload.forEach((assignment) => {
+        if (get(assignment, 'planning.scheduled')) {
+            assignment.planning.scheduled = moment(assignment.planning.scheduled)
+        }
+    })
+    return keyBy(payload, '_id')
 }
 
 const assignmentReducer = createReducer(initialState, {
@@ -14,21 +28,29 @@ const assignmentReducer = createReducer(initialState, {
 
     [INIT_STORE]: () => (initialState),
 
-    [ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS]: (state, payload) => (
+    [ASSIGNMENTS.ACTIONS.RECEIVED_ASSIGNMENTS]: (state, payload) => {
+        let receivedAssignments = modifyAssignmentBeingAdded(payload)
+        return {
+            ...state,
+            assignments: {
+                ...state.assignments,
+                ...receivedAssignments,
+            },
+        }
+    },
+
+    [ASSIGNMENTS.ACTIONS.SET_ASSIGNMENTS_LIST]: (state, payload) => (
         {
             ...state,
-            assignments: payload,
+            assignmentsInList: payload || [],
         }
     ),
 
-    [ASSIGNMENTS.ACTIONS.RECEIVED_MORE_ASSIGNMENTS]: (state, payload) => (
-        {
-            ...state,
-            assignments: uniqBy(
-                [...state.assignments, ...payload],
-                '_id'
-            ),
-        }
+    [ASSIGNMENTS.ACTIONS.ADD_TO_ASSIGNMENTS_LIST]: (state, payload) => (
+        assignmentReducer(state, {
+            type: ASSIGNMENTS.ACTIONS.SET_ASSIGNMENTS_LIST,
+            payload: uniq([...state.assignmentsInList, ...payload]),
+        })
     ),
 
     [ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS]: (state, payload) => (
@@ -58,7 +80,7 @@ const assignmentReducer = createReducer(initialState, {
         {
             ...state,
             previewOpened: true,
-            currentAssignment: payload,
+            currentAssignmentId: get(payload, '_id') || payload,
             readOnly: true,
         }
     ),
@@ -67,7 +89,16 @@ const assignmentReducer = createReducer(initialState, {
         {
             ...state,
             previewOpened: false,
-            currentAssignment: null,
+            currentAssignmentId: null,
+            readOnly: true,
+        }
+    ),
+    [ASSIGNMENTS.ACTIONS.OPEN_ASSIGNMENT_EDITOR]: (state, payload) => (
+        {
+            ...state,
+            previewOpened: true,
+            currentAssignmentId: get(payload, '_id') || payload,
+            readOnly: false,
         }
     ),
 })

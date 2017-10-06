@@ -44,24 +44,26 @@ export const getTestActionStore = () => {
                         return Promise.resolve(event)
                     }),
                 },
-                coverage: {
-                    query: sinon.spy(() => (store.spies.api._query('coverages'))),
-                    save: sinon.spy((ori, item) => (store.spies.api._save('coverages', ori, item))),
-                    getById: sinon.spy((id) => {
-                        const coverage = store.data.coverages.find((c) => (c._id === id))
-                        if (!coverage) {
-                            return Promise.reject(`Coverage '${id}' not found!`)
-                        }
-
-                        return Promise.resolve(coverage)
-                    }),
-                    remove: sinon.spy(() => (Promise.resolve())),
-                },
                 planning_history: {
                     query: sinon.spy(
                         () => (store.spies.api._query('planning_history'))
                     ),
                 },
+                assignments: {
+                    query: sinon.spy(() => (store.spies.api._query('assignments'))),
+                    save: sinon.spy((ori, item) => (
+                        store.spies.api._save('assignments', ori, item
+                        ))),
+                    getById: sinon.spy((id) => {
+                        const assignment = store.data.assignments.find((p) => (p._id === id))
+                        if (!assignment) {
+                            return Promise.reject(`Assignment '${id}' not found!`)
+                        }
+
+                        return Promise.resolve(assignment)
+                    }),
+                },
+
                 update: sinon.spy(() => (Promise.resolve())),
                 save: sinon.spy(() => (Promise.resolve())),
 
@@ -109,7 +111,45 @@ export const getTestActionStore = () => {
                     _id: 'p1',
                     slugline: 'Planning1',
                     headline: 'Some Plan 1',
-                    coverages: [],
+                    coverages: [
+                        {
+                            coverage_id: 'c1',
+                            planning_item: 'p1',
+                            planning: {
+                                ednote: 'Text coverage',
+                                scheduled: '2016-10-15T13:01:11',
+                                g2_content_type: 'text',
+                            },
+                            assigned_to: {
+                                user: 'ident1',
+                                desk: 'desk1',
+                                assignment_id: 'as1',
+                            },
+                        },
+                        {
+                            coverage_id: 'c2',
+                            planning_item: 'p1',
+                            planning: {
+                                ednote: 'Photo coverage',
+                                scheduled: '2016-10-15T14:01:11',
+                                g2_content_type: 'photo',
+                            },
+                            assigned_to: {
+                                user: 'ident1',
+                                desk: 'desk2',
+                                assignment_id: 'as2',
+                            },
+                        },
+                        {
+                            coverage_id: 'c3',
+                            planning_item: 'p1',
+                            planning: {
+                                ednote: 'Video coverage',
+                                scheduled: '2016-10-15T16:01:11',
+                                g2_content_type: 'video',
+                            },
+                        },
+                    ],
                     agendas: [],
                 },
                 {
@@ -117,8 +157,48 @@ export const getTestActionStore = () => {
                     slugline: 'Planning2',
                     headline: 'Some Plan 2',
                     event_item: 'e1',
-                    coverages: [],
+                    coverages: [
+                        {
+                            coverage_id: 'c4',
+                            planning_item: 'p2',
+                            planning: {
+                                ednote: 'Video coverage',
+                                scheduled: '2016-10-15T13:01:11',
+                                g2_content_type: 'video',
+                            },
+                        },
+                    ],
                     agendas: ['a2'],
+                },
+            ],
+            assignments: [
+                {
+                    _id: 'as1',
+                    coverage_id: 'c1',
+                    planning_item: 'p1',
+                    assigned_to: {
+                        user: 'ident1',
+                        desk: 'desk1',
+                    },
+                    planning: {
+                        ednote: 'Text coverage',
+                        scheduled: '2016-10-15T13:01:11',
+                        g2_content_type: 'text',
+                    },
+                },
+                {
+                    _id: 'as2',
+                    coverage_id: 'c2',
+                    planning_item: 'p1',
+                    assigned_to: {
+                        user: 'ident1',
+                        desk: 'desk2',
+                    },
+                    planning: {
+                        ednote: 'Photo coverage',
+                        scheduled: '2016-10-15T14:01:11',
+                        g2_content_type: 'photo',
+                    },
                 },
             ],
             agendas: [
@@ -136,44 +216,6 @@ export const getTestActionStore = () => {
                     _id: 'a3',
                     name: 'TestAgenda3',
                     is_enabled: false,
-                },
-            ],
-            coverages: [
-                {
-                    _id: 'c1',
-                    planning_item: 'p1',
-                    planning: {
-                        ednote: 'Text coverage',
-                        scheduled: '2016-10-15T13:01:11',
-                        g2_content_type: 'text',
-                    },
-                },
-                {
-                    _id: 'c2',
-                    planning_item: 'p1',
-                    planning: {
-                        ednote: 'Photo coverage',
-                        scheduled: '2016-10-15T14:01:11',
-                        g2_content_type: 'photo',
-                    },
-                },
-                {
-                    _id: 'c3',
-                    planning_item: 'p1',
-                    planning: {
-                        ednote: 'Video coverage',
-                        scheduled: '2016-10-15T16:01:11',
-                        g2_content_type: 'video',
-                    },
-                },
-                {
-                    _id: 'c4',
-                    planning_item: 'p2',
-                    planning: {
-                        ednote: 'Video coverage',
-                        scheduled: '2016-10-15T13:01:11',
-                        g2_content_type: 'video',
-                    },
                 },
             ],
             planning_history: [
@@ -303,6 +345,14 @@ export const getTestActionStore = () => {
                     display_name: 'firstname2 lastname2',
                 },
             ],
+            assignment: {
+                assignments: {},
+                filterBy: 'All',
+                selectedAssignments: [],
+                previewOpened: false,
+                assignmentsInList: [],
+                currentAssignmentId: null,
+            },
             formsProfile: {
                 events: {
                     editor: {
@@ -439,6 +489,7 @@ export const getTestActionStore = () => {
             $timeout: sinon.spy((func) => func()),
             api: sinon.spy((resource) => (store.spies.api[resource])),
             $location: { search: sinon.spy(() => (Promise.resolve())) },
+            desks: { getCurrentDeskId: sinon.spy(() => 'desk1') },
         },
 
         test: (done, action) => {
@@ -473,8 +524,14 @@ export const getTestActionStore = () => {
             })
             store.initialState.agenda.agendas = store.data.agendas
 
-            store.data.coverages.forEach((item) => {
-                store.initialState.planning.plannings[item.planning_item].coverages.push(item)
+            store.data.assignments.forEach((item) => {
+                store.initialState.assignment.assignments[item._id] = {
+                    ...item,
+                    planning: {
+                        ...item.planning,
+                        scheduled: moment(item.planning.scheduled),
+                    },
+                }
             })
             store._ready = true
         },

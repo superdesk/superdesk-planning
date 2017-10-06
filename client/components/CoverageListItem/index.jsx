@@ -14,9 +14,9 @@ export const CoverageListItem = ({
     actions,
     readOnly,
 }) => {
-    const userAssigned = getCreator(coverage, 'planning.assigned_to.user', users)
+    const userAssigned = getCreator(coverage, 'assigned_to.user', users)
     const deskAssigned = desks.find((d) =>
-            d._id === get(coverage, 'planning.assigned_to.desk'))
+            d._id === get(coverage, 'assigned_to.desk'))
     const coverageDate = get(coverage, 'planning.scheduled')
     const classes = classNames(
         getCoverageIcon(get(coverage, 'planning.g2_content_type')),

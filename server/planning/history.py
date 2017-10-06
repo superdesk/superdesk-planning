@@ -17,7 +17,7 @@ from .item_lock import LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION
 
 
 fields_to_remove = ['_id', '_etag', '_current_version', '_updated', '_created', '_links', 'version_creator', 'guid',
-                    LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION]
+                    LOCK_ACTION, LOCK_USER, LOCK_TIME, LOCK_SESSION, '_planning_schedule', '_planning_date']
 
 
 class HistoryService(Service):
