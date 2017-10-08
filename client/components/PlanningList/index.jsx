@@ -5,7 +5,7 @@ import * as selectors from '../../selectors'
 import * as actions from '../../actions'
 import { InfiniteLoader, List, AutoSizer } from 'react-virtualized'
 import { connect } from 'react-redux'
-import { LIST_ITEM_2_LINES_HEIGHT, PLANNING_LIST_ITEM_MARGIN_HEIGHT } from '../../constants'
+import { LIST_ITEM_2_LINES_HEIGHT, PLANNING_LIST_ITEM_MARGIN_HEIGHT, WORKSPACE } from '../../constants'
 
 class PlanningList extends React.Component {
 
@@ -20,8 +20,9 @@ class PlanningList extends React.Component {
     }
 
     previewOrEditPlanning(planning) {
+        const { currentWorkspace } = this.props
         // If we have the lock in this session, dispatch openPlanningEditor instead
-        if (this.isPlanningLockedInThisSession(planning)) {
+        if (currentWorkspace === WORKSPACE.PLANNING && this.isPlanningLockedInThisSession(planning)) {
             this.props.openPlanningEditor(planning)
         } else {
             this.props.previewPlanning(planning)
@@ -70,6 +71,7 @@ class PlanningList extends React.Component {
             onSelectItem,
             selected,
             lockedItems,
+            currentWorkspace,
         } = this.props
         const planning = plannings[index]
         const isSelected = selected.indexOf(planning._id) > -1
@@ -103,6 +105,7 @@ class PlanningList extends React.Component {
                     lockedItems={lockedItems}
                     onSelectItem={() => onSelectItem(planning._id)}
                     isSelected={isSelected}
+                    currentWorkspace={currentWorkspace}
                     />
             </div>
         )
@@ -165,6 +168,7 @@ PlanningList.propTypes = {
     onSelectItem: PropTypes.func,
     selected: PropTypes.array,
     lockedItems: PropTypes.object,
+    currentWorkspace: PropTypes.string,
 }
 
 const mapStateToProps = (state) => ({
@@ -177,6 +181,7 @@ const mapStateToProps = (state) => ({
     usersMergedCoverageProviders: selectors.getUsersMergedCoverageProviders(state),
     desks: state.desks && state.desks.length > 0 ? state.desks : [],
     lockedItems: selectors.getLockedItems(state),
+    currentWorkspace: selectors.getCurrentWorkspace(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

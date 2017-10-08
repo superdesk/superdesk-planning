@@ -69,6 +69,7 @@ describe('planning', () => {
                             onCancelAllCoverage={onCancelAllCoverage}
                             privileges={privileges}
                             lockedItems={locks}
+                            currentWorkspace='PLANNING'
                         />
                     </Provider>
                 )
@@ -97,6 +98,7 @@ describe('planning', () => {
                     privileges={privileges}
                     store={store}
                     lockedItems={locks}
+                    currentWorkspace='PLANNING'
                 />)
             }
 

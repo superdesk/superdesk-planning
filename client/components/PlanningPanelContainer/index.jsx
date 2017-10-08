@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import classNames from 'classnames'
 import { get, isObject } from 'lodash'
 import * as actions from '../../actions'
-import { ADVANCED_SEARCH_CONTEXT } from '../../constants'
+import { ADVANCED_SEARCH_CONTEXT, WORKSPACE } from '../../constants'
 import {
     SelectAgenda,
     EditPlanningPanelContainer,
@@ -67,6 +67,7 @@ class PlanningPanel extends React.Component {
             selectAll,
             deselectAll,
             exportAsArticle,
+            currentWorkspace,
         } = this.props
 
         const multiActions = [
@@ -76,6 +77,8 @@ class PlanningPanel extends React.Component {
             },
         ]
 
+        const inPlanning = currentWorkspace === WORKSPACE.PLANNING
+
         return (
             <div className={classNames('Planning-panel',
                 { 'Planning-panel--edit-planning-view': editPlanningViewOpen })}
@@ -83,21 +86,24 @@ class PlanningPanel extends React.Component {
                  onDragOver={(e) => e.preventDefault()}
                  onDragEnter={this.handleDragEnter.bind(this)}
                  onDragLeave={this.handleDragLeave}>
-                <div className="subnav">
-                    {!isEventListShown &&
-                        <div className="navbtn" title="Show the event list">
-                            <button onClick={toggleEventsList} type="button" className="backlink backlink--rotated" />
+                {inPlanning &&
+                    <div className="subnav">
+                        {!isEventListShown &&
+                            <div className="navbtn" title="Show the event list">
+                                <button onClick={toggleEventsList} type="button" className="backlink backlink--rotated" />
+                            </div>
+                        }
+                        <h3 className="subnav__page-title">
+                            <span>
+                                <span>Agenda:</span>
+                            </span>
+                        </h3>
+                        <div  className="Planning-panel__select-agenda">
+                            <SelectAgenda />
                         </div>
-                    }
-                    <h3 className="subnav__page-title">
-                        <span>
-                            <span>Agenda:</span>
-                        </span>
-                    </h3>
-                    <div  className="Planning-panel__select-agenda">
-                        <SelectAgenda />
                     </div>
-                </div>
+                }
+
                 <div className="Planning-panel__container">
                     <div className={classNames('Planning-panel__list',
                         { 'Planning-panel__list--advanced-search-view':  advancedSearchOpened })}>
@@ -108,11 +114,25 @@ class PlanningPanel extends React.Component {
                                 <i className={classNames('icon-filter-large ',
                                     { 'icon--blue': isAdvancedSearchSpecified })} />
                             </label>
-                            <SearchBar value={null} onSearch={handleSearch}/>
-                            <label>
-                                Only Future
-                                <Toggle value={onlyFuture} onChange={onFutureToggleChange} readOnly={isAdvancedDateSearch} />
-                            </label>
+                            <SearchBar
+                                value={null}
+                                onSearch={handleSearch}
+                                extendOnOpen={!inPlanning}
+                            />
+                            {inPlanning && (
+                                <label>
+                                    Only Future
+                                    <Toggle value={onlyFuture} onChange={onFutureToggleChange} readOnly={isAdvancedDateSearch} />
+                                </label>
+                            ) || (
+                                <a data-sd-tooltip="Create new planning" data-flow="left">
+                                    <button className="navbtn dropdown sd-create-btn">
+                                        <i className="icon-plus-large" />
+                                        <span className="circle" />
+                                    </button>
+                                </a>
+                            )}
+
                         </div>
                         <AdvancedSearchPanelContainer searchContext={ADVANCED_SEARCH_CONTEXT.PLANNING} />
 
@@ -129,7 +149,7 @@ class PlanningPanel extends React.Component {
 
                         <div className="list-view compact-view">
                             {((currentAgendaId || currentAgenda && currentAgenda.is_enabled) &&
-                            privileges.planning_planning_management === 1 ) &&
+                            privileges.planning_planning_management === 1 ) && inPlanning &&
                                 <QuickAddPlanning onPlanningCreation={onPlanningCreation}/>
                             }
                             {(planningList.length > 0) &&
@@ -168,7 +188,7 @@ class PlanningPanel extends React.Component {
                                 </div>
                         }
                     </div>
-                    {editPlanningViewOpen && <EditPlanningPanelContainer /> }
+                    {editPlanningViewOpen && <EditPlanningPanelContainer/> }
                 </div>
             </div>
         )
@@ -200,6 +220,7 @@ PlanningPanel.propTypes = {
     deselectAll: PropTypes.func,
     exportAsArticle: PropTypes.func,
     lockedItems: PropTypes.object,
+    currentWorkspace: PropTypes.string,
 }
 
 const mapStateToProps = (state) => ({
@@ -217,6 +238,7 @@ const mapStateToProps = (state) => ({
     session: selectors.getSessionDetails(state),
     selected: selectors.getSelectedPlanningItems(state),
     lockedItems: selectors.getLockedItems(state),
+    currentWorkspace: selectors.getCurrentWorkspace(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

@@ -5,6 +5,7 @@ import { get } from 'lodash'
 import { registerNotifications } from '../utils'
 import * as actions from '../actions'
 import { AssignmentListContainer } from '../components'
+import { WORKSPACE } from '../constants'
 
 AssignmentController.$inject = [
     '$element',
@@ -20,9 +21,9 @@ export function AssignmentController(
 ) {
     sdPlanningStore.getStore()
     .then((store) => {
-        store.dispatch(actions.initStore())
+        store.dispatch(actions.initStore(WORKSPACE.ASSIGNMENTS))
         registerNotifications($scope, store)
-        store.dispatch(actions.assignments.ui.loadAssignments('All', null, 'Created', 'Asc'))
+        store.dispatch(actions.loadAssignments('All', null, 'Created', 'Asc'))
         .then(() => {
             $scope.$watch(
                 () => desks.active,
