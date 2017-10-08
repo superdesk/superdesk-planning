@@ -176,6 +176,7 @@ const saveLocation = (event) => (
                 qcode: event.location[0].guid,
                 address: event.location[0].address,
             }
+            delete event.location[0].address.external
             return event
         }
         // the location is set, but doesn't have a qcode (not registered in the location collection)

@@ -50,7 +50,8 @@ export class GeoLookupInputComponent extends React.Component {
         if (!get(nextProps.initialValue, 'name')) {
             this.resetSearchResults(true)
         } else if (get(nextProps.initialValue, 'name.length') > 1) {
-            if (nextProps.initialValue !== this.props.initialValue) {
+            if ((!get(nextProps, 'initialValue.address') && !get(nextProps, 'initialValue.nominatim.address')) &&
+            nextProps.initialValue.name !== this.props.initialValue.name) {
                 this.props.searchLocalLocations(nextProps.initialValue.name.trim())
             }
         }
