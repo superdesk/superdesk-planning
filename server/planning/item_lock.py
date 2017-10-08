@@ -30,6 +30,10 @@ logger = logging.getLogger(__name__)
 
 class LockService(BaseComponent):
     def __init__(self, app):
+        """Initialize planning lock component.
+
+        :param app: superdesk app
+        """
         self.app = app
         self.app.on_session_end += self.on_session_end
 

@@ -23,8 +23,9 @@ export class Component extends React.Component {
     componentWillMount() {
         this.props.change('dates.recurring_rule',
             {
-                frequency: 'YEARLY',
+                frequency: 'DAILY',
                 interval: 1,
+                count: 5,
             })
     }
 
@@ -100,21 +101,11 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event) => (
-        dispatch(actions.uploadFilesAndSaveEvent(event))
-        .then(() => {
-            if (get(event, '_publish', false)) {
-                dispatch(actions.events.ui.publishEvent(event._id))
-            }
-
-            dispatch(actions.hideModal())
-        })
-    ),
-    onHide: (event) => {
-        if (event.lock_action === 'convert_recurring') {
-            dispatch(actions.events.api.unlock(event))
-        }
-    },
+    onSubmit: (event) => dispatch(actions.events.ui.saveAndPublish(
+        event,
+        get(event, '_save', true),
+        get(event, '_publish', false)
+    )),
 })
 
 export const ConvertToRecurringEventForm = connect(
