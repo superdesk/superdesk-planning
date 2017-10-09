@@ -407,6 +407,52 @@ describe('events', () => {
                     expect(itemActionExists(wrapper, 'View History')).toBe(true)
                 })
             })
+
+            it('action button states for new event', () => {
+                let store = createTestStoreForEventEditing()
+                const wrapper = mount(
+                    <Provider store={store}>
+                        <EventForm initialValues={{}} />
+                    </Provider>
+                )
+                const subnav = wrapper.find('.subnav__actions')
+                // New event without changing any values
+                expect(subnav.find('.btn').first().prop('disabled')).toBe(false)
+                expect(subnav.find('.btn--primary').first().prop('disabled')).toBe(true)
+                expect(subnav.find('.btn--success').first().prop('disabled')).toBe(true)
+                expect(subnav.find('.btn--success').first().text()).toBe('Save and publish')
+
+                // Change values to enable the `save` and `save & publish` buttons
+                wrapper.find('Field [name="slugline"]')
+                    .simulate('change', { target: { value: 'NewSlug' } })
+                expect(subnav.find('.btn').first().prop('disabled')).toBe(false)
+                expect(subnav.find('.btn--primary').first().prop('disabled')).toBe(false)
+                expect(subnav.find('.btn--success').first().prop('disabled')).toBe(false)
+                expect(subnav.find('.btn--success').first().text()).toBe('Save and publish')
+            })
+
+            it('action button states for existing event', () => {
+                let store = createTestStoreForEventEditing(event)
+                const wrapper = mount(
+                    <Provider store={store}>
+                        <EventForm initialValues={event} />
+                    </Provider>
+                )
+                const subnav = wrapper.find('.subnav__actions')
+                // New event without changing any values
+                expect(subnav.find('.btn').first().prop('disabled')).toBe(false)
+                expect(subnav.find('.btn--primary').first().prop('disabled')).toBe(true)
+                expect(subnav.find('.btn--success').first().prop('disabled')).toBe(false)
+                expect(subnav.find('.btn--success').first().text()).toBe('Publish')
+
+                // Change values to enable the `save` and `save & publish` buttons
+                wrapper.find('Field [name="slugline"]')
+                    .simulate('change', { target: { value: 'NewSlug' } })
+                expect(subnav.find('.btn').first().prop('disabled')).toBe(false)
+                expect(subnav.find('.btn--primary').first().prop('disabled')).toBe(false)
+                expect(subnav.find('.btn--success').first().prop('disabled')).toBe(false)
+                expect(subnav.find('.btn--success').first().text()).toBe('Save and publish')
+            })
         })
     })
 })

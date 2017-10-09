@@ -446,9 +446,9 @@ const saveAndPublish = (event, save=true, publish=false) => (
         }
 
         return dispatch(uploadFilesAndSaveEvent(event))
-        .then(() => {
+        .then((events) => {
             if (publish) {
-                return dispatch(self.publishEvent(event))
+                return dispatch(self.publishEvent(events[0]))
                 .then(() => Promise.resolve(dispatch(hideModal())))
             }
 
