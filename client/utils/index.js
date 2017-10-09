@@ -52,6 +52,7 @@ export const createTestStore = (params={}) => {
             planning_event_management: 1,
             planning_event_spike: 1,
             planning_event_unspike: 1,
+            planning_event_publish: 1,
         },
 
         formsProfile: {
