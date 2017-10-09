@@ -11,6 +11,7 @@
 """Superdesk Planning Plugin."""
 
 import superdesk
+from superdesk.services import BaseService
 
 from .events import EventsResource, EventsService
 from .events_spike import EventsSpikeResource, EventsSpikeService, EventsUnspikeResource, EventsUnspikeService
@@ -47,6 +48,8 @@ from .planning_export import PlanningExportResource, PlanningExportService
 from apps.common.components.utils import register_component
 from .item_lock import LockService
 from .assignments import AssignmentsResource, AssignmentsService
+from .delivery import DeliveryResource
+from .assignments_content import AssignmentsContentResource, AssignmentsContentService
 from .commands import *  # noqa
 
 
@@ -193,6 +196,12 @@ def init_app(app):
 
     events_duplicate_service = EventsDuplicateService('events_duplicate', backend=superdesk.get_backend())
     EventsDuplicateResource('events_duplicate', app=app, service=events_duplicate_service)
+
+    delivery_service = BaseService('delivery', backend=superdesk.get_backend())
+    DeliveryResource('delivery', app=app, service=delivery_service)
+
+    assignments_content_service = AssignmentsContentService('assignments_content', backend=superdesk.get_backend())
+    AssignmentsContentResource('assignments_content', app=app, service=assignments_content_service)
 
     register_component(LockService(app))
 
