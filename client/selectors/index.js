@@ -21,7 +21,7 @@ export const getPreviousPlanningRequestParams = (state) =>
     get(state, 'planning.lastRequestParams', {})
 export const getCurrentAgendaId = (state) => get(state, 'agenda.currentAgendaId')
 export const getStoredPlannings = (state) => get(state, 'planning.plannings')
-export const getPlanningIdsInList = (state) => get(state, 'planning.planningsInList')
+export const getPlanningIdsInList = (state) => get(state, 'planning.planningsInList', [])
 export const isOnlyFutureFiltered = (state) => get(state, 'planning.onlyFuture')
 export const filterPlanningKeyword = (state) => get(state, 'planning.filterPlanningKeyword')
 export const getServerUrl = (state) => get(state, 'config.server.url')
