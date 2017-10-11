@@ -42,8 +42,16 @@ export function saveLocation(newLocation) {
                 // this is a new location
                 if (newLocation.nominatim) {
                     return dispatch(saveNominatim(newLocation.nominatim))
+                    .then(
+                        (result) => Promise.resolve(result),
+                        () => Promise.reject('Failed to save location.!')
+                    )
                 } else {
                     return dispatch(saveFreeTextLocation(uniqueName))
+                    .then(
+                        (result) => Promise.resolve(result),
+                        () => Promise.reject('Failed to save location.!')
+                    )
                 }
             }
         })
@@ -74,7 +82,15 @@ export const getLocation = (searchText, unique=false) => (
     (dispatch, getState, { api }) => {
         if (unique) {
             return api('locations').query(
-                { source: { query: { term: { uniqueName: searchText } } } })
+                {
+                    source: {
+                        query: {
+                            bool: { // jscs:ignore objectCurlyNewline
+                                must: [{ term: { unique_name: { value: searchText } } }],
+                            },
+                        },
+                    },
+                })
         } else {
             return api('locations')
                 .query({
