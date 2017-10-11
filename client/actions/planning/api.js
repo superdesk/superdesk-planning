@@ -61,7 +61,7 @@ const cancelAllCoverage = (item) => (
             item,
             {
                 reason: get(item, 'reason', undefined),
-                coverage_cancellation_only: true,
+                cancel_all_coverage: true,
             }
         )
     )
@@ -887,7 +887,7 @@ const markPlanningCancelled = (plan, reason, coverageState, eventCancellation) =
 })
 
 const markCoverageCancelled = (plan, reason, coverageState, ids) => ({
-    type: PLANNING.ACTIONS.MARK_ALL_COVERAGE_CANCELLED,
+    type: PLANNING.ACTIONS.MARK_COVERAGE_CANCELLED,
     payload: {
         planning_item: plan,
         reason,

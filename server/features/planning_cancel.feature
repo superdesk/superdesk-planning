@@ -333,7 +333,7 @@ Feature: Cancel all coverage
       Then we store coverage id in "secondcoverage" from coverage 1
       When we perform cancel on planning "123"
       """
-      { "coverage_cancellation_only": true }
+      { "cancel_all_coverage": true }
       """
       Then we get OK response
       And we get notifications

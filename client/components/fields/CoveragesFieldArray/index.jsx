@@ -2,7 +2,9 @@ import { CoverageContainer } from '../../index'
 import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
+import { arraySplice } from 'redux-form'
 import { get } from 'lodash'
+import * as selectors from '../../../selectors'
 
 export class CoveragesFieldArrayComponent extends React.Component {
     newCoverage() {
@@ -35,6 +37,25 @@ export class CoveragesFieldArrayComponent extends React.Component {
         })
     }
 
+    cancelCoverage(index) {
+        let cancelledCoverage = {
+            ...this.props.fields.get(index),
+            news_coverage_status:  this.props.cancelCoverageState,
+        }
+
+        cancelledCoverage.planning = {
+            ...cancelledCoverage.planning,
+            internal_note: `------------------------------------------------------------
+    Coverage cancelled
+    `,
+            ednote: `------------------------------------------------------------
+    Coverage cancelled
+    `,
+        }
+
+        this.props.cancelCoverage(index, cancelledCoverage)
+    }
+
     render() {
         const {
             fields,
@@ -59,6 +80,7 @@ export class CoveragesFieldArrayComponent extends React.Component {
                             readOnly={readOnly}
                             removeCoverage={this.removeCoverage.bind(this)}
                             duplicateCoverage={this.duplicateCoverage.bind(this)}
+                            cancelCoverage={this.cancelCoverage.bind(this)}
                             showRemoveAction={fields.length > 1 &&
                             !get(fields.get(index), 'assigned_to.assignment_id')}
                         />
@@ -84,6 +106,8 @@ CoveragesFieldArrayComponent.propTypes = {
     users: PropTypes.array.isRequired,
     contentTypes: PropTypes.array.isRequired,
     desks: PropTypes.array.isRequired,
+    cancelCoverage: PropTypes.func,
+    cancelCoverageState: PropTypes.object,
 }
 
 CoveragesFieldArrayComponent.defaultProps = {
@@ -91,6 +115,14 @@ CoveragesFieldArrayComponent.defaultProps = {
     fields: {},
 }
 
-const mapStateToProps = (state) => ({ contentTypes: state.vocabularies.g2_content_type })
+const mapStateToProps = (state) => ({
+    contentTypes: state.vocabularies.g2_content_type,
+    cancelCoverageState: selectors.getCoverageCancelState(state),
+})
 
-export const CoveragesFieldArray = connect(mapStateToProps)(CoveragesFieldArrayComponent)
+const mapDispatchToProps = (dispatch) =>  ({
+    cancelCoverage: (index, coverage) =>
+        (dispatch(arraySplice('planning', 'coverages', index, 1, coverage))),
+})
+
+export const CoveragesFieldArray = connect(mapStateToProps, mapDispatchToProps)(CoveragesFieldArrayComponent)

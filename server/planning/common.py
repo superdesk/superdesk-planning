@@ -13,6 +13,7 @@ from superdesk.utc import utcnow
 from datetime import timedelta
 from collections import namedtuple
 from superdesk.resource import not_analyzed
+from superdesk import get_resource_service
 from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
 
 ITEM_STATE = 'state'
@@ -74,3 +75,18 @@ def remove_lock_information(item):
             LOCK_TIME: None,
             LOCK_ACTION: None
         })
+
+
+def get_coverage_cancellation_state():
+    coverage_states = get_resource_service('vocabularies').find_one(
+        req=None,
+        _id='newscoveragestatus'
+    )
+
+    coverage_cancel_state = None
+    if coverage_states:
+        coverage_cancel_state = next((x for x in coverage_states.get('items', [])
+                                      if x['qcode'] == 'ncostat:notint'), None)
+        coverage_cancel_state.pop('is_active', None)
+
+    return coverage_cancel_state

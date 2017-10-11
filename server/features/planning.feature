@@ -463,6 +463,318 @@ Feature: Planning
 
     @auth
     @notification
+    @vocabulary
+    Scenario: Cancel specific coverage
+        Given "vocabularies"
+        """
+        [{
+          "_id": "newscoveragestatus",
+          "display_name": "News Coverage Status",
+          "type": "manageable",
+          "unique_field": "qcode",
+          "items": [
+              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
+                  "label": "On merit"},
+              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
+                  "label": "Not planned"},
+              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
+                  "label": "On request"}
+          ]
+        }]
+        """
+        When we post to "planning" with success
+        """
+        [{
+          "guid": "123",
+          "headline": "test headline",
+          "slugline": "test slugline",
+          "state": "scheduled",
+          "pubstatus": "usable",
+          "coverages": [
+              {
+                  "coverage_id": "cov_123",
+                  "planning": {
+                      "ednote": "test coverage, 250 words",
+                      "headline": "test headline",
+                      "slugline": "test slugline",
+                      "scheduled": "2029-11-21T14:00:00.000Z",
+                      "g2_content_type": "text"
+                  },
+                  "news_coverage_status": {
+                      "qcode": "ncostat:int",
+                      "name": "coverage intended",
+                      "label": "Planned"
+                  }
+              }
+          ]
+        }]
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+          "coverages": [
+              {
+                  "coverage_id": "#firstcoverage#",
+                  "news_coverage_status": {
+                      "name" : "coverage not intended",
+                      "qcode" : "ncostat:notint"
+                  },
+                  "planning": {
+                      "ednote": "test coverage, 250 words",
+                      "headline": "test headline",
+                      "slugline": "test slugline",
+                      "scheduled": "2029-11-21T14:00:00.000Z",
+                      "g2_content_type": "text",
+                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                  }
+              }
+          ]
+        }
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+          "event": "planning:created",
+          "extra": {"item": "123"}
+        }]
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+          "_id": "#planning._id#",
+          "state": "scheduled",
+          "pubstatus": "usable",
+          "coverages": [
+              {
+                  "coverage_id": "__any_value__",
+                  "planning": {
+                      "ednote": "test coverage, 250 words",
+                      "g2_content_type": "text",
+                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                  },
+                  "news_coverage_status": {
+                      "name" : "coverage not intended",
+                      "qcode" : "ncostat:notint"
+                  }
+              }
+          ]
+        }
+        """
+
+    @auth
+    @notification
+    @vocabulary
+    @test
+    Scenario: Cancelling coverage also cancels related assignment
+        Given "desks"
+        """
+        [{"_id": "desk_123", "name": "Politic Desk"}]
+        """
+        Given "vocabularies"
+        """
+        [{
+          "_id": "newscoveragestatus",
+          "display_name": "News Coverage Status",
+          "type": "manageable",
+          "unique_field": "qcode",
+          "items": [
+              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
+                  "label": "On merit"},
+              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
+                  "label": "Not planned"},
+              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
+                  "label": "On request"}
+          ]
+        }]
+        """
+        When we post to "/planning"
+        """
+        [
+          {
+              "item_class": "item class value",
+              "headline": "test headline",
+              "slugline": "test slugline"
+          }
+        ]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+          "coverages": [
+              {
+                  "planning": {
+                      "ednote": "test coverage, I want 250 words",
+                      "headline": "test headline",
+                      "slugline": "test slugline"
+                  },
+                  "assigned_to": {
+                      "desk": "desk_123",
+                      "user": "507f191e810c19729de870eb"
+                  },
+                  "news_coverage_status": {
+                      "name" : "coverage intended",
+                      "qcode" : "ncostat:int"
+                  }
+              }
+          ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we get "/planning/#planning._id#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+          "_id": "#planning._id#",
+          "item_class": "item class value",
+          "headline": "test headline",
+          "slugline": "test slugline",
+          "coverages": [
+              {
+                  "coverage_id": "#firstcoverage#",
+                  "planning": {
+                      "ednote": "test coverage, I want 250 words",
+                      "headline": "test headline",
+                      "slugline": "test slugline"
+                  },
+                  "assigned_to": {
+                      "desk": "desk_123",
+                      "user": "507f191e810c19729de870eb",
+                      "assignment_id": "#firstassignment#"
+                  }
+              }
+          ]
+        }
+        """
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+          "_id": "#firstassignment#",
+          "planning": {
+              "ednote": "test coverage, I want 250 words",
+              "headline": "test headline",
+              "slugline": "test slugline"
+          },
+          "assigned_to": {
+              "desk": "desk_123",
+              "user": "507f191e810c19729de870eb"
+          }
+        }
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+          "coverages": [
+              {
+                  "coverage_id": "#firstcoverage#",
+                  "planning": {
+                      "ednote": "test coverage, I want 250 words",
+                      "headline": "test headline",
+                      "slugline": "test slugline",
+                      "scheduled": "2029-11-21T14:00:00.000Z",
+                      "g2_content_type": "text",
+                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                  },
+                  "news_coverage_status": {
+                      "name" : "coverage not intended",
+                      "qcode" : "ncostat:notint"
+                  }
+              }
+          ]
+        }
+        """
+        Then we get OK response
+        When we get "activity"
+        Then we get list with 3 items
+        """
+        {"_items":[
+            {
+                "resource": "assignments",
+                "message": "Assignment {{slugline}} for desk {{desk}} has been cancelled by {{user}}",
+                "data": {
+                    "desk": "Politic Desk",
+                    "user": "test_user",
+                    "slugline": "test slugline"
+                 },
+                 "recipients": [{"user_id": "507f191e810c19729de870eb"}]
+            },
+            {
+                "resource": "assignments",
+                "message": "{{assignor}} assigned a coverage to {{assignee}}"
+            }
+        ]}
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+          "_id": "#planning._id#",
+          "state": "draft",
+          "coverages": [
+              {
+                  "coverage_id": "#firstcoverage#",
+                  "planning": {
+                      "ednote": "test coverage, I want 250 words"
+                  },
+                  "news_coverage_status": {
+                      "name" : "coverage not intended",
+                      "qcode" : "ncostat:notint"
+                  }
+              }
+          ]
+        }
+        """
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+          "_id": "#firstassignment#",
+          "planning": {
+              "ednote": "test coverage, I want 250 words",
+              "headline": "test headline",
+              "slugline": "test slugline"
+          },
+          "assigned_to": {
+              "desk": "desk_123",
+              "user": "507f191e810c19729de870eb",
+              "state": "cancelled"
+          }
+        }
+        """
+        When we get "planning/#planning._id#"
+        Then we get existing resource
+        """
+        {
+          "_id": "#planning._id#",
+          "state": "draft",
+          "coverages": [
+              {
+                  "coverage_id": "#firstcoverage#",
+                  "planning": {
+                      "ednote": "test coverage, I want 250 words"
+                  },
+                  "news_coverage_status": {
+                      "name" : "coverage not intended",
+                      "qcode" : "ncostat:notint"
+                  },
+                  "assigned_to": { "state": "cancelled" }
+              }
+          ]
+        }
+        """
+
+    @auth
+    @notification
     Scenario: Planning item can be modified only by user having privileges
         When we post to "planning"
         """

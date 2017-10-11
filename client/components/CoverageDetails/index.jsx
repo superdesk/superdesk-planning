@@ -15,6 +15,7 @@ export const CoverageDetails = ({
     // for assignment form coverage props is object
     // for coverage form coverage props is string
     const fieldNamePrefix = typeof coverage === 'string' ? `${coverage}.` : ''
+    const coverageStatusPrefix = fieldNamePrefix ? fieldNamePrefix : 'planning.'
     return (
         <div>
             {get(formProfile, 'editor.slugline.enabled') &&
@@ -84,7 +85,7 @@ export const CoverageDetails = ({
             )}
             <div className="form__row">
                 <Field
-                    name={`${fieldNamePrefix}news_coverage_status`}
+                    name={`${coverageStatusPrefix}news_coverage_status`}
                     component={fields.CoverageStatusField}
                     label="Coverage Status"
                     clearable={false}

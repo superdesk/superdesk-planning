@@ -24,7 +24,7 @@ from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user, get_auth
 from copy import deepcopy
 from eve.utils import config, ParsedRequest
-from .common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA
+from .common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA, get_coverage_cancellation_state
 from superdesk.utc import utcnow
 from itertools import chain
 
@@ -343,12 +343,21 @@ class PlanningService(superdesk.Service):
             updates['assigned_to']['assignment_id'] = str(assignment_id[0])
         elif assigned_to.get('assignment_id'):
             # update the assignment using the coverage details
+
             original_assignment = assignment_service.find_one(req=None,
                                                               _id=assigned_to.get('assignment_id'))
 
             if not original:
                 raise SuperdeskApiError.badRequestError(
                     'Assignment related to the coverage does not exists.')
+
+            # Check if coverage was cancelled
+            coverage_cancel_state = get_coverage_cancellation_state()
+            if updates.get('news_coverage_status').get('qcode') == coverage_cancel_state.get('qcode') and \
+                    original.get('news_coverage_status').get('qcode') != coverage_cancel_state.get('qcode'):
+                assignment_service.cancel_assignment(original_assignment, updates)
+                updates.pop('assigned_to', None)
+                return
 
             assignment = {
                 'planning': doc.get('planning')

@@ -24,6 +24,7 @@ from eve.utils import config
 from superdesk.utc import utcnow
 from superdesk.activity import add_activity, ACTIVITY_UPDATE
 from .planning import coverage_schema
+from superdesk import get_resource_service
 from .common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state
 
 
@@ -132,6 +133,52 @@ class AssignmentsService(superdesk.Service):
                              if str(user.get(config.ID_FIELD, None)) != assigned_to.get('user') else 'You',
                              assignee='you'
                              if str(user.get(config.ID_FIELD, None)) != assigned_to.get('user') else 'yourself')
+
+    def send_assignment_cancellation_notification(self, assignment):
+        """Set the assignment information and send notification
+
+        :param dict doc: Updates related to assignments
+        """
+        if not assignment:
+            return
+
+        user = get_user()
+        assigned_to = assignment.get('assigned_to')
+        slugline = assignment.get('planning').get('slugline')
+
+        if assigned_to.get('desk'):
+            desk = get_resource_service('desks').find_one(req=None, _id=assigned_to.get('desk'))
+            notify_users = [str(member['user']) for member in desk.get('members', [])]
+
+        if assigned_to.get('user'):
+            # Done to avoid fetching users data for every assignment
+            # Because user assigned can also be a provider whose qcode
+            # might be an invalid GUID, check if the user assigned is a valid user (GUID)
+            # However, in a rare case where qcode of a provider is a valid GUID,
+            # This will create activity records - inappropriate
+            if ObjectId.is_valid(assigned_to.get('user')):
+                notify_users = [assigned_to.get('user')]
+
+        add_activity(ACTIVITY_UPDATE,
+                     'Assignment {{slugline}} for desk {{desk}} has been cancelled by {{user}}',
+                     self.datasource,
+                     notify=notify_users,
+                     user=user.get('username')
+                     if str(user.get(config.ID_FIELD, None)) != assigned_to.get('user') else 'You',
+                     slugline=slugline,
+                     desk=desk.get('name'))
+
+    def cancel_assignment(self, original_assignment, coverage):
+        coverage_to_copy = deepcopy(coverage)
+        if original_assignment:
+            updated_assignment = {'assigned_to': {}}
+            updated_assignment.get('assigned_to').update(original_assignment.get('assigned_to'))
+            updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.cancelled
+            updated_assignment['planning'] = coverage_to_copy.get('planning')
+            updated_assignment['planning']['news_coverage_status'] = coverage_to_copy.get('news_coverage_status')
+
+            self.system_update(ObjectId(original_assignment.get('_id')), updated_assignment, original_assignment)
+            self.send_assignment_cancellation_notification(original_assignment)
 
 
 assignments_schema = {
