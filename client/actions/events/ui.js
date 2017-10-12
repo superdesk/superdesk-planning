@@ -458,7 +458,7 @@ const saveAndPublish = (event, save=true, publish=false) => (
 )
 
 const saveWithConfirmation = (event, save=true, publish=false) => (
-    (dispatch, getState) => {
+    (dispatch, getState, { notify }) => {
         const events = selectors.getEvents(getState())
         const originalEvent = get(events, event._id, {})
         const maxRecurringEvents = selectors.getMaxRecurrentEvents(getState())
@@ -466,6 +466,12 @@ const saveWithConfirmation = (event, save=true, publish=false) => (
         // If this is not from a recurring series, then simply publish this event
         if (!get(originalEvent, 'recurrence_id')) {
             return dispatch(self.saveAndPublish(event, save, publish))
+            .then((result) => Promise.resolve(result),
+                (error) => {
+                    notify.error(
+                        getErrorMessage(error, 'Failed to save the Event!')
+                    )
+                })
         }
 
         return dispatch(eventsApi.query({
@@ -544,6 +550,10 @@ const publishEvent = (event) => (
             notify.success('The event has been published')
             dispatch(self.closeEventDetails())
             return Promise.resolve(publishedEvent)
+        }, (error) => {
+            notify.error(
+                getErrorMessage(error, 'Failed to publish the Event!')
+            )
         })
     }
 )
