@@ -45,7 +45,10 @@ Feature: Assignments
                     },
                     "assigned_to": {
                         "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb"
+                        "user": "507f191e810c19729de870eb",
+                        "coverage_provider": {
+                            "qcode": "stringer",
+                            "name": "Stringer"}
                     }
                 }
             ]
@@ -74,7 +77,8 @@ Feature: Assignments
                     "assigned_to": {
                         "desk": "Politic Desk",
                         "user": "507f191e810c19729de870eb",
-                        "assignment_id": "#firstassignment#"
+                        "assignment_id": "#firstassignment#",
+                        "coverage_provider": {"name": "Stringer"}
                     }
                 }
             ]
@@ -93,7 +97,8 @@ Feature: Assignments
             },
             "assigned_to": {
                 "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb"
+                "user": "507f191e810c19729de870eb",
+                "coverage_provider": {"name": "Stringer"}
             }
         }
         """
@@ -114,7 +119,8 @@ Feature: Assignments
         {
             "assigned_to": {
                 "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb"
+                "user": "507f191e810c19729de870eb",
+                "coverage_provider": {"qcode":"agencies", "name": "Agencies"}
             }
         }
         """
@@ -132,7 +138,8 @@ Feature: Assignments
         {
             "assigned_to": {
                 "desk": "Sports Desk",
-                "user": "507f191e810c19729de87034"
+                "user": "507f191e810c19729de87034",
+                "coverage_provider": {"qcode": "agencies", "name": "Agencies"}
             }
         }
         """

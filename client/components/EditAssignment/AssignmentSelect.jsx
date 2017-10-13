@@ -15,26 +15,19 @@ export class AssignmentSelect extends React.Component {
     }
 
     filterUsers(deskAssigned) {
-        if (!deskAssigned) return this.props.usersMergedCoverageProviders
+        if (!deskAssigned) return this.props.users
 
-        let filteredUsersWithProviders = this.props.usersMergedCoverageProviders.filter((user) =>
+        let filteredUsers = this.props.users.filter((user) =>
             map(deskAssigned.members, 'user').indexOf(user._id) !== -1)
 
-        // Append providers as they belong to all desks
-        const providers = this.props.usersMergedCoverageProviders.filter((u) => u.provider)
-        filteredUsersWithProviders = [
-            ...filteredUsersWithProviders,
-            ...providers,
-        ]
-
-        return filteredUsersWithProviders
+        return filteredUsers
     }
 
     filterDesks(userAssigned) {
         if (!userAssigned) return this.props.desks
 
         // If user assigned is a provider, show all desks
-        const selectedUser = this.props.usersMergedCoverageProviders.find((u) =>
+        const selectedUser = this.props.users.find((u) =>
             u._id === userAssigned)
         if (selectedUser.provider) {
             return this.props.desks
@@ -50,6 +43,7 @@ export class AssignmentSelect extends React.Component {
             filteredDeskList: this.filterDesks(get(this.props.input.value.userAssigned, '_id')),
             userAssigned: this.props.input.value.userAssigned,
             deskAssigned: this.props.input.value.deskAssigned,
+            coverageProviderAssigned: this.props.input.value.coverage_provider,
         })
     }
 
@@ -93,11 +87,19 @@ export class AssignmentSelect extends React.Component {
         })
     }
 
+
+    onCoverageProviderChange(value) {
+        this.setState({
+            coverageProviderAssigned: this.props.coverageProviders.find((p) => p.qcode === value) ||
+            null,
+        })
+    }
+
     onUserAssignChange(value) {
         // Change desk list to user's desks
         this.setState({
             filteredDeskList: this.filterDesks(value),
-            userAssigned: this.props.usersMergedCoverageProviders.find((user) =>
+            userAssigned: this.props.users.find((user) =>
                 user._id === value),
         })
         this.refs.searchBar.resetSearch()
@@ -107,6 +109,7 @@ export class AssignmentSelect extends React.Component {
         this.props.input.onChange({
             user: value.user,
             desk: value.desk,
+            coverage_provider: value.coverage_provider,
         })
     }
 
@@ -116,19 +119,32 @@ export class AssignmentSelect extends React.Component {
             onChange: this.onDeskAssignChange.bind(this),
         }
 
+        const coverageProviderSelectFieldInput = {
+            value: this.state.coverageProviderAssigned,
+            onChange: this.onCoverageProviderChange.bind(this),
+        }
+
         const { context } = this.props
         const classes = classNames('assignmentselect',
             { 'assignmentselect__assignment': context === 'assignment' })
 
         return (<div className={classes}>
-            { context !== 'search' &&  <label>Assign</label> || <label>Select</label>}
-            { context !== 'search' && this.state.userAssigned && !this.state.deskAssigned &&
+            { <label>Assign</label> || <label>Select</label>}
+            { (this.state.coverageProviderAssigned || this.state.userAssigned) && !this.state.deskAssigned &&
                         <span className="error-block">Must select a desk.</span> }
 
             <fields.DeskSelectField
                 desks={this.state.filteredDeskList}
                 autoFocus={true}
                 input={deskSelectFieldInput} />
+            <div>
+            <div>
+                <label>Coverage Provider</label>
+                <fields.CoverageProviderField
+                coverageProviders={this.props.coverageProviders}
+                input={coverageProviderSelectFieldInput}/>
+            </div>
+            </div>
             { this.state.userAssigned &&
                 <div className='assignmentselect__user'>
                     <UserAvatar user={this.state.userAssigned} />
@@ -157,6 +173,7 @@ export class AssignmentSelect extends React.Component {
                     onClick={this.onChange.bind(this, {
                         user: this.state.userAssigned,
                         desk: this.state.deskAssigned,
+                        coverage_provider: this.state.coverageProviderAssigned,
                     })}>
                     Save
                 </button>}
@@ -169,7 +186,8 @@ export class AssignmentSelect extends React.Component {
 }
 
 AssignmentSelect.propTypes = {
-    usersMergedCoverageProviders: PropTypes.array.isRequired,
+    users: PropTypes.array.isRequired,
+    coverageProviders: PropTypes.array,
     desks: PropTypes.array.isRequired,
     onCancel: PropTypes.func.isRequired,
     input: PropTypes.object.isRequired,

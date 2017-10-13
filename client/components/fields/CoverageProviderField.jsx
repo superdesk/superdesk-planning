@@ -1,19 +1,32 @@
+import React from 'react'
 import { SelectField } from './SelectField'
-import { connect } from 'react-redux'
-import { get } from 'lodash'
+import PropTypes from 'prop-types'
 
-const mapStateToProps = (state) => ({
-    options: get(state, 'vocabularies.coverage_providers', []).map((state) => (
-        {
-            key: state.qcode,
-            label: state.name,
-            value: state.qcode,
-        }
-    )),
+export const CoverageProviderField = (props) => {
+    const ownProps = {
+        ...props,
+        options: (props.coverageProviders || []).map((provider) => (
+            {
+                key: provider.qcode,
+                label: provider.name,
+                value: provider.qcode,
+            }
+        )),
 
-    getOptionFromValue: (value, options) => options.find(
-        option => option.key === value
-    ),
-})
+        getOptionFromValue: (value, options) => value && options.find(
+            option => option.key === value.qcode
+        ),
 
-export const CoverageProviderField = connect(mapStateToProps)(SelectField)
+        meta: { },
+
+        clearable: true,
+    }
+
+    return (<SelectField {...ownProps}/>)
+}
+
+CoverageProviderField.propTypes = {
+    // eslint-disable-next-line react/no-unused-prop-types
+    input: PropTypes.object.isRequired,
+    coverageProviders: PropTypes.array.isRequired,
+}

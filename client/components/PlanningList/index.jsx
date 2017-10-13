@@ -59,7 +59,7 @@ class PlanningList extends React.Component {
             openPlanningEditor,
             handlePlanningDuplicate,
             session,
-            usersMergedCoverageProviders,
+            users,
             desks,
             onCancelEvent,
             onUpdateEventTime,
@@ -100,7 +100,7 @@ class PlanningList extends React.Component {
                     onAgendaClick={onAgendaClick}
                     privileges={privileges}
                     session={session}
-                    usersMergedCoverageProviders={usersMergedCoverageProviders}
+                    users={users}
                     desks={desks}
                     lockedItems={lockedItems}
                     onSelectItem={() => onSelectItem(planning._id)}
@@ -153,7 +153,7 @@ PlanningList.propTypes = {
     handlePlanningUnspike: PropTypes.func.isRequired,
     privileges: PropTypes.object.isRequired,
     session: PropTypes.object,
-    usersMergedCoverageProviders: PropTypes.array.isRequired,
+    users: PropTypes.array.isRequired,
     desks: PropTypes.array.isRequired,
     onAgendaClick: PropTypes.func,
     loadMorePlannings: PropTypes.func,
@@ -178,7 +178,7 @@ const mapStateToProps = (state) => ({
     planningsEvents: selectors.getFilteredPlanningListEvents(state),
     privileges: selectors.getPrivileges(state),
     session: selectors.getSessionDetails(state),
-    usersMergedCoverageProviders: selectors.getUsersMergedCoverageProviders(state),
+    users: selectors.getUsers(state),
     desks: state.desks && state.desks.length > 0 ? state.desks : [],
     lockedItems: selectors.getLockedItems(state),
     currentWorkspace: selectors.getCurrentWorkspace(state),

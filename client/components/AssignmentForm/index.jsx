@@ -16,10 +16,11 @@ export class Component extends React.Component {
             assignment,
             readOnly,
             desks,
-            usersMergedCoverageProviders,
+            users,
             formProfile,
             handleSubmit,
             keywords,
+            coverageProviders,
         } = this.props
 
         return (
@@ -28,8 +29,9 @@ export class Component extends React.Component {
                     <Field
                         name={'assigned_to'}
                         component={EditAssignment}
-                        usersMergedCoverageProviders={usersMergedCoverageProviders}
+                        users={users}
                         desks={desks}
+                        coverageProviders={coverageProviders}
                         readOnly={readOnly} context={'assignment'} />
 
                     <label>Coverage Details</label>
@@ -51,8 +53,9 @@ Component.propTypes = {
     assignment: PropTypes.object,
     readOnly: PropTypes.bool,
     formProfile: PropTypes.object,
-    usersMergedCoverageProviders: PropTypes.array.isRequired,
+    users: PropTypes.array.isRequired,
     desks: PropTypes.array.isRequired,
+    coverageProviders: PropTypes.array,
     keywords: PropTypes.array,
     onSubmit: PropTypes.func,
 }
@@ -63,7 +66,8 @@ const mapStateToProps = (state) => ({
     desks: selectors.getDesks(state),
     readOnly: selectors.getReadOnlyAssignment(state),
     formProfile: selectors.getCoverageFormsProfile(state),
-    usersMergedCoverageProviders: selectors.getUsersMergedCoverageProviders(state),
+    users: selectors.getUsers(state),
+    coverageProviders: selectors.getCoverageProviders(state),
     keywords: selectors.getKeywords(state),
 })
 

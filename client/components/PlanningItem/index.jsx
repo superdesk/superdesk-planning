@@ -25,7 +25,7 @@ const PlanningItem = ({
         onDuplicate,
         onRescheduleEvent,
         session,
-        usersMergedCoverageProviders,
+        users,
         desks,
         onCancelEvent,
         onUpdateEventTime,
@@ -152,7 +152,7 @@ const PlanningItem = ({
                         const assignedDeskId = get(c, 'assigned_to.desk')
 
                         const user = !assignedUserId ? null :
-                            usersMergedCoverageProviders.find((u) => (u._id === assignedUserId))
+                            users.find((u) => (u._id === assignedUserId))
 
                         const desk = !assignedDeskId ? null :
                             desks.find((d) => (d._id === assignedDeskId))
@@ -232,7 +232,7 @@ const mapStateToProps = (state) => ({ currentAgendaId: getCurrentAgendaId(state)
 PlanningItem.propTypes = {
     item: PropTypes.object.isRequired,
     agendas: PropTypes.array.isRequired,
-    usersMergedCoverageProviders: PropTypes.array.isRequired,
+    users: PropTypes.array.isRequired,
     desks: PropTypes.array.isRequired,
     event: PropTypes.object,
     active: PropTypes.bool,

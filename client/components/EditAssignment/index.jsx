@@ -40,7 +40,7 @@ export class EditAssignment  extends React.Component {
             return
         }
 
-        return this.props.usersMergedCoverageProviders.find((user) =>
+        return this.props.users.find((user) =>
             user._id === this.props.input.value.user)
     }
 
@@ -61,6 +61,7 @@ export class EditAssignment  extends React.Component {
             ...this.props.input.value,
             desk: get(value, 'desk._id'),
             user: get(value, 'user._id'),
+            coverage_provider: get(value, 'coverage_provider'),
         })
 
         if (toggle) {
@@ -72,6 +73,7 @@ export class EditAssignment  extends React.Component {
         const deskAssigned = this.getAssignedDesk()
         const userAssigned = this.getAssignedUser()
         const { context } = this.props
+        const coverageProvider = get(this.props, 'input.value.coverage_provider')
         let avatarClassNames = this.getAvatarClassNames(deskAssigned, userAssigned)
 
         const assignmentSelectInput = {
@@ -79,6 +81,7 @@ export class EditAssignment  extends React.Component {
             value: {
                 deskAssigned: deskAssigned,
                 userAssigned: userAssigned,
+                coverage_provider: coverageProvider,
             },
         }
 
@@ -98,6 +101,7 @@ export class EditAssignment  extends React.Component {
                 { !deskAssigned && !userAssigned && <label>Unassigned</label> }
                 { deskAssigned && <label>{'Desk: ' + deskAssigned.name}</label> }
                 { userAssigned && <label>{userAssigned.display_name}</label> }
+                { coverageProvider && <label> {'Coverage Provider: ' + coverageProvider.name} </label>}
             </div>
         )
 
@@ -127,9 +131,10 @@ export class EditAssignment  extends React.Component {
                 {
                     this.state.openAssignmentSelect &&
                     (<AssignmentSelect
-                        usersMergedCoverageProviders={this.props.usersMergedCoverageProviders}
+                        users={this.props.users}
                         desks={this.props.desks}
                         onCancel={this.toggleSelection}
+                        coverageProviders={this.props.coverageProviders}
                         input={assignmentSelectInput} context={context} />)
                 }
             </div>
@@ -138,7 +143,8 @@ export class EditAssignment  extends React.Component {
 }
 
 EditAssignment.propTypes = {
-    usersMergedCoverageProviders: PropTypes.array.isRequired,
+    users: PropTypes.array.isRequired,
+    coverageProviders: PropTypes.array,
     desks: PropTypes.array.isRequired,
     input: PropTypes.object,
     readOnly: PropTypes.bool,

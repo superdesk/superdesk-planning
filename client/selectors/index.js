@@ -128,6 +128,17 @@ export const getCurrentAssignment = createSelector(
     )
 )
 
+export const getCoverageProviders = createSelector(
+    [getVocabularies],
+    (vocabularies) => {
+        if (!vocabularies.coverage_providers) {
+            return []
+        }
+
+        return vocabularies.coverage_providers
+    }
+)
+
 export const getUsersMergedCoverageProviders = createSelector(
     [getUsers, getVocabularies],
     (users, vocabularies) => {

@@ -68,6 +68,8 @@ class PlanningService(superdesk.Service):
                 coverage['assigned_to']['state'] = assignment.get('assigned_to', {}).get('state')
                 coverage['assigned_to']['assigned_by'] = assignment.get('assigned_to', {}).get('assigned_by')
                 coverage['assigned_to']['assigned_date'] = assignment.get('assigned_to', {}).get('assigned_date')
+                coverage['assigned_to']['coverage_provider'] =\
+                    assignment.get('assigned_to', {}).get('coverage_provider')
 
     def on_fetched(self, docs):
         self.__generate_related_assignments(docs.get(config.ITEMS))
@@ -334,6 +336,8 @@ class PlanningService(superdesk.Service):
                 'planning': doc.get('planning'),
                 'is_active': True
             }
+            if 'coverage_provider' in assigned_to:
+                assignment['assigned_to']['coverage_provider'] = assigned_to.get('coverage_provider')
 
             assignment_id = assignment_service.post([assignment])
             updates['assigned_to']['assignment_id'] = str(assignment_id[0])
@@ -355,6 +359,7 @@ class PlanningService(superdesk.Service):
 
         updates.get('assigned_to', {}).pop('user', None)
         updates.get('assigned_to', {}).pop('desk', None)
+        updates.get('assigned_to', {}).pop('coverage_provider', None)
 
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
