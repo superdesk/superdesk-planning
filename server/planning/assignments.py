@@ -155,7 +155,21 @@ assignments_schema = {
             'user': {'type': 'string', 'nullable': True, 'mapping': not_analyzed},
             'assigned_by': {'type': 'string', 'mapping': not_analyzed},
             'assigned_date': {'type': 'datetime'},
-            'state': {'type': 'string', 'mapping': not_analyzed, 'allowed': assignment_workflow_state}
+            'state': {'type': 'string', 'mapping': not_analyzed, 'allowed': assignment_workflow_state},
+            'coverage_provider': {
+                'type': 'dict',
+                'nullable': True,
+                'schema': {
+                    'qcode': {'type': 'string'},
+                    'name': {'type': 'string'}
+                },
+                'mapping': {
+                    'properties': {
+                        'qcode': not_analyzed,
+                        'name': not_analyzed
+                    }
+                }
+            }
         }
     },
 

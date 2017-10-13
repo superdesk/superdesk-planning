@@ -117,7 +117,7 @@ const save = (item, original=undefined) => (
         .then((originalItem) => {
             // only assignment_to field.
             item = pick(item, 'assigned_to')
-            item.assigned_to = pick(item.assigned_to, ['desk', 'user'])
+            item.assigned_to = pick(item.assigned_to, ['desk', 'user', 'coverage_provider'])
 
             return api('assignments').save(cloneDeep(originalItem), item)
             .then((item) => {

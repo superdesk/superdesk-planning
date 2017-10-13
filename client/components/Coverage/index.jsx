@@ -8,20 +8,22 @@ import './style.scss'
 
 function CoverageComponent({
     coverage,
-    usersMergedCoverageProviders,
+    users,
     desks,
     readOnly,
     content_type,
     formProfile,
     keywords,
+    coverageProviders,
     }) {
     return (
         <fieldset>
             <Field
                 name={`${coverage}.assigned_to`}
                 component={EditAssignment}
-                usersMergedCoverageProviders={usersMergedCoverageProviders}
+                users={users}
                 desks={desks}
+                coverageProviders={coverageProviders}
                 readOnly={readOnly}
                 context="coverage" />
             <CoverageDetails
@@ -37,8 +39,9 @@ function CoverageComponent({
 CoverageComponent.propTypes = {
     coverage: PropTypes.string.isRequired,
     content_type: PropTypes.string,
-    usersMergedCoverageProviders: PropTypes.array.isRequired,
+    users: PropTypes.array.isRequired,
     desks: PropTypes.array.isRequired,
+    coverageProviders: PropTypes.array,
     readOnly: PropTypes.bool,
     formProfile: PropTypes.object,
     keywords: PropTypes.array,
@@ -46,8 +49,9 @@ CoverageComponent.propTypes = {
 
 const selector = formValueSelector('planning') // same as form name
 const mapStateToProps = (state, ownProps) => ({
-    usersMergedCoverageProviders: selectors.getUsersMergedCoverageProviders(state),
+    users: selectors.getUsers(state),
     desks: selectors.getDesks(state),
+    coverageProviders: selectors.getCoverageProviders(state),
     content_type: selector(state, ownProps.coverage + '.planning.g2_content_type'),
     formProfile: selectors.getCoverageFormsProfile(state),
     keywords: selectors.getKeywords(state),
