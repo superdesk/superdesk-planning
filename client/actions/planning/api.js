@@ -205,8 +205,9 @@ const query = ({
                 condition: () => (get(advancedSearch, 'dates')),
                 do: () => {
                     let fieldName = '_planning_schedule.scheduled'
-                    let range = { fieldName: { time_zone: getTimeZoneOffset() } }
-                    let rangeType = get(advancedSearch, 'dates.range', 'today')
+                    let range = {}
+                    range[fieldName] = { time_zone: getTimeZoneOffset() }
+                    let rangeType = get(advancedSearch, 'dates.range')
 
                     if (rangeType === 'today') {
                         range[fieldName].gte = 'now/d'
@@ -300,8 +301,12 @@ const query = ({
             {
                 condition: () => (advancedSearch.noCoverage),
                 do: () => {
-                    let noCoverageTerm = { term: { 'coverages.coverage_id': 'NO_COVERAGE' } }
-                    must.push({
+                    /* eslint-disable */
+                    let noCoverageTerm = {
+                        constant_score: { filter: { exists: { field: 'coverages.coverage_id' } } },
+                    }
+                    /* eslint-enable */
+                    mustNot.push({
                         nested: {
                             path: 'coverages',
                             query: { bool: { must: [noCoverageTerm] } },
@@ -833,7 +838,6 @@ const receivePlannings = (plannings) => ({
     type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
     payload: plannings,
 })
-
 
 /**
  * Action dispatcher that attempts to unlock a Planning item through the API
