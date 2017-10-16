@@ -662,3 +662,94 @@ Feature: Events Reschedule
         Then we get error 404
         When we get "/events/#EVENT5._id#"
         Then we get error 404
+
+    @auth
+    Scenario: Reschedules series when only the length of each event changes
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2019-11-22T12:00:00.000Z",
+                "end": "2019-11-22T14:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "FR",
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        When we perform reschedule on events "#EVENT1._id#"
+        """
+        {
+            "dates": {
+                "start": "2019-11-22T12:00:00.000Z",
+                "end": "2019-11-22T18:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "byday": "FR",
+                    "count": 3,
+                    "endRepeatMode": "count"
+                }
+            },
+            "update_method": "all"
+        }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-11-22T12:00:00+0000",
+                    "end": "2019-11-22T18:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }, {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-11-29T12:00:00+0000",
+                    "end": "2019-11-29T18:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }, {
+                "name": "Friday Club",
+                "dates": {
+                    "start": "2019-12-06T12:00:00+0000",
+                    "end": "2019-12-06T18:00:00+0000",
+                    "tz": "Australia/Sydney",
+                    "recurring_rule": {
+                        "frequency": "WEEKLY",
+                        "interval": 1,
+                        "byday": "FR",
+                        "count": 3,
+                        "endRepeatMode": "count"
+                    }
+                }
+            }
+        ]}
+        """
