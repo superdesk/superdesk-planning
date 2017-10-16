@@ -13,7 +13,7 @@ import {
     EventMaxEndRepeatCount } from '../../../validators'
 import { EventScheduleForm, EventScheduleSummary } from '../../index'
 import moment from 'moment'
-import { FORM_NAMES } from '../../../constants'
+import { FORM_NAMES, EVENTS } from '../../../constants'
 
 export class Component extends React.Component {
     constructor(props) {
@@ -103,9 +103,19 @@ const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (event) => dispatch(actions.events.ui.saveAndPublish(
         event,
-        get(event, '_save', true),
-        get(event, '_publish', false)
-    )),
+        get(event, '_save', true)
+    )).then(() => {
+        dispatch({
+            type: EVENTS.ACTIONS.UNLOCK_EVENT,
+            payload: { event },
+        })
+    }),
+
+    onHide: (event) => {
+        if (event.lock_action === 'convert_recurring') {
+            dispatch(actions.events.api.unlock(event))
+        }
+    },
 })
 
 export const ConvertToRecurringEventForm = connect(
