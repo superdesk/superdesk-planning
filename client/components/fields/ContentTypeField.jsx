@@ -14,6 +14,8 @@ const mapStateToProps = (state) => ({
     getOptionFromValue: (value, options) => options.find(
         option => option.key === value
     ),
+
+    clearable: true,
 })
 
 export const ContentTypeField = connect(mapStateToProps)(SelectField)

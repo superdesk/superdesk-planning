@@ -12,6 +12,7 @@ import {
     RequiredFieldsValidatorFactory,
     MaxLengthValidatorFactory } from '../../validators'
 
+
 class Component extends React.Component {
 
     constructor(props) {
@@ -28,6 +29,7 @@ class Component extends React.Component {
             formProfile,
             event,
             desks,
+            initialValues,
         } = this.props
         const isPublic = isItemPublic(pubstatus)
         return (
@@ -114,7 +116,13 @@ class Component extends React.Component {
                                 readOnly={readOnly} />
                         </div>
                         }
-                        {get(formProfile.planning, 'editor.flags') && !isPublic &&
+                        {get(formProfile.planning, 'editor.flags') && readOnly &&
+                            get(initialValues, 'flags.marked_for_not_publication', false) &&
+                            <div className="form__row">
+                                <span className="state-label not-for-publication">Not for Publication</span>
+                            </div>
+                        }
+                        {get(formProfile.planning, 'editor.flags') && !isPublic && !readOnly &&
                             <div className="form__row">
                                 <Field
                                     name="flags.marked_for_not_publication"
