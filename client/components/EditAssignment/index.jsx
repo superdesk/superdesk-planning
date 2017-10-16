@@ -1,8 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { AssignmentSelect } from './AssignmentSelect'
-import { UserAvatar } from '../'
+import { getItemInArrayById } from '../../utils'
 import { get } from 'lodash'
+import moment from 'moment'
 import './style.scss'
 
 export class EditAssignment  extends React.Component {
@@ -32,7 +33,7 @@ export class EditAssignment  extends React.Component {
             return
         }
 
-        return this.props.desks.find((desk) => desk._id === this.props.input.value.desk)
+        return getItemInArrayById(this.props.desks, this.props.input.value.desk)
     }
 
     getAssignedUser() {
@@ -40,28 +41,20 @@ export class EditAssignment  extends React.Component {
             return
         }
 
-        return this.props.users.find((user) =>
-            user._id === this.props.input.value.user)
-    }
-
-    getAvatarClassNames(deskAssigned, userAssigned) {
-        if (!deskAssigned && !userAssigned) {
-            return 'unassigned'
-        }
-
-        if (deskAssigned && userAssigned) {
-            return 'initials'
-        }
-
-        return deskAssigned ? 'desk' : 'initials'
+        return getItemInArrayById(this.props.users, this.props.input.value.user)
     }
 
     onChange(value, toggle=true) {
+        const currentTime = moment()
         this.props.input.onChange({
             ...this.props.input.value,
             desk: get(value, 'desk._id'),
             user: get(value, 'user._id'),
             coverage_provider: get(value, 'coverage_provider'),
+            assignor_user: this.props.currentUserId,
+            assignor_desk: this.props.currentUserId,
+            assigned_date_user: currentTime,
+            assigned_date_desk: currentTime,
         })
 
         if (toggle) {
@@ -72,9 +65,19 @@ export class EditAssignment  extends React.Component {
     render() {
         const deskAssigned = this.getAssignedDesk()
         const userAssigned = this.getAssignedUser()
-        const { context } = this.props
         const coverageProvider = get(this.props, 'input.value.coverage_provider')
-        let avatarClassNames = this.getAvatarClassNames(deskAssigned, userAssigned)
+
+        const {
+            assignor_user,
+            assignor_desk,
+            assigned_date_user,
+            assigned_date_desk,
+        } = get(this.props.input, 'value')
+
+        const deskAssignor = getItemInArrayById(this.props.users, assignor_desk)
+        const userAssignor = getItemInArrayById(this.props.users, assignor_user)
+
+        const { context } = this.props
 
         const assignmentSelectInput = {
             onChange: this.onChange,
@@ -95,13 +98,21 @@ export class EditAssignment  extends React.Component {
         )
 
         const renderUserAvatar = () => (
-            <div>
-                { userAssigned && <UserAvatar user={userAssigned} large={true} /> }
-                { !userAssigned && deskAssigned && <figure className={avatarClassNames + ' avatar large'} /> }
+            <div className="TimeAndAuthor">
                 { !deskAssigned && !userAssigned && <label>Unassigned</label> }
-                { deskAssigned && <label>{'Desk: ' + deskAssigned.name}</label> }
-                { userAssigned && <label>{userAssigned.display_name}</label> }
-                { coverageProvider && <label> {'Coverage Provider: ' + coverageProvider.name} </label>}
+                { deskAssigned && <div>
+                    Desk:&nbsp;
+                    <span className='TimeAndAuthor__author'>{deskAssigned.name.toUpperCase()}</span>
+                    {' (' + moment(assigned_date_desk).format('HH:mm DD/MM/YYYY') + ', ' +
+                        get(deskAssignor, 'display_name', '').toUpperCase() + ')'}
+                </div> }
+                { userAssigned && <div>
+                    Assignee&nbsp;
+                    <span className='TimeAndAuthor__author'>{get(userAssigned, 'display_name', '').toUpperCase()}</span>
+                    {' (' + moment(assigned_date_user).format('HH:mm DD/MM/YYYY') + ', ' +
+                        get(userAssignor, 'display_name', '').toUpperCase() + ')'}
+                </div> }
+                { coverageProvider && <span> {'Coverage Provider: ' + coverageProvider.name} </span>}
             </div>
         )
 
@@ -149,6 +160,7 @@ EditAssignment.propTypes = {
     input: PropTypes.object,
     readOnly: PropTypes.bool,
     context: PropTypes.oneOf(['coverage','assignment']).isRequired,
+    currentUserId: PropTypes.string,
 }
 
 EditAssignment.defaultValues = { context: 'coverage' }

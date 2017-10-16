@@ -1,3 +1,4 @@
+import moment from 'moment'
 import React from 'react'
 import { mount } from 'enzyme'
 import { EditAssignment } from './index'
@@ -26,7 +27,7 @@ const users = [{
 
 class TestForm extends React.Component {
     render() {
-        const i = this.props.input ? this.props.input : {}
+        const i = this.props.input ? this.props.input : { value: '' }
         const coverageProvider = [{
             qcode: 'ProviderQcode_1',
             name: 'Provider',
@@ -133,26 +134,36 @@ describe('<EditAssignment />', () => {
         expect(wrapper.find('.btn--primary').length).toBe(0)
     })
 
-    it('Shows desk assignment correctly with right avatar', () => {
-        const input = { value: { desk: 123 } }
+    it('Shows desk assignment correctly with assignor details', () => {
+        const inputDate = moment('2014-01-01T14:00')
+        const input = {
+            value: {
+                desk: 123,
+                assignor_desk: 345,
+                assigned_date_desk: inputDate,
+            },
+        }
         const wrapper = mount(<TestForm users={users}
                 desks={desks}
                 input={input} />)
-        const deskLbl = wrapper.find('label').get(0)
-        expect(deskLbl.textContent).toBe('Desk: Politic Desk')
-        expect(wrapper.find('.desk').length).toBe(1)
+        const deskLbl = wrapper.find('.TimeAndAuthor').children().first()
+        expect(deskLbl.text()).toBe('Desk: POLITIC DESK (14:00 01/01/2014, FIRSTNAME LASTNAME)')
     })
 
-    it('Shows user assignment correctly with right avatar', () => {
-        const input = { value: { user: 456 } }
+    it('Shows user assignment correctly with assignor details', () => {
+        const inputDate = moment('2014-01-01T14:00')
+        const input = {
+            value: {
+                user: 456,
+                assignor_user: 345,
+                assigned_date_user: inputDate,
+            },
+        }
         const wrapper = mount(<TestForm users={users}
                 desks={desks}
                 input={input} />)
-        const avatarLbl = wrapper.find('span')
-        expect(avatarLbl.get(0).textContent).toBe('FL')
-        const userLbl = wrapper.find('label').get(0)
-        expect(userLbl.textContent).toBe('firstname2 lastname2')
-        expect(wrapper.find('.initials').length).toBe(1)
+        const userLbl = wrapper.find('.TimeAndAuthor').children().last()
+        expect(userLbl.text()).toBe('Assignee FIRSTNAME2 LASTNAME2 (14:00 01/01/2014, FIRSTNAME LASTNAME)')
     })
 
     it('Coverage provider is populated for all desks', () => {

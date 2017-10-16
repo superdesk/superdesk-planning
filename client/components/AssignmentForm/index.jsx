@@ -22,6 +22,7 @@ export class Component extends React.Component {
             handleSubmit,
             keywords,
             coverageProviders,
+            currentUserId,
         } = this.props
 
         return (
@@ -31,6 +32,7 @@ export class Component extends React.Component {
                         name={'assigned_to'}
                         component={EditAssignment}
                         users={users}
+                        currentUserId={currentUserId}
                         desks={desks}
                         coverageProviders={coverageProviders}
                         readOnly={readOnly || assignmentUtils.isAssignmentCancelled(assignment)} context={'assignment'} />
@@ -64,6 +66,7 @@ Component.propTypes = {
 const mapStateToProps = (state) => ({
     initialValues: selectors.getCurrentAssignment(state),
     assignment: selectors.getCurrentAssignment(state),
+    currentUserId: selectors.getCurrentUserId(state),
     desks: selectors.getDesks(state),
     readOnly: selectors.getReadOnlyAssignment(state),
     formProfile: selectors.getCoverageFormsProfile(state),

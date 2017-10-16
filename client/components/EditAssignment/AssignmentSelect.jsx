@@ -175,7 +175,7 @@ export class AssignmentSelect extends React.Component {
                         desk: this.state.deskAssigned,
                         coverage_provider: this.state.coverageProviderAssigned,
                     })}>
-                    Save
+                    Confirm
                 </button>}
                 <button type="button" className="btn" onClick={this.props.onCancel}>
                     Cancel
