@@ -50,6 +50,7 @@ from .item_lock import LockService
 from .assignments import AssignmentsResource, AssignmentsService
 from .delivery import DeliveryResource
 from .assignments_content import AssignmentsContentResource, AssignmentsContentService
+from .assignments_link import AssignmentsLinkResource, AssignmentsLinkService
 from .commands import *  # noqa
 
 
@@ -202,6 +203,9 @@ def init_app(app):
 
     assignments_content_service = AssignmentsContentService('assignments_content', backend=superdesk.get_backend())
     AssignmentsContentResource('assignments_content', app=app, service=assignments_content_service)
+
+    assignments_link_service = AssignmentsLinkService('assignments_link', backend=superdesk.get_backend())
+    AssignmentsLinkResource('assignments_link', app=app, service=assignments_link_service)
 
     register_component(LockService(app))
 

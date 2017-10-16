@@ -68,6 +68,8 @@ class PlanningPanel extends React.Component {
             deselectAll,
             exportAsArticle,
             currentWorkspace,
+            onAddCoverage,
+            onPlanningFormSave,
         } = this.props
 
         const multiActions = [
@@ -153,7 +155,10 @@ class PlanningPanel extends React.Component {
                                 <QuickAddPlanning onPlanningCreation={onPlanningCreation}/>
                             }
                             {(planningList.length > 0) &&
-                                <PlanningList selected={selected} />
+                                <PlanningList
+                                    selected={selected}
+                                    onAddCoverage={onAddCoverage}
+                                />
                             }
                         </div>
                         {
@@ -188,7 +193,9 @@ class PlanningPanel extends React.Component {
                                 </div>
                         }
                     </div>
-                    {editPlanningViewOpen && <EditPlanningPanelContainer/> }
+                    {editPlanningViewOpen &&
+                        <EditPlanningPanelContainer onPlanningFormSave={onPlanningFormSave}/>
+                    }
                 </div>
             </div>
         )
@@ -221,6 +228,8 @@ PlanningPanel.propTypes = {
     exportAsArticle: PropTypes.func,
     lockedItems: PropTypes.object,
     currentWorkspace: PropTypes.string,
+    onAddCoverage: PropTypes.func,
+    onPlanningFormSave: PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({

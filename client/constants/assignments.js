@@ -13,4 +13,12 @@ export const ASSIGNMENTS = {
         OPEN_ASSIGNMENT_EDITOR: 'OPEN_ASSIGNMENT_EDITOR',
         CLOSE_ASSIGNMENT_EDITOR: 'CLOSE_ASSIGNMENT_EDITOR',
     },
+
+    WORKFLOW_STATE: {
+        ASSIGNED: 'assigned',
+        IN_PROGRESS: 'in_progress',
+        COMPLETED: 'completed',
+        SUBMITTED: 'submitted',
+        CANCELLED: 'cancelled',
+    },
 }

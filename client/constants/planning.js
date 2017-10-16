@@ -29,6 +29,7 @@ export const PLANNING = {
         DESELECT_ALL: 'DESELECT_ALL',
         LOCK_PLANNING: 'LOCK_PLANNING',
         UNLOCK_PLANNING: 'UNLOCK_PLANNING',
+        ADD_COVERAGE_FROM_NEWS_ITEM: 'ADD_COVERAGE_FROM_NEWS_ITEM',
     },
     // Number of ids to look for by single request
     // because url length must stay short

@@ -592,45 +592,7 @@ describe('actions.planning.api', () => {
                         slugline: 'New Slugger',
                         headline: 'Some Plan 1',
                         agendas: [],
-                        coverages: [
-                            {
-                                coverage_id: 'c1',
-                                planning_item: 'p1',
-                                planning: {
-                                    ednote: 'Text coverage',
-                                    scheduled: '2016-10-15T13:01:11',
-                                    g2_content_type: 'text',
-                                },
-                                assigned_to: {
-                                    user: 'ident1',
-                                    desk: 'desk1',
-                                    assignment_id: 'as1',
-                                },
-                            },
-                            {
-                                coverage_id: 'c2',
-                                planning_item: 'p1',
-                                planning: {
-                                    ednote: 'Photo coverage',
-                                    scheduled: '2016-10-15T14:01:11',
-                                    g2_content_type: 'photo',
-                                },
-                                assigned_to: {
-                                    user: 'ident1',
-                                    desk: 'desk2',
-                                    assignment_id: 'as2',
-                                },
-                            },
-                            {
-                                coverage_id: 'c3',
-                                planning_item: 'p1',
-                                planning: {
-                                    ednote: 'Video coverage',
-                                    scheduled: '2016-10-15T16:01:11',
-                                    g2_content_type: 'video',
-                                },
-                            },
-                        ],
+                        coverages: data.plannings[0].coverages,
                     },
                 ])
 

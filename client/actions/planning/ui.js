@@ -3,9 +3,11 @@ import planning from './index'
 import { locks } from '../index'
 import { checkPermission, getErrorMessage, isItemLockedInThisSession } from '../../utils'
 import * as selectors from '../../selectors'
-import { PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE } from '../../constants'
+import { PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, ASSIGNMENTS } from '../../constants'
 import * as actions from '../index'
-import { get } from 'lodash'
+import { get, sortBy, last } from 'lodash'
+import { change } from 'redux-form'
+import moment from 'moment'
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -161,10 +163,10 @@ const unlockAndCloseEditor = (item) => (
  * @param {object} item - The Planning item to lock and edit
  * @return Promise
  */
-const _lockAndOpenEditor = (item) => (
+const _lockAndOpenEditor = (item, checkWorkspace=true) => (
     (dispatch, getState, { notify }) => {
         const currentWorkspace = selectors.getCurrentWorkspace(getState())
-        if (currentWorkspace !== WORKSPACE.PLANNING) {
+        if (checkWorkspace && currentWorkspace !== WORKSPACE.PLANNING) {
             dispatch(self._openEditor(item))
             return Promise.resolve(item)
         }
@@ -682,6 +684,66 @@ function deselectAll() {
     return { type: PLANNING.ACTIONS.DESELECT_ALL }
 }
 
+const onAddCoverageFromAuthoring = (prevPlan, newPlan, newsItem) => (
+    (dispatch, getState) => (
+        dispatch(self.closeEditor(prevPlan))
+        .then(() => {
+            dispatch(self.openEditor(newPlan, false))
+            .then((lockedItem) => {
+                const coverageIndex = get(lockedItem, 'coverages.length', 0)
+                const contentTypes = selectors.getContentTypes(getState())
+                const contentType = contentTypes.find(
+                    (ctype) => get(ctype, 'content item type') === newsItem.type
+                )
+
+                const coverage = {
+                    planning: {
+                        g2_content_type: get(contentType, 'qcode', 'text'),
+                        slugline: get(newsItem, 'slugline', ''),
+                        ednote: get(newsItem, 'ednote', ''),
+                    },
+                    news_coverage_status: { qcode: 'ncostat:int' },
+                }
+
+                if (get(newsItem, 'state') === 'published') {
+                    coverage.planning.scheduled = newsItem._updated
+                    coverage.assigned_to = {
+                        desk: newsItem.task.desk,
+                        user: newsItem.task.user,
+                        state: ASSIGNMENTS.WORKFLOW_STATE.COMPLETED,
+                    }
+                } else {
+                    coverage.planning.scheduled = moment().endOf('day')
+                    coverage.assigned_to = {
+                        desk: selectors.getCurrentDeskId(getState()),
+                        user: selectors.getCurrentUserId(getState()),
+                        state: ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS,
+                    }
+                }
+
+                dispatch(change('planning', `coverages[${coverageIndex}]`, coverage))
+                return Promise.resolve(lockedItem)
+            })
+        })
+    )
+)
+
+const onAddCoverageFromAuthoringSave = (planning, newsItem) => (
+    (dispatch, getState, { api }) => {
+        const coverages = sortBy(planning.coverages, ['firstcreated'])
+        const coverage = last(coverages)
+        return api('assignments_link').save({}, {
+            assignment_id: coverage.assigned_to.assignment_id,
+            item_id: newsItem._id,
+        })
+        .then(() => {
+            dispatch(self.closeEditor(planning))
+            dispatch(hideModal())
+            return Promise.resolve(planning)
+        })
+    }
+)
+
 const self = {
     spike,
     unspike,
@@ -723,6 +785,8 @@ const self = {
     openCancelAllCoverageModal,
     cancelPlanning,
     cancelAllCoverage,
+    onAddCoverageFromAuthoring,
+    onAddCoverageFromAuthoringSave,
 }
 
 export default self

@@ -35,15 +35,18 @@ function configurePlanning(superdesk) {
         .activity('planning.addto', {
             label: gettext('Add to Planning'),
             modal: true,
-            priority: 2000,
-            icon: 'package-create',
+            icon: 'calendar-list',
             controller: ctrl.AddToPlanningController,
             filters: [{
                 action: 'list',
                 type: 'archive',
             }],
-            group: 'packaging',
             privileges: { planning_planning_management: 1 },
+            additionalCondition: ['lock', 'archiveService', 'item', function(lock, archiveService, item) {
+                return (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
+                    (lock.assignment_id === null || angular.isUndefined(lock.assignment_id)) &&
+                    !archiveService.isPersonal(item)
+            }],
         })
 }
 

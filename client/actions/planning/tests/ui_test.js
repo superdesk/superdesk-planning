@@ -4,6 +4,7 @@ import sinon from 'sinon'
 import { PRIVILEGES } from '../../../constants'
 import * as actions from '../../../actions/agenda'
 import { getTestActionStore, restoreSinonStub, expectAccessDenied } from '../../../utils/testUtils'
+import moment from 'moment'
 
 describe('actions.planning.ui', () => {
     let store
@@ -27,7 +28,7 @@ describe('actions.planning.ui', () => {
         )
         sinon.stub(planningApi, 'lock').callsFake((item) => (Promise.resolve(item)))
         sinon.stub(planningApi, 'unlock').callsFake(() => (Promise.resolve(data.plannings[0])))
-        sinon.stub(planningUi, 'openEditor').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningUi, 'openEditor').callsFake((item) => (Promise.resolve(item)))
         sinon.stub(planningUi, 'closeEditor').callsFake(() => (Promise.resolve()))
         sinon.stub(planningUi, 'preview').callsFake(() => (Promise.resolve()))
         sinon.stub(planningUi, 'requestPlannings').callsFake(() => (Promise.resolve()))
@@ -736,6 +737,152 @@ describe('actions.planning.ui', () => {
                 })
                 done()
             })
+        })
+    })
+
+    describe('onAddCoverageFromAuthoring', () => {
+        const publishedNewsItem = {
+            _id: 'news1',
+            slugline: 'slugger',
+            ednote: 'Edit my note!',
+            state: 'published',
+            _updated: moment('2099-10-13T13:26'),
+            task: {
+                desk: 'desk2',
+                user: 'ident2',
+            },
+            type: 'picture',
+        }
+
+        const newsItem = {
+            _id: 'news1',
+            slugline: 'slugger',
+            ednote: 'Edit my note!',
+            type: 'text',
+        }
+
+        beforeEach(() => {
+            // Init the store so we can use initialState.planning.plannings
+            // in the store.test function of each test
+            store.init()
+            store.initialState.workspace.currentDeskId = 'desk1'
+        })
+
+        it('closes and re-opens the planning editor', (done) => (
+            store.test(done, planningUi.onAddCoverageFromAuthoring(
+                store.initialState.planning.plannings.p2,
+                store.initialState.planning.plannings.p1,
+                newsItem
+            ))
+            .then(() => {
+                expect(planningUi.closeEditor.callCount).toBe(1)
+                expect(planningUi.closeEditor.args[0]).toEqual([
+                    store.initialState.planning.plannings.p2,
+                ])
+
+                expect(planningUi.openEditor.callCount).toBe(1)
+                expect(planningUi.openEditor.args[0]).toEqual([
+                    store.initialState.planning.plannings.p1,
+                    false,
+                ])
+
+                done()
+            })
+        ))
+
+        it('creates a new coverage for a non-published news item', (done) => (
+            store.test(done, planningUi.onAddCoverageFromAuthoring(
+                null,
+                store.initialState.planning.plannings.p1,
+                newsItem
+            ))
+            .then(() => {
+                expect(store.dispatch.args[2]).toEqual([{
+                    type: '@@redux-form/CHANGE',
+                    payload: {
+                        news_coverage_status: { qcode: 'ncostat:int' },
+                        assigned_to: {
+                            desk: 'desk1',
+                            user: 'ident1',
+                            state: 'in_progress',
+                        },
+                        planning: {
+                            ednote: 'Edit my note!',
+                            g2_content_type: 'text',
+                            slugline: 'slugger',
+                            scheduled: moment().endOf('day'),
+                        },
+                    },
+                    meta: {
+                        form: 'planning',
+                        field: 'coverages[3]',
+                        persistentSubmitErrors: undefined,
+                        touch: undefined,
+                    },
+                }])
+
+                done()
+            })
+        ))
+
+        it('creates a new coverage for a published new item', (done) => (
+            store.test(done, planningUi.onAddCoverageFromAuthoring(
+                null,
+                store.initialState.planning.plannings.p1,
+                publishedNewsItem
+            ))
+            .then(() => {
+                expect(store.dispatch.args[2]).toEqual([{
+                    type: '@@redux-form/CHANGE',
+                    payload: {
+                        news_coverage_status: { qcode: 'ncostat:int' },
+                        assigned_to: {
+                            desk: 'desk2',
+                            user: 'ident2',
+                            state: 'completed',
+                        },
+                        planning: {
+                            ednote: 'Edit my note!',
+                            g2_content_type: 'photo',
+                            slugline: 'slugger',
+                            scheduled: moment('2099-10-13T13:26'),
+                        },
+                    },
+                    meta: {
+                        form: 'planning',
+                        field: 'coverages[3]',
+                        persistentSubmitErrors: undefined,
+                        touch: undefined,
+                    },
+                }])
+
+                done()
+            })
+        ))
+    })
+
+    it('onAddCoverageFromAuthoringSave', (done) => {
+        data.plannings[0].coverages.pop()
+        store.test(done, planningUi.onAddCoverageFromAuthoringSave(
+            data.plannings[0],
+            { _id: 'item1' }
+        ))
+        .then(() => {
+            expect(services.api('assignments_link').save.callCount).toBe(1)
+            expect(services.api('assignments_link').save.args[0]).toEqual([
+                {},
+                {
+                    assignment_id: 'as2',
+                    item_id: 'item1',
+                },
+            ])
+
+            expect(planningUi.closeEditor.callCount).toBe(1)
+            expect(planningUi.closeEditor.args[0]).toEqual([data.plannings[0]])
+
+            expect(store.dispatch.args[1]).toEqual([{ type: 'HIDE_MODAL' }])
+
+            done()
         })
     })
 })

@@ -330,6 +330,7 @@ class PlanningService(superdesk.Service):
                 'assigned_to': {
                     'user': assigned_to.get('user'),
                     'desk': assigned_to.get('desk'),
+                    'state': assigned_to.get('state')
                 },
                 'planning_item': planning_id,
                 'coverage_item': doc.get('coverage_id'),

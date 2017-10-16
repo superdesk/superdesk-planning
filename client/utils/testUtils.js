@@ -64,6 +64,8 @@ export const getTestActionStore = () => {
                     }),
                 },
 
+                assignments_link: { save: sinon.stub().returns(Promise.resolve()) },
+
                 update: sinon.spy(() => (Promise.resolve())),
                 save: sinon.spy(() => (Promise.resolve())),
 
@@ -125,6 +127,7 @@ export const getTestActionStore = () => {
                                 desk: 'desk1',
                                 assignment_id: 'as1',
                             },
+                            firstcreated: '2017-10-01T14:01:11',
                         },
                         {
                             coverage_id: 'c2',
@@ -139,6 +142,7 @@ export const getTestActionStore = () => {
                                 desk: 'desk2',
                                 assignment_id: 'as2',
                             },
+                            firstcreated: '2017-10-02T14:01:11',
                         },
                         {
                             coverage_id: 'c3',
@@ -148,6 +152,7 @@ export const getTestActionStore = () => {
                                 scheduled: '2016-10-15T16:01:11',
                                 g2_content_type: 'video',
                             },
+                            firstcreated: '2017-10-03T14:01:11',
                         },
                     ],
                     agendas: [],
@@ -468,6 +473,30 @@ export const getTestActionStore = () => {
                 currentDeskId: null,
                 currentStageId: null,
                 currentWorkspace: 'PLANNING',
+            },
+            vocabularies: {
+                g2_content_type: [
+                    {
+                        name: 'Text',
+                        qcode: 'text',
+                        'content item type': 'text',
+                    },
+                    {
+                        name: 'Photo',
+                        qcode: 'photo',
+                        'content item type': 'picture',
+                    },
+                    {
+                        name: 'Video',
+                        qcode: 'video',
+                        'content item type': 'video',
+                    },
+                    {
+                        name: 'Audio',
+                        qcode: 'audio',
+                        'content item type': 'audio',
+                    },
+                ],
             },
         },
 
