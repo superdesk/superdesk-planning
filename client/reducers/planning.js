@@ -273,7 +273,7 @@ const planningReducer = createReducer(initialState, {
         }
     },
 
-    [PLANNING.ACTIONS.MARK_ALL_COVERAGE_CANCELLED]: (state, payload) => {
+    [PLANNING.ACTIONS.MARK_COVERAGE_CANCELLED]: (state, payload) => {
         plannings = cloneDeep(state.plannings)
         plan = get(plannings, payload.planning_item, null)
 
@@ -281,7 +281,7 @@ const planningReducer = createReducer(initialState, {
         if (plan === null) return state
 
         plan.coverages.forEach((coverage) => {
-            if (payload.ids.indexOf(coverage._id) !== -1) {
+            if (payload.ids.indexOf(coverage.coverage_id) !== -1) {
                 markCoverage(coverage, payload, 'cancelled')
             }
         })
@@ -491,6 +491,10 @@ Coverage ${action}
 
     if (get(coverage, 'planning.internal_note', null) !== null) {
         note = `${coverage.planning.internal_note}\n\n${note}`
+    }
+
+    if (get(coverage, 'planning.ednote', null) !== null) {
+        note = `${coverage.planning.ednote}\n\n${note}`
     }
 
     if ('coverage_state' in payload) {

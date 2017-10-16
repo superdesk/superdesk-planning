@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import PropTypes from 'prop-types'
 import { getCreator } from '../../utils'
+import { planningUtils } from '../../utils'
 import { Coverage, AuditInformation, ItemActionsMenu, CoverageListItem } from '../index'
 import { get } from 'lodash'
 
@@ -46,6 +47,7 @@ export class CoverageContainer extends React.Component {
             users,
             removeCoverage,
             duplicateCoverage,
+            cancelCoverage,
             readOnly,
             showRemoveAction,
             desks,
@@ -56,6 +58,8 @@ export class CoverageContainer extends React.Component {
 
         const versionCreator = getCreator(coverage, 'version_creator', users)
         const updatedDate = get(coverage, '_updated')
+
+        const coverageCancelled = planningUtils.isCoverageCancelled(coverage)
 
         const duplicateActions = contentTypes
         .filter((contentType) => (
@@ -78,6 +82,14 @@ export class CoverageContainer extends React.Component {
                 callback: duplicateActions,
             },
         ]
+
+        if (!coverageCancelled) {
+            itemActions.unshift({
+                label: 'Cancel coverage',
+                icon: 'icon-close-small',
+                callback: () => {cancelCoverage(index)},
+            })
+        }
 
         if (showRemoveAction) {
             itemActions.unshift({
@@ -111,7 +123,7 @@ export class CoverageContainer extends React.Component {
                                 <i className="icon-close-small"/>
                             </button>
                         </div>
-                        <Coverage coverage={fieldName} readOnly={readOnly}/>
+                        <Coverage coverage={fieldName} readOnly={readOnly || coverageCancelled}/>
                     </div>
                 }
             </div>
@@ -128,6 +140,7 @@ CoverageContainer.propTypes = {
     desks: PropTypes.array.isRequired,
     removeCoverage: PropTypes.func.isRequired,
     duplicateCoverage: PropTypes.func.isRequired,
+    cancelCoverage: PropTypes.func,
     readOnly: PropTypes.bool.isRequired,
     showRemoveAction: PropTypes.bool.isRequired,
 }

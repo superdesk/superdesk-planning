@@ -11,6 +11,7 @@ export { default as registerNotifications } from './notifications'
 export { default as eventUtils } from './events'
 export { default as planningUtils } from './planning'
 export { default as uiUtils } from './ui'
+export { default as assignmentUtils } from './assignments'
 
 export function createReducer(initialState, reducerMap) {
     return (state = initialState, action) => {

@@ -6,7 +6,7 @@ import * as actions from '../../actions'
 import * as selectors from '../../selectors'
 import { AssignmentForm, AuditInformation } from '../../components'
 import { TOOLTIPS } from '../../constants'
-import { getCreator } from '../../utils'
+import { getCreator, assignmentUtils } from '../../utils'
 import { get } from 'lodash'
 import './style.scss'
 
@@ -67,11 +67,12 @@ export class EditAssignmentPanel extends React.Component {
                 <header className="subnav">
                     {readOnly &&
                         <div className="EditAssignmentPanel__actions">
+                            {!assignmentUtils.isAssignmentCancelled(assignment) &&
                             <button className="EditAssignmentPanel__actions__edit navbtn navbtn--right"
                                 onClick={openEditor.bind(this, assignment)}
                                 data-sd-tooltip={TOOLTIPS.edit} data-flow='down'>
                                 <i className="icon-pencil"/>
-                            </button>
+                            </button>}
                             <button className="EditAssignmentPanel__actions__edit navbtn navbtn--right"
                                 onClick={closePreview.bind(this)}
                                 data-sd-tooltip={TOOLTIPS.close} data-flow='down'>

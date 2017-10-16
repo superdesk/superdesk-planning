@@ -27,7 +27,7 @@ planning_cancel_schema['event_cancellation'] = {
     'type': 'boolean',
     'nullable': True
 }
-planning_cancel_schema['coverage_cancellation_only'] = {
+planning_cancel_schema['cancel_all_coverage'] = {
     'type': 'boolean',
     'nullable': True
 }
@@ -55,7 +55,7 @@ class PlanningCancelService(BaseService):
         )
 
         event_cancellation = updates.pop('event_cancellation', False)
-        coverage_cancellation_only = updates.pop('coverage_cancellation_only', False)
+        cancel_all_coverage = updates.pop('cancel_all_coverage', False)
 
         coverage_cancel_state = None
         if coverage_states:
@@ -71,7 +71,7 @@ Planning cancelled
             note = '''------------------------------------------------------------
 Event cancelled
 '''
-        elif coverage_cancellation_only:
+        elif cancel_all_coverage:
             note = '''------------------------------------------------------------
 Coverage cancelled
 '''
@@ -86,7 +86,7 @@ Coverage cancelled
                 ids.append(coverage.get('coverage_id'))
                 self._cancel_coverage(coverage, coverage_cancel_state, note, reason)
 
-        if coverage_cancellation_only:
+        if cancel_all_coverage:
             push_notification(
                 'coverage:cancelled',
                 planning_item=str(original[config.ID_FIELD]),
@@ -135,4 +135,11 @@ Coverage cancelled
 
         coverage['planning']['internal_note'] = (coverage['planning'].get('internal_note') or '') + '\n\n' + note
         coverage['news_coverage_status'] = coverage_cancel_state
-        coverage.pop('assigned_to', None)
+
+        assigned_to = coverage.get('assigned_to')
+        if assigned_to:
+            assignment_service = get_resource_service('assignments')
+            assignment = assignment_service.find_one(req=None, _id=assigned_to.get('assignment_id'))
+
+            assignment_service.cancel_assignment(assignment, coverage)
+            coverage.pop('assigned_to', None)
