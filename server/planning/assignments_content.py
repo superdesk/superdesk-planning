@@ -106,7 +106,7 @@ class AssignmentsContentService(superdesk.Service):
             raise SuperdeskApiError.badRequestError('Assignment workflow started. Cannot create content.')
 
         delivery = superdesk.get_resource_service('delivery').find_one(req=None,
-                                                                       assignment=assignment.get(config.ID_FIELD))
+                                                                       assignment_id=assignment.get(config.ID_FIELD))
         if delivery:
             raise SuperdeskApiError.badRequestError('Content already exists for the assignment. '
                                                     'Cannot create content.')

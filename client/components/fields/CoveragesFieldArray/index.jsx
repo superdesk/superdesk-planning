@@ -5,6 +5,7 @@ import { connect } from 'react-redux'
 import { arraySplice } from 'redux-form'
 import { get } from 'lodash'
 import * as selectors from '../../../selectors'
+import { WORKSPACE } from '../../../constants'
 
 export class CoveragesFieldArrayComponent extends React.Component {
     newCoverage() {
@@ -63,31 +64,40 @@ export class CoveragesFieldArrayComponent extends React.Component {
             users,
             desks,
             contentTypes,
+            currentWorkspace,
         } = this.props
+
+        const inPlanning = currentWorkspace === WORKSPACE.PLANNING
 
         return (
             <ul className="Coverage__list">
-                {fields.map((fieldName, index) => (
-                    <li key={index}>
-                        <CoverageContainer
-                            key={fieldName}
-                            fieldName={fieldName}
-                            index={index}
-                            coverage={fields.get(index)}
-                            contentTypes={contentTypes}
-                            users={users}
-                            desks={desks}
-                            readOnly={readOnly}
-                            removeCoverage={this.removeCoverage.bind(this)}
-                            duplicateCoverage={this.duplicateCoverage.bind(this)}
-                            cancelCoverage={this.cancelCoverage.bind(this)}
-                            showRemoveAction={fields.length > 1 &&
-                            !get(fields.get(index), 'assigned_to.assignment_id')}
-                        />
-                    </li>
-                ))}
+                {fields.map((fieldName, index) => {
+                    const coverage = fields.get(index)
+                    return (
+                        <li key={index}>
+                            <CoverageContainer
+                                key={fieldName}
+                                fieldName={fieldName}
+                                index={index}
+                                coverage={coverage}
+                                contentTypes={contentTypes}
+                                users={users}
+                                desks={desks}
+                                readOnly={readOnly || (!inPlanning && !!get(coverage, 'coverage_id'))}
+                                removeCoverage={this.removeCoverage.bind(this)}
+                                duplicateCoverage={this.duplicateCoverage.bind(this)}
+                                cancelCoverage={this.cancelCoverage.bind(this)}
+                                showRemoveAction={
+                                    fields.length > 1 &&
+                                    !get(coverage, 'assigned_to.assignment_id') &&
+                                    inPlanning
+                                }
+                            />
+                        </li>
+                    )
+                })}
                 <li>
-                    { !readOnly && <button
+                    { !readOnly && inPlanning && <button
                         className="Coverage__add-btn btn btn-default"
                         onClick={this.newCoverage.bind(this)}
                         type="button">
@@ -108,6 +118,7 @@ CoveragesFieldArrayComponent.propTypes = {
     desks: PropTypes.array.isRequired,
     cancelCoverage: PropTypes.func,
     cancelCoverageState: PropTypes.object,
+    currentWorkspace: PropTypes.string,
 }
 
 CoveragesFieldArrayComponent.defaultProps = {
@@ -116,8 +127,9 @@ CoveragesFieldArrayComponent.defaultProps = {
 }
 
 const mapStateToProps = (state) => ({
-    contentTypes: state.vocabularies.g2_content_type,
+    contentTypes: selectors.getContentTypes(state),
     cancelCoverageState: selectors.getCoverageCancelState(state),
+    currentWorkspace: selectors.getCurrentWorkspace(state),
 })
 
 const mapDispatchToProps = (dispatch) =>  ({

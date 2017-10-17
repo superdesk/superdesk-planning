@@ -5,21 +5,39 @@ import {
     PlanningPanelContainer,
 } from '../index'
 import { Button } from 'react-bootstrap'
+import { connect } from 'react-redux'
+import * as actions from '../../actions'
+import * as selectors from '../../selectors'
 import './style.scss'
 
-export function AddToPlanningModal({ handleHide, modalProps }) {
-    const { newsItem } = modalProps
+export function AddToPlanningComponent({
+    handleHide,
+    modalProps,
+    onAddCoverage,
+    closeEditor,
+    currentPlanning,
+    onPlanningFormSave,
+    currentWorkspace,
+}) {
+    const { newsItem, $scope } = modalProps
 
-    const action = () => (
-        Promise.resolve(modalProps.action())
-        .then(handleHide)
-    )
+    const action = (savedItem) => {
+        onPlanningFormSave(savedItem, newsItem)
+        $scope.resolve()
+    }
 
     const handleCancel = () => {
         handleHide()
-        if (modalProps.onCancel) {
-            modalProps.onCancel()
-        }
+        $scope.reject()
+        closeEditor(currentPlanning)
+    }
+
+    const onAddCoverageClick = (planning) => {
+        onAddCoverage(currentPlanning, planning, newsItem)
+    }
+
+    if (currentWorkspace !== 'AUTHORING') {
+        return null
     }
 
     return (
@@ -32,7 +50,7 @@ export function AddToPlanningModal({ handleHide, modalProps }) {
                 <a className="close" onClick={handleCancel}>
                     <i className="icon-close-small" />
                 </a>
-                <h3>{ modalProps.title || 'Add to Planning' }</h3>
+                <h3>Add to Planning</h3>
             </Modal.Header>
 
             <Modal.Body>
@@ -50,28 +68,49 @@ export function AddToPlanningModal({ handleHide, modalProps }) {
                         </div>
                     </div>
                     <div className='Planning'>
-                        <PlanningPanelContainer/>
+                        <PlanningPanelContainer
+                            onAddCoverage={onAddCoverageClick}
+                            onPlanningFormSave={action}
+                        />
                     </div>
                 </div>
             </Modal.Body>
 
             <Modal.Footer>
-                <Button type="button" onClick={handleCancel}>{modalProps.cancelText || 'Cancel'}</Button>
-                <Button className="btn--primary" type="submit" onClick={action}>{modalProps.okText || 'Ok'}</Button>
+                <Button type="button" onClick={handleCancel}>Cancel</Button>
             </Modal.Footer>
         </Modal>
     )
 }
 
-AddToPlanningModal.propTypes = {
+AddToPlanningComponent.propTypes = {
     handleHide: PropTypes.func.isRequired,
     modalProps: PropTypes.shape({
-        onCancel: PropTypes.func,
-        cancelText: PropTypes.string,
-        ignoreText: PropTypes.string,
-        okText: PropTypes.string,
-        action: PropTypes.func.isRequired,
-        title: PropTypes.string,
         newsItem: PropTypes.object,
+        $scope: PropTypes.object,
     }),
+    onAddCoverage: PropTypes.func,
+    closeEditor: PropTypes.func,
+    currentPlanning: PropTypes.object,
+    onPlanningFormSave: PropTypes.func,
+    currentWorkspace: PropTypes.string,
 }
+
+const mapStateToProps = (state) => ({
+    currentPlanning: selectors.getCurrentPlanning(state),
+    currentWorkspace: selectors.getCurrentWorkspace(state),
+})
+
+const mapDispatchToProps = (dispatch) => ({
+    onAddCoverage: (prevPlan, newPlan, newsItem) =>
+        dispatch(actions.planning.ui.onAddCoverageFromAuthoring(prevPlan, newPlan, newsItem)),
+    closeEditor: (planning) =>
+        dispatch(actions.planning.ui.closeEditor(planning)),
+    onPlanningFormSave: (planning, newsItem) =>
+        dispatch(actions.planning.ui.onAddCoverageFromAuthoringSave(planning, newsItem)),
+})
+
+export const AddToPlanningModal = connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(AddToPlanningComponent)

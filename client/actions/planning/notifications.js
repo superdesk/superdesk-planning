@@ -1,9 +1,9 @@
-import { get, includes, isEmpty } from 'lodash'
+import { get } from 'lodash'
 import planning from './index'
 import { getErrorMessage, getLock } from '../../utils'
 import * as selectors from '../../selectors'
 import { showModal, hideModal, events } from '../index'
-import { PLANNING, AGENDA, WORKFLOW_STATE } from '../../constants'
+import { PLANNING, WORKFLOW_STATE } from '../../constants'
 
 /**
  * WS Action when a new Planning item is created
@@ -20,43 +20,10 @@ const onPlanningCreated = (_e, data) => (
                 ))
             }
 
-            return dispatch(self.canRefetchPlanning(data))
-            .then((result) => {
-                if (!result) {
-                    return Promise.resolve()
-                }
-
-                return dispatch(planning.ui.refetch())
-            })
+            return dispatch(planning.ui.refetch())
         }
 
         return Promise.resolve()
-    }
-)
-
-const canRefetchPlanning = (data) => (
-    (dispatch, getState) => {
-        const session = selectors.getSessionDetails(getState())
-
-        let updatePlanning = false
-
-        if (get(session, 'identity._id') === get(data, 'user') &&
-            get(session, 'sessionId') === get(data, 'session')) {
-            return Promise.resolve(updatePlanning)
-        }
-
-        const agendaId = selectors.getCurrentAgendaId(getState())
-        if (agendaId === AGENDA.FILTER.ALL_PLANNING) {
-            updatePlanning = true
-        } else if (agendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED &&
-            isEmpty(get(data, 'added_agendas', []))) {
-            updatePlanning = true
-        } else if (agendaId && (includes(get(data, 'added_agendas', []), agendaId) ||
-            includes(get(data, 'removed_agendas', []), agendaId))) {
-            updatePlanning = true
-        }
-
-        return Promise.resolve(updatePlanning)
     }
 )
 
@@ -70,14 +37,7 @@ const onPlanningUpdated = (_e, data, refetch=true) => (
     (dispatch, getState, { notify }) => {
         if (get(data, 'item')) {
             if (refetch) {
-                return dispatch(self.canRefetchPlanning(data))
-                .then((result) => {
-                    if (!result) {
-                        return Promise.resolve()
-                    }
-
-                    return dispatch(planning.ui.refetch())
-                })
+                return dispatch(planning.ui.refetch())
             }
 
             // Otherwise send an Action to update the store
@@ -297,7 +257,6 @@ const self = {
     onPlanningUpdated,
     onPlanningUnlocked,
     onPlanningPublished,
-    canRefetchPlanning,
     onPlanningSpiked,
     onPlanningUnspiked,
     onPlanningCancelled,

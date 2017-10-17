@@ -160,13 +160,9 @@ describe('actions.planning.notifications', () => {
             restoreSinonStub(planningApi.refetch)
             sinon.stub(planningApi, 'refetch').callsFake(() => (Promise.resolve([{ _id: 'p1' }])))
             sinon.stub(planningUi, 'setInList').callsFake(() => ({ type: 'setInList' }))
-            sinon.stub(planningNotifications, 'canRefetchPlanning').callsFake(
-                () => (Promise.resolve(true))
-            )
 
             return store.test(done, planningNotifications.onPlanningCreated({}, { item: 'p1' }))
             .then(() => {
-                expect(planningNotifications.canRefetchPlanning.callCount).toBe(1)
                 expect(planningApi.refetch.callCount).toBe(1)
                 expect(planningUi.setInList.callCount).toBe(1)
                 done()
@@ -187,102 +183,6 @@ describe('actions.planning.notifications', () => {
                 expect(error).toEqual(errorMessage)
                 expect(services.notify.error.callCount).toBe(1)
                 expect(services.notify.error.args[0]).toEqual(['Failed!'])
-                done()
-            })
-        })
-    })
-
-    describe('`canRefetchPlanning`', () => {
-        it('user is editing in the same session', (done) => {
-            store.initialState.session = {
-                identity: { _id: 'foo' },
-                sessionId: 'bar',
-            }
-            return store.test(done, planningNotifications.canRefetchPlanning({
-                item: 'p1',
-                added_agendas: ['a1'],
-                removed_agendas: ['a2'],
-                user: 'foo',
-                session: 'bar',
-            }))
-            .then((result) => {
-                expect(result).toBe(false)
-                done()
-            })
-        })
-
-        it('user is editing not in the same session', (done) => {
-            store.initialState.agenda.currentAgendaId = 'a1'
-            store.initialState.session = {
-                identity: { _id: 'foo' },
-                sessionId: 'bar2',
-            }
-            return store.test(done, planningNotifications.canRefetchPlanning({
-                item: 'p1',
-                added_agendas: ['a1'],
-                removed_agendas: ['a2'],
-                user: 'foo',
-                session: 'bar',
-            }))
-            .then((result) => {
-                expect(result).toBe(true)
-                done()
-            })
-        })
-
-        it('current agenda is same as planning item agenda', (done) => {
-            store.initialState.agenda.currentAgendaId = 'a1'
-            store.initialState.session = {
-                identity: { _id: 'foo' },
-                sessionId: 'bar2',
-            }
-            return store.test(done, planningNotifications.canRefetchPlanning({
-                item: 'p1',
-                added_agendas: ['a1'],
-                removed_agendas: ['a2'],
-                user: 'foo',
-                session: 'bar',
-            }))
-            .then((result) => {
-                expect(result).toBe(true)
-                done()
-            })
-        })
-
-        it('current agenda is not same as planning item agenda', (done) => {
-            store.initialState.agenda.currentAgendaId = 'a3'
-            store.initialState.session = {
-                identity: { _id: 'foo' },
-                sessionId: 'bar2',
-            }
-            return store.test(done, planningNotifications.canRefetchPlanning({
-                item: 'p1',
-                added_agendas: ['a1'],
-                removed_agendas: ['a2'],
-                user: 'foo',
-                session: 'bar',
-            }))
-            .then((result) => {
-                expect(result).toBe(false)
-                done()
-            })
-        })
-
-        it('planning item is removed from the agenda', (done) => {
-            store.initialState.agenda.currentAgendaId = 'a2'
-            store.initialState.session = {
-                identity: { _id: 'foo' },
-                sessionId: 'bar2',
-            }
-            return store.test(done, planningNotifications.canRefetchPlanning({
-                item: 'p1',
-                added_agendas: ['a1'],
-                removed_agendas: ['a2'],
-                user: 'foo',
-                session: 'bar',
-            }))
-            .then((result) => {
-                expect(result).toBe(true)
                 done()
             })
         })
@@ -341,9 +241,6 @@ describe('actions.planning.notifications', () => {
             )
 
             sinon.stub(planningUi, 'refetch').callsFake(() => (Promise.resolve()))
-            sinon.stub(planningNotifications, 'canRefetchPlanning').callsFake(
-                () => (Promise.resolve(true))
-            )
 
             return store.test(done, planningNotifications.onPlanningUpdated(
                 {},
@@ -351,7 +248,6 @@ describe('actions.planning.notifications', () => {
                 true
             ))
             .then(() => {
-                expect(planningNotifications.canRefetchPlanning.callCount).toBe(1)
                 expect(planningUi.refetch.callCount).toBe(1)
                 expect(planningApi.loadPlanningById.callCount).toBe(0)
                 done()

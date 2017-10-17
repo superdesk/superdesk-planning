@@ -37,6 +37,7 @@ const PlanningItem = ({
         isSelected,
         currentAgendaId,
         currentWorkspace,
+        onAddCoverage,
     }) => {
     const location = get(event, 'location[0].name')
     const coverages = get(item, 'coverages', [])
@@ -54,6 +55,11 @@ const PlanningItem = ({
     const isItemLocked = planningUtils.isPlanningLocked(item, lockedItems)
 
     const inPlanning = currentWorkspace === WORKSPACE.PLANNING
+
+    const onAddCoverageClick = (e) => {
+        e.stopPropagation()
+        onAddCoverage(item)
+    }
 
     let itemActions = []
     if (inPlanning) {
@@ -216,7 +222,10 @@ const PlanningItem = ({
                 }
                 {!inPlanning && !isItemLocked &&
                     <a data-sd-tooltip="Add as coverage" data-flow="left">
-                        <button className="navbtn dropdown sd-create-btn">
+                        <button
+                            className="navbtn dropdown sd-create-btn"
+                            onClick={onAddCoverageClick}
+                        >
                             <i className="icon-plus-large" />
                             <span className="circle" />
                         </button>
@@ -256,6 +265,7 @@ PlanningItem.propTypes = {
     onSelectItem: PropTypes.func.isRequired,
     currentAgendaId: PropTypes.string,
     currentWorkspace: PropTypes.string,
+    onAddCoverage: PropTypes.func,
 }
 
 export default connect(mapStateToProps)(PlanningItem)

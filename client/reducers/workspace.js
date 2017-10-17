@@ -1,4 +1,4 @@
-import { INIT_STORE } from '../constants'
+import { RESET_STORE, INIT_STORE } from '../constants'
 
 const initialState = {
     currentDeskId: null,
@@ -8,6 +8,11 @@ const initialState = {
 
 const workspace = (state=initialState, action) => {
     switch (action.type) {
+        case RESET_STORE:
+            return {
+                ...state,
+                currentWorkspace: null,
+            }
         case INIT_STORE:
             return {
                 ...state,

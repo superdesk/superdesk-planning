@@ -1,6 +1,5 @@
-import { isNil } from 'lodash'
+import { isNil, zipObject, get } from 'lodash'
 import { createStore } from '../utils'
-import { zipObject } from 'lodash'
 
 PlanningStoreService.$inject = [
     '$rootScope',
@@ -161,13 +160,27 @@ export function PlanningStoreService(
 
     $rootScope.$watch(
         () => session.sessionId,
-        () => self.store.dispatch({
+        () => self.store && self.store.dispatch({
             type: 'RECEIVE_SESSION',
             payload: {
                 sessionId: session.sessionId,
                 identity: session.identity,
             },
         })
+    )
+
+    $rootScope.$watch(
+        () => desks.active,
+        () => {
+            // Update the store with workspace
+            self.store && self.store.dispatch({
+                type: 'WORKSPACE_CHANGE',
+                payload: {
+                    currentDeskId: get(desks, 'active.desk'),
+                    currentStageId: get(desks, 'active.stage'),
+                },
+            })
+        }
     )
 
     $rootScope.$on('vocabularies:updated', angular.bind(this, this._reloadVocabularies))

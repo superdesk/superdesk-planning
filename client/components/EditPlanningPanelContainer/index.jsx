@@ -69,9 +69,13 @@ export class EditPlanningPanel extends React.Component {
     handleSave() {
         // Runs Validation on the form, then runs the above `onSubmit` function
         return this.refs.PlanningForm.getWrappedInstance().submit()
-        .then(() => {
+        .then((savedItem) => {
             // Restore the saveMethod to `Save Only`
             this.setState({ saveMethod: saveMethods.SAVE })
+
+            if (this.props.onPlanningFormSave) {
+                this.props.onPlanningFormSave(savedItem)
+            }
         })
     }
 
@@ -114,8 +118,15 @@ export class EditPlanningPanel extends React.Component {
     }
 
     cancelForm() {
-        const { planning, pristine, openCancelModal, closePlanningEditor } = this.props
-        if (!pristine) {
+        const {
+            planning,
+            pristine,
+            openCancelModal,
+            closePlanningEditor,
+            currentWorkspace,
+        } = this.props
+
+        if (!pristine && currentWorkspace === WORKSPACE.PLANNING) {
             return openCancelModal(this.saveAndClose, closePlanningEditor.bind(this, planning))
         }
 
@@ -230,8 +241,8 @@ export class EditPlanningPanel extends React.Component {
             forceReadOnly = true
         }
 
-        const showSave = inPlanning && planningUtils.canSavePlanning(planning, event, privileges)
-        const showPublish = inPlanning && planningUtils.canPublishPlanning(planning, event, privileges, session, lockedItems)
+        const showSave = planningUtils.canSavePlanning(planning, event, privileges)
+        const showPublish = planningUtils.canPublishPlanning(planning, event, privileges, session, lockedItems)
         const showUnpublish = inPlanning && planningUtils.canUnpublishPlanning(planning, event, privileges, session, lockedItems)
         const isPublic = isItemPublic(planning)
         const showEdit = inPlanning && planningUtils.canEditPlanning(
@@ -249,7 +260,7 @@ export class EditPlanningPanel extends React.Component {
                         'dropdown--drop-right',
                         'pull-left',
                         { open: this.state.openUnlockPopup })}>
-                        {((!lockedInThisSession || !inPlanning) && lockedUser)
+                        {((!lockedInThisSession || !inPlanning) && lockedUser && forceReadOnly)
                             && (
                             <div className="lock-avatar">
                                 <button type='button' onClick={this.toggleOpenUnlockPopup.bind(this)}>
@@ -423,6 +434,7 @@ EditPlanningPanel.propTypes = {
     onCancelAllCoverage: PropTypes.func,
     openCancelModal: PropTypes.func.isRequired,
     currentWorkspace: PropTypes.string,
+    onPlanningFormSave: PropTypes.func,
 }
 
 const selector = formValueSelector('planning') // Selector for the Planning form

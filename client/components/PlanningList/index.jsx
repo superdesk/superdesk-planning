@@ -72,6 +72,7 @@ class PlanningList extends React.Component {
             selected,
             lockedItems,
             currentWorkspace,
+            onAddCoverage,
         } = this.props
         const planning = plannings[index]
         const isSelected = selected.indexOf(planning._id) > -1
@@ -106,6 +107,7 @@ class PlanningList extends React.Component {
                     onSelectItem={() => onSelectItem(planning._id)}
                     isSelected={isSelected}
                     currentWorkspace={currentWorkspace}
+                    onAddCoverage={onAddCoverage}
                     />
             </div>
         )
@@ -169,6 +171,7 @@ PlanningList.propTypes = {
     selected: PropTypes.array,
     lockedItems: PropTypes.object,
     currentWorkspace: PropTypes.string,
+    onAddCoverage: PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({

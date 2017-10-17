@@ -43,7 +43,9 @@ class AssignmentsService(superdesk.Service):
     def on_created(self, docs):
         for doc in docs:
             self.notify('assignments:created', doc, {})
-            self.send_assignment_notification(doc, {})
+
+            if doc['assigned_to'].get('state') != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+                self.send_assignment_notification(doc, {})
 
     def set_assignment(self, updates, original=None):
         """Set the assignment information"""
@@ -65,7 +67,8 @@ class AssignmentsService(superdesk.Service):
 
         if not original.get(config.ID_FIELD):
             updates['original_creator'] = str(user.get(config.ID_FIELD)) if user else None
-            updates['assigned_to'][ITEM_STATE] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+            updates['assigned_to'][ITEM_STATE] = updates['assigned_to'].get(ITEM_STATE) or \
+                ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
         else:
             # In case user was removed
             if not assigned_to.get('user'):
