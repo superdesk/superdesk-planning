@@ -9,7 +9,7 @@ import '../style.scss'
 import { get } from 'lodash'
 import { UpdateMethodSelection } from '../UpdateMethodSelection'
 import { ChainValidators, EndDateAfterStartDate } from '../../../validators'
-import { FORM_NAMES } from '../../../constants'
+import { FORM_NAMES, EVENTS } from '../../../constants'
 
 export class Component extends React.Component {
     constructor(props) {
@@ -117,9 +117,10 @@ const mapDispatchToProps = (dispatch) => ({
         get(event, '_publish', false)
     ))
     .then(() => {
-        if (event.lock_action === 'update_time') {
-            dispatch(actions.events.api.unlock(event))
-        }
+        dispatch({
+            type: EVENTS.ACTIONS.UNLOCK_EVENT,
+            payload: { event },
+        })
     }),
 
     onHide: (event) => {

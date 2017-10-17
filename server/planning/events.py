@@ -228,7 +228,6 @@ class EventsService(superdesk.Service):
         # Determine if we're to convert this single event to a recurring series of events
         if updates.get('dates', {}).get('recurring_rule', None) is not None:
             generated_events = self._convert_to_recurring_event(updates, original)
-            remove_lock_information(item=updates)
 
             push_notification(
                 'events:updated:recurring',
@@ -926,6 +925,7 @@ def generate_recurring_events(event):
                 new_event.pop(key)
             elif key.startswith('lock_'):
                 new_event.pop(key)
+        new_event.pop('pubstatus', None)
 
         new_event['dates']['start'] = date
         new_event['dates']['end'] = date + time_delta
