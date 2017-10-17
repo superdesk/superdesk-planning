@@ -257,7 +257,7 @@ export class Component extends React.Component {
                                     }
                                     type="button"
                                     className="btn btn--success"
-                                    disabled={(!existingEvent && pristine) || submitting}>
+                                    disabled={!existingEvent || submitting}>
                                     {(existingEvent && pristine) ? 'Publish' : 'Save and publish'}
                                 </button>
                             }

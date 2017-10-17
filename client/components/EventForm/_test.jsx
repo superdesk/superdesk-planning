@@ -427,8 +427,10 @@ describe('events', () => {
                     .simulate('change', { target: { value: 'NewSlug' } })
                 expect(subnav.find('.btn').first().prop('disabled')).toBe(false)
                 expect(subnav.find('.btn--primary').first().prop('disabled')).toBe(false)
-                expect(subnav.find('.btn--success').first().prop('disabled')).toBe(false)
+
+                // Save and publish should be disabled
                 expect(subnav.find('.btn--success').first().text()).toBe('Save and publish')
+                expect(subnav.find('.btn--success').first().prop('disabled')).toBe(true)
             })
 
             it('action button states for existing event', () => {
