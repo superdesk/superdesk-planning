@@ -188,6 +188,7 @@ Event Rescheduled
 
         # Compute the difference between start and end in the updated event
         time_delta = updates['dates']['end'] - updates['dates']['start']
+        length_changed = time_delta != original['dates']['end'] - original['dates']['start']
 
         # Generate the dates for the new event series
         new_dates = [date for date in islice(generate_recurring_dates(
@@ -221,8 +222,10 @@ Event Rescheduled
             # changed, then make sure this event has the new recurring rules applied.
             # This can occur when extending a series where the original Events are kept and only
             # new events are created.
-            elif rules_changed and event[config.ID_FIELD] != original[config.ID_FIELD]:
+            # Or if the Event end date has changed, make sure this event has the new end date
+            if event[config.ID_FIELD] != original[config.ID_FIELD] and (rules_changed or length_changed):
                 new_updates = {'dates': event['dates']}
+                new_updates['dates']['end'] = new_updates['dates']['start'] + time_delta
                 new_updates['dates']['recurring_rule'] = updates['dates']['recurring_rule']
                 events_service.patch(event[config.ID_FIELD], new_updates)
                 app.on_updated_events_reschedule(new_updates, {'_id': event[config.ID_FIELD]})
