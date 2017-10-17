@@ -96,8 +96,9 @@ const isCoverageCancelled = (coverage) =>
     (get(coverage, 'news_coverage_status.qcode') === 'ncostat:notint')
 
 const isAllCoverageCancelled = (planning) => (
-    get(planning, 'coverages') &&
-        planning.coverages.filter((c) => !isCoverageCancelled(c)).length === 0
+    get(planning, 'coverages', [])
+        .filter((c) => !isCoverageCancelled(c))
+        .length === 0
 )
 
 const isPlanningLocked = (plan, locks) =>
@@ -154,7 +155,7 @@ export const getPlanningItemActions = (plan, event=null, session, privileges, ac
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
             !isPlanAdHoc(plan) && eventUtils.canCancelEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: () =>
-            !isPlanAdHoc(plan) && eventUtils.canEditEvent(event, session, privileges, locks),
+            !isPlanAdHoc(plan) && eventUtils.canUpdateEventTime(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: () =>
             !isPlanAdHoc(plan) && eventUtils.canRescheduleEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: () =>

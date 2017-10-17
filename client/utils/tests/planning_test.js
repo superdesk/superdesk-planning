@@ -1,5 +1,7 @@
 import planUtils from '../planning'
 import lockReducer from '../../reducers/locks'
+import { GENERIC_ITEM_ACTIONS, EVENTS, PLANNING } from '../../constants'
+import { expectActions } from '../testUtils'
 
 describe('PlanningUtils', () => {
     let session
@@ -225,5 +227,108 @@ describe('PlanningUtils', () => {
         isPlanningLockRestricted(locks.plans.recurring.currentUser.otherSession, true)
         isPlanningLockRestricted(locks.plans.recurring.otherUser, true)
         isPlanningLockRestricted(locks.plans.recurring.notLocked, false)
+    })
+
+    describe('getPlanningItemActions', () => {
+        const actions = [
+            GENERIC_ITEM_ACTIONS.SPIKE,
+            GENERIC_ITEM_ACTIONS.UNSPIKE,
+            GENERIC_ITEM_ACTIONS.HISTORY,
+            GENERIC_ITEM_ACTIONS.DUPLICATE,
+
+            PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
+            PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
+
+            EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+            EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+            EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+            EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+            EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
+        ]
+
+        let locks
+        let session
+        let planning
+        let event
+        let privileges
+
+        beforeEach(() => {
+            session = {}
+            locks = {
+                events: {},
+                planning: {},
+                recurring: {},
+            }
+            event = null
+            planning = {
+                state: 'draft',
+                coverages: [],
+            }
+            privileges = {
+                planning_planning_management: 1,
+                planning_planning_spike: 1,
+                planning_event_management: 1,
+                planning_event_spike: 1,
+            }
+        })
+
+        it('draft event and planning', () => {
+            let itemActions = planUtils.getPlanningItemActions(
+                planning, event, session, privileges, actions, locks
+            )
+
+            expectActions(itemActions, [
+                'Spike',
+                'View History',
+                'Duplicate',
+            ])
+
+            planning.event_item = '1'
+            event = {
+                state: 'draft',
+                planning_ids: ['1'],
+            }
+            itemActions = planUtils.getPlanningItemActions(
+                planning, event, session, privileges, actions, locks
+            )
+
+            expectActions(itemActions, [
+                'Spike',
+                'View History',
+                'Duplicate',
+                'Cancel Event',
+                'Update Event Time',
+                'Reschedule Event',
+                'Mark Event as Postponed',
+                'Convert to recurring event',
+            ])
+        })
+
+        it('postponed event and planning', () => {
+            planning.state = 'postponed'
+            let itemActions = planUtils.getPlanningItemActions(
+                planning, event, session, privileges, actions, locks
+            )
+            expectActions(itemActions, [
+                'View History',
+                'Duplicate',
+            ])
+
+            planning.event_item = '1'
+            event = {
+                state: 'postponed',
+                planning_ids: ['1'],
+            }
+            itemActions = planUtils.getPlanningItemActions(
+                planning, event, session, privileges, actions, locks
+            )
+
+            expectActions(itemActions, [
+                'View History',
+                'Duplicate',
+                'Cancel Event',
+                'Reschedule Event',
+            ])
+        })
     })
 })
