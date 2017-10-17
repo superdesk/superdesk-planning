@@ -39,16 +39,15 @@ describe('actions.assignments.api', () => {
                 + '{"must":[{"term":{"assigned_to.desk":"desk1"}},'
                 + '{"query_string":{"query":"test"}}]}}}'
 
-            store.initialState.assignment = {
-                ...store.initialState.assignment,
-                filterBy: 'All',
+            const params = {
+                deskId: 'desk1',
                 searchQuery: 'test',
                 orderByField: 'Created',
                 orderDirection: 'Asc',
-                lastAssignmentLoadedPage: 2,
+                page: 2,
             }
 
-            store.test(done, assignmentsApi.query())
+            store.test(done, assignmentsApi.query(params))
             .then(() => {
                 expect(services.api('assignments').query.callCount).toBe(1)
                 const params = services.api('assignments').query.args[0][0]
@@ -66,16 +65,67 @@ describe('actions.assignments.api', () => {
             const source = '{"query":{"bool":{"must":[{"term":'
                 + '{"assigned_to.user":"ident1"}}]}}}'
 
-            store.initialState.assignment = {
-                ...store.initialState.assignment,
-                filterBy: 'User',
+            const params = {
+                userId: 'ident1',
                 searchQuery: null,
                 orderByField: 'Updated',
                 orderDirection: 'Desc',
-                lastAssignmentLoadedPage: 3,
+                page: 3,
             }
 
-            store.test(done, assignmentsApi.query())
+            store.test(done, assignmentsApi.query(params))
+            .then(() => {
+                expect(services.api('assignments').query.callCount).toBe(1)
+                const params = services.api('assignments').query.args[0][0]
+                expect(params).toEqual({
+                    page: 3,
+                    sort: '[("_updated", -1)]',
+                    source: source,
+                })
+
+                done()
+            })
+        })
+
+        it('query using state', (done) => {
+            const source = '{"query":{"bool":{"must":[{"term":'
+                + '{"assigned_to.state":"assigned"}}]}}}'
+
+            const params = {
+                searchQuery: null,
+                state: 'assigned',
+                orderByField: 'Updated',
+                orderDirection: 'Desc',
+                page: 3,
+            }
+
+            store.test(done, assignmentsApi.query(params))
+            .then(() => {
+                expect(services.api('assignments').query.callCount).toBe(1)
+                const params = services.api('assignments').query.args[0][0]
+                expect(params).toEqual({
+                    page: 3,
+                    sort: '[("_updated", -1)]',
+                    source: source,
+                })
+
+                done()
+            })
+        })
+
+        it('query using type', (done) => {
+            const source = '{"query":{"bool":{"must":[{"term":'
+                + '{"planning.g2_content_type":"picture"}}]}}}'
+
+            const params = {
+                searchQuery: null,
+                type: 'picture',
+                orderByField: 'Updated',
+                orderDirection: 'Desc',
+                page: 3,
+            }
+
+            store.test(done, assignmentsApi.query(params))
             .then(() => {
                 expect(services.api('assignments').query.callCount).toBe(1)
                 const params = services.api('assignments').query.args[0][0]

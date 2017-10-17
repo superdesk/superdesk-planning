@@ -4,7 +4,7 @@ import planningApp from '../reducers'
 import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
 import { get, set, isNil } from 'lodash'
-import { PUBLISHED_STATE, WORKFLOW_STATE, TOOLTIPS } from '../constants/index'
+import { PUBLISHED_STATE, WORKFLOW_STATE, TOOLTIPS, ASSIGNMENTS } from '../constants/index'
 export { default as checkPermission } from './checkPermission'
 export { default as retryDispatch } from './retryDispatch'
 export { default as registerNotifications } from './notifications'
@@ -638,12 +638,12 @@ export const isItemRescheduled = (item) => getItemWorkflowState(item) === WORKFL
 export const isItemKilled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.KILLED
 export const isItemPostponed = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.POSTPONED
 
+// eslint-disable-next-line complexity
 export const getItemWorkflowStateLabel = (item) => {
     switch (getItemWorkflowState(item)) {
         case WORKFLOW_STATE.DRAFT:
             return {
                 label: 'draft',
-                iconType: 'yellow2',
                 iconHollow: true,
             }
         case WORKFLOW_STATE.SPIKED:
@@ -679,6 +679,28 @@ export const getItemWorkflowStateLabel = (item) => {
                 label: 'Postponed',
                 iconType: 'yellow2',
 
+            }
+        case ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED:
+            return {
+                label: 'Assigned',
+                iconHollow: true,
+            }
+        case ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS:
+            return {
+                label: 'In Progress',
+                iconType: 'yellow2',
+                iconHollow: true,
+            }
+        case ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED:
+            return {
+                label: 'Submitted',
+                iconType: 'yellow2',
+                iconHollow: true,
+            }
+        case ASSIGNMENTS.WORKFLOW_STATE.COMPLETED:
+            return {
+                label: 'Completed',
+                iconType: 'success',
             }
     }
 }

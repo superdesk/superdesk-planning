@@ -42,11 +42,28 @@ function configurePlanning(superdesk) {
                 type: 'archive',
             }],
             privileges: { planning_planning_management: 1 },
-            additionalCondition: ['lock', 'archiveService', 'item', function(lock, archiveService, item) {
+            additionalCondition: ['lock', 'archiveService', 'item', 'authoring',
+                function(lock, archiveService, item, authoring) {
                 return (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
                     (lock.assignment_id === null || angular.isUndefined(lock.assignment_id)) &&
-                    !archiveService.isPersonal(item)
+                    !archiveService.isPersonal(item) && authoring.itemActions(item).edit
             }],
+        })
+        .activity('planning.fulfill', {
+            label: gettext('Fulfill Assignment'),
+            modal: true,
+            controller: ctrl.FulFillAssignmentController,
+            filters: [{
+                action: 'list',
+                type: 'archive',
+            }],
+            privileges: { planning_planning_management: 1 },
+            additionalCondition: ['lock', 'archiveService', 'item', 'authoring',
+                function(lock, archiveService, item, authoring) {
+                return (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
+                    (lock.assignment_id === null || angular.isUndefined(lock.assignment_id)) &&
+                    !archiveService.isPersonal(item) && authoring.itemActions(item).edit
+            }]
         })
 }
 

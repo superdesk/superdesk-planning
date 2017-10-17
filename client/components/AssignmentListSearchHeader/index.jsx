@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
-import { OrderBar, ItemActionsMenu } from '../index'
+import { OrderBar } from '../index'
 
 export class AssignmentListSearchHeader extends React.Component {
 
@@ -18,7 +18,6 @@ export class AssignmentListSearchHeader extends React.Component {
     }
 
     render() {
-        let actions = []
         const fields = ['Created', 'Updated']
         const {
                 filterBy,
@@ -48,18 +47,13 @@ export class AssignmentListSearchHeader extends React.Component {
                     >Assigned To Me</button>
                     <span className="badge badge--highlight">{myAssignmentsCount}</span>
                 </div>
-                <div className="subnav__page-title" />
+                <div className="subnav__stretch-bar" />
                 <OrderBar
                     orderByField={orderByField}
                     orderDirection={orderDirection}
                     fields={fields}
                     onChange={(orderByField, orderDirection) => this.changeOrder(orderByField, orderDirection)}
                 />
-                <div className="subnav__button-stack--square-buttons">
-                    <div className="navbtn navbar-right" title="Assignment Actions">
-                        <ItemActionsMenu actions={actions} />
-                    </div>
-                </div>
             </div>
         )
     }

@@ -746,14 +746,6 @@ describe('actions.planning.api', () => {
         })
     })
 
-    // it('receiveCoverage', () => {
-    //     restoreSinonStub(planningApi.receiveCoverage)
-    //     expect(planningApi.receiveCoverage(data.coverages[0])).toEqual({
-    //         type: 'RECEIVE_COVERAGE',
-    //         payload: data.coverages[0],
-    //     })
-    // })
-
     describe('fetchPlanningHistory', () => {
         beforeEach(() => {
             restoreSinonStub(planningApi.fetchPlanningHistory)
@@ -948,7 +940,7 @@ describe('actions.planning.api', () => {
             })
         })
 
-        it('returns Promsie.reject if getById fails', (done) => {
+        it('returns Promise.reject if getById fails', (done) => {
             store.init()
             store.initialState.planning.plannings = {}
             services.api('planning').getById = sinon.spy(() => Promise.reject(errorMessage))

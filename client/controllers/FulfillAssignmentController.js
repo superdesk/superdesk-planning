@@ -3,67 +3,50 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
 import { ModalsContainer } from '../components'
-import { locks } from '../actions'
 import { get } from 'lodash'
 import { registerNotifications } from '../utils'
-import { WORKSPACE } from '../constants'
+import { WORKSPACE, ASSIGNMENTS } from '../constants'
 
-AddToPlanningController.$inject = [
+FulFillAssignmentController.$inject = [
     '$scope',
-    '$location',
     'sdPlanningStore',
-    '$q',
     'notify',
     'gettextCatalog',
-    'api',
     'lock',
     'session',
     'userList',
+    'api',
 ]
 
-export function AddToPlanningController(
+export function FulFillAssignmentController(
     $scope,
-    $location,
     sdPlanningStore,
-    $q,
     notify,
     gettext,
-    api,
     lock,
     session,
-    userList
-) {
-    const itemId = get($scope, 'locals.data.item._id')
-    api.find('archive', itemId)
-    .then((newsItem) => {
-        let failed = false
+    userList,
+    api)
+{
+    const item = get($scope, 'locals.data.item')
 
+    if (get(item, 'slugline', '') === '') {
+        notify.error(
+            gettext('[SLUGLINE] is a required field')
+        )
+        return $scope.reject()
+    }
+
+    api.find('archive', item._id)
+    .then((newsItem) => {
         if (get(newsItem, 'assignment_id')) {
             notify.error('Item already linked to a Planning item')
-            failed = true
-        }
-
-        if (get(newsItem, 'slugline', '') === '') {
-            notify.error(
-                gettext('[SLUGLINE] is a required field')
-            )
-            failed = true
-        }
-
-        if (get(newsItem, 'urgency', null) === null) {
-            notify.error(
-                gettext('[URGENCY] is a required field')
-            )
-            failed = true
-        }
-
-        if (failed) {
             return Promise.reject()
         }
 
         if (!lock.isLockedInCurrentSession(newsItem)) {
             newsItem._editable = true
-            return lock.lock(newsItem, false, 'add_to_planning')
+            return lock.lock(newsItem, false, 'fulfill_assignment')
         }
 
         return Promise.resolve(newsItem)
@@ -72,34 +55,28 @@ export function AddToPlanningController(
         sdPlanningStore.getStore()
         .then((store) => {
             store.dispatch(actions.initStore(WORKSPACE.AUTHORING))
+            // set the current desk as the item desk.
+            store.dispatch({
+                type: 'WORKSPACE_CHANGE',
+                payload: {
+                    currentDeskId: get(newsItem, 'task.desk'),
+                    currentStageId: get(newsItem, 'task.stage'),
+                },
+            })
             registerNotifications($scope, store)
 
-            $q.all({
-                agendas: store.dispatch(actions.fetchAgendas())
-                    .then(() => {
-                        if ($location.search().agenda) {
-                            return store.dispatch(actions.selectAgenda($location.search().agenda))
-                        }
-
-                        return store.dispatch(
-                            actions.fetchSelectedAgendaPlannings()
-                        )
-                    }),
-
-                locks: store.dispatch(locks.loadAllLocks()),
-            })
+            store.dispatch(actions.assignments.ui.loadAssignments('All', null,
+                'Created', 'Asc', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED, newsItem.type))
             .then(() => {
                 ReactDOM.render(
                     <Provider store={store}>
-                        <ModalsContainer/>
+                        <ModalsContainer />
                     </Provider>,
                     document.getElementById('react-placeholder')
                 )
 
-                store.dispatch(actions.planning.ui.openAdvancedSearch())
-
                 store.dispatch(actions.showModal({
-                    modalType: 'ADD_TO_PLANNING',
+                    modalType: 'FULFILL_ASSIGNMENT',
                     modalProps: {
                         newsItem,
                         fullscreen: true,
@@ -113,13 +90,16 @@ export function AddToPlanningController(
 
                     // Only unlock the item if it was locked when launching this modal
                     if (get(newsItem, 'lock_session', null) !== null &&
-                        get(newsItem, 'lock_action', 'edit') === 'add_to_planning'
+                        get(newsItem, 'lock_action', 'edit') === 'fulfill_assignment' &&
+                        lock.isLockedInCurrentSession(newsItem)
                     ) {
                         lock.unlock(newsItem)
                     }
 
                     ReactDOM.unmountComponentAtNode(document.getElementById('react-placeholder'))
                 })
+
+                // handler of item unlock
 
                 $scope.$on('item:unlock', (_e, data) => {
                     if (data.item === newsItem._id && data.lock_session !== session.sessionId) {

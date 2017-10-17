@@ -245,6 +245,8 @@ describe('selectors', () => {
                 orderByField: 'Updated',
                 orderDirection: 'Desc',
                 lastAssignmentLoadedPage: 2,
+                filterByState: null,
+                filterByType: null,
             })
         })
 

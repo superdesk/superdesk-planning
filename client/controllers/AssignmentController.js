@@ -4,7 +4,7 @@ import { Provider } from 'react-redux'
 import { get } from 'lodash'
 import { registerNotifications } from '../utils'
 import * as actions from '../actions'
-import { AssignmentListContainer } from '../components'
+import { AssignmentsApp } from '../components'
 import { WORKSPACE } from '../constants'
 
 AssignmentController.$inject = [
@@ -48,7 +48,7 @@ export function AssignmentController(
 
             ReactDOM.render(
                 <Provider store={store}>
-                    <AssignmentListContainer />
+                    <AssignmentsApp />
                 </Provider>,
                 $element.get(0)
             )

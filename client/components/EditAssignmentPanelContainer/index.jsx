@@ -5,7 +5,7 @@ import { isPristine, isValid, isSubmitting } from 'redux-form'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
 import { AssignmentForm, AuditInformation } from '../../components'
-import { TOOLTIPS } from '../../constants'
+import { TOOLTIPS, WORKSPACE, ASSIGNMENTS } from '../../constants'
 import { getCreator, assignmentUtils } from '../../utils'
 import { get } from 'lodash'
 import './style.scss'
@@ -20,7 +20,12 @@ export class EditAssignmentPanel extends React.Component {
     }
 
     onSubmit(assignment) {
-        return this.props.save(assignment)
+        if (this.props.currentWorkspace === WORKSPACE.PLANNING) {
+            return this.props.save(assignment)
+        } else {
+            return this.props.onFulFillAssignment(assignment)
+        }
+
     }
 
     handleSave() {
@@ -55,33 +60,36 @@ export class EditAssignmentPanel extends React.Component {
             openEditor,
             pristine,
             submitting,
+            currentWorkspace,
         } = this.props
 
         const creationDate = get(assignment, '_created')
         const updatedDate = get(assignment, '_updated')
         const author = getCreator(assignment, 'original_creator', users)
+        const state = get(assignment, 'assigned_to.state')
         const versionCreator = getCreator(assignment, 'version_creator', users)
+        const inAssignments = currentWorkspace === WORKSPACE.ASSIGNMENTS
 
         return (
             <div className="EditAssignmentPanel">
                 <header className="subnav">
                     {readOnly &&
                         <div className="EditAssignmentPanel__actions">
-                            {!assignmentUtils.isAssignmentCancelled(assignment) &&
-                            <button className="EditAssignmentPanel__actions__edit navbtn navbtn--right"
+                            {inAssignments && assignmentUtils.canEditAssignment(assignment) &&
+                            <button className="navbtn navbtn--right"
                                 onClick={openEditor.bind(this, assignment)}
                                 data-sd-tooltip={TOOLTIPS.edit} data-flow='down'>
                                 <i className="icon-pencil"/>
                             </button>}
-                            <button className="EditAssignmentPanel__actions__edit navbtn navbtn--right"
+                            <button className="navbtn navbtn--right"
                                 onClick={closePreview.bind(this)}
                                 data-sd-tooltip={TOOLTIPS.close} data-flow='down'>
                                 <i className="icon-close-small"/>
                             </button>
                         </div>}
-                    {!readOnly &&
-                        <div className="EditAssignmentPanel__actions">
-                            <button className=" btn btn--primary"
+                    {!readOnly && inAssignments &&
+                        <div className="EditAssignmentPanel__actions EditAssignmentPanel__actions__edit">
+                            <button className="btn btn--primary"
                                     type="reset"
                                     onClick={this.cancelForm}
                                     disabled={submitting}>
@@ -95,6 +103,15 @@ export class EditAssignmentPanel extends React.Component {
                                 Save
                             </button>
                         </div>}
+                    {!inAssignments && state === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
+                        <button
+                            className="btn btn--primary"
+                            type="submit"
+                            onClick={this.handleSave.bind(this)}
+                            disabled={submitting}>
+                            Fulfill Assignment
+                        </button>
+                    }
                 </header>
                 <div className="EditAssignmentPanel__body">
                     <div>
@@ -128,6 +145,8 @@ EditAssignmentPanel.propTypes = {
     valid: PropTypes.bool.isRequired,
     save: PropTypes.func.isRequired,
     openCancelModal: PropTypes.func.isRequired,
+    currentWorkspace: PropTypes.string,
+    onFulFillAssignment: PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -137,6 +156,7 @@ const mapStateToProps = (state) => ({
     pristine: isPristine('assignment')(state),
     valid: isValid('assignment')(state),
     submitting: isSubmitting('assignment')(state),
+    currentWorkspace: selectors.getCurrentWorkspace(state),
 })
 
 const mapDispatchToProps = (dispatch) => (

@@ -75,6 +75,8 @@ export { WorkqueueList } from './WorkqueueList/index'
 export { EventScheduleForm } from './EventScheduleForm'
 export { EventScheduleSummary } from './EventScheduleSummary'
 export { AddToPlanningModal } from './AddToPlanningModal'
+export { FulFillAssignmentModal } from './FulFillAssignmentModal'
+export { AssignmentsApp } from './AssignmentsApp'
 
 // This must go last, as it imports Modals from above modules
 export { ModalsContainer } from './ModalsContainer'

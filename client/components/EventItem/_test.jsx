@@ -183,8 +183,8 @@ describe('events', () => {
 
                 event.state = 'draft'
                 wrapper = getMountedWrapper()
-                expect(wrapper.find('.label--yellow2').length).toBe(1)
-                expect(wrapper.find('.label--yellow2').first().text()).toBe('draft')
+                expect(wrapper.find('.label').length).toBe(1)
+                expect(wrapper.find('.label').first().text()).toBe('draft')
             })
 
             it('executes `onClick` callback', () => {

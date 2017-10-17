@@ -5,10 +5,13 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
+from copy import deepcopy
 
 from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
 from eve.utils import config
+from .common import ASSIGNMENT_WORKFLOW_STATE
+from apps.archive.common import get_user
 
 
 class AssignmentsLinkService(Service):
@@ -24,6 +27,18 @@ class AssignmentsLinkService(Service):
             assignment = assignments_service.find_one(req=None, _id=doc.pop('assignment_id'))
             item = production.find_one(req=None, _id=doc.pop('item_id'))
 
+            # set the state to in progress
+            updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
+            updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+
+            # on fulfilling the assignment the user is assigned the assignment.
+            user = get_user()
+            if user and str(user.get(config.ID_FIELD)) != (assignment.get('assigned_to') or {}).get('user'):
+                updates['assigned_to']['user'] = str(user.get(config.ID_FIELD))
+
+            assignments_service.patch(assignment[config.ID_FIELD], updates)
+
+            # set
             production.system_update(
                 item[config.ID_FIELD],
                 {'assignment_id': assignment[config.ID_FIELD]},
@@ -58,14 +73,19 @@ class AssignmentsLinkService(Service):
         if not item:
             raise SuperdeskApiError.badRequestError('Content item not found.')
 
+        if item.get('assignment_id'):
+            raise SuperdeskApiError.badRequestError(
+                'Content is already linked to an assignment. Cannot link assignment and content.'
+            )
+
         delivery = get_resource_service('delivery').find_one(
             req=None,
-            assignment_id=assignment.get(config.ID_FIELD)
+            assignment_id=doc.get('assignment_id')
         )
 
         if delivery:
             raise SuperdeskApiError.badRequestError(
-                'Content already exists for the assignment. Cannot create content.'
+                'Content already exists for the assignment. Cannot link assignment and content.'
             )
 
 
