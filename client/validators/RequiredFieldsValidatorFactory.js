@@ -22,7 +22,7 @@ export const RequiredFieldsValidatorFactory = (fields=[]) => (
 
         if (get(props, 'formProfile.coverage.schema')) {
             let coverageForm = props.formProfile.coverage
-            if (values.coverages.length) {
+            if (get(values, 'coverages.length')) {
                 // iterate each coverage and push it's dynamic field name into fields for validation
                 values.coverages.forEach((coverage, index) => {
                     Object.keys(coverageForm.schema).forEach((f) => {

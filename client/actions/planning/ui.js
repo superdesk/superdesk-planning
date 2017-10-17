@@ -124,7 +124,13 @@ const _unlockAndOpenEditor = (item) => (
     (dispatch, getState, { notify }) => (
         dispatch(locks.unlock(item))
         .then((unlockedItem) => {
-            dispatch(self.openEditor(unlockedItem))
+            // Was related event unlocked ?
+            if (unlockedItem.type === 'event') {
+                dispatch(self.openEditor(item))
+            } else {
+                dispatch(self.openEditor(unlockedItem))
+            }
+
             return Promise.resolve(unlockedItem)
         }, (error) => {
             notify.error(
