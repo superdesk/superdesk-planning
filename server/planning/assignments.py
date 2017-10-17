@@ -61,9 +61,17 @@ class AssignmentsService(superdesk.Service):
 
         # set the assignment information
         user = get_user()
-        if user and user.get(config.ID_FIELD):
-            assigned_to['assigned_by'] = user.get(config.ID_FIELD)
-            assigned_to['assigned_date'] = utcnow()
+        if original.get('assigned_to', {}).get('desk') != assigned_to.get('desk'):
+            assigned_to['assigned_date_desk'] = utcnow()
+
+            if user and user.get(config.ID_FIELD):
+                assigned_to['assignor_desk'] = user.get(config.ID_FIELD)
+
+        if assigned_to.get('user') and original.get('assigned_to', {}).get('user') != assigned_to.get('user'):
+            assigned_to['assigned_date_user'] = utcnow()
+
+            if user and user.get(config.ID_FIELD):
+                assigned_to['assignor_user'] = user.get(config.ID_FIELD)
 
         if not original.get(config.ID_FIELD):
             updates['original_creator'] = str(user.get(config.ID_FIELD)) if user else None
@@ -203,8 +211,10 @@ assignments_schema = {
         'schema': {
             'desk': {'type': 'string', 'nullable': True, 'mapping': not_analyzed},
             'user': {'type': 'string', 'nullable': True, 'mapping': not_analyzed},
-            'assigned_by': {'type': 'string', 'mapping': not_analyzed},
-            'assigned_date': {'type': 'datetime'},
+            'assignor_desk': {'type': 'string', 'mapping': not_analyzed},
+            'assignor_user': {'type': 'string', 'mapping': not_analyzed},
+            'assigned_date_desk': {'type': 'datetime'},
+            'assigned_date_user': {'type': 'datetime'},
             'state': {'type': 'string', 'mapping': not_analyzed, 'allowed': assignment_workflow_state},
             'coverage_provider': {
                 'type': 'dict',

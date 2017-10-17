@@ -66,9 +66,13 @@ class PlanningService(superdesk.Service):
                 coverage['assigned_to']['desk'] = assignment.get('assigned_to', {}).get('desk')
                 coverage['assigned_to']['user'] = assignment.get('assigned_to', {}).get('user')
                 coverage['assigned_to']['state'] = assignment.get('assigned_to', {}).get('state')
-                coverage['assigned_to']['assigned_by'] = assignment.get('assigned_to', {}).get('assigned_by')
-                coverage['assigned_to']['assigned_date'] = assignment.get('assigned_to', {}).get('assigned_date')
-                coverage['assigned_to']['coverage_provider'] =\
+                coverage['assigned_to']['assignor_user'] = assignment.get('assigned_to', {}).get('assignor_user')
+                coverage['assigned_to']['assignor_desk'] = assignment.get('assigned_to', {}).get('assignor_desk')
+                coverage['assigned_to']['assigned_date_desk'] =\
+                    assignment.get('assigned_to', {}).get('assigned_date_desk')
+                coverage['assigned_to']['assigned_date_user'] =\
+                    assignment.get('assigned_to', {}).get('assigned_date_user')
+                coverage['assigned_to']['coverage_provider'] = \
                     assignment.get('assigned_to', {}).get('coverage_provider')
 
     def on_fetched(self, docs):

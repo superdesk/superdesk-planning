@@ -15,6 +15,7 @@ function CoverageComponent({
     formProfile,
     keywords,
     coverageProviders,
+    currentUserId,
     }) {
     return (
         <fieldset>
@@ -22,6 +23,7 @@ function CoverageComponent({
                 name={`${coverage}.assigned_to`}
                 component={EditAssignment}
                 users={users}
+                currentUserId={currentUserId}
                 desks={desks}
                 coverageProviders={coverageProviders}
                 readOnly={readOnly}
@@ -45,11 +47,13 @@ CoverageComponent.propTypes = {
     readOnly: PropTypes.bool,
     formProfile: PropTypes.object,
     keywords: PropTypes.array,
+    currentUserId: PropTypes.string,
 }
 
 const selector = formValueSelector('planning') // same as form name
 const mapStateToProps = (state, ownProps) => ({
     users: selectors.getUsers(state),
+    currentUserId: selectors.getCurrentUserId(state),
     desks: selectors.getDesks(state),
     coverageProviders: selectors.getCoverageProviders(state),
     content_type: selector(state, ownProps.coverage + '.planning.g2_content_type'),

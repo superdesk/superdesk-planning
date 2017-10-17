@@ -592,6 +592,8 @@ export const isItemLockedInThisSession = (item, session) => (
         get(item, 'lock_session') === get(session, 'sessionId')
 )
 
+export const getItemInArrayById = (items, id) => (items.find((item) => item._id === id))
+
 /**
  * Get the name of associated icon for different coverage types
  * @param {type} coverage types
