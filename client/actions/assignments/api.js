@@ -164,12 +164,28 @@ const link = (assignmentId, newsItemId) => (
     )
 )
 
+/**
+ * Action to complete an assignment
+ * @param {String} item - Assignment to be completed
+ * @return Promise
+ */
+const complete = (item) => (
+    (dispatch, getState, { api }) => (
+        api.update(
+            'assignments_complete',
+            item,
+            {}
+        )
+    )
+)
+
 const self = {
     query,
     receivedAssignments,
     fetchAssignmentById,
     save,
     link,
+    complete,
 }
 
 export default self

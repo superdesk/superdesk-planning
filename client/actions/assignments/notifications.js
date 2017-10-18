@@ -39,6 +39,11 @@ const onAssignmentUpdated = (_e, data) => (
                 if (coverage) {
                     coverage.assigned_to.user = data.assigned_user
                     coverage.assigned_to.desk = data.assigned_desk
+
+                    if (data.assignment_state) {
+                        coverage.assigned_to.state = data.assignment_state
+                    }
+
                     dispatch(planning.api.receivePlannings([planningItem]))
                 }
             }
@@ -62,6 +67,7 @@ const self = {
 self.events = {
     'assignments:created': () => (self.onAssignmentCreated),
     'assignments:updated': () => (self.onAssignmentUpdated),
+    'assignments:completed': () => (self.onAssignmentUpdated),
 }
 
 export default self

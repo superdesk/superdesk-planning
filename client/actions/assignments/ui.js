@@ -230,6 +230,20 @@ const onFulFillAssignment = (assignment, newsItem) => (
     )
 )
 
+const complete = (item) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(assignments.api.complete(item))
+        .then((item) => {
+            notify.success('The assignment has been completed.')
+            dispatch(self.closePreview())
+            return Promise.resolve(item)
+        }, (error) => {
+            notify.error('Failed to complete the assignment.')
+            return Promise.reject(error)
+        })
+    )
+)
+
 const self = {
     loadAssignments,
     changeListSettings,
@@ -246,6 +260,7 @@ const self = {
     openEditor,
     save,
     onFulFillAssignment,
+    complete,
 }
 
 export default self

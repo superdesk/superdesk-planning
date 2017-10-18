@@ -3,7 +3,8 @@ import { WORKFLOW_STATE,
     GENERIC_ITEM_ACTIONS,
     PRIVILEGES,
     EVENTS,
-    PLANNING } from '../constants/index'
+    PLANNING,
+    ASSIGNMENTS } from '../constants/index'
 import { get, isNil } from 'lodash'
 import {
     getItemWorkflowState,
@@ -223,6 +224,11 @@ export const convertGenreToObject = (coverage) => {
     return coverage
 }
 
+const canEditCoverage = (coverage) => (
+    !isCoverageCancelled(coverage) &&
+    get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
+)
+
 const self = {
     canSavePlanning,
     canPublishPlanning,
@@ -236,6 +242,7 @@ const self = {
     convertCoveragesGenreToObject,
     convertGenreToObject,
     isCoverageCancelled,
+    canEditCoverage,
 }
 
 export default self

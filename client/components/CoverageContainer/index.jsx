@@ -123,7 +123,7 @@ export class CoverageContainer extends React.Component {
                                 <i className="icon-close-small"/>
                             </button>
                         </div>
-                        <Coverage coverage={fieldName} readOnly={readOnly || coverageCancelled}/>
+                        <Coverage coverage={fieldName} readOnly={readOnly || !planningUtils.canEditCoverage(coverage)}/>
                     </div>
                 }
             </div>
