@@ -127,8 +127,8 @@ export class GeoLookupInputComponent extends React.Component {
                     <span className='addgeolookup__input-wrapper'>
                         {locationName}
                         <span style={{
-                            'font-style': 'italic',
-                            'font-size': 'small',
+                            'fontStyle': 'italic',
+                            'fontSize': 'small',
                         }}>
                             <br />
                             {formattedAddress}
