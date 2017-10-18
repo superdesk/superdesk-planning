@@ -63,7 +63,11 @@ def generate_body(ids):
 
 
 def get_desk_template(desk):
-    return superdesk.get_resource_service('content_templates').find_one(req=None, _id=desk['default_content_template'])
+    default_content_template = desk.get('default_content_template')
+    if default_content_template:
+        return superdesk.get_resource_service('content_templates').find_one(req=None, _id=default_content_template)
+
+    return {}
 
 
 class PlanningExportService(superdesk.Service):
