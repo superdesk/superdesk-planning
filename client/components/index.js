@@ -77,6 +77,7 @@ export { EventScheduleSummary } from './EventScheduleSummary'
 export { AddToPlanningModal } from './AddToPlanningModal'
 export { FulFilAssignmentModal } from './FulFilAssignmentModal'
 export { AssignmentsApp } from './AssignmentsApp'
+export { SelectItemModal } from './SelectItemModal'
 
 // This must go last, as it imports Modals from above modules
 export { ModalsContainer } from './ModalsContainer'

@@ -9,6 +9,7 @@ import assignment from './assignment'
 import locks from './locks'
 import session from './session'
 import workspace from './workspace'
+import templates from './templates'
 
 const returnState = (state) => state || {}
 
@@ -23,6 +24,7 @@ const planningApp = combineReducers({
     locks,
     session,
     workspace,
+    templates,
 
     // The following doesn't require reducers as they are loaded using sdPlanningService
     config: returnState,

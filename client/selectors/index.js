@@ -105,6 +105,7 @@ export const getContentTypes = (state) => get(state, 'vocabularies.g2_content_ty
 export const getCurrentDeskId = (state) => get(state, 'workspace.currentDeskId', null)
 export const getCurrentStageId = (state) => get(state, 'workspace.currentStageId', null)
 export const getDesks = (state) => get(state, 'desks', [])
+export const getTemplates = (state) => get(state, 'templates', [])
 
 export const getPlanningTypeProfile = createSelector(
     [getPlanningsFormsProfile, getCoverageFormsProfile],
