@@ -1,6 +1,6 @@
 import sinon from 'sinon'
 import moment from 'moment'
-import { get } from 'lodash'
+import { get, map } from 'lodash'
 import { PRIVILEGES } from '../constants'
 import { ItemActionsMenu } from '../components/index'
 
@@ -619,4 +619,15 @@ export const clickItemAction = (wrapper, icon) => {
     const itemActions = wrapper.find(ItemActionsMenu)
     itemActions.find('.dropdown__toggle').simulate('click')
     itemActions.find(icon).parent().simulate('click')
+}
+
+export const expectActions = (itemActions, expectedActions) => {
+    expect(itemActions.length).toBe(
+        expectedActions.length,
+        `\n\t[${map(itemActions, 'label')}]\n\t[${expectedActions}]`
+    )
+
+    for (let i = 0; i < expectedActions.length; i++) {
+        expect(expectedActions[i]).toBe(itemActions[i].label)
+    }
 }
