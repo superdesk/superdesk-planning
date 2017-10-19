@@ -23,6 +23,13 @@ export class AssignmentSelect extends React.Component {
         return filteredUsers
     }
 
+    isComponentPristine() {
+        return get(this.props, 'input.value.deskAssigned') === this.state.deskAssigned &&
+            get(this.props, 'input.value.userAssigned') === this.state.userAssigned &&
+            get(this.props, 'input.value.coverage_provider.qcode') ===
+                get(this.state.coverageProviderAssigned, 'qcode')
+    }
+
     filterDesks(userAssigned) {
         if (!userAssigned) return this.props.desks
 
@@ -136,7 +143,8 @@ export class AssignmentSelect extends React.Component {
             <fields.DeskSelectField
                 desks={this.state.filteredDeskList}
                 autoFocus={true}
-                input={deskSelectFieldInput} />
+                input={deskSelectFieldInput}
+                readOnly={this.props.deskSelectionDisabled} />
             <div>
             <div>
                 <label>Coverage Provider</label>
@@ -170,6 +178,7 @@ export class AssignmentSelect extends React.Component {
             <div className='assignmentselect__action'>
                 { this.state.deskAssigned &&
                 <button type="button" className="btn btn--primary"
+                    disabled={this.isComponentPristine()}
                     onClick={this.onChange.bind(this, {
                         user: this.state.userAssigned,
                         desk: this.state.deskAssigned,
@@ -192,4 +201,5 @@ AssignmentSelect.propTypes = {
     onCancel: PropTypes.func.isRequired,
     input: PropTypes.object.isRequired,
     context: PropTypes.string,
+    deskSelectionDisabled: PropTypes.bool,
 }

@@ -20,6 +20,8 @@ from superdesk.metadata.item import metadata_schema, ITEM_STATE
 from superdesk.resource import not_analyzed
 from superdesk.notification import push_notification
 from apps.archive.common import get_user
+from apps.duplication.archive_move import ITEM_MOVE
+from apps.publish.enqueue import ITEM_PUBLISH
 from eve.utils import config
 from superdesk.utc import utcnow
 from superdesk.activity import add_activity, ACTIVITY_UPDATE
@@ -62,6 +64,10 @@ class AssignmentsService(superdesk.Service):
         # set the assignment information
         user = get_user()
         if original.get('assigned_to', {}).get('desk') != assigned_to.get('desk'):
+            if original.get('assigned_to', {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
+                raise SuperdeskApiError.forbiddenError(
+                    message="Assignment in progress. Desk reassignment not allowed.")
+
             assigned_to['assigned_date_desk'] = utcnow()
 
             if user and user.get(config.ID_FIELD):
@@ -190,6 +196,72 @@ class AssignmentsService(superdesk.Service):
 
             self.system_update(ObjectId(original_assignment.get('_id')), updated_assignment, original_assignment)
             self.send_assignment_cancellation_notification(original_assignment)
+
+    def _get_empty_updates_for_assignment(self, assignment):
+        updated_assignment = {'assigned_to': {}}
+        updated_assignment.get('assigned_to').update(assignment.get('assigned_to'))
+        return updated_assignment
+
+    def _set_user_for_assignment(self, assignment, assignee, assignor=None):
+        updates = self._get_empty_updates_for_assignment(assignment)
+        updates['assigned_to']['user'] = assignee
+
+        if assignor:
+            updates['assigned_to']['assignor_user'] = assignor
+
+        return updates
+
+    def _get_assignment_data_on_archive_update(self, updates, original):
+        assignment_id = original.get('assignment_id')
+        item_user_id = updates.get('version_creator')
+        item_desk_id = updates.get('task', {}).get('desk')
+        assignment = None
+        if assignment_id:
+            assignment = self.find_one(req=None, _id=assignment_id)
+
+        return assignment_id, str(item_user_id), str(item_desk_id), assignment
+
+    def update_assignment_on_archive_update(self, updates, original):
+        if not original.get('assignment_id'):
+            return
+
+        assignment_id, item_user_id, item_desk_id, assignment =\
+            self._get_assignment_data_on_archive_update(updates, original)
+
+        if assignment and assignment.get('assigned_to')['user'] != item_user_id:
+            # re-assign the user to the lock user
+            updated_assignment = self._set_user_for_assignment(assignment, item_user_id)
+            self._update_assignment_and_notify(updated_assignment, assignment)
+
+    def update_assignment_on_archive_operation(self, updates, original, operation=None):
+        if operation == ITEM_MOVE:
+            assignment_id, item_user_id, item_desk_id, assignment = \
+                self._get_assignment_data_on_archive_update(
+                    updates, original)
+
+            if assignment and assignment.get('assigned_to')['desk'] != item_desk_id:
+                updated_assignment = self._set_user_for_assignment(assignment, None, item_user_id)
+                updated_assignment.get('assigned_to')['desk'] = item_desk_id
+                updated_assignment.get('assigned_to')['assignor_user'] = item_user_id
+                updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.SUBMITTED
+
+                self._update_assignment_and_notify(updated_assignment, assignment)
+        elif operation == ITEM_PUBLISH:
+            assignment_id, item_user_id, item_desk_id, assignment = \
+                self._get_assignment_data_on_archive_update(
+                    updates, original)
+            if assignment:
+                updated_assignment = self._get_empty_updates_for_assignment(assignment)
+                updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
+
+                self._update_assignment_and_notify(updated_assignment, assignment)
+
+    def _update_assignment_and_notify(self, updates, original):
+        self.system_update(original.get(config.ID_FIELD),
+                           updates, original)
+
+        # send notification
+        self.notify('assignments:updated', updates, original)
 
 
 assignments_schema = {

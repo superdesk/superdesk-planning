@@ -4,7 +4,7 @@ import { connect } from 'react-redux'
 import { Field, reduxForm, propTypes } from 'redux-form'
 import { CoverageDetails, EditAssignment, StateLabel } from '../../components'
 import * as selectors from '../../selectors'
-import { assignmentUtils } from '../../utils'
+import { ASSIGNMENTS } from '../../constants'
 import { get } from 'lodash'
 import './style.scss'
 
@@ -36,7 +36,9 @@ export class Component extends React.Component {
                         currentUserId={currentUserId}
                         desks={desks}
                         coverageProviders={coverageProviders}
-                        readOnly={readOnly || assignmentUtils.isAssignmentCancelled(assignment)}
+                        readOnly={readOnly}
+                        deskSelectionDisabled={get(assignment, 'assigned_to.state') ===
+                            ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS}
                         context={'assignment'} />
                     {assignment && assignment.assigned_to && <StateLabel item={assignment.assigned_to}/>}
                     <div className="AssignmentForm__coveragedetails">

@@ -144,6 +144,7 @@ export class EditAssignment  extends React.Component {
                     (<AssignmentSelect
                         users={this.props.users}
                         desks={this.props.desks}
+                        deskSelectionDisabled={this.props.deskSelectionDisabled}
                         onCancel={this.toggleSelection}
                         coverageProviders={this.props.coverageProviders}
                         input={assignmentSelectInput} context={context} />)
@@ -159,6 +160,7 @@ EditAssignment.propTypes = {
     desks: PropTypes.array.isRequired,
     input: PropTypes.object,
     readOnly: PropTypes.bool,
+    deskSelectionDisabled: PropTypes.bool,
     context: PropTypes.oneOf(['coverage','assignment']).isRequired,
     currentUserId: PropTypes.string,
 }

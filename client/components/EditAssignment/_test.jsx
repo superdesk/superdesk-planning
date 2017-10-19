@@ -38,6 +38,7 @@ class TestForm extends React.Component {
                 input={i}
                 users={this.props.users}
                 desks={this.props.desks}
+                deskSelectionDisabled={this.props.deskSelectionDisabled}
                 coverageProviders={coverageProvider}
                 context="coverage"/>
         )
@@ -48,6 +49,7 @@ TestForm.propTypes = {
     users: React.PropTypes.array.isRequired,
     desks: React.PropTypes.array.isRequired,
     input: React.PropTypes.object,
+    deskSelectionDisabled: React.PropTypes.bool,
 }
 
 describe('<EditAssignment />', () => {
@@ -204,5 +206,17 @@ describe('<EditAssignment />', () => {
         expect(deskSelectFieldComponent.props().desks.length).toBe(2)
         expect(deskSelectFieldComponent.props().desks[0].name).toBe('Politic Desk')
         expect(deskSelectFieldComponent.props().desks[1].name).toBe('Sports Desk')
+    })
+
+    it('Desk selection is disabled by if falsy value to deskSelectionDisabled prop', () => {
+        const wrapper = mount(<TestForm users={users}
+                desks={desks} deskSelectionDisabled={true} />)
+        wrapper.find('.assignment__action').simulate('click')
+
+        const deskSelectFieldComponent = wrapper.find('DeskSelectField')
+        expect(deskSelectFieldComponent.props().desks.length).toBe(2)
+        expect(deskSelectFieldComponent.props().desks[0].name).toBe('Politic Desk')
+        expect(deskSelectFieldComponent.props().desks[1].name).toBe('Sports Desk')
+        expect(deskSelectFieldComponent.props().readOnly).toBe(true)
     })
 })
