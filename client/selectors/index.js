@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect'
 import { get, sortBy, includes, isEmpty, filter, matches, isNil } from 'lodash'
 import moment from 'moment'
-import { AGENDA, SPIKED_STATE } from '../constants'
+import { AGENDA, SPIKED_STATE, WORKSPACE } from '../constants'
 import { isItemLockedInThisSession, isItemSpiked } from '../utils'
 
 export const getIngestProviders = (state) => get(state, 'ingest.providers')
@@ -49,17 +49,22 @@ export const getCurrentAgenda = createSelector(
 
 export const getStoredAssignments = (state) => get(state, 'assignment.assignments', {})
 export const getAssignmentsInList = (state) => get(state, 'assignment.assignmentsInList', [])
-export const getFilterBy = (state) => get(state, 'assignment.filterBy')
-export const getSearchQuery = (state) => get(state, 'assignment.searchQuery')
-export const getOrderByField = (state) => get(state, 'assignment.orderByField')
-export const getOrderDirection = (state) => get(state, 'assignment.orderDirection')
+export const getFilterBy = (state) => get(state, 'assignment.filterBy', 'ALL')
+export const getSearchQuery = (state) => get(state, 'assignment.searchQuery', null)
+export const getOrderByField = (state) => get(state, 'assignment.orderByField', 'Created')
+export const getOrderDirection = (state) => get(state, 'assignment.orderDirection', 'Asc')
+export const getAssignmentFilterByState = (state) => get(state, 'assignment.filterByState', null)
+export const getAssignmentFilterByType = (state) => get(state, 'assignment.filterByType', null)
+export const getAssignmentPage = (state) => get(state, 'assignment.lastAssignmentLoadedPage', 1)
 export const getSelectedAssignments = (state) => get(state, 'assignment.selectedAssignments', [])
 export const getAssignmentListSettings = (state) => ({
     filterBy: getFilterBy(state),
     searchQuery: getSearchQuery(state),
     orderByField: getOrderByField(state),
     orderDirection: getOrderDirection(state),
-    lastAssignmentLoadedPage: get(state, 'assignment.lastAssignmentLoadedPage'),
+    lastAssignmentLoadedPage: getAssignmentPage(state),
+    filterByState: getAssignmentFilterByState(state),
+    filterByType: getAssignmentFilterByType(state),
 })
 
 export const getPrivileges = (state) => get(state, 'privileges')
@@ -404,4 +409,27 @@ export const getLockedEvents = createSelector(
             )
         )
     )
+)
+
+export const getAssignmentSearch = createSelector(
+    [getAssignmentListSettings, getCurrentDeskId, getCurrentUserId,
+        getAssignmentFilterByState, getCurrentWorkspace, getAssignmentFilterByType],
+    (listSettings, currentDeskId,
+     currentUserId, filterByState, currentWorkspace, filterByType) => {
+        const assignmentSearch = {
+            deskId: (
+                get(listSettings, 'filterBy') === 'All' ||
+                currentWorkspace === WORKSPACE.AUTHORING
+            ) ? currentDeskId : null,
+            userId: (get(listSettings, 'filterBy') === 'User') ? currentUserId : null,
+            searchQuery: get(listSettings, 'searchQuery', ''),
+            orderByField: get(listSettings, 'orderByField', 'Created'),
+            orderDirection: get(listSettings, 'orderDirection', 'Asc'),
+            page: 1,
+            state: filterByState,
+            type: filterByType,
+        }
+
+        return assignmentSearch
+    }
 )

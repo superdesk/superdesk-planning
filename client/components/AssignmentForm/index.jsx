@@ -2,10 +2,11 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { Field, reduxForm, propTypes } from 'redux-form'
-import { CoverageDetails, EditAssignment } from '../../components'
+import { CoverageDetails, EditAssignment, StateLabel } from '../../components'
 import * as selectors from '../../selectors'
 import { assignmentUtils } from '../../utils'
 import { get } from 'lodash'
+import './style.scss'
 
 export class Component extends React.Component {
     constructor(props) {
@@ -35,16 +36,19 @@ export class Component extends React.Component {
                         currentUserId={currentUserId}
                         desks={desks}
                         coverageProviders={coverageProviders}
-                        readOnly={readOnly || assignmentUtils.isAssignmentCancelled(assignment)} context={'assignment'} />
-
-                    <label>Coverage Details</label>
-                    <CoverageDetails
-                        coverage={assignment}
-                        formProfile={formProfile}
-                        readOnly={true}
-                        content_type={get(assignment, 'planning.g2_content_type')}
-                        keywords={keywords}
-                    />
+                        readOnly={readOnly || assignmentUtils.isAssignmentCancelled(assignment)}
+                        context={'assignment'} />
+                    {assignment && assignment.assigned_to && <StateLabel item={assignment.assigned_to}/>}
+                    <div className="AssignmentForm__coveragedetails">
+                        <label>Coverage Details</label>
+                        <CoverageDetails
+                            coverage={assignment}
+                            formProfile={formProfile}
+                            readOnly={true}
+                            content_type={get(assignment, 'planning.g2_content_type')}
+                            keywords={keywords}
+                        />
+                    </div>
                 </fieldset>
             </form>
         )

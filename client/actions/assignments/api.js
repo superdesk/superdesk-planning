@@ -7,37 +7,49 @@ import { get, cloneDeep, has, pick } from 'lodash'
  * Action Dispatcher for query the api for events
  * @return arrow function
  */
-const query = () =>
-    (dispatch, getState, { api, desks }) => {
-        const {
-            filterBy,
-            searchQuery,
-            orderByField,
-            orderDirection,
-            lastAssignmentLoadedPage,
-        } =  selectors.getAssignmentListSettings(getState())
+const query = ({
+    searchQuery,
+    orderByField,
+    orderDirection,
+    page=1,
+    deskId=null,
+    userId=null,
+    state=null,
+    type=null,
+}) => (
+    (dispatch, getState, { api }) => {
+
         const filterByValues = {
             Created: '_created',
             Updated: '_updated',
         }
+
         let query = {}
         let must = []
-        let sort = '[("' + (filterByValues[orderByField] || '_updated') + '", '
+        let sort = '[("' + (get(filterByValues, orderByField, '_updated')) + '", '
             + (orderDirection === 'Asc' ? 1 : -1) + ')]'
 
-        if (filterBy === 'All') {
-            const deskId = desks.getCurrentDeskId()
-
+        if (deskId) {
             must.push(
                 { term: { 'assigned_to.desk': deskId } }
             )
         }
 
-        if (filterBy === 'User') {
-            const userId = selectors.getCurrentUserId(getState())
-
+        if (userId) {
             must.push(
                 { term: { 'assigned_to.user': userId } }
+            )
+        }
+
+        if (state) {
+            must.push(
+                { term: { 'assigned_to.state': state } }
+            )
+        }
+
+        if (type) {
+            must.push(
+                { term: { 'planning.g2_content_type': type } }
             )
         }
 
@@ -48,7 +60,7 @@ const query = () =>
         query.bool = { must }
 
         return api('assignments').query({
-            page: lastAssignmentLoadedPage,
+            page: page,
             sort: sort,
             source: JSON.stringify({ query }),
         })
@@ -61,6 +73,7 @@ const query = () =>
             }
         }, (error) => (Promise.reject(error)))
     }
+)
 
 /**
  * Action Dispatcher that fetches a Assignment Item by ID
@@ -98,6 +111,12 @@ const receivedAssignments = (assignments) => ({
     payload: assignments,
 })
 
+/**
+ * Action to save assignment
+ * @param {Object} item - assignment to save
+ * @param {Object} original - original assignment
+ * @return object
+ */
 const save = (item, original=undefined) => (
     (dispatch, getState, { api }) => (
         // Find the original (if it exists) either from the store or the API
@@ -130,11 +149,27 @@ const save = (item, original=undefined) => (
     )
 )
 
+/**
+ * Action to link assignment with news item
+ * @param {String} assignmentId - Id of the Assignment
+ * @param {String} newsItemId - Id of the news item
+ * @return Promise
+ */
+const link = (assignmentId, newsItemId) => (
+    (dispatch, getState, { api }) => (
+        api('assignments_link').save({}, {
+            assignment_id: assignmentId,
+            item_id: newsItemId,
+        })
+    )
+)
+
 const self = {
     query,
     receivedAssignments,
     fetchAssignmentById,
     save,
+    link,
 }
 
 export default self

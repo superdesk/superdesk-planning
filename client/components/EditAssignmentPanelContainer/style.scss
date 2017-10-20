@@ -13,6 +13,7 @@ $EDIT_ASSIGNMENT_WIDTH: 450px;
     box-shadow: inset 2px 0 3px -1px #d8d8d8;
     & > header {
         border-bottom: 1px solid #cbcbcb;
+        border-top: 1px solid #cbcbcb;
         padding: 10px;
         color: $sd-text-label;
         display: flex;
@@ -36,7 +37,7 @@ $EDIT_ASSIGNMENT_WIDTH: 450px;
     position: absolute;
     right: 0px;
     &__edit {
-        padding-right: 20px;
+        right: 10px;
     }
 }
 .EditAssignmentPanel__body {

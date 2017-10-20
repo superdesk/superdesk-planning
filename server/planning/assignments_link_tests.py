@@ -14,7 +14,12 @@ class AssignmentLinkTestCase(TestCase):
             self.app.data.insert('assignments', [{
                 '_id': 'as1',
                 'planning_item': 'plan1',
-                'coverage_item': 'cov1'
+                'coverage_item': 'cov1',
+                'assigned_to': {
+                    'state': 'assigned',
+                    'user': 'test',
+                    'desk': 'test'
+                }
             }])
 
             get_resource_service('assignments_link').post([{
@@ -31,3 +36,6 @@ class AssignmentLinkTestCase(TestCase):
 
             archive_item = get_resource_service('archive').find_one(req=None, _id='item1')
             self.assertEqual(archive_item.get('assignment_id'), 'as1')
+
+            assignment = get_resource_service('assignments').find_one(req=None, _id='as1')
+            self.assertEqual(assignment.get('assigned_to')['state'], 'in_progress')

@@ -7,7 +7,6 @@ import {
     AssignmentListHeader,
     AssignmentListSearchHeader,
     EditAssignmentPanelContainer,
-    ModalsContainer,
 } from '../index'
 import * as selectors from '../../selectors'
 import * as actions from '../../actions'
@@ -17,15 +16,22 @@ import './style.scss'
 class AssignmentListComponent extends React.Component {
 
     changeSearchQuery(searchQuery) {
-        const { filterBy, orderByField, orderDirection, loadAssignments } = this.props
+        const {
+            filterBy,
+            orderByField,
+            orderDirection,
+            loadAssignments,
+            filterByState,
+            filterByType,
+        } = this.props
 
-        loadAssignments(filterBy, searchQuery, orderByField, orderDirection)
+        loadAssignments(filterBy, searchQuery, orderByField, orderDirection, filterByState, filterByType)
     }
 
     changeFilter (filterBy, orderByField, orderDirection) {
-        const { searchQuery, loadAssignments } = this.props
+        const { searchQuery, loadAssignments, filterByState, filterByType } = this.props
 
-        loadAssignments(filterBy, searchQuery, orderByField, orderDirection)
+        loadAssignments(filterBy, searchQuery, orderByField, orderDirection, filterByState, filterByType)
     }
 
     render() {
@@ -54,9 +60,9 @@ class AssignmentListComponent extends React.Component {
                         onClick={this.props.preview}
                         onSelectChange={this.props.onAssignmentSelectChange}
                     />
-                    {this.props.previewOpened && <EditAssignmentPanelContainer /> }
+                    {this.props.previewOpened && <EditAssignmentPanelContainer
+                        onFulFillAssignment={this.props.onFulFillAssignment}/> }
                 </div>
-                <ModalsContainer />
             </div>
         )
     }
@@ -77,10 +83,15 @@ AssignmentListComponent.propTypes = {
     loadAssignments: PropTypes.func.isRequired,
     loadMoreAssignments: PropTypes.func.isRequired,
     assignments: PropTypes.array,
+    onFulFillAssignment: PropTypes.func,
+    filterByState: PropTypes.string,
+    filterByType: PropTypes.string,
 }
 
 const mapStateToProps = (state) => ({
     filterBy: selectors.getFilterBy(state),
+    filterByState: selectors.getAssignmentFilterByState(state),
+    filterByType: selectors.getAssignmentFilterByType(state),
     searchQuery: selectors.getSearchQuery(state),
     orderByField: selectors.getOrderByField(state),
     orderDirection: selectors.getOrderDirection(state),
@@ -93,8 +104,11 @@ const mapStateToProps = (state) => ({
 })
 
 const mapDispatchToProps = (dispatch) => ({
-    loadAssignments: (filterBy, searchQuery, orderByField, orderDirection) =>
-        dispatch(actions.assignments.ui.loadAssignments(filterBy, searchQuery, orderByField, orderDirection)),
+    loadAssignments: (filterBy, searchQuery, orderByField,
+                      orderDirection, filterByState, filterByType) =>
+        dispatch(actions.assignments.ui.loadAssignments(
+            filterBy, searchQuery, orderByField, orderDirection, filterByState, filterByType
+        )),
     loadMoreAssignments: () => dispatch(actions.assignments.ui.loadMoreAssignments()),
     preview: (assignment) => dispatch(actions.assignments.ui.preview(assignment)),
     onAssignmentSelectChange: (value) => dispatch(actions.assignments.ui.toggleAssignmentSelection(value)),

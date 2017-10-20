@@ -358,7 +358,8 @@ class PlanningService(superdesk.Service):
 
             # Check if coverage was cancelled
             coverage_cancel_state = get_coverage_cancellation_state()
-            if updates.get('news_coverage_status').get('qcode') == coverage_cancel_state.get('qcode') and \
+            if updates.get('news_coverage_status') and \
+                updates.get('news_coverage_status').get('qcode') == coverage_cancel_state.get('qcode') and \
                     original.get('news_coverage_status').get('qcode') != coverage_cancel_state.get('qcode'):
                 assignment_service.cancel_assignment(original_assignment, updates)
                 updates.pop('assigned_to', None)

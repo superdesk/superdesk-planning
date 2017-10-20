@@ -735,13 +735,10 @@ const onAddCoverageFromAuthoring = (prevPlan, newPlan, newsItem) => (
 )
 
 const onAddCoverageFromAuthoringSave = (planning, newsItem) => (
-    (dispatch, getState, { api }) => {
+    (dispatch) => {
         const coverages = sortBy(planning.coverages, ['firstcreated'])
         const coverage = last(coverages)
-        return api('assignments_link').save({}, {
-            assignment_id: coverage.assigned_to.assignment_id,
-            item_id: newsItem._id,
-        })
+        return actions.assignments.api.link(coverage.assigned_to.assignment_id, newsItem._id)
         .then(() => {
             dispatch(self.closeEditor(planning))
             dispatch(hideModal())

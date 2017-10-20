@@ -1,5 +1,6 @@
 import planningUi from '../ui'
 import planningApi from '../api'
+import assignmentApi from '../../assignments/api'
 import sinon from 'sinon'
 import { PRIVILEGES } from '../../../constants'
 import * as actions from '../../../actions/agenda'
@@ -43,6 +44,7 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningApi, 'saveAndPublish').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'saveAndUnpublish').callsFake(() => (Promise.resolve()))
         sinon.stub(planningUi, 'refetch').callsFake(() => (Promise.resolve()))
+        sinon.stub(assignmentApi, 'link').callsFake(() => (Promise.resolve()))
     })
 
     afterEach(() => {
@@ -69,6 +71,7 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(planningUi.fetchToList)
         restoreSinonStub(planningUi.fetchMoreToList)
         restoreSinonStub(planningUi.refetch)
+        restoreSinonStub(assignmentApi.link)
     })
 
     describe('spike', () => {
@@ -868,18 +871,11 @@ describe('actions.planning.ui', () => {
             { _id: 'item1' }
         ))
         .then(() => {
-            expect(services.api('assignments_link').save.callCount).toBe(1)
-            expect(services.api('assignments_link').save.args[0]).toEqual([
-                {},
-                {
-                    assignment_id: 'as2',
-                    item_id: 'item1',
-                },
-            ])
+            expect(assignmentApi.link.callCount).toBe(1)
+            expect(assignmentApi.link.args[0]).toEqual(['as2', 'item1'])
 
             expect(planningUi.closeEditor.callCount).toBe(1)
             expect(planningUi.closeEditor.args[0]).toEqual([data.plannings[0]])
-
             expect(store.dispatch.args[1]).toEqual([{ type: 'HIDE_MODAL' }])
 
             done()

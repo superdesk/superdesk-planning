@@ -140,13 +140,13 @@ Feature: Assignment link
                 },
                 "assigned_to": {
                     "desk": "Politic Desk",
-                    "user": "507f191e810c19729de870eb",
-                    "state": "in_progress"
+                    "user": "507f191e810c19729de870eb"
                 }
             }]
         }
         """
         Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
         Then we store assignment id in "firstassignment" from coverage 0
         When we post to "assignments/link"
         """
@@ -165,5 +165,47 @@ Feature: Assignment link
         """
         Then we get error 400
         """
-        {"_message": "Content already exists for the assignment. Cannot create content."}
+        {"_message": "Content is already linked to an assignment. Cannot link assignment and content."}
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "assignment_id": "#firstassignment#"
+                    }
+                },
+                {
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "Sports Desk",
+                        "user": "507f191e810c19729de870eb"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "secondassignment" from coverage 1
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#secondassignment#",
+            "item_id": "#archive._id#"
+        }]
+        """
+        Then we get error 400
+        """
+        {"_message": "Content is already linked to an assignment. Cannot link assignment and content."}
         """

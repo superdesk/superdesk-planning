@@ -159,4 +159,24 @@ describe('Utils', function() {
             expect(utils.gettext('foo')).toBe('foo')
         })
     })
+
+    describe('can edit assignment', () => {
+        it('assignment state `assigned`', () => {
+            expect(
+                utils.assignmentUtils.canEditAssignment({ assigned_to: { state: 'assigned' } })
+            ).toBe(true)
+        })
+
+        it('assignment state `submitted`', () => {
+            expect(
+                utils.assignmentUtils.canEditAssignment({ assigned_to: { state: 'submitted' } })
+            ).toBe(true)
+        })
+
+        it('assignment state `cancelled`', () => {
+            expect(
+                utils.assignmentUtils.canEditAssignment({ assigned_to: { state: 'canceled' } })
+            ).toBe(false)
+        })
+    })
 })

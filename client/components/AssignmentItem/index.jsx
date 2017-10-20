@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { ListItem, Checkbox, UserAvatar, AbsoluteDate } from '../index'
+import { ListItem, Checkbox, UserAvatar, AbsoluteDate, StateLabel } from '../index'
 import classNames from 'classnames'
 import moment from 'moment'
 import { get } from 'lodash'
@@ -38,6 +38,7 @@ export const AssignmentItem = ({
                     </span>
                 </div>
                 <div className="sd-list-item__row">
+                    <StateLabel item={assignment.assigned_to} />
                     <span className="ListItem__headline">
                             <i className="icon-time"/>
                             {get(assignment, 'planning.scheduled') ? (
