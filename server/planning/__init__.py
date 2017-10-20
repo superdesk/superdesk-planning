@@ -207,6 +207,9 @@ def init_app(app):
     assignments_link_service = AssignmentsLinkService('assignments_link', backend=superdesk.get_backend())
     AssignmentsLinkResource('assignments_link', app=app, service=assignments_link_service)
 
+    app.on_updated_archive += assignments_publish_service.update_assignment_on_archive_update
+    app.on_archive_item_updated += assignments_publish_service.update_assignment_on_archive_operation
+
     register_component(LockService(app))
 
     superdesk.privilege(
