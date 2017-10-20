@@ -51,6 +51,7 @@ from .assignments import AssignmentsResource, AssignmentsService
 from .delivery import DeliveryResource
 from .assignments_content import AssignmentsContentResource, AssignmentsContentService
 from .assignments_link import AssignmentsLinkResource, AssignmentsLinkService
+from .assignments_complete import AssignmentsCompleteResource, AssignmentsCompleteService
 from .commands import *  # noqa
 
 
@@ -209,6 +210,15 @@ def init_app(app):
 
     app.on_updated_archive += assignments_publish_service.update_assignment_on_archive_update
     app.on_archive_item_updated += assignments_publish_service.update_assignment_on_archive_operation
+
+    assignments_complete_service = AssignmentsCompleteService(AssignmentsCompleteResource.endpoint_name,
+                                                              backend=superdesk.get_backend())
+
+    AssignmentsCompleteResource(
+        AssignmentsCompleteResource.endpoint_name,
+        app=app,
+        service=assignments_complete_service
+    )
 
     register_component(LockService(app))
 
