@@ -23,7 +23,7 @@ export class EditAssignmentPanel extends React.Component {
         if (this.props.currentWorkspace === WORKSPACE.PLANNING) {
             return this.props.save(assignment)
         } else {
-            return this.props.onFulFillAssignment(assignment)
+            return this.props.onFulFilAssignment(assignment)
         }
 
     }
@@ -119,7 +119,7 @@ export class EditAssignmentPanel extends React.Component {
                             type="submit"
                             onClick={this.handleSave.bind(this)}
                             disabled={submitting}>
-                            Fulfill Assignment
+                            Fulfil Assignment
                         </button>
                     }
                 </header>
@@ -157,7 +157,7 @@ EditAssignmentPanel.propTypes = {
     save: PropTypes.func.isRequired,
     openCancelModal: PropTypes.func.isRequired,
     currentWorkspace: PropTypes.string,
-    onFulFillAssignment: PropTypes.func,
+    onFulFilAssignment: PropTypes.func,
     completeAssignment: PropTypes.func,
 }
 

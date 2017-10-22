@@ -551,6 +551,23 @@ export const getTestActionStore = () => {
             api: sinon.spy((resource) => (store.spies.api[resource])),
             $location: { search: sinon.spy(() => (Promise.resolve())) },
             desks: { getCurrentDeskId: sinon.spy(() => 'desk1') },
+            superdesk: { intent: sinon.spy(() => (Promise.resolve())) },
+            lock: {
+                isLocked: (item) => {
+                    if (!item) {
+                        return false
+                    }
+
+                    return !!item.lock_user && !store.services.lock.isLockedInCurrentSession(item)
+                },
+
+                isLockedInCurrentSession: (item) => (
+                    !!item.lock_session &&
+                    item.lock_session === store.initialState.session.sessionId
+                ),
+            },
+            archiveService: { isPersonal: (item) => (get(item, 'task.user') && !get(item, 'task.desk')) }, // jscs: disable
+            authoring: { itemActions: () => ({ edit: true }) },
         },
 
         test: (done, action) => {

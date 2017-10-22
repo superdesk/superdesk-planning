@@ -40,7 +40,9 @@ export function AddToPlanningController(
         let failed = false
 
         if (get(newsItem, 'assignment_id')) {
-            notify.error('Item already linked to a Planning item')
+            notify.error(
+                gettext('Item already linked to a Planning item')
+            )
             failed = true
         }
 
@@ -60,6 +62,13 @@ export function AddToPlanningController(
 
         if (failed) {
             $scope.reject()
+            return Promise.reject()
+        }
+
+        if (lock.isLocked(newsItem)) {
+            notify.error(
+                gettext('Item already locked.')
+            )
             return Promise.reject()
         }
 

@@ -61,7 +61,7 @@ class AssignmentListComponent extends React.Component {
                         onSelectChange={this.props.onAssignmentSelectChange}
                     />
                     {this.props.previewOpened && <EditAssignmentPanelContainer
-                        onFulFillAssignment={this.props.onFulFillAssignment}/> }
+                        onFulFilAssignment={this.props.onFulFilAssignment}/> }
                 </div>
             </div>
         )
@@ -83,7 +83,7 @@ AssignmentListComponent.propTypes = {
     loadAssignments: PropTypes.func.isRequired,
     loadMoreAssignments: PropTypes.func.isRequired,
     assignments: PropTypes.array,
-    onFulFillAssignment: PropTypes.func,
+    onFulFilAssignment: PropTypes.func,
     filterByState: PropTypes.string,
     filterByType: PropTypes.string,
 }

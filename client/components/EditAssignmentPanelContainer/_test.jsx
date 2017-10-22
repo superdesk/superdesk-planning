@@ -11,11 +11,11 @@ import { WORKSPACE } from '../../constants/workspace'
 
 
 describe('<EditAssignmentPanelContainer />', () => {
-    let onFulFillAssignment = sinon.spy()
+    let onFulFilAssignment = sinon.spy()
 
     const getWrapper = (store) => {
         return mount(<Provider store={store}>
-            <EditAssignmentPanelContainer onFulFillAssignment={onFulFillAssignment} />
+            <EditAssignmentPanelContainer onFulFilAssignment={onFulFilAssignment} />
             </Provider>
         )
     }
@@ -104,7 +104,7 @@ describe('<EditAssignmentPanelContainer />', () => {
         expect(store.getState().assignment.previewOpened).toBe(false)
     })
 
-    it('click on the fulfill assignment', (done) => {
+    it('click on the fulfil assignment', (done) => {
         const initialState = getState(WORKSPACE.AUTHORING)
         const store = createTestStore({ initialState })
         const wrapper = getWrapper(store)
@@ -113,11 +113,11 @@ describe('<EditAssignmentPanelContainer />', () => {
         expect(wrapper.find('.icon-pencil').length).toBe(0)
         expect(wrapper.find('.icon-close-small').length).toBe(1)
         expect(wrapper.find('button[type="submit"]').length).toBe(1)
-        const fulfillButton = wrapper.find('button[type="submit"]').first()
+        const fulfilButton = wrapper.find('button[type="submit"]').first()
         expect(store.getState().assignment.previewOpened).toBe(true)
-        expect(fulfillButton.text()).toBe('Fulfill Assignment')
-        fulfillButton.simulate('click')
-        expect(onFulFillAssignment.callCount).toBe(1)
+        expect(fulfilButton.text()).toBe('Fulfil Assignment')
+        fulfilButton.simulate('click')
+        expect(onFulFilAssignment.callCount).toBe(1)
         wrapper.find('.icon-close-small').first().simulate('click')
         expect(store.getState().assignment.previewOpened).toBe(false)
         done()

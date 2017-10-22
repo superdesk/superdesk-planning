@@ -6,13 +6,13 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 from copy import deepcopy
-
 from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
-from superdesk.metadata.item import PUBLISH_STATES, ITEM_STATE
+from superdesk.metadata.item import ITEM_STATE, CONTENT_STATE
 from eve.utils import config
 from .common import ASSIGNMENT_WORKFLOW_STATE
-from apps.archive.common import get_user
+from apps.archive.common import get_user, is_assigned_to_a_desk
+from apps.content import push_content_notification
 
 
 class AssignmentsLinkService(Service):
@@ -24,23 +24,30 @@ class AssignmentsLinkService(Service):
         ids = []
         production = get_resource_service('archive')
         assignments_service = get_resource_service('assignments')
+        assignments_complete = get_resource_service('assignments_complete')
+        items = []
+
         for doc in docs:
             assignment = assignments_service.find_one(req=None, _id=doc.pop('assignment_id'))
             item = production.find_one(req=None, _id=doc.pop('item_id'))
 
-            # set the state to in progress
+            # set the state to in progress if item in published state
             updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
-            updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED \
-                if item.get(ITEM_STATE) in PUBLISH_STATES else ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+            updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED if \
+                item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED] else \
+                ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
 
-            # on fulfilling the assignment the user is assigned the assignment.
+            # on fulfiling the assignment the user is assigned the assignment.
             user = get_user()
             if user and str(user.get(config.ID_FIELD)) != (assignment.get('assigned_to') or {}).get('user'):
                 updates['assigned_to']['user'] = str(user.get(config.ID_FIELD))
 
-            assignments_service.patch(assignment[config.ID_FIELD], updates)
+            if item.get(ITEM_STATE) in [CONTENT_STATE.PUBLISHED, CONTENT_STATE.CORRECTED]:
+                assignments_complete.update(assignment[config.ID_FIELD], updates, assignment)
+            else:
+                assignments_service.patch(assignment[config.ID_FIELD], updates)
 
-            # set
+            # reference the item to the assignment
             production.system_update(
                 item[config.ID_FIELD],
                 {'assignment_id': assignment[config.ID_FIELD]},
@@ -56,6 +63,9 @@ class AssignmentsLinkService(Service):
 
             doc.update(item)
             ids.append(doc[config.ID_FIELD])
+            items.append(item)
+
+        push_content_notification(items)
         return ids
 
     def _validate(self, doc):
@@ -78,6 +88,11 @@ class AssignmentsLinkService(Service):
         if item.get('assignment_id'):
             raise SuperdeskApiError.badRequestError(
                 'Content is already linked to an assignment. Cannot link assignment and content.'
+            )
+
+        if not is_assigned_to_a_desk(item):
+            raise SuperdeskApiError.badRequestError(
+                'Content not in workflow. Cannot link assignment and content.'
             )
 
         delivery = get_resource_service('delivery').find_one(

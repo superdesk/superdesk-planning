@@ -5,6 +5,9 @@ import './client/styles/index.scss'
 import planningModule from './client'
 
 import * as ctrl from './client/controllers'
+import * as components from './client/components'
+import { createStore } from './client/utils'
+
 
 configurePlanning.$inject = ['superdeskProvider']
 function configurePlanning(superdesk) {
@@ -37,38 +40,70 @@ function configurePlanning(superdesk) {
             modal: true,
             icon: 'calendar-list',
             controller: ctrl.AddToPlanningController,
-            filters: [{
-                action: 'list',
-                type: 'archive',
-            }],
+            filters: [
+                {
+                    action: 'list',
+                    type: 'archive',
+                },
+                {
+                    action: 'planning',
+                    type: 'addto',
+                }
+            ],
+            group: 'Planning',
             privileges: { planning_planning_management: 1 },
             additionalCondition: ['lock', 'archiveService', 'item', 'authoring',
                 function(lock, archiveService, item, authoring) {
-                return (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
-                    (lock.assignment_id === null || angular.isUndefined(lock.assignment_id)) &&
+                return !item.assignment_id &&
+                    (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
                     !archiveService.isPersonal(item) && authoring.itemActions(item).edit
             }],
         })
-        .activity('planning.fulfill', {
-            label: gettext('Fulfill Assignment'),
+        .activity('planning.fulfil', {
+            label: gettext('Fulfil Assignment'),
             modal: true,
-            controller: ctrl.FulFillAssignmentController,
-            filters: [{
-                action: 'list',
-                type: 'archive',
-            }],
-            privileges: { planning_planning_management: 1 },
+            controller: ctrl.FulFilAssignmentController,
+            filters: [
+                {
+                    action: 'list',
+                    type: 'archive',
+                },
+                {
+                    action: 'planning',
+                    type: 'fulfil',
+                }
+            ],
+            group: 'Planning',
+            privileges: { archive: 1 },
             additionalCondition: ['lock', 'archiveService', 'item', 'authoring',
                 function(lock, archiveService, item, authoring) {
-                return (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
-                    (lock.assignment_id === null || angular.isUndefined(lock.assignment_id)) &&
+                return !item.assignment_id &&
+                    (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
                     !archiveService.isPersonal(item) && authoring.itemActions(item).edit
             }]
         })
 }
 
-runPlanning.$inject = ['ingestSources', '$templateCache', '$injector']
-function runPlanning(ingestSources, $templateCache, $injector) {
+runPlanning.$inject = [
+    'ingestSources',
+    '$templateCache',
+    '$injector',
+    'extensionPoints',
+    'superdesk',
+    'lock',
+    'authoring',
+    'archiveService'
+]
+function runPlanning(
+    ingestSources,
+    $templateCache,
+    $injector,
+    extensionPoints,
+    superdesk,
+    lock,
+    authoring,
+    archiveService
+) {
     // register new ingest feeding service and custom settings template
     $templateCache.put(
         'superdesk-planning/views/eventFileConfig.html',
@@ -94,6 +129,18 @@ function runPlanning(ingestSources, $templateCache, $injector) {
         label: 'Event Email Feed',
         templateUrl: 'superdesk-planning/views/eventEmailConfig.html',
     })
+
+    extensionPoints.register('authoring-topbar',
+        components.AuthoringMenu,
+        {store: createStore({
+            initialState: {},
+            extraArguments: {
+                superdesk: superdesk,
+                lock: lock,
+                archiveService: archiveService,
+                authoring: authoring,
+            }
+        }, (state) => (state || null))}, ['item'])
 }
 
 export default planningModule
