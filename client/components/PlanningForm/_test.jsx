@@ -6,6 +6,7 @@ import { CoveragesFieldArray } from '../fields'
 import React from 'react'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
+import * as selectors from '../../selectors'
 
 describe('<PlanningForm />', () => {
     let store
@@ -32,21 +33,6 @@ describe('<PlanningForm />', () => {
                 notify: services.notify,
             },
         })
-        store.getState().formsProfile = {
-            planning: {
-                editor: {
-                    slugline: { enabled: true },
-                    anpa_category: { enabled: true },
-                    description_text: { enabled: true },
-                    ednote: { enabled: true },
-                    internal_note: { enabled: true },
-                    headline: { enabled: true },
-                    flags: { enabled: true },
-                    subject: { enabled: true },
-                    agendas: { enabled: true },
-                },
-            },
-        }
     }
 
     const getWrapper = (readOnly=false) => {
@@ -58,7 +44,9 @@ describe('<PlanningForm />', () => {
                             actions.planning.ui.saveAndReloadCurrentAgenda(planning)
                         )
                     }
-                    readOnly={readOnly}/>
+                    readOnly={readOnly}
+                    initialValues={selectors.getCurrentPlanning(store.getState())}
+                />
             </Provider>
         )
 

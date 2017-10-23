@@ -11,7 +11,7 @@ import {
     UntilDateValidator,
     EventMaxEndRepeatCount } from '../../validators'
 import './style.scss'
-import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS, TOOLTIPS } from '../../constants'
+import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS, TOOLTIPS, MODALS } from '../../constants'
 import * as selectors from '../../selectors'
 import PropTypes from 'prop-types'
 import classNames from 'classnames'
@@ -558,7 +558,7 @@ const mapDispatchToProps = (dispatch) => ({
     onRescheduleEvent: (event) => dispatch(actions.events.ui.openRescheduleModal(event)),
     onPostponeEvent: (event) => dispatch(actions.events.ui.openPostponeModal(event)),
     openCancelModal: (actionCallback, ignoreCallback) => dispatch(actions.showModal({
-        modalType: 'CONFIRMATION',
+        modalType: MODALS.CONFIRMATION,
         modalProps: {
             title: 'Save changes?',
             body: 'There are some unsaved changes, do you want to save it now?',

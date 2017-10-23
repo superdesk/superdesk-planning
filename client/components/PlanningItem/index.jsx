@@ -38,6 +38,8 @@ const PlanningItem = ({
         currentAgendaId,
         currentWorkspace,
         onAddCoverage,
+        editPlanningViewOpen,
+        planningEditorReadOnly,
     }) => {
     const location = get(event, 'location[0].name')
     const coverages = get(item, 'coverages', [])
@@ -55,6 +57,9 @@ const PlanningItem = ({
     const isItemLocked = planningUtils.isPlanningLocked(item, lockedItems)
 
     const inPlanning = currentWorkspace === WORKSPACE.PLANNING
+    const showAddCoverage = !inPlanning &&
+        !isItemLocked &&
+        (!editPlanningViewOpen || planningEditorReadOnly)
 
     const onAddCoverageClick = (e) => {
         e.stopPropagation()
@@ -220,7 +225,7 @@ const PlanningItem = ({
                 {itemActions.length > 0 &&
                     <ItemActionsMenu actions={itemActions}/>
                 }
-                {!inPlanning && !isItemLocked &&
+                {showAddCoverage &&
                     <a data-sd-tooltip="Add as coverage" data-flow="left">
                         <button
                             className="navbtn dropdown sd-create-btn"
@@ -266,6 +271,8 @@ PlanningItem.propTypes = {
     currentAgendaId: PropTypes.string,
     currentWorkspace: PropTypes.string,
     onAddCoverage: PropTypes.func,
+    editPlanningViewOpen: PropTypes.bool,
+    planningEditorReadOnly: PropTypes.bool,
 }
 
 export default connect(mapStateToProps)(PlanningItem)

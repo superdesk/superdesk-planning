@@ -113,6 +113,7 @@ export const getTestActionStore = () => {
                     _id: 'p1',
                     slugline: 'Planning1',
                     headline: 'Some Plan 1',
+                    state: 'draft',
                     coverages: [
                         {
                             coverage_id: 'c1',
@@ -350,6 +351,19 @@ export const getTestActionStore = () => {
                     display_name: 'firstname2 lastname2',
                 },
             ],
+            desks: [
+                {
+                    _id: 123,
+                    name: 'Politic Desk',
+                    members: [
+                        { user: 345 },
+                    ],
+                },
+                {
+                    _id: 234,
+                    name: 'Sports Desk',
+                },
+            ],
             assignment: {
                 assignments: {},
                 filterBy: 'All',
@@ -461,6 +475,19 @@ export const getTestActionStore = () => {
                             required: false,
                             maxlength: null,
                         },
+                    },
+                },
+                planning: {
+                    editor: {
+                        slugline: { enabled: true },
+                        anpa_category: { enabled: true },
+                        description_text: { enabled: true },
+                        ednote: { enabled: true },
+                        internal_note: { enabled: true },
+                        headline: { enabled: true },
+                        flags: { enabled: true },
+                        subject: { enabled: true },
+                        agendas: { enabled: true },
                     },
                 },
             },

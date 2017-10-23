@@ -3,11 +3,12 @@ import planning from './index'
 import { locks } from '../index'
 import { checkPermission, getErrorMessage, isItemLockedInThisSession } from '../../utils'
 import * as selectors from '../../selectors'
-import { PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, ASSIGNMENTS } from '../../constants'
+import { PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS } from '../../constants'
 import * as actions from '../index'
-import { get, sortBy, last } from 'lodash'
+import { get, orderBy } from 'lodash'
 import { change } from 'redux-form'
 import moment from 'moment'
+import { stripHtmlRaw } from 'superdesk-core/scripts/apps/authoring/authoring/helpers'
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -59,7 +60,7 @@ const _unspike = (item) => (
  * @param {object} item - The Planning item to save
  * @return Promise
  */
-const _save = (item) => (
+const save = (item) => (
     (dispatch, getState, { notify }) => (
         dispatch(planning.api.save(item))
         .then((item) => {
@@ -85,7 +86,7 @@ const _save = (item) => (
  * @param {object} item - The planning item to save
  * @return Promise
  */
-const _saveAndReloadCurrentAgenda = (item) => (
+const saveAndReloadCurrentAgenda = (item) => (
     (dispatch, getState, { notify }) => (
         dispatch(planning.api.saveAndReloadCurrentAgenda(item))
         .then((item) => {
@@ -173,7 +174,7 @@ const _lockAndOpenEditor = (item, checkWorkspace=true) => (
     (dispatch, getState, { notify }) => {
         const currentWorkspace = selectors.getCurrentWorkspace(getState())
         if (checkWorkspace && currentWorkspace !== WORKSPACE.PLANNING) {
-            dispatch(self._openEditor(item))
+            dispatch(self.preview(item))
             return Promise.resolve(item)
         }
 
@@ -469,7 +470,7 @@ const _openActionModal = (plan,
         .then((lockedPlanning) => {
                 lockedPlanning._publish = publish
                 return dispatch(showModal({
-                    modalType: 'ITEM_ACTIONS_MODAL',
+                    modalType: MODALS.ITEM_ACTIONS_MODAL,
                     modalProps: {
                         planning: lockedPlanning,
                         actionType: action,
@@ -491,7 +492,7 @@ const _openActionModal = (plan,
  * Publish an item and notify user of success or failure
  * @param {object} item - The planning item
  */
-const _publish = (item) => (
+const publish = (item) => (
     (dispatch, getState, { notify }) => (
         dispatch(planning.api.publish(item))
         .then(() => (
@@ -508,7 +509,7 @@ const _publish = (item) => (
  * Unpublish an item and notify user of success or failure
  * @param {object} item - The planning item
  */
-const _unpublish = (item) => (
+const unpublish = (item) => (
     (dispatch, getState, { notify }) => (
         dispatch(planning.api.unpublish(item))
         .then(() => (
@@ -525,7 +526,7 @@ const _unpublish = (item) => (
  * Save Planning item then Publish it
  * @param {object} item - Planning item
  */
-const _saveAndPublish = (item) => (
+const saveAndPublish = (item) => (
     (dispatch, getState, { notify }) => (
         dispatch(planning.api.saveAndPublish(item))
         .then(() => (
@@ -543,7 +544,7 @@ const _saveAndPublish = (item) => (
  * @param item
  * @private
  */
-const _saveAndUnpublish = (item) => (
+const saveAndUnpublish = (item) => (
     (dispatch, getState, { notify }) => (
         dispatch(planning.api.saveAndUnpublish(item))
         .then(() => (
@@ -616,18 +617,6 @@ const unspike = checkPermission(
     'Unauthorised to unspike a planning item!'
 )
 
-const save = checkPermission(
-    _save,
-    PRIVILEGES.PLANNING_MANAGEMENT,
-    'Unauthorised to create or modify a planning item!'
-)
-
-const saveAndReloadCurrentAgenda = checkPermission(
-    _saveAndReloadCurrentAgenda,
-    PRIVILEGES.PLANNING_MANAGEMENT,
-    'Unauthorised to create or modify a planning item!'
-)
-
 const openEditor = checkPermission(
     _lockAndOpenEditor,
     PRIVILEGES.PLANNING_MANAGEMENT,
@@ -639,30 +628,6 @@ const unlockAndOpenEditor = checkPermission(
     _unlockAndOpenEditor,
     PRIVILEGES.PLANNING_UNLOCK,
     'Unauthorised to ed a planning item!'
-)
-
-const publish = checkPermission(
-    _publish,
-    PRIVILEGES.PLANNING_MANAGEMENT,
-    'Unauthorised to publish a planning item!'
-)
-
-const unpublish = checkPermission(
-    _unpublish,
-    PRIVILEGES.PLANNING_MANAGEMENT,
-    'Unauthorised to unpublish a planning item!'
-)
-
-const saveAndPublish = checkPermission(
-    _saveAndPublish,
-    PRIVILEGES.PLANNING_MANAGEMENT,
-    'Unauthorised to publish a planning item!'
-)
-
-const saveAndUnpublish = checkPermission(
-    _saveAndUnpublish,
-    PRIVILEGES.PLANNING_MANAGEMENT,
-    'Unauthorised to unpublish a planning item!'
 )
 
 /**
@@ -690,60 +655,174 @@ function deselectAll() {
     return { type: PLANNING.ACTIONS.DESELECT_ALL }
 }
 
-const onAddCoverageFromAuthoring = (prevPlan, newPlan, newsItem) => (
-    (dispatch, getState) => (
-        dispatch(self.closeEditor(prevPlan))
-        .then(() => {
-            dispatch(self.openEditor(newPlan, false))
-            .then((lockedItem) => {
-                const coverageIndex = get(lockedItem, 'coverages.length', 0)
-                const contentTypes = selectors.getContentTypes(getState())
-                const contentType = contentTypes.find(
-                    (ctype) => get(ctype, 'content item type') === newsItem.type
-                )
+const onAddCoverageClick = (plan=undefined) => (
+    (dispatch, getState, { notify }) => {
+        const modalType = selectors.getCurrentModalType(getState())
+        if (modalType !== MODALS.ADD_TO_PLANNING)
+            return Promise.resolve()
 
-                const coverage = {
-                    planning: {
-                        g2_content_type: get(contentType, 'qcode', 'text'),
-                        slugline: get(newsItem, 'slugline', ''),
-                        ednote: get(newsItem, 'ednote', ''),
-                    },
-                    news_coverage_status: { qcode: 'ncostat:int' },
-                }
+        const modalProps = selectors.getCurrentModalProps(getState())
+        if (!get(modalProps, 'newsItem')) {
+            notify.error('No content item provided.')
+            return Promise.reject('No content item provided.')
+        }
 
-                if (get(newsItem, 'state') === 'published') {
-                    coverage.planning.scheduled = newsItem._updated
-                    coverage.assigned_to = {
-                        desk: newsItem.task.desk,
-                        user: newsItem.task.user,
-                        state: ASSIGNMENTS.WORKFLOW_STATE.COMPLETED,
-                    }
-                } else {
-                    coverage.planning.scheduled = moment().endOf('day')
-                    coverage.assigned_to = {
-                        desk: selectors.getCurrentDeskId(getState()),
-                        user: selectors.getCurrentUserId(getState()),
-                        state: ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS,
-                    }
-                }
+        const newsItem = modalProps.newsItem
+        const currentPlanning = selectors.getCurrentPlanning(getState())
 
-                dispatch(change('planning', `coverages[${coverageIndex}]`, coverage))
-                return Promise.resolve(lockedItem)
-            })
+        // Unlock the currentPlanning if it exists
+        if (!plan) {
+            plan = currentPlanning
+        } else if (currentPlanning) {
+            dispatch(planning.api.unlock(currentPlanning))
+        }
+
+        return dispatch(self.openEditor(plan, false))
+        .then((lockedItem) => {
+            const coverageIndex = get(lockedItem, 'coverages.length', 0)
+            const coverage = self.createCoverageFromNewsItem(newsItem, getState)
+            dispatch(change('planning', `coverages[${coverageIndex}]`, coverage))
+            return Promise.resolve(lockedItem)
         })
-    )
+    }
 )
 
-const onAddCoverageFromAuthoringSave = (planning, newsItem) => (
+const onAddPlanningClick = () => (
+    (dispatch, getState, { notify }) => {
+        const modalType = selectors.getCurrentModalType(getState())
+        if (modalType !== MODALS.ADD_TO_PLANNING)
+            return Promise.resolve()
+
+        const modalProps = selectors.getCurrentModalProps(getState())
+        if (!get(modalProps, 'newsItem')) {
+            notify.error('No content item provided.')
+            return Promise.reject('No content item provided.')
+        }
+
+        const { newsItem } = modalProps
+
+        // Unlock the currentPlanning if it exists
+        const currentPlanning = selectors.getCurrentPlanning(getState())
+        if (currentPlanning) {
+            dispatch(planning.api.unlock(currentPlanning))
+        }
+
+        const coverage = self.createCoverageFromNewsItem(newsItem, getState)
+        const newPlanning = {
+            slugline: newsItem.slugline,
+            ednote: get(newsItem, 'ednote'),
+            subject: get(newsItem, 'subject'),
+            anpa_category: get(newsItem, 'anpa_category'),
+            urgency: get(newsItem, 'urgency'),
+            description_text: stripHtmlRaw(
+                get(newsItem, 'abstract', get(newsItem, 'headline', ''))
+            ),
+            coverages: [coverage],
+        }
+
+        return dispatch(self._openEditor(newPlanning))
+    }
+)
+
+const createCoverageFromNewsItem = (newsItem, getState) => {
+    const contentTypes = selectors.getContentTypes(getState())
+    const contentType = contentTypes.find(
+        (ctype) => get(ctype, 'content item type') === newsItem.type
+    )
+    const coverage = {
+        planning: {
+            g2_content_type: get(contentType, 'qcode', 'text'),
+            slugline: get(newsItem, 'slugline', ''),
+            ednote: get(newsItem, 'ednote', ''),
+        },
+        news_coverage_status: { qcode: 'ncostat:int' },
+    }
+
+    if (get(newsItem, 'state') === 'published') {
+        coverage.planning.scheduled = newsItem._updated
+        coverage.assigned_to = {
+            desk: newsItem.task.desk,
+            user: newsItem.task.user,
+        }
+    } else {
+        coverage.planning.scheduled = moment().endOf('day')
+        coverage.assigned_to = {
+            desk: selectors.getCurrentDeskId(getState()),
+            user: selectors.getCurrentUserId(getState()),
+        }
+    }
+
+    return coverage
+}
+
+const saveFromPlanning = (plan, { save=true, publish=false, unpublish=false }) => (
     (dispatch) => {
-        const coverages = sortBy(planning.coverages, ['firstcreated'])
-        const coverage = last(coverages)
-        return actions.assignments.api.link(coverage.assigned_to.assignment_id, newsItem._id)
-        .then(() => {
-            dispatch(self.closeEditor(planning))
-            dispatch(hideModal())
-            return Promise.resolve(planning)
+        if (save) {
+            if (publish) {
+                return dispatch(self.saveAndPublish(plan))
+            } else if (unpublish) {
+                return dispatch(self.saveAndUnpublish(plan))
+            } else {
+                return dispatch(self.saveAndReloadCurrentAgenda(plan))
+            }
+        } else {
+            if (publish) {
+                return dispatch(self.publish(plan))
+            } else if (unpublish) {
+                return dispatch(self.unpublish(plan))
+            }
+        }
+    }
+)
+
+const saveFromAuthoring = (plan, publish=false) => (
+    (dispatch, getState, { notify }) => {
+        const { $scope, newsItem } = selectors.getCurrentModalProps(getState())
+        const action = publish ?
+            planning.api.saveAndPublish(plan) :
+            planning.api.save(plan)
+
+        return dispatch(action)
+        .then((newPlan) => {
+            const coverages = orderBy(newPlan.coverages, ['firstcreated'], ['desc'])
+            const coverage = coverages[0]
+            return dispatch(actions.assignments.api.link(
+                coverage.assigned_to.assignment_id, newsItem._id)
+            )
+            .then(() => {
+                notify.success('Content linked to the planning item.')
+                $scope.resolve()
+                return Promise.resolve(newPlan)
+            }, (error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to link to the Planning item!')
+                )
+                $scope.reject()
+                return Promise.reject(error)
+            })
+        }, (error) => {
+            notify.error(
+                getErrorMessage(error, 'Failed to save the Planning item!')
+            )
+            $scope.reject()
+            return Promise.reject(error)
         })
+    }
+)
+
+const onPlanningFormSave = (plan, { save=true, publish=false, unpublish=false }) => (
+    (dispatch, getState) => {
+        const modalType = selectors.getCurrentModalType(getState())
+        const currentWorkspace = selectors.getCurrentWorkspace(getState())
+        if (modalType === MODALS.ADD_TO_PLANNING) {
+            return dispatch(self.saveFromAuthoring(plan, publish))
+        } else if (currentWorkspace === WORKSPACE.PLANNING) {
+            return dispatch(self.saveFromPlanning(plan, {
+                save,
+                publish,
+                unpublish,
+            }))
+        }
     }
 )
 
@@ -788,8 +867,12 @@ const self = {
     openCancelAllCoverageModal,
     cancelPlanning,
     cancelAllCoverage,
-    onAddCoverageFromAuthoring,
-    onAddCoverageFromAuthoringSave,
+    onAddCoverageClick,
+    onAddPlanningClick,
+    onPlanningFormSave,
+    createCoverageFromNewsItem,
+    saveFromPlanning,
+    saveFromAuthoring,
 }
 
 export default self

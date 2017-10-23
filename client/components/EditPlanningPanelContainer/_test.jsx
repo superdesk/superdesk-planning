@@ -7,154 +7,43 @@ import { Provider } from 'react-redux'
 import * as actions from '../../actions'
 import sinon from 'sinon'
 import moment from 'moment'
-import { restoreSinonStub } from '../../utils/testUtils'
+import { restoreSinonStub, getTestActionStore } from '../../utils/testUtils'
 import planningApi from '../../actions/planning/api'
-import planningUi from '../../actions/planning/ui'
 
 describe('planning', () => {
-
     describe('containers', () => {
-
         describe('<EditPlanningPanelContainer />', () => {
-            const privileges = {
-                planning: 1,
-                planning_planning_management: 1,
-                planning_planning_spike: 1,
-                planning_planning_unspike: 1,
-            }
+            let store
+            let astore
+            let data
+            let initialState
 
             beforeEach(() => {
-                sinon.stub(planningApi, 'lock').callsFake((item) => (() => (Promise.resolve(item))))
+                astore = getTestActionStore()
+                data = astore.data
+                initialState = astore.initialState
+
+                sinon.stub(planningApi, 'lock').callsFake(
+                    (item) => (() => (Promise.resolve(item)))
+                )
+                sinon.stub(planningApi, 'unlock').callsFake(
+                    (item) => (() => (Promise.resolve(item)))
+                )
             })
 
             afterEach(() => {
                 restoreSinonStub(planningApi.lock)
+                restoreSinonStub(planningApi.unlock)
             })
 
-            it('open the panel for read only preview', () => {
-                let store = createTestStore({
-                    initialState: {
-                        privileges,
-                        session: {
-                            identity: { _id: 'user' },
-                            sessionId: 123,
-                        },
-                        users: [
-                            {
-                                _id: 'user',
-                                display_name: 'foo',
-                            },
-                        ],
-                        locks: {
-                            events: {},
-                            planning: {},
-                            recurring: {},
-                        },
-                    },
-                })
-                const wrapper = mount(
-                    <Provider store={store}>
-                        <EditPlanningPanelContainer />
-                    </Provider>
-                )
-                store.dispatch(actions.planning.ui.preview())
-                expect(store.getState().planning.editorOpened).toBe(true)
-                expect(store.getState().planning.readOnly).toBe(true)
-                wrapper.find('.EditPlanningPanel__actions__edit').last().simulate('click')
-                expect(store.getState().planning.editorOpened).toBe(false)
-            })
+            const setStore = () => {
+                astore.init()
+                store = createTestStore({ initialState })
+            }
 
-            it('open the panel in edit mode', (done) => {
-                const planning1 = {
-                    _id: 'planning1',
-                    lock_user: 'user',
-                    lock_session: 123,
-                    coverages: [],
-                }
-
-                const store = createTestStore({
-                    initialState: {
-                        privileges,
-                        planning: {
-                            plannings: { planning1 },
-                            editorOpened: true,
-                            currentPlanningId: 'planning1',
-                            readOnly: false,
-                        },
-                        session: {
-                            identity: { _id: 'user' },
-                            sessionId: 123,
-                        },
-                        users: [
-                            {
-                                _id: 'user',
-                                display_name: 'foo',
-                            },
-                        ],
-                        locks: {
-                            events: {},
-                            planning: {},
-                            recurring: {},
-                        },
-                    },
-                })
-
-                const wrapper = mount(
-                    <Provider store={store}>
-                        <EditPlanningPanelContainer />
-                    </Provider>
-                )
-
-                store.dispatch(planningUi.openEditor(planning1))
-                .then(() => {
-                    expect(store.getState().planning.editorOpened).toBe(true)
-                    expect(store.getState().planning.readOnly).toBe(false)
-                    wrapper.find('button[type="reset"]').first().simulate('click')
-                    expect(store.getState().planning.editorOpened).toBe(false)
-
-                    done()
-                })
-
-            })
-
-            it('cancel', () => {
-                const store = createTestStore({
-                    initialState: {
-                        privileges,
-                        planning: {
-                            plannings: {
-                                planning1: {
-                                    _id: 'planning1',
-                                    slugline: 'slug',
-                                    coverages: [{ coverage_id: 'coverage1' }],
-                                    lock_user: 'user',
-                                    lock_session: 123,
-                                },
-                            },
-                            editorOpened: true,
-                            currentPlanningId: 'planning1',
-                            readOnly: false,
-                        },
-                        session: {
-                            identity: { _id: 'user' },
-                            sessionId: 123,
-                        },
-                        users: [{ _id: 'user' }],
-                        desks: [],
-                        formsProfile: { planning: { editor: { slugline: { enabled: true } } } },
-                        locks: {
-                            events: {},
-                            planning: {},
-                            recurring: {},
-                        },
-                        workspace: {
-                            currentDeskId: null,
-                            currentStageId: null,
-                            currentWorkspace: 'PLANNING',
-                        },
-                    },
-                })
-                const wrapper = mount(
+            const getWrapper = () => {
+                setStore()
+                return mount(
                     <Provider store={store}>
                         <div>
                             <ModalsContainer />
@@ -162,16 +51,117 @@ describe('planning', () => {
                         </div>
                     </Provider>
                 )
+            }
+
+            const getShallowWrapper = (planning, event=null) => {
+                setStore()
+                return shallow(
+                    <EditPlanningPanel
+                        planning={planning}
+                        event={event}
+                        users={[]}
+                        closePlanningEditor={sinon.spy()}
+                        pristine={false}
+                        onDuplicate={sinon.spy()}
+                        onSpike={sinon.spy()}
+                        onUnspike={sinon.spy()}
+                        onCancelEvent={sinon.spy()}
+                        onUpdateEventTime={sinon.spy()}
+                        onConvertToRecurringEvent={sinon.spy()}
+                        openPlanningEditor={sinon.spy()}
+                        onRescheduleEvent={sinon.spy()}
+                        onPostponeEvent={sinon.spy()}
+                        onCancelPlanning={sinon.spy()}
+                        onCancelAllCoverage={sinon.spy()}
+                        privileges={initialState.privileges}
+                        lockedItems={{
+                            events: {},
+                            planning: {
+                                p1: {
+                                    user: 'ident1',
+                                    session: 'session1',
+                                    action: 'edit',
+                                },
+                            },
+                            recurring: {},
+                        }}
+                        submitting={false}
+                        openCancelModal={sinon.spy()}
+                    />
+                )
+            }
+
+            it('open the panel for read only preview', () => {
+                const wrapper = getWrapper()
+                store.dispatch(actions.planning.ui.preview(data.plannings[0]._id))
+                expect(store.getState().planning.editorOpened).toBe(true)
+                expect(store.getState().planning.readOnly).toBe(true)
+                wrapper.find('.EditPlanningPanel__actions__edit').last().simulate('click')
+                expect(store.getState().planning.editorOpened).toBe(false)
+            })
+
+            it('open the panel in edit mode', () => {
+                const wrapper = getWrapper()
+
+                store.dispatch({
+                    type: 'LOCK_PLANNING',
+                    payload: {
+                        plan: {
+                            ...data.plannings[0],
+                            lock_action: 'edit',
+                            lock_user: 'ident1',
+                            lock_session: 'session1',
+                            lock_time: moment(),
+                        },
+                    },
+                })
+
+                store.dispatch({
+                    type: 'OPEN_PLANNING_EDITOR',
+                    payload: data.plannings[0],
+                })
+
+                expect(store.getState().planning.editorOpened).toBe(true)
+                expect(store.getState().planning.readOnly).toBe(false)
+                wrapper.find('button[type="reset"]').first().simulate('click')
+                expect(store.getState().planning.editorOpened).toBe(false)
+            })
+
+            it('cancel', () => {
+                const wrapper = getWrapper()
+
+                store.dispatch({
+                    type: 'LOCK_PLANNING',
+                    payload: {
+                        plan: {
+                            ...data.plannings[0],
+                            lock_action: 'edit',
+                            lock_user: 'ident1',
+                            lock_session: 'session1',
+                            lock_time: moment(),
+                        },
+                    },
+                })
+
+                store.dispatch({
+                    type: 'OPEN_PLANNING_EDITOR',
+                    payload: data.plannings[0],
+                })
+
+                const saveButton = wrapper.find('button[type="submit"]').first()
+                const cancelButton = wrapper.find('button[type="reset"]').first()
+                expect(saveButton.props().disabled).toBe(true)
+                expect(cancelButton.props().disabled).toBe(false)
 
                 const sluglineInput = wrapper.find('Field [name="slugline"]')
 
                 // Modify the slugline and ensure the save/cancel buttons are active
-                expect(sluglineInput.props().value).toBe('slug')
+                expect(sluglineInput.props().value).toBe('Planning1')
                 sluglineInput.simulate('change', { target: { value: 'NewSlug' } })
                 expect(sluglineInput.props().value).toBe('NewSlug')
 
-                const saveButton = wrapper.find('button[type="submit"]').first()
-                const cancelButton = wrapper.find('button[type="reset"]').first()
+                // const saveButton = wrapper.find('button[type="submit"]').first()
+                // const cancelButton = wrapper.find('button[type="reset"]').first()
                 expect(saveButton.props().disabled).toBe(false)
                 expect(cancelButton.props().disabled).toBe(false)
 
@@ -185,42 +175,15 @@ describe('planning', () => {
                 modal.find('button[type="reset"]').simulate('click')
 
                 expect(store.getState().planning.editorOpened).toBe(false)
-                store.dispatch(actions.planning.ui.preview('planning1'))
-                expect(sluglineInput.props().value).toBe('slug')
+                store.dispatch(actions.planning.ui.preview(data.plannings[0]._id))
+                expect(sluglineInput.props().value).toBe('Planning1')
                 expect(wrapper.find('button[type="submit"]').length).toBe(0)
                 expect(wrapper.find('button[type="reset"]').length).toBe(0)
             })
 
             it('displays the `planning spiked` badge', () => {
-                const planning = {
-                    slugline: 'Plan1',
-                    state: 'spiked',
-                }
-                const wrapper = shallow(
-                    <EditPlanningPanel
-                        planning={planning}
-                        closePlanningEditor={sinon.spy()}
-                        pristine={false}
-                        onDuplicate={sinon.spy()}
-                        onSpike={sinon.spy()}
-                        onUnspike={sinon.spy()}
-                        onCancelEvent={sinon.spy()}
-                        onUpdateEventTime={sinon.spy()}
-                        onConvertToRecurringEvent={sinon.spy()}
-                        openPlanningEditor={sinon.spy()}
-                        onRescheduleEvent={sinon.spy()}
-                        onPostponeEvent={sinon.spy()}
-                        onCancelPlanning={sinon.spy()}
-                        onCancelAllCoverage={sinon.spy()}
-                        privileges={privileges}
-                        lockedItems={{
-                            events: {},
-                            planning: {},
-                            recurring: {},
-                        }}
-                        submitting={false}
-                    />
-                )
+                data.plannings[0].state = 'spiked'
+                const wrapper = getShallowWrapper(data.plannings[0])
 
                 const badge = wrapper.find('.PlanningSpiked').first()
                 const saveButton = wrapper.find('button[type="submit"]')
@@ -233,40 +196,8 @@ describe('planning', () => {
             })
 
             it('displays the `event spiked` badge', () => {
-                const event = {
-                    name: 'Event 1',
-                    state: 'spiked',
-                    dates: {
-                        start: moment('2016-10-15T13:01:00+0000'),
-                        end: moment('2016-10-15T14:01:00+0000'),
-                    },
-                }
-                const wrapper = shallow(
-                    <EditPlanningPanel
-                        planning={{}}
-                        event={event}
-                        closePlanningEditor={sinon.spy()}
-                        pristine={false}
-                        onDuplicate={sinon.spy()}
-                        onSpike={sinon.spy()}
-                        onUnspike={sinon.spy()}
-                        onCancelEvent={sinon.spy()}
-                        onUpdateEventTime={sinon.spy()}
-                        onConvertToRecurringEvent={sinon.spy()}
-                        openPlanningEditor={sinon.spy()}
-                        onRescheduleEvent={sinon.spy()}
-                        onPostponeEvent={sinon.spy()}
-                        onCancelPlanning={sinon.spy()}
-                        onCancelAllCoverage={sinon.spy()}
-                        privileges={privileges}
-                        lockedItems={{
-                            events: {},
-                            planning: {},
-                            recurring: {},
-                        }}
-                        submitting={false}
-                    />
-                )
+                data.events[0].state = 'spiked'
+                const wrapper = getShallowWrapper(data.plannings[0], data.events[0])
 
                 const badge = wrapper.find('.EventSpiked').first()
                 const saveButton = wrapper.find('button[type="submit"]')

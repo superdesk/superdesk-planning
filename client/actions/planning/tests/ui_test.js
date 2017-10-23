@@ -30,6 +30,7 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningApi, 'lock').callsFake((item) => (Promise.resolve(item)))
         sinon.stub(planningApi, 'unlock').callsFake(() => (Promise.resolve(data.plannings[0])))
         sinon.stub(planningUi, 'openEditor').callsFake((item) => (Promise.resolve(item)))
+        sinon.stub(planningUi, '_openEditor').callsFake((item) => (Promise.resolve(item)))
         sinon.stub(planningUi, 'closeEditor').callsFake(() => (Promise.resolve()))
         sinon.stub(planningUi, 'preview').callsFake(() => (Promise.resolve()))
         sinon.stub(planningUi, 'requestPlannings').callsFake(() => (Promise.resolve()))
@@ -41,10 +42,12 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningUi, 'fetchMoreToList').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'publish').callsFake(() => (Promise.resolve()))
         sinon.stub(planningApi, 'unpublish').callsFake(() => (Promise.resolve()))
-        sinon.stub(planningApi, 'saveAndPublish').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningApi, 'saveAndPublish').callsFake((item) => (Promise.resolve(item)))
         sinon.stub(planningApi, 'saveAndUnpublish').callsFake(() => (Promise.resolve()))
         sinon.stub(planningUi, 'refetch').callsFake(() => (Promise.resolve()))
         sinon.stub(assignmentApi, 'link').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningUi, 'saveFromAuthoring').callsFake(() => (Promise.resolve()))
+        sinon.stub(planningUi, 'saveFromPlanning').callsFake(() => (Promise.resolve()))
     })
 
     afterEach(() => {
@@ -62,6 +65,7 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(planningApi.saveAndUnpublish)
 
         restoreSinonStub(planningUi.openEditor)
+        restoreSinonStub(planningUi._openEditor)
         restoreSinonStub(planningUi.closeEditor)
         restoreSinonStub(planningUi.preview)
         restoreSinonStub(planningUi.requestPlannings)
@@ -72,6 +76,8 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(planningUi.fetchMoreToList)
         restoreSinonStub(planningUi.refetch)
         restoreSinonStub(assignmentApi.link)
+        restoreSinonStub(planningUi.saveFromAuthoring)
+        restoreSinonStub(planningUi.saveFromPlanning)
     })
 
     describe('spike', () => {
@@ -256,21 +262,6 @@ describe('actions.planning.ui', () => {
                 done()
             })
         })
-
-        it('save raises ACCESS_DENIED without permission', (done) => {
-            store.initialState.privileges.planning_planning_management = 0
-            return store.test(done, planningUi.save(data.plannings[1]))
-            .catch(() => {
-                expectAccessDenied({
-                    store,
-                    permission: PRIVILEGES.PLANNING_MANAGEMENT,
-                    action: '_save',
-                    errorMessage: 'Unauthorised to create or modify a planning item!',
-                    args: [data.plannings[1]],
-                })
-                done()
-            })
-        })
     })
 
     describe('saveAndReloadCurrentAgenda', () => {
@@ -306,21 +297,6 @@ describe('actions.planning.ui', () => {
                 expect(services.notify.error.callCount).toBe(1)
                 expect(services.notify.error.args[0]).toEqual(['Failed!'])
 
-                done()
-            })
-        })
-
-        it('saveAndReloadCurrentAgenda raises ACCESS_DENIED without permission', (done) => {
-            store.initialState.privileges.planning_planning_management = 0
-            return store.test(done, planningUi.saveAndReloadCurrentAgenda(data.plannings[1]))
-            .catch(() => {
-                expectAccessDenied({
-                    store,
-                    permission: PRIVILEGES.PLANNING_MANAGEMENT,
-                    action: '_saveAndReloadCurrentAgenda',
-                    errorMessage: 'Unauthorised to create or modify a planning item!',
-                    args: [data.plannings[1]],
-                })
                 done()
             })
         })
@@ -400,6 +376,7 @@ describe('actions.planning.ui', () => {
         it('opens the editor', (done) => {
             store.initialState.planning.currentPlanningId = 'p1'
             restoreSinonStub(planningUi.openEditor)
+            restoreSinonStub(planningUi._openEditor)
             store.test(done, planningUi.openEditor(data.plannings[1]))
             .then((lockedItem) => {
                 expect(lockedItem).toEqual(data.plannings[1])
@@ -584,21 +561,6 @@ describe('actions.planning.ui', () => {
                 done()
             })
         })
-
-        it('ui.publish raises ACCESS_DENIED without permission', (done) => {
-            store.initialState.privileges.planning_planning_management = 0
-            store.test(done, planningUi.publish(data.plannings[1]))
-            .catch(() => {
-                expectAccessDenied({
-                    store,
-                    permission: PRIVILEGES.PLANNING_MANAGEMENT,
-                    action: '_publish',
-                    errorMessage: 'Unauthorised to publish a planning item!',
-                    args: [data.plannings[1]],
-                })
-                done()
-            })
-        })
     })
 
     describe('ui.unpublish', () => {
@@ -627,21 +589,6 @@ describe('actions.planning.ui', () => {
                 expect(services.notify.error.callCount).toBe(1)
                 expect(services.notify.error.args[0]).toEqual(['Failed!'])
 
-                done()
-            })
-        })
-
-        it('ui.unpublish raises ACCESS_DENIED without permission', (done) => {
-            store.initialState.privileges.planning_planning_management = 0
-            store.test(done, planningUi.unpublish(data.plannings[1]))
-            .catch(() => {
-                expectAccessDenied({
-                    store,
-                    permission: PRIVILEGES.PLANNING_MANAGEMENT,
-                    action: '_unpublish',
-                    errorMessage: 'Unauthorised to unpublish a planning item!',
-                    args: [data.plannings[1]],
-                })
                 done()
             })
         })
@@ -678,21 +625,6 @@ describe('actions.planning.ui', () => {
                 done()
             })
         })
-
-        it('ui.saveAndPublish raises ACCESS_DENIED without permission', (done) => {
-            store.initialState.privileges.planning_planning_management = 0
-            store.test(done, planningUi.saveAndPublish(data.plannings[1]))
-            .catch(() => {
-                expectAccessDenied({
-                    store,
-                    permission: PRIVILEGES.PLANNING_MANAGEMENT,
-                    action: '_saveAndPublish',
-                    errorMessage: 'Unauthorised to publish a planning item!',
-                    args: [data.plannings[1]],
-                })
-                done()
-            })
-        })
     })
 
     describe('ui.saveAndUnpublish', () => {
@@ -726,24 +658,9 @@ describe('actions.planning.ui', () => {
                 done()
             })
         })
-
-        it('ui.saveAndUnpublish raises ACCESS_DENIED without permission', (done) => {
-            store.initialState.privileges.planning_planning_management = 0
-            store.test(done, planningUi.saveAndUnpublish(data.plannings[1]))
-            .catch(() => {
-                expectAccessDenied({
-                    store,
-                    permission: PRIVILEGES.PLANNING_MANAGEMENT,
-                    action: '_saveAndUnpublish',
-                    errorMessage: 'Unauthorised to unpublish a planning item!',
-                    args: [data.plannings[1]],
-                })
-                done()
-            })
-        })
     })
 
-    describe('onAddCoverageFromAuthoring', () => {
+    describe('onAddCoverageClick', () => {
         const publishedNewsItem = {
             _id: 'news1',
             slugline: 'slugger',
@@ -769,17 +686,20 @@ describe('actions.planning.ui', () => {
             // in the store.test function of each test
             store.init()
             store.initialState.workspace.currentDeskId = 'desk1'
+            store.initialState.modal = {
+                modalType: 'ADD_TO_PLANNING',
+                modalProps: { newsItem },
+            }
         })
 
-        it('closes and re-opens the planning editor', (done) => (
-            store.test(done, planningUi.onAddCoverageFromAuthoring(
-                store.initialState.planning.plannings.p2,
-                store.initialState.planning.plannings.p1,
-                newsItem
+        it('unlocks current planning opens the new planning', (done) => {
+            store.initialState.planning.currentPlanningId = data.plannings[1]._id
+            store.test(done, planningUi.onAddCoverageClick(
+                store.initialState.planning.plannings.p1
             ))
             .then(() => {
-                expect(planningUi.closeEditor.callCount).toBe(1)
-                expect(planningUi.closeEditor.args[0]).toEqual([
+                expect(planningApi.unlock.callCount).toBe(1)
+                expect(planningApi.unlock.args[0]).toEqual([
                     store.initialState.planning.plannings.p2,
                 ])
 
@@ -791,23 +711,20 @@ describe('actions.planning.ui', () => {
 
                 done()
             })
-        ))
+        })
 
         it('creates a new coverage for a non-published news item', (done) => (
-            store.test(done, planningUi.onAddCoverageFromAuthoring(
-                null,
-                store.initialState.planning.plannings.p1,
-                newsItem
+            store.test(done, planningUi.onAddCoverageClick(
+                store.initialState.planning.plannings.p1
             ))
             .then(() => {
-                expect(store.dispatch.args[2]).toEqual([{
+                expect(store.dispatch.args[1]).toEqual([{
                     type: '@@redux-form/CHANGE',
                     payload: {
                         news_coverage_status: { qcode: 'ncostat:int' },
                         assigned_to: {
                             desk: 'desk1',
                             user: 'ident1',
-                            state: 'in_progress',
                         },
                         planning: {
                             ednote: 'Edit my note!',
@@ -828,21 +745,19 @@ describe('actions.planning.ui', () => {
             })
         ))
 
-        it('creates a new coverage for a published new item', (done) => (
-            store.test(done, planningUi.onAddCoverageFromAuthoring(
-                null,
-                store.initialState.planning.plannings.p1,
-                publishedNewsItem
+        it('creates a new coverage for a published new item', (done) => {
+            store.initialState.modal.modalProps.newsItem = publishedNewsItem
+            store.test(done, planningUi.onAddCoverageClick(
+                store.initialState.planning.plannings.p1
             ))
             .then(() => {
-                expect(store.dispatch.args[2]).toEqual([{
+                expect(store.dispatch.args[1]).toEqual([{
                     type: '@@redux-form/CHANGE',
                     payload: {
                         news_coverage_status: { qcode: 'ncostat:int' },
                         assigned_to: {
                             desk: 'desk2',
                             user: 'ident2',
-                            state: 'completed',
                         },
                         planning: {
                             ednote: 'Edit my note!',
@@ -861,24 +776,336 @@ describe('actions.planning.ui', () => {
 
                 done()
             })
-        ))
+        })
     })
 
-    it('onAddCoverageFromAuthoringSave', (done) => {
-        data.plannings[0].coverages.pop()
-        store.test(done, planningUi.onAddCoverageFromAuthoringSave(
-            data.plannings[0],
-            { _id: 'item1' }
-        ))
-        .then(() => {
-            expect(assignmentApi.link.callCount).toBe(1)
-            expect(assignmentApi.link.args[0]).toEqual(['as2', 'item1'])
+    it('onAddPlanningClick', (done) => {
+        const newsItem = {
+            _id: 'news1',
+            slugline: 'slugger',
+            ednote: 'Edit my note!',
+            type: 'text',
+            subject: 'sub',
+            anpa_category: 'cat',
+            urgency: 3,
+            abstract: '<p>some abstractions</p>',
+            state: 'published',
+            _updated: '2019-10-15T10:01:11',
+            task: {
+                desk: 'desk3',
+                user: 'ident2',
+            },
+        }
 
-            expect(planningUi.closeEditor.callCount).toBe(1)
-            expect(planningUi.closeEditor.args[0]).toEqual([data.plannings[0]])
-            expect(store.dispatch.args[1]).toEqual([{ type: 'HIDE_MODAL' }])
+        store.init()
+        store.initialState.workspace.currentDeskId = 'desk1'
+        store.initialState.planning.currentPlanningId = 'p1'
+        store.initialState.modal = {
+            modalType: 'ADD_TO_PLANNING',
+            modalProps: { newsItem },
+        }
+        store.test(done, planningUi.onAddPlanningClick())
+        .then(() => {
+            expect(planningApi.unlock.callCount).toBe(1)
+            expect(planningApi.unlock.args[0]).toEqual([data.plannings[0]])
+
+            expect(planningUi._openEditor.callCount).toBe(1)
+            expect(planningUi._openEditor.args[0]).toEqual([{
+                slugline: 'slugger',
+                ednote: 'Edit my note!',
+                subject: 'sub',
+                anpa_category: 'cat',
+                urgency: 3,
+                description_text: 'some abstractions',
+                coverages: [{
+                    planning: {
+                        g2_content_type: 'text',
+                        slugline: 'slugger',
+                        ednote: 'Edit my note!',
+                        scheduled: '2019-10-15T10:01:11',
+                    },
+                    news_coverage_status: { qcode: 'ncostat:int' },
+                    assigned_to: {
+                        desk: 'desk3',
+                        user: 'ident2',
+                    },
+                }],
+            }])
 
             done()
         })
+    })
+
+    describe('createCoverageFromNewsItem', () => {
+        it('creates photo coverage from unpublished news item', () => {
+            store.initialState.workspace.currentDeskId = 'desk1'
+            store.initialState.workspace.currentUserId = 'ident1'
+            const newsItem = {
+                slugline: 'slug',
+                ednote: 'edit my note',
+                type: 'picture',
+                state: 'draft',
+            }
+
+            const coverage = planningUi.createCoverageFromNewsItem(newsItem, store.getState)
+            expect(coverage).toEqual({
+                planning: {
+                    g2_content_type: 'photo',
+                    slugline: 'slug',
+                    ednote: 'edit my note',
+                    scheduled: moment().endOf('day'),
+                },
+                news_coverage_status: { qcode: 'ncostat:int' },
+                assigned_to: {
+                    desk: 'desk1',
+                    user: 'ident1',
+                },
+            })
+        })
+
+        it('creates text coverage from published news item', () => {
+            const newsItem = {
+                slugline: 'slug',
+                ednote: 'edit my note',
+                type: 'picture',
+                state: 'published',
+                _updated: '2019-10-15T14:01:11',
+                task: {
+                    desk: 'desk2',
+                    user: 'ident2',
+                },
+            }
+
+            const coverage = planningUi.createCoverageFromNewsItem(newsItem, store.getState)
+            expect(coverage).toEqual({
+                planning: {
+                    g2_content_type: 'photo',
+                    slugline: 'slug',
+                    ednote: 'edit my note',
+                    scheduled: '2019-10-15T14:01:11',
+                },
+                news_coverage_status: { qcode: 'ncostat:int' },
+                assigned_to: {
+                    desk: 'desk2',
+                    user: 'ident2',
+                },
+            })
+        })
+    })
+
+    describe('onPlanningFormSave', () => {
+        it('calls saveFromPlanning if in the Planning UI', () => {
+            store.dispatch(planningUi.onPlanningFormSave(
+                data.plannings[0],
+                {
+                    save: true,
+                    publish: true,
+                    unpublish: false,
+                }
+            ))
+
+            expect(planningUi.saveFromPlanning.callCount).toBe(1)
+            expect(planningUi.saveFromPlanning.args[0]).toEqual([
+                data.plannings[0],
+                {
+                    save: true,
+                    publish: true,
+                    unpublish: false,
+                },
+            ])
+        })
+
+        it('calls saveFromAuthoring if in MODALS.ADD_TO_PLANNING', () => {
+            store.initialState.modal = { modalType: 'ADD_TO_PLANNING' }
+            store.dispatch(planningUi.onPlanningFormSave(
+                data.plannings[0],
+                {
+                    save: true,
+                    publish: true,
+                    unpublish: false,
+                }
+            ))
+
+            expect(planningUi.saveFromAuthoring.callCount).toBe(1)
+            expect(planningUi.saveFromAuthoring.args[0]).toEqual([
+                data.plannings[0],
+                true,
+            ])
+        })
+    })
+
+    describe('saveFromPlanning', () => {
+        beforeEach(() => {
+            restoreSinonStub(planningUi.saveFromPlanning)
+            sinon.stub(planningUi, 'saveAndPublish')
+            sinon.stub(planningUi, 'saveAndUnpublish')
+            sinon.stub(planningUi, 'saveAndReloadCurrentAgenda')
+            sinon.stub(planningUi, 'publish')
+            sinon.stub(planningUi, 'unpublish')
+        })
+
+        afterEach(() => {
+            restoreSinonStub(planningUi.saveAndPublish)
+            restoreSinonStub(planningUi.saveAndUnpublish)
+            restoreSinonStub(planningUi.saveAndReloadCurrentAgenda)
+            restoreSinonStub(planningUi.publish)
+            restoreSinonStub(planningUi.unpublish)
+        })
+
+        it('calls appropriate save method', () => {
+            store.dispatch(planningUi.saveFromPlanning(data.plannings[0], {
+                save: true,
+                publish: true,
+                unpublish: false,
+            }))
+            expect(planningUi.saveAndPublish.callCount).toBe(1)
+            expect(planningUi.saveAndPublish.args[0]).toEqual([data.plannings[0]])
+
+            store.dispatch(planningUi.saveFromPlanning(data.plannings[0], {
+                save: true,
+                publish: false,
+                unpublish: true,
+            }))
+            expect(planningUi.saveAndUnpublish.callCount).toBe(1)
+            expect(planningUi.saveAndUnpublish.args[0]).toEqual([data.plannings[0]])
+
+            store.dispatch(planningUi.saveFromPlanning(data.plannings[0], {
+                save: true,
+                publish: false,
+                unpublish: false,
+            }))
+            expect(planningUi.saveAndReloadCurrentAgenda.callCount).toBe(1)
+            expect(planningUi.saveAndReloadCurrentAgenda.args[0]).toEqual([data.plannings[0]])
+
+            store.dispatch(planningUi.saveFromPlanning(data.plannings[0], {
+                save: false,
+                publish: true,
+                unpublish: false,
+            }))
+            expect(planningUi.publish.callCount).toBe(1)
+            expect(planningUi.publish.args[0]).toEqual([data.plannings[0]])
+
+            store.dispatch(planningUi.saveFromPlanning(data.plannings[0], {
+                save: false,
+                publish: false,
+                unpublish: true,
+            }))
+            expect(planningUi.unpublish.callCount).toBe(1)
+            expect(planningUi.unpublish.args[0]).toEqual([data.plannings[0]])
+        })
+    })
+
+    describe('saveFromAuthoring', () => {
+        let modalProps
+        beforeEach(() => {
+            restoreSinonStub(planningUi.saveFromAuthoring)
+
+            modalProps = {
+                newsItem: {
+                    _id: 'news1',
+                    slugline: 'slug',
+                    ednote: 'edit my note',
+                    type: 'picture',
+                    state: 'draft',
+                },
+                $scope: {
+                    resolve: sinon.spy(),
+                    reject: sinon.spy(),
+                },
+            }
+
+            store.initialState.modal = {
+                modalType: 'ADD_TO_PLANNING',
+                modalProps,
+            }
+
+            data.plannings[0].coverages.pop()
+        })
+
+        it('calls either save or saveAndPublish based on args', () => {
+            store.dispatch(planningUi.saveFromAuthoring(data.plannings[0], false))
+            expect(planningApi.save.callCount).toBe(1)
+            expect(planningApi.save.args[0]).toEqual([data.plannings[0]])
+
+            store.dispatch(planningUi.saveFromAuthoring(data.plannings[0], true))
+            expect(planningApi.saveAndPublish.callCount).toBe(1)
+            expect(planningApi.saveAndPublish.args[0]).toEqual([data.plannings[0]])
+        })
+
+        it('notifies user if save fails', (done) => {
+            restoreSinonStub(planningApi.save)
+            sinon.stub(planningApi, 'save').callsFake(() => (Promise.reject(errorMessage)))
+
+            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], false))
+            .then(() => {}, () => {
+                expect(services.notify.error.callCount).toBe(1)
+                expect(services.notify.error.args[0]).toEqual(['Failed!'])
+
+                expect(modalProps.$scope.resolve.callCount).toBe(0)
+                expect(modalProps.$scope.reject.callCount).toBe(1)
+
+                done()
+            })
+        })
+
+        it('notifies user if saveAndPublish fails', (done) => {
+            restoreSinonStub(planningApi.saveAndPublish)
+            sinon.stub(planningApi, 'saveAndPublish').callsFake(
+                () => (Promise.reject(errorMessage))
+            )
+
+            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], true))
+            .then(() => {}, () => {
+                expect(services.notify.error.callCount).toBe(1)
+                expect(services.notify.error.args[0]).toEqual(['Failed!'])
+
+                expect(modalProps.$scope.resolve.callCount).toBe(0)
+                expect(modalProps.$scope.reject.callCount).toBe(1)
+
+                done()
+            })
+        })
+
+        it('notifies user if link fails', (done) => {
+            restoreSinonStub(assignmentApi.link)
+            sinon.stub(assignmentApi, 'link').callsFake(
+                () => (Promise.reject(errorMessage))
+            )
+
+            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], false))
+            .then(() => {}, () => {
+                expect(services.notify.error.callCount).toBe(1)
+                expect(services.notify.error.args[0]).toEqual(['Failed!'])
+
+                expect(modalProps.$scope.resolve.callCount).toBe(0)
+                expect(modalProps.$scope.reject.callCount).toBe(1)
+
+                done()
+            })
+        })
+
+        it('calls link and notifies user of success', (done) => (
+            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], false))
+            .then(() => {
+                expect(planningApi.save.callCount).toBe(1)
+                expect(planningApi.save.args[0]).toEqual([data.plannings[0]])
+
+                expect(assignmentApi.link.callCount).toBe(1)
+                expect(assignmentApi.link.args[0]).toEqual([
+                    'as2',
+                    modalProps.newsItem._id,
+                ])
+
+                expect(services.notify.success.callCount).toBe(1)
+                expect(services.notify.success.args[0]).toEqual([
+                    'Content linked to the planning item.',
+                ])
+
+                expect(modalProps.$scope.resolve.callCount).toBe(1)
+                expect(modalProps.$scope.reject.callCount).toBe(0)
+
+                done()
+            })
+        ))
     })
 })

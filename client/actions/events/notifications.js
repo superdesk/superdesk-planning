@@ -1,5 +1,5 @@
 import * as selectors from '../../selectors'
-import { WORKFLOW_STATE, EVENTS } from '../../constants'
+import { WORKFLOW_STATE, EVENTS, MODALS } from '../../constants'
 import { showModal, hideModal } from '../index'
 import eventsApi from './api'
 import eventsUi from './ui'
@@ -28,7 +28,7 @@ const onEventUnlocked = (_e, data) => (
                 const user =  selectors.getUsers(getState()).find((u) => u._id === data.user)
                 dispatch(hideModal())
                 dispatch(showModal({
-                    modalType: 'NOTIFICATION_MODAL',
+                    modalType: MODALS.NOTIFICATION_MODAL,
                     modalProps: {
                         title: 'Item Unlocked',
                         body: 'The event you were editing was unlocked by "' +

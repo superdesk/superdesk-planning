@@ -5,7 +5,12 @@ import * as selectors from '../../selectors'
 import * as actions from '../../actions'
 import { InfiniteLoader, List, AutoSizer } from 'react-virtualized'
 import { connect } from 'react-redux'
-import { LIST_ITEM_2_LINES_HEIGHT, PLANNING_LIST_ITEM_MARGIN_HEIGHT, WORKSPACE } from '../../constants'
+import {
+    LIST_ITEM_2_LINES_HEIGHT,
+    PLANNING_LIST_ITEM_MARGIN_HEIGHT,
+    WORKSPACE,
+    MODALS,
+} from '../../constants'
 
 class PlanningList extends React.Component {
 
@@ -73,6 +78,8 @@ class PlanningList extends React.Component {
             lockedItems,
             currentWorkspace,
             onAddCoverage,
+            editPlanningViewOpen,
+            planningEditorReadOnly,
         } = this.props
         const planning = plannings[index]
         const isSelected = selected.indexOf(planning._id) > -1
@@ -108,6 +115,8 @@ class PlanningList extends React.Component {
                     isSelected={isSelected}
                     currentWorkspace={currentWorkspace}
                     onAddCoverage={onAddCoverage}
+                    editPlanningViewOpen={editPlanningViewOpen}
+                    planningEditorReadOnly={planningEditorReadOnly}
                     />
             </div>
         )
@@ -172,6 +181,8 @@ PlanningList.propTypes = {
     lockedItems: PropTypes.object,
     currentWorkspace: PropTypes.string,
     onAddCoverage: PropTypes.func,
+    editPlanningViewOpen: PropTypes.bool,
+    planningEditorReadOnly: PropTypes.bool,
 }
 
 const mapStateToProps = (state) => ({
@@ -185,6 +196,8 @@ const mapStateToProps = (state) => ({
     desks: state.desks && state.desks.length > 0 ? state.desks : [],
     lockedItems: selectors.getLockedItems(state),
     currentWorkspace: selectors.getCurrentWorkspace(state),
+    editPlanningViewOpen: selectors.planningEditorOpened(state),
+    planningEditorReadOnly: selectors.planningEditorReadOnly(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -192,7 +205,7 @@ const mapDispatchToProps = (dispatch) => ({
     openPlanningEditor: (item) => (dispatch(actions.planning.ui.openEditor(item))),
     handlePlanningSpike: (item) => {
         dispatch(actions.showModal({
-            modalType: 'CONFIRMATION',
+            modalType: MODALS.CONFIRMATION,
             modalProps: {
                 body: `Are you sure you want to spike the planning item ${item.slugline || item.headline} ?`,
                 action: () => dispatch(actions.planning.ui.spike(item)),
@@ -202,7 +215,7 @@ const mapDispatchToProps = (dispatch) => ({
 
     handlePlanningUnspike: (item) => {
         dispatch(actions.showModal({
-            modalType: 'CONFIRMATION',
+            modalType: MODALS.CONFIRMATION,
             modalProps: {
                 body: `Are you sure you want to unspike the planning item ${item.slugline || item.headline} ?`,
                 action: () => dispatch(actions.planning.ui.unspike(item)),
@@ -221,6 +234,8 @@ const mapDispatchToProps = (dispatch) => ({
     onCancelPlanning: (planning) => dispatch(actions.planning.ui.openCancelPlanningModal(planning)),
     onCancelAllCoverage: (planning) => dispatch(actions.planning.ui.openCancelAllCoverageModal(planning)),
     onSelectItem: (itemId) => dispatch(actions.planning.ui.toggleItemSelected(itemId)),
+
+    onAddCoverage: (planning) => dispatch(actions.planning.ui.onAddCoverageClick(planning)),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningList)

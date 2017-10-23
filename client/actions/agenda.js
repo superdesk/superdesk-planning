@@ -2,7 +2,7 @@ import { hideModal } from './modal'
 import * as selectors from '../selectors'
 import { SubmissionError } from 'redux-form'
 import { cloneDeep, pick, get } from 'lodash'
-import { PRIVILEGES, AGENDA } from '../constants'
+import { PRIVILEGES, AGENDA, MODALS } from '../constants'
 import { checkPermission, getErrorMessage, isItemSpiked } from '../utils'
 import { planning, showModal } from './index'
 
@@ -138,7 +138,7 @@ const askForAddEventToCurrentAgenda = (events) => (
                 'Do you want to add this event to the current agenda'
                 : `Do you want to add these ${events.length} events to the current agenda ?`
             return dispatch(showModal({
-                modalType: 'CONFIRMATION',
+                modalType: MODALS.CONFIRMATION,
                 modalProps: {
                     body: message,
                     action: () => dispatch(addEventToCurrentAgenda(events)),
@@ -147,7 +147,7 @@ const askForAddEventToCurrentAgenda = (events) => (
             }))
         } else {
             dispatch(showModal({
-                modalType: 'CONFIRMATION',
+                modalType: MODALS.CONFIRMATION,
                 modalProps: {
                     body: 'You have to select an agenda first',
                     action: () => {},

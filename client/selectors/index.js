@@ -47,6 +47,11 @@ export const getCurrentAgenda = createSelector(
     }
 )
 
+export const getCurrentModalType = (state) => get(state, 'modal.modalType', null)
+export const getCurrentModalProps = (state) => get(state, 'modal.modalProps', {})
+export const planningEditorOpened = (state) => get(state, 'planning.editorOpened', false)
+export const planningEditorReadOnly = (state) => get(state, 'planning.readOnly', true)
+
 export const getStoredAssignments = (state) => get(state, 'assignment.assignments', {})
 export const getAssignmentsInList = (state) => get(state, 'assignment.assignmentsInList', [])
 export const getFilterBy = (state) => get(state, 'assignment.filterBy', 'ALL')
@@ -217,8 +222,10 @@ export const getFilteredPlanningListEvents = createSelector(
 export const getCurrentPlanning = createSelector(
     [getCurrentPlanningId, getStoredPlannings],
     (currentPlanningId, storedPlannings) => {
-        if (currentPlanningId) {
+        if (typeof currentPlanningId === 'string') {
             return storedPlannings[currentPlanningId]
+        } else if (typeof currentPlanningId === 'object') {
+            return currentPlanningId
         }
     }
 )

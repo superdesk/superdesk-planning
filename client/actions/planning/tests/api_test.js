@@ -541,18 +541,49 @@ describe('actions.planning.api', () => {
                 coverages: [],
             }
 
-            sinon.stub(planningApi, 'fetchPlanningById').callsFake(() => (Promise.resolve()))
+            sinon.stub(planningApi, 'fetchPlanningById')
 
             return store.test(done, planningApi.save(planningItem))
             .then((item) => {
-                expect(item).toEqual(jasmine.objectContaining({
-                    slugline: 'Planning3',
-                    coverages: [],
-                }))
+                expect(item).toEqual(jasmine.objectContaining({ ...planningItem }))
 
                 expect(planningApi.fetchPlanningById.callCount).toBe(0)
 
                 expect(services.api('planning').save.callCount).toBe(1)
+                expect(services.api('planning').save.args[0]).toEqual([
+                    {},
+                    planningItem,
+                ])
+
+                done()
+            })
+        })
+
+        it('create new planning item then updates with the coverages', (done) => {
+            let planningItem = {
+                slugline: 'Planning3',
+                coverages: [{
+                    planning: {
+                        ednote: 'Text coverage',
+                        scheduled: '2016-10-15T13:01:11',
+                        g2_content_type: 'text',
+                    },
+                    assigned_to: {
+                        user: 'ident1',
+                        desk: 'desk1',
+                    },
+                }],
+            }
+
+            sinon.stub(planningApi, 'fetchPlanningById')
+
+            return store.test(done, planningApi.save(planningItem))
+            .then((item) => {
+                expect(item).toEqual(jasmine.objectContaining({ ...planningItem }))
+
+                expect(planningApi.fetchPlanningById.callCount).toBe(0)
+
+                expect(services.api('planning').save.callCount).toBe(2)
                 expect(services.api('planning').save.args[0]).toEqual([
                     {},
                     {
@@ -561,11 +592,19 @@ describe('actions.planning.api', () => {
                     },
                 ])
 
+                expect(services.api('planning').save.args[1]).toEqual([
+                    jasmine.objectContaining({
+                        slugline: 'Planning3',
+                        coverages: [],
+                    }),
+                    planningItem,
+                ])
+
                 done()
             })
         })
 
-        it('saves existing item and runs saveAndDeleteCoverages', (done) => {
+        it('saves existing item', (done) => {
             let planningItem
 
             sinon.stub(planningApi, 'fetchPlanningById').callsFake((id) => (Promise.resolve(
@@ -588,12 +627,7 @@ describe('actions.planning.api', () => {
                 expect(services.api('planning').save.callCount).toBe(1)
                 expect(services.api('planning').save.args[0]).toEqual([
                     data.plannings[0],
-                    {
-                        slugline: 'New Slugger',
-                        headline: 'Some Plan 1',
-                        agendas: [],
-                        coverages: data.plannings[0].coverages,
-                    },
+                    planningItem,
                 ])
 
                 done()

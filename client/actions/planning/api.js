@@ -12,6 +12,7 @@ import {
     PUBLISHED_STATE,
     SPIKED_STATE,
     WORKFLOW_STATE,
+    MODALS,
 } from '../../constants'
 
 /**
@@ -650,50 +651,61 @@ const getPlanning = (planId, saveToStore=true) => (
  * @return Promise
  */
 const save = (item, original=undefined) => (
-    (dispatch, getState, { api }) => (
+    (dispatch, getState, { api }) => {
+        // remove all properties starting with _,
+        // otherwise it will fail for "unknown field" with `_type`
+        item = pickBy(item, (v, k) => (k === '_id' || !k.startsWith('_')))
+
+        // remove nested original creator
+        delete item.original_creator
+
+        if (item.agendas) {
+            item.agendas = item.agendas.map((agenda) => agenda._id || agenda)
+        }
+
+        get(item, 'coverages', []).forEach((coverage) => {
+            // Convert genre back to an Array
+            if (get(coverage, 'planning.genre')) {
+                coverage.planning.genre = [coverage.planning.genre]
+            }
+        })
+
         // Find the original (if it exists) either from the store or the API
-        new Promise((resolve, reject) => {
+        return new Promise((resolve, reject) => {
             if (original !== undefined) {
                 return resolve(original)
             } else if (get(item, '_id')) {
                 return dispatch(self.fetchPlanningById(item._id))
                 .then(
-                    (item) => (resolve(item)),
-                    (error) => (reject(error))
+                    (item) => resolve(item),
+                    (error) => reject(error)
+                )
+            } else if (get(item, 'coverages.length', 0) > 0) {
+                // If the new Planning item has coverages then we need to create
+                // the planning first before saving the coverages
+                // As assignments are created and require a Planning ID
+                // const coverages = cloneDeep(item.coverages)
+                // item.coverages = []
+                return api('planning').save({}, {
+                    ...item,
+                    coverages: [],
+                })
+                .then(
+                    (newItem) => resolve(newItem),
+                    (error) => reject(error)
                 )
             } else {
                 return resolve({})
             }
         })
-        .then((originalItem) => {
-            // remove all properties starting with _,
-            // otherwise it will fail for "unknown field" with `_type`
-            item = pickBy(item, (v, k) => (!k.startsWith('_')))
-
-            // remove nested original creator
-            delete item.original_creator
-
-            if (item.agendas) {
-                item.agendas = item.agendas.map((agenda) => agenda._id || agenda)
-            }
-
-            // Saves coverages
-            if (Array.isArray(get(item, 'coverages'))) {
-                get(item, 'coverages').forEach((coverage) => {
-                    // Convert genre back to an Array
-                    if (get(coverage, 'planning.genre')) {
-                        coverage.planning.genre = [coverage.planning.genre]
-                    }
-                })
-            }
-
-            return api('planning').save(cloneDeep(originalItem), item)
+        .then((originalItem) => (
+            api('planning').save(cloneDeep(originalItem), item)
             .then(
                 (item) => (Promise.resolve(item)),
                 (error) => (Promise.reject(error))
             )
-        }, (error) => (Promise.reject(error)))
-    )
+        ), (error) => Promise.reject(error))
+    }
 )
 
 /**
@@ -956,7 +968,7 @@ function exportAsArticle() {
         }
 
         return dispatch(actions.showModal({
-            modalType: 'SORT_SELECTED',
+            modalType: MODALS.SORT_SELECTED,
             modalProps: {
                 items: sortableItems,
                 action: handleSorted,

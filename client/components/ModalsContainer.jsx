@@ -10,18 +10,19 @@ import {
     AddToPlanningModal,
     FulFillAssignmentModal,
  } from './index'
+import { MODALS } from '../constants'
 
 import SortItemsModal from './SortItemsModal'
 
 const modals = {
-    CONFIRMATION: ConfirmationModal,
-    CREATE_AGENDA: AgendaModal,
-    EDIT_AGENDA: AgendaModal,
-    NOTIFICATION_MODAL: NotificationModal,
-    ITEM_ACTIONS_MODAL: ItemActionConfirmationModal,
-    SORT_SELECTED: SortItemsModal,
-    ADD_TO_PLANNING: AddToPlanningModal,
-    FULFILL_ASSIGNMENT: FulFillAssignmentModal,
+    [MODALS.CONFIRMATION]: ConfirmationModal,
+    [MODALS.CREATE_AGENDA]: AgendaModal,
+    [MODALS.EDIT_AGENDA]: AgendaModal,
+    [MODALS.NOTIFICATION_MODAL]: NotificationModal,
+    [MODALS.ITEM_ACTIONS_MODAL]: ItemActionConfirmationModal,
+    [MODALS.SORT_SELECTED]: SortItemsModal,
+    [MODALS.ADD_TO_PLANNING]: AddToPlanningModal,
+    [MODALS.FULFILL_ASSIGNMENT]: FulFillAssignmentModal,
 }
 
 export function Modals({ modalType, modalProps, handleHide }) {
@@ -34,7 +35,6 @@ export function Modals({ modalType, modalProps, handleHide }) {
         return null
     }
 }
-
 
 Modals.propTypes = {
     modalType: PropTypes.string,
