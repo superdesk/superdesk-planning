@@ -6,6 +6,7 @@ import * as selectors from '../../selectors'
 import * as actions from '../../actions'
 import { orderBy } from 'lodash'
 import { AgendaList } from '../../components'
+import { MODALS } from '../../constants'
 
 export function AgendasListComponent({
     enabledAgendas,
@@ -80,13 +81,13 @@ const mapStateToProps = (state) => (
 )
 
 const mapDispatchToProps = (dispatch) => ({
-    openCreateAgenda: () => dispatch(actions.showModal({ modalType: 'CREATE_AGENDA' })),
+    openCreateAgenda: () => dispatch(actions.showModal({ modalType: MODALS.CREATE_AGENDA })),
     openEditAgenda: (agenda) => dispatch(actions.showModal({
-        modalType: 'EDIT_AGENDA',
+        modalType: MODALS.EDIT_AGENDA,
         modalProps: { agenda },
     })),
     deleteAgenda: (agenda) => dispatch(actions.showModal({
-        modalType: 'CONFIRMATION',
+        modalType: MODALS.CONFIRMATION,
         modalProps: {
             body: `Do you want to delete "${agenda.name}" agenda ?`,
             action: () => dispatch(actions.deleteAgenda(agenda)),

@@ -3,7 +3,7 @@ import planning from './index'
 import { getErrorMessage, getLock } from '../../utils'
 import * as selectors from '../../selectors'
 import { showModal, hideModal, events } from '../index'
-import { PLANNING, WORKFLOW_STATE } from '../../constants'
+import { PLANNING, WORKFLOW_STATE, MODALS } from '../../constants'
 
 /**
  * WS Action when a new Planning item is created
@@ -106,9 +106,14 @@ const onPlanningUnlocked = (_e, data) => (
                 itemLock.session === sessionId
             ) {
                 const user =  selectors.getUsers(getState()).find((u) => u._id === data.user)
-                dispatch(hideModal())
+
+                const modalType = selectors.getCurrentModalType(getState())
+                if (modalType !== MODALS.ADD_TO_PLANNING) {
+                    dispatch(hideModal())
+                }
+
                 dispatch(showModal({
-                    modalType: 'NOTIFICATION_MODAL',
+                    modalType: MODALS.NOTIFICATION_MODAL,
                     modalProps: {
                         title: 'Item Unlocked',
                         body: 'The planning item you were editing was unlocked by "' +

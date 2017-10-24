@@ -5,6 +5,7 @@ import { connect } from 'react-redux'
 import { arraySplice } from 'redux-form'
 import { get } from 'lodash'
 import * as selectors from '../../../selectors'
+import * as actions from '../../../actions'
 import { WORKSPACE } from '../../../constants'
 
 export class CoveragesFieldArrayComponent extends React.Component {
@@ -65,6 +66,7 @@ export class CoveragesFieldArrayComponent extends React.Component {
             desks,
             contentTypes,
             currentWorkspace,
+            onAddCoverage,
         } = this.props
 
         const inPlanning = currentWorkspace === WORKSPACE.PLANNING
@@ -103,6 +105,15 @@ export class CoveragesFieldArrayComponent extends React.Component {
                         type="button">
                         <i className="icon-plus-large"/>
                     </button> }
+
+                    {readOnly && !inPlanning &&
+                        <button
+                            className="Coverage__add-btn btn btn-default"
+                            onClick={onAddCoverage.bind()}
+                            type="button">
+                            <i className="icon-plus-large"/>
+                        </button>
+                    }
                 </li>
             </ul>
         )
@@ -119,6 +130,7 @@ CoveragesFieldArrayComponent.propTypes = {
     cancelCoverage: PropTypes.func,
     cancelCoverageState: PropTypes.object,
     currentWorkspace: PropTypes.string,
+    onAddCoverage: PropTypes.func,
 }
 
 CoveragesFieldArrayComponent.defaultProps = {
@@ -135,6 +147,8 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) =>  ({
     cancelCoverage: (index, coverage) =>
         (dispatch(arraySplice('planning', 'coverages', index, 1, coverage))),
+    onAddCoverage: () =>
+        dispatch(actions.planning.ui.onAddCoverageClick()),
 })
 
 export const CoveragesFieldArray = connect(mapStateToProps, mapDispatchToProps)(CoveragesFieldArrayComponent)

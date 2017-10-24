@@ -5,7 +5,7 @@ import { isPristine, isValid, isSubmitting } from 'redux-form'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
 import { AssignmentForm, AuditInformation, ItemActionsMenu } from '../../components'
-import { TOOLTIPS, WORKSPACE, ASSIGNMENTS } from '../../constants'
+import { TOOLTIPS, WORKSPACE, ASSIGNMENTS, MODALS } from '../../constants'
 import { getCreator, assignmentUtils } from '../../utils'
 import { get } from 'lodash'
 import './style.scss'
@@ -32,7 +32,6 @@ export class EditAssignmentPanel extends React.Component {
         return this.refs.AssignmentForm.getWrappedInstance().submit()
     }
 
-
     saveAndClose() {
         const { valid, closePreview } = this.props
         const rtn = this.handleSave()
@@ -49,7 +48,6 @@ export class EditAssignmentPanel extends React.Component {
 
         return closePreview()
     }
-
 
     render() {
         const {
@@ -180,7 +178,7 @@ const mapDispatchToProps = (dispatch) => (
         save: (assignment) => dispatch(actions.assignments.ui.save(assignment)),
         completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
         openCancelModal: (actionCallback, ignoreCallBack) => dispatch(actions.showModal({
-                modalType: 'CONFIRMATION',
+                modalType: MODALS.CONFIRMATION,
                 modalProps: {
                     title: 'Save changes?',
                     body: 'There are some unsaved changes, do you want to save it now?',

@@ -68,8 +68,7 @@ class PlanningPanel extends React.Component {
             deselectAll,
             exportAsArticle,
             currentWorkspace,
-            onAddCoverage,
-            onPlanningFormSave,
+            onAddPlanningClick,
         } = this.props
 
         const multiActions = [
@@ -121,19 +120,23 @@ class PlanningPanel extends React.Component {
                                 onSearch={handleSearch}
                                 extendOnOpen={!inPlanning}
                             />
-                            {inPlanning && (
+                            {inPlanning &&
                                 <label>
                                     Only Future
                                     <Toggle value={onlyFuture} onChange={onFutureToggleChange} readOnly={isAdvancedDateSearch} />
                                 </label>
-                            ) || (
+                            }
+                            {!inPlanning && !editPlanningViewOpen  &&
                                 <a data-sd-tooltip="Create new planning" data-flow="left">
-                                    <button className="navbtn dropdown sd-create-btn">
+                                    <button
+                                        className="navbtn dropdown sd-create-btn"
+                                        onClick={onAddPlanningClick}
+                                    >
                                         <i className="icon-plus-large" />
                                         <span className="circle" />
                                     </button>
                                 </a>
-                            )}
+                            }
 
                         </div>
                         <AdvancedSearchPanelContainer searchContext={ADVANCED_SEARCH_CONTEXT.PLANNING} />
@@ -155,10 +158,7 @@ class PlanningPanel extends React.Component {
                                 <QuickAddPlanning onPlanningCreation={onPlanningCreation}/>
                             }
                             {(planningList.length > 0) &&
-                                <PlanningList
-                                    selected={selected}
-                                    onAddCoverage={onAddCoverage}
-                                />
+                                <PlanningList selected={selected}/>
                             }
                         </div>
                         {
@@ -194,7 +194,7 @@ class PlanningPanel extends React.Component {
                         }
                     </div>
                     {editPlanningViewOpen &&
-                        <EditPlanningPanelContainer onPlanningFormSave={onPlanningFormSave}/>
+                        <EditPlanningPanelContainer />
                     }
                 </div>
             </div>
@@ -228,8 +228,7 @@ PlanningPanel.propTypes = {
     exportAsArticle: PropTypes.func,
     lockedItems: PropTypes.object,
     currentWorkspace: PropTypes.string,
-    onAddCoverage: PropTypes.func,
-    onPlanningFormSave: PropTypes.func,
+    onAddPlanningClick: PropTypes.func,
 }
 
 const mapStateToProps = (state) => ({
@@ -237,7 +236,7 @@ const mapStateToProps = (state) => ({
     currentAgenda: selectors.getCurrentAgenda(state),
     planningList: selectors.getFilteredPlanningList(state),
     planningsAreLoading: state.agenda.agendasAreLoading || state.planning.planningsAreLoading,
-    editPlanningViewOpen: state.planning.editorOpened,
+    editPlanningViewOpen: selectors.planningEditorOpened(state),
     isEventListShown: selectors.isEventListShown(state),
     onlyFuture: state.planning.onlyFuture,
     privileges: selectors.getPrivileges(state),
@@ -267,6 +266,8 @@ const mapDispatchToProps = (dispatch) => ({
     selectAll: () => dispatch(actions.planning.ui.selectAll()),
     deselectAll: () => dispatch(actions.planning.ui.deselectAll()),
     exportAsArticle: () => dispatch(actions.planning.api.exportAsArticle()),
+
+    onAddPlanningClick: () => dispatch(actions.planning.ui.onAddPlanningClick()),
 })
 
 export const PlanningPanelContainer = connect(

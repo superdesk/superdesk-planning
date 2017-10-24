@@ -200,7 +200,7 @@ describe('planning', () => {
             )
 
             expect(result.editorOpened).toBe(false)
-            expect(result.currentPlanningId).toBe(null)
+            expect(result.currentPlanningId).toBe(undefined)
         })
 
         it('SET_ONLY_FUTURE', () => {

@@ -1,5 +1,5 @@
 import { showModal, hideModal, locks, uploadFilesAndSaveEvent } from '../index'
-import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS, PUBLISHED_STATE } from '../../constants'
+import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS, PUBLISHED_STATE, MODALS } from '../../constants'
 import eventsApi from './api'
 import { fetchSelectedAgendaPlannings } from '../agenda'
 import * as selectors from '../../selectors'
@@ -184,7 +184,7 @@ const _openBulkSpikeModal = (events) => (
         }
 
         dispatch(showModal({
-            modalType: 'CONFIRMATION',
+            modalType: MODALS.CONFIRMATION,
             modalProps: {
                 body: `Do you want to spike these ${events.length} events?`,
                 action: () => dispatch(self.spike(events)),
@@ -201,7 +201,7 @@ const _openUnspikeModal = (events) => (
         }
 
         dispatch(showModal({
-            modalType: 'CONFIRMATION',
+            modalType: MODALS.CONFIRMATION,
             modalProps: {
                 body: `Do you want to unspike these ${events.length} events?`,
                 action: () => dispatch(self.unspike(events)),
@@ -383,7 +383,7 @@ const _openActionModal = (
             dispatch(eventsApi.loadEventDataForAction(lockedEvent, loadPlannings, publish))
             .then((eventDetail) => (
                 dispatch(showModal({
-                    modalType: 'ITEM_ACTIONS_MODAL',
+                    modalType: MODALS.ITEM_ACTIONS_MODAL,
                     modalProps: {
                         eventDetail,
                         actionType: action,
@@ -480,7 +480,7 @@ const saveWithConfirmation = (event, save=true, publish=false) => (
         }))
         .then((relatedEvents) => (
             dispatch(showModal({
-                modalType: 'ITEM_ACTIONS_MODAL',
+                modalType: MODALS.ITEM_ACTIONS_MODAL,
                 modalProps: {
                     eventDetail: {
                         ...event,

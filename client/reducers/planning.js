@@ -155,7 +155,7 @@ const planningReducer = createReducer(initialState, {
         {
             ...state,
             editorOpened: false,
-            currentPlanningId: null,
+            currentPlanningId: undefined,
         }
     ),
 

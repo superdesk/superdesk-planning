@@ -1,12 +1,13 @@
 import * as actions from '../actions'
+import { getCurrentPlanning } from '../selectors'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
 import { ModalsContainer } from '../components'
 import { locks } from '../actions'
 import { get } from 'lodash'
-import { registerNotifications } from '../utils'
-import { WORKSPACE } from '../constants'
+import { registerNotifications, getErrorMessage } from '../utils'
+import { WORKSPACE, MODALS } from '../constants'
 
 AddToPlanningController.$inject = [
     '$scope',
@@ -14,7 +15,7 @@ AddToPlanningController.$inject = [
     'sdPlanningStore',
     '$q',
     'notify',
-    'gettextCatalog',
+    'gettext',
     'api',
     'lock',
     'session',
@@ -34,7 +35,7 @@ export function AddToPlanningController(
     userList
 ) {
     const itemId = get($scope, 'locals.data.item._id')
-    api.find('archive', itemId)
+    return api.find('archive', itemId)
     .then((newsItem) => {
         let failed = false
 
@@ -58,17 +59,34 @@ export function AddToPlanningController(
         }
 
         if (failed) {
+            $scope.reject()
             return Promise.reject()
         }
 
         if (!lock.isLockedInCurrentSession(newsItem)) {
             newsItem._editable = true
             return lock.lock(newsItem, false, 'add_to_planning')
+            .then(
+                (lockedItem) => Promise.resolve(lockedItem),
+                (error) => {
+                    notify.error(
+                        getErrorMessage(error, 'Failed to lock the item.')
+                    )
+                    $scope.reject(error)
+                    return Promise.reject(error)
+                }
+            )
         }
 
         return Promise.resolve(newsItem)
+    }, (error) => {
+        notify.error(
+            getErrorMessage(error, 'Failed to load the item.')
+        )
+        $scope.reject(error)
+        return Promise.reject(error)
     })
-    .then((newsItem) => {
+    .then((newsItem) => (
         sdPlanningStore.getStore()
         .then((store) => {
             store.dispatch(actions.initStore(WORKSPACE.AUTHORING))
@@ -99,7 +117,7 @@ export function AddToPlanningController(
                 store.dispatch(actions.planning.ui.openAdvancedSearch())
 
                 store.dispatch(actions.showModal({
-                    modalType: 'ADD_TO_PLANNING',
+                    modalType: MODALS.ADD_TO_PLANNING,
                     modalProps: {
                         newsItem,
                         fullscreen: true,
@@ -108,8 +126,13 @@ export function AddToPlanningController(
                 }))
 
                 $scope.$on('$destroy', () => {
-                    store.dispatch(actions.hideModal())
-                    store.dispatch(actions.resetStore())
+                    store.dispatch(actions.planning.ui.closeEditor(
+                        getCurrentPlanning(store.getState())
+                    ))
+                    .then(() => {
+                        store.dispatch(actions.hideModal())
+                        store.dispatch(actions.resetStore())
+                    })
 
                     // Only unlock the item if it was locked when launching this modal
                     if (get(newsItem, 'lock_session', null) !== null &&
@@ -131,7 +154,7 @@ export function AddToPlanningController(
                             () => Promise.resolve('unknown')
                         )
                         .then((username) => store.dispatch(actions.showModal({
-                            modalType: 'NOTIFICATION_MODAL',
+                            modalType: MODALS.NOTIFICATION_MODAL,
                             modalProps: {
                                 title: 'Item Unlocked',
                                 body: `The item was unlocked by "${username}"`,
@@ -145,7 +168,10 @@ export function AddToPlanningController(
                 })
             })
         })
-    },
-
-    () => $scope.reject())
+    ),
+        (error) => {
+            $scope.reject(error)
+            return Promise.reject(error)
+        }
+    )
 }

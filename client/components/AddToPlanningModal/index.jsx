@@ -6,39 +6,28 @@ import {
 } from '../index'
 import { Button } from 'react-bootstrap'
 import { connect } from 'react-redux'
-import * as actions from '../../actions'
 import * as selectors from '../../selectors'
 import './style.scss'
+import { get } from 'lodash'
 
 export function AddToPlanningComponent({
     handleHide,
     modalProps,
-    onAddCoverage,
-    closeEditor,
-    currentPlanning,
-    onPlanningFormSave,
     currentWorkspace,
 }) {
     const { newsItem, $scope } = modalProps
 
-    const action = (savedItem) => {
-        onPlanningFormSave(savedItem, newsItem)
-        $scope.resolve()
-    }
-
     const handleCancel = () => {
         handleHide()
         $scope.reject()
-        closeEditor(currentPlanning)
-    }
-
-    const onAddCoverageClick = (planning) => {
-        onAddCoverage(currentPlanning, planning, newsItem)
     }
 
     if (currentWorkspace !== 'AUTHORING') {
         return null
     }
+
+    const slugline = get(newsItem, 'slugline', '')
+    const headline = get(newsItem, 'headline', '')
 
     return (
         <Modal
@@ -59,19 +48,16 @@ export function AddToPlanningComponent({
                         <div className='metadata-view'>
                             <dl>
                                 <dt>Slugline:</dt>
-                                <dd>{newsItem.slugline}</dd>
+                                <dd>{slugline}</dd>
                             </dl>
                             <dl>
                                 <dt>Headline:</dt>
-                                <dd>{newsItem.headline}</dd>
+                                <dd>{headline}</dd>
                             </dl>
                         </div>
                     </div>
                     <div className='Planning'>
-                        <PlanningPanelContainer
-                            onAddCoverage={onAddCoverageClick}
-                            onPlanningFormSave={action}
-                        />
+                        <PlanningPanelContainer />
                     </div>
                 </div>
             </Modal.Body>
@@ -89,28 +75,12 @@ AddToPlanningComponent.propTypes = {
         newsItem: PropTypes.object,
         $scope: PropTypes.object,
     }),
-    onAddCoverage: PropTypes.func,
-    closeEditor: PropTypes.func,
-    currentPlanning: PropTypes.object,
-    onPlanningFormSave: PropTypes.func,
     currentWorkspace: PropTypes.string,
 }
 
-const mapStateToProps = (state) => ({
-    currentPlanning: selectors.getCurrentPlanning(state),
-    currentWorkspace: selectors.getCurrentWorkspace(state),
-})
-
-const mapDispatchToProps = (dispatch) => ({
-    onAddCoverage: (prevPlan, newPlan, newsItem) =>
-        dispatch(actions.planning.ui.onAddCoverageFromAuthoring(prevPlan, newPlan, newsItem)),
-    closeEditor: (planning) =>
-        dispatch(actions.planning.ui.closeEditor(planning)),
-    onPlanningFormSave: (planning, newsItem) =>
-        dispatch(actions.planning.ui.onAddCoverageFromAuthoringSave(planning, newsItem)),
-})
+const mapStateToProps = (state) => ({ currentWorkspace: selectors.getCurrentWorkspace(state) })
 
 export const AddToPlanningModal = connect(
     mapStateToProps,
-    mapDispatchToProps
+    null
 )(AddToPlanningComponent)

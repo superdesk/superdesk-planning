@@ -209,4 +209,25 @@ describe('actions.assignments.api', () => {
             })
         })
     })
+
+    describe('link', () => {
+        it('links based on provided coverage', (done) => {
+            data.plannings[0].coverages.pop()
+            store.test(done, assignmentsApi.link(
+                data.plannings[0].coverages[0].assigned_to.assignment_id,
+                'item1'
+            ))
+            .then(() => {
+                expect(services.api('assignments_link').save.callCount).toBe(1)
+                expect(services.api('assignments_link').save.args[0]).toEqual([
+                    {},
+                    {
+                        assignment_id: 'as1',
+                        item_id: 'item1',
+                    },
+                ])
+                done()
+            })
+        })
+    })
 })

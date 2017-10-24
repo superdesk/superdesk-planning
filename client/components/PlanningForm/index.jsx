@@ -12,7 +12,6 @@ import {
     RequiredFieldsValidatorFactory,
     MaxLengthValidatorFactory } from '../../validators'
 
-
 class Component extends React.Component {
 
     constructor(props) {
@@ -175,7 +174,6 @@ const PlanningReduxForm = reduxForm({
 
 const selector = formValueSelector('planning') // same as form name
 const mapStateToProps = (state) => ({
-    initialValues: selectors.getCurrentPlanning(state),
     slugline: selector(state, 'slugline'), // Used to parse current slugline to new coverages
     pubstatus: selector(state, 'pubstatus'), // Used to determine `Published State`
     users: selectors.getUsers(state),

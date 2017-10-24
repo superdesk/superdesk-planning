@@ -9,6 +9,7 @@ from copy import deepcopy
 
 from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
+from superdesk.metadata.item import PUBLISH_STATES, ITEM_STATE
 from eve.utils import config
 from .common import ASSIGNMENT_WORKFLOW_STATE
 from apps.archive.common import get_user
@@ -29,7 +30,8 @@ class AssignmentsLinkService(Service):
 
             # set the state to in progress
             updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
-            updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+            updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED \
+                if item.get(ITEM_STATE) in PUBLISH_STATES else ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
 
             # on fulfilling the assignment the user is assigned the assignment.
             user = get_user()
