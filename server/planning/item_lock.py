@@ -136,6 +136,7 @@ class LockService(BaseComponent):
     def unlock_session(self, user_id, session_id):
         self.unlock_session_for_resource(user_id, session_id, 'planning')
         self.unlock_session_for_resource(user_id, session_id, 'events')
+        self.unlock_session_for_resource(user_id, session_id, 'assignments')
 
     def unlock_session_for_resource(self, user_id, session_id, resource):
         item_service = get_resource_service(resource)

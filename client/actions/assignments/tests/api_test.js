@@ -24,6 +24,7 @@ describe('actions.assignments.api', () => {
 
     afterEach(() => {
         restoreSinonStub(assignmentsApi.query)
+        // restoreSinonStub(assignmentsApi.queryLockedAssignments)
         restoreSinonStub(assignmentsApi.receivedAssignments)
         restoreSinonStub(assignmentsApi.fetchAssignmentById)
         restoreSinonStub(assignmentsApi.save)
@@ -140,6 +141,20 @@ describe('actions.assignments.api', () => {
         })
     })
 
+    describe('queryLockedAssignments', () => {
+        it('queries for locked assignments', (done) => (
+            store.test(done, assignmentsApi.queryLockedAssignments())
+            .then(() => {
+                const query = { constant_score: { filter: { exists: { field: 'lock_session' } } } }
+                expect(services.api('assignments').query.callCount).toBe(1)
+                expect(services.api('assignments').query.args[0]).toEqual([
+                    { source: JSON.stringify({ query }) },
+                ])
+                done()
+            })
+        ))
+    })
+
     describe('fetchByAssignmentId', () => {
         beforeEach(() => {
             restoreSinonStub(assignmentsApi.fetchAssignmentById)
@@ -226,6 +241,42 @@ describe('actions.assignments.api', () => {
                         item_id: 'item1',
                     },
                 ])
+                done()
+            })
+        })
+    })
+
+    describe('assignments_lock', () => {
+        it('calls lock endpoint if assignment not locked', (done) => {
+            store.test(done, assignmentsApi.lock(store.initialState.assignment.assignments['1']))
+            .then(() => {
+                expect(services.api('assignments_lock').save.callCount).toBe(1)
+                expect(services.api('assignments_lock').save.args[0]).toEqual([
+                    {},
+                    { lock_action: 'edit' },
+                ])
+                done()
+            })
+        })
+
+        it('does not call lock endpoint if assignment already locked', (done) => {
+            store.initialState.assignment.assignments['1'] = {
+                ...store.initialState.assignment.assignments['1'],
+                lock_user: 'ident1',
+                lock_session: 'session1',
+            }
+            store.test(done, assignmentsApi.lock(store.initialState.assignment.assignments['1']))
+            .then((item) => {
+                expect(services.api('assignments_lock').save.callCount).toBe(0)
+                expect(item).toEqual(store.initialState.assignment.assignments[1])
+                done()
+            })
+        })
+
+        it('calls unlock endpoint', (done) => {
+            store.test(done, assignmentsApi.unlock(store.initialState.assignment.assignments['1']))
+            .then(() => {
+                expect(services.api('assignments_unlock').save.callCount).toBe(1)
                 done()
             })
         })

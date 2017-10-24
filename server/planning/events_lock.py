@@ -14,14 +14,12 @@ from superdesk.resource import Resource, build_custom_hateoas
 from superdesk.metadata.utils import item_url
 from apps.archive.common import get_user, get_auth
 from superdesk.services import BaseService
-from .item_lock import LockService
+from .item_lock import LockService, LOCK_USER
 from superdesk import get_resource_service
 from apps.common.components.utils import get_component
 
 
 CUSTOM_HATEOAS = {'self': {'title': 'Events', 'href': '/events/{_id}'}}
-LOCK_USER = 'lock_user'
-LOCK_SESSION = 'lock_session'
 logger = logging.getLogger(__name__)
 
 
@@ -92,9 +90,5 @@ class EventsUnlockService(BaseService):
                     break
         else:
             updated_item = lock_service.unlock(item, user_id, session_id, 'events')
-
-        if updated_item is None:
-            # version 1 item must have been deleted by now
-            return [0]
 
         return _update_returned_document(docs[0], updated_item)

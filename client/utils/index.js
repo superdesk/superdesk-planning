@@ -308,6 +308,7 @@ export const createTestStore = (params={}) => {
             events: {},
             planning: {},
             recurring: {},
+            assignments: {},
         },
 
         workspace: {
@@ -619,14 +620,33 @@ export const getLockedUser = (item, locks, users) => {
 export const getLock = (item, locks) => {
     if (isNil(item)) {
         return null
-    } else if (item._id in locks.events) {
-        return locks.events[item._id]
-    } else if (item._id in locks.planning) {
-        return locks.planning[item._id]
-    } else if (get(item, 'event_item') in locks.events) {
-        return locks.events[item.event_item]
-    } else if (get(item, 'recurrence_id') in locks.recurring) {
-        return locks.recurring[item.recurrence_id]
+    }
+
+    switch (get(item, '_type')) {
+        case 'events':
+            if (item._id in locks.events) {
+                return locks.events[item._id]
+            } else if (get(item, 'recurrence_id') in locks.recurring) {
+                return locks.recurring[item.recurrence_id]
+            }
+
+            break
+
+        case 'planning':
+            if (item._id in locks.planning) {
+                return locks.planning[item._id]
+            } else if (get(item, 'event_item') in locks.events) {
+                return locks.events[item.event_item]
+            }
+
+            break
+
+        default:
+            if (item._id in locks.assignments) {
+                return locks.assignments[item._id]
+            }
+
+            break
     }
 
     return null

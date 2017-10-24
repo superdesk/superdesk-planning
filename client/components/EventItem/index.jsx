@@ -99,7 +99,7 @@ export const EventItem = ({
                 className,
                 { 'event--has-planning': hasPlanning },
                 { 'event--has-been-canceled': hasBeenCancelled || hasBeenRescheduled },
-                { 'event--locked': isItemLocked },
+                { 'ListItem--locked': isItemLocked },
                 { 'event--not-draggable': !canCreatePlanning })}
             active={highlightedEvent === event._id || isSelected}
         >

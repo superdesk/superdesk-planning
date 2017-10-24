@@ -1,4 +1,4 @@
-import { uniq, keyBy, get } from 'lodash'
+import { uniq, keyBy, get, cloneDeep } from 'lodash'
 import { ASSIGNMENTS, RESET_STORE, INIT_STORE } from '../constants'
 import moment from 'moment'
 import { createReducer } from '../utils'
@@ -101,6 +101,41 @@ const assignmentReducer = createReducer(initialState, {
             readOnly: false,
         }
     ),
+    [ASSIGNMENTS.ACTIONS.LOCK_ASSIGNMENT]: (state, payload) => {
+        if (!(payload.assignment._id in state.assignments)) return state
+
+        let assignments = cloneDeep(state.assignments)
+        let assignment = assignments[payload.assignment._id]
+
+        assignment.lock_action = payload.assignment.lock_action
+        assignment.lock_user = payload.assignment.lock_user
+        assignment.lock_time = payload.assignment.lock_time
+        assignment.lock_session = payload.assignment.lock_session
+        assignment._etag = payload.assignment._etag
+
+        return {
+            ...state,
+            assignments,
+        }
+    },
+
+    [ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT]: (state, payload) => {
+        if (!(payload.assignment._id in state.assignments)) return state
+
+        let assignments = cloneDeep(state.assignments)
+        let assignment = assignments[payload.assignment._id]
+
+        delete assignment.lock_action
+        delete assignment.lock_user
+        delete assignment.lock_time
+        delete assignment.lock_session
+        assignment._etag = payload.assignment._etag
+
+        return {
+            ...state,
+            assignments,
+        }
+    },
 })
 
 export default assignmentReducer

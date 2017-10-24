@@ -25,6 +25,8 @@ export function AssignmentController(
         registerNotifications($scope, store)
         store.dispatch(actions.assignments.ui.loadAssignments('All', null, 'Created', 'Asc'))
         .then(() => {
+            store.dispatch(actions.locks.loadAssignmentLocks())
+
             $scope.$watch(
                 () => desks.active,
                 () => {

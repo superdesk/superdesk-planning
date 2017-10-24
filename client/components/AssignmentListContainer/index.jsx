@@ -59,6 +59,10 @@ class AssignmentListComponent extends React.Component {
                         selectedAssignments={this.props.selectedAssignments}
                         onClick={this.props.preview}
                         onSelectChange={this.props.onAssignmentSelectChange}
+                        lockedItems={this.props.lockedItems}
+                        users={this.props.users}
+                        session={this.props.session}
+                        currentAssignmentId={this.props.currentAssignmentId}
                     />
                     {this.props.previewOpened && <EditAssignmentPanelContainer
                         onFulFilAssignment={this.props.onFulFilAssignment}/> }
@@ -86,6 +90,8 @@ AssignmentListComponent.propTypes = {
     onFulFilAssignment: PropTypes.func,
     filterByState: PropTypes.string,
     filterByType: PropTypes.string,
+    lockedItems: PropTypes.object,
+    currentAssignmentId: PropTypes.string,
 }
 
 const mapStateToProps = (state) => ({
@@ -101,6 +107,8 @@ const mapStateToProps = (state) => ({
     session: selectors.getSessionDetails(state),
     users: selectors.getUsers(state),
     assignments: selectors.getAssignments(state),
+    lockedItems: selectors.getLockedItems(state),
+    currentAssignmentId: selectors.getCurrentAssignmentId(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

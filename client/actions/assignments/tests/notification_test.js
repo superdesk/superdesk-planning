@@ -120,4 +120,74 @@ describe('actions.assignments.notification', () => {
             })
         })
     })
+
+    describe('`assignment lock`', () => {
+
+        beforeEach(() => {
+            sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (
+                Promise.resolve(store.initialState.assignment.assignments.as1)))
+        })
+
+        afterEach(() => {
+            restoreSinonStub(assignmentsApi.fetchAssignmentById)
+        })
+
+        it('calls LOCK_ASSIGNMENT action', (done) => {
+            let payload = {
+                item: 'as1',
+                user: 'ident1',
+                lock_session: 'session1',
+                lock_action: 'edit',
+                lock_time: '2099-10-15T14:30+0000',
+                etag: 'etag1',
+            }
+
+            return store.test(done, assignmentNotifications.onAssignmentLocked({}, payload))
+            .then(() => {
+                expect(store.dispatch.callCount).toBe(2)
+                expect(assignmentsApi.fetchAssignmentById.callCount).toBe(1)
+                expect(store.dispatch.args[1]).toEqual([{
+                    type: 'LOCK_ASSIGNMENT',
+                    payload: {
+                        assignment: {
+                            ...store.initialState.assignment.assignments.as1,
+                            lock_action: 'edit',
+                            lock_user: 'ident1',
+                            lock_session: 'session1',
+                            lock_time: '2099-10-15T14:30+0000',
+                            _etag: 'etag1',
+                        },
+                    },
+                }])
+                done()
+            })
+        })
+
+        it('calls UNLOCK_ASSIGNMENT action', (done) => {
+            let payload = {
+                item: 'as1',
+                etag: 'etag1',
+            }
+
+            return store.test(done, assignmentNotifications.onAssignmentUnlocked({}, payload))
+            .then(() => {
+                expect(store.dispatch.callCount).toBe(2)
+                expect(assignmentsApi.fetchAssignmentById.callCount).toBe(1)
+                expect(store.dispatch.args[1]).toEqual([{
+                    type: 'UNLOCK_ASSIGNMENT',
+                    payload: {
+                        assignment: {
+                            ...store.initialState.assignment.assignments.as1,
+                            lock_action: null,
+                            lock_user: null,
+                            lock_session: null,
+                            lock_time: null,
+                            _etag: 'etag1',
+                        },
+                    },
+                }])
+                done()
+            })
+        })
+    })
 })

@@ -121,20 +121,7 @@ const planningReducer = createReducer(initialState, {
     },
 
     [PLANNING.ACTIONS.OPEN_PLANNING_EDITOR]: (state, payload) => {
-        if (payload.lock_user) {
-            // clone plannings
-            plannings = cloneDeep(state.plannings)
-            modifyCoveragesForPlanning(payload)
-            plannings[payload._id] = payload
-            // return new state with the lock information
-            return {
-                ...state,
-                plannings,
-                editorOpened: true,
-                currentPlanningId: payload._id,
-                readOnly: false,
-            }
-        } else if (payload._id) {
+        if (payload._id) {
             return {
                 ...state,
                 editorOpened: true,

@@ -47,6 +47,13 @@ describe('lock reducers', () => {
                 lock_time: '2099-10-15T14:37+0000',
             },
         },
+        assignment: {
+            _id: 'a1',
+            lock_action: 'edit',
+            lock_session: 'sess123',
+            lock_user: 'user123',
+            lock_time: '2099-10-15T14:30+0000',
+        },
     }
 
     const lockItems = {
@@ -59,6 +66,7 @@ describe('lock reducers', () => {
             r1: convertItemToLock(lockTypes.events.recurring, 'events'),
             r2: convertItemToLock(lockTypes.planning.recurring, 'planning'),
         },
+        assignments: { a1: convertItemToLock(lockTypes.assignment, 'assignments') },
     }
 
     const initialLocks = {
@@ -71,6 +79,7 @@ describe('lock reducers', () => {
             lockTypes.planning.event,
             lockTypes.planning.recurring,
         ],
+        assignments: [lockTypes.assignment],
     }
 
     const getInitialLocks = () => (locks(
@@ -90,6 +99,7 @@ describe('lock reducers', () => {
             events: {},
             planning: {},
             recurring: {},
+            assignments: {},
         })
     })
 
@@ -136,6 +146,7 @@ describe('lock reducers', () => {
             events: {},
             planning: { p1: lockItems.planning.p1 },
             recurring: {},
+            assignments: {},
         })
 
         // Planning item with associated Event lock
@@ -150,6 +161,7 @@ describe('lock reducers', () => {
             events: { e3: lockItems.events.e3 },
             planning: {},
             recurring: {},
+            assignments: {},
         })
 
         // Planning item with associated series of Recurring Events lock
@@ -164,6 +176,7 @@ describe('lock reducers', () => {
             events: {},
             planning: {},
             recurring: { r2: lockItems.recurring.r2 },
+            assignments: {},
         })
     })
 
@@ -180,6 +193,7 @@ describe('lock reducers', () => {
             events: lockItems.events,
             planning: {},
             recurring: lockItems.recurring,
+            assignments: lockItems.assignments,
         })
 
         // Planning item with associated Event lock
@@ -194,6 +208,7 @@ describe('lock reducers', () => {
             events: { e1: lockItems.events.e1 },
             planning: lockItems.planning,
             recurring: lockItems.recurring,
+            assignments: lockItems.assignments,
         })
 
         // Planning item with associated series of Recurring Events lock
@@ -208,6 +223,7 @@ describe('lock reducers', () => {
             events: lockItems.events,
             planning: lockItems.planning,
             recurring: { r1: lockItems.recurring.r1 },
+            assignments: lockItems.assignments,
         })
     })
 
@@ -224,6 +240,7 @@ describe('lock reducers', () => {
             events: { e1: lockItems.events.e1 },
             planning: {},
             recurring: {},
+            assignments: {},
         })
 
         // Event item with series of Recurring Event lock
@@ -238,6 +255,7 @@ describe('lock reducers', () => {
             events: {},
             planning: {},
             recurring: { r1: lockItems.recurring.r1 },
+            assignments: {},
         })
     })
 
@@ -254,6 +272,7 @@ describe('lock reducers', () => {
             events: { e3: lockItems.events.e3 },
             planning: lockItems.planning,
             recurring: lockItems.recurring,
+            assignments: lockItems.assignments,
         })
 
         // Event item with series of Recurring Events lock
@@ -268,6 +287,7 @@ describe('lock reducers', () => {
             events: lockItems.events,
             planning: lockItems.planning,
             recurring: { r2: lockItems.recurring.r2 },
+            assignments: lockItems.assignments,
         })
     })
 
@@ -284,6 +304,7 @@ describe('lock reducers', () => {
             events: { e3: lockItems.events.e3 },
             planning: lockItems.planning,
             recurring: lockItems.recurring,
+            assignments: lockItems.assignments,
         })
 
         // Event item with series of Recurring Events lock
@@ -298,6 +319,7 @@ describe('lock reducers', () => {
             events: lockItems.events,
             planning: lockItems.planning,
             recurring: { r2: lockItems.recurring.r2 },
+            assignments: lockItems.assignments,
         })
     })
 
@@ -314,6 +336,7 @@ describe('lock reducers', () => {
             events: { e3: lockItems.events.e3 },
             planning: lockItems.planning,
             recurring: lockItems.recurring,
+            assignments: lockItems.assignments,
         })
 
         // Event item with series of Recurring Events lock
@@ -328,6 +351,41 @@ describe('lock reducers', () => {
             events: lockItems.events,
             planning: lockItems.planning,
             recurring: { r2: lockItems.recurring.r2 },
+            assignments: lockItems.assignments,
+        })
+    })
+
+    it('LOCK_ASSIGNMENT', () => {
+        // Planning item with direct Planning lock
+        let result = locks(
+            initialState,
+            {
+                type: 'LOCK_ASSIGNMENT',
+                payload: { assignment: lockTypes.assignment },
+            }
+        )
+        expect(result).toEqual({
+            events: {},
+            planning: {},
+            recurring: {},
+            assignments: { a1: lockItems.assignments.a1 },
+        })
+    })
+
+    it('UNLOCK_ASSIGNMENT', () => {
+        // Planning item with direct Planning lock
+        let result = locks(
+            initialState,
+            {
+                type: 'UNLOCK_ASSIGNMENT',
+                payload: { assignment: lockTypes.assignment },
+            }
+        )
+        expect(result).toEqual({
+            events: {},
+            planning: {},
+            recurring: {},
+            assignments: {},
         })
     })
 })

@@ -31,7 +31,7 @@ export class UnlockItem extends React.Component {
 
     render() {
         return ( <div className="dropdown__menu">
-                    <div className="dropdown__menu-label">Locked by</div>
+                    <div className="dropdown__menu-label">{this.props.displayText}</div>
                     <UserAvatar user={this.props.user} large={true}/>
                     <div className="lock-text">{this.props.user.display_name}</div>
                     {this.props.showUnlock && (<button type='button' className="btn btn--medium" onClick={this.unlockItem.bind(this)}>
@@ -46,4 +46,7 @@ UnlockItem.propTypes = {
     showUnlock: React.PropTypes.bool,
     onCancel: React.PropTypes.func,
     onUnlock: React.PropTypes.func,
+    displayText: React.PropTypes.string,
 }
+
+UnlockItem.defaultProps = { displayText: 'Locked by:' }

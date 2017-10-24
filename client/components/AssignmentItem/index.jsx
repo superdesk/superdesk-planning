@@ -14,14 +14,21 @@ export const AssignmentItem = ({
         className,
         assignedUser,
         isCurrentUser,
+        lockedItems,
+        currentAssignmentId,
     }) => {
+    const isItemLocked = get(lockedItems, 'assignments') && assignment._id in lockedItems.assignments
+
     return (
         <ListItem
             item={assignment}
             onClick={onClick}
             draggable={true}
-            className={classNames('assignmentItem', className)}
-            active={isSelected}
+            className={classNames(
+                'assignmentItem',
+                className,
+                { 'ListItem--locked': isItemLocked })}
+            active={isSelected || get(assignment, '_id') === currentAssignmentId}
         >
             <div className="sd-list-item__action-menu">
                 <Checkbox value={isSelected} onChange={({ target }) => {onSelectChange(target.value)}}/>
@@ -71,7 +78,9 @@ AssignmentItem.propTypes = {
     onClick: PropTypes.func,
     className: PropTypes.string,
     assignedUser: PropTypes.object,
+    lockedItems: PropTypes.object,
     isCurrentUser: PropTypes.bool,
     isSelected: PropTypes.bool,
     onSelectChange: PropTypes.func,
+    currentAssignmentId: PropTypes.string,
 }

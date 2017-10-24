@@ -9,16 +9,16 @@ describe('assignments', () => {
     describe('components', () => {
         describe('<AssignmentItem />', () => {
             let onClick
-            let onDoubleClick
             let onSelectChange
             let assignment
+            let lockedItems
 
             const getShallowWrapper = () => (
                 shallow(<AssignmentItem
                     onClick={onClick}
-                    onDoubleClick={onDoubleClick}
                     onSelectChange={onSelectChange}
                     assignment={assignment}
+                    lockedItems={lockedItems}
                 />)
             )
 
@@ -36,8 +36,7 @@ describe('assignments', () => {
             }
 
             beforeEach(() => {
-                onClick = sinon.spy(() => (Promise.resolve()))
-                onDoubleClick = sinon.spy(() => (Promise.resolve()))
+                lockedItems = { assignments: { '1': 'lock_information' } }
                 onSelectChange = sinon.spy(() => (Promise.resolve()))
                 assignment = {
                     _id: 1,
@@ -52,9 +51,7 @@ describe('assignments', () => {
             })
 
             it('show item', () => {
-                let wrapper
-
-                wrapper = getShallowWrapper()
+                const wrapper = getShallowWrapper()
                 expect(wrapper.find('.icon-time').length).toBe(1)
                 expect(wrapper.find('UserAvatar').length).toBe(1)
                 expect(wrapper.find('Checkbox').length).toBe(1)
@@ -62,11 +59,25 @@ describe('assignments', () => {
             })
 
             it('executes `onClick` callback', () => {
-                let wrapper = getMountedWrapper()
+                onClick = sinon.spy((arg) => {
+                    expect(arg).toEqual(assignment)
+                    return Promise.resolve()
+                })
+
+                const wrapper = getMountedWrapper()
                 const item = wrapper.find('.ListItem').first()
                 item.simulate('click')
-                expect(onClick.callCount).toBe(1)
-                expect(onClick.args[0][0]).toEqual(assignment)
+            })
+
+            it('does not show red border if assignment is not locked', () => {
+                lockedItems = null
+                const wrapper = getShallowWrapper()
+                expect(wrapper.find('.ListItem--locked').length).toBe(0)
+            })
+
+            it('shows red border if assignment is locked', () => {
+                const wrapper = getShallowWrapper()
+                expect(wrapper.find('.ListItem--locked').length).toBe(1)
             })
         })
     })

@@ -625,11 +625,8 @@ describe('actions.planning.api', () => {
                 ])
 
                 expect(services.api('planning').save.callCount).toBe(1)
-                expect(services.api('planning').save.args[0]).toEqual([
-                    data.plannings[0],
-                    planningItem,
-                ])
-
+                expect(services.api('planning').save.args[0][0]).toEqual(data.plannings[0])
+                expect(services.api('planning').save.args[0][1].slugline).toEqual('New Slugger')
                 done()
             })
         })

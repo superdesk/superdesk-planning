@@ -65,6 +65,8 @@ export const getTestActionStore = () => {
                 },
 
                 assignments_link: { save: sinon.stub().returns(Promise.resolve()) },
+                assignments_lock: { save: sinon.stub().returns(Promise.resolve()) },
+                assignments_unlock: { save: sinon.stub().returns(Promise.resolve()) },
 
                 update: sinon.spy(() => (Promise.resolve())),
                 save: sinon.spy(() => (Promise.resolve())),
@@ -82,6 +84,7 @@ export const getTestActionStore = () => {
             events: [
                 {
                     _id: 'e1',
+                    _type: 'events',
                     name: 'Event 1',
                     dates: {
                         start: '2016-10-15T13:01:11',
@@ -92,6 +95,7 @@ export const getTestActionStore = () => {
                 },
                 {
                     _id: 'e2',
+                    _type: 'events',
                     name: 'Event 2',
                     dates: {
                         start: '2014-10-15T14:01:11',
@@ -101,6 +105,7 @@ export const getTestActionStore = () => {
                 },
                 {
                     _id: 'e3',
+                    _type: 'events',
                     name: 'Event 3',
                     dates: {
                         start: '2015-10-15T14:01:11',
@@ -111,6 +116,7 @@ export const getTestActionStore = () => {
             plannings: [
                 {
                     _id: 'p1',
+                    _type: 'planning',
                     slugline: 'Planning1',
                     headline: 'Some Plan 1',
                     state: 'draft',
@@ -160,6 +166,7 @@ export const getTestActionStore = () => {
                 },
                 {
                     _id: 'p2',
+                    _type: 'planning',
                     slugline: 'Planning2',
                     headline: 'Some Plan 2',
                     event_item: 'e1',
@@ -180,6 +187,7 @@ export const getTestActionStore = () => {
             assignments: [
                 {
                     _id: 'as1',
+                    _type: 'assignments',
                     coverage_id: 'c1',
                     planning_item: 'p1',
                     assigned_to: {
@@ -194,6 +202,7 @@ export const getTestActionStore = () => {
                 },
                 {
                     _id: 'as2',
+                    _type: 'assignments',
                     coverage_id: 'c2',
                     planning_item: 'p1',
                     assigned_to: {
@@ -495,6 +504,7 @@ export const getTestActionStore = () => {
                 events: {},
                 planning: {},
                 recurring: {},
+                assignments: {},
             },
             workspace: {
                 currentDeskId: null,
