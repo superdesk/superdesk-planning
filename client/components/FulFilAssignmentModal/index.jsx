@@ -13,21 +13,21 @@ import { WORKSPACE } from '../../constants'
 import './style.scss'
 
 
-export function FulFillAssignmentComponent({
+export function FulFilAssignmentComponent({
     handleHide,
     modalProps,
     currentWorkspace,
-    onFulFillAssignment,
+    onFulFilAssignment,
 }) {
     const { newsItem, $scope } = modalProps
 
-    const action = (assignment) => {
-        return onFulFillAssignment(assignment, newsItem)
+    const action = (assignment) => (
+        onFulFilAssignment(assignment, newsItem)
         .then(
             () => { $scope.resolve() },
             () => { $scope.reject() }
         )
-    }
+    )
 
     const handleCancel = () => {
         handleHide()
@@ -39,8 +39,6 @@ export function FulFillAssignmentComponent({
     }
 
     return (
-
-
         <Modal
             show={true}
             onHide={handleHide}
@@ -50,11 +48,11 @@ export function FulFillAssignmentComponent({
                 <a className="close" onClick={handleCancel}>
                     <i className="icon-close-small" />
                 </a>
-                <h3>Fulfill Assignment</h3>
+                <h3>Fulfil Assignment</h3>
             </Modal.Header>
 
             <Modal.Body>
-                <div className='FulfillAssignment'>
+                <div className='FulfilAssignment'>
                     <div>
                         <div className='metadata-view'>
                             <dl>
@@ -68,7 +66,7 @@ export function FulFillAssignmentComponent({
                         </div>
                     </div>
                     <AssignmentListContainer
-                        onFulFillAssignment={action} />
+                        onFulFilAssignment={action} />
                 </div>
             </Modal.Body>
 
@@ -79,26 +77,26 @@ export function FulFillAssignmentComponent({
     )
 }
 
-FulFillAssignmentComponent.propTypes = {
+FulFilAssignmentComponent.propTypes = {
     handleHide: PropTypes.func.isRequired,
     modalProps: PropTypes.shape({
         newsItem: PropTypes.object,
         $scope: PropTypes.object,
     }),
     currentWorkspace: PropTypes.string,
-    onFulFillAssignment: PropTypes.func,
+    onFulFilAssignment: PropTypes.func,
 }
 
 const mapStateToDispatch = (dispatch) => ({
-    onFulFillAssignment: (assignment, item) => (
-        dispatch(actions.assignments.ui.onFulFillAssignment(assignment, item))
+    onFulFilAssignment: (assignment, item) => (
+        dispatch(actions.assignments.ui.onFulFilAssignment(assignment, item))
     ),
 })
 
 const mapStateToProps = (state) => ({ currentWorkspace: selectors.getCurrentWorkspace(state) })
 
 
-export const FulFillAssignmentModal = connect(
+export const FulFilAssignmentModal = connect(
     mapStateToProps,
     mapStateToDispatch
-)(FulFillAssignmentComponent)
+)(FulFilAssignmentComponent)

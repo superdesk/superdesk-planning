@@ -1,4 +1,26 @@
 Feature: Assignments
+    Background: Initial setup
+        Given the "validators"
+        """
+        [
+        {
+            "schema": {},
+            "type": "text",
+            "act": "publish",
+            "_id": "publish_text"
+        },
+        {
+            "_id": "publish_composite",
+            "act": "publish",
+            "type": "composite",
+            "schema": {}
+        }
+        ]
+        """
+        And "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60}]
+        """
 
     @auth
     Scenario: Empty planning list
@@ -44,8 +66,8 @@ Feature: Assignments
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "coverage_provider": {
                             "qcode": "stringer",
                             "name": "Stringer"}
@@ -75,8 +97,8 @@ Feature: Assignments
                         "slugline": "test slugline"
                     },
                     "assigned_to": {
-                        "desk": "Politic Desk",
-                        "user": "507f191e810c19729de870eb",
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#",
                         "coverage_provider": {"name": "Stringer"}
                     }
@@ -96,8 +118,8 @@ Feature: Assignments
                 "slugline": "test slugline"
             },
             "assigned_to": {
-                "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb",
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
                 "coverage_provider": {"name": "Stringer"}
             }
         }
@@ -118,8 +140,8 @@ Feature: Assignments
         """
         {
             "assigned_to": {
-                "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb",
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
                 "coverage_provider": {"qcode":"agencies", "name": "Agencies"}
             }
         }
@@ -170,14 +192,17 @@ Feature: Assignments
         [{
             "type": "text",
             "headline": "test headline",
-            "slugline": "test slugline"
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
         }]
         """
         When we post to "/planning"
         """
         [{
             "item_class": "item class value",
-            "headline": "test headline",
             "slugline": "test slugline"
         }]
         """
@@ -188,19 +213,22 @@ Feature: Assignments
             "coverages": [{
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
-                    "headline": "test headline",
                     "slugline": "test slugline"
                 },
                 "assigned_to": {
-                    "desk": "Politic Desk",
-                    "user": "#CONTEXT_USER_ID#",
-                    "state": "in_progress"
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
                 }
             }]
         }
         """
         Then we get OK response
         Then we store assignment id in "firstassignment" from coverage 0
+        When we patch "/archive/#archive._id#"
+        """
+        {"headline": "test headline 2"}
+        """
+        Then we get OK response
         When we post to "assignments/link"
         """
         [{
@@ -224,11 +252,10 @@ Feature: Assignments
             "_id": "#firstassignment#",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
-                "headline": "test headline",
                 "slugline": "test slugline"
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#"
             }
         }
@@ -247,11 +274,10 @@ Feature: Assignments
             "_id": "#firstassignment#",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
-                "headline": "test headline",
                 "slugline": "test slugline"
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#USERS_ID#"
             }
         }
@@ -265,14 +291,17 @@ Feature: Assignments
         [{
             "type": "text",
             "headline": "test headline",
-            "slugline": "test slugline"
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
         }]
         """
         When we post to "/planning"
         """
         [{
             "item_class": "item class value",
-            "headline": "test headline",
             "slugline": "test slugline"
         }]
         """
@@ -283,13 +312,11 @@ Feature: Assignments
             "coverages": [{
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
-                    "headline": "test headline",
                     "slugline": "test slugline"
                 },
                 "assigned_to": {
-                    "desk": "Politic Desk",
-                    "user": "#CONTEXT_USER_ID#",
-                    "state": "in_progress"
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
                 }
             }]
         }
@@ -319,11 +346,10 @@ Feature: Assignments
             "_id": "#firstassignment#",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
-                "headline": "test headline",
                 "slugline": "test slugline"
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "in_progress"
             }
@@ -348,14 +374,17 @@ Feature: Assignments
         [{
             "type": "text",
             "headline": "test headline",
-            "slugline": "test slugline"
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
         }]
         """
         When we post to "/planning"
         """
         [{
             "item_class": "item class value",
-            "headline": "test headline",
             "slugline": "test slugline"
         }]
         """
@@ -366,13 +395,11 @@ Feature: Assignments
             "coverages": [{
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
-                    "headline": "test headline",
                     "slugline": "test slugline"
                 },
                 "assigned_to": {
-                    "desk": "Politic Desk",
-                    "user": "#CONTEXT_USER_ID#",
-                    "state": "in_progress"
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
                 }
             }]
         }
@@ -402,11 +429,10 @@ Feature: Assignments
             "_id": "#firstassignment#",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
-                "headline": "test headline",
                 "slugline": "test slugline"
             },
             "assigned_to": {
-                "desk": "Politic Desk",
+                "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "in_progress"
             }
@@ -430,7 +456,6 @@ Feature: Assignments
             "_id": "#firstassignment#",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
-                "headline": "test headline",
                 "slugline": "test slugline"
             },
             "assigned_to": {

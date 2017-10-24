@@ -21,7 +21,7 @@ const onAssignmentCreated = (_e, data) => (
 )
 
 /**
- * WS Action when a new Assignment item is updated
+ * WS Action when a Assignment item is updated
  * @param {object} _e - Event object
  * @param {object} data - Assignment, User, Desk IDs
  */
@@ -37,8 +37,13 @@ const onAssignmentUpdated = (_e, data) => (
                 let coverages = get(planningItem, 'coverages') || []
                 let coverage = coverages.find((cov) => cov.coverage_id === data.coverage)
                 if (coverage) {
-                    coverage.assigned_to.user = data.assigned_user
-                    coverage.assigned_to.desk = data.assigned_desk
+                    if (data.assigned_user) {
+                        coverage.assigned_to.user = data.assigned_user
+                    }
+
+                    if (data.assigned_desk) {
+                        coverage.assigned_to.desk = data.assigned_desk
+                    }
 
                     if (data.assignment_state) {
                         coverage.assigned_to.state = data.assignment_state

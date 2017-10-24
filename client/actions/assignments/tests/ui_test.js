@@ -20,16 +20,13 @@ describe('actions.assignments.ui', () => {
         restoreSinonStub(assignmentsApi.link)
     })
 
-    describe('onFulFillAssignment', () => {
+    describe('onFulFilAssignment', () => {
         it('call succeeds', (done) => {
-            store.test(done, assignmentsUi.onFulFillAssignment({ _id: 'as1' }, { _id: 'item1' }))
+            store.test(done, assignmentsUi.onFulFilAssignment({ _id: 'as1' }, { _id: 'item1' }))
             .then(() => {
                 expect(assignmentsApi.link.callCount).toBe(1)
                 expect(assignmentsApi.link.args[0]).toEqual(['as1', 'item1'])
                 expect(services.notify.success.callCount).toBe(1)
-
-                expect(store.dispatch.args[1]).toEqual([{ type: 'CLOSE_PREVIEW_ASSIGNMENT' }])
-                expect(store.dispatch.args[2]).toEqual([{ type: 'HIDE_MODAL' }])
                 done()
             })
         })
@@ -37,7 +34,7 @@ describe('actions.assignments.ui', () => {
         it('call fails', (done) => {
             restoreSinonStub(assignmentsApi.link)
             sinon.stub(assignmentsApi, 'link').callsFake(() => (Promise.reject(errorMessage)))
-            store.test(done, assignmentsUi.onFulFillAssignment({ _id: 'as1' }, { _id: 'item1' }))
+            store.test(done, assignmentsUi.onFulFilAssignment({ _id: 'as1' }, { _id: 'item1' }))
             .then(() => {}, (error) => {
                 expect(assignmentsApi.link.callCount).toBe(1)
                 expect(assignmentsApi.link.args[0]).toEqual(['as1', 'item1'])

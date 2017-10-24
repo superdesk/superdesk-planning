@@ -454,7 +454,7 @@ const crashReporter = () => next => action => {
     }
 }
 
-export const createStore = (params={}) => {
+export const createStore = (params={}, app=planningApp) => {
     const { initialState={}, extraArguments={} } = params
     const middlewares = [
         crashReporter,
@@ -467,7 +467,7 @@ export const createStore = (params={}) => {
     ]
     // return the store
     return _createStore(
-        planningApp,
+        app,
         initialState,
         applyMiddleware.apply(null, middlewares)
     )

@@ -7,18 +7,18 @@ import { get } from 'lodash'
 import { registerNotifications } from '../utils'
 import { WORKSPACE, ASSIGNMENTS } from '../constants'
 
-FulFillAssignmentController.$inject = [
+FulFilAssignmentController.$inject = [
     '$scope',
     'sdPlanningStore',
     'notify',
-    'gettextCatalog',
+    'gettext',
     'lock',
     'session',
     'userList',
     'api',
 ]
 
-export function FulFillAssignmentController(
+export function FulFilAssignmentController(
     $scope,
     sdPlanningStore,
     notify,
@@ -40,13 +40,18 @@ export function FulFillAssignmentController(
     api.find('archive', item._id)
     .then((newsItem) => {
         if (get(newsItem, 'assignment_id')) {
-            notify.error('Item already linked to a Planning item')
+            notify.error(gettext('Item already linked to a Planning item'))
+            return Promise.reject()
+        }
+
+        if (lock.isLocked(item)) {
+            notify.error(gettext('Item already locked.'))
             return Promise.reject()
         }
 
         if (!lock.isLockedInCurrentSession(newsItem)) {
             newsItem._editable = true
-            return lock.lock(newsItem, false, 'fulfill_assignment')
+            return lock.lock(newsItem, false, 'fulfil_assignment')
         }
 
         return Promise.resolve(newsItem)
@@ -76,7 +81,7 @@ export function FulFillAssignmentController(
                 )
 
                 store.dispatch(actions.showModal({
-                    modalType: 'FULFILL_ASSIGNMENT',
+                    modalType: 'FULFIL_ASSIGNMENT',
                     modalProps: {
                         newsItem,
                         fullscreen: true,
@@ -90,7 +95,7 @@ export function FulFillAssignmentController(
 
                     // Only unlock the item if it was locked when launching this modal
                     if (get(newsItem, 'lock_session', null) !== null &&
-                        get(newsItem, 'lock_action', 'edit') === 'fulfill_assignment' &&
+                        get(newsItem, 'lock_action', 'edit') === 'fulfil_assignment' &&
                         lock.isLockedInCurrentSession(newsItem)
                     ) {
                         lock.unlock(newsItem)
@@ -113,8 +118,8 @@ export function FulFillAssignmentController(
                         .then((username) => store.dispatch(actions.showModal({
                             modalType: 'NOTIFICATION_MODAL',
                             modalProps: {
-                                title: 'Item Unlocked',
-                                body: `The item was unlocked by "${username}"`,
+                                title: gettext('Item Unlocked'),
+                                body: gettext(`The item was unlocked by "${username}"`),
                                 action: () => {
                                     newsItem.lock_session = null
                                     $scope.reject()

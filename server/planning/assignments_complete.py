@@ -34,12 +34,13 @@ class AssignmentsCompleteResource(AssignmentsResource):
 
 
 class AssignmentsCompleteService(BaseService):
+    def on_update(self, updates, original):
+        if original.get('assigned_to').get('state') != ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
+            raise SuperdeskApiError.forbiddenError('Cannot complete. Assignment not in progress.')
+
     def update(self, id, updates, original):
         user = get_user(required=True).get(config.ID_FIELD, '')
         session = get_auth().get(config.ID_FIELD, '')
-
-        if original.get('assigned_to').get('state') != ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
-            raise SuperdeskApiError.forbiddenError('Cannot complete. Assignment not in progress.')
 
         updates['assigned_to'] = deepcopy(original).get('assigned_to')
         updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED

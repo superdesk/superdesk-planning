@@ -2,7 +2,6 @@ import assignments from './index'
 import * as selectors from '../../selectors'
 import { ASSIGNMENTS, PRIVILEGES } from '../../constants'
 import { checkPermission, getErrorMessage } from '../../utils'
-import { hideModal } from '../modal'
 
 /**
  * Action dispatcher to load the list of assignments for current list settings.
@@ -78,13 +77,12 @@ const loadMoreAssignments = () =>
  */
 const fetch = () =>
     (dispatch, getState) => (
-        dispatch(assignments.api.query(selectors.getAssignmentSearch(getState()))
+        dispatch(assignments.api.query(selectors.getAssignmentSearch(getState())))
         .then((data) => {
             dispatch(assignments.api.receivedAssignments(data._items))
             dispatch(self.setInList(data._items.map((a) => a._id)))
             return Promise.resolve(data._items)
         }))
-    )
 
 /**
  * Action to change the last loaded page for the list of Assignments
@@ -209,21 +207,19 @@ const save = (item) => (
 )
 
 /**
- * Action for fulfill the assignment
+ * Action for fulfil the assignment
  * @param {Object} assignment - Assignment to link
  * @param {Object} newsItem - Newsitem to link
  */
-const onFulFillAssignment = (assignment, newsItem) => (
+const onFulFilAssignment = (assignment, newsItem) => (
     (dispatch, getState, { notify }) => (
         dispatch(assignments.api.link(assignment._id, newsItem._id))
         .then((item) => {
-            notify.success('Assignment is fulfilled.')
-            dispatch(self.closePreview())
-            dispatch(hideModal())
+            notify.success('Assignment is fulfiled.')
             return Promise.resolve(item)
         }, (error) => {
             notify.error(
-                getErrorMessage(error, 'Failed to fulfill assignment.')
+                getErrorMessage(error, 'Failed to fulfil assignment.')
             )
             return Promise.reject(error)
         })
@@ -244,6 +240,32 @@ const complete = (item) => (
     )
 )
 
+/**
+ * Action for launching the modal form for fulfil assignment and add to planning
+ * @param {string} action
+ * @param {string} type
+ * @param {object} item
+ */
+const onAuthoringMenuClick = (action, type, item) => (
+    (dispatch, getState, { superdesk }) => {
+        superdesk.intent(action, type, { item: item })
+        .then(
+            () => Promise.resolve(item),
+            (error) => Promise.reject(error)
+        )
+    }
+)
+
+const canLinkItem = (item) => (
+    (dispatch, getState, { lock, authoring, archiveService }) => (
+        Promise.resolve(
+            !item.assignment_id &&
+            (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
+            !archiveService.isPersonal(item) && authoring.itemActions(item).edit
+        )
+    )
+)
+
 const self = {
     loadAssignments,
     changeListSettings,
@@ -259,8 +281,10 @@ const self = {
     _openEditor,
     openEditor,
     save,
-    onFulFillAssignment,
+    onFulFilAssignment,
     complete,
+    onAuthoringMenuClick,
+    canLinkItem,
 }
 
 export default self

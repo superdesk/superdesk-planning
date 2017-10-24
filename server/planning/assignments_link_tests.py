@@ -9,7 +9,11 @@ class AssignmentLinkTestCase(TestCase):
                 '_id': 'item1',
                 'type': 'text',
                 'headline': 'test headline',
-                'slugline': 'test slugline'
+                'slugline': 'test slugline',
+                'task': {
+                    'desk': 'desk1',
+                    'stage': 'stage1'
+                }
             }])
             self.app.data.insert('assignments', [{
                 '_id': 'as1',
