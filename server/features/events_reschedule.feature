@@ -178,7 +178,6 @@ Feature: Events Reschedule
         }
         """
 
-
     @auth
     @notification
     Scenario: Reschedule a series of recurring events
@@ -210,7 +209,7 @@ Feature: Events Reschedule
         [{
             "slugline": "Weekly Meetings",
             "headline": "Friday Club",
-            "event_item": "#EVENT3._id#",
+            "event_item": "#EVENT1._id#",
             "state": "draft"
         }]
         """
@@ -239,24 +238,17 @@ Feature: Events Reschedule
         """
         {"_items": [
             {
-                "state": "draft",
-                "dates": {
-                    "start": "2099-11-22T13:00:00+0000",
-                    "end": "2099-11-22T15:00:00+0000"
-                },
-                "recurrence_id": "#EVENT1.recurrence_id#"
-            },
-            {
-                "_id": "#EVENT3._id#",
+                "_id": "#EVENT1._id#",
                 "state": "rescheduled",
                 "dates": {
-                    "start": "2099-11-23T12:00:00+0000",
-                    "end": "2099-11-23T14:00:00+0000"
+                    "start": "2099-11-21T12:00:00+0000",
+                    "end": "2099-11-21T14:00:00+0000"
                 },
                 "recurrence_id": "#EVENT1.recurrence_id#",
                 "definition_long": "------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n"
             },
             {
+                "_id": "#EVENT2._id#",
                 "state": "draft",
                 "dates": {
                     "start": "2099-11-23T13:00:00+0000",
@@ -265,6 +257,7 @@ Feature: Events Reschedule
                 "recurrence_id": "#EVENT1.recurrence_id#"
             },
             {
+                "_id": "#EVENT4._id#",
                 "state": "draft",
                 "dates": {
                     "start": "2099-11-24T13:00:00+0000",
@@ -279,16 +272,18 @@ Feature: Events Reschedule
                     "end": "2099-11-25T15:00:00+0000"
                 },
                 "recurrence_id": "#EVENT1.recurrence_id#"
+            },
+            {
+                "state": "draft",
+                "dates": {
+                    "start": "2099-11-26T13:00:00+0000",
+                    "end": "2099-11-26T15:00:00+0000"
+                },
+                "recurrence_id": "#EVENT1.recurrence_id#"
             }
         ]}
         """
-        When we get "/events/#EVENT1._id#"
-        Then we get error 404
-        When we get "/events/#EVENT2._id#"
-        Then we get error 404
         When we get "/events/#EVENT3._id#"
-        Then we get OK response
-        When we get "/events/#EVENT4._id#"
         Then we get error 404
         When we get "/planning"
         Then we get a list with 1 items
@@ -296,7 +291,7 @@ Feature: Events Reschedule
         {"_items": [{
             "slugline": "Weekly Meetings",
             "headline": "Friday Club",
-            "event_item": "#EVENT3._id#",
+            "event_item": "#EVENT1._id#",
             "state": "rescheduled"
         }]}
         """
@@ -547,8 +542,8 @@ Feature: Events Reschedule
         [{
             "name": "Friday Club",
             "dates": {
-                "start": "2019-11-21T12:00:00.000Z",
-                "end": "2019-11-21T14:00:00.000Z",
+                "start": "2019-11-22T12:00:00.000Z",
+                "end": "2019-11-22T14:00:00.000Z",
                 "recurring_rule": {
                     "frequency": "WEEKLY",
                     "interval": 1,
@@ -656,8 +651,6 @@ Feature: Events Reschedule
             }
         ]}
         """
-        When we get "/events/#EVENT3._id#"
-        Then we get error 404
         When we get "/events/#EVENT4._id#"
         Then we get error 404
         When we get "/events/#EVENT5._id#"
@@ -753,3 +746,275 @@ Feature: Events Reschedule
             }
         ]}
         """
+
+    @auth
+    Scenario: Reschedule series of postponed events
+      When we post to "events"
+      """
+      [{
+          "name": "Friday Club",
+          "dates": {
+              "start": "2019-11-22T12:00:00.000Z",
+              "end": "2019-11-22T14:00:00.000Z",
+              "tz": "Australia/Sydney",
+              "recurring_rule": {
+                  "frequency": "WEEKLY",
+                  "interval": 1,
+                  "byday": "FR",
+                  "count": 4,
+                  "endRepeatMode": "count"
+              }
+          }
+      }]
+      """
+      Then we get OK response
+      Then we store "EVENT1" with first item
+      Then we store "EVENT2" with 2 item
+      Then we store "EVENT3" with 3 item
+      Then we store "EVENT4" with 4 item
+      When we post to "planning"
+      """
+      [
+          {
+              "guid": "plan1",
+              "slugline": "Weekly Meetings",
+              "headline": "Friday Club",
+              "event_item": "#EVENT2._id#",
+              "coverages": [{
+                  "planning": {
+                      "internal_note": "test coverage, 250 words",
+                      "headline": "test headline",
+                      "slugline": "test slugline",
+                      "scheduled": "2029-11-21T14:00:00.000Z",
+                      "g2_content_type": "text"
+                  },
+                  "news_coverage_status": {"qcode": "ncostat:int"}
+              }]
+          },
+          {
+              "guid": "plan2",
+              "slugline": "Weekly Meetings",
+              "headline": "Friday Club",
+              "event_item": "#EVENT3._id#"
+          }
+      ]
+      """
+      Then we get OK response
+      Then we store "PLAN1" with first item
+      Then we store "PLAN2" with 2 item
+      When we get "/planning"
+      Then we get list with 2 items
+      """
+      {"_items": [
+          {
+              "_id": "#PLAN1._id#",
+              "event_item": "#EVENT2._id#",
+              "state": "draft"
+          },
+          {
+              "_id": "#PLAN2._id#",
+              "event_item": "#EVENT3._id#",
+              "state": "draft"
+          }
+      ]}
+      """
+      When we post to "/events/publish"
+      """
+      {
+          "event": "#EVENT4._id#",
+          "etag": "#EVENT4._etag#",
+          "pubstatus": "usable"
+      }
+      """
+      Then we get OK response
+      When we post to "/planning/publish"
+      """
+      {
+          "planning": "#PLAN2._id#",
+          "etag": "#PLAN2._etag#",
+          "pubstatus": "usable"
+      }
+      """
+      When we perform postpone on events "#EVENT1._id#"
+      """
+      {"update_method": "all"}
+      """
+      Then we get OK response
+      When we get "/events"
+      Then we get list with 4 items
+      """
+      {"_items": [
+          {
+              "_id": "#EVENT1._id#",
+              "state": "postponed",
+              "definition_long": "------------------------------------------------------------\nEvent Postponed\n"
+          },
+          {
+              "_id": "#EVENT2._id#",
+              "state": "postponed",
+              "definition_long": "------------------------------------------------------------\nEvent Postponed\n"
+          },
+          {
+              "_id": "#EVENT3._id#",
+              "state": "postponed",
+              "definition_long": "------------------------------------------------------------\nEvent Postponed\n"
+          },
+          {
+              "_id": "#EVENT4._id#",
+              "state": "postponed",
+              "definition_long": "------------------------------------------------------------\nEvent Postponed\n"
+          }
+      ]}
+      """
+      When we get "/planning"
+      Then we get list with 2 items
+      """
+      {"_items": [
+          {
+              "_id": "#PLAN1._id#",
+              "event_item": "#EVENT2._id#",
+              "state": "postponed",
+              "ednote": "------------------------------------------------------------\nEvent Postponed\n",
+              "coverages": [{
+                  "coverage_id": "__any_value__",
+                  "planning": {
+                      "internal_note": "test coverage, 250 words\n\n------------------------------------------------------------\nEvent has been postponed\n",
+                      "headline": "test headline",
+                      "slugline": "test slugline",
+                      "scheduled": "2029-11-21T14:00:00+0000",
+                      "g2_content_type": "text"
+                  },
+                  "news_coverage_status": { "qcode": "ncostat:int" }
+              }]
+          },
+          {
+              "_id": "#PLAN2._id#",
+              "event_item": "#EVENT3._id#",
+              "state": "postponed",
+              "ednote": "------------------------------------------------------------\nEvent Postponed\n"
+          }
+      ]}
+      """
+      When we perform reschedule on events "#EVENT1._id#"
+      """
+      {
+          "reason": "Event back on at original date and time",
+          "dates": {
+              "start": "2019-11-22T12:00:00.000Z",
+              "end": "2019-11-22T14:00:00.000Z",
+              "tz": "Australia/Sydney",
+              "recurring_rule": {
+                  "frequency": "WEEKLY",
+                  "interval": 1,
+                  "byday": "FR",
+                  "count": 4,
+                  "endRepeatMode": "count"
+              }
+          },
+          "update_method": "all"
+      }
+      """
+      Then we get OK response
+      When we get "/events"
+      Then we get list with 4 items
+      """
+      {"_items": [
+          {
+              "name": "Friday Club",
+              "dates": {
+                  "start": "2019-11-22T12:00:00+0000",
+                  "end": "2019-11-22T14:00:00+0000",
+                  "tz": "Australia/Sydney",
+                  "recurring_rule": {
+                      "frequency": "WEEKLY",
+                      "interval": 1,
+                      "byday": "FR",
+                      "count": 4,
+                      "endRepeatMode": "count"
+                  }
+              },
+              "state": "draft",
+              "definition_long": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
+          },
+          {
+              "name": "Friday Club",
+              "dates": {
+                  "start": "2019-11-29T12:00:00+0000",
+                  "end": "2019-11-29T14:00:00+0000",
+                  "tz": "Australia/Sydney",
+                  "recurring_rule": {
+                      "frequency": "WEEKLY",
+                      "interval": 1,
+                      "byday": "FR",
+                      "count": 4,
+                      "endRepeatMode": "count"
+                  }
+              },
+              "state": "draft",
+              "definition_long": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
+          },
+          {
+              "name": "Friday Club",
+              "dates": {
+                  "start": "2019-12-06T12:00:00+0000",
+                  "end": "2019-12-06T14:00:00+0000",
+                  "tz": "Australia/Sydney",
+                  "recurring_rule": {
+                      "frequency": "WEEKLY",
+                      "interval": 1,
+                      "byday": "FR",
+                      "count": 4,
+                      "endRepeatMode": "count"
+                  }
+              },
+              "state": "draft",
+              "definition_long": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
+          },
+          {
+              "name": "Friday Club",
+              "dates": {
+                  "start": "2019-12-13T12:00:00+0000",
+                  "end": "2019-12-13T14:00:00+0000",
+                  "tz": "Australia/Sydney",
+                  "recurring_rule": {
+                      "frequency": "WEEKLY",
+                      "interval": 1,
+                      "byday": "FR",
+                      "count": 4,
+                      "endRepeatMode": "count"
+                  }
+              },
+              "state": "scheduled",
+              "definition_long": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
+          }
+      ]}
+      """
+      When we get "/planning"
+      Then we get list with 2 items
+      """
+      {"_items": [
+          {
+              "_id": "#PLAN1._id#",
+              "event_item": "#EVENT2._id#",
+              "state": "draft",
+              "ednote": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n",
+              "coverages": [{
+                  "coverage_id": "__any_value__",
+                  "planning": {
+                      "internal_note": "test coverage, 250 words\n\n------------------------------------------------------------\nEvent has been postponed\n\n\n------------------------------------------------------------\nEvent has been rescheduled\nReason: Event back on at original date and time\n",
+                      "headline": "test headline",
+                      "slugline": "test slugline",
+                      "scheduled": "2029-11-21T14:00:00+0000",
+                      "g2_content_type": "text"
+                  },
+                  "news_coverage_status": { "qcode": "ncostat:int" }
+              }]
+          },
+          {
+              "_id": "#PLAN2._id#",
+              "event_item": "#EVENT3._id#",
+              "state": "scheduled",
+              "ednote": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
+          }
+      ]}
+      """
