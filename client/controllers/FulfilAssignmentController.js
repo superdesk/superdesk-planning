@@ -5,7 +5,8 @@ import { Provider } from 'react-redux'
 import { ModalsContainer } from '../components'
 import { get } from 'lodash'
 import { registerNotifications } from '../utils'
-import { WORKSPACE, ASSIGNMENTS } from '../constants'
+import { WORKSPACE, ASSIGNMENTS, MODALS } from '../constants'
+import { getErrorMessage } from '../utils/index'
 
 FulFilAssignmentController.$inject = [
     '$scope',
@@ -34,27 +35,46 @@ export function FulFilAssignmentController(
         notify.error(
             gettext('[SLUGLINE] is a required field')
         )
-        return $scope.reject()
+        $scope.reject()
+        return
     }
 
     api.find('archive', item._id)
     .then((newsItem) => {
         if (get(newsItem, 'assignment_id')) {
             notify.error(gettext('Item already linked to a Planning item'))
+            $scope.reject()
             return Promise.reject()
         }
 
         if (lock.isLocked(item)) {
             notify.error(gettext('Item already locked.'))
+            $scope.reject()
             return Promise.reject()
         }
 
         if (!lock.isLockedInCurrentSession(newsItem)) {
             newsItem._editable = true
             return lock.lock(newsItem, false, 'fulfil_assignment')
+            .then(
+                (lockedItem) => Promise.resolve(lockedItem),
+                (error) => {
+                    notify.error(
+                        gettext(getErrorMessage(error, 'Failed to lock the item.'))
+                    )
+                    $scope.reject(error)
+                    return Promise.reject(error)
+                }
+            )
         }
 
         return Promise.resolve(newsItem)
+    }, (error) => {
+        notify.error(
+            gettext(getErrorMessage(error, 'Failed to load the item.'))
+        )
+        $scope.reject(error)
+        return Promise.reject(error)
     })
     .then((newsItem) => {
         sdPlanningStore.getStore()
@@ -81,7 +101,7 @@ export function FulFilAssignmentController(
                 )
 
                 store.dispatch(actions.showModal({
-                    modalType: 'FULFIL_ASSIGNMENT',
+                    modalType: MODALS.FULFIL_ASSIGNMENT,
                     modalProps: {
                         newsItem,
                         fullscreen: true,
@@ -132,5 +152,9 @@ export function FulFilAssignmentController(
         })
     },
 
-    () => $scope.reject())
+        (error) => {
+            $scope.reject(error)
+            return Promise.reject(error)
+        }
+    )
 }

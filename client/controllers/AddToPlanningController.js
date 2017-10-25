@@ -69,6 +69,7 @@ export function AddToPlanningController(
             notify.error(
                 gettext('Item already locked.')
             )
+            $scope.reject()
             return Promise.reject()
         }
 
