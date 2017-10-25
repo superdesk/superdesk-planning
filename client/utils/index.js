@@ -605,7 +605,7 @@ export const getCoverageIcon = (type) => {
         video: 'icon-video',
         live_video: 'icon-video',
         audio: 'icon-audio',
-        photo: 'icon-photo',
+        picture: 'icon-photo',
     }
     return get(coverageIcons, type, 'icon-file')
 }

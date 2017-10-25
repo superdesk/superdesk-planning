@@ -9,7 +9,6 @@ import {
 import * as selectors from '../../selectors'
 import * as actions  from '../../actions'
 import { WORKSPACE } from '../../constants'
-
 import './style.scss'
 
 

@@ -50,7 +50,6 @@ describe('AddToPlanningController', () => {
     }))
 
     it('notifies the user if failed to load the item', inject((
-        $controller,
         $location,
         sdPlanningStore,
         $q,

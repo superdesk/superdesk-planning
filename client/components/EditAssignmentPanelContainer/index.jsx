@@ -20,12 +20,11 @@ export class EditAssignmentPanel extends React.Component {
     }
 
     onSubmit(assignment) {
-        if (this.props.currentWorkspace === WORKSPACE.PLANNING) {
-            return this.props.save(assignment)
-        } else {
+        if (this.props.currentWorkspace === WORKSPACE.AUTHORING) {
             return this.props.onFulFilAssignment(assignment)
+        } else {
+            return this.props.save(assignment)
         }
-
     }
 
     handleSave() {

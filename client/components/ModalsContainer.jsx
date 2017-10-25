@@ -22,7 +22,7 @@ const modals = {
     [MODALS.ITEM_ACTIONS_MODAL]: ItemActionConfirmationModal,
     [MODALS.SORT_SELECTED]: SortItemsModal,
     [MODALS.ADD_TO_PLANNING]: AddToPlanningModal,
-    [MODALS.FULFILL_ASSIGNMENT]: FulFilAssignmentModal,
+    [MODALS.FULFIL_ASSIGNMENT]: FulFilAssignmentModal,
 }
 
 export function Modals({ modalType, modalProps, handleHide }) {
