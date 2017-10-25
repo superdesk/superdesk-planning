@@ -88,4 +88,4 @@ Event has been postponed
         if not coverage.get('planning'):
             coverage['planning'] = {}
 
-        coverage['planning']['internal_note'] = note = coverage['planning']['internal_note'] + '\n\n' + note
+        coverage['planning']['internal_note'] = (coverage['planning'].get('internal_note') or '') + '\n\n' + note

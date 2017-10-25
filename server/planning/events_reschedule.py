@@ -21,6 +21,7 @@ from .events import EventsResource, events_schema, generate_recurring_dates, set
 from flask import current_app as app
 from itertools import islice
 import pytz
+from datetime import datetime
 
 event_cancel_schema = deepcopy(events_schema)
 event_cancel_schema['reason'] = {
@@ -95,7 +96,7 @@ class EventsRescheduleService(BaseService):
             if has_plannings:
                 self._reschedule_event_plannings(updates, original)
 
-    def _mark_event_rescheduled(self, updates, original):
+    def _mark_event_rescheduled(self, updates, original, keep_dates=False):
         definition = '''------------------------------------------------------------
 Event Rescheduled
 '''
@@ -115,9 +116,10 @@ Event Rescheduled
 
         # We don't want to update the schedule of this current event
         # As the duplicated Event will have the new schedule
-        updates.pop('dates', None)
+        if not keep_dates:
+            updates.pop('dates', None)
 
-    def _reschedule_event_plannings(self, updates, original, plans=None):
+    def _reschedule_event_plannings(self, updates, original, plans=None, state=None):
         planning_service = get_resource_service('planning')
         planning_reschedule_service = get_resource_service('planning_reschedule')
         reason = updates.get('reason', None)
@@ -125,7 +127,10 @@ Event Rescheduled
         if plans is None:
             plans = list(planning_service.find(where={'event_item': original[config.ID_FIELD]}))
 
-        plan_updates = {'reason': reason}
+        plan_updates = {
+            'reason': reason,
+            'state': state
+        }
         for plan in plans:
             updated_plan = planning_reschedule_service.patch(
                 plan[config.ID_FIELD],
@@ -159,6 +164,9 @@ Event Rescheduled
     def _reschedule_recurring_events(self, updates, original, update_method, events_service):
         original_deleted = False
         rules_changed = updates['dates']['recurring_rule'] != original['dates']['recurring_rule']
+        times_changed = updates['dates']['start'] != original['dates']['start'] or \
+            updates['dates']['end'] != original['dates']['end']
+        reason = updates.get('reason')
 
         historic, past, future = events_service.get_recurring_timeline(original)
 
@@ -176,8 +184,7 @@ Event Rescheduled
             rescheduled_events = past + [original] + future
 
             # Assign the date from the beginning of the new series
-            new_start_date = past[0]['dates']['start'] + \
-                (updates['dates']['start'] - original['dates']['start'])
+            new_start_date = updates['dates']['start']
             original_start_date = past[0]['dates']['start']
             original_rule = past[0]['dates']['recurring_rule']
 
@@ -188,12 +195,12 @@ Event Rescheduled
 
         # Compute the difference between start and end in the updated event
         time_delta = updates['dates']['end'] - updates['dates']['start']
-        length_changed = time_delta != original['dates']['end'] - original['dates']['start']
 
         # Generate the dates for the new event series
         new_dates = [date for date in islice(generate_recurring_dates(
             start=new_start_date,
             tz=updates['dates'].get('tz') and pytz.timezone(updates['dates']['tz'] or None),
+            date_only=True,
             **updated_rule
         ), 0, 200)]
 
@@ -201,41 +208,77 @@ Event Rescheduled
         original_dates = [date for date in islice(generate_recurring_dates(
             start=original_start_date,
             tz=original['dates'].get('tz') and pytz.timezone(original['dates']['tz'] or None),
+            date_only=True,
             **original_rule
         ), 0, 200)]
 
         set_next_occurrence(updates)
 
+        dates_processed = []
+
         # Iterate over the current events in the series and delete/spike
         # or update the event accordingly
         deleted_events = {}
         for event in rescheduled_events:
+            if event[config.ID_FIELD] == original[config.ID_FIELD]:
+                event_date = updates['dates']['start'].replace(tzinfo=None).date()
+            else:
+                event_date = event['dates']['start'].replace(tzinfo=None).date()
             # If the event does not occur in the new dates, then we need to either
             # delete or spike this event
-            if event['dates']['start'].replace(tzinfo=None) not in new_dates:
+            if event_date not in new_dates:
                 # Add it to the list of events to delete or spike
                 # This is done later so that we can perform a single
                 # query against mongo, rather than one per deleted event
                 deleted_events[event[config.ID_FIELD]] = event
 
-            # Otherwise if this Event does occur in the new dates, and the recurring rules have
-            # changed, then make sure this event has the new recurring rules applied.
-            # This can occur when extending a series where the original Events are kept and only
-            # new events are created.
-            # Or if the Event end date has changed, make sure this event has the new end date
-            if event[config.ID_FIELD] != original[config.ID_FIELD] and (rules_changed or length_changed):
-                new_updates = {'dates': event['dates']}
-                new_updates['dates']['end'] = new_updates['dates']['start'] + time_delta
-                new_updates['dates']['recurring_rule'] = updates['dates']['recurring_rule']
-                events_service.patch(event[config.ID_FIELD], new_updates)
-                app.on_updated_events_reschedule(new_updates, {'_id': event[config.ID_FIELD]})
+            # If the date has already been processed, then we should mark this event for deletion
+            # This occurs when the selected Event is being updated to an Event that already exists
+            # in another Event in the series.
+            # This stops multiple Events to occur on the same day
+            elif event_date in new_dates and event_date in dates_processed:
+                deleted_events[event[config.ID_FIELD]] = event
+
+            # Otherwise this Event does occur in the new dates
+            else:
+                # Because this Event occurs in the new dates, then we are not to set the state to 'rescheduled',
+                # instead we set it to either 'scheduled' (if public) or 'draft' (if not public)
+                new_state = WORKFLOW_STATE.SCHEDULED if event.get('pubstatus') else WORKFLOW_STATE.DRAFT
+
+                # If this is the selected Event, then simply update the fields and
+                # Reschedule associated Planning items
+                if event[config.ID_FIELD] == original[config.ID_FIELD]:
+                    self._mark_event_rescheduled(updates, original, True)
+                    updates['state'] = new_state
+                    self._reschedule_event_plannings(updates, event, state=WORKFLOW_STATE.DRAFT)
+
+                else:
+                    new_updates = {'reason': reason}
+                    self._mark_event_rescheduled(new_updates, event)
+                    new_updates['state'] = new_state
+
+                    # Update the 'start', 'end' and 'recurring_rule' fields of the Event
+                    if rules_changed or times_changed:
+                        new_updates['state'] = new_state
+                        new_updates['dates'] = event['dates']
+                        new_updates['dates']['start'] = datetime.combine(event_date, updates['dates']['start'].time())
+                        new_updates['dates']['end'] = new_updates['dates']['start'] + time_delta
+                        new_updates['dates']['recurring_rule'] = updates['dates']['recurring_rule']
+
+                    # And finally update the Event, and Reschedule associated Planning items
+                    events_service.patch(event[config.ID_FIELD], new_updates)
+                    self._reschedule_event_plannings(new_updates, event, state=WORKFLOW_STATE.DRAFT)
+                    app.on_updated_events_reschedule(new_updates, {'_id': event[config.ID_FIELD]})
+
+                # Mark this date as being already processed
+                dates_processed.append(event_date)
 
         # Create new events that do not fall on the original occurrence dates
         new_events = []
         for date in new_dates:
-            # If the new date falls on the original occurrences, or is the
+            # If the new date falls on the original occurrences, or if the
             # start date of the selected one, then skip this date occurrence
-            if date in original_dates:
+            if date in original_dates or date in dates_processed:
                 continue
 
             # Create a copy of the metadata to use for the new event
@@ -250,8 +293,8 @@ Event Rescheduled
                     new_event.pop(key)
 
             # Set the new start and end dates, as well as the _id and guid fields
-            new_event['dates']['start'] = date
-            new_event['dates']['end'] = date + time_delta
+            new_event['dates']['start'] = datetime.combine(date, updates['dates']['start'].time())
+            new_event['dates']['end'] = new_event['dates']['start'] + time_delta
             new_event[config.ID_FIELD] = new_event['guid'] = generate_guid(type=GUID_NEWSML)
             new_event.pop('reason', None)
 
@@ -277,7 +320,7 @@ Event Rescheduled
                     # all Planning items
                     new_updates = {
                         'skip_on_update': True,
-                        'reason': updates.get('reason', None)
+                        'reason': reason
                     }
                     self._mark_event_rescheduled(new_updates, original)
                     self.patch(event[config.ID_FIELD], new_updates)

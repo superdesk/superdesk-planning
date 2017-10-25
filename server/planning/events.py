@@ -825,7 +825,7 @@ class EventsResource(superdesk.Resource):
 
 
 def generate_recurring_dates(start, frequency, interval=1, endRepeatMode='count',
-                             until=None, byday=None, count=5, tz=None):
+                             until=None, byday=None, count=5, tz=None, date_only=False):
     """
 
     Returns list of dates related to recurring rules
@@ -883,9 +883,15 @@ def generate_recurring_dates(start, frequency, interval=1, endRepeatMode='count'
     )
     # if a timezone has been applied, returns UTC
     if tz:
-        return (tz.localize(dt).astimezone(pytz.UTC).replace(tzinfo=None) for dt in dates)
+        if date_only:
+            return (tz.localize(dt).astimezone(pytz.UTC).replace(tzinfo=None).date() for dt in dates)
+        else:
+            return (tz.localize(dt).astimezone(pytz.UTC).replace(tzinfo=None) for dt in dates)
     else:
-        return (date for date in dates)
+        if date_only:
+            return (date.date() for date in dates)
+        else:
+            return (date for date in dates)
 
 
 def setRecurringMode(event):

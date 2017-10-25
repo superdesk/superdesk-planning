@@ -72,7 +72,11 @@ Event Rescheduled
             ednote = original['ednote'] + '\n\n' + ednote
 
         updates['ednote'] = ednote
-        updates[ITEM_STATE] = WORKFLOW_STATE.RESCHEDULED
+
+        if updates.get(ITEM_STATE) == WORKFLOW_STATE.DRAFT and original.get('pubstatus'):
+            updates[ITEM_STATE] = WORKFLOW_STATE.SCHEDULED
+        else:
+            updates[ITEM_STATE] = updates.get(ITEM_STATE) or WORKFLOW_STATE.RESCHEDULED
 
     def _reschedule_coverage(self, coverage, reason):
         note = '''------------------------------------------------------------
