@@ -63,10 +63,22 @@ export const getTestActionStore = () => {
                         return Promise.resolve(assignment)
                     }),
                 },
+                archive: {
+                    getById: sinon.spy((id) => {
+                        const item = store.data.archive.find((i) => i._id === id)
+                        if (!item) {
+                            return Promise.reject(`Item '${id}' not found!`)
+                        }
+
+                        return Promise.resolve(item)
+                    }),
+                },
 
                 assignments_link: { save: sinon.stub().returns(Promise.resolve({})) },
                 assignments_lock: { save: sinon.stub().returns(Promise.resolve()) },
                 assignments_unlock: { save: sinon.stub().returns(Promise.resolve()) },
+                assignments_unlink: { save: sinon.stub().returns(Promise.resolve()) },
+
                 update: sinon.spy(() => (Promise.resolve())),
                 save: sinon.spy(() => (Promise.resolve())),
 
@@ -295,6 +307,14 @@ export const getTestActionStore = () => {
                     lock_action: 'edit',
                     lock_user: 'ident1',
                     lock_session: 'session1',
+                },
+            ],
+            archive: [
+                {
+                    _id: 'item1',
+                    slugline: 'test slugline',
+                    headline: 'test headline',
+                    urgency: 2,
                 },
             ],
         },

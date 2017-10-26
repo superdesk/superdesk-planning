@@ -8,6 +8,8 @@ import * as ctrl from './client/controllers'
 import * as components from './client/components'
 import { createStore } from './client/utils'
 
+import { get } from 'lodash'
+
 
 configurePlanning.$inject = ['superdeskProvider']
 function configurePlanning(superdesk) {
@@ -39,6 +41,7 @@ function configurePlanning(superdesk) {
             label: gettext('Add to Planning'),
             modal: true,
             icon: 'calendar-list',
+            priority: 3000,
             controller: ctrl.AddToPlanningController,
             filters: [
                 {
@@ -61,7 +64,9 @@ function configurePlanning(superdesk) {
         })
         .activity('planning.fulfil', {
             label: gettext('Fulfil Assignment'),
+            icon: 'calendar-list',
             modal: true,
+            priority: 2000,
             controller: ctrl.FulFilAssignmentController,
             filters: [
                 {
@@ -78,6 +83,30 @@ function configurePlanning(superdesk) {
             additionalCondition: ['lock', 'archiveService', 'item', 'authoring',
                 function(lock, archiveService, item, authoring) {
                 return !item.assignment_id &&
+                    (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
+                    !archiveService.isPersonal(item) && authoring.itemActions(item).edit
+            }]
+        })
+        .activity('planning.unlink', {
+            label: gettext('Unlink as Coverage'),
+            icon: 'cut',
+            priority: 1000,
+            controller: ctrl.UnlinkAssignmentController,
+            filters: [
+                {
+                    action: 'list',
+                    type: 'archive',
+                },
+                {
+                    action: 'external-app',
+                    type: 'unlink-assignment',
+                }
+            ],
+            group: 'Planning',
+            privileges: { archive: 1 },
+            additionalCondition: ['lock', 'archiveService', 'item', 'authoring',
+                function(lock, archiveService, item, authoring) {
+                return item.assignment_id && get(item, 'assignment.state') !== 'completed' &&
                     (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
                     !archiveService.isPersonal(item) && authoring.itemActions(item).edit
             }]

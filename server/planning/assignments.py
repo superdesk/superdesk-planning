@@ -41,6 +41,25 @@ planning_type['mapping'] = not_analyzed
 class AssignmentsService(superdesk.Service):
     """Service class for the Assignments model."""
 
+    def on_fetched_resource_archive(self, docs):
+        self._enhance_archive_items(docs[config.ITEMS])
+
+    def on_fetched_item_archive(self, doc):
+        if doc.get('assignment_id'):
+            assignment = self.find_one(req=None, _id=doc['assignment_id'])
+            doc['assignment'] = assignment.get('assigned_to') or {}
+
+    def _enhance_archive_items(self, docs):
+        ids = [str(item['assignment_id']) for item in docs if item.get('assignment_id')]
+        assignments = {str(item[config.ID_FIELD]): item for item in self.get_from_mongo(
+            req=None,
+            lookup={'_id': {'$in': ids}}
+        )}
+
+        for doc in docs:
+            if doc.get('assignment_id') in assignments:
+                doc['assignment'] = assignments[doc['assignment_id']].get('assigned_to') or {}
+
     def on_create(self, docs):
         for doc in docs:
             self.set_assignment(doc)
