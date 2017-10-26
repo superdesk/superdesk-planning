@@ -257,17 +257,12 @@ export class EditPlanningPanel extends React.Component {
             !lockedInThisSession
         )
 
-        const showSave = planningUtils.canSavePlanning(planning, event, privileges)
-        const showPublish = planningUtils.canPublishPlanning(planning, event, privileges, session, lockedItems)
-        const showUnpublish = planningUtils.canUnpublishPlanning(planning, event, privileges, session, lockedItems)
         const isPublic = isItemPublic(planning)
-        const showEdit = inPlanning && planningUtils.canEditPlanning(
-            planning,
-            event,
-            privileges,
-            lockedInThisSession,
-            lockedUser
-        )
+        const canEdit = planningUtils.canEditPlanning(planning, event, session, privileges, lockedItems)
+        const canUpdate = planningUtils.canUpdatePlanning(planning, event, session, privileges, lockedItems)
+        const canPublish = planningUtils.canPublishPlanning(planning, event, session, privileges, lockedItems)
+        const canUnpublish = planningUtils.canUnpublishPlanning(planning, event, session, privileges, lockedItems)
+        const showEdit = inPlanning && canEdit
 
         return (
             <div className="EditPlanningPanel">
@@ -301,7 +296,7 @@ export class EditPlanningPanel extends React.Component {
                                 </button>
                             }
 
-                            {!isPublic && !forceReadOnly && showSave &&
+                            {!isPublic && !forceReadOnly && canEdit &&
                                 <button
                                     className="btn btn--primary"
                                     onClick={this.handleSave.bind(this)}
@@ -311,7 +306,7 @@ export class EditPlanningPanel extends React.Component {
                                 </button>
                             }
 
-                            {!isPublic && showPublish &&
+                            {canPublish &&
                                 <button
                                     onClick={this.handleSaveAndPublish.bind(this)}
                                     type="button"
@@ -321,7 +316,7 @@ export class EditPlanningPanel extends React.Component {
                                 </button>
                             }
 
-                            {!forceReadOnly && showUnpublish &&
+                            {!forceReadOnly && canUpdate &&
                                 <button
                                     onClick={this.handleSaveAndPublish.bind(this)}
                                     type="button"
@@ -331,7 +326,7 @@ export class EditPlanningPanel extends React.Component {
                                 </button>
                             }
 
-                            {inPlanning && showUnpublish &&
+                            {inPlanning && canUnpublish &&
                                 <button
                                     onClick={this.handleSaveAndUnpublish.bind(this)}
                                     type="button"

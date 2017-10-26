@@ -181,9 +181,10 @@ const canPublishEvent = (event, session, privileges, locks) => (
         !isItemRescheduled(event)
 )
 
-const canUnpublishEvent = (event, privileges) => (
+const canUnpublishEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
-        getItemWorkflowState(event) === WORKFLOW_STATE.SCHEDULED &&
+        !isEventLockRestricted(event, session, locks) &&
+        getPublishedState(event) === PUBLISHED_STATE.USABLE &&
         !!privileges[PRIVILEGES.PUBLISH_EVENT]
 )
 
@@ -216,6 +217,12 @@ const canEditEvent = (event, session, privileges, locks) => (
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemRescheduled(event)
+)
+
+const canUpdateEvent = (event, session, privileges, locks) => (
+    canEditEvent(event, session, privileges, locks) &&
+        isItemPublic(event) &&
+        !!privileges[PRIVILEGES.PUBLISH_EVENT]
 )
 
 const canUpdateEventTime = (event, session, privileges, locks) => (
@@ -300,6 +307,7 @@ const self = {
     canPublishEvent,
     canUnpublishEvent,
     canEditEvent,
+    canUpdateEvent,
     getEventItemActions,
     isEventAssociatedWithPlannings,
     canCancelEvent,
