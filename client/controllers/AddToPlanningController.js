@@ -20,6 +20,8 @@ AddToPlanningController.$inject = [
     'lock',
     'session',
     'userList',
+    '$timeout',
+    'superdeskFlags',
 ]
 
 export function AddToPlanningController(
@@ -32,10 +34,12 @@ export function AddToPlanningController(
     api,
     lock,
     session,
-    userList
+    userList,
+    $timeout,
+    superdeskFlags
 ) {
-    const itemId = get($scope, 'locals.data.item._id')
-    return api.find('archive', itemId)
+    const item = get($scope, 'locals.data.item')
+    return api.find('archive', item._id)
     .then((newsItem) => {
         let failed = false
 
@@ -129,7 +133,7 @@ export function AddToPlanningController(
                 store.dispatch(actions.showModal({
                     modalType: MODALS.ADD_TO_PLANNING,
                     modalProps: {
-                        newsItem,
+                        newsItem: item, // scope item
                         fullscreen: true,
                         $scope,
                     },
@@ -141,7 +145,7 @@ export function AddToPlanningController(
                     ))
                     .then(() => {
                         store.dispatch(actions.hideModal())
-                        store.dispatch(actions.resetStore())
+                        $timeout(() => { store.dispatch(actions.resetStore()) }, 1000)
                     })
 
                     // Only unlock the item if it was locked when launching this modal
@@ -159,6 +163,11 @@ export function AddToPlanningController(
                         store.dispatch(actions.hideModal())
                         store.dispatch(actions.resetStore())
 
+                        if (superdeskFlags.flags.authoring) {
+                            $scope.reject()
+                            return
+                        }
+
                         userList.getUser(data.user).then(
                             (user) => Promise.resolve(user.display_name),
                             () => Promise.resolve('unknown')
@@ -166,8 +175,8 @@ export function AddToPlanningController(
                         .then((username) => store.dispatch(actions.showModal({
                             modalType: MODALS.NOTIFICATION_MODAL,
                             modalProps: {
-                                title: 'Item Unlocked',
-                                body: `The item was unlocked by "${username}"`,
+                                title: gettext('Item Unlocked'),
+                                body: gettext(`The item was unlocked by "${username}"`),
                                 action: () => {
                                     newsItem.lock_session = null
                                     $scope.reject()

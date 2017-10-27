@@ -229,8 +229,8 @@ describe('actions.assignments.api', () => {
         it('links based on provided coverage', (done) => {
             data.plannings[0].coverages.pop()
             store.test(done, assignmentsApi.link(
-                data.plannings[0].coverages[0].assigned_to.assignment_id,
-                'item1'
+                data.plannings[0].coverages[0].assigned_to,
+                { _id: 'item1' }
             ))
             .then(() => {
                 expect(services.api('assignments_link').save.callCount).toBe(1)

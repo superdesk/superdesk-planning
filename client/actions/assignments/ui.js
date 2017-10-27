@@ -258,9 +258,9 @@ const save = (item) => (
  */
 const onFulFilAssignment = (assignment, newsItem) => (
     (dispatch, getState, { notify }) => (
-        dispatch(assignments.api.link(assignment._id, newsItem._id))
+        dispatch(assignments.api.link(assignment, newsItem))
         .then((item) => {
-            notify.success('Assignment is fulfiled.')
+            notify.success('Assignment is fulfilled.')
             return Promise.resolve(item)
         }, (error) => {
             notify.error(

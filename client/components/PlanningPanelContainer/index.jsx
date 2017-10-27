@@ -141,7 +141,7 @@ class PlanningPanel extends React.Component {
                         </div>
                         <AdvancedSearchPanelContainer searchContext={ADVANCED_SEARCH_CONTEXT.PLANNING} />
 
-                        {(selected.length > 0) &&
+                        {(get(selected, 'length', 0) > 0) &&
                             <div className="Planning-panel__searchbar subnav">
                                 <MultiSelectionActions
                                     actions={multiActions}
@@ -157,7 +157,7 @@ class PlanningPanel extends React.Component {
                             privileges.planning_planning_management === 1 ) && inPlanning &&
                                 <QuickAddPlanning onPlanningCreation={onPlanningCreation}/>
                             }
-                            {(planningList.length > 0) &&
+                            {(get(planningList, 'length', 0) > 0) &&
                                 <PlanningList selected={selected}/>
                             }
                         </div>
@@ -176,7 +176,7 @@ class PlanningPanel extends React.Component {
                                         <p className="panel-info__description">...from the drop-down list above.</p>
                                     </div>
                                 </div>
-                            || (planningList && planningList.length < 1 && currentAgendaId) &&
+                            || (planningList && get(planningList, 'length', 0) < 1 && currentAgendaId) &&
                                 <div className="Planning-panel__empty-message">
                                     <div className="panel-info">
                                         <div className="panel-info__icon">
@@ -222,7 +222,7 @@ PlanningPanel.propTypes = {
     closeAdvancedSearch: PropTypes.func,
     openAdvancedSearch: PropTypes.func,
     session: PropTypes.object,
-    selected: PropTypes.array.isRequired,
+    selected: PropTypes.array,
     selectAll: PropTypes.func,
     deselectAll: PropTypes.func,
     exportAsArticle: PropTypes.func,
@@ -235,10 +235,10 @@ const mapStateToProps = (state) => ({
     currentAgendaId: selectors.getCurrentAgendaId(state),
     currentAgenda: selectors.getCurrentAgenda(state),
     planningList: selectors.getFilteredPlanningList(state),
-    planningsAreLoading: state.agenda.agendasAreLoading || state.planning.planningsAreLoading,
+    planningsAreLoading: get(state, 'planning.planningsAreLoading', false),
     editPlanningViewOpen: selectors.planningEditorOpened(state),
     isEventListShown: selectors.isEventListShown(state),
-    onlyFuture: state.planning.onlyFuture,
+    onlyFuture: get(state, 'planning.onlyFuture', true),
     privileges: selectors.getPrivileges(state),
     advancedSearchOpened: get(state, 'planning.search.advancedSearchOpened', false),
     isAdvancedDateSearch: selectors.isAdvancedDateSearch(state),

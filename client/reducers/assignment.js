@@ -33,7 +33,7 @@ const assignmentReducer = createReducer(initialState, {
         return {
             ...state,
             assignments: {
-                ...state.assignments,
+                ...state.assignments || {},
                 ...receivedAssignments,
             },
         }

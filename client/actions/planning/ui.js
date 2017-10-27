@@ -786,9 +786,7 @@ const saveFromAuthoring = (plan, publish=false) => (
         .then((newPlan) => {
             const coverages = orderBy(newPlan.coverages, ['firstcreated'], ['desc'])
             const coverage = coverages[0]
-            return dispatch(actions.assignments.api.link(
-                coverage.assigned_to.assignment_id, newsItem._id)
-            )
+            return dispatch(actions.assignments.api.link(coverage.assigned_to, newsItem))
             .then(() => {
                 notify.success('Content linked to the planning item.')
                 $scope.resolve()

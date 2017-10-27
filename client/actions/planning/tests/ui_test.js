@@ -1092,8 +1092,18 @@ describe('actions.planning.ui', () => {
 
                 expect(assignmentApi.link.callCount).toBe(1)
                 expect(assignmentApi.link.args[0]).toEqual([
-                    'as2',
-                    modalProps.newsItem._id,
+                    {
+                        user: 'ident1',
+                        desk: 'desk2',
+                        assignment_id: 'as2',
+                    },
+                    {
+                        _id: 'news1',
+                        slugline: 'slug',
+                        ednote: 'edit my note',
+                        type: 'picture',
+                        state: 'draft',
+                    },
                 ])
 
                 expect(services.notify.success.callCount).toBe(1)

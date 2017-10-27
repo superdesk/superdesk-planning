@@ -170,16 +170,21 @@ const save = (item, original=undefined) => (
 
 /**
  * Action to link assignment with news item
- * @param {String} assignmentId - Id of the Assignment
- * @param {String} newsItemId - Id of the news item
+ * @param {Object} assignment - Assignment
+ * @param {Object} newsItem - news item
  * @return Promise
  */
-const link = (assignmentId, newsItemId) => (
+const link = (assignment, newsItem) => (
     (dispatch, getState, { api }) => (
+
         api('assignments_link').save({}, {
-            assignment_id: assignmentId,
-            item_id: newsItemId,
+            assignment_id: assignment._id || assignment.assignment_id,
+            item_id: newsItem._id,
         })
+        .then((item) => {
+            newsItem.assignment_id = item.assignment_id
+            return Promise.resolve(item)
+        }, (error) => Promise.reject(error))
     )
 )
 

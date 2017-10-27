@@ -29,7 +29,7 @@ describe('actions.assignments.ui', () => {
             store.test(done, assignmentsUi.onFulFilAssignment({ _id: 'as1' }, { _id: 'item1' }))
             .then(() => {
                 expect(assignmentsApi.link.callCount).toBe(1)
-                expect(assignmentsApi.link.args[0]).toEqual(['as1', 'item1'])
+                expect(assignmentsApi.link.args[0]).toEqual([{ _id: 'as1' }, { _id: 'item1' }])
                 expect(services.notify.success.callCount).toBe(1)
                 done()
             })
@@ -41,7 +41,7 @@ describe('actions.assignments.ui', () => {
             store.test(done, assignmentsUi.onFulFilAssignment({ _id: 'as1' }, { _id: 'item1' }))
             .then(() => {}, (error) => {
                 expect(assignmentsApi.link.callCount).toBe(1)
-                expect(assignmentsApi.link.args[0]).toEqual(['as1', 'item1'])
+                expect(assignmentsApi.link.args[0]).toEqual([{ _id: 'as1' }, { _id: 'item1' }])
                 expect(error).toEqual(errorMessage)
                 expect(services.notify.success.callCount).toBe(0)
                 expect(services.notify.error.callCount).toBe(1)
