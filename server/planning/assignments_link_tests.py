@@ -10,6 +10,7 @@ class AssignmentLinkTestCase(TestCase):
                 'type': 'text',
                 'headline': 'test headline',
                 'slugline': 'test slugline',
+                'state': 'in_progress',
                 'task': {
                     'desk': 'desk1',
                     'stage': 'stage1'

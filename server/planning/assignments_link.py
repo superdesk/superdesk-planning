@@ -8,7 +8,7 @@
 from copy import deepcopy
 from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
-from superdesk.metadata.item import ITEM_STATE, CONTENT_STATE
+from superdesk.metadata.item import ITEM_STATE, CONTENT_STATE, PUBLISH_STATES
 from eve.utils import config
 from .common import ASSIGNMENT_WORKFLOW_STATE
 from apps.archive.common import get_user, is_assigned_to_a_desk
@@ -53,6 +53,12 @@ class AssignmentsLinkService(Service):
                 {'assignment_id': assignment[config.ID_FIELD]},
                 item
             )
+
+            # if the item is publish then update those items as well
+            if item[ITEM_STATE] in PUBLISH_STATES:
+                get_resource_service('published').update_published_items(
+                    item[config.ID_FIELD],
+                    'assignment_id', assignment[config.ID_FIELD])
 
             get_resource_service('delivery').post([{
                 'item_id': item[config.ID_FIELD],

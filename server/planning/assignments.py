@@ -16,7 +16,7 @@ from copy import deepcopy
 from bson import ObjectId
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import item_url
-from superdesk.metadata.item import metadata_schema, ITEM_STATE
+from superdesk.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE
 from superdesk.resource import not_analyzed
 from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth
@@ -265,7 +265,8 @@ class AssignmentsService(superdesk.Service):
 
             if assignment_update_data.get('assignment'):
                 updated_assignment = self._get_empty_updates_for_assignment(assignment_update_data['assignment'])
-                updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
+                if updates.get(ITEM_STATE, original.get(ITEM_STATE, '')) != CONTENT_STATE.SCHEDULED:
+                    updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
 
                 self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
 
