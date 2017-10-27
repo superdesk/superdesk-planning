@@ -208,8 +208,9 @@ export class Component extends React.Component {
         const lockRestricted =  eventUtils.isEventLockRestricted(initialValues, session, lockedItems)
         const isPublic = isItemPublic(initialValues)
         const canPublish = eventUtils.canPublishEvent(initialValues, session, privileges, lockedItems)
-        const canUnpublish = eventUtils.canUnpublishEvent(initialValues, privileges)
+        const canUnpublish = eventUtils.canUnpublishEvent(initialValues, session, privileges, lockedItems)
         const canEditEvent = eventUtils.canEditEvent(initialValues, session, privileges, lockedItems)
+        const canUpdateEvent = eventUtils.canUpdateEvent(initialValues, session, privileges, lockedItems)
 
         const itemActions = this.getEventActions(
             forcedReadOnly,
@@ -241,7 +242,7 @@ export class Component extends React.Component {
                                 onClick={this.cancelForm}>
                                 Close
                             </button>
-                            {!isPublic &&
+                            {!isPublic && canEditEvent &&
                                 <button
                                     type="submit"
                                     className="btn btn--primary"
@@ -261,7 +262,7 @@ export class Component extends React.Component {
                                     {(existingEvent && pristine) ? 'Publish' : 'Save and publish'}
                                 </button>
                             }
-                            {canUnpublish &&
+                            {canUpdateEvent &&
                                 <button
                                     onClick={handleSubmit(this.handleSaveAndPublish.bind(this))}
                                     type="button"

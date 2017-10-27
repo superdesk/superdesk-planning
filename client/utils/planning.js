@@ -1,57 +1,57 @@
 import moment from 'moment-timezone'
-import { WORKFLOW_STATE,
+import {
+    WORKFLOW_STATE,
     GENERIC_ITEM_ACTIONS,
     PRIVILEGES,
     EVENTS,
     PLANNING,
-    ASSIGNMENTS } from '../constants/index'
+    ASSIGNMENTS,
+    PUBLISHED_STATE,
+} from '../constants/index'
 import { get, isNil } from 'lodash'
 import {
     getItemWorkflowState,
     isItemLockedInThisSession,
     isItemPublic,
     isItemSpiked,
+    isItemRescheduled,
     eventUtils,
     isItemCancelled,
+    getPublishedState,
 } from './index'
 
-const canSavePlanning = (planning, event, privileges) => (
-    !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        getItemWorkflowState(planning) !== WORKFLOW_STATE.SPIKED &&
-        getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED
+const canPublishPlanning = (planning, event, session, privileges, locks) => (
+    !!privileges[PRIVILEGES.PUBLISH_PLANNING] &&
+        !isPlanningLockRestricted(planning, session, locks) &&
+        getPublishedState(planning) !== PUBLISHED_STATE.USABLE &&
+        (isNil(event) || getPublishedState(event) === PUBLISHED_STATE.USABLE) &&
+        !isItemSpiked(planning) &&
+        !isItemSpiked(event) &&
+        !isItemCancelled(planning) &&
+        !isItemCancelled(event) &&
+        !isItemRescheduled(planning) &&
+        !isItemRescheduled(event)
 )
 
-const canPublishPlanning = (planning, event, privileges, session, locks) => {
-    const planState = getItemWorkflowState(planning)
-    const eventState = getItemWorkflowState(event)
-    return !!privileges[PRIVILEGES.PUBLISH_PLANNING] &&
+const canUnpublishPlanning = (planning, event, session, privileges, locks) => (
+    !!privileges[PRIVILEGES.PUBLISH_PLANNING] &&
         !isPlanningLockRestricted(planning, session, locks) &&
-        (planState === WORKFLOW_STATE.DRAFT || planState === WORKFLOW_STATE.KILLED) &&
-        eventState !== WORKFLOW_STATE.SPIKED
-}
+        getPublishedState(planning) === PUBLISHED_STATE.USABLE
+)
 
-const canUnpublishPlanning = (planning, event, privileges, session, locks) => {
-    const planState = getItemWorkflowState(planning)
-    const eventState = getItemWorkflowState(event)
-    return !!privileges[PRIVILEGES.PUBLISH_PLANNING] &&
+const canEditPlanning = (planning, event, session, privileges, locks) => (
+    !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isPlanningLockRestricted(planning, session, locks) &&
-        planState === WORKFLOW_STATE.SCHEDULED &&
-        eventState !== WORKFLOW_STATE.SPIKED
-}
+        !isItemSpiked(planning) &&
+        !isItemSpiked(event) &&
+        !isItemCancelled(planning) &&
+        !isItemRescheduled(planning)
+)
 
-const canEditPlanning = (
-    planning,
-    event,
-    privileges,
-    lockedInThisSession,
-    lockedUser
-) => (
-    getItemWorkflowState(planning) !== WORKFLOW_STATE.SPIKED &&
-        getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED &&
-        !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !lockedInThisSession &&
-        !lockedUser &&
-        !isItemCancelled(planning)
+const canUpdatePlanning = (planning, event, session, privileges, locks) => (
+    canEditPlanning(planning, event, session, privileges, locks) &&
+        isItemPublic(planning) &&
+        !!privileges[PRIVILEGES.PUBLISH_PLANNING]
 )
 
 const canSpikePlanning = (plan, session, privileges, locks) => (
@@ -230,10 +230,10 @@ const canEditCoverage = (coverage) => (
 )
 
 const self = {
-    canSavePlanning,
     canPublishPlanning,
     canUnpublishPlanning,
     canEditPlanning,
+    canUpdatePlanning,
     mapCoverageByDate,
     getPlanningItemActions,
     isPlanningLocked,

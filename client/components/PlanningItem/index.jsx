@@ -51,7 +51,7 @@ const PlanningItem = ({
     const isCancelled = isItemCancelled(item)
     const isRescheduled = isItemRescheduled(item)
 
-    const onEditOrPreview = planningUtils.canEditPlanning(item, session, privileges) ?
+    const onEditOrPreview = planningUtils.canEditPlanning(item, event, session, privileges, lockedItems) ?
         onDoubleClick : onClick
 
     const isItemLocked = planningUtils.isPlanningLocked(item, lockedItems)
