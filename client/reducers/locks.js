@@ -1,11 +1,12 @@
 import { createReducer } from '../utils'
-import { RESET_STORE, INIT_STORE, LOCKS, PLANNING, EVENTS } from '../constants'
+import { RESET_STORE, INIT_STORE, LOCKS, PLANNING, EVENTS, ASSIGNMENTS } from '../constants'
 import { cloneDeep, get } from 'lodash'
 
 const initialLockState = {
     events: {},
     planning: {},
     recurring: {},
+    assignments: {},
 }
 
 export const convertItemToLock = (item, itemType) => ({
@@ -62,15 +63,33 @@ export default createReducer(initialLockState, {
         addLock(payload.plan, cloneDeep(state), 'planning')
     ),
 
+    [ASSIGNMENTS.ACTIONS.LOCK_ASSIGNMENT]: (state, payload) => (
+        addLock(payload.assignment, cloneDeep(state), 'assignments')
+    ),
+
+    [ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT]: (state, payload) => (
+        removeLock(payload.assignment, cloneDeep(state), 'assignments')
+    ),
+
     [LOCKS.ACTIONS.RECEIVE]: (state, payload) => {
         const locks = {
             events: {},
             planning: {},
             recurring: {},
+            assignments: {},
         }
 
-        payload.events.forEach((event) => addLock(event, locks, 'events'))
-        payload.plans.forEach((plan) => addLock(plan, locks, 'planning'))
+        if (payload.events) {
+            payload.events.forEach((event) => addLock(event, locks, 'events'))
+        }
+
+        if (payload.plans) {
+            payload.plans.forEach((plan) => addLock(plan, locks, 'planning'))
+        }
+
+        if (payload.assignments) {
+            payload.assignments.forEach((assignment) => addLock(assignment, locks, 'assignments'))
+        }
 
         return locks
     },

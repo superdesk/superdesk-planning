@@ -126,7 +126,7 @@ const PlanningItem = ({
         <ListItem
             item={item}
             className={classNames('PlanningItem',
-                { 'PlanningItem--locked': isItemLocked },
+                { 'ListItem--locked': isItemLocked },
                 { 'PlanningItem--has-been-cancelled': isCancelled || isRescheduled }
             )}
             onClick={onClick}

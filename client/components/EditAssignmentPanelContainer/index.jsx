@@ -4,10 +4,11 @@ import { connect } from 'react-redux'
 import { isPristine, isValid, isSubmitting } from 'redux-form'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
-import { AssignmentForm, AuditInformation, ItemActionsMenu } from '../../components'
+import { AssignmentForm, AuditInformation, ItemActionsMenu, UserAvatar, UnlockItem } from '../../components'
 import { TOOLTIPS, WORKSPACE, ASSIGNMENTS, MODALS } from '../../constants'
 import { getCreator, assignmentUtils } from '../../utils'
 import { get } from 'lodash'
+import classNames from 'classnames'
 import './style.scss'
 
 export class EditAssignmentPanel extends React.Component {
@@ -17,6 +18,8 @@ export class EditAssignmentPanel extends React.Component {
         this.handleSave = this.handleSave.bind(this)
         this.saveAndClose = this.saveAndClose.bind(this)
         this.cancelForm = this.cancelForm.bind(this)
+
+        this.state = { openUnlockPopup: false }
     }
 
     onSubmit(assignment) {
@@ -31,21 +34,25 @@ export class EditAssignmentPanel extends React.Component {
         return this.refs.AssignmentForm.getWrappedInstance().submit()
     }
 
+    toggleOpenUnlockPopup() {
+        this.setState({ openUnlockPopup: !this.state.openUnlockPopup })
+    }
+
     saveAndClose() {
-        const { valid, closePreview } = this.props
+        const { valid, assignment, closeEditor } = this.props
         const rtn = this.handleSave()
         if (valid) {
-            rtn.then(closePreview.bind(this, null))
+            rtn.then(closeEditor.bind(this, assignment))
         }
     }
 
     cancelForm() {
-        const { pristine, openCancelModal, closePreview } = this.props
+        const { assignment, pristine, openCancelModal, closeEditor } = this.props
         if (!pristine) {
-            return openCancelModal(this.saveAndClose, closePreview.bind(this, null))
+            return openCancelModal(this.saveAndClose, closeEditor.bind(this, assignment))
         }
 
-        return closePreview()
+        return closeEditor(assignment)
     }
 
     render() {
@@ -59,6 +66,7 @@ export class EditAssignmentPanel extends React.Component {
             pristine,
             submitting,
             currentWorkspace,
+            session,
         } = this.props
 
         const creationDate = get(assignment, '_created')
@@ -67,6 +75,17 @@ export class EditAssignmentPanel extends React.Component {
         const state = get(assignment, 'assigned_to.state')
         const versionCreator = getCreator(assignment, 'version_creator', users)
         const inAssignments = currentWorkspace === WORKSPACE.ASSIGNMENTS
+        const canEdit = assignmentUtils.canEditAssignment(assignment, session)
+        const lockedUser = get(assignment, 'lock_user') ? users.find((u) => u._id === assignment.lock_user) : null
+
+        // If is editalbe by workflow state and has no locks
+        const showEditIcon = assignmentUtils.isAssignmentInEditableState(assignment) && !get(assignment, 'lock_user')
+
+        // If read-only or is lock restricted
+        const showCloseIcon = readOnly || (!readOnly && !canEdit)
+
+        // If we hold a lock to the assignment and in assignment view
+        const showEditCloseButtons = !readOnly && canEdit && inAssignments
 
         let itemActions
         if (assignmentUtils.canCompleteAssignment(assignment)) {
@@ -82,21 +101,20 @@ export class EditAssignmentPanel extends React.Component {
         return (
             <div className="EditAssignmentPanel">
                 <header className="subnav">
-                    {readOnly &&
-                        <div className="EditAssignmentPanel__actions">
-                            {inAssignments && assignmentUtils.canEditAssignment(assignment) &&
-                            <button className="navbtn navbtn--right"
-                                onClick={openEditor.bind(this, assignment)}
-                                data-sd-tooltip={TOOLTIPS.edit} data-flow='down'>
-                                <i className="icon-pencil"/>
-                            </button>}
-                            <button className="navbtn navbtn--right"
-                                onClick={closePreview.bind(this)}
-                                data-sd-tooltip={TOOLTIPS.close} data-flow='down'>
-                                <i className="icon-close-small"/>
-                            </button>
-                        </div>}
-                    {!readOnly && inAssignments &&
+                    <div className="EditAssignmentPanel__actions">
+                        {showEditIcon && inAssignments &&
+                        <button className="navbtn navbtn--right"
+                            onClick={openEditor.bind(this, assignment)}
+                            data-sd-tooltip={TOOLTIPS.edit} data-flow='down'>
+                            <i className="icon-pencil"/>
+                        </button>}
+                        {showCloseIcon && <button className="navbtn navbtn--right"
+                            onClick={closePreview.bind(this)}
+                            data-sd-tooltip={TOOLTIPS.close} data-flow='down'>
+                            <i className="icon-close-small"/>
+                        </button>}
+                    </div>
+                    {showEditCloseButtons &&
                         <div className="EditAssignmentPanel__actions EditAssignmentPanel__actions__edit">
                             <button className="btn btn--primary"
                                     type="reset"
@@ -123,17 +141,40 @@ export class EditAssignmentPanel extends React.Component {
                     }
                 </header>
                 <div className="EditAssignmentPanel__body">
-                    <div>
-                        <AuditInformation
-                            createdBy={author}
-                            updatedBy={versionCreator}
-                            createdAt={creationDate}
-                            updatedAt={updatedDate} />
-                    </div>
-                    {!readOnly && <ItemActionsMenu actions={itemActions}/>}
+                    {!canEdit && lockedUser &&
+                        <div className={classNames('dropdown',
+                            'dropdown--dropright',
+                            { open: this.state.openUnlockPopup })} >
+                            <div className="lock-avatar">
+                                <button
+                                    type='button'
+                                    onClick={this.toggleOpenUnlockPopup.bind(this)}
+                                >
+                                    <UserAvatar user={lockedUser} withLoggedInfo={true} />
+                                </button>
+                                {this.state.openUnlockPopup &&
+                                    <UnlockItem
+                                        displayText={assignment.lock_action === 'content_edit' ?
+                                            'Content locked by' : 'Assignment locked by'}
+                                        user={lockedUser}
+                                        showUnlock={false}
+                                        onCancel={this.toggleOpenUnlockPopup.bind(this)}
+                                    />
+                                }
+                            </div>
+                        </div>
+                    }
+                    <AuditInformation
+                        createdBy={author}
+                        updatedBy={versionCreator}
+                        createdAt={creationDate}
+                        updatedAt={updatedDate} />
+
+                    {!readOnly && canEdit && <ItemActionsMenu actions={itemActions}/>}
                     <AssignmentForm
                         ref="AssignmentForm"
                         onSubmit={this.onSubmit.bind(this)}
+                        readOnly={readOnly || !canEdit}
                     />
                 </div>
             </div>
@@ -146,6 +187,7 @@ EditAssignmentPanel.propTypes = {
     readOnly: PropTypes.bool,
     closePreview: PropTypes.func.isRequired,
     openEditor: PropTypes.func.isRequired,
+    closeEditor: PropTypes.func.isRequired,
     users: PropTypes.oneOfType([
         PropTypes.array,
         PropTypes.object,
@@ -158,6 +200,7 @@ EditAssignmentPanel.propTypes = {
     currentWorkspace: PropTypes.string,
     onFulFilAssignment: PropTypes.func,
     completeAssignment: PropTypes.func,
+    session: PropTypes.object,
 }
 
 const mapStateToProps = (state) => ({
@@ -168,11 +211,13 @@ const mapStateToProps = (state) => ({
     valid: isValid('assignment')(state),
     submitting: isSubmitting('assignment')(state),
     currentWorkspace: selectors.getCurrentWorkspace(state),
+    session: selectors.getSessionDetails(state),
 })
 
 const mapDispatchToProps = (dispatch) => (
     {
         closePreview: () => dispatch(actions.assignments.ui.closePreview()),
+        closeEditor: (assignment) => dispatch(actions.assignments.ui.closeEditor(assignment)),
         openEditor: (assignment) => dispatch(actions.assignments.ui.openEditor(assignment)),
         save: (assignment) => dispatch(actions.assignments.ui.save(assignment)),
         completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),

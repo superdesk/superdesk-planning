@@ -4,9 +4,6 @@
 	&__dueDate, &__event {
     	i { margin: 0 5px;}
 	}
-	&--locked {
-		border-left: 4px solid $red;
-	}
 	&--has-been-cancelled {
         .PlanningItem__title { text-decoration: line-through; }
     }

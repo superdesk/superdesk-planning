@@ -1,6 +1,6 @@
 import * as selectors from '../selectors'
 import { LOCKS } from '../constants'
-import { planning, events } from './index'
+import { planning, events, assignments } from './index'
 import { getLock } from '../utils'
 
 /**
@@ -18,6 +18,24 @@ const loadAllLocks = () => (
                 events: data[0],
                 plans: data[1],
             }
+            dispatch({
+                type: LOCKS.ACTIONS.RECEIVE,
+                payload,
+            })
+            return Promise.resolve(payload)
+        }, (error) => Promise.reject(error))
+    )
+)
+
+/**
+ * Action Dispatcher to load Assignment locks
+ * Then send them to the lock reducer for processing and storage
+ */
+const loadAssignmentLocks = () => (
+    (dispatch) => (
+        dispatch(assignments.api.queryLockedAssignments())
+        .then((data) => {
+            const payload = { assignments: data }
             dispatch({
                 type: LOCKS.ACTIONS.RECEIVE,
                 payload,
@@ -55,6 +73,7 @@ const unlock = (item) => (
 const self = {
     unlock,
     loadAllLocks,
+    loadAssignmentLocks,
 }
 
 export default self

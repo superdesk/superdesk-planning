@@ -24,6 +24,8 @@ from .locations import LocationsResource, LocationsService
 from .events_history import EventsHistoryResource, EventsHistoryService
 from .planning_history import PlanningHistoryResource, PlanningHistoryService
 from .planning_lock import PlanningLockResource, PlanningLockService, PlanningUnlockResource, PlanningUnlockService
+from .assignments_lock import AssignmentsLockResource, AssignmentsLockService,\
+    AssignmentsUnlockResource, AssignmentsUnlockService
 from .planning_publish import PlanningPublishService, PlanningPublishResource
 from .planning_duplicate import PlanningDuplicateService, PlanningDuplicateResource
 from .events_lock import EventsLockResource, EventsLockService, EventsUnlockResource, EventsUnlockService
@@ -69,11 +71,19 @@ def init_app(app):
     events_lock_service = EventsLockService('events_lock', backend=superdesk.get_backend())
     EventsLockResource('events_lock', app=app, service=events_lock_service)
 
+    assignments_lock_service = AssignmentsLockService(AssignmentsLockResource.endpoint_name,
+                                                      backend=superdesk.get_backend())
+    AssignmentsLockResource(AssignmentsLockResource.endpoint_name, app=app, service=assignments_lock_service)
+
     planning_unlock_service = PlanningUnlockService('planning_unlock', backend=superdesk.get_backend())
     PlanningUnlockResource('planning_unlock', app=app, service=planning_unlock_service)
 
     events_unlock_service = EventsUnlockService('events_unlock', backend=superdesk.get_backend())
     EventsUnlockResource('events_unlock', app=app, service=events_unlock_service)
+
+    assignments_unlock_service = AssignmentsUnlockService(AssignmentsUnlockResource.endpoint_name,
+                                                          backend=superdesk.get_backend())
+    AssignmentsUnlockResource(AssignmentsUnlockResource.endpoint_name, app=app, service=assignments_unlock_service)
 
     planning_spike_service = PlanningSpikeService('planning_spike', backend=superdesk.get_backend())
     PlanningSpikeResource('planning_spike', app=app, service=planning_spike_service)
@@ -208,8 +218,12 @@ def init_app(app):
     assignments_link_service = AssignmentsLinkService('assignments_link', backend=superdesk.get_backend())
     AssignmentsLinkResource('assignments_link', app=app, service=assignments_link_service)
 
+    # Updating data/lock on assignments based on content item updates from authoring
     app.on_updated_archive += assignments_publish_service.update_assignment_on_archive_update
     app.on_archive_item_updated += assignments_publish_service.update_assignment_on_archive_operation
+    app.on_item_lock += assignments_publish_service.validate_assignment_unlock
+    app.on_item_locked += assignments_publish_service.sync_assignment_lock
+    app.on_item_unlocked += assignments_publish_service.sync_assignment_unlock
 
     assignments_complete_service = AssignmentsCompleteService(AssignmentsCompleteResource.endpoint_name,
                                                               backend=superdesk.get_backend())
@@ -302,6 +316,7 @@ def init_app(app):
 
     superdesk.intrinsic_privilege(PlanningUnlockResource.endpoint_name, method=['POST'])
     superdesk.intrinsic_privilege(EventsUnlockResource.endpoint_name, method=['POST'])
+    superdesk.intrinsic_privilege(AssignmentsUnlockResource.endpoint_name, method=['POST'])
 
     import planning.output_formatters  # noqa
 

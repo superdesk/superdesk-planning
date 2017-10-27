@@ -1,7 +1,7 @@
 import assignments from './index'
 import * as selectors from '../../selectors'
 import { ASSIGNMENTS, PRIVILEGES } from '../../constants'
-import { checkPermission, getErrorMessage } from '../../utils'
+import { checkPermission, getErrorMessage, isItemLockedInThisSession } from '../../utils'
 
 /**
  * Action dispatcher to load the list of assignments for current list settings.
@@ -123,9 +123,15 @@ const changeListSettings = (filterBy, searchQuery, orderByField,
  * @return object
  */
 const preview = (assignment) => (
-    {
-        type: ASSIGNMENTS.ACTIONS.PREVIEW_ASSIGNMENT,
-        payload: assignment,
+    (dispatch, getState) => {
+        if (isItemLockedInThisSession(assignment, selectors.getSessionDetails(getState()))) {
+            dispatch(_openEditor(assignment))
+        } else {
+            dispatch({
+                type: ASSIGNMENTS.ACTIONS.PREVIEW_ASSIGNMENT,
+                payload: assignment,
+            })
+        }
     }
 )
 
@@ -169,6 +175,45 @@ const addToList = (ids) => ({
 })
 
 /**
+ * Action to lock an assignment and open it in the editor
+ * @param {object} - Assignment to open
+ */
+const _lockAndOpenEditor = (assignment) => (
+    (dispatch) => (
+        dispatch(assignments.api.lock(assignment))
+            .then((lockedItem) => {
+                dispatch(_openEditor(lockedItem))
+                return Promise.resolve(lockedItem)
+            }, () => (Promise.resolve(assignment))
+        )
+    )
+)
+
+/**
+ * Action to unlock an assignment and close the editor
+ * @param {object} - Assignment to close
+ */
+const closeEditor = (assignment) => (
+    (dispatch, getState) => {
+        if (isItemLockedInThisSession(assignment, selectors.getSessionDetails(getState())) &&
+            assignment.lock_action === 'edit') {
+            return dispatch(assignments.api.unlock(assignment))
+                .then((item) => {
+                    dispatch(closePreview())
+                    return Promise.resolve(item)
+                }, () => {
+                    dispatch(closePreview())
+                    return Promise.resolve(assignment)
+                }
+            )
+        } else {
+            dispatch(closePreview())
+            return Promise.resolve(assignment)
+        }
+    }
+)
+
+/**
  * Action for opening the assignment editor
  */
 const _openEditor = (item) => ({
@@ -181,7 +226,7 @@ const _openEditor = (item) => ({
  *
  */
 const openEditor = checkPermission(
-    _openEditor,
+    _lockAndOpenEditor,
     PRIVILEGES.PLANNING_MANAGEMENT,
     'Unauthorised to edit a Assignment item!',
     preview
@@ -280,6 +325,7 @@ const self = {
     fetch,
     _openEditor,
     openEditor,
+    closeEditor,
     save,
     onFulFilAssignment,
     complete,

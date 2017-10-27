@@ -1,5 +1,9 @@
 @import '~superdesk-core/styles/sass/variables.scss';
 
+.ListItem--locked {
+	border-left: 4px solid #e51c23;
+}
+
 .ListItem__slugline {
     color: $sd-keyword;
     font-weight: 500;

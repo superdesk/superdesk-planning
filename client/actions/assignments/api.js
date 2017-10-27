@@ -2,6 +2,7 @@ import * as selectors from '../../selectors'
 import { ASSIGNMENTS } from '../../constants'
 import planningUtils from '../../utils/planning'
 import { get, cloneDeep, has, pick } from 'lodash'
+import { isItemLockedInThisSession } from '../../utils'
 
 /**
  * Action Dispatcher for query the api for events
@@ -102,6 +103,24 @@ const fetchAssignmentById = (id, force=false) => (
 )
 
 /**
+ * Action dispatcher to query the API for all Assignments that are currently locked
+ * @return Array of locked Assignments
+ */
+const queryLockedAssignments = () => (
+    (dispatch, getState, { api }) => (
+        api('assignments').query({
+            source: JSON.stringify(
+                { query: { constant_score: { filter: { exists: { field: 'lock_session' } } } } }
+            ),
+        })
+        .then(
+            (data) => Promise.resolve(data._items),
+            (error) => Promise.reject(error)
+        )
+    )
+)
+
+/**
  * Action to receive the list of Assignments and store them in the store
  * @param {Array} assignments - An array of Assignment items
  * @return object
@@ -179,6 +198,45 @@ const complete = (item) => (
     )
 )
 
+/**
+ * Action to lock an assignment
+ * @param {String} item - Assignment to be unlocked
+ * @return Promise
+ */
+const lock = (assignment, action='edit') => (
+    (dispatch, getState, { api, notify }) => {
+        if (isItemLockedInThisSession(assignment, selectors.getSessionDetails(getState()))) {
+            return Promise.resolve(assignment)
+        }
+
+        return api('assignments_lock', assignment).save({}, { lock_action: action })
+            .then(
+                (lockedItem) => (lockedItem),
+                (error) => {
+                    const msg = get(error, 'data._message') || 'Could not lock the assignment.'
+                    notify.error(msg)
+                    if (error) throw error
+                })
+    }
+)
+
+/**
+ * Action to unlock an assignment
+ * @param {String} item - Assignment to be unlocked
+ * @return Promise
+ */
+const unlock = (assignment) => (
+    (dispatch, getState, { api, notify }) => (
+        api('assignments_unlock', assignment).save({})
+            .then((item) => (item),
+                (error) => {
+                    const msg = get(error, 'data._message') || 'Could not unlock the assignment.'
+                    notify.error(msg)
+                    throw error
+                })
+    )
+)
+
 const self = {
     query,
     receivedAssignments,
@@ -186,6 +244,9 @@ const self = {
     save,
     link,
     complete,
+    lock,
+    unlock,
+    queryLockedAssignments,
 }
 
 export default self

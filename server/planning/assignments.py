@@ -19,7 +19,7 @@ from superdesk.metadata.utils import item_url
 from superdesk.metadata.item import metadata_schema, ITEM_STATE
 from superdesk.resource import not_analyzed
 from superdesk.notification import push_notification
-from apps.archive.common import get_user
+from apps.archive.common import get_user, get_auth
 from apps.duplication.archive_move import ITEM_MOVE
 from apps.publish.enqueue import ITEM_PUBLISH
 from eve.utils import config
@@ -27,6 +27,9 @@ from superdesk.utc import utcnow
 from superdesk.activity import add_activity, ACTIVITY_UPDATE
 from .planning import coverage_schema
 from superdesk import get_resource_service
+from apps.common.components.utils import get_component
+from .item_lock import LockService, LOCK_USER
+from superdesk.users.services import current_user_has_privilege
 from .common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state
 
 
@@ -219,42 +222,52 @@ class AssignmentsService(superdesk.Service):
         if assignment_id:
             assignment = self.find_one(req=None, _id=assignment_id)
 
-        return assignment_id, str(item_user_id), str(item_desk_id), assignment
+        return {
+            'assignment_id': assignment_id,
+            'item_user_id': str(item_user_id),
+            'item_desk_id': str(item_desk_id),
+            'assignment': assignment
+        }
 
     def update_assignment_on_archive_update(self, updates, original):
         if not original.get('assignment_id'):
             return
 
-        assignment_id, item_user_id, item_desk_id, assignment =\
+        assignment_update_data =\
             self._get_assignment_data_on_archive_update(updates, original)
 
-        if assignment and assignment.get('assigned_to')['user'] != item_user_id:
+        if assignment_update_data.get('assignment') and \
+            assignment_update_data['assignment'].get('assigned_to')['user'] != \
+                assignment_update_data.get('item_user_id'):
             # re-assign the user to the lock user
-            updated_assignment = self._set_user_for_assignment(assignment, item_user_id)
-            self._update_assignment_and_notify(updated_assignment, assignment)
+            updated_assignment = self._set_user_for_assignment(assignment_update_data.get('assignment'),
+                                                               assignment_update_data.get('item_user_id'))
+            self._update_assignment_and_notify(updated_assignment, assignment_update_data.get('assignment'))
 
     def update_assignment_on_archive_operation(self, updates, original, operation=None):
         if operation == ITEM_MOVE:
-            assignment_id, item_user_id, item_desk_id, assignment = \
-                self._get_assignment_data_on_archive_update(
-                    updates, original)
+            assignment_update_data = \
+                self._get_assignment_data_on_archive_update(updates, original)
 
-            if assignment and assignment.get('assigned_to')['desk'] != item_desk_id:
-                updated_assignment = self._set_user_for_assignment(assignment, None, item_user_id)
-                updated_assignment.get('assigned_to')['desk'] = item_desk_id
-                updated_assignment.get('assigned_to')['assignor_user'] = item_user_id
+            if assignment_update_data.get('assignment') and \
+                assignment_update_data['assignment'].get('assigned_to')['desk'] != \
+                    assignment_update_data.get('item_desk_id'):
+                updated_assignment = self._set_user_for_assignment(assignment_update_data['assignment'], None,
+                                                                   assignment_update_data.get('item_user_id'))
+                updated_assignment.get('assigned_to')['desk'] = assignment_update_data.get('item_desk_id')
+                updated_assignment.get('assigned_to')['assignor_user'] = assignment_update_data.get('item_user_id')
                 updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.SUBMITTED
 
-                self._update_assignment_and_notify(updated_assignment, assignment)
+                self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
         elif operation == ITEM_PUBLISH:
-            assignment_id, item_user_id, item_desk_id, assignment = \
-                self._get_assignment_data_on_archive_update(
-                    updates, original)
-            if assignment:
-                updated_assignment = self._get_empty_updates_for_assignment(assignment)
+            assignment_update_data = \
+                self._get_assignment_data_on_archive_update(updates, original)
+
+            if assignment_update_data.get('assignment'):
+                updated_assignment = self._get_empty_updates_for_assignment(assignment_update_data['assignment'])
                 updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
 
-                self._update_assignment_and_notify(updated_assignment, assignment)
+                self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
 
     def _update_assignment_and_notify(self, updates, original):
         self.system_update(original.get(config.ID_FIELD),
@@ -262,6 +275,35 @@ class AssignmentsService(superdesk.Service):
 
         # send notification
         self.notify('assignments:updated', updates, original)
+
+    def validate_assignment_unlock(self, item, user_id):
+        if item.get('assignment_id'):
+            assignment_update_data = self._get_assignment_data_on_archive_update({}, item)
+            assignment = assignment_update_data.get('assignment')
+            if assignment and assignment.get('lock_user'):
+                if assignment['lock_session'] != get_auth()['_id'] or assignment['lock_user'] != user_id:
+                    raise SuperdeskApiError.badRequestError(message="Related assignment is locked.")
+
+    def sync_assignment_lock(self, item, user_id):
+        if item.get('assignment_id'):
+            assignment_update_data = self._get_assignment_data_on_archive_update({}, item)
+            assignment = assignment_update_data.get('assignment')
+            lock_service = get_component(LockService)
+            lock_service.lock(assignment, user_id, get_auth()['_id'], 'content_edit', 'assignments')
+
+    def sync_assignment_unlock(self, item, user_id):
+        if item.get('assignment_id'):
+            assignment_update_data = self._get_assignment_data_on_archive_update({}, item)
+            assignment = assignment_update_data.get('assignment')
+            if assignment.get(LOCK_USER):
+                lock_service = get_component(LockService)
+                lock_service.unlock(assignment, user_id, get_auth()['_id'], 'assignments')
+
+    def can_edit(self, item, user_id):
+        # Check privileges
+        if not current_user_has_privilege('planning_planning_management'):
+            return False, 'User does not have sufficient permissions.'
+        return True, ''
 
 
 assignments_schema = {
@@ -277,6 +319,10 @@ assignments_schema = {
         'mapping': not_analyzed
     },
     'planning_item': planning_type,
+    'lock_user': metadata_schema['lock_user'],
+    'lock_time': metadata_schema['lock_time'],
+    'lock_session': metadata_schema['lock_session'],
+    'lock_action': metadata_schema['lock_action'],
 
     'assigned_to': {
         'type': 'dict',

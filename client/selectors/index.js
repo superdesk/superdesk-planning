@@ -96,6 +96,7 @@ export const getLockedItems = (state) => get(state, 'locks', {
     events: {},
     planning: {},
     recurring: {},
+    assignments: {},
 })
 export const getCurrentWorkspace = (state) => get(state, 'workspace.currentWorkspace', null)
 export const getContentTypes = (state) => get(state, 'vocabularies.g2_content_type', [])

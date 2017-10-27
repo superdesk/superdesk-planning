@@ -155,3 +155,5 @@ ItemActionsMenu.propTypes = {
     actions: PropTypes.array.isRequired,
     buttonClass: PropTypes.string,
 }
+
+ItemActionsMenu.defaultProps = { actions: [] }

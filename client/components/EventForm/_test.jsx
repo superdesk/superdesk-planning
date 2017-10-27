@@ -31,6 +31,7 @@ describe('events', () => {
             links: ['http://www.google.com'],
             _plannings: [],
             state: 'draft',
+            _type: 'events',
         }
 
         const requiredProps = {
@@ -176,6 +177,7 @@ describe('events', () => {
                         },
                         planning: {},
                         recurring: {},
+                        assignments: {},
                     },
                 },
             })
@@ -231,6 +233,7 @@ describe('events', () => {
                         events: {},
                         planning: {},
                         recurring: {},
+                        assignments: {},
                     },
                 }
                 const subject = shallow(<Component {...props}/>)
@@ -332,6 +335,7 @@ describe('events', () => {
                             events: {},
                             planning: {},
                             recurring: {},
+                            assignments: {},
                         }}
                     />
                 )
@@ -347,6 +351,7 @@ describe('events', () => {
                             events: {},
                             planning: {},
                             recurring: {},
+                            assignments: {},
                         }}
                     />
                 )
