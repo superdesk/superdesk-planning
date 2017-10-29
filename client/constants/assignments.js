@@ -23,4 +23,19 @@ export const ASSIGNMENTS = {
         SUBMITTED: 'submitted',
         CANCELLED: 'cancelled',
     },
+
+    ITEM_ACTIONS: {
+        REASSIGN: {
+            label: 'Reassign',
+            icon: 'icon-share-alt',
+        },
+        COMPLETE: {
+            label: 'Complete Assignment',
+            icon: 'icon-ok',
+        },
+        EDIT_PRIORITY: {
+            label: 'Edit Priority',
+            icon: 'con-chevron-up-thin',
+        },
+    },
 }

@@ -5,7 +5,7 @@ import { EditAssignmentPanelContainer } from './index'
 import { Provider } from 'react-redux'
 import sinon from 'sinon'
 import moment from 'moment'
-import { restoreSinonStub } from '../../utils/testUtils'
+import { restoreSinonStub, itemActionExists } from '../../utils/testUtils'
 import assignmentsUi from '../../actions/assignments/ui'
 import { WORKSPACE } from '../../constants/workspace'
 
@@ -78,41 +78,17 @@ describe('<EditAssignmentPanelContainer />', () => {
         store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
         expect(wrapper.find('.TimeAndAuthor').length).toBe(2)
         expect(wrapper.find('.AssignmentForm').length).toBe(1)
-        expect(wrapper.find('.icon-pencil').length).toBe(1)
         expect(wrapper.find('.icon-close-small').length).toBe(1)
-        expect(wrapper.find('.btn--primary').length).toBe(0)
     })
 
-    it('edit icon is visible', () => {
+    it('No item actions are assignment is locked by another user', () => {
         const initialState = getState()
+        initialState.assignment.assignments[1].lock_user = 'ident2'
+        initialState.assignment.assignments[1].lock_session = 'session2'
+        initialState.assignment.assignments[1].lock_action = 'edit'
         const store = createTestStore({ initialState })
         const wrapper = getWrapper(store)
-        store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
-        expect(wrapper.find('.icon-pencil').length).toBe(1)
-        expect(wrapper.find('.icon-close-small').length).toBe(1)
-        expect(wrapper.find('.btn--primary').length).toBe(0)
-    })
-
-    it('edit icon not visible if there is workflow state conflict', () => {
-        const initialState = getState()
-        initialState.assignment.assignments['1'].assigned_to.state = 'completed'
-        const store = createTestStore({ initialState })
-        const wrapper = getWrapper(store)
-        store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
-        expect(wrapper.find('.icon-pencil').length).toBe(0)
-        expect(wrapper.find('.icon-close-small').length).toBe(1)
-        expect(wrapper.find('.btn--primary').length).toBe(0)
-    })
-
-    it('edit icon not visible if assignment is locked', () => {
-        const initialState = getState()
-        initialState.assignment.assignments['1'].lock_user = 'ident1'
-        const store = createTestStore({ initialState })
-        const wrapper = getWrapper(store)
-        store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
-        expect(wrapper.find('.icon-pencil').length).toBe(0)
-        expect(wrapper.find('.icon-close-small').length).toBe(1)
-        expect(wrapper.find('.btn--primary').length).toBe(0)
+        expect(wrapper.find('ItemActionsMenu').length).toBe(0)
     })
 
     it('click on the close closes the editor', () => {
@@ -133,7 +109,7 @@ describe('<EditAssignmentPanelContainer />', () => {
 
         const store = createTestStore({ initialState })
         const wrapper = getWrapper(store)
-        store.dispatch(assignmentsUi._openEditor(initialState.assignment.assignments[1]))
+        store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
         expect(wrapper.find('.lock-avatar').length).toBe(1)
     })
 
@@ -142,8 +118,6 @@ describe('<EditAssignmentPanelContainer />', () => {
         const store = createTestStore({ initialState })
         const wrapper = getWrapper(store)
         store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
-
-        expect(wrapper.find('.icon-pencil').length).toBe(0)
         expect(wrapper.find('.icon-close-small').length).toBe(1)
         expect(wrapper.find('button[type="submit"]').length).toBe(1)
         const fulfilButton = wrapper.find('button[type="submit"]').first()
@@ -154,5 +128,35 @@ describe('<EditAssignmentPanelContainer />', () => {
         wrapper.find('.icon-close-small').first().simulate('click')
         expect(store.getState().assignment.previewOpened).toBe(false)
         done()
+    })
+
+    it('Reassign Item action appears for items in_progress, assigned, submitted state', () => {
+        const initialState = getState()
+        initialState.assignment.assignments[1].assigned_to.state = 'in_progress'
+        let store = createTestStore({ initialState })
+        let wrapper = getWrapper(store)
+        store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
+        expect(itemActionExists(wrapper, 'Reassign')).toBe(true)
+
+        initialState.assignment.assignments[1].assigned_to.state = 'assigned'
+        store = createTestStore({ initialState })
+        wrapper = getWrapper(store)
+        store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
+        expect(itemActionExists(wrapper, 'Reassign')).toBe(true)
+
+        initialState.assignment.assignments[1].assigned_to.state = 'submitted'
+        store = createTestStore({ initialState })
+        wrapper = getWrapper(store)
+        store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
+        expect(itemActionExists(wrapper, 'Reassign')).toBe(true)
+    })
+
+    it('Complete Item action appears for items in_progress state only', () => {
+        const initialState = getState()
+        initialState.assignment.assignments[1].assigned_to.state = 'in_progress'
+        const store = createTestStore({ initialState })
+        const wrapper = getWrapper(store)
+        store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
+        expect(itemActionExists(wrapper, 'Complete Assignment')).toBe(true)
     })
 })

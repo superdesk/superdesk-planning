@@ -30,7 +30,7 @@ from superdesk import get_resource_service
 from apps.common.components.utils import get_component
 from .item_lock import LockService, LOCK_USER
 from superdesk.users.services import current_user_has_privilege
-from .common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state
+from .common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information
 
 
 logger = logging.getLogger(__name__)
@@ -94,6 +94,7 @@ class AssignmentsService(superdesk.Service):
 
     def on_update(self, updates, original):
         self.set_assignment(updates, original)
+        remove_lock_information(updates)
 
     def notify(self, event_name, updates, original):
         doc = deepcopy(original)
@@ -276,13 +277,13 @@ class AssignmentsService(superdesk.Service):
         # send notification
         self.notify('assignments:updated', updates, original)
 
-    def validate_assignment_unlock(self, item, user_id):
+    def validate_assignment_lock(self, item, user_id):
         if item.get('assignment_id'):
             assignment_update_data = self._get_assignment_data_on_archive_update({}, item)
             assignment = assignment_update_data.get('assignment')
             if assignment and assignment.get('lock_user'):
                 if assignment['lock_session'] != get_auth()['_id'] or assignment['lock_user'] != user_id:
-                    raise SuperdeskApiError.badRequestError(message="Related assignment is locked.")
+                    raise SuperdeskApiError.badRequestError(message="Lock Failed: Related assignment is locked.")
 
     def sync_assignment_lock(self, item, user_id):
         if item.get('assignment_id'):

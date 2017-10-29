@@ -1,10 +1,12 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import * as actions from '../../actions'
 import { connect } from 'react-redux'
 import { Field, reduxForm, propTypes } from 'redux-form'
-import { CoverageDetails, EditAssignment, StateLabel } from '../../components'
+import { CoverageDetails, EditAssignment, StateLabel, ItemActionsMenu } from '../../components'
+import { assignmentUtils } from '../../utils'
 import * as selectors from '../../selectors'
-import { ASSIGNMENTS } from '../../constants'
+import { ASSIGNMENTS, WORKSPACE } from '../../constants'
 import { get } from 'lodash'
 import './style.scss'
 
@@ -16,7 +18,6 @@ export class Component extends React.Component {
     render() {
         const {
             assignment,
-            readOnly,
             desks,
             users,
             formProfile,
@@ -24,11 +25,33 @@ export class Component extends React.Component {
             keywords,
             coverageProviders,
             currentUserId,
+            completeAssignment,
+            reassign,
+            inAssignments,
+            session,
         } = this.props
+
+        const actions = [
+            {
+                ...ASSIGNMENTS.ITEM_ACTIONS.REASSIGN,
+                callback: () => { reassign(assignment) },
+            },
+            {
+                ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
+                callback: () => { completeAssignment(assignment) },
+            },
+        ]
+
+        const itemActions = inAssignments ? assignmentUtils.getAssignmentItemActions(
+            assignment,
+            session,
+            actions
+        ) : []
 
         return (
             <form onSubmit={handleSubmit} className="AssignmentForm">
                 <fieldset>
+                    {get(itemActions, 'length') > 0 && <ItemActionsMenu actions={itemActions}/>}
                     <Field
                         name={'assigned_to'}
                         component={EditAssignment}
@@ -36,7 +59,7 @@ export class Component extends React.Component {
                         currentUserId={currentUserId}
                         desks={desks}
                         coverageProviders={coverageProviders}
-                        readOnly={readOnly}
+                        readOnly={true}
                         deskSelectionDisabled={get(assignment, 'assigned_to.state') ===
                             ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS}
                         context={'assignment'} />
@@ -60,13 +83,16 @@ export class Component extends React.Component {
 Component.propTypes = {
     ...propTypes,
     assignment: PropTypes.object,
-    readOnly: PropTypes.bool,
     formProfile: PropTypes.object,
     users: PropTypes.array.isRequired,
     desks: PropTypes.array.isRequired,
     coverageProviders: PropTypes.array,
     keywords: PropTypes.array,
     onSubmit: PropTypes.func,
+    reassign: PropTypes.func,
+    completeAssignment: PropTypes.func,
+    inAssignments: PropTypes.bool,
+    session: PropTypes.object,
 }
 
 const mapStateToProps = (state) => ({
@@ -78,7 +104,16 @@ const mapStateToProps = (state) => ({
     users: selectors.getUsers(state),
     coverageProviders: selectors.getCoverageProviders(state),
     keywords: selectors.getKeywords(state),
+    session: selectors.getSessionDetails(state),
+    inAssignments: selectors.getCurrentWorkspace(state) === WORKSPACE.ASSIGNMENTS,
 })
+
+const mapDispatchToProps = (dispatch) => (
+    {
+        reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),
+        completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
+    }
+)
 
 const AssignmentReduxForm = reduxForm({
     form: 'assignment',
@@ -87,6 +122,6 @@ const AssignmentReduxForm = reduxForm({
 
 export const AssignmentForm = connect(
     mapStateToProps,
-    null,
+    mapDispatchToProps,
     null,
     { withRef: true })(AssignmentReduxForm)

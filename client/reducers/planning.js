@@ -36,7 +36,7 @@ const modifyPlanningsBeingAdded = (state, payload) => {
     // payload must be an array. If not, we transform
     payload = Array.isArray(payload) ? payload : [payload]
     // clone plannings
-    plannings = cloneDeep(state.plannings)
+    plannings = cloneDeep(get(state, 'plannings'))
     // add to state.plannings, use _id as key
     payload.forEach((planning) => {
         // Make sure that the Planning item has the coverages array

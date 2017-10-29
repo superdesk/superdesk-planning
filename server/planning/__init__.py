@@ -221,7 +221,7 @@ def init_app(app):
     # Updating data/lock on assignments based on content item updates from authoring
     app.on_updated_archive += assignments_publish_service.update_assignment_on_archive_update
     app.on_archive_item_updated += assignments_publish_service.update_assignment_on_archive_operation
-    app.on_item_lock += assignments_publish_service.validate_assignment_unlock
+    app.on_item_lock += assignments_publish_service.validate_assignment_lock
     app.on_item_locked += assignments_publish_service.sync_assignment_lock
     app.on_item_unlocked += assignments_publish_service.sync_assignment_unlock
 

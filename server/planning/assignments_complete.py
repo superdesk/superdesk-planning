@@ -15,7 +15,7 @@ from apps.archive.common import get_user, get_auth
 from eve.utils import config
 from copy import deepcopy
 from .assignments import AssignmentsResource, assignments_schema
-from .common import ASSIGNMENT_WORKFLOW_STATE
+from .common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information
 
 
 assignments_complete_schema = deepcopy(assignments_schema)
@@ -44,6 +44,7 @@ class AssignmentsCompleteService(BaseService):
 
         updates['assigned_to'] = deepcopy(original).get('assigned_to')
         updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
+        remove_lock_information(updates)
 
         item = self.backend.update(self.datasource, id, updates, original)
 

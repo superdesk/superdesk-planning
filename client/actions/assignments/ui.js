@@ -1,7 +1,8 @@
+import { showModal, hideModal } from '../index'
 import assignments from './index'
 import * as selectors from '../../selectors'
-import { ASSIGNMENTS, PRIVILEGES } from '../../constants'
-import { checkPermission, getErrorMessage, isItemLockedInThisSession } from '../../utils'
+import { ASSIGNMENTS, PRIVILEGES, MODALS } from '../../constants'
+import { checkPermission, getErrorMessage } from '../../utils'
 
 /**
  * Action dispatcher to load the list of assignments for current list settings.
@@ -123,15 +124,9 @@ const changeListSettings = (filterBy, searchQuery, orderByField,
  * @return object
  */
 const preview = (assignment) => (
-    (dispatch, getState) => {
-        if (isItemLockedInThisSession(assignment, selectors.getSessionDetails(getState()))) {
-            dispatch(_openEditor(assignment))
-        } else {
-            dispatch({
-                type: ASSIGNMENTS.ACTIONS.PREVIEW_ASSIGNMENT,
-                payload: assignment,
-            })
-        }
+    {
+        type: ASSIGNMENTS.ACTIONS.PREVIEW_ASSIGNMENT,
+        payload: assignment,
     }
 )
 
@@ -175,61 +170,21 @@ const addToList = (ids) => ({
 })
 
 /**
- * Action to lock an assignment and open it in the editor
- * @param {object} - Assignment to open
- */
-const _lockAndOpenEditor = (assignment) => (
-    (dispatch) => (
-        dispatch(assignments.api.lock(assignment))
-            .then((lockedItem) => {
-                dispatch(_openEditor(lockedItem))
-                return Promise.resolve(lockedItem)
-            }, () => (Promise.resolve(assignment))
-        )
-    )
-)
-
-/**
- * Action to unlock an assignment and close the editor
- * @param {object} - Assignment to close
- */
-const closeEditor = (assignment) => (
-    (dispatch, getState) => {
-        if (isItemLockedInThisSession(assignment, selectors.getSessionDetails(getState())) &&
-            assignment.lock_action === 'edit') {
-            return dispatch(assignments.api.unlock(assignment))
-                .then((item) => {
-                    dispatch(closePreview())
-                    return Promise.resolve(item)
-                }, () => {
-                    dispatch(closePreview())
-                    return Promise.resolve(assignment)
-                }
-            )
-        } else {
-            dispatch(closePreview())
-            return Promise.resolve(assignment)
-        }
-    }
-)
-
-/**
- * Action for opening the assignment editor
- */
-const _openEditor = (item) => ({
-    type: ASSIGNMENTS.ACTIONS.OPEN_ASSIGNMENT_EDITOR,
-    payload: item,
-})
-
-/**
- * Action for closing the assignment editor
+ * Action for opening modal to reassign
  *
  */
-const openEditor = checkPermission(
-    _lockAndOpenEditor,
+const _openReassignModal = (assignment) => (
+    (dispatch) => dispatch(self._openActionModal(
+        assignment,
+        ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label,
+        'reassign'
+    ))
+)
+
+const reassign = checkPermission(
+    _openReassignModal,
     PRIVILEGES.PLANNING_MANAGEMENT,
-    'Unauthorised to edit a Assignment item!',
-    preview
+    'Unauthorised to edit Assignments'
 )
 
 /**
@@ -239,9 +194,15 @@ const openEditor = checkPermission(
 const save = (item) => (
     (dispatch, getState, { notify }) => (
         dispatch(assignments.api.save(item))
-        .then((item) => {
-            notify.success('The assignment has been saved.')
-            return Promise.resolve(item)
+        .then((updatedItem) => {
+            dispatch(hideModal())
+            let msg = 'The assignment has been saved.'
+            if (item.lock_action === 'reassign') {
+                msg = 'The assignment was reassigned.'
+            }
+
+            notify.success(msg)
+            return Promise.resolve(updatedItem)
         }, (error) => {
             notify.error(
                 getErrorMessage(error, 'Failed to save the assignment.')
@@ -273,13 +234,20 @@ const onFulFilAssignment = (assignment, newsItem) => (
 
 const complete = (item) => (
     (dispatch, getState, { notify }) => (
-        dispatch(assignments.api.complete(item))
-        .then((item) => {
-            notify.success('The assignment has been completed.')
-            dispatch(self.closePreview())
-            return Promise.resolve(item)
+        dispatch(assignments.api.lock(item, 'complete'))
+        .then((lockedItem) => {
+            dispatch(assignments.api.complete(lockedItem))
+            .then((lockedItem) => {
+                notify.success('The assignment has been completed.')
+                return Promise.resolve(lockedItem)
+            }, (error) => {
+                notify.error('Failed to complete the assignment.')
+                return Promise.reject(error)
+            })
         }, (error) => {
-            notify.error('Failed to complete the assignment.')
+            notify.error(
+                getErrorMessage(error, 'Failed to lock assignment.')
+            )
             return Promise.reject(error)
         })
     )
@@ -311,6 +279,30 @@ const canLinkItem = (item) => (
     )
 )
 
+const _openActionModal = (assignment,
+    action,
+    lockAction=null) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(assignments.api.lock(assignment, lockAction))
+        .then((lockedAssignment) => (
+                dispatch(showModal({
+                    modalType: MODALS.ITEM_ACTIONS_MODAL,
+                    modalProps: {
+                        assignment: lockedAssignment,
+                        actionType: action,
+                    },
+                }))
+            ), (error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to obtain the lock on Assignment')
+                )
+
+                return Promise.reject(error)
+            }
+        )
+    )
+)
+
 const self = {
     loadAssignments,
     changeListSettings,
@@ -323,14 +315,13 @@ const self = {
     addToList,
     changeLastAssignmentLoadedPage,
     fetch,
-    _openEditor,
-    openEditor,
-    closeEditor,
+    reassign,
     save,
     onFulFilAssignment,
     complete,
     onAuthoringMenuClick,
     canLinkItem,
+    _openActionModal,
 }
 
 export default self

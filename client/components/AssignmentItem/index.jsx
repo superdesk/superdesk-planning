@@ -1,10 +1,11 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { ListItem, Checkbox, UserAvatar, AbsoluteDate, StateLabel } from '../index'
+import { ListItem, Checkbox, UserAvatar, AbsoluteDate, StateLabel, ItemActionsMenu } from '../index'
 import classNames from 'classnames'
 import moment from 'moment'
 import { get } from 'lodash'
-import { getCoverageIcon } from '../../utils/index'
+import { getCoverageIcon, assignmentUtils } from '../../utils/index'
+import { ASSIGNMENTS } from '../../constants'
 
 export const AssignmentItem = ({
         assignment,
@@ -16,8 +17,29 @@ export const AssignmentItem = ({
         isCurrentUser,
         lockedItems,
         currentAssignmentId,
+        session,
+        reassign,
+        completeAssignment,
+        inAssignments,
     }) => {
     const isItemLocked = get(lockedItems, 'assignments') && assignment._id in lockedItems.assignments
+
+    const actions = [
+            {
+                ...ASSIGNMENTS.ITEM_ACTIONS.REASSIGN,
+                callback: () => { reassign(assignment) },
+            },
+            {
+                ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
+                callback: () => { completeAssignment(assignment) },
+            },
+        ]
+
+        const itemActions = inAssignments ? assignmentUtils.getAssignmentItemActions(
+            assignment,
+            session,
+            actions
+        ) : []
 
     return (
         <ListItem
@@ -69,6 +91,9 @@ export const AssignmentItem = ({
                     />
                 </span>
             </div>
+            <div className="sd-list-item__action-menu">
+                {itemActions.length > 0 && <ItemActionsMenu actions={itemActions} />}
+            </div>
         </ListItem>
     )
 }
@@ -83,4 +108,8 @@ AssignmentItem.propTypes = {
     isSelected: PropTypes.bool,
     onSelectChange: PropTypes.func,
     currentAssignmentId: PropTypes.string,
+    reassign: PropTypes.func,
+    completeAssignment: PropTypes.func,
+    inAssignments: PropTypes.bool,
+    session: PropTypes.object,
 }
