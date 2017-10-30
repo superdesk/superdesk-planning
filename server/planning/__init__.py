@@ -53,6 +53,7 @@ from .assignments import AssignmentsResource, AssignmentsService
 from .delivery import DeliveryResource
 from .assignments_content import AssignmentsContentResource, AssignmentsContentService
 from .assignments_link import AssignmentsLinkResource, AssignmentsLinkService
+from .assignments_unlink import AssignmentsUnlinkResource, AssignmentsUnlinkService
 from .assignments_complete import AssignmentsCompleteResource, AssignmentsCompleteService
 from .commands import *  # noqa
 
@@ -218,6 +219,9 @@ def init_app(app):
     assignments_link_service = AssignmentsLinkService('assignments_link', backend=superdesk.get_backend())
     AssignmentsLinkResource('assignments_link', app=app, service=assignments_link_service)
 
+    assignments_unlink_service = AssignmentsUnlinkService('assignments_unlink', backend=superdesk.get_backend())
+    AssignmentsUnlinkResource('assignments_unlink', app=app, service=assignments_unlink_service)
+
     # Updating data/lock on assignments based on content item updates from authoring
     app.on_updated_archive += assignments_publish_service.update_assignment_on_archive_update
     app.on_archive_item_updated += assignments_publish_service.update_assignment_on_archive_operation
@@ -227,6 +231,12 @@ def init_app(app):
 
     assignments_complete_service = AssignmentsCompleteService(AssignmentsCompleteResource.endpoint_name,
                                                               backend=superdesk.get_backend())
+
+    # Enhance the archive/published item resources with assigned desk/user information
+    app.on_fetched_resource_archive += assignments_publish_service.on_fetched_resource_archive
+    app.on_fetched_item_archive += assignments_publish_service.on_fetched_item_archive
+    app.on_fetched_resource_published += assignments_publish_service.on_fetched_resource_archive
+    app.on_fetched_item_published += assignments_publish_service.on_fetched_resource_archive
 
     AssignmentsCompleteResource(
         AssignmentsCompleteResource.endpoint_name,
