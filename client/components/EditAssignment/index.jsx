@@ -121,7 +121,8 @@ export class EditAssignment  extends React.Component {
                 <div className='assignment'>
                     { renderUserAvatar() }
                     { !this.props.readOnly && !get(this.props, 'input.value.assignment_id') &&
-                    renderAction('Create Assignment', this.toggleSelection) }
+                        !this.state.openAssignmentSelect &&
+                        renderAction('Create Assignment', this.toggleSelection) }
                 </div>
             )
         }
@@ -130,7 +131,9 @@ export class EditAssignment  extends React.Component {
             return (
                 <div className='assignment'>
                     { renderUserAvatar() }
-                    { !this.props.readOnly && renderAction('Reassign', this.toggleSelection) }
+                    { !this.props.readOnly &&
+                        !this.state.openAssignmentSelect &&
+                        renderAction('Reassign', this.toggleSelection) }
                 </div>
             )
         }

@@ -10,6 +10,7 @@ import {
 } from '../index'
 import * as selectors from '../../selectors'
 import * as actions from '../../actions'
+import { WORKSPACE } from '../../constants'
 import './style.scss'
 
 
@@ -60,9 +61,10 @@ class AssignmentListComponent extends React.Component {
                         onClick={this.props.preview}
                         onSelectChange={this.props.onAssignmentSelectChange}
                         lockedItems={this.props.lockedItems}
-                        users={this.props.users}
-                        session={this.props.session}
                         currentAssignmentId={this.props.currentAssignmentId}
+                        reassign={this.props.reassign}
+                        completeAssignment={this.props.completeAssignment}
+                        inAssignments={this.props.inAssignments}
                     />
                     {this.props.previewOpened && <EditAssignmentPanelContainer
                         onFulFilAssignment={this.props.onFulFilAssignment}/> }
@@ -92,6 +94,9 @@ AssignmentListComponent.propTypes = {
     filterByType: PropTypes.string,
     lockedItems: PropTypes.object,
     currentAssignmentId: PropTypes.string,
+    reassign: PropTypes.func,
+    completeAssignment: PropTypes.func,
+    inAssignments: PropTypes.bool,
 }
 
 const mapStateToProps = (state) => ({
@@ -109,6 +114,7 @@ const mapStateToProps = (state) => ({
     assignments: selectors.getAssignments(state),
     lockedItems: selectors.getLockedItems(state),
     currentAssignmentId: selectors.getCurrentAssignmentId(state),
+    inAssignments: selectors.getCurrentWorkspace(state) === WORKSPACE.ASSIGNMENTS,
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -120,6 +126,8 @@ const mapDispatchToProps = (dispatch) => ({
     loadMoreAssignments: () => dispatch(actions.assignments.ui.loadMoreAssignments()),
     preview: (assignment) => dispatch(actions.assignments.ui.preview(assignment)),
     onAssignmentSelectChange: (value) => dispatch(actions.assignments.ui.toggleAssignmentSelection(value)),
+    reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),
+    completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
 })
 
 export const AssignmentListContainer = connect(mapStateToProps, mapDispatchToProps)(AssignmentListComponent)

@@ -9,10 +9,6 @@
 		background: #e3f1f6;
 	}
 
-	&:hover  &__action{
-		opacity: 0.8;
-	}
-
 	&__avatar {
 		height: 5rem;
 		width: 5rem;
@@ -20,8 +16,7 @@
 }
 
 .assignmentselect {
-    position: absolute;
-    top: 60px; left: 100px;
+    position: relative;
     z-index: 2000;
     background: #fff;
     padding: 10px;
@@ -68,6 +63,7 @@
     }
 
     &__action {
+        height: 20px;
     	button {
     		float: right;
     		margin-right: 4px;
@@ -76,8 +72,4 @@
 	&__assignment {
 		left: 40px;
 	}
-}
-
-.assignment__action {
-	opacity: 0;
 }

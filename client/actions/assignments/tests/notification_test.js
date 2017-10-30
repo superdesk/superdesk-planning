@@ -97,7 +97,6 @@ describe('actions.assignments.notification', () => {
             let payload = {
                 item: 'as1',
                 assigned_desk: 'desk2',
-                assignment_state: 'foo',
                 coverage: 'c1',
                 planning: 'p1',
                 original_assigned_desk: 'desk1',
@@ -114,7 +113,6 @@ describe('actions.assignments.notification', () => {
             return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
             .then(() => {
                 expect(coverage1.assigned_to.desk).toBe('desk2')
-                expect(coverage1.assigned_to.state).toBe('foo')
                 expect(assignmentsUi.fetch.callCount).toBe(1)
                 done()
             })
@@ -122,7 +120,6 @@ describe('actions.assignments.notification', () => {
     })
 
     describe('`assignment lock`', () => {
-
         beforeEach(() => {
             sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (
                 Promise.resolve(store.initialState.assignment.assignments.as1)))
@@ -183,6 +180,84 @@ describe('actions.assignments.notification', () => {
                             lock_session: null,
                             lock_time: null,
                             _etag: 'etag1',
+                        },
+                    },
+                }])
+                done()
+            })
+        })
+    })
+
+    describe('`assignment:completed`', () => {
+        afterEach(() => {
+            restoreSinonStub(assignmentsUi.fetch)
+        })
+
+        it('update planning on assignment complete', (done) => {
+            store.initialState.workspace.currentDeskId = 'desk1'
+            let payload = {
+                item: 'as1',
+                assigned_desk: 'desk2',
+                assignment_state: 'completed',
+                coverage: 'c1',
+                planning: 'p1',
+                original_assigned_desk: 'desk1',
+            }
+            const plans = selectors.getStoredPlannings(store.getState())
+            const planning1 = plans[payload.planning]
+            const coverage1 = planning1.coverages.find((cov) =>
+                cov.coverage_id === payload.coverage)
+
+            expect(coverage1.assigned_to.desk).toBe('desk1')
+            expect(coverage1.assigned_to.state).toBe(undefined)
+            sinon.stub(assignmentsUi, 'fetch').callsFake(() => Promise.resolve())
+
+            return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
+            .then(() => {
+                expect(coverage1.assigned_to.desk).toBe('desk2')
+                expect(coverage1.assigned_to.state).toBe('completed')
+                expect(assignmentsUi.fetch.callCount).toBe(1)
+                done()
+            })
+        })
+
+        it('unlocks assignment on assignment complete', (done) => {
+            restoreSinonStub(assignmentsUi.fetchAssignmentById)
+            sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (
+                Promise.resolve(store.initialState.assignment.assignments.as1)))
+
+            store.initialState.workspace.currentDeskId = 'desk1'
+            let payload = {
+                item: 'as1',
+                assigned_desk: 'desk2',
+                assignment_state: 'completed',
+                coverage: 'c1',
+                planning: 'p1',
+            }
+            const plans = selectors.getStoredPlannings(store.getState())
+            const planning1 = plans[payload.planning]
+            const coverage1 = planning1.coverages.find((cov) =>
+                cov.coverage_id === payload.coverage)
+
+            expect(coverage1.assigned_to.desk).toBe('desk1')
+            expect(coverage1.assigned_to.state).toBe(undefined)
+            sinon.stub(assignmentsUi, 'fetch').callsFake(() => Promise.resolve())
+
+            return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
+            .then(() => {
+                expect(coverage1.assigned_to.desk).toBe('desk2')
+                expect(coverage1.assigned_to.state).toBe('completed')
+                expect(store.dispatch.callCount).toBe(3)
+                expect(assignmentsApi.fetchAssignmentById.callCount).toBe(1)
+                expect(store.dispatch.args[2]).toEqual([{
+                    type: 'UNLOCK_ASSIGNMENT',
+                    payload: {
+                        assignment: {
+                            ...store.initialState.assignment.assignments.as1,
+                            lock_action: null,
+                            lock_user: null,
+                            lock_session: null,
+                            lock_time: null,
                         },
                     },
                 }])

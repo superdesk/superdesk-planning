@@ -62,6 +62,9 @@ export class AssignmentList extends React.Component {
                     lockedItems={this.props.lockedItems}
                     session={session}
                     currentAssignmentId={currentAssignmentId}
+                    reassign={this.props.reassign}
+                    completeAssignment={this.props.completeAssignment}
+                    inAssignments={this.props.inAssignments}
                 />
             </div>
         )
@@ -115,4 +118,7 @@ AssignmentList.propTypes = {
     loadMoreAssignments: PropTypes.func.isRequired,
     lockedItems: PropTypes.object,
     currentAssignmentId: PropTypes.string,
+    reassign: PropTypes.func,
+    completeAssignment: PropTypes.func,
+    inAssignments: PropTypes.bool,
 }

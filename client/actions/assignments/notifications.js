@@ -31,40 +31,68 @@ const onAssignmentCreated = (_e, data) => (
 const onAssignmentUpdated = (_e, data) => (
     (dispatch, getState) => {
         const currentDesk = selectors.getCurrentDeskId(getState())
+        const planningItem = _getPlanningItemOnAssignmentUpdate(data,
+            selectors.getStoredPlannings(getState()))
 
-        if (get(data, 'planning')) {
-            const plans = selectors.getStoredPlannings(getState())
-            let planningItem = { ...get(plans, data.planning) }
-
-            if (get(planningItem, '_id')) {
-                let coverages = get(planningItem, 'coverages') || []
-                let coverage = coverages.find((cov) => cov.coverage_id === data.coverage)
-                if (coverage) {
-                    if (data.assigned_user) {
-                        coverage.assigned_to.user = data.assigned_user
-                    }
-
-                    if (data.assigned_desk) {
-                        coverage.assigned_to.desk = data.assigned_desk
-                    }
-
-                    if (data.assignment_state) {
-                        coverage.assigned_to.state = data.assignment_state
-                    }
-
-                    dispatch(planning.api.receivePlannings([planningItem]))
-                }
-            }
+        if (planningItem) {
+            dispatch(planning.api.receivePlannings([planningItem]))
         }
 
-        if (currentDesk &&
-            (currentDesk === data.assigned_desk || currentDesk === data.original_assigned_desk)) {
-            return dispatch(assignments.ui.fetch())
+        if (currentDesk) {
+            if (currentDesk === data.assigned_desk || currentDesk === data.original_assigned_desk) {
+                dispatch(assignments.ui.fetch())
+            }
+
+            if (get(data, 'assignment_state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
+                // Assignment was completed on editor but context was a different desk
+                return dispatch(assignments.api.fetchAssignmentById(data.item, false))
+                    .then((assignmentInStore) => {
+                        assignmentInStore = {
+                            ...assignmentInStore,
+                            lock_action: null,
+                            lock_user: null,
+                            lock_session: null,
+                            lock_time: null,
+                        }
+                        assignmentInStore.assigned_to.state = ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
+
+                        dispatch({
+                            type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
+                            payload: { assignment: assignmentInStore },
+                        })
+                    })
+            }
         }
 
         return Promise.resolve()
     }
 )
+
+const _getPlanningItemOnAssignmentUpdate = (data, plans) => {
+    if (get(data, 'planning')) {
+        let planningItem = { ...get(plans, data.planning) }
+
+        if (get(planningItem, '_id')) {
+            let coverages = get(planningItem, 'coverages') || []
+            let coverage = coverages.find((cov) => cov.coverage_id === data.coverage)
+            if (coverage) {
+                if (data.assigned_user) {
+                    coverage.assigned_to.user = data.assigned_user
+                }
+
+                if (data.assigned_desk) {
+                    coverage.assigned_to.desk = data.assigned_desk
+                }
+
+                if (get(data, 'assignment_state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
+                    coverage.assigned_to.state = data.assignment_state
+                }
+
+                return planningItem
+            }
+        }
+    }
+}
 
 const onAssignmentLocked = (_e, data) => (
     (dispatch) => {

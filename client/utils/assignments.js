@@ -4,7 +4,8 @@ import { isItemLockedInThisSession } from './index'
 
 const canEditAssignment = (assignment, session) => (
     self.isAssignmentInEditableState(assignment) &&
-    isItemLockedInThisSession(assignment, session)
+    (!get(assignment, 'lock_user') ||
+    isItemLockedInThisSession(assignment, session))
 )
 
 const isAssignmentInEditableState = (assignment) => (
@@ -13,13 +14,44 @@ const isAssignmentInEditableState = (assignment) => (
     get(assignment, 'assigned_to.state')))
 )
 
-const canCompleteAssignment = (assignment) =>
-    (get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS)
+const canCompleteAssignment = (assignment, session) =>
+    (get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS &&
+        !get(assignment, 'lock_user') || isItemLockedInThisSession(assignment, session)
+)
+
+const getAssignmentItemActions = (assignment, session, actions) => {
+    let itemActions = []
+    let key = 1
+
+    const actionsValidator = {
+        [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: () =>
+            canEditAssignment(assignment, session),
+        [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label]: () =>
+            canCompleteAssignment(assignment, session),
+    }
+
+    actions.forEach((action) => {
+        if (actionsValidator[action.label] &&
+                !actionsValidator[action.label](assignment, session)) {
+            return
+        }
+
+        itemActions.push({
+            ...action,
+            key: `${action.label}-${key}`,
+        })
+
+        key++
+    })
+
+    return itemActions
+}
 
 const self = {
     canEditAssignment,
     canCompleteAssignment,
     isAssignmentInEditableState,
+    getAssignmentItemActions,
 }
 
 export default self

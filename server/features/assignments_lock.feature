@@ -428,7 +428,7 @@ Feature: Assignments Locking
         """
         Then we get error 400
         """
-        {"_message": "Related assignment is locked."}
+        {"_message": "Lock Failed: Related assignment is locked."}
         """
 
     @auth

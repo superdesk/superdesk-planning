@@ -10,9 +10,10 @@ import {
     PostponeEventForm,
     ConvertToRecurringEventForm,
     CancelPlanningCoveragesForm,
+    ReassignAssignmentForm,
 } from './index'
 import { get } from 'lodash'
-import { GENERIC_ITEM_ACTIONS, EVENTS, FORM_NAMES, PLANNING } from '../../constants'
+import { GENERIC_ITEM_ACTIONS, EVENTS, FORM_NAMES, PLANNING, ASSIGNMENTS } from '../../constants'
 
 export const ItemActionConfirmationModal = ({ handleHide, modalProps }) => {
     let title
@@ -82,6 +83,13 @@ export const ItemActionConfirmationModal = ({ handleHide, modalProps }) => {
                 _cancelAllCoverage: true,
             }
             form = CancelPlanningCoveragesForm
+            break
+
+        case ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label:
+            title = ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label
+            propToForm = modalProps.assignment
+            form = ReassignAssignmentForm
+            formNameForPristineCheck = FORM_NAMES.ReassignAssignmentForm
             break
 
         default:
