@@ -10,4 +10,5 @@ export const TOOLTIPS = {
     repeatingEvent: 'Repeating Event',
     publishedState: 'Published',
     withheldState: 'The event has been killed',
+    scheduledState: 'Scheduled',
 }

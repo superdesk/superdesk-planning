@@ -3,13 +3,8 @@ import './client/styles/index.scss'
 
 // scripts
 import planningModule from './client'
-
 import * as ctrl from './client/controllers'
-import * as components from './client/components'
-import { createStore } from './client/utils'
-
 import { get } from 'lodash'
-
 
 configurePlanning.$inject = ['superdeskProvider']
 function configurePlanning(superdesk) {
