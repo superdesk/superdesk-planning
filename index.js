@@ -46,8 +46,8 @@ function configurePlanning(superdesk) {
                     type: 'archive',
                 },
                 {
-                    action: 'planning',
-                    type: 'addto',
+                    action: 'external-app',
+                    type: 'addto-planning',
                 }
             ],
             group: 'Planning',
@@ -69,8 +69,8 @@ function configurePlanning(superdesk) {
                     type: 'archive',
                 },
                 {
-                    action: 'planning',
-                    type: 'fulfil',
+                    action: 'external-app',
+                    type: 'fulfill-assignment',
                 }
             ],
             group: 'Planning',
@@ -87,22 +87,10 @@ function configurePlanning(superdesk) {
 runPlanning.$inject = [
     'ingestSources',
     '$templateCache',
-    '$injector',
-    'extensionPoints',
-    'superdesk',
-    'lock',
-    'authoring',
-    'archiveService'
 ]
 function runPlanning(
     ingestSources,
     $templateCache,
-    $injector,
-    extensionPoints,
-    superdesk,
-    lock,
-    authoring,
-    archiveService
 ) {
     // register new ingest feeding service and custom settings template
     $templateCache.put(
@@ -129,18 +117,6 @@ function runPlanning(
         label: 'Event Email Feed',
         templateUrl: 'superdesk-planning/views/eventEmailConfig.html',
     })
-
-    extensionPoints.register('authoring-topbar',
-        components.AuthoringMenu,
-        {store: createStore({
-            initialState: {},
-            extraArguments: {
-                superdesk: superdesk,
-                lock: lock,
-                archiveService: archiveService,
-                authoring: authoring,
-            }
-        }, (state) => (state || null))}, ['item'])
 }
 
 export default planningModule

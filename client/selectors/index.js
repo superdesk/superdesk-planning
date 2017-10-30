@@ -81,6 +81,7 @@ export const getCurrentUserId = (state) => get(state, 'session.identity._id')
 export const getPreviewAssignmentOpened = (state) => get(state, 'assignment.previewOpened')
 export const getCurrentAssignmentId = (state) => get(state, 'assignment.currentAssignmentId')
 export const getReadOnlyAssignment = (state) => get(state, 'assignment.readOnly')
+export const getFulFilledItem = (state) => get(state, 'assignment.fulfilledItem', {})
 
 export const getEventCalendars = (state) => get(state, 'vocabularies.event_calendars', [])
 export const getKeywords = (state) => get(state, 'vocabularies.keywords', [])

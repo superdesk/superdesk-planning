@@ -64,10 +64,9 @@ export const getTestActionStore = () => {
                     }),
                 },
 
-                assignments_link: { save: sinon.stub().returns(Promise.resolve()) },
+                assignments_link: { save: sinon.stub().returns(Promise.resolve({})) },
                 assignments_lock: { save: sinon.stub().returns(Promise.resolve()) },
                 assignments_unlock: { save: sinon.stub().returns(Promise.resolve()) },
-
                 update: sinon.spy(() => (Promise.resolve())),
                 save: sinon.spy(() => (Promise.resolve())),
 

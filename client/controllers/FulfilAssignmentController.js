@@ -17,6 +17,8 @@ FulFilAssignmentController.$inject = [
     'session',
     'userList',
     'api',
+    '$timeout',
+    'superdeskFlags',
 ]
 
 export function FulFilAssignmentController(
@@ -27,7 +29,9 @@ export function FulFilAssignmentController(
     lock,
     session,
     userList,
-    api)
+    api,
+    $timeout,
+    superdeskFlags)
 {
     const item = get($scope, 'locals.data.item')
 
@@ -84,14 +88,14 @@ export function FulFilAssignmentController(
             store.dispatch({
                 type: 'WORKSPACE_CHANGE',
                 payload: {
-                    currentDeskId: get(newsItem, 'task.desk'),
-                    currentStageId: get(newsItem, 'task.stage'),
+                    currentDeskId: get(item, 'task.desk'),
+                    currentStageId: get(item, 'task.stage'),
                 },
             })
             registerNotifications($scope, store)
 
             store.dispatch(actions.assignments.ui.loadAssignments('All', null,
-                'Created', 'Asc', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED, newsItem.type))
+                'Created', 'Asc', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED, item.type))
             .then(() => {
                 ReactDOM.render(
                     <Provider store={store}>
@@ -103,7 +107,7 @@ export function FulFilAssignmentController(
                 store.dispatch(actions.showModal({
                     modalType: MODALS.FULFIL_ASSIGNMENT,
                     modalProps: {
-                        newsItem,
+                        newsItem: item, // scope item
                         fullscreen: true,
                         $scope,
                     },
@@ -111,7 +115,7 @@ export function FulFilAssignmentController(
 
                 $scope.$on('$destroy', () => {
                     store.dispatch(actions.hideModal())
-                    store.dispatch(actions.resetStore())
+                    $timeout(() => { store.dispatch(actions.resetStore()) }, 1000)
 
                     // Only unlock the item if it was locked when launching this modal
                     if (get(newsItem, 'lock_session', null) !== null &&
@@ -130,6 +134,11 @@ export function FulFilAssignmentController(
                     if (data.item === newsItem._id && data.lock_session !== session.sessionId) {
                         store.dispatch(actions.hideModal())
                         store.dispatch(actions.resetStore())
+
+                        if (superdeskFlags.flags.authoring) {
+                            $scope.reject()
+                            return
+                        }
 
                         userList.getUser(data.user).then(
                             (user) => Promise.resolve(user.display_name),
