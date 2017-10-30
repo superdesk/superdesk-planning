@@ -8,6 +8,7 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from superdesk.tests.publish_steps import * # noqa
 from superdesk.tests.steps import (then, when, step_impl_then_get_existing, get_json_data,
                                    assert_200, unique_headers, get_prefixed_url,
                                    if_match, assert_404, apply_placeholders, get_res, set_placeholder)

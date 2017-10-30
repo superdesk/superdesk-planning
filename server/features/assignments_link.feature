@@ -361,6 +361,26 @@ Feature: Assignment link
             }
         }]
         """
+        When we get "archive/#archive._id#"
+        Then we get OK response
+        And we get existing resource
+        """
+        { "assignment_id": "#firstassignment#"}
+        """
+        When we get "/published"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {
+                    "assignment_id": "#firstassignment#",
+                    "_id": "#archive._id#",
+                    "state": "published"
+                }
+            ]
+        }
+        """
+
 
     @auth
     Scenario: If the item is corrected then on fulfil assignment state will be completed
@@ -451,6 +471,202 @@ Feature: Assignment link
                 "user": "#CONTEXT_USER_ID#",
                 "state": "completed"
             }
+        }
+        """
+        When we get "archive/#archive._id#"
+        Then we get existing resource
+        """
+        { "assignment_id": "#firstassignment#"}
+        """
+        When we get "/published"
+        Then we get existing resource
+        """
+        {
+            "_items": [
+                {
+                    "assignment_id": "#firstassignment#",
+                    "_id": "#archive._id#",
+                    "state": "published"
+                },
+                {
+                    "assignment_id": "#firstassignment#",
+                    "_id": "#archive._id#",
+                    "state": "corrected"
+                }
+            ]
+        }
+        """
+
+    @auth @notification
+    Scenario: If the item is scheduled then on fulfil assignment state will be inprogress
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        Then we get OK response
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                }
+            }]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we get "assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            }
+        }
+        """
+        When we patch "/archive/#archive._id#"
+        """
+        {"slugline": "test", "publish_schedule":"#DATE+2#"}
+        """
+        Then we get OK response
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#firstassignment#",
+            "item_id": "#archive._id#"
+        }]
+        """
+        Then we get OK response
+        When we get "assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "in_progress"
+            }
+        }
+        """
+        When we publish "#archive._id#" with "publish" type and "published" state
+        Then we get OK response
+        When we get "archive/#archive._id#"
+        Then we get existing resource
+        """
+        {
+            "state": "scheduled",
+            "operation": "publish",
+            "assignment_id": "#firstassignment#"
+        }
+        """
+        When we get "published"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {
+                    "state": "scheduled",
+                    "operation": "publish",
+                    "_id": "#archive._id#",
+                    "assignment_id": "#firstassignment#"
+                }
+            ]
+        }
+        """
+        When we get "assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "in_progress"
+            }
+        }
+        """
+        When the publish schedule lapses
+        """
+        ["#archive._id#"]
+        """
+        When we enqueue published
+        When we get "assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "completed"
+            }
+        }
+        """
+        When we get "archive/#archive._id#"
+        Then we get existing resource
+        """
+        {
+            "state": "published",
+            "operation": "publish",
+            "assignment_id": "#firstassignment#"
+        }
+        """
+        When we get "published"
+        Then we get list with 1 items
+        """
+        {
+            "_items": [
+                {
+                    "state": "published",
+                    "operation": "publish",
+                    "_id": "#archive._id#",
+                    "assignment_id": "#firstassignment#"
+                }
+            ]
         }
         """
 
