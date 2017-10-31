@@ -17,11 +17,14 @@ from planning.planning_export import get_desk_template
 from superdesk.errors import SuperdeskApiError
 from .common import ASSIGNMENT_WORKFLOW_STATE
 
+FIELDS_TO_COPY = ('anpa_category', 'subject', 'urgency')
 
-def get_item_from_assignment(assignment):
+
+def get_item_from_assignment(assignment, template=None):
     """Get the item from assignment
 
     :param dict assignment: Assignment document
+    :param string template string: name of template to use
     :return dict: item
     """
     item = {}
@@ -30,7 +33,10 @@ def get_item_from_assignment(assignment):
 
     desk_id = assignment.get('assigned_to').get('desk')
     desk = superdesk.get_resource_service('desks').find_one(req=None, _id=desk_id)
-    template = get_desk_template(desk)
+    if template is not None:
+        template = superdesk.get_resource_service('content_templates').find_one(req=None, template_name=template)
+    else:
+        template = get_desk_template(desk)
     item = get_item_from_template(template)
 
     slugline = (assignment.get('planning') or {}).get('slugline')
@@ -39,6 +45,21 @@ def get_item_from_assignment(assignment):
         item['slugline'] = slugline
 
     ednote = (assignment.get('planning') or {}).get('ednote')
+
+    planning_item = assignment.get('planning_item')
+    # we now merge planning data if they are set
+    if planning_item is not None:
+        planning = superdesk.get_resource_service('planning').find_one(req=None, _id=planning_item)
+        if planning is not None:
+            for field in FIELDS_TO_COPY:
+                if planning.get(field):
+                    item[field] = planning[field]
+            # when creating planning item from news item, we use headline for description_text
+            # so we are doing the opposite here
+            if planning.get('description_text'):
+                item['headline'] = planning['description_text']
+            elif planning.get('headline'):
+                item['headline'] = planning['headline']
 
     if ednote:
         item['ednote'] = ednote
@@ -64,7 +85,7 @@ class AssignmentsContentService(superdesk.Service):
         assignments_service = superdesk.get_resource_service('assignments')
         for doc in docs:
             assignment = assignments_service.find_one(req=None, _id=doc.pop('assignment_id'))
-            item = get_item_from_assignment(assignment)
+            item = get_item_from_assignment(assignment, doc.pop('template_name', None))
             item[config.VERSION] = 1
             item.setdefault('type', 'text')
             item.setdefault('slugline', 'Planning')
@@ -120,6 +141,10 @@ class AssignmentsContentResource(superdesk.Resource):
         'assignment_id': {
             'type': 'string',
             'required': True
+        },
+        'template_name': {
+            'type': 'string',
+            'required': False
         }
     }
     resource_methods = ['POST']

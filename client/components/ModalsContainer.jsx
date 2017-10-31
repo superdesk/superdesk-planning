@@ -9,6 +9,7 @@ import {
     ItemActionConfirmationModal,
     AddToPlanningModal,
     FulFilAssignmentModal,
+    SelectItemModal,
  } from './index'
 import { MODALS } from '../constants'
 
@@ -23,6 +24,7 @@ const modals = {
     [MODALS.SORT_SELECTED]: SortItemsModal,
     [MODALS.ADD_TO_PLANNING]: AddToPlanningModal,
     [MODALS.FULFIL_ASSIGNMENT]: FulFilAssignmentModal,
+    [MODALS.SELECT_ITEM_MODAL]: SelectItemModal,
 }
 
 export function Modals({ modalType, modalProps, handleHide }) {
