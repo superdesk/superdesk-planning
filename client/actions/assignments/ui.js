@@ -1,8 +1,8 @@
 import { showModal, hideModal } from '../index'
 import assignments from './index'
 import * as selectors from '../../selectors'
-import { ASSIGNMENTS, PRIVILEGES, MODALS } from '../../constants'
-import { checkPermission, getErrorMessage } from '../../utils'
+import { ASSIGNMENTS, MODALS } from '../../constants'
+import { getErrorMessage } from '../../utils'
 
 /**
  * Action dispatcher to load the list of assignments for current list settings.
@@ -173,7 +173,7 @@ const addToList = (ids) => ({
  * Action for opening modal to reassign
  *
  */
-const _openReassignModal = (assignment) => (
+const reassign = (assignment) => (
     (dispatch) => dispatch(self._openActionModal(
         assignment,
         ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label,
@@ -181,10 +181,16 @@ const _openReassignModal = (assignment) => (
     ))
 )
 
-const reassign = checkPermission(
-    _openReassignModal,
-    PRIVILEGES.PLANNING_MANAGEMENT,
-    'Unauthorised to edit Assignments'
+/**
+ * Action for opening modal to edit assignment's priority
+ *
+ */
+const editPriority = (assignment) => (
+    (dispatch) => dispatch(_openActionModal(
+        assignment,
+        ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label,
+        'edit_priority'
+    ))
 )
 
 /**
@@ -196,7 +202,7 @@ const save = (item) => (
         dispatch(assignments.api.save(item))
         .then((updatedItem) => {
             dispatch(hideModal())
-            let msg = 'The assignment has been saved.'
+            let msg = 'Assignment priority has been updated.'
             if (item.lock_action === 'reassign') {
                 msg = 'The assignment was reassigned.'
             }
@@ -316,6 +322,7 @@ const self = {
     changeLastAssignmentLoadedPage,
     fetch,
     reassign,
+    editPriority,
     save,
     onFulFilAssignment,
     complete,

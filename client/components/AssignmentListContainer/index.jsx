@@ -24,15 +24,18 @@ class AssignmentListComponent extends React.Component {
             loadAssignments,
             filterByState,
             filterByType,
+            filterByPriority,
         } = this.props
 
-        loadAssignments(filterBy, searchQuery, orderByField, orderDirection, filterByState, filterByType)
+        loadAssignments(filterBy, searchQuery, orderByField, orderDirection, filterByState,
+            filterByType, filterByPriority)
     }
 
     changeFilter (filterBy, orderByField, orderDirection) {
-        const { searchQuery, loadAssignments, filterByState, filterByType } = this.props
+        const { searchQuery, loadAssignments, filterByState, filterByType, filterByPriority } = this.props
 
-        loadAssignments(filterBy, searchQuery, orderByField, orderDirection, filterByState, filterByType)
+        loadAssignments(filterBy, searchQuery, orderByField, orderDirection, filterByState,
+            filterByType, filterByPriority)
     }
 
     render() {
@@ -64,6 +67,7 @@ class AssignmentListComponent extends React.Component {
                         currentAssignmentId={this.props.currentAssignmentId}
                         reassign={this.props.reassign}
                         completeAssignment={this.props.completeAssignment}
+                        editAssignmentPriority={this.props.editAssignmentPriority}
                         inAssignments={this.props.inAssignments}
                     />
                     {this.props.previewOpened && <EditAssignmentPanelContainer
@@ -92,10 +96,12 @@ AssignmentListComponent.propTypes = {
     onFulFilAssignment: PropTypes.func,
     filterByState: PropTypes.string,
     filterByType: PropTypes.string,
+    filterByPriority: PropTypes.string,
     lockedItems: PropTypes.object,
     currentAssignmentId: PropTypes.string,
     reassign: PropTypes.func,
     completeAssignment: PropTypes.func,
+    editAssignmentPriority: PropTypes.func,
     inAssignments: PropTypes.bool,
 }
 
@@ -103,6 +109,7 @@ const mapStateToProps = (state) => ({
     filterBy: selectors.getFilterBy(state),
     filterByState: selectors.getAssignmentFilterByState(state),
     filterByType: selectors.getAssignmentFilterByType(state),
+    filterByPriority: selectors.getAssignmentFilterByPriority(state),
     searchQuery: selectors.getSearchQuery(state),
     orderByField: selectors.getOrderByField(state),
     orderDirection: selectors.getOrderDirection(state),
@@ -119,15 +126,17 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     loadAssignments: (filterBy, searchQuery, orderByField,
-                      orderDirection, filterByState, filterByType) =>
+                      orderDirection, filterByState, filterByType, filterByPriority) =>
         dispatch(actions.assignments.ui.loadAssignments(
-            filterBy, searchQuery, orderByField, orderDirection, filterByState, filterByType
+            filterBy, searchQuery, orderByField, orderDirection, filterByState,
+            filterByType, filterByPriority
         )),
     loadMoreAssignments: () => dispatch(actions.assignments.ui.loadMoreAssignments()),
     preview: (assignment) => dispatch(actions.assignments.ui.preview(assignment)),
     onAssignmentSelectChange: (value) => dispatch(actions.assignments.ui.toggleAssignmentSelection(value)),
     reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
+    editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),
 })
 
 export const AssignmentListContainer = connect(mapStateToProps, mapDispatchToProps)(AssignmentListComponent)

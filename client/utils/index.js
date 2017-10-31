@@ -209,6 +209,20 @@ export const createTestStore = (params={}) => {
                     qcode: 'ncostat:onreq',
                 },
             ],
+            assignment_priority: [
+                {
+                    name: 'High',
+                    qcode: 1,
+                },
+                {
+                    name: 'Medium',
+                    qcode: 2,
+                },
+                {
+                    name: 'Low',
+                    qcode: 3,
+                },
+            ],
         },
 
         subjects: [
@@ -785,4 +799,15 @@ export function gettext(text, params) {
     }
 
     return text
+}
+
+export const getAssignmentPriority = (priorityQcode, priorities) => {
+    // Returns default or given priority object
+    if (priorityQcode) {
+        return priorities.find((p) =>
+            p.qcode === priorityQcode)
+    } else {
+        return priorities.find((p) =>
+            p.qcode === 2)
+    }
 }

@@ -5,6 +5,7 @@ import {
     getTestActionStore,
     restoreSinonStub,
 } from '../../../utils/testUtils'
+import { ASSIGNMENTS } from '../../../constants'
 
 describe('actions.assignments.api', () => {
     let store
@@ -24,7 +25,6 @@ describe('actions.assignments.api', () => {
 
     afterEach(() => {
         restoreSinonStub(assignmentsApi.query)
-        // restoreSinonStub(assignmentsApi.queryLockedAssignments)
         restoreSinonStub(assignmentsApi.receivedAssignments)
         restoreSinonStub(assignmentsApi.fetchAssignmentById)
         restoreSinonStub(assignmentsApi.save)
@@ -133,6 +133,84 @@ describe('actions.assignments.api', () => {
                 expect(params).toEqual({
                     page: 3,
                     sort: '[("_updated", -1)]',
+                    source: source,
+                })
+
+                done()
+            })
+        })
+
+        it('query using priority', (done) => {
+            const source = '{"query":{"bool":{"must":[{"term":'
+                + '{"priority":2}}]}}}'
+
+            const params = {
+                searchQuery: null,
+                priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                orderByField: 'Updated',
+                orderDirection: 'Desc',
+                page: 3,
+            }
+
+            store.test(done, assignmentsApi.query(params))
+            .then(() => {
+                expect(services.api('assignments').query.callCount).toBe(1)
+                const params = services.api('assignments').query.args[0][0]
+                expect(params).toEqual({
+                    page: 3,
+                    sort: '[("_updated", -1)]',
+                    source: source,
+                })
+
+                done()
+            })
+        })
+
+        it('Can sort by priority Desceding', (done) => {
+            const source = '{"query":{"bool":{"must":[{"term":'
+                + '{"priority":2}}]}}}'
+
+            const params = {
+                searchQuery: null,
+                priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                orderByField: 'Priority',
+                orderDirection: 'Desc',
+                page: 3,
+            }
+
+            store.test(done, assignmentsApi.query(params))
+            .then(() => {
+                expect(services.api('assignments').query.callCount).toBe(1)
+                const params = services.api('assignments').query.args[0][0]
+                expect(params).toEqual({
+                    page: 3,
+                    sort: '[("priority", -1)]',
+                    source: source,
+                })
+
+                done()
+            })
+        })
+
+        it('Can sort by priority Ascending', (done) => {
+            const source = '{"query":{"bool":{"must":[{"term":'
+                + '{"priority":2}}]}}}'
+
+            const params = {
+                searchQuery: null,
+                priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                orderByField: 'Priority',
+                orderDirection: 'Asc',
+                page: 3,
+            }
+
+            store.test(done, assignmentsApi.query(params))
+            .then(() => {
+                expect(services.api('assignments').query.callCount).toBe(1)
+                const params = services.api('assignments').query.args[0][0]
+                expect(params).toEqual({
+                    page: 3,
+                    sort: '[("priority", 1)]',
                     source: source,
                 })
 

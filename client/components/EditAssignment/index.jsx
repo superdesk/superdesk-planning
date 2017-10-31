@@ -1,7 +1,9 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { AssignmentSelect } from './AssignmentSelect'
+import { fields } from '../index'
 import { getItemInArrayById } from '../../utils'
+import { ASSIGNMENTS } from '../../constants'
 import { get } from 'lodash'
 import moment from 'moment'
 import './style.scss'
@@ -50,6 +52,7 @@ export class EditAssignment  extends React.Component {
             ...this.props.input.value,
             desk: get(value, 'desk._id'),
             user: get(value, 'user._id'),
+            priority: get(value, 'priority'),
             coverage_provider: get(value, 'coverage_provider'),
             assignor_user: this.props.currentUserId,
             assignor_desk: this.props.currentUserId,
@@ -67,6 +70,8 @@ export class EditAssignment  extends React.Component {
         const userAssigned = this.getAssignedUser()
         const coverageProvider = get(this.props, 'input.value.coverage_provider')
 
+        const assignmentPriorityInput = { value: get(this.props, 'input.value.priority', ASSIGNMENTS.DEFAULT_PRIORITY) }
+
         const {
             assignor_user,
             assignor_desk,
@@ -82,6 +87,7 @@ export class EditAssignment  extends React.Component {
         const assignmentSelectInput = {
             onChange: this.onChange,
             value: {
+                priority: this.props.input.value.priority,
                 deskAssigned: deskAssigned,
                 userAssigned: userAssigned,
                 coverage_provider: coverageProvider,
@@ -118,11 +124,11 @@ export class EditAssignment  extends React.Component {
 
         const renderCoverageActions = () => {
             return (
-                <div className='assignment'>
+                <div className='assignment field'>
                     { renderUserAvatar() }
                     { !this.props.readOnly && !get(this.props, 'input.value.assignment_id') &&
                         !this.state.openAssignmentSelect &&
-                        renderAction('Create Assignment', this.toggleSelection) }
+                        renderAction('Create/Edit Assignment', this.toggleSelection) }
                 </div>
             )
         }
@@ -145,13 +151,21 @@ export class EditAssignment  extends React.Component {
                 {
                     this.state.openAssignmentSelect &&
                     (<AssignmentSelect
-                        users={this.props.users}
-                        desks={this.props.desks}
-                        deskSelectionDisabled={this.props.deskSelectionDisabled}
-                        onCancel={this.toggleSelection}
-                        coverageProviders={this.props.coverageProviders}
-                        input={assignmentSelectInput} context={context} />)
+                            users={this.props.users}
+                            desks={this.props.desks}
+                            deskSelectionDisabled={this.props.deskSelectionDisabled}
+                            onCancel={this.toggleSelection}
+                            coverageProviders={this.props.coverageProviders}
+                            assignmentPriorities={this.props.assignmentPriorities}
+                            input={assignmentSelectInput} context={context}
+                            showPrioritiesSelection={context === 'coverage'} />)
                 }
+                {context === 'coverage' && get(this.props, 'input.value.priority') &&
+                        <fields.AssignmentPriorityField
+                            label="Assignment Priority"
+                            input={assignmentPriorityInput}
+                            readOnly={true} />
+                    }
             </div>
         )
     }
@@ -166,6 +180,10 @@ EditAssignment.propTypes = {
     deskSelectionDisabled: PropTypes.bool,
     context: PropTypes.oneOf(['coverage','assignment']).isRequired,
     currentUserId: PropTypes.string,
+    assignmentPriorities: PropTypes.array,
 }
 
-EditAssignment.defaultValues = { context: 'coverage' }
+EditAssignment.defaultProps = {
+    context: 'coverage',
+    assignmentPriorities: [],
+}

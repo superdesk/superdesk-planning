@@ -16,7 +16,7 @@ export class ColoredValueSelectField extends React.Component {
     getIconClasses(val) {
         return val ? classNames('line-input',
             this.props.iconName,
-            this.props.iconName + '--' + val.label) : 'line-input'
+            this.props.iconName + '--' + get(val, 'value.qcode')) : 'line-input'
     }
 
     render() {
@@ -28,6 +28,7 @@ export class ColoredValueSelectField extends React.Component {
             label,
             readOnly,
             labelLeft,
+            clearable,
         } = this.props
 
         const touched = get(meta, 'touched')
@@ -52,7 +53,7 @@ export class ColoredValueSelectField extends React.Component {
                     disabled={readOnly}
                     onClick={this.toggleOpenPopup.bind(this)}>
                     <span className={this.getIconClasses(value)}>
-                        {get(value, 'label', 'None')}
+                        {get(value, 'value.qcode', 'None')}
                     </span>
                     &nbsp;&nbsp;{get(value, 'label')}
                     {!readOnly && <b className='dropdown__caret' />}
@@ -65,7 +66,8 @@ export class ColoredValueSelectField extends React.Component {
                         this.props.input.onChange(val.value.qcode)
                         this.toggleOpenPopup()
                     }}
-                    onCancel={this.toggleOpenPopup.bind(this)} /> }
+                    onCancel={this.toggleOpenPopup.bind(this)}
+                    clearable={clearable} /> }
             </div>
             {touched && (
                 (error && <div className='sd-line-input__message'>{error}</div>) ||
@@ -88,10 +90,12 @@ ColoredValueSelectField.propTypes = {
     meta: PropTypes.object,
     required: PropTypes.bool,
     labelLeft: PropTypes.bool,
+    clearable: PropTypes.bool,
 }
 
-ColoredValueSelectField.defaultValues = {
+ColoredValueSelectField.defaultProps = {
     meta: {},
     required: false,
     labelLeft: false,
+    clearable: true,
 }

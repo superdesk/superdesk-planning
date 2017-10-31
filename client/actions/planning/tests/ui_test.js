@@ -2,7 +2,7 @@ import planningUi from '../ui'
 import planningApi from '../api'
 import assignmentApi from '../../assignments/api'
 import sinon from 'sinon'
-import { PRIVILEGES } from '../../../constants'
+import { PRIVILEGES, ASSIGNMENTS } from '../../../constants'
 import * as actions from '../../../actions/agenda'
 import { getTestActionStore, restoreSinonStub, expectAccessDenied } from '../../../utils/testUtils'
 import moment from 'moment'
@@ -725,6 +725,7 @@ describe('actions.planning.ui', () => {
                         assigned_to: {
                             desk: 'desk1',
                             user: 'ident1',
+                            priority: ASSIGNMENTS.DEFAULT_PRIORITY,
                         },
                         planning: {
                             ednote: 'Edit my note!',
@@ -758,6 +759,7 @@ describe('actions.planning.ui', () => {
                         assigned_to: {
                             desk: 'desk2',
                             user: 'ident2',
+                            priority: ASSIGNMENTS.DEFAULT_PRIORITY,
                         },
                         planning: {
                             ednote: 'Edit my note!',
@@ -828,6 +830,7 @@ describe('actions.planning.ui', () => {
                     assigned_to: {
                         desk: 'desk3',
                         user: 'ident2',
+                        priority: ASSIGNMENTS.DEFAULT_PRIORITY,
                     },
                 }],
             }])
@@ -859,6 +862,7 @@ describe('actions.planning.ui', () => {
                 assigned_to: {
                     desk: 'desk1',
                     user: 'ident1',
+                    priority: ASSIGNMENTS.DEFAULT_PRIORITY,
                 },
             })
         })
@@ -888,6 +892,7 @@ describe('actions.planning.ui', () => {
                 assigned_to: {
                     desk: 'desk2',
                     user: 'ident2',
+                    priority: ASSIGNMENTS.DEFAULT_PRIORITY,
                 },
             })
         })

@@ -11,6 +11,7 @@ import {
     ConvertToRecurringEventForm,
     CancelPlanningCoveragesForm,
     ReassignAssignmentForm,
+    EditAssignmentPriorityForm,
 } from './index'
 import { get } from 'lodash'
 import { GENERIC_ITEM_ACTIONS, EVENTS, FORM_NAMES, PLANNING, ASSIGNMENTS } from '../../constants'
@@ -32,70 +33,71 @@ export const ItemActionConfirmationModal = ({ handleHide, modalProps }) => {
         return 'Save Event'
     }
 
-    switch (modalProps.actionType) {
-        case GENERIC_ITEM_ACTIONS.SPIKE.label:
-            title = 'Spike an event'
-            saveText = 'Spike'
-            form = SpikeEventForm
-            break
-
-        case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label:
-            title = 'Cancel an event'
-            saveText = 'OK'
-            form = CancelEventForm
-            break
-
-        case EVENTS.ITEM_ACTIONS.UPDATE_TIME.label:
-            title = 'Update time'
-            form = UpdateTimeForm
-            formNameForPristineCheck = FORM_NAMES.UpdateTimeForm
-            break
-
-        case EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label:
-            title = 'Reschedule an event'
-            saveText = 'Reschedule'
-            form = RescheduleEventForm
-            formNameForPristineCheck = FORM_NAMES.RescheduleForm
-            break
-
-        case EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label:
-            title = 'Postpone an event'
-            saveText = 'Postpone'
-            form = PostponeEventForm
-            break
-
-        case EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label:
-            title = EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label
-            form = ConvertToRecurringEventForm
-            formNameForPristineCheck = FORM_NAMES.ConvertEventToRecurringForm
-            break
-
-        case PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label:
-            title = PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label
-            propToForm = modalProps.planning
-            form = CancelPlanningCoveragesForm
-            break
-
-        case PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label:
-            title = PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label
-            propToForm = {
+    const modalFormsMapper = {
+        [GENERIC_ITEM_ACTIONS.SPIKE.label]: {
+            title:'Spike an event',
+            saveText: 'Spike',
+            form: SpikeEventForm,
+        },
+        [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: {
+            title: 'Cancel an event',
+            saveText: 'OK',
+            form: CancelEventForm,
+        },
+        [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: {
+            title: 'Update time',
+            form: UpdateTimeForm,
+            formNameForPristineCheck: get(FORM_NAMES, 'UpdateTimeForm'),
+        },
+        [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: {
+            title: 'Reschedule an event',
+            saveText: 'Reschedule',
+            form: RescheduleEventForm,
+            formNameForPristineCheck: get(FORM_NAMES, 'RescheduleForm'),
+        },
+        [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: {
+            title: 'Postpone an event',
+            saveText: 'Postpone',
+            form: PostponeEventForm,
+        },
+        [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: {
+            title: get(EVENTS, 'ITEM_ACTIONS.CONVERT_TO_RECURRING.label'),
+            form: ConvertToRecurringEventForm,
+            formNameForPristineCheck: get(FORM_NAMES, 'ConvertEventToRecurringForm'),
+        },
+        [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: {
+            title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_PLANNING.label'),
+            propToForm: { ...modalProps.planning },
+            form: CancelPlanningCoveragesForm,
+        },
+        [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label]: {
+            title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label'),
+            propToForm: {
                 ...modalProps.planning,
                 _cancelAllCoverage: true,
-            }
-            form = CancelPlanningCoveragesForm
-            break
-
-        case ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label:
-            title = ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label
-            propToForm = modalProps.assignment
-            form = ReassignAssignmentForm
-            formNameForPristineCheck = FORM_NAMES.ReassignAssignmentForm
-            break
-
-        default:
-            title = getSaveAndPublishTitle()
-            form = UpdateRecurringEventsForm
+            },
+            form: CancelPlanningCoveragesForm,
+        },
+        [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: {
+            title: get(ASSIGNMENTS, 'ITEM_ACTIONS.REASSIGN.label'),
+            propToForm: { ...modalProps.assignment },
+            form: ReassignAssignmentForm,
+            formNameForPristineCheck: get(FORM_NAMES, 'ReassignAssignmentForm'),
+        },
+        [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: {
+            title: get(ASSIGNMENTS, 'ITEM_ACTIONS.EDIT_PRIORITY.label'),
+            propToForm: { ...modalProps.assignment },
+            form: EditAssignmentPriorityForm,
+            formNameForPristineCheck: get(FORM_NAMES, 'EditAssignmentPriorityForm'),
+        },
     }
+
+    title = get(modalFormsMapper[modalProps.actionType], 'title', getSaveAndPublishTitle())
+    form = get(modalFormsMapper[modalProps.actionType], 'form', UpdateRecurringEventsForm)
+    formNameForPristineCheck = get(modalFormsMapper[modalProps.actionType],
+        'formNameForPristineCheck')
+    propToForm = get(modalFormsMapper[modalProps.actionType], 'propToForm', propToForm)
+    saveText = get(modalFormsMapper[modalProps.actionType], 'saveText', saveText)
 
     return (
         <ModalWithForm

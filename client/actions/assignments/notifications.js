@@ -43,10 +43,18 @@ const onAssignmentUpdated = (_e, data) => (
                 dispatch(assignments.ui.fetch())
             }
 
-            if (get(data, 'assignment_state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
-                // Assignment was completed on editor but context was a different desk
-                return dispatch(assignments.api.fetchAssignmentById(data.item, false))
-                    .then((assignmentInStore) => {
+            // Assignment was completed on editor but context was a different desk
+            return dispatch(assignments.api.fetchAssignmentById(data.item, false))
+                .then((assignmentInStore) => {
+                    assignmentInStore.priority = get(data, 'priority',
+                        assignmentInStore.priority)
+                    assignmentInStore.assigned_to.state = get(data, 'assignment_state',
+                    assignmentInStore.assigned_to.state)
+
+                    if (get(data, 'assignment_state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED ||
+                        get(data, 'assigned_user') !== assignmentInStore.assigned_to.user ||
+                        get(data, 'assigned_desk') !== assignmentInStore.assigned_to.desk ||
+                        get(data, 'priority')) {
                         assignmentInStore = {
                             ...assignmentInStore,
                             lock_action: null,
@@ -54,17 +62,14 @@ const onAssignmentUpdated = (_e, data) => (
                             lock_session: null,
                             lock_time: null,
                         }
-                        assignmentInStore.assigned_to.state = ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
 
                         dispatch({
                             type: ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT,
                             payload: { assignment: assignmentInStore },
                         })
-                    })
-            }
+                    }
+                })
         }
-
-        return Promise.resolve()
     }
 )
 

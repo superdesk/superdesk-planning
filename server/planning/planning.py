@@ -339,7 +339,8 @@ class PlanningService(superdesk.Service):
                 'planning_item': planning_id,
                 'coverage_item': doc.get('coverage_id'),
                 'planning': doc.get('planning'),
-                'is_active': True
+                'is_active': True,
+                'priority': assigned_to.get('priority'),
             }
             if 'coverage_provider' in assigned_to:
                 assignment['assigned_to']['coverage_provider'] = assigned_to.get('coverage_provider')

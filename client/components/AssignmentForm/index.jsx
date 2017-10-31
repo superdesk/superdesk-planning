@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import * as actions from '../../actions'
 import { connect } from 'react-redux'
 import { Field, reduxForm, propTypes } from 'redux-form'
-import { CoverageDetails, EditAssignment, StateLabel, ItemActionsMenu } from '../../components'
+import { CoverageDetails, EditAssignment, StateLabel, ItemActionsMenu, fields } from '../../components'
 import { assignmentUtils } from '../../utils'
 import * as selectors from '../../selectors'
 import { ASSIGNMENTS, WORKSPACE, MODALS } from '../../constants'
@@ -52,6 +52,7 @@ export class Component extends React.Component {
             reassign,
             inAssignments,
             session,
+            editAssignmentPriority,
         } = this.props
         let content_type = get(assignment, 'planning.g2_content_type')
         let assignment_state = get(assignment, 'assigned_to.state')
@@ -60,6 +61,10 @@ export class Component extends React.Component {
             {
                 ...ASSIGNMENTS.ITEM_ACTIONS.REASSIGN,
                 callback: () => { reassign(assignment) },
+            },
+            {
+                ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY,
+                callback: () => { editAssignmentPriority(assignment) },
             },
             {
                 ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
@@ -72,6 +77,8 @@ export class Component extends React.Component {
             session,
             actions
         ) : []
+
+        const assignmentPriorityInput = { value: get(assignment, 'priority') }
 
         return (
             <form onSubmit={handleSubmit} className="AssignmentForm">
@@ -88,13 +95,23 @@ export class Component extends React.Component {
                         deskSelectionDisabled={assignment_state ===
                             ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS}
                         context={'assignment'} />
-                    {assignment && assignment.assigned_to && <StateLabel item={assignment.assigned_to}/>}
                     {content_type == 'text' && assignment_state == ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED && <button
                         type="button"
                         onClick={() => this.showTemplateModal(assignment)}
                         className="btn btn--hollow btn--small">
                         Start working
                     </button>}
+                    {assignment && assignment.assigned_to &&
+                        <div style={{
+                                margin: '10px 0px',
+                                display: 'inline-block',
+                            }}>
+                            <StateLabel item={assignment.assigned_to}/>
+                        </div>}
+                    <fields.AssignmentPriorityField
+                            label="Assignment Priority"
+                            input={ assignmentPriorityInput }
+                            readOnly={true} />
                     <div className="AssignmentForm__coveragedetails">
                         <label>Coverage Details</label>
                         <CoverageDetails
@@ -121,12 +138,13 @@ Component.propTypes = {
     coverageProviders: PropTypes.array,
     keywords: PropTypes.array,
     onSubmit: PropTypes.func,
-    reassign: PropTypes.func,
-    completeAssignment: PropTypes.func,
-    inAssignments: PropTypes.bool,
-    session: PropTypes.object,
     selectTemplateModal: PropTypes.func.isRequired,
     createFromTemplateAndShow: PropTypes.func.isRequired,
+    reassign: PropTypes.func,
+    completeAssignment: PropTypes.func,
+    editAssignmentPriority: PropTypes.func,
+    inAssignments: PropTypes.bool,
+    session: PropTypes.object,
 }
 
 const mapStateToProps = (state) => ({
@@ -145,8 +163,6 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     selectTemplateModal: (items, selectCallBack, cancelCallBack) => dispatch(actions.showModal({
-        reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),
-        completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
         modalType: MODALS.SELECT_ITEM_MODAL,
         modalProps: {
             title: 'Select template',
@@ -156,6 +172,9 @@ const mapDispatchToProps = (dispatch) => ({
         },
     })),
     createFromTemplateAndShow: (assignmentId, templateName) => dispatch(actions.assignments.api.createFromTemplateAndShow(assignmentId, templateName)),
+    reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),
+    completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
+    editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),
 })
 
 const AssignmentReduxForm = reduxForm({

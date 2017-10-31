@@ -18,7 +18,7 @@ export class AssignmentListSearchHeader extends React.Component {
     }
 
     render() {
-        const fields = ['Created', 'Updated']
+        const fields = ['Created', 'Updated', 'Priority']
         const {
                 filterBy,
                 myAssignmentsCount,

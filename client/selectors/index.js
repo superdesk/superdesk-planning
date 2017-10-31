@@ -60,6 +60,8 @@ export const getOrderByField = (state) => get(state, 'assignment.orderByField', 
 export const getOrderDirection = (state) => get(state, 'assignment.orderDirection', 'Asc')
 export const getAssignmentFilterByState = (state) => get(state, 'assignment.filterByState', null)
 export const getAssignmentFilterByType = (state) => get(state, 'assignment.filterByType', null)
+export const getAssignmentFilterByPriority = (state) =>
+    get(state, 'assignment.filterByPriority', null)
 export const getAssignmentPage = (state) => get(state, 'assignment.lastAssignmentLoadedPage', 1)
 export const getSelectedAssignments = (state) => get(state, 'assignment.selectedAssignments', [])
 export const getAssignmentListSettings = (state) => ({
@@ -70,6 +72,7 @@ export const getAssignmentListSettings = (state) => ({
     lastAssignmentLoadedPage: getAssignmentPage(state),
     filterByState: getAssignmentFilterByState(state),
     filterByType: getAssignmentFilterByType(state),
+    filterByPriority: getAssignmentFilterByPriority(state),
 })
 
 export const getPrivileges = (state) => get(state, 'privileges')
@@ -92,6 +95,7 @@ export const getCoverageFormsProfile = (state) => get(state, 'formsProfile.cover
 export const getCoverageCancelState = (state) =>
     (get(state, 'vocabularies.newscoveragestatus', []).find((s) => s.qcode === 'ncostat:notint'))
 export const getVocabularies = (state) => get(state, 'vocabularies')
+export const getAssignmentPriorities = (state) => get(state, 'vocabularies.assignment_priority', [])
 export const getSelectedPlanningItems = (state) => get(state, 'planning.selectedItems')
 export const getLockedItems = (state) => get(state, 'locks', {
     events: {},
@@ -423,9 +427,10 @@ export const getLockedEvents = createSelector(
 
 export const getAssignmentSearch = createSelector(
     [getAssignmentListSettings, getCurrentDeskId, getCurrentUserId,
-        getAssignmentFilterByState, getCurrentWorkspace, getAssignmentFilterByType],
+        getAssignmentFilterByState, getCurrentWorkspace, getAssignmentFilterByType,
+        getAssignmentFilterByPriority],
     (listSettings, currentDeskId,
-     currentUserId, filterByState, currentWorkspace, filterByType) => {
+     currentUserId, filterByState, currentWorkspace, filterByType, filterByPriority) => {
         const assignmentSearch = {
             deskId: (
                 get(listSettings, 'filterBy') === 'All' ||
@@ -438,6 +443,7 @@ export const getAssignmentSearch = createSelector(
             page: 1,
             state: filterByState,
             type: filterByType,
+            priority: filterByPriority,
         }
 
         return assignmentSearch

@@ -1,6 +1,8 @@
 import moment from 'moment'
 import React from 'react'
+import { Provider } from 'react-redux'
 import { mount } from 'enzyme'
+import { createTestStore } from '../../utils'
 import { EditAssignment } from './index'
 
 const desks = [{
@@ -33,6 +35,8 @@ class TestForm extends React.Component {
             name: 'Provider',
         }]
 
+        const context = this.props.context || 'coverage'
+
         return (
             <EditAssignment
                 input={i}
@@ -40,7 +44,7 @@ class TestForm extends React.Component {
                 desks={this.props.desks}
                 deskSelectionDisabled={this.props.deskSelectionDisabled}
                 coverageProviders={coverageProvider}
-                context="coverage"/>
+                context={context}/>
         )
     }
 }
@@ -50,20 +54,34 @@ TestForm.propTypes = {
     desks: React.PropTypes.array.isRequired,
     input: React.PropTypes.object,
     deskSelectionDisabled: React.PropTypes.bool,
+    context: React.PropTypes.string,
 }
+
+const store = createTestStore()
+
+const getWrapper = () => (
+    mount(<Provider store={store}>
+            <TestForm users={users} desks={desks} />
+        </Provider>)
+)
+
+
+const getWrapperWithInput = (input) => (
+    mount(<Provider store={store}>
+            <TestForm users={users} desks={desks} input={input}/>
+        </Provider>)
+)
 
 describe('<EditAssignment />', () => {
 
     it('Opens assignment popup', () => {
-        const wrapper = mount(<TestForm users={users}
-                desks={desks} />)
+        const wrapper = getWrapper()
         wrapper.find('.assignment__action').simulate('click')
         expect(wrapper.find('.assignmentselect').length).toBe(1)
     })
 
     it('Users are populated', () => {
-        const wrapper = mount(<TestForm users={users}
-                desks={desks} />)
+        const wrapper = getWrapper()
 
         wrapper.find('.assignment__action').simulate('click')
         const lst = wrapper.find('ul')
@@ -74,8 +92,8 @@ describe('<EditAssignment />', () => {
     })
 
     it('Desks are populated', () => {
-        const wrapper = mount(<TestForm users={users}
-                desks={desks} />)
+        const wrapper = getWrapper()
+
         wrapper.find('.assignment__action').simulate('click')
         const deskSelectFieldComponent = wrapper.find('DeskSelectField')
         expect(deskSelectFieldComponent.props().desks.length).toBe(2)
@@ -85,8 +103,8 @@ describe('<EditAssignment />', () => {
 
 
     it('Coverage Providers are populated', () => {
-        const wrapper = mount(<TestForm users={users}
-                desks={desks} />)
+        const wrapper = getWrapper()
+
         wrapper.find('.assignment__action').simulate('click')
         const providerList = wrapper.find('select').at(1)
         expect(providerList.children().length).toBe(2)
@@ -95,8 +113,8 @@ describe('<EditAssignment />', () => {
 
     it('Selected desk populates only those users who belong that desk and coverage providers', () => {
         const input = { value: { desk: 123 } }
-        const wrapper = mount(<TestForm users={users}
-                desks={desks} input={input} />)
+        const wrapper = getWrapperWithInput(input)
+
         wrapper.find('.assignment__action').simulate('click')
         const lst = wrapper.find('ul')
         expect(lst.children().length).toBe(1)
@@ -109,8 +127,8 @@ describe('<EditAssignment />', () => {
     })
 
     it('Selecting a user populates only that user desk', () => {
-        const wrapper = mount(<TestForm users={users}
-                desks={desks} />)
+        const wrapper = getWrapper()
+
         wrapper.find('.assignment__action').simulate('click')
 
         const deskSelectFieldComponent = wrapper.find('DeskSelectField')
@@ -126,8 +144,8 @@ describe('<EditAssignment />', () => {
     })
 
     it('Cannot save until a desk is selected', () => {
-        const wrapper = mount(<TestForm users={users}
-                desks={desks} />)
+        const wrapper = getWrapper()
+
         wrapper.find('.assignment__action').simulate('click')
 
         const lst = wrapper.find('ul')
@@ -145,9 +163,8 @@ describe('<EditAssignment />', () => {
                 assigned_date_desk: inputDate,
             },
         }
-        const wrapper = mount(<TestForm users={users}
-                desks={desks}
-                input={input} />)
+        const wrapper = getWrapperWithInput(input)
+
         const deskLbl = wrapper.find('.TimeAndAuthor').children().first()
         expect(deskLbl.text()).toBe('Desk: POLITIC DESK (14:00 01/01/2014, FIRSTNAME LASTNAME)')
     })
@@ -161,9 +178,8 @@ describe('<EditAssignment />', () => {
                 assigned_date_user: inputDate,
             },
         }
-        const wrapper = mount(<TestForm users={users}
-                desks={desks}
-                input={input} />)
+        const wrapper = getWrapperWithInput(input)
+
         const userLbl = wrapper.find('.TimeAndAuthor').children().last()
         expect(userLbl.text()).toBe('Assignee FIRSTNAME2 LASTNAME2 (14:00 01/01/2014, FIRSTNAME LASTNAME)')
     })
@@ -171,8 +187,8 @@ describe('<EditAssignment />', () => {
     it('Coverage provider is populated for all desks', () => {
         // Select desk: 123
         let input = { value: { desk: 123 } }
-        const wrapper = mount(<TestForm users={users}
-                desks={desks} input={input} />)
+        const wrapper = getWrapperWithInput(input)
+
         wrapper.find('.assignment__action').simulate('click')
         const providerList1 = wrapper.find('select').at(1)
         expect(providerList1.children().length).toBe(2)
@@ -180,8 +196,8 @@ describe('<EditAssignment />', () => {
 
         // Select desk: 234
         input = { value: { desk: 234 } }
-        const wrapper2 = mount(<TestForm users={users}
-                desks={desks} input={input} />)
+        const wrapper2 = getWrapperWithInput(input)
+
         wrapper2.find('.assignment__action').simulate('click')
         const providerList2 = wrapper.find('select').at(1)
         expect(providerList2.children().length).toBe(2)
@@ -189,8 +205,8 @@ describe('<EditAssignment />', () => {
     })
 
     it('Selecting a coverage provider displays all desks', () => {
-        const wrapper = mount(<TestForm users={users}
-                desks={desks} />)
+        const wrapper = getWrapper()
+
         wrapper.find('.assignment__action').simulate('click')
 
         const deskSelectFieldComponent = wrapper.find('DeskSelectField')
@@ -209,8 +225,10 @@ describe('<EditAssignment />', () => {
     })
 
     it('Desk selection is disabled by if falsy value to deskSelectionDisabled prop', () => {
-        const wrapper = mount(<TestForm users={users}
-                desks={desks} deskSelectionDisabled={true} />)
+        const wrapper = mount(<Provider store={store}>
+            <TestForm users={users} desks={desks} deskSelectionDisabled={true} />
+        </Provider>)
+
         wrapper.find('.assignment__action').simulate('click')
 
         const deskSelectFieldComponent = wrapper.find('DeskSelectField')
@@ -218,5 +236,53 @@ describe('<EditAssignment />', () => {
         expect(deskSelectFieldComponent.props().desks[0].name).toBe('Politic Desk')
         expect(deskSelectFieldComponent.props().desks[1].name).toBe('Sports Desk')
         expect(deskSelectFieldComponent.props().readOnly).toBe(true)
+    })
+
+    it('Priority selection is available only in coverage context', () => {
+        const wrapper = getWrapper()
+
+        wrapper.find('.assignment__action').simulate('click')
+        expect(wrapper.find('.assignmentselect__priority').length).toBe(1)
+
+        const wrapper2 = mount(<Provider store={store}>
+            <TestForm users={users} desks={desks} context='assignment' />
+        </Provider>)
+        wrapper2.find('.assignment__action').simulate('click')
+        expect(wrapper2.find('.assignmentselect__priority').length).toBe(0)
+    })
+
+    it('Default priority is 2 or Medium', () => {
+        const wrapper = getWrapper()
+
+        wrapper.find('.assignment__action').simulate('click')
+        const priorityNode = wrapper.find('.assignmentselect__priority').first()
+        const priorityButton = priorityNode.find('button').first()
+        expect(priorityButton.text()).toEqual('2  Medium')
+    })
+
+    it('Input priority is shown', () => {
+        let input = { value: { priority: 1 } }
+        const wrapper = getWrapperWithInput(input)
+
+        const priorityButton = wrapper.find('button').last()
+        expect(priorityButton.text()).toBe('1  High')
+    })
+
+    it('Displays all priority options', () => {
+        let input = { value: { priority: 1 } }
+        const wrapper = getWrapperWithInput(input)
+
+        wrapper.find('.assignment__action').simulate('click')
+        const priorityNode = wrapper.find('.assignmentselect__priority').first()
+        priorityNode.simulate('click')
+
+        const priorityButton = priorityNode.find('button').first()
+        priorityButton.simulate('click')
+
+        const priorityListOptions = priorityNode.find('li')
+        expect(priorityListOptions.length).toBe(3)
+        expect(priorityListOptions.at(0).find('button').text()).toEqual('1  High')
+        expect(priorityListOptions.at(1).find('button').text()).toEqual('2  Medium')
+        expect(priorityListOptions.at(2).find('button').text()).toEqual('3  Low')
     })
 })

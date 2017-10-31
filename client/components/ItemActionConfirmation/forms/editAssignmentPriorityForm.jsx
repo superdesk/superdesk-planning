@@ -3,29 +3,19 @@ import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { Field, reduxForm } from 'redux-form'
 import * as actions from '../../../actions'
-import { EditAssignment } from '../../../components'
+import { fields } from '../../../components'
 import '../style.scss'
-import { get } from 'lodash'
 import { FORM_NAMES, ASSIGNMENTS } from '../../../constants'
-import * as selectors from '../../../selectors'
 
-export class Component extends React.Component {
+class Component extends React.Component {
     constructor(props) {
         super(props)
-    }
-
-    componentDidMount() {
-        this.refs.editAssignmentField.getRenderedComponent().toggleSelection()
     }
 
     render() {
         const {
             handleSubmit,
             initialValues,
-            users,
-            desks,
-            currentUserId,
-            coverageProviders,
         } = this.props
 
         return (<div className='ItemActionConfirmation' >
@@ -40,18 +30,10 @@ export class Component extends React.Component {
                     </div>
                     <div>
                         <Field
-                            name='assigned_to'
-                            component={EditAssignment}
-                            users={users}
-                            currentUserId={currentUserId}
-                            desks={desks}
-                            coverageProviders={coverageProviders}
-                            readOnly={false}
-                            deskSelectionDisabled={get(initialValues, 'assigned_to.state') ===
-                                ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS}
-                            context={'assignment'}
-                            ref='editAssignmentField'
-                            withRef={true} />
+                            label='Assignment Priority'
+                            name='priority'
+                            component={fields.AssignmentPriorityField}
+                            readOnly={false} />
                     </div>
                 </form>
             </div>)
@@ -61,10 +43,6 @@ export class Component extends React.Component {
 Component.propTypes = {
     handleSubmit: PropTypes.func.isRequired,
     initialValues: PropTypes.object.isRequired,
-    users: PropTypes.array,
-    desks: PropTypes.array,
-    currentUserId: PropTypes.string,
-    coverageProviders: PropTypes.array,
 
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
@@ -72,14 +50,7 @@ Component.propTypes = {
 }
 
 // Decorate the form container
-export const ReassignAssignmentFormComponent = reduxForm({ form: FORM_NAMES.ReassignAssignmentForm })(Component)
-
-const mapStateToProps = (state) => ({
-    currentUserId: selectors.getCurrentUserId(state),
-    desks: selectors.getDesks(state),
-    users: selectors.getUsers(state),
-    coverageProviders: selectors.getCoverageProviders(state),
-})
+const EditAssignmentPriorityFormComponent = reduxForm({ form: FORM_NAMES.EditAssignmentPriorityForm })(Component)
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
@@ -92,15 +63,15 @@ const mapDispatchToProps = (dispatch) => ({
     }),
 
     onHide: (assignment) => {
-        if (assignment.lock_action === 'reassign') {
+        if (assignment.lock_action === 'edit_priority') {
             dispatch(actions.assignments.api.unlock(assignment))
         }
     },
 })
 
-export const ReassignAssignmentForm = connect(
-    mapStateToProps,
+export const EditAssignmentPriorityForm = connect(
+    null,
     mapDispatchToProps,
     null,
     { withRef: true }
-)(ReassignAssignmentFormComponent)
+)(EditAssignmentPriorityFormComponent)

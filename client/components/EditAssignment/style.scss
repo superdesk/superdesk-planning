@@ -5,10 +5,6 @@
 	margin-top: 15px;
 	height: 65px;
 
-	&:hover {
-		background: #e3f1f6;
-	}
-
 	&__avatar {
 		height: 5rem;
 		width: 5rem;
@@ -46,6 +42,10 @@
 		}
     }
 
+    &__priority {
+        margin: 10px 0px;
+    }
+
     &__search {
     	@include box-shadow(0 0 5px 0 rgba(0,0,0,0.45));
 	    @include border-radius(3px);
@@ -69,7 +69,12 @@
     		margin-right: 4px;
     	}
     }
-	&__assignment {
+
+	&--in-assignment {
 		left: 40px;
 	}
+
+    &--in-coverage {
+        bottom: 60px;
+    }
 }

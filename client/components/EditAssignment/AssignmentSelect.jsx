@@ -1,6 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import { SearchBar } from '../../components'
+import { ASSIGNMENTS } from '../../constants'
 import { fields } from '../index'
 import ReactDOM from 'react-dom'
 import { UserAvatar } from '../'
@@ -51,6 +52,7 @@ export class AssignmentSelect extends React.Component {
             userAssigned: this.props.input.value.userAssigned,
             deskAssigned: this.props.input.value.deskAssigned,
             coverageProviderAssigned: this.props.input.value.coverage_provider,
+            priority: get(this.props.input, 'value.priority') || ASSIGNMENTS.DEFAULT_PRIORITY,
         })
     }
 
@@ -117,7 +119,13 @@ export class AssignmentSelect extends React.Component {
             user: value.user,
             desk: value.desk,
             coverage_provider: value.coverage_provider,
+            priority: this.state.priority,
         })
+    }
+
+    onPriorityChange(value) {
+        this.setState({ priority: value })
+
     }
 
     render() {
@@ -131,15 +139,22 @@ export class AssignmentSelect extends React.Component {
             onChange: this.onCoverageProviderChange.bind(this),
         }
 
+        const assignmentPriorityInput = {
+            value: this.state.priority,
+            onChange: this.onPriorityChange.bind(this),
+        }
+
         const { context } = this.props
         const classes = classNames('assignmentselect',
-            { 'assignmentselect__assignment': context === 'assignment' })
+            { 'assignmentselect--in-assignment': context === 'assignment' },
+            { 'assignmentselect--in-coverage': context === 'coverage' })
 
         return (<div className={classes}>
-            { <label>Assign</label> || <label>Select</label>}
+            { <label>Assignment Details</label> || <label>Select</label>}
             { (this.state.coverageProviderAssigned || this.state.userAssigned) && !this.state.deskAssigned &&
                         <span className="error-block">Must select a desk.</span> }
 
+            <label>Desk</label>
             <fields.DeskSelectField
                 desks={this.state.filteredDeskList}
                 autoFocus={true}
@@ -153,6 +168,7 @@ export class AssignmentSelect extends React.Component {
                 input={coverageProviderSelectFieldInput}/>
             </div>
             </div>
+            <label>User</label>
             { this.state.userAssigned &&
                 <div className='assignmentselect__user'>
                     <UserAvatar user={this.state.userAssigned} />
@@ -175,6 +191,15 @@ export class AssignmentSelect extends React.Component {
                     </li>
                 ))}
             </ul>
+
+            {this.props.showPrioritiesSelection &&
+            <div className='assignmentselect__priority'>
+                <fields.AssignmentPriorityField
+                    label="Assignment Priority"
+                    input={assignmentPriorityInput}
+                    readOnly={false} />
+            </div>}
+
             <div className='assignmentselect__action'>
                 { this.state.deskAssigned &&
                 <button type="button" className="btn btn--primary"
@@ -202,4 +227,5 @@ AssignmentSelect.propTypes = {
     input: PropTypes.object.isRequired,
     context: PropTypes.string,
     deskSelectionDisabled: PropTypes.bool,
+    showPrioritiesSelection: PropTypes.bool,
 }

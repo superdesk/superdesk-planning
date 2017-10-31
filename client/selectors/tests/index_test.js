@@ -247,6 +247,7 @@ describe('selectors', () => {
                 lastAssignmentLoadedPage: 2,
                 filterByState: null,
                 filterByType: null,
+                filterByPriority: null,
             })
         })
 
