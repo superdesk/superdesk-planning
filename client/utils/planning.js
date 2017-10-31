@@ -22,6 +22,7 @@ import {
 
 const canPublishPlanning = (planning, event, session, privileges, locks) => (
     !!privileges[PRIVILEGES.PUBLISH_PLANNING] &&
+        !!get(planning, '_id') &&
         !isPlanningLockRestricted(planning, session, locks) &&
         getPublishedState(planning) !== PUBLISHED_STATE.USABLE &&
         (isNil(event) || getPublishedState(event) === PUBLISHED_STATE.USABLE) &&

@@ -238,7 +238,7 @@ describe('events', () => {
                 }
                 const subject = shallow(<Component {...props}/>)
                 subject.find('form').simulate('submit')
-                expect(handleSubmit.callCount).toBe(2)
+                expect(handleSubmit.callCount).toBe(1)
             })
 
             it('compute right dates', () => {
@@ -424,8 +424,9 @@ describe('events', () => {
                 // New event without changing any values
                 expect(subnav.find('.btn').first().prop('disabled')).toBe(false)
                 expect(subnav.find('.btn--primary').first().prop('disabled')).toBe(true)
-                expect(subnav.find('.btn--success').first().prop('disabled')).toBe(true)
-                expect(subnav.find('.btn--success').first().text()).toBe('Save and publish')
+
+                // Save and publish should be hidden
+                expect(subnav.find('.btn--success').length).toBe(0)
 
                 // Change values to enable the `save` and `save & publish` buttons
                 wrapper.find('Field [name="slugline"]')
@@ -433,9 +434,8 @@ describe('events', () => {
                 expect(subnav.find('.btn').first().prop('disabled')).toBe(false)
                 expect(subnav.find('.btn--primary').first().prop('disabled')).toBe(false)
 
-                // Save and publish should be disabled
-                expect(subnav.find('.btn--success').first().text()).toBe('Save and publish')
-                expect(subnav.find('.btn--success').first().prop('disabled')).toBe(true)
+                // Save and publish should still be hidden
+                expect(subnav.find('.btn--success').length).toBe(0)
             })
 
             it('action button states for existing event', () => {
