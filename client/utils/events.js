@@ -173,6 +173,7 @@ const canCreatePlanningFromEvent = (event, session, privileges, locks) => (
 
 const canPublishEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
+        !!get(event, '_id') &&
         !isItemSpiked(event) &&
         getPublishedState(event) !== PUBLISHED_STATE.USABLE &&
         !!privileges[PRIVILEGES.PUBLISH_EVENT] &&

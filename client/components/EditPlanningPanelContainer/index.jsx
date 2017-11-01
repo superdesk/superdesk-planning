@@ -311,7 +311,7 @@ export class EditPlanningPanel extends React.Component {
                                     onClick={this.handleSaveAndPublish.bind(this)}
                                     type="button"
                                     className="btn btn--success"
-                                    disabled={!existingPlan || submitting || notForPublication}>
+                                    disabled={submitting || notForPublication}>
                                     {pristine ? 'Publish' : 'Save and publish'}
                                 </button>
                             }
