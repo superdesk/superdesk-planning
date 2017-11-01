@@ -1,8 +1,9 @@
 import { get, includes } from 'lodash'
-import { ASSIGNMENTS } from '../constants/assignments'
+import { ASSIGNMENTS, PRIVILEGES } from '../constants'
 import { isItemLockedInThisSession } from './index'
 
-const canEditAssignment = (assignment, session) => (
+const canEditAssignment = (assignment, session, privileges) => (
+    privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
     self.isAssignmentInEditableState(assignment) &&
     (!get(assignment, 'lock_user') ||
     isItemLockedInThisSession(assignment, session))
@@ -14,8 +15,9 @@ const isAssignmentInEditableState = (assignment) => (
     get(assignment, 'assigned_to.state')))
 )
 
-const canCompleteAssignment = (assignment, session) =>
-    (get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS &&
+const canCompleteAssignment = (assignment, session, privileges) =>
+    (privileges[PRIVILEGES.ARCHIVE] &&
+        get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS &&
         !get(assignment, 'lock_user') || isItemLockedInThisSession(assignment, session)
 )
 
@@ -25,17 +27,17 @@ const isAssignmentInUse = (assignment) => (
     get(assignment, 'assigned_to.state')))
 )
 
-const getAssignmentItemActions = (assignment, session, actions) => {
+const getAssignmentItemActions = (assignment, session, privileges, actions) => {
     let itemActions = []
     let key = 1
 
     const actionsValidator = {
         [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: () =>
-            canEditAssignment(assignment, session),
+            canEditAssignment(assignment, session, privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label]: () =>
-            canCompleteAssignment(assignment, session),
+            canCompleteAssignment(assignment, session, privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: () =>
-        canEditAssignment(assignment, session),
+            canEditAssignment(assignment, session, privileges),
     }
 
     actions.forEach((action) => {

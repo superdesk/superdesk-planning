@@ -44,6 +44,7 @@ export class EditAssignmentPanel extends React.Component {
             submitting,
             currentWorkspace,
             session,
+            privileges,
         } = this.props
 
         const creationDate = get(assignment, '_created')
@@ -52,7 +53,7 @@ export class EditAssignmentPanel extends React.Component {
         const state = get(assignment, 'assigned_to.state')
         const versionCreator = getCreator(assignment, 'version_creator', users)
         const inAssignments = currentWorkspace === WORKSPACE.ASSIGNMENTS
-        const canEdit = assignmentUtils.canEditAssignment(assignment, session)
+        const canEdit = assignmentUtils.canEditAssignment(assignment, session, privileges)
         const lockedUser = get(assignment, 'lock_user') ? users.find((u) => u._id === assignment.lock_user) : null
 
         // If read-only or is lock restricted
@@ -131,6 +132,7 @@ EditAssignmentPanel.propTypes = {
     currentWorkspace: PropTypes.string,
     onFulFilAssignment: PropTypes.func,
     session: PropTypes.object,
+    privileges: PropTypes.object,
 }
 
 const mapStateToProps = (state) => ({
@@ -140,6 +142,7 @@ const mapStateToProps = (state) => ({
     submitting: isSubmitting('assignment')(state),
     currentWorkspace: selectors.getCurrentWorkspace(state),
     session: selectors.getSessionDetails(state),
+    privileges: selectors.getPrivileges(state),
 })
 
 const mapDispatchToProps = (dispatch) => (

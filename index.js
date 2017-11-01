@@ -49,7 +49,7 @@ function configurePlanning(superdesk) {
                 }
             ],
             group: 'Planning',
-            privileges: { planning_planning_management: 1 },
+            privileges: { planning_planning_management: 1, archive: 1 },
             additionalCondition: ['lock', 'archiveService', 'item', 'authoring',
                 function(lock, archiveService, item, authoring) {
                 return !item.assignment_id &&

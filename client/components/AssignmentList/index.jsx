@@ -42,7 +42,7 @@ export class AssignmentList extends React.Component {
 
     rowRenderer({ index, key, style }) {
         const assignment = this.props.assignments[index]
-        const { users, session, currentAssignmentId } = this.props
+        const { users, session, currentAssignmentId, privileges } = this.props
         const assignedUser = users.find((user) => get(assignment, 'assigned_to.user') === user._id)
         const isCurrentUser = assignedUser && assignedUser._id === session.identity._id
 
@@ -61,6 +61,7 @@ export class AssignmentList extends React.Component {
                     isCurrentUser={isCurrentUser}
                     lockedItems={this.props.lockedItems}
                     session={session}
+                    privileges={privileges}
                     currentAssignmentId={currentAssignmentId}
                     reassign={this.props.reassign}
                     completeAssignment={this.props.completeAssignment}
@@ -123,4 +124,5 @@ AssignmentList.propTypes = {
     completeAssignment: PropTypes.func,
     editAssignmentPriority: PropTypes.func,
     inAssignments: PropTypes.bool,
+    privileges: PropTypes.object,
 }

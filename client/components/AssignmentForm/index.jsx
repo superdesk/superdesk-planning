@@ -53,6 +53,7 @@ export class Component extends React.Component {
             inAssignments,
             session,
             editAssignmentPriority,
+            privileges,
         } = this.props
         let content_type = get(assignment, 'planning.g2_content_type')
         let assignment_state = get(assignment, 'assigned_to.state')
@@ -75,6 +76,7 @@ export class Component extends React.Component {
         const itemActions = inAssignments ? assignmentUtils.getAssignmentItemActions(
             assignment,
             session,
+            privileges,
             actions
         ) : []
 
@@ -145,6 +147,7 @@ Component.propTypes = {
     editAssignmentPriority: PropTypes.func,
     inAssignments: PropTypes.bool,
     session: PropTypes.object,
+    privileges: PropTypes.object,
 }
 
 const mapStateToProps = (state) => ({
@@ -159,6 +162,7 @@ const mapStateToProps = (state) => ({
     keywords: selectors.getKeywords(state),
     session: selectors.getSessionDetails(state),
     inAssignments: selectors.getCurrentWorkspace(state) === WORKSPACE.ASSIGNMENTS,
+    privileges :selectors.getPrivileges(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
