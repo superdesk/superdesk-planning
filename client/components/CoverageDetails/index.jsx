@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { fields } from '../../components'
 import { Field } from 'redux-form'
 import { get } from 'lodash'
+import { assignmentUtils } from '../../utils'
 
 export const CoverageDetails = ({
     coverage,
@@ -10,12 +11,16 @@ export const CoverageDetails = ({
     content_type,
     formProfile,
     keywords,
+    assignmentState,
     }) => {
     const isTextCoverage = content_type === 'text'
     // for assignment form coverage props is object
     // for coverage form coverage props is string
     const fieldNamePrefix = typeof coverage === 'string' ? `${coverage}.` : ''
     const coverageStatusPrefix = fieldNamePrefix ? fieldNamePrefix : 'planning.'
+
+    const assignmentInUse = assignmentUtils.isAssignmentInUse({ assigned_to: { state: assignmentState } })
+
     return (
         <div>
             {get(formProfile, 'editor.slugline.enabled') &&
@@ -38,7 +43,7 @@ export const CoverageDetails = ({
                     type="text"
                     label="Ed Note"
                     required={get(formProfile, 'schema.ednote.required')}
-                    readOnly={readOnly} />
+                    readOnly={readOnly || assignmentInUse} />
                 </div>
             }
             {get(formProfile, 'editor.keyword.enabled') &&
@@ -71,7 +76,7 @@ export const CoverageDetails = ({
                         label="Type"
                         clearable={true}
                         required={get(formProfile, 'schema.g2_content_type.required')}
-                        readOnly={readOnly} />
+                        readOnly={readOnly || assignmentInUse} />
                 </div>
             }
 
@@ -80,7 +85,7 @@ export const CoverageDetails = ({
                     <Field name={`${fieldNamePrefix}planning.genre`}
                         component={fields.GenreField}
                         label="Genre"
-                        readOnly={readOnly}/>
+                        readOnly={readOnly || assignmentInUse}/>
                 </div>
             )}
             <div className="form__row">
@@ -89,7 +94,7 @@ export const CoverageDetails = ({
                     component={fields.CoverageStatusField}
                     label="Coverage Status"
                     clearable={false}
-                    readOnly={readOnly} />
+                    readOnly={readOnly || assignmentInUse} />
             </div>
 
             {get(formProfile, 'editor.scheduled.enabled') &&
@@ -113,4 +118,5 @@ CoverageDetails.propTypes = {
     readOnly: PropTypes.bool,
     formProfile: PropTypes.object,
     keywords: PropTypes.array,
+    assignmentState: PropTypes.string,
 }
