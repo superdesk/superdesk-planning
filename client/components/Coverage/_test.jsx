@@ -6,27 +6,32 @@ import React from 'react'
 import { Provider } from 'react-redux'
 import { reduxForm } from 'redux-form'
 
-const coverage = { planning: { description_text: 'desc' } }
-
-class CoverageForm extends React.Component {
-    render() {
-        return (
-            <Coverage
-            coverage={coverage}
-            />
-        )
-    }
-}
-
 describe('<CoverageForm />', () => {
     let store
     let astore
+    let data
     let services
+    let coverage
+    let planning
+
+    const CoverageForm = () => <Coverage coverage={'coverages[0]'} />
+    const getWrapper = () => {
+        const FormComponent = reduxForm({ form: 'planning' })(CoverageForm)
+        return mount(
+            <Provider store={store}>
+                <FormComponent initialValues={planning}/>
+            </Provider>
+        )
+    }
 
     beforeEach(() => {
         astore = getTestActionStore()
         services = astore.services
+        data = astore.data
         store = undefined
+
+        planning = data.plannings[0]
+        coverage = planning.coverages[0]
     })
 
     const setStore = () => {
@@ -45,27 +50,55 @@ describe('<CoverageForm />', () => {
     describe('Coverage', () => {
         it('shows enabled fields', () => {
             setStore()
-            const form = 'coverage'
-            const FormComponent = reduxForm({ form })(CoverageForm)
-            const wrapper = mount(
-                <Provider store={store}>
-                    <FormComponent />
-                </Provider>)
-
-            expect(wrapper.find('InputTextAreaField').first().props().label).toBe('Ed Note')
+            const wrapper = getWrapper()
+            expect(wrapper.find('.sd-line-input__label').first().text()).toBe('Ed Note')
+            expect(wrapper.find('.sd-line-input__input').length).toBe(1)
         })
 
         it('hides disabled fields', () => {
             setStore()
             store.getState().formsProfile.coverage.editor.ednote.enabled = false
-            const form = 'coverage'
-            const FormComponent = reduxForm({ form })(CoverageForm)
-            const wrapper = mount(
-                <Provider store={store}>
-                    <FormComponent />
-                </Provider>)
+            const wrapper = getWrapper()
+            expect(wrapper.find('.sd-line-input__input').length).toBe(0)
+        })
 
-            expect(wrapper.find('InputField').length).toBe(0)
+        it('enables fields if assignment is not in use', () => {
+            setStore()
+            store.getState().formsProfile.coverage.editor = {
+                ednote: { enabled: true },
+                g2_content_type: { enabled: true },
+                genre: { enabled: true },
+            }
+
+            coverage.assigned_to = { state: 'assigned' }
+            let wrapper = getWrapper()
+            expect(wrapper.find('Field').at(1).props().readOnly).toBe(false)
+            expect(wrapper.find('Field').at(2).props().readOnly).toBe(false)
+            expect(wrapper.find('Field').at(3).props().readOnly).toBe(false)
+
+            coverage.assigned_to = { state: 'in_progress' }
+            wrapper = getWrapper()
+            expect(wrapper.find('Field').at(1).props().readOnly).toBe(true)
+            expect(wrapper.find('Field').at(2).props().readOnly).toBe(true)
+            expect(wrapper.find('Field').at(3).props().readOnly).toBe(true)
+
+            coverage.assigned_to = { state: 'completed' }
+            wrapper = getWrapper()
+            expect(wrapper.find('Field').at(1).props().readOnly).toBe(true)
+            expect(wrapper.find('Field').at(2).props().readOnly).toBe(true)
+            expect(wrapper.find('Field').at(3).props().readOnly).toBe(true)
+
+            coverage.assigned_to = { state: 'submitted' }
+            wrapper = getWrapper()
+            expect(wrapper.find('Field').at(1).props().readOnly).toBe(true)
+            expect(wrapper.find('Field').at(2).props().readOnly).toBe(true)
+            expect(wrapper.find('Field').at(3).props().readOnly).toBe(true)
+
+            coverage.assigned_to = { state: 'cancelled' }
+            wrapper = getWrapper()
+            expect(wrapper.find('Field').at(1).props().readOnly).toBe(false)
+            expect(wrapper.find('Field').at(2).props().readOnly).toBe(false)
+            expect(wrapper.find('Field').at(3).props().readOnly).toBe(false)
         })
     })
 })
