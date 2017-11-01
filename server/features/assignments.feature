@@ -19,7 +19,7 @@ Feature: Assignments
         """
         And "desks"
         """
-        [{"name": "Sports", "content_expiry": 60}]
+        [{"name": "Sports", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
         """
 
     @auth
@@ -63,7 +63,8 @@ Feature: Assignments
                     "planning": {
                         "ednote": "test coverage, I want 250 words",
                         "headline": "test headline",
-                        "slugline": "test slugline"
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
                     },
                     "assigned_to": {
                         "desk": "#desks._id#",
@@ -155,33 +156,26 @@ Feature: Assignments
         }]
         """
         When we reset notifications
+        Given empty "activity"
         When we patch "/assignments/#firstassignment#"
         """
         {
             "assigned_to": {
-                "desk": "Sports Desk",
+                "desk": "#desks._id#",
                 "user": "507f191e810c19729de87034",
                 "coverage_provider": {"qcode": "agencies", "name": "Agencies"}
             }
         }
         """
         Then we get OK response
-        And we get notifications
+        When we get "/activity"
+        Then we get existing resource
         """
-        [
+        {"_items": [
             {
-                "event": "assignments:updated",
-                "extra": {"item": "#firstassignment#"}
-            },
-            {
-                "event": "activity",
-                "extra": {
-                    "activity": {
-                        "message": "{{assignor}} assigned a coverage to {{assignee}}"
-                    }
-                }
+                "message": "{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to you on desk ({{desk}})"
             }
-        ]
+        ]}
         """
 
     @auth
@@ -635,4 +629,504 @@ Feature: Assignments
                 "state": "completed"
             }
         }
+        """
+
+    @auth
+    @vocabularies
+    @notification
+    Scenario: Test notifications on assignment to desk and user then reassign to desk only
+        When we post to "/planning"
+        """
+        [
+            {
+                "item_class": "item class value",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            }
+        ]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
+                    },
+                    "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
+                        "coverage_provider": {
+                            "qcode": "stringer",
+                            "name": "Stringer"}
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we get "/activity"
+        Then we get existing resource
+        """
+        {
+           "_items":[
+              {
+                 "name":"update",
+                 "recipients":[
+                    {
+                       "user_id":"#CONTEXT_USER_ID#",
+                       "read":false
+                    }
+                 ],
+                 "resource":"assignments",
+                 "user":"#CONTEXT_USER_ID#",
+                 "data":{
+                    "assignee":"yourself",
+                    "assignor":"You"
+                 },
+                 "user_name":"test_user",
+                 "message":"{{assignor}} assigned a coverage to {{assignee}}"
+              }
+           ]
+        }
+        """
+        Given empty "activity"
+        When we patch "/assignments/#firstassignment#"
+        """
+        {
+            "assigned_to": {
+                "user": null
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/activity"
+        Then we get existing resource
+        """
+        {
+           "_items":[
+              {
+                 "data":{
+                    "assign_type":"reassigned",
+                    "desk":"Sports",
+                    "slugline":"test slugline",
+                    "coverage_type":"text"
+                 },
+                 "resource":"assignments",
+                 "user":"#CONTEXT_USER_ID#",
+                 "message":"{{coverage_type}} coverage \"{{slugline}}\" {{assign_type}} to desk {{desk}}",
+                 "name":"update",
+                 "recipients":[
+                    {
+                       "read":false,
+                       "user_id":"#CONTEXT_USER_ID#"
+                    }
+                 ],
+                 "user_name":"test_user"
+              }
+           ]
+        }
+        """
+
+    @auth
+    @vocabularies
+    @notification
+    Scenario: Test notifications on assignment to desk only reassigned to a desk and user
+        When we post to "/planning"
+        """
+        [
+            {
+                "item_class": "item class value",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            }
+        ]
+        """
+        Then we get OK response
+        And we store "firstuser" with value "#CONTEXT_USER_ID#" to context
+        When we patch "/planning/#planning._id#"
+        """
+        {
+           "coverages":[
+              {
+                 "planning":{
+                    "ednote":"test coverage, I want 250 words",
+                    "headline":"test headline",
+                    "slugline":"test slugline",
+                    "g2_content_type":"text"
+                 },
+                 "assigned_to":{
+                    "desk":"#desks._id#"
+                 }
+              }
+           ]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we get "/activity"
+        Then we get existing resource
+        """
+        {"_items": [
+           {
+                    "data" : {
+                        "desk" : "Sports",
+                        "coverage_type" : "text",
+                        "assign_type" : "assigned",
+                        "slugline" : "test slugline"
+                    },
+                    "message" : "{{coverage_type}} coverage \"{{slugline}}\" {{assign_type}} to desk {{desk}}",
+                    "name":"update",
+                    "recipients":[
+                       {
+                          "user_id":"#CONTEXT_USER_ID#",
+                          "read":false
+                       }
+                    ],
+                    "resource":"assignments",
+                    "user":"#CONTEXT_USER_ID#",
+                    "user_name":"test_user"
+                 }
+        ]}
+        """
+        Given empty "activity"
+        When we switch user
+        When we patch "/assignments/#firstassignment#"
+        """
+        {
+            "assigned_to": {
+                "user": "#CONTEXT_USER_ID#",
+                "desk":"#desks._id#"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/activity"
+        Then we get existing resource
+        """
+        {
+           "_items":[
+              {
+                 "name":"update",
+                 "recipients":[
+                    {
+                       "user_id":"#firstuser#",
+                       "read":false
+                    }
+                 ],
+                 "message":"{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} on desk ({{desk}})",
+                 "data":{
+                    "slugline":"test slugline",
+                    "assignee":"test-user-2",
+                    "coverage_type":"text",
+                    "desk":"Sports"
+                 },
+                 "resource":"assignments",
+                 "user":"#CONTEXT_USER_ID#",
+                 "user_name":"test-user-2"
+              },
+              {
+                 "name":"update",
+                 "recipients":[
+                    {
+                       "user_id":"#CONTEXT_USER_ID#",
+                       "read":false
+                    }
+                 ],
+                 "message":"{{coverage_type}} coverage \"{{slugline}}\" has been reassigned{{old_assignee}} to you on desk ({{desk}}) ",
+                 "data":{
+                    "slugline":"test slugline",
+                    "old_assignee":"",
+                    "coverage_type":"text",
+                    "desk":"Sports"
+                 },
+                 "resource":"assignments",
+                 "user":"#CONTEXT_USER_ID#",
+                 "user_name":"test-user-2"
+              }
+           ]
+        }
+        """
+
+    @auth
+    @vocabularies
+    @notification
+    Scenario: Test notifications on assignment to desk and user reassigned to another desk and user
+        When we post to "/planning"
+        """
+        [
+            {
+                "item_class": "item class value",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            }
+        ]
+        """
+        Then we get OK response
+        And we store "firstuser" with value "#CONTEXT_USER_ID#" to context
+        When we patch "/planning/#planning._id#"
+        """
+        {
+           "coverages":[
+              {
+                 "planning":{
+                    "ednote":"test coverage, I want 250 words",
+                    "headline":"test headline",
+                    "slugline":"test slugline",
+                    "g2_content_type":"text"
+                 },
+                 "assigned_to":{
+                    "desk":"#desks._id#",
+                    "user":"#firstuser#"
+                 }
+              }
+           ]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we post to "users"
+        """
+        {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
+        """
+        Then we get OK response
+        And we store "seconduser" with value "#users._id#" to context
+        When we patch "/desks/#desks._id#"
+        """
+        {"members": [{"user": "#firstuser#"}, {"user": "#seconduser#"}]}
+        """
+        Then we get OK response
+        Given empty "activity"
+        When we switch user
+        Then we store "thirduser" with value "#users._id#" to context
+        Given empty "activity"
+        When we patch "/assignments/#firstassignment#"
+        """
+        {
+            "assigned_to": {
+                "user": "#seconduser#",
+                "desk":"#desks._id#"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/activity"
+        Then we get existing resource
+        """
+        {"_items": [
+        {
+            "name":"update",
+                    "recipients":[
+                       {
+                          "user_id":"#seconduser#",
+                          "read":false
+                       }
+                    ],
+            "message" : "{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} on desk ({{desk}})",
+            "data" : {
+                "coverage_type" : "text",
+                "desk" : "Sports",
+                "slugline" : "test slugline",
+                "assignee" : "foo"
+            }
+        },
+                {
+            "name":"update",
+                    "recipients":[
+                       {
+                          "user_id":"#seconduser#",
+                          "read":false
+                       }
+                    ],
+            "message" : "{{coverage_type}} coverage \"{{slugline}}\" has been reassigned{{old_assignee}} to you on desk ({{desk}}) ",
+            "data" : {
+                "old_assignee" : " from test_user",
+                "coverage_type" : "text",
+                "slugline" : "test slugline",
+                "desk" : "Sports"
+            }
+        }
+        ]}
+        """
+
+    @auth
+    @vocabularies
+    @notification
+    Scenario: Testing notifications on assignment change between desks
+        When we post to "/planning"
+        """
+        [
+            {
+                "item_class": "item class value",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            }
+        ]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+           "coverages":[
+              {
+                 "planning":{
+                    "ednote":"test coverage, I want 250 words",
+                    "headline":"test headline",
+                    "slugline":"test slugline",
+                    "g2_content_type":"text"
+                 },
+                 "assigned_to":{
+                    "desk":"#desks._id#"
+                 }
+              }
+           ]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we post to "/desks"
+        """
+        [{"name": "News", "content_expiry": 60, "members": [{"user": "#CONTEXT_USER_ID#"}]}]
+        """
+        Given empty "activity"
+        When we patch "/assignments/#firstassignment#"
+        """
+        {
+            "assigned_to": {
+                "desk":"#desks._id#"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/activity"
+        Then we get existing resource
+        """
+        {"_items": [
+           {
+                    "name":"update",
+                    "recipients":[
+                       {
+                          "user_id":"#CONTEXT_USER_ID#",
+                          "read":false
+                       }
+                    ],
+                    "resource":"assignments",
+                    "user":"#CONTEXT_USER_ID#",
+                    "user_name":"test_user",
+                    "message" : "{{coverage_type}} coverage \"{{slugline}}\" has been submitted to desk {{desk}} from {{from_desk}}",
+                    "data" : {
+                        "desk" : "News",
+                        "coverage_type" : "text",
+                        "slugline" : "test slugline",
+                        "from_desk" : "Sports"
+                    }
+                 }
+        ]}
+        """
+
+    @auth
+    @vocabularies
+    @notification
+    Scenario: Test notifications on assignment change between desks and users
+        When we post to "/planning"
+        """
+        [
+            {
+                "item_class": "item class value",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            }
+        ]
+        """
+        Then we get OK response
+        And we store "firstuser" with value "#CONTEXT_USER_ID#" to context
+        When we patch "/planning/#planning._id#"
+        """
+        {
+           "coverages":[
+              {
+                 "planning":{
+                    "ednote":"test coverage, I want 250 words",
+                    "headline":"test headline",
+                    "slugline":"test slugline",
+                    "g2_content_type":"text"
+                 },
+                 "assigned_to":{
+                    "desk":"#desks._id#",
+                    "user": "#firstuser#"
+                 }
+              }
+           ]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we post to "users"
+        """
+        {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
+        """
+        Then we get OK response
+        And we store "seconduser" with value "#users._id#" to context
+        When we post to "/desks"
+        """
+        [{"name": "News", "content_expiry": 60, "members": [{"user": "#firstuser#"}, {"user": "#seconduser#"}]}]
+        """
+        When we switch user
+        Given empty "activity"
+        When we patch "/assignments/#firstassignment#"
+        """
+        {
+            "assigned_to": {
+                "desk":"#desks._id#",
+                "user":"#seconduser#"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/activity"
+        Then we get existing resource
+        """
+        { "_items": [
+            {
+               "user_name":"test-user-2",
+               "recipients" : [
+                {
+                    "user_id" : "#firstuser#",
+                    "read" : false
+                }
+                ],
+               "data":{
+                  "assignee":"foo",
+                  "old_assignee":"test_user",
+                  "slugline":"test slugline",
+                  "coverage_type":"text",
+                  "old_desk":"Sports",
+                  "desk":"News"
+               },
+               "message":"{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} ({{desk}}) from {{old_assignee}} ({{old_desk}})"
+            },
+                        {
+               "user_name":"test-user-2",
+               "recipients" : [
+                {
+                    "user_id" : "#seconduser#",
+                    "read" : false
+                }
+                ],
+               "data":{
+                  "assignee":"foo",
+                  "old_assignee":"test_user",
+                  "slugline":"test slugline",
+                  "coverage_type":"text",
+                  "old_desk":"Sports",
+                  "desk":"News"
+               },
+               "message":"{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} ({{desk}}) from {{old_assignee}} ({{old_desk}})"
+            }
+        ]}
         """

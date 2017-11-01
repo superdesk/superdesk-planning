@@ -17,7 +17,8 @@ Feature: Assignment content
         Given "desks"
         """
         [
-            {"name": "sports", "default_content_template": "#content_templates._id#"}
+            {"name": "sports", "default_content_template": "#content_templates._id#",
+            "members": [{"user": "#CONTEXT_USER_ID#"}]}
         ]
         """
 
