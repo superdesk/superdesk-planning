@@ -1,8 +1,8 @@
 /* eslint-disable react/no-multi-comp */
 import React from 'react'
 import PropTypes from 'prop-types'
-import classNames from 'classnames'
 import { get } from 'lodash'
+import { Label } from '../../components'
 import { getItemWorkflowStateLabel, getItemPublishedStateLabel } from '../../utils'
 
 export const StateLabel = ({ item, verbose, withPubStatus }) => {
@@ -14,33 +14,20 @@ export const StateLabel = ({ item, verbose, withPubStatus }) => {
     }
 
     const getStateLabel = (state) => {
-        const labelClasses = classNames('label',
-        `label--${state.iconType}`,
-        { 'label--hollow': state.iconHollow })
-        const label = (
-            <span className={labelClasses}>
-                {verbose ? get(state, 'labelVerbose', state.label) : state.label}
-            </span>
-        )
-
-        if (state.tooltip) {
-            return (
-                <span data-sd-tooltip={state.tooltip} data-flow='down'>
-                    {label}
-                </span>
-            )
-        } else {
-            return label
-        }
+        return <Label
+            text={state.label}
+            iconType={state.iconType}
+            verbose={verbose ? get(state, 'labelVerbose') : null}
+            tooltip={state.tooltip ? { text: state.tooltip } : null}
+        />
     }
 
-
     return (
-        <div>
+        <span>
             {getStateLabel(state)}
             &nbsp;&nbsp;
             {withPubStatus && pubState && getStateLabel(pubState)}
-        </div>
+        </span>
     )
 }
 

@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { ListItem, Checkbox, UserAvatar, AbsoluteDate, StateLabel, ItemActionsMenu } from '../index'
+import { ListItem, Checkbox, UserAvatar, AbsoluteDate, StateLabel, ItemActionsMenu, Label } from '../index'
 import classNames from 'classnames'
 import moment from 'moment'
 import { get } from 'lodash'
@@ -41,6 +41,8 @@ export const AssignmentItem = ({
             actions
         ) : []
 
+    const isAssignmentInUse = assignmentUtils.isAssignmentInUse(assignment)
+
     return (
         <ListItem
             item={assignment}
@@ -68,6 +70,7 @@ export const AssignmentItem = ({
                 </div>
                 <div className="sd-list-item__row">
                     <StateLabel item={assignment.assigned_to} />
+                    {isAssignmentInUse && <Label text="Content" isHollow={true} iconType="darkBlue2" /> }
                     <span className="ListItem__headline">
                             <i className="icon-time"/>
                             {get(assignment, 'planning.scheduled') ? (

@@ -19,6 +19,12 @@ const canCompleteAssignment = (assignment, session) =>
         !get(assignment, 'lock_user') || isItemLockedInThisSession(assignment, session)
 )
 
+const isAssignmentInUse = (assignment) => (
+    (includes([ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED, ASSIGNMENTS.WORKFLOW_STATE.COMPLETED,
+        ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS],
+    get(assignment, 'assigned_to.state')))
+)
+
 const getAssignmentItemActions = (assignment, session, actions) => {
     let itemActions = []
     let key = 1
@@ -52,6 +58,7 @@ const self = {
     canCompleteAssignment,
     isAssignmentInEditableState,
     getAssignmentItemActions,
+    isAssignmentInUse,
 }
 
 export default self

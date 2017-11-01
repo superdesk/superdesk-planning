@@ -1,5 +1,5 @@
 import React from 'react'
-import { shallow } from 'enzyme'
+import { mount } from 'enzyme'
 import { StateLabel } from './index'
 
 describe('<StateLabel />', () => {
@@ -9,7 +9,7 @@ describe('<StateLabel />', () => {
             pubstatus: 'usable',
         }
 
-        const wrapper = shallow(<StateLabel item={item} verbose={true} />)
+        const wrapper = mount(<StateLabel item={item} verbose={true} />)
 
         const badges = wrapper.find('.label--success')
         expect(badges.length).toBe(2)
