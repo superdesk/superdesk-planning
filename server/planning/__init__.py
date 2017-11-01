@@ -229,6 +229,10 @@ def init_app(app):
     app.on_item_locked += assignments_publish_service.sync_assignment_lock
     app.on_item_unlocked += assignments_publish_service.sync_assignment_unlock
 
+    # Duplicate/Remove Assignment and Coverage upon creating/deleting an Archive Rewrite
+    app.on_inserted_archive_rewrite += assignments_publish_service.duplicate_assignment_on_create_archive_rewrite
+    app.on_deleted_resource_archive_rewrite += assignments_publish_service.unlink_assignment_on_delete_archive_rewrite
+
     assignments_complete_service = AssignmentsCompleteService(AssignmentsCompleteResource.endpoint_name,
                                                               backend=superdesk.get_backend())
 

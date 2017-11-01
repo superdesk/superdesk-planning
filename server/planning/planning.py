@@ -376,6 +376,48 @@ class PlanningService(superdesk.Service):
         updates.get('assigned_to', {}).pop('user', None)
         updates.get('assigned_to', {}).pop('desk', None)
         updates.get('assigned_to', {}).pop('coverage_provider', None)
+        updates.get('assigned_to', {}).pop('state', None)
+
+    def duplicate_coverage(self, planning_id, coverage_id, updates):
+        planning = self.find_one(req=None, _id=planning_id)
+
+        if not planning:
+            raise SuperdeskApiError.badRequestError(
+                'Planning does not exist'
+            )
+
+        coverages = planning.get('coverages') or []
+        try:
+            coverage = next(c for c in coverages if c.get('coverage_id') == coverage_id)
+        except StopIteration:
+            raise SuperdeskApiError.badRequestError(
+                'Coverage does not exist'
+            )
+
+        coverage_planning = coverage.get('planning') or {}
+        updates_planning = updates.get('planning') or {}
+        coverages.append({
+            'planning': {
+                'g2_content_type': updates_planning.get('g2_content_type') or coverage_planning.get('g2_content_type'),
+                'slugline': updates_planning.get('slugline') or coverage_planning.get('slugline'),
+                'scheduled': updates_planning.get('scheduled') or coverage_planning.get('scheduled'),
+            },
+            'news_coverage_status': updates.get('news_coverage_status') or coverage.get('news_coverage_status'),
+            'assigned_to': updates.get('assigned_to') or coverage.get('assigned_to')
+        })
+
+        coverage_ids = [c['coverage_id'] for c in coverages if c.get('coverage_id')]
+        new_plan = self.patch(planning[config.ID_FIELD], {'coverages': coverages})
+
+        try:
+            new_coverage = next(c for c in new_plan['coverages'] if c.get('coverage_id') not in coverage_ids)
+        except StopIteration:
+            raise SuperdeskApiError.badRequestError(
+                'New coverage was not found!'
+            )
+
+        planning.update(new_plan)
+        return planning, new_coverage
 
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))

@@ -30,7 +30,8 @@ from superdesk import get_resource_service
 from apps.common.components.utils import get_component
 from .item_lock import LockService, LOCK_USER
 from superdesk.users.services import current_user_has_privilege
-from .common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information
+from .common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, get_local_end_of_day
+from flask import request
 
 
 logger = logging.getLogger(__name__)
@@ -299,6 +300,77 @@ class AssignmentsService(superdesk.Service):
                     updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
 
                 self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
+
+    def duplicate_assignment_on_create_archive_rewrite(self, items):
+        """Duplicates the coverage/assignment for the archive rewrite
+
+        If any errors occur at this point in time, the rewrite is still created
+        with an error notification shown in the browser.
+        """
+        archive_service = get_resource_service('archive')
+        delivery_service = get_resource_service('delivery')
+        planning_service = get_resource_service('planning')
+        assignment_link_service = get_resource_service('assignments_link')
+
+        for item in items:
+            original_item = archive_service.find_one(req=None, _id=item.get('rewrite_of'))
+
+            # Skip items not linked to an Assignment/Coverage
+            if not original_item.get('assignment_id'):
+                continue
+
+            assignment = self.find_one(req=None, _id=str(original_item['assignment_id']))
+            if not assignment:
+                raise SuperdeskApiError.badRequestError(
+                    'Assignment not found.'
+                )
+
+            delivery = delivery_service.find_one(req=None, item_id=original_item[config.ID_FIELD])
+            if not delivery:
+                raise SuperdeskApiError.badRequestError(
+                    'Delivery record not found.'
+                )
+
+            # Duplicate the coverage, which will generate our new assignment for us
+            updated_plan, new_coverage = planning_service.duplicate_coverage(
+                planning_id=delivery.get('planning_id'),
+                coverage_id=delivery.get('coverage_id'),
+                updates={
+                    'planning': {
+                        'g2_content_type': item.get('type'),
+                        'slugline': item.get('slugline'),
+                        'scheduled': get_local_end_of_day(),
+                    },
+                    'news_coverage_status': {
+                        'qcode': 'ncostat:int'
+                    },
+                    'assigned_to': {
+                        'user': (item.get('task') or {}).get('user'),
+                        'desk': (item.get('task') or {}).get('desk'),
+                        'state': ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+                    }
+                }
+            )
+
+            new_assignment_id = new_coverage['assigned_to'].get('assignment_id')
+            assignment_link_service.post([{
+                'assignment_id': str(new_assignment_id),
+                'item_id': str(item[config.ID_FIELD])
+            }])
+
+    def unlink_assignment_on_delete_archive_rewrite(self):
+        # Because this is in response to a Resource level DELETE, we need to get the
+        # item ID from the request args, then retrieve the item using that ID
+        item_id = request.view_args['original_id']
+        doc = get_resource_service('archive').find_one(req=None, _id=item_id)
+
+        if not doc.get('assignment_id'):
+            return
+
+        get_resource_service('assignments_unlink').post([{
+            'assignment_id': doc['assignment_id'],
+            'item_id': doc[config.ID_FIELD]
+        }])
 
     def _update_assignment_and_notify(self, updates, original):
         self.system_update(original.get(config.ID_FIELD),

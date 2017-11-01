@@ -15,6 +15,9 @@ from collections import namedtuple
 from superdesk.resource import not_analyzed
 from superdesk import get_resource_service
 from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
+from datetime import datetime, time
+import tzlocal
+import pytz
 
 ITEM_STATE = 'state'
 ITEM_EXPIRY = 'expiry'
@@ -90,3 +93,12 @@ def get_coverage_cancellation_state():
         coverage_cancel_state.pop('is_active', None)
 
     return coverage_cancel_state
+
+
+def get_local_end_of_day(day=None, timezone=None):
+    tz = pytz.timezone(timezone or tzlocal.get_localzone().zone)
+    day = day or datetime.now(tz).date()
+
+    return tz.localize(
+        datetime.combine(day, time(23, 59, 59)), is_dst=None
+    ).astimezone(pytz.utc)

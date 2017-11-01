@@ -11,8 +11,11 @@
 from superdesk.tests.publish_steps import * # noqa
 from superdesk.tests.steps import (then, when, step_impl_then_get_existing, get_json_data,
                                    assert_200, unique_headers, get_prefixed_url,
-                                   if_match, assert_404, apply_placeholders, get_res, set_placeholder)
+                                   if_match, assert_404, apply_placeholders, get_res, set_placeholder,
+                                   DATETIME_FORMAT, json_match)
 from flask import json
+from planning.common import get_local_end_of_day
+from wooper.assertions import assert_equal
 
 
 @then('we get a list with {total_count} items')
@@ -167,3 +170,34 @@ def then_we_store_assignment_id(context, index):
     assert len(response.get('coverages')), 'Coverage are not defined.'
     coverage = response.get('coverages')[index]
     assert not coverage.get('assigned_to', {}).get('assignment_id'), 'Coverage has an assignment'
+
+
+@then('assignment {index} is scheduled for end of today')
+def then_assignment_scheduled_for_end_of_day(context, index):
+    index = int(index)
+    response = get_json_data(context.response)
+    assert len(response.get('coverages')), 'Coverages are not defined'
+    coverage = response.get('coverages')[index]
+    eod = get_local_end_of_day().strftime(DATETIME_FORMAT)
+    assert coverage['planning']['scheduled'] == eod, 'Coverage is not schedule to end of day'
+
+
+@then('we get array of {field} by {fid}')
+def then_we_get_array_of_by(context, field, fid):
+    response = get_json_data(context.response)
+    assert field in response, '{} field not defined'.format(field)
+    assert len(response.get(field)), '{} field not defined'.format(field)
+    context_data = json.loads(apply_placeholders(context, context.text))
+
+    for row in response[field]:
+        if row[fid] not in context_data.keys():
+            continue
+
+        assert_equal(
+            json_match(
+                context_data[row[fid]],
+                row
+            ),
+            True,
+            msg=str(row) + '\n != \n' + str(context_data[row[fid]])
+        )
