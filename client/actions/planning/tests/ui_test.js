@@ -781,61 +781,125 @@ describe('actions.planning.ui', () => {
         })
     })
 
-    it('onAddPlanningClick', (done) => {
-        const newsItem = {
-            _id: 'news1',
-            slugline: 'slugger',
-            ednote: 'Edit my note!',
-            type: 'text',
-            subject: 'sub',
-            anpa_category: 'cat',
-            urgency: 3,
-            abstract: '<p>some abstractions</p>',
-            state: 'published',
-            _updated: '2019-10-15T10:01:11',
-            task: {
-                desk: 'desk3',
-                user: 'ident2',
-            },
-        }
-
-        store.init()
-        store.initialState.workspace.currentDeskId = 'desk1'
-        store.initialState.planning.currentPlanningId = 'p1'
-        store.initialState.modal = {
-            modalType: 'ADD_TO_PLANNING',
-            modalProps: { newsItem },
-        }
-        store.test(done, planningUi.onAddPlanningClick())
-        .then(() => {
-            expect(planningApi.unlock.callCount).toBe(1)
-            expect(planningApi.unlock.args[0]).toEqual([data.plannings[0]])
-
-            expect(planningUi._openEditor.callCount).toBe(1)
-            expect(planningUi._openEditor.args[0]).toEqual([{
+    describe('onAddPlanningClick', () => {
+        it('converts a news item to a planning item', (done) => {
+            const newsItem = {
+                _id: 'news1',
                 slugline: 'slugger',
                 ednote: 'Edit my note!',
+                type: 'text',
                 subject: 'sub',
                 anpa_category: 'cat',
                 urgency: 3,
-                description_text: 'some abstractions',
-                coverages: [{
-                    planning: {
-                        g2_content_type: 'text',
-                        slugline: 'slugger',
-                        ednote: 'Edit my note!',
-                        scheduled: '2019-10-15T10:01:11',
-                    },
-                    news_coverage_status: { qcode: 'ncostat:int' },
-                    assigned_to: {
-                        desk: 'desk3',
-                        user: 'ident2',
-                        priority: ASSIGNMENTS.DEFAULT_PRIORITY,
-                    },
-                }],
-            }])
+                abstract: '<p>some abstractions</p>',
+                state: 'published',
+                _updated: '2019-10-15T10:01:11',
+                task: {
+                    desk: 'desk3',
+                    user: 'ident2',
+                    priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                },
+            }
 
-            done()
+            store.init()
+            store.initialState.workspace.currentDeskId = 'desk1'
+            store.initialState.planning.currentPlanningId = 'p1'
+            store.initialState.modal = {
+                modalType: 'ADD_TO_PLANNING',
+                modalProps: { newsItem },
+            }
+            store.test(done, planningUi.onAddPlanningClick())
+            .then(() => {
+                expect(planningApi.unlock.callCount).toBe(1)
+                expect(planningApi.unlock.args[0]).toEqual([data.plannings[0]])
+
+                expect(planningUi._openEditor.callCount).toBe(1)
+                expect(planningUi._openEditor.args[0]).toEqual([{
+                    slugline: 'slugger',
+                    ednote: 'Edit my note!',
+                    subject: 'sub',
+                    anpa_category: 'cat',
+                    urgency: 3,
+                    description_text: 'some abstractions',
+                    coverages: [{
+                        planning: {
+                            g2_content_type: 'text',
+                            slugline: 'slugger',
+                            ednote: 'Edit my note!',
+                            scheduled: '2019-10-15T10:01:11',
+                        },
+                        news_coverage_status: { qcode: 'ncostat:int' },
+                        assigned_to: {
+                            desk: 'desk3',
+                            user: 'ident2',
+                            priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                        },
+                    }],
+                }])
+
+                done()
+            })
+        })
+
+        it('perpetuate `marked_for_not_publication` flag', (done) => {
+            const newsItem = {
+                _id: 'news1',
+                slugline: 'slugger',
+                ednote: 'Edit my note!',
+                type: 'text',
+                subject: 'sub',
+                anpa_category: 'cat',
+                urgency: 3,
+                abstract: '<p>some abstractions</p>',
+                state: 'published',
+                _updated: '2019-10-15T10:01:11',
+                task: {
+                    desk: 'desk3',
+                    user: 'ident2',
+                    priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                },
+                flags: { marked_for_not_publication: true },
+            }
+
+            store.init()
+            store.initialState.workspace.currentDeskId = 'desk1'
+            store.initialState.planning.currentPlanningId = 'p1'
+            store.initialState.modal = {
+                modalType: 'ADD_TO_PLANNING',
+                modalProps: { newsItem },
+            }
+            store.test(done, planningUi.onAddPlanningClick())
+            .then(() => {
+                expect(planningApi.unlock.callCount).toBe(1)
+                expect(planningApi.unlock.args[0]).toEqual([data.plannings[0]])
+
+                expect(planningUi._openEditor.callCount).toBe(1)
+                expect(planningUi._openEditor.args[0]).toEqual([{
+                    slugline: 'slugger',
+                    ednote: 'Edit my note!',
+                    subject: 'sub',
+                    anpa_category: 'cat',
+                    urgency: 3,
+                    description_text: 'some abstractions',
+                    coverages: [{
+                        planning: {
+                            g2_content_type: 'text',
+                            slugline: 'slugger',
+                            ednote: 'Edit my note!',
+                            scheduled: '2019-10-15T10:01:11',
+                        },
+                        news_coverage_status: { qcode: 'ncostat:int' },
+                        assigned_to: {
+                            desk: 'desk3',
+                            user: 'ident2',
+                            priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                        },
+                    }],
+                    flags: { marked_for_not_publication: true },
+                }])
+
+                done()
+            })
         })
     })
 

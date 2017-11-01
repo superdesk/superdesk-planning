@@ -720,6 +720,10 @@ const onAddPlanningClick = () => (
             coverages: [coverage],
         }
 
+        if (get(newsItem, 'flags.marked_for_not_publication')) {
+            newPlanning.flags = { marked_for_not_publication: true }
+        }
+
         return dispatch(self._openEditor(newPlanning))
     }
 )
