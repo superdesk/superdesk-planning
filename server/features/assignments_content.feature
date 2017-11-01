@@ -186,3 +186,33 @@ Feature: Assignment content
         """
         {"_status": "ERR", "_message": "Assignment workflow started. Cannot create content."}
         """
+
+    @auth
+    @vocabularies
+    Scenario: Perpetuate marked_for_not_publication flag when creating content from assignment
+        When we patch "/planning/#planning._id#"
+        """
+        {"flags": {"marked_for_not_publication": true}}
+        """
+        When we post to "/assignments/content"
+        """
+        [{"assignment_id": "#firstassignment#"}]
+        """
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "__any_value__",
+            "assignment_id": "#firstassignment#",
+            "task": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "stage": "#desks.working_stage#"
+            },
+            "slugline": "test slugline",
+            "type": "text",
+            "ednote": "test coverage, I want 250 words",
+            "headline": "Headline From Template",
+            "flags": {"marked_for_not_publication": true}
+        }
+        """
