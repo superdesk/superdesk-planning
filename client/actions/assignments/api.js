@@ -17,12 +17,14 @@ const query = ({
     userId=null,
     state=null,
     type=null,
+    priority=null,
 }) => (
     (dispatch, getState, { api }) => {
 
         const filterByValues = {
             Created: '_created',
             Updated: '_updated',
+            Priority: 'priority',
         }
 
         let query = {}
@@ -51,6 +53,12 @@ const query = ({
         if (type) {
             must.push(
                 { term: { 'planning.g2_content_type': type } }
+            )
+        }
+
+        if (priority) {
+            must.push(
+                { term: { priority: priority } }
             )
         }
 
@@ -153,9 +161,13 @@ const save = (item, original=undefined) => (
             }
         })
         .then((originalItem) => {
-            // only assignment_to field.
-            item = pick(item, 'assigned_to')
-            item.assigned_to = pick(item.assigned_to, ['desk', 'user', 'coverage_provider'])
+            if (item.lock_action === 'reassign') {
+                item = pick(item, 'assigned_to')
+                item.assigned_to = pick(item.assigned_to, ['desk', 'user', 'coverage_provider'])
+            } else {
+                // Edit priority
+                item = pick(item, 'priority')
+            }
 
             return api('assignments').save(cloneDeep(originalItem), item)
             .then((item) => {

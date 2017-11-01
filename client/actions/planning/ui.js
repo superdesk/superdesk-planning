@@ -3,7 +3,7 @@ import planning from './index'
 import { locks } from '../index'
 import { checkPermission, getErrorMessage, isItemLockedInThisSession } from '../../utils'
 import * as selectors from '../../selectors'
-import { PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS } from '../../constants'
+import { PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, ASSIGNMENTS } from '../../constants'
 import * as actions from '../index'
 import { get, orderBy } from 'lodash'
 import { change } from 'redux-form'
@@ -752,6 +752,7 @@ const createCoverageFromNewsItem = (newsItem, getState) => {
         }
     }
 
+    coverage.assigned_to.priority = ASSIGNMENTS.DEFAULT_PRIORITY
     return coverage
 }
 

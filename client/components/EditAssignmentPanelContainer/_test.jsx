@@ -1,5 +1,6 @@
 import React from 'react'
 import { createTestStore } from '../../utils'
+import { ASSIGNMENTS } from '../../constants'
 import { mount } from 'enzyme'
 import { EditAssignmentPanelContainer } from './index'
 import { Provider } from 'react-redux'
@@ -38,6 +39,7 @@ describe('<EditAssignmentPanelContainer />', () => {
                             desk: 123,
                             state: 'assigned',
                         },
+                        priority: ASSIGNMENTS.DEFAULT_PRIORITY,
                     },
                 },
                 previewOpened: false,
@@ -60,6 +62,22 @@ describe('<EditAssignmentPanelContainer />', () => {
                     display_name: 'firstname2 lastname2',
                 },
             ],
+            vocabularies: {
+                assignment_priority: [
+                    {
+                        name: 'High',
+                        qcode: 1,
+                    },
+                    {
+                        name: 'Medium',
+                        qcode: 2,
+                    },
+                    {
+                        name: 'Low',
+                        qcode: 3,
+                    },
+                ],
+            },
         }
     )
 
@@ -130,25 +148,45 @@ describe('<EditAssignmentPanelContainer />', () => {
         done()
     })
 
-    it('Reassign Item action appears for items in_progress, assigned, submitted state', () => {
+    it('Reassign and Edit Priority action appears for items in_progress, assigned, submitted state', () => {
         const initialState = getState()
         initialState.assignment.assignments[1].assigned_to.state = 'in_progress'
         let store = createTestStore({ initialState })
         let wrapper = getWrapper(store)
         store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
         expect(itemActionExists(wrapper, 'Reassign')).toBe(true)
+        expect(itemActionExists(wrapper, 'Edit Priority')).toBe(true)
 
         initialState.assignment.assignments[1].assigned_to.state = 'assigned'
         store = createTestStore({ initialState })
         wrapper = getWrapper(store)
         store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
         expect(itemActionExists(wrapper, 'Reassign')).toBe(true)
+        expect(itemActionExists(wrapper, 'Edit Priority')).toBe(true)
 
         initialState.assignment.assignments[1].assigned_to.state = 'submitted'
         store = createTestStore({ initialState })
         wrapper = getWrapper(store)
         store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
         expect(itemActionExists(wrapper, 'Reassign')).toBe(true)
+        expect(itemActionExists(wrapper, 'Edit Priority')).toBe(true)
+    })
+
+    it('Completed or cancelled state has no reassign or edit priority actions', () => {
+        let initialState = getState()
+        initialState.assignment.assignments[1].assigned_to.state = 'completed'
+        let store = createTestStore({ initialState })
+        let wrapper = getWrapper(store)
+        store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
+        expect(itemActionExists(wrapper, 'Reassign')).toBe(false)
+        expect(itemActionExists(wrapper, 'Edit Priority')).toBe(false)
+
+        initialState.assignment.assignments[1].assigned_to.state = 'cancelled'
+        store = createTestStore({ initialState })
+        wrapper = getWrapper(store)
+        store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
+        expect(itemActionExists(wrapper, 'Reassign')).toBe(false)
+        expect(itemActionExists(wrapper, 'Edit Priority')).toBe(false)
     })
 
     it('Complete Item action appears for items in_progress state only', () => {

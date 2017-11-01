@@ -77,7 +77,11 @@ class AssignmentsService(superdesk.Service):
             original = {}
 
         if not updates.get('assigned_to'):
-            updates['assigned_to'] = {}
+            if updates.get('priority'):
+                # Priority was edited - nothing to set here
+                return
+            else:
+                updates['assigned_to'] = {}
 
         assigned_to = updates.get('assigned_to')
         if assigned_to.get('user') and not assigned_to.get('desk'):
@@ -126,8 +130,14 @@ class AssignmentsService(superdesk.Service):
             'assigned_desk': (doc.get('assigned_to') or {}).get('desk'),
             'user': doc.get('version_creator', doc.get('original_creator')),
             'original_assigned_desk': (original.get('assigned_to') or {}).get('desk'),
-            'original_assigned_user': (original.get('assigned_to') or {}).get('user')
+            'original_assigned_user': (original.get('assigned_to') or {}).get('user'),
+            'assignment_state': doc.get('assigned_to')['state']
         }
+
+        if event_name == 'assignments:updated' and not updates.get('assigned_to')\
+                and updates.get('priority'):
+            kwargs['priority'] = doc.get('priority')
+
         push_notification(event_name, **kwargs)
 
     def on_updated(self, updates, original):
@@ -156,7 +166,7 @@ class AssignmentsService(superdesk.Service):
         if not self.is_assignment_modified(updates, original):
             return
 
-        assigned_to = updates.get('assigned_to')
+        assigned_to = updates.get('assigned_to', {})
         user = get_user()
         if assigned_to.get('user'):
             # Done to avoid fetching users data for every assignment
@@ -335,6 +345,7 @@ assignments_schema = {
     'versioncreated': metadata_schema['versioncreated'],
 
     # Assignment details
+    'priority': metadata_schema['priority'],
     'coverage_item': {
         'type': 'string',
         'mapping': not_analyzed

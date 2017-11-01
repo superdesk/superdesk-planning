@@ -84,4 +84,5 @@ export const FORM_NAMES = {
     ConvertEventToRecurringForm: 'convertEventToRecurring',
     PostponeEventForm: 'postponeEvent',
     ReassignAssignmentForm: 'reassignAssignmentForm',
+    EditAssignmentPriorityForm: 'editAssignmentPriorityForm',
 }

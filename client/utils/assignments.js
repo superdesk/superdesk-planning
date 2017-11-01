@@ -34,6 +34,8 @@ const getAssignmentItemActions = (assignment, session, actions) => {
             canEditAssignment(assignment, session),
         [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label]: () =>
             canCompleteAssignment(assignment, session),
+        [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: () =>
+        canEditAssignment(assignment, session),
     }
 
     actions.forEach((action) => {

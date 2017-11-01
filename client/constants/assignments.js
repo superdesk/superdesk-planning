@@ -15,7 +15,6 @@ export const ASSIGNMENTS = {
         LOCK_ASSIGNMENT: 'LOCK_ASSIGNMENT',
         UNLOCK_ASSIGNMENT: 'UNLOCK_ASSIGNMENT',
     },
-
     WORKFLOW_STATE: {
         ASSIGNED: 'assigned',
         IN_PROGRESS: 'in_progress',
@@ -23,7 +22,6 @@ export const ASSIGNMENTS = {
         SUBMITTED: 'submitted',
         CANCELLED: 'cancelled',
     },
-
     ITEM_ACTIONS: {
         REASSIGN: {
             label: 'Reassign',
@@ -38,4 +36,5 @@ export const ASSIGNMENTS = {
             icon: 'con-chevron-up-thin',
         },
     },
+    DEFAULT_PRIORITY: 2,
 }

@@ -20,6 +20,7 @@ export const AssignmentItem = ({
         session,
         reassign,
         completeAssignment,
+        editAssignmentPriority,
         inAssignments,
     }) => {
     const isItemLocked = get(lockedItems, 'assignments') && assignment._id in lockedItems.assignments
@@ -28,6 +29,10 @@ export const AssignmentItem = ({
             {
                 ...ASSIGNMENTS.ITEM_ACTIONS.REASSIGN,
                 callback: () => { reassign(assignment) },
+            },
+            {
+                ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY,
+                callback: () => { editAssignmentPriority(assignment) },
             },
             {
                 ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
@@ -69,6 +74,12 @@ export const AssignmentItem = ({
                     </span>
                 </div>
                 <div className="sd-list-item__row">
+                    <span className={
+                            classNames('line-input',
+                            'priority-label',
+                            'priority-label--' + assignment.priority)
+                        }
+                        style={{ marginRight: '0.6rem' }}>{assignment.priority}</span>
                     <StateLabel item={assignment.assigned_to} />
                     {isAssignmentInUse && <Label text="Content" isHollow={true} iconType="darkBlue2" /> }
                     <span className="ListItem__headline">
@@ -113,6 +124,7 @@ AssignmentItem.propTypes = {
     currentAssignmentId: PropTypes.string,
     reassign: PropTypes.func,
     completeAssignment: PropTypes.func,
+    editAssignmentPriority: PropTypes.func,
     inAssignments: PropTypes.bool,
     session: PropTypes.object,
 }

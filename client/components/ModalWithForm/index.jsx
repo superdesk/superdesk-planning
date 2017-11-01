@@ -41,7 +41,7 @@ export class Component extends React.Component {
                    fullscreen={isBoolean(this.props.fullscreen) ? this.props.fullscreen : false}
                    white={isBoolean(this.props.white) ? this.props.white : false}>
                 <Modal.Header>
-                    <a className="close" onClick={this.props.onHide}>
+                    <a className="close" onClick={this.onHide}>
                         <i className="icon-close-small" />
                     </a>
                     <h3>{ this.props.title }</h3>

@@ -29,7 +29,7 @@ export class ColoredValueSelectFieldPopup extends React.Component {
         return (<div className="ColoredValueSelect__popup">
             {this.props.title && <label>{this.props.title}</label>}
             <ul>
-                <li>
+                {this.props.clearable && <li>
                     <button type='button'
                         onClick={this.props.onChange.bind(null, {
                             label: 'None',
@@ -37,11 +37,11 @@ export class ColoredValueSelectFieldPopup extends React.Component {
                         })} >
                         <span>None</span>
                     </button>
-                </li>
+                </li>}
                 {this.props.options.map((opt, index) => (
                     <li key={index}>
                         <button type='button' onClick={this.props.onChange.bind(null, opt)} >
-                            <span className={this.props.getClassNamesForOption(opt)}>{opt.label}</span>
+                            <span className={this.props.getClassNamesForOption(opt)}>{opt.value.qcode}</span>
                             &nbsp;&nbsp;{opt.label}
                         </button>
                     </li>
@@ -60,4 +60,5 @@ ColoredValueSelectFieldPopup.propTypes = {
         value: PropTypes.object,
     })).isRequired,
     getClassNamesForOption: PropTypes.func,
+    clearable: PropTypes.bool,
 }

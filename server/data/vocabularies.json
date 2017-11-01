@@ -89,5 +89,16 @@
             {"is_active": true, "name": "Finance", "qcode": "finance"},
             {"is_active": true, "name": "Entertainment", "qcode": "entertainment"}
         ]
+    },
+    {
+        "_id": "assignment_priority",
+        "display_name": "Assignment Priority",
+        "type": "manageable",
+        "unique_field": "qcode",
+        "items": [
+            {"is_active": true, "name": "High", "qcode": 1},
+            {"is_active": true, "name": "Medium", "qcode": 2},
+            {"is_active": true, "name": "Low", "qcode": 3}
+        ]
     }
 ]
