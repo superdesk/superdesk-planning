@@ -90,16 +90,19 @@ const canCancelAllCoverage = (planning, event=null, session, privileges, locks) 
     return !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isPlanningLockRestricted(planning, session, locks) &&
         eventState !== WORKFLOW_STATE.SPIKED &&
-        !isAllCoverageCancelled(planning)
+        canCancelAllCoverageForPlanning(planning)
 }
 
 const isCoverageCancelled = (coverage) =>
     (get(coverage, 'news_coverage_status.qcode') === 'ncostat:notint')
 
-const isAllCoverageCancelled = (planning) => (
-    get(planning, 'coverages', [])
-        .filter((c) => !isCoverageCancelled(c))
-        .length === 0
+const canCancelCoverage = (coverage) =>
+    (!isCoverageCancelled(coverage) && (!get(coverage, 'assigned_to.state') ||
+        get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED))
+
+const canCancelAllCoverageForPlanning = (planning) => (
+    get(planning, 'coverages.length') > 0 && get(planning, 'coverages')
+        .filter((c) => canCancelCoverage(c)).length > 0
 )
 
 const isPlanningLocked = (plan, locks) =>
@@ -242,6 +245,7 @@ const self = {
     convertCoveragesGenreToObject,
     convertGenreToObject,
     isCoverageCancelled,
+    canCancelCoverage,
     canEditCoverage,
 }
 

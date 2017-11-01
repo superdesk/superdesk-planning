@@ -59,8 +59,6 @@ export class CoverageContainer extends React.Component {
         const versionCreator = getCreator(coverage, 'version_creator', users)
         const updatedDate = get(coverage, '_updated')
 
-        const coverageCancelled = planningUtils.isCoverageCancelled(coverage)
-
         const duplicateActions = contentTypes
         .filter((contentType) => (
             contentType.qcode !== get(coverage, 'planning.g2_content_type')
@@ -83,7 +81,7 @@ export class CoverageContainer extends React.Component {
             },
         ]
 
-        if (!coverageCancelled) {
+        if (planningUtils.canCancelCoverage(coverage)) {
             itemActions.unshift({
                 label: 'Cancel coverage',
                 icon: 'icon-close-small',
