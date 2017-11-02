@@ -285,6 +285,47 @@ const canLinkItem = (item) => (
     )
 )
 
+const openSelectTemplateModal = (assignment) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(assignments.api.lock(assignment, 'start_working'))
+        .then((lockedAssignment) => {
+            let items = []
+            const templates = selectors.getTemplates(getState())
+
+            templates.forEach((t) => {
+                items.push({
+                    value: t,
+                    label: t.template_name,
+                })
+            })
+
+            const onSelect = (template) => (
+                dispatch(assignments.api.createFromTemplateAndShow(assignment._id,
+                    template.template_name))
+            )
+
+            const onCancel = () => (
+                dispatch(assignments.api.unlock(lockedAssignment))
+            )
+
+            return dispatch(showModal({
+                modalType: MODALS.SELECT_ITEM_MODAL,
+                modalProps: {
+                    title: 'Select template',
+                    items: items,
+                    onSelect: onSelect,
+                    onCancel: onCancel,
+                },
+            }))
+        }, (error)  => {
+            notify.error(
+                getErrorMessage(error, 'Failed to lock assignment.')
+            )
+            return Promise.reject(error)
+        })
+    )
+)
+
 const _openActionModal = (assignment,
     action,
     lockAction=null) => (
@@ -329,6 +370,7 @@ const self = {
     onAuthoringMenuClick,
     canLinkItem,
     _openActionModal,
+    openSelectTemplateModal,
 }
 
 export default self

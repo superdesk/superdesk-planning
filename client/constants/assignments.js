@@ -35,6 +35,10 @@ export const ASSIGNMENTS = {
             label: 'Edit Priority',
             icon: 'con-chevron-up-thin',
         },
+        START_WORKING: {
+            label: 'Start Working',
+            icon: 'icon-external',
+        },
     },
     DEFAULT_PRIORITY: 2,
 }

@@ -70,6 +70,7 @@ class AssignmentListComponent extends React.Component {
                         completeAssignment={this.props.completeAssignment}
                         editAssignmentPriority={this.props.editAssignmentPriority}
                         inAssignments={this.props.inAssignments}
+                        startWorking={this.props.startWorking}
                     />
                     {this.props.previewOpened && <EditAssignmentPanelContainer
                         onFulFilAssignment={this.props.onFulFilAssignment}/> }
@@ -103,6 +104,7 @@ AssignmentListComponent.propTypes = {
     reassign: PropTypes.func,
     completeAssignment: PropTypes.func,
     editAssignmentPriority: PropTypes.func,
+    startWorking: PropTypes.func,
     inAssignments: PropTypes.bool,
     privileges: PropTypes.object,
 }
@@ -140,6 +142,7 @@ const mapDispatchToProps = (dispatch) => ({
     reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
     editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),
+    startWorking: (assignment) => dispatch(actions.assignments.ui.openSelectTemplateModal(assignment)),
 })
 
 export const AssignmentListContainer = connect(mapStateToProps, mapDispatchToProps)(AssignmentListComponent)

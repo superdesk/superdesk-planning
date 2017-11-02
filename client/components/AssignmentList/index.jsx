@@ -67,6 +67,7 @@ export class AssignmentList extends React.Component {
                     completeAssignment={this.props.completeAssignment}
                     editAssignmentPriority={this.props.editAssignmentPriority}
                     inAssignments={this.props.inAssignments}
+                    startWorking={this.props.startWorking}
                 />
             </div>
         )
@@ -125,4 +126,5 @@ AssignmentList.propTypes = {
     editAssignmentPriority: PropTypes.func,
     inAssignments: PropTypes.bool,
     privileges: PropTypes.object,
+    startWorking: PropTypes.func,
 }

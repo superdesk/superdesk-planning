@@ -23,6 +23,7 @@ export const AssignmentItem = ({
         completeAssignment,
         editAssignmentPriority,
         inAssignments,
+        startWorking,
     }) => {
     const isItemLocked = get(lockedItems, 'assignments') && assignment._id in lockedItems.assignments
 
@@ -38,6 +39,10 @@ export const AssignmentItem = ({
             {
                 ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
                 callback: () => { completeAssignment(assignment) },
+            },
+            {
+                ...ASSIGNMENTS.ITEM_ACTIONS.START_WORKING,
+                callback: () => { startWorking(assignment) },
             },
         ]
 
@@ -130,4 +135,5 @@ AssignmentItem.propTypes = {
     inAssignments: PropTypes.bool,
     session: PropTypes.object,
     privileges: PropTypes.object,
+    startWorking: PropTypes.func,
 }
