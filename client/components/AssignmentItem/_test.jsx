@@ -47,6 +47,7 @@ describe('assignments', () => {
                         assigned_date: '2017-07-28T11:16:36+0000',
                         desk: 'desk1',
                     },
+                    priority: 2,
                 }
             })
 
@@ -78,6 +79,12 @@ describe('assignments', () => {
             it('shows red border if assignment is locked', () => {
                 const wrapper = getShallowWrapper()
                 expect(wrapper.find('.ListItem--locked').length).toBe(1)
+            })
+
+            it('displays tooltip for priority', () => {
+                const wrapper = getMountedWrapper()
+                const priorityNode = wrapper.find('.priority-label').first()
+                expect(priorityNode.prop('data-sd-tooltip')).toBe('Medium')
             })
         })
     })

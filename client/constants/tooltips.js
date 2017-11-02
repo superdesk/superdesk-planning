@@ -11,4 +11,9 @@ export const TOOLTIPS = {
     publishedState: 'Published',
     withheldState: 'The event has been killed',
     scheduledState: 'Scheduled',
+    assignmentPriority: {
+        1: 'High',
+        2: 'Medium',
+        3: 'Low',
+    },
 }
