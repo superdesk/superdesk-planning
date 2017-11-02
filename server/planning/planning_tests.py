@@ -22,7 +22,7 @@ class DuplicateCoverageTestCase(TestCase):
                     },
                     'news_coverage_status': {'qcode': 'ncostat:int'},
                     'assigned_to': {
-                        'user': 'user1',
+                        'user': '59f7f0881d41c88cab3f2a99',
                         'desk': 'desk1',
                         'state': 'in_progress'
                     }
@@ -38,7 +38,7 @@ class DuplicateCoverageTestCase(TestCase):
                         'scheduled': '2029-10-13T15:00.000Z'
                     },
                     'assigned_to': {
-                        'user': 'user2',
+                        'user': '562435231d41c835d7b5fb55',
                         'desk': 'desk2',
                         'state': 'in_progress'
                     },
@@ -51,7 +51,7 @@ class DuplicateCoverageTestCase(TestCase):
 
             self.assertEqual(new_coverage['planning']['slugline'], 'new slugline')
             self.assertEqual(new_coverage['planning']['scheduled'], '2029-10-13T15:00.000Z')
-            self.assertEqual(new_coverage['assigned_to']['user'], 'user2')
+            self.assertEqual(new_coverage['assigned_to']['user'], '562435231d41c835d7b5fb55')
             self.assertEqual(new_coverage['assigned_to']['desk'], 'desk2')
             self.assertEqual(new_coverage['assigned_to']['state'], 'in_progress')
             self.assertEqual(new_coverage['news_coverage_status'], {'qcode': 'ncostat:onreq'})

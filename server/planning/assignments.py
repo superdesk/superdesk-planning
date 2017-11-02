@@ -24,7 +24,6 @@ from apps.duplication.archive_move import ITEM_MOVE
 from apps.publish.enqueue import ITEM_PUBLISH
 from eve.utils import config
 from superdesk.utc import utcnow
-from superdesk.activity import add_activity, ACTIVITY_UPDATE
 from .planning import coverage_schema
 from superdesk import get_resource_service
 from apps.common.components.utils import get_component
@@ -32,6 +31,7 @@ from .item_lock import LockService, LOCK_USER
 from superdesk.users.services import current_user_has_privilege
 from .common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, get_local_end_of_day
 from flask import request
+from .planning_notifications import PlanningNotifications
 
 
 logger = logging.getLogger(__name__)
@@ -169,21 +169,118 @@ class AssignmentsService(superdesk.Service):
 
         assigned_to = updates.get('assigned_to', {})
         user = get_user()
+
+        # Determine the name of the desk that the assigment has been allocated to
+        assigned_to_desk = get_resource_service('desks').find_one(req=None, _id=assigned_to.get('desk'))
+        desk_name = assigned_to_desk.get('name') if assigned_to_desk else 'Unknown'
+
+        # Determine the display name of the assignee
+        assigned_to_user = get_resource_service('users').find_one(req=None, _id=assigned_to.get('user'))
+        assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unkonwn'
+
+        coverage_type = updates.get('planning', original.get('planning', {})).get('g2_content_type')
+        slugline = updates.get('planning', original.get('planning', {})).get('slugline')
+
+        # The assignment is to a user
         if assigned_to.get('user'):
-            # Done to avoid fetching users data for every assignment
-            # Because user assigned can also be a provider whose qcode
-            # might be an invalid GUID, check if the user assigned is a valid user (GUID)
-            # However, in a rare case where qcode of a provider is a valid GUID,
-            # This will create activity records - inappropriate
-            if ObjectId.is_valid(assigned_to.get('user')):
-                add_activity(ACTIVITY_UPDATE,
-                             '{{assignor}} assigned a coverage to {{assignee}}',
-                             self.datasource,
-                             notify=[assigned_to.get('user')],
-                             assignor=user.get('username')
-                             if str(user.get(config.ID_FIELD, None)) != assigned_to.get('user') else 'You',
-                             assignee='you'
-                             if str(user.get(config.ID_FIELD, None)) != assigned_to.get('user') else 'yourself')
+            # If it is a reassignment
+            if original.get('assigned_to'):
+                # it is being reassigned by the original assignee, notify the new assignee
+                if original.get('assigned_to', {}).get('user', '') == str(user.get(config.ID_FIELD, None)):
+                    message = '{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to ' \
+                              'you on desk ({{desk}})'
+                    PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
+                                                              message=message,
+                                                              coverage_type=coverage_type,
+                                                              slugline=slugline,
+                                                              desk=desk_name)
+                else:
+                    # if it was assigned to a desk before, test if there has been a change of desk
+                    if original.get('assigned_to') and original.get('assigned_to').get('desk') != updates.get(
+                            'assigned_to').get('desk'):
+                        # Determine the name of the desk that the assigment was allocated to
+                        assigned_from_desk = get_resource_service('desks').find_one(req=None,
+                                                                                    _id=original.get('assigned_to').get(
+                                                                                        'desk'))
+                        desk_from_name = assigned_from_desk.get('name') if assigned_from_desk else 'Unknown'
+                        assigned_from = original.get('assigned_to')
+                        assigned_from_user = get_resource_service('users').find_one(req=None,
+                                                                                    _id=assigned_from.get('user'))
+                        old_assignee = assigned_from_user.get('display_name') if assigned_from_user else None
+                        message = '{{coverage_type}} coverage \"{{slugline}}\" has been reassigned ' \
+                                  'to {{assignee}} ({{desk}}) from {{old_assignee}} ({{old_desk}})'
+                        PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
+                                                                  target_desk2=original.get('assigned_to').get('desk'),
+                                                                  message=message,
+                                                                  coverage_type=coverage_type,
+                                                                  slugline=slugline,
+                                                                  assignee=assignee,
+                                                                  desk=desk_name,
+                                                                  old_assignee=old_assignee,
+                                                                  old_desk=desk_from_name)
+                    else:
+                        # it is being reassigned by someone else so notify both the new assignee and the old
+                        message = '{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} ' \
+                                  'on desk ({{desk}})'
+                        PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
+                                                                  target_desk=original.get('assigned_to').get(
+                                                                      'desk') if original.get('assigned_to').get(
+                                                                      'user') is None else None,
+                                                                  message=message,
+                                                                  coverage_type=coverage_type,
+                                                                  slugline=slugline,
+                                                                  assignee=assignee,
+                                                                  desk=desk_name)
+                        # notify the assignee
+                        message = '{{coverage_type}} coverage \"{{slugline}}\" has been reassigned' \
+                                  '{{old_assignee}} to you on desk ({{desk}}) '
+                        assigned_from = original.get('assigned_to')
+                        assigned_from_user = get_resource_service('users').find_one(req=None,
+                                                                                    _id=assigned_from.get('user'))
+                        old_assignee = assigned_from_user.get('display_name') if assigned_from_user else None
+                        PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
+                                                                  message=message,
+                                                                  coverage_type=coverage_type,
+                                                                  slugline=slugline,
+                                                                  old_assignee=' from ' + old_assignee
+                                                                  if old_assignee else '',
+                                                                  desk=desk_name)
+            else:  # A new assignment
+                # notify the user the assignment has been made to
+                PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
+                                                          message='{{assignor}} assigned a coverage to {{assignee}}',
+                                                          assignor=user.get('display_name')
+                                                          if str(user.get(config.ID_FIELD, None)) != assigned_to.get(
+                                                              'user') else 'You',
+                                                          assignee='you'
+                                                          if str(user.get(config.ID_FIELD, None)) != assigned_to.get(
+                                                              'user') else 'yourself')
+        else:  # Assigned/Reassigned to a desk, notify all desk members
+            # if it was assigned to a desk before, test if there has been a change of desk
+            if original.get('assigned_to') and original.get('assigned_to').get('desk') != updates.get(
+                    'assigned_to').get('desk'):
+                # Determine the name of the desk that the assigment was allocated to
+                assigned_from_desk = get_resource_service('desks').find_one(req=None,
+                                                                            _id=original.get('assigned_to').get('desk'))
+                desk_from_name = assigned_from_desk.get('name') if assigned_from_desk else 'Unknown'
+                message = '{{coverage_type}} coverage \"{{slugline}}\" has been submitted to ' \
+                          'desk {{desk}} from {{from_desk}}'
+
+                PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'),
+                                                          target_desk2=original.get('assigned_to').get('desk'),
+                                                          message=message,
+                                                          coverage_type=coverage_type,
+                                                          slugline=slugline,
+                                                          desk=desk_name,
+                                                          from_desk=desk_from_name)
+            else:
+                assign_type = 'reassigned' if original.get('assigned_to') else 'assigned'
+                message = '{{coverage_type}} coverage \"{{slugline}}\" {{assign_type}} to desk {{desk}}'
+                PlanningNotifications().notify_assignment(target_desk=assigned_to.get('desk'), message=message,
+                                                          coverage_type=coverage_type,
+                                                          slugline=slugline,
+                                                          assign_type=assign_type,
+                                                          desk=desk_name)
 
     def send_assignment_cancellation_notification(self, assignment):
         """Set the assignment information and send notification
@@ -197,27 +294,17 @@ class AssignmentsService(superdesk.Service):
         assigned_to = assignment.get('assigned_to')
         slugline = assignment.get('planning').get('slugline')
 
-        if assigned_to.get('desk'):
-            desk = get_resource_service('desks').find_one(req=None, _id=assigned_to.get('desk'))
-            notify_users = [str(member['user']) for member in desk.get('members', [])]
-
-        if assigned_to.get('user'):
-            # Done to avoid fetching users data for every assignment
-            # Because user assigned can also be a provider whose qcode
-            # might be an invalid GUID, check if the user assigned is a valid user (GUID)
-            # However, in a rare case where qcode of a provider is a valid GUID,
-            # This will create activity records - inappropriate
-            if ObjectId.is_valid(assigned_to.get('user')):
-                notify_users = [assigned_to.get('user')]
-
-        add_activity(ACTIVITY_UPDATE,
-                     'Assignment {{slugline}} for desk {{desk}} has been cancelled by {{user}}',
-                     self.datasource,
-                     notify=notify_users,
-                     user=user.get('username')
-                     if str(user.get(config.ID_FIELD, None)) != assigned_to.get('user') else 'You',
-                     slugline=slugline,
-                     desk=desk.get('name'))
+        desk = get_resource_service('desks').find_one(req=None, _id=assigned_to.get('desk'))
+        PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
+                                                  target_desk=assigned_to.get('desk') if not assigned_to.get(
+                                                      'user') else None,
+                                                  message='Assignment {{slugline}} for desk {{desk}} has been'
+                                                          ' cancelled by {{user}}',
+                                                  user=user.get('username')
+                                                  if str(user.get(config.ID_FIELD, None)) != assigned_to.get(
+                                                      'user') else 'You',
+                                                  slugline=slugline,
+                                                  desk=desk.get('name'))
 
     def cancel_assignment(self, original_assignment, coverage):
         coverage_to_copy = deepcopy(coverage)
