@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Modal } from './index'
 import { Button } from 'react-bootstrap'
 
-export function SelectItemModal({ handleHide, modalProps }) {
+export const SelectItemModal = ({ handleHide, modalProps }) => {
     const handleClose = () => {
         handleHide()
     }

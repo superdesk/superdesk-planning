@@ -176,6 +176,27 @@ describe('<EditAssignmentPanelContainer />', () => {
         expect(itemActionExists(wrapper, 'Edit Priority')).toBe(true)
     })
 
+    it('Start working action appears for text items in assigned state', () => {
+        const initialState = getState()
+        initialState.assignment.assignments[1].assigned_to.state = 'assigned'
+        initialState.assignment.assignments[1].planning.g2_content_type = 'text'
+        let store = createTestStore({ initialState })
+        let wrapper = getWrapper(store)
+        store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
+        expect(itemActionExists(wrapper, 'Start Working')).toBe(true)
+    })
+
+    it('Start working action does not appear if there is no archive privilege for the user', () => {
+        const initialState = getState()
+        initialState.assignment.assignments[1].assigned_to.state = 'assigned'
+        initialState.assignment.assignments[1].planning.g2_content_type = 'text'
+        initialState.privileges.archive = 0
+        let store = createTestStore({ initialState })
+        let wrapper = getWrapper(store)
+        store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
+        expect(itemActionExists(wrapper, 'Start Working')).toBe(false)
+    })
+
     it('Completed or cancelled state has no reassign or edit priority actions', () => {
         let initialState = getState()
         initialState.assignment.assignments[1].assigned_to.state = 'completed'

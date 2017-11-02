@@ -159,39 +159,4 @@ describe('Utils', function() {
             expect(utils.gettext('foo')).toBe('foo')
         })
     })
-
-    describe('can edit assignment', () => {
-
-        let session
-        let privileges
-        beforeEach(() => {
-            session = {
-                identity: { _id: 'ident1' },
-                sessionId: 'session1',
-            }
-
-            privileges = { planning_planning_management: 1 }
-        })
-
-        it('assignment state `assigned`', () => {
-            expect(
-                utils.assignmentUtils.canEditAssignment({ assigned_to: { state: 'assigned' } },
-                    session, privileges)
-            ).toBe(true)
-        })
-
-        it('assignment state `submitted`', () => {
-            expect(
-                utils.assignmentUtils.canEditAssignment({ assigned_to: { state: 'submitted' } },
-                    session, privileges)
-            ).toBe(true)
-        })
-
-        it('assignment state `cancelled`', () => {
-            expect(
-                utils.assignmentUtils.canEditAssignment({ assigned_to: { state: 'canceled' } },
-                    session, privileges)
-            ).toBe(false)
-        })
-    })
 })

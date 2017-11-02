@@ -9,6 +9,13 @@ const canEditAssignment = (assignment, session, privileges) => (
     isItemLockedInThisSession(assignment, session))
 )
 
+const canStartWorking = (assignment, privileges) => (
+    privileges[PRIVILEGES.ARCHIVE] &&
+    get(assignment, 'planning.g2_content_type') === 'text' &&
+    get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
+    !get(assignment, 'lock_user')
+)
+
 const isAssignmentInEditableState = (assignment) => (
     (includes([ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED, ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
         ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS],
@@ -38,6 +45,8 @@ const getAssignmentItemActions = (assignment, session, privileges, actions) => {
             canCompleteAssignment(assignment, session, privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: () =>
             canEditAssignment(assignment, session, privileges),
+        [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: () =>
+            canStartWorking(assignment, privileges),
     }
 
     actions.forEach((action) => {
@@ -63,6 +72,7 @@ const self = {
     isAssignmentInEditableState,
     getAssignmentItemActions,
     isAssignmentInUse,
+    canStartWorking,
 }
 
 export default self

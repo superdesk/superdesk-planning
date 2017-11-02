@@ -114,6 +114,11 @@ class AssignmentsService(superdesk.Service):
             # In case user was removed
             if not assigned_to.get('user'):
                 assigned_to['user'] = None
+            else:
+                # Moving from submitted to assigned after user assigned after desk submission
+                if original.get('assigned_to')['state'] == ASSIGNMENT_WORKFLOW_STATE.SUBMITTED:
+                    updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+
             updates['version_creator'] = str(user.get(config.ID_FIELD)) if user else None
 
     def on_update(self, updates, original):
@@ -121,6 +126,14 @@ class AssignmentsService(superdesk.Service):
         remove_lock_information(updates)
 
     def notify(self, event_name, updates, original):
+
+        # We set lock information to None if any update (patch) is triggered by user action.
+        # In this case, we do not send lock_user from original item.
+        # But, for system_update, we need to send lock_user of original item
+        lock_user = original.get('lock_user')
+        if 'lock_user' in updates:
+            lock_user = None
+
         doc = deepcopy(original)
         doc.update(updates)
         kwargs = {
@@ -132,7 +145,8 @@ class AssignmentsService(superdesk.Service):
             'user': doc.get('version_creator', doc.get('original_creator')),
             'original_assigned_desk': (original.get('assigned_to') or {}).get('desk'),
             'original_assigned_user': (original.get('assigned_to') or {}).get('user'),
-            'assignment_state': doc.get('assigned_to')['state']
+            'assignment_state': doc.get('assigned_to')['state'],
+            'lock_user': lock_user,
         }
 
         if event_name == 'assignments:updated' and not updates.get('assigned_to')\
