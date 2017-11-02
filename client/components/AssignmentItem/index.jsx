@@ -5,7 +5,7 @@ import classNames from 'classnames'
 import moment from 'moment'
 import { get } from 'lodash'
 import { getCoverageIcon, assignmentUtils } from '../../utils/index'
-import { ASSIGNMENTS } from '../../constants'
+import { ASSIGNMENTS, TOOLTIPS } from '../../constants'
 
 export const AssignmentItem = ({
         assignment,
@@ -81,7 +81,9 @@ export const AssignmentItem = ({
                             'priority-label',
                             'priority-label--' + assignment.priority)
                         }
-                        style={{ marginRight: '0.6rem' }}>{assignment.priority}</span>
+                        style={{ marginRight: '0.6rem' }}
+                        data-sd-tooltip={TOOLTIPS.assignmentPriority[assignment.priority]} data-flow='down'
+                        >{assignment.priority}</span>
                     <StateLabel item={assignment.assigned_to} />
                     {isAssignmentInUse && <Label text="Content" isHollow={true} iconType="darkBlue2" /> }
                     <span className="ListItem__headline">
