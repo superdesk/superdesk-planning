@@ -60,6 +60,7 @@ class AssignmentListComponent extends React.Component {
                         loadMoreAssignments={this.props.loadMoreAssignments}
                         users={this.props.users}
                         session={this.props.session}
+                        privileges={this.props.privileges}
                         selectedAssignments={this.props.selectedAssignments}
                         onClick={this.props.preview}
                         onSelectChange={this.props.onAssignmentSelectChange}
@@ -103,6 +104,7 @@ AssignmentListComponent.propTypes = {
     completeAssignment: PropTypes.func,
     editAssignmentPriority: PropTypes.func,
     inAssignments: PropTypes.bool,
+    privileges: PropTypes.object,
 }
 
 const mapStateToProps = (state) => ({
@@ -122,6 +124,7 @@ const mapStateToProps = (state) => ({
     lockedItems: selectors.getLockedItems(state),
     currentAssignmentId: selectors.getCurrentAssignmentId(state),
     inAssignments: selectors.getCurrentWorkspace(state) === WORKSPACE.ASSIGNMENTS,
+    privileges: selectors.getPrivileges(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

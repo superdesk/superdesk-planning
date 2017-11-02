@@ -47,6 +47,10 @@ describe('<EditAssignmentPanelContainer />', () => {
                 readOnly: true,
                 assignmentsInList: [1],
             },
+            privileges: {
+                archive: 1,
+                planning_planning_management: 1,
+            },
             workspace: { currentWorkspace: workspace },
             session: {
                 identity: { _id: 'ident1' },
@@ -196,5 +200,14 @@ describe('<EditAssignmentPanelContainer />', () => {
         const wrapper = getWrapper(store)
         store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
         expect(itemActionExists(wrapper, 'Complete Assignment')).toBe(true)
+    })
+
+    it('Complete Item is not available for user without archive privilege', () => {
+        const initialState = getState()
+        initialState.privileges.archive = 0
+        const store = createTestStore({ initialState })
+        const wrapper = getWrapper(store)
+        store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
+        expect(itemActionExists(wrapper, 'Complete Assignment')).toBe(false)
     })
 })

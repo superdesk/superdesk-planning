@@ -18,6 +18,7 @@ export const AssignmentItem = ({
         lockedItems,
         currentAssignmentId,
         session,
+        privileges,
         reassign,
         completeAssignment,
         editAssignmentPriority,
@@ -43,6 +44,7 @@ export const AssignmentItem = ({
         const itemActions = inAssignments ? assignmentUtils.getAssignmentItemActions(
             assignment,
             session,
+            privileges,
             actions
         ) : []
 
@@ -127,4 +129,5 @@ AssignmentItem.propTypes = {
     editAssignmentPriority: PropTypes.func,
     inAssignments: PropTypes.bool,
     session: PropTypes.object,
+    privileges: PropTypes.object,
 }
