@@ -241,6 +241,7 @@ def init_app(app):
     app.on_fetched_item_archive += assignments_publish_service.on_fetched_item_archive
     app.on_fetched_resource_published += assignments_publish_service.on_fetched_resource_archive
     app.on_fetched_item_published += assignments_publish_service.on_fetched_resource_archive
+    app.on_updated_archive_spike += assignments_unlink_service.on_spike_item
 
     AssignmentsCompleteResource(
         AssignmentsCompleteResource.endpoint_name,

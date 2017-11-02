@@ -91,6 +91,15 @@ class AssignmentsUnlinkService(Service):
                 'Content doesnt exist for the assignment. Cannot unlink assignment and content.'
             )
 
+    def on_spike_item(self, updates, original):
+        """Called by the on_updated event of archive_spike endpoint"""
+        assignment_id = original.get('assignment_id', updates.get('assignment_id'))
+        if assignment_id:
+            self.create([{
+                'assignment_id': assignment_id,
+                'item_id': original.get(config.ID_FIELD)
+            }])
+
 
 class AssignmentsUnlinkResource(Resource):
     endpoint_name = resource_title = 'assignments_unlink'
