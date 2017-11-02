@@ -228,6 +228,17 @@ class AssignmentsService(superdesk.Service):
             updated_assignment['planning'] = coverage_to_copy.get('planning')
             updated_assignment['planning']['news_coverage_status'] = coverage_to_copy.get('news_coverage_status')
 
+            if original_assignment.get('assigned_to')['state'] in\
+                    [ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED]:
+                # unlink the archive item from assignment
+                archive_item = get_resource_service('archive').\
+                    find_one(req=None, assignment_id=original_assignment.get(config.ID_FIELD))
+                if archive_item and archive_item.get('assignment_id'):
+                    get_resource_service('assignments_unlink').post([{
+                        'item_id': archive_item.get(config.ID_FIELD),
+                        'assignment_id': original_assignment.get(config.ID_FIELD)
+                    }])
+
             self.system_update(ObjectId(original_assignment.get('_id')), updated_assignment, original_assignment)
             self.send_assignment_cancellation_notification(original_assignment)
 

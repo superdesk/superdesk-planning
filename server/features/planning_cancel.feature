@@ -381,3 +381,116 @@ Feature: Cancel all coverage
           ]
       }
       """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Cancelling coverage linked to an archive item will unlink the assignment
+        Given the "validators"
+        """
+        [
+        {
+            "schema": {},
+            "type": "text",
+            "act": "publish",
+            "_id": "publish_text"
+        },
+        {
+            "_id": "publish_composite",
+            "act": "publish",
+            "type": "composite",
+            "schema": {}
+        }
+        ]
+        """
+        And "desks"
+        """
+        [{"name": "Sports", "content_expiry": 60}]
+        """
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        Then we get OK response
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "slugline": "test slugline"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "news_coverage_status": {
+                    "qcode": "ncostat:int",
+                    "name": "coverage intended",
+                    "label": "Planned"
+                },
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                }
+            }]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we reset notifications
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#firstassignment#",
+            "item_id": "#archive._id#"
+        }]
+        """
+        Then we get OK response
+        Then we get notifications
+        """
+        [{"event": "content:update"}]
+        """
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {
+            "assignment_id": "#firstassignment#"
+        }
+        """
+        When we get "assignments/#firstassignment#"
+        Then we get existing resource
+        """
+        {
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "in_progress"
+            }
+        }
+        """
+        When we perform cancel on planning "#planning._id#"
+        Then we get OK response
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {
+            "assignment_id": null
+        }
+        """
