@@ -64,4 +64,31 @@ describe('<AddGeoLookupInput />', () => {
         // expect(externalSearchSpy.called).toBe(true)
         expect(externalSearchSpy.callCount).toBe(1)
     })
+
+    it('external search button can be controlled by disableSearch prop', () => {
+        const inputText = { target: { value: 'Syd' } }
+        const initialValue = { name: 'Timbaktu' }
+
+        let wrapper
+        const onChange = (val) => {
+            expect(val.name).toBe('Syd')
+            wrapper.setProps({ initialValue: val })
+        }
+        const handleSearch = sinon.spy()
+        wrapper = mount(<GeoLookupInputComponent initialValue={initialValue} onChange={onChange} searchLocalLocations={handleSearch} />)
+        wrapper.instance().handleInputChange(inputText)
+
+        let suggestsPopup = wrapper.find('.addgeolookup__suggests-wrapper').at(0)
+        let searchExternalButton = suggestsPopup.find('button')
+        expect(searchExternalButton.length).toBe(1)
+        expect(searchExternalButton.text()).toBe('Search External')
+
+        wrapper = mount(<GeoLookupInputComponent initialValue={initialValue} onChange={onChange} searchLocalLocations={handleSearch}
+            disableSearch={true} />)
+        wrapper.instance().handleInputChange(inputText)
+
+        suggestsPopup = wrapper.find('.addgeolookup__suggests-wrapper').at(0)
+        searchExternalButton = suggestsPopup.find('button')
+        expect(searchExternalButton.length).toBe(0)
+    })
 })

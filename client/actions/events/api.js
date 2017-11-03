@@ -174,9 +174,8 @@ const query = (
             {
                 condition: () => (advancedSearch.location),
                 do: () => {
-                    must.push(
-                        { term: { 'location.name': advancedSearch.location } }
-                    )
+                    const location = get(advancedSearch.location, 'name', advancedSearch.location)
+                    must.push({ match_phrase: { 'location.name': location } })
                 },
             },
             {

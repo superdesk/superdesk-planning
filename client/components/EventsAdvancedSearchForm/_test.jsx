@@ -69,9 +69,27 @@ describe('events', () => {
                             bool: {
                                 must: [
                                     { query_string: { query: 'a name' } },
-                                    { term: { 'location.name': 'paris' } },
+                                    { match_phrase: { 'location.name': 'paris' } },
                                     { term: { 'anpa_category.qcode': 'cat' } },
                                 ],
+                                must_not: [
+                                    { term: { state: 'spiked' } },
+                                ],
+                            },
+                        },
+                        filter: {},
+                    },
+                }))
+                .then(done)
+            ))
+
+            it('search location gets name from when location object is passed', (done) => (
+                Promise.resolve(checkQueryForParameters({
+                    params: { location: { name: 'paris' } },
+                    expectedQuery: {
+                        query: {
+                            bool: {
+                                must: [{ match_phrase: { 'location.name': 'paris' } } ],
                                 must_not: [
                                     { term: { state: 'spiked' } },
                                 ],

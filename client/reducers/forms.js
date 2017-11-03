@@ -1,8 +1,30 @@
 import { reducer as formReducer, actionTypes } from 'redux-form'
-import { cloneDeep, get } from 'lodash'
+import { cloneDeep, get, isNil } from 'lodash'
 import moment from 'moment'
 import { RESET_STORE, INIT_STORE, LOCATIONS } from '../constants'
 import { eventUtils } from '../utils/index'
+
+const getStateWithLocationSearchResults = (state, action) => {
+    let newState = cloneDeep(state)
+    let results = null
+    if (get(action.payload, 'length') > 0) {
+        results = action.payload.map((l) => ({
+            ...l,
+            existingLocation: true,
+        }))
+    }
+
+    if (isNil(newState.values)) {
+        newState.values = { }
+    }
+
+    newState.values = {
+        ...newState.values,
+        _locationSearchResults: results,
+    }
+
+    return newState
+}
 
 const forms = formReducer.plugin({
     // 'addEvent' is the name of the form given to reduxForm()
@@ -12,17 +34,7 @@ const forms = formReducer.plugin({
         } else if (action.type === INIT_STORE) {
             return {}
         } else if (action.type === LOCATIONS.ACTIONS.SET_LOCATION_SEARCH_RESULTS) {
-            let newState = cloneDeep(state)
-            let results = null
-            if (get(action.payload, 'length') > 0) {
-                results = action.payload.map((l) => ({
-                    ...l,
-                    existingLocation: true,
-                }))
-            }
-
-            newState.values._locationSearchResults = results
-            return newState
+            return getStateWithLocationSearchResults(state, action)
         } else if (action.type !== actionTypes.CHANGE ||
             get(action, 'meta.form', '') !== 'addEvent') {
             return state
@@ -88,6 +100,14 @@ const forms = formReducer.plugin({
         } else {
             return { ...state }
         }
+    },
+
+    eventAdvancedSearch: (state={}, action) => {
+        if (action.type === LOCATIONS.ACTIONS.SET_LOCATION_SEARCH_RESULTS) {
+            return getStateWithLocationSearchResults(state, action)
+        }
+
+        return state
     },
 })
 

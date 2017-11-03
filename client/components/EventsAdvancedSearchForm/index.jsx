@@ -7,7 +7,7 @@ import { SPIKED_STATE } from '../../constants'
 import { get } from 'lodash'
 import './style.scss'
 
-function EventsAdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting, error, resetSearch }) {
+function EventsAdvancedSearchFormComponent({ handleSubmit, pristine, reset, submitting, error, resetSearch, existingLocationSearchResults }) {
     return (
         <form onSubmit={handleSubmit} className="EventsAdvancedSearchForm">
             <fieldset>
@@ -20,9 +20,11 @@ function EventsAdvancedSearchFormComponent({ handleSubmit, pristine, reset, subm
                        type="text"
                        label="Ingest Source"/>
                 <Field name="location"
-                       component={fields.InputField}
+                       component={fields.GeoLookupInput}
                        type="text"
-                       label="Location"/>
+                       label="Location"
+                       localSearchResults={existingLocationSearchResults}
+                       disableSearch={true} />
                 <Field name="calendars"
                        component={fields.EventCalendarField}
                        label="Calendars"/>
@@ -64,15 +66,16 @@ EventsAdvancedSearchFormComponent.propTypes = propTypes
 
 // Decorate the form component
 const FormComponent = reduxForm({
-    form: 'event-advanced-search', // a unique name for this form
+    form: 'eventAdvancedSearch', // a unique name for this form
     enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
     destroyOnUnmount: false,
 })(EventsAdvancedSearchFormComponent)
 
-const selector = formValueSelector('event-advanced-search') // same as form name
+const selector = formValueSelector('eventAdvancedSearch') // same as form name
 const mapStateToProps = (state) => ({
     startingDate: selector(state, 'dates.start'),
     endingDate: selector(state, 'dates.end'),
+    existingLocationSearchResults: selector(state, '_locationSearchResults'),
 })
 
 const mapDispatchToProps = (dispatch) => ({
