@@ -272,7 +272,7 @@ class AssignmentsService(superdesk.Service):
         else:  # Assigned/Reassigned to a desk, notify all desk members
             # if it was assigned to a desk before, test if there has been a change of desk
             if original.get('assigned_to') and original.get('assigned_to').get('desk') != updates.get(
-                    'assigned_to').get('desk'):
+                    'assigned_to', {}).get('desk'):
                 # Determine the name of the desk that the assigment was allocated to
                 assigned_from_desk = get_resource_service('desks').find_one(req=None,
                                                                             _id=original.get('assigned_to').get('desk'))
