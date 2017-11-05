@@ -93,7 +93,8 @@ const renderLocation = (props) => (
             component={fields.GeoLookupInput}
             label="Location"
             required={props.fieldSchema.required}
-            readOnly={props.readOnly} />
+            readOnly={props.readOnly}
+            localSearchResults={props.existingLocationSearchResults} />
     </div>
 )
 

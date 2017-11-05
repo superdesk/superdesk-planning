@@ -82,7 +82,7 @@ export class SelectFieldPopup extends React.Component {
             this.setState({ activeOptionIndex: 0 })
         } else if ( this.state.activeOptionIndex < this.state.filteredList.length - 1 ) {
             this.setState({ activeOptionIndex: this.state.activeOptionIndex + 1 })
-            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex + 1, this.refs.itemList)
+            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.refs.itemList)
         }
     }
 
@@ -99,7 +99,7 @@ export class SelectFieldPopup extends React.Component {
             }
         } else {
             this.setState({ activeOptionIndex: this.state.activeOptionIndex - 1 })
-            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex - 1, this.refs.itemList)
+            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.refs.itemList)
         }
     }
 

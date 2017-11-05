@@ -1,7 +1,6 @@
 import React, { PropTypes } from 'react'
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux'
-import { formValueSelector } from 'redux-form'
 import * as actions from '../../actions'
 import Geolookup from 'react-geolookup'
 import DebounceInput from 'react-debounce-input'
@@ -62,7 +61,7 @@ export class GeoLookupInputComponent extends React.Component {
         this.handleChange(event.target.value)
 
         // Open pop-up to show external search option
-        if (get(event.target, 'value.length') > 1 && !this.state.openSuggestsPopUp) {
+        if (get(event.target, 'value.length') > 1) {
             this.setState({
                 openSuggestsPopUp : true,
                 unsavedInput: event.target.value,
@@ -152,7 +151,7 @@ export class GeoLookupInputComponent extends React.Component {
                         onCancel={this.resetSearchResults.bind(this)}
                         onChange={this.onSuggestSelect.bind(this)}
                         handleSearchClick={this.handleSearchClick.bind(this)}
-                        showExternalSearch={!this.props.readOnly} />
+                        showExternalSearch={!this.props.readOnly && !this.props.disableSearch} />
                 }
                 {get(this.state.searchResults, 'length') === 0 &&
                     <div className="error-block" style={{ display: 'table-row' }}>No results found</div>}
@@ -229,10 +228,8 @@ GeoLookupInputComponent.propTypes = {
     localSearchResults: PropTypes.array,
     searchLocalLocations: PropTypes.func,
     resetLocalSearchResults: PropTypes.func,
+    disableSearch: PropTypes.bool,
 }
-
-const selector = formValueSelector('addEvent') // same as form name
-const mapStateToProps = (state) => ({ localSearchResults: selector(state, '_locationSearchResults') })
 
 const mapDispatchToProps = (dispatch) => ({
     searchLocalLocations: (text) => (dispatch(actions.searchLocation(text))),
@@ -240,6 +237,6 @@ const mapDispatchToProps = (dispatch) => ({
 })
 
 export const AddGeoLookupInput = connect(
-    mapStateToProps,
+    null,
     mapDispatchToProps
 )(GeoLookupInputComponent)

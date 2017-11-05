@@ -66,14 +66,14 @@ export class AddGeoLookupResultsPopUp extends React.Component {
             get(this.props.localSuggests, 'length', 0) +
             get(this.props.suggests, 'length', 0)) - 1) {
             this.setState({ activeOptionIndex: this.state.activeOptionIndex + 1 })
-            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex + 1, this.refs.itemList)
+            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.refs.itemList)
         }
     }
 
     handleUpArrowKey() {
         if (this.state.activeOptionIndex > 0) {
             this.setState({ activeOptionIndex: this.state.activeOptionIndex - 1 })
-            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex - 1, this.refs.itemList)
+            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.refs.itemList)
         }
     }
 
@@ -100,6 +100,9 @@ export class AddGeoLookupResultsPopUp extends React.Component {
         const suggests = get(this.props.suggests, 'length') > 0 ?
                             this.props.suggests : []
 
+        const searchButtonText = get(this.props.suggests, 'length') > 0 ?
+            'Results (Search again)' : 'Search External'
+
         return (<div className='addgeolookup__suggests-wrapper'>
             <ul className='addgeolookup__suggests' ref='itemList'>
                 {localSuggests.map((suggest, index) => {
@@ -115,7 +118,7 @@ export class AddGeoLookupResultsPopUp extends React.Component {
                             'addgeolookup__item--active ' : '') + 'addgeolookup__item'}>
                     <button type='button' className='btn' disabled={this.state.searching}
                         onClick={this.onSearchClick.bind(this)} style={{ width: '100%' }}>
-                        <span>Search external</span>
+                        <span>{searchButtonText}</span>
                         {this.state.searching && <div className='spinner'>
                           <div className='dot1' />
                           <div className='dot2' />

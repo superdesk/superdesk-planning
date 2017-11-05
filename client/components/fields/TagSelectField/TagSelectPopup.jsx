@@ -53,14 +53,14 @@ export class TagSelectPopup extends React.Component {
     handleDownArrowKey() {
         if ( this.state.activeOptionIndex < this.props.options.length - 1 ) {
             this.setState({ activeOptionIndex: this.state.activeOptionIndex + 1 })
-            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex + 1, this.refs.itemList)
+            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.refs.itemList)
         }
     }
 
     handleUpArrowKey() {
         if ( this.state.activeOptionIndex > -1 ) {
             this.setState({ activeOptionIndex: this.state.activeOptionIndex - 1 })
-            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex - 1, this.refs.itemList)
+            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.refs.itemList)
         }
     }
 

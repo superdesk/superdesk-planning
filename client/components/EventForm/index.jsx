@@ -191,6 +191,7 @@ export class Component extends React.Component {
             onMinimize,
             currentSchedule,
             lockedItems,
+            existingLocationSearchResults,
         } = this.props
 
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK]
@@ -395,6 +396,7 @@ export class Component extends React.Component {
                         {
                             readOnly: forcedReadOnly,
                             fieldSchema: get(formProfile, 'schema.location'),
+                            existingLocationSearchResults: existingLocationSearchResults,
                         }
                     )}
                     <ToggleBox title="Details" isOpen={false}>
@@ -511,6 +513,7 @@ Component.propTypes = {
     lockedItems: PropTypes.object,
     openCancelModal: PropTypes.func,
     valid: PropTypes.bool,
+    existingLocationSearchResults: PropTypes.array,
 }
 
 // Decorate the form component
@@ -537,6 +540,7 @@ const mapStateToProps = (state) => ({
     maxRecurrentEvents: selectors.getMaxRecurrentEvents(state),
     formProfile: selectors.getEventsFormsProfile(state),
     currentSchedule: selector(state, 'dates'),
+    existingLocationSearchResults: selector(state, '_locationSearchResults'),
     lockedItems: selectors.getLockedItems(state),
 })
 
