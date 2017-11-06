@@ -27,7 +27,6 @@ describe('selectors', () => {
                     },
                 },
             },
-            selectedAssignments: ['1', '2'],
             assignmentsInList: [1, 2],
             filterBy: 'All',
             searchQuery: 'test',
@@ -230,11 +229,6 @@ describe('selectors', () => {
         it('getOrderDirection', () => {
             const orderDirection = selectors.getOrderDirection(state)
             expect(orderDirection).toEqual('Desc')
-        })
-
-        it('getSelectedAssignments', () => {
-            const selectedAssignments = selectors.getSelectedAssignments(state)
-            expect(selectedAssignments).toEqual(['1', '2'])
         })
 
         it('getAssignmentListSettings', () => {

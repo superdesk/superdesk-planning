@@ -9,14 +9,12 @@ describe('assignments', () => {
     describe('components', () => {
         describe('<AssignmentItem />', () => {
             let onClick
-            let onSelectChange
             let assignment
             let lockedItems
 
             const getShallowWrapper = () => (
                 shallow(<AssignmentItem
                     onClick={onClick}
-                    onSelectChange={onSelectChange}
                     assignment={assignment}
                     lockedItems={lockedItems}
                 />)
@@ -28,16 +26,13 @@ describe('assignments', () => {
                     <Provider store={store}>
                         <AssignmentItem
                             onClick={onClick}
-                            onSelectChange={onSelectChange}
-                            assignment={assignment}
-                            isSelected={true} />
+                            assignment={assignment}/>
                     </Provider>
                 )
             }
 
             beforeEach(() => {
                 lockedItems = { assignments: { '1': 'lock_information' } }
-                onSelectChange = sinon.spy(() => (Promise.resolve()))
                 assignment = {
                     _id: 1,
                     _created: '2017-07-13T13:55:41+0000',
@@ -55,7 +50,6 @@ describe('assignments', () => {
                 const wrapper = getShallowWrapper()
                 expect(wrapper.find('.icon-time').length).toBe(1)
                 expect(wrapper.find('UserAvatar').length).toBe(1)
-                expect(wrapper.find('Checkbox').length).toBe(1)
                 expect(wrapper.find('AbsoluteDate').length).toBe(1)
             })
 

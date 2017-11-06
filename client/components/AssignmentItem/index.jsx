@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { ListItem, Checkbox, UserAvatar, AbsoluteDate, StateLabel, ItemActionsMenu, Label } from '../index'
+import { ListItem, UserAvatar, AbsoluteDate, StateLabel, ItemActionsMenu, Label } from '../index'
 import classNames from 'classnames'
 import moment from 'moment'
 import { get } from 'lodash'
@@ -10,8 +10,6 @@ import { ASSIGNMENTS, TOOLTIPS } from '../../constants'
 export const AssignmentItem = ({
         assignment,
         onClick,
-        isSelected,
-        onSelectChange,
         className,
         assignedUser,
         isCurrentUser,
@@ -64,11 +62,8 @@ export const AssignmentItem = ({
                 'assignmentItem',
                 className,
                 { 'ListItem--locked': isItemLocked })}
-            active={isSelected || get(assignment, '_id') === currentAssignmentId}
+            active={get(assignment, '_id') === currentAssignmentId}
         >
-            <div className="sd-list-item__action-menu">
-                <Checkbox value={isSelected} onChange={({ target }) => {onSelectChange(target.value)}}/>
-            </div>
             <div className="sd-list-item__column">
                 <i className={getCoverageIcon(assignment.planning.g2_content_type)} />
             </div>
@@ -128,8 +123,6 @@ AssignmentItem.propTypes = {
     assignedUser: PropTypes.object,
     lockedItems: PropTypes.object,
     isCurrentUser: PropTypes.bool,
-    isSelected: PropTypes.bool,
-    onSelectChange: PropTypes.func,
     currentAssignmentId: PropTypes.string,
     reassign: PropTypes.func,
     completeAssignment: PropTypes.func,

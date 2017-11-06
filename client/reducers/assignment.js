@@ -6,7 +6,6 @@ import { createReducer } from '../utils'
 const initialState = {
     assignments: {},
     filterBy: 'All',
-    selectedAssignments: [],
     previewOpened: false,
     assignmentsInList: [],
     currentAssignmentId: null,
@@ -57,22 +56,6 @@ const assignmentReducer = createReducer(initialState, {
         {
             ...state,
             ...payload,
-        }
-    ),
-
-    [ASSIGNMENTS.ACTIONS.SELECT_ASSIGNMENTS]: (state, payload) => (
-        {
-            ...state,
-            selectedAssignments: uniq(
-                [...state.selectedAssignments, ...payload]
-            ),
-        }
-    ),
-
-    [ASSIGNMENTS.ACTIONS.DESELECT_ASSIGNMENT]: (state, payload) => (
-        {
-            ...state,
-            selectedAssignments: state.selectedAssignments.filter((e) => e !== payload),
         }
     ),
 

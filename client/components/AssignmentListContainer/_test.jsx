@@ -24,7 +24,6 @@ describe('<AssignmentListContainer />', () => {
                         },
                     },
                 },
-                selectedAssignments: ['1'],
                 filterBy: 'All',
                 searchQuery: 'test',
                 orderByField: 'Updated',

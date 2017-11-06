@@ -139,19 +139,6 @@ const closePreview = () => (
 )
 
 /**
- * Toggle the current selection of on assignment
- * @param {object} assignemnt - The Assignment to toggle
- * @param {object} value - The toggle value
- */
-const toggleAssignmentSelection = ({ assignment, value }) => (
-    {
-        type: value ? ASSIGNMENTS.ACTIONS.SELECT_ASSIGNMENTS
-            : ASSIGNMENTS.ACTIONS.DESELECT_ASSIGNMENT,
-        payload: value ? [assignment] : assignment,
-    }
-)
-
-/**
  * Action that sets the list of visible assignments items
  * @param {Array} ids - An array of assignments item ids
  */
@@ -357,7 +344,6 @@ const self = {
     loadMoreAssignments,
     preview,
     closePreview,
-    toggleAssignmentSelection,
     setInList,
     addToList,
     changeLastAssignmentLoadedPage,
