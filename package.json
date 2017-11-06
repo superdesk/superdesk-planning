@@ -50,6 +50,6 @@
     "react-test-renderer": "~15.6.1",
     "simulant": "^0.2.2",
     "sinon": "~3.3.0",
-    "superdesk-core": "superdesk/superdesk-client-core#095f4723"
+    "superdesk-core": "superdesk/superdesk-client-core#cfc4f824"
   }
 }
