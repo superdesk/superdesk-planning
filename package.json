@@ -15,7 +15,7 @@
   "dependencies": {
     "nominatim-browser": "^2.0.2",
     "react-addons-shallow-compare": "15.5.2",
-    "react-bootstrap": "^0.30.5",
+    "react-bootstrap": "^0.31.5",
     "react-datepicker": "^0.41.1",
     "react-debounce-input": "^2.4.2",
     "react-form-input": "^0.3.0",
@@ -50,6 +50,6 @@
     "react-test-renderer": "~15.6.1",
     "simulant": "^0.2.2",
     "sinon": "~3.3.0",
-    "superdesk-core": "superdesk/superdesk-client-core#095f4723"
+    "superdesk-core": "superdesk/superdesk-client-core#cfc4f824"
   }
 }

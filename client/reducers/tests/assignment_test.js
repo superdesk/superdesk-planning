@@ -28,7 +28,6 @@ describe('assignment', () => {
                 },
             },
             filterBy: 'All',
-            selectedAssignments: [],
             previewOpened: false,
             assignmentsInList: [1, 2],
             currentAssignmentId: null,
@@ -106,7 +105,6 @@ describe('assignment', () => {
                     },
                 },
                 filterBy: 'All',
-                selectedAssignments: [],
                 previewOpened: false,
                 assignmentsInList: [1, 2],
                 currentAssignmentId: null,
@@ -136,7 +134,6 @@ describe('assignment', () => {
         let initialState
         let stateTest = {
             assignments: {},
-            selectedAssignments: ['assignment1', 'assignment2'],
             filterBy: 'All',
             previewOpened: false,
             assignmentsInList: [],
@@ -156,7 +153,6 @@ describe('assignment', () => {
             })
             expect(result).toEqual({
                 assignments: {},
-                selectedAssignments: ['assignment1', 'assignment2', 'assignment3'],
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentsInList: [],
@@ -171,7 +167,6 @@ describe('assignment', () => {
             })
             expect(result).toEqual({
                 assignments: {},
-                selectedAssignments: ['assignment1'],
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentsInList: [],
@@ -184,7 +179,6 @@ describe('assignment', () => {
         let initialState
         let stateTest = {
             assignments: {},
-            selectedAssignments: [],
             assignmentsInList: [],
             currentAssignmentId: null,
             filterBy: 'All',
@@ -213,7 +207,6 @@ describe('assignment', () => {
             })
             expect(result).toEqual({
                 assignments: {},
-                selectedAssignments: [],
                 assignmentsInList: [],
                 currentAssignmentId: null,
                 filterBy: 'User',
@@ -244,7 +237,6 @@ describe('assignment', () => {
             },
             previewOpened: false,
             filterBy: 'All',
-            selectedAssignments: [],
             assignmentsInList: ['a1'],
             currentAssignmentId: null,
         }
@@ -266,7 +258,6 @@ describe('assignment', () => {
                 currentAssignmentId: 'a1',
                 readOnly: true,
                 filterBy: 'All',
-                selectedAssignments: [],
                 assignmentsInList: ['a1'],
             })
         })
@@ -278,7 +269,6 @@ describe('assignment', () => {
                 previewOpened: false,
                 currentAssignmentId: null,
                 filterBy: 'All',
-                selectedAssignments: [],
                 readOnly: true,
                 assignmentsInList: ['a1'],
             })
@@ -295,7 +285,6 @@ describe('assignment', () => {
                 currentAssignmentId: 'a1',
                 readOnly: false,
                 filterBy: 'All',
-                selectedAssignments: [],
                 assignmentsInList: ['a1'],
             })
         })

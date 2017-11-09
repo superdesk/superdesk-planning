@@ -63,7 +63,6 @@ export const getAssignmentFilterByType = (state) => get(state, 'assignment.filte
 export const getAssignmentFilterByPriority = (state) =>
     get(state, 'assignment.filterByPriority', null)
 export const getAssignmentPage = (state) => get(state, 'assignment.lastAssignmentLoadedPage', 1)
-export const getSelectedAssignments = (state) => get(state, 'assignment.selectedAssignments', [])
 export const getAssignmentListSettings = (state) => ({
     filterBy: getFilterBy(state),
     searchQuery: getSearchQuery(state),

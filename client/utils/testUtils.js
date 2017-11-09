@@ -395,7 +395,6 @@ export const getTestActionStore = () => {
             assignment: {
                 assignments: {},
                 filterBy: 'All',
-                selectedAssignments: [],
                 previewOpened: false,
                 assignmentsInList: [],
                 currentAssignmentId: null,

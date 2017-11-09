@@ -61,9 +61,7 @@ class AssignmentListComponent extends React.Component {
                         users={this.props.users}
                         session={this.props.session}
                         privileges={this.props.privileges}
-                        selectedAssignments={this.props.selectedAssignments}
                         onClick={this.props.preview}
-                        onSelectChange={this.props.onAssignmentSelectChange}
                         lockedItems={this.props.lockedItems}
                         currentAssignmentId={this.props.currentAssignmentId}
                         reassign={this.props.reassign}
@@ -88,10 +86,8 @@ AssignmentListComponent.propTypes = {
     myAssignmentsCount: PropTypes.number,
     session: PropTypes.object,
     users: PropTypes.array,
-    selectedAssignments: PropTypes.array.isRequired,
     previewOpened: PropTypes.bool,
     preview: PropTypes.func,
-    onAssignmentSelectChange: PropTypes.func.isRequired,
     loadAssignments: PropTypes.func.isRequired,
     loadMoreAssignments: PropTypes.func.isRequired,
     assignments: PropTypes.array,
@@ -118,7 +114,6 @@ const mapStateToProps = (state) => ({
     orderByField: selectors.getOrderByField(state),
     orderDirection: selectors.getOrderDirection(state),
     myAssignmentsCount: selectors.getMyAssignmentsCount(state),
-    selectedAssignments: selectors.getSelectedAssignments(state),
     previewOpened: selectors.getPreviewAssignmentOpened(state),
     session: selectors.getSessionDetails(state),
     users: selectors.getUsers(state),
@@ -138,7 +133,6 @@ const mapDispatchToProps = (dispatch) => ({
         )),
     loadMoreAssignments: () => dispatch(actions.assignments.ui.loadMoreAssignments()),
     preview: (assignment) => dispatch(actions.assignments.ui.preview(assignment)),
-    onAssignmentSelectChange: (value) => dispatch(actions.assignments.ui.toggleAssignmentSelection(value)),
     reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
     editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),

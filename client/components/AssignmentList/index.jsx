@@ -51,12 +51,7 @@ export class AssignmentList extends React.Component {
                 <AssignmentItem
                     key={assignment._id}
                     assignment={assignment}
-                    isSelected={this.props.selectedAssignments.indexOf(assignment._id) > -1}
                     onClick={this.props.onClick.bind(this, assignment)}
-                    onSelectChange={(value) => this.props.onSelectChange({
-                        assignment: assignment._id,
-                        value,
-                    })}
                     assignedUser={assignedUser}
                     isCurrentUser={isCurrentUser}
                     lockedItems={this.props.lockedItems}
@@ -115,9 +110,7 @@ AssignmentList.propTypes = {
     assignments: PropTypes.array.isRequired,
     users: PropTypes.array,
     session: PropTypes.object,
-    selectedAssignments: PropTypes.array.isRequired,
     onClick: PropTypes.func,
-    onSelectChange: PropTypes.func.isRequired,
     loadMoreAssignments: PropTypes.func.isRequired,
     lockedItems: PropTypes.object,
     currentAssignmentId: PropTypes.string,
