@@ -41,6 +41,7 @@ const planningApp = combineReducers({
     desks: returnState,
     urgency: returnState,
     formsProfile: returnState,
+    contacts: returnState,
 });
 
 export default planningApp;

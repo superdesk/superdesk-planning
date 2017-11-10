@@ -13,6 +13,7 @@ export {AgendaModal} from './AgendaModal';
 export {default as Toggle} from './Toggle/index';
 export {default as Modal} from './Modal/index';
 export {default as SearchBar} from './SearchBar/index';
+export {default as SearchField} from './SearchField/index';
 export {default as OrderBar} from './OrderBar/index';
 export {ConfirmationModal} from './ConfirmationModal';
 export {TimeEvent} from './TimeEvent';

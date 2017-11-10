@@ -63,6 +63,7 @@ export const getEventReadOnlyState = (state) => get(state, 'events.readOnly');
 export const getSessionDetails = (state) => get(state, 'session');
 export const getCurrentUserId = (state) => get(state, 'session.identity._id');
 
+export const getEventContacts = (state) => get(state, 'contacts', []);
 export const getEventCalendars = (state) => get(state, 'vocabularies.event_calendars', []);
 export const getKeywords = (state) => get(state, 'vocabularies.keywords', []);
 export const getPlanningSearch = (state) => get(state, 'planning.search.currentSearch');
@@ -70,6 +71,7 @@ export const getEventsFormsProfile = (state) => get(state, 'formsProfile.events'
 export const getPlanningsFormsProfile = (state) => get(state, 'formsProfile.planning');
 export const getCoverageFormsProfile = (state) => get(state, 'formsProfile.coverage');
 export const getNewsCoverageStatus = (state) => get(state, 'vocabularies.newscoveragestatus', []);
+
 export const getCoverageCancelState = (state) =>
     (get(state, 'vocabularies.newscoveragestatus', []).find((s) => s.qcode === 'ncostat:notint'));
 export const getVocabularies = (state) => get(state, 'vocabularies');
