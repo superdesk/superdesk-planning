@@ -12,11 +12,10 @@ import { WORKSPACE } from '../../constants/workspace'
 
 
 describe('<EditAssignmentPanelContainer />', () => {
-    let onFulFilAssignment = sinon.spy()
 
     const getWrapper = (store) => {
         return mount(<Provider store={store}>
-            <EditAssignmentPanelContainer onFulFilAssignment={onFulFilAssignment} />
+            <EditAssignmentPanelContainer />
             </Provider>
         )
     }
@@ -87,10 +86,12 @@ describe('<EditAssignmentPanelContainer />', () => {
 
     beforeEach(() => {
         sinon.stub(assignmentsUi, 'save').callsFake(() => (Promise.resolve({})))
+        sinon.stub(assignmentsUi, 'onFulFilAssignment').callsFake(() => ({ type: 'FULFIL' }))
     })
 
     afterEach(() => {
         restoreSinonStub(assignmentsUi.save)
+        restoreSinonStub(assignmentsUi.onFulFilAssignment)
     })
 
     it('open the preview', () => {
@@ -137,6 +138,19 @@ describe('<EditAssignmentPanelContainer />', () => {
 
     it('click on the fulfil assignment', (done) => {
         const initialState = getState(WORKSPACE.AUTHORING)
+        initialState.modal = {
+            modalType: 'FULFIL_ASSIGNMENT',
+            modalProps: {
+                $scope: {
+                    reject: sinon.spy(),
+                    resolve: sinon.spy(),
+                },
+                newsItem: {
+                    _id: 'item1',
+                    slugline: 'test',
+                },
+            },
+        }
         const store = createTestStore({ initialState })
         const wrapper = getWrapper(store)
         store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
@@ -146,9 +160,7 @@ describe('<EditAssignmentPanelContainer />', () => {
         expect(store.getState().assignment.previewOpened).toBe(true)
         expect(fulfilButton.text()).toBe('Fulfil Assignment')
         fulfilButton.simulate('click')
-        expect(onFulFilAssignment.callCount).toBe(1)
-        wrapper.find('.icon-close-small').first().simulate('click')
-        expect(store.getState().assignment.previewOpened).toBe(false)
+        expect(assignmentsUi.onFulFilAssignment.callCount).toBe(1)
         done()
     })
 

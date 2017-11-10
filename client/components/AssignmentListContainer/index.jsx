@@ -70,8 +70,7 @@ class AssignmentListComponent extends React.Component {
                         inAssignments={this.props.inAssignments}
                         startWorking={this.props.startWorking}
                     />
-                    {this.props.previewOpened && <EditAssignmentPanelContainer
-                        onFulFilAssignment={this.props.onFulFilAssignment}/> }
+                    {this.props.previewOpened && <EditAssignmentPanelContainer /> }
                 </div>
             </div>
         )
@@ -91,7 +90,6 @@ AssignmentListComponent.propTypes = {
     loadAssignments: PropTypes.func.isRequired,
     loadMoreAssignments: PropTypes.func.isRequired,
     assignments: PropTypes.array,
-    onFulFilAssignment: PropTypes.func,
     filterByState: PropTypes.string,
     filterByType: PropTypes.string,
     filterByPriority: PropTypes.string,

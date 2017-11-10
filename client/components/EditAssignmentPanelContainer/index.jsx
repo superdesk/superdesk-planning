@@ -20,11 +20,7 @@ export class EditAssignmentPanel extends React.Component {
     }
 
     onSubmit(assignment) {
-        if (this.props.currentWorkspace === WORKSPACE.AUTHORING) {
-            return this.props.onFulFilAssignment(assignment)
-        } else {
-            return this.props.save(assignment)
-        }
+        return this.props.save(assignment)
     }
 
     handleSave() {
@@ -130,7 +126,6 @@ EditAssignmentPanel.propTypes = {
     submitting: PropTypes.bool.isRequired,
     save: PropTypes.func.isRequired,
     currentWorkspace: PropTypes.string,
-    onFulFilAssignment: PropTypes.func,
     session: PropTypes.object,
     privileges: PropTypes.object,
 }
@@ -148,7 +143,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => (
     {
         closePreview: () => dispatch(actions.assignments.ui.closePreview()),
-        save: (assignment) => dispatch(actions.assignments.ui.save(assignment)),
+        save: (assignment) => dispatch(actions.assignments.ui.onAssignmentFormSave(assignment)),
     }
 )
 
