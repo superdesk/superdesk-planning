@@ -54,7 +54,8 @@ function configurePlanning(superdesk) {
                 function(lock, archiveService, item, authoring) {
                 return !item.assignment_id &&
                     (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
-                    !archiveService.isPersonal(item) && authoring.itemActions(item).edit
+                    !archiveService.isPersonal(item) && (authoring.itemActions(item).edit ||
+                    authoring.itemActions(item).correct || authoring.itemActions(item).deschedule)
             }],
         })
         .activity('planning.fulfil', {
@@ -79,7 +80,8 @@ function configurePlanning(superdesk) {
                 function(lock, archiveService, item, authoring) {
                 return !item.assignment_id &&
                     (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
-                    !archiveService.isPersonal(item) && authoring.itemActions(item).edit
+                    !archiveService.isPersonal(item) && (authoring.itemActions(item).edit ||
+                    authoring.itemActions(item).correct || authoring.itemActions(item).deschedule)
             }]
         })
         .activity('planning.unlink', {
@@ -103,7 +105,8 @@ function configurePlanning(superdesk) {
                 function(lock, archiveService, item, authoring) {
                 return item.assignment_id && get(item, 'assignment.state') !== 'completed' &&
                     (!lock.isLocked(item) || lock.isLockedInCurrentSession(item)) &&
-                    !archiveService.isPersonal(item) && authoring.itemActions(item).edit
+                    !archiveService.isPersonal(item) && (authoring.itemActions(item).edit ||
+                    authoring.itemActions(item).correct || authoring.itemActions(item).deschedule)
             }]
         })
 }
