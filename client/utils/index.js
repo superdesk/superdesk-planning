@@ -811,3 +811,7 @@ export const getAssignmentPriority = (priorityQcode, priorities) => {
             p.qcode === 2)
     }
 }
+
+export const getItemsById = (ids, items) => (
+    ids.map((id) => (items[id]))
+)

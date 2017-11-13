@@ -27,7 +27,7 @@ describe('selectors', () => {
                     },
                 },
             },
-            assignmentsInList: [1, 2],
+            assignmentsInTodoList: [1, 2],
             filterBy: 'All',
             searchQuery: 'test',
             orderByField: 'Updated',
@@ -182,101 +182,5 @@ describe('selectors', () => {
         expect(events[0].event._id).toEqual('event1')
         expect(events[1].event._id).toEqual('event1')
         expect(events[2].event._id).toEqual('event2')
-    })
-
-    describe('assignment', () => {
-        it('getAssignments', () => {
-            const assignments = selectors.getAssignments(state)
-            expect(assignments.length).toBe(2)
-            expect(assignments).toEqual([
-                {
-                    _id: 1,
-                    _created: '2017-07-13T13:55:41+0000',
-                    _updated: '2017-07-28T11:16:36+0000',
-                    assigned_to: {
-                        assigned_date: '2017-07-28T11:16:36+0000',
-                        desk: 'desk1',
-                        user: 'user1',
-                    },
-                },
-                {
-                    _id: 2,
-                    _created: '2017-07-13T14:55:41+0000',
-                    _updated: '2017-07-28T13:16:36+0000',
-                    assigned_to: {
-                        assigned_date: '2017-07-28T13:16:36+0000',
-                        desk: 'desk2',
-                    },
-                },
-            ])
-        })
-
-        it('getFilterBy', () => {
-            const filterBy = selectors.getFilterBy(state)
-            expect(filterBy).toEqual('All')
-        })
-
-        it('getSearchQuery', () => {
-            const searchQuery = selectors.getSearchQuery(state)
-            expect(searchQuery).toEqual('test')
-        })
-
-        it('getOrderByField', () => {
-            const orderByField = selectors.getOrderByField(state)
-            expect(orderByField).toEqual('Updated')
-        })
-
-        it('getOrderDirection', () => {
-            const orderDirection = selectors.getOrderDirection(state)
-            expect(orderDirection).toEqual('Desc')
-        })
-
-        it('getAssignmentListSettings', () => {
-            const assignmentListSettings = selectors.getAssignmentListSettings(state)
-            expect(assignmentListSettings).toEqual({
-                filterBy: 'All',
-                searchQuery: 'test',
-                orderByField: 'Updated',
-                orderDirection: 'Desc',
-                lastAssignmentLoadedPage: 2,
-                filterByState: null,
-                filterByType: null,
-                filterByPriority: null,
-            })
-        })
-
-        it('getCurrentUserId', () => {
-            const currentUserId = selectors.getCurrentUserId(state)
-            expect(currentUserId).toEqual('user1')
-        })
-
-        it('getMyAssignmentsCount', () => {
-            const myAssignmentsCount = selectors.getMyAssignmentsCount(state)
-            expect(myAssignmentsCount).toEqual(1)
-        })
-
-        it('getPreviewAssignmentOpened', () => {
-            const previewAssignmentOpened = selectors.getPreviewAssignmentOpened(state)
-            expect(previewAssignmentOpened).toBeTruthy()
-        })
-
-        it('getCurrentAssignment', () => {
-            const currentAssignment = selectors.getCurrentAssignment(state)
-            expect(currentAssignment).toEqual({
-                _id: 1,
-                _created: '2017-07-13T13:55:41+0000',
-                _updated: '2017-07-28T11:16:36+0000',
-                assigned_to: {
-                    assigned_date: '2017-07-28T11:16:36+0000',
-                    desk: 'desk1',
-                    user: 'user1',
-                },
-            })
-        })
-
-        it('getReadOnlyAssignment', () => {
-            const readOnly = selectors.getReadOnlyAssignment(state)
-            expect(readOnly).toBeTruthy()
-        })
     })
 })

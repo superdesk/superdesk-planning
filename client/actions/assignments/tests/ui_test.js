@@ -16,12 +16,14 @@ describe('actions.assignments.ui', () => {
         sinon.stub(assignmentsApi, 'link').callsFake(() => (Promise.resolve()))
         sinon.stub(assignmentsApi, 'lock').callsFake((item) => (Promise.resolve(item)))
         sinon.stub(assignmentsApi, 'unlock').callsFake((item) => (Promise.resolve(item)))
+        sinon.stub(assignmentsApi, 'query').callsFake(() => (Promise.resolve({ _items: [] })))
     })
 
     afterEach(() => {
         restoreSinonStub(assignmentsApi.link)
         restoreSinonStub(assignmentsApi.lock)
         restoreSinonStub(assignmentsApi.unlock)
+        restoreSinonStub(assignmentsApi.query)
     })
 
     describe('onFulFilAssignment', () => {
@@ -59,6 +61,43 @@ describe('actions.assignments.ui', () => {
                 expect(error).toEqual(errorMessage)
                 expect(services.notify.success.callCount).toBe(0)
                 expect(services.notify.error.callCount).toBe(1)
+                done()
+            })
+        })
+    })
+
+    describe('assignment list actions', () => {
+        it('queryAndSetAssignmentListGroups will appply filter to the query', (done) => {
+            store.test(done, assignmentsUi.queryAndSetAssignmentListGroups(['in_progress']))
+            .then(() => {
+                expect(assignmentsApi.query.callCount).toBe(1)
+                expect(assignmentsApi.query.args[0][0].states).toEqual(['in_progress'])
+                done()
+            })
+        })
+
+        it('queryAndSetAssignmentListGroups will use default page as 1 in query', (done) => {
+            store.test(done, assignmentsUi.queryAndSetAssignmentListGroups(['in_progress']))
+            .then(() => {
+                expect(assignmentsApi.query.callCount).toBe(1)
+                expect(assignmentsApi.query.args[0][0].page).toEqual(1)
+                done()
+            })
+        })
+
+        it('reloadAssignments will query all list groups if not state filter is passed', (done) => {
+            store.test(done, assignmentsUi.reloadAssignments())
+            .then(() => {
+                expect(assignmentsApi.query.callCount).toBe(3)
+                done()
+            })
+        })
+
+        it('loadMoreAssignments will increment page number', (done) => {
+            store.test(done, assignmentsUi.loadMoreAssignments(['in_progress']))
+            .then(() => {
+                expect(assignmentsApi.query.callCount).toBe(1)
+                expect(assignmentsApi.query.args[0][0].page).toEqual(2)
                 done()
             })
         })

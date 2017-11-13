@@ -3,7 +3,7 @@ import assignments from './index'
 import { get } from 'lodash'
 import planning from '../planning'
 import { ASSIGNMENTS } from '../../constants'
-import { getLock } from '../../utils'
+import { getLock, assignmentUtils } from '../../utils'
 import { hideModal, showModal } from '../index'
 
 /**
@@ -16,7 +16,7 @@ const onAssignmentCreated = (_e, data) => (
         const currentDesk = selectors.getCurrentDeskId(getState())
         if (currentDesk &&
             (currentDesk === data.assigned_desk || currentDesk === data.original_assigned_desk)) {
-            return dispatch(assignments.ui.fetch())
+            return dispatch(assignments.ui.reloadAssignments([data.assignment_state]))
         }
 
         return Promise.resolve()
@@ -40,7 +40,24 @@ const onAssignmentUpdated = (_e, data) => (
 
         if (currentDesk) {
             if (currentDesk === data.assigned_desk || currentDesk === data.original_assigned_desk) {
-                dispatch(assignments.ui.fetch())
+                dispatch(assignments.ui.reloadAssignments([data.assignment_state]))
+
+                dispatch(assignments.api.fetchAssignmentById(data.item))
+                    .then((assignmentInStore) => {
+                    // If assignmend moved from one state to another, check if group changed
+                    // And trigger reload
+                    if (assignmentInStore.assigned_to.state !== data.assignment_state) {
+                        const originalGroup = assignmentUtils.getAssignmentGroupByStates(
+                            [assignmentInStore.assigned_to.state])
+                        const newGroup =  assignmentUtils.getAssignmentGroupByStates(
+                            [data.assignment_state])
+
+                        if (newGroup.label !== originalGroup.label) {
+                            dispatch(assignments.ui.reloadAssignments(
+                                [assignmentInStore.assigned_to.state]))
+                        }
+                    }
+                })
             }
 
             if (!get(data, 'lock_user')) {

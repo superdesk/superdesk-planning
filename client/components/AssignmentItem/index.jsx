@@ -70,9 +70,7 @@ export const AssignmentItem = ({
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
                 <div className="sd-list-item__row">
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow assignment__title">
-                        {assignment.planning.slugline && (
-                            <span className="ListItem__slugline">{assignment.planning.slugline}</span>
-                        )}
+                        <span className="ListItem__slugline">{assignment.planning.slugline}</span>
                     </span>
                 </div>
                 <div className="sd-list-item__row">

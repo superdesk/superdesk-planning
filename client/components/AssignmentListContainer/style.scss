@@ -7,9 +7,33 @@ $ASSIGNMENT_LIST_CONTAINER_ZINDEX: 6;
     flex-direction: column;
 }
 
+.Assignments-list-container__groups {
+    top: 96px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: scroll;
+    transition: all 0.3s;
+    box-sizing: border-box;
+    padding: 0px 18px 18px !important;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    margin: 9px 4px 0px 0px;
+    position: absolute;
+
+    &--edit-view {
+        margin-right: 450px;
+    }
+}
+
 .Assignments-list-container__header {
     z-index: $ASSIGNMENT_LIST_CONTAINER_ZINDEX + 1;
     flex-shrink: 0;
+
+    &__backButton {
+        border-right: 1px solid #e0e0e0;
+    }
 }
 
 .Assignments-list-container__selection {

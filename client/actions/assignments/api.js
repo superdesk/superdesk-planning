@@ -15,7 +15,7 @@ const query = ({
     page=1,
     deskId=null,
     userId=null,
-    state=null,
+    states=[],
     type=null,
     priority=null,
 }) => (
@@ -44,9 +44,9 @@ const query = ({
             )
         }
 
-        if (state) {
+        if (states.length > 0) {
             must.push(
-                { term: { 'assigned_to.state': state } }
+                { terms: { 'assigned_to.state': states } }
             )
         }
 

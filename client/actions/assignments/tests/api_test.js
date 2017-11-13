@@ -36,8 +36,7 @@ describe('actions.assignments.api', () => {
         })
 
         it('query with search filter by desk Asc by Created', (done) => {
-            const source = '{"query":{"bool":'
-                + '{"must":[{"term":{"assigned_to.desk":"desk1"}},'
+            const source = '{"query":{"bool":{"must":[{"term":{"assigned_to.desk":"desk1"}},'
                 + '{"query_string":{"query":"test"}}]}}}'
 
             const params = {
@@ -63,8 +62,8 @@ describe('actions.assignments.api', () => {
         })
 
         it('query without search and filter by user Desc by Updated', (done) => {
-            const source = '{"query":{"bool":{"must":[{"term":'
-                + '{"assigned_to.user":"ident1"}}]}}}'
+            const source = '{"query":{"bool":{"must":[{"term":{'
+                + '"assigned_to.user":"ident1"}}]}}}'
 
             const params = {
                 userId: 'ident1',
@@ -89,12 +88,12 @@ describe('actions.assignments.api', () => {
         })
 
         it('query using state', (done) => {
-            const source = '{"query":{"bool":{"must":[{"term":'
-                + '{"assigned_to.state":"assigned"}}]}}}'
+            const source = '{"query":{"bool":{"must":[{"terms":{'
+                + '"assigned_to.state":["assigned"]}}]}}}'
 
             const params = {
                 searchQuery: null,
-                state: 'assigned',
+                states: ['assigned'],
                 orderByField: 'Updated',
                 orderDirection: 'Desc',
                 page: 3,
@@ -115,8 +114,8 @@ describe('actions.assignments.api', () => {
         })
 
         it('query using type', (done) => {
-            const source = '{"query":{"bool":{"must":[{"term":'
-                + '{"planning.g2_content_type":"picture"}}]}}}'
+            const source = '{"query":{"bool":{"must":[{"term":{'
+                + '"planning.g2_content_type":"picture"}}]}}}'
 
             const params = {
                 searchQuery: null,
@@ -141,8 +140,7 @@ describe('actions.assignments.api', () => {
         })
 
         it('query using priority', (done) => {
-            const source = '{"query":{"bool":{"must":[{"term":'
-                + '{"priority":2}}]}}}'
+            const source = '{"query":{"bool":{"must":[{"term":{"priority":2}}]}}}'
 
             const params = {
                 searchQuery: null,
@@ -167,8 +165,7 @@ describe('actions.assignments.api', () => {
         })
 
         it('Can sort by priority Desceding', (done) => {
-            const source = '{"query":{"bool":{"must":[{"term":'
-                + '{"priority":2}}]}}}'
+            const source = '{"query":{"bool":{"must":[{"term":{"priority":2}}]}}}'
 
             const params = {
                 searchQuery: null,
@@ -193,8 +190,7 @@ describe('actions.assignments.api', () => {
         })
 
         it('Can sort by priority Ascending', (done) => {
-            const source = '{"query":{"bool":{"must":[{"term":'
-                + '{"priority":2}}]}}}'
+            const source = '{"query":{"bool":{"must":[{"term":{"priority":2}}]}}}'
 
             const params = {
                 searchQuery: null,

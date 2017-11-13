@@ -8,12 +8,19 @@ export const ASSIGNMENTS = {
         PREVIEW_ASSIGNMENT: 'PREVIEW_ASSIGNMENT',
         CLOSE_PREVIEW_ASSIGNMENT: 'CLOSE_PREVIEW_ASSIGNMENT',
         SET_ASSIGNMENTS_LIST: 'SET_ASSIGNMENTS_LIST',
+        SET_TODO_LIST: 'SET_TODO_LIST',
+        SET_IN_PROGRESS_LIST: 'SET_IN_PROGRESS_LIST',
+        SET_COMPLETED_LIST: 'SET_COMPLETED_LIST',
+        ADD_TO_TODO_LIST: 'ADD_TO_TODO_LIST',
+        ADD_TO_IN_PROGRESS_LIST: 'ADD_TO_IN_PROGRESS_LIST',
+        ADD_TO_COMPLETED_LIST: 'ADD_TO_COMPLETED_LIST',
         ADD_TO_ASSIGNMENTS_LIST: 'ADD_TO_ASSIGNMENTS_LIST',
         DESK_CHANGE: 'DESK_CHANGE',
         OPEN_ASSIGNMENT_EDITOR: 'OPEN_ASSIGNMENT_EDITOR',
         CLOSE_ASSIGNMENT_EDITOR: 'CLOSE_ASSIGNMENT_EDITOR',
         LOCK_ASSIGNMENT: 'LOCK_ASSIGNMENT',
         UNLOCK_ASSIGNMENT: 'UNLOCK_ASSIGNMENT',
+        CHANGE_LIST_VIEW_MODE: 'CHANGE_LIST_VIEW_MODE',
     },
     WORKFLOW_STATE: {
         ASSIGNED: 'assigned',
@@ -41,4 +48,18 @@ export const ASSIGNMENTS = {
         },
     },
     DEFAULT_PRIORITY: 2,
+    LIST_GROUPS: {
+        TODO: {
+            label: 'To Do',
+            states: ['assigned', 'submitted'],
+        },
+        IN_PROGRESS: {
+            label: 'In Progress',
+            states: ['in_progress'],
+        },
+        COMPLETED: {
+            label: 'Completed',
+            states: ['completed', 'cancelled'],
+        },
+    },
 }
