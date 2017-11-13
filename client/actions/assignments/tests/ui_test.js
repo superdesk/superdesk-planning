@@ -25,8 +25,22 @@ describe('actions.assignments.ui', () => {
     })
 
     describe('onFulFilAssignment', () => {
+        beforeEach(() => {
+            store.initialState.modal = {
+                modalType: 'FULFIL_ASSIGNMENT',
+                modalProps: {
+                    $scope: {
+                        reject: sinon.spy(),
+                        resolve: sinon.spy(),
+                    },
+                    newsItem: { _id: 'item1' },
+                },
+            }
+            store.initialState.workspace.currentWorkspace = 'AUTHORING'
+        })
+
         it('call succeeds', (done) => {
-            store.test(done, assignmentsUi.onFulFilAssignment({ _id: 'as1' }, { _id: 'item1' }))
+            store.test(done, assignmentsUi.onFulFilAssignment({ _id: 'as1' }))
             .then(() => {
                 expect(assignmentsApi.link.callCount).toBe(1)
                 expect(assignmentsApi.link.args[0]).toEqual([{ _id: 'as1' }, { _id: 'item1' }])
@@ -38,7 +52,7 @@ describe('actions.assignments.ui', () => {
         it('call fails', (done) => {
             restoreSinonStub(assignmentsApi.link)
             sinon.stub(assignmentsApi, 'link').callsFake(() => (Promise.reject(errorMessage)))
-            store.test(done, assignmentsUi.onFulFilAssignment({ _id: 'as1' }, { _id: 'item1' }))
+            store.test(done, assignmentsUi.onFulFilAssignment({ _id: 'as1' }))
             .then(() => {}, (error) => {
                 expect(assignmentsApi.link.callCount).toBe(1)
                 expect(assignmentsApi.link.args[0]).toEqual([{ _id: 'as1' }, { _id: 'item1' }])

@@ -14,6 +14,7 @@ export function AddToPlanningComponent({
     handleHide,
     modalProps,
     currentWorkspace,
+    actionInProgress,
 }) {
     const { newsItem, $scope } = modalProps
 
@@ -36,9 +37,9 @@ export function AddToPlanningComponent({
             fill={true}
         >
             <Modal.Header>
-                <a className="close" onClick={handleCancel}>
+                {!actionInProgress && <a className="close" onClick={handleCancel}>
                     <i className="icon-close-small" />
-                </a>
+                </a>}
                 <h3>Add to Planning</h3>
             </Modal.Header>
 
@@ -63,7 +64,10 @@ export function AddToPlanningComponent({
             </Modal.Body>
 
             <Modal.Footer>
-                <Button type="button" onClick={handleCancel}>Cancel</Button>
+                <Button
+                    type="button"
+                    disabled={actionInProgress}
+                    onClick={handleCancel}>Cancel</Button>
             </Modal.Footer>
         </Modal>
     )
@@ -76,9 +80,13 @@ AddToPlanningComponent.propTypes = {
         $scope: PropTypes.object,
     }),
     currentWorkspace: PropTypes.string,
+    actionInProgress: PropTypes.boolean,
 }
 
-const mapStateToProps = (state) => ({ currentWorkspace: selectors.getCurrentWorkspace(state) })
+const mapStateToProps = (state) => ({
+    currentWorkspace: selectors.getCurrentWorkspace(state),
+    actionInProgress: selectors.getModalActionInProgress(state),
+})
 
 export const AddToPlanningModal = connect(
     mapStateToProps,

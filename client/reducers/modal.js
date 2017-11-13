@@ -2,6 +2,7 @@ const initialState = {
     modalType: null,
     modalProps: undefined,
     previousState: undefined,
+    actionInProgress: false,
 }
 
 const modal = (state = initialState, action) => {
@@ -14,6 +15,11 @@ const modal = (state = initialState, action) => {
             }
         case 'HIDE_MODAL':
             return state.previousState || initialState
+        case 'ACTION_IN_PROGRESS':
+            return {
+                ...state,
+                actionInProgress: action.payload,
+            }
         default:
             return state
     }

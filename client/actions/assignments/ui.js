@@ -1,8 +1,10 @@
 import { showModal, hideModal } from '../index'
 import assignments from './index'
 import * as selectors from '../../selectors'
+import * as actions from '../../actions'
 import { ASSIGNMENTS, MODALS } from '../../constants'
 import { getErrorMessage } from '../../utils'
+import { WORKSPACE } from '../../constants/workspace'
 
 /**
  * Action dispatcher to load the list of assignments for current list settings.
@@ -206,23 +208,49 @@ const save = (item) => (
 )
 
 /**
+ * Action for saving the assignment
+ * @param {Object} item - Assignment to Save
+ */
+const onAssignmentFormSave = (item) => (
+    (dispatch, getState) => {
+        const currentWorkSpace = selectors.getCurrentWorkspace(getState())
+        if (currentWorkSpace === WORKSPACE.AUTHORING) {
+            return dispatch(self.onFulFilAssignment(item))
+        }
+
+        return dispatch(self.save(item))
+    }
+)
+
+/**
  * Action for fulfil the assignment
  * @param {Object} assignment - Assignment to link
- * @param {Object} newsItem - Newsitem to link
  */
-const onFulFilAssignment = (assignment, newsItem) => (
-    (dispatch, getState, { notify }) => (
-        dispatch(assignments.api.link(assignment, newsItem))
+const onFulFilAssignment = (assignment) => (
+    (dispatch, getState, { notify }) => {
+        const { $scope, newsItem } = selectors.getCurrentModalProps(getState())
+        const currentWorkSpace = selectors.getCurrentWorkspace(getState())
+
+        if (currentWorkSpace !== WORKSPACE.AUTHORING || !$scope || !newsItem) {
+            return Promise.resolve()
+        }
+
+        dispatch(actions.actionInProgress(true))
+        return dispatch(assignments.api.link(assignment, newsItem))
         .then((item) => {
             notify.success('Assignment is fulfilled.')
+            $scope.resolve()
+            dispatch(actions.actionInProgress(false))
             return Promise.resolve(item)
         }, (error) => {
             notify.error(
                 getErrorMessage(error, 'Failed to fulfil assignment.')
             )
+            $scope.reject()
+            dispatch(actions.actionInProgress(false))
             return Promise.reject(error)
         })
-    )
+    }
 )
 
 const complete = (item) => (
@@ -357,6 +385,7 @@ const self = {
     canLinkItem,
     _openActionModal,
     openSelectTemplateModal,
+    onAssignmentFormSave,
 }
 
 export default self

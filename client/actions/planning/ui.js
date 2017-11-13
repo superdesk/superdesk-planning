@@ -787,6 +787,7 @@ const saveFromAuthoring = (plan, publish=false) => (
             planning.api.saveAndPublish(plan) :
             planning.api.save(plan)
 
+        dispatch(actions.actionInProgress(true))
         return dispatch(action)
         .then((newPlan) => {
             const coverages = orderBy(newPlan.coverages, ['firstcreated'], ['desc'])
@@ -795,12 +796,14 @@ const saveFromAuthoring = (plan, publish=false) => (
             .then(() => {
                 notify.success('Content linked to the planning item.')
                 $scope.resolve()
+                dispatch(actions.actionInProgress(false))
                 return Promise.resolve(newPlan)
             }, (error) => {
                 notify.error(
                     getErrorMessage(error, 'Failed to link to the Planning item!')
                 )
                 $scope.reject()
+                dispatch(actions.actionInProgress(false))
                 return Promise.reject(error)
             })
         }, (error) => {
@@ -808,6 +811,7 @@ const saveFromAuthoring = (plan, publish=false) => (
                 getErrorMessage(error, 'Failed to save the Planning item!')
             )
             $scope.reject()
+            dispatch(actions.actionInProgress(false))
             return Promise.reject(error)
         })
     }
