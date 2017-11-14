@@ -81,7 +81,7 @@ class PlanningSchema(BaseSchema):
 
 class CoverageSchema(BaseSchema):
     ednote = schema.StringField()
-    g2_content_type = schema.ListField()
+    g2_content_type = schema.ListField(required=True)
     genre = schema.ListField()
     keyword = schema.ListField()
     headline = schema.StringField()
