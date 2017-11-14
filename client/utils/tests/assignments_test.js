@@ -24,7 +24,7 @@ describe('can edit assignment', () => {
 
         expect(
             utils.assignmentUtils.canStartWorking({ assigned_to: { state: 'submitted' } },
-                privileges)).toBe(false)
+                session, privileges)).toBe(false)
     })
 
     it('assignment state `cancelled`', () => {
@@ -35,6 +35,6 @@ describe('can edit assignment', () => {
 
         expect(
             utils.assignmentUtils.canStartWorking({ assigned_to: { state: 'canceled' } },
-                privileges)).toBe(false)
+                session, privileges)).toBe(false)
     })
 })

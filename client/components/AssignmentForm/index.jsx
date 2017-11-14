@@ -43,10 +43,6 @@ export class Component extends React.Component {
 
         const actions = [
             {
-                ...ASSIGNMENTS.ITEM_ACTIONS.START_WORKING,
-                callback: () => { startWorking(assignment) },
-            },
-            {
                 ...ASSIGNMENTS.ITEM_ACTIONS.REASSIGN,
                 callback: () => { reassign(assignment) },
             },
@@ -57,6 +53,10 @@ export class Component extends React.Component {
             {
                 ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
                 callback: () => { completeAssignment(assignment) },
+            },
+            {
+                ...ASSIGNMENTS.ITEM_ACTIONS.START_WORKING,
+                callback: () => { startWorking(assignment) },
             },
         ]
 
