@@ -12,12 +12,11 @@ import { DATE_FORMATS } from '../../constants'
  * Params:
  * param {object} date - datetime string in utc
  */
-export const AbsoluteDate = ({ date }) => {
-    let datetime = moment.utc(date)
-    datetime = datetime.toISOString()
+export const AbsoluteDate = ({ date, noDateString }) => {
+    date = moment.utc(date)
+    if (date.isValid()) {
+        const datetimeStr = date.toISOString()
 
-    const displayTime = (recievedDate) => {
-        let date = moment.utc(recievedDate)
         let rday
         let rdate
 
@@ -35,12 +34,17 @@ export const AbsoluteDate = ({ date }) => {
             rdate = date.format(DATE_FORMATS.DISPLAY_DATE_FORMAT)
         }
 
-        return rday + rdate
+        return <time dateTime={datetimeStr}>
+            <span>{rday + rdate}</span>
+        </time>
     }
 
-    return (
-        <time dateTime={datetime}><span>{displayTime(date)}</span></time>
-    )
+    return <time>
+        <span>{noDateString}</span>
+    </time>
 }
 
-AbsoluteDate.propTypes = { date: PropTypes.string }
+AbsoluteDate.propTypes = {
+    date: PropTypes.string,
+    noDateString: PropTypes.string,
+}

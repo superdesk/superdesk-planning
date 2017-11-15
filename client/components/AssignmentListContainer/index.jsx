@@ -6,13 +6,12 @@ import {
     AssignmentList,
     AssignmentListHeader,
     AssignmentListSearchHeader,
-    EditAssignmentPanelContainer,
+    AssignmentPanelContainer,
 } from '../index'
 import * as selectors from '../../selectors'
 import * as actions from '../../actions'
 import { WORKSPACE } from '../../constants'
 import './style.scss'
-
 
 class AssignmentListComponent extends React.Component {
 
@@ -41,7 +40,9 @@ class AssignmentListComponent extends React.Component {
     render() {
         return (
             <div className={classNames('Assignments-list-container',
-                  this.props.previewOpened ? 'Assignments-list-container__body--edit-assignment-view' : null
+                  this.props.previewOpened ?
+                      'Assignments-list-container__body--edit-assignment-view open-preview' :
+                      null
                 )}>
                 <AssignmentListHeader
                     searchQuery={this.props.searchQuery}
@@ -70,7 +71,7 @@ class AssignmentListComponent extends React.Component {
                         inAssignments={this.props.inAssignments}
                         startWorking={this.props.startWorking}
                     />
-                    {this.props.previewOpened && <EditAssignmentPanelContainer /> }
+                    <AssignmentPanelContainer previewOpened={this.props.previewOpened}/>
                 </div>
             </div>
         )

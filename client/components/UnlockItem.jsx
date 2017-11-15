@@ -6,6 +6,7 @@ export class UnlockItem extends React.Component {
     constructor(props) {
         super(props)
         this.handleClickOutside = this.handleClickOutside.bind(this)
+        this.unlockItem = this.unlockItem.bind(this)
     }
 
     componentDidMount() {
@@ -30,14 +31,24 @@ export class UnlockItem extends React.Component {
     }
 
     render() {
-        return ( <div className="dropdown__menu">
-                    <div className="dropdown__menu-label">{this.props.displayText}</div>
-                    <UserAvatar user={this.props.user} large={true}/>
-                    <div className="lock-text">{this.props.user.display_name}</div>
-                    {this.props.showUnlock && (<button type='button' className="btn btn--medium" onClick={this.unlockItem.bind(this)}>
+        const {
+            displayText,
+            user,
+            showUnlock,
+        } = this.props
+
+        return (
+            <div className="dropdown__menu">
+                <div className="dropdown__menu-label">{displayText || 'Locked By:'}</div>
+                <UserAvatar user={user} large={true} />
+                <div className="lock-text">{user.display_name}</div>
+                {showUnlock &&
+                    <button type='button' className="btn btn--medium" onClick={this.unlockItem}>
                         Unlock
-                    </button>)}
-                </div> )
+                    </button>
+                }
+            </div>
+        )
     }
 }
 
