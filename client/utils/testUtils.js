@@ -351,6 +351,7 @@ export const getTestActionStore = () => {
                 lastRequestParams: { page: 1 },
             },
             privileges: {
+                archive: 1,
                 planning: 1,
                 planning_planning_management: 1,
                 planning_planning_spike: 1,
@@ -550,6 +551,20 @@ export const getTestActionStore = () => {
                         name: 'Audio',
                         qcode: 'audio',
                         'content item type': 'audio',
+                    },
+                ],
+                assignment_priority: [
+                    {
+                        name: 'High',
+                        qcode: 1,
+                    },
+                    {
+                        name: 'Medium',
+                        qcode: 2,
+                    },
+                    {
+                        name: 'Low',
+                        qcode: 3,
                     },
                 ],
             },

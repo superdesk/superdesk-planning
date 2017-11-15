@@ -89,6 +89,7 @@ export const getFulFilledItem = (state) => get(state, 'assignment.fulfilledItem'
 export const getEventCalendars = (state) => get(state, 'vocabularies.event_calendars', [])
 export const getKeywords = (state) => get(state, 'vocabularies.keywords', [])
 export const getPlanningSearch = (state) => get(state, 'planning.search.currentSearch')
+export const getFormsProfile = (state) => get(state, 'formsProfile')
 export const getEventsFormsProfile = (state) => get(state, 'formsProfile.events')
 export const getPlanningsFormsProfile = (state) => get(state, 'formsProfile.planning')
 export const getCoverageFormsProfile = (state) => get(state, 'formsProfile.coverage')
@@ -145,6 +146,24 @@ export const getCurrentAssignment = createSelector(
     [getCurrentAssignmentId, getStoredAssignments],
     (assignmentId, storedAssignments) => (
         get(storedAssignments, assignmentId, null)
+    )
+)
+
+export const getCurrentAssignmentPlanningItem = createSelector(
+    [getCurrentAssignment, getStoredPlannings],
+    (assignment, storedPlannings) => (
+        assignment ?
+            get(storedPlannings, assignment.planning_item) :
+            null
+    )
+)
+
+export const getCurrentAssignmentEventItem = createSelector(
+    [getCurrentAssignmentPlanningItem, getEvents],
+    (planning, storedEvents) => (
+        planning ?
+            get(storedEvents, planning.event_item) :
+            null
     )
 )
 

@@ -3,6 +3,7 @@ import { ASSIGNMENTS } from '../../constants'
 import planningUtils from '../../utils/planning'
 import { get, cloneDeep, has, pick } from 'lodash'
 import { isItemLockedInThisSession } from '../../utils'
+import planning from '../planning'
 
 /**
  * Action Dispatcher for query the api for events
@@ -270,6 +271,16 @@ const unlock = (assignment) => (
     )
 )
 
+/**
+ * Fetch the Event and/or Planning item(s) associated with this Assignment
+ * @param {object} assignment - The Assignment to load items for
+ */
+const loadPlanningAndEvent = (assignment) => (
+    (dispatch) => (
+        dispatch(planning.api.fetchPlanningById(assignment.planning_item))
+    )
+)
+
 const self = {
     query,
     receivedAssignments,
@@ -281,6 +292,7 @@ const self = {
     lock,
     unlock,
     queryLockedAssignments,
+    loadPlanningAndEvent,
 }
 
 export default self

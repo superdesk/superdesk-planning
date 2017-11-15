@@ -3,18 +3,17 @@ import PropTypes from 'prop-types'
 import { formValueSelector, isValid, isSubmitting, isPristine } from 'redux-form'
 import { connect } from 'react-redux'
 import * as actions from '../../actions'
-import { PlanningForm } from '../index'
 import {
     PlanningHistoryContainer,
     AuditInformation,
     StateLabel,
-} from '../../components'
+    ItemActionsMenu,
+    PlanningForm,
+    LockContainer,
+} from '../'
 import * as selectors from '../../selectors'
 import { get } from 'lodash'
-import { UserAvatar, UnlockItem } from '../'
-import classNames from 'classnames'
 import './style.scss'
-import { ItemActionsMenu } from '../index'
 import {
     getCreator,
     getLockedUser,
@@ -37,7 +36,6 @@ export class EditPlanningPanel extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            openUnlockPopup: false,
             previewHistory: false,
 
             // Local state for the type of save to do
@@ -92,10 +90,6 @@ export class EditPlanningPanel extends React.Component {
                 unpublish: true,
             },
         }, this.handleSave)
-    }
-
-    toggleOpenUnlockPopup() {
-        this.setState({ openUnlockPopup: !this.state.openUnlockPopup })
     }
 
     viewPlanningHistory() {
@@ -228,6 +222,7 @@ export class EditPlanningPanel extends React.Component {
             privileges,
             lockedItems,
             currentWorkspace,
+            unlockItem,
         } = this.props
 
         const existingPlan = !!get(planning, '_id')
@@ -238,7 +233,7 @@ export class EditPlanningPanel extends React.Component {
         const author = getCreator(planning, 'original_creator', users)
         const versionCreator = getCreator(planning, 'version_creator', users)
 
-        const lockedUser = getLockedUser(planning, lockedItems, this.props.users)
+        const lockedUser = getLockedUser(planning, lockedItems, users)
         const planningSpiked = isItemSpiked(planning)
         const eventSpiked = isItemSpiked(event)
 
@@ -267,23 +262,15 @@ export class EditPlanningPanel extends React.Component {
         return (
             <div className="EditPlanningPanel">
                 <header className="subnav">
-                    <div className={classNames('dropdown',
-                        'dropdown--drop-right',
-                        'pull-left',
-                        { open: this.state.openUnlockPopup })}>
-                        {((!lockedInThisSession || !inPlanning) && lockedUser && forceReadOnly)
-                            && (
-                            <div className="lock-avatar">
-                                <button type='button' onClick={this.toggleOpenUnlockPopup.bind(this)}>
-                                    <UserAvatar user={lockedUser} withLoggedInfo={true} />
-                                </button>
-                                {this.state.openUnlockPopup && <UnlockItem user={lockedUser}
-                                    showUnlock={unlockPrivilege}
-                                    onCancel={this.toggleOpenUnlockPopup.bind(this)}
-                                    onUnlock={this.props.unlockItem.bind(this, planning)}/>}
-                            </div>
-                            )}
-                    </div>
+                    {(!lockedInThisSession || !inPlanning) && lockedUser && forceReadOnly &&
+                        <LockContainer
+                            lockedUser={lockedUser}
+                            users={users}
+                            showUnlock={unlockPrivilege}
+                            withLoggedInfo={true}
+                            onUnlock={unlockItem.bind(null, planning)}
+                        />
+                    }
                     {!this.state.previewHistory &&
                         <div className="EditPlanningPanel__actions">
                             {!forceReadOnly &&
