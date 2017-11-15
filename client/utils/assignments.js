@@ -3,14 +3,14 @@ import { ASSIGNMENTS, PRIVILEGES } from '../constants'
 import { isItemLockedInThisSession } from './index'
 
 const canEditAssignment = (assignment, session, privileges) => (
-    privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+    !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
     self.isAssignmentInEditableState(assignment) &&
     (!get(assignment, 'lock_user') ||
     isItemLockedInThisSession(assignment, session))
 )
 
 const canStartWorking = (assignment, session, privileges) => (
-    privileges[PRIVILEGES.ARCHIVE] &&
+    !!privileges[PRIVILEGES.ARCHIVE] &&
     get(assignment, 'assigned_to.user') === get(session, 'identity._id') &&
     get(assignment, 'planning.g2_content_type') === 'text' &&
     get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
@@ -23,8 +23,8 @@ const isAssignmentInEditableState = (assignment) => (
     get(assignment, 'assigned_to.state')))
 )
 
-const canCompleteAssignment = (assignment, session, privileges) =>
-    (privileges[PRIVILEGES.ARCHIVE] &&
+const canCompleteAssignment = (assignment, session, privileges) => (
+    !!privileges[PRIVILEGES.ARCHIVE] &&
         get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS &&
         (!get(assignment, 'lock_user') || isItemLockedInThisSession(assignment, session))
 )

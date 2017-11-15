@@ -1,0 +1,45 @@
+.AssignmentPreview {
+    .priority-label {
+        margin-right: 0.6rem;
+        vertical-align: middle;
+    }
+
+    .side-panel__top-tools {
+        min-height: 52px;
+    }
+
+    &__coverage-icon {
+        opacity: 0.6;
+        vertical-align: middle;
+        margin-right: 0.6rem;
+    }
+
+    .addgeolookup {
+        display: table;
+        &__input-wrapper {
+            display: table-cell;
+            width: 100%;
+            padding: 5px 10px 0 0;
+        }
+        &__suggests-wrapper {
+            display: table-row;
+        }
+    }
+
+    textarea {
+        border: 0;
+        background-color: white !important;
+        resize: none;
+        cursor: text !important;
+        margin: 0;
+        padding: 0;
+    }
+
+    .TimeAndAuthor {
+        margin: 0;
+    }
+
+    .toggle-box {
+        margin-bottom: 0;
+    }
+}

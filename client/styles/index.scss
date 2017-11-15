@@ -95,5 +95,8 @@
 .AssignmentsApp {
     @include absolute0;
     top: $nav-height;
-    bottom: 30px;
+
+    p {
+        margin: 0;
+    }
 }

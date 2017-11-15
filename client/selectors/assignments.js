@@ -1,5 +1,11 @@
 import { get } from 'lodash'
-import { getCurrentUserId, getCurrentDeskId, getCurrentWorkspace } from './planning'
+import {
+    getCurrentUserId,
+    getCurrentDeskId,
+    getCurrentWorkspace,
+    getStoredPlannings,
+    getEvents,
+} from './planning'
 import { createSelector } from 'reselect'
 import { getItemsById } from '../utils'
 import { WORKSPACE } from '../constants'
@@ -108,4 +114,22 @@ export const getAssignmentSearch = createSelector(
 
         return assignmentSearch
     }
+)
+
+export const getCurrentAssignmentPlanningItem = createSelector(
+    [getCurrentAssignment, getStoredPlannings],
+    (assignment, storedPlannings) => (
+        assignment ?
+            get(storedPlannings, assignment.planning_item) :
+            null
+    )
+)
+
+export const getCurrentAssignmentEventItem = createSelector(
+    [getCurrentAssignmentPlanningItem, getEvents],
+    (planning, storedEvents) => (
+        planning ?
+            get(storedEvents, planning.event_item) :
+            null
+    )
 )

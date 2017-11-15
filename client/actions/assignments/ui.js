@@ -236,10 +236,15 @@ const addToAssignmentListGroup = (assignments, group) => (
  * @return object
  */
 const preview = (assignment) => (
-    {
-        type: ASSIGNMENTS.ACTIONS.PREVIEW_ASSIGNMENT,
-        payload: assignment,
-    }
+    (dispatch) => (
+        dispatch(assignments.api.loadPlanningAndEvent(assignment))
+        .then(() => (
+            dispatch({
+                type: ASSIGNMENTS.ACTIONS.PREVIEW_ASSIGNMENT,
+                payload: assignment,
+            })
+        ))
+    )
 )
 
 /**
