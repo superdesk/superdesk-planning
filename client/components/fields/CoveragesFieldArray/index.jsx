@@ -7,6 +7,7 @@ import { get } from 'lodash'
 import * as selectors from '../../../selectors'
 import * as actions from '../../../actions'
 import { WORKSPACE } from '../../../constants'
+import { planningUtils } from '../../../utils'
 
 export class CoveragesFieldArrayComponent extends React.Component {
     newCoverage() {
@@ -58,6 +59,11 @@ export class CoveragesFieldArrayComponent extends React.Component {
         this.props.cancelCoverage(index, cancelledCoverage)
     }
 
+    getFromExistingCoverages(coverage) {
+        return this.props.existingCoverages.find(
+            (c) => c.coverage_id === coverage.coverage_id)
+    }
+
     render() {
         const {
             fields,
@@ -75,6 +81,14 @@ export class CoveragesFieldArrayComponent extends React.Component {
             <ul className="Coverage__list">
                 {fields.map((fieldName, index) => {
                     const coverage = fields.get(index)
+                    let isCoverageReadOnly = readOnly || (!inPlanning && !!get(coverage, 'coverage_id'))
+
+                    if (!isCoverageReadOnly && inPlanning && get(coverage, 'coverage_id') &&
+                        !planningUtils.canEditCoverage(this.getFromExistingCoverages(coverage))) {
+                        isCoverageReadOnly = true
+                    }
+
+
                     return (
                         <li key={index}>
                             <CoverageContainer
@@ -85,7 +99,7 @@ export class CoveragesFieldArrayComponent extends React.Component {
                                 contentTypes={contentTypes}
                                 users={users}
                                 desks={desks}
-                                readOnly={readOnly || (!inPlanning && !!get(coverage, 'coverage_id'))}
+                                readOnly={isCoverageReadOnly}
                                 removeCoverage={this.removeCoverage.bind(this)}
                                 duplicateCoverage={this.duplicateCoverage.bind(this)}
                                 cancelCoverage={this.cancelCoverage.bind(this)}
@@ -131,11 +145,13 @@ CoveragesFieldArrayComponent.propTypes = {
     cancelCoverageState: PropTypes.object,
     currentWorkspace: PropTypes.string,
     onAddCoverage: PropTypes.func,
+    existingCoverages: PropTypes.array,
 }
 
 CoveragesFieldArrayComponent.defaultProps = {
     slugline: '',
     fields: {},
+    existingCoverages: [],
 }
 
 const mapStateToProps = (state) => ({

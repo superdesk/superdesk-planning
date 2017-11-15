@@ -39,7 +39,7 @@ describe('<AssignmentForm />', () => {
             </Provider>
         )
 
-        expect(wrapper.find('CoverageDetails').length).toBe(1)
+        expect(wrapper.find('CoverageDetailsComponent').length).toBe(1)
         expect(wrapper.find('EditAssignment').length).toBe(1)
     })
 })

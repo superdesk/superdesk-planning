@@ -144,7 +144,8 @@ class Component extends React.Component {
                     slugline={slugline}
                     users={users}
                     readOnly={readOnly}
-                    desks={desks} />
+                    desks={desks}
+                    existingCoverages={get(initialValues, 'coverages')} />
             </form>
         )
     }
