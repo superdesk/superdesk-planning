@@ -16,7 +16,7 @@ export class ColoredValueSelectField extends React.Component {
     getIconClasses(val) {
         return val ? classNames('line-input',
             this.props.iconName,
-            this.props.iconName + '--' + get(val, 'value.qcode')) : 'line-input'
+            this.props.iconName + '--' + get(val, 'value.qcode', val.label)) : 'line-input'
     }
 
     render() {
@@ -53,7 +53,7 @@ export class ColoredValueSelectField extends React.Component {
                     disabled={readOnly}
                     onClick={this.toggleOpenPopup.bind(this)}>
                     <span className={this.getIconClasses(value)}>
-                        {get(value, 'value.qcode', 'None')}
+                        {get(value, 'value.qcode', get(value, 'label', 'None'))}
                     </span>
                     &nbsp;&nbsp;{get(value, 'label')}
                     {!readOnly && <b className='dropdown__caret' />}
