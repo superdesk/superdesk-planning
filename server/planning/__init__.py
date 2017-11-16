@@ -56,6 +56,7 @@ from .assignments_link import AssignmentsLinkResource, AssignmentsLinkService
 from .assignments_unlink import AssignmentsUnlinkResource, AssignmentsUnlinkService
 from .assignments_complete import AssignmentsCompleteResource, AssignmentsCompleteService
 from .commands import *  # noqa
+from .planning_notifications import PlanningNotifications
 
 
 def init_app(app):
@@ -328,6 +329,16 @@ def init_app(app):
         label='Planning - Publish Planning Items',
         description='Ability to publish a Planning Item'
     )
+
+    app.on_update_users += PlanningNotifications().user_update
+
+    superdesk.register_default_user_preference('slack:notification', {
+        'type': 'bool',
+        'enabled': True,
+        'default': False,
+        'label': 'Allow Notifications To Slack',
+        'category': 'notifications'
+    })
 
     superdesk.intrinsic_privilege(PlanningUnlockResource.endpoint_name, method=['POST'])
     superdesk.intrinsic_privilege(EventsUnlockResource.endpoint_name, method=['POST'])
