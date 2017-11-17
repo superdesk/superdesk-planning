@@ -16,6 +16,7 @@ from apps.templates.content_templates import get_item_from_template
 from planning.planning_export import get_desk_template
 from superdesk.errors import SuperdeskApiError
 from .common import ASSIGNMENT_WORKFLOW_STATE
+from copy import deepcopy
 
 FIELDS_TO_COPY = ('anpa_category', 'subject', 'urgency')
 
@@ -39,12 +40,13 @@ def get_item_from_assignment(assignment, template=None):
         template = get_desk_template(desk)
     item = get_item_from_template(template)
 
-    slugline = (assignment.get('planning') or {}).get('slugline')
+    planning_data = assignment.get('planning') or {}
+    slugline = planning_data.get('slugline')
 
     if slugline:
         item['slugline'] = slugline
 
-    ednote = (assignment.get('planning') or {}).get('ednote')
+    ednote = planning_data.get('ednote')
 
     planning_item = assignment.get('planning_item')
     # we now merge planning data if they are set
@@ -53,7 +55,7 @@ def get_item_from_assignment(assignment, template=None):
         if planning is not None:
             for field in FIELDS_TO_COPY:
                 if planning.get(field):
-                    item[field] = planning[field]
+                    item[field] = deepcopy(planning[field])
             # when creating planning item from news item, we use headline for description_text
             # so we are doing the opposite here
             if planning.get('description_text'):
@@ -61,11 +63,14 @@ def get_item_from_assignment(assignment, template=None):
             elif planning.get('headline'):
                 item['headline'] = planning['headline']
 
-            if (planning.get('flags') or {}).get('marked_for_not_publication') or False:
-                item['flags'] = {'marked_for_not_publication': True}
+            item.setdefault('flags', {}).update(planning.get('flags', {}))
 
     if ednote:
         item['ednote'] = ednote
+
+    genre = planning_data.get('genre')
+    if genre:
+        item['genre'] = deepcopy(genre)
 
     item['task'] = {
         'desk': desk['_id'],
