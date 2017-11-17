@@ -6,6 +6,7 @@ import { fields } from '../../components'
 import { Field } from 'redux-form'
 import { get } from 'lodash'
 import { assignmentUtils } from '../../utils'
+import { PLANNING, FORM_NAMES } from '../../constants'
 import { change } from 'redux-form'
 
 export class CoverageDetailsComponent extends React.Component {
@@ -16,7 +17,8 @@ export class CoverageDetailsComponent extends React.Component {
 
     componentWillUpdate(nextProps) {
         if (nextProps.hasAssignment &&
-            nextProps.newsCoverageStatus.qcode !== 'ncostat:int') {
+            nextProps.newsCoverageStatus.qcode !== 'ncostat:int' &&
+            nextProps.newsCoverageStatus.qcode !== PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode) {
             this.props.changeCoverageStatusPlanned()
         }
     }
@@ -39,6 +41,7 @@ export class CoverageDetailsComponent extends React.Component {
         const coverageStatusPrefix = fieldNamePrefix ? fieldNamePrefix : 'planning.'
 
         const assignmentInUse = assignmentUtils.isAssignmentInUse({ assigned_to: { state: assignmentState } })
+        const coverageCancelledInput = { value: 'Coverage Cancelled' }
 
         return (
             <div>
@@ -108,12 +111,22 @@ export class CoverageDetailsComponent extends React.Component {
                     </div>
                 )}
                 <div className="form__row">
-                    <Field
+                    { get(this.props, 'newsCoverageStatus.qcode') !== PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode &&
+                    (
+                        <Field
                         name={`${coverageStatusPrefix}news_coverage_status`}
                         component={fields.CoverageStatusField}
                         label="Coverage Status"
                         clearable={false}
                         readOnly={readOnly || hasAssignment || assignmentInUse} />
+                    )}
+                    { get(this.props, 'newsCoverageStatus.qcode') === PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode &&
+                    (
+                        <fields.InputField
+                            input={coverageCancelledInput}
+                            readOnly={true}
+                            label='Coverage Status' />
+                    )}
                 </div>
 
                 {get(formProfile, 'editor.scheduled.enabled') &&
@@ -144,15 +157,15 @@ CoverageDetailsComponent.propTypes = {
     hasAssignment: PropTypes.bool,
 }
 
-const selector = formValueSelector('planning')
+const selector = formValueSelector(FORM_NAMES.PlanningForm)
 const mapStateToProps = (state, ownProps) => {
-    const fieldName = ownProps.coverage + 'news_coverage_status'
+    const fieldName = ownProps.coverage + '.news_coverage_status'
     return { newsCoverageStatus: selector(state, fieldName) }
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
     changeCoverageStatusPlanned: () =>
-        (dispatch(change('planning', ownProps.coverage + 'news_coverage_status',
+        (dispatch(change(FORM_NAMES.PlanningForm, ownProps.coverage + '.news_coverage_status',
             { qcode: 'ncostat:int' }))),
 })
 

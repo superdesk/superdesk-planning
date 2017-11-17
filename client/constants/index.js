@@ -85,4 +85,5 @@ export const FORM_NAMES = {
     PostponeEventForm: 'postponeEvent',
     ReassignAssignmentForm: 'reassignAssignmentForm',
     EditAssignmentPriorityForm: 'editAssignmentPriorityForm',
+    PlanningForm: 'planning',
 }
