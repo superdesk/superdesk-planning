@@ -13,9 +13,10 @@ function configurePlanning(superdesk) {
             label: gettext('Planning'),
             description: gettext('Planning'),
             priority: 100,
-            category: superdesk.MENU_MAIN,
             adminTools: false,
             template: require('./client/views/planning.html'),
+            topTemplateUrl: 'scripts/apps/dashboard/views/workspace-topnav.html',
+            sideTemplateUrl: 'scripts/apps/workspace/views/workspace-sidenav.html',
             privileges: { planning: 1 },
         })
         .activity('/settings/planning', {
