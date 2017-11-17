@@ -9,8 +9,9 @@ const canEditAssignment = (assignment, session, privileges) => (
     isItemLockedInThisSession(assignment, session))
 )
 
-const canStartWorking = (assignment, privileges) => (
+const canStartWorking = (assignment, session, privileges) => (
     privileges[PRIVILEGES.ARCHIVE] &&
+    get(assignment, 'assigned_to.user') === get(session, 'identity._id') &&
     get(assignment, 'planning.g2_content_type') === 'text' &&
     get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
     !get(assignment, 'lock_user')
@@ -46,7 +47,7 @@ const getAssignmentItemActions = (assignment, session, privileges, actions) => {
         [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: () =>
             canEditAssignment(assignment, session, privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: () =>
-            canStartWorking(assignment, privileges),
+            canStartWorking(assignment, session, privileges),
     }
 
     actions.forEach((action) => {

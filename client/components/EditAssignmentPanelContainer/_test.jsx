@@ -192,10 +192,28 @@ describe('<EditAssignmentPanelContainer />', () => {
         const initialState = getState()
         initialState.assignment.assignments[1].assigned_to.state = 'assigned'
         initialState.assignment.assignments[1].planning.g2_content_type = 'text'
+        initialState.assignment.assignments[1].assigned_to.user = 'ident1'
         let store = createTestStore({ initialState })
         let wrapper = getWrapper(store)
         store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
         expect(itemActionExists(wrapper, 'Start Working')).toBe(true)
+    })
+
+    it('Start working action appears only for the assigned user', () => {
+        const initialState = getState()
+        initialState.assignment.assignments[1].assigned_to.state = 'assigned'
+        initialState.assignment.assignments[1].planning.g2_content_type = 'text'
+        initialState.assignment.assignments[1].assigned_to.user = 'ident1'
+        let store = createTestStore({ initialState })
+        let wrapper = getWrapper(store)
+        store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
+        expect(itemActionExists(wrapper, 'Start Working')).toBe(true)
+
+        initialState.assignment.assignments[1].assigned_to.user = 'ident2'
+        store = createTestStore({ initialState })
+        wrapper = getWrapper(store)
+        store.dispatch(assignmentsUi.preview(initialState.assignment.assignments[1]))
+        expect(itemActionExists(wrapper, 'Start Working')).toBe(false)
     })
 
     it('Start working action does not appear if there is no archive privilege for the user', () => {
