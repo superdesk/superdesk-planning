@@ -30,6 +30,7 @@ import {
     PLANNING,
     WORKSPACE,
     MODALS,
+    FORM_NAMES,
 } from '../../constants'
 
 export class EditPlanningPanel extends React.Component {
@@ -444,7 +445,7 @@ EditPlanningPanel.propTypes = {
     onPlanningFormSave: PropTypes.func,
 }
 
-const selector = formValueSelector('planning') // Selector for the Planning form
+const selector = formValueSelector(FORM_NAMES.PlanningForm) // Selector for the Planning form
 const mapStateToProps = (state) => ({
     planning: selectors.getCurrentPlanning(state),
     event: selectors.getCurrentPlanningEvent(state),
@@ -455,9 +456,9 @@ const mapStateToProps = (state) => ({
     privileges: selectors.getPrivileges(state),
     session: selectors.getSessionDetails(state),
     lockedItems: selectors.getLockedItems(state),
-    pristine: isPristine('planning')(state),
-    valid: isValid('planning')(state),
-    submitting: isSubmitting('planning')(state),
+    pristine: isPristine(FORM_NAMES.PlanningForm)(state),
+    valid: isValid(FORM_NAMES.PlanningForm)(state),
+    submitting: isSubmitting(FORM_NAMES.PlanningForm)(state),
     currentWorkspace: selectors.getCurrentWorkspace(state),
 })
 

@@ -121,7 +121,8 @@ export class CoverageContainer extends React.Component {
                                 <i className="icon-close-small"/>
                             </button>
                         </div>
-                        <Coverage coverage={fieldName} readOnly={readOnly || !planningUtils.canEditCoverage(coverage)}/>
+                        <Coverage coverage={fieldName} readOnly={readOnly}
+                            hasAssignment={!!get(coverage, 'assigned_to.desk')}/>
                     </div>
                 }
             </div>

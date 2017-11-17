@@ -50,4 +50,9 @@ export const PLANNING = {
             icon: 'icon-close-small',
         },
     },
+    NEWS_COVERAGE_CANCELLED_STATUS: {
+        qcode: 'ncostat:notint',
+        name: 'coverage not intended',
+        label: 'Not planned',
+    },
 }

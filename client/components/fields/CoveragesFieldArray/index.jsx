@@ -6,7 +6,8 @@ import { arraySplice } from 'redux-form'
 import { get } from 'lodash'
 import * as selectors from '../../../selectors'
 import * as actions from '../../../actions'
-import { WORKSPACE } from '../../../constants'
+import { WORKSPACE, PLANNING, FORM_NAMES } from '../../../constants'
+import { planningUtils } from '../../../utils'
 
 export class CoveragesFieldArrayComponent extends React.Component {
     newCoverage() {
@@ -42,7 +43,7 @@ export class CoveragesFieldArrayComponent extends React.Component {
     cancelCoverage(index) {
         let cancelledCoverage = {
             ...this.props.fields.get(index),
-            news_coverage_status:  this.props.cancelCoverageState,
+            news_coverage_status:  PLANNING.NEWS_COVERAGE_CANCELLED_STATUS,
         }
 
         cancelledCoverage.planning = {
@@ -75,6 +76,10 @@ export class CoveragesFieldArrayComponent extends React.Component {
             <ul className="Coverage__list">
                 {fields.map((fieldName, index) => {
                     const coverage = fields.get(index)
+                    let isCoverageReadOnly = readOnly ||
+                        (!inPlanning && !!get(coverage, 'coverage_id') ||
+                        !planningUtils.canEditCoverage(coverage))
+
                     return (
                         <li key={index}>
                             <CoverageContainer
@@ -85,7 +90,7 @@ export class CoveragesFieldArrayComponent extends React.Component {
                                 contentTypes={contentTypes}
                                 users={users}
                                 desks={desks}
-                                readOnly={readOnly || (!inPlanning && !!get(coverage, 'coverage_id'))}
+                                readOnly={isCoverageReadOnly}
                                 removeCoverage={this.removeCoverage.bind(this)}
                                 duplicateCoverage={this.duplicateCoverage.bind(this)}
                                 cancelCoverage={this.cancelCoverage.bind(this)}
@@ -128,7 +133,6 @@ CoveragesFieldArrayComponent.propTypes = {
     contentTypes: PropTypes.array.isRequired,
     desks: PropTypes.array.isRequired,
     cancelCoverage: PropTypes.func,
-    cancelCoverageState: PropTypes.object,
     currentWorkspace: PropTypes.string,
     onAddCoverage: PropTypes.func,
 }
@@ -140,13 +144,12 @@ CoveragesFieldArrayComponent.defaultProps = {
 
 const mapStateToProps = (state) => ({
     contentTypes: selectors.getContentTypes(state),
-    cancelCoverageState: selectors.getCoverageCancelState(state),
     currentWorkspace: selectors.getCurrentWorkspace(state),
 })
 
 const mapDispatchToProps = (dispatch) =>  ({
     cancelCoverage: (index, coverage) =>
-        (dispatch(arraySplice('planning', 'coverages', index, 1, coverage))),
+        (dispatch(arraySplice(FORM_NAMES.PlanningForm, 'coverages', index, 1, coverage))),
     onAddCoverage: () =>
         dispatch(actions.planning.ui.onAddCoverageClick()),
 })

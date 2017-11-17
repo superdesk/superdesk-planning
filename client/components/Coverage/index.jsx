@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import { EditAssignment, CoverageDetails } from '../../components'
 import * as selectors from '../../selectors'
+import { FORM_NAMES } from '../../constants'
 import { Field, formValueSelector } from 'redux-form'
 import './style.scss'
 
@@ -18,6 +19,7 @@ function CoverageComponent({
     currentUserId,
     assignmentPriorities,
     assignmentState,
+    hasAssignment,
     }) {
     return (
         <fieldset>
@@ -37,6 +39,7 @@ function CoverageComponent({
                 readOnly={readOnly}
                 content_type={content_type}
                 assignmentState={assignmentState}
+                hasAssignment={hasAssignment}
                 keywords={keywords} />
         </fieldset>
     )
@@ -54,9 +57,10 @@ CoverageComponent.propTypes = {
     currentUserId: PropTypes.string,
     assignmentPriorities: PropTypes.array,
     assignmentState: PropTypes.string,
+    hasAssignment: PropTypes.bool,
 }
 
-const selector = formValueSelector('planning') // same as form name
+const selector = formValueSelector(FORM_NAMES.PlanningForm) // same as form name
 const mapStateToProps = (state, ownProps) => ({
     users: selectors.getUsers(state),
     currentUserId: selectors.getCurrentUserId(state),

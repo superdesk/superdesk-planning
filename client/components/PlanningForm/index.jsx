@@ -5,6 +5,7 @@ import { connect } from 'react-redux'
 import { Field, FieldArray, reduxForm, propTypes, formValueSelector } from 'redux-form'
 import * as selectors from '../../selectors'
 import { isItemPublic } from '../../utils/index'
+import { FORM_NAMES } from '../../constants'
 import './style.scss'
 import { get } from 'lodash'
 import {
@@ -164,7 +165,7 @@ Component.propTypes = {
 
 // Decorate the form component
 const PlanningReduxForm = reduxForm({
-    form: 'planning', // a unique name for this form
+    form: FORM_NAMES.PlanningForm, // a unique name for this form
     validate: ChainValidators([
         RequiredFieldsValidatorFactory(),
         MaxLengthValidatorFactory(),
@@ -172,7 +173,7 @@ const PlanningReduxForm = reduxForm({
     enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
-const selector = formValueSelector('planning') // same as form name
+const selector = formValueSelector(FORM_NAMES.PlanningForm) // same as form name
 const mapStateToProps = (state) => ({
     slugline: selector(state, 'slugline'), // Used to parse current slugline to new coverages
     pubstatus: selector(state, 'pubstatus'), // Used to determine `Published State`
