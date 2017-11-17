@@ -9,6 +9,7 @@
 """Creates content based on the assignment"""
 
 import superdesk
+from copy import deepcopy
 from eve.utils import config
 from apps.archive.common import insert_into_versions
 from apps.auth import get_user_id
@@ -16,7 +17,7 @@ from apps.templates.content_templates import get_item_from_template
 from planning.planning_export import get_desk_template
 from superdesk.errors import SuperdeskApiError
 from .common import ASSIGNMENT_WORKFLOW_STATE
-from copy import deepcopy
+from superdesk.utc import utcnow
 
 FIELDS_TO_COPY = ('anpa_category', 'subject', 'urgency')
 
@@ -111,15 +112,15 @@ class AssignmentsContentService(superdesk.Service):
                 'coverage_id': assignment['coverage_item']
             }])
 
+            updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
+            updates['assigned_to']['user'] = str(item.get('task').get('user'))
+            updates['assigned_to']['desk'] = str(item.get('task').get('desk'))
+            updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+            updates['assigned_to']['assignor_user'] = str(item.get('task').get('user'))
+            updates['assigned_to']['assigned_date_user'] = utcnow()
+
             # set the assignment to in progress
-            assignments_service.patch(assignment[config.ID_FIELD],
-                                      {
-                                          'assigned_to': {
-                                              'user': str(item.get('task').get('desk')),
-                                              'desk': str(item.get('task').get('desk')),
-                                              'state': ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
-                                          }}
-                                      )
+            assignments_service.patch(assignment[config.ID_FIELD], updates)
             doc.update(item)
             ids.append(doc['_id'])
         return ids
