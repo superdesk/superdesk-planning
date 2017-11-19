@@ -23,10 +23,8 @@ export function AssignmentController(
     .then((store) => {
         store.dispatch(actions.initStore(WORKSPACE.ASSIGNMENTS))
         registerNotifications($scope, store)
-        store.dispatch(actions.assignments.ui.loadAssignments('All', null, 'Created', 'Asc'))
+        store.dispatch(actions.locks.loadAssignmentLocks())
         .then(() => {
-            store.dispatch(actions.locks.loadAssignmentLocks())
-
             $scope.$watch(
                 () => desks.active,
                 () => {

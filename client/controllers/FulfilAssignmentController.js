@@ -95,8 +95,10 @@ export function FulFilAssignmentController(
             registerNotifications($scope, store)
 
             store.dispatch(actions.assignments.ui.loadAssignments('All', null,
-                'Created', 'Asc', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED, item.type))
+                'Created', 'Asc', [ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED], item.type))
             .then(() => {
+                store.dispatch(actions.assignments.ui.changeAssignmentListSingleGroupView('TODO'))
+
                 ReactDOM.render(
                     <Provider store={store}>
                         <ModalsContainer />

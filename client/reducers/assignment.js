@@ -7,7 +7,10 @@ const initialState = {
     assignments: {},
     filterBy: 'All',
     previewOpened: false,
-    assignmentsInList: [],
+    assignmentsInInProgressList: [],
+    assignmentsInTodoList: [],
+    assignmentsInCompletedList: [],
+    assignmentListSingleGroupView: null,
     currentAssignmentId: null,
 }
 
@@ -38,18 +41,59 @@ const assignmentReducer = createReducer(initialState, {
         }
     },
 
-    [ASSIGNMENTS.ACTIONS.SET_ASSIGNMENTS_LIST]: (state, payload) => (
+    [ASSIGNMENTS.ACTIONS.SET_TODO_LIST]: (state, payload) => (
         {
             ...state,
-            assignmentsInList: payload || [],
+            assignmentsInTodoList: payload.ids,
+            todoListTotal: payload.total,
+            todoListLastLoadedPage: 1,
         }
     ),
 
-    [ASSIGNMENTS.ACTIONS.ADD_TO_ASSIGNMENTS_LIST]: (state, payload) => (
-        assignmentReducer(state, {
-            type: ASSIGNMENTS.ACTIONS.SET_ASSIGNMENTS_LIST,
-            payload: uniq([...state.assignmentsInList, ...payload]),
-        })
+    [ASSIGNMENTS.ACTIONS.SET_IN_PROGRESS_LIST]: (state, payload) => (
+        {
+            ...state,
+            assignmentsInInProgressList: payload.ids,
+            inProgressListTotal: payload.total,
+            inProgressListLastLoadedPage: 1,
+        }
+    ),
+
+    [ASSIGNMENTS.ACTIONS.SET_COMPLETED_LIST]: (state, payload) => (
+        {
+            ...state,
+            assignmentsInCompletedList: payload.ids,
+            completedListTotal: payload.total,
+            completedListLastLoadedPage: 1,
+        }
+    ),
+
+    [ASSIGNMENTS.ACTIONS.ADD_TO_TODO_LIST]: (state, payload) => (
+        {
+            ...state,
+            assignmentsInTodoList: uniq([...state.assignmentsInTodoList, ...payload]),
+        }
+    ),
+
+    [ASSIGNMENTS.ACTIONS.ADD_TO_IN_PROGRESS_LIST]: (state, payload) => (
+        {
+            ...state,
+            assignmentsInInProgressList: uniq([...state.assignmentsInInProgressList, ...payload]),
+        }
+    ),
+
+    [ASSIGNMENTS.ACTIONS.ADD_TO_COMPLETED_LIST]: (state, payload) => (
+        {
+            ...state,
+            assignmentsInCompletedList: uniq([...state.assignmentsInCompletedList, ...payload]),
+        }
+    ),
+
+    [ASSIGNMENTS.ACTIONS.CHANGE_LIST_VIEW_MODE]: (state, payload) => (
+        {
+            ...state,
+            assignmentListSingleGroupView: payload,
+        }
     ),
 
     [ASSIGNMENTS.ACTIONS.CHANGE_LIST_SETTINGS]: (state, payload) => (

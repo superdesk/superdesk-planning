@@ -72,16 +72,15 @@ describe('actions.assignments.notification', () => {
             let payload = {
                 item: 'as1',
                 assigned_desk: 'desk1',
+                assignment_state: 'assigned',
             }
             sinon.stub(assignmentsApi, 'query').callsFake(() => (Promise.resolve({ _items: [] })))
-            sinon.stub(assignmentsUi, 'setInList').callsFake(() => {})
             sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(() => {})
 
             return store.test(done, assignmentNotifications.onAssignmentCreated({}, payload))
             .then(() => {
                 expect(assignmentsApi.query.callCount).toBe(1)
                 expect(assignmentsApi.receivedAssignments.callCount).toBe(1)
-                expect(assignmentsUi.setInList.callCount).toBe(1)
                 done()
             })
         })
@@ -89,7 +88,7 @@ describe('actions.assignments.notification', () => {
 
     describe('`assignment:update`', () => {
         afterEach(() => {
-            restoreSinonStub(assignmentsUi.fetch)
+            restoreSinonStub(assignmentsUi.reloadAssignments)
         })
 
         it('update planning on assignment update', (done) => {
@@ -100,6 +99,7 @@ describe('actions.assignments.notification', () => {
                 coverage: 'c1',
                 planning: 'p1',
                 original_assigned_desk: 'desk1',
+                assignment_state: 'assigned',
             }
             const plans = selectors.getStoredPlannings(store.getState())
             const planning1 = plans[payload.planning]
@@ -108,12 +108,34 @@ describe('actions.assignments.notification', () => {
 
             expect(coverage1.assigned_to.desk).toBe('desk1')
             expect(coverage1.assigned_to.state).toBe(undefined)
-            sinon.stub(assignmentsUi, 'fetch').callsFake(() => Promise.resolve())
+            sinon.stub(assignmentsUi, 'reloadAssignments').callsFake(() => Promise.resolve())
 
             return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
             .then(() => {
                 expect(coverage1.assigned_to.desk).toBe('desk2')
-                expect(assignmentsUi.fetch.callCount).toBe(1)
+                expect(coverage1.assigned_to.state).toBe('assigned')
+                expect(assignmentsUi.reloadAssignments.callCount).toBe(1)
+                done()
+            })
+        })
+
+        it('assignment list groups are reloaded when assignment moves groups', (done) => {
+            store.initialState.workspace.currentDeskId = 'desk1'
+            store.initialState.assignment.assignments.as1.assigned_to.state = 'assigned'
+            let payload = {
+                item: 'as1',
+                assigned_desk: 'desk2',
+                coverage: 'c1',
+                planning: 'p1',
+                original_assigned_desk: 'desk1',
+                assignment_state: 'in_progress',
+            }
+
+            sinon.stub(assignmentsUi, 'reloadAssignments').callsFake(() => Promise.resolve())
+
+            return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
+            .then(() => {
+                expect(assignmentsUi.reloadAssignments.callCount).toBe(2)
                 done()
             })
         })
@@ -190,7 +212,7 @@ describe('actions.assignments.notification', () => {
 
     describe('`assignment:completed`', () => {
         afterEach(() => {
-            restoreSinonStub(assignmentsUi.fetch)
+            restoreSinonStub(assignmentsUi.reloadAssignments)
         })
 
         it('update planning on assignment complete', (done) => {
@@ -210,13 +232,13 @@ describe('actions.assignments.notification', () => {
 
             expect(coverage1.assigned_to.desk).toBe('desk1')
             expect(coverage1.assigned_to.state).toBe(undefined)
-            sinon.stub(assignmentsUi, 'fetch').callsFake(() => Promise.resolve())
+            sinon.stub(assignmentsUi, 'reloadAssignments').callsFake(() => Promise.resolve())
 
             return store.test(done, assignmentNotifications.onAssignmentUpdated({}, payload))
             .then(() => {
                 expect(coverage1.assigned_to.desk).toBe('desk2')
                 expect(coverage1.assigned_to.state).toBe('completed')
-                expect(assignmentsUi.fetch.callCount).toBe(1)
+                expect(assignmentsUi.reloadAssignments.callCount).toBe(1)
                 done()
             })
         })

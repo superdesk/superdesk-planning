@@ -26,7 +26,7 @@ const isAssignmentInEditableState = (assignment) => (
 const canCompleteAssignment = (assignment, session, privileges) =>
     (privileges[PRIVILEGES.ARCHIVE] &&
         get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS &&
-        !get(assignment, 'lock_user') || isItemLockedInThisSession(assignment, session)
+        (!get(assignment, 'lock_user') || isItemLockedInThisSession(assignment, session))
 )
 
 const isAssignmentInUse = (assignment) => (
@@ -67,6 +67,43 @@ const getAssignmentItemActions = (assignment, session, privileges, actions) => {
     return itemActions
 }
 
+const getAssignmentsInListGroups = (assignments) => {
+    let listGroups = {
+        todo: [],
+        inProgress: [],
+        completed: [],
+    }
+
+    assignments.forEach((a) => {
+        if (includes(ASSIGNMENTS.LIST_GROUPS.TODO.states, a.assigned_to.state)) {
+            listGroups.todo.push(a._id)
+        } else if (includes(ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.states, a.assigned_to.state)) {
+            listGroups.inProgress.push(a._id)
+        } else {
+            listGroups.completed.push(a._id)
+        }
+    })
+
+    return listGroups
+}
+
+const getAssignmentGroupByStates = (states=[]) => {
+    if (get(states, 'length') > 0) {
+        const state = states[0]
+        if (ASSIGNMENTS.LIST_GROUPS.TODO.states.indexOf(state) > -1) {
+            return ASSIGNMENTS.LIST_GROUPS.TODO
+        }
+
+        if (ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.states.indexOf(state) > -1) {
+            return ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS
+        }
+
+        if (ASSIGNMENTS.LIST_GROUPS.COMPLETED.states.indexOf(state) > -1) {
+            return ASSIGNMENTS.LIST_GROUPS.COMPLETED
+        }
+    }
+}
+
 const self = {
     canEditAssignment,
     canCompleteAssignment,
@@ -74,6 +111,8 @@ const self = {
     getAssignmentItemActions,
     isAssignmentInUse,
     canStartWorking,
+    getAssignmentsInListGroups,
+    getAssignmentGroupByStates,
 }
 
 export default self

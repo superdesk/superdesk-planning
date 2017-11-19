@@ -2,13 +2,14 @@
 $EDIT_ASSIGNMENT_WIDTH: 450px;
 
 .EditAssignmentPanel {
+    float: right;
     display: flex;
     flex-direction: column;
     position: relative;
     transition-property: width;
     transition-duration: .25s;
     box-sizing: border-box;
-    width: 0;
+    width: $EDIT_ASSIGNMENT_WIDTH;;
     background-color: white;
     box-shadow: inset 2px 0 3px -1px #d8d8d8;
     & > header {
@@ -44,11 +45,7 @@ $EDIT_ASSIGNMENT_WIDTH: 450px;
     overflow: auto;
     padding: 20px;
 }
-.Assignments-list-container__body--edit-assignment-view { // when the assignment editor is open
-    .EditAssignmentPanel {
-        width: $EDIT_ASSIGNMENT_WIDTH;
-    }
-}
+
 .history-preview {
     max-height: calc(100vh - 100px);
     overflow-y: scroll;
