@@ -38,6 +38,8 @@ logger = logging.getLogger(__name__)
 planning_type = deepcopy(superdesk.Resource.rel('planning', type='string'))
 planning_type['mapping'] = not_analyzed
 
+DEFAULT_ASSIGNMENT_PRIORITY = 2
+
 
 class AssignmentsService(superdesk.Service):
     """Service class for the Assignments model."""
@@ -459,7 +461,8 @@ class AssignmentsService(superdesk.Service):
                     'assigned_to': {
                         'user': (item.get('task') or {}).get('user'),
                         'desk': (item.get('task') or {}).get('desk'),
-                        'state': ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
+                        'state': ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
+                        'priority': DEFAULT_ASSIGNMENT_PRIORITY,
                     }
                 }
             )
