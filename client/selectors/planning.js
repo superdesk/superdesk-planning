@@ -4,6 +4,7 @@ import moment from 'moment'
 import { AGENDA, SPIKED_STATE } from '../constants'
 import { isItemLockedInThisSession, isItemSpiked } from '../utils'
 
+export const getFormsProfile = (state) => get(state, 'formsProfile')
 export const getIngestProviders = (state) => get(state, 'ingest.providers')
 export const getAgendas = (state) => get(state, 'agenda.agendas', [])
 export const getCurrentPlanningId = (state) => get(state, 'planning.currentPlanningId')

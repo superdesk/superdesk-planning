@@ -2,6 +2,7 @@ import { createTestStore } from '../../utils'
 import { restoreSinonStub } from '../../utils/testUtils'
 import { mount } from 'enzyme'
 import { AssignmentListContainer } from './index'
+import { AssignmentPanelContainer } from '../'
 import React from 'react'
 import sinon from 'sinon'
 import { Provider } from 'react-redux'
@@ -11,8 +12,8 @@ describe('<AssignmentListContainer />', () => {
     const initialState = {
         assignment: {
             assignments: {
-                1: {
-                    _id: 1,
+                as1: {
+                    _id: 'as1',
                     _created: '2017-07-13T13:55:41+0000',
                     _updated: '2017-07-28T11:16:36+0000',
                     planning: {
@@ -32,7 +33,7 @@ describe('<AssignmentListContainer />', () => {
             orderDirection: 'Desc',
             lastAssignmentLoadedPage: 1,
             previewOpened: true,
-            currentAssignmentId: 1,
+            currentAssignmentId: 'as1',
             assignmentsInList: [1],
             readOnly: true,
         },
@@ -54,7 +55,7 @@ describe('<AssignmentListContainer />', () => {
         expect(wrapper.find('SearchBar').length).toBe(1)
         expect(wrapper.find('OrderBar').length).toBe(1)
         expect(wrapper.find('.search-handler').length).toBe(1)
-        expect(wrapper.find('EditAssignment').length).toBe(1)
+        expect(wrapper.find(AssignmentPanelContainer).length).toBe(1)
     })
 
     it('invokes loadAssignments for all list groups when searchQuery is changed', () => {

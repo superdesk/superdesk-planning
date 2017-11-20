@@ -14,7 +14,6 @@ import './style.scss'
 import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS, TOOLTIPS, MODALS } from '../../constants'
 import * as selectors from '../../selectors'
 import PropTypes from 'prop-types'
-import classNames from 'classnames'
 import {
     eventUtils,
     getLockedUser,
@@ -29,12 +28,11 @@ import {
     EventHistoryContainer,
     AuditInformation,
     ItemActionsMenu,
-    UnlockItem,
-    UserAvatar,
     StateLabel,
     EventScheduleForm,
     EventScheduleSummary,
     ToggleBox,
+    LockContainer,
 } from '../index'
 
 /**
@@ -45,10 +43,7 @@ import {
 export class Component extends React.Component {
     constructor(props) {
         super(props)
-        this.state = {
-            previewHistory: false,
-            openUnlockPopup: false,
-        }
+        this.state = { previewHistory: false }
 
         this.cancelForm = this.cancelForm.bind(this)
         this.saveAndClose = this.saveAndClose.bind(this)
@@ -68,10 +63,6 @@ export class Component extends React.Component {
 
     handleSaveAndPublish(event) {
         this.props.saveAndPublish(event, this.props.pristine)
-    }
-
-    toggleOpenUnlockPopup() {
-        this.setState({ openUnlockPopup: !this.state.openUnlockPopup })
     }
 
     saveAndClose() {
@@ -326,28 +317,15 @@ export class Component extends React.Component {
                 {!this.state.previewHistory &&
                     <div className="EventForm__form">
                     <div>
-                        {lockRestricted && (
-                            <div className={classNames('dropdown',
-                                'dropdown--dropright',
-                                { open: this.state.openUnlockPopup })} >
-                                <div className="lock-avatar">
-                                    <button
-                                        type='button'
-                                        onClick={this.toggleOpenUnlockPopup.bind(this)}
-                                    >
-                                        <UserAvatar user={lockedUser} withLoggedInfo={true} />
-                                    </button>
-                                    {this.state.openUnlockPopup &&
-                                        <UnlockItem
-                                            user={lockedUser}
-                                            showUnlock={unlockPrivilege}
-                                            onCancel={this.toggleOpenUnlockPopup.bind(this)}
-                                            onUnlock={onUnlock.bind(this, initialValues)}
-                                        />
-                                    }
-                                </div>
-                            </div>
-                        )}
+                        {lockRestricted &&
+                            <LockContainer
+                                lockedUser={lockedUser}
+                                users={users}
+                                showUnlock={unlockPrivilege}
+                                withLoggedInfo={true}
+                                onUnlock={onUnlock.bind(null, initialValues)}
+                            />
+                        }
                         <AuditInformation
                             createdBy={author}
                             updatedBy={versionCreator}

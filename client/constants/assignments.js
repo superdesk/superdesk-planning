@@ -40,7 +40,7 @@ export const ASSIGNMENTS = {
         },
         EDIT_PRIORITY: {
             label: 'Edit Priority',
-            icon: 'con-chevron-up-thin',
+            icon: 'icon-chevron-up-thin',
         },
         START_WORKING: {
             label: 'Start Working',

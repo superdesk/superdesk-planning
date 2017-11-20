@@ -29,10 +29,21 @@ export const AuditInformationComponent = ({
     return (
         <div className="TimeAndAuthor">
             {createdDateTime && creator &&
-                <div>Created {createdDateTime} by <span className='TimeAndAuthor__author'> {creator.display_name || creator.name}</span></div>
+                <div className='sd-test__date-and-author'>
+                    <time>Created {createdDateTime} by </time>
+                    <span className='TimeAndAuthor__author sd-text__author'>
+                        {creator.display_name || creator.name}
+                    </span>
+                </div>
             }
+
             {modifiedDateTime && versionCreator &&
-                <div>Updated {modifiedDateTime} by <span className='TimeAndAuthor__author'> {versionCreator.display_name}</span></div>
+                <div className='sd-text__date-and-author'>
+                    <time>Updated {modifiedDateTime} by </time>
+                    <span className='TimeAndAuthor__author sd-text__author'>
+                        {versionCreator.display_name}
+                    </span>
+                </div>
             }
         </div>
     )
@@ -44,10 +55,10 @@ AuditInformationComponent.propTypes = {
         React.PropTypes.object,
     ]),
     ingestProviders: React.PropTypes.array,
-    createdBy:React.PropTypes.any,
-    createdAt:React.PropTypes.any,
-    updatedBy:React.PropTypes.any,
-    updatedAt:React.PropTypes.any,
+    createdBy: React.PropTypes.any,
+    createdAt: React.PropTypes.any,
+    updatedBy: React.PropTypes.any,
+    updatedAt: React.PropTypes.any,
 }
 
 const mapStateToProps = (state) => (
