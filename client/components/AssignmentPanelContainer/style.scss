@@ -4,4 +4,13 @@
     top: 96px;
     bottom: 0;
     width: 560px !important;
+
+    &__lock-user {
+        flex-grow: unset !important;
+        padding: 10px 0 0 15px;
+
+        button {
+            padding-right: 0;
+        }
+    }
 }

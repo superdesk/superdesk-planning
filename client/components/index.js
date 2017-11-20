@@ -81,6 +81,14 @@ export { AssignmentsApp } from './AssignmentsApp'
 export { SelectItemModal } from './SelectItemModal'
 export { Label } from './Label/index'
 export { LockContainer } from './LockContainer'
+export { ArchivePreview } from './ArchivePreview'
+export { HtmlPreview } from './HtmlPreview'
+export { ItemRendition } from './ItemRendition'
+export { PriorityLabel } from './PriorityLabel'
+export { UrgencyLabel } from './UrgencyLabel'
+
+import * as UI from './UI/index'
+export { UI }
 
 // This must go last, as it imports Modals from above modules
 export { ModalsContainer } from './ModalsContainer'

@@ -6,8 +6,8 @@ describe('assignment', () => {
         let initialState
         let stateTest = {
             assignments: {
-                1: {
-                    _id: 1,
+                as1: {
+                    _id: 'as1',
                     _created: '2017-07-13T13:55:41+0000',
                     _updated: '2017-07-28T11:16:36+0000',
                     planning: { scheduled: moment('2017-07-28T11:16:36+0000') },
@@ -16,8 +16,8 @@ describe('assignment', () => {
                         desk: 'desk1',
                     },
                 },
-                2: {
-                    _id: 2,
+                as2: {
+                    _id: 'as2',
                     _created: '2017-07-13T14:55:41+0000',
                     _updated: '2017-07-28T13:16:36+0000',
                     planning: { scheduled: moment('2017-07-28T13:16:36+0000') },
@@ -34,6 +34,7 @@ describe('assignment', () => {
             assignmentsInCompletedList: [],
             assignmentListSingleGroupView: null,
             currentAssignmentId: null,
+            archive: {},
         }
 
         beforeEach(() => { initialState = assignment(stateTest, { type: null })})
@@ -47,7 +48,7 @@ describe('assignment', () => {
                 type: 'RECEIVED_ASSIGNMENTS',
                 payload: [
                     {
-                        _id: 2,
+                        _id: 'as2',
                         _created: '2017-07-13T14:55:41+0000',
                         _updated: '2017-07-28T13:16:36+0000',
                         planning: {
@@ -60,7 +61,7 @@ describe('assignment', () => {
                         },
                     },
                     {
-                        _id: 3,
+                        _id: 'as3',
                         _created: '2017-07-13T15:55:41+0000',
                         _updated: '2017-07-28T14:16:36+0000',
                         planning: { scheduled: '2017-07-28T14:16:36+0000' },
@@ -73,8 +74,8 @@ describe('assignment', () => {
             })
             expect(result).toEqual({
                 assignments: {
-                    1: {
-                        _id: 1,
+                    as1: {
+                        _id: 'as1',
                         _created: '2017-07-13T13:55:41+0000',
                         _updated: '2017-07-28T11:16:36+0000',
                         planning: { scheduled: moment('2017-07-28T11:16:36+0000') },
@@ -83,8 +84,8 @@ describe('assignment', () => {
                             desk: 'desk1',
                         },
                     },
-                    2: {
-                        _id: 2,
+                    as2: {
+                        _id: 'as2',
                         _created: '2017-07-13T14:55:41+0000',
                         _updated: '2017-07-28T13:16:36+0000',
                         planning: {
@@ -96,8 +97,8 @@ describe('assignment', () => {
                             desk: 'desk2',
                         },
                     },
-                    3: {
-                        _id: 3,
+                    as3: {
+                        _id: 'as3',
                         _created: '2017-07-13T15:55:41+0000',
                         _updated: '2017-07-28T14:16:36+0000',
                         planning: { scheduled: moment('2017-07-28T14:16:36+0000') },
@@ -114,6 +115,7 @@ describe('assignment', () => {
                 assignmentsInCompletedList: [],
                 assignmentListSingleGroupView: null,
                 currentAssignmentId: null,
+                archive: {},
             })
         })
     })
@@ -129,6 +131,7 @@ describe('assignment', () => {
             assignmentsInTodoList: [],
             assignmentsInCompletedList: [],
             assignmentListSingleGroupView: null,
+            archive: {},
         }
 
         beforeEach(() => { initialState = assignment(stateTest, { type: null })})
@@ -151,6 +154,7 @@ describe('assignment', () => {
                 assignmentsInCompletedList: [],
                 assignmentListSingleGroupView: null,
                 currentAssignmentId: null,
+                archive: {},
             })
         })
 
@@ -168,6 +172,7 @@ describe('assignment', () => {
                 assignmentsInCompletedList: [],
                 assignmentListSingleGroupView: null,
                 currentAssignmentId: null,
+                archive: {},
             })
         })
     })
@@ -186,6 +191,7 @@ describe('assignment', () => {
             orderByField: 'Updated',
             orderDirection: 'Desc',
             previewOpened: false,
+            archive: {},
         }
 
         beforeEach(() => { initialState = assignment(stateTest, { type: null })})
@@ -211,6 +217,7 @@ describe('assignment', () => {
                 orderByField: 'Created',
                 orderDirection: 'Asc',
                 previewOpened: false,
+                archive: {},
             })
         })
     })
@@ -219,8 +226,8 @@ describe('assignment', () => {
         let initialState
         let stateTest = {
             assignments: {
-                1: {
-                    _id: 1,
+                as1: {
+                    _id: 'as1',
                     _created: '2017-07-13T13:55:41+0000',
                     _updated: '2017-07-28T11:16:36+0000',
                     planning: { scheduled: moment('2017-07-28T11:16:36+0000') },
@@ -229,8 +236,8 @@ describe('assignment', () => {
                         desk: 'desk1',
                     },
                 },
-                2: {
-                    _id: 2,
+                as2: {
+                    _id: 'as2',
                     _created: '2017-07-13T14:55:41+0000',
                     _updated: '2017-07-28T13:16:36+0000',
                     planning: { scheduled: moment('2017-07-28T13:16:36+0000') },
@@ -247,6 +254,7 @@ describe('assignment', () => {
             assignmentsInCompletedList: [],
             assignmentListSingleGroupView: null,
             currentAssignmentId: null,
+            archive: {},
         }
 
         beforeEach(() => { initialState = assignment(stateTest, { type: null })})
@@ -274,6 +282,7 @@ describe('assignment', () => {
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
+                archive: {},
             })
         })
 
@@ -296,6 +305,7 @@ describe('assignment', () => {
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
+                archive: {},
             })
         })
 
@@ -318,14 +328,15 @@ describe('assignment', () => {
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
+                archive: {},
             })
         })
 
         it('ADD_TO_TODO_LIST', () => {
             initialState.assignments = {
                 ...initialState.assignments,
-                3: {
-                    _id: 3,
+                as3: {
+                    _id: 'as3',
                     _created: '2017-07-13T15:55:41+0000',
                     _updated: '2017-07-28T14:16:36+0000',
                     planning: { scheduled: moment('2017-07-28T14:16:36+0000') },
@@ -350,14 +361,15 @@ describe('assignment', () => {
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
+                archive: {},
             })
         })
 
         it('ADD_TO_IN_PROGRESS_LIST', () => {
             initialState.assignments = {
                 ...initialState.assignments,
-                3: {
-                    _id: 3,
+                as3: {
+                    _id: 'as3',
                     _created: '2017-07-13T15:55:41+0000',
                     _updated: '2017-07-28T14:16:36+0000',
                     planning: { scheduled: moment('2017-07-28T14:16:36+0000') },
@@ -382,14 +394,15 @@ describe('assignment', () => {
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
+                archive: {},
             })
         })
 
         it('ADD_TO_COMPLETED_LIST', () => {
             initialState.assignments = {
                 ...initialState.assignments,
-                3: {
-                    _id: 3,
+                as3: {
+                    _id: 'as3',
                     _created: '2017-07-13T15:55:41+0000',
                     _updated: '2017-07-28T14:16:36+0000',
                     planning: { scheduled: moment('2017-07-28T14:16:36+0000') },
@@ -414,6 +427,7 @@ describe('assignment', () => {
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
+                archive: {},
             })
         })
 
@@ -431,6 +445,7 @@ describe('assignment', () => {
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentListSingleGroupView: 'TODO',
+                archive: {},
             })
         })
     })
@@ -439,8 +454,8 @@ describe('assignment', () => {
         let initialState
         let stateTest = {
             assignments: {
-                a1: {
-                    _id: 'a1',
+                as1: {
+                    _id: 'as1',
                     _created: '2017-07-13T15:55:41+0000',
                     _updated: '2017-07-28T14:16:36+0000',
                     planning: {
@@ -458,6 +473,7 @@ describe('assignment', () => {
             assignmentsInTodoList: [],
             assignmentsInCompletedList: [],
             assignmentListSingleGroupView: null,
+            archive: {},
         }
 
         beforeEach(() => { initialState = assignment(stateTest, { type: null })})
@@ -469,25 +485,26 @@ describe('assignment', () => {
         it('PREVIEW_ASSIGNMENT', () => {
             const result = assignment(initialState, {
                 type: 'PREVIEW_ASSIGNMENT',
-                payload: 'a1',
+                payload: 'as1',
             })
             expect(result).toEqual({
-                assignments: { a1: initialState.assignments.a1 },
+                assignments: { as1: initialState.assignments.as1 },
                 previewOpened: true,
-                currentAssignmentId: 'a1',
+                currentAssignmentId: 'as1',
                 readOnly: true,
                 filterBy: 'All',
                 assignmentsInInProgressList: [],
                 assignmentsInTodoList: [],
                 assignmentsInCompletedList: [],
                 assignmentListSingleGroupView: null,
+                archive: {},
             })
         })
 
         it('CLOSE_PREVIEW_ASSIGNMENT', () => {
             const result = assignment(initialState, { type: 'CLOSE_PREVIEW_ASSIGNMENT' })
             expect(result).toEqual({
-                assignments: { a1: initialState.assignments.a1 },
+                assignments: { as1: initialState.assignments.as1 },
                 previewOpened: false,
                 currentAssignmentId: null,
                 filterBy: 'All',
@@ -496,24 +513,26 @@ describe('assignment', () => {
                 assignmentsInTodoList: [],
                 assignmentsInCompletedList: [],
                 assignmentListSingleGroupView: null,
+                archive: {},
             })
         })
 
         it('OPEN_ASSIGNMENT_EDITOR', () => {
             const result = assignment(initialState, {
                 type: 'OPEN_ASSIGNMENT_EDITOR',
-                payload: 'a1',
+                payload: 'as1',
             })
             expect(result).toEqual({
-                assignments: { a1: initialState.assignments.a1 },
+                assignments: { as1: initialState.assignments.as1 },
                 previewOpened: true,
-                currentAssignmentId: 'a1',
+                currentAssignmentId: 'as1',
                 readOnly: false,
                 filterBy: 'All',
                 assignmentsInInProgressList: [],
                 assignmentsInTodoList: [],
                 assignmentsInCompletedList: [],
                 assignmentListSingleGroupView: null,
+                archive: {},
             })
         })
     })

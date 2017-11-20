@@ -11,8 +11,10 @@ import { DATE_FORMATS } from '../../constants'
  *
  * Params:
  * param {object} date - datetime string in utc
+ * param {string} noDateString - string to display if the date is not valid
+ * param {string} className - The CSS class names to use in the parent time element
  */
-export const AbsoluteDate = ({ date, noDateString }) => {
+export const AbsoluteDate = ({ date, noDateString, className }) => {
     date = moment.utc(date)
     if (date.isValid()) {
         const datetimeStr = date.toISOString()
@@ -34,12 +36,12 @@ export const AbsoluteDate = ({ date, noDateString }) => {
             rdate = date.format(DATE_FORMATS.DISPLAY_DATE_FORMAT)
         }
 
-        return <time dateTime={datetimeStr}>
+        return <time className={className} dateTime={datetimeStr}>
             <span>{rday + rdate}</span>
         </time>
     }
 
-    return <time>
+    return <time className={className}>
         <span>{noDateString}</span>
     </time>
 }
@@ -47,4 +49,5 @@ export const AbsoluteDate = ({ date, noDateString }) => {
 AbsoluteDate.propTypes = {
     date: PropTypes.string,
     noDateString: PropTypes.string,
+    className: PropTypes.string,
 }

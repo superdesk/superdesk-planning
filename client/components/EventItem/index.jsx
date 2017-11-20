@@ -99,9 +99,9 @@ export const EventItem = ({
                 className,
                 { 'event--has-planning': hasPlanning },
                 { 'event--has-been-canceled': hasBeenCancelled || hasBeenRescheduled },
-                { 'ListItem--locked': isItemLocked },
                 { 'event--not-draggable': !canCreatePlanning })}
             active={highlightedEvent === event._id || isSelected}
+            state={isItemLocked ? 'locked' : null}
         >
             <div className="sd-list-item__action-menu">
                 <Checkbox value={isSelected} onChange={({ target }) => {onSelectChange(target.value)}}/>

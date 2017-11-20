@@ -4,27 +4,22 @@ import { get } from 'lodash'
 import TextareaAutosize from 'react-textarea-autosize'
 
 import { getItemInArrayById } from '../../utils'
-import { AbsoluteDate } from '../'
 
 // eslint-disable-next-line complexity
 export const AssignmentPreview = ({
-    users,
-    desks,
     assignment,
     keywords,
     contentTypes,
     formProfile,
+    coverageItem,
+    newsCoverageStatus,
 }) => {
     const planning = get(assignment, 'planning', {})
-    const assignedTo = get(assignment, 'assigned_to', {})
 
-    const assignedUser = getItemInArrayById(users, get(assignedTo, 'user'))
-    const assignedDesk = getItemInArrayById(desks, get(assignedTo, 'desk'))
-
-    const assignedUserName = get(assignedUser, 'display_name') ||
-        get(assignedUser, 'name') ||
-        '-'
-    const assignedDeskName = get(assignedDesk, 'name') || '-'
+    const coverageStatus = getItemInArrayById(
+        newsCoverageStatus,
+        get(coverageItem, 'news_coverage_status.qcode', 'qcode')
+    ) || 'Planned'
 
     const keywordString = get(planning, 'keyword.length', 0) > 0 ?
         planning.keyword
@@ -39,37 +34,6 @@ export const AssignmentPreview = ({
 
     return (
         <div>
-            <div className="form__row form__row--flex">
-                <div className="form__row-item">
-                    <label className="form-label form-label--light">
-                        Assignee
-                    </label>
-                    <p className="sd-text__strong">
-                        {assignedUserName}
-                    </p>
-                </div>
-                <div className="form__row-item">
-                    <label className="form-label form-label--light">
-                        Desk
-                    </label>
-                    <p className="sd-text__strong">
-                        {assignedDeskName}
-                    </p>
-                </div>
-            </div>
-
-            <div className="form__row">
-                <label className="form-label form-label--light">
-                    Due
-                </label>
-                <p>
-                    <AbsoluteDate
-                        date={get(assignment, 'planning.scheduled', '').toString()}
-                        noDateString="'not scheduled yet'"
-                    />
-                </p>
-            </div>
-
             {get(formProfile, 'editor.slugline.enabled') &&
                 <div className="form__row">
                     <label className="form-label form-label--light">
@@ -142,7 +106,7 @@ export const AssignmentPreview = ({
                     Coverage Status
                 </label>
                 <p>
-                    {get(planning, 'news_coverage_status.label') || '-'}
+                    {coverageStatus || 'Planned'}
                 </p>
             </div>
         </div>
@@ -150,13 +114,10 @@ export const AssignmentPreview = ({
 }
 
 AssignmentPreview.propTypes = {
-    users: PropTypes.oneOfType([
-        PropTypes.array,
-        PropTypes.object,
-    ]),
-    desks: PropTypes.array,
     assignment: PropTypes.object,
     keywords: PropTypes.array,
     contentTypes: PropTypes.array,
     formProfile: PropTypes.object,
+    coverageItem: PropTypes.object,
+    newsCoverageStatus: PropTypes.array,
 }

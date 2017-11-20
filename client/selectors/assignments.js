@@ -7,10 +7,11 @@ import {
     getEvents,
 } from './planning'
 import { createSelector } from 'reselect'
-import { getItemsById } from '../utils'
+import { getItemsById, getItemInArrayById } from '../utils'
 import { WORKSPACE } from '../constants'
 
 export const getStoredAssignments = (state) => get(state, 'assignment.assignments', {})
+export const getStoredArchiveItems = (state) => get(state, 'assignment.archive', {})
 export const getAssignmentsInTodoList = (state) => get(state,
     'assignment.assignmentsInTodoList', [])
 export const getAssignmentsInInProgressList = (state) => get(state,
@@ -55,6 +56,8 @@ export const getCurrentAssignmentId = (state) => get(state, 'assignment.currentA
 export const getReadOnlyAssignment = (state) => get(state, 'assignment.readOnly')
 export const getFulFilledItem = (state) => get(state, 'assignment.fulfilledItem', {})
 export const getAssignmentPriorities = (state) => get(state, 'vocabularies.assignment_priority', [])
+export const getArchivePriorities = (state) => get(state, 'vocabularies.priority', [])
+export const getUrgencies = (state) => get(state, 'vocabularies.urgency', [])
 
 export const getTodoAssignments = createSelector(
     [getAssignmentsInTodoList, getStoredAssignments],
@@ -131,5 +134,23 @@ export const getCurrentAssignmentEventItem = createSelector(
         planning ?
             get(storedEvents, planning.event_item) :
             null
+    )
+)
+
+export const getCurrentAssignmentArchiveItem = createSelector(
+    [getCurrentAssignmentId, getStoredArchiveItems],
+    (assignmentId, storedItems) => (
+        assignmentId ? get(storedItems, assignmentId, null) : null
+    )
+)
+
+export const getCurrentAssignmentCoverage = createSelector(
+    [getCurrentAssignment, getCurrentAssignmentPlanningItem],
+    (assignment, planning) => (
+        getItemInArrayById(
+            get(planning, 'coverages', []),
+            get(assignment, 'coverage_item', ''),
+            'coverage_id'
+        )
     )
 )

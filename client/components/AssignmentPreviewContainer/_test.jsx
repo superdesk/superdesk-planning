@@ -209,11 +209,4 @@ describe('<AssignmentPreviewContainer />', () => {
         expect(toggle.isOpen()).toBe(true)
         expect(toggle.find(EventPreview).length).toBe(1)
     })
-
-    it('renders LockContainer if the assignment is locked', () => {
-        assignment.lock_user = 'ident1'
-        assignment.lock_session = 'session1'
-        const wrapper = getWrapper()
-        expect(wrapper.find(LockContainer).length).toBe(1)
-    })
 })

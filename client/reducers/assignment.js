@@ -12,6 +12,7 @@ const initialState = {
     assignmentsInCompletedList: [],
     assignmentListSingleGroupView: null,
     currentAssignmentId: null,
+    archive: {},
 }
 
 const modifyAssignmentBeingAdded = (payload) => {
@@ -163,6 +164,14 @@ const assignmentReducer = createReducer(initialState, {
             assignments,
         }
     },
+
+    [ASSIGNMENTS.ACTIONS.RECEIVED_ARCHIVE]: (state, payload) => ({
+        ...state,
+        archive: {
+            ...state.archive,
+            [payload.assignment_id]: payload,
+        },
+    }),
 })
 
 export default assignmentReducer

@@ -30,7 +30,7 @@ describe('<AssignmentPanelContainer />', () => {
         closePanel = sinon.spy(() => wrapper.setProps({ previewOpened: false }))
         wrapper = getShallowWrapper()
         let tabs = new helpers.tabs(wrapper)
-        expect(wrapper.hasClass('sd-preview-panel AssignmentPanelContainer')).toBe(true)
+        expect(wrapper.hasClass('sd-preview-panel content-item-preview AssignmentPanelContainer')).toBe(true)
 
         // Tabs are available
         expect(tabs.isMounted).toBe(true)
@@ -52,7 +52,7 @@ describe('<AssignmentPanelContainer />', () => {
         expect(tabs.isMounted).toBe(false)
 
         expect(wrapper.contains(
-            <div className="sd-preview-panel hidden" />
+            <div className="sd-preview-panel content-item-preview hidden" />
         )).toBe(true)
         expect(wrapper.find(AssignmentPreviewContainer).length).toBe(0)
     })

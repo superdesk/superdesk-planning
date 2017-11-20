@@ -2,7 +2,7 @@ import * as selectors from '../../selectors'
 import { ASSIGNMENTS } from '../../constants'
 import planningUtils from '../../utils/planning'
 import { get, cloneDeep, has, pick } from 'lodash'
-import { isItemLockedInThisSession } from '../../utils'
+import { isItemLockedInThisSession, getErrorMessage } from '../../utils'
 import planning from '../planning'
 
 /**
@@ -281,6 +281,65 @@ const loadPlanningAndEvent = (assignment) => (
     )
 )
 
+/**
+ * Loads the Archive item that is linked to the provided Assignment
+ * The Archive item is then saved to the redux store under
+ * assignment.archive dictionary
+ * @param {object} assignment - The assignment to load the Archive item for
+ * @return Promise
+ */
+const loadArchiveItem = (assignment) => (
+    (dispatch, getState, { api, notify, desks, search }) => {
+        // If the object provided doesn't have an _id field
+        // then bail out now
+        const assignmentId = get(assignment, '_id', null)
+        if (!assignmentId) {
+            notify.error('Incorrect Assignment')
+            return Promise.reject('Incorrect Assignment')
+        }
+
+        // Use the search service from client-core to load the archive item
+        const query = search.query()
+        query.filter({
+            bool: {
+                must: [
+                    { term: { assignment_id: assignmentId } },
+                ],
+            },
+        })
+
+        const criteria = query.getCriteria(true)
+        // We want the item from either the `archive` or `published` collections
+        criteria.repo = 'archive,published'
+
+        return api.query('search', criteria)
+        .then((data) => {
+            const item = get(data, '_items[0]', null)
+            if (!item) {
+                notify.error('Content item not found!')
+                return Promise.reject('Content item not found!')
+            }
+
+            // Use the `desks` service from client-core to save the desk/stage names
+            // in the Archive item (so that we don't have to perform a lookup later)
+            item._deskName = desks.deskLookup[get(item, 'task.desk')].name
+            item._stageName = desks.stageLookup[get(item, 'task.stage')].name
+
+            // Finally save the Archive item in the redux store
+            dispatch({
+                type: ASSIGNMENTS.ACTIONS.RECEIVED_ARCHIVE,
+                payload: item,
+            })
+            return Promise.resolve(item)
+        }, (error) => {
+            notify.error(
+                getErrorMessage(error, 'Failed to load content item')
+            )
+            return Promise.reject(error)
+        })
+    }
+)
+
 const self = {
     query,
     receivedAssignments,
@@ -293,6 +352,7 @@ const self = {
     unlock,
     queryLockedAssignments,
     loadPlanningAndEvent,
+    loadArchiveItem,
 }
 
 export default self

@@ -567,6 +567,32 @@ export const getTestActionStore = () => {
                         qcode: 3,
                     },
                 ],
+                priority: [
+                    {
+                        name: '1',
+                        qcode: 1,
+                    },
+                    {
+                        name: '2',
+                        qcode: 2,
+                    },
+                    {
+                        name: '3',
+                        qcode: 3,
+                    },
+                    {
+                        name: '4',
+                        qcode: 4,
+                    },
+                    {
+                        name: '5',
+                        qcode: 5,
+                    },
+                    {
+                        name: '6',
+                        qcode: 6,
+                    },
+                ],
             },
         },
 

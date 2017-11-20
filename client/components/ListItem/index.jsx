@@ -1,12 +1,14 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import './style.scss'
-import classNames from 'classnames'
 import { debounce } from 'lodash'
+import { List } from '../UI'
 
 export class ListItem extends React.Component {
     constructor(props) {
         super(props)
         this.state = { clickedOnce: undefined }
+        this.handleDragStart = this.handleDragStart.bind(this)
     }
 
     // onSingleClick, onDoubleClick and handleSingleAndDoubleClick
@@ -42,38 +44,56 @@ export class ListItem extends React.Component {
             JSON.stringify(this.props.item)
         )
     }
+
     render() {
-        const { item, onClick, onDoubleClick, children, active, className, draggable=false } = this.props
+        const {
+            item,
+            onClick,
+            onDoubleClick,
+            children,
+            active,
+            className,
+            draggable=false,
+            state,
+            shadow,
+        } = this.props
 
         // If there is just singleClick, use it. Change it only if doubleClick is also defined.
         const clickHandler = onClick && onDoubleClick ? this.handleSingleAndDoubleClick.bind(this, item) :
             onClick.bind(this, item)
 
-        const classes = classNames(
-            className,
-            'ListItem',
-            'sd-list-item',
-            'sd-shadow--z2',
-            { 'sd-list-item--activated': active }
-        )
         return (
-            <div className={classes}
+            <List.Item
+                className={className}
+                shadow={shadow}
+                activated={active}
+                onClick={clickHandler}
                 draggable={draggable}
-                onDragStart={this.handleDragStart.bind(this)}
-                onClick={clickHandler}>
-                <div className="sd-list-item__border"/>
+                onDragStart={this.handleDragStart}
+            >
+                <List.Border state={state} />
                 {children}
-            </div>
+            </List.Item>
         )
     }
 }
 
 ListItem.propTypes = {
-    onClick: React.PropTypes.func.isRequired,
-    onDoubleClick: React.PropTypes.func,
-    item: React.PropTypes.object.isRequired,
-    active: React.PropTypes.bool,
-    children: React.PropTypes.node.isRequired,
-    className: React.PropTypes.string,
-    draggable: React.PropTypes.bool,
+    onClick: PropTypes.func.isRequired,
+    onDoubleClick: PropTypes.func,
+    item: PropTypes.object.isRequired,
+    active: PropTypes.bool,
+    children: PropTypes.node.isRequired,
+    className: PropTypes.string,
+    draggable: PropTypes.bool,
+    state: PropTypes.oneOf([
+        'success',
+        'error',
+        'locked',
+        'active',
+        'idle',
+    ]),
+    shadow: PropTypes.oneOf([1, 2, 3, 4]),
 }
+
+ListItem.defaultProps = { shadow: 2 }

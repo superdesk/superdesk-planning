@@ -3,15 +3,28 @@ import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import classNames from 'classnames'
 import * as actions from '../../actions'
-import { AssignmentPreviewContainer, Tabs, Tab } from '../'
+import * as selectors from '../../selectors'
+import { AssignmentPreviewContainer, ArchivePreview, Tabs, Tab, LockContainer } from '../'
 import { TOOLTIPS } from '../../constants'
+import { assignmentUtils } from '../../utils'
+import { get } from 'lodash'
 import './style.scss'
 
 export class AssignmentPanel extends React.Component {
     constructor(props) {
         super(props)
-        this.tabs = { ASSIGNMENT: 'Assignment' }
+        this.tabs = {
+            ASSIGNMENT: 'Assignment',
+            CONTENT: 'Content',
+        }
         this.state = { activeTab: this.tabs.ASSIGNMENT }
+        this.closePanel = this.closePanel.bind(this)
+    }
+
+    closePanel() {
+        // When closing the panel, change the tab to the ASSIGNMENT tab
+        this.props.closePanel()
+        this.onChangeTab(this.tabs.ASSIGNMENT)
     }
 
     onChangeTab(tabName) {
@@ -20,15 +33,25 @@ export class AssignmentPanel extends React.Component {
 
     render() {
         const {
-            closePanel,
             previewOpened,
+            assignment,
+            users,
         } = this.props
+
+        const isAssignmentInUse = assignmentUtils.isAssignmentInUse(assignment)
+        const lockedUser = get(assignment, 'lock_user')
+
+        // If the selected tab is CONTENT but the current assignment is not linked to an item
+        // then show the ASSIGNMENT tab, otherwise show the selected tab
+        const currentTab = (!isAssignmentInUse && this.state.activeTab === this.tabs.CONTENT) ?
+            this.tabs.ASSIGNMENT : this.state.activeTab
 
         // We render an empty div if previewOpened=false, so the open and close animations occur
         // Otherwise this component will be unmounted before close animation finishes
         return (
             <div className={classNames(
                 'sd-preview-panel',
+                'content-item-preview',
                 { hidden: !previewOpened },
                 { AssignmentPanelContainer: previewOpened }
             )}>
@@ -37,7 +60,7 @@ export class AssignmentPanel extends React.Component {
                         <div className="side-panel__header">
                             <div
                                 className="side-panel__tools"
-                                onClick={closePanel}
+                                onClick={this.closePanel}
                                 data-sd-tooltip={TOOLTIPS.close}
                                 data-flow="bottom"
                             >
@@ -45,19 +68,44 @@ export class AssignmentPanel extends React.Component {
                                     <i className="icon-close-small" />
                                 </a>
                             </div>
+                            {get(assignment, 'lock_user') &&
+                                <div className="AssignmentPanelContainer__lock-user nav-tabs">
+                                    <LockContainer
+                                        lockedUser={lockedUser}
+                                        users={users}
+                                        displayText={get(assignment, 'lock_action') === 'content_edit' ?
+                                            'Content locked' :
+                                            'Assignment locked'
+                                        }
+                                        showUnlock={false}
+                                        withLoggedInfo={true}
+                                    />
+                                </div>
+                            }
                             <Tabs>
                                 <Tab
                                     tabName={this.tabs.ASSIGNMENT}
-                                    activeTab={this.state.activeTab}
+                                    activeTab={currentTab}
                                     onChangeTab={this.onChangeTab.bind(this, this.tabs.ASSIGNMENT)}
                                     key={'assignment-preview-' + this.tabs.ASSIGNMENT}
                                 />
+                                {isAssignmentInUse &&
+                                    <Tab
+                                        tabName={this.tabs.CONTENT}
+                                        activeTab={currentTab}
+                                        onChangeTab={this.onChangeTab.bind(this, this.tabs.CONTENT)}
+                                        key={'assignment-preview-' + this.tabs.CONTENT}
+                                    />
+                                }
                             </Tabs>
                         </div>
                         <div className="side-panel__content">
-                            {this.state.activeTab === this.tabs.ASSIGNMENT && (
+                            {currentTab === this.tabs.ASSIGNMENT && (
                                 <AssignmentPreviewContainer />
                             )}
+                            {currentTab === this.tabs.CONTENT &&
+                                <ArchivePreview />
+                            }
                         </div>
                     </div>
                 }
@@ -69,11 +117,21 @@ export class AssignmentPanel extends React.Component {
 AssignmentPanel.propTypes = {
     closePanel: PropTypes.func.isRequired,
     previewOpened: PropTypes.bool,
+    assignment: PropTypes.object,
+    users: PropTypes.oneOfType([
+        PropTypes.array,
+        PropTypes.object,
+    ]),
 }
+
+const mapStateToProps = (state) => ({
+    assignment: selectors.getCurrentAssignment(state),
+    users: selectors.getUsers(state),
+})
 
 const mapDispatchToProps = (dispatch) => ({ closePanel: () => dispatch(actions.assignments.ui.closePreview()) })
 
 export const AssignmentPanelContainer = connect(
-    null,
+    mapStateToProps,
     mapDispatchToProps
 )(AssignmentPanel)
