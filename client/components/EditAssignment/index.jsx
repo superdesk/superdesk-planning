@@ -4,6 +4,7 @@ import { AssignmentSelect } from './AssignmentSelect'
 import { fields } from '../index'
 import { getItemInArrayById } from '../../utils'
 import { ASSIGNMENTS } from '../../constants'
+import { StateLabel } from '../../components'
 import { get } from 'lodash'
 import moment from 'moment'
 import './style.scss'
@@ -159,6 +160,12 @@ export class EditAssignment  extends React.Component {
                             assignmentPriorities={this.props.assignmentPriorities}
                             input={assignmentSelectInput} context={context}
                             showPrioritiesSelection={context === 'coverage'} />)
+                }
+                {context === 'coverage' && get(this.props, 'input.value.state') &&
+                    <div className='sd-line-input'>
+                        <label className='sd-line-input__label'>Assignment Status</label>
+                        <StateLabel item={this.props.input.value}/>
+                    </div>
                 }
                 {context === 'coverage' && get(this.props, 'input.value.priority') &&
                         <fields.AssignmentPriorityField
