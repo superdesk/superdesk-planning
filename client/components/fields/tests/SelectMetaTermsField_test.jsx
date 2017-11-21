@@ -46,6 +46,7 @@ const subjects = [
     },
 ]
 
+/* eslint-disable react/display-name */
 const renderComponentField = (component) => (
     () => (
         <Field name="field_name"

@@ -13,7 +13,7 @@ import { List } from '../UI'
 import classNames from 'classnames'
 import moment from 'moment'
 import { get } from 'lodash'
-import { getCoverageIcon, assignmentUtils } from '../../utils/index'
+import { getCoverageIcon, assignmentUtils, gettext } from '../../utils/index'
 import { ASSIGNMENTS } from '../../constants'
 import './style.scss'
 
@@ -98,7 +98,7 @@ export const AssignmentItem = ({
                             <i className="icon-time"/>
                             {get(assignment, 'planning.scheduled') ? (
                                 <AbsoluteDate date={get(assignment, 'planning.scheduled').toString()} />
-                            ) : (<time><span>'not scheduled yet'</span></time>)}
+                            ) : (<time><span>{gettext('\'not scheduled yet\'')}</span></time>)}
                     </span>
                 </List.Row>
             </List.Column>

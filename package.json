@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "fix": "eslint client --ext=jsx --ext=js --fix",
-    "hint": "jscs client && eslint client --ext=jsx --ext=js",
+    "hint": "eslint client --ext=jsx --ext=js",
     "unit_test": "karma start karma.conf.js --log-level debug --display-error-details --single-run",
     "karma": "karma start karma.conf.js",
     "test": "npm run hint && npm run unit_test"
@@ -37,7 +37,6 @@
     "eslint-plugin-jasmine": "~2.8.4",
     "istanbul-instrumenter-loader": "0.2.0",
     "jasmine": "2.8.0",
-    "jscs": "^3.0.7",
     "karma": "1.7.1",
     "karma-cli": "^1.0.1",
     "karma-chrome-launcher": "2.2.0",

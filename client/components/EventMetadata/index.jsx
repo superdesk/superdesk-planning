@@ -34,10 +34,10 @@ function renderDict(event, label, ...keys) {
     const keysContainValue = some(keys, (k) => getValue(k))
     if (keysContainValue) {
         return [
-            <dt>{label}</dt>,
+            <dt key="dt">{label}</dt>,
             ...keys.map((key) => (
                 (key === 'definition_long') ? (
-                    <InputTextAreaField
+                    <InputTextAreaField key={key}
                         input={{
                             value: getValue(key),
                             name: key,
@@ -45,7 +45,7 @@ function renderDict(event, label, ...keys) {
                         meta={{}}
                     />
                 ) : (
-                    <dd>{getValue(key)}</dd>
+                    <dd key={key}>{getValue(key)}</dd>
                 )
             )),
         ]
