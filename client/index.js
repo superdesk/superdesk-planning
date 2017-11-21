@@ -4,7 +4,7 @@ import * as svc from './services'
 export default angular.module('superdesk.planning', [])
     .directive('sdPlanning',
         () => ({
-            scope: {},
+            scope: { app: '=' },
             bindToController: true,
             controllerAs: 'vm',
             controller: ctrl.PlanningController,
