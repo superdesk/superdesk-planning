@@ -3,7 +3,7 @@ import { createStore as _createStore, applyMiddleware } from 'redux'
 import planningApp from '../reducers'
 import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
-import { get, set, isNil } from 'lodash'
+import { get, set, isNil, map } from 'lodash'
 import { PUBLISHED_STATE, WORKFLOW_STATE, TOOLTIPS, ASSIGNMENTS } from '../constants/index'
 export { default as checkPermission } from './checkPermission'
 export { default as retryDispatch } from './retryDispatch'
@@ -843,3 +843,17 @@ export const getAssignmentPriority = (priorityQcode, priorities) => {
 export const getItemsById = (ids, items) => (
     ids.map((id) => (items[id]))
 )
+
+export const getUsersForDesk = (desk, globalUserList=[]) => {
+    if (!desk) return globalUserList
+
+    return globalUserList.filter((user) =>
+        map(desk.members, 'user').indexOf(user._id) !== -1)
+}
+
+export const getDesksForUser = (user, desksList=[]) => {
+    if (!user) return desksList
+
+    return desksList.filter((desk) =>
+            map(desk.members, 'user').indexOf(user._id) !== -1)
+}

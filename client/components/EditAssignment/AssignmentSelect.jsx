@@ -1,11 +1,11 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { SearchBar } from '../../components'
+import { UserSearchList } from '../../components'
+import { getUsersForDesk, getDesksForUser } from '../../utils'
 import { ASSIGNMENTS } from '../../constants'
 import { fields } from '../index'
 import ReactDOM from 'react-dom'
-import { UserAvatar } from '../'
-import { map, get } from 'lodash'
+import { get } from 'lodash'
 import classNames from 'classnames'
 import './style.scss'
 
@@ -15,15 +15,6 @@ export class AssignmentSelect extends React.Component {
         this.handleClickOutside = this.handleClickOutside.bind(this)
     }
 
-    filterUsers(deskAssigned) {
-        if (!deskAssigned) return this.props.users
-
-        let filteredUsers = this.props.users.filter((user) =>
-            map(deskAssigned.members, 'user').indexOf(user._id) !== -1)
-
-        return filteredUsers
-    }
-
     isComponentPristine() {
         return get(this.props, 'input.value.deskAssigned') === this.state.deskAssigned &&
             get(this.props, 'input.value.userAssigned') === this.state.userAssigned &&
@@ -31,24 +22,12 @@ export class AssignmentSelect extends React.Component {
                 get(this.state.coverageProviderAssigned, 'qcode')
     }
 
-    filterDesks(userAssigned) {
-        if (!userAssigned) return this.props.desks
-
-        // If user assigned is a provider, show all desks
-        const selectedUser = this.props.users.find((u) =>
-            u._id === userAssigned)
-        if (selectedUser.provider) {
-            return this.props.desks
-        }
-
-        return this.props.desks.filter((desk) =>
-            map(desk.members, 'user').indexOf(userAssigned) !== -1)
-    }
-
     componentWillMount() {
         this.setState({
-            filteredUserList: this.filterUsers(this.props.input.value.deskAssigned),
-            filteredDeskList: this.filterDesks(get(this.props.input.value.userAssigned, '_id')),
+            filteredUserList: getUsersForDesk(this.props.input.value.deskAssigned,
+                this.props.users),
+            filteredDeskList: getDesksForUser(get(this.props.input.value.userAssigned, '_id'),
+                this.props.desks),
             userAssigned: this.props.input.value.userAssigned,
             deskAssigned: this.props.input.value.deskAssigned,
             coverageProviderAssigned: this.props.input.value.coverage_provider,
@@ -58,7 +37,10 @@ export class AssignmentSelect extends React.Component {
 
     filterUserList(value) {
         if (!value) {
-            this.setState({ filteredUserList: this.filterUsers(this.state.deskAssigned) })
+            this.setState({
+                filteredUserList: getUsersForDesk(this.state.deskAssigned,
+                    this.props.users),
+                })
             return
         }
 
@@ -91,7 +73,7 @@ export class AssignmentSelect extends React.Component {
         // Change user list according to desk members
         const updatedValue = Array.isArray(value) ? null : value
         this.setState({
-            filteredUserList: this.filterUsers(updatedValue),
+            filteredUserList: getUsersForDesk(updatedValue, this.props.users),
             deskAssigned: updatedValue,
         })
     }
@@ -107,11 +89,9 @@ export class AssignmentSelect extends React.Component {
     onUserAssignChange(value) {
         // Change desk list to user's desks
         this.setState({
-            filteredDeskList: this.filterDesks(value),
-            userAssigned: this.props.users.find((user) =>
-                user._id === value),
+            filteredDeskList: getDesksForUser(value, this.props.desks),
+            userAssigned: value,
         })
-        this.refs.searchBar.resetSearch()
     }
 
     onChange(value) {
@@ -144,6 +124,11 @@ export class AssignmentSelect extends React.Component {
             onChange: this.onPriorityChange.bind(this),
         }
 
+        const userSearchListInput = {
+            value: this.state.userAssigned,
+            onChange: this.onUserAssignChange.bind(this),
+        }
+
         const { context } = this.props
         const classes = classNames('assignmentselect',
             { 'assignmentselect--in-assignment': context === 'assignment' },
@@ -168,29 +153,10 @@ export class AssignmentSelect extends React.Component {
                 input={coverageProviderSelectFieldInput}/>
             </div>
             </div>
-            <label>User</label>
-            { this.state.userAssigned &&
-                <div className='assignmentselect__user'>
-                    <UserAvatar user={this.state.userAssigned} />
-                    <div className='assignmentselect__label'>{this.state.userAssigned.display_name}</div>
-                    <button type='button' onClick={this.onUserAssignChange.bind(this, null)}>
-                        <i className="icon-close-small"/>
-                    </button>
-                </div> }
-            { this.state.filteredUserList.length > 0 && <div className='assignmentselect__search'>
-                <SearchBar onSearch={(value) => {this.filterUserList(value)}} minLength={1}
-                    extendOnOpen={false} ref='searchBar'/>
-            </div> }
-            <ul className='assignmentselect__list'>
-                {this.state.filteredUserList.map((user, index) => (
-                    <li key={index} className='assignmentselect__item'>
-                        <button type='button' onClick={this.onUserAssignChange.bind(this, user._id)}>
-                            <UserAvatar user={user} />
-                            <div className='assignmentselect__label'>{user.display_name}</div>
-                        </button>
-                    </li>
-                ))}
-            </ul>
+
+            <UserSearchList
+                input = {userSearchListInput}
+                users = {this.state.filteredUserList} />
 
             {this.props.showPrioritiesSelection &&
             <div className='assignmentselect__priority'>

@@ -4,9 +4,7 @@
     margin: 5px 0 20px;
 
     &__item {
-        .sd-list-item {
-            margin-bottom: 10px;
-        }
+        height: 56px;
         + .assignments-list__group {
             .sd-list-item {
                 border-top: 1px solid lighten( $grayLight, 30% );

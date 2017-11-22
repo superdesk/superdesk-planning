@@ -21,7 +21,7 @@ const mapStateToProps = (state, ownProps) => {
             }
         )),
         value: valueObject,
-        label: 'Assignment Priority',
+        label: ownProps.label,
         iconName: 'priority-label',
         clearable: false,
     }

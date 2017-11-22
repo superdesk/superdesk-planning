@@ -40,6 +40,11 @@
 		&:hover {
 			background: $sd-hover;
 		}
+
+        button {
+            width: 100%;
+            text-align: left;
+        }
     }
 
     &__priority {
@@ -54,7 +59,7 @@
 
     &__user {
     	display: inline-block;
-    	margin-bottom: 10px;
+    	margin: 15px 0px 20px 0px;
     	width: 100%;
 
     	button {
