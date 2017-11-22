@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import { defer } from 'lodash';
 
+import SubnavDropdownDivider from './SubnavDropdownDivider';
+
 class SubnavDropdown extends React.Component {
     constructor(props) {
         super(props);
@@ -55,7 +57,23 @@ class SubnavDropdown extends React.Component {
                 {this.state.open && (
                     <ul className="dropdown__menu dropdown--align-right">
                         <li className="dropdown__menu-label">{this.props.label}</li>
-                        <li className="dropdown__menu-divider" />
+                        <SubnavDropdownDivider />
+                        {this.props.items.map((item, index) => {
+                            if (item.divider) {
+                                return <SubnavDropdownDivider key={index} />
+                            } else {
+                                return (
+                                    <li key={index}>
+                                        <button onClick={() => item.action()}>
+                                            {item.icon && (
+                                                <i className={item.icon} />
+                                            )}
+                                            {item.label}
+                                        </button>
+                                    </li>
+                                );
+                            }
+                        })}
                     </ul>
                 )}
             </div>
@@ -66,6 +84,10 @@ class SubnavDropdown extends React.Component {
 SubnavDropdown.propTypes = {
     icon: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
+    items: PropTypes.arrayOf(PropTypes.shape({
+        label: PropTypes.string,
+        divider: PropTypes.bool,
+    })).isRequired,
 };
 
 export default SubnavDropdown;
