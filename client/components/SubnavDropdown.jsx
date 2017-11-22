@@ -41,6 +41,7 @@ class SubnavDropdown extends React.Component {
         const className = classNames('dropdown dropdown--align-right', {open: this.state.open});
         const buttonClassName = classNames('dropdown__toggle navbtn', {
             'sd-create-btn': isCreate,
+            'navbtn--text-only': this.props.buttonLabel,
         });
 
         return (
@@ -49,7 +50,13 @@ class SubnavDropdown extends React.Component {
                     ref={(btn) => this.btn = btn}
                     className={buttonClassName}
                     onClick={this.toggle}>
-                    <i className={this.props.icon} />
+                    {this.props.icon && (
+                        <i className={this.props.icon} />
+                    )}
+                    {this.props.buttonLabel}
+                    {this.props.buttonLabel && (
+                        <span className="dropdown__caret" />
+                    )}
                     {isCreate && (
                         <span className="circle" />
                     )}
@@ -82,7 +89,8 @@ class SubnavDropdown extends React.Component {
 }
 
 SubnavDropdown.propTypes = {
-    icon: PropTypes.string.isRequired,
+    icon: PropTypes.string,
+    buttonLabel: PropTypes.string,
     label: PropTypes.string.isRequired,
     items: PropTypes.arrayOf(PropTypes.shape({
         label: PropTypes.string,

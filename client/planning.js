@@ -7,19 +7,27 @@ import FiltersPanel from './components/FiltersPanel';
 import PreviewPanel from './components/PreviewPanel';
 import MainPanel from './components/MainPanel';
 
+import './planning.scss';
+
 class PlanningApp extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             leftFilterOpen: false,
             leftPreviewOpen: false,
+            activeFilter: null,
         };
 
-        this.toggleFilter = this.toggleFilter.bind(this);
+        this.toggleFilterPanel = this.toggleFilterPanel.bind(this);
+        this.setFilter = this.setFilter.bind(this);
     }
 
-    toggleFilter() {
+    toggleFilterPanel() {
         this.setState({leftFilterOpen: !this.state.leftFilterOpen});
+    }
+
+    setFilter(filter) {
+        this.setState({activeFilter: filter});
     }
 
     render() {
@@ -35,7 +43,12 @@ class PlanningApp extends React.Component {
         return (
             <div className={mainClassName}>
                 <SearchBar />
-                <FiltersBar leftFilterOpen={this.state.leftFilterOpen} toggleFilter={this.toggleFilter} />
+                <FiltersBar
+                    filterPanelOpen={this.state.leftFilterOpen}
+                    toggleFilterPanel={this.toggleFilterPanel}
+                    activeFilter={this.state.activeFilter}
+                    setFilter={this.setFilter}
+                />
                 <div className="sd-column-box--3">
                     <FiltersPanel />
                     <MainPanel />

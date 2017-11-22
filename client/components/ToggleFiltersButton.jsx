@@ -1,21 +1,21 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
 
-function ToggleFiltersButton({leftFilterOpen, toggleFilter}) {
-    const className = classNames('navbtn navbtn--left navbtn--darker', {
-        'navbtn--active': leftFilterOpen,
-    });
+function ToggleFiltersButton({filterPanelOpen, toggleFilterPanel}) {
+    const className = 'navbtn navbtn--left navbtn--darker' + (
+        filterPanelOpen ? ' navbtn--active' : ''
+    );
+
     return (
-        <button onClick={toggleFilter} className={className}>
+        <button onClick={toggleFilterPanel} className={className}>
             <i className="icon-filter-large" />
         </button>
     );
 }
 
 ToggleFiltersButton.propTypes = {
-    leftFilterOpen: PropTypes.bool.isRequired,
-    toggleFilter: PropTypes.func.isRequired,
+    filterPanelOpen: PropTypes.bool.isRequired,
+    toggleFilterPanel: PropTypes.func.isRequired,
 };
 
 export default ToggleFiltersButton;

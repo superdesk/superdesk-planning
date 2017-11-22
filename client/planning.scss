@@ -1,0 +1,17 @@
+/* ui fixes for planning redesign - should be avoided */
+
+.sd-searchbar {
+    .sd-searchbar__icon {
+        margin-bottom: 0;
+    }
+
+    .sd-searchbar__input {
+        height: 4.8rem;
+        margin: 0;
+
+        &:focus {
+            border: none;
+            box-shadow: none;
+        }
+    }
+}
