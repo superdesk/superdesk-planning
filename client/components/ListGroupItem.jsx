@@ -5,15 +5,14 @@ import Datetime from './Datetime';
 
 class ListGroupItem extends React.Component {
     constructor(props) {
-        super(props)
-
-        this.state = { hover: false }
+        super(props);
+        this.state = { hover: false };
     }
 
     render() {
-        const { item } = this.props
+        const {item, onClick} = this.props;
         return (
-            <div className="sd-list-item sd-shadow--z1">
+            <div className="sd-list-item sd-shadow--z1" onClick={onClick}>
                 <div className="sd-list-item__border" />
                 <div className="sd-list-item__column">
                     <i className="icon-calendar-list" />
@@ -43,6 +42,7 @@ class ListGroupItem extends React.Component {
 
 ListGroupItem.propTypes = {
     item: PropTypes.object.isRequired,
+    onClick: PropTypes.func.isRequired,
 };
 
-export default ListGroupItem
+export default ListGroupItem;

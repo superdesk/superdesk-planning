@@ -53,7 +53,6 @@ module.exports = {
         'react/no-find-dom-node': 'warn',
         'react/no-string-refs': 'warn',
         'no-trailing-spaces': 'error',
-        'object-property-newline': 'error',
         'comma-dangle': ['error', 'always-multiline'],
         'no-console': 'error',
         'jasmine/no-disabled-tests': 'warn',

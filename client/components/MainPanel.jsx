@@ -1,14 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-
-import * as selectors from '../selectors';
-
 import ListGroup from './ListGroup';
 
 class MainPanel extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
     render() {
-        const { groups } = this.props;
+        const { groups, onItemClick } = this.props;
         return (
             <div className="sd-column-box__main-column">
                 {groups.map((group) => (
@@ -16,6 +16,7 @@ class MainPanel extends React.Component {
                         key={group.date}
                         name={group.date}
                         items={[group.event]}
+                        onItemClick={onItemClick}
                     />
                 ))}
             </div>
@@ -25,8 +26,7 @@ class MainPanel extends React.Component {
 
 MainPanel.propTypes = {
     groups: PropTypes.array,
+    onItemClick: PropTypes.func.isRequired,
 };
 
-const mapStateToProps = (state) => ({ groups: selectors.getEventsOrderedByDay(state) });
-
-export default connect(mapStateToProps)(MainPanel);
+export default MainPanel;
