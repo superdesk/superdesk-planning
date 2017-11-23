@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { get } from 'lodash';
 import { gettext } from '../utils';
 
 import NavTabs from './NavTabs';
@@ -9,7 +10,23 @@ import EditorContentTab from './EditorContentTab';
 class Editor extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {tab: 0};
+        this.state = {tab: 0, diff: null, dirty: false};
+        this.onChangeHandler = this.onChangeHandler.bind(this);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (get(nextProps, 'item._id') !== get(this.props, 'item._id')) {
+            const diff = Object.assign({}, nextProps.item);
+            this.setState({diff, dirty: false});
+        }
+    }
+
+    onChangeHandler(field) {
+        return (event) => {
+            const diff = Object.assign({}, this.state.diff);
+            diff[field] = event.target.value;
+            this.setState({diff, dirty: true});
+        };
     }
 
     render() {
@@ -29,7 +46,9 @@ class Editor extends React.Component {
                     <div className="subnav__stretch-bar subnav__stretch-bar--right">
                         <button className="btn" onClick={this.props.cancel}>{gettext('Cancel')}</button>
                         <button className="btn btn--success">{gettext('Publish')}</button>
-                        <button className="btn btn--primary">{gettext('Save')}</button>
+                        <button className="btn btn--primary" disabled={!this.state.dirty}>
+                            {gettext('Save')}
+                        </button>
                     </div>
                     <button className="navbtn" onClick={this.props.minimize}>
                         <i className="big-icon--minimize" />
@@ -48,7 +67,11 @@ class Editor extends React.Component {
                     {this.props.item && (
                         <div className="side-panel__content-tab-content">
                             <div className="side-panel__content-block">
-                                <RenderTab item={this.props.item} />
+                                <RenderTab
+                                    item={this.props.item}
+                                    diff={this.state.diff}
+                                    onChangeHandler={this.onChangeHandler}
+                                />
                             </div>
                         </div>
                     )}

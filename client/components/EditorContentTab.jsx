@@ -3,37 +3,19 @@ import PropTypes from 'prop-types';
 import EditorFormRow from './EditorFormRow';
 
 class EditorContentTab extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {diff: Object.assign({}, props.item)};
-    }
-
-    onChangeHandler(field) {
-        return (event) => {
-            const diff = Object.assign({}, this.state.diff);
-            diff[field] = event.target.value;
-            this.setState({diff});
-        };
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.item !== this.props.item) {
-            this.setState({diff: Object.assign({}, nextProps.item)});
-        }
-    }
-
     render() {
+        const {diff, onChangeHandler} = this.props;
         return (
             <div>
                 <EditorFormRow
                     label={gettext('Slugline')}
-                    value={this.state.diff.slugline || ''}
-                    onChange={this.onChangeHandler('slugline')}
+                    value={diff.slugline || ''}
+                    onChange={onChangeHandler('slugline')}
                 />
                 <EditorFormRow
                     label={gettext('Name')}
-                    value={this.state.diff.name || ''}
-                    onChange={this.onChangeHandler('name')}
+                    value={diff.name || ''}
+                    onChange={onChangeHandler('name')}
                 />
             </div>
         );
@@ -41,7 +23,8 @@ class EditorContentTab extends React.Component {
 }
 
 EditorContentTab.propTypes = {
-    item: PropTypes.object,
+    diff: PropTypes.object.isRequired,
+    onChangeHandler: PropTypes.func.isRequired,
 };
 
 export default EditorContentTab;
