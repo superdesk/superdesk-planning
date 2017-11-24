@@ -437,6 +437,17 @@ const onAuthoringMenuClick = (action, type, item) => (
     }
 )
 
+/**
+ * Action for launching the full-screen preview of an Archive item
+ * Uses the `superdesk` service from the client-core
+ * @param {object} item - The Archive item to preview
+ */
+const onArchivePreviewImageClick = (item) => (
+    (dispatch, getState, { superdesk }) => (
+        superdesk.intent('preview', 'item', item)
+    )
+)
+
 const canLinkItem = (item) => (
     (dispatch, getState, { lock, authoring, archiveService }) => (
         Promise.resolve(
@@ -538,6 +549,7 @@ const self = {
     openSelectTemplateModal,
     onAssignmentFormSave,
     addToAssignmentListGroup,
+    onArchivePreviewImageClick,
 }
 
 export default self

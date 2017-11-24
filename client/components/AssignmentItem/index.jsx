@@ -1,11 +1,21 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { ListItem, UserAvatar, AbsoluteDate, StateLabel, ItemActionsMenu, Label } from '../index'
+import {
+    ListItem,
+    UserAvatar,
+    AbsoluteDate,
+    StateLabel,
+    ItemActionsMenu,
+    Label,
+    PriorityLabel,
+} from '../index'
+import { List } from '../UI'
 import classNames from 'classnames'
 import moment from 'moment'
 import { get } from 'lodash'
 import { getCoverageIcon, assignmentUtils } from '../../utils/index'
-import { ASSIGNMENTS, TOOLTIPS } from '../../constants'
+import { ASSIGNMENTS } from '../../constants'
+import './style.scss'
 
 export const AssignmentItem = ({
         assignment,
@@ -22,6 +32,7 @@ export const AssignmentItem = ({
         editAssignmentPriority,
         inAssignments,
         startWorking,
+        priorities,
     }) => {
     const isItemLocked = get(lockedItems, 'assignments') && assignment._id in lockedItems.assignments
 
@@ -44,12 +55,12 @@ export const AssignmentItem = ({
             },
         ]
 
-        const itemActions = inAssignments ? assignmentUtils.getAssignmentItemActions(
-            assignment,
-            session,
-            privileges,
-            actions
-        ) : []
+    const itemActions = inAssignments ? assignmentUtils.getAssignmentItemActions(
+        assignment,
+        session,
+        privileges,
+        actions
+    ) : []
 
     const isAssignmentInUse = assignmentUtils.isAssignmentInUse(assignment)
 
@@ -60,28 +71,27 @@ export const AssignmentItem = ({
             draggable={true}
             className={classNames(
                 'assignmentItem',
-                className,
-                { 'ListItem--locked': isItemLocked })}
+                className
+            )}
             active={get(assignment, '_id') === currentAssignmentId}
+            state={isItemLocked ? 'locked' : null}
         >
-            <div className="sd-list-item__column">
+            <List.Column>
                 <i className={getCoverageIcon(assignment.planning.g2_content_type)} />
-            </div>
-            <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
-                <div className="sd-list-item__row">
+            </List.Column>
+            <List.Column grow={true} border={false}>
+                <List.Row>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow assignment__title">
                         <span className="ListItem__slugline">{assignment.planning.slugline}</span>
                     </span>
-                </div>
-                <div className="sd-list-item__row">
-                    <span className={
-                            classNames('line-input',
-                            'priority-label',
-                            'priority-label--' + assignment.priority)
-                        }
-                        style={{ marginRight: '0.6rem' }}
-                        data-sd-tooltip={TOOLTIPS.assignmentPriority[assignment.priority]} data-flow='down'
-                        >{assignment.priority}</span>
+                </List.Row>
+                <List.Row>
+                    <PriorityLabel
+                        item={assignment}
+                        priorities={priorities}
+                        tooltipFlow="down"
+                    />
+
                     <StateLabel item={assignment.assigned_to} />
                     {isAssignmentInUse && <Label text="Content" isHollow={true} iconType="darkBlue2" /> }
                     <span className="ListItem__headline">
@@ -90,14 +100,14 @@ export const AssignmentItem = ({
                                 <AbsoluteDate date={get(assignment, 'planning.scheduled').toString()} />
                             ) : (<time><span>'not scheduled yet'</span></time>)}
                     </span>
-                </div>
-            </div>
-            <div className="sd-list-item__column sd-list-item__column--no-border">
+                </List.Row>
+            </List.Column>
+            <List.Column border={false}>
                 <span className="ListItem__headline">
                     {moment(assignment._updated).fromNow()}
                 </span>
-            </div>
-            <div className="sd-list-item__column sd-list-item__column--no-border">
+            </List.Column>
+            <List.Column border={false}>
                 <span className="ListItem__headline">
                     <UserAvatar
                         user={assignedUser || { display_name: '*' }}
@@ -106,10 +116,10 @@ export const AssignmentItem = ({
                         isLoggedIn={isCurrentUser}
                     />
                 </span>
-            </div>
-            <div className="sd-list-item__action-menu">
+            </List.Column>
+            <List.ActionMenu>
                 {itemActions.length > 0 && <ItemActionsMenu actions={itemActions} />}
-            </div>
+            </List.ActionMenu>
         </ListItem>
     )
 }
@@ -129,4 +139,5 @@ AssignmentItem.propTypes = {
     session: PropTypes.object,
     privileges: PropTypes.object,
     startWorking: PropTypes.func,
+    priorities: PropTypes.array,
 }

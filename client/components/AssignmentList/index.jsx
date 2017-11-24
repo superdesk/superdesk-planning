@@ -59,16 +59,16 @@ class AssignmentListComponent extends React.Component {
         }
     }
 
-    rowRenderer({ index, key }) {
+    rowRenderer({ index }) {
         const assignment = this.props.assignments[index]
         const { users, session, currentAssignmentId, privileges } = this.props
         const assignedUser = users.find((user) => get(assignment, 'assigned_to.user') === user._id)
         const isCurrentUser = assignedUser && assignedUser._id === session.identity._id
 
         return (
-            <div key={key} className="assignments-list__item">
                 <AssignmentItem
                     key={assignment._id}
+                    className="assignments-list__item"
                     assignment={assignment}
                     isSelected={this.props.selectedAssignments.indexOf(assignment._id) > -1}
                     onClick={this.props.preview.bind(this, assignment)}
@@ -87,8 +87,8 @@ class AssignmentListComponent extends React.Component {
                     editAssignmentPriority={this.props.editAssignmentPriority}
                     inAssignments={this.props.inAssignments}
                     startWorking={this.props.startWorking}
+                    priorities={this.props.priorities}
                 />
-            </div>
         )
     }
 
@@ -146,6 +146,7 @@ AssignmentListComponent.propTypes = {
     assignmentListSingleGroupView: PropTypes.string,
     preview: PropTypes.func,
     onAssignmentSelectChange: PropTypes.func.isRequired,
+    priorities: PropTypes.array,
 }
 
 const getAssignmentsSelectorsForListGroup = (groupKey) => {
@@ -189,6 +190,7 @@ const mapStateToProps = (state, ownProps) => {
         inAssignments: selectors.getCurrentWorkspace(state) === WORKSPACE.ASSIGNMENTS,
         privileges: selectors.getPrivileges(state),
         assignmentListSingleGroupView: selectors.getAssignmentListSingleGroupView(state),
+        priorities: selectors.getAssignmentPriorities(state),
     }
 }
 

@@ -223,6 +223,32 @@ export const createTestStore = (params={}) => {
                     qcode: 3,
                 },
             ],
+            priority: [
+                {
+                    name: '1',
+                    qcode: 1,
+                },
+                {
+                    name: '2',
+                    qcode: 2,
+                },
+                {
+                    name: '3',
+                    qcode: 3,
+                },
+                {
+                    name: '4',
+                    qcode: 4,
+                },
+                {
+                    name: '5',
+                    qcode: 5,
+                },
+                {
+                    name: '6',
+                    qcode: 6,
+                },
+            ],
         },
 
         subjects: [
@@ -607,7 +633,9 @@ export const isItemLockedInThisSession = (item, session) => (
         get(item, 'lock_session') === get(session, 'sessionId')
 )
 
-export const getItemInArrayById = (items, id) => (items.find((item) => item._id === id))
+export const getItemInArrayById = (items, id, field='_id') => (
+    items.find((item) => get(item, field) === id)
+)
 
 /**
  * Get the name of associated icon for different coverage types
@@ -789,7 +817,7 @@ export const sanitizeTextForQuery = (text) => (
  * @param {Object} params
  * @return {String}
  */
-export function gettext(text, params) {
+export function gettext(text, params=null) {
     const injector = angular.element(document.body).injector()
 
     if (injector) { // in tests this will be empty

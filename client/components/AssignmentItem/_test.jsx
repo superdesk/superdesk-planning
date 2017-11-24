@@ -3,6 +3,7 @@ import { shallow, mount } from 'enzyme'
 import { AssignmentItem } from './index'
 import sinon from 'sinon'
 import { createTestStore } from '../../utils'
+import { List } from '../UI'
 import { Provider } from 'react-redux'
 
 describe('assignments', () => {
@@ -26,15 +27,18 @@ describe('assignments', () => {
                     <Provider store={store}>
                         <AssignmentItem
                             onClick={onClick}
-                            assignment={assignment}/>
+                            assignment={assignment}
+                            lockedItems={lockedItems}
+                            priorities={store.getState().vocabularies.assignment_priority}
+                        />
                     </Provider>
                 )
             }
 
             beforeEach(() => {
-                lockedItems = { assignments: { '1': 'lock_information' } }
+                lockedItems = { assignments: { as1: 'lock_information' } }
                 assignment = {
-                    _id: 1,
+                    _id: 'as1',
                     _created: '2017-07-13T13:55:41+0000',
                     _updated: '2017-07-28T11:16:36+0000',
                     planning: { scheduled: '2017-07-28T11:16:36+0000' },
@@ -44,6 +48,8 @@ describe('assignments', () => {
                     },
                     priority: 2,
                 }
+
+                onClick = sinon.spy()
             })
 
             it('show item', () => {
@@ -66,19 +72,19 @@ describe('assignments', () => {
 
             it('does not show red border if assignment is not locked', () => {
                 lockedItems = null
-                const wrapper = getShallowWrapper()
-                expect(wrapper.find('.ListItem--locked').length).toBe(0)
+                const wrapper = getMountedWrapper()
+                expect(wrapper.find(List.Border).props().state).toEqual(null)
             })
 
             it('shows red border if assignment is locked', () => {
-                const wrapper = getShallowWrapper()
-                expect(wrapper.find('.ListItem--locked').length).toBe(1)
+                const wrapper = getMountedWrapper()
+                expect(wrapper.find(List.Border).props().state).toEqual('locked')
             })
 
             it('displays tooltip for priority', () => {
                 const wrapper = getMountedWrapper()
                 const priorityNode = wrapper.find('.priority-label').first()
-                expect(priorityNode.prop('data-sd-tooltip')).toBe('Medium')
+                expect(priorityNode.prop('data-sd-tooltip')).toBe('Priority: Medium')
             })
         })
     })

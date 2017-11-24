@@ -1,4 +1,5 @@
 import React from 'react'
+import PropTypes from 'prop-types'
 import { connect } from 'react-redux'
 import * as selectors from '../../selectors'
 import { get } from 'lodash'
@@ -50,15 +51,15 @@ export const AuditInformationComponent = ({
 }
 
 AuditInformationComponent.propTypes = {
-    users: React.PropTypes.oneOfType([
-        React.PropTypes.array,
-        React.PropTypes.object,
+    users: PropTypes.oneOfType([
+        PropTypes.array,
+        PropTypes.object,
     ]),
-    ingestProviders: React.PropTypes.array,
-    createdBy: React.PropTypes.any,
-    createdAt: React.PropTypes.any,
-    updatedBy: React.PropTypes.any,
-    updatedAt: React.PropTypes.any,
+    ingestProviders: PropTypes.array,
+    createdBy: PropTypes.any,
+    createdAt: PropTypes.any,
+    updatedBy: PropTypes.any,
+    updatedAt: PropTypes.any,
 }
 
 const mapStateToProps = (state) => (

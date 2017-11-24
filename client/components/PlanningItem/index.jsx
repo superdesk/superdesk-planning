@@ -126,12 +126,13 @@ const PlanningItem = ({
         <ListItem
             item={item}
             className={classNames('PlanningItem',
-                { 'ListItem--locked': isItemLocked },
                 { 'PlanningItem--has-been-cancelled': isCancelled || isRescheduled }
             )}
             onClick={onClick}
             onDoubleClick={inPlanning ? onEditOrPreview : null}
-            active={active}>
+            active={active}
+            state={isItemLocked ? 'locked' : null}
+        >
             {inPlanning &&
                 <div className="sd-list-item__action-menu">
                     <Checkbox value={isSelected} onChange={onSelectItem}/>

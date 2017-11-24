@@ -10,9 +10,23 @@ import { EventPreview } from './EventPreview'
 
 import * as selectors from '../../selectors'
 import * as actions from '../../actions'
-import { assignmentUtils, getCreator, getCoverageIcon, getAssignmentPriority } from '../../utils'
+import {
+    assignmentUtils,
+    getCreator,
+    getCoverageIcon,
+    getItemInArrayById,
+} from '../../utils'
 import { ASSIGNMENTS, WORKSPACE } from '../../constants'
-import { ItemActionsMenu, StateLabel, LockContainer, AuditInformation, ToggleBox } from '../'
+import {
+    ItemActionsMenu,
+    StateLabel,
+    AuditInformation,
+    ToggleBox,
+    AbsoluteDate,
+    UserAvatar,
+    PriorityLabel,
+} from '../'
+import { List } from '../UI'
 import './style.scss'
 
 class AssignmentPreviewContainerComponent extends React.Component {
@@ -77,12 +91,14 @@ class AssignmentPreviewContainerComponent extends React.Component {
             desks,
             planningItem,
             eventItem,
+            coverageItem,
             urgencyLabel,
             urgencies,
             priorities,
             keywords,
             contentTypes,
             formProfile,
+            newsCoverageStatus,
         } = this.props
 
         if (!assignment) {
@@ -93,8 +109,6 @@ class AssignmentPreviewContainerComponent extends React.Component {
         const assignedTo = get(assignment, 'assigned_to', {})
 
         const state = get(assignedTo, 'state')
-        const isAssignmentInUse = assignmentUtils.isAssignmentInUse(assignment)
-        const lockedUser = get(assignment, 'lock_user')
 
         const createdBy = getCreator(assignment, 'original_creator', users)
         const updatedBy = getCreator(assignment, 'version_creator', users)
@@ -102,58 +116,71 @@ class AssignmentPreviewContainerComponent extends React.Component {
         const updatedDate = get(assignment, '_updated')
         const versionCreator = get(updatedBy, 'display_name') ? updatedBy : users.find((user) => user._id === updatedBy)
 
+        const assignedUser = getItemInArrayById(users, get(assignedTo, 'user'))
+        const assignedDesk = getItemInArrayById(desks, get(assignedTo, 'desk'))
+
+        const assignedUserName = get(assignedUser, 'display_name') ||
+            get(assignedUser, 'name') ||
+            '-'
+        const assignedDeskName = get(assignedDesk, 'name') || '-'
+
         const itemActions = this.getItemActions()
 
         return (
             <div className="AssignmentPreview">
                 <div className="AssignmentPreview__toolbar side-panel__top-tools">
                     <div className="side-panel__top-tools-left">
-                        {get(assignment, 'lock_user') &&
-                            <LockContainer
-                                lockedUser={lockedUser}
-                                users={users}
-                                displayText={get(assignment, 'lock_action') === 'content_edit' ?
-                                    'Content locked' :
-                                    'Assignment locked'
-                                }
-                                showUnlock={false}
-                                withLoggedInfo={true}
-                            />
-                        }
-                        <span
-                            data-sd-tooltip={'Type: ' + planning.g2_content_type}
-                            data-flow="down"
-                        >
-                            <i
-                                className={classNames(
-                                    'AssignmentPreview__coverage-icon',
-                                    getCoverageIcon(planning.g2_content_type)
-                                )}
-                            />
-                        </span>
-                        <span
-                            className={classNames(
-                                'priority-label',
-                                'priority-label--' + assignment.priority
-                            )}
-                            data-sd-tooltip={'Priority: ' + getAssignmentPriority(assignment.priority, priorities).name}
-                            data-flow="down"
-                        >
-                            {assignment.priority}
-                        </span>
-                        <StateLabel item={assignment.assigned_to}/>
+                        <List.Item noBg={true} noHover={true}>
+                            <List.Column border={false}>
+                                <UserAvatar
+                                    user={assignedUser}
+                                    large={true}
+                                    noMargin={true}
+                                    initials={false}
+                                />
+                            </List.Column>
+                            <List.Column border={false} grow={true}>
+                                <List.Row>
+                                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                                        <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                                        Desk:
+                                        </span>
+                                        {assignedDeskName}
+                                    </span>
+                                </List.Row>
+                                <List.Row>
+                                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                                        <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                                            Assignee:
+                                        </span>
+                                        {assignedUserName}
+                                    </span>
+                                </List.Row>
+                                <List.Row>
+                                    <span
+                                        data-sd-tooltip={'Type: ' + planning.g2_content_type}
+                                        data-flow="down"
+                                    >
+                                        <i
+                                            className={classNames(
+                                                'AssignmentPreview__coverage-icon',
+                                                getCoverageIcon(planning.g2_content_type)
+                                            )}
+                                        />
+                                    </span>
 
-                        {isAssignmentInUse &&
-                            <span
-                                className="label label--hollow label--darkBlue2"
-                                data-sd-tooltip="Linked to content"
-                                data-flow="down"
-                            >
-                                Content
-                            </span>
-                        }
+                                    <PriorityLabel
+                                        item={assignment}
+                                        priorities={priorities}
+                                        tooltipFlow="down"
+                                    />
 
+                                    <StateLabel item={assignment.assigned_to}/>
+                                </List.Row>
+                            </List.Column>
+                        </List.Item>
                     </div>
+
                     <div className="side-panel__top-tools-right">
                         {get(itemActions, 'length') > 0 && <ItemActionsMenu actions={itemActions}/>}
                     </div>
@@ -181,17 +208,27 @@ class AssignmentPreviewContainerComponent extends React.Component {
                             createdAt={creationDate}
                             updatedAt={updatedDate}
                         />
+                        <div>
+                            <time>
+                                <span>Due </span>
+                                <AbsoluteDate
+                                    className="TimeAndAuthor__author sd-text__author"
+                                    date={get(assignment, 'planning.scheduled', '').toString()}
+                                    noDateString="'not scheduled yet'"
+                                />
+                            </time>
+                        </div>
                     </div>
                 </div>
 
                 <div className="AssignmentPreview__coverage side-panel__content-block side-panel__content-block--pad-small">
                     <AssignmentPreview
-                        users={users}
-                        desks={desks}
                         assignment={assignment}
                         keywords={keywords}
                         contentTypes={contentTypes}
                         formProfile={formProfile.coverage}
+                        coverageItem={coverageItem}
+                        newsCoverageStatus={newsCoverageStatus}
                     />
                 </div>
 
@@ -237,6 +274,7 @@ AssignmentPreviewContainerComponent.propTypes = {
     desks: PropTypes.array,
     planningItem: PropTypes.object,
     eventItem: PropTypes.object,
+    coverageItem: PropTypes.object,
     urgencyLabel: PropTypes.string,
     urgencies: PropTypes.array,
     priorities: PropTypes.array,
@@ -244,6 +282,8 @@ AssignmentPreviewContainerComponent.propTypes = {
     keywords: PropTypes.array,
     contentTypes: PropTypes.array,
     formProfile: PropTypes.object,
+
+    newsCoverageStatus: PropTypes.array,
 }
 
 const mapStateToProps = (state) => ({
@@ -255,6 +295,7 @@ const mapStateToProps = (state) => ({
 
     planningItem: selectors.getCurrentAssignmentPlanningItem(state),
     eventItem: selectors.getCurrentAssignmentEventItem(state),
+    coverageItem: selectors.getCurrentAssignmentCoverage(state),
 
     urgencyLabel: get(state, 'urgency.label', 'Urgency'),
     urgencies: get(state, 'urgency.urgency', []),
@@ -263,6 +304,7 @@ const mapStateToProps = (state) => ({
     keywords: get(state, 'vocabularies.keywords', []),
     contentTypes: get(state, 'vocabularies.g2_content_type', []),
     formProfile: selectors.getFormsProfile(state),
+    newsCoverageStatus: selectors.getNewsCoverageStatus(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({

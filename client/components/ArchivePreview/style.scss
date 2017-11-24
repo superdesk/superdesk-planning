@@ -1,0 +1,108 @@
+@import '~superdesk-core/styles/sass/mixins.scss';
+@import '~superdesk-core/styles/sass/variables.scss';
+
+.ArchivePreview {
+    .content-container {
+        position: relative !important;
+    }
+
+    &__header {
+        position: relative;
+        padding-bottom: 5px !important;
+        padding-top: 0 !important;
+
+        &.active {
+            padding-bottom: 2rem !important;
+        }
+
+        &-left {
+            padding-right: 8px;
+        }
+
+        &-middle {
+            padding-left: 12px;
+            padding-right: 12px;
+            border-left: 1px solid #e2e2e2;
+
+            .metaLabel {
+                color: #999;
+                text-transform: uppercase;
+            }
+
+            .sd-text__ednote {
+                color: #d25932;
+            }
+        }
+
+        &-right {
+            padding-left: 8px;
+            border-left: 1px solid #e2e2e2;
+        }
+
+        .coverage-icon {
+            opacity: 0.6;
+        }
+
+        @include box-sizing(border-box);
+        @include box-shadow(0px 1px 3px -1px rgba(0,0,0,0.2));
+
+        .preview-header__toggle {
+            position: absolute;
+            width: 21px;
+            height: 21px;
+            border: 0;
+            padding: 0;
+            left: 50%;
+            margin-left: -10.5px;
+            bottom: -11px;
+            background-color: $white;
+            z-index: 3;
+            line-height: 0;
+            @include border-radius(50%);
+            @include box-shadow(0px 0px 3px 0px rgba(0,0,0,0.4));
+            @include transition(transform 0.5s);
+            i { height: 15px; }
+            &.active { @include rotate(180deg); }
+        }
+
+        div {
+            margin-bottom: 5px;
+        }
+    }
+
+    &__content {
+        margin-top: 20px;
+        font-size: 14px;
+
+        video {
+            width: 100%;
+        }
+
+        img {
+            width: 100%;
+        }
+
+        .headline {
+            font-size: 19px;
+            line-height: 120%;
+            font-weight: 500;
+            color: #333;
+        }
+
+        div {
+            margin-bottom: 20px;
+        }
+
+        p {
+            margin: 0 0 9px 0;
+        }
+
+        .body-text {
+            line-height: 140%;
+        }
+
+        .preview-overlay {
+            margin-bottom: 0 !important;
+        }
+    }
+}

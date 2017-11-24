@@ -67,6 +67,7 @@ export const getPlanningSearch = (state) => get(state, 'planning.search.currentS
 export const getEventsFormsProfile = (state) => get(state, 'formsProfile.events')
 export const getPlanningsFormsProfile = (state) => get(state, 'formsProfile.planning')
 export const getCoverageFormsProfile = (state) => get(state, 'formsProfile.coverage')
+export const getNewsCoverageStatus = (state) => get(state, 'vocabularies.newscoveragestatus', [])
 export const getCoverageCancelState = (state) =>
     (get(state, 'vocabularies.newscoveragestatus', []).find((s) => s.qcode === 'ncostat:notint'))
 export const getVocabularies = (state) => get(state, 'vocabularies')
