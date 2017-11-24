@@ -18,6 +18,8 @@ from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
 from datetime import datetime, time
 import tzlocal
 import pytz
+from apps.archive.common import get_user, get_auth
+from eve.utils import config
 
 ITEM_STATE = 'state'
 ITEM_EXPIRY = 'expiry'
@@ -102,3 +104,15 @@ def get_local_end_of_day(day=None, timezone=None):
     return tz.localize(
         datetime.combine(day, time(23, 59, 59)), is_dst=None
     ).astimezone(pytz.utc)
+
+
+def is_locked_in_this_session(item, user_id=None, session_id=None):
+    if user_id is None:
+        user = get_user(required=True)
+        user_id = user.get(config.ID_FIELD)
+
+    if session_id is None:
+        session = get_auth()
+        session_id = session.get(config.ID_FIELD)
+
+    return item.get(LOCK_USER) == user_id and item.get(LOCK_SESSION) == session_id

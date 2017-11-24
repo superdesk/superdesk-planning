@@ -200,11 +200,38 @@ const onAssignmentUnlocked = (_e, data) => (
     }
 )
 
+/**
+ * WS Action when an Assignment is deleted
+ * @param {object} _e - Event object
+ * @param {object} data - IDs for the Assignment, Planning and Coverage items
+ */
+const onAssignmentRemoved = (_e, data) => (
+    (dispatch, getState, { notify }) => {
+        if (get(data, 'assignment')) {
+            const currentAssignmentId = selectors.getCurrentAssignmentId(getState())
+
+            if (data.assignment === currentAssignmentId) {
+                notify.error('The Assignment you were viewing was removed.')
+            }
+
+            dispatch({
+                type: ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT,
+                payload: data,
+            })
+
+            return Promise.resolve()
+        }
+
+        return Promise.resolve()
+    }
+)
+
 const self = {
     onAssignmentCreated,
     onAssignmentUpdated,
     onAssignmentLocked,
     onAssignmentUnlocked,
+    onAssignmentRemoved,
 }
 
 // Map of notification name and Action Event to execute
@@ -214,6 +241,7 @@ self.events = {
     'assignments:unlock': () => (self.onAssignmentUnlocked),
     'assignments:updated': () => (self.onAssignmentUpdated),
     'assignments:completed': () => (self.onAssignmentUpdated),
+    'assignments:removed': () => (self.onAssignmentRemoved),
 }
 
 export default self

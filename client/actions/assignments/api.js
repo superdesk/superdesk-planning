@@ -340,6 +340,17 @@ const loadArchiveItem = (assignment) => (
     }
 )
 
+/**
+ * Delete the Assignment, and unlink it from Content and Planning items
+ * @param {object} assignment - The Assignment to delete
+ * @return Promise - The response to the API call
+ */
+const removeAssignment = (assignment) => (
+    (dispatch, getState, { api }) => (
+        api('assignments').remove(assignment)
+    )
+)
+
 const self = {
     query,
     receivedAssignments,
@@ -353,6 +364,7 @@ const self = {
     queryLockedAssignments,
     loadPlanningAndEvent,
     loadArchiveItem,
+    removeAssignment,
 }
 
 export default self

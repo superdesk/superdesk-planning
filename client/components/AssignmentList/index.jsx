@@ -88,6 +88,7 @@ class AssignmentListComponent extends React.Component {
                     inAssignments={this.props.inAssignments}
                     startWorking={this.props.startWorking}
                     priorities={this.props.priorities}
+                    removeAssignment={this.props.removeAssignment}
                 />
         )
     }
@@ -147,6 +148,7 @@ AssignmentListComponent.propTypes = {
     preview: PropTypes.func,
     onAssignmentSelectChange: PropTypes.func.isRequired,
     priorities: PropTypes.array,
+    removeAssignment: PropTypes.func,
 }
 
 const getAssignmentsSelectorsForListGroup = (groupKey) => {
@@ -201,6 +203,7 @@ const mapDispatchToProps = (dispatch) => ({
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
     editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),
     startWorking: (assignment) => dispatch(actions.assignments.ui.openSelectTemplateModal(assignment)),
+    removeAssignment: (assignment) => dispatch(actions.assignments.ui.showRemoveAssignmentModal(assignment)),
 })
 
 export const AssignmentList = connect(mapStateToProps, mapDispatchToProps)(AssignmentListComponent)

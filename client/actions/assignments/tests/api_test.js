@@ -355,4 +355,14 @@ describe('actions.assignments.api', () => {
             })
         })
     })
+
+    it('removeAssignment', (done) => (
+        store.test(done, assignmentsApi.removeAssignment(data.assignments[0]))
+        .then(() => {
+            expect(services.api('assignments').remove.callCount).toBe(1)
+            expect(services.api('assignments').remove.args[0]).toEqual([data.assignments[0]])
+
+            done()
+        })
+    ))
 })

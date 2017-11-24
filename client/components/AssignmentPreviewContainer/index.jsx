@@ -49,6 +49,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
             session,
             privileges,
             startWorking,
+            removeAssignment,
         } = this.props
 
         if (!inAssignments) {
@@ -71,6 +72,10 @@ class AssignmentPreviewContainerComponent extends React.Component {
             {
                 ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
                 callback: completeAssignment.bind(null, assignment),
+            },
+            {
+                ...ASSIGNMENTS.ITEM_ACTIONS.REMOVE,
+                callback: removeAssignment.bind(null, assignment),
             },
         ]
 
@@ -266,6 +271,7 @@ AssignmentPreviewContainerComponent.propTypes = {
     reassign: PropTypes.func,
     completeAssignment: PropTypes.func,
     editAssignmentPriority: PropTypes.func,
+    removeAssignment: PropTypes.func,
     session: PropTypes.object,
     users: PropTypes.oneOfType([
         PropTypes.array,
@@ -313,6 +319,7 @@ const mapDispatchToProps = (dispatch) => ({
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
     editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),
     onFulFilAssignment: (assignment) => dispatch(actions.assignments.ui.onAssignmentFormSave(assignment)),
+    removeAssignment: (assignment) => dispatch(actions.assignments.ui.removeAssignment(assignment)),
 })
 
 export const AssignmentPreviewContainer = connect(
