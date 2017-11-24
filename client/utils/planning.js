@@ -233,6 +233,81 @@ const canEditCoverage = (coverage) => (
     get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
 )
 
+const getCoverageReadOnlyFields = (
+    readOnly,
+    newsCoverageStatus,
+    hasAssignment,
+    assignmentState
+) => {
+    const isCancelled = get(newsCoverageStatus, 'qcode') ===
+        PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode
+
+    // State is either derived from the Assignment state or if the coverage is cancelled
+    const state = hasAssignment ? assignmentState :
+        isCancelled ? ASSIGNMENTS.WORKFLOW_STATE.CANCELLED :
+            null
+
+    switch (state) {
+        case ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED:
+            return {
+                slugline: readOnly,
+                ednote: readOnly,
+                keyword: readOnly,
+                internal_note: readOnly,
+                g2_content_type: true,
+                genre: readOnly,
+                newsCoverageStatus: true,
+                scheduled: readOnly,
+            }
+        case ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS:
+        case ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED:
+            return {
+                slugline: readOnly,
+                ednote: true,
+                keyword: true,
+                internal_note: readOnly,
+                g2_content_type: true,
+                genre: true,
+                newsCoverageStatus: true,
+                scheduled: readOnly,
+            }
+        case ASSIGNMENTS.WORKFLOW_STATE.COMPLETED:
+            return {
+                slugline: readOnly,
+                ednote: readOnly,
+                keyword: readOnly,
+                internal_note: readOnly,
+                g2_content_type: true,
+                genre: true,
+                newsCoverageStatus: true,
+                scheduled: readOnly,
+            }
+        case ASSIGNMENTS.WORKFLOW_STATE.CANCELLED:
+            return {
+                slugline: true,
+                ednote: true,
+                keyword: true,
+                internal_note: true,
+                g2_content_type: true,
+                genre: true,
+                newsCoverageStatus: true,
+                scheduled: true,
+            }
+        case null:
+        default:
+            return {
+                slugline: readOnly,
+                ednote: readOnly,
+                keyword: readOnly,
+                internal_note: readOnly,
+                g2_content_type: readOnly,
+                genre: readOnly,
+                newsCoverageStatus: readOnly,
+                scheduled: readOnly,
+            }
+    }
+}
+
 const self = {
     canPublishPlanning,
     canUnpublishPlanning,
@@ -248,6 +323,7 @@ const self = {
     isCoverageCancelled,
     canCancelCoverage,
     canEditCoverage,
+    getCoverageReadOnlyFields,
 }
 
 export default self

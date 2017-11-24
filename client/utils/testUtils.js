@@ -146,6 +146,7 @@ export const getTestActionStore = () => {
                                 assignment_id: 'as1',
                             },
                             firstcreated: '2017-10-01T14:01:11',
+                            news_coverage_status: { qcode: 'ncostat:int' },
                         },
                         {
                             coverage_id: 'c2',
