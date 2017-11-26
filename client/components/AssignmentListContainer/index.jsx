@@ -11,7 +11,7 @@ import {
 } from '../index'
 import * as selectors from '../../selectors'
 import * as actions from '../../actions'
-import { ASSIGNMENTS } from '../../constants'
+import { ASSIGNMENTS, WORKSPACE } from '../../constants'
 import './style.scss'
 
 export class AssignmentListContainerComponent extends React.Component {
@@ -83,15 +83,17 @@ export class AssignmentListContainerComponent extends React.Component {
 
     render() {
         return (
-            <div className={classNames('Assignments-list-container',
-                  this.props.previewOpened ?
-                      'Assignments-list-container__body--edit-assignment-view open-preview' :
-                      null
-                )}>
+            <div className={classNames(
+                'Assignments-list-container',
+                { 'open-preview': this.props.previewOpened },
+                {
+                    'Assignments-list-container__body--edit-in-authoring': this.props.previewOpened &&
+                        this.props.inAuthoring,
+                })}>
                 <AssignmentListHeader
                     searchQuery={this.props.searchQuery}
                     changeSearchQuery={this.changeSearchQuery.bind(this)}
-                    assignmentListSingleGroupView={this.props.assignmentListSingleGroupView}
+                    assignmentListSingleGroupView={!this.props.inAuthoring && this.props.assignmentListSingleGroupView}
                     changeAssignmentListSingleGroupView={this.props.changeAssignmentListSingleGroupView.bind(this, null)}
                     totalCountInListView={this.getTotalCountForListGroup(this.props.assignmentListSingleGroupView)}
                 />
@@ -119,7 +121,12 @@ export class AssignmentListContainerComponent extends React.Component {
                     </div>
                 )}
                 {!isNil(this.props.assignmentListSingleGroupView) && (
-                    <div className='Assignments-list-container__groups'>
+                    <div className={
+                        classNames('Assignments-list-container__groups',
+                            {
+                                'Assignments-list-container__groups--edit-view': this.props.previewOpened &&
+                                !this.props.inAuthoring,
+                            })}>
                         <AssignmentList
                             groupKey={this.props.assignmentListSingleGroupView}
                             loadAssignmentsForGroup={this.loadAssignmentsForGroup.bind(this)}
@@ -153,6 +160,7 @@ AssignmentListContainerComponent.propTypes = {
     assignmentsInTodoCount: PropTypes.number,
     assignmentsInInProressCount: PropTypes.number,
     assignmentsInCompletedCount: PropTypes.number,
+    inAuthoring: PropTypes.bool,
 }
 
 const mapStateToProps = (state) => ({
@@ -168,6 +176,7 @@ const mapStateToProps = (state) => ({
     assignmentsInTodoCount: selectors.getAssignmentsToDoListCount(state),
     assignmentsInInProressCount: selectors.getAssignmentsInProgressListCount(state),
     assignmentsInCompletedCount: selectors.getAssignmentsCompletedListCount(state),
+    inAuthoring: selectors.getCurrentWorkspace(state) === WORKSPACE.AUTHORING,
 })
 
 const mapDispatchToProps = (dispatch) => ({

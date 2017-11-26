@@ -20,7 +20,6 @@ $ASSIGNMENT_LIST_CONTAINER_ZINDEX: 6;
     flex-direction: column;
     flex-grow: 1;
     margin: 9px 4px 0px 0px;
-    position: absolute;
 
     &--edit-view {
         margin-right: 550px;
@@ -46,6 +45,10 @@ $ASSIGNMENT_LIST_CONTAINER_ZINDEX: 6;
     margin-right: 0px;
     flex-grow: 1;
     overflow: hidden;
+
+    &--edit-in-authoring {
+        margin-right: 550px;
+    }
 }
 .Assignments-list-container__search {
     display: flex;
