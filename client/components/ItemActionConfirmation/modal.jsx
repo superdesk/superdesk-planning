@@ -10,8 +10,7 @@ import {
     PostponeEventForm,
     ConvertToRecurringEventForm,
     CancelPlanningCoveragesForm,
-    ReassignAssignmentForm,
-    EditAssignmentPriorityForm,
+    UpdateAssignmentForm,
 } from './index'
 import { get } from 'lodash'
 import { GENERIC_ITEM_ACTIONS, EVENTS, FORM_NAMES, PLANNING, ASSIGNMENTS } from '../../constants'
@@ -79,17 +78,17 @@ export const ItemActionConfirmationModal = ({ handleHide, modalProps }) => {
             form: CancelPlanningCoveragesForm,
         },
         [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: {
-            title: get(ASSIGNMENTS, 'ITEM_ACTIONS.REASSIGN.label'),
+            title: ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label,
             propToForm: { ...modalProps.assignment },
-            form: ReassignAssignmentForm,
-            formNameForPristineCheck: get(FORM_NAMES, 'ReassignAssignmentForm'),
+            form: UpdateAssignmentForm,
+            formNameForPristineCheck: get(FORM_NAMES, 'UpdateAssignmentForm'),
+            customValidation: true,
         },
-        [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: {
-            title: get(ASSIGNMENTS, 'ITEM_ACTIONS.EDIT_PRIORITY.label'),
-            propToForm: { ...modalProps.assignment },
-            form: EditAssignmentPriorityForm,
-            formNameForPristineCheck: get(FORM_NAMES, 'EditAssignmentPriorityForm'),
-        },
+    }
+
+    modalFormsMapper[ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label] = {
+        ...modalFormsMapper[ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label],
+        title: ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label,
     }
 
     title = get(modalFormsMapper[modalProps.actionType], 'title', getSaveAndPublishTitle())

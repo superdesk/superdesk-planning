@@ -84,6 +84,7 @@ describe('<EditAssignment />', () => {
         const wrapper = getWrapper()
 
         wrapper.find('.assignment__action').simulate('click')
+        wrapper.find('input').first().simulate('click')
         const lst = wrapper.find('ul')
         expect(lst.children().length).toBe(2)
         const lbls = lst.at(0).find('.assignmentselect__label')
@@ -116,6 +117,7 @@ describe('<EditAssignment />', () => {
         const wrapper = getWrapperWithInput(input)
 
         wrapper.find('.assignment__action').simulate('click')
+        wrapper.find('input').first().simulate('click')
         const lst = wrapper.find('ul')
         expect(lst.children().length).toBe(1)
         const lbls = lst.at(0).find('.assignmentselect__label')
@@ -136,6 +138,7 @@ describe('<EditAssignment />', () => {
         expect(deskSelectFieldComponent.props().desks[0].name).toBe('Politic Desk')
         expect(deskSelectFieldComponent.props().desks[1].name).toBe('Sports Desk')
 
+        wrapper.find('input').first().simulate('click')
         const lst = wrapper.find('ul')
         lst.children().first().find('button').simulate('click')
 
@@ -148,6 +151,7 @@ describe('<EditAssignment />', () => {
 
         wrapper.find('.assignment__action').simulate('click')
 
+        wrapper.find('input').first().simulate('click')
         const lst = wrapper.find('ul')
         lst.children().first().find('button').simulate('click')
 

@@ -4,7 +4,6 @@
         dl {
             margin-top: 0;
             > dt {
-                width: 90px;
                 line-height: 20px;
             }
             > dd {
@@ -29,7 +28,27 @@
     .timepickerPopup {
         @extend .timepicker--custom;
     }
-
     padding: 12px;
-}
 
+    &__metadata {
+        &__dataRow {
+            display: table;
+        }
+
+        border-bottom: none;
+
+        time {
+            color: #333;
+            font-weight: normal;
+        }
+
+        &__slugline {
+            color: #005b7f !important;
+        }
+    }
+
+    .sd-line-input--label-left--noMaxWdth {
+        max-width: none;
+        min-width: 15rem;
+    }
+}

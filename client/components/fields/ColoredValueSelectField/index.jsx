@@ -36,6 +36,7 @@ export class ColoredValueSelectField extends React.Component {
         const warning = get(meta, 'warning')
         const showMessage = touched && (error || warning)
         const divClasses = classNames(
+        'ColoredValueSelect',
         'sd-line-input',
         { 'sd-line-input--label-left': labelLeft },
         { 'sd-line-input--invalid': showMessage },
@@ -44,12 +45,12 @@ export class ColoredValueSelectField extends React.Component {
         )
 
         return ( <div className={divClasses}>
-            { label && <label className="sd-line-input__label" htmlFor={input.name}>
+            { label && <label className="sd-line-input__label ColoredValueSelect__label" htmlFor={input.name}>
                 {label}
                 </label> }
             <div className="sd-line-input__input">
                 <button type="button"
-                    className='dropdown__toggle'
+                    className='dropdown__toggle ColoredValueSelect__input'
                     disabled={readOnly}
                     onClick={this.toggleOpenPopup.bind(this)}>
                     <span className={this.getIconClasses(value)}>
