@@ -135,8 +135,7 @@ describe('<AssignmentPreviewContainer />', () => {
 
             const menu = new helpers.actionMenu(wrapper)
             expect(menu.actionLabels()).toContain('Start Working')
-            menu.toggleMenu()
-            menu.clickAction('Start Working')
+            menu.invokeAction('Start Working')
             expect(actions.assignments.ui.openSelectTemplateModal.callCount).toBe(1)
         })
 
@@ -146,8 +145,7 @@ describe('<AssignmentPreviewContainer />', () => {
 
             const menu = new helpers.actionMenu(wrapper)
             expect(menu.actionLabels()).toContain('Reassign')
-            menu.toggleMenu()
-            menu.clickAction('Reassign')
+            menu.invokeAction('Reassign')
             expect(actions.assignments.ui.reassign.callCount).toBe(1)
         })
 
@@ -157,8 +155,7 @@ describe('<AssignmentPreviewContainer />', () => {
 
             const menu = new helpers.actionMenu(wrapper)
             expect(menu.actionLabels()).toContain('Edit Priority')
-            menu.toggleMenu()
-            menu.clickAction('Edit Priority')
+            menu.invokeAction('Edit Priority')
             expect(actions.assignments.ui.editPriority.callCount).toBe(1)
         })
 
@@ -168,8 +165,7 @@ describe('<AssignmentPreviewContainer />', () => {
 
             const menu = new helpers.actionMenu(wrapper)
             expect(menu.actionLabels()).toContain('Complete Assignment')
-            menu.toggleMenu()
-            menu.clickAction('Complete Assignment')
+            menu.invokeAction('Complete Assignment')
             expect(actions.assignments.ui.complete.callCount).toBe(1)
         })
 

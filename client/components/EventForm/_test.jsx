@@ -9,6 +9,7 @@ import * as actions from '../../actions'
 import eventsUi from '../../actions/events/ui'
 import moment from 'moment'
 import { restoreSinonStub, itemActionExists } from '../../utils/testUtils'
+import * as helpers from '../tests/helpers'
 
 describe('events', () => {
     describe('components', () => {
@@ -369,16 +370,17 @@ describe('events', () => {
 
                 it('spike action calls `actions.events.ui.openSpikeModal`', () => {
                     const store = createTestStoreForEventEditing(event)
+                    store.getState().locks.events = {}
+
                     const wrapper = mount(
                         <Provider store={store}>
                             <EventForm initialValues={event}/>
                         </Provider>
                     )
 
-                    const actionsMenu = wrapper.find('ItemActionsMenu')
-
-                    actionsMenu.find('.dropdown__toggle').simulate('click')
-                    actionsMenu.find('li button').at(1).simulate('click')
+                    const menu = new helpers.actionMenu(wrapper)
+                    expect(menu.actionLabels()).toContain('Spike')
+                    menu.invokeAction('Spike')
 
                     expect(eventsUi.openSpikeModal.callCount).toBe(1)
                     expect(eventsUi.openSpikeModal.args[0]).toEqual([event])
