@@ -5,6 +5,7 @@ import { createTestStore } from '../../../utils'
 import { Provider } from 'react-redux'
 import { reduxForm, Field } from 'redux-form'
 
+/* eslint-disable react/display-name */
 const renderComponentField = (component) => (
     () => (
         <Field name="field_name"

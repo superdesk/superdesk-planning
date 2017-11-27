@@ -53,10 +53,12 @@ export function PlanningController(
                 store.dispatch(actions.resetStore())
             })
 
+            const App = $scope.vm.app || PlanningApp;
+
             // render the planning application
             ReactDOM.render(
                 <Provider store={store}>
-                    <PlanningApp />
+                    <App />
                 </Provider>,
                 $element.get(0)
             )
