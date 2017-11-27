@@ -16,7 +16,6 @@ function configurePlanning(superdesk) {
             priority: 100,
             adminTools: false,
             template: require('./client/views/planning.html'),
-            topTemplateUrl: 'scripts/apps/dashboard/views/workspace-topnav.html',
             sideTemplateUrl: 'scripts/apps/workspace/views/workspace-sidenav.html',
             privileges: { planning: 1 },
         })

@@ -13,13 +13,17 @@ PlanningController.$inject = [
     '$location',
     'sdPlanningStore',
     '$q',
+    'superdeskFlags',
+    '$route',
 ]
 export function PlanningController(
     $element,
     $scope,
     $location,
     sdPlanningStore,
-    $q
+    $q,
+    superdeskFlags,
+    $route
 ) {
     sdPlanningStore.getStore()
     .then((store) => {
@@ -54,6 +58,13 @@ export function PlanningController(
             })
 
             const App = $scope.vm.app || PlanningApp;
+
+            $scope.$watch(
+                () => $route.current,
+                (route) => {
+                    superdeskFlags.flags.workqueue = !route.href.startsWith('/planning')
+                }
+            )
 
             // render the planning application
             ReactDOM.render(
