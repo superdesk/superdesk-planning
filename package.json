@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "fix": "eslint client --ext=jsx --ext=js --fix",
-    "hint": "eslint client --ext=jsx --ext=js --quiet",
+    "hint": "eslint client --ext=jsx --ext=js",
     "lint": "eslint client --ext=jsx --ext=js",
     "unit_test": "karma start karma.conf.js --log-level debug --display-error-details --single-run",
     "karma": "karma start karma.conf.js",
@@ -35,7 +35,6 @@
   },
   "devDependencies": {
     "enzyme": "~2.9.1",
-    "eslint-plugin-jasmine": "~2.8.4",
     "istanbul-instrumenter-loader": "0.2.0",
     "jasmine": "2.8.0",
     "karma": "1.7.1",
@@ -51,7 +50,7 @@
     "react-test-renderer": "~15.6.1",
     "simulant": "^0.2.2",
     "sinon": "~3.3.0",
-    "superdesk-core": "superdesk/superdesk-client-core#7dd477",
-    "superdesk-code-style": "^1.0.0"
+    "superdesk-code-style": "^1.0.0",
+    "superdesk-core": "superdesk/superdesk-client-core#7dd477"
   }
 }
