@@ -279,7 +279,7 @@ Feature: Assignments
 
     @auth
     @vocabularies
-    Scenario: Desk re-assignment not allowed if assignment is in progress
+    Scenario: Desk re-assignment not allowed if assignment is in progress or submitted
         When we post to "/archive"
         """
         [{
@@ -359,6 +359,154 @@ Feature: Assignments
         }
         """
         Then we get error 400
+        When we patch "/assignments/#firstassignment#"
+        """
+        {
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "state": "submitted"
+            }
+        }
+        """
+        Then we get OK response
+        When we patch "/assignments/#firstassignment#"
+        """
+        {
+            "assigned_to": {
+                "desk": "Sports Desk",
+                "user": "507f191e810c19729de870eb"
+            }
+        }
+        """
+        Then we get error 400
+
+
+    @auth
+    @vocabularies
+    Scenario: User re-assignment of submitted assignment moves to in_progress
+        When we post to "/archive"
+        """
+        [{
+            "type": "text",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "task": {
+                "desk": "#desks._id#",
+                "stage": "#desks.incoming_stage#"
+            }
+        }]
+        """
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "slugline": "test slugline"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "slugline": "test slugline"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#"
+                }
+            }]
+        }
+        """
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we post to "assignments/link"
+        """
+        [{
+            "assignment_id": "#firstassignment#",
+            "item_id": "#archive._id#"
+        }]
+        """
+        Then we get OK response
+        When we get "/archive/#archive._id#"
+        Then we get existing resource
+        """
+        {
+            "assignment_id": "#firstassignment#"
+        }
+        """
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "in_progress"
+            }
+        }
+        """
+        When we post to "/desks" with "FINANCE_DESK_ID" and success
+        """
+        [{"name": "Finance", "desk_type": "production" }]
+        """
+        And we switch user
+        And we post to "/archive/#archive._id#/move"
+        """
+        [{"task": {"desk": "#desks._id#", "stage": "#desks.incoming_stage#"}}]
+        """
+        Then we get OK response
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": null,
+                "state": "submitted"
+            }
+        }
+        """
+        When we patch "/assignments/#firstassignment#"
+        """
+        {
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "507f191e810c19729de870eb"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "507f191e810c19729de870eb",
+                "state": "in_progress"
+            }
+        }
+        """
 
     @auth
     @vocabularies

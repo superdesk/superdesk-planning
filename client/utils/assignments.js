@@ -111,6 +111,12 @@ const getAssignmentGroupByStates = (states=[]) => {
     }
 }
 
+const canEditDesk = (assignment) => {
+    const state = get(assignment, 'assigned_to.state')
+    return state !== ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED &&
+        state !== ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS
+}
+
 const self = {
     canEditAssignment,
     canCompleteAssignment,
@@ -121,6 +127,7 @@ const self = {
     getAssignmentsInListGroups,
     getAssignmentGroupByStates,
     canRemoveAssignment,
+    canEditDesk,
 }
 
 export default self

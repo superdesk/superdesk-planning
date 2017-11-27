@@ -96,9 +96,10 @@ class AssignmentsService(superdesk.Service):
         # set the assignment information
         user = get_user()
         if original.get('assigned_to', {}).get('desk') != assigned_to.get('desk'):
-            if original.get('assigned_to', {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
+            if original.get('assigned_to', {}).get('state') in \
+                    [ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED]:
                 raise SuperdeskApiError.forbiddenError(
-                    message="Assignment in progress. Desk reassignment not allowed.")
+                    message="Assignment linked to content. Desk reassignment not allowed.")
 
             assigned_to['assigned_date_desk'] = utcnow()
 
@@ -122,7 +123,7 @@ class AssignmentsService(superdesk.Service):
             else:
                 # Moving from submitted to assigned after user assigned after desk submission
                 if original.get('assigned_to')['state'] == ASSIGNMENT_WORKFLOW_STATE.SUBMITTED:
-                    updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
+                    updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
 
             updates['version_creator'] = str(user.get(config.ID_FIELD)) if user else None
 

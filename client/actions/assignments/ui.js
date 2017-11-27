@@ -56,23 +56,20 @@ const reloadAssignments = (filterByState) => (
 const queryAndSetAssignmentListGroups = (filterByState, page=1) => (
     (dispatch, getState) => {
         let querySearchSettings = selectors.getAssignmentSearch(getState())
-        if (filterByState) {
-            querySearchSettings.states = filterByState
-        }
+        const listGroupForStates = assignmentUtils.getAssignmentGroupByStates(filterByState)
 
+        querySearchSettings.states = listGroupForStates.states
         querySearchSettings.page = page
 
         return dispatch(assignments.api.query(querySearchSettings))
         .then((data) => {
             dispatch(assignments.api.receivedAssignments(data._items))
-
-            const listGroup = assignmentUtils.getAssignmentGroupByStates(querySearchSettings.states)
             if (page == 1) {
                 dispatch(self.setAssignmentListGroup(data._items.map((a) => a._id),
-                get(data, '_meta.total'), listGroup))
+                get(data, '_meta.total'), listGroupForStates))
             } else {
                 dispatch(self.addToAssignmentListGroup(data._items.map((a) => a._id),
-                    listGroup))
+                    listGroupForStates))
             }
 
             return Promise.resolve(data._items)
