@@ -11,7 +11,6 @@
 .Planning {
     @include absolute0;
     top: $nav-height;
-    bottom: 30px;
     .navbtn { // fix the (+) button. Needed because it's not a dropdown
         overflow: hidden;
         padding: 0;
