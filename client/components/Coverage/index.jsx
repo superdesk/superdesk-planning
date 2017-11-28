@@ -20,6 +20,7 @@ function CoverageComponent({
     assignmentPriorities,
     assignmentState,
     hasAssignment,
+    coverageId,
     }) {
     return (
         <fieldset>
@@ -40,6 +41,7 @@ function CoverageComponent({
                 content_type={content_type}
                 assignmentState={assignmentState}
                 hasAssignment={hasAssignment}
+                coverageId={coverageId}
                 keywords={keywords} />
         </fieldset>
     )
@@ -58,6 +60,7 @@ CoverageComponent.propTypes = {
     assignmentPriorities: PropTypes.array,
     assignmentState: PropTypes.string,
     hasAssignment: PropTypes.bool,
+    coverageId: PropTypes.string,
 }
 
 const selector = formValueSelector(FORM_NAMES.PlanningForm) // same as form name
