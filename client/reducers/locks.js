@@ -124,4 +124,8 @@ export default createReducer(initialLockState, {
     [PLANNING.ACTIONS.UNSPIKE_PLANNING]: (state, payload) => (
         removeLock(payload.plan, cloneDeep(state), 'planning')
     ),
+
+    [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (state, payload) => (
+        removeLock({ _id: payload.planning }, cloneDeep(state), 'planning')
+    ),
 })

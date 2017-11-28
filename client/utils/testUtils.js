@@ -62,6 +62,7 @@ export const getTestActionStore = () => {
 
                         return Promise.resolve(assignment)
                     }),
+                    remove: sinon.spy((item) => store.spies.api._remove('assignments', item)),
                 },
                 archive: {
                     getById: sinon.spy((id) => {
@@ -88,6 +89,7 @@ export const getTestActionStore = () => {
                     ...ori,
                     ...item,
                 })),
+                _remove: () => Promise.resolve(),
             },
         },
 

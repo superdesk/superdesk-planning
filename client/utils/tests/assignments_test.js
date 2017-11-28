@@ -45,6 +45,10 @@ describe('can edit assignment', () => {
         assignment
     )
 
+    const canRemoveAssignment = () => utils.assignmentUtils.canRemoveAssignment(
+        assignment, session, privileges
+    )
+
     it('no privileges', () => {
         privileges.planning_planning_management = 0
         privileges.archive = 0
@@ -62,6 +66,7 @@ describe('can edit assignment', () => {
             expect(isAssignmentInEditableState()).toBe(true)
             expect(canCompleteAssignment()).toBe(false)
             expect(isAssignmentInUse()).toBe(false)
+            expect(canRemoveAssignment()).toBe(true)
         })
 
         it('assignment workflow state is `in_progress`', () => {
@@ -71,6 +76,7 @@ describe('can edit assignment', () => {
             expect(isAssignmentInEditableState()).toBe(true)
             expect(canCompleteAssignment()).toBe(true)
             expect(isAssignmentInUse()).toBe(true)
+            expect(canRemoveAssignment()).toBe(true)
         })
 
         it('assignment workflow state is `completed`', () => {
@@ -80,6 +86,7 @@ describe('can edit assignment', () => {
             expect(isAssignmentInEditableState()).toBe(false)
             expect(canCompleteAssignment()).toBe(false)
             expect(isAssignmentInUse()).toBe(true)
+            expect(canRemoveAssignment()).toBe(false)
         })
 
         it('assignment workflow state is `submitted`', () => {
@@ -89,6 +96,7 @@ describe('can edit assignment', () => {
             expect(isAssignmentInEditableState()).toBe(true)
             expect(canCompleteAssignment()).toBe(false)
             expect(isAssignmentInUse()).toBe(true)
+            expect(canRemoveAssignment()).toBe(true)
         })
 
         it('assignment workflow state is `cancelled`', () => {
@@ -98,6 +106,7 @@ describe('can edit assignment', () => {
             expect(isAssignmentInEditableState()).toBe(false)
             expect(canCompleteAssignment()).toBe(false)
             expect(isAssignmentInUse()).toBe(false)
+            expect(canRemoveAssignment()).toBe(false)
         })
     })
 

@@ -124,6 +124,7 @@ describe('<AssignmentPreviewContainer />', () => {
                 'Start Working',
                 'Reassign',
                 'Edit Priority',
+                'Remove Assignment',
             ])
         })
 

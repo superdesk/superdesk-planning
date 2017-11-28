@@ -1,4 +1,4 @@
-import { uniq, keyBy, get, cloneDeep } from 'lodash'
+import { uniq, keyBy, get, cloneDeep, filter, pickBy } from 'lodash'
 import { ASSIGNMENTS, RESET_STORE, INIT_STORE } from '../constants'
 import moment from 'moment'
 import { createReducer } from '../utils'
@@ -172,6 +172,32 @@ const assignmentReducer = createReducer(initialState, {
             [payload.assignment_id]: payload,
         },
     }),
+
+    [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (state, payload) => (
+        // If the Assignment isn't loaded, then disregard this action
+        !(payload.assignment in state.assignments) ? state :
+
+        // Otherwise filter out the Assignment from the store
+        {
+            ...state,
+            assignments: pickBy(
+                state.assignments, (assignment, key) => key !== payload.assignment
+            ),
+            assignmentsInInProgressList: filter(
+                state.assignmentsInInProgressList, (aid) => aid !== payload.assignment
+            ),
+            assignmentsInTodoList: filter(
+                state.assignmentsInTodoList, (aid) => aid !== payload.assignment
+            ),
+            assignmentsInCompletedList: filter(
+                state.assignmentsInCompletedList, (aid) => aid !== payload.assignment
+            ),
+            previewOpened: state.currentAssignmentId === payload.assignment ?
+                false : state.previewOpened,
+            currentAssignmentId: state.currentAssignmentId === payload.assignment ?
+                null : state.currentAssignmentId,
+        }
+    ),
 })
 
 export default assignmentReducer

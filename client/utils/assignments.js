@@ -35,6 +35,11 @@ const isAssignmentInUse = (assignment) => (
     get(assignment, 'assigned_to.state')))
 )
 
+const canRemoveAssignment = (assignment, session, privileges) => (
+    canEditAssignment(assignment, session, privileges) &&
+        get(assignment, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
+)
+
 const getAssignmentItemActions = (assignment, session, privileges, actions) => {
     let itemActions = []
     let key = 1
@@ -48,6 +53,8 @@ const getAssignmentItemActions = (assignment, session, privileges, actions) => {
             canEditAssignment(assignment, session, privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: () =>
             canStartWorking(assignment, session, privileges),
+        [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label]: () =>
+            canRemoveAssignment(assignment, session, privileges),
     }
 
     actions.forEach((action) => {
@@ -113,6 +120,7 @@ const self = {
     canStartWorking,
     getAssignmentsInListGroups,
     getAssignmentGroupByStates,
+    canRemoveAssignment,
 }
 
 export default self

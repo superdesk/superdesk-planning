@@ -18,42 +18,47 @@ import { ASSIGNMENTS } from '../../constants'
 import './style.scss'
 
 export const AssignmentItem = ({
-        assignment,
-        onClick,
-        className,
-        assignedUser,
-        isCurrentUser,
-        lockedItems,
-        currentAssignmentId,
-        session,
-        privileges,
-        reassign,
-        completeAssignment,
-        editAssignmentPriority,
-        inAssignments,
-        startWorking,
-        priorities,
-    }) => {
+    assignment,
+    onClick,
+    className,
+    assignedUser,
+    isCurrentUser,
+    lockedItems,
+    currentAssignmentId,
+    session,
+    privileges,
+    reassign,
+    completeAssignment,
+    editAssignmentPriority,
+    inAssignments,
+    startWorking,
+    priorities,
+    removeAssignment,
+}) => {
     const isItemLocked = get(lockedItems, 'assignments') && assignment._id in lockedItems.assignments
 
     const actions = [
-            {
-                ...ASSIGNMENTS.ITEM_ACTIONS.REASSIGN,
-                callback: () => { reassign(assignment) },
-            },
-            {
-                ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY,
-                callback: () => { editAssignmentPriority(assignment) },
-            },
-            {
-                ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
-                callback: () => { completeAssignment(assignment) },
-            },
-            {
-                ...ASSIGNMENTS.ITEM_ACTIONS.START_WORKING,
-                callback: () => { startWorking(assignment) },
-            },
-        ]
+        {
+            ...ASSIGNMENTS.ITEM_ACTIONS.REASSIGN,
+            callback: reassign.bind(null, assignment),
+        },
+        {
+            ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY,
+            callback: editAssignmentPriority.bind(null, assignment),
+        },
+        {
+            ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
+            callback: completeAssignment.bind(null, assignment),
+        },
+        {
+            ...ASSIGNMENTS.ITEM_ACTIONS.START_WORKING,
+            callback: startWorking.bind(null, assignment),
+        },
+        {
+            ...ASSIGNMENTS.ITEM_ACTIONS.REMOVE,
+            callback: removeAssignment.bind(null, assignment),
+        },
+    ]
 
     const itemActions = inAssignments ? assignmentUtils.getAssignmentItemActions(
         assignment,
@@ -140,4 +145,5 @@ AssignmentItem.propTypes = {
     privileges: PropTypes.object,
     startWorking: PropTypes.func,
     priorities: PropTypes.array,
+    removeAssignment: PropTypes.func,
 }

@@ -41,7 +41,7 @@ export class WorkqueueList extends React.Component {
                     {get(this.props.workqueueItems, 'Plannings').map((openedItem, index) => {
                         const active = openedItem._id === this.props.currentPlanningId
                         return (<li key={index} className={active ? 'active' : ''}>
-                            <a className="title" onClick={this.props.openPlanningClick.bind(null, openedItem, openedItem.agendas[0])}>
+                            <a className="title" onClick={this.props.openPlanningClick.bind(null, openedItem, get(openedItem, 'agendas[0]'))}>
                                 <i className={active ? 'icon-calendar icon--white' : 'icon-calendar icon--blue'} />
                                 <span className="item-label">
                                     { openedItem.headline || openedItem.slugline  || 'Untitled' }

@@ -402,7 +402,7 @@ const onFulFilAssignment = (assignment) => (
 
 const complete = (item) => (
     (dispatch, getState, { notify }) => (
-        dispatch(assignments.api.lock(item, 'complete'))
+        dispatch(self.lockAssignment(item, 'complete'))
         .then((lockedItem) => {
             dispatch(assignments.api.complete(lockedItem))
             .then((lockedItem) => {
@@ -412,12 +412,7 @@ const complete = (item) => (
                 notify.error('Failed to complete the assignment.')
                 return Promise.reject(error)
             })
-        }, (error) => {
-            notify.error(
-                getErrorMessage(error, 'Failed to lock assignment.')
-            )
-            return Promise.reject(error)
-        })
+        }, (error) => Promise.reject(error))
     )
 )
 
@@ -459,8 +454,8 @@ const canLinkItem = (item) => (
 )
 
 const openSelectTemplateModal = (assignment) => (
-    (dispatch, getState, { notify }) => (
-        dispatch(assignments.api.lock(assignment, 'start_working'))
+    (dispatch, getState) => (
+        dispatch(self.lockAssignment(assignment, 'start_working'))
         .then((lockedAssignment) => {
             let items = []
             const templates = selectors.getTemplates(getState())
@@ -490,36 +485,196 @@ const openSelectTemplateModal = (assignment) => (
                     onCancel: onCancel,
                 },
             }))
-        }, (error)  => {
-            notify.error(
-                getErrorMessage(error, 'Failed to lock assignment.')
-            )
-            return Promise.reject(error)
-        })
+        }, (error)  => Promise.reject(error))
     )
 )
 
-const _openActionModal = (assignment,
-    action,
-    lockAction=null) => (
-    (dispatch, getState, { notify }) => (
-        dispatch(assignments.api.lock(assignment, lockAction))
+const _openActionModal = (assignment, action, lockAction=null) => (
+    (dispatch) => (
+        dispatch(self.lockAssignment(assignment, lockAction))
         .then((lockedAssignment) => (
-                dispatch(showModal({
-                    modalType: MODALS.ITEM_ACTIONS_MODAL,
-                    modalProps: {
-                        assignment: lockedAssignment,
-                        actionType: action,
-                    },
-                }))
-            ), (error) => {
+            dispatch(showModal({
+                modalType: MODALS.ITEM_ACTIONS_MODAL,
+                modalProps: {
+                    assignment: lockedAssignment,
+                    actionType: action,
+                },
+            }))
+        ), (error) => Promise.reject(error))
+    )
+)
+
+/**
+ * Utility Action to lock the Assignment, and display a notification
+ * to the user if the lock fails
+ * @param {object} assignment - The Assignment to lock
+ * @param {string} action - The action for the lock
+ * @return Promise - The locked Assignment item, otherwise the API error
+ */
+const lockAssignment = (assignment, action) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(assignments.api.lock(assignment, action))
+        .then(
+            (lockedAssignment) => Promise.resolve(lockedAssignment),
+            (error) => {
                 notify.error(
-                    getErrorMessage(error, 'Failed to obtain the lock on Assignment')
+                    getErrorMessage(error, 'Failed to lock the Assignment.')
                 )
 
                 return Promise.reject(error)
             }
         )
+    )
+)
+
+/**
+ * Utility Action to lock a Planning item associated with an Assignment, and
+ * displays a notification to the user if the lock fails
+ * @param {object} assignment - The Assignment for the associated Planning item
+ * @param {string} action - The action for the lock
+ * @return Promise - The locked Planning item, otherwise the API error
+ */
+const lockPlanning = (assignment, action) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(actions.planning.api.lock({ _id: get(assignment, 'planning_item') }, action))
+        .then(
+            (lockedPlanning) => Promise.resolve(lockedPlanning),
+            (error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to lock the Planning item.')
+                )
+
+                return Promise.reject(error)
+            }
+        )
+    )
+)
+
+/**
+ * Utility Action to lock both the Assignment and it's associated Planning item
+ * @param {object} assignment - The Assignment to lock for
+ * @param {string} action - The action for the lock
+ * @return Promise - The locked Assignment item, otherwise the API error
+ */
+const lockAssignmentAndPlanning = (assignment, action) => (
+    (dispatch) => (
+        Promise.all([
+            dispatch(self.lockAssignment(assignment, action)),
+            dispatch(self.lockPlanning(assignment, action)),
+        ])
+        .then(
+            (data) => Promise.resolve(data[0]),
+            (error) => Promise.reject(error)
+        )
+    )
+)
+
+/**
+ * Utility Action to unlock an Assignment and display a notification
+ * if the unlock fails
+ * @param {object} assignment - The Assignment to unlock
+ * @return Promise - The unlocked Assignment item, otherwise the API error
+ */
+const unlockAssignment = (assignment) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(assignments.api.unlock(assignment))
+        .then(
+            (unlockedAssignment) => Promise.resolve(unlockedAssignment),
+            (error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to unlock the Assignment')
+                )
+
+                return Promise.reject(error)
+            }
+        )
+    )
+)
+
+/**
+ * Utility Action to unlock a Planning item associated with an Assignment, and
+ * display a notification to the user if the unlock fails
+ * @param assignment
+ * @return Promise - The unlocked Planning item, otherwise the API error
+ */
+const unlockPlanning = (assignment) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(actions.planning.api.unlock({ _id: get(assignment, 'planning_item') }))
+        .then(
+            (unlockedPlanning) => Promise.resolve(unlockedPlanning),
+            (error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to lock the Planning item')
+                )
+
+                return Promise.reject(error)
+            }
+        )
+    )
+)
+
+/**
+ * Utility Action to unlock both the Assignment and it's associated Planning item
+ * @param {object} assignment - The Assignment to lock for
+ * @return Promise - The unlocked Assignment item, otherwise the API error
+ */
+const unlockAssignmentAndPlanning = (assignment) => (
+    (dispatch) => (
+        Promise.all([
+            dispatch(self.unlockAssignment(assignment)),
+            dispatch(self.unlockPlanning(assignment)),
+        ])
+        .then(
+            (data) => Promise.resolve(data[0]),
+            (error) => Promise.reject(error)
+        )
+    )
+)
+
+/**
+ * Action to display the 'Remove Assignment' confirmation modal
+ * Removes the assignment if 'OK' was clicked, otherwise unlocks the Assignment and
+ * Planning items
+ * @param {object} assignment - The Assignment item intended for deletion
+ * @return Promise - Locked Assignment, otherwise the Lock API error
+ */
+const showRemoveAssignmentModal = (assignment) => (
+    (dispatch) => (
+        dispatch(self.lockAssignmentAndPlanning(assignment, 'remove_assignment'))
+        .then((lockedAssignment) => {
+            dispatch(showModal({
+                modalType: MODALS.CONFIRMATION,
+                modalProps: {
+                    body: 'Are you sure you want to remove the Assignment?',
+                    action: () => dispatch(self.removeAssignment(lockedAssignment)),
+                    onCancel: () => dispatch(self.unlockAssignmentAndPlanning(lockedAssignment)),
+                },
+            }))
+
+            return Promise.resolve(lockedAssignment)
+        }, (error) => Promise.reject(error)
+        )
+    )
+)
+
+/**
+ * Action to delete the Assignment item
+ * @param {object} assignment - The Assignment item to remove
+ * @return Promise - Empty promise, otherwise the API error
+ */
+const removeAssignment = (assignment) => (
+    (dispatch, getState, { notify }) => (
+        dispatch(assignments.api.removeAssignment(assignment))
+        .then(() => {
+            notify.success('Assignment removed')
+            return Promise.resolve()
+        }, (error) => {
+            notify.error(
+                getErrorMessage(error, 'Failed to remove the Assignment')
+            )
+
+            return Promise.reject(error)
+        })
     )
 )
 
@@ -550,6 +705,15 @@ const self = {
     onAssignmentFormSave,
     addToAssignmentListGroup,
     onArchivePreviewImageClick,
+    showRemoveAssignmentModal,
+    removeAssignment,
+
+    lockAssignment,
+    lockPlanning,
+    lockAssignmentAndPlanning,
+    unlockAssignment,
+    unlockPlanning,
+    unlockAssignmentAndPlanning,
 }
 
 export default self

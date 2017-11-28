@@ -22,6 +22,7 @@ export const ASSIGNMENTS = {
         UNLOCK_ASSIGNMENT: 'UNLOCK_ASSIGNMENT',
         CHANGE_LIST_VIEW_MODE: 'CHANGE_LIST_VIEW_MODE',
         RECEIVED_ARCHIVE: 'RECEIVED_ARCHIVE',
+        REMOVE_ASSIGNMENT: 'REMOVE_ASSIGNMENT',
     },
     WORKFLOW_STATE: {
         ASSIGNED: 'assigned',
@@ -46,6 +47,10 @@ export const ASSIGNMENTS = {
         START_WORKING: {
             label: 'Start Working',
             icon: 'icon-external',
+        },
+        REMOVE: {
+            label: 'Remove Assignment',
+            icon: 'icon-trash',
         },
     },
     DEFAULT_PRIORITY: 2,

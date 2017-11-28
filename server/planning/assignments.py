@@ -29,9 +29,11 @@ from superdesk import get_resource_service
 from apps.common.components.utils import get_component
 from .item_lock import LockService, LOCK_USER
 from superdesk.users.services import current_user_has_privilege
-from .common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, get_local_end_of_day
+from .common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
+    get_local_end_of_day, is_locked_in_this_session
 from flask import request
 from .planning_notifications import PlanningNotifications
+from apps.content import push_content_notification
 
 
 logger = logging.getLogger(__name__)
@@ -50,7 +52,8 @@ class AssignmentsService(superdesk.Service):
     def on_fetched_item_archive(self, doc):
         if doc.get('assignment_id'):
             assignment = self.find_one(req=None, _id=doc['assignment_id'])
-            doc['assignment'] = assignment.get('assigned_to') or {}
+            if assignment:
+                doc['assignment'] = assignment.get('assigned_to') or {}
 
     def _enhance_archive_items(self, docs):
         ids = [str(item['assignment_id']) for item in docs if item.get('assignment_id')]
@@ -497,31 +500,106 @@ class AssignmentsService(superdesk.Service):
     def validate_assignment_lock(self, item, user_id):
         if item.get('assignment_id'):
             assignment_update_data = self._get_assignment_data_on_archive_update({}, item)
-            assignment = assignment_update_data.get('assignment')
-            if assignment and assignment.get('lock_user'):
-                if assignment['lock_session'] != get_auth()['_id'] or assignment['lock_user'] != user_id:
-                    raise SuperdeskApiError.badRequestError(message="Lock Failed: Related assignment is locked.")
+            if assignment_update_data.get('assignment'):
+                assignment = assignment_update_data.get('assignment')
+                if assignment and assignment.get('lock_user'):
+                    if assignment['lock_session'] != get_auth()['_id'] or assignment['lock_user'] != user_id:
+                        raise SuperdeskApiError.badRequestError(message="Lock Failed: Related assignment is locked.")
 
     def sync_assignment_lock(self, item, user_id):
         if item.get('assignment_id'):
             assignment_update_data = self._get_assignment_data_on_archive_update({}, item)
-            assignment = assignment_update_data.get('assignment')
-            lock_service = get_component(LockService)
-            lock_service.lock(assignment, user_id, get_auth()['_id'], 'content_edit', 'assignments')
+            if assignment_update_data.get('assignment'):
+                assignment = assignment_update_data.get('assignment')
+                lock_service = get_component(LockService)
+                lock_service.lock(assignment, user_id, get_auth()['_id'], 'content_edit', 'assignments')
 
     def sync_assignment_unlock(self, item, user_id):
         if item.get('assignment_id'):
             assignment_update_data = self._get_assignment_data_on_archive_update({}, item)
-            assignment = assignment_update_data.get('assignment')
-            if assignment.get(LOCK_USER):
-                lock_service = get_component(LockService)
-                lock_service.unlock(assignment, user_id, get_auth()['_id'], 'assignments')
+            if assignment_update_data.get('assignment'):
+                assignment = assignment_update_data.get('assignment')
+                if assignment.get(LOCK_USER):
+                    lock_service = get_component(LockService)
+                    lock_service.unlock(assignment, user_id, get_auth()['_id'], 'assignments')
 
     def can_edit(self, item, user_id):
         # Check privileges
         if not current_user_has_privilege('planning_planning_management'):
             return False, 'User does not have sufficient permissions.'
         return True, ''
+
+    def on_delete(self, doc):
+        """
+        Validate that we have a lock on the Assignment and it's associated Planning item
+        """
+        # Make sure the Assignment is locked by this user and session
+        if not is_locked_in_this_session(doc):
+            raise SuperdeskApiError.forbiddenError(
+                message='Lock is not obtained on the Assignment item'
+            )
+
+        # Also make sure the Planning item is locked by this user and session
+        planning_service = get_resource_service('planning')
+        planning_item = planning_service.find_one(req=None, _id=doc.get('planning_item'))
+        if planning_item and not is_locked_in_this_session(planning_item):
+            raise SuperdeskApiError.forbiddenError(
+                message='Lock is not obtained on the associated Planning item'
+            )
+
+        # Make sure we cannot delete a completed Assignment
+        # This should not be needed, as you cannot obtain a lock on an Assignment that is completed
+        # But keeping it here for completeness
+        if doc['assigned_to'].get('state') == ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+            raise SuperdeskApiError.badRequestError(
+                message='Cannot delete a completed Assignment'
+            )
+
+    def on_deleted(self, doc):
+        """Validate we can safely delete the Assignment item
+
+        Make sure to clean up the Archive, Delivery and Planning items by:
+            * Remove 'assignment_id' from Archive item (if linked)
+            * Delete the Delivery record associated with the Assignment & Archive items (if linked)
+            * Removing 'assigned_to' dictionary from the associated Coverage
+        """
+        archive_service = get_resource_service('archive')
+        delivery_service = get_resource_service('delivery')
+        planning_service = get_resource_service('planning')
+        assignment_id = doc.get(config.ID_FIELD)
+
+        # If we have a Content Item linked, then we need to remove the
+        # assignment_id from it and remove the delivery record
+        # Then send a notification that the content has been updated
+        archive_item = archive_service.find_one(req=None, assignment_id=assignment_id)
+        if archive_item:
+            archive_service.system_update(
+                archive_item[config.ID_FIELD],
+                {'assignment_id': None},
+                archive_item
+            )
+
+            delivery_service.delete_action(lookup={
+                'assignment_id': assignment_id,
+                'item_id': archive_item[config.ID_FIELD]
+            })
+
+            # Push content nofitication so connected clients can update the
+            # content views (i.e. removes the Calendar icon from Monitoring)
+            push_content_notification([archive_item])
+
+        # Remove assignment information from coverage
+        updated_planning = planning_service.remove_assignment(doc, unlock_planning=True)
+
+        # Finally send a notification to connected clients that the Assignment
+        # has been removed
+        push_notification(
+            'assignments:removed',
+            assignment=assignment_id,
+            planning=doc.get('planning_item'),
+            coverage=doc.get('coverage_item'),
+            planning_etag=updated_planning.get(config.ETAG)
+        )
 
 
 assignments_schema = {
