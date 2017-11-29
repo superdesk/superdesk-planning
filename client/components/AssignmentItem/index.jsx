@@ -60,12 +60,13 @@ export const AssignmentItem = ({
         },
     ]
 
-    const itemActions = inAssignments ? assignmentUtils.getAssignmentItemActions(
-        assignment,
-        session,
-        privileges,
-        actions
-    ) : []
+    const itemActions = inAssignments && !isItemLocked ?
+        assignmentUtils.getAssignmentItemActions(
+            assignment,
+            session,
+            privileges,
+            actions
+        ) : []
 
     const isAssignmentInUse = assignmentUtils.isAssignmentInUse(assignment)
 
