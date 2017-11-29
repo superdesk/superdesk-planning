@@ -149,6 +149,7 @@ export function PlanningStoreService(
                     authoringWorkspace,
                     $interpolate,
                     search,
+                    config,
                 },
             })
             return self.store

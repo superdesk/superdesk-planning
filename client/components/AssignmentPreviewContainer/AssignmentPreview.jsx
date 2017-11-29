@@ -3,23 +3,18 @@ import PropTypes from 'prop-types'
 import { get } from 'lodash'
 import TextareaAutosize from 'react-textarea-autosize'
 
-import { getItemInArrayById } from '../../utils'
+import { TermsList } from '../TermsList/index'
 
 // eslint-disable-next-line complexity
 export const AssignmentPreview = ({
     assignment,
     keywords,
-    contentTypes,
-    formProfile,
-    coverageItem,
-    newsCoverageStatus,
+    coverageFormProfile,
+    planningFormProfile,
+    planningItem,
+
 }) => {
     const planning = get(assignment, 'planning', {})
-
-    const coverageStatus = getItemInArrayById(
-        newsCoverageStatus,
-        get(coverageItem, 'news_coverage_status.qcode', 'qcode')
-    ) || 'Planned'
 
     const keywordString = get(planning, 'keyword.length', 0) > 0 ?
         planning.keyword
@@ -27,14 +22,9 @@ export const AssignmentPreview = ({
             .join(', ')
         : '-'
 
-    const contentType = get(
-            contentTypes.find((ctype) => ctype.qcode === planning.g2_content_type),
-            'name'
-        ) || planning.g2_content_type || '-'
-
     return (
         <div>
-            {get(formProfile, 'editor.slugline.enabled') &&
+            {get(coverageFormProfile, 'editor.slugline.enabled') &&
                 <div className="form__row">
                     <label className="form-label form-label--light">
                         Slugline
@@ -45,19 +35,48 @@ export const AssignmentPreview = ({
                 </div>
             }
 
-            {get(formProfile, 'editor.ednote.enabled') &&
+            {get(planningFormProfile, 'editor.anpa_category.enabled') &&
                 <div className="form__row">
                     <label className="form-label form-label--light">
-                        Ednote
+                        Category
                     </label>
-                    <TextareaAutosize
-                        value={planning.ednote || '-'}
-                        disabled={true}
-                    />
+                    <div>
+                        {get(planningItem, 'anpa_category.length', 0) > 0 &&
+                            <TermsList terms={get(planningItem, 'anpa_category')} displayField="name"/>
+                        ||
+                            <p>-</p>
+                        }
+                    </div>
                 </div>
             }
 
-            {get(formProfile, 'editor.keyword.enabled') &&
+            {get(planningFormProfile, 'editor.subject.enabled') &&
+                <div className="form__row">
+                    <label className="form-label form-label--light">
+                        Subject
+                    </label>
+                    <div>
+                        {get(planningItem, 'subject.length', 0) > 0 &&
+                            <TermsList terms={get(planningItem, 'subject')} displayField="name"/>
+                        ||
+                            <p>-</p>
+                        }
+                    </div>
+                </div>
+            }
+
+            {get(coverageFormProfile, 'editor.genre.enabled') &&
+                <div className="form__row">
+                    <div className="form__row-item">
+                        <label className="form-label form-label--light">
+                            Genre
+                        </label>
+                        <p>{get(planning, 'genre.name') || '-'}</p>
+                    </div>
+                </div>
+            }
+
+            {get(coverageFormProfile, 'editor.keyword.enabled') &&
                 <div className="form__row">
                     <label className="form-label form-label--light">
                         Keywords
@@ -68,7 +87,20 @@ export const AssignmentPreview = ({
                 </div>
             }
 
-            {get(formProfile, 'editor.internal_note.enabled') &&
+            {get(coverageFormProfile, 'editor.ednote.enabled') &&
+                <div className="form__row">
+                    <label className="form-label form-label--light">
+                        Ed Note
+                    </label>
+                    <TextareaAutosize
+                        value={planning.ednote || '-'}
+                        disabled={true}
+                    />
+                </div>
+            }
+
+
+            {get(coverageFormProfile, 'editor.internal_note.enabled') &&
                 <div className="form__row">
                     <label className="form-label form-label--light">
                         Internal Note
@@ -79,36 +111,6 @@ export const AssignmentPreview = ({
                     />
                 </div>
             }
-
-            {get(formProfile, 'editor.g2_content_type.enabled') &&
-                <div className="form__row form__row--flex">
-                    <div className="form__row-item">
-                        <label className="form-label form-label--light">
-                            Type
-                        </label>
-                        <p>
-                            {contentType}
-                        </p>
-                    </div>
-                    {planning.g2_content_type === 'text' && get(formProfile, 'editor.genre.enabled') &&
-                        <div className="form__row-item">
-                            <label className="form-label form-label--light">
-                                Genre
-                            </label>
-                            <p>{get(planning, 'genre.name') || '-'}</p>
-                        </div>
-                    }
-                </div>
-            }
-
-            <div className="form__row">
-                <label className="form-label form-label--light">
-                    Coverage Status
-                </label>
-                <p>
-                    {coverageStatus || 'Planned'}
-                </p>
-            </div>
         </div>
     )
 }
@@ -116,8 +118,7 @@ export const AssignmentPreview = ({
 AssignmentPreview.propTypes = {
     assignment: PropTypes.object,
     keywords: PropTypes.array,
-    contentTypes: PropTypes.array,
-    formProfile: PropTypes.object,
-    coverageItem: PropTypes.object,
-    newsCoverageStatus: PropTypes.array,
+    coverageFormProfile: PropTypes.object,
+    planningFormProfile: PropTypes.object,
+    planningItem: PropTypes.object,
 }

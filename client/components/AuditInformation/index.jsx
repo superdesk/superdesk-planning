@@ -30,7 +30,7 @@ export const AuditInformationComponent = ({
     return (
         <div className="TimeAndAuthor">
             {createdDateTime && creator &&
-                <div className='sd-test__date-and-author'>
+                <div className='sd-text__date-and-author'>
                     <time>Created {createdDateTime} by </time>
                     <span className='TimeAndAuthor__author sd-text__author'>
                         {creator.display_name || creator.name}
