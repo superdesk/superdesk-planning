@@ -11,7 +11,8 @@ const canEditAssignment = (assignment, session, privileges) => (
 
 const canStartWorking = (assignment, session, privileges) => (
     !!privileges[PRIVILEGES.ARCHIVE] &&
-    get(assignment, 'assigned_to.user') === get(session, 'identity._id') &&
+    (!get(assignment, 'assigned_to.user') ||
+    assignment.assigned_to.user === get(session, 'identity._id')) &&
     get(assignment, 'planning.g2_content_type') === 'text' &&
     get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
     !get(assignment, 'lock_user')
