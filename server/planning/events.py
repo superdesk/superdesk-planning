@@ -236,6 +236,10 @@ class EventsService(superdesk.Service):
                 recurrence_id=str(generated_events[0]['recurrence_id'])
             )
         else:
+            # In case of stand-alone event, only time is updated - other date updates have endpoints
+            if updates.get('dates'):
+                remove_lock_information(updates)
+
             push_notification(
                 'events:updated',
                 item=str(original[config.ID_FIELD]),
@@ -274,6 +278,7 @@ class EventsService(superdesk.Service):
             return
         elif update_method == UPDATE_SINGLE:
             set_next_occurrence(updates)
+            remove_lock_information(updates)
 
             push_notification(
                 'events:updated:recurring',
