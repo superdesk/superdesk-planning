@@ -215,7 +215,7 @@ class Component extends React.Component {
             userAssigned: newUser,
         })
 
-        this.props.change('assigned_to.user', get(newUser, '_id'))
+        this.props.change('assigned_to.user', get(newUser, '_id', null))
 
     }
 
