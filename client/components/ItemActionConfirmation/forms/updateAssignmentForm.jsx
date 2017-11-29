@@ -7,7 +7,7 @@ import { Field, reduxForm, formValueSelector } from 'redux-form'
 import * as actions from '../../../actions'
 import * as selectors from '../../../selectors'
 import { fields, AbsoluteDate, UserSearchList } from '../../../components'
-import { getItemInArrayById, getUsersForDesk, getDesksForUser } from '../../../utils'
+import { getItemInArrayById, getUsersForDesk, getDesksForUser, assignmentUtils } from '../../../utils'
 import '../style.scss'
 import { FORM_NAMES, ASSIGNMENTS, TOOLTIPS } from '../../../constants'
 import { ChainValidators, RequiredFieldsValidatorFactory } from '../../../validators'
@@ -122,7 +122,7 @@ class Component extends React.Component {
     getDetailsForReassignment() {
         const { initialValues } = this.props
 
-        const metaData = [
+        let metaData = [
             {
                 key: 'Slugline:',
                 value: (
@@ -150,6 +150,13 @@ class Component extends React.Component {
                 />),
             },
         ]
+
+        if (!assignmentUtils.canEditDesk(initialValues)) {
+            metaData.push({
+                key: 'Desk',
+                value: this.state.deskAssigned.name,
+            })
+        }
 
         return (
             <div>
@@ -232,7 +239,7 @@ class Component extends React.Component {
 
         return (
             <div>
-                <div className='form__row'>
+                {assignmentUtils.canEditDesk(this.props.initialValues) && <div className='form__row'>
                     <Field
                         name='assigned_to.desk'
                         label='Desk'
@@ -240,8 +247,8 @@ class Component extends React.Component {
                         desks={this.state.filteredDesks}
                         readOnly={false}
                         required={true} />
-                </div>
-                <div className='form__row'>
+                </div>}
+                <div className='form__row sd-line-input sd-line-input--label-left'>
                     <label className='sd-line-input__label'>Coverage Provider</label>
                     <fields.CoverageProviderField
                         coverageProviders={this.props.coverageProviders}
