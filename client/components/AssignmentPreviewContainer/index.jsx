@@ -50,9 +50,12 @@ class AssignmentPreviewContainerComponent extends React.Component {
             privileges,
             startWorking,
             removeAssignment,
+            lockedItems,
         } = this.props
 
-        if (!inAssignments) {
+        const isItemLocked = get(lockedItems, 'assignments') && assignment._id in lockedItems.assignments
+
+        if (!inAssignments || isItemLocked) {
             return []
         }
 
@@ -288,7 +291,7 @@ AssignmentPreviewContainerComponent.propTypes = {
     keywords: PropTypes.array,
     contentTypes: PropTypes.array,
     formProfile: PropTypes.object,
-
+    lockedItems: PropTypes.array,
     newsCoverageStatus: PropTypes.array,
 }
 
@@ -311,6 +314,7 @@ const mapStateToProps = (state) => ({
     contentTypes: get(state, 'vocabularies.g2_content_type', []),
     formProfile: selectors.getFormsProfile(state),
     newsCoverageStatus: selectors.getNewsCoverageStatus(state),
+    lockedItems: selectors.getLockedItems(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
