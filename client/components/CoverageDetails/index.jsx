@@ -48,7 +48,8 @@ export class CoverageDetailsComponent extends React.Component {
         const roFields = planningUtils.getCoverageReadOnlyFields(
             readOnly,
             newsCoverageStatus,
-            isExistingCoverage && hasAssignment,
+            hasAssignment,
+            isExistingCoverage,
             assignmentState
         )
 

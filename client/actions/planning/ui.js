@@ -1,7 +1,7 @@
 import { showModal, hideModal } from '../index'
 import planning from './index'
 import { locks } from '../index'
-import { checkPermission, getErrorMessage, isItemLockedInThisSession } from '../../utils'
+import { checkPermission, getErrorMessage, isItemLockedInThisSession, planningUtils } from '../../utils'
 import * as selectors from '../../selectors'
 import { PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, ASSIGNMENTS } from '../../constants'
 import * as actions from '../index'
@@ -740,6 +740,11 @@ const createCoverageFromNewsItem = (newsItem, getState) => {
             ednote: get(newsItem, 'ednote', ''),
         },
         news_coverage_status: { qcode: 'ncostat:int' },
+    }
+
+    if (get(newsItem, 'genre')) {
+        coverage.planning.genre = newsItem.genre
+        planningUtils.convertGenreToObject(coverage)
     }
 
     if (get(newsItem, 'state') === 'published') {
