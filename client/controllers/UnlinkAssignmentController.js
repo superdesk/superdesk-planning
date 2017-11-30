@@ -54,7 +54,7 @@ export function UnlinkAssignmentController(
                             .then(
                                 (lockedItem) => Promise.resolve({
                                     newsItem: lockedItem,
-                                    assignment,
+                                    assignment: assignment,
                                 }),
                                 (error) => {
                                     notify.error(

@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {LinkField} from './index';
 
 export const LinksFieldArray = ({fields, readOnly}) => (
@@ -24,6 +25,6 @@ export const LinksFieldArray = ({fields, readOnly}) => (
 );
 
 LinksFieldArray.propTypes = {
-    fields: React.PropTypes.object.isRequired,
-    readOnly: React.PropTypes.bool,
+    fields: PropTypes.object.isRequired,
+    readOnly: PropTypes.bool,
 };

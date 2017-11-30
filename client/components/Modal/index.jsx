@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {Modal as _Modal} from 'react-bootstrap';
 import {default as ModalDialog} from './ModalDialog';
 import {default as Header} from './Header';
@@ -37,14 +38,14 @@ export default function Modal({
 }
 
 Modal.propTypes = {
-    show: React.PropTypes.bool,
-    handleHide: React.PropTypes.func,
-    children: React.PropTypes.array,
-    large: React.PropTypes.bool,
-    fill: React.PropTypes.bool,
-    fullscreen: React.PropTypes.bool,
-    white: React.PropTypes.bool,
-    className: React.PropTypes.string,
+    show: PropTypes.bool,
+    handleHide: PropTypes.func,
+    children: PropTypes.array,
+    large: PropTypes.bool,
+    fill: PropTypes.bool,
+    fullscreen: PropTypes.bool,
+    white: PropTypes.bool,
+    className: PropTypes.string,
 };
 
 Modal.Header = Header;

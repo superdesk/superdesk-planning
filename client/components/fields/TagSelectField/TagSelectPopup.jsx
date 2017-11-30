@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import {uiUtils} from '../../../utils';
 
@@ -88,12 +89,13 @@ export class TagSelectPopup extends React.Component {
             <div>
                 {this.props.options.length > 0 && <div className="Select__popup">
                     <ul className="Select__popup__list" ref="itemList">
-                        {this.props.options.map((o, index) => (<li key={index} className={ (index === this.state.activeOptionIndex ?
-                            'Select__popup__item--active ' : '') + 'Select__popup__item'}>
-                            <button onClick={this.props.onChange.bind(null, o)}>
-                                <span>&nbsp;&nbsp;{o.name}</span>
-                            </button>
-                        </li>))}
+                        {this.props.options.map((o, index) => (
+                            <li key={index} className={ (index === this.state.activeOptionIndex ?
+                                'Select__popup__item--active ' : '') + 'Select__popup__item'}>
+                                <button onClick={this.props.onChange.bind(null, o)}>
+                                    <span>&nbsp;&nbsp;{o.name}</span>
+                                </button>
+                            </li>))}
                     </ul>
                 </div>}
             </div>);

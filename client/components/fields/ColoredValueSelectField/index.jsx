@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import {ColoredValueSelectFieldPopup} from './ColoredValueSelectFieldPopup';
 import classNames from 'classnames';
 import {get} from 'lodash';

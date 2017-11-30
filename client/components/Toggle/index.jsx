@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import './style.scss';
 
@@ -18,9 +19,9 @@ export default function Toggle({value, onChange, readOnly}) {
 }
 
 Toggle.propTypes = {
-    value: React.PropTypes.bool,
-    onChange: React.PropTypes.func,
-    readOnly: React.PropTypes.bool,
+    value: PropTypes.bool,
+    onChange: PropTypes.func,
+    readOnly: PropTypes.bool,
 };
 
 Toggle.defaultProps = {

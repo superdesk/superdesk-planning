@@ -194,7 +194,8 @@ export class Component extends React.Component {
             !isItemLockedInThisSession(initialValues, session));
         const author = get(initialValues, 'original_creator') && users ?
             users.find((u) => (u._id === initialValues.original_creator)) : get(initialValues, 'ingest_provider');
-        const versionCreator = get(initialValues, 'version_creator') && users ? users.find((u) => (u._id === initialValues.version_creator)) : null;
+        const versionCreator = get(initialValues, 'version_creator') && users ?
+            users.find((u) => (u._id === initialValues.version_creator)) : null;
         const lockedUser = getLockedUser(initialValues, lockedItems, users);
         const lockRestricted = eventUtils.isEventLockRestricted(initialValues, session, lockedItems);
         const isPublic = isItemPublic(initialValues);

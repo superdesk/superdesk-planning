@@ -35,7 +35,7 @@ describe('UnlinkAssignmentController', () => {
     it('notifies user if failed to load the item', inject((notify, gettext, api, lock) => {
         api('archive').getById = sinon.stub().returns(Promise.reject({}));
         return UnlinkAssignmentController(scopeData, notify, gettext, api, lock)
-            .then(() => {}, () => {
+            .then(() => { /* no-op */ }, () => {
                 expect(api('archive').getById.callCount).toBe(1);
                 expect(api('archive').getById.args[0]).toEqual([data.archive[0]._id]);
 
@@ -48,7 +48,7 @@ describe('UnlinkAssignmentController', () => {
         inject((notify, gettext, api, lock) => {
             delete data.archive[0].assignment_id;
             UnlinkAssignmentController(scopeData, notify, gettext, api, lock)
-                .then(() => {}, () => {
+                .then(() => { /* no-op */ }, () => {
                     expect(notify.error.callCount).toBe(1);
                     expect(notify.error.args[0]).toEqual(['Item not linked to a Planning item.']);
                 });
@@ -58,7 +58,7 @@ describe('UnlinkAssignmentController', () => {
     it('notifies user if failed to load the assignment', inject((notify, gettext, api, lock) => {
         api('assignments').getById = sinon.stub().returns(Promise.reject({}));
         return UnlinkAssignmentController(scopeData, notify, gettext, api, lock)
-            .then(() => {}, () => {
+            .then(() => { /* no-op */ }, () => {
                 expect(notify.error.callCount).toBe(1);
                 expect(notify.error.args[0]).toEqual(['Failed to load the assignment.']);
             });
@@ -100,7 +100,7 @@ describe('UnlinkAssignmentController', () => {
     it('notifies user if failed to obtain item lock', inject((notify, gettext, api, lock) => {
         lock.lock = sinon.stub().returns(Promise.reject({}));
         return UnlinkAssignmentController(scopeData, notify, gettext, api, lock)
-            .then(() => {}, () => {
+            .then(() => { /* no-op */ }, () => {
                 expect(notify.error.callCount).toBe(1);
                 expect(notify.error.args[0]).toEqual(['Failed to lock the item.']);
             });
@@ -109,7 +109,7 @@ describe('UnlinkAssignmentController', () => {
     it('notifies user if unlink failed', inject((notify, gettext, api, lock) => {
         api('assignments_unlink').save = sinon.stub().returns(Promise.reject({}));
         return UnlinkAssignmentController(scopeData, notify, gettext, api, lock)
-            .then(() => {}, () => {
+            .then(() => { /* no-op */ }, () => {
                 expect(notify.error.callCount).toBe(1);
                 expect(notify.error.args[0]).toEqual(['Failed to unlink the item.']);
 
@@ -121,7 +121,7 @@ describe('UnlinkAssignmentController', () => {
     it('notifies user if unlock failed', inject((notify, gettext, api, lock) => {
         lock.unlock = sinon.stub().returns(Promise.reject({}));
         return UnlinkAssignmentController(scopeData, notify, gettext, api, lock)
-            .then(() => {}, () => {
+            .then(() => { /* no-op */ }, () => {
                 expect(notify.error.callCount).toBe(1);
                 expect(notify.error.args[0]).toEqual(['Failed to unlock the item.']);
             });

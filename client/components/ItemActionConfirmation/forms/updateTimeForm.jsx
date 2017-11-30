@@ -12,10 +12,6 @@ import {ChainValidators, EndDateAfterStartDate} from '../../../validators';
 import {FORM_NAMES, EVENTS} from '../../../constants';
 
 export class Component extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     onFromTimeChange(value) {
         this.props.change('dates.start', value);
     }

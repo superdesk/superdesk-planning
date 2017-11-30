@@ -3,4 +3,4 @@ export const AUTOSAVE = {
         SAVE: 'AUTOSAVE_SAVE',
     },
     INTERVAL: 3000,
-}
+};

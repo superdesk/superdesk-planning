@@ -1,13 +1,13 @@
 
 export default class form {
     constructor(element) {
-        this.element = element.find('form').first()
-        this.isMounted = this.element.exists()
+        this.element = element.find('form').first();
+        this.isMounted = this.element.exists();
     }
 
     submit() {
         if (this.isMounted) {
-            this.element.simulate('submit', { preventDefault: () => ({}) });
+            this.element.simulate('submit', {preventDefault: () => ({})});
         }
     }
 

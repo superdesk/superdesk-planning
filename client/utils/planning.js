@@ -247,70 +247,15 @@ const getCoverageReadOnlyFields = (
         PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode;
 
     // State is either derived from the Assignment state or if the coverage is cancelled
-    const state = existingCoverage && hasAssignment ? assignmentState :
-        isCancelled ? ASSIGNMENTS.WORKFLOW_STATE.CANCELLED :
-            null;
+    let state = null;
+
+    if (hasAssignment) {
+        state = assignmentState;
+    } else if (isCancelled) {
+        state = ASSIGNMENTS.WORKFLOW_STATE.CANCELLED;
+    }
 
     switch (state) {
-<<<<<<< 7a398ee976f06b00e0919b5d31660c972f630240
-        case ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED:
-            return {
-                slugline: readOnly,
-                ednote: readOnly,
-                keyword: readOnly,
-                internal_note: readOnly,
-                g2_content_type: true,
-                genre: readOnly,
-                newsCoverageStatus: true,
-                scheduled: readOnly,
-            }
-        case ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS:
-        case ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED:
-            return {
-                slugline: readOnly,
-                ednote: true,
-                keyword: true,
-                internal_note: readOnly,
-                g2_content_type: true,
-                genre: true,
-                newsCoverageStatus: true,
-                scheduled: readOnly,
-            }
-        case ASSIGNMENTS.WORKFLOW_STATE.COMPLETED:
-            return {
-                slugline: readOnly,
-                ednote: readOnly,
-                keyword: readOnly,
-                internal_note: readOnly,
-                g2_content_type: true,
-                genre: true,
-                newsCoverageStatus: true,
-                scheduled: readOnly,
-            }
-        case ASSIGNMENTS.WORKFLOW_STATE.CANCELLED:
-            return {
-                slugline: true,
-                ednote: true,
-                keyword: true,
-                internal_note: true,
-                g2_content_type: true,
-                genre: true,
-                newsCoverageStatus: true,
-                scheduled: true,
-            }
-        case null:
-        default:
-            return {
-                slugline: readOnly,
-                ednote: readOnly,
-                keyword: readOnly,
-                internal_note: readOnly,
-                g2_content_type: readOnly,
-                genre: readOnly,
-                newsCoverageStatus: readOnly || hasAssignment,
-                scheduled: readOnly,
-            }
-=======
     case ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED:
         return {
             slugline: readOnly,
@@ -365,13 +310,13 @@ const getCoverageReadOnlyFields = (
             internal_note: readOnly,
             g2_content_type: readOnly,
             genre: readOnly,
-            newsCoverageStatus: readOnly,
+            newsCoverageStatus: readOnly || hasAssignment,
             scheduled: readOnly,
         };
->>>>>>> (eslint): Fixing using auto fix.
     }
 };
 
+// eslint-disable-next-line consistent-this
 const self = {
     canPublishPlanning,
     canUnpublishPlanning,

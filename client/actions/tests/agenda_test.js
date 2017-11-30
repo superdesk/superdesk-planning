@@ -74,11 +74,11 @@ describe('agenda', () => {
 
             initialState = {
                 agenda: {
-                    agendas,
+                    agendas: agendas,
                     currentAgendaId: 'a2',
                 },
                 planning: {
-                    plannings,
+                    plannings: plannings,
                     search: {currentSearch: undefined},
                 },
                 events: {events},

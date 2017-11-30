@@ -91,7 +91,7 @@ describe('actions.events.api', () => {
             restoreSinonStub(eventsApi.query);
             sinon.stub(eventsApi, 'query').callsFake(() => (Promise.reject(errorMessage)));
             store.test(done, eventsApi.loadEventsByRecurrenceId('r1'))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     done();
@@ -155,7 +155,7 @@ describe('actions.events.api', () => {
         it('returns Promise.reject if `events_spike` fails', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject(errorMessage)));
             return store.test(done, eventsApi.spike(data.events[1]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 });
@@ -200,7 +200,7 @@ describe('actions.events.api', () => {
         it('returns Promise.reject if `events_unspike` fails', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject(errorMessage)));
             return store.test(done, eventsApi.unspike(data.events))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 });
@@ -435,7 +435,7 @@ describe('actions.events.api', () => {
             );
 
             return store.test(done, eventsApi.loadRecurringEventsAndPlanningItems(data.events[0]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 });
@@ -448,7 +448,7 @@ describe('actions.events.api', () => {
             );
 
             return store.test(done, eventsApi.loadRecurringEventsAndPlanningItems(data.events[0]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 });
@@ -506,7 +506,7 @@ describe('actions.events.api', () => {
         it('returns Promise.reject if `events_reschedule` fails', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject(errorMessage)));
             store.test(done, eventsApi.rescheduleEvent(data.events[1]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 });
@@ -553,7 +553,7 @@ describe('actions.events.api', () => {
         it('returns reject is lock query fails', (done) => {
             services.api('events').query = sinon.spy(() => Promise.reject(errorMessage));
             store.test(done, eventsApi.queryLockedEvents())
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 });
@@ -603,7 +603,7 @@ describe('actions.events.api', () => {
             store.initialState.events.events = {};
             services.api('events').getById = sinon.spy(() => Promise.reject(errorMessage));
             store.test(done, eventsApi.getEvent(data.events[0]._id))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     done();

@@ -81,20 +81,26 @@ export class AssignmentListContainerComponent extends React.Component {
     }
 
     render() {
+        const {
+            changeAssignmentListSingleGroupView,
+            assignmentListSingleGroupView,
+            inAuthoring,
+            previewOpened,
+        } = this.props;
+
         return (
             <div className={classNames(
                 'Assignments-list-container',
-                {'open-preview': this.props.previewOpened},
+                {'open-preview': previewOpened},
                 {
-                    'Assignments-list-container__body--edit-in-authoring': this.props.previewOpened &&
-                        this.props.inAuthoring,
+                    'Assignments-list-container__body--edit-in-authoring': previewOpened && inAuthoring,
                 })}>
                 <AssignmentListHeader
                     searchQuery={this.props.searchQuery}
                     changeSearchQuery={this.changeSearchQuery.bind(this)}
-                    assignmentListSingleGroupView={!this.props.inAuthoring && this.props.assignmentListSingleGroupView}
-                    changeAssignmentListSingleGroupView={this.props.changeAssignmentListSingleGroupView.bind(this, null)}
-                    totalCountInListView={this.getTotalCountForListGroup(this.props.assignmentListSingleGroupView)}
+                    assignmentListSingleGroupView={!inAuthoring && assignmentListSingleGroupView}
+                    changeAssignmentListSingleGroupView={changeAssignmentListSingleGroupView.bind(this, null)}
+                    totalCountInListView={this.getTotalCountForListGroup(assignmentListSingleGroupView)}
                 />
                 <AssignmentListSearchHeader
                     filterBy={this.props.filterBy}
@@ -103,7 +109,7 @@ export class AssignmentListContainerComponent extends React.Component {
                     orderDirection={this.props.orderDirection}
                     changeFilter={this.changeFilter.bind(this)}
                 />
-                {isNil(this.props.assignmentListSingleGroupView) && (
+                {isNil(assignmentListSingleGroupView) && (
                     <div className={ classNames('Assignments-list-container__groups',
                         {'Assignments-list-container__groups--edit-view': this.props.previewOpened}) }>
                         { Object.keys(ASSIGNMENTS.LIST_GROUPS).map((groupKey) => (<div key={groupKey}>
@@ -111,31 +117,30 @@ export class AssignmentListContainerComponent extends React.Component {
                                 groupKey={groupKey}
                                 loadAssignmentsForGroup={this.loadAssignmentsForGroup.bind(this)}
                                 loadMoreAssignments={this.props.loadMoreAssignments}
-                                changeAssignmentListSingleGroupView={this.props.changeAssignmentListSingleGroupView.bind(
+                                changeAssignmentListSingleGroupView={changeAssignmentListSingleGroupView.bind(
                                     this, groupKey)}
                             />
                         </div>)) }
                     </div>
                 )}
-                {!isNil(this.props.assignmentListSingleGroupView) && (
+                {!isNil(assignmentListSingleGroupView) && (
                     <div className={
                         classNames('Assignments-list-container__groups',
                             {
-                                'Assignments-list-container__groups--edit-view': this.props.previewOpened &&
-                                !this.props.inAuthoring,
+                                'Assignments-list-container__groups--edit-view': previewOpened && !inAuthoring,
                             })}>
                         <AssignmentList
-                            groupKey={this.props.assignmentListSingleGroupView}
+                            groupKey={assignmentListSingleGroupView}
                             loadAssignmentsForGroup={this.loadAssignmentsForGroup.bind(this)}
                             loadMoreAssignments={this.props.loadMoreAssignments}
-                            changeAssignmentListSingleGroupView={this.props.changeAssignmentListSingleGroupView.bind(
-                                this, this.props.assignmentListSingleGroupView)}
+                            changeAssignmentListSingleGroupView={changeAssignmentListSingleGroupView.bind(
+                                this, assignmentListSingleGroupView)}
                         />
                     </div>
                 )
 
                 }
-                <AssignmentPanelContainer previewOpened={this.props.previewOpened}/>
+                <AssignmentPanelContainer previewOpened={previewOpened}/>
             </div>
         );
     }

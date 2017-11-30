@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {Field} from 'redux-form';
 import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
@@ -82,11 +83,11 @@ export class LinkFieldComponent extends React.Component {
 }
 
 LinkFieldComponent.propTypes = {
-    onRemove: React.PropTypes.func,
-    fieldName: React.PropTypes.string,
-    link: React.PropTypes.string,
-    iframelyKey: React.PropTypes.string,
-    readOnly: React.PropTypes.bool,
+    onRemove: PropTypes.func,
+    fieldName: PropTypes.string,
+    link: PropTypes.string,
+    iframelyKey: PropTypes.string,
+    readOnly: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({iframelyKey: selectors.getIframelyKey(state)});

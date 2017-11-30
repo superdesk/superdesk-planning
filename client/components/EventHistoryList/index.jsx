@@ -5,10 +5,6 @@ import {includes, get} from 'lodash';
 import './style.scss';
 
 export class EventHistoryList extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     closeAndOpenDuplicate(duplicateId) {
         this.props.closeEventHistory();
         this.props.openEventPreview(duplicateId);
@@ -60,7 +56,8 @@ export class EventHistoryList extends React.Component {
                                         }
                                         {historyItem.operation === 'planning created' && (
                                             <div className="history-list__link">
-                                                <a onClick={this.props.openPlanningClick.bind(null, historyItem.update.planning_id)}>
+                                                <a onClick={this.props.openPlanningClick.bind(
+                                                    null, historyItem.update.planning_id)}>
                                                     View planning item
                                                 </a>
                                             </div>)

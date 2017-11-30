@@ -15,25 +15,26 @@ import {DATE_FORMATS} from '../../constants';
  * param {string} className - The CSS class names to use in the parent time element
  */
 export const AbsoluteDate = ({date, noDateString, className}) => {
-    date = moment.utc(date);
-    if (date.isValid()) {
-        const datetimeStr = date.toISOString();
+    let momentDate = moment.utc(date);
+
+    if (momentDate.isValid()) {
+        const datetimeStr = momentDate.toISOString();
 
         let rday;
         let rdate;
 
-        date.local(); // switch to local time zone.
+        momentDate.local(); // switch to local time zone.
 
-        if (moment().format(DATE_FORMATS.COMPARE_FORMAT) === date.format(DATE_FORMATS.COMPARE_FORMAT)) {
-            rday = date.format(DATE_FORMATS.DISPLAY_TODAY_FORMAT);
+        if (moment().format(DATE_FORMATS.COMPARE_FORMAT) === momentDate.format(DATE_FORMATS.COMPARE_FORMAT)) {
+            rday = momentDate.format(DATE_FORMATS.DISPLAY_TODAY_FORMAT);
         } else {
-            rday = date.format(DATE_FORMATS.DISPLAY_DAY_FORMAT);
+            rday = momentDate.format(DATE_FORMATS.DISPLAY_DAY_FORMAT);
         }
 
-        if (moment().format('YYYY') === date.format('YYYY')) {
-            rdate = date.format(DATE_FORMATS.DISPLAY_CDATE_FORMAT);
+        if (moment().format('YYYY') === momentDate.format('YYYY')) {
+            rdate = momentDate.format(DATE_FORMATS.DISPLAY_CDATE_FORMAT);
         } else {
-            rdate = date.format(DATE_FORMATS.DISPLAY_DATE_FORMAT);
+            rdate = momentDate.format(DATE_FORMATS.DISPLAY_DATE_FORMAT);
         }
 
         return <time className={className} dateTime={datetimeStr}>

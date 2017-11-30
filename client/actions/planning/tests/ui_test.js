@@ -123,7 +123,7 @@ describe('actions.planning.ui', () => {
             restoreSinonStub(planningApi.spike);
             sinon.stub(planningApi, 'spike').callsFake(() => (Promise.reject(errorMessage)));
             return store.test(done, planningUi.spike(data.plannings[1]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     // Notifies end user of failure
@@ -140,7 +140,7 @@ describe('actions.planning.ui', () => {
             return store.test(done, planningUi.spike(data.plannings[1]))
                 .catch(() => {
                     expectAccessDenied({
-                        store,
+                        store: store,
                         permission: PRIVILEGES.SPIKE_PLANNING,
                         action: '_spike',
                         errorMessage: 'Unauthorised to spike a planning item!',
@@ -181,7 +181,7 @@ describe('actions.planning.ui', () => {
             restoreSinonStub(planningApi.unspike);
             sinon.stub(planningApi, 'unspike').callsFake(() => (Promise.reject(errorMessage)));
             return store.test(done, planningUi.unspike(data.plannings[1]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     // Notifies end user of failure
@@ -198,7 +198,7 @@ describe('actions.planning.ui', () => {
             return store.test(done, planningUi.unspike(data.plannings[1]))
                 .catch(() => {
                     expectAccessDenied({
-                        store,
+                        store: store,
                         permission: PRIVILEGES.UNSPIKE_PLANNING,
                         action: '_unspike',
                         errorMessage: 'Unauthorised to unspike a planning item!',
@@ -253,7 +253,7 @@ describe('actions.planning.ui', () => {
             restoreSinonStub(planningApi.save);
             sinon.stub(planningApi, 'save').callsFake(() => (Promise.reject(errorMessage)));
             return store.test(done, planningUi.save(data.plannings[1]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     expect(services.notify.error.callCount).toBe(1);
@@ -291,7 +291,7 @@ describe('actions.planning.ui', () => {
             );
 
             return store.test(done, planningUi.saveAndReloadCurrentAgenda(data.plannings[1]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     expect(services.notify.error.callCount).toBe(1);
@@ -405,7 +405,7 @@ describe('actions.planning.ui', () => {
                     }]);
 
                     expectAccessDenied({
-                        store,
+                        store: store,
                         permission: PRIVILEGES.PLANNING_MANAGEMENT,
                         action: '_lockAndOpenEditor',
                         errorMessage: 'Unauthorised to edit a planning item!',
@@ -423,7 +423,7 @@ describe('actions.planning.ui', () => {
             restoreSinonStub(planningApi.lock);
             sinon.stub(planningApi, 'lock').callsFake(() => (Promise.reject(errorMessage)));
             store.test(done, planningUi.openEditor(data.plannings[1]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     expect(services.notify.error.callCount).toBe(1);
@@ -1089,7 +1089,7 @@ describe('actions.planning.ui', () => {
 
             store.initialState.modal = {
                 modalType: 'ADD_TO_PLANNING',
-                modalProps,
+                modalProps: modalProps,
             };
 
             data.plannings[0].coverages.pop();
@@ -1110,7 +1110,7 @@ describe('actions.planning.ui', () => {
             sinon.stub(planningApi, 'save').callsFake(() => (Promise.reject(errorMessage)));
 
             store.test(done, planningUi.saveFromAuthoring(data.plannings[0], false))
-                .then(() => {}, () => {
+                .then(() => { /* no-op */ }, () => {
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
@@ -1128,7 +1128,7 @@ describe('actions.planning.ui', () => {
             );
 
             store.test(done, planningUi.saveFromAuthoring(data.plannings[0], true))
-                .then(() => {}, () => {
+                .then(() => { /* no-op */ }, () => {
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
@@ -1146,7 +1146,7 @@ describe('actions.planning.ui', () => {
             );
 
             store.test(done, planningUi.saveFromAuthoring(data.plannings[0], false))
-                .then(() => {}, () => {
+                .then(() => { /* no-op */ }, () => {
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 

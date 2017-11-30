@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {Field} from 'redux-form';
 import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
@@ -29,20 +30,22 @@ const FileFieldComponent = ({onRemove, file, createLink, fieldName, readOnly}) =
 );
 
 FileFieldComponent.propTypes = {
-    onRemove: React.PropTypes.func,
-    createLink: React.PropTypes.func.isRequired,
-    file: React.PropTypes.oneOfType([
-        React.PropTypes.instanceOf(FileList),
-        React.PropTypes.array, // in unit test we cannot instanciate FileList
-        React.PropTypes.shape({
-            media: React.PropTypes.object,
-            filemeta: React.PropTypes.object,
+    onRemove: PropTypes.func,
+    createLink: PropTypes.func.isRequired,
+    file: PropTypes.oneOfType([
+        PropTypes.instanceOf(FileList),
+        PropTypes.array, // in unit test we cannot instanciate FileList
+        PropTypes.shape({
+            media: PropTypes.object,
+            filemeta: PropTypes.object,
         }),
     ]),
-    fieldName: React.PropTypes.string,
-    readOnly: React.PropTypes.bool,
+    fieldName: PropTypes.string,
+    readOnly: PropTypes.bool,
 };
 
-const mapStateToProps = (state) => ({createLink: (f) => (selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw')});
+const mapStateToProps = (state) => ({
+    createLink: (f) => (selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw')
+});
 
 export const FileField = connect(mapStateToProps)(FileFieldComponent);

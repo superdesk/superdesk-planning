@@ -1,12 +1,12 @@
-import React from 'react'
-import { mount } from 'enzyme'
-import { EventItem } from './index'
-import sinon from 'sinon'
-import moment from 'moment'
-import { createTestStore } from '../../utils'
-import { Provider } from 'react-redux'
-import { itemActionExists } from '../../utils/testUtils'
-import * as helpers from '../tests/helpers'
+import React from 'react';
+import {mount} from 'enzyme';
+import {EventItem} from './index';
+import sinon from 'sinon';
+import moment from 'moment';
+import {createTestStore} from '../../utils';
+import {Provider} from 'react-redux';
+import {itemActionExists} from '../../utils/testUtils';
+import * as helpers from '../tests/helpers';
 
 describe('events', () => {
     describe('components', () => {
@@ -212,23 +212,25 @@ describe('events', () => {
             });
 
             it('executes `onSpikedEvent` callback', () => {
-                let wrapper = getMountedWrapper()
-                const menu = new helpers.actionMenu(wrapper)
-                expect(menu.actionLabels()).toContain('Spike')
-                menu.invokeAction('Spike')
-                expect(onSpikeEvent.callCount).toBe(1)
-                expect(onSpikeEvent.args[0][0]).toEqual(event)
-            })
+                let wrapper = getMountedWrapper();
+                const menu = new helpers.actionMenu(wrapper);
+
+                expect(menu.actionLabels()).toContain('Spike');
+                menu.invokeAction('Spike');
+                expect(onSpikeEvent.callCount).toBe(1);
+                expect(onSpikeEvent.args[0][0]).toEqual(event);
+            });
 
             it('executes `onUnspikedEvent` callback', () => {
-                event.state = 'spiked'
-                let wrapper = getMountedWrapper()
-                const menu = new helpers.actionMenu(wrapper)
-                expect(menu.actionLabels()).toContain('Unspike')
-                menu.invokeAction('Unspike')
-                expect(onUnspikeEvent.callCount).toBe(1)
-                expect(onUnspikeEvent.args[0][0]).toEqual(event)
-            })
-        })
-    })
-})
+                event.state = 'spiked';
+                let wrapper = getMountedWrapper();
+                const menu = new helpers.actionMenu(wrapper);
+
+                expect(menu.actionLabels()).toContain('Unspike');
+                menu.invokeAction('Unspike');
+                expect(onUnspikeEvent.callCount).toBe(1);
+                expect(onUnspikeEvent.args[0][0]).toEqual(event);
+            });
+        });
+    });
+});

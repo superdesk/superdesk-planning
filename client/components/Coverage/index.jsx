@@ -38,7 +38,7 @@ function CoverageComponent({
                 coverage={coverage}
                 formProfile={formProfile}
                 readOnly={readOnly}
-                content_type={content_type}
+                content_type={content_type} // eslint-disable-line camelcase
                 assignmentState={assignmentState}
                 hasAssignment={hasAssignment}
                 coverageId={coverageId}

@@ -129,33 +129,34 @@ describe('assignments', () => {
 
             it('ActionMenu executes prop functions', () => {
                 const executeItemAction = (actionLabel) => {
-                    const wrapper = getMountedWrapper()
-                    const menu = new helpers.actionMenu(wrapper)
-                    menu.invokeAction(actionLabel)
-                }
+                    const wrapper = getMountedWrapper();
+                    const menu = new helpers.actionMenu(wrapper);
 
-                lockedItems = null
+                    menu.invokeAction(actionLabel);
+                };
 
-                expect(reassign.callCount).toBe(0)
-                executeItemAction('Reassign')
-                expect(reassign.callCount).toBe(1)
-                expect(reassign.args[0]).toEqual([assignment])
+                lockedItems = null;
 
-                expect(editAssignmentPriority.callCount).toBe(0)
-                executeItemAction('Edit Priority')
-                expect(editAssignmentPriority.callCount).toBe(1)
-                expect(editAssignmentPriority.args[0]).toEqual([assignment])
+                expect(reassign.callCount).toBe(0);
+                executeItemAction('Reassign');
+                expect(reassign.callCount).toBe(1);
+                expect(reassign.args[0]).toEqual([assignment]);
 
-                expect(removeAssignment.callCount).toBe(0)
-                executeItemAction('Remove Assignment')
-                expect(removeAssignment.callCount).toBe(1)
-                expect(removeAssignment.args[0]).toEqual([assignment])
+                expect(editAssignmentPriority.callCount).toBe(0);
+                executeItemAction('Edit Priority');
+                expect(editAssignmentPriority.callCount).toBe(1);
+                expect(editAssignmentPriority.args[0]).toEqual([assignment]);
 
-                assignment.assigned_to.state = 'in_progress'
-                expect(completeAssignment.callCount).toBe(0)
-                executeItemAction('Complete Assignment')
-                expect(completeAssignment.callCount).toBe(1)
-                expect(completeAssignment.args[0]).toEqual([assignment])
+                expect(removeAssignment.callCount).toBe(0);
+                executeItemAction('Remove Assignment');
+                expect(removeAssignment.callCount).toBe(1);
+                expect(removeAssignment.args[0]).toEqual([assignment]);
+
+                assignment.assigned_to.state = 'in_progress';
+                expect(completeAssignment.callCount).toBe(0);
+                executeItemAction('Complete Assignment');
+                expect(completeAssignment.callCount).toBe(1);
+                expect(completeAssignment.args[0]).toEqual([assignment]);
 
                 assignment.assigned_to = {
                     user: 'ident1',

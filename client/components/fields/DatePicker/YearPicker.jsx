@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import moment from 'moment';
 import {range, chunk} from 'lodash';
 import './styles.scss';
@@ -15,8 +16,15 @@ export const YearPicker = ({selectedDate, onChange, startingYear, yearRange}) =>
                     <tr key={rowIndex}>
                         {row.map((year, index) => (
                             <td key={index} className="text-center">
-                                <button type="button" className={((startingYear + (rowIndex * 5 + index)) === selectedDate.year() ? 'active' :
-                                    '') + ' btn btn-default btn-sm'} onClick={onChange.bind(this, (moment(selectedDate).year((startingYear + (rowIndex * 5 + index)))))}>
+                                <button
+                                    type="button"
+                                    className={
+                                        ((startingYear + (rowIndex * 5 + index)) === selectedDate.year() ?
+                                            'active' : '') + ' btn btn-default btn-sm'}
+                                    onClick={
+                                        onChange.bind(this,
+                                            (moment(selectedDate).year((startingYear + (rowIndex * 5 + index)))))
+                                    }>
                                     <span>{year}</span>
                                 </button>
                             </td>

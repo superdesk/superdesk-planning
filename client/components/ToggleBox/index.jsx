@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import classNames from 'classnames';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 
 export class ToggleBox extends React.Component {
     constructor(props) {

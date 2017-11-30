@@ -107,7 +107,7 @@ describe('planning', () => {
                             }
                         ),
                     },
-                    initialState,
+                    initialState: initialState,
                 });
 
                 store.dispatch(actions.addEventToCurrentAgenda(EVENT)).then(() => {
@@ -154,7 +154,7 @@ describe('planning', () => {
                             agendas: ['agenda1'],
                         }),
                     },
-                    initialState,
+                    initialState: initialState,
                 });
 
 
@@ -219,7 +219,7 @@ describe('planning', () => {
                 };
 
                 const store = createTestStore({
-                    initialState,
+                    initialState: initialState,
                     extraArguments: {
                         apiQuery: () => ({
                             _items: [
@@ -264,7 +264,7 @@ describe('planning', () => {
 
             it('spike a planning', (done) => {
                 const store = createTestStore({
-                    initialState,
+                    initialState: initialState,
                     extraArguments: {
                         apiQuery: () => ({
                             _items: [
@@ -303,7 +303,7 @@ describe('planning', () => {
 
             it('unspike a planning', (done) => {
                 const store = createTestStore({
-                    initialState,
+                    initialState: initialState,
                     extraArguments: {
                         apiQuery: () => ({
                             _items: [

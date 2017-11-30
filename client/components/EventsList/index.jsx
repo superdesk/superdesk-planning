@@ -105,7 +105,7 @@ export class EventsList extends React.Component {
                     isSelected={this.props.selectedEvents.indexOf(event._id) > -1}
                     onSelectChange={(value) => this.props.onEventSelectChange({
                         event: event._id,
-                        value,
+                        value: value,
                     })}
                     privileges={this.props.privileges}
                     lockedItems={lockedItems}

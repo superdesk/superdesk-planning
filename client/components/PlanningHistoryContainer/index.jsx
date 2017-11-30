@@ -6,10 +6,6 @@ import * as actions from '../../actions';
 import * as selectors from '../../selectors';
 
 class PlanningHistoryComponent extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         const {
             planningHistoryItems,

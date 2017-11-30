@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {Tab} from './Tab';
 
 export class Tabs extends React.Component {
@@ -47,8 +48,8 @@ export class Tabs extends React.Component {
 }
 
 Tabs.propTypes = {
-    children: React.PropTypes.oneOfType([
-        React.PropTypes.object,
-        React.PropTypes.array,
+    children: PropTypes.oneOfType([
+        PropTypes.object,
+        PropTypes.array,
     ]),
 };

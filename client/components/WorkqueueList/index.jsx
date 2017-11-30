@@ -3,10 +3,6 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
 export class WorkqueueList extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     openEventItem(item) {
         if (!this.props.isEventListShown) {
             this.props.toggleEventsList();
@@ -28,7 +24,8 @@ export class WorkqueueList extends React.Component {
 
                         return (<li key={index} className={active ? 'active' : ''}>
                             <a className="title" onClick={this.openEventItem.bind(this, openedItem)}>
-                                <i className={active ? 'icon-calendar-list icon--white' : 'icon-calendar-list icon--blue'} />
+                                <i className={active ? 'icon-calendar-list icon--white' :
+                                    'icon-calendar-list icon--blue'} />
                                 <span className="item-label">
                                     { openedItem.headline || openedItem.slugline || 'Untitled' }
                                 </span>
@@ -43,7 +40,9 @@ export class WorkqueueList extends React.Component {
                         const active = openedItem._id === this.props.currentPlanningId;
 
                         return (<li key={index} className={active ? 'active' : ''}>
-                            <a className="title" onClick={this.props.openPlanningClick.bind(null, openedItem, get(openedItem, 'agendas[0]'))}>
+                            <a className="title"
+                                onClick={this.props.openPlanningClick.bind(null,
+                                    openedItem, get(openedItem, 'agendas[0]'))}>
                                 <i className={active ? 'icon-calendar icon--white' : 'icon-calendar icon--blue'} />
                                 <span className="item-label">
                                     { openedItem.headline || openedItem.slugline || 'Untitled' }

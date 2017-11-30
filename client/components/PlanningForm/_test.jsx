@@ -1,14 +1,13 @@
-import { createTestStore } from '../../utils'
-import { getTestActionStore } from '../../utils/testUtils'
-import { mount } from 'enzyme'
-import { PlanningForm, CoverageContainer } from '../index'
-import { CoveragesFieldArray } from '../fields'
-import React from 'react'
-import { Provider } from 'react-redux'
-import * as actions from '../../actions'
-import * as selectors from '../../selectors'
-import * as helpers from '../tests/helpers'
-
+import {createTestStore} from '../../utils';
+import {getTestActionStore} from '../../utils/testUtils';
+import {mount} from 'enzyme';
+import {PlanningForm, CoverageContainer} from '../index';
+import {CoveragesFieldArray} from '../fields';
+import React from 'react';
+import {Provider} from 'react-redux';
+import * as actions from '../../actions';
+import * as selectors from '../../selectors';
+import * as helpers from '../tests/helpers';
 
 describe('<PlanningForm />', () => {
     let store;
@@ -56,9 +55,9 @@ describe('<PlanningForm />', () => {
         const coveragesField = wrapper.find(CoveragesFieldArray);
 
         return {
-            wrapper,
-            form,
-            coveragesField,
+            wrapper: wrapper,
+            form: form,
+            coveragesField: coveragesField,
             addCoverageButton: coveragesField.find('.Coverage__add-btn'),
             coverageContainers: () => form.find(CoverageContainer),
         };
@@ -83,26 +82,8 @@ describe('<PlanningForm />', () => {
 
     describe('coverages', () => {
         it('removes a coverage', (done) => {
-            setStore()
-            const pid = data.plannings[0]._id
-            store.getState().planning.plannings[pid].coverages.forEach((cov) => {
-                delete cov.assigned_to
-            })
-            const { form, coverageContainers } = getWrapper()
-
-            expect(coverageContainers().length).toBe(3)
-
-            let menu = new helpers.actionMenu(coverageContainers().at(0))
-            expect(menu.actionLabels()).toContain('Remove coverage')
-            menu.invokeAction('Remove coverage')
-
-            expect(coverageContainers().length).toBe(2)
-
-            menu = new helpers.actionMenu(coverageContainers().at(0))
-            expect(menu.actionLabels()).toContain('Remove coverage')
-            menu.invokeAction('Remove coverage')
-
-            expect(coverageContainers().length).toBe(1)
+            setStore();
+            const pid = data.plannings[0]._id;
 
             store.getState().planning.plannings[pid].coverages.forEach((cov) => {
                 delete cov.assigned_to;
@@ -111,20 +92,17 @@ describe('<PlanningForm />', () => {
 
             expect(coverageContainers().length).toBe(3);
 
-            coverageContainers().at(0)
-                .find('.dropdown__toggle')
-                .simulate('click');
-            coverageContainers().at(0)
-                .find('li button .icon-trash')
-                .simulate('click');
+            let menu = new helpers.actionMenu(coverageContainers().at(0));
+
+            expect(menu.actionLabels()).toContain('Remove coverage');
+            menu.invokeAction('Remove coverage');
+
             expect(coverageContainers().length).toBe(2);
 
-            coverageContainers().at(0)
-                .find('.dropdown__toggle')
-                .simulate('click');
-            coverageContainers().at(0)
-                .find('li button .icon-trash')
-                .simulate('click');
+            menu = new helpers.actionMenu(coverageContainers().at(0));
+            expect(menu.actionLabels()).toContain('Remove coverage');
+            menu.invokeAction('Remove coverage');
+
             expect(coverageContainers().length).toBe(1);
 
             form.simulate('submit');
@@ -142,11 +120,13 @@ describe('<PlanningForm />', () => {
 
             expect(coverageContainers().length).toBe(3);
 
-            let menu = new helpers.actionMenu(coverageContainers().at(0))
-            expect(menu.actionLabels()).not.toContain('Remove coverage')
+            let menu = new helpers.actionMenu(coverageContainers().at(0));
 
-            menu = new helpers.actionMenu(coverageContainers().at(1))
-            expect(menu.actionLabels()).not.toContain('Remove coverage')
+            expect(menu.actionLabels()).not.toContain('Remove coverage');
+
+            menu = new helpers.actionMenu(coverageContainers().at(1));
+            expect(menu.actionLabels()).not.toContain('Remove coverage');
+
             done();
         });
 
@@ -154,21 +134,29 @@ describe('<PlanningForm />', () => {
             setStore();
             const pid = data.plannings[0]._id;
 
-            let menu = new helpers.actionMenu(coverageContainers().at(0))
-            expect(menu.actionLabels()).toContain('Remove coverage')
-            menu.invokeAction('Remove coverage')
+            store.getState().planning.plannings[pid].coverages.forEach((cov) => {
+                delete cov.assigned_to;
+            });
+            const {coverageContainers} = getWrapper();
 
-            expect(coverageContainers().length).toBe(2)
+            expect(coverageContainers().length).toBe(3);
 
-            menu = new helpers.actionMenu(coverageContainers().at(0))
-            expect(menu.actionLabels()).toContain('Remove coverage')
-            menu.invokeAction('Remove coverage')
+            let menu = new helpers.actionMenu(coverageContainers().at(0));
 
-            expect(coverageContainers().length).toBe(1)
+            expect(menu.actionLabels()).toContain('Remove coverage');
+            menu.invokeAction('Remove coverage');
 
-            menu = new helpers.actionMenu(coverageContainers().at(0))
-            expect(menu.actionLabels()).not.toContain('Remove coverage')
-        })
+            expect(coverageContainers().length).toBe(2);
+
+            menu = new helpers.actionMenu(coverageContainers().at(0));
+            expect(menu.actionLabels()).toContain('Remove coverage');
+            menu.invokeAction('Remove coverage');
+
+            expect(coverageContainers().length).toBe(1);
+
+            menu = new helpers.actionMenu(coverageContainers().at(0));
+            expect(menu.actionLabels()).not.toContain('Remove coverage');
+        });
 
         it('new coverages copies metadata from planning item', () => {
             setStore();

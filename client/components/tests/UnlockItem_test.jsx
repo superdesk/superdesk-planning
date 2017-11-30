@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import {mount} from 'enzyme';
 import {UnlockItem} from '../index';
 import sinon from 'sinon';
@@ -12,7 +13,7 @@ class TestForm extends React.Component {
                 user={user}
                 onUnlock={onUnlock}
                 showUnlock={true}
-                onCancel={() => {}}
+                onCancel={() => { /* no-op */ }}
                 displayText={displayText} />
         );
     }
@@ -20,7 +21,7 @@ class TestForm extends React.Component {
 
 TestForm.propTypes = {
     user: PropTypes.object.isRequired,
-    onUnlock: React.PropTypes.func,
+    onUnlock: PropTypes.func,
     displayText: PropTypes.string,
 };
 

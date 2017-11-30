@@ -18,7 +18,7 @@ const options = [
         qcode: 'qcode3',
     }];
 
-const input = {onChange: () => {}};
+const input = {onChange: () => { /* no-op */ }};
 
 describe('<TagSelectField />', () => {
     it('Click will open the popup', () => {

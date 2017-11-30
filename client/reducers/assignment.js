@@ -17,8 +17,9 @@ const initialState = {
 
 const modifyAssignmentBeingAdded = (payload) => {
     // payload must be an array. If not, we transform
-    payload = Array.isArray(payload) ? payload : [payload];
-    payload.forEach((assignment) => {
+    const assignments = Array.isArray(payload) ? payload : [payload];
+
+    assignments.forEach((assignment) => {
         if (get(assignment, 'planning.scheduled')) {
             assignment.planning.scheduled = moment(assignment.planning.scheduled);
         }

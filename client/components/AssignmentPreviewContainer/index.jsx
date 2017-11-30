@@ -31,10 +31,6 @@ import {List} from '../UI';
 import './style.scss';
 
 class AssignmentPreviewContainerComponent extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     getUser(userId) {
         const {users} = this.props;
 
@@ -121,7 +117,8 @@ class AssignmentPreviewContainerComponent extends React.Component {
         const updatedBy = getCreator(assignment, 'version_creator', users);
         const creationDate = get(assignment, '_created');
         const updatedDate = get(assignment, '_updated');
-        const versionCreator = get(updatedBy, 'display_name') ? updatedBy : users.find((user) => user._id === updatedBy);
+        const versionCreator = get(updatedBy, 'display_name') ? updatedBy :
+            users.find((user) => user._id === updatedBy);
 
         const assignedUser = getItemInArrayById(users, get(assignedTo, 'user'));
         const assignedDesk = getItemInArrayById(desks, get(assignedTo, 'desk'));
@@ -143,7 +140,8 @@ class AssignmentPreviewContainerComponent extends React.Component {
 
         return (
             <div className="AssignmentPreview">
-                <div className="AssignmentPreview__audit side-panel__content-block side-panel__content-block--pad-small side-panel__content-block--flex">
+                <div className="AssignmentPreview__audit side-panel__content-block
+                side-panel__content-block--pad-small side-panel__content-block--flex">
                     <div className="side-panel__content-block-inner side-panel__content-block-inner--grow">
                         <AuditInformation
                             createdBy={createdBy}
@@ -238,7 +236,8 @@ class AssignmentPreviewContainerComponent extends React.Component {
                 </div>
 
                 {!inAssignments && state === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
-                    <div className="AssignmentPreview__fulfil side-panel__content-block side-panel__content-block--pad-small side-panel__content-block--flex">
+                    <div className="AssignmentPreview__fulfil side-panel__content-block
+                    side-panel__content-block--pad-small side-panel__content-block--flex">
                         <div className="side-panel__content-block-inner side-panel__content-block-inner--grow">
                             <button
                                 className="btn btn--primary"
@@ -251,7 +250,8 @@ class AssignmentPreviewContainerComponent extends React.Component {
                     </div>
                 }
 
-                <div className="AssignmentPreview__coverage side-panel__content-block side-panel__content-block--pad-small">
+                <div className="AssignmentPreview__coverage side-panel__content-block
+                side-panel__content-block--pad-small">
                     <AssignmentPreview
                         assignment={assignment}
                         keywords={keywords}
@@ -261,7 +261,8 @@ class AssignmentPreviewContainerComponent extends React.Component {
                     />
                 </div>
 
-                <div className="AssignmentPreview__planning side-panel__content-block side-panel__content-block--pad-small">
+                <div className="AssignmentPreview__planning side-panel__content-block
+                side-panel__content-block--pad-small">
                     <ToggleBox title="Planning" isOpen={false} style="toggle-box--circle" scrollInView={true}>
                         <PlanningPreview
                             urgencyLabel={urgencyLabel}
@@ -273,7 +274,8 @@ class AssignmentPreviewContainerComponent extends React.Component {
                 </div>
 
                 {eventItem &&
-                    <div className="AssignmentPreview__event side-panel__content-block side-panel__content-block--pad-small">
+                    <div className="AssignmentPreview__event side-panel__content-block
+                    side-panel__content-block--pad-small">
                         <ToggleBox title="Event" isOpen={false} style="toggle-box--circle" scrollInView={true}>
                             <EventPreview
                                 item={eventItem}

@@ -53,7 +53,8 @@ class ArchivePreviewComponent extends React.Component {
         const updatedBy = getCreator(archive, 'version_creator', users);
         const creationDate = get(archive, '_created');
         const updatedDate = get(archive, '_updated');
-        const versionCreator = get(updatedBy, 'display_name') ? updatedBy : users.find((user) => user._id === updatedBy);
+        const versionCreator = get(updatedBy, 'display_name') ? updatedBy :
+            users.find((user) => user._id === updatedBy);
         const archiveType = get(archive, 'type', 'text');
 
         return (
@@ -105,7 +106,8 @@ class ArchivePreviewComponent extends React.Component {
                         </div>}
 
                     {this.state.headerOpen &&
-                        <div className="ArchivePreview__header-middle side-panel__content-block-inner side-panel__content-block-inner--grow">
+                        <div className="ArchivePreview__header-middle side-panel__content-block-inner
+                        side-panel__content-block-inner--grow">
                             {get(archive, 'slugline') &&
                                 <HtmlPreview className="sd-text__slugline" html={archive.slugline}/>
                             }
@@ -159,7 +161,8 @@ class ArchivePreviewComponent extends React.Component {
                         </div>}
 
                     {this.state.headerOpen &&
-                        <div className="ArchivePreview__header-right side-panel__content-block-inner side-panel__content-block-inner--right">
+                        <div className="ArchivePreview__header-right side-panel__content-block-inner
+                        side-panel__content-block-inner--right">
                             {archiveType === 'text' &&
                                 <div>
                                     <span className="word-count">
@@ -196,7 +199,8 @@ class ArchivePreviewComponent extends React.Component {
                     </button>
                 </div>
 
-                <div className="ArchivePreview__content side-panel__content-block side-panel__content-block--pad-small">
+                <div className="ArchivePreview__content side-panel__content-block
+                side-panel__content-block--pad-small">
                     {archiveType !== 'composite' && get(archive, 'headline') &&
                         <div>
                             <span className="headline">{archive.headline}</span>
@@ -240,12 +244,18 @@ class ArchivePreviewComponent extends React.Component {
                             </div>
                         }
 
-                        {get(archive, 'abstract') && <HtmlPreview className="text abstract" html={archive.abstract}/>}
-                        {get(archive, 'byline') && <HtmlPreview className="text byline" html={archive.byline}/>}
-                        {get(archive, 'dateline.text') && <HtmlPreview className="text dateline" html={archive.dateline.text}/>}
-                        {get(archive, 'body_html') && <HtmlPreview className="text body-text" html={archive.body_html}/>}
-                        {get(archive, 'body_footer') && <HtmlPreview className="text body-footer" html={archive.body_footer}/>}
-                        {get(archive, 'sign_off') && <HtmlPreview className="text sign-off" html={archive.sign_off}/>}
+                        {get(archive, 'abstract') &&
+                        <HtmlPreview className="text abstract" html={archive.abstract}/>}
+                        {get(archive, 'byline') &&
+                        <HtmlPreview className="text byline" html={archive.byline}/>}
+                        {get(archive, 'dateline.text') &&
+                        <HtmlPreview className="text dateline" html={archive.dateline.text}/>}
+                        {get(archive, 'body_html') &&
+                        <HtmlPreview className="text body-text" html={archive.body_html}/>}
+                        {get(archive, 'body_footer') &&
+                        <HtmlPreview className="text body-footer" html={archive.body_footer}/>}
+                        {get(archive, 'sign_off') &&
+                        <HtmlPreview className="text sign-off" html={archive.sign_off}/>}
                     </div>
                 </div>
             </div>

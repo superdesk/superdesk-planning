@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import {UserAvatar} from '../components';
 
@@ -53,11 +54,11 @@ export class UnlockItem extends React.Component {
 }
 
 UnlockItem.propTypes = {
-    user: React.PropTypes.object.isRequired,
-    showUnlock: React.PropTypes.bool,
-    onCancel: React.PropTypes.func,
-    onUnlock: React.PropTypes.func,
-    displayText: React.PropTypes.string,
+    user: PropTypes.object.isRequired,
+    showUnlock: PropTypes.bool,
+    onCancel: PropTypes.func,
+    onUnlock: PropTypes.func,
+    displayText: PropTypes.string,
 };
 
 UnlockItem.defaultProps = {displayText: 'Locked by:'};

@@ -20,7 +20,6 @@ describe('AddToPlanningController', () => {
             }],
         };
 
-
         scope = {
             locals: {data: {item: newsItem}},
             resolve: sinon.stub().returns(Promise.resolve()),
@@ -74,7 +73,7 @@ describe('AddToPlanningController', () => {
             scope, $location, sdPlanningStore, $q, notify,
             gettext, api, lock, session, userList
         )
-            .then(() => {}, () => {
+            .then(() => { /* no-op */ }, () => {
                 expect(api.find.callCount).toBe(1);
                 expect(api.find.args[0]).toEqual(['archive', 'item1']);
 
@@ -94,25 +93,22 @@ describe('AddToPlanningController', () => {
         session,
         userList
     ) => {
-
         delete newsItem.slugline;
         delete newsItem.urgency;
         delete newsItem.subject;
         delete newsItem.anpa_category;
-        newsItem.assignment_id = 'as1';
 
         return AddToPlanningController(
             scope, $location, sdPlanningStore, $q, notify,
             gettext, api, lock, session, userList
         )
-
-        .then(() => {}, () => {
-            expect(notify.error.callCount).toBe(4);
-            expect(notify.error.args[0]).toEqual(['[SLUGLINE] is a required field']);
-            expect(notify.error.args[1]).toEqual(['[URGENCY] is a required field']);
-            expect(notify.error.args[2]).toEqual(['[SUBJECT] is a required field']);
-            expect(notify.error.args[3]).toEqual(['[CATEGORY] is a required field']);
-        })
+            .then(() => { /* no-op */ }, () => {
+                expect(notify.error.callCount).toBe(4);
+                expect(notify.error.args[0]).toEqual(['[SLUGLINE] is a required field']);
+                expect(notify.error.args[1]).toEqual(['[URGENCY] is a required field']);
+                expect(notify.error.args[2]).toEqual(['[SUBJECT] is a required field']);
+                expect(notify.error.args[3]).toEqual(['[CATEGORY] is a required field']);
+            });
     }));
 
     it('notifies the user if the item is already linked to an assignment', inject((
@@ -131,10 +127,10 @@ describe('AddToPlanningController', () => {
             scope, $location, sdPlanningStore, $q, notify,
             gettext, api, lock, session, userList
         )
-        .then(() => {}, () => {
-            expect(notify.error.callCount).toBe(1);
-            expect(notify.error.args[0]).toEqual(['Item already linked to a Planning item']);
-        })
+            .then(() => { /* no-op */ }, () => {
+                expect(notify.error.callCount).toBe(1);
+                expect(notify.error.args[0]).toEqual(['Item already linked to a Planning item']);
+            });
     }));
 
     describe('locks the item', () => {

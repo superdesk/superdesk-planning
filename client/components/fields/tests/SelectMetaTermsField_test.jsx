@@ -481,7 +481,7 @@ describe('<SelectMetaTermsField />', () => {
             .onChange({
                 name: 'lab',
                 value: {name: 'lab'},
-            }, wrapper.find('SelectMetaTermsField').props(), () => {});
+            }, wrapper.find('SelectMetaTermsField').props(), () => { /* no-op */ });
         expect(wrapper.find('SelectMetaTermsField').props().value[0].label).toEqual('lab');
         expect(wrapper.find('SelectMetaTermsField').props().options[0].label).toEqual('cat1');
     });
@@ -505,7 +505,7 @@ describe('<SelectMetaTermsField />', () => {
             .onChange({
                 name: 'lab',
                 value: {name: 'lab'},
-            }, wrapper.find('SelectMetaTermsField').props(), () => {});
+            }, wrapper.find('SelectMetaTermsField').props(), () => { /* no-op */ });
         expect(wrapper.find('SelectMetaTermsField').props().value[0].label).toEqual('lab');
         expect(wrapper.find('SelectMetaTermsField').props().options[0].label).toEqual('sub');
     });

@@ -112,7 +112,7 @@ describe('events', () => {
             start: sinon.spy((file) => (Promise.resolve({
                 data: {
                     _id: file.data.media[0][0],
-                    file,
+                    file: file,
                 },
             }))),
         };

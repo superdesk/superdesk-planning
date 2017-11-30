@@ -1,8 +1,8 @@
-import React from 'react'
-import { mount } from 'enzyme'
-import { ItemActionsMenu } from '../index'
-import sinon from 'sinon'
-import * as helpers from '../tests/helpers'
+import React from 'react';
+import {mount} from 'enzyme';
+import {ItemActionsMenu} from '../index';
+import sinon from 'sinon';
+import * as helpers from '../tests/helpers';
 
 describe('<ItemActionsMenu />', () => {
     it('render', () => {
@@ -10,14 +10,15 @@ describe('<ItemActionsMenu />', () => {
         const wrapper = mount(
             <ItemActionsMenu actions={[{
                 label: 'label',
-                callback,
+                callback: callback,
             }]}/>
-        )
-        const menu = new helpers.actionMenu(wrapper)
-        expect(menu.actionLabels()).toContain('label')
-        menu.invokeAction('label')
-        expect(callback.callCount).toBe(1)
-    })
+        );
+        const menu = new helpers.actionMenu(wrapper);
+
+        expect(menu.actionLabels()).toContain('label');
+        menu.invokeAction('label');
+        expect(callback.callCount).toBe(1);
+    });
 
     it('doesnt render without actions ', () => {
         const wrapper = mount(

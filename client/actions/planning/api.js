@@ -92,30 +92,27 @@ const query = ({
         let must = [];
 
         if (eventIds) {
-            if (Array.isArray(eventIds)) {
-                const chunkSize = PLANNING.FETCH_IDS_CHUNK_SIZE;
+            let ids = Array.isArray(eventIds) ? eventIds : [eventIds];
+            const chunkSize = PLANNING.FETCH_IDS_CHUNK_SIZE;
 
-                if (eventIds.length <= chunkSize) {
-                    must.push({terms: {event_item: eventIds}});
-                } else {
-                    const requests = [];
-
-                    for (let i = 0; i < Math.ceil(eventIds.length / chunkSize); i++) {
-                        const args = {
-                            ...arguments[0],
-                            eventIds: eventIds.slice(i * chunkSize, (i + 1) * chunkSize),
-                        };
-
-                        requests.push(dispatch(self.query(args)));
-                    }
-
-                    // Flatten responses and return a response-like object
-                    return Promise.all(requests).then((responses) => (
-                        Array.prototype.concat(...responses)
-                    ));
-                }
+            if (ids.length <= chunkSize) {
+                must.push({terms: {event_item: ids}});
             } else {
-                must.push({term: {event_item: eventIds}});
+                const requests = [];
+
+                for (let i = 0; i < Math.ceil(ids.length / chunkSize); i++) {
+                    const args = {
+                        ...arguments[0],
+                        eventIds: ids.slice(i * chunkSize, (i + 1) * chunkSize),
+                    };
+
+                    requests.push(dispatch(self.query(args)));
+                }
+
+                // Flatten responses and return a response-like object
+                return Promise.all(requests).then((responses) => (
+                    Array.prototype.concat(...responses)
+                ));
             }
         }
 
@@ -257,7 +254,7 @@ const query = ({
 
                     query.bool.should.push(queryString);
                     queryString = cloneDeep(queryString);
-                    queryString.query_string.query = 'coverages.planning.slugline:(' + queryText + ')'; // jscs: disable
+                    queryString.query_string.query = 'coverages.planning.slugline:(' + queryText + ')';
 
                     if (!advancedSearch.noCoverage) {
                         query.bool.should.push({
@@ -298,7 +295,7 @@ const query = ({
             {
                 condition: () => (advancedSearch.g2_content_type),
                 do: () => {
-                    let term = {'coverages.planning.g2_content_type': advancedSearch.g2_content_type}; // jscs:ignore maximumLineLength
+                    let term = {'coverages.planning.g2_content_type': advancedSearch.g2_content_type};
 
                     must.push({
                         nested: {
@@ -311,11 +308,10 @@ const query = ({
             {
                 condition: () => (advancedSearch.noCoverage),
                 do: () => {
-                    /* eslint-disable */
                     let noCoverageTerm = {
-                        constant_score: { filter: { exists: { field: 'coverages.coverage_id' } } },
-                    }
-                    /* eslint-enable */
+                        constant_score: {filter: {exists: {field: 'coverages.coverage_id'}}},
+                    };
+
                     mustNot.push({
                         nested: {
                             path: 'coverages',
@@ -331,7 +327,7 @@ const query = ({
         });
 
         query.bool = {
-            must,
+            must: must,
             must_not: mustNot,
         };
 
@@ -361,7 +357,7 @@ const query = ({
 
         // Query the API
         return api('planning').query({
-            page,
+            page: page,
             source: JSON.stringify({
                 query,
                 sort,
@@ -418,8 +414,8 @@ const refetch = (page = 1, plannings = []) => (
 
         return dispatch(self.query(params))
             .then((items) => {
-                plannings = plannings.concat(items);
-                page++;
+                plannings = plannings.concat(items); // eslint-disable-line no-param-reassign
+                page++; // eslint-disable-line no-param-reassign
                 if (get(prevParams, 'page', 1) >= page) {
                     return dispatch(self.refetch(page, plannings));
                 }
@@ -665,16 +661,16 @@ const save = (item, original = undefined) => (
     (dispatch, getState, {api}) => {
         // remove all properties starting with _,
         // otherwise it will fail for "unknown field" with `_type`
-        item = pickBy(item, (v, k) => (k === '_id' || !k.startsWith('_')));
+        let updates = pickBy(item, (v, k) => (k === '_id' || !k.startsWith('_')));
 
         // remove nested original creator
-        delete item.original_creator;
+        delete updates.original_creator;
 
-        if (item.agendas) {
-            item.agendas = item.agendas.map((agenda) => agenda._id || agenda);
+        if (updates.agendas) {
+            updates.agendas = updates.agendas.map((agenda) => agenda._id || agenda);
         }
 
-        get(item, 'coverages', []).forEach((coverage) => {
+        get(updates, 'coverages', []).forEach((coverage) => {
             // Convert genre back to an Array
             if (get(coverage, 'planning.genre')) {
                 coverage.planning.genre = [coverage.planning.genre];
@@ -685,20 +681,20 @@ const save = (item, original = undefined) => (
         return new Promise((resolve, reject) => {
             if (original !== undefined) {
                 return resolve(original);
-            } else if (get(item, '_id')) {
-                return dispatch(self.fetchPlanningById(item._id))
+            } else if (get(updates, '_id')) {
+                return dispatch(self.fetchPlanningById(updates._id))
                     .then(
-                        (item) => resolve(item),
+                        (planning) => resolve(planning),
                         (error) => reject(error)
                     );
-            } else if (get(item, 'coverages.length', 0) > 0) {
+            } else if (get(updates, 'coverages.length', 0) > 0) {
                 // If the new Planning item has coverages then we need to create
                 // the planning first before saving the coverages
                 // As assignments are created and require a Planning ID
                 // const coverages = cloneDeep(item.coverages)
                 // item.coverages = []
                 return api('planning').save({}, {
-                    ...item,
+                    ...updates,
                     coverages: [],
                 })
                     .then(
@@ -710,9 +706,9 @@ const save = (item, original = undefined) => (
             }
         })
             .then((originalItem) => (
-                api('planning').save(cloneDeep(originalItem), item)
+                api('planning').save(cloneDeep(originalItem), updates)
                     .then(
-                        (item) => (Promise.resolve(item)),
+                        (planning) => (Promise.resolve(planning)),
                         (error) => (Promise.reject(error))
                     )
             ), (error) => Promise.reject(error));
@@ -907,7 +903,7 @@ const markPlanningCancelled = (plan, reason, coverageState, eventCancellation) =
     type: PLANNING.ACTIONS.MARK_PLANNING_CANCELLED,
     payload: {
         planning_item: plan,
-        reason,
+        reason: reason,
         coverage_state: coverageState,
         event_cancellation: eventCancellation,
     },
@@ -917,7 +913,7 @@ const markCoverageCancelled = (plan, reason, coverageState, ids) => ({
     type: PLANNING.ACTIONS.MARK_COVERAGE_CANCELLED,
     payload: {
         planning_item: plan,
-        reason,
+        reason: reason,
         coverage_state: coverageState,
         ids: ids,
     },
@@ -927,7 +923,7 @@ const markPlanningPostponed = (plan, reason) => ({
     type: PLANNING.ACTIONS.MARK_PLANNING_POSTPONED,
     payload: {
         planning_item: plan,
-        reason,
+        reason: reason,
     },
 });
 
@@ -954,7 +950,7 @@ function exportAsArticle() {
             }
 
             sortableItems.push({
-                id,
+                id: id,
                 label: label(item),
             });
         });
@@ -1010,6 +1006,7 @@ function exportAsArticle() {
     };
 }
 
+// eslint-disable-next-line consistent-this
 const self = {
     spike,
     unspike,

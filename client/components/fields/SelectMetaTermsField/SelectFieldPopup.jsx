@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import {SearchBar} from '../../index';
 import {differenceBy} from 'lodash';
@@ -242,8 +243,12 @@ export class SelectFieldPopup extends React.Component {
                                 <button type="button" className={(this.state.activeOptionIndex === -1 ?
                                     'Select__popup__item--active ' : '') + 'Select__popup__category'}
                                 onClick={this.chooseEntireCategory.bind(this)}>
-                                    <div id="parent" className="Select__popup__parent">{this.state.currentParent.label}</div>
-                                    <div id="choose" className="Select__popup__parent--choose">Choose entire category</div>
+                                    <div id="parent" className="Select__popup__parent">
+                                        {this.state.currentParent.label}
+                                    </div>
+                                    <div id="choose" className="Select__popup__parent--choose">
+                                        Choose entire category
+                                    </div>
                                 </button>
                             </div>))
                         || <SearchBar onSearch={(val) => {
@@ -258,7 +263,8 @@ export class SelectFieldPopup extends React.Component {
                         <button type="button" onClick={this.onMutiLevelSelect.bind(this,
                             this.state.filteredList[index], false)}>
                             <span>{ opt.label }</span>
-                            { !this.state.search && this.isOptionAParent(opt) && <i className="icon-chevron-right-thin" /> }
+                            { !this.state.search && this.isOptionAParent(opt) &&
+                            <i className="icon-chevron-right-thin" /> }
                         </button>
                     </li>
                 ))}

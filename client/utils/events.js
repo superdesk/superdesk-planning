@@ -29,11 +29,11 @@ import {EventUpdateMethods} from '../components/fields';
  * @return {boolean} If the date/times occupy entire day(s)
  */
 const isEventAllDay = (startingDate, endingDate) => {
-    startingDate = moment(startingDate).clone();
-    endingDate = moment(endingDate).clone();
+    const start = moment(startingDate).clone();
+    const end = moment(endingDate).clone();
 
-    return startingDate.isSame(startingDate.clone().startOf('day'), 'minute') &&
-        endingDate.isSame(endingDate.clone().endOf('day'), 'minute');
+    return start.isSame(start.clone().startOf('day'), 'minute') &&
+        end.isSame(end.clone().endOf('day'), 'minute');
 };
 
 const eventHasPlanning = (event) => get(event, 'planning_ids', []).length > 0;
@@ -80,7 +80,7 @@ const doesRecurringEventsOverlap = (startingDate, endingDate, recurringRule) => 
 
     const rules = {
         freq: freqMap[recurringRule.frequency],
-        interval: parseInt(recurringRule.interval) || 1,
+        interval: parseInt(recurringRule.interval, 10) || 1,
         dtstart: startingDate.toDate(),
         count: 2,
     };
@@ -300,6 +300,7 @@ const isEventAssociatedWithPlannings = (eventId, allPlannings) => (
         .filter((pid) => get(allPlannings[pid], 'event_item', null) === eventId).length > 0
 );
 
+// eslint-disable-next-line consistent-this
 const self = {
     isEventAllDay,
     doesRecurringEventsOverlap,

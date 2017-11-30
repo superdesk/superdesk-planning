@@ -23,9 +23,9 @@ const loadEventsByRecurrenceId = (
     (dispatch) => (
         dispatch(self.query({
             recurrenceId: rid,
-            spikeState,
-            page,
-            maxResults,
+            spikeState: spikeState,
+            page: page,
+            maxResults: maxResults,
         }))
             .then((data) => {
                 if (loadToStore) {
@@ -45,12 +45,10 @@ const loadEventsByRecurrenceId = (
  */
 const spike = (events) => (
     (dispatch, getState, {api}) => {
-        if (!Array.isArray(events)) {
-            events = [events];
-        }
+        let eventsToSpike = (Array.isArray(events) ? events : [events]);
 
         return Promise.all(
-            events.map((event) => {
+            eventsToSpike.map((event) => {
                 event.update_method = get(event, 'update_method.value', EventUpdateMethods[0].value);
                 return api.update(
                     'events_spike',
@@ -60,7 +58,7 @@ const spike = (events) => (
             })
         )
             .then(
-                () => Promise.resolve(events),
+                () => Promise.resolve(eventsToSpike),
                 (error) => (Promise.reject(error))
             );
     }
@@ -68,15 +66,13 @@ const spike = (events) => (
 
 const unspike = (events) => (
     (dispatch, getState, {api}) => {
-        if (!Array.isArray(events)) {
-            events = [events];
-        }
+        let eventsToUnspike = (Array.isArray(events) ? events : [events]);
 
         return Promise.all(
-            events.map((event) => api.update('events_unspike', event, {}))
+            eventsToUnspike.map((event) => api.update('events_unspike', event, {}))
         )
             .then(
-                () => Promise.resolve(events),
+                () => Promise.resolve(eventsToUnspike),
                 (error) => (Promise.reject(error))
             );
     }
@@ -256,19 +252,19 @@ const query = (
         }
 
         query.bool = {
-            must,
+            must: must,
             must_not: mustNot,
         };
 
         // Query the API and sort by date
         return api('events').query({
-            page,
+            page: page,
             max_results: maxResults,
             sort: '[("dates.start",1)]',
             embedded: {files: 1},
             source: JSON.stringify({
-                query,
-                filter,
+                query: query,
+                filter: filter,
             }),
         })
         // convert dates to moment objects
@@ -521,7 +517,7 @@ const silentlyFetchEventsById = (ids, spikeState = SPIKED_STATE.NOT_SPIKED, save
                 dispatch(self.query({
                     // distinct ids
                     ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
-                    spikeState,
+                    spikeState: spikeState,
                 }))
                     .then(
                         (data) => resolve(data._items),
@@ -601,7 +597,7 @@ const markEventCancelled = (event, reason, occurStatus) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_CANCELLED,
     payload: {
         event: event,
-        reason,
+        reason: reason,
         occur_status: occurStatus,
     },
 });
@@ -610,7 +606,7 @@ const markEventPostponed = (event, reason) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_POSTPONED,
     payload: {
         event: event,
-        reason,
+        reason: reason,
     },
 });
 
@@ -622,6 +618,7 @@ const markEventHasPlannings = (event, planning) => ({
     },
 });
 
+// eslint-disable-next-line consistent-this
 const self = {
     loadEventsByRecurrenceId,
     spike,

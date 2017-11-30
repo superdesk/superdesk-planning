@@ -6,16 +6,17 @@ import * as actions from '../../actions';
 import * as selectors from '../../selectors';
 
 class EventHistoryComponent extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         const {eventHistoryItems, users, openPlanningClick, openEventPreview, closeEventHistory} = this.props;
 
         return (
             <div>
-                <EventHistoryList eventHistoryItems={eventHistoryItems} users={users} openPlanningClick={openPlanningClick} openEventPreview={openEventPreview} closeEventHistory={closeEventHistory} />
+                <EventHistoryList
+                    eventHistoryItems={eventHistoryItems}
+                    users={users}
+                    openPlanningClick={openPlanningClick}
+                    openEventPreview={openEventPreview}
+                    closeEventHistory={closeEventHistory} />
             </div>
         );
     }

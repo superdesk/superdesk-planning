@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import moment from 'moment';
 import ReactDOM from 'react-dom';
 import {range} from 'lodash';
@@ -17,7 +18,8 @@ export class TimePickerCore extends React.Component {
 
     componentWillMount() {
         let hourIndex, minIndex;
-        let inputDateTime = this.props.value && moment.isMoment(this.props.value) ? moment(this.props.value) : this.state.currentTime;
+        let inputDateTime = this.props.value && moment.isMoment(this.props.value) ?
+            moment(this.props.value) : this.state.currentTime;
 
         // Round it to nearest 5 mins mark if needed
         const diffMins = 5 - inputDateTime.minute() % 5;
@@ -85,9 +87,18 @@ export class TimePickerCore extends React.Component {
                         <table>
                             <tbody>
                                 <tr>
-                                    <td><button className="btn btn--mini" type="button" onClick={this.handleConfirm.bind(this, 30)}>in 30 min</button></td>
-                                    <td><button className="btn btn--mini" type="button" onClick={this.handleConfirm.bind(this, 60)}>in 1 h</button></td>
-                                    <td><button className="btn btn--mini" type="button" onClick={this.handleConfirm.bind(this, 120)}>in 2 h</button></td>
+                                    <td><button
+                                        className="btn btn--mini"
+                                        type="button"
+                                        onClick={this.handleConfirm.bind(this, 30)}>in 30 min</button></td>
+                                    <td><button
+                                        className="btn btn--mini"
+                                        type="button"
+                                        onClick={this.handleConfirm.bind(this, 60)}>in 1 h</button></td>
+                                    <td><button
+                                        className="btn btn--mini"
+                                        type="button"
+                                        onClick={this.handleConfirm.bind(this, 120)}>in 2 h</button></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -96,7 +107,12 @@ export class TimePickerCore extends React.Component {
                         <div className="header">Hours</div>
                         <ul>
                             {hours.map((hour, index) => (
-                                <li key={index} className={index === this.state.selectedHourIndex ? 'active' : ''} onClick={this.setselectedHourIndex.bind(this, index)}>{hour < 10 ? '0' + hour : hour}</li>
+                                <li
+                                    key={index}
+                                    className={index === this.state.selectedHourIndex ? 'active' : ''}
+                                    onClick={this.setselectedHourIndex.bind(this, index)}>
+                                    {hour < 10 ? '0' + hour : hour}
+                                </li>
                             ))}
                         </ul>
                     </div>
@@ -104,13 +120,24 @@ export class TimePickerCore extends React.Component {
                         <div className="header">Minutes</div>
                         <ul>
                             {minutes.map((minute, index) => (
-                                <li key={index} className={index === this.state.selectedMinuteIndex ? 'active' : ''} onClick={this.setselectedMinuteIndex.bind(this, index)}>{minute < 10 ? '0' + minute : minute}</li>
+                                <li
+                                    key={index}
+                                    className={index === this.state.selectedMinuteIndex ? 'active' : ''}
+                                    onClick={this.setselectedMinuteIndex.bind(this, index)}>
+                                    {minute < 10 ? '0' + minute : minute}
+                                </li>
                             ))}
                         </ul>
                     </div>
                     <div>
-                        <button className="btn btn--primary btn--small pull-right" type="button" onClick={this.handleConfirm.bind(this, 0)}>Confirm</button>
-                        <button className="btn btn--small pull-right" type="button" onClick={this.handleCancel.bind(this)}>Cancel</button>
+                        <button
+                            className="btn btn--primary btn--small pull-right"
+                            type="button"
+                            onClick={this.handleConfirm.bind(this, 0)}>Confirm</button>
+                        <button
+                            className="btn btn--small pull-right"
+                            type="button"
+                            onClick={this.handleCancel.bind(this)}>Cancel</button>
                     </div>
                 </div>
             </div>

@@ -4,10 +4,6 @@ import PropTypes from 'prop-types';
 import ListGroupItem from './ListGroupItem';
 
 class ListGroup extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         const {name, items} = this.props;
 

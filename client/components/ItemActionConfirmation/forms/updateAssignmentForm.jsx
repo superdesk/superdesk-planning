@@ -109,7 +109,9 @@ class Component extends React.Component {
         return (
             <div>
                 {metaData.map((data) => (
-                    <div key={data.key} className="form__row sd-line-input sd-line-input--label-left ItemActionConfirmation__metadata__dataRow">
+                    <div key={data.key}
+                        className="form__row sd-line-input sd-line-input--label-left
+                         ItemActionConfirmation__metadata__dataRow">
                         <label className="sd-line-input__label sd-line-input--label-left--noMaxWdth">{data.key}</label>
                         <label className="sd-line-input__label sd-line-input--label-left--noMaxWdth">
                             {data.value}
@@ -162,7 +164,9 @@ class Component extends React.Component {
         return (
             <div>
                 {metaData.map((data) => (
-                    <div key={data.key} className="form__row sd-line-input sd-line-input--label-left ItemActionConfirmation__metadata__dataRow">
+                    <div key={data.key}
+                        className="form__row sd-line-input sd-line-input--label-left
+                         ItemActionConfirmation__metadata__dataRow">
                         <label className="sd-line-input__label sd-line-input--label-left--noMaxWdth">{data.key}</label>
                         <label className="sd-line-input__label sd-line-input--label-left--noMaxWdth">
                             {data.value}

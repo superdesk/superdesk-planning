@@ -62,7 +62,7 @@ const onPlanningLocked = (e, data) => (
         if (get(data, 'item')) {
             return dispatch(planning.api.getPlanning(data.item, false))
                 .then((planInStore) => {
-                    planInStore = {
+                    let plan = {
                         ...planInStore,
                         lock_action: data.lock_action,
                         lock_user: data.user,
@@ -73,10 +73,10 @@ const onPlanningLocked = (e, data) => (
 
                     dispatch({
                         type: PLANNING.ACTIONS.LOCK_PLANNING,
-                        payload: {plan: planInStore},
+                        payload: {plan: plan},
                     });
 
-                    return Promise.resolve(planInStore);
+                    return Promise.resolve(plan);
                 });
         }
 
@@ -260,6 +260,7 @@ const onPlanningPostponed = (e, data) => (
     }
 );
 
+// eslint-disable-next-line consistent-this
 const self = {
     onPlanningCreated,
     onPlanningUpdated,

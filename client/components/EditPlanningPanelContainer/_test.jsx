@@ -9,7 +9,7 @@ import sinon from 'sinon';
 import moment from 'moment';
 import {restoreSinonStub, getTestActionStore} from '../../utils/testUtils';
 import planningApi from '../../actions/planning/api';
-import { PLANNING } from '../../constants';
+import {PLANNING} from '../../constants';
 
 describe('planning', () => {
     describe('containers', () => {

@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import {Checkbox} from '../index';
 
 export class DaysOfWeek extends React.Component {
@@ -26,12 +27,8 @@ export class DaysOfWeek extends React.Component {
         // update the state with the new (un)checked day
         this.setState({[day]: e.target.value}, () => {
             // keep only the checked days
-            let daysInString = Object.keys(this.state).map((d) => {
-                if (this.state[d]) {
-                    return d;
-                }
-            })
-            // keep only not undefined values in array
+            let daysInString = Object.keys(this.state).map((d) => this.state[d] ? d : null)
+                // keep only not undefined values in array
                 .filter((d) => (d))
                 // join array to produce the string we want to store
                 .join(' ');
@@ -69,7 +66,7 @@ export class DaysOfWeek extends React.Component {
 
 DaysOfWeek.propTypes = {
     input: PropTypes.object,
-    meta: React.PropTypes.object.isRequired,
+    meta: PropTypes.object.isRequired,
     readOnly: PropTypes.bool,
     label: PropTypes.string,
 };

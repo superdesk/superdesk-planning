@@ -1,7 +1,7 @@
 import {reducer as formReducer, actionTypes} from 'redux-form';
 import {cloneDeep, get, isNil} from 'lodash';
 import moment from 'moment';
-import { RESET_STORE, INIT_STORE, LOCATIONS, FORM_NAMES } from '../constants';
+import {RESET_STORE, INIT_STORE, LOCATIONS, FORM_NAMES} from '../constants';
 import {eventUtils} from '../utils/index';
 
 const getStateWithLocationSearchResults = (state, action) => {
@@ -29,7 +29,7 @@ const getStateWithLocationSearchResults = (state, action) => {
 
 const forms = formReducer.plugin({
     // 'addEvent' is the name of the form given to reduxForm()
-    [FORM_NAMES.EventForm]: (state={}, action) => {
+    [FORM_NAMES.EventForm]: (state = {}, action) => {
         if (action.type === RESET_STORE) {
             return null;
         } else if (action.type === INIT_STORE) {

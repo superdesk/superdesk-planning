@@ -110,7 +110,7 @@ export function FulFilAssignmentController(
                                 modalProps: {
                                     newsItem: item, // scope item
                                     fullscreen: true,
-                                    $scope,
+                                    $scope: $scope,
                                 },
                             }));
 

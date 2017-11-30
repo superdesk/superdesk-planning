@@ -1,13 +1,13 @@
-import React from 'react'
-import { Provider } from 'react-redux'
-import { createTestStore } from '../../utils'
-import { mount } from 'enzyme'
-import PlanningItem from './index'
-import sinon from 'sinon'
-import moment from 'moment'
-import { get } from 'lodash'
-import { itemActionExists } from '../../utils/testUtils'
-import * as helpers from '../tests/helpers'
+import React from 'react';
+import {Provider} from 'react-redux';
+import {createTestStore} from '../../utils';
+import {mount} from 'enzyme';
+import PlanningItem from './index';
+import sinon from 'sinon';
+import moment from 'moment';
+import {get} from 'lodash';
+import {itemActionExists} from '../../utils/testUtils';
+import * as helpers from '../tests/helpers';
 
 describe('planning', () => {
     describe('components', () => {
@@ -216,7 +216,7 @@ describe('planning', () => {
             });
 
             it('executes callbacks onClick, onSpike and onUnspike', () => {
-                let wrapper = getWrapper()
+                let wrapper = getWrapper();
 
                 // onClick
                 wrapper.find('.ListItem').first()
@@ -225,29 +225,30 @@ describe('planning', () => {
                 expect(onClick.args[0][0]).toEqual(item);
 
                 // onSpike
-                let menu = new helpers.actionMenu(wrapper)
-                expect(menu.actionLabels()).toContain('Spike')
-                menu.invokeAction('Spike')
-                expect(onSpike.callCount).toBe(1)
-                expect(onSpike.args[0]).toEqual([item])
+                let menu = new helpers.actionMenu(wrapper);
+
+                expect(menu.actionLabels()).toContain('Spike');
+                menu.invokeAction('Spike');
+                expect(onSpike.callCount).toBe(1);
+                expect(onSpike.args[0]).toEqual([item]);
 
                 // onUnspike
-                item = items[2]
-                wrapper = getWrapper()
-                menu = new helpers.actionMenu(wrapper)
-                expect(menu.actionLabels()).toContain('Unspike')
-                menu.invokeAction('Unspike')
-                expect(onUnspike.callCount).toBe(1)
-                expect(onUnspike.args[0]).toEqual([item])
+                item = items[2];
+                wrapper = getWrapper();
+                menu = new helpers.actionMenu(wrapper);
+                expect(menu.actionLabels()).toContain('Unspike');
+                menu.invokeAction('Unspike');
+                expect(onUnspike.callCount).toBe(1);
+                expect(onUnspike.args[0]).toEqual([item]);
 
-                item = items[0]
-                wrapper = getWrapper()
-                menu = new helpers.actionMenu(wrapper)
-                expect(menu.actionLabels()).toContain('Duplicate')
-                menu.invokeAction('Duplicate')
-                expect(onDuplicate.callCount).toBe(1)
-                expect(onDuplicate.args[0]).toEqual([item])
-            })
+                item = items[0];
+                wrapper = getWrapper();
+                menu = new helpers.actionMenu(wrapper);
+                expect(menu.actionLabels()).toContain('Duplicate');
+                menu.invokeAction('Duplicate');
+                expect(onDuplicate.callCount).toBe(1);
+                expect(onDuplicate.args[0]).toEqual([item]);
+            });
 
 
             /**

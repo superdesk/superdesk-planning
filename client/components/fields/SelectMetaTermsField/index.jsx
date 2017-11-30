@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import {SelectFieldPopup} from './SelectFieldPopup';
 import classNames from 'classnames';
 import {differenceBy} from 'lodash';
@@ -65,7 +66,9 @@ export class SelectMetaTermsField extends React.Component {
             }
 
             <div className={inputClass}>
-                { !readOnly && <button type="button" className="Select__dropdownToggle" onClick={this.toggleOpenSelectPopup.bind(this)}>
+                { !readOnly && <button type="button"
+                    className="Select__dropdownToggle"
+                    onClick={this.toggleOpenSelectPopup.bind(this)}>
                     <i className="icon--white icon-plus-large" />
                 </button> }
                 { value && value.length > 0 && (

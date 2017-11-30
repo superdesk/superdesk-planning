@@ -1,47 +1,48 @@
-import moment from 'moment-timezone'
-import { createStore as _createStore, applyMiddleware } from 'redux'
-import planningApp from '../reducers'
-import thunkMiddleware from 'redux-thunk'
-import createLogger from 'redux-logger'
-import { get, set, isNil, map, cloneDeep } from 'lodash'
-import { PUBLISHED_STATE, WORKFLOW_STATE, TOOLTIPS, ASSIGNMENTS } from '../constants/index'
-import * as testData from './testData'
+import moment from 'moment-timezone';
+import {createStore as _createStore, applyMiddleware} from 'redux';
+import planningApp from '../reducers';
+import thunkMiddleware from 'redux-thunk';
+import createLogger from 'redux-logger';
+import {get, set, isNil, map, cloneDeep} from 'lodash';
+import {PUBLISHED_STATE, WORKFLOW_STATE, TOOLTIPS, ASSIGNMENTS} from '../constants/index';
+import * as testData from './testData';
 
-export { default as checkPermission } from './checkPermission'
-export { default as retryDispatch } from './retryDispatch'
-export { default as registerNotifications } from './notifications'
-export { default as eventUtils } from './events'
-export { default as planningUtils } from './planning'
-export { default as uiUtils } from './ui'
-export { default as assignmentUtils } from './assignments'
+export {default as checkPermission} from './checkPermission';
+export {default as retryDispatch} from './retryDispatch';
+export {default as registerNotifications} from './notifications';
+export {default as eventUtils} from './events';
+export {default as planningUtils} from './planning';
+export {default as uiUtils} from './ui';
+export {default as assignmentUtils} from './assignments';
 
 export function createReducer(initialState, reducerMap) {
     return (state = initialState, action) => {
-        const reducer = reducerMap[action.type]
+        const reducer = reducerMap[action.type];
+
         if (reducer) {
-            return reducer(state, action.payload)
+            return reducer(state, action.payload);
         } else {
             return {
                 ...initialState,
                 ...state,
-            }
+            };
         }
-    }
+    };
 }
 
-export const createTestStore = (params={}) => {
-    const { initialState={}, extraArguments={} } = params
+export const createTestStore = (params = {}) => {
+    const {initialState = {}, extraArguments = {}} = params;
     const mockedInitialState = cloneDeep(testData.initialState);
 
     const mockedExtraArguments = {
         $timeout: extraArguments.timeout ? extraArguments.timeout : (cb) => (cb && cb()),
-        $scope: { $apply: (cb) => (cb && cb()) },
+        $scope: {$apply: (cb) => (cb && cb())},
         notify: extraArguments.notify ? extraArguments.notify : {
             success: () => (undefined),
             error: () => (undefined),
             pop: () => (undefined),
         },
-        $location: { search: () => (undefined) },
+        $location: {search: () => (undefined)},
         vocabularies: {
             getAllActiveVocabularies: () => (
                 Promise.resolve({
@@ -78,56 +79,58 @@ export const createTestStore = (params={}) => {
                 })
             ),
         },
-        upload: { start: (d) => (Promise.resolve(d)) },
+        upload: {start: (d) => (Promise.resolve(d))},
         api: extraArguments.api ? extraArguments.api : (resource) => ({
-            query: (q) =>  {
+            query: (q) => {
                 if (extraArguments.apiQuery) {
-                    return Promise.resolve(extraArguments.apiQuery(resource, q))
+                    return Promise.resolve(extraArguments.apiQuery(resource, q));
                 } else {
-                    return Promise.resolve({ _items: [] })
+                    return Promise.resolve({_items: []});
                 }
             },
 
             remove: (item) => {
                 if (extraArguments.apiRemove) {
-                    return Promise.resolve(extraArguments.apiRemove(resource, item))
+                    return Promise.resolve(extraArguments.apiRemove(resource, item));
                 } else {
-                    return Promise.resolve()
+                    return Promise.resolve();
                 }
             },
 
             save: (ori, item) => {
                 if (extraArguments.apiSave) {
-                    return Promise.resolve(extraArguments.apiSave(resource, ori, item))
+                    return Promise.resolve(extraArguments.apiSave(resource, ori, item));
                 } else {
                     const response = {
                         ...ori,
                         ...item,
-                    }
+                    };
                     // if there is no id we add one
+
                     if (!response._id) {
-                        response._id = Math.random().toString(36).substr(2, 10)
+                        response._id = Math.random().toString(36)
+                            .substr(2, 10);
                     }
                     // reponse as a promise
-                    return Promise.resolve(response)
+                    return Promise.resolve(response);
                 }
             },
 
             getById: (_id) => {
                 if (extraArguments.apiGetById) {
-                    return Promise.resolve(extraArguments.apiGetById(resource, _id))
+                    return Promise.resolve(extraArguments.apiGetById(resource, _id));
                 } else {
-                    return Promise.resolve()
+                    return Promise.resolve();
                 }
             },
         }),
-    }
+    };
 
     if (!get(mockedExtraArguments.api, 'save')) {
         mockedExtraArguments.api.save = (resource, dest, diff, parent) => (Promise.resolve({
             ...parent,
             ...diff,
-        }))
+        }));
     }
 
     const middlewares = [
@@ -136,16 +139,19 @@ export const createTestStore = (params={}) => {
             ...mockedExtraArguments,
             extraArguments,
         }),
-    ]
+    ];
     // parse dates since we keep moment dates in the store
+
     if (initialState.events) {
-        const paths = ['dates.start', 'dates.end']
+        const paths = ['dates.start', 'dates.end'];
+
         Object.keys(initialState.events.events).forEach((eKey) => {
-            const event = initialState.events.events[eKey]
+            const event = initialState.events.events[eKey];
+
             paths.forEach((path) => (
                 set(event, path, moment(get(event, path)))
-            ))
-        })
+            ));
+        });
     }
     // return the store
     return _createStore(
@@ -154,9 +160,9 @@ export const createTestStore = (params={}) => {
             ...mockedInitialState,
             ...initialState,
         },
-        applyMiddleware.apply(null, middlewares)
-    )
-}
+        applyMiddleware(...middlewares)
+    );
+};
 
 /**
  * Some action dispatchers (specifically thunk with promises)
@@ -164,16 +170,16 @@ export const createTestStore = (params={}) => {
  * This middleware ensures that uncaught exceptions are still thrown
  * displaying the error in the console.
  */
-const crashReporter = () => next => action => {
+const crashReporter = () => (next) => (action) => {
     try {
-        return next(action)
+        return next(action);
     } catch (err) {
-        throw err
+        throw err;
     }
-}
+};
 
-export const createStore = (params={}, app=planningApp) => {
-    const { initialState={}, extraArguments={} } = params
+export const createStore = (params = {}, app = planningApp) => {
+    const {initialState = {}, extraArguments = {}} = params;
     const middlewares = [
         crashReporter,
 
@@ -182,17 +188,19 @@ export const createStore = (params={}, app=planningApp) => {
 
         // logs actions (this should always be the last middleware)
         createLogger(),
-    ]
+    ];
     // return the store
+
     return _createStore(
         app,
         initialState,
-        applyMiddleware.apply(null, middlewares)
-    )
-}
+        applyMiddleware(...middlewares)
+    );
+};
 
 export const formatAddress = (nominatim) => {
-    let address = nominatim.address
+    let address = nominatim.address;
+
     if (!get(address, 'line[0]')) {
         // Address from nominatim search
         const localityHierarchy = [
@@ -208,11 +216,11 @@ export const formatAddress = (nominatim) => {
             'village',
             'district',
             'borough',
-        ]
+        ];
 
         const localityField = localityHierarchy.find((locality) =>
             nominatim.address.hasOwnProperty(locality)
-        )
+        );
         // Map nominatim fields to NewsML area
         const areaHierarchy = [
             'island',
@@ -232,10 +240,10 @@ export const formatAddress = (nominatim) => {
             'farm',
             'locality',
             'islet',
-        ]
+        ];
         const areaField = areaHierarchy.find((area) =>
             nominatim.address.hasOwnProperty(area)
-        )
+        );
 
         address = {
             title: (localityHierarchy.indexOf(nominatim.type) === -1 &&
@@ -244,14 +252,14 @@ export const formatAddress = (nominatim) => {
             line: [
                 (`${get(nominatim.address, 'house_number', '')} ` +
                 `${get(nominatim.address, 'road', '')}`)
-                .trim(),
+                    .trim(),
             ],
             locality: get(nominatim.address, localityField),
             area: get(nominatim.address, areaField),
             country: nominatim.address.country,
             postal_code: nominatim.address.postcode,
-            external: { nominatim },
-        }
+            external: {nominatim},
+        };
     }
 
     const formattedAddress = [
@@ -260,17 +268,17 @@ export const formatAddress = (nominatim) => {
         get(address, 'locality'),
         get(address, 'postal_code'),
         get(address, 'country'),
-    ].filter(d => d).join(', ')
+    ].filter((d) => d).join(', ');
 
     const shortName = get(address, 'title') ? get(address, 'title') + ', ' + formattedAddress :
-        formattedAddress
+        formattedAddress;
 
     return {
         address,
         formattedAddress,
         shortName,
-    }
-}
+    };
+};
 
 /**
  * Utility to return the error message from a api response, or the default message supplied
@@ -280,15 +288,15 @@ export const formatAddress = (nominatim) => {
  */
 export const getErrorMessage = (error, defaultMessage) => {
     if (get(error, 'data._message')) {
-        return get(error, 'data._message')
+        return get(error, 'data._message');
     } else if (get(error, 'data._issues.validator exception')) {
-        return get(error, 'data._issues.validator exception')
+        return get(error, 'data._issues.validator exception');
     } else if (typeof error === 'string') {
-        return error
+        return error;
     }
 
-    return defaultMessage
-}
+    return defaultMessage;
+};
 
 /**
  * Helper function to retrieve the user object using their ID from an item field.
@@ -299,20 +307,21 @@ export const getErrorMessage = (error, defaultMessage) => {
  * @return {object} The user object found, otherwise nothing is returned
  */
 export const getCreator = (item, creator, users) => {
-    const user = get(item, creator)
+    const user = get(item, creator);
+
     if (user) {
-        return user.display_name ? user : users.find((u) => u._id === user)
+        return user.display_name ? user : users.find((u) => u._id === user);
     }
-}
+};
 
 export const isItemLockedInThisSession = (item, session) => (
     get(item, 'lock_user') === get(session, 'identity._id') &&
         get(item, 'lock_session') === get(session, 'sessionId')
-)
+);
 
-export const getItemInArrayById = (items, id, field='_id') => (
+export const getItemInArrayById = (items, id, field = '_id') => (
     items.find((item) => get(item, field) === id)
-)
+);
 
 /**
  * Get the name of associated icon for different coverage types
@@ -326,162 +335,164 @@ export const getCoverageIcon = (type) => {
         live_video: 'icon-video',
         audio: 'icon-audio',
         picture: 'icon-photo',
-    }
-    return get(coverageIcons, type, 'icon-file')
-}
+    };
+
+    return get(coverageIcons, type, 'icon-file');
+};
 
 export const getLockedUser = (item, locks, users) => {
-    const lock = getLock(item, locks)
+    const lock = getLock(item, locks);
+
     return lock !== null && Array.isArray(users) ?
-        users.find((u) => (u._id === lock.user)) : null
-}
+        users.find((u) => (u._id === lock.user)) : null;
+};
 
 export const getLock = (item, locks) => {
     if (isNil(item)) {
-        return null
+        return null;
     }
 
     switch (get(item, '_type')) {
-        case 'events':
-            if (item._id in locks.events) {
-                return locks.events[item._id]
-            } else if (get(item, 'recurrence_id') in locks.recurring) {
-                return locks.recurring[item.recurrence_id]
-            }
+    case 'events':
+        if (item._id in locks.events) {
+            return locks.events[item._id];
+        } else if (get(item, 'recurrence_id') in locks.recurring) {
+            return locks.recurring[item.recurrence_id];
+        }
 
-            break
+        break;
 
-        case 'planning':
-            if (item._id in locks.planning) {
-                return locks.planning[item._id]
-            } else if (get(item, 'event_item') in locks.events) {
-                return locks.events[item.event_item]
-            }
+    case 'planning':
+        if (item._id in locks.planning) {
+            return locks.planning[item._id];
+        } else if (get(item, 'event_item') in locks.events) {
+            return locks.events[item.event_item];
+        }
 
-            break
+        break;
 
-        default:
-            if (item._id in locks.assignments) {
-                return locks.assignments[item._id]
-            }
+    default:
+        if (item._id in locks.assignments) {
+            return locks.assignments[item._id];
+        }
 
-            break
+        break;
     }
 
-    return null
-}
+    return null;
+};
 
-export const getItemWorkflowState = (item) => (get(item, 'state', WORKFLOW_STATE.DRAFT))
-export const isItemCancelled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.CANCELLED
-export const isItemRescheduled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.RESCHEDULED
-export const isItemKilled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.KILLED
-export const isItemPostponed = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.POSTPONED
+export const getItemWorkflowState = (item) => (get(item, 'state', WORKFLOW_STATE.DRAFT));
+export const isItemCancelled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.CANCELLED;
+export const isItemRescheduled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.RESCHEDULED;
+export const isItemKilled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.KILLED;
+export const isItemPostponed = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.POSTPONED;
 
 // eslint-disable-next-line complexity
 export const getItemWorkflowStateLabel = (item) => {
     switch (getItemWorkflowState(item)) {
-        case WORKFLOW_STATE.DRAFT:
-            return {
-                label: 'draft',
-                iconHollow: true,
-            }
-        case WORKFLOW_STATE.SPIKED:
-            return {
-                label: 'spiked',
-                iconType: 'alert',
-            }
-        case WORKFLOW_STATE.SCHEDULED:
-            return {
-                label: 'Scheduled',
-                labelVerbose: 'Scheduled',
-                iconType: 'success',
-                tooltip: TOOLTIPS.scheduledState,
-            }
-        case WORKFLOW_STATE.KILLED:
-            return {
-                label: 'Killed',
-                iconType: 'warning',
-                tooltip: TOOLTIPS.withheldState,
-            }
-        case WORKFLOW_STATE.RESCHEDULED:
-            return {
-                label: 'Rescheduled',
-                iconType: 'warning',
-            }
-        case WORKFLOW_STATE.CANCELLED:
-            return {
-                label: 'Cancelled',
-                iconType: 'yellow2',
-            }
-        case WORKFLOW_STATE.POSTPONED:
-            return {
-                label: 'Postponed',
-                iconType: 'yellow2',
+    case WORKFLOW_STATE.DRAFT:
+        return {
+            label: 'draft',
+            iconHollow: true,
+        };
+    case WORKFLOW_STATE.SPIKED:
+        return {
+            label: 'spiked',
+            iconType: 'alert',
+        };
+    case WORKFLOW_STATE.SCHEDULED:
+        return {
+            label: 'Scheduled',
+            labelVerbose: 'Scheduled',
+            iconType: 'success',
+            tooltip: TOOLTIPS.scheduledState,
+        };
+    case WORKFLOW_STATE.KILLED:
+        return {
+            label: 'Killed',
+            iconType: 'warning',
+            tooltip: TOOLTIPS.withheldState,
+        };
+    case WORKFLOW_STATE.RESCHEDULED:
+        return {
+            label: 'Rescheduled',
+            iconType: 'warning',
+        };
+    case WORKFLOW_STATE.CANCELLED:
+        return {
+            label: 'Cancelled',
+            iconType: 'yellow2',
+        };
+    case WORKFLOW_STATE.POSTPONED:
+        return {
+            label: 'Postponed',
+            iconType: 'yellow2',
 
-            }
-        case ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED:
-            return {
-                label: 'Assigned',
-                iconHollow: true,
-            }
-        case ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS:
-            return {
-                label: 'In Progress',
-                iconType: 'yellow2',
-                iconHollow: true,
-            }
-        case ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED:
-            return {
-                label: 'Submitted',
-                iconType: 'yellow2',
-                iconHollow: true,
-            }
-        case ASSIGNMENTS.WORKFLOW_STATE.COMPLETED:
-            return {
-                label: 'Completed',
-                iconType: 'success',
-            }
+        };
+    case ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED:
+        return {
+            label: 'Assigned',
+            iconHollow: true,
+        };
+    case ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS:
+        return {
+            label: 'In Progress',
+            iconType: 'yellow2',
+            iconHollow: true,
+        };
+    case ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED:
+        return {
+            label: 'Submitted',
+            iconType: 'yellow2',
+            iconHollow: true,
+        };
+    case ASSIGNMENTS.WORKFLOW_STATE.COMPLETED:
+        return {
+            label: 'Completed',
+            iconType: 'success',
+        };
     }
-}
+};
 
 export const getItemPublishedStateLabel = (item) => {
     switch (getPublishedState(item)) {
-        case PUBLISHED_STATE.USABLE:
-            return {
-                label: 'P',
-                labelVerbose: 'Published',
-                iconType: 'success',
-                tooltip:  TOOLTIPS.publishedState,
-            }
+    case PUBLISHED_STATE.USABLE:
+        return {
+            label: 'P',
+            labelVerbose: 'Published',
+            iconType: 'success',
+            tooltip: TOOLTIPS.publishedState,
+        };
 
-        case PUBLISHED_STATE.CANCELLED:
-            return {
-                label: 'Cancelled',
-                iconType: 'yellow2',
-            }
+    case PUBLISHED_STATE.CANCELLED:
+        return {
+            label: 'Cancelled',
+            iconType: 'yellow2',
+        };
     }
-}
+};
 
-export const isItemPublic = (item={}) =>
+export const isItemPublic = (item = {}) =>
     item && typeof item === 'string' ?
         item === PUBLISHED_STATE.USABLE || item === PUBLISHED_STATE.CANCELLED :
-        item.pubstatus === PUBLISHED_STATE.USABLE || item.pubstatus === PUBLISHED_STATE.CANCELLED
+        item.pubstatus === PUBLISHED_STATE.USABLE || item.pubstatus === PUBLISHED_STATE.CANCELLED;
 
 export const isItemSpiked = (item) => item ?
-    getItemWorkflowState(item) === WORKFLOW_STATE.SPIKED : false
+    getItemWorkflowState(item) === WORKFLOW_STATE.SPIKED : false;
 
 /**
  * Get the timezone offset
  * @param {Array} coverages
  * @returns {Array}
  */
-export const getTimeZoneOffset = () => (moment().format('Z'))
+export const getTimeZoneOffset = () => (moment().format('Z'));
 
-export const  getPublishedState = (item) => get(item, 'pubstatus', null)
+export const getPublishedState = (item) => get(item, 'pubstatus', null);
 
 export const sanitizeTextForQuery = (text) => (
     text.replace(/\//g, '\\/').replace(/[()]/g, '')
-)
+);
 
 /**
  * Get translated string
@@ -494,43 +505,43 @@ export const sanitizeTextForQuery = (text) => (
  * @param {Object} params
  * @return {String}
  */
-export function gettext(text, params=null) {
-    const injector = angular.element(document.body).injector()
+export function gettext(text, params = null) {
+    const injector = angular.element(document.body).injector();
 
     if (injector) { // in tests this will be empty
-        const translated = injector.get('gettext')(text)
+        const translated = injector.get('gettext')(text);
 
-        return params ? injector.get('$interpolate')(translated)(params) : translated
+        return params ? injector.get('$interpolate')(translated)(params) : translated;
     }
 
-    return text
+    return text;
 }
 
 export const getAssignmentPriority = (priorityQcode, priorities) => {
     // Returns default or given priority object
     if (priorityQcode) {
         return priorities.find((p) =>
-            p.qcode === priorityQcode)
+            p.qcode === priorityQcode);
     } else {
         return priorities.find((p) =>
-            p.qcode === 2)
+            p.qcode === 2);
     }
-}
+};
 
 export const getItemsById = (ids, items) => (
     ids.map((id) => (items[id]))
-)
+);
 
-export const getUsersForDesk = (desk, globalUserList=[]) => {
-    if (!desk) return globalUserList
+export const getUsersForDesk = (desk, globalUserList = []) => {
+    if (!desk) return globalUserList;
 
     return globalUserList.filter((user) =>
-        map(desk.members, 'user').indexOf(user._id) !== -1)
-}
+        map(desk.members, 'user').indexOf(user._id) !== -1);
+};
 
-export const getDesksForUser = (user, desksList=[]) => {
-    if (!user) return desksList
+export const getDesksForUser = (user, desksList = []) => {
+    if (!user) return desksList;
 
     return desksList.filter((desk) =>
-            map(desk.members, 'user').indexOf(user._id) !== -1)
-}
+        map(desk.members, 'user').indexOf(user._id) !== -1);
+};

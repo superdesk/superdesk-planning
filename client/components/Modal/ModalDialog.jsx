@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {pickBy} from 'lodash';
 
@@ -32,11 +33,11 @@ export default function ModalDialog({dialogClassName, children, style, className
 }
 
 ModalDialog.propTypes = {
-    children: React.PropTypes.oneOfType([
-        React.PropTypes.element,
-        React.PropTypes.arrayOf(React.PropTypes.element),
+    children: PropTypes.oneOfType([
+        PropTypes.element,
+        PropTypes.arrayOf(PropTypes.element),
     ]),
-    style: React.PropTypes.object,
-    className: React.PropTypes.string,
-    dialogClassName: React.PropTypes.string,
+    style: PropTypes.object,
+    className: PropTypes.string,
+    dialogClassName: PropTypes.string,
 };

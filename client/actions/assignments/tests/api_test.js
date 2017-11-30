@@ -296,7 +296,7 @@ describe('actions.assignments.api', () => {
                 store.initialState.assignment.assignments = {};
                 return store.dispatch(assignmentsApi.fetchAssignmentById('as1'));
             })
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(services.api('assignments').getById.callCount).toBe(1);
                     expect(services.api('assignments').getById.args[0]).toEqual(['as1']);
 

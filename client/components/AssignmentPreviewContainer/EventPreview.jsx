@@ -155,7 +155,9 @@ EventPreviewComponent.propTypes = {
     createLink: PropTypes.func,
 };
 
-const mapStateToProps = (state) => ({createLink: (f) => (selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw')});
+const mapStateToProps = (state) => ({
+    createLink: (f) => (selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw')
+});
 
 
 export const EventPreview = connect(mapStateToProps)(EventPreviewComponent);

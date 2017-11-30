@@ -1,14 +1,14 @@
-import { showModal, hideModal } from '../index'
-import planning from './index'
-import { locks } from '../index'
-import { checkPermission, getErrorMessage, isItemLockedInThisSession, planningUtils } from '../../utils'
-import * as selectors from '../../selectors'
-import { PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, ASSIGNMENTS } from '../../constants'
-import * as actions from '../index'
-import { get, orderBy } from 'lodash'
-import { change } from 'redux-form'
-import moment from 'moment'
-import { stripHtmlRaw } from 'superdesk-core/scripts/apps/authoring/authoring/helpers'
+import {showModal, hideModal} from '../index';
+import planning from './index';
+import {locks} from '../index';
+import {checkPermission, getErrorMessage, isItemLockedInThisSession, planningUtils} from '../../utils';
+import * as selectors from '../../selectors';
+import {PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, ASSIGNMENTS} from '../../constants';
+import * as actions from '../index';
+import {get, orderBy} from 'lodash';
+import {change} from 'redux-form';
+import moment from 'moment';
+import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -474,7 +474,7 @@ const _openActionModal = (plan,
                     modalProps: {
                         planning: lockedPlanning,
                         actionType: action,
-                        large,
+                        large: large,
                     },
                 }));
             }, (error) => {
@@ -674,7 +674,7 @@ const onAddCoverageClick = (plan = undefined) => (
 
         // Unlock the currentPlanning if it exists
         if (!plan) {
-            plan = currentPlanning;
+            plan = currentPlanning; // eslint-disable-line no-param-reassign
         } else if (currentPlanning) {
             dispatch(planning.api.unlock(currentPlanning));
         }
@@ -749,8 +749,8 @@ const createCoverageFromNewsItem = (newsItem, getState) => {
     };
 
     if (get(newsItem, 'genre')) {
-        coverage.planning.genre = newsItem.genre
-        planningUtils.convertGenreToObject(coverage)
+        coverage.planning.genre = newsItem.genre;
+        planningUtils.convertGenreToObject(coverage);
     }
 
     if (get(newsItem, 'state') === 'published') {
@@ -844,6 +844,7 @@ const onPlanningFormSave = (plan, {save = true, publish = false, unpublish = fal
     }
 );
 
+// eslint-disable-next-line consistent-this
 const self = {
     spike,
     unspike,

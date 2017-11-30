@@ -90,7 +90,10 @@ class PlanningPanel extends React.Component {
                     <div className="subnav">
                         {!isEventListShown &&
                             <div className="navbtn" title="Show the event list">
-                                <button onClick={toggleEventsList} type="button" className="backlink backlink--rotated" />
+                                <button
+                                    onClick={toggleEventsList}
+                                    type="button"
+                                    className="backlink backlink--rotated" />
                             </div>
                         }
                         <h3 className="subnav__page-title">
@@ -122,7 +125,10 @@ class PlanningPanel extends React.Component {
                             {inPlanning &&
                                 <label>
                                     Only Future
-                                    <Toggle value={onlyFuture} onChange={onFutureToggleChange} readOnly={isAdvancedDateSearch} />
+                                    <Toggle
+                                        value={onlyFuture}
+                                        onChange={onFutureToggleChange}
+                                        readOnly={isAdvancedDateSearch} />
                                 </label>
                             }
                             {!inPlanning && !editPlanningViewOpen &&
@@ -182,12 +188,19 @@ class PlanningPanel extends React.Component {
                                             <i className="big-icon--add-to-list" />
                                         </div>
                                         {currentAgendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED &&
-                                        <h3 className="panel-info__heading">There are no planning items without an assigned agenda.</h3>}
+                                        <h3 className="panel-info__heading">
+                                            There are no planning items without an assigned agenda.
+                                        </h3>}
                                         {currentAgendaId === AGENDA.FILTER.ALL_PLANNING &&
                                         <h3 className="panel-info__heading">There are no planning items.</h3>}
-                                        {currentAgendaId !== AGENDA.FILTER.NO_AGENDA_ASSIGNED && currentAgendaId !== AGENDA.FILTER.ALL_PLANNING &&
-                                        <h3 className="panel-info__heading">There are no planning items in this agenda.</h3>}
-                                        <p className="panel-info__description">Drag an event here to create a planning item.</p>
+                                        {currentAgendaId !== AGENDA.FILTER.NO_AGENDA_ASSIGNED &&
+                                        currentAgendaId !== AGENDA.FILTER.ALL_PLANNING &&
+                                        <h3 className="panel-info__heading">
+                                            There are no planning items in this agenda.
+                                        </h3>}
+                                        <p className="panel-info__description">
+                                            Drag an event here to create a planning item.
+                                        </p>
                                     </div>
                                 </div>
                         }

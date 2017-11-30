@@ -62,7 +62,7 @@ describe('actions.planning.api', () => {
         it('api.spike returns Promise.reject on error', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject('Failed!')));
             return store.test(done, planningApi.spike(data.plannings[1]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toBe('Failed!');
                     done();
                 });
@@ -87,7 +87,7 @@ describe('actions.planning.api', () => {
         it('api.unspike returns Promise.reject on error', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject('Failed!')));
             return store.test(done, planningApi.unspike(data.plannings[1]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toBe('Failed!');
                     done();
                 });
@@ -256,7 +256,7 @@ describe('actions.planning.api', () => {
                     expect(services.api('planning').query.callCount).toBe(1);
                     const source = JSON.parse(services.api('planning').query.args[0][0].source);
 
-                    expect(source.query.bool.must).toEqual([{term: {event_item: 'e1'}}]);
+                    expect(source.query.bool.must).toEqual([{terms: {event_item: ['e1']}}]);
                     expect(source.sort).toEqual([{_planning_date: {order: 'asc'}}]);
                     done();
                 })
@@ -384,7 +384,7 @@ describe('actions.planning.api', () => {
         it('returns Promise.reject on query error', (done) => {
             services.api('planning').query = sinon.spy(() => (Promise.reject('Failed!')));
             return store.test(done, planningApi.fetch())
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toBe('Failed!');
                     expect(planningApi.query.callCount).toBe(1);
                     expect(planningApi.fetchPlanningsEvents.callCount).toBe(0);
@@ -510,7 +510,7 @@ describe('actions.planning.api', () => {
                 store.initialState.planning.plannings = {};
                 return store.dispatch(planningApi.fetchPlanningById('p1'));
             })
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(planningApi.fetchPlanningsEvents.callCount).toBe(0);
 
                     expect(planningApi.receivePlannings.callCount).toBe(1);
@@ -643,7 +643,7 @@ describe('actions.planning.api', () => {
             );
 
             return store.test(done, planningApi.save({_id: 'p3'}))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toBe('Failed!');
 
                     expect(planningApi.fetchPlanningById.callCount).toBe(1);
@@ -665,7 +665,7 @@ describe('actions.planning.api', () => {
             services.api('planning').save = sinon.spy(() => (Promise.reject('Failed!')));
 
             return store.test(done, planningApi.save(planningItem))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toBe('Failed!');
 
                     expect(services.api('planning').getById.callCount).toBe(0);
@@ -754,7 +754,7 @@ describe('actions.planning.api', () => {
                 done,
                 planningApi.saveAndReloadCurrentAgenda({slugline: 'Planning3'})
             )
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 });
@@ -768,7 +768,7 @@ describe('actions.planning.api', () => {
                 done,
                 planningApi.saveAndReloadCurrentAgenda({slugline: 'Planning3'})
             )
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 });
@@ -816,7 +816,7 @@ describe('actions.planning.api', () => {
             );
 
             return store.test(done, planningApi.fetchPlanningHistory('p2'))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 });
@@ -879,7 +879,7 @@ describe('actions.planning.api', () => {
             restoreSinonStub(planningApi.save);
             sinon.stub(planningApi, 'save').callsFake(() => (Promise.reject(errorMessage)));
             store.test(done, planningApi.saveAndPublish(data.plannings[0]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(planningApi.save.callCount).toBe(1);
                     expect(planningApi.publish.callCount).toBe(0);
 
@@ -895,7 +895,7 @@ describe('actions.planning.api', () => {
             sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve(data.plannings[1])));
             sinon.stub(planningApi, 'publish').callsFake(() => (Promise.reject(errorMessage)));
             store.test(done, planningApi.saveAndPublish(data.plannings[0]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(planningApi.save.callCount).toBe(1);
                     expect(planningApi.publish.callCount).toBe(1);
 
@@ -926,7 +926,7 @@ describe('actions.planning.api', () => {
             restoreSinonStub(planningApi.save);
             sinon.stub(planningApi, 'save').callsFake(() => (Promise.reject(errorMessage)));
             store.test(done, planningApi.saveAndUnpublish(data.plannings[0]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(planningApi.save.callCount).toBe(1);
                     expect(planningApi.unpublish.callCount).toBe(0);
 
@@ -942,7 +942,7 @@ describe('actions.planning.api', () => {
             sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve(data.plannings[1])));
             sinon.stub(planningApi, 'unpublish').callsFake(() => (Promise.reject(errorMessage)));
             store.test(done, planningApi.saveAndUnpublish(data.plannings[0]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(planningApi.save.callCount).toBe(1);
                     expect(planningApi.unpublish.callCount).toBe(1);
 
@@ -982,7 +982,7 @@ describe('actions.planning.api', () => {
             store.initialState.planning.plannings = {};
             services.api('planning').getById = sinon.spy(() => Promise.reject(errorMessage));
             store.test(done, planningApi.getPlanning(data.plannings[1]._id))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     done();
@@ -1008,7 +1008,7 @@ describe('actions.planning.api', () => {
         it('returns Promise.reject if recurrence_id query fails', (done) => {
             services.api('planning').query = sinon.spy(() => Promise.reject(errorMessage));
             store.test(done, planningApi.loadPlanningByRecurrenceId('rec1'))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 });

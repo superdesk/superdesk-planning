@@ -679,6 +679,7 @@ const removeAssignment = (assignment) => (
     )
 );
 
+// eslint-disable-next-line consistent-this
 const self = {
     loadAssignments,
     queryAndSetAssignmentListGroups,

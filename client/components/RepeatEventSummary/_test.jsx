@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {mount} from 'enzyme';
 import {RepeatEventSummary} from './index';
 import moment from 'moment';
@@ -20,13 +21,13 @@ class TestForm extends React.Component {
 }
 
 TestForm.propTypes = {
-    byDay: React.PropTypes.string,
-    interval: React.PropTypes.number,
-    frequency: React.PropTypes.string,
-    endRepeatMode: React.PropTypes.string,
-    until: React.PropTypes.object,
-    count: React.PropTypes.string,
-    startDate: React.PropTypes.object,
+    byDay: PropTypes.string,
+    interval: PropTypes.number,
+    frequency: PropTypes.string,
+    endRepeatMode: PropTypes.string,
+    until: PropTypes.object,
+    count: PropTypes.string,
+    startDate: PropTypes.object,
 };
 
 describe('<RepeatEventSummary />', () => {

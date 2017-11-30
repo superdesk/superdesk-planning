@@ -1,5 +1,6 @@
 import moment from 'moment';
 import React from 'react';
+import PropTypes from 'prop-types';
 import {Provider} from 'react-redux';
 import {mount} from 'enzyme';
 import {createTestStore} from '../../utils';
@@ -50,11 +51,11 @@ class TestForm extends React.Component {
 }
 
 TestForm.propTypes = {
-    users: React.PropTypes.array.isRequired,
-    desks: React.PropTypes.array.isRequired,
-    input: React.PropTypes.object,
-    deskSelectionDisabled: React.PropTypes.bool,
-    context: React.PropTypes.string,
+    users: PropTypes.array.isRequired,
+    desks: PropTypes.array.isRequired,
+    input: PropTypes.object,
+    deskSelectionDisabled: PropTypes.bool,
+    context: PropTypes.string,
 };
 
 const store = createTestStore();

@@ -153,7 +153,7 @@ const askForAddEventToCurrentAgenda = (events) => (
                 modalType: MODALS.CONFIRMATION,
                 modalProps: {
                     body: 'You have to select an agenda first',
-                    action: () => {},
+                    action: () => { /* no-op */ },
                 },
             }));
         }
@@ -177,16 +177,18 @@ const _addEventToCurrentAgenda = (events) => (
             return Promise.reject(errorMsg);
         }
 
+        let eventsList = events;
+
         if (!Array.isArray(events)) {
-            events = [events];
+            eventsList = [events];
         }
 
         const chunkSize = 5;
         let promise = Promise.resolve();
         let plannings = [];
 
-        for (let i = 0; i < Math.ceil(events.length / chunkSize); i++) {
-            let eventsChunk = events.slice(i * chunkSize, (i + 1) * chunkSize);
+        for (let i = 0; i < Math.ceil(eventsList.length / chunkSize); i++) {
+            let eventsChunk = eventsList.slice(i * chunkSize, (i + 1) * chunkSize);
 
             promise = promise.then(() => (
                 Promise.all(
@@ -197,7 +199,9 @@ const _addEventToCurrentAgenda = (events) => (
                     .then((data) => data.forEach((p) => plannings.push(p)))
                     .then(() => {
                         notify.pop();
-                        notify.success(`created ${plannings.length}/${events.length} plannings`);
+                        notify.success(
+                            `created ${plannings.length}/${eventsList.length} plannings`
+                        );
                     })
             ));
         }
@@ -205,7 +209,7 @@ const _addEventToCurrentAgenda = (events) => (
         return promise
             .then(() => {
                 notify.pop();
-                notify.success(`created ${events.length} plannings !`);
+                notify.success(`created ${eventsList.length} plannings !`);
             })
             .then(() => dispatch(fetchSelectedAgendaPlannings()));
     }

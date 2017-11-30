@@ -1,7 +1,7 @@
 export const showModal = ({modalType, modalProps = undefined}) => ({
     type: 'SHOW_MODAL',
-    modalType,
-    modalProps,
+    modalType: modalType,
+    modalProps: modalProps,
 });
 export const hideModal = () => ({type: 'HIDE_MODAL'});
 export const actionInProgress = (value) => ({

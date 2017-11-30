@@ -40,7 +40,7 @@ export class Component extends React.Component {
             privileges,
             startWorking,
         } = this.props;
-        let assignment_state = get(assignment, 'assigned_to.state');
+        let assignmentState = get(assignment, 'assigned_to.state');
 
         const actions = [
             {
@@ -90,7 +90,7 @@ export class Component extends React.Component {
                         desks={desks}
                         coverageProviders={coverageProviders}
                         readOnly={true}
-                        deskSelectionDisabled={assignment_state ===
+                        deskSelectionDisabled={assignmentState ===
                             ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS}
                         context={'assignment'} />
                     {assignment && assignment.assigned_to &&
@@ -155,7 +155,8 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     startWorking: (assignment) => dispatch(actions.assignments.ui.openSelectTemplateModal(assignment)),
-    createFromTemplateAndShow: (assignmentId, templateName) => dispatch(actions.assignments.api.createFromTemplateAndShow(assignmentId, templateName)),
+    createFromTemplateAndShow: (assignmentId, templateName) =>
+        dispatch(actions.assignments.api.createFromTemplateAndShow(assignmentId, templateName)),
     reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
     editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),

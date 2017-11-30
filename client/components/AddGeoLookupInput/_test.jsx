@@ -16,7 +16,10 @@ describe('<AddGeoLookupInput />', () => {
 
         const handleSearch = sinon.spy();
 
-        wrapper = mount(<GeoLookupInputComponent initialValue={initialValue} onChange={onChange} searchLocalLocations={handleSearch} />);
+        wrapper = mount(<GeoLookupInputComponent
+            initialValue={initialValue}
+            onChange={onChange}
+            searchLocalLocations={handleSearch} />);
         wrapper.instance().handleInputChange(inputText);
 
         expect(handleSearch.callCount).toBe(1);
@@ -34,7 +37,10 @@ describe('<AddGeoLookupInput />', () => {
 
         const handleSearch = sinon.spy();
 
-        wrapper = mount(<GeoLookupInputComponent initialValue={initialValue} onChange={onChange} searchLocalLocations={handleSearch} />);
+        wrapper = mount(<GeoLookupInputComponent
+            initialValue={initialValue}
+            onChange={onChange}
+            searchLocalLocations={handleSearch} />);
         wrapper.instance().handleInputChange(inputText);
 
         const suggestsPopup = wrapper.find('.addgeolookup__suggests-wrapper').at(0);
@@ -53,10 +59,13 @@ describe('<AddGeoLookupInput />', () => {
         };
         const handleSearch = sinon.spy();
 
-        wrapper = mount(<GeoLookupInputComponent initialValue={initialValue} onChange={onChange} searchLocalLocations={handleSearch} />);
+        wrapper = mount(<GeoLookupInputComponent
+            initialValue={initialValue}
+            onChange={onChange}
+            searchLocalLocations={handleSearch} />);
         wrapper.instance().handleInputChange(inputText);
         const externalSearchSpy = sinon.stub(wrapper.instance(),
-            'handleSearchClick').callsFake(() => { });
+            'handleSearchClick').callsFake(() => { /* no-op */ });
 
         wrapper.update();
 
@@ -81,7 +90,10 @@ describe('<AddGeoLookupInput />', () => {
         };
         const handleSearch = sinon.spy();
 
-        wrapper = mount(<GeoLookupInputComponent initialValue={initialValue} onChange={onChange} searchLocalLocations={handleSearch} />);
+        wrapper = mount(<GeoLookupInputComponent
+            initialValue={initialValue}
+            onChange={onChange}
+            searchLocalLocations={handleSearch} />);
         wrapper.instance().handleInputChange(inputText);
 
         let suggestsPopup = wrapper.find('.addgeolookup__suggests-wrapper').at(0);
@@ -90,7 +102,10 @@ describe('<AddGeoLookupInput />', () => {
         expect(searchExternalButton.length).toBe(1);
         expect(searchExternalButton.text()).toBe('Search External');
 
-        wrapper = mount(<GeoLookupInputComponent initialValue={initialValue} onChange={onChange} searchLocalLocations={handleSearch}
+        wrapper = mount(<GeoLookupInputComponent
+            initialValue={initialValue}
+            onChange={onChange}
+            searchLocalLocations={handleSearch}
             disableSearch={true} />);
         wrapper.instance().handleInputChange(inputText);
 

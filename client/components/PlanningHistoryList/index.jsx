@@ -5,10 +5,6 @@ import {includes} from 'lodash';
 import './style.scss';
 
 export class PlanningHistoryList extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     closeAndOpenDuplicate(duplicateId) {
         this.props.closePlanningHistory();
         this.props.openPlanningPreview(duplicateId);

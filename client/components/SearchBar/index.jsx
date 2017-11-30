@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import DebounceInput from 'react-debounce-input';
 import {isNil, uniqueId} from 'lodash';
 import './style.scss';
@@ -81,8 +82,8 @@ export default class SearchBar extends React.Component {
 }
 
 SearchBar.propTypes = {
-    onSearch: React.PropTypes.func.isRequired,
-    value: React.PropTypes.string,
-    minLength: React.PropTypes.number,
-    extendOnOpen: React.PropTypes.bool,
+    onSearch: PropTypes.func.isRequired,
+    value: PropTypes.string,
+    minLength: PropTypes.number,
+    extendOnOpen: PropTypes.bool,
 };

@@ -216,29 +216,30 @@ export const getEventsOrderedByDay = createSelector(
         if (!events) return [];
         // check if search exists
         // order by date
-        events = events.sort((a, b) => a.dates.start - b.dates.start);
+        let sortedEvents = events.sort((a, b) => a.dates.start - b.dates.start);
         const days = {};
 
         function addEventToDate(event, date) {
-            date = date || event.dates.start;
-            date = date.format('YYYY-MM-DD');
+            let eventDate = date || event.dates.start;
+
+            eventDate = eventDate.format('YYYY-MM-DD');
             // if not in search mode, only add dates from today on
             if (!eventSearchActive) {
                 let now = moment();
 
-                if (!moment(date).isSameOrAfter(now.add(-1, 'days'))) {
+                if (!moment(eventDate).isSameOrAfter(now.add(-1, 'days'))) {
                     return false;
                 }
             }
 
-            if (!days[date]) {
-                days[date] = [];
+            if (!days[eventDate]) {
+                days[eventDate] = [];
             }
 
-            days[date].push(event);
+            days[eventDate].push(event);
         }
 
-        events.forEach((event) => {
+        sortedEvents.forEach((event) => {
             // compute the number of days of the event
             if (!event.dates.start.isSame(event.dates.end, 'day')) {
                 let deltaDays = Math.max(event.dates.end.diff(event.dates.start, 'days'), 1);

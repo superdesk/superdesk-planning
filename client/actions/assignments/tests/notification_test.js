@@ -90,7 +90,7 @@ describe('actions.assignments.notification', () => {
             };
 
             sinon.stub(assignmentsApi, 'query').callsFake(() => (Promise.resolve({_items: []})));
-            sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(() => {});
+            sinon.stub(assignmentsApi, 'receivedAssignments').callsFake(() => { /* no-op */ });
 
             return store.test(done, assignmentNotifications.onAssignmentCreated({}, payload))
                 .then(() => {

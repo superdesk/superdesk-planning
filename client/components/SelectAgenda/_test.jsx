@@ -87,7 +87,7 @@ describe('<SelectAgendaComponent />', () => {
         };
 
         const store = createTestStore({
-            initialState,
+            initialState: initialState,
             extraArguments: {
                 apiQuery: () => ({
                     _items: [

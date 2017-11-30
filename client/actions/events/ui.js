@@ -182,15 +182,13 @@ const spike = (event) => (
 
 const _openBulkSpikeModal = (events) => (
     (dispatch) => {
-        if (!Array.isArray(events)) {
-            events = [events];
-        }
+        let eventsToSpike = Array.isArray(events) ? events : [events];
 
         dispatch(showModal({
             modalType: MODALS.CONFIRMATION,
             modalProps: {
-                body: `Do you want to spike these ${events.length} events?`,
-                action: () => dispatch(self.spike(events)),
+                body: `Do you want to spike these ${eventsToSpike.length} events?`,
+                action: () => dispatch(self.spike(eventsToSpike)),
                 deselectEventsAfterAction: true,
             },
         }));
@@ -199,15 +197,13 @@ const _openBulkSpikeModal = (events) => (
 
 const _openUnspikeModal = (events) => (
     (dispatch) => {
-        if (!Array.isArray(events)) {
-            events = [events];
-        }
+        let eventsToUnspike = Array.isArray(events) ? events : [events];
 
         dispatch(showModal({
             modalType: MODALS.CONFIRMATION,
             modalProps: {
-                body: `Do you want to unspike these ${events.length} events?`,
-                action: () => dispatch(self.unspike(events)),
+                body: `Do you want to unspike these ${eventsToUnspike.length} events?`,
+                action: () => dispatch(self.unspike(eventsToUnspike)),
                 deselectEventsAfterAction: true,
             },
         }));
@@ -388,9 +384,9 @@ const _openActionModal = (
                         dispatch(showModal({
                             modalType: MODALS.ITEM_ACTIONS_MODAL,
                             modalProps: {
-                                eventDetail,
+                                eventDetail: eventDetail,
                                 actionType: action,
-                                large,
+                                large: large,
                             },
                         }))
                     ), (error) => {
@@ -626,6 +622,7 @@ const unlockAndOpenEventDetails = checkPermission(
     'Unauthorised to edit an event!'
 );
 
+// eslint-disable-next-line consistent-this
 const self = {
     _openEventDetails,
     _unlockAndOpenEventDetails,

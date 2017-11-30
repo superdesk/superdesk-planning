@@ -16,19 +16,19 @@ import autosave from './autosave';
 const returnState = (state) => state || {};
 
 const planningApp = combineReducers({
-    modal,
-    events,
-    vocabularies,
-    planning,
-    agenda,
-    assignment,
+    modal: modal,
+    events: events,
+    vocabularies: vocabularies,
+    planning: planning,
+    agenda: agenda,
+    assignment: assignment,
     form: forms,
-    locks,
-    session,
-    workspace,
-    templates,
-    main,
-    autosave,
+    locks: locks,
+    session: session,
+    workspace: workspace,
+    templates: templates,
+    main: main,
+    autosave: autosave,
 
     // The following doesn't require reducers as they are loaded using sdPlanningService
     config: returnState,

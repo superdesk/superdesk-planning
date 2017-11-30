@@ -10,10 +10,6 @@ import {PLANNING, FORM_NAMES} from '../../constants';
 import {change} from 'redux-form';
 
 export class CoverageDetailsComponent extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     componentWillUpdate(nextProps) {
         if (nextProps.hasAssignment &&
             nextProps.newsCoverageStatus.qcode !== 'ncostat:int' &&
@@ -26,7 +22,7 @@ export class CoverageDetailsComponent extends React.Component {
         const {
             coverage,
             readOnly,
-            content_type,
+            content_type, // eslint-disable-line camelcase
             formProfile,
             keywords,
             assignmentState,
@@ -35,7 +31,7 @@ export class CoverageDetailsComponent extends React.Component {
             coverageId,
         } = this.props;
 
-        const isTextCoverage = content_type === 'text';
+        const isTextCoverage = content_type === 'text'; // eslint-disable-line camelcase
         const isExistingCoverage = !!coverageId;
         // for assignment form coverage props is object
         // for coverage form coverage props is string
@@ -43,7 +39,8 @@ export class CoverageDetailsComponent extends React.Component {
         const coverageStatusPrefix = fieldNamePrefix ? fieldNamePrefix : 'planning.';
         const coverageCancelledInput = {value: 'Coverage Cancelled'};
 
-        const isCancelled = get(this.props, 'newsCoverageStatus.qcode') === PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode;
+        const isCancelled = get(this.props, 'newsCoverageStatus.qcode') ===
+            PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode;
         const roFields = planningUtils.getCoverageReadOnlyFields(
             readOnly,
             newsCoverageStatus,

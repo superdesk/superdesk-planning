@@ -7,10 +7,6 @@ import * as selectors from '../../selectors';
 
 /* eslint-disable react/no-unused-prop-types*/
 class WorkqueueComponent extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         const props = this.props;
 

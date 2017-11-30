@@ -35,11 +35,12 @@ let index;
 
 const modifyPlanningsBeingAdded = (state, payload) => {
     // payload must be an array. If not, we transform
-    payload = Array.isArray(payload) ? payload : [payload];
+    const plans = Array.isArray(payload) ? payload : [payload];
+
     // clone plannings
     plannings = cloneDeep(get(state, 'plannings'));
     // add to state.plannings, use _id as key
-    payload.forEach((planning) => {
+    plans.forEach((planning) => {
         // Make sure that the Planning item has the coverages array
         planning.coverages = get(planning, 'coverages', []);
         modifyCoveragesForPlanning(planning);
@@ -103,7 +104,7 @@ const planningReducer = createReducer(initialState, {
         // return new state
         return {
             ...state,
-            plannings,
+            plannings: plannings,
             planningsAreLoading: false,
         };
     },

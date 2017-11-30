@@ -83,7 +83,7 @@ describe('Utils', () => {
                         expect(dispatch.args[i]).toEqual([{
                             type: 'RETRY_DISPATCH',
                             payload: {
-                                maxRetries,
+                                maxRetries: maxRetries,
                                 retries: Math.floor(i / dispatchesPerRetry),
                                 interval: 1000,
                             },

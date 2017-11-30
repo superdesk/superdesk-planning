@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import {mount} from 'enzyme';
 import {TimePicker} from '../index';
 import moment from 'moment';
@@ -22,12 +23,12 @@ class TestForm extends React.Component {
 TestForm.propTypes = {
     input: PropTypes.object,
     placeholder: PropTypes.string,
-    onChange: React.PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
 };
 
 describe('<TimePicker />', () => {
     it('shows placeholder text for null value', () => {
-        const wrapper = mount(<TestForm placeholder="Time" onChange={() => {}}/>);
+        const wrapper = mount(<TestForm placeholder="Time" onChange={() => { /* no-op */ }}/>);
         const inputField = wrapper.find('.timepickerInput__textInput');
 
         expect(inputField.get(0).value).toBe('');
@@ -36,7 +37,7 @@ describe('<TimePicker />', () => {
 
     it('opens popup when icon-time button is clicked', () => {
         let inputTime = moment('2014-01-01T14:00');
-        const wrapper = mount(<TestForm placeholder="Time" input={inputTime} onChange={() => {}}/>);
+        const wrapper = mount(<TestForm placeholder="Time" input={inputTime} onChange={() => { /* no-op */ }}/>);
 
         expect(wrapper.find('.timepickerPopup').length).toBe(0);
         wrapper.find('.timepickerInput--btn').simulate('click');
@@ -45,7 +46,7 @@ describe('<TimePicker />', () => {
 
     it('has correct hours and  minutes selected in the popup', () => {
         let inputTime = moment('2014-01-01T14:30');
-        const wrapper = mount(<TestForm placeholder="Time" input={inputTime} onChange={() => {}}/>);
+        const wrapper = mount(<TestForm placeholder="Time" input={inputTime} onChange={() => { /* no-op */ }}/>);
 
         expect(wrapper.find('.timepickerPopup').length).toBe(0);
         wrapper.find('.timepickerInput--btn').simulate('click');
@@ -57,7 +58,7 @@ describe('<TimePicker />', () => {
     });
 
     it('shows all valid hours and minutes for selection', () => {
-        const wrapper = mount(<TestForm placeholder="Time" onChange={() => {}}/>);
+        const wrapper = mount(<TestForm placeholder="Time" onChange={() => { /* no-op */ }}/>);
 
         expect(wrapper.find('.timepickerPopup').length).toBe(0);
         wrapper.find('.timepickerInput--btn').simulate('click');
@@ -73,7 +74,7 @@ describe('<TimePicker />', () => {
     });
 
     it('can manually select hours and minutes', () => {
-        const wrapper = mount(<TestForm placeholder="Time" onChange={() => {}}/>);
+        const wrapper = mount(<TestForm placeholder="Time" onChange={() => { /* no-op */ }}/>);
 
         wrapper.find('.timepickerInput--btn').simulate('click');
         const selectAreas = wrapper.find('ul');
@@ -89,7 +90,7 @@ describe('<TimePicker />', () => {
     });
 
     it('cancel will close the popup', () => {
-        const wrapper = mount(<TestForm placeholder="Time" onChange={() => {}}/>);
+        const wrapper = mount(<TestForm placeholder="Time" onChange={() => { /* no-op */ }}/>);
 
         wrapper.find('.timepickerInput--btn').simulate('click');
         expect(wrapper.find('.timepickerPopup').length).toBe(1);

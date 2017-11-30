@@ -21,6 +21,7 @@ const scrollListItemIfNeeded = (selectedIndex, listRefElement) => {
     }
 };
 
+// eslint-disable-next-line consistent-this
 const self = {scrollListItemIfNeeded};
 
 export default self;

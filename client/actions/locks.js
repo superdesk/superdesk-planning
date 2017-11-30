@@ -21,7 +21,7 @@ const loadAllLocks = () => (
 
                 dispatch({
                     type: LOCKS.ACTIONS.RECEIVE,
-                    payload,
+                    payload: payload,
                 });
                 return Promise.resolve(payload);
             }, (error) => Promise.reject(error))
@@ -40,7 +40,7 @@ const loadAssignmentLocks = () => (
 
                 dispatch({
                     type: LOCKS.ACTIONS.RECEIVE,
-                    payload,
+                    payload: payload,
                 });
                 return Promise.resolve(payload);
             }, (error) => Promise.reject(error))
@@ -72,6 +72,7 @@ const unlock = (item) => (
     }
 );
 
+// eslint-disable-next-line consistent-this
 const self = {
     unlock,
     loadAllLocks,

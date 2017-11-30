@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import {TimePickerCore} from './TimePickerCore';
 import moment from 'moment';
 import './styles.scss';
@@ -84,13 +85,24 @@ export class TimePicker extends React.Component {
 
         return (
             <div className="timepickerInput">
-                <input type="text" className={ 'timepickerInput__textInput' + (this.state.invalid ? ' timepickerInput__textInput--invalid' : '')} disabled={readOnly ? 'disabled' : ''} value={this.state.viewValue} placeholder={placeholder} onChange={(e) => (this.validateTimeText(e.target.value))}
+                <input
+                    type="text"
+                    className={ 'timepickerInput__textInput' + (this.state.invalid ?
+                        ' timepickerInput__textInput--invalid' : '')}
+                    disabled={readOnly ? 'disabled' : ''}
+                    value={this.state.viewValue}
+                    placeholder={placeholder}
+                    onChange={(e) => (this.validateTimeText(e.target.value))}
                     onBlur={this.handleInputBlur.bind(this)} />
-                <button className="timepickerInput--btn" type="button" onClick={!readOnly && this.toggleOpenTimePicker.bind(this)}>
+                <button className="timepickerInput--btn"
+                    type="button"
+                    onClick={!readOnly && this.toggleOpenTimePicker.bind(this)}>
                     <i className="icon-time"/>
                 </button>
                 { this.state.openTimePicker && (
-                    <TimePickerCore value={this.props.input.value} onCancel={this.toggleOpenTimePicker.bind(this)}
+                    <TimePickerCore
+                        value={this.props.input.value}
+                        onCancel={this.toggleOpenTimePicker.bind(this)}
                         onChange={this.onChange.bind(this)}/>
                 )}
                 {
@@ -103,9 +115,9 @@ export class TimePicker extends React.Component {
 }
 
 TimePicker.propTypes = {
-    input: React.PropTypes.shape({
-        value: React.PropTypes.object,
-        onChange: React.PropTypes.func,
+    input: PropTypes.shape({
+        value: PropTypes.object,
+        onChange: PropTypes.func,
     }).isRequired,
     placeholder: PropTypes.string,
     readOnly: PropTypes.bool,

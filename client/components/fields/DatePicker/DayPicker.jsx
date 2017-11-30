@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import moment from 'moment';
 import {range, chunk} from 'lodash';
 import './styles.scss';
@@ -60,7 +61,8 @@ export class DayPicker extends React.Component {
     getDaysInMonth(year, month) {
         const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-        return ((month === 1) && (year % 4 === 0) && ((year % 100 !== 0) || (year % 400 === 0))) ? 29 : DAYS_IN_MONTH[month];
+        return ((month === 1) && (year % 4 === 0) &&
+            ((year % 100 !== 0) || (year % 400 === 0))) ? 29 : DAYS_IN_MONTH[month];
     }
 
     onDateChange(index) {
@@ -97,9 +99,14 @@ export class DayPicker extends React.Component {
                         <tr key={rowIndex}>
                             {row.map((date, index) => (
                                 <td key={index} className="text-center">
-                                    <button type="button" className={((rowIndex * 7 + index) === this.state.selectedDateIndex ? 'active' :
-                                        '') + ' btn btn-default btn-sm'} onClick={this.onDateChange.bind(this, (rowIndex * 7 + index))}>
-                                        <span className={(rowIndex * 7 + index) < this.state.monthStartIndex || (rowIndex * 7 + index) > this.state.monthEndIndex ? 'text-muted' : ''}>{date}</span>
+                                    <button type="button"
+                                        className={
+                                            ((rowIndex * 7 + index) === this.state.selectedDateIndex ? 'active' :
+                                                '') + ' btn btn-default btn-sm'}
+                                        onClick={this.onDateChange.bind(this, (rowIndex * 7 + index))}>
+                                        <span className={(rowIndex * 7 + index) < this.state.monthStartIndex ||
+                                        (rowIndex * 7 + index) > this.state.monthEndIndex ? 'text-muted' : ''}>
+                                            {date}</span>
                                     </button>
                                 </td>
                             ))}

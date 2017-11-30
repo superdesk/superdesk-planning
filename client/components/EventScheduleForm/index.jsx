@@ -79,14 +79,12 @@ export class EventScheduleForm extends React.Component {
                 this.props.change('dates.end', moment(newStartDate).clone()
                     .add(1, 'h'));
             }
-        } else {
+        } else if (wasAllDay && !isAllDay && !oldStartDate.isSame(newStartDate, 'minute')) {
             // This should only occur when performing an action on an Event
-            if (wasAllDay && !isAllDay && !oldStartDate.isSame(newStartDate, 'minute')) {
-                // If only the time has been changed for the startDate
-                // then set the end time to be 1 hour after the start time
-                this.props.change('dates.end', moment(newStartDate).clone()
-                    .add(1, 'h'));
-            }
+            // If only the time has been changed for the startDate
+            // then set the end time to be 1 hour after the start time
+            this.props.change('dates.end', moment(newStartDate).clone()
+                .add(1, 'h'));
         }
     }
 
@@ -103,11 +101,9 @@ export class EventScheduleForm extends React.Component {
             return false;
 
         // Return true if any recurring-rules field got changed
-        return recurringRuleFields.some((field) => {
-            if (!isEqual(get(nextProps.currentSchedule, field), get(this.props.initialSchedule, field))) {
-                return true;
-            }
-        });
+        return recurringRuleFields.some(
+            (field) => !isEqual(get(nextProps.currentSchedule, field), get(this.props.initialSchedule, field))
+        );
     }
 
     handleAllDayChange(event) {
@@ -166,7 +162,7 @@ export class EventScheduleForm extends React.Component {
 
         const RepeatEventFormProps = {
             ...this.props,
-            showRepeatSummary,
+            showRepeatSummary: showRepeatSummary,
             schedule: currentSchedule,
         };
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {EventsAdvancedSearchForm, PlanningAdvancedSearchForm} from '../index';
 import {ADVANCED_SEARCH_CONTEXT} from '../../constants';
@@ -6,10 +7,6 @@ import * as actions from '../../actions';
 import './style.scss';
 
 class AdvancedSearchPanelComponent extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     handleClick() {
         this.props.onCloseAdvancedSearch(this.props.searchContext);
     }
@@ -39,9 +36,9 @@ class AdvancedSearchPanelComponent extends React.Component {
 }
 
 AdvancedSearchPanelComponent.propTypes = {
-    className: React.PropTypes.string,
-    onCloseAdvancedSearch: React.PropTypes.func.isRequired,
-    searchContext: React.PropTypes.string,
+    className: PropTypes.string,
+    onCloseAdvancedSearch: PropTypes.func.isRequired,
+    searchContext: PropTypes.string,
 };
 
 const mapDispatchToProps = (dispatch) => ({

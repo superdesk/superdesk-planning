@@ -15,14 +15,16 @@ export class SelectField extends React.Component {
     setValueFromState(selected = null) {
         const {options, input} = this.props;
 
+        let selectedOption = selected;
+
         if (selected === null) {
-            selected = this.state.selected;
+            selectedOption = this.state.selected;
         }
 
         let value = '';
 
-        if (selected) {
-            value = options.find((option) => option.key === selected).value;
+        if (selectedOption) {
+            value = options.find((option) => option.key === selectedOption).value;
         }
 
         input.onChange(value);
@@ -31,11 +33,13 @@ export class SelectField extends React.Component {
     setStateFromValue(value = null) {
         const {getOptionFromValue, options} = this.props;
 
+        let val = value;
+
         if (value === null) {
-            value = this.props.input.value;
+            val = this.props.input.value;
         }
 
-        const option = getOptionFromValue(value, options) || {
+        const option = getOptionFromValue(val, options) || {
             key: '',
             label: '',
             value: '',

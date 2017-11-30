@@ -30,9 +30,9 @@ const checkPermission = (action, permission, errorMessage, fallbackAction = null
                     type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
                     payload: {
                         action: action.name,
-                        permission,
-                        errorMessage,
-                        args,
+                        permission: permission,
+                        errorMessage: errorMessage,
+                        args: args,
                     },
                 }));
             }

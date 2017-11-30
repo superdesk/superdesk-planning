@@ -14,7 +14,7 @@ export const EventMaxEndRepeatCount = (values, props) => {
         values.dates.recurring_rule &&
         values.dates.recurring_rule.endRepeatMode === 'count'
     ) {
-        let count = parseInt(values.dates.recurring_rule.count);
+        let count = parseInt(values.dates.recurring_rule.count, 10);
 
         if (count > props.maxRecurrentEvents) {
             const errorMessage = `Must be less than ${props.maxRecurrentEvents + 1}`;

@@ -179,7 +179,7 @@ describe('actions.planning.notifications', () => {
             );
 
             return store.test(done, planningNotifications.onPlanningCreated({}, {item: 'p5'}))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
@@ -226,7 +226,7 @@ describe('actions.planning.notifications', () => {
                 {item: 'p1'},
                 false
             ))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);

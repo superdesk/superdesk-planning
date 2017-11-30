@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {get, some} from 'lodash';
 import {Datetime, StateLabel} from '../index';
 import {InputTextAreaField} from '../fields';
@@ -68,14 +69,14 @@ export function EventMetadata({event}) {
 }
 
 EventMetadata.propTypes = {
-    event: React.PropTypes.shape({
-        name: React.PropTypes.string.isRequired,
-        dates: React.PropTypes.object.isRequired,
-        definition_short: React.PropTypes.string,
-        definition_long: React.PropTypes.string,
-        internal_note: React.PropTypes.string,
-        location: React.PropTypes.array,
-        occur_status: React.PropTypes.object,
-        source: React.PropTypes.string,
+    event: PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        dates: PropTypes.object.isRequired,
+        definition_short: PropTypes.string,
+        definition_long: PropTypes.string,
+        internal_note: PropTypes.string,
+        location: PropTypes.array,
+        occur_status: PropTypes.object,
+        source: PropTypes.string,
     }),
 };

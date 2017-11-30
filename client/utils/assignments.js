@@ -120,6 +120,7 @@ const canEditDesk = (assignment) => {
         state !== ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS;
 };
 
+// eslint-disable-next-line consistent-this
 const self = {
     canEditAssignment,
     canCompleteAssignment,

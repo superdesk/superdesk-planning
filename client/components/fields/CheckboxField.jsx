@@ -15,11 +15,17 @@ export const CheckboxField = ({
 }) => {
     const isRadio = type === 'radio';
 
+    let value = false;
+
+    if (isRadio || isBoolean(get(input, 'value'))) {
+        value = get(input, 'value');
+    }
+
+    // eslint-disable-next-line no-param-reassign
     input = {
         ...input,
         type: type,
-        value: isRadio ? get(input, 'value') :
-            isBoolean(get(input, 'value')) ? get(input, 'value') : false,
+        value: value,
     };
     return (
         <label>

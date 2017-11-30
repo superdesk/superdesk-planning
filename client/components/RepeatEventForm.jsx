@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import {Field} from 'redux-form';
 import {fields, RepeatEventSummary} from '../components';
 import {connect} from 'react-redux';
@@ -6,10 +7,6 @@ import classNames from 'classnames';
 import {get} from 'lodash';
 
 class RepeatEventFormComponent extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     getSchedule(props = null) {
         const schedule = props === null ? this.props.schedule : props.schedule;
 

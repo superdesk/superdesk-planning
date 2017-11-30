@@ -18,7 +18,7 @@ class Editor extends React.Component {
         if (get(nextProps, 'item._id') !== get(this.props, 'item._id')) {
             const diff = Object.assign({}, nextProps.item);
 
-            this.setState({diff, dirty: false});
+            this.setState({diff: diff, dirty: false});
         }
     }
 
@@ -27,7 +27,7 @@ class Editor extends React.Component {
             const diff = Object.assign({}, this.state.diff);
 
             diff[field] = event.target.value;
-            this.setState({diff, dirty: true});
+            this.setState({diff: diff, dirty: true});
         };
     }
 

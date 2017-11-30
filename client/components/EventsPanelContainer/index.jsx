@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {ResizableEventsPanel, EventsListContainer, EventForm} from '../index';
 import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
@@ -24,15 +25,16 @@ export const EventsPanel = ({eventToDetail, handleBackToList}) => (
 );
 
 EventsPanel.propTypes = {
-    eventToDetail: React.PropTypes.object,
-    handleBackToList: React.PropTypes.func,
+    eventToDetail: PropTypes.object,
+    handleBackToList: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
     // selectors.getShowEventDetails is either true, an event id, or null
     eventToDetail: selectors.getShowEventDetails(state) === true
-        ? {occur_status: state.vocabularies.eventoccurstatus.find((u) => u.qcode === DEFAULT_FORM_VALUES.occur_status.qcode)}
-        : selectors.getEventToBeDetailed(state),
+        ? {occur_status: state.vocabularies.eventoccurstatus.find(
+            (u) => u.qcode === DEFAULT_FORM_VALUES.occur_status.qcode
+        )} : selectors.getEventToBeDetailed(state),
 });
 
 const mapDispatchToProps = (dispatch) => (

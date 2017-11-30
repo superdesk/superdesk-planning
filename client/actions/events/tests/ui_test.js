@@ -211,7 +211,7 @@ describe('actions.events.ui', () => {
                 'cancel_event',
                 true,
                 false
-            )).then(() => {}, (error) => {
+            )).then(() => { /* no-op */ }, (error) => {
                 expect(error).toEqual(errorMessage);
                 done();
             });
@@ -228,7 +228,7 @@ describe('actions.events.ui', () => {
                 'cancel_event',
                 true,
                 false
-            )).then(() => {}, (error) => {
+            )).then(() => { /* no-op */ }, (error) => {
                 expect(error).toEqual(errorMessage);
                 done();
             });
@@ -257,7 +257,7 @@ describe('actions.events.ui', () => {
             return store.test(done, eventsUi.openBulkSpikeModal(data.events))
                 .catch(() => {
                     expectAccessDenied({
-                        store,
+                        store: store,
                         permission: PRIVILEGES.SPIKE_EVENT,
                         action: '_openBulkSpikeModal',
                         errorMessage: 'Unauthorised to spike an Event',
@@ -291,7 +291,7 @@ describe('actions.events.ui', () => {
             return store.test(done, eventsUi.openUnspikeModal(data.events))
                 .catch(() => {
                     expectAccessDenied({
-                        store,
+                        store: store,
                         permission: PRIVILEGES.UNSPIKE_EVENT,
                         action: '_openUnspikeModal',
                         errorMessage: 'Unauthorised to unspike an Event',
@@ -326,7 +326,7 @@ describe('actions.events.ui', () => {
             sinon.stub(eventsApi, 'spike').callsFake(() => (Promise.reject(errorMessage)));
 
             return store.test(done, eventsUi.spike(data.events[0]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     expect(services.notify.success.callCount).toBe(0);
@@ -364,7 +364,7 @@ describe('actions.events.ui', () => {
             sinon.stub(eventsApi, 'unspike').callsFake(() => (Promise.reject(errorMessage)));
 
             return store.test(done, eventsUi.unspike(data.events[0]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     expect(services.notify.success.callCount).toBe(0);
@@ -416,7 +416,7 @@ describe('actions.events.ui', () => {
             );
 
             return store.test(done, eventsUi.refetchEvents())
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     expect(services.notify.error.callCount).toBe(1);
@@ -457,7 +457,7 @@ describe('actions.events.ui', () => {
                     }]);
 
                     expectAccessDenied({
-                        store,
+                        store: store,
                         permission: PRIVILEGES.EVENT_MANAGEMENT,
                         action: '_openEventDetails',
                         errorMessage: 'Unauthorised to edit an event!',

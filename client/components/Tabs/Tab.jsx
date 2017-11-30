@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 export const Tab = ({activeTab, tabName, onChangeTab}) => (
@@ -13,7 +14,7 @@ export const Tab = ({activeTab, tabName, onChangeTab}) => (
 );
 
 Tab.propTypes = {
-    activeTab: React.PropTypes.string.isRequired,
-    tabName: React.PropTypes.string.isRequired,
-    onChangeTab: React.PropTypes.func.isRequired,
+    activeTab: PropTypes.string.isRequired,
+    tabName: PropTypes.string.isRequired,
+    onChangeTab: PropTypes.func.isRequired,
 };

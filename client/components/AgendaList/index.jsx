@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {AgendaItem} from '../../components';
 import './style.scss';
 
@@ -26,9 +27,9 @@ export const AgendaList = ({
 };
 
 AgendaList.propTypes = {
-    agendas: React.PropTypes.array.isRequired,
-    privileges: React.PropTypes.object.isRequired,
-    openEditAgenda: React.PropTypes.func.isRequired,
-    deleteAgenda: React.PropTypes.func.isRequired,
-    classNames: React.PropTypes.string,
+    agendas: PropTypes.array.isRequired,
+    privileges: PropTypes.object.isRequired,
+    openEditAgenda: PropTypes.func.isRequired,
+    deleteAgenda: PropTypes.func.isRequired,
+    classNames: PropTypes.string,
 };

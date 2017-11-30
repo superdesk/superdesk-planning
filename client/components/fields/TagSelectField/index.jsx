@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {get, difference, remove, uniq} from 'lodash';
 import {InputField} from '../InputField';

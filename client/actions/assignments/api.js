@@ -162,19 +162,21 @@ const save = (item, original = undefined) => (
             }
         })
             .then((originalItem) => {
+                let updates = {};
+
                 if (item.lock_action === 'reassign') {
-                    item = pick(item, 'assigned_to');
-                    item.assigned_to = pick(item.assigned_to, ['desk', 'user', 'coverage_provider']);
+                    updates = pick(item, 'assigned_to');
+                    updates.assigned_to = pick(item.assigned_to, ['desk', 'user', 'coverage_provider']);
                 } else {
                 // Edit priority
-                    item = pick(item, 'priority');
+                    updates = pick(item, 'priority');
                 }
 
-                return api('assignments').save(cloneDeep(originalItem), item)
-                    .then((item) => {
-                        planningUtils.convertGenreToObject(item);
-                        dispatch(self.receivedAssignments([item]));
-                        return Promise.resolve(item);
+                return api('assignments').save(cloneDeep(originalItem), updates)
+                    .then((updated) => {
+                        planningUtils.convertGenreToObject(updated);
+                        dispatch(self.receivedAssignments([updated]));
+                        return Promise.resolve(updated);
                     }, (error) => (Promise.reject(error))
                     );
             }, (error) => (Promise.reject(error)))
@@ -357,6 +359,7 @@ const removeAssignment = (assignment) => (
     )
 );
 
+// eslint-disable-next-line consistent-this
 const self = {
     query,
     receivedAssignments,

@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import './style.scss';
 
 export class QuickAddPlanning extends React.Component {
@@ -24,11 +25,16 @@ export class QuickAddPlanning extends React.Component {
             <div className="ListItem quick-add-planning">
                 <i className="icon-plus-sign" onClick={this.handleSubmit.bind(this)}/>
                 <form onSubmit={this.handleSubmit.bind(this)}>
-                    <input type="text" className="line-input" placeholder="Add" value={slugline} onChange={this.handleChange.bind(this)}/>
+                    <input
+                        type="text"
+                        className="line-input"
+                        placeholder="Add"
+                        value={slugline}
+                        onChange={this.handleChange.bind(this)}/>
                 </form>
             </div>
         );
     }
 }
 
-QuickAddPlanning.propTypes = {onPlanningCreation: React.PropTypes.func.isRequired};
+QuickAddPlanning.propTypes = {onPlanningCreation: PropTypes.func.isRequired};

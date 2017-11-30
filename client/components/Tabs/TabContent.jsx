@@ -1,10 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 export class TabContent extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         const {children, activeTab, tabName} = this.props;
 
@@ -22,7 +19,7 @@ export class TabContent extends React.Component {
 }
 
 TabContent.propTypes = {
-    activeTab: React.PropTypes.string.isRequired,
-    tabName: React.PropTypes.string.isRequired,
-    children: React.PropTypes.node,
+    activeTab: PropTypes.string.isRequired,
+    tabName: PropTypes.string.isRequired,
+    children: PropTypes.node,
 };

@@ -35,8 +35,9 @@ export default class actionMenu {
     }
 
     invokeAction(actionLabel) {
-        const action = this.actions().find((a) => a.label === actionLabel)
-        action.callback()
+        const action = this.actions().find((a) => a.label === actionLabel);
+
+        action.callback();
     }
 
     toggleMenu() {

@@ -1,5 +1,6 @@
 /* eslint-disable react/no-multi-comp */
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import {mount} from 'enzyme';
 import {DatePicker} from '../index';
 import {DatePickerCore} from '../DatePicker/DatePickerCore';
@@ -25,7 +26,7 @@ class TestForm extends React.Component {
 TestForm.propTypes = {
     input: PropTypes.object,
     placeholder: PropTypes.string,
-    onChange: React.PropTypes.func.isRequired,
+    onChange: PropTypes.func.isRequired,
 };
 
 class TestFormDateCore extends React.Component {
@@ -50,7 +51,7 @@ TestFormDateCore.propTypes = {
 
 describe('<DatePicker />', () => {
     it('shows placeholder text for null value', () => {
-        const wrapper = mount(<TestForm placeholder="Date" onChange={() => {}}/>);
+        const wrapper = mount(<TestForm placeholder="Date" onChange={() => { /* no-op */ }}/>);
         const inputField = wrapper.find('.datepickerInput__textInput');
 
         expect(inputField.get(0).value).toBe('');
@@ -59,7 +60,7 @@ describe('<DatePicker />', () => {
 
     it('opens popup when icon-calender button is clicked', () => {
         const inputDate = moment('2014-01-01T14:00');
-        const wrapper = mount(<TestForm placeholder="Date" input={inputDate} onChange={() => {}}/>);
+        const wrapper = mount(<TestForm placeholder="Date" input={inputDate} onChange={() => { /* no-op */ }}/>);
 
         expect(wrapper.find('.datepickerPopup').length).toBe(0);
         wrapper.find('.datepickerInput--btn').simulate('click');
@@ -67,7 +68,7 @@ describe('<DatePicker />', () => {
     });
 
     it('cancel will close the popup', () => {
-        const wrapper = mount(<TestForm placeholder="Date" onChange={() => {}}/>);
+        const wrapper = mount(<TestForm placeholder="Date" onChange={() => { /* no-op */ }}/>);
 
         wrapper.find('.datepickerInput--btn').simulate('click');
         expect(wrapper.find('.datepickerPopup').length).toBe(1);
@@ -79,7 +80,10 @@ describe('<DatePicker />', () => {
 
     it('can change mode from day to month', () => {
         const inputDate = moment('2014-01-01T14:00');
-        const wrapper = mount(<TestFormDateCore value={inputDate} onChange={() => {}} onCancel={() => {}}/>);
+        const wrapper = mount(<TestFormDateCore
+            value={inputDate}
+            onChange={() => { /* no-op */ }}
+            onCancel={() => { /* no-op */ }}/>);
         const tools = wrapper.find('.datepickerPopup__Tools').find('.btn');
         // Button to change calender mode
 
@@ -91,7 +95,10 @@ describe('<DatePicker />', () => {
 
     it('can change mode from month to year', () => {
         const inputDate = moment('2014-01-01T14:00');
-        const wrapper = mount(<TestFormDateCore value={inputDate} onChange={() => {}} onCancel={() => {}}/>);
+        const wrapper = mount(<TestFormDateCore
+            value={inputDate}
+            onChange={() => { /* no-op */ }}
+            onCancel={() => { /* no-op */ }}/>);
         const tools = wrapper.find('.datepickerPopup__Tools').find('.btn');
         // Button to change calender mode
 
@@ -105,7 +112,7 @@ describe('<DatePicker />', () => {
 
     it('day mode has selected date active', () => {
         const inputDate = moment('2014-01-08T14:00');
-        const wrapper = mount(<TestForm placeholder="Date" input={inputDate} onChange={() => {}}/>);
+        const wrapper = mount(<TestForm placeholder="Date" input={inputDate} onChange={() => { /* no-op */ }}/>);
         const core = wrapper.find('.datepickerInput--btn');
 
         core.simulate('click');
@@ -118,7 +125,7 @@ describe('<DatePicker />', () => {
 
     it('month mode has selected month active', () => {
         const inputDate = moment('2014-01-08T14:00');
-        const wrapper = mount(<TestForm placeholder="Date" input={inputDate} onChange={() => {}}/>);
+        const wrapper = mount(<TestForm placeholder="Date" input={inputDate} onChange={() => { /* no-op */ }}/>);
         const core = wrapper.find('.datepickerInput--btn');
 
         core.simulate('click');
@@ -135,7 +142,7 @@ describe('<DatePicker />', () => {
 
     it('year mode has selected year active', () => {
         const inputDate = moment('2014-01-08T14:00');
-        const wrapper = mount(<TestForm placeholder="Date" input={inputDate} onChange={() => {}}/>);
+        const wrapper = mount(<TestForm placeholder="Date" input={inputDate} onChange={() => { /* no-op */ }}/>);
         const core = wrapper.find('.datepickerInput--btn');
 
         core.simulate('click');
@@ -154,7 +161,10 @@ describe('<DatePicker />', () => {
 
     it('day mode displays all valid 42 days', () => {
         const inputDate = moment('2014-01-01T14:00');
-        const wrapper = mount(<TestFormDateCore value={inputDate} onChange={() => {}} onCancel={() => {}}/>);
+        const wrapper = mount(<TestFormDateCore
+            value={inputDate}
+            onChange={() => { /* no-op */ }}
+            onCancel={() => { /* no-op */ }}/>);
         const rows = wrapper.find('.datepickerPopup__core').find('table')
             .find('tbody')
             .find('tr');
@@ -170,7 +180,10 @@ describe('<DatePicker />', () => {
 
     it('month mode displays all valid 12 months', () => {
         const inputDate = moment('2014-01-01T14:00');
-        const wrapper = mount(<TestFormDateCore value={inputDate} onChange={() => {}} onCancel={() => {}}/>);
+        const wrapper = mount(<TestFormDateCore
+            value={inputDate}
+            onChange={() => { /* no-op */ }}
+            onCancel={() => { /* no-op */ }}/>);
         const tools = wrapper.find('.datepickerPopup__Tools').find('.btn');
         // Button to change calender mode
 
@@ -219,7 +232,10 @@ describe('<DatePicker />', () => {
 
     it('year mode displays all valid 20 years', () => {
         const inputDate = moment('2014-01-01T14:00');
-        const wrapper = mount(<TestFormDateCore value={inputDate} onChange={() => {}} onCancel={() => {}}/>);
+        const wrapper = mount(<TestFormDateCore
+            value={inputDate}
+            onChange={() => { /* no-op */ }}
+            onCancel={() => { /* no-op */ }}/>);
         const tools = wrapper.find('.datepickerPopup__Tools').find('.btn');
         // Button to change calender mode
 
@@ -294,7 +310,7 @@ describe('<DatePicker />', () => {
 
     it('selecting date closes the popup', () => {
         const inputDate = moment('2014-01-08T14:00');
-        const wrapper = mount(<TestForm placeholder="Date" input={inputDate} onChange={() => {}}/>);
+        const wrapper = mount(<TestForm placeholder="Date" input={inputDate} onChange={() => { /* no-op */ }}/>);
 
         wrapper.find('.datepickerInput--btn').simulate('click');
         const rows = wrapper.find('.datepickerPopup__core').find('table')
@@ -311,7 +327,7 @@ describe('<DatePicker />', () => {
 
     it('month can be manually selected', () => {
         const inputDate = moment('2014-01-08T14:00');
-        const wrapper = mount(<TestForm placeholder="Date" input={inputDate} onChange={() => {}}/>);
+        const wrapper = mount(<TestForm placeholder="Date" input={inputDate} onChange={() => { /* no-op */ }}/>);
 
         wrapper.find('.datepickerInput--btn').simulate('click');
         const tools = wrapper.find('.datepickerPopup__Tools').find('.btn');
@@ -336,7 +352,7 @@ describe('<DatePicker />', () => {
 
     it('year can be manually selected', () => {
         const inputDate = moment('2014-01-08T14:00');
-        const wrapper = mount(<TestForm placeholder="Date" input={inputDate} onChange={() => {}}/>);
+        const wrapper = mount(<TestForm placeholder="Date" input={inputDate} onChange={() => { /* no-op */ }}/>);
 
         wrapper.find('.datepickerInput--btn').simulate('click');
         const tools = wrapper.find('.datepickerPopup__Tools').find('.btn');
@@ -362,7 +378,10 @@ describe('<DatePicker />', () => {
 
     it('selecting month goes to day picking mode', () => {
         const inputDate = moment('2014-01-08T14:00');
-        const wrapper = mount(<TestFormDateCore value={inputDate} onChange={() => {}} onCancel={() => {}}/>);
+        const wrapper = mount(<TestFormDateCore
+            value={inputDate}
+            onChange={() => { /* no-op */ }}
+            onCancel={() => { /* no-op */ }}/>);
         const tools = wrapper.find('.datepickerPopup__Tools').find('.btn');
         // Button to change calender mode
 
@@ -382,7 +401,10 @@ describe('<DatePicker />', () => {
 
     it('selecting year goes to month picking mode', () => {
         const inputDate = moment('2014-01-08T14:00');
-        const wrapper = mount(<TestFormDateCore value={inputDate} onChange={() => {}} onCancel={() => {}}/>);
+        const wrapper = mount(<TestFormDateCore
+            value={inputDate}
+            onChange={() => { /* no-op */ }}
+            onCancel={() => { /* no-op */ }}/>);
         const tools = wrapper.find('.datepickerPopup__Tools').find('.btn');
         // Button to change calender mode
 

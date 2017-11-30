@@ -6,9 +6,9 @@ import {getDateFormat, getTimeFormat} from '../../selectors';
 import './style.scss';
 
 function Datetime({date, withTime, withDate, withYear, dateFormat, timeFormat}) {
-    dateFormat = withYear ? dateFormat : dateFormat.replace(/y/gi, '');
+    let format = withYear ? dateFormat : dateFormat.replace(/y/gi, '');
     let dateTimeFormat = [
-        withDate ? dateFormat : null,
+        withDate ? format : null,
         withTime ? timeFormat : null,
     ].filter((d) => d).join('\u00a0'); // &nbsp;
 

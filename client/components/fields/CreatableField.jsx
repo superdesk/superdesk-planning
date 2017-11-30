@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import Select from 'react-select';
 import 'react-select/dist/react-select.css';
 
@@ -40,21 +41,21 @@ export const CreatableField = ({input, label, options, value, meta, multi, clear
 };
 
 CreatableField.propTypes = {
-    input: React.PropTypes.object.isRequired,
-    label: React.PropTypes.string,
-    meta: React.PropTypes.object.isRequired,
-    multi: React.PropTypes.bool.isRequired,
-    clearable: React.PropTypes.bool,
-    options: React.PropTypes.arrayOf(React.PropTypes.shape({
-        label: React.PropTypes.string,
-        value: React.PropTypes.object,
+    input: PropTypes.object.isRequired,
+    label: PropTypes.string,
+    meta: PropTypes.object.isRequired,
+    multi: PropTypes.bool.isRequired,
+    clearable: PropTypes.bool,
+    options: PropTypes.arrayOf(PropTypes.shape({
+        label: PropTypes.string,
+        value: PropTypes.object,
     })).isRequired,
-    value: React.PropTypes.oneOfType([
-        React.PropTypes.array,
-        React.PropTypes.shape(undefined),
-        React.PropTypes.shape({
-            label: React.PropTypes.string,
-            value: React.PropTypes.object,
+    value: PropTypes.oneOfType([
+        PropTypes.array,
+        PropTypes.shape(undefined),
+        PropTypes.shape({
+            label: PropTypes.string,
+            value: PropTypes.object,
         }),
     ]),
 };

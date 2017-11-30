@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import momentPropTypes from 'react-moment-proptypes';
 import {Datetime} from '../index';
 import {eventUtils} from '../../utils';
@@ -27,8 +28,8 @@ export const TimePlanning = ({event}) => {
 };
 
 TimePlanning.propTypes = {
-    event: React.PropTypes.shape({
-        dates: React.PropTypes.shape({
+    event: PropTypes.shape({
+        dates: PropTypes.shape({
             end: momentPropTypes.momentObj,
             start: momentPropTypes.momentObj,
         }),

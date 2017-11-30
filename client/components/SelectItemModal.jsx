@@ -18,6 +18,8 @@ export const SelectItemModal = ({handleHide, modalProps}) => {
         modalProps.onSelect(value);
     };
 
+    const classes = 'sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border';
+
     return (
         <Modal show={true} onHide={handleClose}>
             <Modal.Header>
@@ -32,9 +34,11 @@ export const SelectItemModal = ({handleHide, modalProps}) => {
                         <div className="sd-list-item sd-shadow--z1"
                             key={index}
                             onClick={() => handleSelect(item.value)}>
-                            <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
+                            <div className={classes}>
                                 <div className="sd-list-item__row">
-                                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">{item.label}</span>
+                                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                                        {item.label}
+                                    </span>
                                 </div>
                             </div>
                         </div>

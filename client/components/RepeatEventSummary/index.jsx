@@ -3,13 +3,14 @@ import PropTypes from 'prop-types';
 import {InputField} from '../fields';
 
 export class RepeatEventSummary extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     getDaysFromByDays() {
-        let byDays = this.props.byDay && this.props.byDay.length > 0 ? this.props.byDay :
-            this.props.startDate ? this.props.startDate.format('dd').toUpperCase() : '';
+        let byDays = '';
+
+        if (this.props.byDay && this.props.byDay.length > 0) {
+            byDays = this.props.byDay;
+        } else if (this.props.startDate) {
+            byDays = this.props.startDate.format('dd').toUpperCase();
+        }
 
         if (byDays) {
             const days = {
@@ -69,7 +70,7 @@ export class RepeatEventSummary extends React.Component {
     getSuffix() {
         let suffix = '';
 
-        if (this.props.endRepeatMode === 'count' && parseInt(this.props.count) > 0) {
+        if (this.props.endRepeatMode === 'count' && parseInt(this.props.count, 10) > 0) {
             suffix = ', ' + this.props.count + ' times';
         } else if (this.props.endRepeatMode === 'until' && this.props.until &&
             this.props.until.isValid()) {

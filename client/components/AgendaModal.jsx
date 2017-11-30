@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {ModalWithForm, CreateEditAgendaForm} from './index';
 import {FORM_NAMES} from '../constants';
 
@@ -29,6 +30,6 @@ export const AgendaModal = ({handleHide, modalProps}) => {
 };
 
 AgendaModal.propTypes = {
-    handleHide: React.PropTypes.func,
-    modalProps: React.PropTypes.object,
+    handleHide: PropTypes.func,
+    modalProps: PropTypes.object,
 };

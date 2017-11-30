@@ -56,7 +56,10 @@ describe('<EventHistoryList />', () => {
     const openPlanningClick = sinon.spy();
 
     const getShallowWrapper = () => (
-        shallow(<EventHistoryList eventHistoryItems={eventHistoryItems} users={users} openPlanningClick={openPlanningClick} />)
+        shallow(<EventHistoryList
+            eventHistoryItems={eventHistoryItems}
+            users={users}
+            openPlanningClick={openPlanningClick} />)
     );
 
     it('renders event history', () => {

@@ -6,7 +6,7 @@
   "main": "index.js",
   "scripts": {
     "fix": "eslint client --ext=jsx --ext=js --fix",
-    "hint": "eslint client --ext=jsx --ext=js",
+    "hint": "eslint client --ext=jsx --ext=js --quiet",
     "lint": "eslint client --ext=jsx --ext=js",
     "unit_test": "karma start karma.conf.js --log-level debug --display-error-details --single-run",
     "karma": "karma start karma.conf.js",

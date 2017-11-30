@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {mount} from 'enzyme';
 import {DayPickerInput} from '../index';
 import sinon from 'sinon';
@@ -11,7 +12,7 @@ class TestForm extends React.Component {
             value: value,
             onChange: onChange || ((x) => x),
         };
-        const meta = {dispatch: () => {}};
+        const meta = {dispatch: () => { /* no-op */ }};
 
         return (
             <DayPickerInput input={input}
@@ -25,10 +26,10 @@ class TestForm extends React.Component {
 }
 
 TestForm.propTypes = {
-    value: React.PropTypes.oneOfType([React.PropTypes.object, React.PropTypes.string]),
-    onChange: React.PropTypes.func,
-    withTime: React.PropTypes.bool,
-    defaultDate: React.PropTypes.object,
+    value: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
+    onChange: PropTypes.func,
+    withTime: PropTypes.bool,
+    defaultDate: PropTypes.object,
 };
 
 describe('<DayPickerInput />', () => {

@@ -16,10 +16,6 @@ import moment from 'moment';
 import {FORM_NAMES, EVENTS} from '../../../constants';
 
 export class Component extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     componentWillMount() {
         this.props.change('dates.recurring_rule',
             {

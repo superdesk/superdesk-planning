@@ -28,15 +28,12 @@ export class CoveragesFieldArrayComponent extends React.Component {
     duplicateCoverage(index, contentType = null) {
         const {fields} = this.props;
         const existingCoverage = fields.get(index);
-
-        if (contentType === null) {
-            contentType = existingCoverage.planning.g2_content_type;
-        }
+        const g2ContentType = contentType === null ? existingCoverage.planning.g2_content_type : contentType;
 
         fields.push({
             planning: {
                 ...existingCoverage.planning,
-                g2_content_type: contentType,
+                g2_content_type: g2ContentType,
             },
             news_coverage_status: {qcode: 'ncostat:int'},
         });

@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import {DatePicker} from '../index';
 import {TimePicker} from '../index';
 import moment from 'moment';
@@ -9,9 +10,14 @@ import './style.scss';
 export class DayPickerInput extends React.Component {
     constructor(props) {
         super(props);
-        const selectedDate = this.props.input.value ?
-            moment(this.props.input.value) : this.props.defaultDate ?
-                moment(this.props.defaultDate) : undefined;
+        let selectedDate;
+
+        if (this.props.input.value) {
+            selectedDate = moment(this.props.input.value);
+        } else if (this.props.defaultDate) {
+            selectedDate = moment(this.props.defaultDate);
+        }
+
         // get the time in a different variable (different field)
         const selectedTime = selectedDate ? moment(selectedDate) : undefined;
         // remove the time from the date
@@ -49,7 +55,7 @@ export class DayPickerInput extends React.Component {
 
             if (date) date.startOf('day');
             this.setState({
-                selectedTime,
+                selectedTime: selectedTime,
                 selectedDate: date,
             }, resolve());
         });
@@ -88,7 +94,7 @@ export class DayPickerInput extends React.Component {
     onTimeChange(selectedTime) {
         if (selectedTime) {
             this.setState({
-                selectedTime,
+                selectedTime: selectedTime,
                 dateManuallyDefined: true,
             },
             () => {

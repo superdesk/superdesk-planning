@@ -75,7 +75,7 @@ class AssignmentListComponent extends React.Component {
                 onClick={this.props.preview.bind(this, assignment)}
                 onSelectChange={(value) => this.props.onAssignmentSelectChange({
                     assignment: assignment._id,
-                    value,
+                    value: value,
                 })}
                 assignedUser={assignedUser}
                 isCurrentUser={isCurrentUser}
@@ -95,7 +95,13 @@ class AssignmentListComponent extends React.Component {
     }
 
     render() {
-        const {assignments, groupKey, totalCount, changeAssignmentListSingleGroupView, assignmentListSingleGroupView} = this.props;
+        const {
+            assignments,
+            groupKey,
+            totalCount,
+            changeAssignmentListSingleGroupView,
+            assignmentListSingleGroupView,
+        } = this.props;
         const maxHeight = this.getListMaxHeight() + 'px';
 
         return (

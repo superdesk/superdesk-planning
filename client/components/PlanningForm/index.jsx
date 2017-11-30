@@ -15,10 +15,6 @@ import {
     MaxLengthValidatorFactory} from '../../validators';
 
 class Component extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         const {
             handleSubmit,

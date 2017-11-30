@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import moment from 'moment';
 import ReactDOM from 'react-dom';
 import {DayPicker} from './DayPicker';
@@ -158,9 +159,18 @@ export class DatePickerCore extends React.Component {
                     <table>
                         <tbody>
                             <tr>
-                                <td><button type="button" className="btn btn--mini" onClick={this.handleConfirm.bind(this, 0)}>Today</button></td>
-                                <td><button type="button" className="btn btn--mini" onClick={this.handleConfirm.bind(this, 1)}>Tomorrow</button></td>
-                                <td><button type="button" className="btn btn--mini" onClick={this.handleConfirm.bind(this, 2)}>In 2 days</button></td>
+                                <td><button
+                                    type="button"
+                                    className="btn btn--mini"
+                                    onClick={this.handleConfirm.bind(this, 0)}>Today</button></td>
+                                <td><button
+                                    type="button"
+                                    className="btn btn--mini"
+                                    onClick={this.handleConfirm.bind(this, 1)}>Tomorrow</button></td>
+                                <td><button
+                                    type="button"
+                                    className="btn btn--mini"
+                                    onClick={this.handleConfirm.bind(this, 2)}>In 2 days</button></td>
                             </tr>
                         </tbody>
                     </table>
@@ -169,25 +179,54 @@ export class DatePickerCore extends React.Component {
                     <table>
                         <tbody>
                             <tr>
-                                <td><button type="button" className="btn btn-default btn-sm pull-left"><i className="icon-chevron-left-thin" onClick={this.getFurtherValues.bind(this, 0)}/></button></td>
-                                <td><button type="button" aria-live="assertive" aria-atomic="true" className="btn btn-default btn-sm" onClick={this.handleModeChange.bind(this)}><strong>{this.state.modeTitle}</strong></button></td>
-                                <td><button type="button" className="btn btn-default btn-sm pull-right" onClick={this.getFurtherValues.bind(this, 1)}><i className="icon-chevron-right-thin"/></button></td>
+                                <td>
+                                    <button
+                                        type="button"
+                                        className="btn btn-default btn-sm pull-left">
+                                        <i className="icon-chevron-left-thin"
+                                            onClick={this.getFurtherValues.bind(this, 0)}/>
+                                    </button></td>
+                                <td>
+                                    <button
+                                        type="button"
+                                        aria-live="assertive"
+                                        aria-atomic="true"
+                                        className="btn btn-default btn-sm"
+                                        onClick={this.handleModeChange.bind(this)}>
+                                        <strong>{this.state.modeTitle}</strong>
+                                    </button></td>
+                                <td>
+                                    <button
+                                        type="button"
+                                        className="btn btn-default btn-sm pull-right"
+                                        onClick={this.getFurtherValues.bind(this, 1)}>
+                                        <i className="icon-chevron-right-thin"/>
+                                    </button></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
                 <div className="datepickerPopup__core">
                     { this.state.mode === 'day' && (
-                        <DayPicker selectedDate={this.state.selectedDate} onChange={this.handleSelectChange.bind(this)} />
+                        <DayPicker
+                            selectedDate={this.state.selectedDate}
+                            onChange={this.handleSelectChange.bind(this)} />
                     )}
                     { this.state.mode === 'month' && (
-                        <MonthPicker selectedDate={this.state.selectedDate} onChange={this.handleSelectChange.bind(this)} />
+                        <MonthPicker
+                            selectedDate={this.state.selectedDate}
+                            onChange={this.handleSelectChange.bind(this)} />
                     )}
                     { this.state.mode === 'year' && (
-                        <YearPicker startingYear={this.getStartingYearForYearPicker(this.state.selectedDate)} selectedDate={this.state.selectedDate} onChange={this.handleSelectChange.bind(this)} />
+                        <YearPicker
+                            startingYear={this.getStartingYearForYearPicker(this.state.selectedDate)}
+                            selectedDate={this.state.selectedDate} onChange={this.handleSelectChange.bind(this)} />
                     )}
                 </div>
-                <button className="btn btn--small pull-right" type="button" onClick={this.handleCancel.bind(this)}>Cancel</button>
+                <button
+                    className="btn btn--small pull-right"
+                    type="button"
+                    onClick={this.handleCancel.bind(this)}>Cancel</button>
             </div>
         );
     }

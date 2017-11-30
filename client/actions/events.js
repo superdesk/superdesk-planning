@@ -77,11 +77,12 @@ const deselectAllTheEventList = () => (
  * @return arrow function
  */
 const uploadFilesAndSaveEvent = (event) => {
-    event = cloneDeep(event) || {};
+    const clonedEvent = cloneDeep(event) || {};
+
     return (dispatch, getState) => (
-        dispatch(saveFiles(event))
-            .then((event) => dispatch(saveLocation(event)))
-            .then((event) => dispatch(saveEvent(event)))
+        dispatch(saveFiles(clonedEvent))
+            .then((result) => dispatch(saveLocation(result)))
+            .then((result) => dispatch(saveEvent(result)))
         // we used ids to refer to the files, but we need now file object with metadata
         // before to add them to the events storage
             .then((events) => (
@@ -121,18 +122,18 @@ const uploadFilesAndSaveEvent = (event) => {
  * @return arrow function
  */
 const saveFiles = (newEvent) => {
-    newEvent = cloneDeep(newEvent);
+    const clonedEvent = cloneDeep(newEvent);
     const getId = (e) => (e._id);
     const getIds = (e) => (e.map(getId));
 
     return (dispatch, getState, {upload}) => (
         new Promise((resolve) => {
             // if no file, do nothing
-            if ((newEvent.files || []).length === 0) {
-                return resolve(newEvent);
+            if ((clonedEvent.files || []).length === 0) {
+                return resolve(clonedEvent);
             }
             // files to upload
-            const fileFiles = newEvent.files.filter(
+            const fileFiles = clonedEvent.files.filter(
                 (f) => ((f instanceof FileList && f.length) || f instanceof Array)
             );
             // upload files and link them to the event
@@ -148,15 +149,15 @@ const saveFiles = (newEvent) => {
                 }).then((d) => (d.data))
             )))
                 .then((uploadedFiles) => {
-                    newEvent.files = [
+                    clonedEvent.files = [
                     // reference uploaded files to event
                         ...getIds(uploadedFiles),
                         // remove uploaded FileList objects
-                        ...getIds(newEvent.files.filter((f) => (
+                        ...getIds(clonedEvent.files.filter((f) => (
                             !isEmpty(f) && fileFiles.indexOf(f) === -1
                         ))),
                     ];
-                    return newEvent;
+                    return clonedEvent;
                 })
                 .then(resolve);
         })
@@ -186,9 +187,8 @@ const saveLocation = (event) => (
             }
 
             return event;
-        }
-        // the location is set, but doesn't have a qcode (not registered in the location collection)
-        else if (get(event, 'location[0]') && isNil(event.location[0].qcode)) {
+        } else if (get(event, 'location[0]') && isNil(event.location[0].qcode)) {
+            // the location is set, but doesn't have a qcode (not registered in the location collection)
             return dispatch(_saveLocation(event.location[0]))
                 .then((location) => {
                     event.location[0] = location;
@@ -221,24 +221,24 @@ const saveEvent = (newEvent) => (
         // clone the original because `save` will modify it
 
         original = cloneDeep(original) || {};
-        newEvent = cloneDeep(newEvent) || {};
+        let clonedEvent = cloneDeep(newEvent) || {};
 
         // save the timezone. This is useful for recurring events
-        if (newEvent.dates) {
-            newEvent.dates.tz = moment.tz.guess();
+        if (clonedEvent.dates) {
+            clonedEvent.dates.tz = moment.tz.guess();
         }
 
         // remove all properties starting with _,
         // otherwise it will fail for "unknown field" with `_type`
-        newEvent = pickBy(newEvent, (v, k) => (
+        clonedEvent = pickBy(clonedEvent, (v, k) => (
             !k.startsWith('_') &&
-            !isEqual(newEvent[k], original[k])
+            !isEqual(clonedEvent[k], original[k])
         ));
 
-        newEvent.update_method = get(newEvent, 'update_method.value', EventUpdateMethods[0].value);
+        clonedEvent.update_method = get(clonedEvent, 'update_method.value', EventUpdateMethods[0].value);
 
         // send the event on the backend
-        return api('events').save(original, newEvent)
+        return api('events').save(original, clonedEvent)
         // return a list of events (can has several because of reccurence)
             .then((data) => (
                 data._items || [data]

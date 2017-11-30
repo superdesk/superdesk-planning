@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import $ from 'jquery';
 import 'jquery-ui/ui/core';
@@ -17,7 +18,7 @@ export class ResizableEventsPanelComponent extends React.Component {
         let nextElement = thisNode.next();
         let windowWidth = $(window).width();
         let thisOffset = thisNode.offset();
-        let rightBorder = parseInt(thisNode.css('border-right-width'));
+        let rightBorder = parseInt(thisNode.css('border-right-width'), 10);
         // Fix for firefox, if no 'delay', don't use setTimeout()
 
         if (!delay) {
@@ -90,14 +91,14 @@ export class ResizableEventsPanelComponent extends React.Component {
 }
 
 ResizableEventsPanelComponent.propTypes = {
-    children: React.PropTypes.oneOfType([
-        React.PropTypes.array,
-        React.PropTypes.element,
+    children: PropTypes.oneOfType([
+        PropTypes.array,
+        PropTypes.element,
     ]).isRequired,
-    minWidth: React.PropTypes.number,
-    maxWidth: React.PropTypes.number,
-    className: React.PropTypes.string,
-    showEvents: React.PropTypes.bool,
+    minWidth: PropTypes.number,
+    maxWidth: PropTypes.number,
+    className: PropTypes.string,
+    showEvents: PropTypes.bool,
 };
 const mapStateToProps = (state) => ({showEvents: get(state, 'events.show', true)});
 

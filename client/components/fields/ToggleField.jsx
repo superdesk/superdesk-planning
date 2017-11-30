@@ -5,6 +5,7 @@ import {Toggle} from '../index';
 import './style.scss';
 
 export const ToggleField = ({input, label, readOnly, defaultValue = false, meta: {touched, error, warning}}) => {
+    // eslint-disable-next-line no-param-reassign
     input = {
         ...input,
         value: isBoolean(get(input, 'value')) ? get(input, 'value') : defaultValue,

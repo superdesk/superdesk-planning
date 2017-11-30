@@ -15,10 +15,6 @@ import {get} from 'lodash';
 import './style.scss';
 
 class EventsListComponent extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     toggleAdvancedSearch() {
         if (this.props.advancedSearchOpened) {
             this.props.closeAdvancedSearch();

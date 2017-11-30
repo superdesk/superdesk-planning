@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {FileField} from './index';
 
 export const FilesFieldArray = ({fields, readOnly}) => (
@@ -23,6 +24,6 @@ export const FilesFieldArray = ({fields, readOnly}) => (
 );
 
 FilesFieldArray.propTypes = {
-    fields: React.PropTypes.object.isRequired,
-    readOnly: React.PropTypes.bool,
+    fields: PropTypes.object.isRequired,
+    readOnly: PropTypes.bool,
 };

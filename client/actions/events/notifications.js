@@ -65,7 +65,7 @@ const onEventLocked = (_e, data) => (
         if (data && data.item) {
             return dispatch(eventsApi.getEvent(data.item, false))
                 .then((eventInStore) => {
-                    eventInStore = {
+                    const evtInStore = {
                         ...eventInStore,
                         lock_action: data.lock_action || 'edit',
                         lock_user: data.user,
@@ -76,10 +76,10 @@ const onEventLocked = (_e, data) => (
 
                     dispatch({
                         type: EVENTS.ACTIONS.LOCK_EVENT,
-                        payload: {event: eventInStore},
+                        payload: {event: evtInStore},
                     });
 
-                    return Promise.resolve(eventInStore);
+                    return Promise.resolve(evtInStore);
                 });
         }
 
@@ -244,6 +244,7 @@ const onRecurringEventSpiked = (e, data) => (
     }
 );
 
+// eslint-disable-next-line consistent-this
 const self = {
     onEventLocked,
     onEventUnlocked,

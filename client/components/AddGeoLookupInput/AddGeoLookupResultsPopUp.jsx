@@ -1,4 +1,5 @@
-import React, {PropTypes} from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import {formatAddress, uiUtils} from '../../utils';
 import {get} from 'lodash';
 import './style.scss';

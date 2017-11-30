@@ -63,7 +63,7 @@ describe('actions.assignments.ui', () => {
             restoreSinonStub(assignmentsApi.link);
             sinon.stub(assignmentsApi, 'link').callsFake(() => (Promise.reject(errorMessage)));
             store.test(done, assignmentsUi.onFulFilAssignment({_id: 'as1'}))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(assignmentsApi.link.callCount).toBe(1);
                     expect(assignmentsApi.link.args[0]).toEqual([{_id: 'as1'}, {_id: 'item1'}]);
                     expect(error).toEqual(errorMessage);
@@ -130,7 +130,7 @@ describe('actions.assignments.ui', () => {
                 {planning_item: 'plan1'},
                 'locker'
             ))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
@@ -159,7 +159,7 @@ describe('actions.assignments.ui', () => {
                 data.assignments[0],
                 'locker'
             ))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
@@ -185,7 +185,7 @@ describe('actions.assignments.ui', () => {
             sinon.stub(planningApi, 'unlock').callsFake(() => Promise.reject(errorMessage));
 
             return store.test(done, assignmentsUi.unlockPlanning({planning_item: 'plan1'}))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
@@ -211,7 +211,7 @@ describe('actions.assignments.ui', () => {
             sinon.stub(assignmentsApi, 'unlock').callsFake(() => Promise.reject(errorMessage));
 
             return store.test(done, assignmentsUi.unlockAssignment(data.assignments[0]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
@@ -263,7 +263,7 @@ describe('actions.assignments.ui', () => {
                 data.assignments[0],
                 'locker'
             ))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
@@ -283,7 +283,7 @@ describe('actions.assignments.ui', () => {
                 data.assignments[0],
                 'locker'
             ))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
@@ -331,7 +331,7 @@ describe('actions.assignments.ui', () => {
             sinon.stub(assignmentsApi, 'unlock').returns(Promise.reject(errorMessage));
 
             return store.test(done, assignmentsUi.unlockAssignmentAndPlanning(data.assignments[0]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
@@ -348,7 +348,7 @@ describe('actions.assignments.ui', () => {
             sinon.stub(planningApi, 'unlock').callsFake(() => Promise.reject(errorMessage));
 
             return store.test(done, assignmentsUi.unlockAssignmentAndPlanning(data.assignments[0]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
@@ -400,7 +400,7 @@ describe('actions.assignments.ui', () => {
             );
 
             return store.test(done, assignmentsUi.showRemoveAssignmentModal(data.assignments[0]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 });
@@ -436,7 +436,7 @@ describe('actions.assignments.ui', () => {
             sinon.stub(assignmentsApi, 'removeAssignment').returns(Promise.reject(errorMessage));
 
             return store.test(done, assignmentsUi.removeAssignment(data.assignments[0]))
-                .then(() => {}, (error) => {
+                .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     expect(services.notify.error.callCount).toBe(1);

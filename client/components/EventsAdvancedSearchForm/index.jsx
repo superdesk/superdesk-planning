@@ -7,7 +7,15 @@ import {SPIKED_STATE} from '../../constants';
 import {get} from 'lodash';
 import './style.scss';
 
-function EventsAdvancedSearchFormComponent({handleSubmit, pristine, reset, submitting, error, resetSearch, existingLocationSearchResults}) {
+function EventsAdvancedSearchFormComponent({
+    handleSubmit,
+    pristine,
+    reset,
+    submitting,
+    error,
+    resetSearch,
+    existingLocationSearchResults,
+}) {
     return (
         <form onSubmit={handleSubmit} className="EventsAdvancedSearchForm">
             <fieldset>
