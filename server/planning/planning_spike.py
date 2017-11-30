@@ -15,6 +15,8 @@ from superdesk.notification import push_notification
 from apps.auth import get_user
 from superdesk import config
 from .item_lock import LOCK_USER, LOCK_SESSION
+from superdesk import get_resource_service
+from .planning_notifications import PlanningNotifications
 
 
 class PlanningSpikeResource(PlanningResource):
@@ -43,6 +45,27 @@ class PlanningSpikeService(BaseService):
         item = self.backend.update(self.datasource, id, updates, original)
         push_notification('planning:spiked', item=str(id), user=str(user.get(config.ID_FIELD)),
                           etag=item['_etag'], revert_state=item['revert_state'])
+
+        coverages = original.get('coverages') or []
+        for coverage in coverages:
+            assigned_to = coverage.get('assigned_to')
+            if assigned_to:
+                user = get_user()
+                assignment_service = get_resource_service('assignments')
+                assignment = assignment_service.find_one(req=None, _id=assigned_to.get('assignment_id'))
+                slugline = assignment.get('planning').get('slugline', '')
+                coverage_type = assignment.get('planning').get('g2_content_type', '')
+                PlanningNotifications().notify_assignment(target_user=assignment.get('assigned_to').get('user'),
+                                                          target_desk=assignment.get('assigned_to').get(
+                                                              'desk') if not assignment.get('assigned_to').get(
+                                                              'user') else None,
+                                                          message='{{actioning_user}} has spiked a {{coverage_type}} '
+                                                                  'coverage for \"{{slugline}}\"',
+                                                          slugline=slugline,
+                                                          coverage_type=coverage_type,
+                                                          actioning_user=user.get('display_name',
+                                                                                  user.get('username', 'Unknown')),
+                                                          omit_user=True)
 
         return item
 

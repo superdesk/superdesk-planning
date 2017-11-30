@@ -37,6 +37,10 @@ Feature: Assignment Unlink
             }
         }]
         """
+        When we patch "/desks/#desks._id#"
+        """
+        {"members": [{"user": "#CONTEXT_USER_ID#"}]}
+        """
         When we post to "/planning" with success
         """
         [{
@@ -111,6 +115,31 @@ Feature: Assignment Unlink
         Then we get notifications
         """
         [{"event": "content:update"}]
+        """
+        Then we get OK response
+        When we get "/activity"
+        Then we get existing resource
+        """
+        {"_items": [{
+            "recipients" : [
+                {
+                    "read" : false,
+                    "user_id" : "#CONTEXT_USER_ID#"
+                }
+            ],
+            "user" : "#CONTEXT_USER_ID#",
+            "resource" : "assignments",
+            "name" : "update",
+            "data" : {
+                "omit_user" : true,
+                "coverage_type" : "text",
+                "actioning_user" : "test_user",
+                "slugline" : "test slugline",
+                "action" : "unlinked"
+            },
+            "user_name" : "test_user",
+            "message" : "{{actioning_user}} has {{action}} a {{coverage_type}} coverage for \"{{slugline}}\""
+        }]}
         """
         When we get "assignments/#assignmentId#"
         Then we get existing resource

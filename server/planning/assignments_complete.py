@@ -7,7 +7,7 @@
 # For the full copyright and license information, please see the
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
-
+from superdesk import get_resource_service
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from superdesk.errors import SuperdeskApiError
@@ -16,6 +16,7 @@ from eve.utils import config
 from copy import deepcopy
 from .assignments import AssignmentsResource, assignments_schema
 from .common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information
+from .planning_notifications import PlanningNotifications
 
 
 assignments_complete_schema = deepcopy(assignments_schema)
@@ -57,5 +58,17 @@ class AssignmentsCompleteService(BaseService):
             user=str(user),
             session=str(session)
         )
+
+        # Send notification that the work has been completed
+        # Determine the display name of the assignee
+        assigned_to_user = get_resource_service('users').find_one(req=None, _id=user)
+        assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
+        PlanningNotifications().notify_assignment(target_user=str(original.get('assigned_to', {}).get('assignor_user')),
+                                                  message='{{coverage_type}} coverage \"{{slugline}}\" has been '
+                                                          'completed by {{assignee}}',
+                                                  assignee=assignee,
+                                                  coverage_type=original.get('planning', {}).get('g2_content_type', ''),
+                                                  slugline=original.get('planning', {}).get('slugline'),
+                                                  omit_user=True)
 
         return item

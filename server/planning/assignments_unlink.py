@@ -13,6 +13,7 @@ from .common import ASSIGNMENT_WORKFLOW_STATE
 from apps.content import push_content_notification
 from .item_lock import LOCK_USER, LOCK_SESSION
 from apps.archive.common import get_user, get_auth
+from .planning_notifications import PlanningNotifications
 
 
 class AssignmentsUnlinkService(Service):
@@ -29,6 +30,8 @@ class AssignmentsUnlinkService(Service):
         for doc in docs:
             assignment = assignments_service.find_one(req=None, _id=doc.pop('assignment_id'))
             item = production.find_one(req=None, _id=doc.pop('item_id'))
+            # Boolean set to true if the unlink is as the result of spiking the content item
+            spike = doc.pop('spike', False)
 
             # Set the state to 'assigned' if the item is 'submitted'
             updates = {'assigned_to': deepcopy(assignment.get('assigned_to'))}
@@ -49,6 +52,17 @@ class AssignmentsUnlinkService(Service):
             doc.update(item)
             ids.append(doc[config.ID_FIELD])
             items.append(item)
+
+            user = get_user()
+            PlanningNotifications().notify_assignment(target_desk=item.get('task').get('desk'),
+                                                      message='{{actioning_user}} has {{action}} '
+                                                              'a {{coverage_type}} coverage for \"{{slugline}}\"',
+                                                      actioning_user=user.get('display_name',
+                                                                              user.get('username', 'Unknown')),
+                                                      action='unlinked' if not spike else 'spiked',
+                                                      coverage_type=item.get('type', ''),
+                                                      slugline=item.get('slugline'),
+                                                      omit_user=True)
 
         push_content_notification(items)
         return ids
@@ -123,7 +137,8 @@ class AssignmentsUnlinkService(Service):
         if assignment_id:
             self.create([{
                 'assignment_id': assignment_id,
-                'item_id': original.get(config.ID_FIELD)
+                'item_id': original.get(config.ID_FIELD),
+                'spike': True
             }])
 
 

@@ -18,6 +18,7 @@ from planning.planning_export import get_desk_template
 from superdesk.errors import SuperdeskApiError
 from .common import ASSIGNMENT_WORKFLOW_STATE
 from superdesk.utc import utcnow
+from .planning_notifications import PlanningNotifications
 
 FIELDS_TO_COPY = ('anpa_category', 'subject', 'urgency')
 
@@ -123,6 +124,20 @@ class AssignmentsContentService(superdesk.Service):
             assignments_service.patch(assignment[config.ID_FIELD], updates)
             doc.update(item)
             ids.append(doc['_id'])
+
+            # Send notification that the work has commenced
+            # Determine the display name of the assignee
+            assigned_to_user = superdesk.get_resource_service('users').find_one(req=None,
+                                                                                _id=str(item.get('task').get('user')))
+            assignee = assigned_to_user.get('display_name') if assigned_to_user else 'Unknown'
+            PlanningNotifications().notify_assignment(target_desk=item.get('task').get('desk'),
+                                                      target_user=str(item.get('task').get('user')),
+                                                      message='{{assignee}} has commenced work on {{coverage_type}}'
+                                                              ' coverage \"{{slugline}}\"',
+                                                      assignee=assignee,
+                                                      coverage_type=item.get('type', ''),
+                                                      slugline=item.get('slugline'),
+                                                      omit_user=True)
         return ids
 
     def _validate(self, doc):

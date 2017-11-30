@@ -15,7 +15,8 @@ from eve.utils import config
 from copy import deepcopy
 from .planning import PlanningResource, planning_schema
 from .common import WORKFLOW_STATE, ITEM_STATE
-
+from superdesk import get_resource_service
+from .planning_notifications import PlanningNotifications
 
 planning_postpone_schema = deepcopy(planning_schema)
 planning_postpone_schema['reason'] = {
@@ -89,3 +90,18 @@ Event has been postponed
             coverage['planning'] = {}
 
         coverage['planning']['internal_note'] = (coverage['planning'].get('internal_note') or '') + '\n\n' + note
+
+        assigned_to = coverage.get('assigned_to')
+        if assigned_to:
+            assignment_service = get_resource_service('assignments')
+            assignment = assignment_service.find_one(req=None, _id=assigned_to.get('assignment_id'))
+            slugline = assignment.get('planning').get('slugline', '')
+            coverage_type = assignment.get('planning').get('g2_content_type', '')
+            PlanningNotifications().notify_assignment(target_user=assignment.get('assigned_to').get('user'),
+                                                      target_desk=assignment.get('assigned_to').get(
+                                                          'desk') if not assignment.get('assigned_to').get(
+                                                          'user') else None,
+                                                      message='The event associated with {{coverage_type}} coverage '
+                                                              '\"{{slugline}}\" has been marked as postponed',
+                                                      slugline=slugline,
+                                                      coverage_type=coverage_type)

@@ -84,7 +84,7 @@ Coverage cancelled
             if coverage_cancel_state and coverage.get('news_coverage_status')['qcode'] !=\
                     coverage_cancel_state['qcode']:
                 ids.append(coverage.get('coverage_id'))
-                self._cancel_coverage(coverage, coverage_cancel_state, note, reason)
+                self._cancel_coverage(coverage, coverage_cancel_state, note, reason, event_cancellation)
 
         if cancel_all_coverage:
             push_notification(
@@ -126,7 +126,7 @@ Coverage cancelled
         updates['ednote'] = ednote
         updates[ITEM_STATE] = WORKFLOW_STATE.CANCELLED
 
-    def _cancel_coverage(self, coverage, coverage_cancel_state, note, reason):
+    def _cancel_coverage(self, coverage, coverage_cancel_state, note, reason, event_cancellation):
         if reason:
             note += 'Reason: {}\n'.format(reason)
 
@@ -141,5 +141,5 @@ Coverage cancelled
             assignment_service = get_resource_service('assignments')
             assignment = assignment_service.find_one(req=None, _id=assigned_to.get('assignment_id'))
 
-            assignment_service.cancel_assignment(assignment, coverage)
+            assignment_service.cancel_assignment(assignment, coverage, event_cancellation)
             coverage.pop('assigned_to', None)

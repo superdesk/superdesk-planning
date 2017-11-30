@@ -287,6 +287,27 @@ Feature: Events Postpone
     @notification
     @vocabulary
     Scenario: Postponing an Event sets item notes
+        Given "desks"
+        """
+        [{"_id": "desk_123", "name": "Politic Desk"}]
+        """
+        Given "assignments"
+        """
+        [{
+            "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type": "text"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            }
+        }]
+        """
         Given "events"
         """
         [{
@@ -325,6 +346,11 @@ Feature: Events Postpone
                 "news_coverage_status": {
                     "qcode": "ncostat:int",
                     "name": "Coverage intended"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa"
                 }
             }]
         }]
@@ -357,4 +383,16 @@ Feature: Events Postpone
                 }
             }]
         }]}
+        """
+        And we get notifications
+        """
+        [{
+            "event": "activity",
+            "extra": {
+                "activity": {
+                "message" : "The event associated with {{coverage_type}} coverage \"{{slugline}}\" has been marked as postponed",
+                "user_name" : "test_user"
+                }
+            }
+        }]
         """

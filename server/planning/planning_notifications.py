@@ -143,6 +143,8 @@ def _get_slack_message_string(message, data):
     """
     user = get_user()
     template = Template(message)
+    if data.get('omit_user', False):
+        return template.render(data)
     return template.render(data) + ' by ' + user.get('display_name', 'Unknown')
 
 
