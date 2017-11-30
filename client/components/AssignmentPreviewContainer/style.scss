@@ -1,3 +1,5 @@
+@import '~superdesk-core/styles/sass/variables.scss';
+
 .AssignmentPreview {
     .priority-label {
         margin-right: 0.6rem;
@@ -12,6 +14,14 @@
         opacity: 0.6;
         vertical-align: middle;
         margin-right: 0.6rem;
+    }
+
+    &__scheduled {
+        color: $sd-text-label !important;
+        font-weight: 500;
+        &--padding {
+            padding: 0 0.6rem;
+        }
     }
 
     .addgeolookup {
@@ -47,7 +57,36 @@
         margin: 0.6rem 0 0 0;
     }
 
+    .sd-list-item__row {
+        &:last-child {
+            margin: 0.6rem 0 0 0;
+        }
+        &--no-margin {
+            margin: 0px !important;
+        }
+        &--margin-top {
+            margin: 0.6rem 0 0 0;
+        }
+    }
+
+    .sd-list-item__column {
+        &--justify-top {
+            justify-content: flex-start;
+        }
+        &--no-padding {
+            padding: 0px !important;
+        }
+    }
     .avatar {
         background: #67afa1;
+    }
+
+    .EventDates {
+        .form__row-item {
+            time {
+                color: $grayDark;
+                font-weight: 400;
+            }
+        }
     }
 }

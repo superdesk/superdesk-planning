@@ -26,8 +26,10 @@ export const getPlanningIdsInList = (state) => get(state, 'planning.planningsInL
 export const isOnlyFutureFiltered = (state) => get(state, 'planning.onlyFuture')
 export const filterPlanningKeyword = (state) => get(state, 'planning.filterPlanningKeyword')
 export const getServerUrl = (state) => get(state, 'config.server.url')
-export const getDateFormat = (state) => get(state, 'config.model.dateformat')
-export const getTimeFormat = (state) => get(state, 'config.shortTimeFormat')
+export const getDateFormat = (state) => get(state, 'config.model.dateformat') ||
+    get(state, 'config.view.dateformat')
+export const getTimeFormat = (state) => get(state, 'config.shortTimeFormat') ||
+    get(state, 'config.view.timeformat')
 export const getIframelyKey = (state) => get(state, 'config.iframely.key', null)
 export const getMaxRecurrentEvents = (state) => get(state, 'deployConfig.max_recurrent_events', 200)
 export const getShowEventDetails = (state) => get(state, 'events.showEventDetails')

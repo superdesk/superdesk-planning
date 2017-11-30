@@ -1,4 +1,5 @@
 import React from 'react'
+import ReactDOM from 'react-dom'
 import classNames from 'classnames'
 import PropTypes from 'prop-types'
 
@@ -6,10 +7,28 @@ export class ToggleBox extends React.Component {
     constructor(props) {
         super(props)
         this.state = { isOpen: this.props.isOpen }
+        this.scrollInView = this.scrollInView.bind(this)
     }
 
     toggle() {
         this.setState({ isOpen: !this.state.isOpen })
+    }
+
+    scrollInView() {
+        if (this.state.isOpen) {
+            const node = ReactDOM.findDOMNode(this)
+
+            if (node) {
+                node.scrollIntoView()
+            }
+        }
+    }
+
+    // eslint-disable-next-line
+    componentDidUpdate(prevProps, prevState) {
+        if (this.state.isOpen && this.props.scrollInView) {
+            this.scrollInView()
+        }
     }
 
     render() {
@@ -44,6 +63,10 @@ ToggleBox.propTypes = {
     isOpen: PropTypes.bool,
     title: PropTypes.string.isRequired,
     children: PropTypes.node,
+    scrollInView: PropTypes.bool,
 }
 
-ToggleBox.defaultProps = { isOpen: true }
+ToggleBox.defaultProps = {
+    isOpen: true,
+    scrollInView: false,
+}

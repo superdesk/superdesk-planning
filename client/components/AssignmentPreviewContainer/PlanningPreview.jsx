@@ -1,70 +1,109 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { get } from 'lodash'
+import TextareaAutosize from 'react-textarea-autosize'
 
-export const PlanningPreview = ({ urgencyLabel, urgencies, item, formProfile }) => (
-    <div>
-        {get(formProfile, 'editor.urgency.enabled') &&
-            <div className="form__row">
-                <label className="form-label form-label--light">
-                    {urgencyLabel}
-                </label>
-                {get(item, 'urgency') &&
-                    <p>
-                        {urgencies.find((u) => u.qcode === item.urgency).name || item.urgency}
+import { get, keyBy } from 'lodash'
+import { TermsList, UrgencyLabel, Label } from '../../components'
+
+
+export const PlanningPreview = ({ urgencyLabel, item, formProfile, agendas }) => {
+
+    const agendaMap = keyBy(agendas, '_id')
+    const agendaAssigned = (get(item, 'agendas') || []).map((agendaId) => {
+        let agenda = get(agendaMap, agendaId)
+        agenda.name = agenda.name + (!agenda.is_enabled ? ' - [Disabled]' : '')
+        return agenda
+    })
+
+    return (
+        <div>
+            {get(formProfile, 'editor.agendas.enabled') &&
+                <div className="form__row">
+                    <label className="form-label form-label--light">
+                       Agenda
+                    </label>
+                    {agendaAssigned.length &&
+                        <TermsList terms={agendaAssigned} displayField="name"/>
+                    ||
+                        <p>-</p>
+                    }
+                </div>
+            }
+
+            {get(formProfile, 'editor.slugline.enabled') &&
+                <div className="form__row">
+                    <label className="form-label form-label--light">
+                        Slugline
+                    </label>
+                    <p className="sd-text__slugline">
+                        {item.slugline || '-'}
                     </p>
-                ||
-                    <p>-</p>
-                }
-            </div>
-        }
+                </div>
+            }
 
-        {get(formProfile, 'editor.description.enabled') &&
-            <div className="form__row">
-                <label className="form-label form-label--light">
-                    Description
-                </label>
-                <p>
-                    {item.description_text || '-'}
-                </p>
-            </div>
-        }
+            {get(formProfile, 'editor.description.enabled') &&
+                <div className="form__row">
+                    <label className="form-label form-label--light">
+                        Description
+                    </label>
+                    <TextareaAutosize
+                        value={item.description_text || '-'}
+                        disabled={true} />
+                </div>
+            }
 
-        {get(formProfile, 'editor.anpa_category.enabled') &&
-            <div className="form__row">
-                <label className="form-label form-label--light">
-                    Category
-                </label>
-                <div className="terms-list">
-                    {get(item, 'anpa_category.length', 0) > 0 &&
-                        <p>{item.anpa_category.map((v) => v.name).join(', ')}</p>
+            {get(formProfile, 'editor.ednote.enabled') &&
+                <div className="form__row">
+                    <label className="form-label form-label--light">
+                        Ed Note
+                    </label>
+
+                    <TextareaAutosize
+                        value={item.ednote || '-'}
+                        disabled={true}
+                    />
+                </div>
+            }
+
+            {get(formProfile, 'editor.internal_note.enabled') &&
+                <div className="form__row">
+                    <label className="form-label form-label--light">
+                        Internal Note
+                    </label>
+
+                    <TextareaAutosize
+                        value={item.internal_note || '-'}
+                        disabled={true}
+                    />
+                </div>
+            }
+
+            {get(formProfile, 'editor.urgency.enabled') &&
+                <div className="form__row">
+                    <label className="form-label form-label--light">
+                        {urgencyLabel}
+                    </label>
+                    {get(item, 'urgency') &&
+                        <UrgencyLabel item={item} />
                     ||
                         <p>-</p>
                     }
                 </div>
-            </div>
-        }
+            }
 
-        {get(formProfile, 'editor.subject.enabled') &&
-            <div className="form__row">
-                <label className="form-label form-label--light">
-                    Subject
-                </label>
-                <div className="terms-list">
-                    {get(item, 'subject.length', 0) > 0 &&
-                        <p>{item.subject.map((v) => v.name).join(', ')}</p>
-                    ||
-                        <p>-</p>
-                    }
+            {get(formProfile, 'editor.flags') &&
+                get(item, 'flags.marked_for_not_publication', false) &&
+                <div className="form__row">
+                    <Label text="Not For Publication" iconType="alert"/>
                 </div>
-            </div>
-        }
-    </div>
-)
+            }
+        </div>
+    )
+}
 
 PlanningPreview.propTypes = {
     urgencyLabel: PropTypes.string,
-    urgencies: PropTypes.array,
     item: PropTypes.object,
     formProfile: PropTypes.object,
+    agendas: PropTypes.array,
 }

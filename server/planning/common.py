@@ -116,3 +116,24 @@ def is_locked_in_this_session(item, user_id=None, session_id=None):
         session_id = session.get(config.ID_FIELD)
 
     return item.get(LOCK_USER) == user_id and item.get(LOCK_SESSION) == session_id
+
+
+def format_address(location=None):
+    """Location is enhanced with the formatted address
+
+    :param dict location:
+    """
+    if not location:
+        return
+
+    address = location.get('address') or {}
+    formatted_address = []
+    if address.get('line', []) and not address.get('line')[0]:
+        formatted_address.append(address.get('line')[0])
+
+    formatted_address.append(address.get('area'))
+    formatted_address.append(address.get('locality'))
+    formatted_address.append(address.get('postal_code'))
+    formatted_address.append(address.get('country'))
+
+    location['formatted_address'] = " ".join([a for a in formatted_address if a]).strip()

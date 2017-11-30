@@ -23,7 +23,7 @@ from superdesk.users.services import current_user_has_privilege
 from superdesk.utc import utcnow
 from .common import UPDATE_SINGLE, UPDATE_FUTURE, UPDATE_ALL, UPDATE_METHODS, \
     get_max_recurrent_events, WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA, \
-    WORKFLOW_STATE, ITEM_STATE, remove_lock_information
+    WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -68,21 +68,24 @@ class EventsService(superdesk.Service):
 
     def on_fetched(self, docs):
         for doc in docs['_items']:
-            self._set_planning_ids(doc)
+            self._enchance_event_item(doc)
 
     def on_fetched_item(self, doc):
-        self._set_planning_ids(doc)
+        self._enchance_event_item(doc)
 
     def get_plannings_for_event(self, event):
         return get_resource_service('planning').find(where={
             'event_item': event[config.ID_FIELD]
         })
 
-    def _set_planning_ids(self, doc):
+    def _enchance_event_item(self, doc):
         plannings = self.get_plannings_for_event(doc)
 
         if plannings.count() > 0:
             doc['planning_ids'] = [planning.get('_id') for planning in plannings]
+
+        for location in (doc.get('location') or []):
+            format_address(location)
 
     def has_planning_items(self, doc):
         return self.get_plannings_for_event(doc).count() > 0
@@ -99,7 +102,7 @@ class EventsService(superdesk.Service):
             return self.get_plannings_for_event(item)
 
     def on_locked_event(self, doc, user_id):
-        self._set_planning_ids(doc)
+        self._enchance_event_item(doc)
 
     def set_ingest_provider_sequence(self, item, provider):
         """Sets the value of ingest_provider_sequence in item.
