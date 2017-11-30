@@ -1,9 +1,9 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { get } from 'lodash'
-import TextareaAutosize from 'react-textarea-autosize'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {get} from 'lodash';
+import TextareaAutosize from 'react-textarea-autosize';
 
-import { TermsList } from '../TermsList/index'
+import {TermsList} from '../TermsList/index';
 
 // eslint-disable-next-line complexity
 export const AssignmentPreview = ({
@@ -14,13 +14,13 @@ export const AssignmentPreview = ({
     planningItem,
 
 }) => {
-    const planning = get(assignment, 'planning', {})
+    const planning = get(assignment, 'planning', {});
 
     const keywordString = get(planning, 'keyword.length', 0) > 0 ?
         planning.keyword
             .map((qcode) => get(keywords.find((k) => k.qcode === qcode), 'name') || qcode)
             .join(', ')
-        : '-'
+        : '-';
 
     return (
         <div>
@@ -112,8 +112,8 @@ export const AssignmentPreview = ({
                 </div>
             }
         </div>
-    )
-}
+    );
+};
 
 AssignmentPreview.propTypes = {
     assignment: PropTypes.object,
@@ -121,4 +121,4 @@ AssignmentPreview.propTypes = {
     coverageFormProfile: PropTypes.object,
     planningFormProfile: PropTypes.object,
     planningItem: PropTypes.object,
-}
+};

@@ -22,20 +22,20 @@ describe('events', () => {
                 end: moment('2016-10-20T15:00+0000'),
             },
             definition_short: 'definition_short 1',
-            location: [{ name: 'location1' }],
+            location: [{name: 'location1'}],
             name: 'name1',
             files: [{
                 media: {
                     name: 'file.pdf',
                     length: 1000,
                 },
-                filemeta: { media_id: 'media1' },
+                filemeta: {media_id: 'media1'},
             }],
             links: ['http://www.google.com'],
             _plannings: [],
             state: 'draft',
             _type: 'events',
-        }
+        };
 
         const requiredProps = {
             publish: sinon.spy(),
@@ -51,6 +51,7 @@ describe('events', () => {
             updateTime: sinon.spy(),
             convertToRecurringEvent: sinon.spy(),
             handleSubmit: sinon.spy(),
+<<<<<<< 6e43cf0d9880f059d7ad0db2b4cda1b8576c5b0e
         }
 
         const createTestStoreForEventEditing = (testEvent) => {
@@ -75,48 +76,187 @@ describe('events', () => {
                                 item_id: testEvent._id,
                                 time: '2016-10-15T14:30+0000',
                             },
+=======
+        };
+
+        const createTestStoreForEventEditing = (event) => createTestStore({
+            initialState: {
+                events: {
+                    readOnly: false,
+                    events: {'5800d71930627218866f1e80': event},
+                    showEventDetails: '5800d71930627218866f1e80',
+                },
+                formsProfile: {
+                    events: {
+                        editor: {
+                            files: {enabled: true},
+                            subject: {enabled: true},
+                            name: {enabled: true},
+                            links: {enabled: true},
+                            anpa_category: {enabled: true},
+                            calendars: {enabled: true},
+                            definition_short: {enabled: true},
+                            definition_long: {enabled: true},
+                            slugline: {enabled: true},
+                            occur_status: {enabled: true},
+                            internal_note: {enabled: true},
+                            location: {enabled: true},
+                        },
+                        schema: {
+                            files: {
+                                mandatory_in_list: null,
+                                schema: null,
+                                type: 'list',
+                                required: false,
+                            },
+                            subject: {
+                                mandatory_in_list: {scheme: {}},
+                                schema: {
+                                    schema: {
+                                        parent: {nullable: true},
+                                        qcode: {},
+                                        service: {nullable: true},
+                                        name: {},
+                                        scheme: {
+                                            nullable: true,
+                                            type: 'string',
+                                            required: true,
+                                            allowed: [],
+                                        },
+                                    },
+                                    type: 'dict',
+                                },
+                                type: 'list',
+                                required: false,
+                            },
+                            name: {
+                                minlength: null,
+                                type: 'string',
+                                required: true,
+                                maxlength: null,
+                            },
+                            links: {
+                                mandatory_in_list: null,
+                                schema: null,
+                                type: 'list',
+                                required: false,
+                            },
+                            anpa_category: {
+                                mandatory_in_list: null,
+                                schema: null,
+                                type: 'list',
+                                required: false,
+                            },
+                            calendars: {
+                                mandatory_in_list: null,
+                                schema: null,
+                                type: 'list',
+                                required: false,
+                            },
+                            definition_short: {
+                                minlength: null,
+                                type: 'string',
+                                required: false,
+                                maxlength: null,
+                            },
+                            definition_long: {
+                                minlength: null,
+                                type: 'string',
+                                required: false,
+                                maxlength: null,
+                            },
+                            location: {
+                                minlength: null,
+                                type: 'string',
+                                required: false,
+                                maxlength: null,
+                            },
+                            occur_status: {
+                                mandatory_in_list: null,
+                                schema: null,
+                                type: 'list',
+                                required: false,
+                            },
+                            internal_note: {
+                                minlength: null,
+                                type: 'string',
+                                required: false,
+                                maxlength: null,
+                            },
+                            slugline: {
+                                minlength: null,
+                                type: 'string',
+                                required: false,
+                                maxlength: null,
+                            },
                         },
                     },
                 },
-            })
-        }
+                locks: {
+                    events: {
+                        '5800d71930627218866f1e80': {
+                            action: 'edit',
+                            user: 'somebodyelse',
+                            session: 'someothersession',
+                            item_type: 'events',
+                            item_id: '5800d71930627218866f1e80',
+                            time: '2016-10-15T14:30+0000',
+>>>>>>> (eslint): Fixing using auto fix.
+                        },
+                    },
+                    planning: {},
+                    recurring: {},
+                    assignments: {},
+                },
+            },
+        });
 
         describe('<EventForm />', () => {
             it('uploads and keeps files', (done) => {
-                const newEvent = cloneDeep(event)
-                const store = createTestStore()
-                newEvent.files.push([{}])
+                const newEvent = cloneDeep(event);
+                const store = createTestStore();
+
+                newEvent.files.push([{}]);
                 store.dispatch(actions.saveFiles(newEvent))
-                .then((e) => {
-                    expect(e.files).toBeDefined()
-                    expect(e.files.length).toBe(newEvent.files.length)
-                    done()
-                })
-            })
+                    .then((e) => {
+                        expect(e.files).toBeDefined();
+                        expect(e.files.length).toBe(newEvent.files.length);
+                        done();
+                    });
+            });
 
             it('disabled fields are not displayed in the form', () => {
+<<<<<<< 6e43cf0d9880f059d7ad0db2b4cda1b8576c5b0e
                 let store = createTestStoreForEventEditing(event)
                 store.getState().formsProfile.events.editor.links.enabled = false
+=======
+                let store = createTestStoreForEventEditing();
+
+                store.getState().formsProfile.events.editor.links.enabled = false;
+
+                const initialValues = event;
+>>>>>>> (eslint): Fixing using auto fix.
                 const wrapper = mount(
                     <Provider store={store}>
                         <EventForm initialValues={{...event}} />
                     </Provider>
-                )
-                expect(wrapper.find('LinkFieldComponent').length).toBe(0)
-            })
+                );
+
+                expect(wrapper.find('LinkFieldComponent').length).toBe(0);
+            });
 
             it('submit the form', () => {
-                const submitting = false
-                const onSaveResponse = Promise.resolve()
-                const handleSubmit = sinon.stub().returns(onSaveResponse)
+                const submitting = false;
+                const onSaveResponse = Promise.resolve();
+                const handleSubmit = sinon.stub().returns(onSaveResponse);
                 const itemActions = {
                     unspikeEvent: () => {},
                     addEventToCurrentAgenda: () => {},
                     duplicateEvent: () => {},
                     spikeEvent: () => {},
-                }
-                const priv = { planning_event_publish: 1 }
-                const onMinimize =  sinon.stub().returns(Promise.resolve())
+                };
+                const priv = {planning_event_publish: 1};
+                const onMinimize = sinon.stub().returns(Promise.resolve());
                 const props = {
                     ...requiredProps,
                     submitting: submitting,
@@ -131,96 +271,137 @@ describe('events', () => {
                         recurring: {},
                         assignments: {},
                     },
-                }
-                const subject = shallow(<Component {...props}/>)
-                subject.find('form').simulate('submit')
-                expect(handleSubmit.callCount).toBe(1)
-            })
+                };
+                const subject = shallow(<Component {...props}/>);
+
+                subject.find('form').simulate('submit');
+                expect(handleSubmit.callCount).toBe(1);
+            });
 
             it('compute right dates', () => {
                 const expectDatesInStoreToBe = (expectedDates) => {
+<<<<<<< 6e43cf0d9880f059d7ad0db2b4cda1b8576c5b0e
                     let { start, end } = store.getState().form[FORM_NAMES.EventForm].values.dates
                     expect(start).toBe(expectedDates.start)
                     expect(end).toBe(expectedDates.end)
                 }
 
                 let store = createTestStoreForEventEditing(event)
+=======
+                    let {start, end} = store.getState().form.addEvent.values.dates;
+
+                    expect(start).toBe(expectedDates.start);
+                    expect(end).toBe(expectedDates.end);
+                };
+
+                let store = createTestStoreForEventEditing();
+                const initialValues = event;
+
+>>>>>>> (eslint): Fixing using auto fix.
                 mount(
                     <Provider store={store}>
                         <EventForm initialValues={{ ...event }} />
                     </Provider>
-                )
-                let originalDates = event.dates
-                expectDatesInStoreToBe(originalDates)
-            })
+                );
+                let originalDates = event.dates;
+
+                expectDatesInStoreToBe(originalDates);
+            });
 
             it('fill the form', () => {
+<<<<<<< 6e43cf0d9880f059d7ad0db2b4cda1b8576c5b0e
                 let store = createTestStoreForEventEditing(event)
                 const initialValues = event
+=======
+                let store = createTestStoreForEventEditing();
+                const initialValues = event;
+>>>>>>> (eslint): Fixing using auto fix.
                 const wrapper = mount(
                     <Provider store={store}>
                         <EventForm initialValues={initialValues} />
                     </Provider>
-                )
-                expect(wrapper.find('[name="name"]').props().value).toBe(initialValues.name)
-            })
+                );
+
+                expect(wrapper.find('[name="name"]').props().value).toBe(initialValues.name);
+            });
 
             it('supports files', () => {
+<<<<<<< 6e43cf0d9880f059d7ad0db2b4cda1b8576c5b0e
                 const _event = {
                     ...event,
                     lock_user: testData.users[0]._id,
                     lock_session: testData.sessions[0].sessionId,
                 }
+=======
+                let _event = event;
 
-                const store = createTestStoreForEventEditing(_event)
+                _event.lock_user = 'user123';
+                _event.lock_session = 'session123';
+>>>>>>> (eslint): Fixing using auto fix.
+
+                const store = createTestStoreForEventEditing(_event);
                 const wrapper = mount(
                     <Provider store={store}>
                         <EventForm initialValues={_event}/>
                     </Provider>
-                )
+                );
 
-                wrapper.find('.toggle-box__header').at(1).simulate('click')
-                const field = wrapper.find('FileFieldComponent')
-                const file = field.props().file
-                expect(field.props().fieldName).toBe('files[0]')
-                expect(file).toEqual(event.files[0])
-                expect(field.props().createLink(file)).toBe('http://server.com/upload/media1/raw')
+                wrapper.find('.toggle-box__header').at(1)
+                    .simulate('click');
+                const field = wrapper.find('FileFieldComponent');
+                const file = field.props().file;
+
+                expect(field.props().fieldName).toBe('files[0]');
+                expect(file).toEqual(event.files[0]);
+                expect(field.props().createLink(file)).toBe('http://server.com/upload/media1/raw');
                 // add a file
-                expect(wrapper.find('FileFieldComponent').length).toBe(1)
-                wrapper.find('FilesFieldArray').find('.File__add-btn').simulate('click')
-                expect(wrapper.find('FileFieldComponent').length).toBe(2)
-            })
+                expect(wrapper.find('FileFieldComponent').length).toBe(1);
+                wrapper.find('FilesFieldArray').find('.File__add-btn')
+                    .simulate('click');
+                expect(wrapper.find('FileFieldComponent').length).toBe(2);
+            });
 
             it('supports links', () => {
+<<<<<<< 6e43cf0d9880f059d7ad0db2b4cda1b8576c5b0e
                 const _event = {
                     ...event,
                     lock_user: testData.users[0]._id,
                     lock_session: testData.sessions[0].sessionId,
                 }
+=======
+                let _event = event;
 
-                const store = createTestStoreForEventEditing(_event)
+                _event.lock_user = 'user123';
+                _event.lock_session = 'session123';
+>>>>>>> (eslint): Fixing using auto fix.
+
+                const store = createTestStoreForEventEditing(_event);
                 const wrapper = mount(
                     <Provider store={store}>
                         <EventForm initialValues={_event} />
                     </Provider>
-                )
+                );
 
-                wrapper.find('.toggle-box__header').at(2).simulate('click')
-                const field = wrapper.find('LinkFieldComponent')
-                const link = field.props().link
-                expect(field.props().fieldName).toBe('links[0]')
-                expect(link).toEqual(event.links[0])
-                const titleNode = field.find('.line-input').last()
-                expect(titleNode.text()).toBe('http://www.google.com ')
+                wrapper.find('.toggle-box__header').at(2)
+                    .simulate('click');
+                const field = wrapper.find('LinkFieldComponent');
+                const link = field.props().link;
+
+                expect(field.props().fieldName).toBe('links[0]');
+                expect(link).toEqual(event.links[0]);
+                const titleNode = field.find('.line-input').last();
+
+                expect(titleNode.text()).toBe('http://www.google.com ');
                 // add a link
-                expect(wrapper.find('LinkFieldComponent').length).toBe(1)
-                wrapper.find('LinksFieldArray').find('.Link__add-btn').simulate('click')
-                expect(wrapper.find('LinkFieldComponent').length).toBe(2)
-                wrapper.find('form').simulate('submit')
-            })
+                expect(wrapper.find('LinkFieldComponent').length).toBe(1);
+                wrapper.find('LinksFieldArray').find('.Link__add-btn')
+                    .simulate('click');
+                expect(wrapper.find('LinkFieldComponent').length).toBe(2);
+                wrapper.find('form').simulate('submit');
+            });
 
             it('hides the save button if event is spiked', () => {
-                const priv = { planning_event_management: 1 }
+                const priv = {planning_event_management: 1};
                 let wrapper = shallow(
                     <Component
                         {...requiredProps}
@@ -237,13 +418,14 @@ describe('events', () => {
                             assignments: {},
                         }}
                     />
-                )
-                expect(wrapper.find('[type="submit"]').length).toBe(0)
+                );
+
+                expect(wrapper.find('[type="submit"]').length).toBe(0);
 
                 wrapper = shallow(
                     <Component
                         {...requiredProps}
-                        initialValues={{ state: 'draft' }}
+                        initialValues={{state: 'draft'}}
                         privileges={priv}
                         onMinimize={sinon.spy()}
                         lockedItems={{
@@ -253,18 +435,18 @@ describe('events', () => {
                             assignments: {},
                         }}
                     />
-                )
-                expect(wrapper.find('[type="submit"]').length).toBe(1)
-            })
+                );
+                expect(wrapper.find('[type="submit"]').length).toBe(1);
+            });
 
             describe('Actions menu', () => {
                 beforeEach(() => {
-                    sinon.stub(eventsUi, 'openSpikeModal').callsFake(() => ({ type: 'MOCK' }))
-                })
+                    sinon.stub(eventsUi, 'openSpikeModal').callsFake(() => ({type: 'MOCK'}));
+                });
 
                 afterEach(() => {
-                    restoreSinonStub(eventsUi.openSpikeModal)
-                })
+                    restoreSinonStub(eventsUi.openSpikeModal);
+                });
 
                 it('spike action calls `actions.events.ui.openSpikeModal`', () => {
                     const store = createTestStoreForEventEditing(event)
@@ -274,15 +456,15 @@ describe('events', () => {
                         <Provider store={store}>
                             <EventForm initialValues={event}/>
                         </Provider>
-                    )
+                    );
 
                     const menu = new helpers.actionMenu(wrapper)
                     expect(menu.actionLabels()).toContain('Spike')
                     menu.invokeAction('Spike')
 
-                    expect(eventsUi.openSpikeModal.callCount).toBe(1)
-                    expect(eventsUi.openSpikeModal.args[0]).toEqual([event])
-                })
+                    expect(eventsUi.openSpikeModal.callCount).toBe(1);
+                    expect(eventsUi.openSpikeModal.args[0]).toEqual([event]);
+                });
 
                 it('Lock restricted event has only view-event-history action available', () => {
                     const recEvent = {
@@ -295,11 +477,17 @@ describe('events', () => {
                                 endRepeatMode: 'count',
                             },
                         },
+<<<<<<< 6e43cf0d9880f059d7ad0db2b4cda1b8576c5b0e
                         lock_user: testData.users[1]._id,
                         lock_session: testData.sessions[1].sessionId,
                     }
+=======
+                        lock_user: 'somebodyelse',
+                        lock_session: 'someothersession',
+                    };
+>>>>>>> (eslint): Fixing using auto fix.
 
-                    const store = createTestStoreForEventEditing(recEvent)
+                    const store = createTestStoreForEventEditing(recEvent);
                     const wrapper = mount(
                         <Provider store={store}>
                             <EventForm
@@ -307,38 +495,49 @@ describe('events', () => {
                                 enableReinitialize={true}
                             />
                         </Provider>
-                    )
-                    expect(wrapper.find('ItemActionsMenu').props().actions.length).toBe(2)
-                    expect(itemActionExists(wrapper, 'View History')).toBe(true)
-                })
-            })
+                    );
+
+                    expect(wrapper.find('ItemActionsMenu').props().actions.length).toBe(2);
+                    expect(itemActionExists(wrapper, 'View History')).toBe(true);
+                });
+            });
 
             it('action button states for new event', () => {
+<<<<<<< 6e43cf0d9880f059d7ad0db2b4cda1b8576c5b0e
                 let store = createTestStoreForEventEditing(event)
+=======
+                let store = createTestStoreForEventEditing();
+>>>>>>> (eslint): Fixing using auto fix.
                 const wrapper = mount(
                     <Provider store={store}>
                         <EventForm initialValues={{}} />
                     </Provider>
-                )
-                const subnav = wrapper.find('.subnav__actions')
+                );
+                const subnav = wrapper.find('.subnav__actions');
                 // New event without changing any values
-                expect(subnav.find('.btn').first().prop('disabled')).toBe(false)
-                expect(subnav.find('.btn--primary').first().prop('disabled')).toBe(true)
+
+                expect(subnav.find('.btn').first()
+                    .prop('disabled')).toBe(false);
+                expect(subnav.find('.btn--primary').first()
+                    .prop('disabled')).toBe(true);
 
                 // Save and publish should be hidden
-                expect(subnav.find('.btn--success').length).toBe(0)
+                expect(subnav.find('.btn--success').length).toBe(0);
 
                 // Change values to enable the `save` and `save & publish` buttons
                 wrapper.find('Field [name="slugline"]')
-                    .simulate('change', { target: { value: 'NewSlug' } })
-                expect(subnav.find('.btn').first().prop('disabled')).toBe(false)
-                expect(subnav.find('.btn--primary').first().prop('disabled')).toBe(false)
+                    .simulate('change', {target: {value: 'NewSlug'}});
+                expect(subnav.find('.btn').first()
+                    .prop('disabled')).toBe(false);
+                expect(subnav.find('.btn--primary').first()
+                    .prop('disabled')).toBe(false);
 
                 // Save and publish should still be hidden
-                expect(subnav.find('.btn--success').length).toBe(0)
-            })
+                expect(subnav.find('.btn--success').length).toBe(0);
+            });
 
             it('action button states for existing event', () => {
+<<<<<<< 6e43cf0d9880f059d7ad0db2b4cda1b8576c5b0e
                 const _event = {
                     ...event,
                     lock_user: testData.users[0]._id,
@@ -346,26 +545,38 @@ describe('events', () => {
                 }
 
                 let store = createTestStoreForEventEditing(_event)
+=======
+                let store = createTestStoreForEventEditing(event);
+>>>>>>> (eslint): Fixing using auto fix.
                 const wrapper = mount(
                     <Provider store={store}>
                         <EventForm initialValues={_event} />
                     </Provider>
-                )
-                const subnav = wrapper.find('.subnav__actions')
+                );
+                const subnav = wrapper.find('.subnav__actions');
                 // New event without changing any values
-                expect(subnav.find('.btn').first().prop('disabled')).toBe(false)
-                expect(subnav.find('.btn--primary').first().prop('disabled')).toBe(true)
-                expect(subnav.find('.btn--success').first().prop('disabled')).toBe(false)
-                expect(subnav.find('.btn--success').first().text()).toBe('Publish')
+
+                expect(subnav.find('.btn').first()
+                    .prop('disabled')).toBe(false);
+                expect(subnav.find('.btn--primary').first()
+                    .prop('disabled')).toBe(true);
+                expect(subnav.find('.btn--success').first()
+                    .prop('disabled')).toBe(false);
+                expect(subnav.find('.btn--success').first()
+                    .text()).toBe('Publish');
 
                 // Change values to enable the `save` and `save & publish` buttons
                 wrapper.find('Field [name="slugline"]')
-                    .simulate('change', { target: { value: 'NewSlug' } })
-                expect(subnav.find('.btn').first().prop('disabled')).toBe(false)
-                expect(subnav.find('.btn--primary').first().prop('disabled')).toBe(false)
-                expect(subnav.find('.btn--success').first().prop('disabled')).toBe(false)
-                expect(subnav.find('.btn--success').first().text()).toBe('Save and publish')
-            })
-        })
-    })
-})
+                    .simulate('change', {target: {value: 'NewSlug'}});
+                expect(subnav.find('.btn').first()
+                    .prop('disabled')).toBe(false);
+                expect(subnav.find('.btn--primary').first()
+                    .prop('disabled')).toBe(false);
+                expect(subnav.find('.btn--success').first()
+                    .prop('disabled')).toBe(false);
+                expect(subnav.find('.btn--success').first()
+                    .text()).toBe('Save and publish');
+            });
+        });
+    });
+});

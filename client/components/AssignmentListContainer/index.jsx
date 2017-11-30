@@ -1,25 +1,24 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
-import classNames from 'classnames'
-import { isNil } from 'lodash'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import classNames from 'classnames';
+import {isNil} from 'lodash';
 import {
     AssignmentList,
     AssignmentListHeader,
     AssignmentListSearchHeader,
     AssignmentPanelContainer,
-} from '../index'
-import * as selectors from '../../selectors'
-import * as actions from '../../actions'
-import { ASSIGNMENTS, WORKSPACE } from '../../constants'
-import './style.scss'
+} from '../index';
+import * as selectors from '../../selectors';
+import * as actions from '../../actions';
+import {ASSIGNMENTS, WORKSPACE} from '../../constants';
+import './style.scss';
 
 export class AssignmentListContainerComponent extends React.Component {
-
     constructor(props) {
-        super(props)
-        this.changeSearchQuery = this.changeSearchQuery.bind(this)
-        this.changeFilter = this.changeFilter.bind(this)
+        super(props);
+        this.changeSearchQuery = this.changeSearchQuery.bind(this);
+        this.changeFilter = this.changeFilter.bind(this);
     }
 
     changeSearchQuery(searchQuery) {
@@ -30,21 +29,21 @@ export class AssignmentListContainerComponent extends React.Component {
             loadAssignments,
             filterByType,
             filterByPriority,
-        } = this.props
+        } = this.props;
 
         Object.keys(ASSIGNMENTS.LIST_GROUPS).forEach((groupKey) => {
             loadAssignments(filterBy, searchQuery, orderByField, orderDirection,
-                ASSIGNMENTS.LIST_GROUPS[groupKey].states, filterByType, filterByPriority)
-        })
+                ASSIGNMENTS.LIST_GROUPS[groupKey].states, filterByType, filterByPriority);
+        });
     }
 
-    changeFilter (filterBy, orderByField, orderDirection) {
-        const { searchQuery, loadAssignments, filterByType, filterByPriority } = this.props
+    changeFilter(filterBy, orderByField, orderDirection) {
+        const {searchQuery, loadAssignments, filterByType, filterByPriority} = this.props;
 
         Object.keys(ASSIGNMENTS.LIST_GROUPS).forEach((groupKey) => {
             loadAssignments(filterBy, searchQuery, orderByField, orderDirection,
-                ASSIGNMENTS.LIST_GROUPS[groupKey].states, filterByType, filterByPriority)
-        })
+                ASSIGNMENTS.LIST_GROUPS[groupKey].states, filterByType, filterByPriority);
+        });
     }
 
     loadAssignmentsForGroup(groupKey) {
@@ -56,28 +55,28 @@ export class AssignmentListContainerComponent extends React.Component {
             loadAssignments,
             filterByType,
             filterByPriority,
-        } = this.props
+        } = this.props;
 
-        const filterByState = ASSIGNMENTS.LIST_GROUPS[groupKey].states
+        const filterByState = ASSIGNMENTS.LIST_GROUPS[groupKey].states;
 
         loadAssignments(filterBy, searchQuery, orderByField, orderDirection, filterByState,
-            filterByType, filterByPriority)
+            filterByType, filterByPriority);
     }
 
     getTotalCountForListGroup(groupKey) {
         if (!groupKey) {
-            return
+            return;
         }
 
         switch (ASSIGNMENTS.LIST_GROUPS[groupKey].label) {
-            case ASSIGNMENTS.LIST_GROUPS.TODO.label:
-                return this.props.assignmentsInTodoCount
+        case ASSIGNMENTS.LIST_GROUPS.TODO.label:
+            return this.props.assignmentsInTodoCount;
 
-            case ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.label:
-                return this.props.assignmentsInInProressCount
+        case ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.label:
+            return this.props.assignmentsInInProressCount;
 
-            case ASSIGNMENTS.LIST_GROUPS.COMPLETED.label:
-                return this.props.assignmentsInCompletedCount
+        case ASSIGNMENTS.LIST_GROUPS.COMPLETED.label:
+            return this.props.assignmentsInCompletedCount;
         }
     }
 
@@ -85,7 +84,7 @@ export class AssignmentListContainerComponent extends React.Component {
         return (
             <div className={classNames(
                 'Assignments-list-container',
-                { 'open-preview': this.props.previewOpened },
+                {'open-preview': this.props.previewOpened},
                 {
                     'Assignments-list-container__body--edit-in-authoring': this.props.previewOpened &&
                         this.props.inAuthoring,
@@ -106,18 +105,16 @@ export class AssignmentListContainerComponent extends React.Component {
                 />
                 {isNil(this.props.assignmentListSingleGroupView) && (
                     <div className={ classNames('Assignments-list-container__groups',
-                        { 'Assignments-list-container__groups--edit-view': this.props.previewOpened }) }>
-                        { Object.keys(ASSIGNMENTS.LIST_GROUPS).map((groupKey) => {
-                            return (<div key={groupKey}>
-                                <AssignmentList
-                                    groupKey={groupKey}
-                                    loadAssignmentsForGroup={this.loadAssignmentsForGroup.bind(this)}
-                                    loadMoreAssignments={this.props.loadMoreAssignments}
-                                    changeAssignmentListSingleGroupView={this.props.changeAssignmentListSingleGroupView.bind(
-                                        this, groupKey)}
-                                />
-                            </div>)
-                        }) }
+                        {'Assignments-list-container__groups--edit-view': this.props.previewOpened}) }>
+                        { Object.keys(ASSIGNMENTS.LIST_GROUPS).map((groupKey) => (<div key={groupKey}>
+                            <AssignmentList
+                                groupKey={groupKey}
+                                loadAssignmentsForGroup={this.loadAssignmentsForGroup.bind(this)}
+                                loadMoreAssignments={this.props.loadMoreAssignments}
+                                changeAssignmentListSingleGroupView={this.props.changeAssignmentListSingleGroupView.bind(
+                                    this, groupKey)}
+                            />
+                        </div>)) }
                     </div>
                 )}
                 {!isNil(this.props.assignmentListSingleGroupView) && (
@@ -140,7 +137,7 @@ export class AssignmentListContainerComponent extends React.Component {
                 }
                 <AssignmentPanelContainer previewOpened={this.props.previewOpened}/>
             </div>
-        )
+        );
     }
 }
 
@@ -161,7 +158,7 @@ AssignmentListContainerComponent.propTypes = {
     assignmentsInInProressCount: PropTypes.number,
     assignmentsInCompletedCount: PropTypes.number,
     inAuthoring: PropTypes.bool,
-}
+};
 
 const mapStateToProps = (state) => ({
     filterBy: selectors.getFilterBy(state),
@@ -177,11 +174,11 @@ const mapStateToProps = (state) => ({
     assignmentsInInProressCount: selectors.getAssignmentsInProgressListCount(state),
     assignmentsInCompletedCount: selectors.getAssignmentsCompletedListCount(state),
     inAuthoring: selectors.getCurrentWorkspace(state) === WORKSPACE.AUTHORING,
-})
+});
 
 const mapDispatchToProps = (dispatch) => ({
     loadAssignments: (filterBy, searchQuery, orderByField,
-                      orderDirection, filterByState, filterByType, filterByPriority) =>
+        orderDirection, filterByState, filterByType, filterByPriority) =>
         dispatch(actions.assignments.ui.loadAssignments(
             filterBy, searchQuery, orderByField, orderDirection, filterByState,
             filterByType, filterByPriority
@@ -194,6 +191,6 @@ const mapDispatchToProps = (dispatch) => ({
     startWorking: (assignment) => dispatch(actions.assignments.ui.openSelectTemplateModal(assignment)),
     changeAssignmentListSingleGroupView: (groupKey) =>
         dispatch(actions.assignments.ui.changeAssignmentListSingleGroupView(groupKey)),
-})
+});
 
-export const AssignmentListContainer = connect(mapStateToProps, mapDispatchToProps)(AssignmentListContainerComponent)
+export const AssignmentListContainer = connect(mapStateToProps, mapDispatchToProps)(AssignmentListContainerComponent);

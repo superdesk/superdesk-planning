@@ -1,29 +1,29 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import classNames from 'classnames'
+import React from 'react';
+import PropTypes from 'prop-types';
+import classNames from 'classnames';
 import {
     AdvancedSearchPanelContainer,
     EventsList,
     SearchBar,
     MultiEventsSelectionActions,
-} from '../index'
-import { connect } from 'react-redux'
-import * as actions from '../../actions'
-import * as selectors from '../../selectors'
-import { ADVANCED_SEARCH_CONTEXT } from '../../constants'
-import { get } from 'lodash'
-import './style.scss'
+} from '../index';
+import {connect} from 'react-redux';
+import * as actions from '../../actions';
+import * as selectors from '../../selectors';
+import {ADVANCED_SEARCH_CONTEXT} from '../../constants';
+import {get} from 'lodash';
+import './style.scss';
 
 class EventsListComponent extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
     }
 
     toggleAdvancedSearch() {
         if (this.props.advancedSearchOpened) {
-            this.props.closeAdvancedSearch()
+            this.props.closeAdvancedSearch();
         } else {
-            this.props.openAdvancedSearch()
+            this.props.openAdvancedSearch();
         }
     }
 
@@ -40,10 +40,11 @@ class EventsListComponent extends React.Component {
             onPostponeEvent,
             addEventToCurrentAgenda,
             lockedItems,
-        } = this.props
+        } = this.props;
+
         return (
             <div className={classNames('Events-list-container',
-                { 'Events-list-container--advanced-search-view': advancedSearchOpened })}>
+                {'Events-list-container--advanced-search-view': advancedSearchOpened})}>
                 <div className="Events-list-container__header subnav">
                     <div className="subnav__button-stack--square-buttons">
                         <div className="navbtn" title="Hide the list">
@@ -61,12 +62,12 @@ class EventsListComponent extends React.Component {
                         className="trigger-icon advanced-search-open"
                         onClick={this.toggleAdvancedSearch.bind(this)}>
                         <i className={classNames('icon-filter-large',
-                            { 'icon--blue': get(currentSearch, 'advancedSearch') })} />
+                            {'icon--blue': get(currentSearch, 'advancedSearch')})} />
                     </label>
                     <SearchBar value={get(currentSearch, 'fulltext')} onSearch={(value) => loadEvents(value)}/>
                     {privileges.planning_event_management === 1 && (
                         <button className="btn btn--primary"
-                                onClick={this.props.openEventDetails.bind(null, null)}>
+                            onClick={this.props.openEventDetails.bind(null, null)}>
                             Add event
                         </button>
                     )}
@@ -79,27 +80,27 @@ class EventsListComponent extends React.Component {
                 <div className="Events-list-container__body">
                     <AdvancedSearchPanelContainer searchContext={ADVANCED_SEARCH_CONTEXT.EVENT}/>
                     <EventsList events={this.props.events}
-                                onClick={this.props.previewEvent}
-                                onDoubleClick={this.props.openEventDetails}
-                                onEventSpike={this.props.spikeEvent}
-                                onEventUnspike={this.props.unspikeEvent}
-                                onEventDuplicate={this.props.duplicateEvent}
-                                onCancelEvent={onCancelEvent}
-                                onPostponeEvent={onPostponeEvent}
-                                onEventUpdateTime={this.props.updateEventTime}
-                                onRescheduleEvent={onRescheduleEvent}
-                                onConvertToRecurringEvent={this.props.onConvertToRecurringEvent}
-                                highlightedEvent={this.props.highlightedEvent}
-                                loadMoreEvents={this.props.loadMoreEvents}
-                                selectedEvents={this.props.selectedEvents}
-                                onEventSelectChange={this.props.onEventSelectChange}
-                                privileges={privileges}
-                                addEventToCurrentAgenda={addEventToCurrentAgenda}
-                                lockedItems={lockedItems}
-                                session={session} />
+                        onClick={this.props.previewEvent}
+                        onDoubleClick={this.props.openEventDetails}
+                        onEventSpike={this.props.spikeEvent}
+                        onEventUnspike={this.props.unspikeEvent}
+                        onEventDuplicate={this.props.duplicateEvent}
+                        onCancelEvent={onCancelEvent}
+                        onPostponeEvent={onPostponeEvent}
+                        onEventUpdateTime={this.props.updateEventTime}
+                        onRescheduleEvent={onRescheduleEvent}
+                        onConvertToRecurringEvent={this.props.onConvertToRecurringEvent}
+                        highlightedEvent={this.props.highlightedEvent}
+                        loadMoreEvents={this.props.loadMoreEvents}
+                        selectedEvents={this.props.selectedEvents}
+                        onEventSelectChange={this.props.onEventSelectChange}
+                        privileges={privileges}
+                        addEventToCurrentAgenda={addEventToCurrentAgenda}
+                        lockedItems={lockedItems}
+                        session={session} />
                 </div>
             </div>
-        )
+        );
     }
 }
 
@@ -129,7 +130,7 @@ EventsListComponent.propTypes = {
     onConvertToRecurringEvent: PropTypes.func,
     addEventToCurrentAgenda: PropTypes.func,
     lockedItems: PropTypes.object,
-}
+};
 
 const mapStateToProps = (state) => ({
     events: selectors.getEventsOrderedByDay(state),
@@ -140,12 +141,12 @@ const mapStateToProps = (state) => ({
     selectedEvents: selectors.getSelectedEvents(state),
     session: selectors.getSessionDetails(state),
     lockedItems: selectors.getLockedItems(state),
-})
+});
 
 const mapDispatchToProps = (dispatch) => ({
     openEventDetails: (event) => dispatch(actions.events.ui.openEventDetails(event)),
     previewEvent: (event) => dispatch(actions.events.ui.previewEvent(event)),
-    loadEvents: (keyword) => dispatch(actions.fetchEvents({ fulltext: keyword })),
+    loadEvents: (keyword) => dispatch(actions.fetchEvents({fulltext: keyword})),
     openAdvancedSearch: () => (dispatch(actions.events.ui.openAdvancedSearch())),
     closeAdvancedSearch: () => (dispatch(actions.events.ui.closeAdvancedSearch())),
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
@@ -160,9 +161,9 @@ const mapDispatchToProps = (dispatch) => ({
     onRescheduleEvent: (event) => dispatch(actions.events.ui.openRescheduleModal(event)),
     addEventToCurrentAgenda: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
     onPostponeEvent: (event) => dispatch(actions.events.ui.openPostponeModal(event)),
-})
+});
 
 export const EventsListContainer = connect(
     mapStateToProps,
     mapDispatchToProps
-)(EventsListComponent)
+)(EventsListComponent);

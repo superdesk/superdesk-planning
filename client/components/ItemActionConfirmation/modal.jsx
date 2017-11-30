@@ -1,6 +1,6 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { ModalWithForm } from '../index'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {ModalWithForm} from '../index';
 import {
     SpikeEventForm,
     UpdateRecurringEventsForm,
@@ -11,30 +11,31 @@ import {
     ConvertToRecurringEventForm,
     CancelPlanningCoveragesForm,
     UpdateAssignmentForm,
-} from './index'
-import { get } from 'lodash'
-import { GENERIC_ITEM_ACTIONS, EVENTS, FORM_NAMES, PLANNING, ASSIGNMENTS } from '../../constants'
+} from './index';
+import {get} from 'lodash';
+import {GENERIC_ITEM_ACTIONS, EVENTS, FORM_NAMES, PLANNING, ASSIGNMENTS} from '../../constants';
 
-export const ItemActionConfirmationModal = ({ handleHide, modalProps }) => {
-    let title
-    let form
-    let formNameForPristineCheck
-    let saveText = 'Save'
-    let propToForm = modalProps.eventDetail
+export const ItemActionConfirmationModal = ({handleHide, modalProps}) => {
+    let title;
+    let form;
+    let formNameForPristineCheck;
+    let saveText = 'Save';
+    let propToForm = modalProps.eventDetail;
 
     const getSaveAndPublishTitle = () => {
-        const publish = get(modalProps, 'eventDetail._publish', false)
-        const save = get(modalProps, 'eventDetail._save', true)
+        const publish = get(modalProps, 'eventDetail._publish', false);
+        const save = get(modalProps, 'eventDetail._save', true);
+
         if (save && publish)
-            return 'Save & Publish Event'
+            return 'Save & Publish Event';
         else if (publish)
-            return 'Publish Event'
-        return 'Save Event'
-    }
+            return 'Publish Event';
+        return 'Save Event';
+    };
 
     const modalFormsMapper = {
         [GENERIC_ITEM_ACTIONS.SPIKE.label]: {
-            title:'Spike an event',
+            title: 'Spike an event',
             saveText: 'Spike',
             form: SpikeEventForm,
         },
@@ -66,7 +67,7 @@ export const ItemActionConfirmationModal = ({ handleHide, modalProps }) => {
         },
         [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: {
             title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_PLANNING.label'),
-            propToForm: { ...modalProps.planning },
+            propToForm: {...modalProps.planning},
             form: CancelPlanningCoveragesForm,
         },
         [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label]: {
@@ -79,24 +80,24 @@ export const ItemActionConfirmationModal = ({ handleHide, modalProps }) => {
         },
         [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: {
             title: ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label,
-            propToForm: { ...modalProps.assignment },
+            propToForm: {...modalProps.assignment},
             form: UpdateAssignmentForm,
             formNameForPristineCheck: get(FORM_NAMES, 'UpdateAssignmentForm'),
             customValidation: true,
         },
-    }
+    };
 
     modalFormsMapper[ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label] = {
         ...modalFormsMapper[ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label],
         title: ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label,
-    }
+    };
 
-    title = get(modalFormsMapper[modalProps.actionType], 'title', getSaveAndPublishTitle())
-    form = get(modalFormsMapper[modalProps.actionType], 'form', UpdateRecurringEventsForm)
+    title = get(modalFormsMapper[modalProps.actionType], 'title', getSaveAndPublishTitle());
+    form = get(modalFormsMapper[modalProps.actionType], 'form', UpdateRecurringEventsForm);
     formNameForPristineCheck = get(modalFormsMapper[modalProps.actionType],
-        'formNameForPristineCheck')
-    propToForm = get(modalFormsMapper[modalProps.actionType], 'propToForm', propToForm)
-    saveText = get(modalFormsMapper[modalProps.actionType], 'saveText', saveText)
+        'formNameForPristineCheck');
+    propToForm = get(modalFormsMapper[modalProps.actionType], 'propToForm', propToForm);
+    saveText = get(modalFormsMapper[modalProps.actionType], 'saveText', saveText);
 
     return (
         <ModalWithForm
@@ -109,8 +110,8 @@ export const ItemActionConfirmationModal = ({ handleHide, modalProps }) => {
             cancelButtonText="Cancel"
             large={get(modalProps, 'large', false)}
             show={true}/>
-    )
-}
+    );
+};
 
 ItemActionConfirmationModal.propTypes = {
     handleHide: PropTypes.func.isRequired,
@@ -120,4 +121,4 @@ ItemActionConfirmationModal.propTypes = {
         actionType: PropTypes.string,
         large: PropTypes.bool,
     }),
-}
+};

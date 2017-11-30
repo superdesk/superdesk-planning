@@ -1,9 +1,9 @@
-import React from 'react'
-import { mount } from 'enzyme'
-import { PlanningApp } from '../PlanningApp'
-import { Provider } from 'react-redux'
-import { createTestStore } from '../../utils'
-import * as actions from '../../actions'
+import React from 'react';
+import {mount} from 'enzyme';
+import {PlanningApp} from '../PlanningApp';
+import {Provider} from 'react-redux';
+import {createTestStore} from '../../utils';
+import * as actions from '../../actions';
 
 describe('<PlanningApp />', () => {
     it('render Planning App', () => {
@@ -11,24 +11,25 @@ describe('<PlanningApp />', () => {
             events: {
                 events: {},
                 eventsInList: [],
-                search: { currentSearch: {} },
+                search: {currentSearch: {}},
                 show: false,
             },
             session: {
-                identity: { _id: 'ident1' },
+                identity: {_id: 'ident1'},
                 sessionId: 'session1',
             },
-        }
-        const store = createTestStore({ initialState })
+        };
+        const store = createTestStore({initialState});
         const wrapper = mount(
             <Provider store={store}>
                 <PlanningApp />
             </Provider>
-        )
-        expect(wrapper.find('.Planning').length).toBe(1)
-        store.dispatch(actions.toggleEventsList())
-        expect(wrapper.find('.Planning--hide-events').length).toBe(0)
-        store.dispatch(actions.toggleEventsList())
-        expect(wrapper.find('.Planning--hide-events').length).toBe(1)
-    })
-})
+        );
+
+        expect(wrapper.find('.Planning').length).toBe(1);
+        store.dispatch(actions.toggleEventsList());
+        expect(wrapper.find('.Planning--hide-events').length).toBe(0);
+        store.dispatch(actions.toggleEventsList());
+        expect(wrapper.find('.Planning--hide-events').length).toBe(1);
+    });
+});

@@ -1,10 +1,10 @@
-import React, { PropTypes } from 'react'
-import { connect } from 'react-redux'
-import { selectAgenda } from '../../actions'
-import { AGENDA } from '../../constants'
-import { getCurrentAgendaId, getEnabledAgendas, getDisabledAgendas } from '../../selectors'
+import React, {PropTypes} from 'react';
+import {connect} from 'react-redux';
+import {selectAgenda} from '../../actions';
+import {AGENDA} from '../../constants';
+import {getCurrentAgendaId, getEnabledAgendas, getDisabledAgendas} from '../../selectors';
 
-export const SelectAgendaComponent = ({ enabledAgendas, disabledAgendas, onChange, currentAgenda, isLoading }) => (
+export const SelectAgendaComponent = ({enabledAgendas, disabledAgendas, onChange, currentAgenda, isLoading}) => (
     <select onChange={onChange} value={currentAgenda || ''}>
         <option value="">
             {isLoading && 'Loading...' || 'Select an agenda'}
@@ -28,7 +28,7 @@ export const SelectAgendaComponent = ({ enabledAgendas, disabledAgendas, onChang
         <option value={AGENDA.FILTER.NO_AGENDA_ASSIGNED}>No Agenda Assigned</option>
         <option value={AGENDA.FILTER.ALL_PLANNING}>All planning items</option>
     </select>
-)
+);
 
 SelectAgendaComponent.propTypes = {
     enabledAgendas: PropTypes.array.isRequired,
@@ -36,15 +36,15 @@ SelectAgendaComponent.propTypes = {
     onChange: PropTypes.func.isRequired,
     currentAgenda: PropTypes.string,
     isLoading: PropTypes.bool,
-}
+};
 
 const mapStateToProps = (state) => ({
     currentAgenda: getCurrentAgendaId(state),
     enabledAgendas: getEnabledAgendas(state),
     disabledAgendas: getDisabledAgendas(state),
     isLoading: state.agenda.agendasAreLoading,
-})
+});
 
-const mapDispatchToProps = (dispatch) => ({ onChange: (event) => (dispatch(selectAgenda(event.target.value || null))) })
+const mapDispatchToProps = (dispatch) => ({onChange: (event) => (dispatch(selectAgenda(event.target.value || null)))});
 
-export const SelectAgenda = connect(mapStateToProps, mapDispatchToProps)(SelectAgendaComponent)
+export const SelectAgenda = connect(mapStateToProps, mapDispatchToProps)(SelectAgendaComponent);

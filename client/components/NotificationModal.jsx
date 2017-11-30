@@ -1,15 +1,16 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { Modal } from './index'
-import { Button } from 'react-bootstrap'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {Modal} from './index';
+import {Button} from 'react-bootstrap';
 
-export function NotificationModal({ handleHide, modalProps }) {
+export function NotificationModal({handleHide, modalProps}) {
     const handleClose = () => {
-        handleHide()
+        handleHide();
         if (modalProps.action) {
-            modalProps.action()
+            modalProps.action();
         }
-    }
+    };
+
     return (
         <Modal show={true} onHide={handleClose}>
             <Modal.Header>
@@ -27,7 +28,7 @@ export function NotificationModal({ handleHide, modalProps }) {
                 <Button type="button" onClick={handleClose}>OK</Button>
             </Modal.Footer>
         </Modal>
-    )
+    );
 }
 
 NotificationModal.propTypes = {
@@ -40,4 +41,4 @@ NotificationModal.propTypes = {
         ]),
         action: PropTypes.func,
     }),
-}
+};

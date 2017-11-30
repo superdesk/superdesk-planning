@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import { connect } from 'react-redux';
+import {connect} from 'react-redux';
 
 import SearchBar from './components/SearchBar';
 import FiltersBar from './components/FiltersBar';

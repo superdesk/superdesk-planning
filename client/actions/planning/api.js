@@ -1,19 +1,19 @@
-import { get, cloneDeep, pickBy, isEqual, has } from 'lodash'
-import * as actions from '../../actions'
-import * as selectors from '../../selectors'
+import {get, cloneDeep, pickBy, isEqual, has} from 'lodash';
+import * as actions from '../../actions';
+import * as selectors from '../../selectors';
 import {
     getTimeZoneOffset,
     sanitizeTextForQuery,
     isItemLockedInThisSession,
-} from '../../utils'
-import planningUtils from '../../utils/planning'
+} from '../../utils';
+import planningUtils from '../../utils/planning';
 import {
     PLANNING,
     PUBLISHED_STATE,
     SPIKED_STATE,
     WORKFLOW_STATE,
     MODALS,
-} from '../../constants'
+} from '../../constants';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -21,14 +21,14 @@ import {
  * @return Promise
  */
 const spike = (item) => (
-    (dispatch, getState, { api }) => (
-        api.update('planning_spike', { ...item }, {})
-        .then(
-            () => Promise.resolve(item),
-            (error) => Promise.reject(error)
-        )
+    (dispatch, getState, {api}) => (
+        api.update('planning_spike', {...item}, {})
+            .then(
+                () => Promise.resolve(item),
+                (error) => Promise.reject(error)
+            )
     )
-)
+);
 
 /**
  * Action dispatcher that marks a Planning item as active
@@ -36,27 +36,27 @@ const spike = (item) => (
  * @return Promise
  */
 const unspike = (item) => (
-    (dispatch, getState, { api }) => (
-        api.update('planning_unspike', { ...item }, {})
-        .then(
-            () => Promise.resolve(item),
-            (error) => Promise.reject(error)
-        )
+    (dispatch, getState, {api}) => (
+        api.update('planning_unspike', {...item}, {})
+            .then(
+                () => Promise.resolve(item),
+                (error) => Promise.reject(error)
+            )
     )
-)
+);
 
 const cancel = (item) => (
-    (dispatch, getState, { api }) => (
+    (dispatch, getState, {api}) => (
         api.update(
             'planning_cancel',
             item,
-            { reason: get(item, 'reason', undefined) }
+            {reason: get(item, 'reason', undefined)}
         )
     )
-)
+);
 
 const cancelAllCoverage = (item) => (
-    (dispatch, getState, { api }) => (
+    (dispatch, getState, {api}) => (
         api.update(
             'planning_cancel',
             item,
@@ -66,7 +66,7 @@ const cancelAllCoverage = (item) => (
             }
         )
     )
-)
+);
 
 /**
  * Action dispatcher to perform fetch the list of planning items from the server.
@@ -78,42 +78,44 @@ const cancelAllCoverage = (item) => (
  */
 const query = ({
     eventIds,
-    spikeState=SPIKED_STATE.BOTH,
+    spikeState = SPIKED_STATE.BOTH,
     agendas,
-    noAgendaAssigned=false,
-    page=1,
-    advancedSearch={},
+    noAgendaAssigned = false,
+    page = 1,
+    advancedSearch = {},
     onlyFuture,
     fulltext,
 }) => (
-    (dispatch, getState, { api }) => {
-        let query = {}
-        let mustNot = []
-        let must = []
+    (dispatch, getState, {api}) => {
+        let query = {};
+        let mustNot = [];
+        let must = [];
 
         if (eventIds) {
             if (Array.isArray(eventIds)) {
-                const chunkSize = PLANNING.FETCH_IDS_CHUNK_SIZE
+                const chunkSize = PLANNING.FETCH_IDS_CHUNK_SIZE;
+
                 if (eventIds.length <= chunkSize) {
-                    must.push({ terms: { event_item: eventIds } })
+                    must.push({terms: {event_item: eventIds}});
                 } else {
-                    const requests = []
+                    const requests = [];
+
                     for (let i = 0; i < Math.ceil(eventIds.length / chunkSize); i++) {
                         const args = {
                             ...arguments[0],
                             eventIds: eventIds.slice(i * chunkSize, (i + 1) * chunkSize),
-                        }
-                        requests.push(dispatch(self.query(args)))
+                        };
+
+                        requests.push(dispatch(self.query(args)));
                     }
 
                     // Flatten responses and return a response-like object
                     return Promise.all(requests).then((responses) => (
                         Array.prototype.concat(...responses)
-                    ))
+                    ));
                 }
-
             } else {
-                must.push({ term: { event_item: eventIds } })
+                must.push({term: {event_item: eventIds}});
             }
         }
 
@@ -122,23 +124,24 @@ const query = ({
                 condition: () => (true),
                 do: () => {
                     if (agendas) {
-                        must.push({ terms: { agendas: agendas } })
+                        must.push({terms: {agendas: agendas}});
                     } else if (noAgendaAssigned) {
-                        let field = { field: 'agendas' }
-                        mustNot.push({ constant_score: { filter: { exists: field } } })
+                        let field = {field: 'agendas'};
+
+                        mustNot.push({constant_score: {filter: {exists: field}}});
                     }
                 },
             },
             {
                 condition: () => (spikeState === SPIKED_STATE.SPIKED),
                 do: () => {
-                    must.push({ term: { state: WORKFLOW_STATE.SPIKED } })
+                    must.push({term: {state: WORKFLOW_STATE.SPIKED}});
                 },
             },
             {
                 condition: () => (spikeState === SPIKED_STATE.NOT_SPIKED || !spikeState),
                 do: () => {
-                    mustNot.push({ term: { state: WORKFLOW_STATE.SPIKED } })
+                    mustNot.push({term: {state: WORKFLOW_STATE.SPIKED}});
                 },
             },
             {
@@ -150,8 +153,9 @@ const query = ({
                             lenient: false,
                             default_operator: 'AND',
                         },
-                    }
-                    must.push(queryString)
+                    };
+
+                    must.push(queryString);
                 },
             },
             {
@@ -175,7 +179,7 @@ const query = ({
                                 },
                             },
                         },
-                    })
+                    });
                 },
             },
             {
@@ -199,104 +203,109 @@ const query = ({
                                 },
                             },
                         },
-                    })
+                    });
                 },
             },
             {
                 condition: () => (get(advancedSearch, 'dates')),
                 do: () => {
-                    let fieldName = '_planning_schedule.scheduled'
-                    let range = {}
-                    range[fieldName] = { time_zone: getTimeZoneOffset() }
-                    let rangeType = get(advancedSearch, 'dates.range')
+                    let fieldName = '_planning_schedule.scheduled';
+                    let range = {};
+
+                    range[fieldName] = {time_zone: getTimeZoneOffset()};
+                    let rangeType = get(advancedSearch, 'dates.range');
 
                     if (rangeType === 'today') {
-                        range[fieldName].gte = 'now/d'
-                        range[fieldName].lt = 'now+24h/d'
+                        range[fieldName].gte = 'now/d';
+                        range[fieldName].lt = 'now+24h/d';
                     } else if (rangeType === 'last24') {
-                        range[fieldName].gte = 'now-24h'
-                        range[fieldName].lt = 'now'
+                        range[fieldName].gte = 'now-24h';
+                        range[fieldName].lt = 'now';
                     } else if (rangeType === 'week') {
-                        range[fieldName].gte = 'now/w'
-                        range[fieldName].lt = 'now+1w/w'
+                        range[fieldName].gte = 'now/w';
+                        range[fieldName].lt = 'now+1w/w';
                     } else {
                         if (get(advancedSearch, 'dates.start')) {
-                            range[fieldName].gte = get(advancedSearch, 'dates.start')
+                            range[fieldName].gte = get(advancedSearch, 'dates.start');
                         }
 
                         if (get(advancedSearch, 'dates.end')) {
-                            range[fieldName].lte = get(advancedSearch, 'dates.end')
+                            range[fieldName].lte = get(advancedSearch, 'dates.end');
                         }
                     }
 
                     must.push({
                         nested: {
                             path: '_planning_schedule',
-                            query: { bool: { must: [{ range: range }] } },
+                            query: {bool: {must: [{range: range}]}},
                         },
-                    })
+                    });
                 },
             },
             {
                 condition: () => (advancedSearch.slugline),
                 do: () => {
-                    let query = { bool: { should: [] } }
-                    let queryText = sanitizeTextForQuery(advancedSearch.slugline)
+                    let query = {bool: {should: []}};
+                    let queryText = sanitizeTextForQuery(advancedSearch.slugline);
                     let queryString = {
                         query_string: {
                             query: 'slugline:(' + queryText + ')',
                             lenient: false,
                             default_operator: 'AND',
                         },
-                    }
-                    query.bool.should.push(queryString)
-                    queryString = cloneDeep(queryString)
-                    queryString.query_string.query = 'coverages.planning.slugline:(' + queryText + ')' // jscs: disable
+                    };
+
+                    query.bool.should.push(queryString);
+                    queryString = cloneDeep(queryString);
+                    queryString.query_string.query = 'coverages.planning.slugline:(' + queryText + ')'; // jscs: disable
 
                     if (!advancedSearch.noCoverage) {
                         query.bool.should.push({
                             nested: {
                                 path: 'coverages',
-                                query: { bool: { must: [queryString] } },
+                                query: {bool: {must: [queryString]}},
                             },
-                        })
+                        });
                     }
 
-                    must.push(query)
+                    must.push(query);
                 },
             },
             {
                 condition: () => (Array.isArray(advancedSearch.anpa_category) &&
                 advancedSearch.anpa_category.length > 0),
                 do: () => {
-                    const codes = advancedSearch.anpa_category.map((cat) => cat.qcode)
-                    must.push({ terms: { 'anpa_category.qcode': codes } })
+                    const codes = advancedSearch.anpa_category.map((cat) => cat.qcode);
+
+                    must.push({terms: {'anpa_category.qcode': codes}});
                 },
             },
             {
                 condition: () => (Array.isArray(advancedSearch.subject) &&
                 advancedSearch.subject.length > 0),
                 do: () => {
-                    const codes = advancedSearch.subject.map((subject) => subject.qcode)
-                    must.push({ terms: { 'subject.qcode': codes } })
+                    const codes = advancedSearch.subject.map((subject) => subject.qcode);
+
+                    must.push({terms: {'subject.qcode': codes}});
                 },
             },
             {
                 condition: () => (advancedSearch.urgency),
                 do: () => {
-                    must.push({ term: { urgency: advancedSearch.urgency } })
+                    must.push({term: {urgency: advancedSearch.urgency}});
                 },
             },
             {
                 condition: () => (advancedSearch.g2_content_type),
                 do: () => {
-                    let term = { 'coverages.planning.g2_content_type': advancedSearch.g2_content_type } // jscs:ignore maximumLineLength
+                    let term = {'coverages.planning.g2_content_type': advancedSearch.g2_content_type}; // jscs:ignore maximumLineLength
+
                     must.push({
                         nested: {
                             path: 'coverages',
-                            query: { bool: { must: [{ term: term }] } },
+                            query: {bool: {must: [{term: term}]}},
                         },
-                    })
+                    });
                 },
             },
             {
@@ -310,21 +319,21 @@ const query = ({
                     mustNot.push({
                         nested: {
                             path: 'coverages',
-                            query: { bool: { must: [noCoverageTerm] } },
+                            query: {bool: {must: [noCoverageTerm]}},
                         },
-                    })
+                    });
                 },
             },
         ].forEach((action) => {
             if (!eventIds && action.condition()) {
-                action.do()
+                action.do();
             }
-        })
+        });
 
         query.bool = {
             must,
             must_not: mustNot,
-        }
+        };
 
         let sort = [
             {
@@ -344,10 +353,10 @@ const query = ({
                     },
                 },
             },
-        ]
+        ];
 
         if (eventIds) {
-            sort = [{ _planning_date: { order: 'asc' } }]
+            sort = [{_planning_date: {order: 'asc'}}];
         }
 
         // Query the API
@@ -357,19 +366,19 @@ const query = ({
                 query,
                 sort,
             }),
-            embedded: { original_creator: 1 }, // Nest creator to planning
+            embedded: {original_creator: 1}, // Nest creator to planning
             timestamp: new Date(),
         })
-        .then((data) => {
-            if (get(data, '_items')) {
-                data._items.forEach(planningUtils.convertCoveragesGenreToObject)
-                return Promise.resolve(data._items)
-            } else {
-                return Promise.reject('Failed to retrieve items')
-            }
-        }, (error) => (Promise.reject(error)))
+            .then((data) => {
+                if (get(data, '_items')) {
+                    data._items.forEach(planningUtils.convertCoveragesGenreToObject);
+                    return Promise.resolve(data._items);
+                } else {
+                    return Promise.reject('Failed to retrieve items');
+                }
+            }, (error) => (Promise.reject(error)));
     }
-)
+);
 
 /**
  * Action dispatcher for requesting a fetch of planning items
@@ -378,48 +387,48 @@ const query = ({
  * @param {object} params - Parameters used when fetching the planning items
  * @return Promise
  */
-const fetch = (params={}) => (
+const fetch = (params = {}) => (
     (dispatch) => (
         dispatch(self.query(params))
-        .then((items) => (
-            dispatch(self.fetchPlanningsEvents(items))
-            .then(() => {
-                dispatch(self.receivePlannings(items))
-                return Promise.resolve(items)
-            }, (error) => (Promise.reject(error)))
-        ), (error) => {
-            dispatch(self.receivePlannings([]))
-            return Promise.reject(error)
-        })
+            .then((items) => (
+                dispatch(self.fetchPlanningsEvents(items))
+                    .then(() => {
+                        dispatch(self.receivePlannings(items));
+                        return Promise.resolve(items);
+                    }, (error) => (Promise.reject(error)))
+            ), (error) => {
+                dispatch(self.receivePlannings([]));
+                return Promise.reject(error);
+            })
     )
-)
+);
 
 /**
  * Action Dispatcher to re-fetch the current list of planning
  * It achieves this by performing a fetch using the params from
  * the store value `planning.lastRequestParams`
  */
-const refetch = (page=1, plannings=[]) => (
+const refetch = (page = 1, plannings = []) => (
     (dispatch, getState) => {
-        const prevParams = selectors.getPreviousPlanningRequestParams(getState())
+        const prevParams = selectors.getPreviousPlanningRequestParams(getState());
         let params = {
             ...selectors.getPlanningFilterParams(getState()),
             page,
-        }
+        };
 
         return dispatch(self.query(params))
-        .then((items) => {
-            plannings = plannings.concat(items)
-            page++
-            if (get(prevParams, 'page', 1) >= page) {
-                return dispatch(self.refetch(page, plannings))
-            }
+            .then((items) => {
+                plannings = plannings.concat(items);
+                page++;
+                if (get(prevParams, 'page', 1) >= page) {
+                    return dispatch(self.refetch(page, plannings));
+                }
 
-            dispatch(self.receivePlannings(plannings))
-            return Promise.resolve(plannings)
-        }, (error) => (Promise.reject(error)))
+                dispatch(self.receivePlannings(plannings));
+                return Promise.resolve(plannings);
+            }, (error) => (Promise.reject(error)));
     }
-)
+);
 
 /**
  * Action dispatcher to fetch Events associated with Planning items
@@ -429,22 +438,22 @@ const refetch = (page=1, plannings=[]) => (
  */
 const fetchPlanningsEvents = (plannings) => (
     (dispatch, getState) => {
-        const loadedEvents = selectors.getEvents(getState())
+        const loadedEvents = selectors.getEvents(getState());
         const linkedEvents = plannings
-        .map((p) => p.event_item)
-        .filter((eid) => (
-            eid && !has(loadedEvents, eid)
-        ))
+            .map((p) => p.event_item)
+            .filter((eid) => (
+                eid && !has(loadedEvents, eid)
+            ));
 
         // load missing events, if there are any
         if (get(linkedEvents, 'length', 0) > 0) {
             return dispatch(actions.events.api.silentlyFetchEventsById(linkedEvents,
-                SPIKED_STATE.BOTH))
+                SPIKED_STATE.BOTH));
         }
 
-        return Promise.resolve([])
+        return Promise.resolve([]);
     }
-)
+);
 
 /**
  * Action Dispatcher that fetches a Planning Item by ID
@@ -455,28 +464,29 @@ const fetchPlanningsEvents = (plannings) => (
  * @param {boolean} force - Force using the API instead of local store
  * @return Promise
  */
-const fetchPlanningById = (pid, force=false) => (
-    (dispatch, getState, { api }) => {
+const fetchPlanningById = (pid, force = false) => (
+    (dispatch, getState, {api}) => {
         // Test if the Planning item is already loaded into the store
         // If so, return that instance instead
-        const storedPlannings = selectors.getStoredPlannings(getState())
+        const storedPlannings = selectors.getStoredPlannings(getState());
+
         if (has(storedPlannings, pid) && !force) {
-            return Promise.resolve(storedPlannings[pid])
+            return Promise.resolve(storedPlannings[pid]);
         }
 
         return api('planning').getById(pid)
-        .then((item) => (
-            dispatch(self.fetchPlanningsEvents([planningUtils.convertCoveragesGenreToObject(item)]))
-            .then(() => {
-                dispatch(self.receivePlannings([item]))
-                return Promise.resolve(item)
-            }, (error) => (Promise.reject(error)))
-        ), (error) => {
-            dispatch(self.receivePlannings([]))
-            return Promise.reject(error)
-        })
+            .then((item) => (
+                dispatch(self.fetchPlanningsEvents([planningUtils.convertCoveragesGenreToObject(item)]))
+                    .then(() => {
+                        dispatch(self.receivePlannings([item]));
+                        return Promise.resolve(item);
+                    }, (error) => (Promise.reject(error)))
+            ), (error) => {
+                dispatch(self.receivePlannings([]));
+                return Promise.reject(error);
+            });
     }
-)
+);
 
 /**
  * Action Dispatcher to fetch planning history from the server
@@ -485,19 +495,19 @@ const fetchPlanningById = (pid, force=false) => (
  * @return arrow function
  */
 const fetchPlanningHistory = (currentPlanningId) => (
-    (dispatch, getState, { api }) => (
+    (dispatch, getState, {api}) => (
         // Query the API and sort by created
         api('planning_history').query({
-            where: { planning_id: currentPlanningId },
+            where: {planning_id: currentPlanningId},
             max_results: 200,
             sort: '[(\'_created\', 1)]',
         })
-        .then(data => {
-            dispatch(self.receivePlanningHistory(data._items))
-            return Promise.resolve(data)
-        }, (error) => (Promise.reject(error)))
+            .then((data) => {
+                dispatch(self.receivePlanningHistory(data._items));
+                return Promise.resolve(data);
+            }, (error) => (Promise.reject(error)))
     )
-)
+);
 
 /**
  * Action to receive the history of actions on planning item
@@ -507,7 +517,7 @@ const fetchPlanningHistory = (currentPlanningId) => (
 const receivePlanningHistory = (planningHistoryItems) => ({
     type: PLANNING.ACTIONS.RECEIVE_PLANNING_HISTORY,
     payload: planningHistoryItems,
-})
+});
 
 /**
  * Action dispatcher to load a Planning item from the API, and place them
@@ -516,18 +526,18 @@ const receivePlanningHistory = (planningHistoryItems) => ({
  * @param {boolean} saveToStore - If true, save the Planning item in the Redux store
  * @return Promise
  */
-const loadPlanning = (query, saveToStore=true) => (
+const loadPlanning = (query, saveToStore = true) => (
     (dispatch) => (
         dispatch(self.query(query))
-        .then((data) => {
-            if (saveToStore) {
-                dispatch(self.receivePlannings(data))
-            }
+            .then((data) => {
+                if (saveToStore) {
+                    dispatch(self.receivePlannings(data));
+                }
 
-            return Promise.resolve(data)
-        }, (error) => (Promise.reject(error)))
+                return Promise.resolve(data);
+            }, (error) => (Promise.reject(error)))
     )
-)
+);
 
 /**
  * Action dispatcher to load Planning items by ID from the API, and place them
@@ -537,26 +547,26 @@ const loadPlanning = (query, saveToStore=true) => (
  * @param {boolean} saveToStore - If true, save the Planning item in the Redux store
  * @return Promise
  */
-const loadPlanningById = (ids=[], spikeState = SPIKED_STATE.BOTH, saveToStore=true) => (
-    (dispatch, getState, { api }) => {
+const loadPlanningById = (ids = [], spikeState = SPIKED_STATE.BOTH, saveToStore = true) => (
+    (dispatch, getState, {api}) => {
         if (Array.isArray(ids)) {
             return dispatch(self.loadPlanning({
                 ids,
                 spikeState,
-            }))
+            }));
         } else {
             return api('planning').getById(ids)
-            .then((item) => {
-                planningUtils.convertCoveragesGenreToObject(item)
-                if (saveToStore) {
-                    dispatch(self.receivePlannings([item]))
-                }
+                .then((item) => {
+                    planningUtils.convertCoveragesGenreToObject(item);
+                    if (saveToStore) {
+                        dispatch(self.receivePlannings([item]));
+                    }
 
-                return Promise.resolve([item])
-            }, (error) => (Promise.reject(error)))
+                    return Promise.resolve([item]);
+                }, (error) => (Promise.reject(error)));
         }
     }
-)
+);
 
 /**
  * Action dispatcher to load Planning items by Event ID from the API, and place them
@@ -565,41 +575,41 @@ const loadPlanningById = (ids=[], spikeState = SPIKED_STATE.BOTH, saveToStore=tr
  * @param {boolean} loadToStore - If true, save the Planning Items to the Redux Store
  * @return Promise
  */
-const loadPlanningByEventId = (eventIds, loadToStore=true) => (
-    (dispatch, getState, { api }) => (
+const loadPlanningByEventId = (eventIds, loadToStore = true) => (
+    (dispatch, getState, {api}) => (
         api('planning').query({
             source: JSON.stringify(
                 Array.isArray((eventIds)) ?
-                    { query: { terms: { event_item: eventIds } } } :
-                    { query: { term: { event_item: eventIds } } }
+                    {query: {terms: {event_item: eventIds}}} :
+                    {query: {term: {event_item: eventIds}}}
             ),
         })
-        .then((data) => {
-            if (loadToStore) {
-                dispatch(self.receivePlannings(data._items))
-            }
+            .then((data) => {
+                if (loadToStore) {
+                    dispatch(self.receivePlannings(data._items));
+                }
 
-            return Promise.resolve(data._items)
-        }, (error) => Promise.reject(error))
+                return Promise.resolve(data._items);
+            }, (error) => Promise.reject(error))
     )
-)
+);
 
-const loadPlanningByRecurrenceId = (recurrenceId, loadToStore=true) => (
-    (dispatch, getState, { api }) => (
+const loadPlanningByRecurrenceId = (recurrenceId, loadToStore = true) => (
+    (dispatch, getState, {api}) => (
         api('planning').query({
             source: JSON.stringify(
-                { query: { term: { recurrence_id: recurrenceId } } }
+                {query: {term: {recurrence_id: recurrenceId}}}
             ),
         })
-        .then((data) => {
-            if (loadToStore) {
-                dispatch(self.receivePlannings(data._items))
-            }
+            .then((data) => {
+                if (loadToStore) {
+                    dispatch(self.receivePlannings(data._items));
+                }
 
-            return Promise.resolve(data._items)
-        }, (error) => Promise.reject(error))
+                return Promise.resolve(data._items);
+            }, (error) => Promise.reject(error))
     )
-)
+);
 
 /**
  * Action dispatcher to query the API for all Planning items
@@ -607,18 +617,18 @@ const loadPlanningByRecurrenceId = (recurrenceId, loadToStore=true) => (
  * @return Array of locked Planning items
  */
 const queryLockedPlanning = () => (
-    (dispatch, getState, { api }) => (
+    (dispatch, getState, {api}) => (
         api('planning').query({
             source: JSON.stringify(
-                { query: { constant_score: { filter: { exists: { field: 'lock_session' } } } } }
+                {query: {constant_score: {filter: {exists: {field: 'lock_session'}}}}}
             ),
         })
-        .then(
-            (data) => Promise.resolve(data._items),
-            (error) => Promise.reject(error)
-        )
+            .then(
+                (data) => Promise.resolve(data._items),
+                (error) => Promise.reject(error)
+            )
     )
-)
+);
 
 /**
  * Action Dispatcher to get a single Planning item
@@ -628,20 +638,21 @@ const queryLockedPlanning = () => (
  * @param {string} planId - The ID of the Planning item to retrieve
  * @param {boolean} saveToStore - If true, save the Planning item in the Redux store
  */
-const getPlanning = (planId, saveToStore=true) => (
+const getPlanning = (planId, saveToStore = true) => (
     (dispatch, getState) => {
-        const plannings = selectors.getStoredPlannings(getState())
+        const plannings = selectors.getStoredPlannings(getState());
+
         if (planId in plannings) {
-            return Promise.resolve(plannings[planId])
+            return Promise.resolve(plannings[planId]);
         }
 
         return dispatch(self.loadPlanningById(planId, SPIKED_STATE.BOTH, saveToStore))
-        .then(
-            (items) => Promise.resolve(items[0]),
-            (error) => Promise.reject(error)
-        )
+            .then(
+                (items) => Promise.resolve(items[0]),
+                (error) => Promise.reject(error)
+            );
     }
-)
+);
 
 /**
  * Saves a Planning Item
@@ -650,36 +661,36 @@ const getPlanning = (planId, saveToStore=true) => (
  * @param {object} original - If supplied, will use this as the original Planning item
  * @return Promise
  */
-const save = (item, original=undefined) => (
-    (dispatch, getState, { api }) => {
+const save = (item, original = undefined) => (
+    (dispatch, getState, {api}) => {
         // remove all properties starting with _,
         // otherwise it will fail for "unknown field" with `_type`
-        item = pickBy(item, (v, k) => (k === '_id' || !k.startsWith('_')))
+        item = pickBy(item, (v, k) => (k === '_id' || !k.startsWith('_')));
 
         // remove nested original creator
-        delete item.original_creator
+        delete item.original_creator;
 
         if (item.agendas) {
-            item.agendas = item.agendas.map((agenda) => agenda._id || agenda)
+            item.agendas = item.agendas.map((agenda) => agenda._id || agenda);
         }
 
         get(item, 'coverages', []).forEach((coverage) => {
             // Convert genre back to an Array
             if (get(coverage, 'planning.genre')) {
-                coverage.planning.genre = [coverage.planning.genre]
+                coverage.planning.genre = [coverage.planning.genre];
             }
-        })
+        });
 
         // Find the original (if it exists) either from the store or the API
         return new Promise((resolve, reject) => {
             if (original !== undefined) {
-                return resolve(original)
+                return resolve(original);
             } else if (get(item, '_id')) {
                 return dispatch(self.fetchPlanningById(item._id))
-                .then(
-                    (item) => resolve(item),
-                    (error) => reject(error)
-                )
+                    .then(
+                        (item) => resolve(item),
+                        (error) => reject(error)
+                    );
             } else if (get(item, 'coverages.length', 0) > 0) {
                 // If the new Planning item has coverages then we need to create
                 // the planning first before saving the coverages
@@ -690,23 +701,23 @@ const save = (item, original=undefined) => (
                     ...item,
                     coverages: [],
                 })
-                .then(
-                    (newItem) => resolve(newItem),
-                    (error) => reject(error)
-                )
+                    .then(
+                        (newItem) => resolve(newItem),
+                        (error) => reject(error)
+                    );
             } else {
-                return resolve({})
+                return resolve({});
             }
         })
-        .then((originalItem) => (
-            api('planning').save(cloneDeep(originalItem), item)
-            .then(
-                (item) => (Promise.resolve(item)),
-                (error) => (Promise.reject(error))
-            )
-        ), (error) => Promise.reject(error))
+            .then((originalItem) => (
+                api('planning').save(cloneDeep(originalItem), item)
+                    .then(
+                        (item) => (Promise.resolve(item)),
+                        (error) => (Promise.reject(error))
+                    )
+            ), (error) => Promise.reject(error));
     }
-)
+);
 
 /**
  * Saves the supplied planning item and reload the
@@ -723,71 +734,71 @@ const saveAndReloadCurrentAgenda = (item) => (
         new Promise((resolve, reject) => {
             if (get(item, '_id')) {
                 return dispatch(self.fetchPlanningById(item._id))
-                .then(
-                    (item) => (resolve(item)),
-                    (error) => (reject(error))
-                )
+                    .then(
+                        (item) => (resolve(item)),
+                        (error) => (reject(error))
+                    );
             } else {
-                return resolve({})
+                return resolve({});
             }
         })
-        .then((originalItem) => {
-            if (isEqual(originalItem, {})) {
-                const currentAgenda = selectors.getCurrentAgenda(getState())
-                const currentAgendaId = selectors.getCurrentAgendaId(getState())
-                const errorMessage = { data: {} }
+            .then((originalItem) => {
+                if (isEqual(originalItem, {})) {
+                    const currentAgenda = selectors.getCurrentAgenda(getState());
+                    const currentAgendaId = selectors.getCurrentAgendaId(getState());
+                    const errorMessage = {data: {}};
 
-                if (!currentAgendaId) {
-                    errorMessage.data._message = 'No Agenda is currently selected.'
-                    return Promise.reject(errorMessage)
-                } else if (currentAgenda && !currentAgenda.is_enabled) {
-                    errorMessage.data._message =
-                        'Cannot create a new planning item in a disabled Agenda.'
-                    return Promise.reject(errorMessage)
+                    if (!currentAgendaId) {
+                        errorMessage.data._message = 'No Agenda is currently selected.';
+                        return Promise.reject(errorMessage);
+                    } else if (currentAgenda && !currentAgenda.is_enabled) {
+                        errorMessage.data._message =
+                        'Cannot create a new planning item in a disabled Agenda.';
+                        return Promise.reject(errorMessage);
+                    }
+
+                    item.agendas = currentAgenda ? [currentAgenda] : [];
                 }
 
-                item.agendas = currentAgenda ? [currentAgenda] : []
-            }
-
-            return dispatch(self.save(item, originalItem))
-            .then(
-                (item) => (Promise.resolve(item)),
-                (error) => (Promise.reject(error))
-            )
-        })
+                return dispatch(self.save(item, originalItem))
+                    .then(
+                        (item) => (Promise.resolve(item)),
+                        (error) => (Promise.reject(error))
+                    );
+            })
     )
-)
+);
 
 const duplicate = (plan) => (
-    (dispatch, getState, { api }) => (
+    (dispatch, getState, {api}) => (
         api('planning_duplicate', plan).save({})
-        .then((items) => {
-            if ('_items' in items) {
-                return Promise.resolve(items._items[0])
-            }
+            .then((items) => {
+                if ('_items' in items) {
+                    return Promise.resolve(items._items[0]);
+                }
 
-            return Promise.resolve(items)
-        }, (error) => (
-            Promise.reject(error)
-        ))
+                return Promise.resolve(items);
+            }, (error) => (
+                Promise.reject(error)
+            ))
     )
-)
+);
 
 /**
  * Set a Planning item as Published
  * @param {string} plan - Planning item
  */
 const publish = (plan) => (
-    (dispatch, getState, { api }) => (
+    (dispatch, getState, {api}) => (
         api.save('planning_publish', {
             planning: plan._id,
             etag: plan._etag,
             pubstatus: PUBLISHED_STATE.USABLE,
         }).then(() => {
-            dispatch(self.fetchPlanningById(plan._id, true))
+            dispatch(self.fetchPlanningById(plan._id, true));
         })
     )
-)
+);
 
 /**
  * Save a Planning item, then Publish it
@@ -796,31 +807,31 @@ const publish = (plan) => (
 const saveAndPublish = (plan) => (
     (dispatch) => (
         dispatch(self.save(plan))
-        .then(
-            (newItem) => (
-                dispatch(self.publish(newItem))
-                .then(
-                    () => (Promise.resolve(newItem)),
-                    (error) => (Promise.reject(error))
-                )
-            ), (error) => (Promise.reject(error))
-        )
+            .then(
+                (newItem) => (
+                    dispatch(self.publish(newItem))
+                        .then(
+                            () => (Promise.resolve(newItem)),
+                            (error) => (Promise.reject(error))
+                        )
+                ), (error) => (Promise.reject(error))
+            )
     )
-)
+);
 
 /**
  * Set a Planning item as not Published
  * @param {string} plan - Planning item ID
  */
 const unpublish = (plan) => (
-    (dispatch, getState, { api }) => (
+    (dispatch, getState, {api}) => (
         api.save('planning_publish', {
             planning: plan._id,
             etag: plan._etag,
             pubstatus: PUBLISHED_STATE.CANCELLED,
         })
     )
-)
+);
 
 /**
  * Save a Planning item then Unpublish it
@@ -829,17 +840,17 @@ const unpublish = (plan) => (
 const saveAndUnpublish = (plan) => (
     (dispatch) => (
         dispatch(self.save(plan))
-        .then(
-            (newItem) => (
-                dispatch(self.unpublish(newItem))
-                .then(
-                    () => Promise.resolve(newItem),
-                    (error) => Promise.reject(error)
-                )
-            ), (error) => Promise.reject(error)
-        )
+            .then(
+                (newItem) => (
+                    dispatch(self.unpublish(newItem))
+                        .then(
+                            () => Promise.resolve(newItem),
+                            (error) => Promise.reject(error)
+                        )
+                ), (error) => Promise.reject(error)
+            )
     )
-)
+);
 
 /**
  * Action for updating the list of planning items in the redux store
@@ -849,7 +860,7 @@ const saveAndUnpublish = (plan) => (
 const receivePlannings = (plannings) => ({
     type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
     payload: plannings,
-})
+});
 
 /**
  * Action dispatcher that attempts to unlock a Planning item through the API
@@ -857,40 +868,40 @@ const receivePlannings = (plannings) => ({
  * @return Promise
  */
 const unlock = (item) => (
-    (dispatch, getState, { api }) => (
+    (dispatch, getState, {api}) => (
         api('planning_unlock', item).save({})
     )
-    .then((item) => {
-        planningUtils.convertCoveragesGenreToObject(item)
-        return Promise.resolve(item)
-    }, (error) => Promise.reject(error))
-)
+        .then((item) => {
+            planningUtils.convertCoveragesGenreToObject(item);
+            return Promise.resolve(item);
+        }, (error) => Promise.reject(error))
+);
 
 /**
  * Action dispatcher that attempts to lock a Planning item through the API
  * @param {object} item - The Planning item to lock
  * @return Promise
  */
-const lock = (planning, lockAction='edit') => (
-    (dispatch, getState, { api }) => {
+const lock = (planning, lockAction = 'edit') => (
+    (dispatch, getState, {api}) => {
         if (lockAction === null ||
             isItemLockedInThisSession(planning, selectors.getSessionDetails(getState()))
         ) {
-            return Promise.resolve(planning)
+            return Promise.resolve(planning);
         }
 
         return api.save(
             'planning_lock',
             {},
-            { lock_action: lockAction },
-            { _id: planning._id }
+            {lock_action: lockAction},
+            {_id: planning._id}
         )
-        .then((item) => {
-            planningUtils.convertCoveragesGenreToObject(item)
-            return Promise.resolve(item)
-        }, (error) => Promise.reject(error))
+            .then((item) => {
+                planningUtils.convertCoveragesGenreToObject(item);
+                return Promise.resolve(item);
+            }, (error) => Promise.reject(error));
     }
-)
+);
 
 const markPlanningCancelled = (plan, reason, coverageState, eventCancellation) => ({
     type: PLANNING.ACTIONS.MARK_PLANNING_CANCELLED,
@@ -900,7 +911,7 @@ const markPlanningCancelled = (plan, reason, coverageState, eventCancellation) =
         coverage_state: coverageState,
         event_cancellation: eventCancellation,
     },
-})
+});
 
 const markCoverageCancelled = (plan, reason, coverageState, ids) => ({
     type: PLANNING.ACTIONS.MARK_COVERAGE_CANCELLED,
@@ -910,7 +921,7 @@ const markCoverageCancelled = (plan, reason, coverageState, ids) => ({
         coverage_state: coverageState,
         ids: ids,
     },
-})
+});
 
 const markPlanningPostponed = (plan, reason) => ({
     type: PLANNING.ACTIONS.MARK_PLANNING_POSTPONED,
@@ -918,7 +929,7 @@ const markPlanningPostponed = (plan, reason) => ({
         planning_item: plan,
         reason,
     },
-})
+});
 
 /**
  * Export selected planning items as a new article
@@ -927,44 +938,45 @@ const markPlanningPostponed = (plan, reason) => ({
  * then it sends it to server.
  */
 function exportAsArticle() {
-    return (dispatch, getState, { api, notify, gettext, superdesk, $interpolate, $location }) => {
-        const state = getState()
-        const sortableItems = []
-        const label = (item) => item.headline || item.slugline || item.description_text
-        const locks = selectors.getLockedItems(state)
+    return (dispatch, getState, {api, notify, gettext, superdesk, $interpolate, $location}) => {
+        const state = getState();
+        const sortableItems = [];
+        const label = (item) => item.headline || item.slugline || item.description_text;
+        const locks = selectors.getLockedItems(state);
 
         state.planning.selectedItems.forEach((id) => {
-            const item = state.planning.plannings[id]
-            const isLocked = planningUtils.isPlanningLocked(item, locks)
-            const isNotForPublication = get(item, 'flags.marked_for_not_publication')
+            const item = state.planning.plannings[id];
+            const isLocked = planningUtils.isPlanningLocked(item, locks);
+            const isNotForPublication = get(item, 'flags.marked_for_not_publication');
 
             if (isLocked || isNotForPublication) {
-                return
+                return;
             }
 
             sortableItems.push({
                 id,
                 label: label(item),
-            })
-        })
+            });
+        });
 
         if (sortableItems.length < state.planning.selectedItems.length) {
-            const count = state.planning.selectedItems.length - sortableItems.length
+            const count = state.planning.selectedItems.length - sortableItems.length;
 
             if (count === 1) {
-                notify.warning(gettext('1 item was not included in the export.'))
+                notify.warning(gettext('1 item was not included in the export.'));
             } else {
-                const message = gettext('{{ count }} items were not included in the export.')
-                notify.warning($interpolate(message)({ count }))
+                const message = gettext('{{ count }} items were not included in the export.');
+
+                notify.warning($interpolate(message)({count}));
             }
         }
 
         if (!sortableItems.length) { // nothing to sort, stop
-            return
+            return;
         }
 
         if (sortableItems.length === 1) { // 1 item to sort - skip it
-            return handleSorted(sortableItems)
+            return handleSorted(sortableItems);
         }
 
         return dispatch(actions.showModal({
@@ -973,29 +985,29 @@ function exportAsArticle() {
                 items: sortableItems,
                 action: handleSorted,
             },
-        }))
+        }));
 
         function handleSorted(sorted) {
             return api.save('planning_export', {
                 desk: state.workspace.currentDeskId,
                 items: sorted.map((item) => item.id),
             })
-            .then((item) => {
-                dispatch(actions.planning.ui.deselectAll())
-                notify.success(gettext('Article was created.'), 5000, {
-                    button: {
-                        label: gettext('Open'),
-                        onClick: () => {
-                            $location.url('/workspace/monitoring')
-                            superdesk.intent('edit', 'item', item)
+                .then((item) => {
+                    dispatch(actions.planning.ui.deselectAll());
+                    notify.success(gettext('Article was created.'), 5000, {
+                        button: {
+                            label: gettext('Open'),
+                            onClick: () => {
+                                $location.url('/workspace/monitoring');
+                                superdesk.intent('edit', 'item', item);
+                            },
                         },
-                    },
-                })
-            }, () => {
-                notify.error(gettext('There was an error when exporting.'))
-            })
+                    });
+                }, () => {
+                    notify.error(gettext('There was an error when exporting.'));
+                });
         }
-    }
+    };
 }
 
 const self = {
@@ -1030,6 +1042,6 @@ const self = {
     loadPlanningByRecurrenceId,
     cancel,
     cancelAllCoverage,
-}
+};
 
-export default self
+export default self;

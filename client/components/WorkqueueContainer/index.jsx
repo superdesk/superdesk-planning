@@ -1,23 +1,24 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { WorkqueueList } from '../../components'
-import { connect } from 'react-redux'
-import * as actions from '../../actions'
-import * as selectors from '../../selectors'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {WorkqueueList} from '../../components';
+import {connect} from 'react-redux';
+import * as actions from '../../actions';
+import * as selectors from '../../selectors';
 
-/*eslint-disable react/no-unused-prop-types*/
+/* eslint-disable react/no-unused-prop-types*/
 class WorkqueueComponent extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
     }
 
     render() {
-        const props = this.props
+        const props = this.props;
+
         return (
             <div>
                 <WorkqueueList {...props} />
             </div>
-        )
+        );
     }
 }
 
@@ -31,18 +32,18 @@ WorkqueueComponent.propTypes = {
     openEventDetails: PropTypes.func,
     closeEventDetails: PropTypes.func,
     toggleEventsList: PropTypes.func,
-}
+};
 
 const mapStateToProps = (state) => ({
     workqueueItems:
     {
-        'Plannings': selectors.getLockedPlannings(state),
-        'Events': selectors.getLockedEvents(state),
+        Plannings: selectors.getLockedPlannings(state),
+        Events: selectors.getLockedEvents(state),
     },
     currentPlanningId: selectors.getCurrentPlanningId(state),
     currentEvent: selectors.getHighlightedEvent(state),
     isEventListShown: selectors.isEventListShown(state),
-})
+});
 
 const mapDispatchToProps = (dispatch) => ({
     closePlanningItem: (planning) => (dispatch(actions.planning.ui.unlockAndCloseEditor(planning))),
@@ -50,11 +51,11 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.planning.ui.openPlanningWithAgenda(planning, agendaId))
     ),
     openEventDetails: (event) => dispatch(actions.events.ui.openEventDetails(event)),
-    closeEventDetails: (event) =>(dispatch(actions.events.ui.unlockAndCloseEditor(event))),
+    closeEventDetails: (event) => (dispatch(actions.events.ui.unlockAndCloseEditor(event))),
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
-})
+});
 
 export const WorkqueueContainer = connect(
     mapStateToProps, mapDispatchToProps
-)(WorkqueueComponent)
-/*eslint-enable*/
+)(WorkqueueComponent);
+/* eslint-enable*/

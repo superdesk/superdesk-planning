@@ -1,14 +1,14 @@
-import React from 'react'
-import { connect } from 'react-redux'
-import { Button } from 'react-bootstrap'
-import PropTypes from 'prop-types'
+import React from 'react';
+import {connect} from 'react-redux';
+import {Button} from 'react-bootstrap';
+import PropTypes from 'prop-types';
 import {
     Modal,
     AssignmentListContainer,
-} from '../index'
-import * as selectors from '../../selectors'
-import { WORKSPACE } from '../../constants'
-import './style.scss'
+} from '../index';
+import * as selectors from '../../selectors';
+import {WORKSPACE} from '../../constants';
+import './style.scss';
 
 
 export function FulFilAssignmentComponent({
@@ -17,15 +17,15 @@ export function FulFilAssignmentComponent({
     currentWorkspace,
     actionInProgress,
 }) {
-    const { newsItem, $scope } = modalProps
+    const {newsItem, $scope} = modalProps;
 
     const handleCancel = () => {
-        handleHide()
-        $scope.reject()
-    }
+        handleHide();
+        $scope.reject();
+    };
 
-    if (currentWorkspace !== WORKSPACE.AUTHORING ) {
-        return null
+    if (currentWorkspace !== WORKSPACE.AUTHORING) {
+        return null;
     }
 
     return (
@@ -42,9 +42,9 @@ export function FulFilAssignmentComponent({
             </Modal.Header>
 
             <Modal.Body>
-                <div className='FulfilAssignment'>
+                <div className="FulfilAssignment">
                     <div>
-                        <div className='metadata-view'>
+                        <div className="metadata-view">
                             <dl>
                                 <dt>Slugline:</dt>
                                 <dd>{newsItem.slugline}</dd>
@@ -61,11 +61,11 @@ export function FulFilAssignmentComponent({
 
             <Modal.Footer>
                 <Button type="button"
-                        disabled={actionInProgress}
-                        onClick={handleCancel}>Cancel</Button>
+                    disabled={actionInProgress}
+                    onClick={handleCancel}>Cancel</Button>
             </Modal.Footer>
         </Modal>
-    )
+    );
 }
 
 FulFilAssignmentComponent.propTypes = {
@@ -76,14 +76,14 @@ FulFilAssignmentComponent.propTypes = {
     }),
     currentWorkspace: PropTypes.string,
     actionInProgress: PropTypes.boolean,
-}
+};
 
 const mapStateToProps = (state) => ({
     currentWorkspace: selectors.getCurrentWorkspace(state),
     actionInProgress: selectors.getModalActionInProgress(state),
-})
+});
 
 export const FulFilAssignmentModal = connect(
     mapStateToProps,
     null
-)(FulFilAssignmentComponent)
+)(FulFilAssignmentComponent);

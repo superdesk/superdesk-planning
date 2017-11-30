@@ -1,16 +1,17 @@
-import { ColoredValueSelectField } from './ColoredValueSelectField/'
-import { getAssignmentPriority } from '../../utils'
-import { connect } from 'react-redux'
+import {ColoredValueSelectField} from './ColoredValueSelectField/';
+import {getAssignmentPriority} from '../../utils';
+import {connect} from 'react-redux';
 
 const mapStateToProps = (state, ownProps) => {
-    let valueObject
+    let valueObject;
+
     if (ownProps.input.value) {
         valueObject = getAssignmentPriority(ownProps.input.value,
-            state.vocabularies.assignment_priority || [])
+            state.vocabularies.assignment_priority || []);
         valueObject = {
             label: valueObject.name,
-            value: { ...valueObject },
-        }
+            value: {...valueObject},
+        };
     }
 
     return {
@@ -24,7 +25,7 @@ const mapStateToProps = (state, ownProps) => {
         label: ownProps.label,
         iconName: 'priority-label',
         clearable: false,
-    }
-}
+    };
+};
 
-export const AssignmentPriorityField = connect(mapStateToProps)(ColoredValueSelectField)
+export const AssignmentPriorityField = connect(mapStateToProps)(ColoredValueSelectField);

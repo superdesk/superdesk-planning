@@ -6,7 +6,7 @@ import * as helpers from '../tests/helpers'
 
 describe('<ItemActionsMenu />', () => {
     it('render', () => {
-        const callback = sinon.spy()
+        const callback = sinon.spy();
         const wrapper = mount(
             <ItemActionsMenu actions={[{
                 label: 'label',
@@ -22,7 +22,8 @@ describe('<ItemActionsMenu />', () => {
     it('doesnt render without actions ', () => {
         const wrapper = mount(
             <ItemActionsMenu actions={[]}/>
-        )
-        expect(wrapper.find('.dropdown__toggle').length).toBe(0)
-    })
-})
+        );
+
+        expect(wrapper.find('.dropdown__toggle').length).toBe(0);
+    });
+});

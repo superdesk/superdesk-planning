@@ -1,24 +1,23 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import './style.scss'
-import { EventUpdateMethodField } from '../fields/index'
-import { Field } from 'redux-form'
-import { RelatedEvents, RelatedPlannings } from '../index'
+import React from 'react';
+import PropTypes from 'prop-types';
+import './style.scss';
+import {EventUpdateMethodField} from '../fields/index';
+import {Field} from 'redux-form';
+import {RelatedEvents, RelatedPlannings} from '../index';
 
 export const UpdateMethodSelection = ({
-        showMethodSelection,
-        updateMethodLabel,
-        relatedPlannings,
-        relatedEvents,
-        dateFormat,
-        action,
-        handleSubmit,
-        showSpace,
-        readOnly,
-    }) => {
-    return (
-        <div>
-            { showMethodSelection &&
+    showMethodSelection,
+    updateMethodLabel,
+    relatedPlannings,
+    relatedEvents,
+    dateFormat,
+    action,
+    handleSubmit,
+    showSpace,
+    readOnly,
+}) => (
+    <div>
+        { showMethodSelection &&
             <form onSubmit={handleSubmit}>
                 <div className="MethodSelect">
                     <span>
@@ -26,43 +25,42 @@ export const UpdateMethodSelection = ({
                     </span>
 
                     <Field name="update_method"
-                           component={EventUpdateMethodField}
-                           readOnly={readOnly}
-                           label={updateMethodLabel}/>
+                        component={EventUpdateMethodField}
+                        readOnly={readOnly}
+                        label={updateMethodLabel}/>
                 </div>
 
-                <button type="submit" style={{ visibility: 'hidden' }}>Submit</button>
+                <button type="submit" style={{visibility: 'hidden'}}>Submit</button>
             </form>}
 
-            { relatedPlannings.length > 0 && (
-                <div>
-                    <div className="sd-alert sd-alert--hollow sd-alert--alert">
-                        <strong>This will also {action} the following planning items</strong>
-                        <RelatedPlannings
-                            plannings={relatedPlannings}
-                            openPlanningItem={true}
-                            short={true} />
-                    </div>
+        { relatedPlannings.length > 0 && (
+            <div>
+                <div className="sd-alert sd-alert--hollow sd-alert--alert">
+                    <strong>This will also {action} the following planning items</strong>
+                    <RelatedPlannings
+                        plannings={relatedPlannings}
+                        openPlanningItem={true}
+                        short={true} />
                 </div>
-            )}
+            </div>
+        )}
 
-            { showMethodSelection && relatedEvents.length > 0 && (
-                <div>
-                    <div className="sd-alert sd-alert--hollow sd-alert--alert">
-                        <strong>This will also {action} the following events</strong>
-                        <RelatedEvents
-                            events={relatedEvents}
-                            dateFormat={dateFormat} />
-                    </div>
+        { showMethodSelection && relatedEvents.length > 0 && (
+            <div>
+                <div className="sd-alert sd-alert--hollow sd-alert--alert">
+                    <strong>This will also {action} the following events</strong>
+                    <RelatedEvents
+                        events={relatedEvents}
+                        dateFormat={dateFormat} />
                 </div>
-            )}
+            </div>
+        )}
 
-            { showSpace && showMethodSelection && relatedPlannings.length === 0 && relatedEvents.length === 0 && (
-                <div className="spacing" />
-            )}
-        </div>
-    )
-}
+        { showSpace && showMethodSelection && relatedPlannings.length === 0 && relatedEvents.length === 0 && (
+            <div className="spacing" />
+        )}
+    </div>
+);
 
 UpdateMethodSelection.defaultProps = {
     relatedPlannings: [],
@@ -70,7 +68,7 @@ UpdateMethodSelection.defaultProps = {
     action: 'affect',
     showSpace: true,
     readOnly: false,
-}
+};
 
 UpdateMethodSelection.propTypes = {
     showMethodSelection: PropTypes.bool,
@@ -82,4 +80,4 @@ UpdateMethodSelection.propTypes = {
     handleSubmit: PropTypes.func.isRequired,
     showSpace: PropTypes.bool,
     readOnly: PropTypes.bool,
-}
+};

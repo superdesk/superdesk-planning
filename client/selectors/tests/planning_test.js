@@ -1,7 +1,7 @@
-import * as selectors from '../index'
-import { cloneDeep } from 'lodash'
-import moment from 'moment'
-import { AGENDA } from '../../constants'
+import * as selectors from '../index';
+import {cloneDeep} from 'lodash';
+import moment from 'moment';
+import {AGENDA} from '../../constants';
 
 describe('selectors', () => {
     const state = {
@@ -58,7 +58,7 @@ describe('selectors', () => {
             },
             showEventDetails: 'event1',
             eventsInList: ['event1', 'event2'],
-            search: { currentSearch: { fulltext: 'event' } },
+            search: {currentSearch: {fulltext: 'event'}},
         },
         planning: {
             onlyFuture: false,
@@ -74,13 +74,13 @@ describe('selectors', () => {
                     state: 'draft',
                     agendas: ['1', '2'],
                 },
-                c: { name: 'plan c' },
+                c: {name: 'plan c'},
                 d: {
                     name: 'plan d',
                     state: 'spiked',
                     agendas: ['1'],
                 },
-                e: { name: 'plan e' },
+                e: {name: 'plan e'},
             },
             planningsInList: ['a', 'b', 'd'],
             currentPlanningId: 'b',
@@ -105,60 +105,68 @@ describe('selectors', () => {
             }],
             currentAgendaId: '1',
         },
-        session: { identity: { _id: 'user1' } },
-    }
+        session: {identity: {_id: 'user1'}},
+    };
 
     it('getCurrentAgenda', () => {
-        let result
-        result = selectors.getCurrentAgenda(state)
-        expect(result).toEqual(state.agenda.agendas[0])
-        const newState = cloneDeep(state)
-        delete newState.agenda.currentAgendaId
-        result = selectors.getCurrentAgenda(newState)
-        expect(result).toEqual(undefined)
-    })
+        let result;
+
+        result = selectors.getCurrentAgenda(state);
+        expect(result).toEqual(state.agenda.agendas[0]);
+        const newState = cloneDeep(state);
+
+        delete newState.agenda.currentAgendaId;
+        result = selectors.getCurrentAgenda(newState);
+        expect(result).toEqual(undefined);
+    });
 
     describe('getFilteredPlanningList', () => {
-        let result
-        let newState
+        let result;
+        let newState;
 
-        const _getPlanningItems = () => (selectors.getFilteredPlanningList(newState))
-        beforeEach(() => { newState = cloneDeep(state) })
+        const _getPlanningItems = () => (selectors.getFilteredPlanningList(newState));
+
+        beforeEach(() => {
+            newState = cloneDeep(state);
+        });
 
         it('without a selected agenda', () => {
-            delete newState.agenda.currentAgendaId
-            newState.planning.planningsInList = []
-            result = _getPlanningItems()
-            expect(result).toEqual([])
-        })
+            delete newState.agenda.currentAgendaId;
+            newState.planning.planningsInList = [];
+            result = _getPlanningItems();
+            expect(result).toEqual([]);
+        });
 
         it('Planning items with no agenda', () => {
-            newState.agenda.currentAgendaId = AGENDA.FILTER.NO_AGENDA_ASSIGNED
-            newState.planning.planningsInList = ['c', 'e']
-            result = _getPlanningItems()
-            expect(result).toEqual([newState.planning.plannings.c, newState.planning.plannings.e])
-        })
-    })
+            newState.agenda.currentAgendaId = AGENDA.FILTER.NO_AGENDA_ASSIGNED;
+            newState.planning.planningsInList = ['c', 'e'];
+            result = _getPlanningItems();
+            expect(result).toEqual([newState.planning.plannings.c, newState.planning.plannings.e]);
+        });
+    });
 
     it('getEventToBeDetailed', () => {
-        const event = selectors.getEventToBeDetailed(state)
-        expect(event._plannings.length).toBe(1)
-        expect(event._plannings[0]._agendas[0].name).toBe('Agenda 1')
-    })
+        const event = selectors.getEventToBeDetailed(state);
+
+        expect(event._plannings.length).toBe(1);
+        expect(event._plannings[0]._agendas[0].name).toBe('Agenda 1');
+    });
 
     it('getDisabledAgendas', () => {
-        const agendas = selectors.getDisabledAgendas(state)
-        expect(agendas.length).toBe(1)
+        const agendas = selectors.getDisabledAgendas(state);
+
+        expect(agendas.length).toBe(1);
         expect(agendas).toEqual([{
             _id: '3',
             name: 'Agenda 3',
             is_enabled: false,
-        }])
-    })
+        }]);
+    });
 
     it('getEnabledAgendas', () => {
-        const agendas = selectors.getEnabledAgendas(state)
-        expect(agendas.length).toBe(2)
+        const agendas = selectors.getEnabledAgendas(state);
+
+        expect(agendas.length).toBe(2);
         expect(agendas).toEqual([
             {
                 _id: '1',
@@ -169,18 +177,19 @@ describe('selectors', () => {
                 name: 'Agenda 2',
                 is_enabled: true,
             },
-        ])
-    })
+        ]);
+    });
 
     it('getEventsOrderedByDay', () => {
-        const events = selectors.getEventsOrderedByDay(state)
+        const events = selectors.getEventsOrderedByDay(state);
+
         expect(events.map((d) => d.date)).toEqual([
             '2099-10-15',
             '2099-10-16',
             '2099-10-17',
-        ])
-        expect(events[0].event._id).toEqual('event1')
-        expect(events[1].event._id).toEqual('event1')
-        expect(events[2].event._id).toEqual('event2')
-    })
-})
+        ]);
+        expect(events[0].event._id).toEqual('event1');
+        expect(events[1].event._id).toEqual('event1');
+        expect(events[2].event._id).toEqual('event2');
+    });
+});

@@ -1,10 +1,10 @@
-import * as selectors from '../../selectors'
-import { WORKFLOW_STATE, EVENTS, MODALS } from '../../constants'
-import { showModal, hideModal } from '../index'
-import eventsApi from './api'
-import eventsUi from './ui'
-import { get } from 'lodash'
-import { getLock } from '../../utils'
+import * as selectors from '../../selectors';
+import {WORKFLOW_STATE, EVENTS, MODALS} from '../../constants';
+import {showModal, hideModal} from '../index';
+import eventsApi from './api';
+import eventsUi from './ui';
+import {get} from 'lodash';
+import {getLock} from '../../utils';
 
 /**
  * Action Event when an Event gets unlocked
@@ -14,19 +14,20 @@ import { getLock } from '../../utils'
 const onEventUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
-            const events = selectors.getEvents(getState())
-            const locks = selectors.getLockedItems(getState())
-            let eventInStore = get(events, data.item, {})
-            const itemLock = getLock(eventInStore, locks)
-            const sessionId = selectors.getSessionDetails(getState()).sessionId
+            const events = selectors.getEvents(getState());
+            const locks = selectors.getLockedItems(getState());
+            let eventInStore = get(events, data.item, {});
+            const itemLock = getLock(eventInStore, locks);
+            const sessionId = selectors.getSessionDetails(getState()).sessionId;
 
             // If this is the event item currently being edited, show popup notification
             if (itemLock !== null &&
                 data.lock_session !== sessionId &&
                 itemLock.session === sessionId
             ) {
-                const user =  selectors.getUsers(getState()).find((u) => u._id === data.user)
-                dispatch(hideModal())
+                const user = selectors.getUsers(getState()).find((u) => u._id === data.user);
+
+                dispatch(hideModal());
                 dispatch(showModal({
                     modalType: MODALS.NOTIFICATION_MODAL,
                     modalProps: {
@@ -34,7 +35,7 @@ const onEventUnlocked = (_e, data) => (
                         body: 'The event you were editing was unlocked by "' +
                             user.display_name + '"',
                     },
-                }))
+                }));
             }
 
             eventInStore = {
@@ -45,54 +46,55 @@ const onEventUnlocked = (_e, data) => (
                 lock_session: null,
                 lock_time: null,
                 _etag: data.etag,
-            }
+            };
 
             dispatch({
                 type: EVENTS.ACTIONS.UNLOCK_EVENT,
-                payload: { event: eventInStore },
-            })
+                payload: {event: eventInStore},
+            });
 
-            return Promise.resolve(eventInStore)
+            return Promise.resolve(eventInStore);
         }
 
-        return Promise.resolve()
+        return Promise.resolve();
     }
-)
+);
 
 const onEventLocked = (_e, data) => (
     (dispatch) => {
         if (data && data.item) {
             return dispatch(eventsApi.getEvent(data.item, false))
-            .then((eventInStore) => {
-                eventInStore = {
-                    ...eventInStore,
-                    lock_action: data.lock_action || 'edit',
-                    lock_user: data.user,
-                    lock_session: data.lock_session,
-                    lock_time: data.lock_time,
-                    _etag: data.etag,
-                }
+                .then((eventInStore) => {
+                    eventInStore = {
+                        ...eventInStore,
+                        lock_action: data.lock_action || 'edit',
+                        lock_user: data.user,
+                        lock_session: data.lock_session,
+                        lock_time: data.lock_time,
+                        _etag: data.etag,
+                    };
 
-                dispatch({
-                    type: EVENTS.ACTIONS.LOCK_EVENT,
-                    payload: { event: eventInStore },
-                })
+                    dispatch({
+                        type: EVENTS.ACTIONS.LOCK_EVENT,
+                        payload: {event: eventInStore},
+                    });
 
-                return Promise.resolve(eventInStore)
-            })
+                    return Promise.resolve(eventInStore);
+                });
         }
 
-        return Promise.resolve()
+        return Promise.resolve();
     }
-)
+);
 
 const onEventSpiked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
             // Just update the event in store with updates and etag
-            const events = selectors.getEvents(getState())
+            const events = selectors.getEvents(getState());
 
-            let eventInStore = get(events, data.item, {})
+            let eventInStore = get(events, data.item, {});
+
             eventInStore = {
                 ...eventInStore,
                 _id: data.item,
@@ -103,26 +105,27 @@ const onEventSpiked = (_e, data) => (
                 state: WORKFLOW_STATE.SPIKED,
                 revert_state: data.revert_state,
                 _etag: data.etag,
-            }
+            };
 
             dispatch({
                 type: EVENTS.ACTIONS.SPIKE_EVENT,
-                payload: { event: eventInStore },
-            })
+                payload: {event: eventInStore},
+            });
 
-            return Promise.resolve(eventInStore)
+            return Promise.resolve(eventInStore);
         }
 
-        return Promise.resolve()
+        return Promise.resolve();
     }
-)
+);
 
 const onEventUnspiked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
-            const events = selectors.getEvents(getState())
+            const events = selectors.getEvents(getState());
 
-            let eventInStore = get(events, data.item, {})
+            let eventInStore = get(events, data.item, {});
+
             eventInStore = {
                 ...eventInStore,
                 _id: data.item,
@@ -133,92 +136,95 @@ const onEventUnspiked = (_e, data) => (
                 state: data.state,
                 revert_state: null,
                 _etag: data.etag,
-            }
+            };
 
             dispatch({
                 type: EVENTS.ACTIONS.UNSPIKE_EVENT,
-                payload: { event: eventInStore },
-            })
+                payload: {event: eventInStore},
+            });
 
-            return Promise.resolve(eventInStore)
+            return Promise.resolve(eventInStore);
         }
 
-        return Promise.resolve()
+        return Promise.resolve();
     }
-)
+);
 
 const onEventCancelled = (e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
-            let events = selectors.getEvents(getState())
+            let events = selectors.getEvents(getState());
+
             if (data.item in events) {
                 dispatch(eventsApi.markEventCancelled(
                     events[data.item],
                     data.reason,
                     data.occur_status
-                ))
+                ));
             }
         }
     }
-)
+);
 
 const onEventRescheduled = (e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            dispatch(eventsUi.refetchEvents())
+            dispatch(eventsUi.refetchEvents());
             dispatch(eventsApi.getEvent(data.item, false))
-            .then((event) => (
-                dispatch({
-                    type: EVENTS.ACTIONS.UNLOCK_EVENT,
-                    payload: { event },
-                })
-            ))
+                .then((event) => (
+                    dispatch({
+                        type: EVENTS.ACTIONS.UNLOCK_EVENT,
+                        payload: {event},
+                    })
+                ));
         }
     }
-)
+);
 
 const onEventPostponed = (e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
-            let events = selectors.getEvents(getState())
+            let events = selectors.getEvents(getState());
+
             if (data.item in events) {
                 dispatch(eventsApi.markEventPostponed(
                     events[data.item],
                     data.reason
-                ))
+                ));
             }
         }
     }
-)
+);
 
 const onEventPublishChanged = (e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
             // Just update the event in store with updates and etag
-            const events = selectors.getEvents(getState())
+            const events = selectors.getEvents(getState());
 
-            let eventInStore = get(events, data.item, {})
+            let eventInStore = get(events, data.item, {});
+
             eventInStore = {
                 ...eventInStore,
                 _id: data.item,
                 state: data.state,
                 pubstatus: data.pubstatus,
                 _etag: data.etag,
-            }
+            };
 
             dispatch({
                 type: data.state === WORKFLOW_STATE.SCHEDULED ?
                     EVENTS.ACTIONS.MARK_EVENT_PUBLISHED :
                     EVENTS.ACTIONS.MARK_EVENT_UNPUBLISHED,
-                payload: { event: eventInStore },
-            })
+                payload: {event: eventInStore},
+            });
 
-            return Promise.resolve(eventInStore)
+            return Promise.resolve(eventInStore);
         }
 
-        return Promise.resolve()
+        return Promise.resolve();
     }
-)
+);
 
 const onRecurringEventSpiked = (e, data) => (
     (dispatch) => {
@@ -229,14 +235,14 @@ const onRecurringEventSpiked = (e, data) => (
                     events: data.items,
                     recurrence_id: data.recurrence_id,
                 },
-            })
+            });
 
-            return Promise.resolve(data.items)
+            return Promise.resolve(data.items);
         }
 
-        return Promise.resolve([])
+        return Promise.resolve([]);
     }
-)
+);
 
 const self = {
     onEventLocked,
@@ -248,7 +254,7 @@ const self = {
     onEventPostponed,
     onEventPublishChanged,
     onRecurringEventSpiked,
-}
+};
 
 // Map of notification name and Action Event to execute
 self.events = {
@@ -262,6 +268,6 @@ self.events = {
     'events:published': () => (self.onEventPublishChanged),
     'events:unpublished': () => (self.onEventPublishChanged),
     'events:spiked:recurring': () => (self.onRecurringEventSpiked),
-}
+};
 
-export default self
+export default self;

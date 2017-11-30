@@ -1,125 +1,127 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
-import { get } from 'lodash'
-import { AssignmentItem } from '../index'
-import { ASSIGNMENTS, UI, WORKSPACE } from '../../constants'
-import * as selectors from '../../selectors'
-import * as actions from '../../actions'
-import './style.scss'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {get} from 'lodash';
+import {AssignmentItem} from '../index';
+import {ASSIGNMENTS, UI, WORKSPACE} from '../../constants';
+import * as selectors from '../../selectors';
+import * as actions from '../../actions';
+import './style.scss';
 
 class AssignmentListComponent extends React.Component {
-
     constructor(props) {
-        super(props)
-        this.state = { isNextPageLoading: false }
+        super(props);
+        this.state = {isNextPageLoading: false};
     }
 
     componentWillUpdate(nextProps) {
         // Bring scrolltop to top if list settings change
         if (this.props.filterBy !== nextProps.filterBy ||
             this.props.orderByField !== nextProps.orderByField ||
-            this.props.orderDirection !== nextProps.orderDirection ) {
-            const scrollContainer = this.refs.assignmentsList
+            this.props.orderDirection !== nextProps.orderDirection) {
+            const scrollContainer = this.refs.assignmentsList;
+
             if (scrollContainer.scrollTop !== 0) {
-                scrollContainer.scrollTop = 0
+                scrollContainer.scrollTop = 0;
             }
         }
     }
 
     componentWillMount() {
-        this.props.loadAssignmentsForGroup(this.props.groupKey)
+        this.props.loadAssignmentsForGroup(this.props.groupKey);
     }
 
     handleScroll(event) {
         if (this.state.isNextPageLoading) {
-            return
+            return;
         }
 
-        const node = event.target
-        if(node && this.props.totalCount > this.props.assignments.length) {
+        const node = event.target;
+
+        if (node && this.props.totalCount > this.props.assignments.length) {
             if (node.scrollTop + node.offsetHeight + 200 >= node.scrollHeight) {
-                this.setState({ isNextPageLoading: true })
+                this.setState({isNextPageLoading: true});
 
                 this.props.loadMoreAssignments(
                     ASSIGNMENTS.LIST_GROUPS[this.props.groupKey].states)
                     .finally(() => {
-                        this.setState({ isNextPageLoading: false })
-                    })
+                        this.setState({isNextPageLoading: false});
+                    });
             }
         }
     }
 
-    getListMaxHeight () {
+    getListMaxHeight() {
         if (this.props.assignmentListSingleGroupView) {
             return UI.ASSIGNMENTS.FULL_LIST_NO_OF_ITEMS *
-                    UI.ASSIGNMENTS.ITEM_HEIGHT
+                    UI.ASSIGNMENTS.ITEM_HEIGHT;
         } else {
-            return UI.ASSIGNMENTS.DEFAULT_NO_OF_ITEMS * UI.ASSIGNMENTS.ITEM_HEIGHT
+            return UI.ASSIGNMENTS.DEFAULT_NO_OF_ITEMS * UI.ASSIGNMENTS.ITEM_HEIGHT;
         }
     }
 
-    rowRenderer({ index }) {
-        const assignment = this.props.assignments[index]
-        const { users, session, currentAssignmentId, privileges } = this.props
-        const assignedUser = users.find((user) => get(assignment, 'assigned_to.user') === user._id)
-        const isCurrentUser = assignedUser && assignedUser._id === session.identity._id
+    rowRenderer({index}) {
+        const assignment = this.props.assignments[index];
+        const {users, session, currentAssignmentId, privileges} = this.props;
+        const assignedUser = users.find((user) => get(assignment, 'assigned_to.user') === user._id);
+        const isCurrentUser = assignedUser && assignedUser._id === session.identity._id;
 
         return (
-                <AssignmentItem
-                    key={assignment._id}
-                    className="assignments-list__item"
-                    assignment={assignment}
-                    isSelected={this.props.selectedAssignments.indexOf(assignment._id) > -1}
-                    onClick={this.props.preview.bind(this, assignment)}
-                    onSelectChange={(value) => this.props.onAssignmentSelectChange({
-                        assignment: assignment._id,
-                        value,
-                    })}
-                    assignedUser={assignedUser}
-                    isCurrentUser={isCurrentUser}
-                    lockedItems={this.props.lockedItems}
-                    session={session}
-                    privileges={privileges}
-                    currentAssignmentId={currentAssignmentId}
-                    reassign={this.props.reassign}
-                    completeAssignment={this.props.completeAssignment}
-                    editAssignmentPriority={this.props.editAssignmentPriority}
-                    inAssignments={this.props.inAssignments}
-                    startWorking={this.props.startWorking}
-                    priorities={this.props.priorities}
-                    removeAssignment={this.props.removeAssignment}
-                />
-        )
+            <AssignmentItem
+                key={assignment._id}
+                className="assignments-list__item"
+                assignment={assignment}
+                isSelected={this.props.selectedAssignments.indexOf(assignment._id) > -1}
+                onClick={this.props.preview.bind(this, assignment)}
+                onSelectChange={(value) => this.props.onAssignmentSelectChange({
+                    assignment: assignment._id,
+                    value,
+                })}
+                assignedUser={assignedUser}
+                isCurrentUser={isCurrentUser}
+                lockedItems={this.props.lockedItems}
+                session={session}
+                privileges={privileges}
+                currentAssignmentId={currentAssignmentId}
+                reassign={this.props.reassign}
+                completeAssignment={this.props.completeAssignment}
+                editAssignmentPriority={this.props.editAssignmentPriority}
+                inAssignments={this.props.inAssignments}
+                startWorking={this.props.startWorking}
+                priorities={this.props.priorities}
+                removeAssignment={this.props.removeAssignment}
+            />
+        );
     }
 
     render() {
-        const { assignments, groupKey, totalCount, changeAssignmentListSingleGroupView, assignmentListSingleGroupView } = this.props
-        const maxHeight = this.getListMaxHeight() + 'px'
+        const {assignments, groupKey, totalCount, changeAssignmentListSingleGroupView, assignmentListSingleGroupView} = this.props;
+        const maxHeight = this.getListMaxHeight() + 'px';
 
         return (
-            <div className='assignments-list'>
-                {!assignmentListSingleGroupView && (<div className='assignments-list__title'>
+            <div className="assignments-list">
+                {!assignmentListSingleGroupView && (<div className="assignments-list__title">
                     <a onClick={changeAssignmentListSingleGroupView.bind(this, groupKey)}>
                         {ASSIGNMENTS.LIST_GROUPS[groupKey].label}</a>
                     <span className="badge">{totalCount}</span>
-                 </div>)}
-                <div className="assignments-list__items" style={{ maxHeight: maxHeight }}
+                </div>)}
+                <div className="assignments-list__items" style={{maxHeight: maxHeight}}
                     onScroll={this.handleScroll.bind(this)}
-                    ref='assignmentsList' >
+                    ref="assignmentsList" >
                     {assignments.map((assignment, index) => {
                         const input = {
                             index: index,
                             key: assignment._id,
-                        }
-                        return this.rowRenderer(input)
+                        };
+
+                        return this.rowRenderer(input);
                     })}
                     { !assignments || assignments.length === 0 &&
                         <p className="assignments-list__empty-msg">There is no assignment yet</p>
                     }
                 </div>
             </div>
-        )
+        );
     }
 }
 
@@ -149,34 +151,35 @@ AssignmentListComponent.propTypes = {
     onAssignmentSelectChange: PropTypes.func.isRequired,
     priorities: PropTypes.array,
     removeAssignment: PropTypes.func,
-}
+};
 
 const getAssignmentsSelectorsForListGroup = (groupKey) => {
+    const groupLabel = ASSIGNMENTS.LIST_GROUPS[groupKey].label;
 
-        const groupLabel = ASSIGNMENTS.LIST_GROUPS[groupKey].label
-        switch (groupLabel) {
-            case ASSIGNMENTS.LIST_GROUPS.TODO.label:
-                return {
-                    assignmentsSelector: (state) => (selectors.getTodoAssignments(state)),
-                    countSelector: (state) => (selectors.getAssignmentsToDoListCount(state)),
-                }
+    switch (groupLabel) {
+    case ASSIGNMENTS.LIST_GROUPS.TODO.label:
+        return {
+            assignmentsSelector: (state) => (selectors.getTodoAssignments(state)),
+            countSelector: (state) => (selectors.getAssignmentsToDoListCount(state)),
+        };
 
-            case ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.label:
-                return {
-                    assignmentsSelector: (state) => (selectors.getInProgressAssignments(state)),
-                    countSelector: (state) => (selectors.getAssignmentsInProgressListCount(state)),
-                }
+    case ASSIGNMENTS.LIST_GROUPS.IN_PROGRESS.label:
+        return {
+            assignmentsSelector: (state) => (selectors.getInProgressAssignments(state)),
+            countSelector: (state) => (selectors.getAssignmentsInProgressListCount(state)),
+        };
 
-            default:
-                return {
-                    assignmentsSelector: (state) => (selectors.getCompletedAssignments(state)),
-                    countSelector: (state) => (selectors.getAssignmentsCompletedListCount(state)),
-                }
-        }
+    default:
+        return {
+            assignmentsSelector: (state) => (selectors.getCompletedAssignments(state)),
+            countSelector: (state) => (selectors.getAssignmentsCompletedListCount(state)),
+        };
     }
+};
 
 const mapStateToProps = (state, ownProps) => {
-    const assignmentDataSelector = getAssignmentsSelectorsForListGroup(ownProps.groupKey)
+    const assignmentDataSelector = getAssignmentsSelectorsForListGroup(ownProps.groupKey);
+
     return {
         filterBy: selectors.getFilterBy(state),
         orderByField: selectors.getOrderByField(state),
@@ -193,8 +196,8 @@ const mapStateToProps = (state, ownProps) => {
         privileges: selectors.getPrivileges(state),
         assignmentListSingleGroupView: selectors.getAssignmentListSingleGroupView(state),
         priorities: selectors.getAssignmentPriorities(state),
-    }
-}
+    };
+};
 
 const mapDispatchToProps = (dispatch) => ({
     preview: (assignment) => dispatch(actions.assignments.ui.preview(assignment)),
@@ -204,6 +207,6 @@ const mapDispatchToProps = (dispatch) => ({
     editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),
     startWorking: (assignment) => dispatch(actions.assignments.ui.openSelectTemplateModal(assignment)),
     removeAssignment: (assignment) => dispatch(actions.assignments.ui.showRemoveAssignmentModal(assignment)),
-})
+});
 
-export const AssignmentList = connect(mapStateToProps, mapDispatchToProps)(AssignmentListComponent)
+export const AssignmentList = connect(mapStateToProps, mapDispatchToProps)(AssignmentListComponent);

@@ -1,5 +1,5 @@
-import { SelectField } from './SelectField'
-import { connect } from 'react-redux'
+import {SelectField} from './SelectField';
+import {connect} from 'react-redux';
 
 const mapStateToProps = (state) => ({
     options: state.vocabularies.eventoccurstatus.map((state) => (
@@ -11,8 +11,8 @@ const mapStateToProps = (state) => ({
     )),
 
     getOptionFromValue: (value, options) => options.find(
-        option => option.key === value.qcode
+        (option) => option.key === value.qcode
     ),
-})
+});
 
-export const OccurStatusField = connect(mapStateToProps)(SelectField)
+export const OccurStatusField = connect(mapStateToProps)(SelectField);

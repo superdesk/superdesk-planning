@@ -1,33 +1,34 @@
-import { pickBy, cloneDeep, get, isEmpty, isNil, isEqual } from 'lodash'
-import moment from 'moment-timezone'
-import * as selectors from '../selectors'
-import { SubmissionError } from 'redux-form'
-import { saveLocation as _saveLocation } from './index'
-import { fetchSelectedAgendaPlannings } from './index'
-import { EventUpdateMethods } from '../components/fields'
-import { EVENTS, SPIKED_STATE, PUBLISHED_STATE } from '../constants'
-import { eventUtils, getErrorMessage, retryDispatch } from '../utils'
+import {pickBy, cloneDeep, get, isEmpty, isNil, isEqual} from 'lodash';
+import moment from 'moment-timezone';
+import * as selectors from '../selectors';
+import {SubmissionError} from 'redux-form';
+import {saveLocation as _saveLocation} from './index';
+import {fetchSelectedAgendaPlannings} from './index';
+import {EventUpdateMethods} from '../components/fields';
+import {EVENTS, SPIKED_STATE, PUBLISHED_STATE} from '../constants';
+import {eventUtils, getErrorMessage, retryDispatch} from '../utils';
 
-import eventsApi from './events/api'
-import eventsUi from './events/ui'
+import eventsApi from './events/api';
+import eventsUi from './events/ui';
 
 const duplicateEvent = (event) => (
     (dispatch) => {
-        var duplicate = null
-        var original = event
-        return dispatch(createDuplicate(event))
-        .then((dup) => {
-            duplicate = dup[0]
+        var duplicate = null;
+        var original = event;
 
-            // On duplicate, backend returns with just _ids for files
-            // Replace them with file media information from original event to be used in editor
-            duplicate.files = event.files
-            dispatch(eventsUi.closeEventDetails(original))
-        })
-        .then(() => dispatch(eventsUi.refetchEvents()))
-        .then(() => dispatch(eventsUi.openEventDetails(duplicate)))
+        return dispatch(createDuplicate(event))
+            .then((dup) => {
+                duplicate = dup[0];
+
+                // On duplicate, backend returns with just _ids for files
+                // Replace them with file media information from original event to be used in editor
+                duplicate.files = event.files;
+                dispatch(eventsUi.closeEventDetails(original));
+            })
+            .then(() => dispatch(eventsUi.refetchEvents()))
+            .then(() => dispatch(eventsUi.openEventDetails(duplicate)));
     }
-)
+);
 
 /**
  * Set event.pubstatus canceled and publish event.
@@ -35,39 +36,39 @@ const duplicateEvent = (event) => (
  * @param {Object} event
  */
 function unpublishEvent(event) {
-    return function (dispatch, getState, { api, notify }) {
+    return function(dispatch, getState, {api, notify}) {
         return api.save('events_publish', {
             event: event._id,
             etag: event._etag,
             pubstatus: PUBLISHED_STATE.CANCELLED,
         })
-        .then(() => {
-            notify.success('The event has been unpublished')
-            dispatch(eventsApi.silentlyFetchEventsById([event._id], SPIKED_STATE.BOTH))
-            dispatch(eventsUi.closeEventDetails())
-        })
-    }
+            .then(() => {
+                notify.success('The event has been unpublished');
+                dispatch(eventsApi.silentlyFetchEventsById([event._id], SPIKED_STATE.BOTH));
+                dispatch(eventsUi.closeEventDetails());
+            });
+    };
 }
 
-const toggleEventSelection = ({ event, value }) => (
+const toggleEventSelection = ({event, value}) => (
     {
         type: value ? EVENTS.ACTIONS.SELECT_EVENTS : EVENTS.ACTIONS.DESELECT_EVENT,
         payload: value ? [event] : event,
     }
-)
+);
 
 const selectAllTheEventList = () => (
-    (dispatch, getState) =>  {
+    (dispatch, getState) => {
         dispatch({
             type: EVENTS.ACTIONS.SELECT_EVENTS,
             payload: selectors.getEventsIdsToShowInList(getState()),
-        })
+        });
     }
-)
+);
 
 const deselectAllTheEventList = () => (
-    { type: EVENTS.ACTIONS.DESELECT_ALL_EVENT }
-)
+    {type: EVENTS.ACTIONS.DESELECT_ALL_EVENT}
+);
 
 /**
  * Action Dispatcher for saving an event
@@ -76,42 +77,43 @@ const deselectAllTheEventList = () => (
  * @return arrow function
  */
 const uploadFilesAndSaveEvent = (event) => {
-    event = cloneDeep(event) || {}
+    event = cloneDeep(event) || {};
     return (dispatch, getState) => (
         dispatch(saveFiles(event))
-        .then((event) => dispatch(saveLocation(event)))
-        .then((event) => dispatch(saveEvent(event)))
+            .then((event) => dispatch(saveLocation(event)))
+            .then((event) => dispatch(saveEvent(event)))
         // we used ids to refer to the files, but we need now file object with metadata
         // before to add them to the events storage
-        .then((events) => (
-            new Promise((resolve) => {
-                const incompleteEvents = events.filter((e) => (
-                    e.files && e.files.length > 0 && typeof e.files[0] === 'string'
-                ))
-                if (incompleteEvents.length > 0) {
-                    dispatch(eventsApi.query({ ids: incompleteEvents.map((i) => (i._id)) }))
-                    .then((e) => resolve(e._items))
-                } else {
-                    resolve(events)
-                }
-            })
-        ))
-        // refresh the list
-        .then((events) => (
-            dispatch(eventsUi.refetchEvents())
-            .then(() => (events))
-        ))
-        // If event was just created, open it in editing mode
-        .then((events) => {
-            if (events.length > 0 && selectors.getShowEventDetails(getState()) === true) {
-                return dispatch(eventsUi.openEventDetails(events[0]))
-                    .then(() => events)
-            }
+            .then((events) => (
+                new Promise((resolve) => {
+                    const incompleteEvents = events.filter((e) => (
+                        e.files && e.files.length > 0 && typeof e.files[0] === 'string'
+                    ));
 
-            return events
-        })
-    )
-}
+                    if (incompleteEvents.length > 0) {
+                        dispatch(eventsApi.query({ids: incompleteEvents.map((i) => (i._id))}))
+                            .then((e) => resolve(e._items));
+                    } else {
+                        resolve(events);
+                    }
+                })
+            ))
+        // refresh the list
+            .then((events) => (
+                dispatch(eventsUi.refetchEvents())
+                    .then(() => (events))
+            ))
+        // If event was just created, open it in editing mode
+            .then((events) => {
+                if (events.length > 0 && selectors.getShowEventDetails(getState()) === true) {
+                    return dispatch(eventsUi.openEventDetails(events[0]))
+                        .then(() => events);
+                }
+
+                return events;
+            })
+    );
+};
 
 /**
  * Action Dispatcher for uploading files
@@ -119,45 +121,47 @@ const uploadFilesAndSaveEvent = (event) => {
  * @return arrow function
  */
 const saveFiles = (newEvent) => {
-    newEvent = cloneDeep(newEvent)
-    const getId = (e) => (e._id)
-    const getIds = (e) => (e.map(getId))
-    return (dispatch, getState, { upload }) => (
+    newEvent = cloneDeep(newEvent);
+    const getId = (e) => (e._id);
+    const getIds = (e) => (e.map(getId));
+
+    return (dispatch, getState, {upload}) => (
         new Promise((resolve) => {
             // if no file, do nothing
             if ((newEvent.files || []).length === 0) {
-                return resolve(newEvent)
+                return resolve(newEvent);
             }
             // files to upload
             const fileFiles = newEvent.files.filter(
                 (f) => ((f instanceof FileList && f.length) || f instanceof Array)
-            )
+            );
             // upload files and link them to the event
+
             return Promise.all(fileFiles.map((file) => (
                 upload.start({
                     method: 'POST',
                     url: getState().config.server.url + '/events_files/',
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                    data: { media: [file] },
+                    headers: {'Content-Type': 'multipart/form-data'},
+                    data: {media: [file]},
                     arrayKey: '',
                     // returns the item
                 }).then((d) => (d.data))
             )))
-            .then((uploadedFiles) => {
-                newEvent.files = [
+                .then((uploadedFiles) => {
+                    newEvent.files = [
                     // reference uploaded files to event
-                    ...getIds(uploadedFiles),
-                    // remove uploaded FileList objects
-                    ...getIds(newEvent.files.filter((f) => (
-                        !isEmpty(f) && fileFiles.indexOf(f) === -1
-                    ))),
-                ]
-                return newEvent
-            })
-            .then(resolve)
+                        ...getIds(uploadedFiles),
+                        // remove uploaded FileList objects
+                        ...getIds(newEvent.files.filter((f) => (
+                            !isEmpty(f) && fileFiles.indexOf(f) === -1
+                        ))),
+                    ];
+                    return newEvent;
+                })
+                .then(resolve);
         })
-    )
-}
+    );
+};
 
 /**
  * Action Dispatcher for saving the location for an event
@@ -168,33 +172,33 @@ const saveLocation = (event) => (
     (dispatch) => {
         // location field was empty, we clear the location
         if (!get(event, 'location[0].name')) {
-            event.location = []
-            return event
+            event.location = [];
+            return event;
         } else if (get(event, 'location[0].existingLocation')) {
             event.location[0] = {
                 name: event.location[0].name,
                 qcode: event.location[0].guid,
                 address: event.location[0].address,
-            }
+            };
 
             if (get(event, 'location[0].address.external')) {
-                delete event.location[0].address.external
+                delete event.location[0].address.external;
             }
 
-            return event
+            return event;
         }
         // the location is set, but doesn't have a qcode (not registered in the location collection)
         else if (get(event, 'location[0]') && isNil(event.location[0].qcode)) {
             return dispatch(_saveLocation(event.location[0]))
-            .then((location) => {
-                event.location[0] = location
-                return event
-            })
+                .then((location) => {
+                    event.location[0] = location;
+                    return event;
+                });
         } else {
-            return event
+            return event;
         }
     }
-)
+);
 
 /**
  * Action Dispatcher to create or save an event
@@ -204,23 +208,24 @@ const saveLocation = (event) => (
  * @return arrow function
  */
 const saveEvent = (newEvent) => (
-    (dispatch, getState, { api, notify }) => {
+    (dispatch, getState, {api, notify}) => {
         // remove links if it contains only null values
         if (newEvent.links && newEvent.links.length > 0) {
-            newEvent.links = newEvent.links.filter((l) => (l))
+            newEvent.links = newEvent.links.filter((l) => (l));
             if (!newEvent.links.length) {
-                delete newEvent.links
+                delete newEvent.links;
             }
         }
         // retrieve original
-        let original = selectors.getEvents(getState())[newEvent._id]
+        let original = selectors.getEvents(getState())[newEvent._id];
         // clone the original because `save` will modify it
-        original = cloneDeep(original) || {}
-        newEvent = cloneDeep(newEvent) || {}
+
+        original = cloneDeep(original) || {};
+        newEvent = cloneDeep(newEvent) || {};
 
         // save the timezone. This is useful for recurring events
         if (newEvent.dates) {
-            newEvent.dates.tz = moment.tz.guess()
+            newEvent.dates.tz = moment.tz.guess();
         }
 
         // remove all properties starting with _,
@@ -228,21 +233,21 @@ const saveEvent = (newEvent) => (
         newEvent = pickBy(newEvent, (v, k) => (
             !k.startsWith('_') &&
             !isEqual(newEvent[k], original[k])
-        ))
+        ));
 
-        newEvent.update_method = get(newEvent, 'update_method.value', EventUpdateMethods[0].value)
+        newEvent.update_method = get(newEvent, 'update_method.value', EventUpdateMethods[0].value);
 
         // send the event on the backend
         return api('events').save(original, newEvent)
         // return a list of events (can has several because of reccurence)
-        .then(data => (
-            data._items || [data]
-        ), (error) => {
-            notify.error('An error occured')
-            throw new SubmissionError({ _error: error.statusText })
-        })
+            .then((data) => (
+                data._items || [data]
+            ), (error) => {
+                notify.error('An error occured');
+                throw new SubmissionError({_error: error.statusText});
+            });
     }
-)
+);
 
 /**
  * Action Dispatcher to create a duplicate of the passed event
@@ -251,17 +256,17 @@ const saveEvent = (newEvent) => (
  * @return arrow function
  */
 const createDuplicate = (event) => (
-    (dispatch, getState, { api, notify }) => (
+    (dispatch, getState, {api, notify}) => (
         api('events_duplicate', event).save({})
-        .then(data => {
-            notify.success('The event has been duplicated')
-            return data._items || [data]
-        }, (error) => {
-            notify.error('An error occured when duplicating the event')
-            throw new SubmissionError({ _error: error.statusText })
-        })
+            .then((data) => {
+                notify.success('The event has been duplicated');
+                return data._items || [data];
+            }, (error) => {
+                notify.error('An error occured when duplicating the event');
+                throw new SubmissionError({_error: error.statusText});
+            })
     )
-)
+);
 
 /**
  * Action Dispatcher to fetch events from the server
@@ -270,47 +275,48 @@ const createDuplicate = (event) => (
  * @param {object} params - Query parameters to send to the server
  * @return arrow function
  */
-const fetchEvents = (params={
+const fetchEvents = (params = {
     spikeState: SPIKED_STATE.NOT_SPIKED,
     page: 1,
 }) => (
-    (dispatch, getState, { $timeout, $location }) => {
+    (dispatch, getState, {$timeout, $location}) => {
         dispatch({
             type: EVENTS.ACTIONS.REQUEST_EVENTS,
             payload: params,
-        })
+        });
 
         return dispatch(eventsApi.query(params))
-        .then(data => {
-            dispatch(eventsApi.receiveEvents(data._items))
-            dispatch(eventsUi.setEventsList(data._items.map((e) => e._id)))
-            // update the url (deep linking)
-            $timeout(() => (
-                $location.search('searchEvent', JSON.stringify(params)), 0, false)
-            )
-            return data
-        })
+            .then((data) => {
+                dispatch(eventsApi.receiveEvents(data._items));
+                dispatch(eventsUi.setEventsList(data._items.map((e) => e._id)));
+                // update the url (deep linking)
+                $timeout(() => (
+                    $location.search('searchEvent', JSON.stringify(params)), 0, false)
+                );
+                return data;
+            });
     }
-)
+);
 
 /** Action factory that fetchs the next page of the previous request */
 function loadMoreEvents() {
     return (dispatch, getState) => {
-        const previousParams = selectors.getPreviousEventRequestParams(getState())
+        const previousParams = selectors.getPreviousEventRequestParams(getState());
         const params = {
             ...previousParams,
             page: previousParams.page + 1,
-        }
+        };
+
         dispatch({
             type: EVENTS.ACTIONS.REQUEST_EVENTS,
             payload: params,
-        })
+        });
         return dispatch(eventsApi.query(params))
-        .then(data => {
-            dispatch(eventsApi.receiveEvents(data._items))
-            dispatch(addToEventsList(data._items.map((e) => e._id)))
-        })
-    }
+            .then((data) => {
+                dispatch(eventsApi.receiveEvents(data._items));
+                dispatch(addToEventsList(data._items.map((e) => e._id)));
+            });
+    };
 }
 
 /**
@@ -319,20 +325,20 @@ function loadMoreEvents() {
  * @param {string} _id - The ID of the Event to fetch
  */
 const fetchEventById = (_id) => (
-    (dispatch, getState, { api, notify }) => (
+    (dispatch, getState, {api, notify}) => (
         api('events').getById(_id)
-        .then((event) => {
-            dispatch(eventsApi.receiveEvents([event]))
-            dispatch(addToEventsList([event._id]))
-            return Promise.resolve(event)
-        }, (error) => {
-            notify.error(getErrorMessage(
-                error,
-                'Failed to fetch an Event!'
-            ))
-        })
+            .then((event) => {
+                dispatch(eventsApi.receiveEvents([event]));
+                dispatch(addToEventsList([event._id]));
+                return Promise.resolve(event);
+            }, (error) => {
+                notify.error(getErrorMessage(
+                    error,
+                    'Failed to fetch an Event!'
+                ));
+            })
     )
-)
+);
 
 /**
  * Action to add events to the current list
@@ -343,7 +349,7 @@ const fetchEventById = (_id) => (
 const addToEventsList = (eventsIds) => ({
     type: EVENTS.ACTIONS.ADD_TO_EVENTS_LIST,
     payload: eventsIds,
-})
+});
 
 /**
  * Action to receive the history of actions on Event and store them in the store
@@ -353,15 +359,15 @@ const addToEventsList = (eventsIds) => ({
 const receiveEventHistory = (eventHistoryItems) => ({
     type: EVENTS.ACTIONS.RECEIVE_EVENT_HISTORY,
     payload: eventHistoryItems,
-})
+});
 
 /**
  * Action to toggle the Events panel
  * @return object
  */
 const toggleEventsList = () => (
-    { type: EVENTS.ACTIONS.TOGGLE_EVENT_LIST }
-)
+    {type: EVENTS.ACTIONS.TOGGLE_EVENT_LIST}
+);
 
 // WebSocket Notifications
 /**
@@ -372,10 +378,10 @@ const toggleEventsList = () => (
 const onEventCreated = (_e, data) => (
     (dispatch) => {
         if (data && data.item) {
-            dispatch(fetchEventById(data.item))
+            dispatch(fetchEventById(data.item));
         }
     }
-)
+);
 
 /**
  * Action Event when a new Recurring Event is created
@@ -383,32 +389,32 @@ const onEventCreated = (_e, data) => (
  * @param {object} data - Recurring Event and user IDs
  */
 const onRecurringEventCreated = (_e, data) => (
-    (dispatch, getState, { notify }) => {
+    (dispatch, getState, {notify}) => {
         if (data && data.item) {
             // Perform retryDispatch as the Elasticsearch index may not yet be created
             // (because we receive this notification fast, and we're performing a query not
             // a getById). So continue for 5 times, waiting 1 second between each request
             // until we receive the new events or an error occurs
             return dispatch(retryDispatch(
-                eventsApi.query({ recurrenceId: data.item }),
+                eventsApi.query({recurrenceId: data.item}),
                 (events) => get(events, '_items.length', 0) > 0,
                 5,
                 1000
             ))
             // Once we know our Recurring Events can be received from Elasticsearch,
             // go ahead and refresh the current list of events
-            .then((data) => {
-                dispatch(eventsUi.refetchEvents())
-                return Promise.resolve(data._items)
-            }, (error) => {
-                notify.error(getErrorMessage(
-                    error,
-                    'There was a problem fetching Recurring Events!'
-                ))
-            })
+                .then((data) => {
+                    dispatch(eventsUi.refetchEvents());
+                    return Promise.resolve(data._items);
+                }, (error) => {
+                    notify.error(getErrorMessage(
+                        error,
+                        'There was a problem fetching Recurring Events!'
+                    ));
+                });
         }
     }
-)
+);
 
 /**
  * Action Event when an Event gets updated
@@ -419,25 +425,25 @@ const onEventUpdated = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
             dispatch(eventsUi.refetchEvents())
-            .then((events) => {
-                const selectedEvents = selectors.getSelectedEvents(getState())
+                .then((events) => {
+                    const selectedEvents = selectors.getSelectedEvents(getState());
 
-                // If the event is currently selected and not loaded from refetchEvents,
-                // then manually reload this event from the server
-                if (selectedEvents.indexOf(data.item) !== -1 &&
+                    // If the event is currently selected and not loaded from refetchEvents,
+                    // then manually reload this event from the server
+                    if (selectedEvents.indexOf(data.item) !== -1 &&
                     !events.find((event) => event._id === data.item)) {
-                    dispatch(eventsApi.silentlyFetchEventsById([data.item], SPIKED_STATE.BOTH))
-                }
+                        dispatch(eventsApi.silentlyFetchEventsById([data.item], SPIKED_STATE.BOTH));
+                    }
 
-                // If there are any associated Planning Items, then update the list
-                if (eventUtils.isEventAssociatedWithPlannings(data.item,
+                    // If there are any associated Planning Items, then update the list
+                    if (eventUtils.isEventAssociatedWithPlannings(data.item,
                         selectors.getStoredPlannings(getState()))) {
-                    dispatch(fetchSelectedAgendaPlannings())
-                }
-            })
+                        dispatch(fetchSelectedAgendaPlannings());
+                    }
+                });
         }
     }
-)
+);
 
 // Map of notification name and Action Event to execute
 const eventNotifications = {
@@ -446,7 +452,7 @@ const eventNotifications = {
     'events:updated': () => (onEventUpdated),
     'events:updated:recurring': () => (onEventUpdated),
     'events:unspiked': () => (onEventUpdated),
-}
+};
 
 /**
  * Action Dispatcher to fetch event history from the server
@@ -455,19 +461,19 @@ const eventNotifications = {
  * @return arrow function
  */
 const fetchEventHistory = (eventId) => (
-    (dispatch, getState, { api }) => (
+    (dispatch, getState, {api}) => (
         // Query the API and sort by created
         api('events_history').query({
-            where: { event_id: eventId },
+            where: {event_id: eventId},
             max_results: 200,
             sort: '[(\'_created\', 1)]',
         })
-        .then(data => {
-            dispatch(receiveEventHistory(data._items))
-            return data
-        })
+            .then((data) => {
+                dispatch(receiveEventHistory(data._items));
+                return data;
+            })
     )
-)
+);
 
 export {
     duplicateEvent,
@@ -485,4 +491,4 @@ export {
     eventNotifications,
     selectAllTheEventList,
     deselectAllTheEventList,
-}
+};

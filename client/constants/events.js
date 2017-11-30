@@ -55,4 +55,4 @@ export const EVENTS = {
             icon: 'icon-repeat',
         },
     },
-}
+};

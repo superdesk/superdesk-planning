@@ -1,10 +1,10 @@
-export { ItemActionConfirmationModal } from './modal'
-export { UpdateRecurringEventsForm } from './forms/updateRecurringEventsForm'
-export { SpikeEventForm } from './forms/spikeEventForm'
-export { CancelEventForm } from './forms/cancelEventForm'
-export { PostponeEventForm } from './forms/postponeEventForm'
-export { UpdateTimeForm } from './forms/updateTimeForm'
-export { RescheduleEventForm } from './forms/rescheduleEventForm'
-export { ConvertToRecurringEventForm } from './forms/convertToRecurringEventForm'
-export { CancelPlanningCoveragesForm } from './forms/cancelPlanningCoveragesForm'
-export { UpdateAssignmentForm } from './forms/updateAssignmentForm'
+export {ItemActionConfirmationModal} from './modal';
+export {UpdateRecurringEventsForm} from './forms/updateRecurringEventsForm';
+export {SpikeEventForm} from './forms/spikeEventForm';
+export {CancelEventForm} from './forms/cancelEventForm';
+export {PostponeEventForm} from './forms/postponeEventForm';
+export {UpdateTimeForm} from './forms/updateTimeForm';
+export {RescheduleEventForm} from './forms/rescheduleEventForm';
+export {ConvertToRecurringEventForm} from './forms/convertToRecurringEventForm';
+export {CancelPlanningCoveragesForm} from './forms/cancelPlanningCoveragesForm';
+export {UpdateAssignmentForm} from './forms/updateAssignmentForm';

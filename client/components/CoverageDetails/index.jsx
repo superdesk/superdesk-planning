@@ -1,25 +1,24 @@
-import React from 'react'
-import { connect } from 'react-redux'
-import { formValueSelector } from 'redux-form'
-import PropTypes from 'prop-types'
-import { fields } from '../../components'
-import { Field } from 'redux-form'
-import { get } from 'lodash'
-import { planningUtils } from '../../utils'
-import { PLANNING, FORM_NAMES } from '../../constants'
-import { change } from 'redux-form'
+import React from 'react';
+import {connect} from 'react-redux';
+import {formValueSelector} from 'redux-form';
+import PropTypes from 'prop-types';
+import {fields} from '../../components';
+import {Field} from 'redux-form';
+import {get} from 'lodash';
+import {planningUtils} from '../../utils';
+import {PLANNING, FORM_NAMES} from '../../constants';
+import {change} from 'redux-form';
 
 export class CoverageDetailsComponent extends React.Component {
-
     constructor(props) {
-        super(props)
+        super(props);
     }
 
     componentWillUpdate(nextProps) {
         if (nextProps.hasAssignment &&
             nextProps.newsCoverageStatus.qcode !== 'ncostat:int' &&
             nextProps.newsCoverageStatus.qcode !== PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode) {
-            this.props.changeCoverageStatusPlanned()
+            this.props.changeCoverageStatusPlanned();
         }
     }
 
@@ -34,24 +33,24 @@ export class CoverageDetailsComponent extends React.Component {
             hasAssignment,
             newsCoverageStatus,
             coverageId,
-        } = this.props
+        } = this.props;
 
-        const isTextCoverage = content_type === 'text'
-        const isExistingCoverage = !!coverageId
+        const isTextCoverage = content_type === 'text';
+        const isExistingCoverage = !!coverageId;
         // for assignment form coverage props is object
         // for coverage form coverage props is string
-        const fieldNamePrefix = typeof coverage === 'string' ? `${coverage}.` : ''
-        const coverageStatusPrefix = fieldNamePrefix ? fieldNamePrefix : 'planning.'
-        const coverageCancelledInput = { value: 'Coverage Cancelled' }
+        const fieldNamePrefix = typeof coverage === 'string' ? `${coverage}.` : '';
+        const coverageStatusPrefix = fieldNamePrefix ? fieldNamePrefix : 'planning.';
+        const coverageCancelledInput = {value: 'Coverage Cancelled'};
 
-        const isCancelled = get(this.props, 'newsCoverageStatus.qcode') === PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode
+        const isCancelled = get(this.props, 'newsCoverageStatus.qcode') === PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode;
         const roFields = planningUtils.getCoverageReadOnlyFields(
             readOnly,
             newsCoverageStatus,
             hasAssignment,
             isExistingCoverage,
             assignmentState
-        )
+        );
 
         return (
             <div>
@@ -69,13 +68,13 @@ export class CoverageDetailsComponent extends React.Component {
                 {get(formProfile, 'editor.ednote.enabled') &&
                     <div className="form__row">
                         <Field
-                        name={`${fieldNamePrefix}planning.ednote`}
-                        component={fields.InputTextAreaField}
-                        autoFocus={true}
-                        type="text"
-                        label="Ed Note"
-                        required={get(formProfile, 'schema.ednote.required')}
-                        readOnly={roFields.ednote} />
+                            name={`${fieldNamePrefix}planning.ednote`}
+                            component={fields.InputTextAreaField}
+                            autoFocus={true}
+                            type="text"
+                            label="Ed Note"
+                            required={get(formProfile, 'schema.ednote.required')}
+                            readOnly={roFields.ednote} />
                     </div>
                 }
                 {get(formProfile, 'editor.keyword.enabled') &&
@@ -130,11 +129,11 @@ export class CoverageDetailsComponent extends React.Component {
                             clearable={false}
                             readOnly={roFields.newsCoverageStatus} />
                     ) || (
-                        <fields.InputField
-                            input={coverageCancelledInput}
-                            readOnly={true}
-                            label='Coverage Status' />
-                    )}
+                            <fields.InputField
+                                input={coverageCancelledInput}
+                                readOnly={true}
+                                label="Coverage Status" />
+                        )}
                 </div>
 
                 {get(formProfile, 'editor.scheduled.enabled') &&
@@ -146,7 +145,7 @@ export class CoverageDetailsComponent extends React.Component {
                         readOnly={roFields.scheduled} />
                 }
             </div>
-        )
+        );
     }
 }
 
@@ -164,18 +163,19 @@ CoverageDetailsComponent.propTypes = {
     newsCoverageStatus: PropTypes.object,
     hasAssignment: PropTypes.bool,
     coverageId: PropTypes.string,
-}
+};
 
-const selector = formValueSelector(FORM_NAMES.PlanningForm)
+const selector = formValueSelector(FORM_NAMES.PlanningForm);
 const mapStateToProps = (state, ownProps) => {
-    const fieldName = ownProps.coverage + '.news_coverage_status'
-    return { newsCoverageStatus: selector(state, fieldName) }
-}
+    const fieldName = ownProps.coverage + '.news_coverage_status';
+
+    return {newsCoverageStatus: selector(state, fieldName)};
+};
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
     changeCoverageStatusPlanned: () =>
         (dispatch(change(FORM_NAMES.PlanningForm, ownProps.coverage + '.news_coverage_status',
-            { qcode: 'ncostat:int' }))),
-})
+            {qcode: 'ncostat:int'}))),
+});
 
-export const CoverageDetails = connect(mapStateToProps, mapDispatchToProps)(CoverageDetailsComponent)
+export const CoverageDetails = connect(mapStateToProps, mapDispatchToProps)(CoverageDetailsComponent);

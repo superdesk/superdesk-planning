@@ -1,6 +1,6 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { SelectField } from './SelectField'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {SelectField} from './SelectField';
 
 export const EventUpdateMethods = [
     {
@@ -13,7 +13,7 @@ export const EventUpdateMethods = [
         name: 'All events',
         value: 'all',
     },
-]
+];
 
 export const EventUpdateMethodField = (props) => {
     const ownProps = {
@@ -25,12 +25,13 @@ export const EventUpdateMethodField = (props) => {
                 value: opt,
             }
         )),
-    }
-    return <SelectField {...ownProps}/>
-}
+    };
+
+    return <SelectField {...ownProps}/>;
+};
 
 // eslint-disable-next-line react/no-unused-prop-types
 EventUpdateMethodField.propTypes = {
     input: PropTypes.object.isRequired,
     readOnly: PropTypes.bool,
-}
+};

@@ -1,25 +1,25 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
-import classNames from 'classnames'
-import PropTypes from 'prop-types'
+import React from 'react';
+import ReactDOM from 'react-dom';
+import classNames from 'classnames';
+import PropTypes from 'prop-types';
 
 export class ToggleBox extends React.Component {
     constructor(props) {
-        super(props)
-        this.state = { isOpen: this.props.isOpen }
-        this.scrollInView = this.scrollInView.bind(this)
+        super(props);
+        this.state = {isOpen: this.props.isOpen};
+        this.scrollInView = this.scrollInView.bind(this);
     }
 
     toggle() {
-        this.setState({ isOpen: !this.state.isOpen })
+        this.setState({isOpen: !this.state.isOpen});
     }
 
     scrollInView() {
         if (this.state.isOpen) {
-            const node = ReactDOM.findDOMNode(this)
+            const node = ReactDOM.findDOMNode(this);
 
             if (node) {
-                node.scrollIntoView()
+                node.scrollIntoView();
             }
         }
     }
@@ -27,7 +27,7 @@ export class ToggleBox extends React.Component {
     // eslint-disable-next-line
     componentDidUpdate(prevProps, prevState) {
         if (this.state.isOpen && this.props.scrollInView) {
-            this.scrollInView()
+            this.scrollInView();
         }
     }
 
@@ -36,25 +36,25 @@ export class ToggleBox extends React.Component {
             style,
             title,
             children,
-        } = this.props
+        } = this.props;
 
         return (
-            <div className={classNames('toggle-box', style, { 'hidden': !this.state.isOpen })}>
+            <div className={classNames('toggle-box', style, {hidden: !this.state.isOpen})}>
                 <div className="toggle-box__header" onClick={this.toggle.bind(this)}>
                     <div className="toggle-box__chevron"><i className="icon-chevron-right-thin"/></div>
                     <div className="toggle-box__label">{title}</div>
                     <div className="toggle-box__line"/>
                 </div>
                 <div className="toggle-box__content-wraper">
-                {
-                    this.state.isOpen &&
+                    {
+                        this.state.isOpen &&
                     <div className="toggle-box__content">
                         {children}
                     </div>
-                }
+                    }
                 </div>
             </div>
-        )
+        );
     }
 }
 
@@ -64,9 +64,9 @@ ToggleBox.propTypes = {
     title: PropTypes.string.isRequired,
     children: PropTypes.node,
     scrollInView: PropTypes.bool,
-}
+};
 
 ToggleBox.defaultProps = {
     isOpen: true,
     scrollInView: false,
-}
+};

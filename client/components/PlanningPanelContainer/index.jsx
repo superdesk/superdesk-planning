@@ -1,48 +1,47 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
-import classNames from 'classnames'
-import { get, isObject } from 'lodash'
-import * as actions from '../../actions'
-import { ADVANCED_SEARCH_CONTEXT, WORKSPACE } from '../../constants'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import classNames from 'classnames';
+import {get, isObject} from 'lodash';
+import * as actions from '../../actions';
+import {ADVANCED_SEARCH_CONTEXT, WORKSPACE} from '../../constants';
 import {
     SelectAgenda,
     EditPlanningPanelContainer,
     PlanningList,
-} from '../index'
-import { QuickAddPlanning, Toggle, SearchBar, AdvancedSearchPanelContainer } from '../../components'
-import MultiSelectionActions from '../MultiSelectionActions'
-import * as selectors from '../../selectors'
-import { AGENDA } from '../../constants'
-import { eventUtils, gettext } from '../../utils'
-import './style.scss'
+} from '../index';
+import {QuickAddPlanning, Toggle, SearchBar, AdvancedSearchPanelContainer} from '../../components';
+import MultiSelectionActions from '../MultiSelectionActions';
+import * as selectors from '../../selectors';
+import {AGENDA} from '../../constants';
+import {eventUtils, gettext} from '../../utils';
+import './style.scss';
 
 class PlanningPanel extends React.Component {
-
     handleDragEnter(e) {
-        e.dataTransfer.dropEffect = 'copy'
+        e.dataTransfer.dropEffect = 'copy';
     }
 
     handleEventDrop(e) {
-        e.preventDefault()
-        const event = JSON.parse(e.dataTransfer.getData('application/superdesk.item.events'))
+        e.preventDefault();
+        const event = JSON.parse(e.dataTransfer.getData('application/superdesk.item.events'));
         const canCreatePlanning = event && eventUtils.canCreatePlanningFromEvent(
             event,
             this.props.session,
             this.props.privileges,
             this.props.lockedItems
-        )
+        );
 
         if (canCreatePlanning) {
-            this.props.addEventToCurrentAgenda(event)
+            this.props.addEventToCurrentAgenda(event);
         }
     }
 
     toggleAdvancedSearch() {
         if (this.props.advancedSearchOpened) {
-            this.props.closeAdvancedSearch()
+            this.props.closeAdvancedSearch();
         } else {
-            this.props.openAdvancedSearch()
+            this.props.openAdvancedSearch();
         }
     }
 
@@ -69,24 +68,24 @@ class PlanningPanel extends React.Component {
             exportAsArticle,
             currentWorkspace,
             onAddPlanningClick,
-        } = this.props
+        } = this.props;
 
         const multiActions = [
             {
                 name: gettext('Export as Article'),
                 run: exportAsArticle,
             },
-        ]
+        ];
 
-        const inPlanning = currentWorkspace === WORKSPACE.PLANNING
+        const inPlanning = currentWorkspace === WORKSPACE.PLANNING;
 
         return (
             <div className={classNames('Planning-panel',
-                { 'Planning-panel--edit-planning-view': editPlanningViewOpen })}
-                 onDrop={this.handleEventDrop.bind(this)}
-                 onDragOver={(e) => e.preventDefault()}
-                 onDragEnter={this.handleDragEnter.bind(this)}
-                 onDragLeave={this.handleDragLeave}>
+                {'Planning-panel--edit-planning-view': editPlanningViewOpen})}
+            onDrop={this.handleEventDrop.bind(this)}
+            onDragOver={(e) => e.preventDefault()}
+            onDragEnter={this.handleDragEnter.bind(this)}
+            onDragLeave={this.handleDragLeave}>
                 {inPlanning &&
                     <div className="subnav">
                         {!isEventListShown &&
@@ -99,7 +98,7 @@ class PlanningPanel extends React.Component {
                                 <span>Agenda:</span>
                             </span>
                         </h3>
-                        <div  className="Planning-panel__select-agenda">
+                        <div className="Planning-panel__select-agenda">
                             <SelectAgenda />
                         </div>
                     </div>
@@ -107,13 +106,13 @@ class PlanningPanel extends React.Component {
 
                 <div className="Planning-panel__container">
                     <div className={classNames('Planning-panel__list',
-                        { 'Planning-panel__list--advanced-search-view':  advancedSearchOpened })}>
+                        {'Planning-panel__list--advanced-search-view': advancedSearchOpened})}>
                         <div className="Planning-panel__searchbar subnav">
                             <label
                                 className="trigger-icon advanced-search-open"
                                 onClick={this.toggleAdvancedSearch.bind(this)}>
                                 <i className={classNames('icon-filter-large ',
-                                    { 'icon--blue': isAdvancedSearchSpecified })} />
+                                    {'icon--blue': isAdvancedSearchSpecified})} />
                             </label>
                             <SearchBar
                                 value={null}
@@ -126,7 +125,7 @@ class PlanningPanel extends React.Component {
                                     <Toggle value={onlyFuture} onChange={onFutureToggleChange} readOnly={isAdvancedDateSearch} />
                                 </label>
                             }
-                            {!inPlanning && !editPlanningViewOpen  &&
+                            {!inPlanning && !editPlanningViewOpen &&
                                 <a data-sd-tooltip="Create new planning" data-flow="left">
                                     <button
                                         className="navbtn dropdown sd-create-btn"
@@ -154,7 +153,7 @@ class PlanningPanel extends React.Component {
 
                         <div className="list-view compact-view">
                             {((currentAgendaId || currentAgenda && currentAgenda.is_enabled) &&
-                            privileges.planning_planning_management === 1 ) && inPlanning &&
+                            privileges.planning_planning_management === 1) && inPlanning &&
                                 <QuickAddPlanning onPlanningCreation={onPlanningCreation}/>
                             }
                             {(get(planningList, 'length', 0) > 0) &&
@@ -198,7 +197,7 @@ class PlanningPanel extends React.Component {
                     }
                 </div>
             </div>
-        )
+        );
     }
 }
 
@@ -229,7 +228,7 @@ PlanningPanel.propTypes = {
     lockedItems: PropTypes.object,
     currentWorkspace: PropTypes.string,
     onAddPlanningClick: PropTypes.func,
-}
+};
 
 const mapStateToProps = (state) => ({
     currentAgendaId: selectors.getCurrentAgendaId(state),
@@ -247,30 +246,30 @@ const mapStateToProps = (state) => ({
     selected: selectors.getSelectedPlanningItems(state),
     lockedItems: selectors.getLockedItems(state),
     currentWorkspace: selectors.getCurrentWorkspace(state),
-})
+});
 
 const mapDispatchToProps = (dispatch) => ({
     onPlanningCreation: (planning) => (
         // save planning and open the planning editor
         dispatch(actions.planning.ui.saveAndReloadCurrentAgenda(planning))
-        .then((planning) => (
-            dispatch(actions.planning.ui.openEditor(planning))
-        ))
+            .then((planning) => (
+                dispatch(actions.planning.ui.openEditor(planning))
+            ))
     ),
     handleSearch: (text) => (dispatch(actions.planning.ui.filterByKeyword(text))),
     addEventToCurrentAgenda: (event) => (dispatch(actions.addEventToCurrentAgenda(event))),
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
     onFutureToggleChange: () => (dispatch(actions.planning.ui.toggleOnlyFutureFilter())),
-    closeAdvancedSearch: () =>(dispatch(actions.planning.ui.closeAdvancedSearch())),
-    openAdvancedSearch: () =>(dispatch(actions.planning.ui.openAdvancedSearch())),
+    closeAdvancedSearch: () => (dispatch(actions.planning.ui.closeAdvancedSearch())),
+    openAdvancedSearch: () => (dispatch(actions.planning.ui.openAdvancedSearch())),
     selectAll: () => dispatch(actions.planning.ui.selectAll()),
     deselectAll: () => dispatch(actions.planning.ui.deselectAll()),
     exportAsArticle: () => dispatch(actions.planning.api.exportAsArticle()),
 
     onAddPlanningClick: () => dispatch(actions.planning.ui.onAddPlanningClick()),
-})
+});
 
 export const PlanningPanelContainer = connect(
     mapStateToProps,
     mapDispatchToProps
-)(PlanningPanel)
+)(PlanningPanel);

@@ -1,5 +1,5 @@
-import { isNil, zipObject, get } from 'lodash'
-import { createStore } from '../utils'
+import {isNil, zipObject, get} from 'lodash';
+import {createStore} from '../utils';
 
 PlanningStoreService.$inject = [
     '$rootScope',
@@ -25,7 +25,7 @@ PlanningStoreService.$inject = [
     '$q',
     '$interpolate',
     'search',
-]
+];
 export function PlanningStoreService(
     $rootScope,
     api,
@@ -51,17 +51,17 @@ export function PlanningStoreService(
     $interpolate,
     search
 ) {
-    let self = this
+    let self = this;
 
-    self.store = null
+    self.store = null;
 
     this.getStore = function() {
         if (isNil(self.store)) {
-            return this.createStore()
+            return this.createStore();
         }
 
-        return Promise.resolve(self.store)
-    }
+        return Promise.resolve(self.store);
+    };
 
     this.createStore = function() {
         const _notify = {
@@ -69,7 +69,7 @@ export function PlanningStoreService(
             error: (msg, ttl, options) => $timeout(() => notify.error(msg, ttl, options)),
             success: (msg, ttl, options) => $timeout(() => notify.success(msg, ttl, options)),
             warning: (msg, ttl, options) => $timeout(() => notify.warning(msg, ttl, options)),
-        }
+        };
 
         return $q.all({
             voc: vocabularies.getAllActiveVocabularies(),
@@ -119,11 +119,11 @@ export function PlanningStoreService(
                     label: gettextCatalog.getString('Urgency'),
                 },
                 formsProfile: {},
-            }
+            };
 
             data.formsProfile._items.forEach((p) => {
-                initialState.formsProfile[p.name] = p
-            })
+                initialState.formsProfile[p.name] = p;
+            });
 
             // create the application store
             self.store = createStore({
@@ -151,24 +151,24 @@ export function PlanningStoreService(
                     search,
                     config,
                 },
-            })
-            return self.store
-        })
-    }
+            });
+            return self.store;
+        });
+    };
 
-    this._reloadVocabularies = function () {
+    this._reloadVocabularies = function() {
         if (isNil(self.store)) {
-            return
+            return;
         }
 
         vocabularies.getAllActiveVocabularies()
-        .then((voc) => {
-            self.store.dispatch({
-                type: 'RECEIVE_VOCABULARIES',
-                payload: voc._items,
-            })
-        })
-    }
+            .then((voc) => {
+                self.store.dispatch({
+                    type: 'RECEIVE_VOCABULARIES',
+                    payload: voc._items,
+                });
+            });
+    };
 
     $rootScope.$watch(
         () => session.sessionId,
@@ -179,7 +179,7 @@ export function PlanningStoreService(
                 identity: session.identity,
             },
         })
-    )
+    );
 
     $rootScope.$watch(
         () => desks.active,
@@ -191,9 +191,9 @@ export function PlanningStoreService(
                     currentDeskId: get(desks, 'active.desk'),
                     currentStageId: get(desks, 'active.stage'),
                 },
-            })
+            });
         }
-    )
+    );
 
-    $rootScope.$on('vocabularies:updated', angular.bind(this, this._reloadVocabularies))
+    $rootScope.$on('vocabularies:updated', angular.bind(this, this._reloadVocabularies));
 }

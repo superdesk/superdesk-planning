@@ -1,7 +1,7 @@
-import * as selectors from '../selectors'
-import { LOCKS } from '../constants'
-import { planning, events, assignments } from './index'
-import { getLock } from '../utils'
+import * as selectors from '../selectors';
+import {LOCKS} from '../constants';
+import {planning, events, assignments} from './index';
+import {getLock} from '../utils';
 
 /**
  * Action Dispatcher to load all Event and Planning locks
@@ -13,19 +13,20 @@ const loadAllLocks = () => (
             dispatch(events.api.queryLockedEvents()),
             dispatch(planning.api.queryLockedPlanning()),
         ])
-        .then((data) => {
-            const payload = {
-                events: data[0],
-                plans: data[1],
-            }
-            dispatch({
-                type: LOCKS.ACTIONS.RECEIVE,
-                payload,
-            })
-            return Promise.resolve(payload)
-        }, (error) => Promise.reject(error))
+            .then((data) => {
+                const payload = {
+                    events: data[0],
+                    plans: data[1],
+                };
+
+                dispatch({
+                    type: LOCKS.ACTIONS.RECEIVE,
+                    payload,
+                });
+                return Promise.resolve(payload);
+            }, (error) => Promise.reject(error))
     )
-)
+);
 
 /**
  * Action Dispatcher to load Assignment locks
@@ -34,16 +35,17 @@ const loadAllLocks = () => (
 const loadAssignmentLocks = () => (
     (dispatch) => (
         dispatch(assignments.api.queryLockedAssignments())
-        .then((data) => {
-            const payload = { assignments: data }
-            dispatch({
-                type: LOCKS.ACTIONS.RECEIVE,
-                payload,
-            })
-            return Promise.resolve(payload)
-        }, (error) => Promise.reject(error))
+            .then((data) => {
+                const payload = {assignments: data};
+
+                dispatch({
+                    type: LOCKS.ACTIONS.RECEIVE,
+                    payload,
+                });
+                return Promise.resolve(payload);
+            }, (error) => Promise.reject(error))
     )
-)
+);
 
 /**
  * Action Dispatcher to release the lock an a chain of Events and/or Planning items
@@ -52,28 +54,28 @@ const loadAssignmentLocks = () => (
  * @param {object} item - The Event or Planning item chain to unlock
  */
 const unlock = (item) => (
-    (dispatch, getState, { notify }) => {
-        const locks = selectors.getLockedItems(getState())
-        const currentLock = getLock(item, locks)
+    (dispatch, getState, {notify}) => {
+        const locks = selectors.getLockedItems(getState());
+        const currentLock = getLock(item, locks);
 
         if (currentLock === null) {
-            notify.error('Failed to unlock the item. Lock not found!')
-            return Promise.reject('Failed to unlock the item. Lock not found!')
+            notify.error('Failed to unlock the item. Lock not found!');
+            return Promise.reject('Failed to unlock the item. Lock not found!');
         }
 
         switch (currentLock.item_type) {
-            case 'planning':
-                return dispatch(planning.api.unlock({ _id: currentLock.item_id }))
-            case 'events':
-                return dispatch(events.api.unlock({ _id: currentLock.item_id }))
+        case 'planning':
+            return dispatch(planning.api.unlock({_id: currentLock.item_id}));
+        case 'events':
+            return dispatch(events.api.unlock({_id: currentLock.item_id}));
         }
     }
-)
+);
 
 const self = {
     unlock,
     loadAllLocks,
     loadAssignmentLocks,
-}
+};
 
-export default self
+export default self;

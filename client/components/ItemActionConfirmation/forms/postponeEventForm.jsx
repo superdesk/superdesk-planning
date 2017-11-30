@@ -1,33 +1,33 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
-import { reduxForm, formValueSelector, Field } from 'redux-form'
-import * as actions from '../../../actions'
-import moment from 'moment'
-import { EventUpdateMethods, InputTextAreaField } from '../../fields/index'
-import { UpdateMethodSelection } from '../UpdateMethodSelection'
-import { FORM_NAMES } from '../../../constants'
-import '../style.scss'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {reduxForm, formValueSelector, Field} from 'redux-form';
+import * as actions from '../../../actions';
+import moment from 'moment';
+import {EventUpdateMethods, InputTextAreaField} from '../../fields/index';
+import {UpdateMethodSelection} from '../UpdateMethodSelection';
+import {FORM_NAMES} from '../../../constants';
+import '../style.scss';
 
 const Component = ({
     handleSubmit,
     initialValues,
-    relatedEvents=[],
-    relatedPlannings=[],
+    relatedEvents = [],
+    relatedPlannings = [],
     submitting,
 }) => {
-    let event = initialValues
-    const isRecurring = !!event.recurrence_id
+    let event = initialValues;
+    const isRecurring = !!event.recurrence_id;
 
     // Default the update_method to 'Postpone this event only'
-    event.update_method = EventUpdateMethods[0]
-    let startStr = moment(event.dates.start).format('MMMM Do YYYY, h:mm:ss a')
-    let endStr = moment(event.dates.end).format('MMMM Do YYYY, h:mm:ss a')
+    event.update_method = EventUpdateMethods[0];
+    let startStr = moment(event.dates.start).format('MMMM Do YYYY, h:mm:ss a');
+    let endStr = moment(event.dates.end).format('MMMM Do YYYY, h:mm:ss a');
 
-    const numEvents = relatedEvents.length + 1
-    const numPlannings = relatedPlannings.length
+    const numEvents = relatedEvents.length + 1;
+    const numPlannings = relatedPlannings.length;
 
-    const updateMethodLabel = 'Would you like to postpone all recurring events or just this one?'
+    const updateMethodLabel = 'Would you like to postpone all recurring events or just this one?';
 
     return (
         <div className="ItemActionConfirmation">
@@ -51,7 +51,7 @@ const Component = ({
                 relatedPlannings={relatedPlannings}
                 handleSubmit={handleSubmit}
                 readOnly={submitting}
-                action='postpone' />}
+                action="postpone" />}
 
             <label>Reason for Event postponement:</label>
             <Field name="reason"
@@ -59,8 +59,8 @@ const Component = ({
                 type="text"
                 readOnly={submitting}/>
         </div>
-    )
-}
+    );
+};
 
 Component.propTypes = {
     handleSubmit: PropTypes.func.isRequired,
@@ -72,29 +72,29 @@ Component.propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     onHide: PropTypes.func,
     submitting: PropTypes.bool,
-}
+};
 
-export const PostponeEvent = reduxForm({ form: FORM_NAMES.PostponeEventForm })(Component)
+export const PostponeEvent = reduxForm({form: FORM_NAMES.PostponeEventForm})(Component);
 
-const selector = formValueSelector(FORM_NAMES.PostponeEventForm)
+const selector = formValueSelector(FORM_NAMES.PostponeEventForm);
 const mapStateToProps = (state) => ({
     relatedPlannings: selector(state, '_relatedPlannings'),
     relatedEvents: selector(state, '_events'),
-})
+});
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (event) => dispatch(actions.events.ui.postponeEvent(event)),
     onHide: (event) => {
         if (event.lock_action === 'postpone_event') {
-            dispatch(actions.events.api.unlock(event))
+            dispatch(actions.events.api.unlock(event));
         }
     },
-})
+});
 
 export const PostponeEventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    { withRef: true }
-)(PostponeEvent)
+    {withRef: true}
+)(PostponeEvent);

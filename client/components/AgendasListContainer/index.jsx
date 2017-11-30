@@ -1,12 +1,12 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
-import { Button } from 'react-bootstrap'
-import * as selectors from '../../selectors'
-import * as actions from '../../actions'
-import { orderBy } from 'lodash'
-import { AgendaList } from '../../components'
-import { MODALS } from '../../constants'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {Button} from 'react-bootstrap';
+import * as selectors from '../../selectors';
+import * as actions from '../../actions';
+import {orderBy} from 'lodash';
+import {AgendaList} from '../../components';
+import {MODALS} from '../../constants';
 
 export function AgendasListComponent({
     enabledAgendas,
@@ -22,9 +22,9 @@ export function AgendasListComponent({
                 <span className="sd-page__element-grow"/>
                 {privileges.planning_agenda_management === 1 && (
                     <Button type="button"
-                            bsClass="btn btn--primary"
-                            className="pull-right"
-                            onClick={openCreateAgenda}
+                        bsClass="btn btn--primary"
+                        className="pull-right"
+                        onClick={openCreateAgenda}
                     >
                         <i className="icon-plus-sign icon-white"/>
                         Add a new agenda
@@ -32,9 +32,9 @@ export function AgendasListComponent({
                 )}
             </div>
             <div className="sd-page__content AgendaList">
-                 <div className="agenda-group">
-                     <span className="form-label"><strong>Active Agendas</strong></span>
-                     {enabledAgendas.length > 0 &&
+                <div className="agenda-group">
+                    <span className="form-label"><strong>Active Agendas</strong></span>
+                    {enabledAgendas.length > 0 &&
                          <AgendaList
                              privileges={privileges}
                              openEditAgenda={openEditAgenda}
@@ -43,11 +43,11 @@ export function AgendasListComponent({
                              classNames="sd-list-item-group sd-list-item-group--space-between-items"/>
                      ||
                          <p>There are no active agendas.</p>
-                     }
-                 </div>
-                 <div className="agenda-group">
-                     <span className="form-label"><strong>Disable Agendas</strong></span>
-                     {disabledAgendas.length > 0 &&
+                    }
+                </div>
+                <div className="agenda-group">
+                    <span className="form-label"><strong>Disable Agendas</strong></span>
+                    {disabledAgendas.length > 0 &&
                          <AgendaList
                              privileges={privileges}
                              openEditAgenda={openEditAgenda}
@@ -56,11 +56,11 @@ export function AgendasListComponent({
                              classNames="sd-list-item-group sd-list-item-group--space-between-items"/>
                      ||
                          <p>There are no disabled agendas.</p>
-                     }
-                 </div>
+                    }
+                </div>
             </div>
         </div>
-    )
+    );
 }
 
 AgendasListComponent.propTypes = {
@@ -70,7 +70,7 @@ AgendasListComponent.propTypes = {
     openCreateAgenda: PropTypes.func,
     openEditAgenda: PropTypes.func,
     deleteAgenda: PropTypes.func,
-}
+};
 
 const mapStateToProps = (state) => (
     {
@@ -78,13 +78,13 @@ const mapStateToProps = (state) => (
         disabledAgendas: orderBy(selectors.getDisabledAgendas(state), ['name'], ['asc']),
         privileges: selectors.getPrivileges(state),
     }
-)
+);
 
 const mapDispatchToProps = (dispatch) => ({
-    openCreateAgenda: () => dispatch(actions.showModal({ modalType: MODALS.CREATE_AGENDA })),
+    openCreateAgenda: () => dispatch(actions.showModal({modalType: MODALS.CREATE_AGENDA})),
     openEditAgenda: (agenda) => dispatch(actions.showModal({
         modalType: MODALS.EDIT_AGENDA,
-        modalProps: { agenda },
+        modalProps: {agenda},
     })),
     deleteAgenda: (agenda) => dispatch(actions.showModal({
         modalType: MODALS.CONFIRMATION,
@@ -93,10 +93,10 @@ const mapDispatchToProps = (dispatch) => ({
             action: () => dispatch(actions.deleteAgenda(agenda)),
         },
     })),
-})
+});
 
 
 export const AgendasListContainer = connect(
     mapStateToProps,
     mapDispatchToProps
-)(AgendasListComponent)
+)(AgendasListComponent);

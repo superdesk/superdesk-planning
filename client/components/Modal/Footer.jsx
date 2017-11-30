@@ -1,11 +1,11 @@
-import React from 'react'
-import { Modal as _Modal } from 'react-bootstrap'
+import React from 'react';
+import {Modal as _Modal} from 'react-bootstrap';
 
-export default function Footer({ children }) {
+export default function Footer({children}) {
     return (
         <_Modal.Footer className="modal__footer">
             {children}
-        </_Modal.Footer>)
+        </_Modal.Footer>);
 }
 
 Footer.propTypes = {
@@ -13,4 +13,4 @@ Footer.propTypes = {
         React.PropTypes.element,
         React.PropTypes.arrayOf(React.PropTypes.element),
     ]),
-}
+};

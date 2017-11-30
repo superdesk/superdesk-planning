@@ -8,7 +8,8 @@ class MainPanel extends React.Component {
     }
 
     render() {
-        const { groups, onItemClick } = this.props;
+        const {groups, onItemClick} = this.props;
+
         return (
             <div className="sd-column-box__main-column">
                 {groups.map((group) => (

@@ -1,19 +1,19 @@
-import React from 'react'
-import { ModalWithForm, CreateEditAgendaForm } from './index'
-import { FORM_NAMES } from '../constants'
+import React from 'react';
+import {ModalWithForm, CreateEditAgendaForm} from './index';
+import {FORM_NAMES} from '../constants';
 
 /**
 * Modal for adding and editing an agenda
 */
-export const AgendaModal = ({ handleHide, modalProps }) => {
-    let title = 'Create an Agenda'
-    let initialValues = {}
+export const AgendaModal = ({handleHide, modalProps}) => {
+    let title = 'Create an Agenda';
+    let initialValues = {};
 
     if (modalProps && modalProps.agenda) {
-        const { agenda } = modalProps
+        const {agenda} = modalProps;
 
-        title = 'Edit an Agenda'
-        initialValues = agenda
+        title = 'Edit an Agenda';
+        initialValues = agenda;
     }
 
     return (
@@ -25,10 +25,10 @@ export const AgendaModal = ({ handleHide, modalProps }) => {
             show={true}
             large={true}
             initialValues={initialValues}/>
-    )
-}
+    );
+};
 
 AgendaModal.propTypes = {
     handleHide: React.PropTypes.func,
     modalProps: React.PropTypes.object,
-}
+};

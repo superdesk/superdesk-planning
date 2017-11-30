@@ -1,10 +1,10 @@
-import * as ctrl from './controllers'
-import * as svc from './services'
+import * as ctrl from './controllers';
+import * as svc from './services';
 
 export default angular.module('superdesk.planning', [])
     .directive('sdPlanning',
         () => ({
-            scope: { app: '=' },
+            scope: {app: '='},
             bindToController: true,
             controllerAs: 'vm',
             controller: ctrl.PlanningController,
@@ -26,4 +26,4 @@ export default angular.module('superdesk.planning', [])
             controller: ctrl.AssignmentController,
         })
     )
-    .service('sdPlanningStore', svc.PlanningStoreService)
+    .service('sdPlanningStore', svc.PlanningStoreService);

@@ -1,25 +1,25 @@
-export * from './events'
-export * from './locations'
-export * from './modal'
-export * from './agenda'
-export * from './assignments'
+export * from './events';
+export * from './locations';
+export * from './modal';
+export * from './agenda';
+export * from './assignments';
 
-import planning from './planning/index'
-import events from './events/index'
-import locks from './locks'
-import assignments from './assignments/index'
+import planning from './planning/index';
+import events from './events/index';
+import locks from './locks';
+import assignments from './assignments/index';
 import autosave from './autosave';
 
-import { agendaNotifications } from './agenda'
-import { eventNotifications } from './events'
+import {agendaNotifications} from './agenda';
+import {eventNotifications} from './events';
 
-import { RESET_STORE, INIT_STORE } from '../constants'
+import {RESET_STORE, INIT_STORE} from '../constants';
 
-const resetStore = () => ({ type: RESET_STORE })
+const resetStore = () => ({type: RESET_STORE});
 const initStore = (workspace) => ({
     type: INIT_STORE,
     payload: workspace,
-})
+});
 
 /**
  * Map WebSocket Notifications to Action Event
@@ -33,7 +33,7 @@ const notifications = {
     ...eventNotifications,
     ...events.notifications.events,
     ...assignments.notifications.events,
-}
+};
 
 export {
     planning,
@@ -44,4 +44,4 @@ export {
     locks,
     assignments,
     autosave,
-}
+};

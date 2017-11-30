@@ -1,6 +1,6 @@
-import { AddGeoLookupInput } from '../index'
-import classNames from 'classnames'
-import React from 'react'
+import {AddGeoLookupInput} from '../index';
+import classNames from 'classnames';
+import React from 'react';
 
 export const GeoLookupInput = ({
     input,
@@ -14,13 +14,12 @@ export const GeoLookupInput = ({
         warning,
     },
 }) => {
-
-    const showMessage = touched && (error || warning)
+    const showMessage = touched && (error || warning);
     const divClass = classNames(
         'sd-line-input',
-        { 'sd-line-input--invalid': showMessage },
-        { 'sd-line-input--no-margin': !showMessage }
-    )
+        {'sd-line-input--invalid': showMessage},
+        {'sd-line-input--no-margin': !showMessage}
+    );
 
     return (<div className={divClass}>
         {label && <label className="sd-line-input__label">{label}</label>}
@@ -33,8 +32,8 @@ export const GeoLookupInput = ({
             localSearchResults={localSearchResults} />
         {touched && ((error && <span className="error-block">{error}</span>) ||
         (warning && <span className="help-block">{warning}</span>))}
-    </div>)
-}
+    </div>);
+};
 GeoLookupInput.propTypes = {
     input: React.PropTypes.object.isRequired,
     label: React.PropTypes.string,
@@ -42,6 +41,6 @@ GeoLookupInput.propTypes = {
     readOnly: React.PropTypes.bool,
     disableSearch: React.PropTypes.bool,
     localSearchResults: React.PropTypes.array,
-}
+};
 
-GeoLookupInput.defaultProps = { disableSearch: false }
+GeoLookupInput.defaultProps = {disableSearch: false};

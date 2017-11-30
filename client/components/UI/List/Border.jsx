@@ -1,13 +1,13 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import classNames from 'classnames'
+import React from 'react';
+import PropTypes from 'prop-types';
+import classNames from 'classnames';
 
-export const Border = ({ state }) => (
+export const Border = ({state}) => (
     <div className={classNames(
         'sd-list-item__border',
         state ? `sd-list-item__border--${state}` : null
     )} />
-)
+);
 
 Border.propTypes = {
     state: PropTypes.oneOf([
@@ -17,6 +17,6 @@ Border.propTypes = {
         'active',
         'idle',
     ]),
-}
+};
 
-Border.defaultProps = { state: false }
+Border.defaultProps = {state: false};

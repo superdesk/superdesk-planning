@@ -1,11 +1,11 @@
-import React from 'react'
-import { Modal as _Modal } from 'react-bootstrap'
-import { default as ModalDialog } from './ModalDialog'
-import { default as Header } from './Header'
-import { default as Body } from './Body'
-import { default as Footer } from './Footer'
-import classNames from 'classnames'
-import './style.scss'
+import React from 'react';
+import {Modal as _Modal} from 'react-bootstrap';
+import {default as ModalDialog} from './ModalDialog';
+import {default as Header} from './Header';
+import {default as Body} from './Body';
+import {default as Footer} from './Footer';
+import classNames from 'classnames';
+import './style.scss';
 
 export default function Modal({
     show,
@@ -18,12 +18,13 @@ export default function Modal({
     className,
 }) {
     const classes = classNames(className, {
-        'modal': true,
+        modal: true,
         'modal--large': large,
         'modal--fill': fill,
         'modal--fullscreen': fullscreen,
         'modal--white': white,
-    })
+    });
+
     return (
         <_Modal
             show={show}
@@ -32,7 +33,7 @@ export default function Modal({
             onHide={handleHide}
             dialogComponentClass={ModalDialog}
         >{children}</_Modal>
-    )
+    );
 }
 
 Modal.propTypes = {
@@ -44,8 +45,8 @@ Modal.propTypes = {
     fullscreen: React.PropTypes.bool,
     white: React.PropTypes.bool,
     className: React.PropTypes.string,
-}
+};
 
-Modal.Header = Header
-Modal.Body = Body
-Modal.Footer = Footer
+Modal.Header = Header;
+Modal.Body = Body;
+Modal.Footer = Footer;

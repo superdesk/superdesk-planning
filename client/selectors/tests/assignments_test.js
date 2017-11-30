@@ -1,5 +1,5 @@
-import * as selectors from '../index'
-import moment from 'moment'
+import * as selectors from '../index';
+import moment from 'moment';
 
 describe('selectors', () => {
     const state = {
@@ -56,7 +56,7 @@ describe('selectors', () => {
             },
             showEventDetails: 'event1',
             eventsInList: ['event1', 'event2'],
-            search: { currentSearch: { fulltext: 'event' } },
+            search: {currentSearch: {fulltext: 'event'}},
         },
         planning: {
             onlyFuture: false,
@@ -72,13 +72,13 @@ describe('selectors', () => {
                     state: 'draft',
                     agendas: ['1', '2'],
                 },
-                c: { name: 'plan c' },
+                c: {name: 'plan c'},
                 d: {
                     name: 'plan d',
                     state: 'spiked',
                     agendas: ['1'],
                 },
-                e: { name: 'plan e' },
+                e: {name: 'plan e'},
             },
             planningsInList: ['a', 'b', 'd'],
             currentPlanningId: 'b',
@@ -103,31 +103,36 @@ describe('selectors', () => {
             }],
             currentAgendaId: '1',
         },
-        session: { identity: { _id: 'user1' } },
-    }
+        session: {identity: {_id: 'user1'}},
+    };
 
     it('getFilterBy', () => {
-        const filterBy = selectors.getFilterBy(state)
-        expect(filterBy).toEqual('All')
-    })
+        const filterBy = selectors.getFilterBy(state);
+
+        expect(filterBy).toEqual('All');
+    });
 
     it('getSearchQuery', () => {
-        const searchQuery = selectors.getSearchQuery(state)
-        expect(searchQuery).toEqual('test')
-    })
+        const searchQuery = selectors.getSearchQuery(state);
+
+        expect(searchQuery).toEqual('test');
+    });
 
     it('getOrderByField', () => {
-        const orderByField = selectors.getOrderByField(state)
-        expect(orderByField).toEqual('Updated')
-    })
+        const orderByField = selectors.getOrderByField(state);
+
+        expect(orderByField).toEqual('Updated');
+    });
 
     it('getOrderDirection', () => {
-        const orderDirection = selectors.getOrderDirection(state)
-        expect(orderDirection).toEqual('Desc')
-    })
+        const orderDirection = selectors.getOrderDirection(state);
+
+        expect(orderDirection).toEqual('Desc');
+    });
 
     it('getAssignmentListSettings', () => {
-        const assignmentListSettings = selectors.getAssignmentListSettings(state)
+        const assignmentListSettings = selectors.getAssignmentListSettings(state);
+
         expect(assignmentListSettings).toEqual({
             filterBy: 'All',
             searchQuery: 'test',
@@ -136,26 +141,30 @@ describe('selectors', () => {
             filterByState: null,
             filterByType: null,
             filterByPriority: null,
-        })
-    })
+        });
+    });
 
     it('getCurrentUserId', () => {
-        const currentUserId = selectors.getCurrentUserId(state)
-        expect(currentUserId).toEqual('user1')
-    })
+        const currentUserId = selectors.getCurrentUserId(state);
+
+        expect(currentUserId).toEqual('user1');
+    });
 
     it('getMyAssignmentsCount', () => {
-        const myAssignmentsCount = selectors.getMyAssignmentsCount(state)
-        expect(myAssignmentsCount).toEqual(1)
-    })
+        const myAssignmentsCount = selectors.getMyAssignmentsCount(state);
+
+        expect(myAssignmentsCount).toEqual(1);
+    });
 
     it('getPreviewAssignmentOpened', () => {
-        const previewAssignmentOpened = selectors.getPreviewAssignmentOpened(state)
-        expect(previewAssignmentOpened).toBeTruthy()
-    })
+        const previewAssignmentOpened = selectors.getPreviewAssignmentOpened(state);
+
+        expect(previewAssignmentOpened).toBeTruthy();
+    });
 
     it('getCurrentAssignment', () => {
-        const currentAssignment = selectors.getCurrentAssignment(state)
+        const currentAssignment = selectors.getCurrentAssignment(state);
+
         expect(currentAssignment).toEqual({
             _id: 1,
             _created: '2017-07-13T13:55:41+0000',
@@ -165,46 +174,54 @@ describe('selectors', () => {
                 desk: 'desk1',
                 user: 'user1',
             },
-        })
-    })
+        });
+    });
 
     it('getReadOnlyAssignment', () => {
-        const readOnly = selectors.getReadOnlyAssignment(state)
-        expect(readOnly).toBeTruthy()
-    })
+        const readOnly = selectors.getReadOnlyAssignment(state);
+
+        expect(readOnly).toBeTruthy();
+    });
 
     it('getAssignmentTodoListPage', () => {
-        const page = selectors.getAssignmentTodoListPage(state)
-        expect(page).toBe(1)
-    })
+        const page = selectors.getAssignmentTodoListPage(state);
+
+        expect(page).toBe(1);
+    });
 
     it('getAssignmentInProgressPage', () => {
-        const page = selectors.getAssignmentInProgressPage(state)
-        expect(page).toBe(1)
-    })
+        const page = selectors.getAssignmentInProgressPage(state);
+
+        expect(page).toBe(1);
+    });
 
     it('getAssignmentCompletedPage', () => {
-        const page = selectors.getAssignmentCompletedPage(state)
-        expect(page).toBe(1)
-    })
+        const page = selectors.getAssignmentCompletedPage(state);
+
+        expect(page).toBe(1);
+    });
 
     it('getAssignmentsToDoListCount', () => {
-        const count = selectors.getAssignmentsToDoListCount(state)
-        expect(count).toBe(0)
-    })
+        const count = selectors.getAssignmentsToDoListCount(state);
+
+        expect(count).toBe(0);
+    });
 
     it('getAssignmentsInProgressListCount', () => {
-        const count = selectors.getAssignmentsInProgressListCount(state)
-        expect(count).toBe(0)
-    })
+        const count = selectors.getAssignmentsInProgressListCount(state);
+
+        expect(count).toBe(0);
+    });
 
     it('getAssignmentsCompletedListCount', () => {
-        const count = selectors.getAssignmentsCompletedListCount(state)
-        expect(count).toBe(0)
-    })
+        const count = selectors.getAssignmentsCompletedListCount(state);
+
+        expect(count).toBe(0);
+    });
 
     it('getAssignmentListSingleGroupView', () => {
-        const view = selectors.getAssignmentListSingleGroupView(state)
-        expect(view).toBe(null)
-    })
-})
+        const view = selectors.getAssignmentListSingleGroupView(state);
+
+        expect(view).toBe(null);
+    });
+});

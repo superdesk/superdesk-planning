@@ -68,4 +68,4 @@ export const ASSIGNMENTS = {
             states: ['completed', 'cancelled'],
         },
     },
-}
+};

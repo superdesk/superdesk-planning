@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { get } from 'lodash';
-import { gettext } from '../utils';
+import {get} from 'lodash';
+import {gettext} from '../utils';
 
 import NavTabs from './NavTabs';
 import HistoryTab from './HistoryTab';
@@ -17,6 +17,7 @@ class Editor extends React.Component {
     componentWillReceiveProps(nextProps) {
         if (get(nextProps, 'item._id') !== get(this.props, 'item._id')) {
             const diff = Object.assign({}, nextProps.item);
+
             this.setState({diff, dirty: false});
         }
     }
@@ -24,6 +25,7 @@ class Editor extends React.Component {
     onChangeHandler(field) {
         return (event) => {
             const diff = Object.assign({}, this.state.diff);
+
             diff[field] = event.target.value;
             this.setState({diff, dirty: true});
         };

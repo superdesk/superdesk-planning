@@ -1,19 +1,19 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import TextareaAutosize from 'react-textarea-autosize'
+import React from 'react';
+import PropTypes from 'prop-types';
+import TextareaAutosize from 'react-textarea-autosize';
 
-import { get, keyBy } from 'lodash'
-import { TermsList, UrgencyLabel, Label } from '../../components'
+import {get, keyBy} from 'lodash';
+import {TermsList, UrgencyLabel, Label} from '../../components';
 
 
-export const PlanningPreview = ({ urgencyLabel, item, formProfile, agendas }) => {
-
-    const agendaMap = keyBy(agendas, '_id')
+export const PlanningPreview = ({urgencyLabel, item, formProfile, agendas}) => {
+    const agendaMap = keyBy(agendas, '_id');
     const agendaAssigned = (get(item, 'agendas') || []).map((agendaId) => {
-        let agenda = get(agendaMap, agendaId)
-        agenda.name = agenda.name + (!agenda.is_enabled ? ' - [Disabled]' : '')
-        return agenda
-    })
+        let agenda = get(agendaMap, agendaId);
+
+        agenda.name = agenda.name + (!agenda.is_enabled ? ' - [Disabled]' : '');
+        return agenda;
+    });
 
     return (
         <div>
@@ -98,12 +98,12 @@ export const PlanningPreview = ({ urgencyLabel, item, formProfile, agendas }) =>
                 </div>
             }
         </div>
-    )
-}
+    );
+};
 
 PlanningPreview.propTypes = {
     urgencyLabel: PropTypes.string,
     item: PropTypes.object,
     formProfile: PropTypes.object,
     agendas: PropTypes.array,
-}
+};

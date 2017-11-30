@@ -1,11 +1,11 @@
-import React from 'react'
-import { Modal as _Modal } from 'react-bootstrap'
+import React from 'react';
+import {Modal as _Modal} from 'react-bootstrap';
 
-export default function Header({ children }) {
+export default function Header({children}) {
     return (
         <_Modal.Header className="modal__header">
             {children}
-        </_Modal.Header>)
+        </_Modal.Header>);
 }
 
 Header.propTypes = {
@@ -13,4 +13,4 @@ Header.propTypes = {
         React.PropTypes.element,
         React.PropTypes.arrayOf(React.PropTypes.element),
     ]),
-}
+};

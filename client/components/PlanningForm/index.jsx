@@ -1,21 +1,22 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { fields, ToggleBox, EventMetadata, Autosave } from '../../components'
-import { connect } from 'react-redux'
-import { Field, FieldArray, reduxForm, propTypes, formValueSelector } from 'redux-form'
-import * as selectors from '../../selectors'
-import { isItemPublic } from '../../utils/index'
-import { FORM_NAMES } from '../../constants'
-import './style.scss'
-import { get } from 'lodash'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {fields, ToggleBox, EventMetadata, Autosave} from '../../components';
+import {connect} from 'react-redux';
+import {Field, FieldArray, reduxForm, propTypes, formValueSelector} from 'redux-form';
+import * as selectors from '../../selectors';
+import {isItemPublic} from '../../utils/index';
+import {FORM_NAMES} from '../../constants';
+import './style.scss';
+import {get} from 'lodash';
+
 import {
     ChainValidators,
     RequiredFieldsValidatorFactory,
-    MaxLengthValidatorFactory } from '../../validators'
+    MaxLengthValidatorFactory} from '../../validators';
 
 class Component extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
     }
 
     render() {
@@ -29,8 +30,9 @@ class Component extends React.Component {
             event,
             desks,
             initialValues,
-        } = this.props
-        const isPublic = isItemPublic(pubstatus)
+        } = this.props;
+        const isPublic = isItemPublic(pubstatus);
+
         return (
             <form onSubmit={handleSubmit} className="PlanningForm">
                 <Autosave formName={FORM_NAMES.PlanningForm}/>
@@ -49,11 +51,11 @@ class Component extends React.Component {
                     {get(formProfile.planning, 'editor.description_text.enabled') &&
                         <div className="form__row">
                             <Field
-                            name="description_text"
-                            component={fields.InputTextAreaField}
-                            label="Description"
-                            required={get(formProfile.planning, 'schema.description_text.required')}
-                            readOnly={readOnly} />
+                                name="description_text"
+                                component={fields.InputTextAreaField}
+                                label="Description"
+                                required={get(formProfile.planning, 'schema.description_text.required')}
+                                readOnly={readOnly} />
                         </div>
                     }
                     {get(formProfile.planning, 'editor.internal_note.enabled') &&
@@ -147,7 +149,7 @@ class Component extends React.Component {
                     readOnly={readOnly}
                     desks={desks} />
             </form>
-        )
+        );
     }
 }
 
@@ -161,7 +163,7 @@ Component.propTypes = {
     onSubmit: PropTypes.func,
     formProfile: PropTypes.object,
     event: PropTypes.object,
-}
+};
 
 // Decorate the form component
 const PlanningReduxForm = reduxForm({
@@ -170,20 +172,20 @@ const PlanningReduxForm = reduxForm({
         RequiredFieldsValidatorFactory(),
         MaxLengthValidatorFactory(),
     ]),
-    enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
-})(Component)
+    enableReinitialize: true, // the form will reinitialize every time the initialValues prop changes
+})(Component);
 
-const selector = formValueSelector(FORM_NAMES.PlanningForm) // same as form name
+const selector = formValueSelector(FORM_NAMES.PlanningForm); // same as form name
 const mapStateToProps = (state) => ({
     slugline: selector(state, 'slugline'), // Used to parse current slugline to new coverages
     pubstatus: selector(state, 'pubstatus'), // Used to determine `Published State`
     users: selectors.getUsers(state),
     desks: selectors.getDesks(state),
     formProfile: selectors.getPlanningTypeProfile(state),
-})
+});
 
 export const PlanningForm = connect(
     mapStateToProps,
     null,
     null,
-    { withRef: true })(PlanningReduxForm)
+    {withRef: true})(PlanningReduxForm);

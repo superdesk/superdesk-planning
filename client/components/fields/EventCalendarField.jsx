@@ -1,6 +1,6 @@
-import { SelectMetaTermsField } from './SelectMetaTermsField/'
-import { connect } from 'react-redux'
-import * as selectors from '../../selectors'
+import {SelectMetaTermsField} from './SelectMetaTermsField/';
+import {connect} from 'react-redux';
+import * as selectors from '../../selectors';
 
 const mapStateToProps = (state, ownProps) => ({
     multi: true,
@@ -16,6 +16,6 @@ const mapStateToProps = (state, ownProps) => ({
             value: cat,
         }
     )),
-})
+});
 
-export const EventCalendarField = connect(mapStateToProps)(SelectMetaTermsField)
+export const EventCalendarField = connect(mapStateToProps)(SelectMetaTermsField);

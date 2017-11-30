@@ -1,44 +1,44 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
-import { Field, reduxForm, formValueSelector } from 'redux-form'
-import * as actions from '../../../actions'
-import { getDateFormat } from '../../../selectors'
-import { EventUpdateMethods, TimePicker } from '../../fields'
-import '../style.scss'
-import { get } from 'lodash'
-import { UpdateMethodSelection } from '../UpdateMethodSelection'
-import { ChainValidators, EndDateAfterStartDate } from '../../../validators'
-import { FORM_NAMES, EVENTS } from '../../../constants'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {Field, reduxForm, formValueSelector} from 'redux-form';
+import * as actions from '../../../actions';
+import {getDateFormat} from '../../../selectors';
+import {EventUpdateMethods, TimePicker} from '../../fields';
+import '../style.scss';
+import {get} from 'lodash';
+import {UpdateMethodSelection} from '../UpdateMethodSelection';
+import {ChainValidators, EndDateAfterStartDate} from '../../../validators';
+import {FORM_NAMES, EVENTS} from '../../../constants';
 
 export class Component extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
     }
 
     onFromTimeChange(value) {
-        this.props.change('dates.start', value)
+        this.props.change('dates.start', value);
     }
 
     onToTimeChange(value) {
-        this.props.change('dates.end', value)
+        this.props.change('dates.end', value);
     }
 
     render() {
-        const { handleSubmit, initialValues, relatedEvents=[], dateFormat, submitting } = this.props
+        const {handleSubmit, initialValues, relatedEvents = [], dateFormat, submitting} = this.props;
 
-        let event = initialValues
-        let isRecurring = !!event.recurrence_id
+        let event = initialValues;
+        let isRecurring = !!event.recurrence_id;
 
-        const dateStr = event.dates.start.format('MMMM Do YYYY')
+        const dateStr = event.dates.start.format('MMMM Do YYYY');
 
         // Default the update_method to 'Update this event only'
-        event.update_method = EventUpdateMethods[0]
+        event.update_method = EventUpdateMethods[0];
 
-        let updateMethodLabel = 'Would you like to update all recurring events or just this one?'
+        let updateMethodLabel = 'Would you like to update all recurring events or just this one?';
 
         return (
-            <div className='ItemActionConfirmation'>
+            <div className="ItemActionConfirmation">
                 <form onSubmit={handleSubmit}>
                     <div className="metadata-view">
                         <dl>
@@ -57,7 +57,7 @@ export class Component extends React.Component {
                     </div>
                     <div>
                         <Field
-                            name='dates.start'
+                            name="dates.start"
                             component={TimePicker}
                             readOnly={submitting}
                             placeholder="Time" />
@@ -67,7 +67,7 @@ export class Component extends React.Component {
                     </div>
                     <div>
                         <Field
-                            name='dates.end'
+                            name="dates.end"
                             component={TimePicker}
                             readOnly={submitting}
                             placeholder="Time" />
@@ -83,7 +83,7 @@ export class Component extends React.Component {
                     handleSubmit={handleSubmit} />
 
             </div>
-        )
+        );
     }
 }
 
@@ -94,20 +94,20 @@ Component.propTypes = {
     dateFormat: PropTypes.string.isRequired,
     change: PropTypes.func,
     submitting: PropTypes.bool,
-}
+};
 
 // Decorate the form container
 export const UpdateTime = reduxForm({
     form: FORM_NAMES.UpdateTimeForm,
     validate: ChainValidators([EndDateAfterStartDate]),
-})(Component)
+})(Component);
 
-const selector = formValueSelector(FORM_NAMES.UpdateTimeForm)
+const selector = formValueSelector(FORM_NAMES.UpdateTimeForm);
 
 const mapStateToProps = (state) => ({
     relatedEvents: selector(state, '_events'),
     dateFormat: getDateFormat(state),
-})
+});
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
@@ -116,23 +116,23 @@ const mapDispatchToProps = (dispatch) => ({
         get(event, '_save', true),
         get(event, '_publish', false)
     ))
-    .then(() => {
-        dispatch({
-            type: EVENTS.ACTIONS.UNLOCK_EVENT,
-            payload: { event },
-        })
-    }),
+        .then(() => {
+            dispatch({
+                type: EVENTS.ACTIONS.UNLOCK_EVENT,
+                payload: {event},
+            });
+        }),
 
     onHide: (event) => {
         if (event.lock_action === 'update_time') {
-            dispatch(actions.events.api.unlock(event))
+            dispatch(actions.events.api.unlock(event));
         }
     },
-})
+});
 
 export const UpdateTimeForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    { withRef: true }
-)(UpdateTime)
+    {withRef: true}
+)(UpdateTime);

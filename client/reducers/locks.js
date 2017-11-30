@@ -1,13 +1,13 @@
-import { createReducer } from '../utils'
-import { RESET_STORE, INIT_STORE, LOCKS, PLANNING, EVENTS, ASSIGNMENTS } from '../constants'
-import { cloneDeep, get } from 'lodash'
+import {createReducer} from '../utils';
+import {RESET_STORE, INIT_STORE, LOCKS, PLANNING, EVENTS, ASSIGNMENTS} from '../constants';
+import {cloneDeep, get} from 'lodash';
 
 const initialLockState = {
     events: {},
     planning: {},
     recurring: {},
     assignments: {},
-}
+};
 
 export const convertItemToLock = (item, itemType) => ({
     action: item.lock_action,
@@ -16,33 +16,33 @@ export const convertItemToLock = (item, itemType) => ({
     user: item.lock_user,
     item_type: itemType,
     item_id: item._id,
-})
+});
 
 const removeLock = (item, state, itemType) => {
     if (get(item, 'recurrence_id')) {
-        delete state.recurring[item.recurrence_id]
+        delete state.recurring[item.recurrence_id];
     } else if (get(item, 'event_item')) {
-        delete state.events[item.event_item]
+        delete state.events[item.event_item];
     } else {
-        delete state[itemType][item._id]
+        delete state[itemType][item._id];
     }
 
-    return state
-}
+    return state;
+};
 
 const addLock = (item, state, itemType) => {
-    const lock = convertItemToLock(item, itemType)
+    const lock = convertItemToLock(item, itemType);
 
     if (get(item, 'recurrence_id')) {
-        state.recurring[item.recurrence_id] = lock
+        state.recurring[item.recurrence_id] = lock;
     } else if (get(item, 'event_item')) {
-        state.events[item.event_item] = lock
+        state.events[item.event_item] = lock;
     } else {
-        state[itemType][item._id] = lock
+        state[itemType][item._id] = lock;
     }
 
-    return state
-}
+    return state;
+};
 
 export default createReducer(initialLockState, {
     [RESET_STORE]: () => (null),
@@ -77,21 +77,21 @@ export default createReducer(initialLockState, {
             planning: {},
             recurring: {},
             assignments: {},
-        }
+        };
 
         if (payload.events) {
-            payload.events.forEach((event) => addLock(event, locks, 'events'))
+            payload.events.forEach((event) => addLock(event, locks, 'events'));
         }
 
         if (payload.plans) {
-            payload.plans.forEach((plan) => addLock(plan, locks, 'planning'))
+            payload.plans.forEach((plan) => addLock(plan, locks, 'planning'));
         }
 
         if (payload.assignments) {
-            payload.assignments.forEach((assignment) => addLock(assignment, locks, 'assignments'))
+            payload.assignments.forEach((assignment) => addLock(assignment, locks, 'assignments'));
         }
 
-        return locks
+        return locks;
     },
 
     [EVENTS.ACTIONS.MARK_EVENT_CANCELLED]: (state, payload) => (
@@ -126,6 +126,6 @@ export default createReducer(initialLockState, {
     ),
 
     [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (state, payload) => (
-        removeLock({ _id: payload.planning }, cloneDeep(state), 'planning')
+        removeLock({_id: payload.planning}, cloneDeep(state), 'planning')
     ),
-})
+});

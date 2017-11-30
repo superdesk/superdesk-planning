@@ -1,5 +1,5 @@
-import { PRIVILEGES } from '../constants'
-import { getPrivileges } from '../selectors'
+import {PRIVILEGES} from '../constants';
+import {getPrivileges} from '../selectors';
 
 /**
  * Action wrapper for checking the supplied permission with the
@@ -13,18 +13,19 @@ import { getPrivileges } from '../selectors'
  * @param {object} args - Arguments to supply to the action on ACCESS_GRANTED
  * @return thunk function
  */
-const checkPermission = (action, permission, errorMessage, fallbackAction=null) => (
+const checkPermission = (action, permission, errorMessage, fallbackAction = null) => (
     (...args) => (
-        function checkPermission(dispatch, getState, { $timeout, notify }) {
-            const privileges = getPrivileges(getState())
+        function checkPermission(dispatch, getState, {$timeout, notify}) {
+            const privileges = getPrivileges(getState());
+
             if (permission in privileges && privileges[permission] === 1) {
-                return Promise.resolve(dispatch(action(...args)))
+                return Promise.resolve(dispatch(action(...args)));
             } else {
                 if (fallbackAction) {
-                    dispatch(fallbackAction(...args))
+                    dispatch(fallbackAction(...args));
                 }
 
-                $timeout(() => (notify.error(errorMessage)))
+                $timeout(() => (notify.error(errorMessage)));
                 return Promise.reject(dispatch({
                     type: PRIVILEGES.ACTIONS.ACCESS_DENIED,
                     payload: {
@@ -33,10 +34,10 @@ const checkPermission = (action, permission, errorMessage, fallbackAction=null) 
                         errorMessage,
                         args,
                     },
-                }))
+                }));
             }
         }
     )
-)
+);
 
-export default checkPermission
+export default checkPermission;

@@ -1,39 +1,39 @@
-import { get } from 'lodash'
+import {get} from 'lodash';
 import {
     getCurrentUserId,
     getCurrentDeskId,
     getCurrentWorkspace,
     getStoredPlannings,
     getEvents,
-} from './planning'
-import { createSelector } from 'reselect'
-import { getItemsById, getItemInArrayById } from '../utils'
-import { WORKSPACE } from '../constants'
+} from './planning';
+import {createSelector} from 'reselect';
+import {getItemsById, getItemInArrayById} from '../utils';
+import {WORKSPACE} from '../constants';
 
-export const getStoredAssignments = (state) => get(state, 'assignment.assignments', {})
-export const getStoredArchiveItems = (state) => get(state, 'assignment.archive', {})
+export const getStoredAssignments = (state) => get(state, 'assignment.assignments', {});
+export const getStoredArchiveItems = (state) => get(state, 'assignment.archive', {});
 export const getAssignmentsInTodoList = (state) => get(state,
-    'assignment.assignmentsInTodoList', [])
+    'assignment.assignmentsInTodoList', []);
 export const getAssignmentsInInProgressList = (state) => get(state,
-    'assignment.assignmentsInInProgressList', [])
+    'assignment.assignmentsInInProgressList', []);
 export const getAssignmentsInCompletedList = (state) => get(state,
-    'assignment.assignmentsInCompletedList', [])
-export const getFilterBy = (state) => get(state, 'assignment.filterBy', 'ALL')
-export const getSearchQuery = (state) => get(state, 'assignment.searchQuery', null)
-export const getOrderByField = (state) => get(state, 'assignment.orderByField', 'Created')
-export const getOrderDirection = (state) => get(state, 'assignment.orderDirection', 'Asc')
-export const getAssignmentFilterByState = (state) => get(state, 'assignment.filterByState', null)
-export const getAssignmentFilterByType = (state) => get(state, 'assignment.filterByType', null)
+    'assignment.assignmentsInCompletedList', []);
+export const getFilterBy = (state) => get(state, 'assignment.filterBy', 'ALL');
+export const getSearchQuery = (state) => get(state, 'assignment.searchQuery', null);
+export const getOrderByField = (state) => get(state, 'assignment.orderByField', 'Created');
+export const getOrderDirection = (state) => get(state, 'assignment.orderDirection', 'Asc');
+export const getAssignmentFilterByState = (state) => get(state, 'assignment.filterByState', null);
+export const getAssignmentFilterByType = (state) => get(state, 'assignment.filterByType', null);
 export const getAssignmentFilterByPriority = (state) =>
-    get(state, 'assignment.filterByPriority', null)
+    get(state, 'assignment.filterByPriority', null);
 export const getAssignmentTodoListPage = (state) => get(state,
-    'assignment.todoListLastLoadedPage', 1)
+    'assignment.todoListLastLoadedPage', 1);
 export const getAssignmentInProgressPage = (state) => get(state,
-    'assignment.inProgressListLastLoadedPage', 1)
+    'assignment.inProgressListLastLoadedPage', 1);
 export const getAssignmentCompletedPage = (state) => get(state,
-    'assignment.completedListLastLoadedPage', 1)
+    'assignment.completedListLastLoadedPage', 1);
 export const getSelectedAssignments = (state) => get(state,
-    'assignment.selectedAssignments', [])
+    'assignment.selectedAssignments', []);
 export const getAssignmentListSettings = (state) => ({
     filterBy: getFilterBy(state),
     searchQuery: getSearchQuery(state),
@@ -42,37 +42,37 @@ export const getAssignmentListSettings = (state) => ({
     filterByState: getAssignmentFilterByState(state),
     filterByType: getAssignmentFilterByType(state),
     filterByPriority: getAssignmentFilterByPriority(state),
-})
-export const getAssignmentsToDoListCount = (state) => (get(state, 'assignment.todoListTotal', 0))
+});
+export const getAssignmentsToDoListCount = (state) => (get(state, 'assignment.todoListTotal', 0));
 export const getAssignmentsInProgressListCount = (state) => (get(state,
-    'assignment.inProgressListTotal', 0))
+    'assignment.inProgressListTotal', 0));
 export const getAssignmentsCompletedListCount = (state) => (get(state,
-    'assignment.completedListTotal', 0))
+    'assignment.completedListTotal', 0));
 export const getAssignmentListSingleGroupView = (state) => get(state,
-    'assignment.assignmentListSingleGroupView', null)
+    'assignment.assignmentListSingleGroupView', null);
 
-export const getPreviewAssignmentOpened = (state) => get(state, 'assignment.previewOpened')
-export const getCurrentAssignmentId = (state) => get(state, 'assignment.currentAssignmentId')
-export const getReadOnlyAssignment = (state) => get(state, 'assignment.readOnly')
-export const getFulFilledItem = (state) => get(state, 'assignment.fulfilledItem', {})
-export const getAssignmentPriorities = (state) => get(state, 'vocabularies.assignment_priority', [])
-export const getArchivePriorities = (state) => get(state, 'vocabularies.priority', [])
-export const getUrgencies = (state) => get(state, 'vocabularies.urgency', [])
+export const getPreviewAssignmentOpened = (state) => get(state, 'assignment.previewOpened');
+export const getCurrentAssignmentId = (state) => get(state, 'assignment.currentAssignmentId');
+export const getReadOnlyAssignment = (state) => get(state, 'assignment.readOnly');
+export const getFulFilledItem = (state) => get(state, 'assignment.fulfilledItem', {});
+export const getAssignmentPriorities = (state) => get(state, 'vocabularies.assignment_priority', []);
+export const getArchivePriorities = (state) => get(state, 'vocabularies.priority', []);
+export const getUrgencies = (state) => get(state, 'vocabularies.urgency', []);
 
 export const getTodoAssignments = createSelector(
     [getAssignmentsInTodoList, getStoredAssignments],
     (assignmentIds, storedAssignments) => (getItemsById(assignmentIds, storedAssignments))
-)
+);
 
 export const getInProgressAssignments = createSelector(
     [getAssignmentsInInProgressList, getStoredAssignments],
     (assignmentIds, storedAssignments) => (getItemsById(assignmentIds, storedAssignments))
-)
+);
 
 export const getCompletedAssignments = createSelector(
     [getAssignmentsInCompletedList, getStoredAssignments],
     (assignmentIds, storedAssignments) => (getItemsById(assignmentIds, storedAssignments))
-)
+);
 
 export const getMyAssignmentsCount = createSelector(
     [getTodoAssignments, getCurrentUserId], // This should change!!
@@ -82,24 +82,24 @@ export const getMyAssignmentsCount = createSelector(
                 previousValue + (
                     get(assignment, 'assigned_to.user') === userId ? 1 : 0
                 ), 0
-            )
+            );
         }
     }
-)
+);
 
 export const getCurrentAssignment = createSelector(
     [getCurrentAssignmentId, getStoredAssignments],
     (assignmentId, storedAssignments) => (
         get(storedAssignments, assignmentId, null)
     )
-)
+);
 
 export const getAssignmentSearch = createSelector(
     [getAssignmentListSettings, getCurrentDeskId, getCurrentUserId,
         getCurrentWorkspace, getAssignmentFilterByType,
         getAssignmentFilterByPriority],
     (listSettings, currentDeskId,
-     currentUserId, currentWorkspace, filterByType, filterByPriority) => {
+        currentUserId, currentWorkspace, filterByType, filterByPriority) => {
         const assignmentSearch = {
             deskId: (
                 get(listSettings, 'filterBy') === 'All' ||
@@ -113,11 +113,11 @@ export const getAssignmentSearch = createSelector(
             states: null,
             type: filterByType,
             priority: filterByPriority,
-        }
+        };
 
-        return assignmentSearch
+        return assignmentSearch;
     }
-)
+);
 
 export const getCurrentAssignmentPlanningItem = createSelector(
     [getCurrentAssignment, getStoredPlannings],
@@ -126,7 +126,7 @@ export const getCurrentAssignmentPlanningItem = createSelector(
             get(storedPlannings, assignment.planning_item) :
             null
     )
-)
+);
 
 export const getCurrentAssignmentEventItem = createSelector(
     [getCurrentAssignmentPlanningItem, getEvents],
@@ -135,14 +135,14 @@ export const getCurrentAssignmentEventItem = createSelector(
             get(storedEvents, planning.event_item) :
             null
     )
-)
+);
 
 export const getCurrentAssignmentArchiveItem = createSelector(
     [getCurrentAssignmentId, getStoredArchiveItems],
     (assignmentId, storedItems) => (
         assignmentId ? get(storedItems, assignmentId, null) : null
     )
-)
+);
 
 export const getCurrentAssignmentCoverage = createSelector(
     [getCurrentAssignment, getCurrentAssignmentPlanningItem],
@@ -153,4 +153,4 @@ export const getCurrentAssignmentCoverage = createSelector(
             'coverage_id'
         )
     )
-)
+);

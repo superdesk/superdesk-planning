@@ -1,21 +1,21 @@
-import React from 'react'
-import { Tab } from './Tab'
+import React from 'react';
+import {Tab} from './Tab';
 
 export class Tabs extends React.Component {
     constructor(props) {
-        super(props)
-        this.renderTab = this.renderTab.bind(this)
+        super(props);
+        this.renderTab = this.renderTab.bind(this);
     }
 
     renderTab(child) {
         if (!child) {
-            return null
+            return null;
         }
 
-        const { tabName, activeTab, onChangeTab } = child.props
+        const {tabName, activeTab, onChangeTab} = child.props;
 
         if (!tabName || !activeTab || !onChangeTab) {
-            return null
+            return null;
         }
 
         return React.createElement(
@@ -26,23 +26,23 @@ export class Tabs extends React.Component {
                 activeTab: activeTab,
                 key: child.key || tabName,
             }
-        )
+        );
     }
 
     render() {
-        let { children } = this.props
+        let {children} = this.props;
 
         if (!children) {
-            return null
+            return null;
         }
 
-        const tabs = (Array.isArray(children) ? children : [children]).map((child) => (this.renderTab(child)))
+        const tabs = (Array.isArray(children) ? children : [children]).map((child) => (this.renderTab(child)));
 
         return (
             <ul className="nav nav-tabs">
                 { tabs }
             </ul>
-        )
+        );
     }
 }
 
@@ -51,4 +51,4 @@ Tabs.propTypes = {
         React.PropTypes.object,
         React.PropTypes.array,
     ]),
-}
+};

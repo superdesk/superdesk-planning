@@ -1,5 +1,5 @@
-import { CreatableField } from './CreatableField'
-import { connect } from 'react-redux'
+import {CreatableField} from './CreatableField';
+import {connect} from 'react-redux';
 
 const mapStateToProps = (state, ownProps) => ({
     multi: true,
@@ -15,6 +15,6 @@ const mapStateToProps = (state, ownProps) => ({
             value: provider,
         }
     )),
-})
+});
 
-export const IngestProviderField = connect(mapStateToProps)(CreatableField)
+export const IngestProviderField = connect(mapStateToProps)(CreatableField);

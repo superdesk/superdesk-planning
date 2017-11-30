@@ -144,7 +144,7 @@ export function AddToPlanningController(
                     modalProps: {
                         newsItem: newsItem,
                         fullscreen: true,
-                        $scope,
+                        $scope: $scope,
                     },
                 }))
 

@@ -1,81 +1,83 @@
-import React, { PropTypes } from 'react'
-import moment from 'moment'
-import ReactDOM from 'react-dom'
-import { range } from 'lodash'
-import './styles.scss'
+import React, {PropTypes} from 'react';
+import moment from 'moment';
+import ReactDOM from 'react-dom';
+import {range} from 'lodash';
+import './styles.scss';
 
 export class TimePickerCore extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
         this.state = {
             selectedHourIndex: 0,
             selectedMinuteIndex: 0,
             currentTime: moment(),
-        }
-        this.handleClickOutside = this.handleClickOutside.bind(this)
+        };
+        this.handleClickOutside = this.handleClickOutside.bind(this);
     }
 
     componentWillMount() {
-        let hourIndex, minIndex
-        let inputDateTime = this.props.value && moment.isMoment(this.props.value) ? moment(this.props.value) : this.state.currentTime
+        let hourIndex, minIndex;
+        let inputDateTime = this.props.value && moment.isMoment(this.props.value) ? moment(this.props.value) : this.state.currentTime;
 
         // Round it to nearest 5 mins mark if needed
-        const diffMins = 5 - inputDateTime.minute() % 5
+        const diffMins = 5 - inputDateTime.minute() % 5;
+
         if (diffMins !== 5) {
-            inputDateTime = inputDateTime.add(diffMins, 'm')
+            inputDateTime = inputDateTime.add(diffMins, 'm');
         }
 
-        hourIndex = inputDateTime.hour()
-        minIndex = inputDateTime.minute() / 5
+        hourIndex = inputDateTime.hour();
+        minIndex = inputDateTime.minute() / 5;
 
         this.setState({
             selectedHourIndex: hourIndex,
             selectedMinuteIndex: minIndex,
-        })
+        });
     }
 
     componentDidMount() {
-        document.addEventListener('click', this.handleClickOutside, true)
+        document.addEventListener('click', this.handleClickOutside, true);
     }
 
     componentWillUnmount() {
-        document.removeEventListener('click', this.handleClickOutside, true)
+        document.removeEventListener('click', this.handleClickOutside, true);
     }
 
     handleClickOutside(event) {
-        const domNode = ReactDOM.findDOMNode(this)
+        const domNode = ReactDOM.findDOMNode(this);
 
         if ((!domNode || !domNode.contains(event.target))) {
-            this.props.onCancel()
+            this.props.onCancel();
         }
     }
 
     setselectedHourIndex(val) {
-        this.setState({ selectedHourIndex: val })
+        this.setState({selectedHourIndex: val});
     }
 
     setselectedMinuteIndex(val) {
-        this.setState({ selectedMinuteIndex: val })
+        this.setState({selectedMinuteIndex: val});
     }
 
     handleConfirm(addMinutes) {
         if (addMinutes) {
-            this.state.currentTime.add(addMinutes, 'm')
-            this.props.onChange(this.state.currentTime.format('HH:mm'))
+            this.state.currentTime.add(addMinutes, 'm');
+            this.props.onChange(this.state.currentTime.format('HH:mm'));
         } else {
-            this.props.onChange(this.state.selectedHourIndex + ':' + ((this.state.selectedMinuteIndex) * 5))
+            this.props.onChange(this.state.selectedHourIndex + ':' + ((this.state.selectedMinuteIndex) * 5));
         }
         // Close the timepicker
-        this.props.onCancel()
+        this.props.onCancel();
     }
 
     handleCancel() {
-        this.props.onCancel()
+        this.props.onCancel();
     }
 
     render() {
-        const hours = range(0, 24)
-        const minutes = range(0, 60, 5)
+        const hours = range(0, 24);
+        const minutes = range(0, 60, 5);
+
         return (
             <div className="timepickerPopup">
                 <div className="timepickerPopup__core">
@@ -102,7 +104,7 @@ export class TimePickerCore extends React.Component {
                         <div className="header">Minutes</div>
                         <ul>
                             {minutes.map((minute, index) => (
-                            <li key={index} className={index === this.state.selectedMinuteIndex ? 'active' : ''} onClick={this.setselectedMinuteIndex.bind(this, index)}>{minute < 10 ? '0' + minute : minute}</li>
+                                <li key={index} className={index === this.state.selectedMinuteIndex ? 'active' : ''} onClick={this.setselectedMinuteIndex.bind(this, index)}>{minute < 10 ? '0' + minute : minute}</li>
                             ))}
                         </ul>
                     </div>
@@ -112,7 +114,7 @@ export class TimePickerCore extends React.Component {
                     </div>
                 </div>
             </div>
-        )
+        );
     }
 }
 
@@ -120,4 +122,4 @@ TimePickerCore.propTypes = {
     value: PropTypes.object,
     onChange: PropTypes.func.isRequired,
     onCancel: PropTypes.func.isRequired,
-}
+};

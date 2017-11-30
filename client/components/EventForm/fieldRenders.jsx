@@ -1,7 +1,7 @@
 /* eslint-disable react/no-multi-comp, react/prop-types */
-import React from 'react'
-import { fields } from '../index'
-import { Field, FieldArray } from 'redux-form'
+import React from 'react';
+import {fields} from '../index';
+import {Field, FieldArray} from 'redux-form';
 
 
 const renderSlugline = (props) => (
@@ -13,7 +13,7 @@ const renderSlugline = (props) => (
             required={props.fieldSchema.required}
             readOnly={props.readOnly} />
     </div>
-)
+);
 
 const renderName = (props) => (
     <div className="form__row">
@@ -24,7 +24,7 @@ const renderName = (props) => (
             required={props.fieldSchema.required}
             readOnly={props.readOnly} />
     </div>
-)
+);
 
 const renderCalender = (props) => (
     <div className="form__row">
@@ -34,7 +34,7 @@ const renderCalender = (props) => (
             required={props.fieldSchema.required}
             readOnly={props.readOnly} />
     </div>
-)
+);
 
 const renderCategory = (props) => (
     <div className="form__row">
@@ -44,7 +44,7 @@ const renderCategory = (props) => (
             required={props.fieldSchema.required}
             readOnly={props.readOnly} />
     </div>
-)
+);
 
 const renderSubject = (props) => (
     <div className="form__row">
@@ -54,18 +54,18 @@ const renderSubject = (props) => (
             required={props.fieldSchema.required}
             readOnly={props.readOnly} />
     </div>
-)
+);
 
 const renderDescription = (props) => (
     <div className="form__row">
-        <Field name='definition_short'
+        <Field name="definition_short"
             component={fields.InputField}
             type="text"
             label="Description"
             required={props.fieldSchema.required}
             readOnly={props.readOnly}/>
     </div>
-)
+);
 
 const renderLongDescription = (props) => (
     <div className="form__row">
@@ -75,7 +75,7 @@ const renderLongDescription = (props) => (
             required={props.fieldSchema.required}
             readOnly={props.readOnly} />
     </div>
-)
+);
 
 const renderInternalNote = (props) => (
     <div className="form__row">
@@ -85,7 +85,7 @@ const renderInternalNote = (props) => (
             required={props.fieldSchema.required}
             readOnly={props.readOnly} />
     </div>
-)
+);
 
 const renderLocation = (props) => (
     <div className="form__row">
@@ -96,20 +96,21 @@ const renderLocation = (props) => (
             readOnly={props.readOnly}
             localSearchResults={props.existingLocationSearchResults} />
     </div>
-)
+);
 
-const renderDate = (readOnly, start=false, occurrenceOverlaps=null, defaultDate=null) => {
-    const name = start ? 'dates.start' : 'dates.end'
-    const label = start  ? 'From' : 'To'
+const renderDate = (readOnly, start = false, occurrenceOverlaps = null, defaultDate = null) => {
+    const name = start ? 'dates.start' : 'dates.end';
+    const label = start ? 'From' : 'To';
+
     return <Field name={name}
-               component={fields.DayPickerInput}
-               label={label}
-               withTime={true}
-               defaultDate={defaultDate}
-               occurrenceOverlaps={occurrenceOverlaps}
-               required={true}
-               readOnly={readOnly}/>
-}
+        component={fields.DayPickerInput}
+        label={label}
+        withTime={true}
+        defaultDate={defaultDate}
+        occurrenceOverlaps={occurrenceOverlaps}
+        required={true}
+        readOnly={readOnly}/>;
+};
 
 const renderOccurStatus = (props) => (
     <div className="form__row">
@@ -119,7 +120,7 @@ const renderOccurStatus = (props) => (
             required={props.fieldSchema.required}
             readOnly={props.readOnly} />
     </div>
-)
+);
 
 const renderLinks = (props) => (
     <div className="form__row">
@@ -128,7 +129,7 @@ const renderLinks = (props) => (
             required={props.fieldSchema.required}
             readOnly={props.readOnly} />
     </div>
-)
+);
 
 const renderFiles = (props) => (
     <div className="form__row">
@@ -137,7 +138,7 @@ const renderFiles = (props) => (
             required={props.fieldSchema.required}
             readOnly={props.readOnly}/>
     </div>
-)
+);
 
 export const fieldRenders = {
     renderSlugline,
@@ -153,4 +154,4 @@ export const fieldRenders = {
     renderOccurStatus,
     renderLinks,
     renderFiles,
-}
+};

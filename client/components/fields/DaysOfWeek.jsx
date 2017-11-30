@@ -1,9 +1,9 @@
-import React, { PropTypes } from 'react'
-import { Checkbox } from '../index'
+import React, {PropTypes} from 'react';
+import {Checkbox} from '../index';
 
 export class DaysOfWeek extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
         let days = {
             MO: false,
             TU: false,
@@ -12,35 +12,37 @@ export class DaysOfWeek extends React.Component {
             FR: false,
             SA: false,
             SU: false,
-        }
+        };
+
         props.input.value.split(' ').forEach((day) => {
             if (Object.keys(days).indexOf(day) > -1) {
-                days[day] = true
+                days[day] = true;
             }
-        })
-        this.state = days
+        });
+        this.state = days;
     }
 
     handleOnChange(e, day) {
         // update the state with the new (un)checked day
-        this.setState({ [day]: e.target.value }, () => {
+        this.setState({[day]: e.target.value}, () => {
             // keep only the checked days
             let daysInString = Object.keys(this.state).map((d) => {
                 if (this.state[d]) {
-                    return d
+                    return d;
                 }
             })
             // keep only not undefined values in array
-            .filter((d) => (d))
-            // join array to produce the string we want to store
-            .join(' ')
-            this.props.input.onChange(daysInString)
-        })
+                .filter((d) => (d))
+                // join array to produce the string we want to store
+                .join(' ');
+
+            this.props.input.onChange(daysInString);
+        });
     }
 
     render() {
-        const { touched, error, warning } = this.props.meta
-        const { readOnly, label } = this.props
+        const {touched, error, warning} = this.props.meta;
+        const {readOnly, label} = this.props;
 
         return (
             <div className="form__row form__row--flex">
@@ -61,7 +63,7 @@ export class DaysOfWeek extends React.Component {
                 {touched && ((error && <span className="error-block">{error}</span>) ||
                  (warning && <span className="help-block">{warning}</span>))}
             </div>
-        )
+        );
     }
 }
 
@@ -70,4 +72,4 @@ DaysOfWeek.propTypes = {
     meta: React.PropTypes.object.isRequired,
     readOnly: PropTypes.bool,
     label: PropTypes.string,
-}
+};

@@ -1,13 +1,14 @@
-import planning from '../planning'
-import actions from '../../actions/planning'
+import planning from '../planning';
+import actions from '../../actions/planning';
 
 describe('planning', () => {
     describe('reducers', () => {
         // Ensure we set the default state for planning
-        let initialState
+        let initialState;
+
         beforeEach(() => {
-            initialState = planning(undefined, { type: null })
-        })
+            initialState = planning(undefined, {type: null});
+        });
 
         const plannings = {
             p1: {
@@ -18,7 +19,7 @@ describe('planning', () => {
                     planning_item: 'p1',
                 }],
             },
-        }
+        };
 
         it('initialState', () => {
             expect(initialState).toEqual({
@@ -31,14 +32,14 @@ describe('planning', () => {
                 filterPlanningKeyword: null,
                 readOnly: true,
                 planningHistoryItems: [],
-                lastRequestParams: { page: 1 },
+                lastRequestParams: {page: 1},
                 search: {
                     currentSearch: undefined,
                     advancedSearchOpened: false,
                 },
                 selectedItems: [],
-            })
-        })
+            });
+        });
 
         it('REQUEST_PLANNINGS', () => {
             const result = planning(
@@ -51,15 +52,15 @@ describe('planning', () => {
                         page: 2,
                     },
                 }
-            )
+            );
 
-            expect(result.planningsAreLoading).toBe(true)
+            expect(result.planningsAreLoading).toBe(true);
             expect(result.lastRequestParams).toEqual({
                 agendas: ['a1'],
                 noAgendaAssigned: false,
                 page: 2,
-            })
-        })
+            });
+        });
 
         it('SET_LIST', () => {
             const result = planning(
@@ -68,10 +69,10 @@ describe('planning', () => {
                     type: 'SET_PLANNING_LIST',
                     payload: ['p1', 'p2'],
                 }
-            )
+            );
 
-            expect(result.planningsInList).toEqual(['p1', 'p2'])
-        })
+            expect(result.planningsInList).toEqual(['p1', 'p2']);
+        });
 
         it('ADD_TO_LIST', () => {
             const result = planning(
@@ -83,31 +84,34 @@ describe('planning', () => {
                     type: 'ADD_TO_PLANNING_LIST',
                     payload: ['p2', 'p3', 'p4'],
                 }
-            )
+            );
 
-            expect(result.planningsInList).toEqual(['p1', 'p2', 'p3', 'p4'])
-        })
+            expect(result.planningsInList).toEqual(['p1', 'p2', 'p3', 'p4']);
+        });
 
         it('CLEAR_LIST', () => {
-            const result = planning(initialState, { type: 'CLEAR_PLANNING_LIST' })
-            expect(result.planningsInList).toEqual([])
-        })
+            const result = planning(initialState, {type: 'CLEAR_PLANNING_LIST'});
+
+            expect(result.planningsInList).toEqual([]);
+        });
 
         it('OPEN_ADVANCED_SEARCH', () => {
-            const result = planning(initialState, { type: 'PLANNING_OPEN_ADVANCED_SEARCH' })
+            const result = planning(initialState, {type: 'PLANNING_OPEN_ADVANCED_SEARCH'});
+
             expect(result.search).toEqual({
                 currentSearch: undefined,
                 advancedSearchOpened: true,
-            })
-        })
+            });
+        });
 
         it('CLOSE_ADVANCED_SEARCH', () => {
-            const result = planning(initialState, { type: 'PLANNING_CLOSE_ADVANCED_SEARCH' })
+            const result = planning(initialState, {type: 'PLANNING_CLOSE_ADVANCED_SEARCH'});
+
             expect(result.search).toEqual({
                 currentSearch: undefined,
                 advancedSearchOpened: false,
-            })
-        })
+            });
+        });
 
         describe('RECEIVE_PLANNINGS', () => {
             it('saves the plan to the store', () => {
@@ -117,53 +121,53 @@ describe('planning', () => {
                         type: 'RECEIVE_PLANNINGS',
                         payload: [{
                             _id: 'p1',
-                            coverages: [{ _id: 'c1' }],
+                            coverages: [{_id: 'c1'}],
                         }],
                     }
-                )
+                );
 
                 expect(result.plannings).toEqual({
                     p1: {
                         _id: 'p1',
-                        coverages: [{ _id: 'c1' }],
+                        coverages: [{_id: 'c1'}],
                     },
-                })
-            })
+                });
+            });
 
             it('defaults coverages to empty array', () => {
                 const result = planning(
                     initialState,
                     {
                         type: 'RECEIVE_PLANNINGS',
-                        payload: [{ _id: 'p1' }],
+                        payload: [{_id: 'p1'}],
                     }
-                )
+                );
 
                 expect(result.plannings).toEqual({
                     p1: {
                         _id: 'p1',
                         coverages: [],
                     },
-                })
-            })
+                });
+            });
 
             it('converts payload to array', () => {
                 const result = planning(
                     initialState,
                     {
                         type: 'RECEIVE_PLANNINGS',
-                        payload: { _id: 'p1' },
+                        payload: {_id: 'p1'},
                     }
-                )
+                );
 
                 expect(result.plannings).toEqual({
                     p1: {
                         _id: 'p1',
                         coverages: [],
                     },
-                })
-            })
-        })
+                });
+            });
+        });
 
         it('OPEN_PLANNING_EDITOR', () => {
             const result = planning(
@@ -172,12 +176,12 @@ describe('planning', () => {
                     type: 'OPEN_PLANNING_EDITOR',
                     payload: 'p1',
                 }
-            )
+            );
 
-            expect(result.editorOpened).toBe(true)
-            expect(result.currentPlanningId).toBe('p1')
-            expect(result.readOnly).toBe(false)
-        })
+            expect(result.editorOpened).toBe(true);
+            expect(result.currentPlanningId).toBe('p1');
+            expect(result.readOnly).toBe(false);
+        });
 
         it('PREVIEW_PLANNING', () => {
             const result = planning(
@@ -186,22 +190,22 @@ describe('planning', () => {
                     type: 'PREVIEW_PLANNING',
                     payload: 'p1',
                 }
-            )
+            );
 
-            expect(result.editorOpened).toBe(true)
-            expect(result.currentPlanningId).toBe('p1')
-            expect(result.readOnly).toBe(true)
-        })
+            expect(result.editorOpened).toBe(true);
+            expect(result.currentPlanningId).toBe('p1');
+            expect(result.readOnly).toBe(true);
+        });
 
         it('CLOSE_PLANNING_EDITOR', () => {
             const result = planning(
                 initialState,
-                { type: 'CLOSE_PLANNING_EDITOR' }
-            )
+                {type: 'CLOSE_PLANNING_EDITOR'}
+            );
 
-            expect(result.editorOpened).toBe(false)
-            expect(result.currentPlanningId).toBe(undefined)
-        })
+            expect(result.editorOpened).toBe(false);
+            expect(result.currentPlanningId).toBe(undefined);
+        });
 
         it('SET_ONLY_FUTURE', () => {
             let result = planning(
@@ -210,8 +214,9 @@ describe('planning', () => {
                     type: 'SET_ONLY_FUTURE',
                     payload: false,
                 }
-            )
-            expect(result.onlyFuture).toBe(false)
+            );
+
+            expect(result.onlyFuture).toBe(false);
 
             result = planning(
                 result,
@@ -219,9 +224,9 @@ describe('planning', () => {
                     type: 'SET_ONLY_FUTURE',
                     payload: true,
                 }
-            )
-            expect(result.onlyFuture).toBe(true)
-        })
+            );
+            expect(result.onlyFuture).toBe(true);
+        });
 
         it('PLANNING_FILTER_BY_KEYWORD', () => {
             let result = planning(
@@ -230,13 +235,14 @@ describe('planning', () => {
                     type: 'PLANNING_FILTER_BY_KEYWORD',
                     payload: 'Find this plan',
                 }
-            )
-            expect(result.filterPlanningKeyword).toBe('Find this plan')
-        })
+            );
+
+            expect(result.filterPlanningKeyword).toBe('Find this plan');
+        });
 
         describe('RECEIVE_COVERAGE', () => {
             it('planning not loaded', () => {
-                initialState.plannings = plannings
+                initialState.plannings = plannings;
                 let result = planning(
                     initialState,
                     {
@@ -246,13 +252,13 @@ describe('planning', () => {
                             planning: 'p2',
                         },
                     }
-                )
+                );
 
-                expect(result).toEqual(initialState)
-            })
+                expect(result).toEqual(initialState);
+            });
 
             it('coverage created', () => {
-                initialState.plannings = plannings
+                initialState.plannings = plannings;
 
                 let result = planning(
                     initialState,
@@ -263,7 +269,7 @@ describe('planning', () => {
                             planning_item: 'p1',
                         },
                     }
-                )
+                );
 
                 expect(result.plannings.p1.coverages).toEqual([
                     {
@@ -274,11 +280,11 @@ describe('planning', () => {
                         _id: 'c2',
                         planning_item: 'p1',
                     },
-                ])
-            })
+                ]);
+            });
 
             it('coverage updated', () => {
-                initialState.plannings = plannings
+                initialState.plannings = plannings;
 
                 let result = planning(
                     initialState,
@@ -290,19 +296,19 @@ describe('planning', () => {
                             foo: 'bar',
                         },
                     }
-                )
+                );
 
                 expect(result.plannings.p1.coverages).toEqual([{
                     _id: 'c1',
                     planning_item: 'p1',
                     foo: 'bar',
-                }])
-            })
-        })
+                }]);
+            });
+        });
 
         describe('COVERAGE_DELETED', () => {
             it('when planning not loaded', () => {
-                initialState.plannings = plannings
+                initialState.plannings = plannings;
 
                 let result = planning(
                     initialState,
@@ -313,13 +319,13 @@ describe('planning', () => {
                             planning_item: 'p2',
                         },
                     }
-                )
+                );
 
-                expect(result).toEqual(initialState)
-            })
+                expect(result).toEqual(initialState);
+            });
 
             it('coverage not loaded', () => {
-                initialState.plannings = plannings
+                initialState.plannings = plannings;
 
                 let result = planning(
                     initialState,
@@ -330,13 +336,13 @@ describe('planning', () => {
                             planning_item: 'p1',
                         },
                     }
-                )
+                );
 
-                expect(result).toEqual(initialState)
-            })
+                expect(result).toEqual(initialState);
+            });
 
             it('removes coverage', () => {
-                initialState.plannings = plannings
+                initialState.plannings = plannings;
 
                 let result = planning(
                     initialState,
@@ -347,44 +353,45 @@ describe('planning', () => {
                             planning_item: 'p1',
                         },
                     }
-                )
+                );
 
-                expect(result.plannings.p1.coverages).toEqual([])
-            })
-        })
+                expect(result.plannings.p1.coverages).toEqual([]);
+            });
+        });
 
         describe('toggle selected items', () => {
             it('can select an item, select all and deselect', () => {
-                initialState.planningsInList = ['foo', 'bar']
-                expect(initialState.selectedItems).toEqual([])
+                initialState.planningsInList = ['foo', 'bar'];
+                expect(initialState.selectedItems).toEqual([]);
 
-                let state
+                let state;
 
-                state = planning(initialState, actions.ui.toggleItemSelected('foo'))
-                expect(state.selectedItems).toEqual(['foo'])
+                state = planning(initialState, actions.ui.toggleItemSelected('foo'));
+                expect(state.selectedItems).toEqual(['foo']);
 
-                state = planning(state, actions.ui.toggleItemSelected('bar'))
-                expect(state.selectedItems).toEqual(['foo', 'bar'])
+                state = planning(state, actions.ui.toggleItemSelected('bar'));
+                expect(state.selectedItems).toEqual(['foo', 'bar']);
 
-                state = planning(state, actions.ui.toggleItemSelected('foo'))
-                expect(state.selectedItems).toEqual(['bar'])
+                state = planning(state, actions.ui.toggleItemSelected('foo'));
+                expect(state.selectedItems).toEqual(['bar']);
 
-                state = planning(state, actions.ui.selectAll())
-                expect(state.selectedItems).toEqual(['foo', 'bar'])
+                state = planning(state, actions.ui.selectAll());
+                expect(state.selectedItems).toEqual(['foo', 'bar']);
 
-                state = planning(state, actions.ui.deselectAll())
-                expect(state.selectedItems).toEqual([])
-            })
-        })
+                state = planning(state, actions.ui.deselectAll());
+                expect(state.selectedItems).toEqual([]);
+            });
+        });
 
         describe('REMOVE_ASSIGNMENT', () => {
             it('REMOVE_ASSIGNMENT returns if planning not loaded', () => {
                 const result = planning(initialState, {
                     type: 'REMOVE_ASSIGNMENT',
-                    payload: { planning: 'p1' },
-                })
-                expect(result).toEqual(initialState)
-            })
+                    payload: {planning: 'p1'},
+                });
+
+                expect(result).toEqual(initialState);
+            });
 
             it('REMOVE_ASSIGNMENT removes the lock and updates the etag', () => {
                 const result = planning(
@@ -416,7 +423,7 @@ describe('planning', () => {
                             coverage: 'cov1',
                         },
                     }
-                )
+                );
 
                 expect(result).toEqual({
                     ...initialState,
@@ -424,11 +431,11 @@ describe('planning', () => {
                         p1: {
                             _id: 'p1',
                             _etag: 'e456',
-                            coverages: [{ coverage_id: 'cov1' }],
+                            coverages: [{coverage_id: 'cov1'}],
                         },
                     },
-                })
-            })
-        })
-    })
-})
+                });
+            });
+        });
+    });
+});

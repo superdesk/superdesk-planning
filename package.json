@@ -7,7 +7,7 @@
   "scripts": {
     "fix": "eslint client --ext=jsx --ext=js --fix",
     "hint": "eslint client --ext=jsx --ext=js",
-    "lint": "eslint client --ext=jsx --ext=js --quiet",
+    "lint": "eslint client --ext=jsx --ext=js",
     "unit_test": "karma start karma.conf.js --log-level debug --display-error-details --single-run",
     "karma": "karma start karma.conf.js",
     "test": "npm run hint && npm run unit_test"
@@ -51,6 +51,7 @@
     "react-test-renderer": "~15.6.1",
     "simulant": "^0.2.2",
     "sinon": "~3.3.0",
-    "superdesk-core": "superdesk/superdesk-client-core#7dd477"
+    "superdesk-core": "superdesk/superdesk-client-core#7dd477",
+    "superdesk-code-style": "^1.0.0"
   }
 }

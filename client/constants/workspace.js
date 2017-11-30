@@ -3,4 +3,4 @@ export const WORKSPACE = {
     AUTHORING: 'AUTHORING',
     PLANNING: 'PLANNING',
     SETTINGS: 'SETTINGS',
-}
+};

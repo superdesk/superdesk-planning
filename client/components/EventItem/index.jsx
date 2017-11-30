@@ -1,38 +1,38 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { ListItem, TimeEvent, StateLabel, Checkbox, ItemActionsMenu } from '../index'
-import './style.scss'
-import { GENERIC_ITEM_ACTIONS, EVENTS } from '../../constants'
-import { eventUtils, isItemCancelled, isItemRescheduled } from '../../utils'
-import classNames from 'classnames'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {ListItem, TimeEvent, StateLabel, Checkbox, ItemActionsMenu} from '../index';
+import './style.scss';
+import {GENERIC_ITEM_ACTIONS, EVENTS} from '../../constants';
+import {eventUtils, isItemCancelled, isItemRescheduled} from '../../utils';
+import classNames from 'classnames';
 
 export const EventItem = ({
-        event,
-        onClick,
-        onDoubleClick,
-        onSpikeEvent,
-        onUnspikeEvent,
-        onDuplicateEvent,
-        onCancelEvent,
-        onUpdateEventTime,
-        onRescheduleEvent,
-        onPostponeEvent,
-        onConvertToRecurringEvent,
-        highlightedEvent,
-        privileges,
-        isSelected,
-        onSelectChange,
-        lockedItems,
-        className,
-        session,
-        addEventToCurrentAgenda,
-    }) => {
-    const hasBeenCancelled = isItemCancelled(event)
-    const hasBeenRescheduled = isItemRescheduled(event)
-    const hasPlanning = eventUtils.eventHasPlanning(event)
+    event,
+    onClick,
+    onDoubleClick,
+    onSpikeEvent,
+    onUnspikeEvent,
+    onDuplicateEvent,
+    onCancelEvent,
+    onUpdateEventTime,
+    onRescheduleEvent,
+    onPostponeEvent,
+    onConvertToRecurringEvent,
+    highlightedEvent,
+    privileges,
+    isSelected,
+    onSelectChange,
+    lockedItems,
+    className,
+    session,
+    addEventToCurrentAgenda,
+}) => {
+    const hasBeenCancelled = isItemCancelled(event);
+    const hasBeenRescheduled = isItemRescheduled(event);
+    const hasPlanning = eventUtils.eventHasPlanning(event);
     const onEditOrPreview = eventUtils.canEditEvent(event, session, privileges, lockedItems) ?
-        onDoubleClick : onClick
-    const isItemLocked = eventUtils.isEventLocked(event, lockedItems)
+        onDoubleClick : onClick;
+    const isItemLocked = eventUtils.isEventLocked(event, lockedItems);
 
     const actions = [
         {
@@ -72,7 +72,7 @@ export const EventItem = ({
             ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
             callback: addEventToCurrentAgenda.bind(null, event),
         },
-    ]
+    ];
 
     const itemActions = eventUtils.getEventItemActions(
         event,
@@ -80,14 +80,14 @@ export const EventItem = ({
         privileges,
         actions,
         lockedItems
-    )
+    );
 
     const canCreatePlanning = eventUtils.canCreatePlanningFromEvent(
         event,
         session,
         privileges,
         lockedItems
-    )
+    );
 
     return (
         <ListItem
@@ -97,14 +97,16 @@ export const EventItem = ({
             draggable={canCreatePlanning}
             className={classNames('event',
                 className,
-                { 'event--has-planning': hasPlanning },
-                { 'event--has-been-canceled': hasBeenCancelled || hasBeenRescheduled },
-                { 'event--not-draggable': !canCreatePlanning })}
+                {'event--has-planning': hasPlanning},
+                {'event--has-been-canceled': hasBeenCancelled || hasBeenRescheduled},
+                {'event--not-draggable': !canCreatePlanning})}
             active={highlightedEvent === event._id || isSelected}
             state={isItemLocked ? 'locked' : null}
         >
             <div className="sd-list-item__action-menu">
-                <Checkbox value={isSelected} onChange={({ target }) => {onSelectChange(target.value)}}/>
+                <Checkbox value={isSelected} onChange={({target}) => {
+                    onSelectChange(target.value);
+                }}/>
             </div>
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border">
                 <div className="sd-list-item__row">
@@ -122,8 +124,8 @@ export const EventItem = ({
                 {itemActions.length > 0 && <ItemActionsMenu actions={itemActions} />}
             </div>
         </ListItem>
-    )
-}
+    );
+};
 
 EventItem.propTypes = {
     onClick: PropTypes.func.isRequired,
@@ -145,4 +147,4 @@ EventItem.propTypes = {
     lockedItems: PropTypes.object,
     session: PropTypes.object,
     addEventToCurrentAgenda: PropTypes.func,
-}
+};

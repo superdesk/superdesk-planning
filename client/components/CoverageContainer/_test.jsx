@@ -1,12 +1,11 @@
-import React from 'react'
-import { createTestStore } from '../../utils'
-import { mount } from 'enzyme'
-import { Provider } from 'react-redux'
-import { EditPlanningPanelContainer, CoverageListItem, Coverage } from '../../components'
+import React from 'react';
+import {createTestStore} from '../../utils';
+import {mount} from 'enzyme';
+import {Provider} from 'react-redux';
+import {EditPlanningPanelContainer, CoverageListItem, Coverage} from '../../components';
 
 
 describe('<CoverageContainer />', () => {
-
     const coverage = {
         coverage_id: 'foo',
         planning: {
@@ -14,7 +13,7 @@ describe('<CoverageContainer />', () => {
             headline: 'headline',
             g2_content_type: 'text',
         },
-    }
+    };
 
     const store = createTestStore({
         initialState: {
@@ -39,14 +38,14 @@ describe('<CoverageContainer />', () => {
                 readOnly: false,
             },
             session: {
-                identity: { _id: 'user' },
+                identity: {_id: 'user'},
                 sessionId: 123,
             },
-            users: [{ _id: 'user' }],
+            users: [{_id: 'user'}],
             desks: [],
-            formsProfile: { planning: { editor: { slugline: { enabled: true } } } },
+            formsProfile: {planning: {editor: {slugline: {enabled: true}}}},
         },
-    })
+    });
 
     const getWrapper = () => (
         mount(
@@ -54,23 +53,27 @@ describe('<CoverageContainer />', () => {
                 <EditPlanningPanelContainer />
             </Provider>
         )
-    )
+    );
 
     it(' display coverage list item', () => {
-        const wrapper = getWrapper()
-        expect(wrapper.find(CoverageListItem).length).toBe(1)
-        expect(wrapper.find(Coverage).length).toBe(0)
-    })
+        const wrapper = getWrapper();
+
+        expect(wrapper.find(CoverageListItem).length).toBe(1);
+        expect(wrapper.find(Coverage).length).toBe(0);
+    });
 
     it(' toggle coverage form', () => {
-        const wrapper = getWrapper()
-        expect(wrapper.find(CoverageListItem).length).toBe(1)
-        expect(wrapper.find(Coverage).length).toBe(0)
-        wrapper.find(CoverageListItem).first().simulate('click')
-        expect(wrapper.find(CoverageListItem).length).toBe(0)
-        expect(wrapper.find(Coverage).length).toBe(1)
-        wrapper.find('.Coverage__item--btn-close').first().simulate('click')
-        expect(wrapper.find(CoverageListItem).length).toBe(1)
-        expect(wrapper.find(Coverage).length).toBe(0)
-    })
-})
+        const wrapper = getWrapper();
+
+        expect(wrapper.find(CoverageListItem).length).toBe(1);
+        expect(wrapper.find(Coverage).length).toBe(0);
+        wrapper.find(CoverageListItem).first()
+            .simulate('click');
+        expect(wrapper.find(CoverageListItem).length).toBe(0);
+        expect(wrapper.find(Coverage).length).toBe(1);
+        wrapper.find('.Coverage__item--btn-close').first()
+            .simulate('click');
+        expect(wrapper.find(CoverageListItem).length).toBe(1);
+        expect(wrapper.find(Coverage).length).toBe(0);
+    });
+});

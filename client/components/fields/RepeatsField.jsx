@@ -1,6 +1,6 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { SelectField } from './SelectField'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {SelectField} from './SelectField';
 
 const choices = [{
     label: 'Yearly',
@@ -14,7 +14,7 @@ const choices = [{
 }, {
     label: 'Daily',
     value: 'DAILY',
-}]
+}];
 
 export const RepeatsField = (props) => {
     const ownProps = {
@@ -26,9 +26,10 @@ export const RepeatsField = (props) => {
                 value: s.value,
             }
         )),
-    }
-    return (<SelectField {...ownProps}/>)
-}
+    };
+
+    return (<SelectField {...ownProps}/>);
+};
 
 // eslint-disable-next-line react/no-unused-prop-types
-RepeatsField.propTypes = { input: PropTypes.object.isRequired }
+RepeatsField.propTypes = {input: PropTypes.object.isRequired};

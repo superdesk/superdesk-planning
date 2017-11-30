@@ -1,13 +1,11 @@
-import React from 'react'
-import { connect } from 'react-redux'
-import { PlanningSettingsContainer } from './index'
+import React from 'react';
+import {connect} from 'react-redux';
+import {PlanningSettingsContainer} from './index';
 
-const PlanningSettingsAppComponent = () => {
-    return (
-        <PlanningSettingsContainer/>
-    )
-}
+const PlanningSettingsAppComponent = () => (
+    <PlanningSettingsContainer/>
+);
 
-PlanningSettingsAppComponent.propTypes = { }
+PlanningSettingsAppComponent.propTypes = { };
 
-export const PlanningSettingsApp = connect(null)(PlanningSettingsAppComponent)
+export const PlanningSettingsApp = connect(null)(PlanningSettingsAppComponent);

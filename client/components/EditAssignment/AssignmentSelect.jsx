@@ -1,25 +1,25 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { UserSearchList } from '../../components'
-import { getUsersForDesk, getDesksForUser } from '../../utils'
-import { ASSIGNMENTS } from '../../constants'
-import { fields } from '../index'
-import ReactDOM from 'react-dom'
-import { get } from 'lodash'
-import classNames from 'classnames'
-import './style.scss'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {UserSearchList} from '../../components';
+import {getUsersForDesk, getDesksForUser} from '../../utils';
+import {ASSIGNMENTS} from '../../constants';
+import {fields} from '../index';
+import ReactDOM from 'react-dom';
+import {get} from 'lodash';
+import classNames from 'classnames';
+import './style.scss';
 
 export class AssignmentSelect extends React.Component {
     constructor(props) {
-        super(props)
-        this.handleClickOutside = this.handleClickOutside.bind(this)
+        super(props);
+        this.handleClickOutside = this.handleClickOutside.bind(this);
     }
 
     isComponentPristine() {
         return get(this.props, 'input.value.deskAssigned') === this.state.deskAssigned &&
             get(this.props, 'input.value.userAssigned') === this.state.userAssigned &&
             get(this.props, 'input.value.coverage_provider.qcode') ===
-                get(this.state.coverageProviderAssigned, 'qcode')
+                get(this.state.coverageProviderAssigned, 'qcode');
     }
 
     componentWillMount() {
@@ -32,7 +32,7 @@ export class AssignmentSelect extends React.Component {
             deskAssigned: this.props.input.value.deskAssigned,
             coverageProviderAssigned: this.props.input.value.coverage_provider,
             priority: get(this.props.input, 'value.priority') || ASSIGNMENTS.DEFAULT_PRIORITY,
-        })
+        });
     }
 
     filterUserList(value) {
@@ -40,42 +40,43 @@ export class AssignmentSelect extends React.Component {
             this.setState({
                 filteredUserList: getUsersForDesk(this.state.deskAssigned,
                     this.props.users),
-                })
-            return
+            });
+            return;
         }
 
-        const valueNoCase = value.toLowerCase()
+        const valueNoCase = value.toLowerCase();
         const newUserList = this.state.filteredUserList.filter((user) => (
             user.display_name.toLowerCase().substr(0, value.length) === valueNoCase ||
                 user.display_name.toLowerCase().indexOf(valueNoCase) >= 0
-        ))
+        ));
 
-        this.setState({ filteredUserList: newUserList })
+        this.setState({filteredUserList: newUserList});
     }
 
     componentDidMount() {
-        document.addEventListener('click', this.handleClickOutside, true)
+        document.addEventListener('click', this.handleClickOutside, true);
     }
 
     componentWillUnmount() {
-        document.removeEventListener('click', this.handleClickOutside, true)
+        document.removeEventListener('click', this.handleClickOutside, true);
     }
 
     handleClickOutside(event) {
-        const domNode = ReactDOM.findDOMNode(this)
+        const domNode = ReactDOM.findDOMNode(this);
 
         if ((!domNode || !domNode.contains(event.target))) {
-            this.props.onCancel()
+            this.props.onCancel();
         }
     }
 
     onDeskAssignChange(value) {
         // Change user list according to desk members
-        const updatedValue = Array.isArray(value) ? null : value
+        const updatedValue = Array.isArray(value) ? null : value;
+
         this.setState({
             filteredUserList: getUsersForDesk(updatedValue, this.props.users),
             deskAssigned: updatedValue,
-        })
+        });
     }
 
 
@@ -83,7 +84,7 @@ export class AssignmentSelect extends React.Component {
         this.setState({
             coverageProviderAssigned: this.props.coverageProviders.find((p) => p.qcode === value) ||
             null,
-        })
+        });
     }
 
     onUserAssignChange(value) {
@@ -91,7 +92,7 @@ export class AssignmentSelect extends React.Component {
         this.setState({
             filteredDeskList: getDesksForUser(value, this.props.desks),
             userAssigned: value,
-        })
+        });
     }
 
     onChange(value) {
@@ -100,39 +101,38 @@ export class AssignmentSelect extends React.Component {
             desk: value.desk,
             coverage_provider: value.coverage_provider,
             priority: this.state.priority,
-        })
+        });
     }
 
     onPriorityChange(value) {
-        this.setState({ priority: value })
-
+        this.setState({priority: value});
     }
 
     render() {
         const deskSelectFieldInput = {
             value: this.state.deskAssigned,
             onChange: this.onDeskAssignChange.bind(this),
-        }
+        };
 
         const coverageProviderSelectFieldInput = {
             value: this.state.coverageProviderAssigned,
             onChange: this.onCoverageProviderChange.bind(this),
-        }
+        };
 
         const assignmentPriorityInput = {
             value: this.state.priority,
             onChange: this.onPriorityChange.bind(this),
-        }
+        };
 
         const userSearchListInput = {
             value: this.state.userAssigned,
             onChange: this.onUserAssignChange.bind(this),
-        }
+        };
 
-        const { context } = this.props
+        const {context} = this.props;
         const classes = classNames('assignmentselect',
-            { 'assignmentselect--in-assignment': context === 'assignment' },
-            { 'assignmentselect--in-coverage': context === 'coverage' })
+            {'assignmentselect--in-assignment': context === 'assignment'},
+            {'assignmentselect--in-coverage': context === 'coverage'});
 
         return (<div className={classes}>
             { <label>Assignment Details</label> || <label>Select</label>}
@@ -146,12 +146,12 @@ export class AssignmentSelect extends React.Component {
                 input={deskSelectFieldInput}
                 readOnly={this.props.deskSelectionDisabled} />
             <div>
-            <div>
-                <label>Coverage Provider</label>
-                <fields.CoverageProviderField
-                coverageProviders={this.props.coverageProviders}
-                input={coverageProviderSelectFieldInput}/>
-            </div>
+                <div>
+                    <label>Coverage Provider</label>
+                    <fields.CoverageProviderField
+                        coverageProviders={this.props.coverageProviders}
+                        input={coverageProviderSelectFieldInput}/>
+                </div>
             </div>
 
             <UserSearchList
@@ -159,14 +159,14 @@ export class AssignmentSelect extends React.Component {
                 users = {this.state.filteredUserList} />
 
             {this.props.showPrioritiesSelection &&
-            <div className='assignmentselect__priority'>
+            <div className="assignmentselect__priority">
                 <fields.AssignmentPriorityField
                     label="Assignment Priority"
                     input={assignmentPriorityInput}
                     readOnly={false} />
             </div>}
 
-            <div className='assignmentselect__action'>
+            <div className="assignmentselect__action">
                 { this.state.deskAssigned &&
                 <button type="button" className="btn btn--primary"
                     disabled={this.isComponentPristine()}
@@ -181,7 +181,7 @@ export class AssignmentSelect extends React.Component {
                     Cancel
                 </button>
             </div>
-        </div>)
+        </div>);
     }
 }
 
@@ -194,4 +194,4 @@ AssignmentSelect.propTypes = {
     context: PropTypes.string,
     deskSelectionDisabled: PropTypes.bool,
     showPrioritiesSelection: PropTypes.bool,
-}
+};

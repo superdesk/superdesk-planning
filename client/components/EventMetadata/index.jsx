@@ -1,9 +1,9 @@
-import React from 'react'
-import { get, some } from 'lodash'
-import { Datetime, StateLabel } from '../index'
-import { InputTextAreaField } from '../fields'
+import React from 'react';
+import {get, some} from 'lodash';
+import {Datetime, StateLabel} from '../index';
+import {InputTextAreaField} from '../fields';
 
-const formatDate = (d) => React.createElement(Datetime, { date: d })
+const formatDate = (d) => React.createElement(Datetime, {date: d});
 const FIELDS = [
     // 'Label', 'key1', 'key2', ['key3', func(value)] etc...
     ['Name', 'name'],
@@ -15,23 +15,25 @@ const FIELDS = [
     ['Status', 'occur_status.label'],
     ['Source', 'source'],
     ['Description', 'definition_long'],
-]
+];
 
 function renderDict(event, label, ...keys) {
     function getValue(k) {
         // key can be either a string or an array ['key', func] where
         // func will take the value as parameter
         if (typeof k === 'string') {
-            return get(event, k)
+            return get(event, k);
         } else {
             // this is an array with a function at the second position
-            const value = get(event, k[0])
+            const value = get(event, k[0]);
+
             if (value) {
-                return k[1](value)
+                return k[1](value);
             }
         }
     }
-    const keysContainValue = some(keys, (k) => getValue(k))
+    const keysContainValue = some(keys, (k) => getValue(k));
+
     if (keysContainValue) {
         return [
             <dt key="dt">{label}</dt>,
@@ -48,21 +50,21 @@ function renderDict(event, label, ...keys) {
                     <dd key={key}>{getValue(key)}</dd>
                 )
             )),
-        ]
+        ];
     }
 }
 // eslint-disable-next-line react/no-multi-comp
-export function EventMetadata ({ event }) {
+export function EventMetadata({event}) {
     return (
         <div>
             <StateLabel item={event} verbose={true}/>
             <div className="metadata-view EditPlanningPanel__body--event">
                 <dl>
-                    {FIELDS.map((arrayProps) => renderDict.bind(null, event).apply(null, arrayProps))}
+                    {FIELDS.map((arrayProps) => renderDict.bind(null, event)(...arrayProps))}
                 </dl>
             </div>
         </div>
-    )
+    );
 }
 
 EventMetadata.propTypes = {
@@ -76,4 +78,4 @@ EventMetadata.propTypes = {
         occur_status: React.PropTypes.object,
         source: React.PropTypes.string,
     }),
-}
+};

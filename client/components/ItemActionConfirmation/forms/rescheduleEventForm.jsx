@@ -1,44 +1,44 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
-import { reduxForm, formValueSelector, Field } from 'redux-form'
-import * as actions from '../../../actions'
-import { EventUpdateMethods, InputTextAreaField } from '../../fields/index'
-import { UpdateMethodSelection } from '../UpdateMethodSelection'
-import { EventScheduleForm } from '../../index'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {reduxForm, formValueSelector, Field} from 'redux-form';
+import * as actions from '../../../actions';
+import {EventUpdateMethods, InputTextAreaField} from '../../fields/index';
+import {UpdateMethodSelection} from '../UpdateMethodSelection';
+import {EventScheduleForm} from '../../index';
 import {
     ChainValidators,
     EndDateAfterStartDate,
     RequiredFieldsValidatorFactory,
     UntilDateValidator,
     EventMaxEndRepeatCount,
-} from '../../../validators'
-import { getMaxRecurrentEvents } from '../../../selectors'
-import { FORM_NAMES } from '../../../constants'
-import '../style.scss'
+} from '../../../validators';
+import {getMaxRecurrentEvents} from '../../../selectors';
+import {FORM_NAMES} from '../../../constants';
+import '../style.scss';
 
 const Component = ({
     handleSubmit,
     initialValues,
-    relatedEvents=[],
-    relatedPlannings=[],
+    relatedEvents = [],
+    relatedPlannings = [],
     currentSchedule,
     change,
     pristine,
     currentUpdateMethod,
     submitting,
 }) => {
-    let event = initialValues
-    const isRecurring = !!event.recurrence_id
+    let event = initialValues;
+    const isRecurring = !!event.recurrence_id;
 
     // Default the update_method to 'Cancel this event only'
-    event.update_method = EventUpdateMethods[0]
+    event.update_method = EventUpdateMethods[0];
 
-    const numEvents = relatedEvents.length + 1
-    const numPlannings = relatedPlannings.length
+    const numEvents = relatedEvents.length + 1;
+    const numPlannings = relatedPlannings.length;
 
-    const updateMethodLabel = 'Would you like to reschedule all recurring events or just this one?'
-    const showRepeat = currentUpdateMethod && currentUpdateMethod.value !== EventUpdateMethods[0].value
+    const updateMethodLabel = 'Would you like to reschedule all recurring events or just this one?';
+    const showRepeat = currentUpdateMethod && currentUpdateMethod.value !== EventUpdateMethods[0].value;
 
     return (
         <div className="EventActionConfirmation Form">
@@ -61,7 +61,7 @@ const Component = ({
                 handleSubmit={handleSubmit}
                 showSpace={false}
                 readOnly={submitting}
-                action='reschedule' />
+                action="reschedule" />
 
             <EventScheduleForm
                 readOnly={submitting}
@@ -80,8 +80,8 @@ const Component = ({
                 type="text"
                 readOnly={submitting}/>
         </div>
-    )
-}
+    );
+};
 
 Component.propTypes = {
     handleSubmit: PropTypes.func.isRequired,
@@ -101,7 +101,7 @@ Component.propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     onHide: PropTypes.func,
     submitting: PropTypes.bool,
-}
+};
 
 export const RescheduleEvent = reduxForm({
     form: FORM_NAMES.RescheduleForm,
@@ -111,26 +111,26 @@ export const RescheduleEvent = reduxForm({
         UntilDateValidator,
         EventMaxEndRepeatCount,
     ]),
-})(Component)
+})(Component);
 
-const selector = formValueSelector(FORM_NAMES.RescheduleForm)
+const selector = formValueSelector(FORM_NAMES.RescheduleForm);
 const mapStateToProps = (state) => ({
     relatedPlannings: selector(state, '_relatedPlannings'),
     relatedEvents: selector(state, '_events'),
     currentSchedule: selector(state, 'dates'),
     currentUpdateMethod: selector(state, 'update_method'),
     maxRecurrentEvents: getMaxRecurrentEvents(state),
-})
+});
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (event) => dispatch(actions.events.ui.rescheduleEvent(event)),
     onHide: (event) => dispatch(actions.events.api.unlock(event)),
-})
+});
 
 export const RescheduleEventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    { withRef: true }
-)(RescheduleEvent)
+    {withRef: true}
+)(RescheduleEvent);

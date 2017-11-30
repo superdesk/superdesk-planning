@@ -1,48 +1,48 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import './style.scss'
-import { debounce } from 'lodash'
-import { List } from '../UI'
+import React from 'react';
+import PropTypes from 'prop-types';
+import './style.scss';
+import {debounce} from 'lodash';
+import {List} from '../UI';
 
 export class ListItem extends React.Component {
     constructor(props) {
-        super(props)
-        this.state = { clickedOnce: undefined }
-        this.handleDragStart = this.handleDragStart.bind(this)
+        super(props);
+        this.state = {clickedOnce: undefined};
+        this.handleDragStart = this.handleDragStart.bind(this);
     }
 
     // onSingleClick, onDoubleClick and handleSingleAndDoubleClick
     // are workarounds to achieve single and double click on the same component
     onSingleClick(item) {
-        this.setState({ clickedOnce: undefined })
-        this.props.onClick(item)
+        this.setState({clickedOnce: undefined});
+        this.props.onClick(item);
     }
 
     onDoubleClick(item) {
-        this.props.onDoubleClick(item)
+        this.props.onDoubleClick(item);
     }
 
     handleSingleAndDoubleClick(item) {
         if (!this._delayedClick) {
-            this._delayedClick = debounce(this.onSingleClick, 250)
+            this._delayedClick = debounce(this.onSingleClick, 250);
         }
 
         if (this.state.clickedOnce) {
-            this._delayedClick.cancel()
-            this.setState({ clickedOnce: false })
-            this.onDoubleClick(item)
+            this._delayedClick.cancel();
+            this.setState({clickedOnce: false});
+            this.onDoubleClick(item);
         } else {
-            this._delayedClick(item)
-            this.setState({ clickedOnce: true })
+            this._delayedClick(item);
+            this.setState({clickedOnce: true});
         }
     }
 
     handleDragStart(e) {
-        e.dataTransfer.effectAllowed = 'copy'
+        e.dataTransfer.effectAllowed = 'copy';
         e.dataTransfer.setData(
             `application/superdesk.item.${this.props.item._type}`,
             JSON.stringify(this.props.item)
-        )
+        );
     }
 
     render() {
@@ -53,14 +53,14 @@ export class ListItem extends React.Component {
             children,
             active,
             className,
-            draggable=false,
+            draggable = false,
             state,
             shadow,
-        } = this.props
+        } = this.props;
 
         // If there is just singleClick, use it. Change it only if doubleClick is also defined.
         const clickHandler = onClick && onDoubleClick ? this.handleSingleAndDoubleClick.bind(this, item) :
-            onClick.bind(this, item)
+            onClick.bind(this, item);
 
         return (
             <List.Item
@@ -74,7 +74,7 @@ export class ListItem extends React.Component {
                 <List.Border state={state} />
                 {children}
             </List.Item>
-        )
+        );
     }
 }
 
@@ -94,6 +94,6 @@ ListItem.propTypes = {
         'idle',
     ]),
     shadow: PropTypes.oneOf([1, 2, 3, 4]),
-}
+};
 
-ListItem.defaultProps = { shadow: 2 }
+ListItem.defaultProps = {shadow: 2};

@@ -1,21 +1,21 @@
-import React from 'react'
-import { mount } from 'enzyme'
-import { IngestProviderField } from '../index'
-import { createTestStore } from '../../../utils'
-import { Provider } from 'react-redux'
-import { reduxForm, Field } from 'redux-form'
+import React from 'react';
+import {mount} from 'enzyme';
+import {IngestProviderField} from '../index';
+import {createTestStore} from '../../../utils';
+import {Provider} from 'react-redux';
+import {reduxForm, Field} from 'redux-form';
 
 /* eslint-disable react/display-name */
 const renderComponentField = (component) => (
     () => (
         <Field name="field_name"
-               component={component}/>
+            component={component}/>
     )
-)
+);
 
 describe('<CreatableField />', () => {
     it('IngestProviderField', () => {
-        const FormComponent = reduxForm({ form: 'form' })(renderComponentField(IngestProviderField))
+        const FormComponent = reduxForm({form: 'form'})(renderComponentField(IngestProviderField));
         const initialState = {
             ingest: {
                 providers: [{
@@ -23,18 +23,20 @@ describe('<CreatableField />', () => {
                     id: 'provider1',
                 }],
             },
-        }
-        const store = createTestStore({ initialState })
+        };
+        const store = createTestStore({initialState});
         const wrapper = mount(
             <Provider store={store}>
                 <FormComponent/>
             </Provider>
-        )
-        wrapper.find('Select').props().onChange([{
-            name: 'lab',
-            value: { name: 'lab' },
-        }])
-        expect(wrapper.find('Select').props().value[0].label).toEqual('lab')
-        expect(wrapper.find('Select').props().options[0].label).toEqual('provider1')
-    })
-})
+        );
+
+        wrapper.find('Select').props()
+            .onChange([{
+                name: 'lab',
+                value: {name: 'lab'},
+            }]);
+        expect(wrapper.find('Select').props().value[0].label).toEqual('lab');
+        expect(wrapper.find('Select').props().options[0].label).toEqual('provider1');
+    });
+});

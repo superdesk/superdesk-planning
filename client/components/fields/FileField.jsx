@@ -1,9 +1,9 @@
-import React from 'react'
-import { Field } from 'redux-form'
-import { connect } from 'react-redux'
-import * as selectors from '../../selectors'
+import React from 'react';
+import {Field} from 'redux-form';
+import {connect} from 'react-redux';
+import * as selectors from '../../selectors';
 
-const FileFieldComponent = ({ onRemove, file, createLink, fieldName, readOnly }) => (
+const FileFieldComponent = ({onRemove, file, createLink, fieldName, readOnly}) => (
     <li className="File__item">
         <i className="icon-desk-attach"/>
         {file.media &&
@@ -14,9 +14,9 @@ const FileFieldComponent = ({ onRemove, file, createLink, fieldName, readOnly })
         }
         {!file.media && !readOnly &&
             <Field
-            name={fieldName}
-            component="input"
-            type="file"/>
+                name={fieldName}
+                component="input"
+                type="file"/>
         }
         {!readOnly && (<button
             onClick={onRemove}
@@ -26,7 +26,7 @@ const FileFieldComponent = ({ onRemove, file, createLink, fieldName, readOnly })
             <i className="icon-trash" />
         </button>)}
     </li>
-)
+);
 
 FileFieldComponent.propTypes = {
     onRemove: React.PropTypes.func,
@@ -41,8 +41,8 @@ FileFieldComponent.propTypes = {
     ]),
     fieldName: React.PropTypes.string,
     readOnly: React.PropTypes.bool,
-}
+};
 
-const mapStateToProps = (state) => ({ createLink: (f) => (selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw') })
+const mapStateToProps = (state) => ({createLink: (f) => (selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw')});
 
-export const FileField = connect(mapStateToProps)(FileFieldComponent)
+export const FileField = connect(mapStateToProps)(FileFieldComponent);

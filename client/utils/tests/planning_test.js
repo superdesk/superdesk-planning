@@ -1,18 +1,18 @@
-import planUtils from '../planning'
-import lockReducer from '../../reducers/locks'
-import { GENERIC_ITEM_ACTIONS, EVENTS, PLANNING } from '../../constants'
-import { expectActions } from '../testUtils'
+import planUtils from '../planning';
+import lockReducer from '../../reducers/locks';
+import {GENERIC_ITEM_ACTIONS, EVENTS, PLANNING} from '../../constants';
+import {expectActions} from '../testUtils';
 
 describe('PlanningUtils', () => {
-    let session
-    let locks
-    let lockedItems
+    let session;
+    let locks;
+    let lockedItems;
 
     beforeEach(() => {
         session = {
-            identity: { _id: 'ident1' },
+            identity: {_id: 'ident1'},
             sessionId: 'session1',
-        }
+        };
 
         locks = {
             plans: {
@@ -40,7 +40,7 @@ describe('PlanningUtils', () => {
                         lock_action: 'edit',
                         lock_time: '2099-10-15T14:30+0000',
                     },
-                    notLocked: { _id: 'p4' },
+                    notLocked: {_id: 'p4'},
                 },
                 event: {
                     currentUser: {
@@ -146,7 +146,7 @@ describe('PlanningUtils', () => {
                     lock_time: '2099-10-15T14:30+0000',
                 },
             },
-        }
+        };
 
         // Use the Lock Reducer to construct the list of locks
         lockedItems = lockReducer({}, {
@@ -168,66 +168,66 @@ describe('PlanningUtils', () => {
                     locks.plans.recurring.otherUser,
                 ],
             },
-        })
-    })
+        });
+    });
 
     const isPlanningLocked = (plan, result) => (
         expect(planUtils.isPlanningLocked(plan, lockedItems)).toBe(result)
-    )
+    );
     const isPlanningLockRestricted = (plan, result) => (
         expect(planUtils.isPlanningLockRestricted(plan, session, lockedItems)).toBe(result)
-    )
+    );
 
     it('isPlanningLocked', () => {
         // Null item
-        isPlanningLocked(null, false)
+        isPlanningLocked(null, false);
 
         // Ad-hoc Planning
-        isPlanningLocked(locks.plans.adhoc.currentUser.currentSession, true)
-        isPlanningLocked(locks.plans.adhoc.currentUser.otherSession, true)
-        isPlanningLocked(locks.plans.adhoc.otherUser, true)
-        isPlanningLocked(locks.plans.adhoc.notLocked, false)
+        isPlanningLocked(locks.plans.adhoc.currentUser.currentSession, true);
+        isPlanningLocked(locks.plans.adhoc.currentUser.otherSession, true);
+        isPlanningLocked(locks.plans.adhoc.otherUser, true);
+        isPlanningLocked(locks.plans.adhoc.notLocked, false);
 
         // Planning items with an associated Event
-        isPlanningLocked(locks.plans.event.currentUser.currentSession, true)
-        isPlanningLocked(locks.plans.event.currentUser.otherSession, true)
-        isPlanningLocked(locks.plans.event.otherUser, true)
-        isPlanningLocked(locks.plans.event.notLocked, false)
+        isPlanningLocked(locks.plans.event.currentUser.currentSession, true);
+        isPlanningLocked(locks.plans.event.currentUser.otherSession, true);
+        isPlanningLocked(locks.plans.event.otherUser, true);
+        isPlanningLocked(locks.plans.event.notLocked, false);
 
         // Planning items associated with a series of Recurring Events
-        isPlanningLocked(locks.plans.recurring.currentUser.currentSession, true)
-        isPlanningLocked(locks.plans.recurring.currentUser.otherSession, true)
-        isPlanningLocked(locks.plans.recurring.otherUser, true)
-        isPlanningLocked(locks.plans.recurring.notLocked, false)
+        isPlanningLocked(locks.plans.recurring.currentUser.currentSession, true);
+        isPlanningLocked(locks.plans.recurring.currentUser.otherSession, true);
+        isPlanningLocked(locks.plans.recurring.otherUser, true);
+        isPlanningLocked(locks.plans.recurring.notLocked, false);
 
         // Planning items with locks on the Event
-        isPlanningLocked(locks.plans.associated.standalone, true)
-        isPlanningLocked(locks.plans.associated.recurring.direct, true)
-        isPlanningLocked(locks.plans.associated.recurring.indirect, true)
-    })
+        isPlanningLocked(locks.plans.associated.standalone, true);
+        isPlanningLocked(locks.plans.associated.recurring.direct, true);
+        isPlanningLocked(locks.plans.associated.recurring.indirect, true);
+    });
 
     it('isPlanningLockRestricted', () => {
         // Null item
-        isPlanningLockRestricted(null, false)
+        isPlanningLockRestricted(null, false);
 
         // Ad-hoc Planning
-        isPlanningLockRestricted(locks.plans.adhoc.currentUser.currentSession, false)
-        isPlanningLockRestricted(locks.plans.adhoc.currentUser.otherSession, true)
-        isPlanningLockRestricted(locks.plans.adhoc.otherUser, true)
-        isPlanningLockRestricted(locks.plans.adhoc.notLocked, false)
+        isPlanningLockRestricted(locks.plans.adhoc.currentUser.currentSession, false);
+        isPlanningLockRestricted(locks.plans.adhoc.currentUser.otherSession, true);
+        isPlanningLockRestricted(locks.plans.adhoc.otherUser, true);
+        isPlanningLockRestricted(locks.plans.adhoc.notLocked, false);
 
         // Planning items with an associated Event
-        isPlanningLockRestricted(locks.plans.event.currentUser.currentSession, false)
-        isPlanningLockRestricted(locks.plans.event.currentUser.otherSession, true)
-        isPlanningLockRestricted(locks.plans.event.otherUser, true)
-        isPlanningLockRestricted(locks.plans.event.notLocked, false)
+        isPlanningLockRestricted(locks.plans.event.currentUser.currentSession, false);
+        isPlanningLockRestricted(locks.plans.event.currentUser.otherSession, true);
+        isPlanningLockRestricted(locks.plans.event.otherUser, true);
+        isPlanningLockRestricted(locks.plans.event.notLocked, false);
 
         // Planning items associated with a series of Recurring Events
-        isPlanningLockRestricted(locks.plans.recurring.currentUser.currentSession, false)
-        isPlanningLockRestricted(locks.plans.recurring.currentUser.otherSession, true)
-        isPlanningLockRestricted(locks.plans.recurring.otherUser, true)
-        isPlanningLockRestricted(locks.plans.recurring.notLocked, false)
-    })
+        isPlanningLockRestricted(locks.plans.recurring.currentUser.currentSession, false);
+        isPlanningLockRestricted(locks.plans.recurring.currentUser.otherSession, true);
+        isPlanningLockRestricted(locks.plans.recurring.otherUser, true);
+        isPlanningLockRestricted(locks.plans.recurring.notLocked, false);
+    });
 
     describe('getPlanningItemActions', () => {
         const actions = [
@@ -244,53 +244,53 @@ describe('PlanningUtils', () => {
             EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
             EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
             EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
-        ]
+        ];
 
-        let locks
-        let session
-        let planning
-        let event
-        let privileges
+        let locks;
+        let session;
+        let planning;
+        let event;
+        let privileges;
 
         beforeEach(() => {
-            session = {}
+            session = {};
             locks = {
                 events: {},
                 planning: {},
                 recurring: {},
-            }
-            event = null
+            };
+            event = null;
             planning = {
                 state: 'draft',
                 coverages: [],
-            }
+            };
             privileges = {
                 planning_planning_management: 1,
                 planning_planning_spike: 1,
                 planning_event_management: 1,
                 planning_event_spike: 1,
-            }
-        })
+            };
+        });
 
         it('draft event and planning', () => {
             let itemActions = planUtils.getPlanningItemActions(
                 planning, event, session, privileges, actions, locks
-            )
+            );
 
             expectActions(itemActions, [
                 'Spike',
                 'View History',
                 'Duplicate',
-            ])
+            ]);
 
-            planning.event_item = '1'
+            planning.event_item = '1';
             event = {
                 state: 'draft',
                 planning_ids: ['1'],
-            }
+            };
             itemActions = planUtils.getPlanningItemActions(
                 planning, event, session, privileges, actions, locks
-            )
+            );
 
             expectActions(itemActions, [
                 'Spike',
@@ -301,34 +301,35 @@ describe('PlanningUtils', () => {
                 'Reschedule Event',
                 'Mark Event as Postponed',
                 'Convert to recurring event',
-            ])
-        })
+            ]);
+        });
 
         it('postponed event and planning', () => {
-            planning.state = 'postponed'
+            planning.state = 'postponed';
             let itemActions = planUtils.getPlanningItemActions(
                 planning, event, session, privileges, actions, locks
-            )
+            );
+
             expectActions(itemActions, [
                 'View History',
                 'Duplicate',
-            ])
+            ]);
 
-            planning.event_item = '1'
+            planning.event_item = '1';
             event = {
                 state: 'postponed',
                 planning_ids: ['1'],
-            }
+            };
             itemActions = planUtils.getPlanningItemActions(
                 planning, event, session, privileges, actions, locks
-            )
+            );
 
             expectActions(itemActions, [
                 'View History',
                 'Duplicate',
                 'Cancel Event',
                 'Reschedule Event',
-            ])
-        })
-    })
-})
+            ]);
+        });
+    });
+});
