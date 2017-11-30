@@ -7,6 +7,7 @@ import React from 'react'
 import { Provider } from 'react-redux'
 import * as actions from '../../actions'
 import * as selectors from '../../selectors'
+import * as helpers from '../tests/helpers'
 
 describe('<PlanningForm />', () => {
     let store
@@ -88,12 +89,16 @@ describe('<PlanningForm />', () => {
 
             expect(coverageContainers().length).toBe(3)
 
-            coverageContainers().at(0).find('.dropdown__toggle').simulate('click')
-            coverageContainers().at(0).find('li button .icon-trash').simulate('click')
+            let menu = new helpers.actionMenu(coverageContainers().at(0))
+            expect(menu.actionLabels()).toContain('Remove coverage')
+            menu.invokeAction('Remove coverage')
+
             expect(coverageContainers().length).toBe(2)
 
-            coverageContainers().at(0).find('.dropdown__toggle').simulate('click')
-            coverageContainers().at(0).find('li button .icon-trash').simulate('click')
+            menu = new helpers.actionMenu(coverageContainers().at(0))
+            expect(menu.actionLabels()).toContain('Remove coverage')
+            menu.invokeAction('Remove coverage')
+
             expect(coverageContainers().length).toBe(1)
 
             form.simulate('submit')
@@ -111,11 +116,11 @@ describe('<PlanningForm />', () => {
 
             expect(coverageContainers().length).toBe(3)
 
-            coverageContainers().at(0).find('.dropdown__toggle').simulate('click')
-            expect(coverageContainers().at(0).find('li button .icon-trash').length).toBe(0)
+            let menu = new helpers.actionMenu(coverageContainers().at(0))
+            expect(menu.actionLabels()).not.toContain('Remove coverage')
 
-            coverageContainers().at(1).find('.dropdown__toggle').simulate('click')
-            expect(coverageContainers().at(1).find('li button .icon-trash').length).toBe(0)
+            menu = new helpers.actionMenu(coverageContainers().at(1))
+            expect(menu.actionLabels()).not.toContain('Remove coverage')
 
             done()
         })
@@ -130,15 +135,20 @@ describe('<PlanningForm />', () => {
 
             expect(coverageContainers().length).toBe(3)
 
-            coverageContainers().at(0).find('.dropdown__toggle').simulate('click')
-            coverageContainers().at(0).find('li button .icon-trash').simulate('click')
+            let menu = new helpers.actionMenu(coverageContainers().at(0))
+            expect(menu.actionLabels()).toContain('Remove coverage')
+            menu.invokeAction('Remove coverage')
+
             expect(coverageContainers().length).toBe(2)
 
-            coverageContainers().at(0).find('.dropdown__toggle').simulate('click')
-            coverageContainers().at(0).find('li button .icon-trash').simulate('click')
+            menu = new helpers.actionMenu(coverageContainers().at(0))
+            expect(menu.actionLabels()).toContain('Remove coverage')
+            menu.invokeAction('Remove coverage')
+
             expect(coverageContainers().length).toBe(1)
 
-            expect(coverageContainers().at(0).find('li button .icon-trash').length).toBe(0)
+            menu = new helpers.actionMenu(coverageContainers().at(0))
+            expect(menu.actionLabels()).not.toContain('Remove coverage')
         })
 
         it('new coverages copies metadata from planning item', () => {

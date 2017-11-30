@@ -6,6 +6,7 @@ import moment from 'moment'
 import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
 import { itemActionExists } from '../../utils/testUtils'
+import * as helpers from '../tests/helpers'
 
 describe('events', () => {
     describe('components', () => {
@@ -206,8 +207,9 @@ describe('events', () => {
 
             it('executes `onSpikedEvent` callback', () => {
                 let wrapper = getMountedWrapper()
-                wrapper.find('.dropdown__toggle').first().simulate('click')
-                wrapper.find('.dropdown__menu li button').at(1).simulate('click')
+                const menu = new helpers.actionMenu(wrapper)
+                expect(menu.actionLabels()).toContain('Spike')
+                menu.invokeAction('Spike')
                 expect(onSpikeEvent.callCount).toBe(1)
                 expect(onSpikeEvent.args[0][0]).toEqual(event)
             })
@@ -215,8 +217,9 @@ describe('events', () => {
             it('executes `onUnspikedEvent` callback', () => {
                 event.state = 'spiked'
                 let wrapper = getMountedWrapper()
-                wrapper.find('.dropdown__toggle').first().simulate('click')
-                wrapper.find('.dropdown__menu li button').at(1).simulate('click')
+                const menu = new helpers.actionMenu(wrapper)
+                expect(menu.actionLabels()).toContain('Unspike')
+                menu.invokeAction('Unspike')
                 expect(onUnspikeEvent.callCount).toBe(1)
                 expect(onUnspikeEvent.args[0][0]).toEqual(event)
             })

@@ -125,8 +125,7 @@ describe('assignments', () => {
                 const executeItemAction = (actionLabel) => {
                     const wrapper = getMountedWrapper()
                     const menu = new helpers.actionMenu(wrapper)
-                    menu.toggleMenu()
-                    menu.clickAction(actionLabel)
+                    menu.invokeAction(actionLabel)
                 }
 
                 lockedItems = null

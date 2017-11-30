@@ -6,7 +6,8 @@ import PlanningItem from './index'
 import sinon from 'sinon'
 import moment from 'moment'
 import { get } from 'lodash'
-import { itemActionExists, clickItemAction } from '../../utils/testUtils'
+import { itemActionExists } from '../../utils/testUtils'
+import * as helpers from '../tests/helpers'
 
 describe('planning', () => {
     describe('components', () => {
@@ -212,7 +213,7 @@ describe('planning', () => {
             })
 
             it('executes callbacks onClick, onSpike and onUnspike', () => {
-                const wrapper = getWrapper()
+                let wrapper = getWrapper()
 
                 // onClick
                 wrapper.find('.ListItem').first().simulate('click')
@@ -220,18 +221,26 @@ describe('planning', () => {
                 expect(onClick.args[0][0]).toEqual(item)
 
                 // onSpike
-                clickItemAction(getWrapper(), '.icon-trash')
+                let menu = new helpers.actionMenu(wrapper)
+                expect(menu.actionLabels()).toContain('Spike')
+                menu.invokeAction('Spike')
                 expect(onSpike.callCount).toBe(1)
                 expect(onSpike.args[0]).toEqual([item])
 
                 // onUnspike
                 item = items[2]
-                clickItemAction(getWrapper(), '.icon-unspike')
+                wrapper = getWrapper()
+                menu = new helpers.actionMenu(wrapper)
+                expect(menu.actionLabels()).toContain('Unspike')
+                menu.invokeAction('Unspike')
                 expect(onUnspike.callCount).toBe(1)
                 expect(onUnspike.args[0]).toEqual([item])
 
                 item = items[0]
-                clickItemAction(getWrapper(), '.icon-copy')
+                wrapper = getWrapper()
+                menu = new helpers.actionMenu(wrapper)
+                expect(menu.actionLabels()).toContain('Duplicate')
+                menu.invokeAction('Duplicate')
                 expect(onDuplicate.callCount).toBe(1)
                 expect(onDuplicate.args[0]).toEqual([item])
             })
