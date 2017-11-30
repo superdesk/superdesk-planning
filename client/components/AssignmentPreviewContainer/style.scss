@@ -90,3 +90,23 @@
         }
     }
 }
+
+// used by the assignment tab in superdesk item preview
+.AssignmentPreviewTab {
+    display: flex;
+    padding: 0px 0px !important;
+    flex-direction: column;
+    flex-grow: 1;
+    .side-panel__content-block--flex {
+        display: flex;
+    }
+    .side-panel__content-block--pad-small {
+        padding: 1.0rem 2rem 0.6rem;
+    }
+    .side-panel__top-tools {
+        background-color: $grayLighter;
+        display: flex;
+        padding: 1.2rem 1rem 1.2rem 2rem;
+        align-items: center;
+    }
+}
