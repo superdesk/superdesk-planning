@@ -2,7 +2,7 @@ import * as selectors from '../../selectors'
 import assignments from './index'
 import { get } from 'lodash'
 import planning from '../planning'
-import { ASSIGNMENTS } from '../../constants'
+import { ASSIGNMENTS, WORKSPACE } from '../../constants'
 import { getLock, assignmentUtils } from '../../utils'
 import { hideModal, showModal } from '../index'
 
@@ -58,6 +58,17 @@ const onAssignmentUpdated = (_e, data) => (
                         }
                     }
                 })
+
+                if (data.assignment_state === ASSIGNMENTS.WORKFLOW_STATE.CANCELLED ||
+                     data.assignment_state === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS) {
+                    // If we are in authoring workspace (fulfilment) and assignment is previewed,
+                    // close it
+                    if (selectors.getCurrentWorkspace(getState()) === WORKSPACE.AUTHORING &&
+                            selectors.getCurrentAssignmentId(getState()) === data.item) {
+                        dispatch(assignments.ui.closePreview())
+                    }
+
+                }
             }
 
             if (!get(data, 'lock_user')) {
