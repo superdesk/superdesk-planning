@@ -133,7 +133,7 @@ export function AddToPlanningController(
                 store.dispatch(actions.showModal({
                     modalType: MODALS.ADD_TO_PLANNING,
                     modalProps: {
-                        newsItem: item, // scope item
+                        newsItem: newsItem,
                         fullscreen: true,
                         $scope,
                     },

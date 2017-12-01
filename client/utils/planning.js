@@ -237,13 +237,14 @@ const getCoverageReadOnlyFields = (
     readOnly,
     newsCoverageStatus,
     hasAssignment,
+    existingCoverage,
     assignmentState
 ) => {
     const isCancelled = get(newsCoverageStatus, 'qcode') ===
         PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode
 
     // State is either derived from the Assignment state or if the coverage is cancelled
-    const state = hasAssignment ? assignmentState :
+    const state = existingCoverage && hasAssignment ? assignmentState :
         isCancelled ? ASSIGNMENTS.WORKFLOW_STATE.CANCELLED :
             null
 
@@ -302,7 +303,7 @@ const getCoverageReadOnlyFields = (
                 internal_note: readOnly,
                 g2_content_type: readOnly,
                 genre: readOnly,
-                newsCoverageStatus: readOnly,
+                newsCoverageStatus: readOnly || hasAssignment,
                 scheduled: readOnly,
             }
     }
