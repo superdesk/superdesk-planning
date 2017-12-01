@@ -11,7 +11,7 @@ import {
     UntilDateValidator,
     EventMaxEndRepeatCount } from '../../validators'
 import './style.scss'
-import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS, TOOLTIPS, MODALS } from '../../constants'
+import { PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS, TOOLTIPS, MODALS, FORM_NAMES } from '../../constants'
 import * as selectors from '../../selectors'
 import PropTypes from 'prop-types'
 import {
@@ -33,6 +33,7 @@ import {
     EventScheduleSummary,
     ToggleBox,
     LockContainer,
+    Autosave,
 } from '../index'
 
 /**
@@ -47,10 +48,6 @@ export class Component extends React.Component {
 
         this.cancelForm = this.cancelForm.bind(this)
         this.saveAndClose = this.saveAndClose.bind(this)
-    }
-
-    componentDidMount() {
-        this.props.reset()
     }
 
     viewEventHistory() {
@@ -95,7 +92,8 @@ export class Component extends React.Component {
             onPostponeEvent,
             lockedItems,
         } = this.props
-        if (!('_id' in initialValues)) {
+
+        if (!get(initialValues, '_id')) {
             return []
         }
 
@@ -213,6 +211,7 @@ export class Component extends React.Component {
 
         return (
             <form onSubmit={handleSubmit} className="EventForm Form">
+                <Autosave formName={FORM_NAMES.EventForm}/>
                 <div className="subnav">
                     {pristine && forcedReadOnly && (
                         <div className="subnav__button-stack--square-buttons">
@@ -462,7 +461,6 @@ Component.propTypes = {
     pristine: PropTypes.bool,
     submitting: PropTypes.bool,
     initialValues: PropTypes.object,
-    reset: PropTypes.func,
     users: PropTypes.oneOfType([
         PropTypes.array,
         PropTypes.object,
@@ -496,7 +494,7 @@ Component.propTypes = {
 
 // Decorate the form component
 export const FormComponent = reduxForm({
-    form: 'addEvent', // a unique name for this form
+    form: FORM_NAMES.EventForm, // a unique name for this form
     validate: ChainValidators([
         EndDateAfterStartDate,
         RequiredFieldsValidatorFactory(['dates.start', 'dates.end']),
@@ -507,12 +505,12 @@ export const FormComponent = reduxForm({
     enableReinitialize: true, //the form will reinitialize every time the initialValues prop changes
 })(Component)
 
-const selector = formValueSelector('addEvent') // same as form name
+const selector = formValueSelector(FORM_NAMES.EventForm) // same as form name
 const mapStateToProps = (state) => ({
     highlightedEvent: selectors.getHighlightedEvent(state),
     users: selectors.getUsers(state),
     readOnly: selectors.getEventReadOnlyState(state),
-    formValues: getFormValues('addEvent')(state),
+    formValues: getFormValues(FORM_NAMES.EventForm)(state),
     session: selectors.getSessionDetails(state),
     privileges: selectors.getPrivileges(state),
     maxRecurrentEvents: selectors.getMaxRecurrentEvents(state),

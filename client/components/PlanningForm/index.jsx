@@ -1,6 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
-import { fields, ToggleBox, EventMetadata } from '../../components'
+import { fields, ToggleBox, EventMetadata, Autosave } from '../../components'
 import { connect } from 'react-redux'
 import { Field, FieldArray, reduxForm, propTypes, formValueSelector } from 'redux-form'
 import * as selectors from '../../selectors'
@@ -14,7 +14,6 @@ import {
     MaxLengthValidatorFactory } from '../../validators'
 
 class Component extends React.Component {
-
     constructor(props) {
         super(props)
     }
@@ -34,6 +33,7 @@ class Component extends React.Component {
         const isPublic = isItemPublic(pubstatus)
         return (
             <form onSubmit={handleSubmit} className="PlanningForm">
+                <Autosave formName={FORM_NAMES.PlanningForm}/>
                 <fieldset>
                     {get(formProfile.planning, 'editor.slugline.enabled') &&
                         <div className="form__row">
