@@ -1,8 +1,9 @@
 import sinon from 'sinon'
 import moment from 'moment'
-import { get, map } from 'lodash'
+import { get, map, cloneDeep } from 'lodash'
 import { PRIVILEGES } from '../constants'
 import { ItemActionsMenu } from '../components/index'
+import * as testData from './testData'
 
 export const getTestActionStore = () => {
     let store = {
@@ -98,6 +99,7 @@ export const getTestActionStore = () => {
                 {
                     _id: 'e1',
                     _type: 'events',
+                    slugline: 'test slugline',
                     name: 'Event 1',
                     dates: {
                         start: '2016-10-15T13:01:11',
@@ -109,6 +111,7 @@ export const getTestActionStore = () => {
                 {
                     _id: 'e2',
                     _type: 'events',
+                    slugline: 'test slugline 2',
                     name: 'Event 2',
                     dates: {
                         start: '2014-10-15T14:01:11',
@@ -323,6 +326,7 @@ export const getTestActionStore = () => {
         },
 
         initialState: {
+            ...cloneDeep(testData.initialState),
             agenda: {
                 agendas: [],
                 currentAgendaId: 'a1',
@@ -340,262 +344,6 @@ export const getTestActionStore = () => {
                     page: 1,
                 },
                 search: { currentSearch: undefined },
-            },
-            events: {
-                events: {},
-                eventsInList: [],
-                search: {
-                    advancedSearchOpened: false,
-                    currentSearch: { fulltext: undefined },
-                },
-                show: true,
-                showEventDetails: undefined,
-                highlightedEvent: undefined,
-                lastRequestParams: { page: 1 },
-            },
-            privileges: {
-                archive: 1,
-                planning: 1,
-                planning_planning_management: 1,
-                planning_planning_spike: 1,
-                planning_planning_unspike: 1,
-                planning_agenda_management: 1,
-                planning_agenda_spike: 1,
-                planning_agenda_unspike: 1,
-                planning_event_management: 1,
-                planning_event_spike: 1,
-                planning_event_unspike: 1,
-                planning_event_publish: 1,
-                planning_planning_publish: 1,
-                planning_unlock: 1,
-            },
-            session: {
-                identity: { _id: 'ident1' },
-                sessionId: 'session1',
-            },
-            users: [
-                {
-                    _id: 'ident1',
-                    display_name: 'firstname lastname',
-                },
-                {
-                    _id: 'ident2',
-                    display_name: 'firstname2 lastname2',
-                },
-            ],
-            desks: [
-                {
-                    _id: 123,
-                    name: 'Politic Desk',
-                    members: [
-                        { user: 345 },
-                    ],
-                },
-                {
-                    _id: 234,
-                    name: 'Sports Desk',
-                },
-            ],
-            assignment: {
-                assignments: {},
-                filterBy: 'All',
-                previewOpened: false,
-                assignmentsInList: [],
-                currentAssignmentId: null,
-            },
-            formsProfile: {
-                events: {
-                    editor: {
-                        files: { enabled: true },
-                        subject: { enabled: true },
-                        name: { enabled: true },
-                        links: { enabled: true },
-                        anpa_category: { enabled: true },
-                        calendars: { enabled: true },
-                        definition_short: { enabled: true },
-                        definition_long: { enabled: true },
-                        slugline: { enabled: true },
-                        occur_status: { enabled: true },
-                        internal_note: { enabled: true },
-                        location: { enabled: true },
-                    },
-                    schema: {
-                        files: {
-                            mandatory_in_list: null,
-                            schema: null,
-                            type: 'list',
-                            required: false,
-                        },
-                        subject: {
-                            mandatory_in_list: { scheme: {} },
-                            schema: {
-                                schema: {
-                                    parent: { nullable: true },
-                                    qcode: {},
-                                    service: { nullable: true },
-                                    name: {},
-                                    scheme: {
-                                        nullable: true,
-                                        type: 'string',
-                                        required: true,
-                                        allowed: [],
-                                    },
-                                },
-                                type: 'dict',
-                            },
-                            type: 'list',
-                            required: false,
-                        },
-                        name: {
-                            minlength: null,
-                            type: 'string',
-                            required: true,
-                            maxlength: null,
-                        },
-                        links: {
-                            mandatory_in_list: null,
-                            schema: null,
-                            type: 'list',
-                            required: false,
-                        },
-                        anpa_category: {
-                            mandatory_in_list: null,
-                            schema: null,
-                            type: 'list',
-                            required: false,
-                        },
-                        calendars: {
-                            mandatory_in_list: null,
-                            schema: null,
-                            type: 'list',
-                            required: false,
-                        },
-                        definition_short: {
-                            minlength: null,
-                            type: 'string',
-                            required: false,
-                            maxlength: null,
-                        },
-                        definition_long: {
-                            minlength: null,
-                            type: 'string',
-                            required: false,
-                            maxlength: null,
-                        },
-                        location: {
-                            minlength: null,
-                            type: 'string',
-                            required: false,
-                            maxlength: null,
-                        },
-                        occur_status: {
-                            mandatory_in_list: null,
-                            schema: null,
-                            type: 'list',
-                            required: false,
-                        },
-                        internal_note: {
-                            minlength: null,
-                            type: 'string',
-                            required: false,
-                            maxlength: null,
-                        },
-                        slugline: {
-                            minlength: null,
-                            type: 'string',
-                            required: false,
-                            maxlength: null,
-                        },
-                    },
-                },
-                planning: {
-                    editor: {
-                        slugline: { enabled: true },
-                        anpa_category: { enabled: true },
-                        description_text: { enabled: true },
-                        ednote: { enabled: true },
-                        internal_note: { enabled: true },
-                        headline: { enabled: true },
-                        flags: { enabled: true },
-                        subject: { enabled: true },
-                        agendas: { enabled: true },
-                    },
-                },
-            },
-            locks: {
-                events: {},
-                planning: {},
-                recurring: {},
-                assignments: {},
-            },
-            workspace: {
-                currentDeskId: null,
-                currentStageId: null,
-                currentWorkspace: 'PLANNING',
-            },
-            vocabularies: {
-                g2_content_type: [
-                    {
-                        name: 'Text',
-                        qcode: 'text',
-                        'content item type': 'text',
-                    },
-                    {
-                        name: 'Photo',
-                        qcode: 'photo',
-                        'content item type': 'picture',
-                    },
-                    {
-                        name: 'Video',
-                        qcode: 'video',
-                        'content item type': 'video',
-                    },
-                    {
-                        name: 'Audio',
-                        qcode: 'audio',
-                        'content item type': 'audio',
-                    },
-                ],
-                assignment_priority: [
-                    {
-                        name: 'High',
-                        qcode: 1,
-                    },
-                    {
-                        name: 'Medium',
-                        qcode: 2,
-                    },
-                    {
-                        name: 'Low',
-                        qcode: 3,
-                    },
-                ],
-                priority: [
-                    {
-                        name: '1',
-                        qcode: 1,
-                    },
-                    {
-                        name: '2',
-                        qcode: 2,
-                    },
-                    {
-                        name: '3',
-                        qcode: 3,
-                    },
-                    {
-                        name: '4',
-                        qcode: 4,
-                    },
-                    {
-                        name: '5',
-                        qcode: 5,
-                    },
-                    {
-                        name: '6',
-                        qcode: 6,
-                    },
-                ],
             },
         },
 
