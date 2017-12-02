@@ -1,4 +1,4 @@
-import { cloneDeep, get, uniq, without } from 'lodash'
+import { cloneDeep, get, uniq, without, find } from 'lodash'
 import { createReducer } from '../utils'
 import moment from 'moment'
 import {
@@ -8,6 +8,7 @@ import {
     INIT_STORE,
     LOCKS,
     SPIKED_STATE,
+    ASSIGNMENTS,
 } from '../constants'
 
 const initialState  = {
@@ -431,6 +432,31 @@ const planningReducer = createReducer(initialState, {
         return {
             ...state,
             planningsInList,
+            plannings,
+        }
+    },
+
+    [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (state, payload) => {
+        // If the planning is not loaded, disregard this action
+        if (!(payload.planning in state.plannings)) return state
+
+        let plannings = cloneDeep(state.plannings)
+        let plan = plannings[payload.planning]
+
+        // Remove the lock from the item
+        delete plan.lock_action
+        delete plan.lock_user
+        delete plan.lock_time
+        delete plan.lock_session
+        plan._etag = payload.planning_etag
+
+        const coverage = find(get(plan, 'coverages', []), (c) => c.coverage_id === payload.coverage)
+        if (coverage) {
+            delete coverage.assigned_to
+        }
+
+        return {
+            ...state,
             plannings,
         }
     },

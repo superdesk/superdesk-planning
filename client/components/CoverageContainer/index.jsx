@@ -121,8 +121,12 @@ export class CoverageContainer extends React.Component {
                                 <i className="icon-close-small"/>
                             </button>
                         </div>
-                        <Coverage coverage={fieldName} readOnly={readOnly}
-                            hasAssignment={!!get(coverage, 'assigned_to.desk')}/>
+                        <Coverage
+                            coverage={fieldName}
+                            readOnly={readOnly}
+                            hasAssignment={!!get(coverage, 'assigned_to.desk')}
+                            coverageId={get(coverage, 'coverage_id')}
+                        />
                     </div>
                 }
             </div>

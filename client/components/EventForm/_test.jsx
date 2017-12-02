@@ -4,11 +4,14 @@ import { EventForm, Component } from '../EventForm/index'
 import sinon from 'sinon'
 import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
-import { cloneDeep } from 'lodash'
+import { cloneDeep, get } from 'lodash'
 import * as actions from '../../actions'
 import eventsUi from '../../actions/events/ui'
 import moment from 'moment'
 import { restoreSinonStub, itemActionExists } from '../../utils/testUtils'
+import * as helpers from '../tests/helpers'
+import { FORM_NAMES } from '../../constants'
+import * as testData from '../../utils/testData'
 
 describe('events', () => {
     describe('components', () => {
@@ -50,134 +53,29 @@ describe('events', () => {
             handleSubmit: sinon.spy(),
         }
 
-        const createTestStoreForEventEditing = (event) => {
+        const createTestStoreForEventEditing = (testEvent) => {
             return createTestStore({
                 initialState: {
                     events: {
+                        ...testData.eventsInitialState,
                         readOnly: false,
-                        events: { '5800d71930627218866f1e80' : event },
-                        showEventDetails: '5800d71930627218866f1e80',
-                    },
-                    formsProfile: {
-                        events: {
-                            editor: {
-                                files: { enabled: true },
-                                subject: { enabled: true },
-                                name: { enabled: true },
-                                links: { enabled: true },
-                                anpa_category: { enabled: true },
-                                calendars: { enabled: true },
-                                definition_short: { enabled: true },
-                                definition_long: { enabled: true },
-                                slugline: { enabled: true },
-                                occur_status: { enabled: true },
-                                internal_note: { enabled: true },
-                                location: { enabled: true },
-                            },
-                            schema: {
-                                files: {
-                                    mandatory_in_list: null,
-                                    schema: null,
-                                    type: 'list',
-                                    required: false,
-                                },
-                                subject: {
-                                    mandatory_in_list: { scheme: {} },
-                                    schema: {
-                                        schema: {
-                                            parent: { nullable: true },
-                                            qcode: {},
-                                            service: { nullable: true },
-                                            name: {},
-                                            scheme: {
-                                                nullable: true,
-                                                type: 'string',
-                                                required: true,
-                                                allowed: [],
-                                            },
-                                        },
-                                        type: 'dict',
-                                    },
-                                    type: 'list',
-                                    required: false,
-                                },
-                                name: {
-                                    minlength: null,
-                                    type: 'string',
-                                    required: true,
-                                    maxlength: null,
-                                },
-                                links: {
-                                    mandatory_in_list: null,
-                                    schema: null,
-                                    type: 'list',
-                                    required: false,
-                                },
-                                anpa_category: {
-                                    mandatory_in_list: null,
-                                    schema: null,
-                                    type: 'list',
-                                    required: false,
-                                },
-                                calendars: {
-                                    mandatory_in_list: null,
-                                    schema: null,
-                                    type: 'list',
-                                    required: false,
-                                },
-                                definition_short: {
-                                    minlength: null,
-                                    type: 'string',
-                                    required: false,
-                                    maxlength: null,
-                                },
-                                definition_long: {
-                                    minlength: null,
-                                    type: 'string',
-                                    required: false,
-                                    maxlength: null,
-                                },
-                                location: {
-                                    minlength: null,
-                                    type: 'string',
-                                    required: false,
-                                    maxlength: null,
-                                },
-                                occur_status: {
-                                    mandatory_in_list: null,
-                                    schema: null,
-                                    type: 'list',
-                                    required: false,
-                                },
-                                internal_note: {
-                                    minlength: null,
-                                    type: 'string',
-                                    required: false,
-                                    maxlength: null,
-                                },
-                                slugline: {
-                                    minlength: null,
-                                    type: 'string',
-                                    required: false,
-                                    maxlength: null,
-                                },
-                            },
-                        },
+                        events: { [testEvent._id] : { ...testEvent } },
+                        showEventDetails: testEvent._id,
                     },
                     locks: {
-                        events: {
-                            '5800d71930627218866f1e80': {
+                        ...testData.locks,
+                        events: !get(testEvent, 'lock_user') ? {} : {
+                            [testEvent._id]: {
                                 action: 'edit',
-                                user: 'somebodyelse',
-                                session: 'someothersession',
+                                user: testEvent.lock_user,
+                                session: testEvent.lock_session,
+                                // user: testData.users[0]._id,
+                                // session: testData.sessions[0].sessionId,
                                 item_type: 'events',
-                                item_id: '5800d71930627218866f1e80',
+                                item_id: testEvent._id,
                                 time: '2016-10-15T14:30+0000',
                             },
                         },
-                        planning: {},
-                        recurring: {},
-                        assignments: {},
                     },
                 },
             })
@@ -197,13 +95,11 @@ describe('events', () => {
             })
 
             it('disabled fields are not displayed in the form', () => {
-                let store = createTestStoreForEventEditing()
+                let store = createTestStoreForEventEditing(event)
                 store.getState().formsProfile.events.editor.links.enabled = false
-
-                const initialValues = event
                 const wrapper = mount(
                     <Provider store={store}>
-                        <EventForm initialValues={initialValues} />
+                        <EventForm initialValues={{...event}} />
                     </Provider>
                 )
                 expect(wrapper.find('LinkFieldComponent').length).toBe(0)
@@ -243,16 +139,15 @@ describe('events', () => {
 
             it('compute right dates', () => {
                 const expectDatesInStoreToBe = (expectedDates) => {
-                    let { start, end } = store.getState().form.addEvent.values.dates
+                    let { start, end } = store.getState().form[FORM_NAMES.EventForm].values.dates
                     expect(start).toBe(expectedDates.start)
                     expect(end).toBe(expectedDates.end)
                 }
 
-                let store = createTestStoreForEventEditing()
-                const initialValues = event
+                let store = createTestStoreForEventEditing(event)
                 mount(
                     <Provider store={store}>
-                        <EventForm initialValues={initialValues} />
+                        <EventForm initialValues={{ ...event }} />
                     </Provider>
                 )
                 let originalDates = event.dates
@@ -260,7 +155,7 @@ describe('events', () => {
             })
 
             it('fill the form', () => {
-                let store = createTestStoreForEventEditing()
+                let store = createTestStoreForEventEditing(event)
                 const initialValues = event
                 const wrapper = mount(
                     <Provider store={store}>
@@ -271,14 +166,16 @@ describe('events', () => {
             })
 
             it('supports files', () => {
-                let _event = event
-                _event.lock_user = 'user123'
-                _event.lock_session = 'session123'
+                const _event = {
+                    ...event,
+                    lock_user: testData.users[0]._id,
+                    lock_session: testData.sessions[0].sessionId,
+                }
 
                 const store = createTestStoreForEventEditing(_event)
                 const wrapper = mount(
                     <Provider store={store}>
-                        <EventForm initialValues={event}/>
+                        <EventForm initialValues={_event}/>
                     </Provider>
                 )
 
@@ -295,14 +192,16 @@ describe('events', () => {
             })
 
             it('supports links', () => {
-                let _event = event
-                _event.lock_user = 'user123'
-                _event.lock_session = 'session123'
+                const _event = {
+                    ...event,
+                    lock_user: testData.users[0]._id,
+                    lock_session: testData.sessions[0].sessionId,
+                }
 
                 const store = createTestStoreForEventEditing(_event)
                 const wrapper = mount(
                     <Provider store={store}>
-                        <EventForm initialValues={event} />
+                        <EventForm initialValues={_event} />
                     </Provider>
                 )
 
@@ -369,16 +268,17 @@ describe('events', () => {
 
                 it('spike action calls `actions.events.ui.openSpikeModal`', () => {
                     const store = createTestStoreForEventEditing(event)
+                    store.getState().locks.events = {}
+
                     const wrapper = mount(
                         <Provider store={store}>
                             <EventForm initialValues={event}/>
                         </Provider>
                     )
 
-                    const actionsMenu = wrapper.find('ItemActionsMenu')
-
-                    actionsMenu.find('.dropdown__toggle').simulate('click')
-                    actionsMenu.find('li button').at(1).simulate('click')
+                    const menu = new helpers.actionMenu(wrapper)
+                    expect(menu.actionLabels()).toContain('Spike')
+                    menu.invokeAction('Spike')
 
                     expect(eventsUi.openSpikeModal.callCount).toBe(1)
                     expect(eventsUi.openSpikeModal.args[0]).toEqual([event])
@@ -395,8 +295,8 @@ describe('events', () => {
                                 endRepeatMode: 'count',
                             },
                         },
-                        lock_user: 'somebodyelse',
-                        lock_session: 'someothersession',
+                        lock_user: testData.users[1]._id,
+                        lock_session: testData.sessions[1].sessionId,
                     }
 
                     const store = createTestStoreForEventEditing(recEvent)
@@ -414,7 +314,7 @@ describe('events', () => {
             })
 
             it('action button states for new event', () => {
-                let store = createTestStoreForEventEditing()
+                let store = createTestStoreForEventEditing(event)
                 const wrapper = mount(
                     <Provider store={store}>
                         <EventForm initialValues={{}} />
@@ -439,10 +339,16 @@ describe('events', () => {
             })
 
             it('action button states for existing event', () => {
-                let store = createTestStoreForEventEditing(event)
+                const _event = {
+                    ...event,
+                    lock_user: testData.users[0]._id,
+                    lock_session: testData.sessions[0].sessionId,
+                }
+
+                let store = createTestStoreForEventEditing(_event)
                 const wrapper = mount(
                     <Provider store={store}>
-                        <EventForm initialValues={event} />
+                        <EventForm initialValues={_event} />
                     </Provider>
                 )
                 const subnav = wrapper.find('.subnav__actions')

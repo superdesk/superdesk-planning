@@ -24,7 +24,8 @@ from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user, get_auth
 from copy import deepcopy
 from eve.utils import config, ParsedRequest
-from .common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA, get_coverage_cancellation_state
+from .common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA, get_coverage_cancellation_state,\
+    remove_lock_information
 from superdesk.utc import utcnow
 from itertools import chain
 
@@ -373,10 +374,10 @@ class PlanningService(superdesk.Service):
             assignment_service.system_update(ObjectId(assigned_to.get('assignment_id')),
                                              assignment, original_assignment)
 
-        updates.get('assigned_to', {}).pop('user', None)
-        updates.get('assigned_to', {}).pop('desk', None)
-        updates.get('assigned_to', {}).pop('coverage_provider', None)
-        updates.get('assigned_to', {}).pop('state', None)
+        (updates.get('assigned_to') or {}).pop('user', None)
+        (updates.get('assigned_to') or {}).pop('desk', None)
+        (updates.get('assigned_to') or {}).pop('coverage_provider', None)
+        (updates.get('assigned_to') or {}).pop('state', None)
 
     def duplicate_coverage(self, planning_id, coverage_id, updates):
         planning = self.find_one(req=None, _id=planning_id)
@@ -418,6 +419,31 @@ class PlanningService(superdesk.Service):
 
         planning.update(new_plan)
         return planning, new_coverage
+
+    def remove_assignment(self, assignment_item, unlock_planning=False):
+        coverage_id = assignment_item.get('coverage_item')
+        planning_item = self.find_one(req=None, _id=assignment_item.get('planning_item'))
+
+        if planning_item:
+            coverages = planning_item.get('coverages') or []
+            try:
+                coverage_item = next(c for c in coverages if c.get('coverage_id') == coverage_id)
+            except StopIteration:
+                raise SuperdeskApiError.badRequestError(
+                    'Coverage does not exist'
+                )
+
+            coverage_item['assigned_to'] = None
+
+            updates = {'coverages': coverages}
+            if unlock_planning:
+                remove_lock_information(updates)
+
+            return self.update(
+                planning_item[config.ID_FIELD],
+                updates,
+                planning_item
+            )
 
 
 event_type = deepcopy(superdesk.Resource.rel('events', type='string'))

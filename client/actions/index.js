@@ -8,6 +8,7 @@ import planning from './planning/index'
 import events from './events/index'
 import locks from './locks'
 import assignments from './assignments/index'
+import autosave from './autosave';
 
 import { agendaNotifications } from './agenda'
 import { eventNotifications } from './events'
@@ -42,4 +43,5 @@ export {
     initStore,
     locks,
     assignments,
+    autosave,
 }

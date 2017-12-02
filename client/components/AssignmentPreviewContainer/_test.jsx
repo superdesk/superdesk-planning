@@ -51,8 +51,9 @@ describe('<AssignmentPreviewContainer />', () => {
         expect(wrapper.children().length).toBe(5)
 
         expect(wrapper.hasClass('AssignmentPreview')).toBe(true)
-        expect(wrapper.childAt(0).hasClass('AssignmentPreview__toolbar')).toBe(true)
-        expect(wrapper.childAt(1).hasClass('AssignmentPreview__audit')).toBe(true)
+
+        expect(wrapper.childAt(0).hasClass('AssignmentPreview__audit')).toBe(true)
+        expect(wrapper.childAt(1).hasClass('AssignmentPreview__toolbar')).toBe(true)
         expect(wrapper.childAt(2).hasClass('AssignmentPreview__coverage')).toBe(true)
         expect(wrapper.childAt(3).hasClass('AssignmentPreview__planning')).toBe(true)
         expect(wrapper.childAt(4).hasClass('AssignmentPreview__event')).toBe(true)
@@ -62,9 +63,9 @@ describe('<AssignmentPreviewContainer />', () => {
         expect(wrapper.children().length).toBe(6)
 
         expect(wrapper.hasClass('AssignmentPreview')).toBe(true)
-        expect(wrapper.childAt(0).hasClass('AssignmentPreview__toolbar')).toBe(true)
-        expect(wrapper.childAt(1).hasClass('AssignmentPreview__fulfil')).toBe(true)
-        expect(wrapper.childAt(2).hasClass('AssignmentPreview__audit')).toBe(true)
+        expect(wrapper.childAt(0).hasClass('AssignmentPreview__audit')).toBe(true)
+        expect(wrapper.childAt(1).hasClass('AssignmentPreview__toolbar')).toBe(true)
+        expect(wrapper.childAt(2).hasClass('AssignmentPreview__fulfil')).toBe(true)
         expect(wrapper.childAt(3).hasClass('AssignmentPreview__coverage')).toBe(true)
         expect(wrapper.childAt(4).hasClass('AssignmentPreview__planning')).toBe(true)
         expect(wrapper.childAt(5).hasClass('AssignmentPreview__event')).toBe(true)
@@ -92,6 +93,7 @@ describe('<AssignmentPreviewContainer />', () => {
             assignment.assigned_to.state = 'assigned'
             const wrapper = getWrapper()
             const topTools = wrapper.find('.side-panel__top-tools')
+            const audit = wrapper.find('.AssignmentPreview__audit')
 
             // Renders Content Type icon
             expect(topTools.contains(
@@ -118,12 +120,13 @@ describe('<AssignmentPreviewContainer />', () => {
                 </span>
             )).toBe(true)
 
-            const menu = new helpers.actionMenu(topTools)
+            const menu = new helpers.actionMenu(audit)
             expect(menu.isAvailable()).toBe(true)
             menu.expectActions([
                 'Start Working',
                 'Reassign',
                 'Edit Priority',
+                'Remove Assignment',
             ])
         })
 
@@ -134,8 +137,7 @@ describe('<AssignmentPreviewContainer />', () => {
 
             const menu = new helpers.actionMenu(wrapper)
             expect(menu.actionLabels()).toContain('Start Working')
-            menu.toggleMenu()
-            menu.clickAction('Start Working')
+            menu.invokeAction('Start Working')
             expect(actions.assignments.ui.openSelectTemplateModal.callCount).toBe(1)
         })
 
@@ -145,8 +147,7 @@ describe('<AssignmentPreviewContainer />', () => {
 
             const menu = new helpers.actionMenu(wrapper)
             expect(menu.actionLabels()).toContain('Reassign')
-            menu.toggleMenu()
-            menu.clickAction('Reassign')
+            menu.invokeAction('Reassign')
             expect(actions.assignments.ui.reassign.callCount).toBe(1)
         })
 
@@ -156,8 +157,7 @@ describe('<AssignmentPreviewContainer />', () => {
 
             const menu = new helpers.actionMenu(wrapper)
             expect(menu.actionLabels()).toContain('Edit Priority')
-            menu.toggleMenu()
-            menu.clickAction('Edit Priority')
+            menu.invokeAction('Edit Priority')
             expect(actions.assignments.ui.editPriority.callCount).toBe(1)
         })
 
@@ -167,8 +167,7 @@ describe('<AssignmentPreviewContainer />', () => {
 
             const menu = new helpers.actionMenu(wrapper)
             expect(menu.actionLabels()).toContain('Complete Assignment')
-            menu.toggleMenu()
-            menu.clickAction('Complete Assignment')
+            menu.invokeAction('Complete Assignment')
             expect(actions.assignments.ui.complete.callCount).toBe(1)
         })
 

@@ -42,29 +42,38 @@ export function AddToPlanningController(
     return api.find('archive', item._id)
     .then((newsItem) => {
         let failed = false
+        let errMessages = []
 
         if (get(newsItem, 'assignment_id')) {
-            notify.error(
-                gettext('Item already linked to a Planning item')
-            )
+            errMessages.push('Item already linked to a Planning item')
             failed = true
         }
 
         if (get(newsItem, 'slugline', '') === '') {
-            notify.error(
-                gettext('[SLUGLINE] is a required field')
-            )
+            errMessages.push('[SLUGLINE] is a required field')
             failed = true
         }
 
         if (get(newsItem, 'urgency', null) === null) {
-            notify.error(
-                gettext('[URGENCY] is a required field')
-            )
+            errMessages.push('[URGENCY] is a required field')
+            failed = true
+        }
+
+        if (get(newsItem, 'subject.length', 0) === 0) {
+            errMessages.push('[SUBJECT] is a required field')
+            failed = true
+        }
+
+        if (get(newsItem, 'anpa_category.length', 0) === 0) {
+            errMessages.push('[CATEGORY] is a required field')
             failed = true
         }
 
         if (failed) {
+            errMessages.forEach((err) => {
+                notify.error(err)
+            })
+
             $scope.reject()
             return Promise.reject()
         }
@@ -133,7 +142,7 @@ export function AddToPlanningController(
                 store.dispatch(actions.showModal({
                     modalType: MODALS.ADD_TO_PLANNING,
                     modalProps: {
-                        newsItem: item, // scope item
+                        newsItem: newsItem,
                         fullscreen: true,
                         $scope,
                     },

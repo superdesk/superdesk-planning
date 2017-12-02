@@ -4,9 +4,10 @@ import { reduxForm } from 'redux-form'
 import { createTestStore } from '../../utils'
 import { Provider } from 'react-redux'
 import { RepeatEventForm, fields } from '../index'
+import { FORM_NAMES } from '../../constants'
 
 describe('<RepeatEventForm />', () => {
-    const form = 'addEvent'
+    const form = FORM_NAMES.EventForm
     let wrapper
     let store
     beforeEach(() => {

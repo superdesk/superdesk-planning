@@ -535,5 +535,105 @@ describe('assignment', () => {
                 archive: {},
             })
         })
+
+        describe('REMOVE_ASSIGNMENT', () => {
+            beforeEach(() => { initialState = assignment(undefined, { type: null })})
+
+            it('REMOVE_ASSIGNMENT returns if Assignment not loaded', () => {
+                const result = assignment(initialState, {
+                    type: 'REMOVE_ASSIGNMENT',
+                    payload: { assignment: 'a1' },
+                })
+                expect(result).toEqual(initialState)
+            })
+
+            it('REMOVE_ASSIGNMENT removes the assignment from view lists', () => {
+                // Checks to see if assignmentsInInProgressList is set back to empty list
+                let result = assignment(
+                    {
+                        ...initialState,
+                        assignments: { a1: { _id: 'a1' } },
+                        assignmentsInInProgressList: ['a1'],
+                    },
+                    {
+                        type: 'REMOVE_ASSIGNMENT',
+                        payload: { assignment: 'a1' },
+                    }
+                )
+                expect(result).toEqual(initialState)
+
+                // Checks to see if assignmentsInTodoList is set back to empty list
+                result = assignment(
+                    {
+                        ...initialState,
+                        assignments: { a1: { _id: 'a1' } },
+                        assignmentsInTodoList: ['a1'],
+                    },
+                    {
+                        type: 'REMOVE_ASSIGNMENT',
+                        payload: { assignment: 'a1' },
+                    }
+                )
+                expect(result).toEqual(initialState)
+
+                // Checks to see if assignmentsInCompletedList is set back to empty list
+                result = assignment(
+                    {
+                        ...initialState,
+                        assignments: { a1: { _id: 'a1' } },
+                        assignmentsInCompletedList: ['a1'],
+                    },
+                    {
+                        type: 'REMOVE_ASSIGNMENT',
+                        payload: { assignment: 'a1' },
+                    }
+                )
+                expect(result).toEqual(initialState)
+            })
+
+            it('REMOVE_ASSIGNMENT closes preview viewing the removed Assignment', () => {
+                // Closes the preview and sets currentAssignmentId to null
+                let result = assignment(
+                    {
+                        ...initialState,
+                        assignments: { a1: { _id: 'a1' } },
+                        assignmentsInInProgressList: ['a1'],
+                        previewOpened: true,
+                        currentAssignmentId: 'a1',
+                    },
+                    {
+                        type: 'REMOVE_ASSIGNMENT',
+                        payload: { assignment: 'a1' },
+                    }
+                )
+                expect(result).toEqual(initialState)
+
+                // Removes the assignment from the store, but keeps the preview open
+                result = assignment(
+                    {
+                        ...initialState,
+                        assignments: {
+                            a1: { _id: 'a1' },
+                            a2: { _id: 'a2' },
+                        },
+                        assignmentsInInProgressList: ['a1', 'a2'],
+                        previewOpened: true,
+                        currentAssignmentId: 'a2',
+                    },
+                    {
+                        type: 'REMOVE_ASSIGNMENT',
+                        payload: { assignment: 'a1' },
+                    }
+                )
+
+                expect(result).toEqual({
+                    ...initialState,
+                    assignments: { a2: { _id: 'a2' } },
+                    assignmentsInInProgressList: ['a2'],
+                    previewOpened: true,
+                    currentAssignmentId: 'a2',
+                })
+            })
+        })
     })
 })

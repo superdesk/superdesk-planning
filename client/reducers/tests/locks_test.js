@@ -375,17 +375,33 @@ describe('lock reducers', () => {
     it('UNLOCK_ASSIGNMENT', () => {
         // Planning item with direct Planning lock
         let result = locks(
-            initialState,
+            getInitialLocks(),
             {
                 type: 'UNLOCK_ASSIGNMENT',
                 payload: { assignment: lockTypes.assignment },
             }
         )
         expect(result).toEqual({
-            events: {},
-            planning: {},
-            recurring: {},
+            events: lockItems.events,
+            planning: lockItems.planning,
+            recurring: lockItems.recurring,
             assignments: {},
+        })
+    })
+
+    it('REMOVE_ASSIGNMENT', () => {
+        let result = locks(
+            getInitialLocks(),
+            {
+                type: 'REMOVE_ASSIGNMENT',
+                payload: { planning: lockTypes.planning.planning._id },
+            }
+        )
+        expect(result).toEqual({
+            events: lockItems.events,
+            planning: {},
+            recurring: lockItems.recurring,
+            assignments: lockItems.assignments,
         })
     })
 })

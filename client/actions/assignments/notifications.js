@@ -2,7 +2,7 @@ import * as selectors from '../../selectors'
 import assignments from './index'
 import { get } from 'lodash'
 import planning from '../planning'
-import { ASSIGNMENTS } from '../../constants'
+import { ASSIGNMENTS, WORKSPACE } from '../../constants'
 import { getLock, assignmentUtils } from '../../utils'
 import { hideModal, showModal } from '../index'
 
@@ -58,6 +58,17 @@ const onAssignmentUpdated = (_e, data) => (
                         }
                     }
                 })
+
+                if (data.assignment_state === ASSIGNMENTS.WORKFLOW_STATE.CANCELLED ||
+                     data.assignment_state === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS) {
+                    // If we are in authoring workspace (fulfilment) and assignment is previewed,
+                    // close it
+                    if (selectors.getCurrentWorkspace(getState()) === WORKSPACE.AUTHORING &&
+                            selectors.getCurrentAssignmentId(getState()) === data.item) {
+                        dispatch(assignments.ui.closePreview())
+                    }
+
+                }
             }
 
             if (!get(data, 'lock_user')) {
@@ -200,11 +211,38 @@ const onAssignmentUnlocked = (_e, data) => (
     }
 )
 
+/**
+ * WS Action when an Assignment is deleted
+ * @param {object} _e - Event object
+ * @param {object} data - IDs for the Assignment, Planning and Coverage items
+ */
+const onAssignmentRemoved = (_e, data) => (
+    (dispatch, getState, { notify }) => {
+        if (get(data, 'assignment')) {
+            const currentAssignmentId = selectors.getCurrentAssignmentId(getState())
+
+            if (data.assignment === currentAssignmentId) {
+                notify.error('The Assignment you were viewing was removed.')
+            }
+
+            dispatch({
+                type: ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT,
+                payload: data,
+            })
+
+            return Promise.resolve()
+        }
+
+        return Promise.resolve()
+    }
+)
+
 const self = {
     onAssignmentCreated,
     onAssignmentUpdated,
     onAssignmentLocked,
     onAssignmentUnlocked,
+    onAssignmentRemoved,
 }
 
 // Map of notification name and Action Event to execute
@@ -214,6 +252,7 @@ self.events = {
     'assignments:unlock': () => (self.onAssignmentUnlocked),
     'assignments:updated': () => (self.onAssignmentUpdated),
     'assignments:completed': () => (self.onAssignmentUpdated),
+    'assignments:removed': () => (self.onAssignmentRemoved),
 }
 
 export default self

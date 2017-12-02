@@ -5,6 +5,7 @@ import sinon from 'sinon'
 import { createTestStore } from '../../utils'
 import { List } from '../UI'
 import { Provider } from 'react-redux'
+import * as helpers from '../tests/helpers'
 
 describe('assignments', () => {
     describe('components', () => {
@@ -12,12 +13,31 @@ describe('assignments', () => {
             let onClick
             let assignment
             let lockedItems
+            let privileges = {
+                planning_planning_management: 1,
+                archive: 1,
+            }
+            let session = { identity: { _id: 'ident1' } }
+
+            let reassign
+            let editAssignmentPriority
+            let completeAssignment
+            let startWorking
+            let removeAssignment
 
             const getShallowWrapper = () => (
                 shallow(<AssignmentItem
                     onClick={onClick}
                     assignment={assignment}
                     lockedItems={lockedItems}
+                    reassign={reassign}
+                    editAssignmentPriority={editAssignmentPriority}
+                    completeAssignment={completeAssignment}
+                    startWorking={startWorking}
+                    removeAssignment={removeAssignment}
+                    inAssignments={true}
+                    privileges={privileges}
+                    session={session}
                 />)
             )
 
@@ -30,6 +50,14 @@ describe('assignments', () => {
                             assignment={assignment}
                             lockedItems={lockedItems}
                             priorities={store.getState().vocabularies.assignment_priority}
+                            reassign={reassign}
+                            editAssignmentPriority={editAssignmentPriority}
+                            completeAssignment={completeAssignment}
+                            startWorking={startWorking}
+                            removeAssignment={removeAssignment}
+                            privileges={privileges}
+                            session={session}
+                            inAssignments={true}
                         />
                     </Provider>
                 )
@@ -45,11 +73,17 @@ describe('assignments', () => {
                     assigned_to: {
                         assigned_date: '2017-07-28T11:16:36+0000',
                         desk: 'desk1',
+                        state: 'assigned',
                     },
                     priority: 2,
                 }
 
                 onClick = sinon.spy()
+                reassign = sinon.spy()
+                editAssignmentPriority = sinon.spy()
+                completeAssignment = sinon.spy()
+                startWorking = sinon.spy()
+                removeAssignment = sinon.spy()
             })
 
             it('show item', () => {
@@ -85,6 +119,47 @@ describe('assignments', () => {
                 const wrapper = getMountedWrapper()
                 const priorityNode = wrapper.find('.priority-label').first()
                 expect(priorityNode.prop('data-sd-tooltip')).toBe('Priority: Medium')
+            })
+
+            it('ActionMenu executes prop functions', () => {
+                const executeItemAction = (actionLabel) => {
+                    const wrapper = getMountedWrapper()
+                    const menu = new helpers.actionMenu(wrapper)
+                    menu.invokeAction(actionLabel)
+                }
+
+                lockedItems = null
+
+                expect(reassign.callCount).toBe(0)
+                executeItemAction('Reassign')
+                expect(reassign.callCount).toBe(1)
+                expect(reassign.args[0]).toEqual([assignment])
+
+                expect(editAssignmentPriority.callCount).toBe(0)
+                executeItemAction('Edit Priority')
+                expect(editAssignmentPriority.callCount).toBe(1)
+                expect(editAssignmentPriority.args[0]).toEqual([assignment])
+
+                expect(removeAssignment.callCount).toBe(0)
+                executeItemAction('Remove Assignment')
+                expect(removeAssignment.callCount).toBe(1)
+                expect(removeAssignment.args[0]).toEqual([assignment])
+
+                assignment.assigned_to.state = 'in_progress'
+                expect(completeAssignment.callCount).toBe(0)
+                executeItemAction('Complete Assignment')
+                expect(completeAssignment.callCount).toBe(1)
+                expect(completeAssignment.args[0]).toEqual([assignment])
+
+                assignment.assigned_to = {
+                    user: 'ident1',
+                    state: 'assigned',
+                }
+                assignment.planning.g2_content_type = 'text'
+                expect(startWorking.callCount).toBe(0)
+                executeItemAction('Start Working')
+                expect(startWorking.callCount).toBe(1)
+                expect(startWorking.args[0]).toEqual([assignment])
             })
         })
     })

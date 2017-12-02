@@ -34,13 +34,9 @@ export default class actionMenu {
         return this.element.find('button').findWhere(node => node.text() === label)
     }
 
-    toggleMenu() {
-        this.element.find('.dropdown__toggle').simulate('click')
-    }
-
-    clickAction(label) {
-        const action = this.getActionNodeByLabel(label)
-        return action.simulate('click')
+    invokeAction(actionLabel) {
+        const action = this.actions().find((a) => a.label === actionLabel)
+        action.callback()
     }
 
     expectActions(expectedActions) {

@@ -5,7 +5,7 @@ import PropTypes from 'prop-types'
 import { fields } from '../../components'
 import { Field } from 'redux-form'
 import { get } from 'lodash'
-import { assignmentUtils } from '../../utils'
+import { planningUtils } from '../../utils'
 import { PLANNING, FORM_NAMES } from '../../constants'
 import { change } from 'redux-form'
 
@@ -32,16 +32,26 @@ export class CoverageDetailsComponent extends React.Component {
             keywords,
             assignmentState,
             hasAssignment,
+            newsCoverageStatus,
+            coverageId,
         } = this.props
 
         const isTextCoverage = content_type === 'text'
+        const isExistingCoverage = !!coverageId
         // for assignment form coverage props is object
         // for coverage form coverage props is string
         const fieldNamePrefix = typeof coverage === 'string' ? `${coverage}.` : ''
         const coverageStatusPrefix = fieldNamePrefix ? fieldNamePrefix : 'planning.'
-
-        const assignmentInUse = assignmentUtils.isAssignmentInUse({ assigned_to: { state: assignmentState } })
         const coverageCancelledInput = { value: 'Coverage Cancelled' }
+
+        const isCancelled = get(this.props, 'newsCoverageStatus.qcode') === PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode
+        const roFields = planningUtils.getCoverageReadOnlyFields(
+            readOnly,
+            newsCoverageStatus,
+            hasAssignment,
+            isExistingCoverage,
+            assignmentState
+        )
 
         return (
             <div>
@@ -53,7 +63,7 @@ export class CoverageDetailsComponent extends React.Component {
                             type="text"
                             label="Slugline"
                             required={get(formProfile, 'schema.slugline.required')}
-                            readOnly={readOnly} />
+                            readOnly={roFields.slugline} />
                     </div>
                 }
                 {get(formProfile, 'editor.ednote.enabled') &&
@@ -65,7 +75,7 @@ export class CoverageDetailsComponent extends React.Component {
                         type="text"
                         label="Ed Note"
                         required={get(formProfile, 'schema.ednote.required')}
-                        readOnly={readOnly || assignmentInUse} />
+                        readOnly={roFields.ednote} />
                     </div>
                 }
                 {get(formProfile, 'editor.keyword.enabled') &&
@@ -76,7 +86,7 @@ export class CoverageDetailsComponent extends React.Component {
                             label="Keywords"
                             required={get(formProfile, 'schema.keyword.required')}
                             options={keywords}
-                            readOnly={readOnly} />
+                            readOnly={roFields.keyword} />
                     </div>
                 }
                 {get(formProfile, 'editor.internal_note.enabled') &&
@@ -86,7 +96,7 @@ export class CoverageDetailsComponent extends React.Component {
                             component={fields.InputTextAreaField}
                             label="Internal Note"
                             required={get(formProfile, 'schema.internal_note.required')}
-                            readOnly={readOnly}/>
+                            readOnly={roFields.internal_note} />
                     </div>
                 }
 
@@ -98,7 +108,7 @@ export class CoverageDetailsComponent extends React.Component {
                             label="Type"
                             clearable={true}
                             required={get(formProfile, 'schema.g2_content_type.required')}
-                            readOnly={readOnly || assignmentInUse} />
+                            readOnly={roFields.g2_content_type} />
                     </div>
                 }
 
@@ -107,21 +117,19 @@ export class CoverageDetailsComponent extends React.Component {
                         <Field name={`${fieldNamePrefix}planning.genre`}
                             component={fields.GenreField}
                             label="Genre"
-                            readOnly={readOnly || assignmentInUse}/>
+                            readOnly={roFields.genre} />
                     </div>
                 )}
                 <div className="form__row">
-                    { get(this.props, 'newsCoverageStatus.qcode') !== PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode &&
+                    { !isCancelled &&
                     (
                         <Field
-                        name={`${coverageStatusPrefix}news_coverage_status`}
-                        component={fields.CoverageStatusField}
-                        label="Coverage Status"
-                        clearable={false}
-                        readOnly={readOnly || hasAssignment || assignmentInUse} />
-                    )}
-                    { get(this.props, 'newsCoverageStatus.qcode') === PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode &&
-                    (
+                            name={`${coverageStatusPrefix}news_coverage_status`}
+                            component={fields.CoverageStatusField}
+                            label="Coverage Status"
+                            clearable={false}
+                            readOnly={roFields.newsCoverageStatus} />
+                    ) || (
                         <fields.InputField
                             input={coverageCancelledInput}
                             readOnly={true}
@@ -135,7 +143,7 @@ export class CoverageDetailsComponent extends React.Component {
                         component={fields.DayPickerInput}
                         withTime={true}
                         label="Due"
-                        readOnly={readOnly} />
+                        readOnly={roFields.scheduled} />
                 }
             </div>
         )
@@ -155,6 +163,7 @@ CoverageDetailsComponent.propTypes = {
     changeCoverageStatusPlanned: PropTypes.func,
     newsCoverageStatus: PropTypes.object,
     hasAssignment: PropTypes.bool,
+    coverageId: PropTypes.string,
 }
 
 const selector = formValueSelector(FORM_NAMES.PlanningForm)

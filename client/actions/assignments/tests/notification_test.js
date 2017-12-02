@@ -25,6 +25,7 @@ describe('actions.assignments.notification', () => {
             sinon.stub(assignmentNotifications, 'onAssignmentUpdated').callsFake(
                 () => (Promise.resolve())
             )
+            sinon.stub(assignmentNotifications, 'onAssignmentRemoved').returns(Promise.resolve())
             $rootScope = _$rootScope_
             registerNotifications($rootScope, store)
             $rootScope.$digest()
@@ -33,9 +34,10 @@ describe('actions.assignments.notification', () => {
         afterEach(() => {
             restoreSinonStub(assignmentNotifications.onAssignmentCreated)
             restoreSinonStub(assignmentNotifications.onAssignmentUpdated)
+            restoreSinonStub(assignmentNotifications.onAssignmentRemoved)
         })
 
-        it('`assignment:created` calls onAssignmentCreated', (done) => {
+        it('`assignments:created` calls onAssignmentCreated', (done) => {
             $rootScope.$broadcast('assignments:created', { item: 'p2' })
 
             setTimeout(() => {
@@ -47,13 +49,25 @@ describe('actions.assignments.notification', () => {
             }, delay)
         })
 
-        it('`assignment:updated` calls onAssignmentUpdated', (done) => {
+        it('`assignments:updated` calls onAssignmentUpdated', (done) => {
             $rootScope.$broadcast('assignments:updated', { item: 'p2' })
 
             setTimeout(() => {
                 expect(assignmentNotifications.onAssignmentUpdated.callCount).toBe(1)
                 expect(assignmentNotifications.onAssignmentUpdated.args[0][1])
                 .toEqual({ item: 'p2' })
+
+                done()
+            }, delay)
+        })
+
+        it('`assignments:removed` calls onAssignmentRemoved', (done) => {
+            $rootScope.$broadcast('assignments:removed', { assignment: 'as1' })
+
+            setTimeout(() => {
+                expect(assignmentNotifications.onAssignmentRemoved.callCount).toBe(1)
+                expect(assignmentNotifications.onAssignmentRemoved.args[0][1])
+                    .toEqual({ assignment: 'as1' })
 
                 done()
             }, delay)
@@ -284,6 +298,41 @@ describe('actions.assignments.notification', () => {
                         },
                     },
                 }])
+                done()
+            })
+        })
+    })
+
+    describe('assignments:removed', () => {
+        it('calls `REMOVE_ASSIGNMENT` action', (done) => (
+            store.test(done, assignmentNotifications.onAssignmentRemoved(
+                {},
+                { assignment: 'as1' }
+            ))
+            .then(() => {
+                expect(store.dispatch.callCount).toBe(1)
+                expect(store.dispatch.args[0]).toEqual([{
+                    type: 'REMOVE_ASSIGNMENT',
+                    payload: { assignment: 'as1' },
+                }])
+
+                done()
+            })
+        ))
+
+        it('notifies the user if they are viewing the removed Assignment', (done) => {
+            store.initialState.assignment.currentAssignmentId = 'as1'
+
+            return store.test(done, assignmentNotifications.onAssignmentRemoved(
+                {},
+                { assignment: 'as1' }
+            ))
+            .then(() => {
+                expect(store.services.notify.error.callCount).toBe(1)
+                expect(store.services.notify.error.args[0]).toEqual(
+                    ['The Assignment you were viewing was removed.']
+                )
+
                 done()
             })
         })

@@ -376,5 +376,59 @@ describe('planning', () => {
                 expect(state.selectedItems).toEqual([])
             })
         })
+
+        describe('REMOVE_ASSIGNMENT', () => {
+            it('REMOVE_ASSIGNMENT returns if planning not loaded', () => {
+                const result = planning(initialState, {
+                    type: 'REMOVE_ASSIGNMENT',
+                    payload: { planning: 'p1' },
+                })
+                expect(result).toEqual(initialState)
+            })
+
+            it('REMOVE_ASSIGNMENT removes the lock and updates the etag', () => {
+                const result = planning(
+                    {
+                        ...initialState,
+                        plannings: {
+                            p1: {
+                                _id: 'p1',
+                                _etag: 'e123',
+                                coverages: [{
+                                    coverage_id: 'cov1',
+                                    assigned_to: {
+                                        desk: 'desk1',
+                                        user: 'user1',
+                                    },
+                                }],
+                                lock_action: 'remove_assignment',
+                                lock_user: 'user1',
+                                lock_session: 'session1',
+                                lock_time: 'now',
+                            },
+                        },
+                    },
+                    {
+                        type: 'REMOVE_ASSIGNMENT',
+                        payload: {
+                            planning: 'p1',
+                            planning_etag: 'e456',
+                            coverage: 'cov1',
+                        },
+                    }
+                )
+
+                expect(result).toEqual({
+                    ...initialState,
+                    plannings: {
+                        p1: {
+                            _id: 'p1',
+                            _etag: 'e456',
+                            coverages: [{ coverage_id: 'cov1' }],
+                        },
+                    },
+                })
+            })
+        })
     })
 })

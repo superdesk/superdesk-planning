@@ -11,7 +11,8 @@ const canEditAssignment = (assignment, session, privileges) => (
 
 const canStartWorking = (assignment, session, privileges) => (
     !!privileges[PRIVILEGES.ARCHIVE] &&
-    get(assignment, 'assigned_to.user') === get(session, 'identity._id') &&
+    (!get(assignment, 'assigned_to.user') ||
+    assignment.assigned_to.user === get(session, 'identity._id')) &&
     get(assignment, 'planning.g2_content_type') === 'text' &&
     get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
     !get(assignment, 'lock_user')
@@ -35,6 +36,11 @@ const isAssignmentInUse = (assignment) => (
     get(assignment, 'assigned_to.state')))
 )
 
+const canRemoveAssignment = (assignment, session, privileges) => (
+    canEditAssignment(assignment, session, privileges) &&
+        get(assignment, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
+)
+
 const getAssignmentItemActions = (assignment, session, privileges, actions) => {
     let itemActions = []
     let key = 1
@@ -48,6 +54,8 @@ const getAssignmentItemActions = (assignment, session, privileges, actions) => {
             canEditAssignment(assignment, session, privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: () =>
             canStartWorking(assignment, session, privileges),
+        [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label]: () =>
+            canRemoveAssignment(assignment, session, privileges),
     }
 
     actions.forEach((action) => {
@@ -104,6 +112,12 @@ const getAssignmentGroupByStates = (states=[]) => {
     }
 }
 
+const canEditDesk = (assignment) => {
+    const state = get(assignment, 'assigned_to.state')
+    return state !== ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED &&
+        state !== ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS
+}
+
 const self = {
     canEditAssignment,
     canCompleteAssignment,
@@ -113,6 +127,8 @@ const self = {
     canStartWorking,
     getAssignmentsInListGroups,
     getAssignmentGroupByStates,
+    canRemoveAssignment,
+    canEditDesk,
 }
 
 export default self

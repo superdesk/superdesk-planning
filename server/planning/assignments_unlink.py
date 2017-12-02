@@ -11,6 +11,8 @@ from superdesk.errors import SuperdeskApiError
 from eve.utils import config
 from .common import ASSIGNMENT_WORKFLOW_STATE
 from apps.content import push_content_notification
+from .item_lock import LOCK_USER, LOCK_SESSION
+from apps.archive.common import get_user, get_auth
 
 
 class AssignmentsUnlinkService(Service):
@@ -60,6 +62,11 @@ class AssignmentsUnlinkService(Service):
         if not assignment:
             raise SuperdeskApiError.badRequestError('Assignment not found.')
 
+        if assignment.get(LOCK_USER):
+            raise SuperdeskApiError.forbiddenError(
+                'Assignment is locked. Cannot unlink assignment and content.'
+            )
+
         if assignment.get('assigned_to', {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
             raise SuperdeskApiError.badRequestError('Assignment already completed.')
 
@@ -70,6 +77,25 @@ class AssignmentsUnlinkService(Service):
 
         if not item:
             raise SuperdeskApiError.badRequestError('Content item not found.')
+
+        # If the item is locked, then check to see if it is locked by the
+        # current user in their current session
+        if item.get(LOCK_USER):
+            user = get_user(required=True)
+            user_id = user.get(config.ID_FIELD)
+
+            session = get_auth()
+            session_id = session.get(config.ID_FIELD)
+
+            if str(item.get(LOCK_USER)) != str(user_id):
+                raise SuperdeskApiError.forbiddenError(
+                    'Item is locked by another user. Cannot unlink assignment and content.'
+                )
+
+            if str(item.get(LOCK_SESSION)) != str(session_id):
+                raise SuperdeskApiError.forbiddenError(
+                    'Item is locked by you in another session. Cannot unlink assignment and content.'
+                )
 
         if not item.get('assignment_id'):
             raise SuperdeskApiError.badRequestError(

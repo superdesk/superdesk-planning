@@ -12,18 +12,24 @@ AssignmentController.$inject = [
     '$scope',
     'desks',
     'sdPlanningStore',
+    '$q',
 ]
 export function AssignmentController(
     $element,
     $scope,
     desks,
-    sdPlanningStore
+    sdPlanningStore,
+    $q
 ) {
     sdPlanningStore.getStore()
     .then((store) => {
         store.dispatch(actions.initStore(WORKSPACE.ASSIGNMENTS))
         registerNotifications($scope, store)
-        store.dispatch(actions.locks.loadAssignmentLocks())
+
+        $q.all({
+            locks: store.dispatch(actions.locks.loadAssignmentLocks()),
+            agendas: store.dispatch(actions.fetchAgendas()),
+        })
         .then(() => {
             $scope.$watch(
                 () => desks.active,

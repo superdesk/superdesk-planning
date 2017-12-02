@@ -10,6 +10,14 @@ describe('AddToPlanningController', () => {
             _id: 'item1',
             slugline: 'slugger',
             urgency: 2,
+            subject: [{
+                qcode: 'sub1',
+                name: 'sub1',
+            }],
+            anpa_category: [{
+                qcode: 'cat1',
+                name: 'cat1',
+            }],
         }
 
         scope = {
@@ -74,6 +82,35 @@ describe('AddToPlanningController', () => {
         })
     }))
 
+    it('notifies the user if the item fails data validation', inject((
+        $location,
+        sdPlanningStore,
+        $q,
+        notify,
+        gettext,
+        api,
+        lock,
+        session,
+        userList
+    ) => {
+        delete newsItem.slugline
+        delete newsItem.urgency
+        delete newsItem.subject
+        delete newsItem.anpa_category
+
+        return AddToPlanningController(
+            scope, $location, sdPlanningStore, $q, notify,
+            gettext, api, lock, session, userList
+        )
+        .then(() => {}, () => {
+            expect(notify.error.callCount).toBe(4)
+            expect(notify.error.args[0]).toEqual(['[SLUGLINE] is a required field'])
+            expect(notify.error.args[1]).toEqual(['[URGENCY] is a required field'])
+            expect(notify.error.args[2]).toEqual(['[SUBJECT] is a required field'])
+            expect(notify.error.args[3]).toEqual(['[CATEGORY] is a required field'])
+        })
+    }))
+
     it('notifies the user if the item is already linked to an assignment', inject((
         $location,
         sdPlanningStore,
@@ -86,18 +123,13 @@ describe('AddToPlanningController', () => {
         userList
     ) => {
         newsItem.assignment_id = 'as1'
-        delete newsItem.slugline
-        delete newsItem.urgency
         return AddToPlanningController(
             scope, $location, sdPlanningStore, $q, notify,
             gettext, api, lock, session, userList
         )
         .then(() => {}, () => {
-            expect(notify.error.callCount).toBe(3)
-
+            expect(notify.error.callCount).toBe(1)
             expect(notify.error.args[0]).toEqual(['Item already linked to a Planning item'])
-            expect(notify.error.args[1]).toEqual(['[SLUGLINE] is a required field'])
-            expect(notify.error.args[2]).toEqual(['[URGENCY] is a required field'])
         })
     }))
 

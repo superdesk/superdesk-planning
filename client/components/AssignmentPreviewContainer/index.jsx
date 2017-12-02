@@ -23,6 +23,7 @@ import {
     AuditInformation,
     ToggleBox,
     AbsoluteDate,
+    Datetime,
     UserAvatar,
     PriorityLabel,
 } from '../'
@@ -49,9 +50,13 @@ class AssignmentPreviewContainerComponent extends React.Component {
             session,
             privileges,
             startWorking,
+            removeAssignment,
+            lockedItems,
         } = this.props
 
-        if (!inAssignments) {
+        const isItemLocked = get(lockedItems, 'assignments') && assignment._id in lockedItems.assignments
+
+        if (!inAssignments || isItemLocked) {
             return []
         }
 
@@ -72,6 +77,10 @@ class AssignmentPreviewContainerComponent extends React.Component {
                 ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
                 callback: completeAssignment.bind(null, assignment),
             },
+            {
+                ...ASSIGNMENTS.ITEM_ACTIONS.REMOVE,
+                callback: removeAssignment.bind(null, assignment),
+            },
         ]
 
         return assignmentUtils.getAssignmentItemActions(
@@ -91,14 +100,11 @@ class AssignmentPreviewContainerComponent extends React.Component {
             desks,
             planningItem,
             eventItem,
-            coverageItem,
             urgencyLabel,
-            urgencies,
             priorities,
             keywords,
-            contentTypes,
             formProfile,
-            newsCoverageStatus,
+            agendas,
         } = this.props
 
         if (!assignment) {
@@ -118,6 +124,14 @@ class AssignmentPreviewContainerComponent extends React.Component {
 
         const assignedUser = getItemInArrayById(users, get(assignedTo, 'user'))
         const assignedDesk = getItemInArrayById(desks, get(assignedTo, 'desk'))
+        const deskAssignor = getItemInArrayById(users, get(assignedTo, 'assignor_desk'))
+        const userAssignor = getItemInArrayById(users, get(assignedTo, 'assignor_user'))
+        const deskAssignorName = get(deskAssignor, 'display_name') ||
+            get(deskAssignor, 'name') ||  '-'
+        const userAssignorName = get(userAssignor, 'display_name') ||
+            get(userAssignor, 'name') ||  '-'
+        const assignedDateDesk = get(assignedTo, 'assigned_date_desk')
+        const assignedDateUser = get(assignedTo, 'assigned_date_user')
 
         const assignedUserName = get(assignedUser, 'display_name') ||
             get(assignedUser, 'name') ||
@@ -128,8 +142,21 @@ class AssignmentPreviewContainerComponent extends React.Component {
 
         return (
             <div className="AssignmentPreview">
+                <div className="AssignmentPreview__audit side-panel__content-block side-panel__content-block--pad-small side-panel__content-block--flex">
+                    <div className="side-panel__content-block-inner side-panel__content-block-inner--grow">
+                        <AuditInformation
+                            createdBy={createdBy}
+                            updatedBy={versionCreator}
+                            createdAt={creationDate}
+                            updatedAt={updatedDate}
+                        />
+                    </div>
+                    <div>
+                        {get(itemActions, 'length') > 0 && <ItemActionsMenu actions={itemActions}/>}
+                    </div>
+                </div>
                 <div className="AssignmentPreview__toolbar side-panel__top-tools">
-                    <div className="side-panel__top-tools-left">
+                    <div>
                         <List.Item noBg={true} noHover={true}>
                             <List.Column border={false}>
                                 <UserAvatar
@@ -139,28 +166,27 @@ class AssignmentPreviewContainerComponent extends React.Component {
                                     initials={false}
                                 />
                             </List.Column>
-                            <List.Column border={false} grow={true}>
-                                <List.Row>
-                                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                                        <span className="sd-list-item__text-label sd-list-item__text-label--normal">
-                                        Desk:
-                                        </span>
-                                        {assignedDeskName}
+                            <List.Column border={false} justifyTop={true} noPadding={true}>
+                                <List.Row classes="sd-list-item__row--no-margin">
+                                    <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                                        Desk
                                     </span>
                                 </List.Row>
-                                <List.Row>
-                                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                                        <span className="sd-list-item__text-label sd-list-item__text-label--normal">
-                                            Assignee:
-                                        </span>
-                                        {assignedUserName}
+                                <List.Row classes="sd-list-item__row--no-margin">
+                                    &nbsp;
+                                </List.Row>
+                                <List.Row classes="sd-list-item__row--margin-top">
+                                    <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                                        Assigned to
                                     </span>
                                 </List.Row>
-                                <List.Row>
+                                <List.Row classes="sd-list-item__row--no-margin">
+                                    &nbsp;
+                                </List.Row>
+                                <List.Row classes="sd-list-item__row--margin-top">
                                     <span
                                         data-sd-tooltip={'Type: ' + planning.g2_content_type}
-                                        data-flow="down"
-                                    >
+                                        data-flow="down">
                                         <i
                                             className={classNames(
                                                 'AssignmentPreview__coverage-icon',
@@ -168,21 +194,45 @@ class AssignmentPreviewContainerComponent extends React.Component {
                                             )}
                                         />
                                     </span>
-
                                     <PriorityLabel
                                         item={assignment}
                                         priorities={priorities}
-                                        tooltipFlow="down"
+                                        tooltipFlow="down"/>
+                                </List.Row>
+                            </List.Column>
+                            <List.Column border={false} justifyTop={true}>
+                                <List.Row classes="sd-list-item__row--no-margin">
+                                    {assignedDeskName}
+                                </List.Row>
+                                <List.Row classes="sd-list-item__row--no-margin">
+                                    <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                                        {deskAssignor &&
+                                        <span><Datetime date={assignedDateDesk}/>, {deskAssignorName}</span>}
+                                    </span>
+                                </List.Row>
+                                <List.Row classes="sd-list-item__row--margin-top">
+                                    {assignedUserName}
+                                </List.Row>
+                                <List.Row classes="sd-list-item__row--no-margin">
+                                    <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                                        {userAssignor &&
+                                        <span><Datetime date={assignedDateUser}/>, {userAssignorName}</span>}
+                                    </span>
+                                </List.Row>
+                                <List.Row classes="sd-list-item__row--margin-top">
+                                    <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                                        Due
+                                    </span>
+                                    <AbsoluteDate
+                                        className="AssignmentPreview__scheduled AssignmentPreview__scheduled--padding"
+                                        date={get(assignment, 'planning.scheduled', '').toString()}
+                                        noDateString="'not scheduled yet'"
                                     />
-
+                                    &nbsp;
                                     <StateLabel item={assignment.assigned_to}/>
                                 </List.Row>
                             </List.Column>
                         </List.Item>
-                    </div>
-
-                    <div className="side-panel__top-tools-right">
-                        {get(itemActions, 'length') > 0 && <ItemActionsMenu actions={itemActions}/>}
                     </div>
                 </div>
 
@@ -200,52 +250,30 @@ class AssignmentPreviewContainerComponent extends React.Component {
                     </div>
                 }
 
-                <div className="AssignmentPreview__audit side-panel__content-block side-panel__content-block--pad-small side-panel__content-block--flex">
-                    <div className="side-panel__content-block-inner side-panel__content-block-inner--grow">
-                        <AuditInformation
-                            createdBy={createdBy}
-                            updatedBy={versionCreator}
-                            createdAt={creationDate}
-                            updatedAt={updatedDate}
-                        />
-                        <div>
-                            <time>
-                                <span>Due </span>
-                                <AbsoluteDate
-                                    className="TimeAndAuthor__author sd-text__author"
-                                    date={get(assignment, 'planning.scheduled', '').toString()}
-                                    noDateString="'not scheduled yet'"
-                                />
-                            </time>
-                        </div>
-                    </div>
-                </div>
-
                 <div className="AssignmentPreview__coverage side-panel__content-block side-panel__content-block--pad-small">
                     <AssignmentPreview
                         assignment={assignment}
                         keywords={keywords}
-                        contentTypes={contentTypes}
-                        formProfile={formProfile.coverage}
-                        coverageItem={coverageItem}
-                        newsCoverageStatus={newsCoverageStatus}
+                        coverageFormProfile={formProfile.coverage}
+                        planningFormProfile={formProfile.planning}
+                        planningItem={planningItem}
                     />
                 </div>
 
                 <div className="AssignmentPreview__planning side-panel__content-block side-panel__content-block--pad-small">
-                    <ToggleBox title="Planning" isOpen={false} style="toggle-box--circle">
+                    <ToggleBox title="Planning" isOpen={false} style="toggle-box--circle" scrollInView={true}>
                         <PlanningPreview
                             urgencyLabel={urgencyLabel}
-                            urgencies={urgencies}
                             item={planningItem}
                             formProfile={formProfile.planning}
+                            agendas={agendas}
                         />
                     </ToggleBox>
                 </div>
 
                 {eventItem &&
                     <div className="AssignmentPreview__event side-panel__content-block side-panel__content-block--pad-small">
-                        <ToggleBox title="Event" isOpen={false} style="toggle-box--circle">
+                        <ToggleBox title="Event" isOpen={false} style="toggle-box--circle" scrollInView={true}>
                             <EventPreview
                                 item={eventItem}
                                 formProfile={formProfile.events}
@@ -266,6 +294,7 @@ AssignmentPreviewContainerComponent.propTypes = {
     reassign: PropTypes.func,
     completeAssignment: PropTypes.func,
     editAssignmentPriority: PropTypes.func,
+    removeAssignment: PropTypes.func,
     session: PropTypes.object,
     users: PropTypes.oneOfType([
         PropTypes.array,
@@ -274,16 +303,13 @@ AssignmentPreviewContainerComponent.propTypes = {
     desks: PropTypes.array,
     planningItem: PropTypes.object,
     eventItem: PropTypes.object,
-    coverageItem: PropTypes.object,
     urgencyLabel: PropTypes.string,
-    urgencies: PropTypes.array,
     priorities: PropTypes.array,
     privileges: PropTypes.object,
     keywords: PropTypes.array,
-    contentTypes: PropTypes.array,
     formProfile: PropTypes.object,
-
-    newsCoverageStatus: PropTypes.array,
+    lockedItems: PropTypes.array,
+    agendas: PropTypes.array,
 }
 
 const mapStateToProps = (state) => ({
@@ -295,16 +321,14 @@ const mapStateToProps = (state) => ({
 
     planningItem: selectors.getCurrentAssignmentPlanningItem(state),
     eventItem: selectors.getCurrentAssignmentEventItem(state),
-    coverageItem: selectors.getCurrentAssignmentCoverage(state),
 
     urgencyLabel: get(state, 'urgency.label', 'Urgency'),
-    urgencies: get(state, 'urgency.urgency', []),
     priorities: get(state, 'vocabularies.assignment_priority'),
     privileges: selectors.getPrivileges(state),
     keywords: get(state, 'vocabularies.keywords', []),
-    contentTypes: get(state, 'vocabularies.g2_content_type', []),
     formProfile: selectors.getFormsProfile(state),
-    newsCoverageStatus: selectors.getNewsCoverageStatus(state),
+    lockedItems: selectors.getLockedItems(state),
+    agendas: selectors.getAgendas(state),
 })
 
 const mapDispatchToProps = (dispatch) => ({
@@ -313,6 +337,7 @@ const mapDispatchToProps = (dispatch) => ({
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
     editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),
     onFulFilAssignment: (assignment) => dispatch(actions.assignments.ui.onAssignmentFormSave(assignment)),
+    removeAssignment: (assignment) => dispatch(actions.assignments.ui.removeAssignment(assignment)),
 })
 
 export const AssignmentPreviewContainer = connect(

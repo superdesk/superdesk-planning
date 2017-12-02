@@ -14,7 +14,7 @@ module.exports = {
         rules: [
             {
                 test: /\.jsx?$/,
-                exclude: /node_modules/,
+                exclude: /node_modules\/(?!(superdesk-core)\/).*/,
                 loader: 'babel-loader',
                 options: {
                     plugins: ['transform-object-rest-spread'],

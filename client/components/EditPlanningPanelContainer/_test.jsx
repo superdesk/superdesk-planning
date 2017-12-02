@@ -9,6 +9,7 @@ import sinon from 'sinon'
 import moment from 'moment'
 import { restoreSinonStub, getTestActionStore } from '../../utils/testUtils'
 import planningApi from '../../actions/planning/api'
+import { PLANNING } from '../../constants';
 
 describe('planning', () => {
     describe('containers', () => {
@@ -173,6 +174,13 @@ describe('planning', () => {
                 const modal = new ReactWrapper(<Provider store={store}>{dialog.node.props.children}</Provider>)
                 expect(confirmationModal.length).toBe(1)
                 modal.find('button[type="reset"]').simulate('click')
+
+                // Simulate an Unlock on the Planning item, as the autosave is deleted on Unlock
+                // Without this unlock, the following preview will re-apply the autosave data
+                store.dispatch({
+                    type: PLANNING.ACTIONS.UNLOCK_PLANNING,
+                    payload: { plan: data.plannings[0] },
+                });
 
                 expect(store.getState().planning.editorOpened).toBe(false)
                 store.dispatch(actions.planning.ui.preview(data.plannings[0]._id))
