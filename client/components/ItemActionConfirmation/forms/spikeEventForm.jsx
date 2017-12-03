@@ -1,33 +1,33 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
-import { reduxForm, formValueSelector } from 'redux-form'
-import * as actions from '../../../actions'
-import moment from 'moment'
-import { EventUpdateMethods } from '../../fields/index'
-import '../style.scss'
-import { UpdateMethodSelection } from '../UpdateMethodSelection'
-import { RelatedEvents } from '../../index'
-import { getDateFormat } from '../../../selectors'
-import { get } from 'lodash'
-import { FORM_NAMES } from '../../../constants'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {reduxForm, formValueSelector} from 'redux-form';
+import * as actions from '../../../actions';
+import moment from 'moment';
+import {EventUpdateMethods} from '../../fields/index';
+import '../style.scss';
+import {UpdateMethodSelection} from '../UpdateMethodSelection';
+import {RelatedEvents} from '../../index';
+import {getDateFormat} from '../../../selectors';
+import {get} from 'lodash';
+import {FORM_NAMES} from '../../../constants';
 
-const Component = ({ handleSubmit, initialValues, relatedEvents=[], dateFormat, submitting }) => {
-    let event = initialValues
-    const isRecurring = !!event.recurrence_id
+const Component = ({handleSubmit, initialValues, relatedEvents = [], dateFormat, submitting}) => {
+    let event = initialValues;
+    const isRecurring = !!event.recurrence_id;
 
     // Default the update_method to 'Spike this event only'
-    event.update_method = EventUpdateMethods[0]
-    let startStr = moment(event.dates.start).format('MMMM Do YYYY, h:mm:ss a')
-    let endStr = moment(event.dates.end).format('MMMM Do YYYY, h:mm:ss a')
+    event.update_method = EventUpdateMethods[0];
+    let startStr = moment(event.dates.start).format('MMMM Do YYYY, h:mm:ss a');
+    let endStr = moment(event.dates.end).format('MMMM Do YYYY, h:mm:ss a');
 
-    const updateMethodLabel = 'Would you like to spike all recurring events or just this one?'
+    const updateMethodLabel = 'Would you like to spike all recurring events or just this one?';
 
     const eventsInUse = relatedEvents.filter((e) => (
         get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
-    ))
+    ));
 
-    const numEvents = relatedEvents.length + 1 - eventsInUse.length
+    const numEvents = relatedEvents.length + 1 - eventsInUse.length;
 
     return (
         <div className="ItemActionConfirmation">
@@ -49,7 +49,7 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], dateFormat, 
                 handleSubmit={handleSubmit}
                 showSpace={false}
                 readOnly={submitting}
-                action='spike' />
+                action="spike" />
 
             {eventsInUse.length > 0 &&
                 <div className="sd-alert sd-alert--hollow sd-alert--alert">
@@ -60,8 +60,8 @@ const Component = ({ handleSubmit, initialValues, relatedEvents=[], dateFormat, 
                 </div>
             }
         </div>
-    )
-}
+    );
+};
 
 Component.propTypes = {
     handleSubmit: PropTypes.func.isRequired,
@@ -69,27 +69,27 @@ Component.propTypes = {
     relatedEvents: PropTypes.array,
     dateFormat: PropTypes.string.isRequired,
     submitting: PropTypes.bool,
-}
+};
 
 // Decorate the form container
-export const SpikeEvent = reduxForm({ form: FORM_NAMES.SpikeEventForm })(Component)
+export const SpikeEvent = reduxForm({form: FORM_NAMES.SpikeEventForm})(Component);
 
-const selector = formValueSelector(FORM_NAMES.SpikeEventForm)
+const selector = formValueSelector(FORM_NAMES.SpikeEventForm);
 const mapStateToProps = (state) => ({
     relatedEvents: selector(state, '_events'),
     dateFormat: getDateFormat(state),
-})
+});
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (event) => (
         dispatch(actions.events.ui.spike(event))
     ),
-})
+});
 
 export const SpikeEventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    { withRef: true }
-)(SpikeEvent)
+    {withRef: true}
+)(SpikeEvent);

@@ -1,50 +1,49 @@
-import { CoverageContainer } from '../../index'
-import React from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
-import { arraySplice } from 'redux-form'
-import { get } from 'lodash'
-import * as selectors from '../../../selectors'
-import * as actions from '../../../actions'
-import { WORKSPACE, PLANNING, FORM_NAMES } from '../../../constants'
-import { planningUtils } from '../../../utils'
+import {CoverageContainer} from '../../index';
+import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {arraySplice} from 'redux-form';
+import {get} from 'lodash';
+import * as selectors from '../../../selectors';
+import * as actions from '../../../actions';
+import {WORKSPACE, PLANNING, FORM_NAMES} from '../../../constants';
+import {planningUtils} from '../../../utils';
 
 export class CoveragesFieldArrayComponent extends React.Component {
     newCoverage() {
-        const { fields, slugline } = this.props
+        const {fields, slugline} = this.props;
+
         fields.push({
-            planning: { slugline },
-            news_coverage_status:  { qcode: 'ncostat:int' },
-        })
+            planning: {slugline},
+            news_coverage_status: {qcode: 'ncostat:int'},
+        });
     }
 
     removeCoverage(index) {
-        const { fields } = this.props
-        fields.remove(index)
+        const {fields} = this.props;
+
+        fields.remove(index);
     }
 
-    duplicateCoverage(index, contentType=null) {
-        const { fields } = this.props
-        const existingCoverage = fields.get(index)
-
-        if (contentType === null) {
-            contentType = existingCoverage.planning.g2_content_type
-        }
+    duplicateCoverage(index, contentType = null) {
+        const {fields} = this.props;
+        const existingCoverage = fields.get(index);
+        const g2ContentType = contentType === null ? existingCoverage.planning.g2_content_type : contentType;
 
         fields.push({
             planning: {
                 ...existingCoverage.planning,
-                g2_content_type: contentType,
+                g2_content_type: g2ContentType,
             },
-            news_coverage_status:  { qcode: 'ncostat:int' },
-        })
+            news_coverage_status: {qcode: 'ncostat:int'},
+        });
     }
 
     cancelCoverage(index) {
         let cancelledCoverage = {
             ...this.props.fields.get(index),
-            news_coverage_status:  PLANNING.NEWS_COVERAGE_CANCELLED_STATUS,
-        }
+            news_coverage_status: PLANNING.NEWS_COVERAGE_CANCELLED_STATUS,
+        };
 
         cancelledCoverage.planning = {
             ...cancelledCoverage.planning,
@@ -54,9 +53,9 @@ export class CoveragesFieldArrayComponent extends React.Component {
             ednote: `------------------------------------------------------------
     Coverage cancelled
     `,
-        }
+        };
 
-        this.props.cancelCoverage(index, cancelledCoverage)
+        this.props.cancelCoverage(index, cancelledCoverage);
     }
 
     render() {
@@ -68,17 +67,17 @@ export class CoveragesFieldArrayComponent extends React.Component {
             contentTypes,
             currentWorkspace,
             onAddCoverage,
-        } = this.props
+        } = this.props;
 
-        const inPlanning = currentWorkspace === WORKSPACE.PLANNING
+        const inPlanning = currentWorkspace === WORKSPACE.PLANNING;
 
         return (
             <ul className="Coverage__list">
                 {fields.map((fieldName, index) => {
-                    const coverage = fields.get(index)
+                    const coverage = fields.get(index);
                     let isCoverageReadOnly = readOnly ||
                         (!inPlanning && !!get(coverage, 'coverage_id') ||
-                        !planningUtils.canEditCoverage(coverage))
+                        !planningUtils.canEditCoverage(coverage));
 
                     return (
                         <li key={index}>
@@ -101,7 +100,7 @@ export class CoveragesFieldArrayComponent extends React.Component {
                                 }
                             />
                         </li>
-                    )
+                    );
                 })}
                 <li>
                     { !readOnly && inPlanning && <button
@@ -121,7 +120,7 @@ export class CoveragesFieldArrayComponent extends React.Component {
                     }
                 </li>
             </ul>
-        )
+        );
     }
 }
 
@@ -135,23 +134,23 @@ CoveragesFieldArrayComponent.propTypes = {
     cancelCoverage: PropTypes.func,
     currentWorkspace: PropTypes.string,
     onAddCoverage: PropTypes.func,
-}
+};
 
 CoveragesFieldArrayComponent.defaultProps = {
     slugline: '',
     fields: {},
-}
+};
 
 const mapStateToProps = (state) => ({
     contentTypes: selectors.getContentTypes(state),
     currentWorkspace: selectors.getCurrentWorkspace(state),
-})
+});
 
-const mapDispatchToProps = (dispatch) =>  ({
+const mapDispatchToProps = (dispatch) => ({
     cancelCoverage: (index, coverage) =>
         (dispatch(arraySplice(FORM_NAMES.PlanningForm, 'coverages', index, 1, coverage))),
     onAddCoverage: () =>
         dispatch(actions.planning.ui.onAddCoverageClick()),
-})
+});
 
-export const CoveragesFieldArray = connect(mapStateToProps, mapDispatchToProps)(CoveragesFieldArrayComponent)
+export const CoveragesFieldArray = connect(mapStateToProps, mapDispatchToProps)(CoveragesFieldArrayComponent);

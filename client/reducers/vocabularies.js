@@ -1,4 +1,4 @@
-import { zipObject } from 'lodash'
+import {zipObject} from 'lodash';
 
 const initialState = {
     categories: [],
@@ -7,21 +7,21 @@ const initialState = {
     event_calendars: [],
     coverage_providers: [],
     newscoveragestatus: [],
-}
+};
 
-const vocabularies = (state=initialState, action) => {
+const vocabularies = (state = initialState, action) => {
     switch (action.type) {
-        case 'RECEIVE_VOCABULARIES':
-            return {
-                ...initialState,
-                ...zipObject(
-                    action.payload.map((cv) => cv._id),
-                    action.payload.map((cv) => cv.items)
-                ),
-            }
-        default:
-            return state
+    case 'RECEIVE_VOCABULARIES':
+        return {
+            ...initialState,
+            ...zipObject(
+                action.payload.map((cv) => cv._id),
+                action.payload.map((cv) => cv.items)
+            ),
+        };
+    default:
+        return state;
     }
-}
+};
 
-export default vocabularies
+export default vocabularies;

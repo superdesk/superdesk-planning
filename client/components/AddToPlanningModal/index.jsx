@@ -1,14 +1,14 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import React from 'react';
+import PropTypes from 'prop-types';
 import {
     Modal,
     PlanningPanelContainer,
-} from '../index'
-import { Button } from 'react-bootstrap'
-import { connect } from 'react-redux'
-import * as selectors from '../../selectors'
-import './style.scss'
-import { get } from 'lodash'
+} from '../index';
+import {Button} from 'react-bootstrap';
+import {connect} from 'react-redux';
+import * as selectors from '../../selectors';
+import './style.scss';
+import {get} from 'lodash';
 
 export function AddToPlanningComponent({
     handleHide,
@@ -16,19 +16,19 @@ export function AddToPlanningComponent({
     currentWorkspace,
     actionInProgress,
 }) {
-    const { newsItem, $scope } = modalProps
+    const {newsItem, $scope} = modalProps;
 
     const handleCancel = () => {
-        handleHide()
-        $scope.reject()
-    }
+        handleHide();
+        $scope.reject();
+    };
 
     if (currentWorkspace !== 'AUTHORING') {
-        return null
+        return null;
     }
 
-    const slugline = get(newsItem, 'slugline', '')
-    const headline = get(newsItem, 'headline', '')
+    const slugline = get(newsItem, 'slugline', '');
+    const headline = get(newsItem, 'headline', '');
 
     return (
         <Modal
@@ -44,9 +44,9 @@ export function AddToPlanningComponent({
             </Modal.Header>
 
             <Modal.Body>
-                <div className='AddToPlanning'>
+                <div className="AddToPlanning">
                     <div>
-                        <div className='metadata-view'>
+                        <div className="metadata-view">
                             <dl>
                                 <dt>Slugline:</dt>
                                 <dd>{slugline}</dd>
@@ -57,7 +57,7 @@ export function AddToPlanningComponent({
                             </dl>
                         </div>
                     </div>
-                    <div className='Planning'>
+                    <div className="Planning">
                         <PlanningPanelContainer />
                     </div>
                 </div>
@@ -70,7 +70,7 @@ export function AddToPlanningComponent({
                     onClick={handleCancel}>Cancel</Button>
             </Modal.Footer>
         </Modal>
-    )
+    );
 }
 
 AddToPlanningComponent.propTypes = {
@@ -81,14 +81,14 @@ AddToPlanningComponent.propTypes = {
     }),
     currentWorkspace: PropTypes.string,
     actionInProgress: PropTypes.boolean,
-}
+};
 
 const mapStateToProps = (state) => ({
     currentWorkspace: selectors.getCurrentWorkspace(state),
     actionInProgress: selectors.getModalActionInProgress(state),
-})
+});
 
 export const AddToPlanningModal = connect(
     mapStateToProps,
     null
-)(AddToPlanningComponent)
+)(AddToPlanningComponent);

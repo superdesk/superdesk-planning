@@ -1,5 +1,5 @@
 import React from 'react';
-import { gettext } from '../utils';
+import {gettext} from '../utils';
 import SubnavDropdown from './SubnavDropdown';
 
 function CreateNewSubnavDropdown() {
@@ -7,12 +7,12 @@ function CreateNewSubnavDropdown() {
         {
             label: gettext('Planning Item'),
             icon: 'icon-plus-sign icon--blue',
-            action: () => {},
+            action: () => { /* no-op */ },
         },
         {
             label: gettext('Event'),
             icon: 'icon-plus-sign icon--blue',
-            action: () => {},
+            action: () => { /* no-op */ },
         },
     ];
 

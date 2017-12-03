@@ -1,5 +1,5 @@
-import { AUTOSAVE } from '../constants';
-import { get } from 'lodash';
+import {AUTOSAVE} from '../constants';
+import {get} from 'lodash';
 
 /**
  * Action to save the dirty values for a form in the store
@@ -26,6 +26,7 @@ const load = (formName, itemId) => (
     )
 );
 
+// eslint-disable-next-line consistent-this
 const self = {
     save,
     load,

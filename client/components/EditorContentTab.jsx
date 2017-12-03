@@ -5,6 +5,7 @@ import EditorFormRow from './EditorFormRow';
 class EditorContentTab extends React.Component {
     render() {
         const {diff, onChangeHandler} = this.props;
+
         return (
             <div>
                 <EditorFormRow

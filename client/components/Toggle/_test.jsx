@@ -1,19 +1,19 @@
-import React from 'react'
-import { shallow } from 'enzyme'
-import sinon from 'sinon'
-import Toggle from './index'
+import React from 'react';
+import {shallow} from 'enzyme';
+import sinon from 'sinon';
+import Toggle from './index';
 
 describe('components', () => {
     describe('<Toggle />', () => {
-        let onChange
-        let value
-        let readOnly
+        let onChange;
+        let value;
+        let readOnly;
 
         beforeEach(() => {
-            onChange = sinon.spy()
-            value = undefined
-            readOnly = undefined
-        })
+            onChange = sinon.spy();
+            value = undefined;
+            readOnly = undefined;
+        });
 
         const getWrapper = () => (
             shallow(<Toggle
@@ -21,62 +21,63 @@ describe('components', () => {
                 onChange={onChange}
                 readOnly={readOnly}
             />)
-        )
+        );
 
         it('default value and readOnly values', () => {
-            const wrapper = getWrapper()
-            const props = wrapper.instance().props
-            const span = wrapper.find('span').first()
+            const wrapper = getWrapper();
+            const props = wrapper.instance().props;
+            const span = wrapper.find('span').first();
 
             // Test properties
-            expect(props.value).toBe(false)
-            expect(props.readOnly).toBe(false)
+            expect(props.value).toBe(false);
+            expect(props.readOnly).toBe(false);
 
             // Test CSS classes
-            expect(span.hasClass('sd-toggle')).toBe(true)
-            expect(span.hasClass('checked')).toBe(false)
-            expect(span.hasClass('disabled')).toBe(false)
-        })
+            expect(span.hasClass('sd-toggle')).toBe(true);
+            expect(span.hasClass('checked')).toBe(false);
+            expect(span.hasClass('disabled')).toBe(false);
+        });
 
         it('readOnly', () => {
-            value = true
-            readOnly = true
-            const wrapper = getWrapper()
-            const props = wrapper.instance().props
-            const span = wrapper.find('span').first()
+            value = true;
+            readOnly = true;
+            const wrapper = getWrapper();
+            const props = wrapper.instance().props;
+            const span = wrapper.find('span').first();
 
             // Test properties
-            expect(props.value).toBe(true)
-            expect(props.readOnly).toBe(true)
+            expect(props.value).toBe(true);
+            expect(props.readOnly).toBe(true);
 
             // Test CSS classes
-            expect(span.hasClass('sd-toggle')).toBe(true)
-            expect(span.hasClass('checked')).toBe(true)
-            expect(span.hasClass('disabled')).toBe(true)
-        })
+            expect(span.hasClass('sd-toggle')).toBe(true);
+            expect(span.hasClass('checked')).toBe(true);
+            expect(span.hasClass('disabled')).toBe(true);
+        });
 
         it('calls onChange', () => {
-            let wrapper = getWrapper()
-            let span = wrapper.find('span').first()
-            span.simulate('click')
-            expect(onChange.callCount).toBe(1)
-            expect(onChange.args[0]).toEqual([{ target: { value: true } }])
+            let wrapper = getWrapper();
+            let span = wrapper.find('span').first();
 
-            value = true
-            wrapper = getWrapper()
-            span = wrapper.find('span').first()
-            span.simulate('click')
-            expect(onChange.callCount).toBe(2)
-            expect(onChange.args[1]).toEqual([{ target: { value: false } } ])
-        })
+            span.simulate('click');
+            expect(onChange.callCount).toBe(1);
+            expect(onChange.args[0]).toEqual([{target: {value: true}}]);
+
+            value = true;
+            wrapper = getWrapper();
+            span = wrapper.find('span').first();
+            span.simulate('click');
+            expect(onChange.callCount).toBe(2);
+            expect(onChange.args[1]).toEqual([{target: {value: false}}]);
+        });
 
         it('doesnt call onChange when readOnly', () => {
-            readOnly = true
-            const wrapper = getWrapper()
-            const span = wrapper.find('span').first()
-            span.simulate('click')
-            expect(onChange.callCount).toBe(0)
-        })
+            readOnly = true;
+            const wrapper = getWrapper();
+            const span = wrapper.find('span').first();
 
-    })
-})
+            span.simulate('click');
+            expect(onChange.callCount).toBe(0);
+        });
+    });
+});

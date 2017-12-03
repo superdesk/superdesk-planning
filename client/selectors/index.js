@@ -1,2 +1,2 @@
-export * from './planning'
-export * from './assignments'
+export * from './planning';
+export * from './assignments';

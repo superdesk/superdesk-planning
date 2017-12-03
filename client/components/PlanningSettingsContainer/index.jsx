@@ -1,15 +1,15 @@
-import React from 'react'
-import { Tabs, Tab, ModalsContainer, AgendasListContainer } from '../../components'
+import React from 'react';
+import {Tabs, Tab, ModalsContainer, AgendasListContainer} from '../../components';
 
 export class PlanningSettingsContainer extends React.Component {
     constructor(props) {
-        super(props)
-        this.tabs = { AGENDA: 'Agenda' }
-        this.state = { activeTab: this.tabs.AGENDA }
+        super(props);
+        this.tabs = {AGENDA: 'Agenda'};
+        this.state = {activeTab: this.tabs.AGENDA};
     }
 
     onChangeTab(tabName) {
-        this.setState({ activeTab: tabName })
+        this.setState({activeTab: tabName});
     }
 
     render() {
@@ -21,16 +21,16 @@ export class PlanningSettingsContainer extends React.Component {
                 <div className="sd-page__header sd-page__header--white">
                     <Tabs>
                         <Tab tabName={this.tabs.AGENDA}
-                             activeTab={this.state.activeTab}
-                             onChangeTab={this.onChangeTab.bind(this, this.tabs.AGENDA)}
-                             key={'settings-'+ this.tabs.AGENDA} />
+                            activeTab={this.state.activeTab}
+                            onChangeTab={this.onChangeTab.bind(this, this.tabs.AGENDA)}
+                            key={'settings-' + this.tabs.AGENDA} />
                     </Tabs>
                 </div>
                 {this.tabs.AGENDA === this.state.activeTab && <AgendasListContainer />}
                 <ModalsContainer />
             </div>
-        )
+        );
     }
 }
 
-PlanningSettingsContainer.propTypes = {}
+PlanningSettingsContainer.propTypes = {};

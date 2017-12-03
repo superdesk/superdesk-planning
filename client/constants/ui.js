@@ -4,4 +4,4 @@ export const UI = {
         DEFAULT_NO_OF_ITEMS: 5,
         FULL_LIST_NO_OF_ITEMS: 10,
     },
-}
+};

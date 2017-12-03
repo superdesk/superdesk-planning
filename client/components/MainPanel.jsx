@@ -3,12 +3,9 @@ import PropTypes from 'prop-types';
 import ListGroup from './ListGroup';
 
 class MainPanel extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
-        const { groups, onItemClick } = this.props;
+        const {groups, onItemClick} = this.props;
+
         return (
             <div className="sd-column-box__main-column">
                 {groups.map((group) => (

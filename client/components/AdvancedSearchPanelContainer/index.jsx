@@ -1,25 +1,23 @@
-import React from 'react'
-import { connect } from 'react-redux'
-import { EventsAdvancedSearchForm, PlanningAdvancedSearchForm } from '../index'
-import { ADVANCED_SEARCH_CONTEXT } from '../../constants'
-import * as actions from '../../actions'
-import './style.scss'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {EventsAdvancedSearchForm, PlanningAdvancedSearchForm} from '../index';
+import {ADVANCED_SEARCH_CONTEXT} from '../../constants';
+import * as actions from '../../actions';
+import './style.scss';
 
 class AdvancedSearchPanelComponent extends React.Component {
-    constructor(props) {
-        super(props)
-    }
-
     handleClick() {
-        this.props.onCloseAdvancedSearch(this.props.searchContext)
+        this.props.onCloseAdvancedSearch(this.props.searchContext);
     }
 
     render() {
-        const { className, searchContext } = this.props
+        const {className, searchContext} = this.props;
         const classes = [
             'Planning__advanced-search',
             className,
-        ].join(' ')
+        ].join(' ');
+
         return (
             <div className={classes}>
                 <header className="subnav">
@@ -33,27 +31,27 @@ class AdvancedSearchPanelComponent extends React.Component {
                 { searchContext === ADVANCED_SEARCH_CONTEXT.EVENT && <EventsAdvancedSearchForm /> }
                 { searchContext === ADVANCED_SEARCH_CONTEXT.PLANNING && <PlanningAdvancedSearchForm /> }
             </div>
-        )
+        );
     }
 }
 
 AdvancedSearchPanelComponent.propTypes = {
-    className: React.PropTypes.string,
-    onCloseAdvancedSearch: React.PropTypes.func.isRequired,
-    searchContext: React.PropTypes.string,
-}
+    className: PropTypes.string,
+    onCloseAdvancedSearch: PropTypes.func.isRequired,
+    searchContext: PropTypes.string,
+};
 
 const mapDispatchToProps = (dispatch) => ({
     onCloseAdvancedSearch: (context) => {
         if (context === ADVANCED_SEARCH_CONTEXT.EVENT) {
-            dispatch(actions.events.ui.closeAdvancedSearch())
-            return
+            dispatch(actions.events.ui.closeAdvancedSearch());
+            return;
         }
 
-        dispatch(actions.planning.ui.closeAdvancedSearch())
+        dispatch(actions.planning.ui.closeAdvancedSearch());
     },
-})
+});
 
 export const AdvancedSearchPanelContainer = connect(
     null, mapDispatchToProps
-)(AdvancedSearchPanelComponent)
+)(AdvancedSearchPanelComponent);

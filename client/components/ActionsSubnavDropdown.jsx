@@ -1,21 +1,21 @@
 import React from 'react';
-import { gettext } from '../utils';
+import {gettext} from '../utils';
 import SubnavDropdown from './SubnavDropdown';
 
 function ActionsSubnavDropdown() {
     const items = [
         {
             label: 'Action 1',
-            action: () => {},
+            action: () => { /* no-op */ },
         },
         {
             label: 'Action 2',
-            action: () => {},
+            action: () => { /* no-op */ },
         },
         {divider: true},
         {
             label: gettext('Manage agendas'),
-            action: () => {},
+            action: () => { /* no-op */ },
         },
     ];
 

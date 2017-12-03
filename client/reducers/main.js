@@ -8,9 +8,8 @@ const initialState = {
     editItem: null,
 };
 
-export default function(state=initialState, action) {
+export default function(state = initialState, action) {
     switch (action.type) {
-
     case PREVIEW:
         return {...state, previewItem: action.item || null};
 

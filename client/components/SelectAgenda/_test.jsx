@@ -1,11 +1,11 @@
-import React from 'react'
-import { shallow, mount } from 'enzyme'
-import { SelectAgendaComponent, SelectAgenda } from './index'
-import sinon from 'sinon'
-import { Provider } from 'react-redux'
-import * as actions from '../../actions'
-import * as selectors from '../../selectors'
-import { createTestStore } from '../../utils'
+import React from 'react';
+import {shallow, mount} from 'enzyme';
+import {SelectAgendaComponent, SelectAgenda} from './index';
+import sinon from 'sinon';
+import {Provider} from 'react-redux';
+import * as actions from '../../actions';
+import * as selectors from '../../selectors';
+import {createTestStore} from '../../utils';
 
 describe('<SelectAgendaComponent />', () => {
     const agendas = [
@@ -24,36 +24,38 @@ describe('<SelectAgendaComponent />', () => {
             name: 'agenda3',
             is_enabled: false,
         },
-    ]
+    ];
 
     it('selects an agenda', () => {
-        const handleOnChange = sinon.spy()
+        const handleOnChange = sinon.spy();
         const wrapper = shallow(
             <SelectAgendaComponent
                 enabledAgendas={agendas.filter((a) => a.is_enabled)}
                 disabledAgendas={agendas.filter((a) => !a.is_enabled)}
                 currentAgenda="1"
                 onChange={handleOnChange} />
-        )
-        expect(wrapper.find('select').props().value).toBe('1')
-        wrapper.simulate('change', { target: { value: '2' } })
-        expect(handleOnChange.calledOnce).toBe(true)
+        );
+
+        expect(wrapper.find('select').props().value).toBe('1');
+        wrapper.simulate('change', {target: {value: '2'}});
+        expect(handleOnChange.calledOnce).toBe(true);
 
         // One option for `Select an agenda` and another
         // option for the divider
-        expect(wrapper.find('option').length).toBe(8)
-    })
+        expect(wrapper.find('option').length).toBe(8);
+    });
 
     it('selects an agenda within container', () => {
-        const store = createTestStore()
+        const store = createTestStore();
         const wrapper = mount(
             <Provider store={store}>
                 <SelectAgenda/>
             </Provider>
-        )
-        wrapper.simulate('change', { target: { value: 'newAgenda' } })
-        expect(store.getState().agenda.currentAgendaId).toBe('newAgenda')
-    })
+        );
+
+        wrapper.simulate('change', {target: {value: 'newAgenda'}});
+        expect(store.getState().agenda.currentAgendaId).toBe('newAgenda');
+    });
 
     it('fetch selected agenda plannings', (done) => {
         const initialState = {
@@ -82,10 +84,10 @@ describe('<SelectAgendaComponent />', () => {
                 ],
                 currentAgendaId: '1',
             },
-        }
+        };
 
         const store = createTestStore({
-            initialState,
+            initialState: initialState,
             extraArguments: {
                 apiQuery: () => ({
                     _items: [
@@ -93,22 +95,21 @@ describe('<SelectAgendaComponent />', () => {
                     ],
                 }),
             },
-        })
+        });
 
         // must be empty first
         expect(selectors.getFilteredPlanningList(store.getState()))
-        .toEqual([])
+            .toEqual([]);
         store.dispatch(actions.selectAgenda('2')).then(() => {
             // check if selection is registered in the store
             expect(store.getState().agenda.currentAgendaId)
-            .toEqual('2')
+                .toEqual('2');
             // expect(selectors.getCurrentAgenda(store.getState())._id).toEqual('2')
             // must be not empty any more
             expect(selectors.getFilteredPlanningList(store.getState()))
-            .toEqual([initialState.planning.plannings.planning3])
+                .toEqual([initialState.planning.plannings.planning3]);
 
-            done()
-        })
-    })
-
-})
+            done();
+        });
+    });
+});

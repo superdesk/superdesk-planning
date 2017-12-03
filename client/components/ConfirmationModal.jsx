@@ -1,26 +1,26 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { Modal } from './index'
-import { Button } from 'react-bootstrap'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {Modal} from './index';
+import {Button} from 'react-bootstrap';
 
-export function ConfirmationModal({ handleHide, modalProps }) {
+export function ConfirmationModal({handleHide, modalProps}) {
     const action = () => (
         Promise.resolve(modalProps.action())
-        .then(handleHide(modalProps.deselectEventsAfterAction))
-    )
+            .then(handleHide(modalProps.deselectEventsAfterAction))
+    );
     const handleCancel = () => {
-        handleHide()
+        handleHide();
         if (modalProps.onCancel) {
-            modalProps.onCancel()
+            modalProps.onCancel();
         }
-    }
+    };
 
     const handleIgnore = () => {
-        handleHide()
+        handleHide();
         if (modalProps.ignore) {
-            modalProps.ignore()
+            modalProps.ignore();
         }
-    }
+    };
 
     return (
         <Modal show={true} onHide={handleCancel}>
@@ -43,7 +43,7 @@ export function ConfirmationModal({ handleHide, modalProps }) {
                 <Button className="btn--primary" type="submit" onClick={action}>{modalProps.okText || 'Ok'}</Button>
             </Modal.Footer>
         </Modal>
-    )
+    );
 }
 
 ConfirmationModal.propTypes = {
@@ -62,4 +62,4 @@ ConfirmationModal.propTypes = {
             PropTypes.element,
         ]),
     }),
-}
+};

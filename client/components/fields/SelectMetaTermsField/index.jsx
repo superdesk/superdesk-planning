@@ -1,76 +1,81 @@
-import React, { PropTypes } from 'react'
-import { SelectFieldPopup } from './SelectFieldPopup'
-import classNames from 'classnames'
-import { differenceBy } from 'lodash'
-import './style.scss'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {SelectFieldPopup} from './SelectFieldPopup';
+import classNames from 'classnames';
+import {differenceBy} from 'lodash';
+import './style.scss';
 
 export class SelectMetaTermsField extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
         this.state = {
             multiLevel: false,
             openSelectPopup: false,
-        }
+        };
     }
 
     componentWillMount() {
         // There is at least one parent or multi-level option
-        this.setState({ multiLevel: this.props.options.filter((o) => (o.value.parent)).length > 0 })
+        this.setState({multiLevel: this.props.options.filter((o) => (o.value.parent)).length > 0});
     }
 
     toggleOpenSelectPopup() {
-        this.setState({ openSelectPopup: !this.state.openSelectPopup })
+        this.setState({openSelectPopup: !this.state.openSelectPopup});
     }
 
     removeValue(index) {
-        const key = this.props.valueKey ? this.props.valueKey : 'label'
-        let newValues = this.props.value.filter((v) => v[key] !== this.props.value[index][key])
-        this.props.input.onChange(newValues.map((v) => (v.value)))
+        const key = this.props.valueKey ? this.props.valueKey : 'label';
+        let newValues = this.props.value.filter((v) => v[key] !== this.props.value[index][key]);
+
+        this.props.input.onChange(newValues.map((v) => (v.value)));
     }
 
     removeValuesFromOptions() {
         if (!this.state.multiLevel) {
-            const key = this.props.valueKey ? this.props.valueKey : 'label'
-            return differenceBy(this.props.options, this.props.value, key)
+            const key = this.props.valueKey ? this.props.valueKey : 'label';
+
+            return differenceBy(this.props.options, this.props.value, key);
         } else {
-            return this.props.options
+            return this.props.options;
         }
     }
 
     render() {
-        const { required, readOnly, label, value, onChange, labelLeft } = this.props
-        const { touched, error, warning } = this.props.meta
+        const {required, readOnly, label, value, onChange, labelLeft} = this.props;
+        const {touched, error, warning} = this.props.meta;
 
-        const showMessage = touched && (error || warning)
+        const showMessage = touched && (error || warning);
         const divClass = classNames(
             'sd-line-input',
-            { 'sd-line-input--label-left': labelLeft },
-            { 'sd-line-input--invalid': showMessage },
-            { 'sd-line-input--no-margin': !showMessage },
-            { 'sd-line-input--required': required }
-        )
+            {'sd-line-input--label-left': labelLeft},
+            {'sd-line-input--invalid': showMessage},
+            {'sd-line-input--no-margin': !showMessage},
+            {'sd-line-input--required': required}
+        );
 
         const inputClass = classNames(
             'sd-line-input__input',
-            { 'sd-line-input--disabled': readOnly }
-        )
+            {'sd-line-input--disabled': readOnly}
+        );
 
         return <div className={divClass}>
             { label &&
-                <label className='sd-line-input__label'>
+                <label className="sd-line-input__label">
                     {label}
                 </label>
             }
 
             <div className={inputClass}>
-                { !readOnly && <button type="button" className="Select__dropdownToggle" onClick={this.toggleOpenSelectPopup.bind(this)}>
+                { !readOnly && <button type="button"
+                    className="Select__dropdownToggle"
+                    onClick={this.toggleOpenSelectPopup.bind(this)}>
                     <i className="icon--white icon-plus-large" />
                 </button> }
                 { value && value.length > 0 && (
                     <div className="terms-list">
                         <ul>
                             {value.map((v, index) => (
-                                <li key={index} className='pull-left'>
+                                <li key={index} className="pull-left">
                                     { !readOnly &&
                                     <i className="icon-close-small" onClick={this.removeValue.bind(this, index)}/> }
                                     { v.label }
@@ -87,18 +92,18 @@ export class SelectMetaTermsField extends React.Component {
                     options={this.removeValuesFromOptions()}
                     onCancel={this.toggleOpenSelectPopup.bind(this)}
                     onChange={(opt) => {
-                        onChange(opt, this.props)
-                        this.toggleOpenSelectPopup()
+                        onChange(opt, this.props);
+                        this.toggleOpenSelectPopup();
                     }}
 
                 />
             }
 
             {touched && (
-                (error && <div className='sd-line-input__message'>{error}</div>) ||
-                (warning && <div className='sd-line-input__message'>{warning}</div>)
+                (error && <div className="sd-line-input__message">{error}</div>) ||
+                (warning && <div className="sd-line-input__message">{warning}</div>)
             )}
-        </div>
+        </div>;
     }
 }
 
@@ -123,22 +128,24 @@ SelectMetaTermsField.propTypes = {
     onChange: PropTypes.func,
     required: PropTypes.bool,
     labelLeft: PropTypes.bool,
-}
+};
 
 SelectMetaTermsField.defaultProps = {
-    onChange: function (opt, props) {
+    onChange: function(opt, props) {
         // Check if it's duplicate
         if (props && props.value && props.value.length > 0) {
-            const key = props.valueKey ? props.valueKey : 'label'
-            if (props.value.find((v) => ( v[key] === opt[key] ))) {
-                return
+            const key = props.valueKey ? props.valueKey : 'label';
+
+            if (props.value.find((v) => (v[key] === opt[key]))) {
+                return;
             }
-            let newValues = props.value.map((v) => (v.value))
-            props.input.onChange([...newValues, opt.value])
+            let newValues = props.value.map((v) => (v.value));
+
+            props.input.onChange([...newValues, opt.value]);
         } else {
-            props.input.onChange([opt.value])
+            props.input.onChange([opt.value]);
         }
     },
     required: false,
     labelLeft: true,
-}
+};

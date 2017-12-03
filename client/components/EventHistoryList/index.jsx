@@ -1,24 +1,17 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { AbsoluteDate } from '../../components'
-import { includes, get } from 'lodash'
-import './style.scss'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {AbsoluteDate} from '../../components';
+import {includes, get} from 'lodash';
+import './style.scss';
 
 export class EventHistoryList extends React.Component {
-    constructor(props) {
-        super(props)
-    }
-
     closeAndOpenDuplicate(duplicateId) {
-        this.props.closeEventHistory()
-        this.props.openEventPreview(duplicateId)
+        this.props.closeEventHistory();
+        this.props.openEventPreview(duplicateId);
     }
 
     render() {
-
-        const displayUser = (recievedUserId) => {
-            return this.props.users.find((u) => (u._id === recievedUserId)).display_name
-        }
+        const displayUser = (recievedUserId) => this.props.users.find((u) => (u._id === recievedUserId)).display_name;
 
         return (
             <div>
@@ -55,14 +48,16 @@ export class EventHistoryList extends React.Component {
                                         {historyItem.operation === 'update' &&
                                             <div className="more-description">
                                                 Updated Fields:
-                                                {   // List updated fields as comma separated
-                                                    <span>&nbsp;{Object.keys(historyItem.update).map((field) => field).join(', ')}</span>
+                                                { // List updated fields as comma separated
+                                                    <span>&nbsp;{Object.keys(historyItem.update).map((field) => field)
+                                                        .join(', ')}</span>
                                                 }
                                             </div>
                                         }
                                         {historyItem.operation === 'planning created' && (
                                             <div className="history-list__link">
-                                                <a onClick={this.props.openPlanningClick.bind(null, historyItem.update.planning_id)}>
+                                                <a onClick={this.props.openPlanningClick.bind(
+                                                    null, historyItem.update.planning_id)}>
                                                     View planning item
                                                 </a>
                                             </div>)
@@ -110,8 +105,7 @@ export class EventHistoryList extends React.Component {
                     ))}
                 </ul>
             </div>
-        )
-
+        );
     }
 }
 
@@ -124,4 +118,4 @@ EventHistoryList.propTypes = {
     openPlanningClick: PropTypes.func,
     openEventPreview: PropTypes.func,
     closeEventHistory: PropTypes.func,
-}
+};

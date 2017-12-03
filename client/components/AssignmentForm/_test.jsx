@@ -1,12 +1,11 @@
-import { createTestStore } from '../../utils'
-import { mount } from 'enzyme'
-import { AssignmentForm } from './index'
-import React from 'react'
-import { Provider } from 'react-redux'
-import moment from 'moment'
+import {createTestStore} from '../../utils';
+import {mount} from 'enzyme';
+import {AssignmentForm} from './index';
+import React from 'react';
+import {Provider} from 'react-redux';
+import moment from 'moment';
 
 describe('<AssignmentForm />', () => {
-
     it('check container components', () => {
         const initialState = {
             assignment: {
@@ -31,15 +30,15 @@ describe('<AssignmentForm />', () => {
                 readOnly: true,
                 assignmentsInList: [1],
             },
-        }
-        const store = createTestStore({ initialState })
+        };
+        const store = createTestStore({initialState});
         const wrapper = mount(
             <Provider store={store}>
                 <AssignmentForm />
             </Provider>
-        )
+        );
 
-        expect(wrapper.find('CoverageDetailsComponent').length).toBe(1)
-        expect(wrapper.find('EditAssignment').length).toBe(1)
-    })
-})
+        expect(wrapper.find('CoverageDetailsComponent').length).toBe(1);
+        expect(wrapper.find('EditAssignment').length).toBe(1);
+    });
+});

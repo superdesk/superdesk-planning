@@ -1,2 +1,2 @@
-import * as List from './List/index'
-export { List }
+import * as List from './List/index';
+export {List};

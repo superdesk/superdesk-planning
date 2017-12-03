@@ -1,12 +1,12 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
-import { getSelectedEventsObjects } from '../../selectors'
-import classNames from 'classnames'
-import * as actions from '../../actions'
-import * as selectors from '../../selectors'
-import { every, some } from 'lodash'
-import { eventUtils } from '../../utils'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {getSelectedEventsObjects} from '../../selectors';
+import classNames from 'classnames';
+import * as actions from '../../actions';
+import * as selectors from '../../selectors';
+import {every, some} from 'lodash';
+import {eventUtils} from '../../utils';
 
 function MultiEventsSelectionActions({
     selectedEvents,
@@ -20,23 +20,23 @@ function MultiEventsSelectionActions({
     session,
     lockedItems,
 }) {
-    const count = selectedEvents.length
-    const classes = classNames('MultiSelectionActions', className)
+    const count = selectedEvents.length;
+    const classes = classNames('MultiSelectionActions', className);
 
     const showSpike = every(
         selectedEvents,
         (event) => eventUtils.canSpikeEvent(event, session, privileges, lockedItems)
-    )
+    );
 
     const showUnspike = some(
         selectedEvents,
         (event) => eventUtils.canUnspikeEvent(event, privileges)
-    )
+    );
 
     const showCreatePlan = every(
         selectedEvents,
         (event) => eventUtils.canCreatePlanningFromEvent(event, session, privileges, lockedItems)
-    )
+    );
 
     return (
         <div className={classes}>
@@ -69,7 +69,7 @@ function MultiEventsSelectionActions({
                 )}
             </div>
         </div>
-    )
+    );
 }
 
 MultiEventsSelectionActions.propTypes = {
@@ -83,14 +83,14 @@ MultiEventsSelectionActions.propTypes = {
     privileges: PropTypes.object.isRequired,
     session: PropTypes.object.isRequired,
     lockedItems: PropTypes.object,
-}
+};
 
 const mapStateToProps = (state) => ({
     selectedEvents: getSelectedEventsObjects(state),
     privileges: selectors.getPrivileges(state),
     session: selectors.getSessionDetails(state),
     lockedItems: selectors.getLockedItems(state),
-})
+});
 
 const mapDispatchToProps = (dispatch) => ({
     selectAll: () => dispatch(actions.selectAllTheEventList()),
@@ -98,7 +98,7 @@ const mapDispatchToProps = (dispatch) => ({
     addEventToCurrentAgenda: (events) => dispatch(actions.askForAddEventToCurrentAgenda(events)),
     spikeEvent: (event) => dispatch(actions.events.ui.openBulkSpikeModal(event)),
     unspikeEvent: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
-})
+});
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => (
     {
@@ -109,6 +109,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => (
         spike: () => dispatchProps.spikeEvent(stateProps.selectedEvents),
         unspike: () => dispatchProps.unspikeEvent(stateProps.selectedEvents),
     }
-)
+);
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(MultiEventsSelectionActions)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(MultiEventsSelectionActions);

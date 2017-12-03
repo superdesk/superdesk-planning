@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import { defer } from 'lodash';
+import {defer} from 'lodash';
 
 import SubnavDropdownDivider from './SubnavDropdownDivider';
 
@@ -67,7 +67,7 @@ class SubnavDropdown extends React.Component {
                         <SubnavDropdownDivider />
                         {this.props.items.map((item, index) => {
                             if (item.divider) {
-                                return <SubnavDropdownDivider key={index} />
+                                return <SubnavDropdownDivider key={index} />;
                             } else {
                                 return (
                                     <li key={index}>

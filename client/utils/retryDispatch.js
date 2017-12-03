@@ -8,7 +8,7 @@
  * @param {int} interval - The ms between each and before the first dispatch, defaults to 1000
  * @param {int} retries - Automatically calculated number of retry attempts
  */
-const retryDispatch = (action, check, maxRetries=5, interval=1000, retries=0) => (
+const retryDispatch = (action, check, maxRetries = 5, interval = 1000, retries = 0) => (
     (dispatch) => {
         dispatch({
             type: 'RETRY_DISPATCH',
@@ -17,28 +17,28 @@ const retryDispatch = (action, check, maxRetries=5, interval=1000, retries=0) =>
                 retries,
                 interval,
             },
-        })
+        });
         if (retries >= maxRetries) {
-            return Promise.reject({ error_msg: 'Max retries exceeded' })
+            return Promise.reject({error_msg: 'Max retries exceeded'});
         }
 
-        return new Promise(resolve => setTimeout(resolve, interval))
-        .then(() => dispatch(action)
-            .then(
-                (data) => {
-                    if (check(data) === true) {
-                        return Promise.resolve(data)
-                    }
+        return new Promise((resolve) => setTimeout(resolve, interval))
+            .then(() => dispatch(action)
+                .then(
+                    (data) => {
+                        if (check(data) === true) {
+                            return Promise.resolve(data);
+                        }
 
-                    return dispatch(
-                        retryDispatch(action, check, maxRetries, interval, retries + 1)
-                    )
-                },
+                        return dispatch(
+                            retryDispatch(action, check, maxRetries, interval, retries + 1)
+                        );
+                    },
 
-                (error) => Promise.reject(error)
-            )
-        )
+                    (error) => Promise.reject(error)
+                )
+            );
     }
-)
+);
 
-export default retryDispatch
+export default retryDispatch;

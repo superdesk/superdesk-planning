@@ -1,9 +1,9 @@
-import { get } from 'lodash'
-import planning from './index'
-import { getErrorMessage, getLock } from '../../utils'
-import * as selectors from '../../selectors'
-import { showModal, hideModal, events } from '../index'
-import { PLANNING, WORKFLOW_STATE, MODALS } from '../../constants'
+import {get} from 'lodash';
+import planning from './index';
+import {getErrorMessage, getLock} from '../../utils';
+import * as selectors from '../../selectors';
+import {showModal, hideModal, events} from '../index';
+import {PLANNING, WORKFLOW_STATE, MODALS} from '../../constants';
 
 /**
  * WS Action when a new Planning item is created
@@ -17,15 +17,15 @@ const onPlanningCreated = (_e, data) => (
                 dispatch(events.api.markEventHasPlannings(
                     data.event_item,
                     data.item
-                ))
+                ));
             }
 
-            return dispatch(planning.ui.refetch())
+            return dispatch(planning.ui.refetch());
         }
 
-        return Promise.resolve()
+        return Promise.resolve();
     }
-)
+);
 
 /**
  * WS Action when a Planning item gets updated, spiked or unspiked
@@ -33,56 +33,56 @@ const onPlanningCreated = (_e, data) => (
  * @param {object} _e - Event object
  * @param {object} data - Planning and User IDs
  */
-const onPlanningUpdated = (_e, data, refetch=true) => (
-    (dispatch, getState, { notify }) => {
+const onPlanningUpdated = (_e, data, refetch = true) => (
+    (dispatch, getState, {notify}) => {
         if (get(data, 'item')) {
             if (refetch) {
-                return dispatch(planning.ui.refetch())
+                return dispatch(planning.ui.refetch());
             }
 
             // Otherwise send an Action to update the store
             return dispatch(planning.api.loadPlanningById(data.item, true))
-            .then(
-                (item) => (Promise.resolve(item)),
-                (error) => {
-                    notify.error(
-                        getErrorMessage(error, 'Failed to get a new Planning Item!')
-                    )
-                    return Promise.reject(error)
-                }
-            )
+                .then(
+                    (item) => (Promise.resolve(item)),
+                    (error) => {
+                        notify.error(
+                            getErrorMessage(error, 'Failed to get a new Planning Item!')
+                        );
+                        return Promise.reject(error);
+                    }
+                );
         }
 
-        return Promise.resolve()
+        return Promise.resolve();
     }
-)
+);
 
 const onPlanningLocked = (e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
             return dispatch(planning.api.getPlanning(data.item, false))
-            .then((planInStore) => {
-                planInStore = {
-                    ...planInStore,
-                    lock_action: data.lock_action,
-                    lock_user: data.user,
-                    lock_session: data.lock_session,
-                    lock_time: data.lock_time,
-                    _etag: data.etag,
-                }
+                .then((planInStore) => {
+                    let plan = {
+                        ...planInStore,
+                        lock_action: data.lock_action,
+                        lock_user: data.user,
+                        lock_session: data.lock_session,
+                        lock_time: data.lock_time,
+                        _etag: data.etag,
+                    };
 
-                dispatch({
-                    type: PLANNING.ACTIONS.LOCK_PLANNING,
-                    payload: { plan: planInStore },
-                })
+                    dispatch({
+                        type: PLANNING.ACTIONS.LOCK_PLANNING,
+                        payload: {plan: plan},
+                    });
 
-                return Promise.resolve(planInStore)
-            })
+                    return Promise.resolve(plan);
+                });
         }
 
-        return Promise.resolve()
+        return Promise.resolve();
     }
-)
+);
 
 /**
  * WS Action when a Planning item gets unlocked
@@ -95,21 +95,22 @@ const onPlanningLocked = (e, data) => (
 const onPlanningUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
-            let planningItem = selectors.getStoredPlannings(getState())[data.item]
-            const locks = selectors.getLockedItems(getState())
-            const itemLock = getLock(planningItem, locks)
-            const sessionId = selectors.getSessionDetails(getState()).sessionId
+            let planningItem = selectors.getStoredPlannings(getState())[data.item];
+            const locks = selectors.getLockedItems(getState());
+            const itemLock = getLock(planningItem, locks);
+            const sessionId = selectors.getSessionDetails(getState()).sessionId;
 
             // If this is the planning item currently being edited, show popup notification
             if (itemLock !== null &&
                 data.lock_session !== sessionId &&
                 itemLock.session === sessionId
             ) {
-                const user =  selectors.getUsers(getState()).find((u) => u._id === data.user)
+                const user = selectors.getUsers(getState()).find((u) => u._id === data.user);
 
-                const modalType = selectors.getCurrentModalType(getState())
+                const modalType = selectors.getCurrentModalType(getState());
+
                 if (modalType !== MODALS.ADD_TO_PLANNING) {
-                    dispatch(hideModal())
+                    dispatch(hideModal());
                 }
 
                 dispatch(showModal({
@@ -119,7 +120,7 @@ const onPlanningUnlocked = (_e, data) => (
                         body: 'The planning item you were editing was unlocked by "' +
                             user.display_name + '"',
                     },
-                }))
+                }));
             }
 
             planningItem = {
@@ -130,34 +131,35 @@ const onPlanningUnlocked = (_e, data) => (
                 lock_session: null,
                 lock_time: null,
                 _etag: data.etag,
-            }
+            };
 
             dispatch({
                 type: PLANNING.ACTIONS.UNLOCK_PLANNING,
-                payload: { plan: planningItem },
-            })
+                payload: {plan: planningItem},
+            });
 
-            return Promise.resolve()
+            return Promise.resolve();
         }
     }
-)
+);
 
 const onPlanningPublished = (_e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            return dispatch(planning.ui.refetch())
+            return dispatch(planning.ui.refetch());
         }
 
-        return Promise.resolve()
+        return Promise.resolve();
     }
-)
+);
 
 const onPlanningSpiked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
-            const plans = selectors.getStoredPlannings(getState())
+            const plans = selectors.getStoredPlannings(getState());
 
-            let planningItem = get(plans, data.item, {})
+            let planningItem = get(plans, data.item, {});
+
             planningItem = {
                 ...planningItem,
                 _id: data.item,
@@ -168,26 +170,27 @@ const onPlanningSpiked = (_e, data) => (
                 state: WORKFLOW_STATE.SPIKED,
                 revert_state: data.revert_state,
                 _etag: data.etag,
-            }
+            };
 
             dispatch({
                 type: PLANNING.ACTIONS.SPIKE_PLANNING,
-                payload: { plan: planningItem },
-            })
+                payload: {plan: planningItem},
+            });
 
-            return Promise.resolve(planningItem)
+            return Promise.resolve(planningItem);
         }
 
-        return Promise.resolve()
+        return Promise.resolve();
     }
-)
+);
 
 const onPlanningUnspiked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
-            const plans = selectors.getStoredPlannings(getState())
+            const plans = selectors.getStoredPlannings(getState());
 
-            let planningItem = get(plans, data.item, {})
+            let planningItem = get(plans, data.item, {});
+
             planningItem = {
                 ...planningItem,
                 _id: data.item,
@@ -198,19 +201,19 @@ const onPlanningUnspiked = (_e, data) => (
                 state: data.state,
                 revert_state: null,
                 _etag: data.etag,
-            }
+            };
 
             dispatch({
                 type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
-                payload: { plan: planningItem },
-            })
+                payload: {plan: planningItem},
+            });
 
-            return Promise.resolve(planningItem)
+            return Promise.resolve(planningItem);
         }
 
-        return Promise.resolve()
+        return Promise.resolve();
     }
-)
+);
 
 const onPlanningCancelled = (e, data) => (
     (dispatch) => {
@@ -220,10 +223,10 @@ const onPlanningCancelled = (e, data) => (
                 get(data, 'reason'),
                 get(data, 'coverage_state'),
                 get(data, 'event_cancellation')
-            ))
+            ));
         }
     }
-)
+);
 
 const onCoverageCancelled = (e, data) => (
     (dispatch) => {
@@ -233,18 +236,18 @@ const onCoverageCancelled = (e, data) => (
                 get(data, 'reason'),
                 get(data, 'coverage_state'),
                 data.ids
-            ))
+            ));
         }
     }
-)
+);
 
 const onPlanningRescheduled = (e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            dispatch(planning.api.loadPlanningById(data.item))
+            dispatch(planning.api.loadPlanningById(data.item));
         }
     }
-)
+);
 
 const onPlanningPostponed = (e, data) => (
     (dispatch) => {
@@ -252,11 +255,12 @@ const onPlanningPostponed = (e, data) => (
             dispatch(planning.api.markPlanningPostponed(
                 data.item,
                 get(data, 'reason')
-            ))
+            ));
         }
     }
-)
+);
 
+// eslint-disable-next-line consistent-this
 const self = {
     onPlanningCreated,
     onPlanningUpdated,
@@ -269,7 +273,7 @@ const self = {
     onPlanningRescheduled,
     onPlanningPostponed,
     onPlanningLocked,
-}
+};
 
 // Map of notification name and Action Event to execute
 self.events = {
@@ -285,6 +289,6 @@ self.events = {
     'coverage:cancelled': () => (self.onCoverageCancelled),
     'planning:rescheduled': () => (self.onPlanningRescheduled),
     'planning:postponed': () => (self.onPlanningPostponed),
-}
+};
 
-export default self
+export default self;

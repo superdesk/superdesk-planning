@@ -1,14 +1,12 @@
-import React from 'react'
+import React from 'react';
+import PropTypes from 'prop-types';
 
 export class TabContent extends React.Component {
-    constructor(props) {
-        super(props)
-    }
-
     render() {
-        const { children, activeTab, tabName } = this.props
+        const {children, activeTab, tabName} = this.props;
+
         if (!children || children.length === 0 || activeTab !== tabName) {
-            return null
+            return null;
         }
         return (
             <div className="nav-tabs__content">
@@ -16,12 +14,12 @@ export class TabContent extends React.Component {
                     { children }
                 </div>
             </div>
-        )
+        );
     }
 }
 
 TabContent.propTypes = {
-    activeTab: React.PropTypes.string.isRequired,
-    tabName: React.PropTypes.string.isRequired,
-    children: React.PropTypes.node,
-}
+    activeTab: PropTypes.string.isRequired,
+    tabName: PropTypes.string.isRequired,
+    children: PropTypes.node,
+};

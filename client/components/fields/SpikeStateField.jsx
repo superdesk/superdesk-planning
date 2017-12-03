@@ -1,7 +1,7 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { SelectField } from './SelectField'
-import { SPIKED_STATE } from '../../constants'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {SelectField} from './SelectField';
+import {SPIKED_STATE} from '../../constants';
 
 const states = [{
     label: 'Exclude spike',
@@ -12,7 +12,7 @@ const states = [{
 }, {
     label: 'Spiked only',
     value: SPIKED_STATE.SPIKED,
-}]
+}];
 
 export const SpikeStateField = (props) => {
     const ownProps = {
@@ -26,11 +26,12 @@ export const SpikeStateField = (props) => {
         )),
 
         getOptionFromValue: (value, options) => options.find(
-            option => option.key === value.label
+            (option) => option.key === value.label
         ),
-    }
-    return (<SelectField {...ownProps}/>)
-}
+    };
+
+    return (<SelectField {...ownProps}/>);
+};
 
 // eslint-disable-next-line react/no-unused-prop-types
-SpikeStateField.propTypes = { input: PropTypes.object.isRequired }
+SpikeStateField.propTypes = {input: PropTypes.object.isRequired};

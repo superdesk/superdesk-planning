@@ -3,4 +3,4 @@ export const LOCKS = {
         ADD: 'ADD_LOCKS',
         RECEIVE: 'RECEIVE_LOCKS',
     },
-}
+};

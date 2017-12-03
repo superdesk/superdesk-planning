@@ -1,57 +1,59 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { PlanningItem } from '../../components/index'
-import * as selectors from '../../selectors'
-import * as actions from '../../actions'
-import { InfiniteLoader, List, AutoSizer } from 'react-virtualized'
-import { connect } from 'react-redux'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {PlanningItem} from '../../components/index';
+import * as selectors from '../../selectors';
+import * as actions from '../../actions';
+import {InfiniteLoader, List, AutoSizer} from 'react-virtualized';
+import {connect} from 'react-redux';
 import {
     LIST_ITEM_2_LINES_HEIGHT,
     PLANNING_LIST_ITEM_MARGIN_HEIGHT,
     WORKSPACE,
     MODALS,
-} from '../../constants'
+} from '../../constants';
 
 class PlanningList extends React.Component {
-
     constructor(props) {
-        super(props)
-        this.state = { isNextPageLoading: false }
+        super(props);
+        this.state = {isNextPageLoading: false};
     }
 
     isPlanningLockedInThisSession(planning) {
-        return planning.lock_user === this.props.session.identity._id &&
-            planning.lock_session === this.props.session.sessionId ? true : false
+        return !!(planning.lock_user === this.props.session.identity._id &&
+            planning.lock_session === this.props.session.sessionId);
     }
 
     previewOrEditPlanning(planning) {
-        const { currentWorkspace } = this.props
+        const {currentWorkspace} = this.props;
         // If we have the lock in this session, dispatch openPlanningEditor instead
+
         if (currentWorkspace === WORKSPACE.PLANNING && this.isPlanningLockedInThisSession(planning)) {
-            this.props.openPlanningEditor(planning)
+            this.props.openPlanningEditor(planning);
         } else {
-            this.props.previewPlanning(planning)
+            this.props.previewPlanning(planning);
         }
     }
 
-    isRowLoaded({ index }) {
-        return index <= this.props.plannings.length
+    isRowLoaded({index}) {
+        return index <= this.props.plannings.length;
     }
 
     loadMoreRows() {
-        const { loadMorePlannings } = this.props
-        const { isNextPageLoading } = this.state
+        const {loadMorePlannings} = this.props;
+        const {isNextPageLoading} = this.state;
 
         if (isNextPageLoading) {
-            return Promise.resolve()
+            return Promise.resolve();
         } else {
-            this.setState({ isNextPageLoading: true })
+            this.setState({isNextPageLoading: true});
             return loadMorePlannings()
-            .then(() => {this.setState({ isNextPageLoading: false })})
+                .then(() => {
+                    this.setState({isNextPageLoading: false});
+                });
         }
     }
 
-    rowRenderer({ index, key, style }) {
+    rowRenderer({index, key, style}) {
         const {
             plannings,
             agendas,
@@ -80,9 +82,9 @@ class PlanningList extends React.Component {
             onAddCoverage,
             editPlanningViewOpen,
             planningEditorReadOnly,
-        } = this.props
-        const planning = plannings[index]
-        const isSelected = selected.indexOf(planning._id) > -1
+        } = this.props;
+        const planning = plannings[index];
+        const isSelected = selected.indexOf(planning._id) > -1;
 
         return (
             <div key={key} style={style}>
@@ -117,13 +119,14 @@ class PlanningList extends React.Component {
                     onAddCoverage={onAddCoverage}
                     editPlanningViewOpen={editPlanningViewOpen}
                     planningEditorReadOnly={planningEditorReadOnly}
-                    />
+                />
             </div>
-        )
+        );
     }
 
     render() {
-        const { plannings } = this.props
+        const {plannings} = this.props;
+
         return (
             <div className="PlanningList">
                 <InfiniteLoader
@@ -131,9 +134,9 @@ class PlanningList extends React.Component {
                     loadMoreRows={this.loadMoreRows.bind(this)}
                     rowCount={plannings.length + 20}
                 >
-                    {({ onRowsRendered, registerChild }) => (
+                    {({onRowsRendered, registerChild}) => (
                         <AutoSizer>
-                            {({ height, width }) => (
+                            {({height, width}) => (
                                 <List
                                     ref={registerChild}
                                     onRowsRendered={onRowsRendered}
@@ -149,7 +152,7 @@ class PlanningList extends React.Component {
                     )}
                 </InfiniteLoader>
             </div>
-        )
+        );
     }
 }
 
@@ -183,7 +186,7 @@ PlanningList.propTypes = {
     onAddCoverage: PropTypes.func,
     editPlanningViewOpen: PropTypes.bool,
     planningEditorReadOnly: PropTypes.bool,
-}
+};
 
 const mapStateToProps = (state) => ({
     agendas: selectors.getAgendas(state),
@@ -198,7 +201,7 @@ const mapStateToProps = (state) => ({
     currentWorkspace: selectors.getCurrentWorkspace(state),
     editPlanningViewOpen: selectors.planningEditorOpened(state),
     planningEditorReadOnly: selectors.planningEditorReadOnly(state),
-})
+});
 
 const mapDispatchToProps = (dispatch) => ({
     previewPlanning: (item) => (dispatch(actions.planning.ui.preview(item._id))),
@@ -210,7 +213,7 @@ const mapDispatchToProps = (dispatch) => ({
                 body: `Are you sure you want to spike the planning item ${item.slugline || item.headline} ?`,
                 action: () => dispatch(actions.planning.ui.spike(item)),
             },
-        }))
+        }));
     },
 
     handlePlanningUnspike: (item) => {
@@ -220,7 +223,7 @@ const mapDispatchToProps = (dispatch) => ({
                 body: `Are you sure you want to unspike the planning item ${item.slugline || item.headline} ?`,
                 action: () => dispatch(actions.planning.ui.unspike(item)),
             },
-        }))
+        }));
     },
 
     onAgendaClick: (agendaId) => (dispatch(actions.selectAgenda(agendaId))),
@@ -236,6 +239,6 @@ const mapDispatchToProps = (dispatch) => ({
     onSelectItem: (itemId) => dispatch(actions.planning.ui.toggleItemSelected(itemId)),
 
     onAddCoverage: (planning) => dispatch(actions.planning.ui.onAddCoverageClick(planning)),
-})
+});
 
-export default connect(mapStateToProps, mapDispatchToProps)(PlanningList)
+export default connect(mapStateToProps, mapDispatchToProps)(PlanningList);

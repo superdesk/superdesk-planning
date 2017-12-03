@@ -1,7 +1,7 @@
 export const config = {
-    server: { url: 'http://server.com' },
-    iframely: { key: '123' },
-    model: { dateformat: 'DD/MM/YYYY' },
+    server: {url: 'http://server.com'},
+    iframely: {key: '123'},
+    model: {dateformat: 'DD/MM/YYYY'},
     shortTimeFormat: 'HH:mm',
 };
 
@@ -24,11 +24,11 @@ export const privileges = {
 
 export const sessions = [
     {
-        identity: { _id: 'ident1' },
+        identity: {_id: 'ident1'},
         sessionId: 'session1',
     },
     {
-        identity: { _id: 'ident2' },
+        identity: {_id: 'ident2'},
         sessionId: 'session2',
     },
 ];
@@ -49,7 +49,7 @@ export const desks = [
         _id: 123,
         name: 'Politic Desk',
         members: [
-            { user: 345 },
+            {user: 345},
         ],
     },
     {
@@ -61,19 +61,19 @@ export const desks = [
 export const formsProfile = {
     events: {
         editor: {
-            files: { enabled: true },
-            subject: { enabled: true },
-            name: { enabled: true },
-            links: { enabled: true },
-            anpa_category: { enabled: true },
-            calendars: { enabled: true },
-            definition_short: { enabled: true },
-            definition_long: { enabled: true },
-            slugline: { enabled: true },
-            occur_status: { enabled: true },
-            internal_note: { enabled: true },
-            location: { enabled: true },
-            dates: { enabled: true },
+            files: {enabled: true},
+            subject: {enabled: true},
+            name: {enabled: true},
+            links: {enabled: true},
+            anpa_category: {enabled: true},
+            calendars: {enabled: true},
+            definition_short: {enabled: true},
+            definition_long: {enabled: true},
+            slugline: {enabled: true},
+            occur_status: {enabled: true},
+            internal_note: {enabled: true},
+            location: {enabled: true},
+            dates: {enabled: true},
         },
         schema: {
             files: {
@@ -83,12 +83,12 @@ export const formsProfile = {
                 required: false,
             },
             subject: {
-                mandatory_in_list: { scheme: {} },
+                mandatory_in_list: {scheme: {}},
                 schema: {
                     schema: {
-                        parent: { nullable: true },
+                        parent: {nullable: true},
                         qcode: {},
-                        service: { nullable: true },
+                        service: {nullable: true},
                         name: {},
                         scheme: {
                             nullable: true,
@@ -166,26 +166,26 @@ export const formsProfile = {
     },
     planning: {
         editor: {
-            slugline: { enabled: true },
-            anpa_category: { enabled: true },
-            description_text: { enabled: true },
-            ednote: { enabled: true },
-            internal_note: { enabled: true },
-            headline: { enabled: true },
-            flags: { enabled: true },
-            subject: { enabled: true },
-            agendas: { enabled: true },
+            slugline: {enabled: true},
+            anpa_category: {enabled: true},
+            description_text: {enabled: true},
+            ednote: {enabled: true},
+            internal_note: {enabled: true},
+            headline: {enabled: true},
+            flags: {enabled: true},
+            subject: {enabled: true},
+            agendas: {enabled: true},
         },
     },
     coverage: {
         editor: {
-            description_text: { enabled: true },
-            g2_content_type: { enabled: true },
-            genre: { enabled: true },
-            headline: { enabled: true },
-            internal_note: { enabled: true },
-            scheduled: { enabled: true },
-            slugline: { enabled: true },
+            description_text: {enabled: true},
+            g2_content_type: {enabled: true},
+            genre: {enabled: true},
+            headline: {enabled: true},
+            internal_note: {enabled: true},
+            scheduled: {enabled: true},
+            slugline: {enabled: true},
         },
     },
 };
@@ -437,21 +437,21 @@ export const eventsInitialState = {
         currentSearch: undefined,
         advancedSearchOpened: false,
     },
-    lastRequestParams: { page: 1 },
+    lastRequestParams: {page: 1},
     show: true,
     showEventDetails: null,
     highlightedEvent: null,
     selectedEvents: [],
     readOnly: true,
     eventHistoryItems: [],
-}
+};
 
 export const agendaInitialState = {
     agendas: [],
     currentPlanningId: undefined,
     currentAgendaId: 'ALL_PLANNING',
     agendasAreLoading: false,
-}
+};
 
 export const assignmentInitialState = {
     assignments: {},
@@ -463,14 +463,14 @@ export const assignmentInitialState = {
     assignmentListSingleGroupView: null,
     currentAssignmentId: null,
     archive: {},
-}
+};
 
 export const modal = {
     modalType: null,
     modalProps: undefined,
     previousState: undefined,
     actionInProgress: false,
-}
+};
 
 export const planningInitialState = {
     plannings: {},
@@ -483,38 +483,38 @@ export const planningInitialState = {
     filterPlanningKeyword: null,
     readOnly: true,
     planningHistoryItems: [],
-    lastRequestParams: { page: 1 },
+    lastRequestParams: {page: 1},
     search: {
         currentSearch: undefined,
         advancedSearchOpened: false,
     },
-}
+};
 
-export const templates = { templates: [] }
+export const templates = {templates: []};
 
-export const form = {}
+export const form = {};
 
 export const initialState = {
-    config,
-    privileges,
+    config: config,
+    privileges: privileges,
     session: sessions[0],
-    users,
-    desks,
-    formsProfile,
-    workspace,
-    vocabularies,
-    subjects,
-    genres,
-    ingest,
-    urgency,
-    deployConfig,
-    locks,
+    users: users,
+    desks: desks,
+    formsProfile: formsProfile,
+    workspace: workspace,
+    vocabularies: vocabularies,
+    subjects: subjects,
+    genres: genres,
+    ingest: ingest,
+    urgency: urgency,
+    deployConfig: deployConfig,
+    locks: locks,
     events: eventsInitialState,
     agenda: agendaInitialState,
     assignment: assignmentInitialState,
     autosave: {},
-    modal,
+    modal: modal,
     planning: planningInitialState,
-    templates,
-    form,
-}
+    templates: templates,
+    form: form,
+};

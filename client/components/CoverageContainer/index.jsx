@@ -1,40 +1,41 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
-import PropTypes from 'prop-types'
-import { getCreator } from '../../utils'
-import { planningUtils } from '../../utils'
-import { Coverage, AuditInformation, ItemActionsMenu, CoverageListItem } from '../index'
-import { get } from 'lodash'
+import React from 'react';
+import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
+import {getCreator} from '../../utils';
+import {planningUtils} from '../../utils';
+import {Coverage, AuditInformation, ItemActionsMenu, CoverageListItem} from '../index';
+import {get} from 'lodash';
 
 
 export class CoverageContainer extends React.Component {
     constructor(props) {
-        super(props)
-        this.state = { displayForm: get(this.props, 'coverage.coverage_id') ? false : true }
-        this.handleClick = this.handleClick.bind(this)
-        this.scrollToView = this.scrollToView.bind(this)
+        super(props);
+        this.state = {displayForm: !get(this.props, 'coverage.coverage_id')};
+        this.handleClick = this.handleClick.bind(this);
+        this.scrollToView = this.scrollToView.bind(this);
     }
 
     handleClick() {
-        this.setState((prevState) => ({ displayForm: !prevState.displayForm }))
+        this.setState((prevState) => ({displayForm: !prevState.displayForm}));
     }
 
     scrollToView() {
         if (this.state.displayForm) {
-            const node = ReactDOM.findDOMNode(this)
+            const node = ReactDOM.findDOMNode(this);
+
             if (node) {
-                node.scrollIntoView()
+                node.scrollIntoView();
             }
         }
     }
 
     componentDidMount() {
-        this.scrollToView()
+        this.scrollToView();
     }
 
     componentDidUpdate(prevProps, prevState) {
         if (!prevState.displayForm && this.state.displayForm) {
-            this.scrollToView()
+            this.scrollToView();
         }
     }
 
@@ -51,50 +52,58 @@ export class CoverageContainer extends React.Component {
             readOnly,
             showRemoveAction,
             desks,
-        } = this.props
+        } = this.props;
 
-        const author = getCreator(coverage, 'original_creator', users)
-        const creationDate = get(coverage, '_created')
+        const author = getCreator(coverage, 'original_creator', users);
+        const creationDate = get(coverage, '_created');
 
-        const versionCreator = getCreator(coverage, 'version_creator', users)
-        const updatedDate = get(coverage, '_updated')
+        const versionCreator = getCreator(coverage, 'version_creator', users);
+        const updatedDate = get(coverage, '_updated');
 
         const duplicateActions = contentTypes
-        .filter((contentType) => (
-            contentType.qcode !== get(coverage, 'planning.g2_content_type')
-        ))
-        .map((contentType) => ({
-            label: contentType.name,
-            callback: () => {duplicateCoverage(index, contentType.qcode)},
-        }))
+            .filter((contentType) => (
+                contentType.qcode !== get(coverage, 'planning.g2_content_type')
+            ))
+            .map((contentType) => ({
+                label: contentType.name,
+                callback: () => {
+                    duplicateCoverage(index, contentType.qcode);
+                },
+            }));
 
         let itemActions = [
             {
                 label: 'Duplicate',
                 icon: 'icon-copy',
-                callback: () => {duplicateCoverage(index)},
+                callback: () => {
+                    duplicateCoverage(index);
+                },
             },
             {
                 label: 'Duplicate As',
                 icon: 'icon-copy',
                 callback: duplicateActions,
             },
-        ]
+        ];
 
         if (planningUtils.canCancelCoverage(coverage)) {
             itemActions.unshift({
                 label: 'Cancel coverage',
                 icon: 'icon-close-small',
-                callback: () => {cancelCoverage(index)},
-            })
+                callback: () => {
+                    cancelCoverage(index);
+                },
+            });
         }
 
         if (showRemoveAction) {
             itemActions.unshift({
                 label: 'Remove coverage',
                 icon: 'icon-trash',
-                callback: () => {removeCoverage(index)},
-            })
+                callback: () => {
+                    removeCoverage(index);
+                },
+            });
         }
 
         return (
@@ -130,7 +139,7 @@ export class CoverageContainer extends React.Component {
                     </div>
                 }
             </div>
-        )
+        );
     }
 }
 
@@ -146,4 +155,4 @@ CoverageContainer.propTypes = {
     cancelCoverage: PropTypes.func,
     readOnly: PropTypes.bool.isRequired,
     showRemoveAction: PropTypes.bool.isRequired,
-}
+};

@@ -14,4 +14,4 @@ export const PRIVILEGES = {
         ACCESS_DENIED: 'ACCESS_DENIED',
         RECEIVE_PRIVILEGES: 'RECEIVE_PRIVILEGES',
     },
-}
+};

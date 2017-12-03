@@ -4,7 +4,7 @@ import {
     PUBLISHED_STATE,
     EVENTS,
     GENERIC_ITEM_ACTIONS,
-} from '../constants'
+} from '../constants';
 import {
     getItemWorkflowState,
     isItemLockedInThisSession,
@@ -14,12 +14,12 @@ import {
     isItemCancelled,
     isItemRescheduled,
     isItemPostponed,
-} from './index'
-import moment from 'moment'
-import RRule from 'rrule'
-import { get, map, isNil } from 'lodash'
-import { actionTypes } from 'redux-form'
-import { EventUpdateMethods } from '../components/fields'
+} from './index';
+import moment from 'moment';
+import RRule from 'rrule';
+import {get, map, isNil} from 'lodash';
+import {actionTypes} from 'redux-form';
+import {EventUpdateMethods} from '../components/fields';
 
 /**
  * Helper function to determine if the starting and ending dates
@@ -29,24 +29,24 @@ import { EventUpdateMethods } from '../components/fields'
  * @return {boolean} If the date/times occupy entire day(s)
  */
 const isEventAllDay = (startingDate, endingDate) => {
-    startingDate = moment(startingDate).clone()
-    endingDate = moment(endingDate).clone()
+    const start = moment(startingDate).clone();
+    const end = moment(endingDate).clone();
 
-    return startingDate.isSame(startingDate.clone().startOf('day'), 'minute') &&
-        endingDate.isSame(endingDate.clone().endOf('day'), 'minute')
-}
+    return start.isSame(start.clone().startOf('day'), 'minute') &&
+        end.isSame(end.clone().endOf('day'), 'minute');
+};
 
-const eventHasPlanning = (event) => get(event, 'planning_ids', []).length > 0
+const eventHasPlanning = (event) => get(event, 'planning_ids', []).length > 0;
 
 const isEventLocked = (event, locks) =>
     !isNil(event) && (
         event._id in locks.events ||
         get(event, 'recurrence_id') in locks.recurring
-    )
+    );
 
 const isEventLockRestricted = (event, session, locks) =>
     isEventLocked(event, locks) &&
-    !isItemLockedInThisSession(event, session)
+    !isItemLockedInThisSession(event, session);
 
 /**
  * Helper function to determine if a recurring event instances overlap
@@ -59,14 +59,14 @@ const isEventLockRestricted = (event, session, locks) =>
  */
 const doesRecurringEventsOverlap = (startingDate, endingDate, recurringRule) => {
     if (!recurringRule || !startingDate || !endingDate ||
-        !('frequency' in recurringRule) || !('interval' in recurringRule)) return false
+        !('frequency' in recurringRule) || !('interval' in recurringRule)) return false;
 
     const freqMap = {
         YEARLY: RRule.YEARLY,
         MONTHLY: RRule.MONTHLY,
         WEEKLY: RRule.WEEKLY,
         DAILY: RRule.DAILY,
-    }
+    };
 
     const dayMap = {
         MO: RRule.MO,
@@ -76,55 +76,57 @@ const doesRecurringEventsOverlap = (startingDate, endingDate, recurringRule) => 
         FR: RRule.FR,
         SA: RRule.SA,
         SU: RRule.SU,
-    }
+    };
 
     const rules = {
         freq: freqMap[recurringRule.frequency],
-        interval: parseInt(recurringRule.interval) || 1,
+        interval: parseInt(recurringRule.interval, 10) || 1,
         dtstart: startingDate.toDate(),
         count: 2,
-    }
+    };
 
     if ('byday' in recurringRule) {
-        rules.byweekday = recurringRule.byday.split(' ').map((day) => dayMap[day])
+        rules.byweekday = recurringRule.byday.split(' ').map((day) => dayMap[day]);
     }
 
-    const rule = new RRule(rules)
+    const rule = new RRule(rules);
 
-    let nextEvent = moment(rule.after(startingDate.toDate()))
-    return nextEvent.isBetween(startingDate, endingDate) || nextEvent.isSame(endingDate)
-}
+    let nextEvent = moment(rule.after(startingDate.toDate()));
 
-const getRelatedEventsForRecurringEvent = (state={}, action) => {
+    return nextEvent.isBetween(startingDate, endingDate) || nextEvent.isSame(endingDate);
+};
+
+const getRelatedEventsForRecurringEvent = (state = {}, action) => {
     if (action.type !== actionTypes.CHANGE || get(action, 'meta.field') !== 'update_method') {
-        return state
+        return state;
     }
 
-    let event = state.values
-    let eventsInSeries = get(event, '_recurring', [])
-    let events = []
-    let plannings = get(event, '_plannings', [])
+    let event = state.values;
+    let eventsInSeries = get(event, '_recurring', []);
+    let events = [];
+    let plannings = get(event, '_plannings', []);
 
     switch (action.payload.value) {
-        case EventUpdateMethods[1].value: // Selected & Future Events
-            events = eventsInSeries.filter((e) => (
-                moment(e.dates.start).isSameOrAfter(moment(event.dates.start)) &&
+    case EventUpdateMethods[1].value: // Selected & Future Events
+        events = eventsInSeries.filter((e) => (
+            moment(e.dates.start).isSameOrAfter(moment(event.dates.start)) &&
                 e._id !== event._id
-            ))
-            break
-        case EventUpdateMethods[2].value: // All Events
-            events = eventsInSeries.filter((e) => e._id !== event._id)
-            break
-        case EventUpdateMethods[0].value: // Selected Event Only
-        default:
-            break
+        ));
+        break;
+    case EventUpdateMethods[2].value: // All Events
+        events = eventsInSeries.filter((e) => e._id !== event._id);
+        break;
+    case EventUpdateMethods[0].value: // Selected Event Only
+    default:
+        break;
     }
 
     if (plannings.length > 0) {
-        const eventIds = map(events, '_id')
+        const eventIds = map(events, '_id');
+
         plannings = plannings.filter(
             (p) => (eventIds.indexOf(p.event_item) > -1 || p.event_item === event._id)
-        )
+        );
     }
 
     return {
@@ -134,8 +136,8 @@ const getRelatedEventsForRecurringEvent = (state={}, action) => {
             _events: events,
             _relatedPlannings: plannings,
         },
-    }
-}
+    };
+};
 
 const canSpikeEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
@@ -145,21 +147,21 @@ const canSpikeEvent = (event, session, privileges, locks) => (
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isEventLockRestricted(event, session, locks) &&
         !isEventInUse(event)
-)
+);
 
 const canUnspikeEvent = (event, privileges) => (
     !isNil(event) &&
         isItemSpiked(event) &&
         !!privileges[PRIVILEGES.UNSPIKE_EVENT] &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
-)
+);
 
 const canDuplicateEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
         !isItemSpiked(event) &&
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT]
-)
+);
 
 const canCreatePlanningFromEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
@@ -169,7 +171,7 @@ const canCreatePlanningFromEvent = (event, session, privileges, locks) => (
         !isItemCancelled(event) &&
         !isItemRescheduled(event) &&
         !isItemPostponed(event)
-)
+);
 
 const canPublishEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
@@ -180,14 +182,14 @@ const canPublishEvent = (event, session, privileges, locks) => (
         !isEventLockRestricted(event, session, locks) &&
         !isItemCancelled(event) &&
         !isItemRescheduled(event)
-)
+);
 
 const canUnpublishEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
         !isEventLockRestricted(event, session, locks) &&
         getPublishedState(event) === PUBLISHED_STATE.USABLE &&
         !!privileges[PRIVILEGES.PUBLISH_EVENT]
-)
+);
 
 const canCancelEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
@@ -197,19 +199,19 @@ const canCancelEvent = (event, session, privileges, locks) => (
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemRescheduled(event)
-)
+);
 
 const isEventInUse = (event) => (
     !isNil(event) &&
         (eventHasPlanning(event) || isItemPublic(event))
-)
+);
 
 const canConvertToRecurringEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
         !event.recurrence_id &&
         canEditEvent(event, session, privileges, locks) &&
         !isItemPostponed(event)
-)
+);
 
 const canEditEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
@@ -218,19 +220,19 @@ const canEditEvent = (event, session, privileges, locks) => (
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemRescheduled(event)
-)
+);
 
 const canUpdateEvent = (event, session, privileges, locks) => (
     canEditEvent(event, session, privileges, locks) &&
         isItemPublic(event) &&
         !!privileges[PRIVILEGES.PUBLISH_EVENT]
-)
+);
 
 const canUpdateEventTime = (event, session, privileges, locks) => (
     !isNil(event) &&
         canEditEvent(event, session, privileges, locks) &&
         !isItemPostponed(event)
-)
+);
 
 const canRescheduleEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
@@ -239,7 +241,7 @@ const canRescheduleEvent = (event, session, privileges, locks) => (
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemRescheduled(event)
-)
+);
 
 const canPostponeEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
@@ -249,11 +251,11 @@ const canPostponeEvent = (event, session, privileges, locks) => (
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemPostponed(event) &&
         !isItemRescheduled(event)
-)
+);
 
 const getEventItemActions = (event, session, privileges, actions, locks) => {
-    let itemActions = []
-    let key = 1
+    let itemActions = [];
+    let key = 1;
 
     const actionsValidator = {
         [GENERIC_ITEM_ACTIONS.SPIKE.label]: () =>
@@ -274,30 +276,31 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
             canPostponeEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: () =>
             canConvertToRecurringEvent(event, session, privileges, locks),
-    }
+    };
 
     actions.forEach((action) => {
         if (actionsValidator[action.label] &&
                 !actionsValidator[action.label](event, session, privileges)) {
-            return
+            return;
         }
 
         itemActions.push({
             ...action,
             key: `${action.label}-${key}`,
-        })
+        });
 
-        key++
-    })
+        key++;
+    });
 
-    return itemActions
-}
+    return itemActions;
+};
 
 const isEventAssociatedWithPlannings = (eventId, allPlannings) => (
     Object.keys(allPlannings)
         .filter((pid) => get(allPlannings[pid], 'event_item', null) === eventId).length > 0
-)
+);
 
+// eslint-disable-next-line consistent-this
 const self = {
     isEventAllDay,
     doesRecurringEventsOverlap,
@@ -320,6 +323,6 @@ const self = {
     canConvertToRecurringEvent,
     isEventLocked,
     isEventLockRestricted,
-}
+};
 
-export default self
+export default self;

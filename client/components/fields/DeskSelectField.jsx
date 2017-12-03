@@ -1,6 +1,6 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { SelectField } from './SelectField'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {SelectField} from './SelectField';
 
 export const DeskSelectField = (props) => {
     const ownProps = {
@@ -14,14 +14,15 @@ export const DeskSelectField = (props) => {
         )),
 
         getOptionFromValue: (value, options) => value && options.find(
-            option => option.key === value || option.key === value._id
+            (option) => option.key === value || option.key === value._id
         ),
 
         meta: props.meta,
         clearable: true,
-    }
-    return (<SelectField {...ownProps}/>)
-}
+    };
+
+    return (<SelectField {...ownProps}/>);
+};
 
 DeskSelectField.propTypes = {
     meta: PropTypes.object,
@@ -29,6 +30,6 @@ DeskSelectField.propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     input: PropTypes.object.isRequired,
     autoFocus: PropTypes.bool,
-}
+};
 
-DeskSelectField.defaultProps = { meta: {} }
+DeskSelectField.defaultProps = {meta: {}};

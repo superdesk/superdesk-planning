@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-function Subnav({ children }) {
+function Subnav({children}) {
     return (
         <div className="subnav">
             {children}

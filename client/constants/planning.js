@@ -55,4 +55,4 @@ export const PLANNING = {
         name: 'coverage not intended',
         label: 'Not planned',
     },
-}
+};

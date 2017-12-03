@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { gettext } from '../utils';
+import {gettext} from '../utils';
 import PreviewFormRow from './PreviewFormRow';
 
 function PreviewContentTab({item}) {
@@ -10,12 +10,12 @@ function PreviewContentTab({item}) {
                 label={gettext('Slugline')}
                 value={item.slugline || ''}
 
-                className='slugline'
+                className="slugline"
             />
             <PreviewFormRow
                 label={gettext('Name')}
                 value={item.name || ''}
-                className='strong'
+                className="strong"
             />
         </div>
     );

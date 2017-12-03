@@ -1,12 +1,12 @@
-import sinon from 'sinon'
-import * as actions from '../../actions'
+import sinon from 'sinon';
+import * as actions from '../../actions';
 
 const sdLocation = {
     guid: 'location-guid',
     qcode: 'location-qcode',
     name: '123 road, town, state, postcode, country',
     type: 'residential',
-}
+};
 
 const nominatimLocation = {
     nominatim: {
@@ -21,9 +21,9 @@ const nominatimLocation = {
             postcode: 'postcode',
             country: 'country',
         },
-        namedetails: { name: 'Location' },
+        namedetails: {name: 'Location'},
     },
-}
+};
 
 const formattedLocation = {
     unique_name: 'display location',
@@ -40,57 +40,57 @@ const formattedLocation = {
         },
         external: nominatimLocation,
     },
-}
+};
 
 describe('<AddGeoLookupInput />', () => {
     it('saves a new location', () => {
-        const getState = () => ({ events: { events: [] } })
-        const dispatch = sinon.spy(() => (Promise.resolve()))
+        const getState = () => ({events: {events: []}});
+        const dispatch = sinon.spy(() => (Promise.resolve()));
         const api = () => ({
             save: sinon.spy((original, newLocation) => {
-                expect(newLocation.unique_name).toEqual(formattedLocation.unique_name)
-                expect(newLocation.name).toEqual(formattedLocation.name)
-                expect(newLocation.position).toEqual(formattedLocation.address.position)
-                expect(newLocation.address.line).toEqual(formattedLocation.address.line)
-                expect(newLocation.address.locality).toEqual(formattedLocation.address.locality)
-                expect(newLocation.address.area).toEqual(formattedLocation.address.area)
-                expect(newLocation.address.country).toEqual(formattedLocation.address.country)
-                expect(newLocation.address.postal_code).toEqual(formattedLocation.address.postal_code)
-                return Promise.resolve()
+                expect(newLocation.unique_name).toEqual(formattedLocation.unique_name);
+                expect(newLocation.name).toEqual(formattedLocation.name);
+                expect(newLocation.position).toEqual(formattedLocation.address.position);
+                expect(newLocation.address.line).toEqual(formattedLocation.address.line);
+                expect(newLocation.address.locality).toEqual(formattedLocation.address.locality);
+                expect(newLocation.address.area).toEqual(formattedLocation.address.area);
+                expect(newLocation.address.country).toEqual(formattedLocation.address.country);
+                expect(newLocation.address.postal_code).toEqual(formattedLocation.address.postal_code);
+                return Promise.resolve();
             }),
-        })
-        const action = actions.saveNominatim(nominatimLocation.nominatim)
-        action(dispatch, getState, { api })
-    })
+        });
+        const action = actions.saveNominatim(nominatimLocation.nominatim);
+
+        action(dispatch, getState, {api});
+    });
 
     it('displays saved location', () => {
-        const getState = () => ({ events: { events: [] } })
-        const dispatch = sinon.spy(() => (Promise.resolve()))
+        const getState = () => ({events: {events: []}});
+        const dispatch = sinon.spy(() => (Promise.resolve()));
         const api = () => ({
-            query: sinon.spy(() => {
-                return Promise.resolve({ _items: [ sdLocation ] })
-            }),
-        })
-        const action = actions.saveLocation(nominatimLocation)
-        action(dispatch, getState, { api })
-        .then((savedLocation) => {
-            expect(savedLocation).toEqual({
-                qcode: 'location-guid',
-                name: '123 road, town, state, postcode, country',
-            })
-        })
-    })
+            query: sinon.spy(() => Promise.resolve({_items: [sdLocation]})),
+        });
+        const action = actions.saveLocation(nominatimLocation);
+
+        action(dispatch, getState, {api})
+            .then((savedLocation) => {
+                expect(savedLocation).toEqual({
+                    qcode: 'location-guid',
+                    name: '123 road, town, state, postcode, country',
+                });
+            });
+    });
 
     it('makes a right display name', () => {
-        const getState = () => ({ events: { events: [] } })
-        const dispatch = sinon.spy(() => (Promise.resolve()))
+        const getState = () => ({events: {events: []}});
+        const dispatch = sinon.spy(() => (Promise.resolve()));
         const api = () => ({
             save: sinon.spy((original, newLocation) => {
-                expect(newLocation.unique_name).toEqual('Paris, Ile-de-France, France')
-                expect(newLocation.name).toEqual('Paris, France')
-                return Promise.resolve()
+                expect(newLocation.unique_name).toEqual('Paris, Ile-de-France, France');
+                expect(newLocation.name).toEqual('Paris, France');
+                return Promise.resolve();
             }),
-        })
+        });
         const action = actions.saveNominatim({
             place_id: '158768940',
             lat: '48.8566101',
@@ -105,8 +105,9 @@ describe('<AddGeoLookupInput />', () => {
                 country: 'France',
                 country_code: 'fr',
             },
-            namedetails: { name: 'Paris, France' },
-        })
-        action(dispatch, getState, { api })
-    })
-})
+            namedetails: {name: 'Paris, France'},
+        });
+
+        action(dispatch, getState, {api});
+    });
+});

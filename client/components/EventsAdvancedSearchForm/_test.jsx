@@ -1,105 +1,107 @@
-import React from 'react'
-import { mount } from 'enzyme'
-import { EventsAdvancedSearchForm } from '../index'
-import { createTestStore } from '../../utils'
-import { Provider } from 'react-redux'
-import moment from 'moment'
+import React from 'react';
+import {mount} from 'enzyme';
+import {EventsAdvancedSearchForm} from '../index';
+import {createTestStore} from '../../utils';
+import {Provider} from 'react-redux';
+import moment from 'moment';
 
 describe('events', () => {
     describe('containers', () => {
         describe('<EventsAdvancedSearchForm />', () => {
-            function checkQueryForParameters({ params, expectedQuery }) {
+            function checkQueryForParameters({params, expectedQuery}) {
                 return new Promise((resolve) => {
                     let store = createTestStore({
                         extraArguments: {
                             apiQuery: (resource, q) => {
-                                expect(JSON.parse(q.source)).toEqual(expectedQuery)
-                                resolve()
+                                expect(JSON.parse(q.source)).toEqual(expectedQuery);
+                                resolve();
                             },
                         },
-                    })
+                    });
                     const wrapper = mount(
                         <Provider store={store}>
                             <EventsAdvancedSearchForm initialValues={params} />
                         </Provider>
-                    )
-                    wrapper.find('form').simulate('submit')
-                })
+                    );
+
+                    wrapper.find('form').simulate('submit');
+                });
             }
 
             it('clear the form', () => {
-                const store = createTestStore()
+                const store = createTestStore();
                 const wrapper = mount(
                     <Provider store={store}>
                         <EventsAdvancedSearchForm />
                     </Provider>
-                )
-                wrapper.find('[name="clear"] button').simulate('click')
-            })
+                );
+
+                wrapper.find('[name="clear"] button').simulate('click');
+            });
 
             it('search by name', (done) => (
                 Promise.resolve(checkQueryForParameters({
-                    params: { name: 'a name' },
+                    params: {name: 'a name'},
                     expectedQuery: {
                         query: {
                             bool: {
                                 must: [
-                                    { query_string: { query: 'a name' } },
+                                    {query_string: {query: 'a name'}},
                                 ],
                                 must_not: [
-                                    { term: { state: 'spiked' } },
+                                    {term: {state: 'spiked'}},
                                 ],
                             },
                         },
                         filter: {},
                     },
                 }))
-                .then(done)
-            ))
+                    .then(done)
+            ));
 
             it('search multiple', (done) => (
                 Promise.resolve(checkQueryForParameters({
                     params: {
                         name: 'a name',
-                        anpa_category: [{ qcode: 'cat' }],
+                        anpa_category: [{qcode: 'cat'}],
                         location: 'paris',
                     },
                     expectedQuery: {
                         query: {
                             bool: {
                                 must: [
-                                    { query_string: { query: 'a name' } },
-                                    { match_phrase: { 'location.name': 'paris' } },
-                                    { term: { 'anpa_category.qcode': 'cat' } },
+                                    {query_string: {query: 'a name'}},
+                                    {match_phrase: {'location.name': 'paris'}},
+                                    {term: {'anpa_category.qcode': 'cat'}},
                                 ],
                                 must_not: [
-                                    { term: { state: 'spiked' } },
+                                    {term: {state: 'spiked'}},
                                 ],
                             },
                         },
                         filter: {},
                     },
                 }))
-                .then(done)
-            ))
+                    .then(done)
+            ));
 
             it('search location gets name from when location object is passed', (done) => (
                 Promise.resolve(checkQueryForParameters({
-                    params: { location: { name: 'paris' } },
+                    params: {location: {name: 'paris'}},
                     expectedQuery: {
                         query: {
                             bool: {
-                                must: [{ match_phrase: { 'location.name': 'paris' } } ],
+                                must: [{match_phrase: {'location.name': 'paris'}}],
                                 must_not: [
-                                    { term: { state: 'spiked' } },
+                                    {term: {state: 'spiked'}},
                                 ],
                             },
                         },
                         filter: {},
                     },
                 }))
-                .then(done)
-            ))
+                    .then(done)
+            ));
 
             it('search by date range', (done) => (
                 Promise.resolve(checkQueryForParameters({
@@ -114,20 +116,20 @@ describe('events', () => {
                             bool: {
                                 must: [],
                                 must_not: [
-                                    { term: { state: 'spiked' } },
+                                    {term: {state: 'spiked'}},
                                 ],
                             },
                         },
                         filter: {
                             range: {
-                                'dates.start': { gte: '2016-01-01T00:00:00.000Z' },
-                                'dates.end': { lte: '2017-01-01T00:00:00.000Z' },
+                                'dates.start': {gte: '2016-01-01T00:00:00.000Z'},
+                                'dates.end': {lte: '2017-01-01T00:00:00.000Z'},
                             },
                         },
                     },
                 }))
-                .then(done)
-            ))
+                    .then(done)
+            ));
 
             it('search spiked', (done) => (
                 Promise.resolve({
@@ -139,8 +141,8 @@ describe('events', () => {
                         query: {
                             bool: {
                                 must: [
-                                    { query_string: { query: 'a name' } },
-                                    { term: { state: 'spiked' } },
+                                    {query_string: {query: 'a name'}},
+                                    {term: {state: 'spiked'}},
                                 ],
                                 must_not: [],
                             },
@@ -148,8 +150,8 @@ describe('events', () => {
                         filter: {},
                     },
                 })
-                .then(done)
-            ))
+                    .then(done)
+            ));
 
             it('search spiked and active', (done) => (
                 Promise.resolve({
@@ -161,7 +163,7 @@ describe('events', () => {
                         query: {
                             bool: {
                                 must: [
-                                    { query_string: { query: 'a name' } },
+                                    {query_string: {query: 'a name'}},
                                 ],
                                 must_not: [],
                             },
@@ -169,8 +171,8 @@ describe('events', () => {
                         filter: {},
                     },
                 })
-                .then(done)
-            ))
-        })
-    })
-})
+                    .then(done)
+            ));
+        });
+    });
+});

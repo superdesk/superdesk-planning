@@ -1,10 +1,9 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { SearchBar } from '../index'
-import { ASSIGNMENTS } from '../../constants'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {SearchBar} from '../index';
+import {ASSIGNMENTS} from '../../constants';
 
 export class AssignmentListHeader extends React.Component {
-
     render() {
         const {
             searchQuery,
@@ -12,12 +11,12 @@ export class AssignmentListHeader extends React.Component {
             assignmentListSingleGroupView,
             changeAssignmentListSingleGroupView,
             totalCountInListView,
-        } = this.props
+        } = this.props;
 
         return (
             <div className="Assignments-list-container__header subnav">
                 {assignmentListSingleGroupView &&
-                    <div className='Assignments-list-container__header__backButton'>
+                    <div className="Assignments-list-container__header__backButton">
                         <div className="navbtn" title="Back to group list view">
                             <button onClick={changeAssignmentListSingleGroupView} type="button" className="backlink" />
                         </div>
@@ -27,16 +26,16 @@ export class AssignmentListHeader extends React.Component {
                 <h3 className="subnav__page-title">
                     <span>
                         <span>Assignments</span>
-                        {assignmentListSingleGroupView &&(
+                        {assignmentListSingleGroupView && (
                             <span>
                                 <span>{'/' + ASSIGNMENTS.LIST_GROUPS[assignmentListSingleGroupView].label}</span>
-                                <span className='badge'>{totalCountInListView}</span>
+                                <span className="badge">{totalCountInListView}</span>
                             </span>
                         )}
                     </span>
                 </h3>
             </div>
-        )
+        );
     }
 }
 
@@ -46,4 +45,4 @@ AssignmentListHeader.propTypes = {
     assignmentListSingleGroupView: PropTypes.string,
     changeAssignmentListSingleGroupView: PropTypes.func,
     totalCountInListView: PropTypes.number,
-}
+};

@@ -1,5 +1,5 @@
-const initialState = { templates: [] }
+const initialState = {templates: []};
 
-const templatesReducer = (state=initialState) => state
+const templatesReducer = (state = initialState) => state;
 
-export default templatesReducer
+export default templatesReducer;

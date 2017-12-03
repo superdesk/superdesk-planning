@@ -1,20 +1,20 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import TextareaAutosize from 'react-textarea-autosize'
-import { connect } from 'react-redux'
-import * as selectors from '../../selectors'
-import { get } from 'lodash'
-import { Datetime } from '../../components'
+import React from 'react';
+import PropTypes from 'prop-types';
+import TextareaAutosize from 'react-textarea-autosize';
+import {connect} from 'react-redux';
+import * as selectors from '../../selectors';
+import {get} from 'lodash';
+import {Datetime} from '../../components';
 
 // eslint-disable-next-line complexity
-export const EventPreviewComponent = ({ item, formProfile, createLink }) => {
+export const EventPreviewComponent = ({item, formProfile, createLink}) => {
     if (!item) {
-        return null
+        return null;
     }
 
-    let location = get(item, 'location[0]', {})
-    let locationName = get(location, 'name')
-    let formattedAddress = get(location, 'formatted_address', '')
+    let location = get(item, 'location[0]', {});
+    let locationName = get(location, 'name');
+    let formattedAddress = get(location, 'formatted_address', '');
 
     return (
         <div>
@@ -60,14 +60,14 @@ export const EventPreviewComponent = ({ item, formProfile, createLink }) => {
                     Location
                 </label>
                 {formattedAddress &&
-                    <span className='addgeolookup__input-wrapper'>
+                    <span className="addgeolookup__input-wrapper">
                         {locationName}
                         <span style={{
                             fontStyle: 'italic',
                             fontSize: 'small',
                         }}>
                             <br/>
-                        {formattedAddress}
+                            {formattedAddress}
                         </span>
                     </span>
                     ||
@@ -110,14 +110,14 @@ export const EventPreviewComponent = ({ item, formProfile, createLink }) => {
                         get(item, 'links').map((link, index) => {
                             const href = link.toLowerCase().startsWith('http://') ||
                                 link.toLowerCase().startsWith('https://') ? link :
-                                `http://${link}`
+                                `http://${link}`;
 
                             return <div key={index}>
                                 <a target="_blank" href={href}>
                                     {link}
                                 </a>
-                            </div>
-                            }
+                            </div>;
+                        }
                         )
                     ||
                         <p>-</p>
@@ -146,16 +146,18 @@ export const EventPreviewComponent = ({ item, formProfile, createLink }) => {
                 </div>
             }
         </div>
-    )
-}
+    );
+};
 
 EventPreviewComponent.propTypes = {
     item: PropTypes.object,
     formProfile: PropTypes.object,
     createLink: PropTypes.func,
-}
+};
 
-const mapStateToProps = (state) => ({ createLink: (f) => (selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw') })
+const mapStateToProps = (state) => ({
+    createLink: (f) => (selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw')
+});
 
 
-export const EventPreview = connect(mapStateToProps)(EventPreviewComponent)
+export const EventPreview = connect(mapStateToProps)(EventPreviewComponent);

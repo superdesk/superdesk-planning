@@ -1,19 +1,19 @@
-import eventUtils from '../events'
-import moment from 'moment'
-import lockReducer from '../../reducers/locks'
-import { GENERIC_ITEM_ACTIONS, EVENTS } from '../../constants'
-import { expectActions } from '../testUtils'
+import eventUtils from '../events';
+import moment from 'moment';
+import lockReducer from '../../reducers/locks';
+import {GENERIC_ITEM_ACTIONS, EVENTS} from '../../constants';
+import {expectActions} from '../testUtils';
 
 describe('EventUtils', () => {
-    let session
-    let locks
-    let lockedItems
+    let session;
+    let locks;
+    let lockedItems;
 
     beforeEach(() => {
         session = {
-            identity: { _id: 'ident1' },
+            identity: {_id: 'ident1'},
             sessionId: 'session1',
-        }
+        };
 
         locks = {
             events: {
@@ -41,7 +41,7 @@ describe('EventUtils', () => {
                         lock_action: 'edit',
                         lock_time: '2099-10-15T14:30+0000',
                     },
-                    notLocked: { _id: 'e4' },
+                    notLocked: {_id: 'e4'},
                 },
                 recurring: {
                     currentUser: {
@@ -123,7 +123,7 @@ describe('EventUtils', () => {
                     },
                 },
             },
-        }
+        };
 
         lockedItems = lockReducer({}, {
             type: 'RECEIVE_LOCKS',
@@ -142,102 +142,102 @@ describe('EventUtils', () => {
                     locks.plans.recurring.indirect,
                 ],
             },
-        })
-    })
+        });
+    });
 
     describe('doesRecurringEventsOverlap', () => {
         it('returns true on daily', () => {
-            const start = moment('2029-10-15T00:00:00')
-            const end = moment('2029-10-16T00:05:00')
+            const start = moment('2029-10-15T00:00:00');
+            const end = moment('2029-10-16T00:05:00');
             const rule = {
                 frequency: 'DAILY',
                 interval: 1,
-            }
+            };
 
-            expect(eventUtils.doesRecurringEventsOverlap(start, end, rule)).toBe(true)
-        })
+            expect(eventUtils.doesRecurringEventsOverlap(start, end, rule)).toBe(true);
+        });
 
         it('returns false on daily', () => {
-            const start = moment('2029-10-15T00:00:00')
-            const end = moment('2029-10-15T23:59:00')
+            const start = moment('2029-10-15T00:00:00');
+            const end = moment('2029-10-15T23:59:00');
             const rule = {
                 frequency: 'DAILY',
                 interval: 1,
-            }
+            };
 
-            expect(eventUtils.doesRecurringEventsOverlap(start, end, rule)).toBe(false)
-        })
+            expect(eventUtils.doesRecurringEventsOverlap(start, end, rule)).toBe(false);
+        });
 
         it('returns true on weekly', () => {
-            const start = moment('2029-10-15T00:00:00')
-            const end = moment('2029-10-16T00:05:00')
+            const start = moment('2029-10-15T00:00:00');
+            const end = moment('2029-10-16T00:05:00');
             const rule = {
                 frequency: 'WEEKLY',
                 interval: 1,
                 byday: 'MO TU WE TH FR SA SU',
-            }
+            };
 
-            expect(eventUtils.doesRecurringEventsOverlap(start, end, rule)).toBe(true)
-        })
-    })
+            expect(eventUtils.doesRecurringEventsOverlap(start, end, rule)).toBe(true);
+        });
+    });
 
     it('eventHasPlanning', () => {
         const events = {
-            e1: { planning_ids: ['p1'] },
-            e2: { planning_ids: [] },
+            e1: {planning_ids: ['p1']},
+            e2: {planning_ids: []},
             e3: {},
-        }
+        };
 
-        expect(eventUtils.eventHasPlanning(events.e1)).toBe(true)
-        expect(eventUtils.eventHasPlanning(events.e2)).toBe(false)
-        expect(eventUtils.eventHasPlanning(events.e3)).toBe(false)
-    })
+        expect(eventUtils.eventHasPlanning(events.e1)).toBe(true);
+        expect(eventUtils.eventHasPlanning(events.e2)).toBe(false);
+        expect(eventUtils.eventHasPlanning(events.e3)).toBe(false);
+    });
 
     const isEventLocked = (event, result) => (
         expect(eventUtils.isEventLocked(event, lockedItems)).toBe(result)
-    )
+    );
     const isEventLockRestricted = (event, result) => (
         expect(eventUtils.isEventLockRestricted(event, session, lockedItems)).toBe(result)
-    )
+    );
 
     it('isEventLocked', () => {
         // Null item
-        isEventLocked(null, false)
+        isEventLocked(null, false);
 
         // Standalone Events
-        isEventLocked(locks.events.standalone.currentUser.currentSession, true)
-        isEventLocked(locks.events.standalone.currentUser.otherSession, true)
-        isEventLocked(locks.events.standalone.otherUser, true)
-        isEventLocked(locks.events.standalone.notLocked, false)
+        isEventLocked(locks.events.standalone.currentUser.currentSession, true);
+        isEventLocked(locks.events.standalone.currentUser.otherSession, true);
+        isEventLocked(locks.events.standalone.otherUser, true);
+        isEventLocked(locks.events.standalone.notLocked, false);
 
         // Recurring Events
-        isEventLocked(locks.events.recurring.currentUser.currentSession, true)
-        isEventLocked(locks.events.recurring.currentUser.otherSession, true)
-        isEventLocked(locks.events.recurring.otherUser, true)
-        isEventLocked(locks.events.recurring.notLocked, false)
+        isEventLocked(locks.events.recurring.currentUser.currentSession, true);
+        isEventLocked(locks.events.recurring.currentUser.otherSession, true);
+        isEventLocked(locks.events.recurring.otherUser, true);
+        isEventLocked(locks.events.recurring.notLocked, false);
 
         // Events with locks on the Planning item
-        isEventLocked(locks.events.associated.standalone, true)
-        isEventLocked(locks.events.associated.recurring.direct, true)
-        isEventLocked(locks.events.associated.recurring.indirect, true)
-    })
+        isEventLocked(locks.events.associated.standalone, true);
+        isEventLocked(locks.events.associated.recurring.direct, true);
+        isEventLocked(locks.events.associated.recurring.indirect, true);
+    });
 
     it('isEventLockRestricted', () => {
         // Null item
-        isEventLockRestricted(null, false)
+        isEventLockRestricted(null, false);
 
         // Standalone Events
-        isEventLockRestricted(locks.events.standalone.currentUser.currentSession, false)
-        isEventLockRestricted(locks.events.standalone.currentUser.otherSession, true)
-        isEventLockRestricted(locks.events.standalone.otherUser, true)
-        isEventLockRestricted(locks.events.standalone.notLocked, false)
+        isEventLockRestricted(locks.events.standalone.currentUser.currentSession, false);
+        isEventLockRestricted(locks.events.standalone.currentUser.otherSession, true);
+        isEventLockRestricted(locks.events.standalone.otherUser, true);
+        isEventLockRestricted(locks.events.standalone.notLocked, false);
 
         // Recurring Events
-        isEventLockRestricted(locks.events.recurring.currentUser.currentSession, false)
-        isEventLockRestricted(locks.events.recurring.currentUser.otherSession, true)
-        isEventLockRestricted(locks.events.recurring.otherUser, true)
-        isEventLockRestricted(locks.events.recurring.notLocked, false)
-    })
+        isEventLockRestricted(locks.events.recurring.currentUser.currentSession, false);
+        isEventLockRestricted(locks.events.recurring.currentUser.otherSession, true);
+        isEventLockRestricted(locks.events.recurring.otherUser, true);
+        isEventLockRestricted(locks.events.recurring.notLocked, false);
+    });
 
     describe('getEventItemActions', () => {
         const actions = [
@@ -251,35 +251,35 @@ describe('EventUtils', () => {
             EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
             EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
             EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
-        ]
+        ];
 
-        let locks
-        let session
-        let event
-        let privileges
+        let locks;
+        let session;
+        let event;
+        let privileges;
 
         beforeEach(() => {
-            session = {}
+            session = {};
             locks = {
                 events: {},
                 planning: {},
                 recurring: {},
-            }
+            };
             event = {
                 state: 'draft',
                 planning_ids: [],
-            }
+            };
             privileges = {
                 planning_planning_management: 1,
                 planning_event_management: 1,
                 planning_event_spike: 1,
-            }
-        })
+            };
+        });
 
         it('draft event with no planning items (not in use)', () => {
             const itemActions = eventUtils.getEventItemActions(
                 event, session, privileges, actions, locks
-            )
+            );
 
             expectActions(itemActions, [
                 'Spike',
@@ -290,33 +290,33 @@ describe('EventUtils', () => {
                 'Mark as Postponed',
                 'Convert to recurring event',
                 'Create Planning Item',
-            ])
-        })
+            ]);
+        });
 
         it('postponed event', () => {
-            event.state = 'postponed'
+            event.state = 'postponed';
             let itemActions = eventUtils.getEventItemActions(
                 event, session, privileges, actions, locks
-            )
+            );
 
             expectActions(itemActions, [
                 'Spike',
                 'View History',
                 'Duplicate',
                 'Reschedule',
-            ])
+            ]);
 
-            event.planning_ids = ['1'] // Event in use
+            event.planning_ids = ['1']; // Event in use
             itemActions = eventUtils.getEventItemActions(
                 event, session, privileges, actions, locks
-            )
+            );
 
             expectActions(itemActions, [
                 'View History',
                 'Duplicate',
                 'Cancel',
                 'Reschedule',
-            ])
-        })
-    })
-})
+            ]);
+        });
+    });
+});

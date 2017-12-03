@@ -1,6 +1,6 @@
-import React from 'react'
-import { SelectField } from './SelectField'
-import PropTypes from 'prop-types'
+import React from 'react';
+import {SelectField} from './SelectField';
+import PropTypes from 'prop-types';
 
 export const CoverageProviderField = (props) => {
     const ownProps = {
@@ -14,19 +14,19 @@ export const CoverageProviderField = (props) => {
         )),
 
         getOptionFromValue: (value, options) => value && options.find(
-            option => option.key === value.qcode
+            (option) => option.key === value.qcode
         ),
 
         meta: { },
 
         clearable: true,
-    }
+    };
 
-    return (<SelectField {...ownProps}/>)
-}
+    return (<SelectField {...ownProps}/>);
+};
 
 CoverageProviderField.propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     input: PropTypes.object.isRequired,
     coverageProviders: PropTypes.array.isRequired,
-}
+};

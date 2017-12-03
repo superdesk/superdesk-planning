@@ -1,72 +1,75 @@
-import React, { PropTypes } from 'react'
-import { get, some } from 'lodash'
-import { ListItem, TimePlanning, DueDate, ItemActionsMenu, StateLabel, Checkbox } from '../index'
-import { connect } from 'react-redux'
-import { OverlayTrigger, Tooltip } from 'react-bootstrap'
-import classNames from 'classnames'
-import { GENERIC_ITEM_ACTIONS, EVENTS, PLANNING, WORKSPACE } from '../../constants'
-import './style.scss'
-import { getCoverageIcon, planningUtils, isItemCancelled, isItemRescheduled } from '../../utils/index'
-import { getCurrentAgendaId } from '../../selectors'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {get, some} from 'lodash';
+import {ListItem, TimePlanning, DueDate, ItemActionsMenu, StateLabel, Checkbox} from '../index';
+import {connect} from 'react-redux';
+import {OverlayTrigger, Tooltip} from 'react-bootstrap';
+import classNames from 'classnames';
+import {GENERIC_ITEM_ACTIONS, EVENTS, PLANNING, WORKSPACE} from '../../constants';
+import './style.scss';
+import {getCoverageIcon, planningUtils, isItemCancelled, isItemRescheduled} from '../../utils/index';
+import {getCurrentAgendaId} from '../../selectors';
 
 
 const PlanningItem = ({
-        item,
-        agendas,
-        event,
-        onClick,
-        active,
-        onSpike,
-        onUnspike,
-        privileges,
-        onDoubleClick,
-        lockedItems,
-        onAgendaClick,
-        onDuplicate,
-        onRescheduleEvent,
-        session,
-        users,
-        desks,
-        onCancelEvent,
-        onUpdateEventTime,
-        onPostponeEvent,
-        onConvertToRecurringEvent,
-        onCancelPlanning,
-        onCancelAllCoverage,
-        onSelectItem,
-        isSelected,
-        currentAgendaId,
-        currentWorkspace,
-        onAddCoverage,
-        editPlanningViewOpen,
-        planningEditorReadOnly,
-    }) => {
-    const location = get(event, 'location[0].name')
-    const coverages = get(item, 'coverages', [])
-    const dueDates = get(item, 'coverages', []).map((c) => (get(c, 'planning.scheduled'))).filter(d => (d))
-    const coveragesTypes = planningUtils.mapCoverageByDate(coverages)
-    const isScheduled = some(coverages, (c) => (get(c, 'planning.scheduled')))
-    const notForPublication = item ? get(item, 'flags.marked_for_not_publication', false) : false
+    item,
+    agendas,
+    event,
+    onClick,
+    active,
+    onSpike,
+    onUnspike,
+    privileges,
+    onDoubleClick,
+    lockedItems,
+    onAgendaClick,
+    onDuplicate,
+    onRescheduleEvent,
+    session,
+    users,
+    desks,
+    onCancelEvent,
+    onUpdateEventTime,
+    onPostponeEvent,
+    onConvertToRecurringEvent,
+    onCancelPlanning,
+    onCancelAllCoverage,
+    onSelectItem,
+    isSelected,
+    currentAgendaId,
+    currentWorkspace,
+    onAddCoverage,
+    editPlanningViewOpen,
+    planningEditorReadOnly,
+}) => {
+    const location = get(event, 'location[0].name');
+    const coverages = get(item, 'coverages', []);
+    const dueDates = get(item, 'coverages', []).map((c) => (get(c, 'planning.scheduled')))
+        .filter((d) => (d));
+    const coveragesTypes = planningUtils.mapCoverageByDate(coverages);
+    const isScheduled = some(coverages, (c) => (get(c, 'planning.scheduled')));
+    const notForPublication = item ? get(item, 'flags.marked_for_not_publication', false) : false;
 
-    const isCancelled = isItemCancelled(item)
-    const isRescheduled = isItemRescheduled(item)
+    const isCancelled = isItemCancelled(item);
+    const isRescheduled = isItemRescheduled(item);
 
     const onEditOrPreview = planningUtils.canEditPlanning(item, event, session, privileges, lockedItems) ?
-        onDoubleClick : onClick
+        onDoubleClick : onClick;
 
-    const isItemLocked = planningUtils.isPlanningLocked(item, lockedItems)
+    const isItemLocked = planningUtils.isPlanningLocked(item, lockedItems);
 
-    const inPlanning = currentWorkspace === WORKSPACE.PLANNING
+    const inPlanning = currentWorkspace === WORKSPACE.PLANNING;
     const showAddCoverage = !inPlanning &&
         !isItemLocked &&
-        (!editPlanningViewOpen || planningEditorReadOnly)
+        (!editPlanningViewOpen || planningEditorReadOnly);
 
     const onAddCoverageClick = (e) => {
-        e.stopPropagation()
-        onAddCoverage(item)
-    }
+        e.stopPropagation();
+        onAddCoverage(item);
+    };
 
-    let itemActions = []
+    let itemActions = [];
+
     if (inPlanning) {
         const actions = [
             {
@@ -110,7 +113,7 @@ const PlanningItem = ({
                 ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
                 callback: onConvertToRecurringEvent.bind(null, event),
             },
-        ]
+        ];
 
         itemActions = planningUtils.getPlanningItemActions(
             item,
@@ -119,14 +122,14 @@ const PlanningItem = ({
             privileges,
             actions,
             lockedItems
-        )
+        );
     }
 
     return (
         <ListItem
             item={item}
             className={classNames('PlanningItem',
-                { 'PlanningItem--has-been-cancelled': isCancelled || isRescheduled }
+                {'PlanningItem--has-been-cancelled': isCancelled || isRescheduled}
             )}
             onClick={onClick}
             onDoubleClick={inPlanning ? onEditOrPreview : null}
@@ -139,7 +142,7 @@ const PlanningItem = ({
                 </div>
             }
             <div className="sd-list-item__column sd-list-item__column--grow sd-list-item__column--no-border"
-                style={{ overflow: 'visible' }}>
+                style={{overflow: 'visible'}}>
                 <div className="sd-list-item__row">
                     <StateLabel item={item}/>
                     {notForPublication &&
@@ -158,19 +161,19 @@ const PlanningItem = ({
                         </span>
                     }
                 </div>
-                <div className="sd-list-item__row" style={{ overflow: 'visible' }}>
+                <div className="sd-list-item__row" style={{overflow: 'visible'}}>
                     {coveragesTypes.map((c, i) => {
-                        const assignedUserId = get(c, 'assigned_to.user')
-                        const assignedDeskId = get(c, 'assigned_to.desk')
+                        const assignedUserId = get(c, 'assigned_to.user');
+                        const assignedDeskId = get(c, 'assigned_to.desk');
 
                         const user = !assignedUserId ? null :
-                            users.find((u) => (u._id === assignedUserId))
+                            users.find((u) => (u._id === assignedUserId));
 
                         const desk = !assignedDeskId ? null :
-                            desks.find((d) => (d._id === assignedDeskId))
+                            desks.find((d) => (d._id === assignedDeskId));
 
-                        return (<span key={i} style={{ display:'inherit' }}>
-                                <OverlayTrigger
+                        return (<span key={i} style={{display: 'inherit'}}>
+                            <OverlayTrigger
                                 placement="bottom"
                                 overlay={
                                     <Tooltip id={`${i}${c.g2_content_type}`}>
@@ -179,11 +182,11 @@ const PlanningItem = ({
                                         <br />
                                         {user && ('User: ' + user.display_name)}
                                     </Tooltip>
-                                    }>
-                                    <i className={getCoverageIcon(c.g2_content_type) + ` ${c.iconColor}`}/>
-                                </OverlayTrigger>
+                                }>
+                                <i className={getCoverageIcon(c.g2_content_type) + ` ${c.iconColor}`}/>
+                            </OverlayTrigger>
                             &nbsp;
-                        </span>)
+                        </span>);
                     })}
                     <span className="sd-overflow-ellipsis">
                         {location}
@@ -191,26 +194,26 @@ const PlanningItem = ({
                     {item.agendas &&
                         <span className="sd-list-item--element-grow">
                             {item.agendas.map((agendaId) => {
-                                const agenda = agendas.find((agenda) => agenda._id === agendaId)
+                                const agenda = agendas.find((agenda) => agenda._id === agendaId);
 
                                 if (!agenda) {
-                                    return null
+                                    return null;
                                 }
 
                                 if (agenda._id === currentAgendaId) {
-                                    return null
+                                    return null;
                                 }
 
-                                let style = agenda.is_enabled ? 'label--primary label--hollow' : 'label--hollow'
+                                let style = agenda.is_enabled ? 'label--primary label--hollow' : 'label--hollow';
 
-                                return ( <span key={'agenda-label-'+ agenda._id}
+                                return (<span key={'agenda-label-' + agenda._id}
                                     className={`label ${style}`}
                                     onClick={(e) => {
-                                        e.stopPropagation()
-                                        onAgendaClick(agenda._id)
+                                        e.stopPropagation();
+                                        onAgendaClick(agenda._id);
                                     }}>
                                     {agenda.name}
-                                </span>)
+                                </span>);
                             })}
                         </span>
                     }
@@ -239,10 +242,10 @@ const PlanningItem = ({
                 }
             </div>
         </ListItem>
-    )
-}
+    );
+};
 
-const mapStateToProps = (state) => ({ currentAgendaId: getCurrentAgendaId(state) })
+const mapStateToProps = (state) => ({currentAgendaId: getCurrentAgendaId(state)});
 
 PlanningItem.propTypes = {
     item: PropTypes.object.isRequired,
@@ -274,6 +277,6 @@ PlanningItem.propTypes = {
     onAddCoverage: PropTypes.func,
     editPlanningViewOpen: PropTypes.bool,
     planningEditorReadOnly: PropTypes.bool,
-}
+};
 
-export default connect(mapStateToProps)(PlanningItem)
+export default connect(mapStateToProps)(PlanningItem);

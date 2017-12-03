@@ -1,8 +1,8 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { formValueSelector, isValid, isSubmitting, isPristine } from 'redux-form'
-import { connect } from 'react-redux'
-import * as actions from '../../actions'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {formValueSelector, isValid, isSubmitting, isPristine} from 'redux-form';
+import {connect} from 'react-redux';
+import * as actions from '../../actions';
 import {
     PlanningHistoryContainer,
     AuditInformation,
@@ -10,17 +10,17 @@ import {
     ItemActionsMenu,
     PlanningForm,
     LockContainer,
-} from '../'
-import * as selectors from '../../selectors'
-import { get } from 'lodash'
-import './style.scss'
+} from '../';
+import * as selectors from '../../selectors';
+import {get} from 'lodash';
+import './style.scss';
 import {
     getCreator,
     getLockedUser,
     planningUtils,
     isItemSpiked,
     isItemPublic,
-} from '../../utils'
+} from '../../utils';
 import {
     GENERIC_ITEM_ACTIONS,
     PRIVILEGES,
@@ -30,12 +30,11 @@ import {
     WORKSPACE,
     MODALS,
     FORM_NAMES,
-} from '../../constants'
+} from '../../constants';
 
 export class EditPlanningPanel extends React.Component {
-
     constructor(props) {
-        super(props)
+        super(props);
         this.state = {
             previewHistory: false,
 
@@ -45,30 +44,30 @@ export class EditPlanningPanel extends React.Component {
                 publish: false,
                 unpublish: false,
             },
-        }
+        };
 
-        this.handleSave = this.handleSave.bind(this)
-        this.saveAndClose = this.saveAndClose.bind(this)
-        this.cancelForm = this.cancelForm.bind(this)
+        this.handleSave = this.handleSave.bind(this);
+        this.saveAndClose = this.saveAndClose.bind(this);
+        this.cancelForm = this.cancelForm.bind(this);
     }
 
     onSubmit(planning) {
-        return this.props.onPlanningFormSave(planning, this.state.saveActions)
+        return this.props.onPlanningFormSave(planning, this.state.saveActions);
     }
 
     handleSave() {
         // Runs Validation on the form, then runs the above `onSubmit` function
         return this.refs.PlanningForm.getWrappedInstance().submit()
-        .then(() => {
+            .then(() => {
             // Restore the saveActions to save only
-            this.setState({
-                saveActions: {
-                    save: true,
-                    publish: false,
-                    unpublish: false,
-                },
-            })
-        })
+                this.setState({
+                    saveActions: {
+                        save: true,
+                        publish: false,
+                        unpublish: false,
+                    },
+                });
+            });
     }
 
     handleSaveAndPublish() {
@@ -79,7 +78,7 @@ export class EditPlanningPanel extends React.Component {
                 publish: true,
                 unpublish: false,
             },
-        }, this.handleSave)
+        }, this.handleSave);
     }
 
     handleSaveAndUnpublish() {
@@ -90,22 +89,23 @@ export class EditPlanningPanel extends React.Component {
                 publish: false,
                 unpublish: true,
             },
-        }, this.handleSave)
+        }, this.handleSave);
     }
 
     viewPlanningHistory() {
-        this.setState({ previewHistory: true })
+        this.setState({previewHistory: true});
     }
 
     closePlanningHistory() {
-        this.setState({ previewHistory: false })
+        this.setState({previewHistory: false});
     }
 
     saveAndClose() {
-        const { valid, closePlanningEditor, planning } = this.props
-        const rtn = this.handleSave()
+        const {valid, closePlanningEditor, planning} = this.props;
+        const rtn = this.handleSave();
+
         if (valid) {
-            rtn.then(closePlanningEditor.bind(this, planning))
+            rtn.then(closePlanningEditor.bind(this, planning));
         }
     }
 
@@ -116,12 +116,12 @@ export class EditPlanningPanel extends React.Component {
             openCancelModal,
             closePlanningEditor,
             currentWorkspace,
-        } = this.props
+        } = this.props;
 
         if (!pristine && currentWorkspace === WORKSPACE.PLANNING) {
-            openCancelModal(this.saveAndClose, closePlanningEditor.bind(this, planning))
+            openCancelModal(this.saveAndClose, closePlanningEditor.bind(this, planning));
         } else {
-            closePlanningEditor(planning)
+            closePlanningEditor(planning);
         }
     }
 
@@ -143,58 +143,58 @@ export class EditPlanningPanel extends React.Component {
             onRescheduleEvent,
             onConvertToRecurringEvent,
             onPostponeEvent,
-        } = this.props
+        } = this.props;
 
         if (currentWorkspace !== WORKSPACE.PLANNING || !get(planning, '_id')) {
-            return []
+            return [];
         }
 
         const actions = [{
-                ...GENERIC_ITEM_ACTIONS.SPIKE,
-                callback: onSpike.bind(null, planning),
-            },
-            {
-                ...GENERIC_ITEM_ACTIONS.UNSPIKE,
-                callback: onUnspike.bind(null, planning),
-            },
-            {
-                ...GENERIC_ITEM_ACTIONS.HISTORY,
-                callback: this.viewPlanningHistory.bind(this),
-            },
-            {
-                ...GENERIC_ITEM_ACTIONS.DUPLICATE,
-                callback: onDuplicate.bind(null, planning),
-            },
-            {
-                ...PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
-                callback: onCancelPlanning.bind(null, planning),
-            },
-            {
-                ...PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
-                callback: onCancelAllCoverage.bind(null, planning),
-            },
-            GENERIC_ITEM_ACTIONS.DIVIDER,
-            {
-                ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
-                callback: onCancelEvent.bind(null, event),
-            },
-            {
-                ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
-                callback: onUpdateEventTime.bind(null, event),
-            },
-            {
-                ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
-                callback: onRescheduleEvent.bind(null, event),
-            },
-            {
-                ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
-                callback: onConvertToRecurringEvent.bind(null, event),
-            },
-            {
-                ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
-                callback: onPostponeEvent.bind(null, event),
-            },
-        ]
+            ...GENERIC_ITEM_ACTIONS.SPIKE,
+            callback: onSpike.bind(null, planning),
+        },
+        {
+            ...GENERIC_ITEM_ACTIONS.UNSPIKE,
+            callback: onUnspike.bind(null, planning),
+        },
+        {
+            ...GENERIC_ITEM_ACTIONS.HISTORY,
+            callback: this.viewPlanningHistory.bind(this),
+        },
+        {
+            ...GENERIC_ITEM_ACTIONS.DUPLICATE,
+            callback: onDuplicate.bind(null, planning),
+        },
+        {
+            ...PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
+            callback: onCancelPlanning.bind(null, planning),
+        },
+        {
+            ...PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
+            callback: onCancelAllCoverage.bind(null, planning),
+        },
+        GENERIC_ITEM_ACTIONS.DIVIDER,
+        {
+            ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+            callback: onCancelEvent.bind(null, event),
+        },
+        {
+            ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+            callback: onUpdateEventTime.bind(null, event),
+        },
+        {
+            ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+            callback: onRescheduleEvent.bind(null, event),
+        },
+        {
+            ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
+            callback: onConvertToRecurringEvent.bind(null, event),
+        },
+        {
+            ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+            callback: onPostponeEvent.bind(null, event),
+        },
+        ];
 
         return planningUtils.getPlanningItemActions(
             planning,
@@ -203,10 +203,10 @@ export class EditPlanningPanel extends React.Component {
             privileges,
             actions,
             lockedItems
-        )
+        );
     }
 
-    /*eslint-disable complexity*/
+    /* eslint-disable complexity*/
     render() {
         const {
             closePlanningEditor,
@@ -224,25 +224,25 @@ export class EditPlanningPanel extends React.Component {
             lockedItems,
             currentWorkspace,
             unlockItem,
-        } = this.props
+        } = this.props;
 
-        const existingPlan = !!get(planning, '_id')
+        const existingPlan = !!get(planning, '_id');
 
-        const creationDate = get(planning, '_created')
-        const updatedDate = get(planning, '_updated')
+        const creationDate = get(planning, '_created');
+        const updatedDate = get(planning, '_updated');
 
-        const author = getCreator(planning, 'original_creator', users)
-        const versionCreator = getCreator(planning, 'version_creator', users)
+        const author = getCreator(planning, 'original_creator', users);
+        const versionCreator = getCreator(planning, 'version_creator', users);
 
-        const lockedUser = getLockedUser(planning, lockedItems, users)
-        const planningSpiked = isItemSpiked(planning)
-        const eventSpiked = isItemSpiked(event)
+        const lockedUser = getLockedUser(planning, lockedItems, users);
+        const planningSpiked = isItemSpiked(planning);
+        const eventSpiked = isItemSpiked(event);
 
-        const inPlanning = currentWorkspace === WORKSPACE.PLANNING
+        const inPlanning = currentWorkspace === WORKSPACE.PLANNING;
 
-        const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK]
+        const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK];
 
-        const itemActions = this.getPlanningActions()
+        const itemActions = this.getPlanningActions();
 
         // If the planning or event or agenda item is spiked,
         // or we don't hold a lock, enforce readOnly
@@ -251,14 +251,14 @@ export class EditPlanningPanel extends React.Component {
             eventSpiked ||
             planningSpiked ||
             !lockedInThisSession
-        )
+        );
 
-        const isPublic = isItemPublic(planning)
-        const canEdit = planningUtils.canEditPlanning(planning, event, session, privileges, lockedItems)
-        const canUpdate = planningUtils.canUpdatePlanning(planning, event, session, privileges, lockedItems)
-        const canPublish = planningUtils.canPublishPlanning(planning, event, session, privileges, lockedItems)
-        const canUnpublish = planningUtils.canUnpublishPlanning(planning, event, session, privileges, lockedItems)
-        const showEdit = inPlanning && canEdit
+        const isPublic = isItemPublic(planning);
+        const canEdit = planningUtils.canEditPlanning(planning, event, session, privileges, lockedItems);
+        const canUpdate = planningUtils.canUpdatePlanning(planning, event, session, privileges, lockedItems);
+        const canPublish = planningUtils.canPublishPlanning(planning, event, session, privileges, lockedItems);
+        const canUnpublish = planningUtils.canUnpublishPlanning(planning, event, session, privileges, lockedItems);
+        const showEdit = inPlanning && canEdit;
 
         return (
             <div className="EditPlanningPanel">
@@ -329,7 +329,7 @@ export class EditPlanningPanel extends React.Component {
                                     className={'EditPlanningPanel__actions__edit navbtn navbtn--right'
                                         + ' tooltipVisibleElement'}
                                     onClick={openPlanningEditor.bind(this, get(planning, '_id'))}
-                                    data-sd-tooltip={TOOLTIPS.edit} data-flow='down'>
+                                    data-sd-tooltip={TOOLTIPS.edit} data-flow="down">
                                     <i className="icon-pencil"/>
                                 </button>
                             }
@@ -339,7 +339,7 @@ export class EditPlanningPanel extends React.Component {
                                     className={'EditPlanningPanel__actions__edit navbtn navbtn--right'
                                         + ' tooltipVisibleElement'}
                                     onClick={closePlanningEditor.bind(null, null)}
-                                    data-sd-tooltip={TOOLTIPS.close} data-flow='down'>
+                                    data-sd-tooltip={TOOLTIPS.close} data-flow="down">
                                     <i className="icon-close-small"/>
                                 </button>
                             }
@@ -391,9 +391,9 @@ export class EditPlanningPanel extends React.Component {
                     </div>
                 }
             </div>
-        )
+        );
     }
-    /*eslint-enable*/
+    /* eslint-enable*/
 }
 
 EditPlanningPanel.propTypes = {
@@ -430,9 +430,9 @@ EditPlanningPanel.propTypes = {
     openCancelModal: PropTypes.func.isRequired,
     currentWorkspace: PropTypes.string,
     onPlanningFormSave: PropTypes.func,
-}
+};
 
-const selector = formValueSelector(FORM_NAMES.PlanningForm) // Selector for the Planning form
+const selector = formValueSelector(FORM_NAMES.PlanningForm); // Selector for the Planning form
 const mapStateToProps = (state) => ({
     planning: selectors.getCurrentPlanning(state),
     event: selectors.getCurrentPlanningEvent(state),
@@ -447,11 +447,11 @@ const mapStateToProps = (state) => ({
     valid: isValid(FORM_NAMES.PlanningForm)(state),
     submitting: isSubmitting(FORM_NAMES.PlanningForm)(state),
     currentWorkspace: selectors.getCurrentWorkspace(state),
-})
+});
 
 const mapDispatchToProps = (dispatch) => ({
     closePlanningEditor: (planning) => dispatch(actions.planning.ui.closeEditor(planning)),
-    openPlanningEditor: (planning) => (dispatch(actions.planning.ui.openEditor({ _id: planning }))),
+    openPlanningEditor: (planning) => (dispatch(actions.planning.ui.openEditor({_id: planning}))),
     unlockItem: (planning) => (dispatch(actions.planning.ui.unlockAndOpenEditor(planning))),
 
     onDuplicate: (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
@@ -478,9 +478,9 @@ const mapDispatchToProps = (dispatch) => ({
 
     onPlanningFormSave: (planning, saveActions) =>
         dispatch(actions.planning.ui.onPlanningFormSave(planning, saveActions)),
-})
+});
 
 export const EditPlanningPanelContainer = connect(
     mapStateToProps, mapDispatchToProps
 // connect to the form in order to have pristine and submitting in props
-)(EditPlanningPanel)
+)(EditPlanningPanel);

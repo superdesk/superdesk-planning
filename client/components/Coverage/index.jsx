@@ -1,11 +1,11 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
-import { EditAssignment, CoverageDetails } from '../../components'
-import * as selectors from '../../selectors'
-import { FORM_NAMES } from '../../constants'
-import { Field, formValueSelector } from 'redux-form'
-import './style.scss'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {EditAssignment, CoverageDetails} from '../../components';
+import * as selectors from '../../selectors';
+import {FORM_NAMES} from '../../constants';
+import {Field, formValueSelector} from 'redux-form';
+import './style.scss';
 
 function CoverageComponent({
     coverage,
@@ -21,7 +21,7 @@ function CoverageComponent({
     assignmentState,
     hasAssignment,
     coverageId,
-    }) {
+}) {
     return (
         <fieldset>
             <Field
@@ -38,13 +38,13 @@ function CoverageComponent({
                 coverage={coverage}
                 formProfile={formProfile}
                 readOnly={readOnly}
-                content_type={content_type}
+                content_type={content_type} // eslint-disable-line camelcase
                 assignmentState={assignmentState}
                 hasAssignment={hasAssignment}
                 coverageId={coverageId}
                 keywords={keywords} />
         </fieldset>
-    )
+    );
 }
 
 CoverageComponent.propTypes = {
@@ -61,9 +61,9 @@ CoverageComponent.propTypes = {
     assignmentState: PropTypes.string,
     hasAssignment: PropTypes.bool,
     coverageId: PropTypes.string,
-}
+};
 
-const selector = formValueSelector(FORM_NAMES.PlanningForm) // same as form name
+const selector = formValueSelector(FORM_NAMES.PlanningForm); // same as form name
 const mapStateToProps = (state, ownProps) => ({
     users: selectors.getUsers(state),
     currentUserId: selectors.getCurrentUserId(state),
@@ -74,6 +74,6 @@ const mapStateToProps = (state, ownProps) => ({
     formProfile: selectors.getCoverageFormsProfile(state),
     keywords: selectors.getKeywords(state),
     assignmentPriorities: selectors.getAssignmentPriorities(state),
-})
+});
 
-export const Coverage = connect(mapStateToProps)(CoverageComponent)
+export const Coverage = connect(mapStateToProps)(CoverageComponent);

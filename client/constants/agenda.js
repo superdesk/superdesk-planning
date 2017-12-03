@@ -9,4 +9,4 @@ export const AGENDA = {
         NO_AGENDA_ASSIGNED: 'NO_AGENDA_ASSIGNED',
         ALL_PLANNING: 'ALL_PLANNING',
     },
-}
+};

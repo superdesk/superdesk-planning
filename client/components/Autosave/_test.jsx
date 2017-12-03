@@ -1,13 +1,13 @@
 import React from 'react';
-import { mount } from 'enzyme';
+import {mount} from 'enzyme';
 import sinon from 'sinon';
-import { Provider } from 'react-redux';
-import { Autosave } from './index';
-import { createTestStore } from '../../utils';
-import { getTestActionStore, restoreSinonStub } from '../../utils/testUtils';
-import { autosave } from '../../actions';
-import { reduxForm, Field, initialize } from 'redux-form';
-import * as helpers from '../tests/helpers'
+import {Provider} from 'react-redux';
+import {Autosave} from './index';
+import {createTestStore} from '../../utils';
+import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
+import {autosave} from '../../actions';
+import {reduxForm, Field, initialize} from 'redux-form';
+import * as helpers from '../tests/helpers';
 
 describe('<Autosave />', () => {
     let formName;
@@ -35,8 +35,9 @@ describe('<Autosave />', () => {
         </form>
     );
 
-    const getWrapper = (values={}) => {
-        const TestForm = reduxForm({ form: formName })(TestFormComponent);
+    const getWrapper = (values = {}) => {
+        const TestForm = reduxForm({form: formName})(TestFormComponent);
+
         return mount(
             <Provider store={store}>
                 <TestForm
@@ -79,16 +80,16 @@ describe('<Autosave />', () => {
 
     it('doesnt load from autosave if a new object is provided', () => {
         initStore();
-        getWrapper({ slugline: 'new slugline' });
+        getWrapper({slugline: 'new slugline'});
         expect(autosave.load.callCount).toBe(0);
         expect(getAutosave()).toEqual({});
     });
 
     it('loads the autosave on mount', () => {
-        autosaveData = { e1: { slugline: 'New Slugline' } };
+        autosaveData = {e1: {slugline: 'New Slugline'}};
         initStore();
 
-        expect(getAutosave()).toEqual({ e1: { slugline: 'New Slugline' } });
+        expect(getAutosave()).toEqual({e1: {slugline: 'New Slugline'}});
 
         const wrapper = getWrapper(data.events[0]);
         const form = new helpers.form(wrapper);
@@ -96,7 +97,7 @@ describe('<Autosave />', () => {
         expect(autosave.load.callCount).toBe(1);
         expect(autosave.load.args[0]).toEqual([formName, data.events[0]._id]);
 
-        expect(form.getValue('slugline')).toBe('New Slugline')
+        expect(form.getValue('slugline')).toBe('New Slugline');
     });
 
     it('changes to values get stored in redux', () => {
@@ -132,14 +133,14 @@ describe('<Autosave />', () => {
         expect(autosave.save.callCount).toBe(1);
         setTimeout(() => {
             expect(autosave.save.callCount).toBe(2);
-            done()
+            done();
         }, 1500);
     });
 
     it('switching form objects', () => {
         initStore();
 
-        const wrapper = getWrapper(data.events[0])
+        const wrapper = getWrapper(data.events[0]);
         const form = new helpers.form(wrapper);
         const slugline = form.field('slugline');
 
@@ -153,9 +154,9 @@ describe('<Autosave />', () => {
                 _id: 'e1',
                 slugline: 'New Slugline 1',
             },
-        })
+        });
 
-        store.dispatch(initialize(formName, data.events[1]))
+        store.dispatch(initialize(formName, data.events[1]));
 
         expect(autosave.load.callCount).toBe(2);
         expect(autosave.load.args[1]).toEqual([formName, data.events[1]._id]);
@@ -172,9 +173,9 @@ describe('<Autosave />', () => {
                 _id: 'e2',
                 slugline: 'New Slugline 2',
             },
-        })
+        });
 
-        store.dispatch(initialize(formName, { slugline: 'New Form Object'}))
+        store.dispatch(initialize(formName, {slugline: 'New Form Object'}));
 
         slugline.setValue('Wont Save Autosave');
         expect(autosave.save.callCount).toBe(2);
@@ -188,6 +189,6 @@ describe('<Autosave />', () => {
                 _id: 'e2',
                 slugline: 'New Slugline 2',
             },
-        })
-    })
+        });
+    });
 });

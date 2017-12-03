@@ -1,5 +1,5 @@
 import React from 'react';
-import { gettext } from '../utils';
+import {gettext} from '../utils';
 
 function HistoryTab() {
     const items = [

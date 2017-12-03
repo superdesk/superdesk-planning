@@ -6,11 +6,12 @@ import Datetime from './Datetime';
 class ListGroupItem extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { hover: false };
+        this.state = {hover: false};
     }
 
     render() {
         const {item, onClick} = this.props;
+
         return (
             <div className="sd-list-item sd-shadow--z1" onClick={onClick}>
                 <div className="sd-list-item__border" />
@@ -36,7 +37,7 @@ class ListGroupItem extends React.Component {
                     </button>
                 </div>
             </div>
-        )
+        );
     }
 }
 

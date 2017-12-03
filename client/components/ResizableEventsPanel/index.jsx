@@ -1,101 +1,105 @@
-import React from 'react'
-import { connect } from 'react-redux'
-import $ from 'jquery'
-import 'jquery-ui/ui/core'
-import 'jquery-ui/ui/resizable'
-import 'jquery-ui/themes/base/resizable.css'
-import { get } from 'lodash'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import $ from 'jquery';
+import 'jquery-ui/ui/core';
+import 'jquery-ui/ui/resizable';
+import 'jquery-ui/themes/base/resizable.css';
+import {get} from 'lodash';
 
 export class ResizableEventsPanelComponent extends React.Component {
-
     constructor(props) {
-        super(props)
-        this._onResize = this._onResize.bind(this)
+        super(props);
+        this._onResize = this._onResize.bind(this);
     }
 
-    _onResize(delay=0) {
-        let thisNode = $(this.refs.panel)
-        let nextElement = thisNode.next()
-        let windowWidth = $(window).width()
-        let thisOffset = thisNode.offset()
-        let rightBorder = parseInt(thisNode.css('border-right-width'))
-        //Fix for firefox, if no 'delay', don't use setTimeout()
+    _onResize(delay = 0) {
+        let thisNode = $(this.refs.panel);
+        let nextElement = thisNode.next();
+        let windowWidth = $(window).width();
+        let thisOffset = thisNode.offset();
+        let rightBorder = parseInt(thisNode.css('border-right-width'), 10);
+        // Fix for firefox, if no 'delay', don't use setTimeout()
+
         if (!delay) {
             nextElement.css({
                 width: (windowWidth - (thisNode.width() + thisOffset.left + rightBorder)),
                 left: (thisNode.width() + rightBorder),
-            })
+            });
         } else {
-            let timeout
+            let timeout;
             // use setTimeout to adjust for transition effects and rate limit
             // tried to use lodash debounce here, but it never seemed to work
-            clearTimeout(timeout)
+
+            clearTimeout(timeout);
             timeout = setTimeout(() => {
                 nextElement.css({
                     width: (windowWidth - (thisNode.width() + thisOffset.left + rightBorder)),
                     left: (thisNode.width() + rightBorder),
-                })
-            }, delay)
+                });
+            }, delay);
         }
     }
 
     componentDidMount() {
-        let thisNode = $(this.refs.panel)
-        let container = $(thisNode).parent()
-        let children = $(thisNode).children()
+        let thisNode = $(this.refs.panel);
+        let container = $(thisNode).parent();
+        let children = $(thisNode).children();
+
         $(thisNode).resizable({
             handles: 'e',
             minWidth: this.props.minWidth,
             maxWidth: this.props.maxWidth,
             start: () => {
                 // suspend transition effects
-                container.addClass('no-transition')
-                children.addClass('no-transition')
-                $(thisNode).addClass('no-transition')
+                container.addClass('no-transition');
+                children.addClass('no-transition');
+                $(thisNode).addClass('no-transition');
             },
             resize: () => {
                 // adjust width of next element
-                this._onResize()
+                this._onResize();
             },
             stop: () => {
                 // re-enable transition effects
-                container.removeClass('no-transition')
-                children.removeClass('no-transition')
-                $(thisNode).removeClass('no-transition')
+                container.removeClass('no-transition');
+                children.removeClass('no-transition');
+                $(thisNode).removeClass('no-transition');
             },
-        })
+        });
         // call resize once to initialy set width of next element
-        this._onResize()
-        window.addEventListener('resize', this._onResize)
+        this._onResize();
+        window.addEventListener('resize', this._onResize);
     }
 
     componentWillUnmont() {
-        window.removeEventListener('resize', this._onResize)
+        window.removeEventListener('resize', this._onResize);
     }
 
     componentDidUpdate(prevProps) {
         // call resize for showEvents prop changes
         if (prevProps.showEvents !== this.props.showEvents) {
-            this._onResize(500)
+            this._onResize(500);
         }
     }
 
     render() {
-        return <div ref='panel' className={this.props.className}>
+        return <div ref="panel" className={this.props.className}>
             {this.props.children}
-        </div>
+        </div>;
     }
 }
 
 ResizableEventsPanelComponent.propTypes = {
-    children: React.PropTypes.oneOfType([
-        React.PropTypes.array,
-        React.PropTypes.element,
+    children: PropTypes.oneOfType([
+        PropTypes.array,
+        PropTypes.element,
     ]).isRequired,
-    minWidth: React.PropTypes.number,
-    maxWidth: React.PropTypes.number,
-    className: React.PropTypes.string,
-    showEvents: React.PropTypes.bool,
-}
-const mapStateToProps = (state) => ({ showEvents: get(state, 'events.show', true) })
-export const ResizableEventsPanel = connect(mapStateToProps)(ResizableEventsPanelComponent)
+    minWidth: PropTypes.number,
+    maxWidth: PropTypes.number,
+    className: PropTypes.string,
+    showEvents: PropTypes.bool,
+};
+const mapStateToProps = (state) => ({showEvents: get(state, 'events.show', true)});
+
+export const ResizableEventsPanel = connect(mapStateToProps)(ResizableEventsPanelComponent);

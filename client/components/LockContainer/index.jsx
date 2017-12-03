@@ -1,19 +1,19 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import classNames from 'classnames'
-import { get } from 'lodash'
-import { UserAvatar, UnlockItem } from '../'
-import './style.scss'
+import React from 'react';
+import PropTypes from 'prop-types';
+import classNames from 'classnames';
+import {get} from 'lodash';
+import {UserAvatar, UnlockItem} from '../';
+import './style.scss';
 
 export class LockContainer extends React.Component {
     constructor(props) {
-        super(props)
-        this.state = { openUnlockPopup: false }
-        this.toggleOpenUnlockPopup = this.toggleOpenUnlockPopup.bind(this)
+        super(props);
+        this.state = {openUnlockPopup: false};
+        this.toggleOpenUnlockPopup = this.toggleOpenUnlockPopup.bind(this);
     }
 
     toggleOpenUnlockPopup() {
-        this.setState({ openUnlockPopup: !this.state.openUnlockPopup })
+        this.setState({openUnlockPopup: !this.state.openUnlockPopup});
     }
 
     render() {
@@ -24,26 +24,26 @@ export class LockContainer extends React.Component {
             showUnlock,
             withLoggedInfo,
             onUnlock,
-        } = this.props
+        } = this.props;
 
         const user = get(lockedUser, 'display_name') ?
             lockedUser :
-            users.find((u) => u._id === lockedUser)
+            users.find((u) => u._id === lockedUser);
 
         if (!user) {
-            return null
+            return null;
         }
 
         return (
             <div className={classNames(
-                    'LockContainer',
-                    'dropdown',
-                    'dropdown--dropright',
-                    { open: this.state.openUnlockPopup }
-                )} >
+                'LockContainer',
+                'dropdown',
+                'dropdown--dropright',
+                {open: this.state.openUnlockPopup}
+            )} >
                 <div className="lock-avatar">
                     <button
-                        type='button'
+                        type="button"
                         onClick={this.toggleOpenUnlockPopup} >
                         <UserAvatar
                             user={user}
@@ -60,7 +60,7 @@ export class LockContainer extends React.Component {
                     }
                 </div>
             </div>
-        )
+        );
     }
 }
 
@@ -74,9 +74,9 @@ LockContainer.propTypes = {
     showUnlock: PropTypes.bool,
     withLoggedInfo: PropTypes.bool,
     onUnlock: PropTypes.func,
-}
+};
 
 LockContainer.defaultProps = {
     showUnlock: true,
     withLoggedInfo: true,
-}
+};

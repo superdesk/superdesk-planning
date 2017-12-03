@@ -1,10 +1,10 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import classNames from 'classnames'
-import moment from 'moment-timezone'
-import { get } from 'lodash'
-import { getCoverageIcon, getCreator } from '../../utils'
-import { UserAvatar, AbsoluteDate, ItemActionsMenu } from '../../components'
+import React from 'react';
+import PropTypes from 'prop-types';
+import classNames from 'classnames';
+import moment from 'moment-timezone';
+import {get} from 'lodash';
+import {getCoverageIcon, getCreator} from '../../utils';
+import {UserAvatar, AbsoluteDate, ItemActionsMenu} from '../../components';
 
 export const CoverageListItem = ({
     coverage,
@@ -14,17 +14,18 @@ export const CoverageListItem = ({
     actions,
     readOnly,
 }) => {
-    const userAssigned = getCreator(coverage, 'assigned_to.user', users)
+    const userAssigned = getCreator(coverage, 'assigned_to.user', users);
     const deskAssigned = desks.find((d) =>
-            d._id === get(coverage, 'assigned_to.desk'))
-    const coverageDate = get(coverage, 'planning.scheduled')
+        d._id === get(coverage, 'assigned_to.desk'));
+    const coverageDate = get(coverage, 'planning.scheduled');
     const classes = classNames(
         getCoverageIcon(get(coverage, 'planning.g2_content_type')),
         {
             'icon--green': coverageDate && moment(coverageDate).isAfter(moment()),
             'icon--red': coverageDate && !moment(coverageDate).isAfter(moment()),
         }
-    )
+    );
+
     return (
         <div className="ListItem sd-list-item sd-shadow--z2" onClick={onClick}>
             <div className="sd-list-item__border"/>
@@ -38,8 +39,8 @@ export const CoverageListItem = ({
                     </span>
                     <i className="icon-time"/>
                     {coverageDate ?
-                    <AbsoluteDate date={coverageDate.toString()} /> :
-                    <time><span>Not scheduled yet</span></time>
+                        <AbsoluteDate date={coverageDate.toString()} /> :
+                        <time><span>Not scheduled yet</span></time>
                     }
                 </div>
             </div>
@@ -48,8 +49,8 @@ export const CoverageListItem = ({
                 actions.length > 0 && <ItemActionsMenu actions={actions}/>}
             </div>
         </div>
-    )
-}
+    );
+};
 
 CoverageListItem.propTypes = {
     coverage: PropTypes.object.isRequired,
@@ -58,4 +59,4 @@ CoverageListItem.propTypes = {
     onClick: PropTypes.func.isRequired,
     actions: PropTypes.array,
     readOnly: PropTypes.bool.isRequired,
-}
+};

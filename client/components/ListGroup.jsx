@@ -4,12 +4,9 @@ import PropTypes from 'prop-types';
 import ListGroupItem from './ListGroupItem';
 
 class ListGroup extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         const {name, items} = this.props;
+
         return (
             <div>
                 <div className="sd-list-header">
@@ -35,4 +32,4 @@ ListGroup.propTypes = {
     onItemClick: PropTypes.func.isRequired,
 };
 
-export default ListGroup
+export default ListGroup;

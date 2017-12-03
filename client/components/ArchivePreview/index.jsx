@@ -1,58 +1,61 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { connect } from 'react-redux'
-import { get, map } from 'lodash'
-import classNames from 'classnames'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+import {get, map} from 'lodash';
+import classNames from 'classnames';
 
-import { AuditInformation, HtmlPreview, StateLabel, ItemRendition, PriorityLabel, UrgencyLabel } from '../'
-import { getCreator } from '../../utils'
-import * as actions from '../../actions'
-import * as selectors from '../../selectors'
+import {AuditInformation, HtmlPreview, StateLabel, ItemRendition, PriorityLabel, UrgencyLabel} from '../';
+import {getCreator} from '../../utils';
+import * as actions from '../../actions';
+import * as selectors from '../../selectors';
 
-import './style.scss'
+import './style.scss';
 
 class ArchivePreviewComponent extends React.Component {
     constructor(props) {
-        super(props)
-        this.state = { headerOpen: true }
-        this.toggleHeader = this.toggleHeader.bind(this)
+        super(props);
+        this.state = {headerOpen: true};
+        this.toggleHeader = this.toggleHeader.bind(this);
     }
 
     componentDidMount() {
         // When mounting this component, if the Assignment item is set
         // then load the associated Archive item now
-        const { assignment, loadArchiveItem } = this.props
+        const {assignment, loadArchiveItem} = this.props;
+
         if (get(assignment, '_id', null) !== null) {
-            loadArchiveItem(assignment)
+            loadArchiveItem(assignment);
         }
     }
 
     componentWillReceiveProps(nextProps) {
         // If the Assignment item has changed, then load the associated Archive item
-        const nextId = get(nextProps, 'assignment._id', null)
-        const currentId = get(this.props, 'assignment._id', null)
+        const nextId = get(nextProps, 'assignment._id', null);
+        const currentId = get(this.props, 'assignment._id', null);
+
         if (nextId !== currentId) {
-            this.props.loadArchiveItem(nextProps.assignment)
+            this.props.loadArchiveItem(nextProps.assignment);
         }
     }
 
     toggleHeader() {
-        this.setState({ headerOpen: !this.state.headerOpen })
+        this.setState({headerOpen: !this.state.headerOpen});
     }
 
     render() {
-        const { archive, users, priorities } = this.props
+        const {archive, users, priorities} = this.props;
 
         if (archive === null) {
-            return null
+            return null;
         }
 
-        const createdBy = getCreator(archive, 'original_creator', users)
-        const updatedBy = getCreator(archive, 'version_creator', users)
-        const creationDate = get(archive, '_created')
-        const updatedDate = get(archive, '_updated')
-        const versionCreator = get(updatedBy, 'display_name') ? updatedBy : users.find((user) => user._id === updatedBy)
-        const archiveType = get(archive, 'type', 'text')
+        const createdBy = getCreator(archive, 'original_creator', users);
+        const updatedBy = getCreator(archive, 'version_creator', users);
+        const creationDate = get(archive, '_created');
+        const updatedDate = get(archive, '_updated');
+        const versionCreator = get(updatedBy, 'display_name') ? updatedBy :
+            users.find((user) => user._id === updatedBy);
+        const archiveType = get(archive, 'type', 'text');
 
         return (
             <div className="ArchivePreview content">
@@ -72,7 +75,7 @@ class ArchivePreviewComponent extends React.Component {
                     'side-panel__content-block',
                     'side-panel__content-block--pad-small',
                     'side-panel__content-block--flex',
-                    { active: this.state.headerOpen }
+                    {active: this.state.headerOpen}
                 )}>
                     {this.state.headerOpen &&
                         <div className="ArchivePreview__header-left side-panel__content-block-inner">
@@ -103,7 +106,8 @@ class ArchivePreviewComponent extends React.Component {
                         </div>}
 
                     {this.state.headerOpen &&
-                        <div className="ArchivePreview__header-middle side-panel__content-block-inner side-panel__content-block-inner--grow">
+                        <div className="ArchivePreview__header-middle side-panel__content-block-inner
+                        side-panel__content-block-inner--grow">
                             {get(archive, 'slugline') &&
                                 <HtmlPreview className="sd-text__slugline" html={archive.slugline}/>
                             }
@@ -157,7 +161,8 @@ class ArchivePreviewComponent extends React.Component {
                         </div>}
 
                     {this.state.headerOpen &&
-                        <div className="ArchivePreview__header-right side-panel__content-block-inner side-panel__content-block-inner--right">
+                        <div className="ArchivePreview__header-right side-panel__content-block-inner
+                        side-panel__content-block-inner--right">
                             {archiveType === 'text' &&
                                 <div>
                                     <span className="word-count">
@@ -188,13 +193,14 @@ class ArchivePreviewComponent extends React.Component {
 
                     <button className={classNames(
                         'preview-header__toggle',
-                        { active: !this.state.headerOpen }
+                        {active: !this.state.headerOpen}
                     )}>
                         <i className="icon-chevron-up-thin" onClick={this.toggleHeader} />
                     </button>
                 </div>
 
-                <div className="ArchivePreview__content side-panel__content-block side-panel__content-block--pad-small">
+                <div className="ArchivePreview__content side-panel__content-block
+                side-panel__content-block--pad-small">
                     {archiveType !== 'composite' && get(archive, 'headline') &&
                         <div>
                             <span className="headline">{archive.headline}</span>
@@ -238,16 +244,22 @@ class ArchivePreviewComponent extends React.Component {
                             </div>
                         }
 
-                        {get(archive, 'abstract') && <HtmlPreview className="text abstract" html={archive.abstract}/>}
-                        {get(archive, 'byline') && <HtmlPreview className="text byline" html={archive.byline}/>}
-                        {get(archive, 'dateline.text') && <HtmlPreview className="text dateline" html={archive.dateline.text}/>}
-                        {get(archive, 'body_html') && <HtmlPreview className="text body-text" html={archive.body_html}/>}
-                        {get(archive, 'body_footer') && <HtmlPreview className="text body-footer" html={archive.body_footer}/>}
-                        {get(archive, 'sign_off') && <HtmlPreview className="text sign-off" html={archive.sign_off}/>}
+                        {get(archive, 'abstract') &&
+                        <HtmlPreview className="text abstract" html={archive.abstract}/>}
+                        {get(archive, 'byline') &&
+                        <HtmlPreview className="text byline" html={archive.byline}/>}
+                        {get(archive, 'dateline.text') &&
+                        <HtmlPreview className="text dateline" html={archive.dateline.text}/>}
+                        {get(archive, 'body_html') &&
+                        <HtmlPreview className="text body-text" html={archive.body_html}/>}
+                        {get(archive, 'body_footer') &&
+                        <HtmlPreview className="text body-footer" html={archive.body_footer}/>}
+                        {get(archive, 'sign_off') &&
+                        <HtmlPreview className="text sign-off" html={archive.sign_off}/>}
                     </div>
                 </div>
             </div>
-        )
+        );
     }
 }
 
@@ -260,20 +272,20 @@ ArchivePreviewComponent.propTypes = {
     assignment: PropTypes.object,
     loadArchiveItem: PropTypes.func,
     priorities: PropTypes.array,
-}
+};
 
 const mapStateToProps = (state) => ({
     assignment: selectors.getCurrentAssignment(state),
     archive: selectors.getCurrentAssignmentArchiveItem(state),
     users: selectors.getUsers(state),
     priorities: selectors.getArchivePriorities(state),
-})
+});
 
 const mapDispatchToProps = (dispatch) => (
-    { loadArchiveItem: (assignment) => dispatch(actions.assignments.api.loadArchiveItem(assignment)) }
-)
+    {loadArchiveItem: (assignment) => dispatch(actions.assignments.api.loadArchiveItem(assignment))}
+);
 
 export const ArchivePreview = connect(
     mapStateToProps,
     mapDispatchToProps
-)(ArchivePreviewComponent)
+)(ArchivePreviewComponent);

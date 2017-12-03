@@ -1,16 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { change as _change } from 'redux-form';
+import {connect} from 'react-redux';
+import {change as _change} from 'redux-form';
 import * as actions from '../../actions';
-import { AUTOSAVE } from '../../constants'
-import { forEach, isEqual, get, throttle } from 'lodash';
+import {AUTOSAVE} from '../../constants';
+import {forEach, isEqual, get, throttle} from 'lodash';
 
 export class AutosaveComponent extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = { diff: {} };
+        this.state = {diff: {}};
 
         this.load = this.load.bind(this);
         this.save = this.save.bind(this);
@@ -24,7 +24,7 @@ export class AutosaveComponent extends React.Component {
 
     reset(nextProps) {
         // Reset the diff state (will be re-calculated on load)
-        this.setState({ diff: {} });
+        this.setState({diff: {}});
 
         // Make sure we execute the last save request
         if (get(this, 'throttledSave.flush')) {
@@ -42,10 +42,11 @@ export class AutosaveComponent extends React.Component {
 
     load(props) {
         if (!get(props, 'initialValues._id')) {
-            return
+            return;
         }
 
         const changes = this.props.load(props.initialValues._id);
+
         this.changeValues(changes, props);
     }
 
@@ -55,9 +56,9 @@ export class AutosaveComponent extends React.Component {
         );
     }
 
-    changeValues(changes, props, updateFormValues=true) {
-        const { initialValues, currentValues } = props;
-        const diff = { _id: initialValues._id };
+    changeValues(changes, props, updateFormValues = true) {
+        const {initialValues, currentValues} = props;
+        const diff = {_id: initialValues._id};
 
         forEach(changes, (value, key) => {
             if (!key.startsWith('_') && !key.startsWith('lock_') && !isEqual(value, get(initialValues, key))) {
@@ -71,7 +72,7 @@ export class AutosaveComponent extends React.Component {
             }
         });
 
-        this.setState({ diff });
+        this.setState({diff});
         return diff;
     }
 
@@ -118,7 +119,7 @@ AutosaveComponent.propTypes = {
 };
 /* eslint-enable react/no-unused-prop-types */
 
-AutosaveComponent.defaultProps = { interval: AUTOSAVE.INTERVAL };
+AutosaveComponent.defaultProps = {interval: AUTOSAVE.INTERVAL};
 
 const mapStateToProps = (state, ownProps) => ({
     initialValues: get(state, `form.${ownProps.formName}.initial`),

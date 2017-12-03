@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { gettext } from '../utils';
+import {gettext} from '../utils';
 
 import SubnavSpacer from './SubnavSpacer';
 import SubnavCheckbox from './SubnavCheckbox';
@@ -9,7 +9,7 @@ import AgendaSubnavDropdown from './AgendaSubnavDropdown';
 const EVENTS_FILTER = 'EVENTS';
 const PLANNING_FILTER = 'PLANNING';
 
-function FiltersBox({ activeFilter, setFilter }) {
+function FiltersBox({activeFilter, setFilter}) {
     const filters = [
         {
             label: gettext('Events & Planning'),

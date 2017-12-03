@@ -1,5 +1,5 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import React from 'react';
+import PropTypes from 'prop-types';
 import {
     ListItem,
     UserAvatar,
@@ -8,14 +8,14 @@ import {
     ItemActionsMenu,
     Label,
     PriorityLabel,
-} from '../index'
-import { List } from '../UI'
-import classNames from 'classnames'
-import moment from 'moment'
-import { get } from 'lodash'
-import { getCoverageIcon, assignmentUtils, gettext } from '../../utils/index'
-import { ASSIGNMENTS } from '../../constants'
-import './style.scss'
+} from '../index';
+import {List} from '../UI';
+import classNames from 'classnames';
+import moment from 'moment';
+import {get} from 'lodash';
+import {getCoverageIcon, assignmentUtils, gettext} from '../../utils/index';
+import {ASSIGNMENTS} from '../../constants';
+import './style.scss';
 
 export const AssignmentItem = ({
     assignment,
@@ -35,7 +35,7 @@ export const AssignmentItem = ({
     priorities,
     removeAssignment,
 }) => {
-    const isItemLocked = get(lockedItems, 'assignments') && assignment._id in lockedItems.assignments
+    const isItemLocked = get(lockedItems, 'assignments') && assignment._id in lockedItems.assignments;
 
     const actions = [
         {
@@ -58,7 +58,7 @@ export const AssignmentItem = ({
             ...ASSIGNMENTS.ITEM_ACTIONS.REMOVE,
             callback: removeAssignment.bind(null, assignment),
         },
-    ]
+    ];
 
     const itemActions = inAssignments && !isItemLocked ?
         assignmentUtils.getAssignmentItemActions(
@@ -66,9 +66,9 @@ export const AssignmentItem = ({
             session,
             privileges,
             actions
-        ) : []
+        ) : [];
 
-    const isAssignmentInUse = assignmentUtils.isAssignmentInUse(assignment)
+    const isAssignmentInUse = assignmentUtils.isAssignmentInUse(assignment);
 
     return (
         <ListItem
@@ -101,10 +101,10 @@ export const AssignmentItem = ({
                     <StateLabel item={assignment.assigned_to} />
                     {isAssignmentInUse && <Label text="Content" isHollow={true} iconType="darkBlue2" /> }
                     <span className="ListItem__headline">
-                            <i className="icon-time"/>
-                            {get(assignment, 'planning.scheduled') ? (
-                                <AbsoluteDate date={get(assignment, 'planning.scheduled').toString()} />
-                            ) : (<time><span>{gettext('\'not scheduled yet\'')}</span></time>)}
+                        <i className="icon-time"/>
+                        {get(assignment, 'planning.scheduled') ? (
+                            <AbsoluteDate date={get(assignment, 'planning.scheduled').toString()} />
+                        ) : (<time><span>{gettext('\'not scheduled yet\'')}</span></time>)}
                     </span>
                 </List.Row>
             </List.Column>
@@ -116,7 +116,7 @@ export const AssignmentItem = ({
             <List.Column border={false}>
                 <span className="ListItem__headline">
                     <UserAvatar
-                        user={assignedUser || { display_name: '*' }}
+                        user={assignedUser || {display_name: '*'}}
                         large={false}
                         withLoggedInfo={isCurrentUser}
                         isLoggedIn={isCurrentUser}
@@ -127,8 +127,8 @@ export const AssignmentItem = ({
                 {itemActions.length > 0 && <ItemActionsMenu actions={itemActions} />}
             </List.ActionMenu>
         </ListItem>
-    )
-}
+    );
+};
 
 AssignmentItem.propTypes = {
     assignment: PropTypes.object.isRequired,
@@ -147,4 +147,4 @@ AssignmentItem.propTypes = {
     startWorking: PropTypes.func,
     priorities: PropTypes.array,
     removeAssignment: PropTypes.func,
-}
+};
