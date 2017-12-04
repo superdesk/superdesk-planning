@@ -26,4 +26,12 @@ export default angular.module('superdesk.planning', [])
             controller: ctrl.AssignmentController,
         })
     )
+    .directive('sdAssignmentPreview',
+        () => ({
+            scope: {item: '='},
+            bindToController: true,
+            controllerAs: 'vm',
+            controller: ctrl.AssignmentPreviewController,
+        })
+    )
     .service('sdPlanningStore', svc.PlanningStoreService);
