@@ -431,7 +431,7 @@ Feature: Assignment Unlink
         """
 
     @auth
-    Scenario: Cannot unlink if the Assignment is locked
+    Scenario: Cannot unlink if the Assignment is locked by another user
         When we post to "/archive" with success
         """
         [{
@@ -479,6 +479,7 @@ Feature: Assignment Unlink
         """
         {"lock_action": "edit"}
         """
+        When we switch user
         When we post to "assignments/unlink"
         """
         [{
@@ -488,7 +489,7 @@ Feature: Assignment Unlink
         """
         Then we get error 403
         """
-        {"_message": "Assignment is locked. Cannot unlink assignment and content."}
+        {"_message": "Assignment is locked by another user. Cannot unlink assignment and content."}
         """
 
     @auth

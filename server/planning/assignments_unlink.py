@@ -73,13 +73,25 @@ class AssignmentsUnlinkService(Service):
             _id=doc.get('assignment_id')
         )
 
+        user = get_user(required=True)
+        user_id = user.get(config.ID_FIELD)
+
+        session = get_auth()
+        session_id = session.get(config.ID_FIELD)
+
         if not assignment:
             raise SuperdeskApiError.badRequestError('Assignment not found.')
 
         if assignment.get(LOCK_USER):
-            raise SuperdeskApiError.forbiddenError(
-                'Assignment is locked. Cannot unlink assignment and content.'
-            )
+            if str(assignment.get(LOCK_USER)) != str(user_id):
+                raise SuperdeskApiError.forbiddenError(
+                    'Assignment is locked by another user. Cannot unlink assignment and content.'
+                )
+
+            if str(assignment.get(LOCK_SESSION)) != str(session_id):
+                raise SuperdeskApiError.forbiddenError(
+                    'Assignment is locked by you in another session. Cannot unlink assignment and content.'
+                )
 
         if assignment.get('assigned_to', {}).get('state') == ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
             raise SuperdeskApiError.badRequestError('Assignment already completed.')
@@ -95,12 +107,6 @@ class AssignmentsUnlinkService(Service):
         # If the item is locked, then check to see if it is locked by the
         # current user in their current session
         if item.get(LOCK_USER):
-            user = get_user(required=True)
-            user_id = user.get(config.ID_FIELD)
-
-            session = get_auth()
-            session_id = session.get(config.ID_FIELD)
-
             if str(item.get(LOCK_USER)) != str(user_id):
                 raise SuperdeskApiError.forbiddenError(
                     'Item is locked by another user. Cannot unlink assignment and content.'

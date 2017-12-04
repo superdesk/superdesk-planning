@@ -1,18 +1,23 @@
 from planning.tests import TestCase
 from superdesk import get_resource_service
+import flask
+from bson import ObjectId
 
 
 class AssignmentUnlinkTestCase(TestCase):
     def test_delivery_record(self):
         with self.app.app_context():
+            flask.g.user = {'_id': ObjectId()}
+            user_id = ObjectId()
+            desk_id = ObjectId()
             self.app.data.insert('archive', [{
                 '_id': 'item1',
                 'type': 'text',
                 'headline': 'test headline',
                 'slugline': 'test slugline',
                 'task': {
-                    'desk': 'desk1',
-                    'stage': 'stage1'
+                    'desk': user_id,
+                    'stage': desk_id
                 }
             }])
             self.app.data.insert('assignments', [{
@@ -21,8 +26,8 @@ class AssignmentUnlinkTestCase(TestCase):
                 'coverage_item': 'cov1',
                 'assigned_to': {
                     'state': 'assigned',
-                    'user': 'test',
-                    'desk': 'test'
+                    'user': user_id,
+                    'desk': desk_id
                 }
             }])
 
