@@ -32,6 +32,12 @@ describe('<Autosave />', () => {
                 type="text"
                 readOnly={false}
             />
+            <Field
+                name="definition_short"
+                component="input"
+                type="text"
+                readOnly={false}
+            />
         </form>
     );
 
@@ -143,31 +149,36 @@ describe('<Autosave />', () => {
         const wrapper = getWrapper(data.events[0]);
         const form = new helpers.form(wrapper);
         const slugline = form.field('slugline');
+        const definition = form.field('definition_short');
 
         expect(autosave.load.callCount).toBe(1);
         expect(autosave.load.args[0]).toEqual([formName, data.events[0]._id]);
 
         slugline.setValue('New Slugline 1');
+        definition.setValue('define me');
         expect(autosave.save.callCount).toBe(1);
+
+        store.dispatch(initialize(formName, data.events[1]));
+
         expect(getAutosave()).toEqual({
             e1: {
                 _id: 'e1',
                 slugline: 'New Slugline 1',
+                definition_short: 'define me',
             },
         });
-
-        store.dispatch(initialize(formName, data.events[1]));
 
         expect(autosave.load.callCount).toBe(2);
         expect(autosave.load.args[1]).toEqual([formName, data.events[1]._id]);
 
         slugline.setValue('New Slugline 2');
-        expect(autosave.save.callCount).toBe(2);
+        expect(autosave.save.callCount).toBe(3);
 
         expect(getAutosave()).toEqual({
             e1: {
                 _id: 'e1',
                 slugline: 'New Slugline 1',
+                definition_short: 'define me',
             },
             e2: {
                 _id: 'e2',
@@ -178,17 +189,22 @@ describe('<Autosave />', () => {
         store.dispatch(initialize(formName, {slugline: 'New Form Object'}));
 
         slugline.setValue('Wont Save Autosave');
-        expect(autosave.save.callCount).toBe(2);
+        expect(autosave.save.callCount).toBe(3);
 
         expect(getAutosave()).toEqual({
             e1: {
                 _id: 'e1',
                 slugline: 'New Slugline 1',
+                definition_short: 'define me',
             },
             e2: {
                 _id: 'e2',
                 slugline: 'New Slugline 2',
             },
         });
+
+        store.dispatch(initialize(formName, data.events[0]));
+        expect(slugline.getValue()).toBe('New Slugline 1');
+        expect(definition.getValue()).toBe('define me');
     });
 });

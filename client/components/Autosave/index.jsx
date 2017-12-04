@@ -66,7 +66,7 @@ export class AutosaveComponent extends React.Component {
 
                 // If the value is different then last time we processed
                 // Then update the form value with the new value
-                if (updateFormValues && !isEqual(this.state.diff[key], get(currentValues, key))) {
+                if (updateFormValues && !isEqual(this.state.diff[key], get(currentValues, key, null))) {
                     this.props.change(key, value);
                 }
             }
