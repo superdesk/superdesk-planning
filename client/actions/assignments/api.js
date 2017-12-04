@@ -315,9 +315,9 @@ const loadArchiveItem = (assignment) => (
         });
 
         const criteria = query.getCriteria(true);
-        // We want the item from either the `archive` or `published` collections
 
-        criteria.repo = 'archive,published';
+        // We want the item from either the `archive`, `archived` or `published` collections
+        criteria.repo = 'archive,archived,published';
 
         return api.query('search', criteria)
             .then((data) => {

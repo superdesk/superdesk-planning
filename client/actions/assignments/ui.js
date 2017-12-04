@@ -434,6 +434,24 @@ const onAuthoringMenuClick = (action, type, item) => (
 );
 
 /**
+ * Action to retrieve the associated Archive item and open the
+ * Authoring panel in view mode.
+ * Does nothing if there is no Archive content linked
+ * @param {object} assignment - The Assignment to view content for
+ */
+const openArchivePreview = (assignment) => (
+    (dispatch, getState, {authoringWorkspace, notify}) => (
+        assignmentUtils.assignmentHasContent(assignment) ?
+            dispatch(assignments.api.loadArchiveItem(assignment))
+                .then((item) => {
+                    authoringWorkspace.view(item);
+                    return Promise.resolve(item);
+                }, (error) => Promise.reject(error)) :
+            Promise.resolve()
+    )
+);
+
+/**
  * Action for launching the full-screen preview of an Archive item
  * Uses the `superdesk` service from the client-core
  * @param {object} item - The Archive item to preview
@@ -716,6 +734,7 @@ const self = {
     unlockAssignment,
     unlockPlanning,
     unlockAssignmentAndPlanning,
+    openArchivePreview,
 };
 
 export default self;
