@@ -12,17 +12,17 @@ class AssignmentListComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {isNextPageLoading: false};
+        this.assignmentsList = null;
     }
 
     componentWillUpdate(nextProps) {
         // Bring scrolltop to top if list settings change
         if (this.props.filterBy !== nextProps.filterBy ||
             this.props.orderByField !== nextProps.orderByField ||
-            this.props.orderDirection !== nextProps.orderDirection) {
-            const scrollContainer = this.refs.assignmentsList;
-
-            if (scrollContainer.scrollTop !== 0) {
-                scrollContainer.scrollTop = 0;
+            this.props.orderDirection !== nextProps.orderDirection
+        ) {
+            if (this.assignmentsList.scrollTop !== 0) {
+                this.assignmentsList.scrollTop = 0;
             }
         }
     }
@@ -73,6 +73,7 @@ class AssignmentListComponent extends React.Component {
                 assignment={assignment}
                 isSelected={this.props.selectedAssignments.indexOf(assignment._id) > -1}
                 onClick={this.props.preview.bind(this, assignment)}
+                onDoubleClick={this.props.openArchivePreview.bind(null, assignment)}
                 onSelectChange={(value) => this.props.onAssignmentSelectChange({
                     assignment: assignment._id,
                     value: value,
@@ -113,7 +114,8 @@ class AssignmentListComponent extends React.Component {
                 </div>)}
                 <div className="assignments-list__items" style={{maxHeight: maxHeight}}
                     onScroll={this.handleScroll.bind(this)}
-                    ref="assignmentsList" >
+                    ref={(assignmentsList) => this.assignmentsList = assignmentsList}
+                >
                     {assignments.map((assignment, index) => {
                         const input = {
                             index: index,
@@ -157,6 +159,7 @@ AssignmentListComponent.propTypes = {
     onAssignmentSelectChange: PropTypes.func.isRequired,
     priorities: PropTypes.array,
     removeAssignment: PropTypes.func,
+    openArchivePreview: PropTypes.func,
 };
 
 const getAssignmentsSelectorsForListGroup = (groupKey) => {
@@ -213,6 +216,7 @@ const mapDispatchToProps = (dispatch) => ({
     editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),
     startWorking: (assignment) => dispatch(actions.assignments.ui.openSelectTemplateModal(assignment)),
     removeAssignment: (assignment) => dispatch(actions.assignments.ui.showRemoveAssignmentModal(assignment)),
+    openArchivePreview: (assignment) => dispatch(actions.assignments.ui.openArchivePreview(assignment)),
 });
 
 export const AssignmentList = connect(mapStateToProps, mapDispatchToProps)(AssignmentListComponent);

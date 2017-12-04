@@ -494,6 +494,242 @@ export const templates = {templates: []};
 
 export const form = {};
 
+export const events = [
+    {
+        _id: 'e1',
+        _type: 'events',
+        slugline: 'test slugline',
+        name: 'Event 1',
+        dates: {
+            start: '2016-10-15T13:01:11',
+            end: '2016-10-15T14:01:11',
+        },
+        planning_ids: ['p2'],
+        _etag: 'e123',
+    },
+    {
+        _id: 'e2',
+        _type: 'events',
+        slugline: 'test slugline 2',
+        name: 'Event 2',
+        dates: {
+            start: '2014-10-15T14:01:11',
+            end: '2014-10-15T15:01:11',
+        },
+        planning_ids: [],
+    },
+    {
+        _id: 'e3',
+        _type: 'events',
+        name: 'Event 3',
+        dates: {
+            start: '2015-10-15T14:01:11',
+            end: '2015-10-15T15:01:11',
+        },
+    },
+];
+
+export const plannings = [
+    {
+        _id: 'p1',
+        _type: 'planning',
+        slugline: 'Planning1',
+        headline: 'Some Plan 1',
+        state: 'draft',
+        coverages: [
+            {
+                coverage_id: 'c1',
+                planning_item: 'p1',
+                planning: {
+                    ednote: 'Text coverage',
+                    scheduled: '2016-10-15T13:01:11',
+                    g2_content_type: 'text',
+                },
+                assigned_to: {
+                    user: 'ident1',
+                    desk: 'desk1',
+                    assignment_id: 'as1',
+                },
+                firstcreated: '2017-10-01T14:01:11',
+                news_coverage_status: {qcode: 'ncostat:int'},
+            },
+            {
+                coverage_id: 'c2',
+                planning_item: 'p1',
+                planning: {
+                    ednote: 'Photo coverage',
+                    scheduled: '2016-10-15T14:01:11',
+                    g2_content_type: 'photo',
+                },
+                assigned_to: {
+                    user: 'ident1',
+                    desk: 'desk2',
+                    assignment_id: 'as2',
+                },
+                firstcreated: '2017-10-02T14:01:11',
+            },
+            {
+                coverage_id: 'c3',
+                planning_item: 'p1',
+                planning: {
+                    ednote: 'Video coverage',
+                    scheduled: '2016-10-15T16:01:11',
+                    g2_content_type: 'video',
+                },
+                firstcreated: '2017-10-03T14:01:11',
+            },
+        ],
+        agendas: [],
+    },
+    {
+        _id: 'p2',
+        _type: 'planning',
+        slugline: 'Planning2',
+        headline: 'Some Plan 2',
+        event_item: 'e1',
+        coverages: [
+            {
+                coverage_id: 'c4',
+                planning_item: 'p2',
+                planning: {
+                    ednote: 'Video coverage',
+                    scheduled: '2016-10-15T13:01:11',
+                    g2_content_type: 'video',
+                },
+            },
+        ],
+        agendas: ['a2'],
+    },
+];
+
+export const assignments = [
+    {
+        _id: 'as1',
+        _type: 'assignments',
+        coverage_id: 'c1',
+        planning_item: 'p1',
+        assigned_to: {
+            user: 'ident1',
+            desk: 'desk1',
+        },
+        planning: {
+            ednote: 'Text coverage',
+            scheduled: '2016-10-15T13:01:11',
+            g2_content_type: 'text',
+        },
+    },
+    {
+        _id: 'as2',
+        _type: 'assignments',
+        coverage_id: 'c2',
+        planning_item: 'p1',
+        assigned_to: {
+            user: 'ident1',
+            desk: 'desk2',
+        },
+        planning: {
+            ednote: 'Photo coverage',
+            scheduled: '2016-10-15T14:01:11',
+            g2_content_type: 'photo',
+        },
+    },
+];
+
+export const agendas = [
+    {
+        _id: 'a1',
+        name: 'TestAgenda',
+        is_enabled: true,
+    },
+    {
+        _id: 'a2',
+        name: 'TestAgenda2',
+        is_enabled: true,
+    },
+    {
+        _id: 'a3',
+        name: 'TestAgenda3',
+        is_enabled: false,
+    },
+];
+
+export const planningHistory = [
+    {
+        _id: 'ph1',
+        _created: '2017-06-19T02:21:42+0000',
+        planning_id: 'p2',
+        operation: 'create',
+        update: {slugline: 'Test Planning item July'},
+        user_id: '5923ac531d41c81e3290a5ee',
+    },
+    {
+        _id: 'ph2',
+        _created: '2017-06-19T02:21:42+0000',
+        planning_id: 'p2',
+        operation: 'update',
+        update: {headline: 'Test Planning item July.'},
+        user_id: '5923ac531d41c81e3290a5ee',
+    },
+];
+
+export const lockedEvents = [
+    {
+        _id: 'e1',
+        name: 'Event 1',
+        dates: {
+            start: '2016-10-15T13:01:11',
+            end: '2016-10-15T14:01:11',
+        },
+        lock_action: 'edit',
+        lock_user: 'ident1',
+        lock_session: 'session1',
+    },
+    {
+        _id: 'e2',
+        name: 'Event 2',
+        dates: {
+            start: '2014-10-15T14:01:11',
+            end: '2014-10-15T15:01:11',
+        },
+        lock_action: 'edit',
+        lock_user: 'ident1',
+        lock_session: 'session1',
+    },
+];
+
+export const lockedPlannings = [
+    {
+        _id: 'p1',
+        slugline: 'Planning1',
+        headline: 'Some Plan 1',
+        coverages: [],
+        agendas: [],
+        lock_action: 'edit',
+        lock_user: 'ident1',
+        lock_session: 'session1',
+    },
+    {
+        _id: 'p2',
+        slugline: 'Planning2',
+        headline: 'Some Plan 2',
+        event_item: 'e1',
+        coverages: [],
+        agendas: ['a2'],
+        lock_action: 'edit',
+        lock_user: 'ident1',
+        lock_session: 'session1',
+    },
+];
+
+export const archive = [
+    {
+        _id: 'item1',
+        slugline: 'test slugline',
+        headline: 'test headline',
+        urgency: 2
+    }
+];
+
 export const initialState = {
     config: config,
     privileges: privileges,
@@ -517,4 +753,15 @@ export const initialState = {
     planning: planningInitialState,
     templates: templates,
     form: form,
+};
+
+export const items = {
+    events: events,
+    plannings: plannings,
+    assignments: assignments,
+    agendas: agendas,
+    planning_history: planningHistory,
+    locked_events: lockedEvents,
+    locked_plannings: lockedPlannings,
+    archive: archive,
 };

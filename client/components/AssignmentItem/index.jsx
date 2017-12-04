@@ -20,6 +20,7 @@ import './style.scss';
 export const AssignmentItem = ({
     assignment,
     onClick,
+    onDoubleClick,
     className,
     assignedUser,
     isCurrentUser,
@@ -68,12 +69,13 @@ export const AssignmentItem = ({
             actions
         ) : [];
 
-    const isAssignmentInUse = assignmentUtils.isAssignmentInUse(assignment);
+    const hasContent = assignmentUtils.assignmentHasContent(assignment);
 
     return (
         <ListItem
             item={assignment}
             onClick={onClick}
+            onDoubleClick={onDoubleClick}
             draggable={true}
             className={classNames(
                 'assignmentItem',
@@ -99,7 +101,7 @@ export const AssignmentItem = ({
                     />
 
                     <StateLabel item={assignment.assigned_to} />
-                    {isAssignmentInUse && <Label text="Content" isHollow={true} iconType="darkBlue2" /> }
+                    {hasContent && <Label text="Content" isHollow={true} iconType="darkBlue2" /> }
                     <span className="ListItem__headline">
                         <i className="icon-time"/>
                         {get(assignment, 'planning.scheduled') ? (
@@ -133,6 +135,7 @@ export const AssignmentItem = ({
 AssignmentItem.propTypes = {
     assignment: PropTypes.object.isRequired,
     onClick: PropTypes.func,
+    onDoubleClick: PropTypes.func,
     className: PropTypes.string,
     assignedUser: PropTypes.object,
     lockedItems: PropTypes.object,

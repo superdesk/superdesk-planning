@@ -22,7 +22,7 @@ from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth
 from apps.duplication.archive_move import ITEM_MOVE
 from apps.publish.enqueue import ITEM_PUBLISH
-from eve.utils import config
+from eve.utils import config, ParsedRequest
 from superdesk.utc import utcnow
 from .planning import coverage_schema
 from superdesk import get_resource_service
@@ -31,7 +31,7 @@ from .item_lock import LockService, LOCK_USER
 from superdesk.users.services import current_user_has_privilege
 from .common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
     get_local_end_of_day, is_locked_in_this_session
-from flask import request
+from flask import request, json
 from .planning_notifications import PlanningNotifications
 from apps.content import push_content_notification
 
@@ -65,6 +65,41 @@ class AssignmentsService(superdesk.Service):
         for doc in docs:
             if doc.get('assignment_id') in assignments:
                 doc['assignment'] = assignments[doc['assignment_id']].get('assigned_to') or {}
+
+    def on_fetched(self, docs):
+        for doc in docs['_items']:
+            self._enchance_assignment(doc)
+
+    def on_fetched_item(self, doc):
+        self._enchance_assignment(doc)
+
+    def _enchance_assignment(self, doc):
+        """Populate `item_ids` with ids for all linked Archive items for an Assignment
+
+        Using the `search` resource service, retrieve the list of Archive items linked to
+        the provided Assignment.
+        """
+        query = {
+            'query': {
+                'filtered': {
+                    'filter': {
+                        'bool': {
+                            'must': {
+                                'term': {'assignment_id': str(doc[config.ID_FIELD])}
+                            },
+                        }
+                    }
+                }
+            }
+        }
+
+        req = ParsedRequest()
+        repos = 'archive,published,archived'
+        req.args = {'source': json.dumps(query), 'repo': repos}
+        items = list(get_resource_service('search').get(req=req, lookup=None))
+
+        if items:
+            doc['item_ids'] = [str(item.get(config.ID_FIELD)) for item in items]
 
     def on_create(self, docs):
         for doc in docs:

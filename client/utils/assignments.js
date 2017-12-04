@@ -36,6 +36,10 @@ const isAssignmentInUse = (assignment) => (
     get(assignment, 'assigned_to.state')))
 );
 
+const assignmentHasContent = (assignment) => (
+    get(assignment, 'item_ids.length', 0) > 0
+);
+
 const canRemoveAssignment = (assignment, session, privileges) => (
     canEditAssignment(assignment, session, privileges) &&
         get(assignment, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
@@ -132,6 +136,7 @@ const self = {
     getAssignmentGroupByStates,
     canRemoveAssignment,
     canEditDesk,
+    assignmentHasContent,
 };
 
 export default self;

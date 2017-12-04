@@ -3,6 +3,7 @@ import assignmentsApi from '../api';
 import planningApi from '../../planning/api';
 import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
+import * as testData from '../../../utils/testData';
 
 describe('actions.assignments.ui', () => {
     let store;
@@ -441,6 +442,52 @@ describe('actions.assignments.ui', () => {
 
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
+
+                    done();
+                });
+        });
+    });
+
+    describe('openArchivePreview', () => {
+        afterEach(() => {
+            restoreSinonStub(assignmentsApi.loadArchiveItem);
+        });
+
+        it('openArchivePreview does nothing if no content is linked', (done) => {
+            sinon.stub(assignmentsApi, 'loadArchiveItem');
+            return store.test(done, assignmentsUi.openArchivePreview(data.assignments[0]))
+                .then(() => {
+                    expect(assignmentsApi.loadArchiveItem.callCount).toBe(0);
+                    expect(services.authoringWorkspace.view.callCount).toBe(0);
+                    done();
+                });
+        });
+
+        it('openArchivePreview fetches the archive item and opens the authoring workspace in view mode', (done) => {
+            sinon.stub(assignmentsApi, 'loadArchiveItem').returns(Promise.resolve(testData.archive[0]));
+            data.assignments[0].item_ids = ['item1'];
+            return store.test(done, assignmentsUi.openArchivePreview(data.assignments[0]))
+                .then((item) => {
+                    expect(item).toEqual(testData.archive[0]);
+
+                    expect(assignmentsApi.loadArchiveItem.callCount).toBe(1);
+                    expect(assignmentsApi.loadArchiveItem.args[0]).toEqual([data.assignments[0]]);
+
+                    expect(services.authoringWorkspace.view.callCount).toBe(1);
+                    expect(services.authoringWorkspace.view.args[0]).toEqual([testData.archive[0]]);
+                    done();
+                });
+        });
+
+        it('openArchivePreview returns rejected Promise on failure to load the archive item', (done) => {
+            sinon.stub(assignmentsApi, 'loadArchiveItem').returns(Promise.reject(errorMessage));
+            data.assignments[0].item_ids = ['item1'];
+            return store.test(done, assignmentsUi.openArchivePreview(data.assignments[0]))
+                .then(() => { /* no-op */ }, (error) => {
+                    expect(error).toEqual(errorMessage);
+
+                    expect(assignmentsApi.loadArchiveItem.callCount).toBe(1);
+                    expect(services.authoringWorkspace.view.callCount).toBe(0);
 
                     done();
                 });

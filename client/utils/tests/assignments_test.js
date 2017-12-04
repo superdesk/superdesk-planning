@@ -49,6 +49,10 @@ describe('can edit assignment', () => {
         assignment, session, privileges
     );
 
+    const assignmentHasContent = () => utils.assignmentUtils.assignmentHasContent(
+        assignment
+    );
+
     it('no privileges', () => {
         privileges.planning_planning_management = 0;
         privileges.archive = 0;
@@ -151,5 +155,18 @@ describe('can edit assignment', () => {
             expect(canStartWorking()).toBe(false);
             expect(canCompleteAssignment()).toBe(false);
         });
+    });
+
+    it('assignmentHasContent', () => {
+        expect(assignmentHasContent()).toBe(false);
+
+        assignment.item_ids = [];
+        expect(assignmentHasContent()).toBe(false);
+
+        assignment.item_ids = ['item1'];
+        expect(assignmentHasContent()).toBe(true);
+
+        assignment.item_ids = ['item1', 'item2'];
+        expect(assignmentHasContent()).toBe(true);
     });
 });

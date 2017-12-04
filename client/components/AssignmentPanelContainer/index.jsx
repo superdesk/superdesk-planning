@@ -38,12 +38,12 @@ export class AssignmentPanel extends React.Component {
             users,
         } = this.props;
 
-        const isAssignmentInUse = assignmentUtils.isAssignmentInUse(assignment);
+        const hasContent = assignmentUtils.assignmentHasContent(assignment);
         const lockedUser = get(assignment, 'lock_user');
 
         // If the selected tab is CONTENT but the current assignment is not linked to an item
         // then show the ASSIGNMENT tab, otherwise show the selected tab
-        const currentTab = (!isAssignmentInUse && this.state.activeTab === this.tabs.CONTENT) ?
+        const currentTab = (!hasContent && this.state.activeTab === this.tabs.CONTENT) ?
             this.tabs.ASSIGNMENT : this.state.activeTab;
 
         // We render an empty div if previewOpened=false, so the open and close animations occur
@@ -89,7 +89,7 @@ export class AssignmentPanel extends React.Component {
                                     onChangeTab={this.onChangeTab.bind(this, this.tabs.ASSIGNMENT)}
                                     key={'assignment-preview-' + this.tabs.ASSIGNMENT}
                                 />
-                                {isAssignmentInUse &&
+                                {hasContent &&
                                     <Tab
                                         tabName={this.tabs.CONTENT}
                                         activeTab={currentTab}
