@@ -7,7 +7,25 @@ export class WorkqueueList extends React.Component {
         if (!this.props.isEventListShown) {
             this.props.toggleEventsList();
         }
+
         this.props.openEventDetails(item);
+        return Promise.resolve();
+    }
+
+    handleItemClose(item) {
+        const type = item._type;
+        const goToItemAction = type === 'events' ? this.openEventItem.bind(this, item) :
+            this.props.openPlanningClick.bind(null, item);
+        const ignoreAction = type === 'events' ? this.props.unlockAndCloseEventItem.bind(null, item) :
+            this.props.unlockAndClosePlanningItem.bind(null, item);
+        const unsavedItems = type === 'events' ? this.props.autosavedEventItems :
+            this.props.autosavedPlanningItems;
+
+        if (get(unsavedItems, item._id)) {
+            this.props.openConfirmationModal(goToItemAction, ignoreAction);
+        } else {
+            ignoreAction(item);
+        }
     }
 
     render() {
@@ -31,7 +49,7 @@ export class WorkqueueList extends React.Component {
                                 </span>
                             </a>
 
-                            <button className="close" onClick={this.props.closeEventDetails.bind(null, openedItem)}>
+                            <button className="close" onClick={this.handleItemClose.bind(this, openedItem)}>
                                 <i className="icon-close-small icon--white" />
                             </button>
                         </li>);
@@ -49,7 +67,7 @@ export class WorkqueueList extends React.Component {
                                 </span>
                             </a>
 
-                            <button className="close" onClick={this.props.closePlanningItem.bind(null, openedItem)}>
+                            <button className="close" onClick={this.handleItemClose.bind(this, openedItem)}>
                                 <i className="icon-close-small icon--white" />
                             </button>
                         </li>);
@@ -62,12 +80,15 @@ export class WorkqueueList extends React.Component {
 
 WorkqueueList.propTypes = {
     workqueueItems: PropTypes.object,
+    autosavedPlanningItems: PropTypes.object,
+    autosavedEventItems: PropTypes.object,
     currentPlanningId: PropTypes.string,
     currentEvent: PropTypes.string,
     isEventListShown: PropTypes.bool,
-    closePlanningItem: PropTypes.func,
+    unlockAndClosePlanningItem: PropTypes.func,
     openPlanningClick: PropTypes.func,
     openEventDetails: PropTypes.func,
-    closeEventDetails: PropTypes.func,
+    unlockAndCloseEventItem: PropTypes.func,
     toggleEventsList: PropTypes.func,
+    openConfirmationModal: PropTypes.func,
 };
