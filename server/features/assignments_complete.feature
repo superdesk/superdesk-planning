@@ -4,6 +4,13 @@ Feature: Assignment Complete
   @notification
   Scenario: Assignment State changes to completed
     Given empty "assignments"
+    Given "desks"
+    """
+        [
+            {"name": "Politic Desk",
+            "members": [{"user": "#CONTEXT_USER_ID#"}]}
+        ]
+    """
         When we post to "/archive"
         """
         [{
@@ -12,7 +19,20 @@ Feature: Assignment Complete
             "slugline": "test slugline"
         }]
         """
-        When we post to "/planning"
+        Then we get OK response
+        And we store "firstuser" with value "#CONTEXT_USER_ID#" to context
+        When we post to "users"
+        """
+        {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
+        """
+        Then we get OK response
+        And we store "seconduser" with value "#users._id#" to context
+        When we patch "/desks/#desks._id#"
+        """
+        {"members": [{"user": "#firstuser#"}, {"user": "#seconduser#"}]}
+        """
+        Then we get OK response
+       When we post to "/planning"
         """
         [{
             "item_class": "item class value",
@@ -28,11 +48,12 @@ Feature: Assignment Complete
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
-                    "slugline": "test slugline"
+                    "slugline": "test slugline",
+                    "g2_content_type":"text"
                 },
                 "assigned_to": {
-                    "desk": "Politic Desk",
-                    "user": "507f191e810c19729de870eb",
+                    "desk": "#desks._id#",
+                    "user": "#seconduser#",
                     "state": "in_progress"
                 }
             }]
@@ -52,12 +73,14 @@ Feature: Assignment Complete
                 "slugline": "test slugline"
             },
             "assigned_to": {
-                "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb",
+                "desk": "#desks._id#",
+                "user": "#seconduser#",
                 "state": "in_progress"
             }
         }
         """
+        Given empty "activity"
+        When we switch user
         When we perform complete on assignments "#firstassignment#"
         """
         { }
@@ -69,7 +92,7 @@ Feature: Assignment Complete
             "event": "assignments:completed",
             "extra": {
                 "item": "#firstassignment#",
-                "assigned_desk": "Politic Desk",
+                "assigned_desk": "#desks._id#",
                 "planning": "#planning._id#",
                 "assignment_state": "completed"
             }
@@ -87,12 +110,39 @@ Feature: Assignment Complete
                 "slugline": "test slugline"
             },
             "assigned_to": {
-                "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb",
+                "desk": "#desks._id#",
+                "user": "#seconduser#",
                 "state": "completed"
             }
         }
         """
+        Then we get OK response
+        When we get "/activity"
+        Then we get existing resource
+        """
+        {"_items": [{
+            "message" : "{{coverage_type}} coverage \"{{slugline}}\" has been completed by {{assignee}}",
+            "name" : "update",
+            "user" : "#CONTEXT_USER_ID#",
+            "user_name" : "test-user-2",
+            "recipients" : [
+                {
+                    "read" : false,
+                    "user_id" : "#firstuser#"
+                }
+            ],
+            "data" : {
+                "coverage_type" : "text",
+                "assignee" : "test-user-2",
+                "omit_user" : true,
+                "slugline" : "test slugline"
+            },
+            "resource" : "assignments"}
+        ]
+        }
+        """
+
+
 
     @auth
     Scenario: Fail to complete when assignment not in progess state
@@ -117,7 +167,7 @@ Feature: Assignment Complete
                 },
                 "assigned_to": {
                     "desk": "Politic Desk",
-                    "user": "507f191e810c19729de870eb",
+                    "user": "#CONTEXT_USER_ID#",
                     "state": "assigned"
                 }
             }]
@@ -138,7 +188,7 @@ Feature: Assignment Complete
             },
             "assigned_to": {
                 "desk": "Politic Desk",
-                "user": "507f191e810c19729de870eb",
+                "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
             }
         }

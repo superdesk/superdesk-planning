@@ -171,6 +171,8 @@ class AssignmentsService(superdesk.Service):
 
     def is_assignment_modified(self, updates, original):
         """Checks whether the assignment is modified or not"""
+        if 'assigned_to' not in updates:
+            return False
         updates_assigned_to = updates.get('assigned_to') or {}
         original_assigned_to = original.get('assigned_to') or {}
         return updates_assigned_to.get('desk') != original_assigned_to.get('desk') or \
@@ -242,7 +244,7 @@ class AssignmentsService(superdesk.Service):
                         # it is being reassigned by someone else so notify both the new assignee and the old
                         message = '{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to {{assignee}} ' \
                                   'on desk ({{desk}})'
-                        PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
+                        PlanningNotifications().notify_assignment(target_user=original.get('assigned_to').get('user'),
                                                                   target_desk=original.get('assigned_to').get(
                                                                       'desk') if original.get('assigned_to').get(
                                                                       'user') is None else None,
@@ -302,7 +304,7 @@ class AssignmentsService(superdesk.Service):
                                                           assign_type=assign_type,
                                                           desk=desk_name)
 
-    def send_assignment_cancellation_notification(self, assignment):
+    def send_assignment_cancellation_notification(self, assignment, event_cancellation=False):
         """Set the assignment information and send notification
 
         :param dict doc: Updates related to assignments
@@ -312,21 +314,32 @@ class AssignmentsService(superdesk.Service):
 
         user = get_user()
         assigned_to = assignment.get('assigned_to')
-        slugline = assignment.get('planning').get('slugline')
+        slugline = assignment.get('planning').get('slugline', '')
+        coverage_type = assignment.get('planning').get('g2_content_type', '')
 
         desk = get_resource_service('desks').find_one(req=None, _id=assigned_to.get('desk'))
+        if event_cancellation:
+            PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
+                                                      target_desk=assigned_to.get('desk') if not assigned_to.get(
+                                                          'user') else None,
+                                                      message='The event associated with {{coverage_type}} coverage '
+                                                              '\"{{slugline}}\" has been marked as cancelled',
+                                                      slugline=slugline,
+                                                      coverage_type=coverage_type)
+            return
         PlanningNotifications().notify_assignment(target_user=assigned_to.get('user'),
                                                   target_desk=assigned_to.get('desk') if not assigned_to.get(
                                                       'user') else None,
                                                   message='Assignment {{slugline}} for desk {{desk}} has been'
                                                           ' cancelled by {{user}}',
-                                                  user=user.get('username')
+                                                  user=user.get('display_name', 'Unknown')
                                                   if str(user.get(config.ID_FIELD, None)) != assigned_to.get(
                                                       'user') else 'You',
+                                                  omit_user=True,
                                                   slugline=slugline,
                                                   desk=desk.get('name'))
 
-    def cancel_assignment(self, original_assignment, coverage):
+    def cancel_assignment(self, original_assignment, coverage, event_cancellation=False):
         coverage_to_copy = deepcopy(coverage)
         if original_assignment:
             updated_assignment = {'assigned_to': {}}
@@ -347,7 +360,7 @@ class AssignmentsService(superdesk.Service):
                     }])
 
             self.system_update(ObjectId(original_assignment.get('_id')), updated_assignment, original_assignment)
-            self.send_assignment_cancellation_notification(original_assignment)
+            self.send_assignment_cancellation_notification(original_assignment, event_cancellation)
 
     def _get_empty_updates_for_assignment(self, assignment):
         updated_assignment = {'assigned_to': {}}

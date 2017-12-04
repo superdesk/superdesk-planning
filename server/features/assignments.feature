@@ -1071,7 +1071,7 @@ Feature: Assignments
             "name":"update",
                     "recipients":[
                        {
-                          "user_id":"#seconduser#",
+                          "user_id":"#firstuser#",
                           "read":false
                        }
                     ],

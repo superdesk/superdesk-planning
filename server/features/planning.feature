@@ -903,3 +903,146 @@ Feature: Planning
                 "update": {"planning_id": "#planning._id#"}}
             ]}
         """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Updating the internal note sends a notification
+        Given "desks"
+        """
+        [{"_id": "desk_123", "name": "Politic Desk"}]
+        """
+        When we post to "planning" with success
+        """
+        [{
+          "guid": "123",
+          "headline": "test headline",
+          "slugline": "test slugline",
+          "state": "scheduled",
+          "pubstatus": "usable",
+          "coverages": [
+              {
+                  "coverage_id": "cov_123",
+                  "planning": {
+                      "ednote": "test coverage, 250 words",
+                      "headline": "test headline",
+                      "slugline": "test slugline",
+                      "scheduled": "2029-11-21T14:00:00.000Z",
+                      "g2_content_type": "text",
+                      "internal_note": "Harmless"
+                  },
+                  "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
+                  }
+              }
+          ]
+        }]
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+          "coverages": [
+              {
+                  "coverage_id": "cov_123",
+                  "planning": {
+                      "internal_note" : "Mostly harmless",
+                      "g2_content_type": "text",
+                      "slugline": "test slugline",
+                      "scheduled": "2029-11-21T14:00:00.000Z"
+                  },
+                  "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
+                  }
+              }
+          ]
+        }
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "activity",
+            "extra": {
+                "activity": {
+                    "message" : "{{coverage_type}} coverage \"slugline\": {{internal_note}}",
+                    "data" : {
+                        "coverage_type" : "text",
+                        "internal_note" : "Mostly harmless",
+                        "slugline" : "test slugline"
+                    }
+                }
+            }
+        }]
+        """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Updating the scheduled time send a notification
+        Given "desks"
+        """
+        [{"_id": "desk_123", "name": "Politic Desk"}]
+        """
+        When we post to "planning" with success
+        """
+        [{
+          "guid": "123",
+          "headline": "test headline",
+          "slugline": "test slugline",
+          "state": "scheduled",
+          "pubstatus": "usable",
+          "coverages": [
+              {
+                  "coverage_id": "cov_123",
+                  "planning": {
+                      "ednote": "test coverage, 250 words",
+                      "headline": "test headline",
+                      "slugline": "test slugline",
+                      "scheduled": "2029-11-21T14:00:00.000Z",
+                      "g2_content_type": "text",
+                      "internal_note": "Harmless"
+                  },
+                  "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
+                  }
+              }
+          ]
+        }]
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+          "coverages": [
+              {
+                  "coverage_id": "cov_123",
+                  "planning": {
+                      "g2_content_type": "text",
+                      "slugline": "test slugline",
+                      "scheduled": "2030-11-21T13:00:00.000Z",
+                      "internal_note": "Harmless"
+                  },
+                  "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
+                  }
+              }
+          ]
+        }
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "activity",
+            "extra": {
+                "activity": {
+                "message" : "Due time has been amended to {{due}} for {{coverage_type}} coverage \"{{slugline}}\"",
+                "user_name" : "test_user"
+                }
+            }
+        }]
+        """
+

@@ -13,7 +13,7 @@ from bson import ObjectId
 
 import superdesk
 import logging
-from flask import json
+from flask import json, current_app as app
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid, item_url
 from superdesk.metadata.item import GUID_NEWSML, metadata_schema
@@ -28,7 +28,8 @@ from .common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA, get_coverage_
     remove_lock_information
 from superdesk.utc import utcnow
 from itertools import chain
-
+from .planning_notifications import PlanningNotifications
+from superdesk.utc import utc_to_local
 
 logger = logging.getLogger(__name__)
 
@@ -69,9 +70,9 @@ class PlanningService(superdesk.Service):
                 coverage['assigned_to']['state'] = assignment.get('assigned_to', {}).get('state')
                 coverage['assigned_to']['assignor_user'] = assignment.get('assigned_to', {}).get('assignor_user')
                 coverage['assigned_to']['assignor_desk'] = assignment.get('assigned_to', {}).get('assignor_desk')
-                coverage['assigned_to']['assigned_date_desk'] =\
+                coverage['assigned_to']['assigned_date_desk'] = \
                     assignment.get('assigned_to', {}).get('assigned_date_desk')
-                coverage['assigned_to']['assigned_date_user'] =\
+                coverage['assigned_to']['assigned_date_user'] = \
                     assignment.get('assigned_to', {}).get('assigned_date_user')
                 coverage['assigned_to']['coverage_provider'] = \
                     assignment.get('assigned_to', {}).get('coverage_provider')
@@ -271,6 +272,39 @@ class PlanningService(superdesk.Service):
                     user = get_user()
                     coverage['version_creator'] = str(user.get(config.ID_FIELD)) if user else None
                     coverage['versioncreated'] = utcnow()
+                    # If the internal note has changed send a notification, except if it's been cancelled
+                    if coverage.get('planning', {}).get('internal_note', '') != original_coverage.get('planning',
+                                                                                                      {}).get(
+                        'internal_note', '') \
+                            and coverage.get('news_coverage_status', {}).get('qcode') != 'ncostat:notint':
+                        message = '{{coverage_type}} coverage \"slugline\": {{internal_note}}'
+                        target_user = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('user',
+                                                                                                                None)
+                        target_desk = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('desk',
+                                                                                                                None)
+                        PlanningNotifications().notify_assignment(
+                            target_desk=target_desk if target_user is None else None,
+                            target_user=target_user,
+                            message=message,
+                            coverage_type=coverage.get('planning', {}).get('g2_content_type', ''),
+                            slugline=coverage.get('planning', {}).get('slugline', ''),
+                            internal_note=coverage.get('planning', {}).get('internal_note', ''))
+                    # If the scheduled time for the coverage changes
+                    if coverage.get('planning', {}).get('scheduled', '') != original_coverage.get('planning', {}).get(
+                            'scheduled', ''):
+                        message = 'Due time has been amended to {{due}} for {{coverage_type}} coverage \"{{slugline}}\"'
+                        target_user = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('user',
+                                                                                                                None)
+                        target_desk = coverage.get('assigned_to', original_coverage.get('assigned_to', {})).get('desk',
+                                                                                                                None)
+                        PlanningNotifications().notify_assignment(
+                            target_desk=target_desk if target_user is None else None,
+                            target_user=target_user,
+                            message=message,
+                            due=utc_to_local(app.config['DEFAULT_TIMEZONE'],
+                                             coverage.get('planning', {}).get('scheduled')).strftime('%c'),
+                            coverage_type=coverage.get('planning', {}).get('g2_content_type', ''),
+                            slugline=coverage.get('planning', {}).get('slugline', ''))
 
             self._create_update_assignment(original.get(config.ID_FIELD), coverage, original_coverage)
 
@@ -361,7 +395,7 @@ class PlanningService(superdesk.Service):
             # Check if coverage was cancelled
             coverage_cancel_state = get_coverage_cancellation_state()
             if updates.get('news_coverage_status') and \
-                updates.get('news_coverage_status').get('qcode') == coverage_cancel_state.get('qcode') and \
+                    updates.get('news_coverage_status').get('qcode') == coverage_cancel_state.get('qcode') and \
                     original.get('news_coverage_status').get('qcode') != coverage_cancel_state.get('qcode'):
                 assignment_service.cancel_assignment(original_assignment, updates)
                 updates.pop('assigned_to', None)
