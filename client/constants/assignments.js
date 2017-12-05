@@ -52,6 +52,10 @@ export const ASSIGNMENTS = {
             label: 'Remove Assignment',
             icon: 'icon-trash',
         },
+        PREVIEW_ARCHIVE: {
+            label: 'Open Coverage',
+            icon: 'icon-external',
+        },
     },
     DEFAULT_PRIORITY: 2,
     LIST_GROUPS: {
