@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {Field} from 'redux-form';
 import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
+import {FileInputField} from './FileInputField';
 
 const FileFieldComponent = ({onRemove, file, createLink, fieldName, readOnly}) => (
     <li className="File__item">
@@ -16,8 +17,8 @@ const FileFieldComponent = ({onRemove, file, createLink, fieldName, readOnly}) =
         {!file.media && !readOnly &&
             <Field
                 name={fieldName}
-                component="input"
-                type="file"/>
+                component={FileInputField}
+            />
         }
         {!readOnly && (<button
             onClick={onRemove}

@@ -8,6 +8,7 @@ export {TagSelectField} from './TagSelectField/';
 export {CategoryField} from './CategoryField';
 export {IngestProviderField} from './IngestProviderField';
 export {FilesFieldArray} from './FilesFieldArray';
+export {FileInputField} from './FileInputField';
 export {FileField} from './FileField';
 export {InputTextAreaField} from './InputTextAreaField';
 export {LinkField} from './LinkField';
