@@ -79,6 +79,7 @@ describe('<AssignmentPreviewContainer />', () => {
             sinon.stub(actions.assignments.ui, 'complete').returns({type: 'Test'});
             sinon.stub(actions.assignments.ui, 'editPriority').returns({type: 'Test'});
             sinon.stub(actions.assignments.ui, 'onAssignmentFormSave').returns({type: 'Test'});
+            sinon.stub(actions.assignments.ui, 'openArchivePreview').returns({type: 'Test'});
         });
 
         afterEach(() => {
@@ -87,6 +88,7 @@ describe('<AssignmentPreviewContainer />', () => {
             restoreSinonStub(actions.assignments.ui.complete);
             restoreSinonStub(actions.assignments.ui.editPriority);
             restoreSinonStub(actions.assignments.ui.onAssignmentFormSave);
+            restoreSinonStub(actions.assignments.ui.openArchivePreview);
         });
 
         it('renders icons, labels and menu items', () => {
@@ -181,6 +183,16 @@ describe('<AssignmentPreviewContainer />', () => {
             wrapper.find('.AssignmentPreview__fulfil').find('.btn--primary')
                 .simulate('click');
             expect(actions.assignments.ui.onAssignmentFormSave.callCount).toBe(1);
+        });
+
+        it('`Open Coverage` executes `assignments.ui.openArchivePreview`', () => {
+            assignment.item_ids = ['item1'];
+            const wrapper = getWrapper();
+            const menu = new helpers.actionMenu(wrapper);
+
+            expect(menu.actionLabels()).toContain('Open Coverage');
+            menu.invokeAction('Open Coverage');
+            expect(actions.assignments.ui.openArchivePreview.callCount).toBe(1);
         });
     });
 

@@ -60,6 +60,8 @@ const getAssignmentItemActions = (assignment, session, privileges, actions) => {
             canStartWorking(assignment, session, privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label]: () =>
             canRemoveAssignment(assignment, session, privileges),
+        [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label]: () =>
+            assignmentHasContent(assignment),
     };
 
     actions.forEach((action) => {

@@ -6,6 +6,7 @@ import {createTestStore} from '../../utils';
 import {List} from '../UI';
 import {Provider} from 'react-redux';
 import * as helpers from '../tests/helpers';
+import {cloneDeep} from 'lodash';
 
 describe('assignments', () => {
     describe('components', () => {
@@ -24,10 +25,12 @@ describe('assignments', () => {
             let completeAssignment;
             let startWorking;
             let removeAssignment;
+            let onDoubleClick;
 
             const getShallowWrapper = () => (
                 shallow(<AssignmentItem
                     onClick={onClick}
+                    onDoubleClick={onDoubleClick}
                     assignment={assignment}
                     lockedItems={lockedItems}
                     reassign={reassign}
@@ -48,6 +51,7 @@ describe('assignments', () => {
                     <Provider store={store}>
                         <AssignmentItem
                             onClick={onClick}
+                            onDoubleClick={onDoubleClick}
                             assignment={assignment}
                             lockedItems={lockedItems}
                             priorities={store.getState().vocabularies.assignment_priority}
@@ -85,6 +89,7 @@ describe('assignments', () => {
                 completeAssignment = sinon.spy();
                 startWorking = sinon.spy();
                 removeAssignment = sinon.spy();
+                onDoubleClick = sinon.spy();
             });
 
             it('show item', () => {
@@ -96,8 +101,10 @@ describe('assignments', () => {
             });
 
             it('executes `onClick` callback', () => {
+                const assignmentItem = cloneDeep(assignment);
+
                 onClick = sinon.spy((arg) => {
-                    expect(arg).toEqual(assignment);
+                    expect(arg).toEqual(assignmentItem);
                     return Promise.resolve();
                 });
 
@@ -167,6 +174,12 @@ describe('assignments', () => {
                 executeItemAction('Start Working');
                 expect(startWorking.callCount).toBe(1);
                 expect(startWorking.args[0]).toEqual([assignment]);
+
+                assignment.item_ids = ['item1'];
+                expect(onDoubleClick.callCount).toBe(0);
+                executeItemAction('Open Coverage');
+                expect(onDoubleClick.callCount).toBe(1);
+                expect(onDoubleClick.args[0]).toEqual([]);
             });
         });
     });

@@ -49,6 +49,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
             startWorking,
             removeAssignment,
             lockedItems,
+            openArchivePreview,
         } = this.props;
 
         const isItemLocked = get(lockedItems, 'assignments') && assignment._id in lockedItems.assignments;
@@ -78,6 +79,10 @@ class AssignmentPreviewContainerComponent extends React.Component {
                 ...ASSIGNMENTS.ITEM_ACTIONS.REMOVE,
                 callback: removeAssignment.bind(null, assignment),
             },
+            {
+                ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
+                callback: openArchivePreview.bind(null, assignment),
+            }
         ];
 
         return assignmentUtils.getAssignmentItemActions(
@@ -311,8 +316,9 @@ AssignmentPreviewContainerComponent.propTypes = {
     privileges: PropTypes.object,
     keywords: PropTypes.array,
     formProfile: PropTypes.object,
-    lockedItems: PropTypes.array,
+    lockedItems: PropTypes.object,
     agendas: PropTypes.array,
+    openArchivePreview: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -341,6 +347,7 @@ const mapDispatchToProps = (dispatch) => ({
     editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),
     onFulFilAssignment: (assignment) => dispatch(actions.assignments.ui.onAssignmentFormSave(assignment)),
     removeAssignment: (assignment) => dispatch(actions.assignments.ui.removeAssignment(assignment)),
+    openArchivePreview: (assignment) => dispatch(actions.assignments.ui.openArchivePreview(assignment)),
 });
 
 export const AssignmentPreviewContainer = connect(

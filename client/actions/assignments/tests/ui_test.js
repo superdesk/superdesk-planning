@@ -449,8 +449,13 @@ describe('actions.assignments.ui', () => {
     });
 
     describe('openArchivePreview', () => {
+        beforeEach(() => {
+            sinon.stub(assignmentsUi, 'closePreview');
+        });
+
         afterEach(() => {
             restoreSinonStub(assignmentsApi.loadArchiveItem);
+            restoreSinonStub(assignmentsUi.closePreview);
         });
 
         it('openArchivePreview does nothing if no content is linked', (done) => {
@@ -458,6 +463,7 @@ describe('actions.assignments.ui', () => {
             return store.test(done, assignmentsUi.openArchivePreview(data.assignments[0]))
                 .then(() => {
                     expect(assignmentsApi.loadArchiveItem.callCount).toBe(0);
+                    expect(assignmentsUi.closePreview.callCount).toBe(0);
                     expect(services.authoringWorkspace.view.callCount).toBe(0);
                     done();
                 });
@@ -473,6 +479,8 @@ describe('actions.assignments.ui', () => {
                     expect(assignmentsApi.loadArchiveItem.callCount).toBe(1);
                     expect(assignmentsApi.loadArchiveItem.args[0]).toEqual([data.assignments[0]]);
 
+                    expect(assignmentsUi.closePreview.callCount).toBe(1);
+
                     expect(services.authoringWorkspace.view.callCount).toBe(1);
                     expect(services.authoringWorkspace.view.args[0]).toEqual([testData.archive[0]]);
                     done();
@@ -487,6 +495,7 @@ describe('actions.assignments.ui', () => {
                     expect(error).toEqual(errorMessage);
 
                     expect(assignmentsApi.loadArchiveItem.callCount).toBe(1);
+                    expect(assignmentsUi.closePreview.callCount).toBe(0);
                     expect(services.authoringWorkspace.view.callCount).toBe(0);
 
                     done();

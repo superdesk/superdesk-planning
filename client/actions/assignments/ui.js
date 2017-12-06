@@ -444,6 +444,7 @@ const openArchivePreview = (assignment) => (
         assignmentUtils.assignmentHasContent(assignment) ?
             dispatch(assignments.api.loadArchiveItem(assignment))
                 .then((item) => {
+                    dispatch(self.closePreview());
                     authoringWorkspace.view(item);
                     return Promise.resolve(item);
                 }, (error) => Promise.reject(error)) :

@@ -59,6 +59,10 @@ export const AssignmentItem = ({
             ...ASSIGNMENTS.ITEM_ACTIONS.REMOVE,
             callback: removeAssignment.bind(null, assignment),
         },
+        {
+            ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
+            callback: onDoubleClick,
+        }
     ];
 
     const itemActions = inAssignments && !isItemLocked ?
