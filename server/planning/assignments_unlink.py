@@ -9,8 +9,8 @@ from copy import deepcopy
 from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
 from eve.utils import config
-from .common import ASSIGNMENT_WORKFLOW_STATE
 from apps.content import push_content_notification
+from .common import ASSIGNMENT_WORKFLOW_STATE
 from .item_lock import LOCK_USER, LOCK_SESSION
 from apps.archive.common import get_user, get_auth
 from .planning_notifications import PlanningNotifications
@@ -64,7 +64,13 @@ class AssignmentsUnlinkService(Service):
                                                       slugline=item.get('slugline'),
                                                       omit_user=True)
 
-        push_content_notification(items)
+            push_content_notification(items)
+
+        if spike:
+            get_resource_service('assignments_history').on_item_updated(updates, assignment, 'spike_unlink')
+        else:
+            get_resource_service('assignments_history').on_item_updated(updates, assignment, 'unlink')
+
         return ids
 
     def _validate(self, doc):

@@ -161,6 +161,24 @@ Feature: Assignment Unlink
         """
         {"assignment_id": "__none__"}
         """
+        When we get "assignments_history"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {
+                "assignment_id": "#assignmentId#",
+                "operation": "create"
+            },
+            {
+                "assignment_id": "#assignmentId#",
+                "operation": "content_link"
+            },
+            {
+                "assignment_id": "#assignmentId#",
+                "operation": "unlink"
+            }
+        ]}
+        """
 
     @auth
     Scenario: Assignment must exist

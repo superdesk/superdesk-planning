@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import classNames from 'classnames';
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
-import {AssignmentPreviewContainer, ArchivePreview, Tabs, Tab, LockContainer} from '../';
+import {AssignmentPreviewContainer, ArchivePreview, Tabs, Tab, LockContainer, AssignmentHistory} from '../';
 import {TOOLTIPS} from '../../constants';
 import {assignmentUtils} from '../../utils';
 import {get} from 'lodash';
@@ -16,6 +16,7 @@ export class AssignmentPanel extends React.Component {
         this.tabs = {
             ASSIGNMENT: 'Assignment',
             CONTENT: 'Content',
+            HISTORY: 'Item History',
         };
         this.state = {activeTab: this.tabs.ASSIGNMENT};
         this.closePanel = this.closePanel.bind(this);
@@ -97,6 +98,12 @@ export class AssignmentPanel extends React.Component {
                                         key={'assignment-preview-' + this.tabs.CONTENT}
                                     />
                                 }
+                                <Tab
+                                    tabName={this.tabs.HISTORY}
+                                    activeTab={currentTab}
+                                    onChangeTab={this.onChangeTab.bind(this, this.tabs.HISTORY)}
+                                    key={'assignment-preview-' + this.tabs.HISTORY}
+                                />
                             </Tabs>
                         </div>
                         <div className="side-panel__content">
@@ -105,6 +112,9 @@ export class AssignmentPanel extends React.Component {
                             )}
                             {currentTab === this.tabs.CONTENT &&
                                 <ArchivePreview />
+                            }
+                            {currentTab === this.tabs.HISTORY &&
+                                <AssignmentHistory />
                             }
                         </div>
                     </div>

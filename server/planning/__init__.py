@@ -22,6 +22,7 @@ from .events_files import EventsFilesResource, EventsFilesService
 # from .coverage_history import CoverageHistoryResource, CoverageHistoryService
 from .locations import LocationsResource, LocationsService
 from .events_history import EventsHistoryResource, EventsHistoryService
+from .assignments_history import AssignmentsHistoryResource, AssignmentsHistoryService
 from .planning_history import PlanningHistoryResource, PlanningHistoryService
 from .planning_lock import PlanningLockResource, PlanningLockService, PlanningUnlockResource, PlanningUnlockService
 from .assignments_lock import AssignmentsLockResource, AssignmentsLockService,\
@@ -204,6 +205,10 @@ def init_app(app):
     app.on_updated_planning_cancel += planning_history_service.on_cancel
     app.on_updated_planning_reschedule += planning_history_service.on_reschedule
     app.on_updated_planning_postpone += planning_history_service.on_postpone
+
+    assignments_history_service = AssignmentsHistoryService('assignments_history', backend=superdesk.get_backend())
+    AssignmentsHistoryResource('assignments_history', app=app, service=assignments_history_service)
+    app.on_updated_assignments += assignments_history_service.on_item_updated
 
     app.on_locked_planning += planning_search_service.on_locked_planning
     app.on_locked_events += events_search_service.on_locked_event

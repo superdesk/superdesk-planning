@@ -92,6 +92,7 @@ export {TermsList} from './TermsList';
 import * as UI from './UI/index';
 export {UI};
 export {UserSearchList} from './UserSearchList';
+export {AssignmentHistory} from './AssignmentHistory';
 
 // This must go last, as it imports Modals from above modules
 export {ModalsContainer} from './ModalsContainer';
