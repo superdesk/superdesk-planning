@@ -19,6 +19,7 @@ from superdesk.errors import SuperdeskApiError
 from planning.common import ASSIGNMENT_WORKFLOW_STATE
 from superdesk.utc import utcnow
 from planning.planning_notifications import PlanningNotifications
+from superdesk import get_resource_service
 
 FIELDS_TO_COPY = ('anpa_category', 'subject', 'urgency')
 
@@ -35,9 +36,9 @@ def get_item_from_assignment(assignment, template=None):
         return item
 
     desk_id = assignment.get('assigned_to').get('desk')
-    desk = superdesk.get_resource_service('desks').find_one(req=None, _id=desk_id)
+    desk = get_resource_service('desks').find_one(req=None, _id=desk_id)
     if template is not None:
-        template = superdesk.get_resource_service('content_templates').find_one(req=None, template_name=template)
+        template = get_resource_service('content_templates').find_one(req=None, template_name=template)
     else:
         template = get_desk_template(desk)
     item = get_item_from_template(template)
@@ -53,7 +54,7 @@ def get_item_from_assignment(assignment, template=None):
     planning_item = assignment.get('planning_item')
     # we now merge planning data if they are set
     if planning_item is not None:
-        planning = superdesk.get_resource_service('planning').find_one(req=None, _id=planning_item)
+        planning = get_resource_service('planning').find_one(req=None, _id=planning_item)
         if planning is not None:
             for field in FIELDS_TO_COPY:
                 if planning.get(field):
@@ -91,8 +92,8 @@ class AssignmentsContentService(superdesk.Service):
 
     def create(self, docs):
         ids = []
-        production = superdesk.get_resource_service('archive')
-        assignments_service = superdesk.get_resource_service('assignments')
+        production = get_resource_service('archive')
+        assignments_service = get_resource_service('assignments')
         for doc in docs:
             assignment = assignments_service.find_one(req=None, _id=doc.pop('assignment_id'))
             item = get_item_from_assignment(assignment, doc.pop('template_name', None))
@@ -106,7 +107,7 @@ class AssignmentsContentService(superdesk.Service):
             insert_into_versions(doc=item)
 
             # create delivery references
-            superdesk.get_resource_service('delivery').post([{
+            get_resource_service('delivery').post([{
                 'item_id': item[config.ID_FIELD],
                 'assignment_id': assignment[config.ID_FIELD],
                 'planning_id': assignment['planning_item'],
@@ -138,6 +139,9 @@ class AssignmentsContentService(superdesk.Service):
                                                       coverage_type=item.get('type', ''),
                                                       slugline=item.get('slugline'),
                                                       omit_user=True)
+            # Save history
+            get_resource_service('assignments_history').on_item_updated(updates, assignment, 'start_working')
+
         return ids
 
     def _validate(self, doc):

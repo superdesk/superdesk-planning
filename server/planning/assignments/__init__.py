@@ -17,6 +17,7 @@ from .assignments_unlink import AssignmentsUnlinkResource, AssignmentsUnlinkServ
 from .assignments_complete import AssignmentsCompleteResource, AssignmentsCompleteService
 from .assignments_lock import AssignmentsLockResource, AssignmentsLockService,\
     AssignmentsUnlockResource, AssignmentsUnlockService
+from .assignments_history import AssignmentsHistoryResource, AssignmentsHistoryService
 from .delivery import DeliveryResource
 
 
@@ -53,6 +54,10 @@ def init_app(app):
         app=app,
         service=assignments_complete_service
     )
+
+    assignments_history_service = AssignmentsHistoryService('assignments_history', backend=superdesk.get_backend())
+    AssignmentsHistoryResource('assignments_history', app=app, service=assignments_history_service)
+    app.on_updated_assignments += assignments_history_service.on_item_updated
 
     delivery_service = BaseService('delivery', backend=superdesk.get_backend())
     DeliveryResource('delivery', app=app, service=delivery_service)

@@ -200,6 +200,10 @@ const assignmentReducer = createReducer(initialState, {
                     null : state.currentAssignmentId,
             }
     ),
+    [ASSIGNMENTS.ACTIONS.RECEIVE_ASSIGNMENT_HISTORY]: (state, payload) => ({
+        ...state,
+        assignmentHistoryItems: payload,
+    }),
 });
 
 export default assignmentReducer;

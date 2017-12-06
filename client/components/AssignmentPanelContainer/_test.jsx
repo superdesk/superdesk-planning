@@ -36,7 +36,7 @@ describe('<AssignmentPanelContainer />', () => {
 
         // Tabs are available
         expect(tabs.isMounted).toBe(true);
-        expect(tabs.labels()).toEqual(['Assignment']);
+        expect(tabs.labels()).toEqual(['Assignment', 'Item History']);
 
         // Default tab is Assignment
         expect(tabs.getActiveTab()).toEqual('Assignment');

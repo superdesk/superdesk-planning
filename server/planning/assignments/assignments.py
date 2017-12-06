@@ -112,6 +112,9 @@ class AssignmentsService(superdesk.Service):
             if doc['assigned_to'].get('state') != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
                 self.send_assignment_notification(doc, {})
 
+        # Save history
+        get_resource_service('assignments_history').on_item_created(docs)
+
     def set_assignment(self, updates, original=None):
         """Set the assignment information"""
         if not original:
@@ -395,6 +398,11 @@ class AssignmentsService(superdesk.Service):
                     }])
 
             self.system_update(ObjectId(original_assignment.get('_id')), updated_assignment, original_assignment)
+
+            # Save history
+            get_resource_service('assignments_history').on_item_updated(updated_assignment,
+                                                                        original_assignment,
+                                                                        'cancelled')
             self.send_assignment_cancellation_notification(original_assignment, event_cancellation)
 
     def _get_empty_updates_for_assignment(self, assignment):
@@ -440,6 +448,8 @@ class AssignmentsService(superdesk.Service):
             updated_assignment = self._set_user_for_assignment(assignment_update_data.get('assignment'),
                                                                assignment_update_data.get('item_user_id'))
             self._update_assignment_and_notify(updated_assignment, assignment_update_data.get('assignment'))
+            get_resource_service('assignments_history').on_item_updated(updated_assignment,
+                                                                        assignment_update_data.get('assignment'))
 
     def update_assignment_on_archive_operation(self, updates, original, operation=None):
         if operation == ITEM_MOVE:
@@ -456,6 +466,9 @@ class AssignmentsService(superdesk.Service):
                 updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.SUBMITTED
 
                 self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
+                get_resource_service('assignments_history').on_item_updated(updated_assignment,
+                                                                            assignment_update_data.get('assignment'),
+                                                                            'submitted')
         elif operation == ITEM_PUBLISH:
             assignment_update_data = \
                 self._get_assignment_data_on_archive_update(updates, original)
@@ -464,8 +477,11 @@ class AssignmentsService(superdesk.Service):
                 updated_assignment = self._get_empty_updates_for_assignment(assignment_update_data['assignment'])
                 if updates.get(ITEM_STATE, original.get(ITEM_STATE, '')) != CONTENT_STATE.SCHEDULED:
                     updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
-
-                self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
+                    self._update_assignment_and_notify(updated_assignment, assignment_update_data['assignment'])
+                    get_resource_service('assignments_history').on_item_updated(
+                        updated_assignment,
+                        assignment_update_data.get('assignment'),
+                        'complete')
 
     def duplicate_assignment_on_create_archive_rewrite(self, items):
         """Duplicates the coverage/assignment for the archive rewrite

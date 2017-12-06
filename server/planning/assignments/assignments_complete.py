@@ -14,6 +14,7 @@ from superdesk.errors import SuperdeskApiError
 from apps.archive.common import get_user, get_auth
 from eve.utils import config
 from copy import deepcopy
+from superdesk import get_resource_service
 from .assignments import AssignmentsResource, assignments_schema
 from planning.common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information
 from planning.planning_notifications import PlanningNotifications
@@ -54,6 +55,10 @@ class AssignmentsCompleteService(BaseService):
         remove_lock_information(updates)
 
         item = self.backend.update(self.datasource, id, updates, original)
+
+        # Save history if user initiates complete
+        if original.get('lock_action') == 'complete':
+            get_resource_service('assignments_history').on_item_updated(updates, original, 'complete')
 
         push_notification(
             'assignments:completed',

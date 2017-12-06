@@ -64,7 +64,13 @@ class AssignmentsUnlinkService(Service):
                                                       slugline=item.get('slugline'),
                                                       omit_user=True)
 
-        push_content_notification(items)
+            push_content_notification(items)
+
+        if spike:
+            get_resource_service('assignments_history').on_item_updated(updates, assignment, 'spike_unlink')
+        else:
+            get_resource_service('assignments_history').on_item_updated(updates, assignment, 'unlink')
+
         return ids
 
     def _validate(self, doc):
