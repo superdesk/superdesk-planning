@@ -1,7 +1,7 @@
 import {createSelector} from 'reselect';
 import {get, sortBy, includes, isEmpty, filter, matches, isNil} from 'lodash';
 import moment from 'moment';
-import {AGENDA, SPIKED_STATE} from '../constants';
+import {AGENDA, SPIKED_STATE, FORM_NAMES} from '../constants';
 import {isItemLockedInThisSession, isItemSpiked} from '../utils';
 
 export const getFormsProfile = (state) => get(state, 'formsProfile');
@@ -88,6 +88,9 @@ export const getCurrentDeskId = (state) => get(state, 'workspace.currentDeskId',
 export const getCurrentStageId = (state) => get(state, 'workspace.currentStageId', null);
 export const getDesks = (state) => get(state, 'desks', []);
 export const getTemplates = (state) => get(state, 'templates', []);
+export const getAutosavePlanningItems = (state) => get(state, 'autosave.' + FORM_NAMES.PlanningForm);
+export const getAutosaveEventItems = (state) => get(state, 'autosave.' + FORM_NAMES.EventForm);
+
 
 export const getPlanningTypeProfile = createSelector(
     [getPlanningsFormsProfile, getCoverageFormsProfile],
