@@ -20,6 +20,7 @@ from planning.common import ASSIGNMENT_WORKFLOW_STATE
 from superdesk.utc import utcnow
 from superdesk import get_resource_service
 from planning.planning_notifications import PlanningNotifications
+from superdesk import get_resource_service
 
 
 FIELDS_TO_COPY = ('anpa_category', 'subject', 'urgency')

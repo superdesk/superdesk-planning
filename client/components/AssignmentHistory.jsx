@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, includes, isEqual} from 'lodash';
 import {AbsoluteDate} from './index';
-import {getItemInArrayById} from '../utils';
+import {getItemInArrayById, gettext} from '../utils';
 import * as actions from '../actions';
 import * as selectors from '../selectors';
 
@@ -48,15 +48,16 @@ class AssignmentHistoryComponent extends React.Component {
                                 &&
                                 <div>
                                     <strong>
-                                        {historyItem.operation === 'create' && 'Created by '}
-                                        {historyItem.operation === 'update' && 'Updated by '}
-                                        {historyItem.operation === 'unlink' && 'Content unlinked by '}
-                                        {historyItem.operation === 'content_link' && 'Content linked by '}
-                                        {historyItem.operation === 'start_working' && 'Work started by '}
-                                        {historyItem.operation === 'complete' && 'Completed by '}
-                                        {historyItem.operation === 'submitted' && 'Submitted by '}
-                                        {historyItem.operation === 'cancelled' && 'Cancelled by '}
-                                        {historyItem.operation === 'spike_unlink' && 'Content Unlinked and Spiked by '}
+                                        {historyItem.operation === 'create' && gettext('Created by ')}
+                                        {historyItem.operation === 'update' && gettext('Updated by ')}
+                                        {historyItem.operation === 'unlink' && gettext('Content unlinked by ')}
+                                        {historyItem.operation === 'content_link' && gettext('Content linked by ')}
+                                        {historyItem.operation === 'start_working' && gettext('Work started by ')}
+                                        {historyItem.operation === 'complete' && gettext('Completed by ')}
+                                        {historyItem.operation === 'submitted' && gettext('Submitted by ')}
+                                        {historyItem.operation === 'cancelled' && gettext('Cancelled by ')}
+                                        {historyItem.operation === 'spike_unlink' &&
+                                            gettext('Content Unlinked and Spiked by ')}
                                     </strong>
 
                                     <span className="user-name">{getHistoryActionUserName(historyItem.user_id)}</span>
