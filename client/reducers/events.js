@@ -27,6 +27,9 @@ const modifyEventsBeingAdded = (state, payload) => {
 
     payload.forEach((e) => {
         _events[e._id] = e;
+
+        e._type = 'events'; // _type can disappear in the object, like in a POST response
+
         // Change dates to moment objects
         if (e.dates) {
             e.dates.start = moment(e.dates.start);

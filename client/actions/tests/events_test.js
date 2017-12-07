@@ -536,6 +536,7 @@ describe('events', () => {
                                 start: moment('2017-06-30T12:37:11+0000'),
                                 end: moment('2017-06-30T13:37:11+0000'),
                             },
+                            _type: 'events',
                         },
                     });
                     done();
@@ -611,6 +612,7 @@ describe('events', () => {
                                 start: moment('2017-06-30T12:37:11+0000'),
                                 end: moment('2017-06-30T13:37:11+0000'),
                             },
+                            _type: 'events',
                         },
                         e4: {
                             _id: 'e4',
@@ -620,6 +622,7 @@ describe('events', () => {
                                 start: moment('2017-06-30T12:37:11+0000'),
                                 end: moment('2017-06-30T13:37:11+0000'),
                             },
+                            _type: 'events',
                         },
                     });
 
@@ -673,6 +676,7 @@ describe('events', () => {
                                 start: moment('2017-05-31T17:00:00+0000'),
                                 end: moment('2017-05-31T18:00:00+0000'),
                             },
+                            _type: 'events',
                         },
                     });
                     done();
