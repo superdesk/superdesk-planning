@@ -4,7 +4,7 @@ import planningApp from '../reducers';
 import thunkMiddleware from 'redux-thunk';
 import createLogger from 'redux-logger';
 import {get, set, isNil, map, cloneDeep} from 'lodash';
-import {PUBLISHED_STATE, WORKFLOW_STATE, TOOLTIPS, ASSIGNMENTS} from '../constants/index';
+import {PUBLISHED_STATE, WORKFLOW_STATE, TOOLTIPS, ASSIGNMENTS, ITEM_TYPE} from '../constants/index';
 import * as testData from './testData';
 
 export {default as checkPermission} from './checkPermission';
@@ -417,7 +417,7 @@ export const getItemWorkflowStateLabel = (item) => {
     case WORKFLOW_STATE.RESCHEDULED:
         return {
             label: 'Rescheduled',
-            iconType: 'warning',
+            iconType: 'highlight2',
         };
     case WORKFLOW_STATE.CANCELLED:
         return {
@@ -544,4 +544,18 @@ export const getDesksForUser = (user, desksList = []) => {
 
     return desksList.filter((desk) =>
         map(desk.members, 'user').indexOf(user._id) !== -1);
+};
+
+export const getItemType = (item) => {
+    const itemType = get(item, '_type');
+
+    if (itemType === ITEM_TYPE.EVENT) {
+        return ITEM_TYPE.EVENT;
+    } else if (itemType === ITEM_TYPE.PLANNING) {
+        return ITEM_TYPE.PLANNING;
+    } else if (itemType === ITEM_TYPE.ASSIGNMENT) {
+        return ITEM_TYPE.ASSIGNMENT;
+    }
+
+    return ITEM_TYPE.UNKNOWN;
 };

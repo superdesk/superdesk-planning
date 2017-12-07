@@ -9,6 +9,7 @@ export {WORKSPACE} from './workspace';
 export {MODALS} from './modals';
 export {UI} from './ui';
 export {AUTOSAVE} from './autosave';
+export {MAIN} from './main';
 
 
 export const LIST_ITEM_1_LINE_HEIGHT = 38;
@@ -91,4 +92,11 @@ export const FORM_NAMES = {
     UpdateAssignmentForm: 'updateAssignmentForm',
     PlanningForm: 'planning',
     EventForm: 'events',
+};
+
+export const ITEM_TYPE = {
+    EVENT: 'events',
+    PLANNING: 'planning',
+    ASSIGNMENT: 'assignments',
+    UNKNOWN: 'unknown'
 };

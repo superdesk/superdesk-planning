@@ -36,6 +36,10 @@ const isEventAllDay = (startingDate, endingDate) => {
         end.isSame(end.clone().endOf('day'), 'minute');
 };
 
+const isEventSameDay = (startingDate, endingDate) => (
+    moment(startingDate).format('DD/MM/YYYY') === moment(endingDate).format('DD/MM/YYYY')
+);
+
 const eventHasPlanning = (event) => get(event, 'planning_ids', []).length > 0;
 
 const isEventLocked = (event, locks) =>
@@ -300,6 +304,10 @@ const isEventAssociatedWithPlannings = (eventId, allPlannings) => (
         .filter((pid) => get(allPlannings[pid], 'event_item', null) === eventId).length > 0
 );
 
+const isEventRecurring = (item) => (
+    get(item, 'recurrence_id', null) !== null
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     isEventAllDay,
@@ -323,6 +331,8 @@ const self = {
     canConvertToRecurringEvent,
     isEventLocked,
     isEventLockRestricted,
+    isEventSameDay,
+    isEventRecurring,
 };
 
 export default self;
