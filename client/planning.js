@@ -3,20 +3,18 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {connect} from 'react-redux';
 
-import SearchBar from './components/SearchBar';
-import FiltersBar from './components/FiltersBar';
-import FiltersPanel from './components/FiltersPanel';
-import PreviewPanel from './components/PreviewPanel';
-import MainPanel from './components/MainPanel';
-import Editor from './components/Editor';
+import {
+    SearchBar,
+    FiltersBar,
+    SearchPanel,
+    PreviewPanel,
+    Editor,
+    ListPanel
+} from './components/Main';
 
 import './planning.scss';
 
-import {
-    edit,
-    cancel,
-    preview,
-} from './actions/main';
+import {main} from './actions';
 
 import * as selectors from './selectors';
 
@@ -27,21 +25,17 @@ class PlanningApp extends React.Component {
             editorOpen: false,
             filtersOpen: false,
             previewOpen: false,
-            activeFilter: null,
         };
 
         this.toggleFilterPanel = this.toggleFilterPanel.bind(this);
-        this.setFilter = this.setFilter.bind(this);
         this.onItemClick = this.onItemClick.bind(this);
-        this.edit = this.edit.bind(this);
+        this.openEditor = this.openEditor.bind(this);
+        this.closeEditor = this.closeEditor.bind(this);
+        this.closePreview = this.closePreview.bind(this);
     }
 
     toggleFilterPanel() {
         this.setState({filtersOpen: !this.state.filtersOpen});
-    }
-
-    setFilter(filter) {
-        this.setState({activeFilter: filter});
     }
 
     onItemClick(item) {
@@ -59,9 +53,17 @@ class PlanningApp extends React.Component {
         }
     }
 
-    edit(item) {
+    openEditor(item) {
         this.setState({editorOpen: true});
         this.props.edit(item);
+    }
+
+    closeEditor() {
+        this.setState({editorOpen: false});
+    }
+
+    closePreview() {
+        this.setState({previewOpen: false});
     }
 
     render() {
@@ -85,8 +87,8 @@ class PlanningApp extends React.Component {
 
         const editorClassName = classNames(
             'sd-edit-panel',
-            'sd-page-content__content_block',
-            'sd-page-content__content_block--right',
+            'sd-page-content__content-block',
+            'sd-page-content__content-block--right',
             'sd-page-content__content-block--30-slide',
             contentBlockFlags
         );
@@ -98,27 +100,31 @@ class PlanningApp extends React.Component {
                     <FiltersBar
                         filterPanelOpen={this.state.filtersOpen}
                         toggleFilterPanel={this.toggleFilterPanel}
-                        activeFilter={this.state.activeFilter}
-                        setFilter={this.setFilter}
+                        activeFilter={this.props.activeFilter}
+                        setFilter={this.props.filter}
                     />
                     <div className="sd-column-box--3">
-                        <FiltersPanel />
-                        <MainPanel
+                        <SearchPanel />
+                        <ListPanel
                             groups={this.props.groups}
                             onItemClick={this.onItemClick}
+                            onDoubleClick={this.openEditor}
+                            lockedItems={this.props.lockedItems}
+                            dateFormat={this.props.dateFormat}
+                            timeFormat={this.props.timeFormat}
                         />
                         <PreviewPanel
                             item={this.props.previewItem}
-                            edit={this.edit}
-                            closePreview={() => this.setState({previewOpen: false})}
+                            edit={this.openEditor}
+                            closePreview={this.closePreview}
                         />
                     </div>
                 </div>
                 <div className={editorClassName}>
                     <Editor
                         item={this.props.editItem}
-                        cancel={(item) => this.props.cancel(item)}
-                        minimize={() => this.setState({editorOpen: false})}
+                        cancel={this.props.cancel}
+                        minimize={this.closeEditor}
                     />
                 </div>
             </section>
@@ -133,18 +139,28 @@ PlanningApp.propTypes = {
     edit: PropTypes.func.isRequired,
     cancel: PropTypes.func.isRequired,
     preview: PropTypes.func.isRequired,
+    filter: PropTypes.func.isRequired,
+    lockedItems: PropTypes.object.isRequired,
+    dateFormat: PropTypes.string.isRequired,
+    timeFormat: PropTypes.string.isRequired,
+    activeFilter: PropTypes.string.isRequired,
 };
 
 const mapStateToProps = (state) => ({
-    groups: selectors.getEventsOrderedByDay(state),
+    groups: selectors.main.itemGroups(state),
     editItem: state.main.editItem,
     previewItem: state.main.previewItem,
+    lockedItems: selectors.getLockedItems(state),
+    dateFormat: selectors.getDateFormat(state),
+    timeFormat: selectors.getTimeFormat(state),
+    activeFilter: selectors.main.activeFilter(state),
 });
 
-const mapDispatchToProps = {
-    edit,
-    cancel,
-    preview,
-};
+const mapDispatchToProps = (dispatch) => ({
+    edit: (item) => dispatch(main.edit(item)),
+    cancel: () => dispatch(main.cancel()),
+    preview: (item) => dispatch(main.preview(item)),
+    filter: (filterType) => dispatch(main.filter(filterType)),
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningApp);

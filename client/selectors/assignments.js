@@ -5,7 +5,7 @@ import {
     getCurrentWorkspace,
     getStoredPlannings,
     getEvents,
-} from './planning';
+} from './planning_old';
 import {createSelector} from 'reselect';
 import {getItemsById, getItemInArrayById} from '../utils';
 import {WORKSPACE} from '../constants';

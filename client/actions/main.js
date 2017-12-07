@@ -1,20 +1,28 @@
+import {MAIN} from '../constants';
 
-export const EDIT = 'EDIT';
-export function edit(item) {
-    return {
-        type: EDIT,
-        item: item
-    };
-}
+const edit = (item) => ({
+    type: MAIN.ACTIONS.EDIT,
+    payload: item
+});
 
-export function cancel() {
-    return edit(null);
-}
+const cancel = () => self.edit(null);
 
-export const PREVIEW = 'PREVIEW';
-export function preview(item) {
-    return {
-        type: PREVIEW,
-        item: item
-    };
-}
+const preview = (item) => ({
+    type: MAIN.ACTIONS.PREVIEW,
+    payload: item
+});
+
+const filter = (filterType) => ({
+    type: MAIN.ACTIONS.FILTER,
+    payload: filterType,
+});
+
+// eslint-disable-next-line consistent-this
+const self = {
+    edit,
+    cancel,
+    preview,
+    filter,
+};
+
+export default self;

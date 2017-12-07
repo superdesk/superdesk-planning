@@ -36,14 +36,16 @@
 }
 
 
-.sd-list-item__column {
-	overflow: visible !important;
-}
+.Planning {
+    .sd-list-item__column {
+      overflow: visible !important;
+    }
 
-.sd-list-item__row {
-	overflow: visible !important;
-}
+    .sd-list-item__row {
+      overflow: visible !important;
+    }
 
-.tooltipVisibleElement {
-	overflow: visible !important;
+    .tooltipVisibleElement {
+      overflow: visible !important;
+    }
 }

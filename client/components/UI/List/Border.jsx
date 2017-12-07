@@ -11,6 +11,7 @@ export const Border = ({state}) => (
 
 Border.propTypes = {
     state: PropTypes.oneOf([
+        false,
         'success',
         'error',
         'locked',

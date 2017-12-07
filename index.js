@@ -10,7 +10,7 @@ import PlanningApp from './client/planning';
 configurePlanning.$inject = ['superdeskProvider']
 function configurePlanning(superdesk) {
     superdesk
-        .activity('/planning', {
+        .activity('/planning_old', {
             label: gettext('Planning'),
             description: gettext('Planning'),
             priority: 100,
@@ -19,12 +19,11 @@ function configurePlanning(superdesk) {
             sideTemplateUrl: 'scripts/apps/workspace/views/workspace-sidenav.html',
             privileges: { planning: 1 },
         })
-        .activity('/planning2', {
+        .activity('/planning', {
             label: gettext('Planning'),
             description: gettext('Planning'),
             adminTools: false,
             template: require('./client/views/planning.html'),
-            topTemplateUrl: 'scripts/apps/dashboard/views/workspace-topnav.html',
             sideTemplateUrl: 'scripts/apps/workspace/views/workspace-sidenav.html',
             controller: ['$scope', ($scope) => $scope.app = PlanningApp],
             privileges: { planning: 1 },
