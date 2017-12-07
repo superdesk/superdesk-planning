@@ -9,6 +9,7 @@ import events from './events/index';
 import locks from './locks';
 import assignments from './assignments/index';
 import autosave from './autosave';
+import main from './main';
 
 import {agendaNotifications} from './agenda';
 import {eventNotifications} from './events';
@@ -44,4 +45,5 @@ export {
     locks,
     assignments,
     autosave,
+    main,
 };
