@@ -142,6 +142,20 @@ Feature: Assignment content
             "headline": "Headline From Template"
         }
         """
+        When we get "/assignments_history"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "create"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "start_working"
+            }
+        ]}
+        """
 
     @auth
     @vocabularies

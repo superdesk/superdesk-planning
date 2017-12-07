@@ -494,3 +494,25 @@ Feature: Cancel all coverage
             "assignment_id": null
         }
         """
+        When we get "/assignments_history"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "create"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "content_link"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "unlink"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "cancelled"
+            }
+        ]}
+        """
