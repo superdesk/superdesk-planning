@@ -1,9 +1,13 @@
 import {createSelector} from 'reselect';
 import {get, sortBy} from 'lodash';
 import moment from 'moment';
+import {storedPlannings} from './planning';
 
 export const storedEvents = (state) => get(state, 'events.events', {});
 export const eventIdsInList = (state) => get(state, 'events.eventsInList', []);
+export const agendas = (state) => get(state, 'agenda.agendas', []);
+export const previewItem = (state) => get(state, 'main.previewItem');
+export const eventPreviewHistory = (state) => get(state, 'main.history');
 
 /** Used for the events list */
 export const eventsInList = createSelector(
@@ -70,5 +74,28 @@ export const orderedEvents = createSelector(
             events: days[day],
         });
         return sortBy(sortable, [(e) => (e.date)]);
+    }
+);
+
+/** Used for event details */
+export const eventWithRelatedDetails = createSelector(
+    [previewItem, storedEvents, storedPlannings, agendas],
+    (item, events, plannings, agendas) => {
+        const event = get(item, '_id') ? events[item._id] : null;
+
+        if (event) {
+            return {
+                ...event,
+                _plannings: Object.keys(plannings).filter((pKey) => (
+                    plannings[pKey].event_item === item._id
+                ))
+                    .map((key) => ({
+                        ...plannings[key],
+                        _agendas: !plannings[key].agendas ? [] :
+                            plannings[key].agendas.map((id) =>
+                                agendas.find(((agenda) => agenda._id === id))),
+                    })),
+            };
+        }
     }
 );

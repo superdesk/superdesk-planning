@@ -454,27 +454,6 @@ const eventNotifications = {
     'events:unspiked': () => (onEventUpdated),
 };
 
-/**
- * Action Dispatcher to fetch event history from the server
- * This will add the history of action on that event in event history list
- * @param {object} eventId - Query parameters to send to the server
- * @return arrow function
- */
-const fetchEventHistory = (eventId) => (
-    (dispatch, getState, {api}) => (
-        // Query the API and sort by created
-        api('events_history').query({
-            where: {event_id: eventId},
-            max_results: 200,
-            sort: '[(\'_created\', 1)]',
-        })
-            .then((data) => {
-                dispatch(receiveEventHistory(data._items));
-                return data;
-            })
-    )
-);
-
 export {
     duplicateEvent,
     unpublishEvent,
@@ -483,7 +462,6 @@ export {
     receiveEventHistory,
     addToEventsList,
     fetchEvents,
-    fetchEventHistory,
     fetchEventById,
     saveFiles,
     uploadFilesAndSaveEvent,

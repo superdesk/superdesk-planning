@@ -20,11 +20,11 @@ describe('<ItemActionsMenu />', () => {
         expect(callback.callCount).toBe(1);
     });
 
-    it('doesnt render without actions ', () => {
+    it('no visibility without actions ', () => {
         const wrapper = mount(
             <ItemActionsMenu actions={[]}/>
         );
 
-        expect(wrapper.find('.dropdown__toggle').length).toBe(0);
+        expect(wrapper.find('.ItemActionsMenu__hidden').length).toBe(1);
     });
 });

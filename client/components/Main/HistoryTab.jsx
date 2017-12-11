@@ -1,23 +1,16 @@
 import React from 'react';
-import {gettext} from '../../utils';
+import PropTypes from 'prop-types';
+import {getItemType} from '../../utils';
+import {EventHistory} from '../Events/';
 
-export const HistoryTab = () => {
-    const items = [
-        {
-            _id: 1,
-            author: 'Mika',
-            created: new Date(),
-        },
-    ];
+export const HistoryTab = ({item}) => (
+    <div>
+        { getItemType(item) === 'events' &&
+            <EventHistory item={item} />
+        }
+    </div>
+);
 
-    return (
-        <ul className="simple-list simple-list--dotted simple-list--no-padding">
-            {items.map((item) => (
-                <li className="simple-list__item" key={item._id}>
-                    <p>{gettext('Created by {{ name }}', {name: item.author})}</p>
-                    <time className="small">{item.created.toLocaleString()}</time>
-                </li>
-            ))}
-        </ul>
-    );
+HistoryTab.propTypes = {
+    item: PropTypes.object.isRequired,
 };
