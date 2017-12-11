@@ -80,7 +80,7 @@ describe('<RepeatEventSummary />', () => {
         };
         let wrapper = mountForm(recEvent);
 
-        expect(wrapper.find('.repeatSummary').text()).toBe('Repeat summary: Every 3 months on day 15');
+        expect(wrapper.find('.recurring__summary').text()).toBe('Repeat summary: Every 3 months on day 15');
     });
 
     it('Shows appropriate repeat summary for a given frequency with intervals and until a date', () => {
@@ -99,7 +99,7 @@ describe('<RepeatEventSummary />', () => {
         };
         let wrapper = mountForm(recEvent);
 
-        expect(wrapper.find('.repeatSummary').text()).toBe('Repeat summary: Every 3 days, until 1 Jul 2020');
+        expect(wrapper.find('.recurring__summary').text()).toBe('Repeat summary: Every 3 days, until 1 Jul 2020');
     });
 
     it('Shows appropriate repeat summary for a given frequency with intervals and for a number of occurances', () => {
@@ -118,7 +118,7 @@ describe('<RepeatEventSummary />', () => {
         };
         let wrapper = mountForm(recEvent);
 
-        expect(wrapper.find('.repeatSummary').text()).toBe('Repeat summary: Every 3 days, 9 times');
+        expect(wrapper.find('.recurring__summary').text()).toBe('Repeat summary: Every 3 days, 9 times');
     });
 
     it('Shows appropriate repeat summary for a given weekly frequency with intervals and by days', () => {
@@ -136,6 +136,6 @@ describe('<RepeatEventSummary />', () => {
         };
         let wrapper = mountForm(recEvent);
 
-        expect(wrapper.find('.repeatSummary').text()).toBe('Repeat summary: Every 3 weeks on Thursday, Friday');
+        expect(wrapper.find('.recurring__summary').text()).toBe('Repeat summary: Every 3 weeks on Thursday, Friday');
     });
 });

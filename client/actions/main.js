@@ -12,6 +12,11 @@ const preview = (item) => ({
     payload: item
 });
 
+const history = (items) => ({
+    type: MAIN.ACTIONS.HISTORY,
+    payload: items
+});
+
 const filter = (filterType) => ({
     type: MAIN.ACTIONS.FILTER,
     payload: filterType,
@@ -23,6 +28,7 @@ const self = {
     cancel,
     preview,
     filter,
+    history,
 };
 
 export default self;

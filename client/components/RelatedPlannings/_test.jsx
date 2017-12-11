@@ -62,7 +62,7 @@ describe('<RelatedPlannings />', () => {
             </Provider>
         );
 
-        const relPlanningNode = wrapper.find('.related-plannings').childAt(0);
+        const relPlanningNode = wrapper.find('.simple-list').childAt(0);
 
         expect(relPlanningNode.text()).toBe(' planning 3 created by ABC in agenda agenda1, agenda2');
     });

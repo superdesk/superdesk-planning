@@ -1,19 +1,19 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {EventPreviewHeader} from '../Events';
 import {getItemType} from '../../utils';
-import {EventPreviewContent} from '../Events/EventPreviewContent';
 
-export const PreviewContentTab = ({item}) => {
+export const PreviewHeader = ({item}) => {
     const itemType = getItemType(item);
 
     switch (itemType) {
     case 'events':
-        return (<EventPreviewContent />);
+        return (<EventPreviewHeader />);
     default:
         return null;
     }
 };
 
-PreviewContentTab.propTypes = {
+PreviewHeader.propTypes = {
     item: PropTypes.object.isRequired,
 };

@@ -39,7 +39,7 @@ export class ToggleBox extends React.Component {
         } = this.props;
 
         return (
-            <div className={classNames('toggle-box', style, {hidden: !this.state.isOpen})}>
+            <div className={classNames('toggle-box toggle-box--circle', style, {hidden: !this.state.isOpen})}>
                 <div className="toggle-box__header" onClick={this.toggle.bind(this)}>
                     <div className="toggle-box__chevron"><i className="icon-chevron-right-thin"/></div>
                     <div className="toggle-box__label">{title}</div>

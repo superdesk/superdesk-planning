@@ -2,6 +2,7 @@ import {showModal, hideModal, locks, uploadFilesAndSaveEvent} from '../index';
 import {PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS, PUBLISHED_STATE, MODALS} from '../../constants';
 import eventsApi from './api';
 import {fetchSelectedAgendaPlannings} from '../agenda';
+import main from '../main';
 import * as selectors from '../../selectors';
 import {get, last} from 'lodash';
 import {
@@ -150,10 +151,12 @@ const _unlockAndOpenEventDetails = (event) => (
     (dispatch) => (
         dispatch(locks.unlock(event))
             .then(() => {
-            // Call openPlanningEditor to obtain a new lock for editing
-            // Recurring events item resolved might not be the item we want to open
-            // So, use original parameter (event) to open
-                dispatch(self._openEventDetails(event));
+                // Call openPlanningEditor to obtain a new lock for editing
+                // Recurring events item resolved might not be the item we want to open
+                // So, use original parameter (event) to open
+
+                // (TEMPORARY!) Keeping this as preview until we finish new ui forms
+                dispatch(main.preview(event));
             }, () => (Promise.reject()))
     )
 );
