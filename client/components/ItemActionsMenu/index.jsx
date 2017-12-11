@@ -26,7 +26,7 @@ export class ItemActionsMenu extends React.Component {
     handleClickOutside(event) {
         const domNode = ReactDOM.findDOMNode(this);
 
-        if ((!domNode && event.target.className !== 'ItemActionsMenu__action')) {
+        if ((!domNode || event.target.className !== 'ItemActionsMenu__action')) {
             if (this.state.isOpen) {
                 this.closeMenu();
             }
@@ -55,11 +55,8 @@ export class ItemActionsMenu extends React.Component {
     }
 
     render() {
-        if (this.isEmptyActions() || this.state.isOpen) {
-            return null;
-        }
-
         const classes = classNames(
+            this.props.className,
             'dropdown',
             'ItemActionsMenu',
             'pull-right',
@@ -68,7 +65,9 @@ export class ItemActionsMenu extends React.Component {
 
         const buttonClasses = classNames(
             'dropdown__toggle',
-            {[this.props.buttonClass]: this.props.buttonClass}
+            {[this.props.buttonClass]: this.props.buttonClass},
+            {ItemActionsMenu__hidden: this.isEmptyActions() || this.state.isOpen},
+            {ItemActionsMenu__visible: !this.state.isOpen}
         );
 
         return (
@@ -98,6 +97,7 @@ export class ItemActionsMenu extends React.Component {
 
 ItemActionsMenu.propTypes = {
     actions: PropTypes.array.isRequired,
+    className: PropTypes.string,
     buttonClass: PropTypes.string,
 };
 

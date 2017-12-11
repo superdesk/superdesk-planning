@@ -14,3 +14,4 @@ export {Editor} from './Editor';
 export {ListGroupItem} from './ListGroupItem';
 export {ListGroup} from './ListGroup';
 export {ListPanel} from './ListPanel';
+export {PreviewHeader} from './PreviewHeader'

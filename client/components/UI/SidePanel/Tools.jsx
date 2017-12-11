@@ -2,10 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-export const Tools = ({className, tools}) => (
+export const Tools = ({className, tools, useDefaultClassName, children}) => (
     <div
         className={classNames(
-            'side-panel__tools',
+            {'side-panel__tools': useDefaultClassName },
             className
         )}
     >
@@ -17,13 +17,21 @@ export const Tools = ({className, tools}) => (
                 <i className={tool.icon} />
             </a>
         ))}
+        {children}
     </div>
 );
 
 Tools.propTypes = {
+    children: PropTypes.node,
     className: PropTypes.string,
     tools: PropTypes.arrayOf(PropTypes.shape({
         icon: PropTypes.string,
         onClick: PropTypes.func
     })).isRequired,
+    useDefaultClassName: PropTypes.bool,
+};
+
+Tools.defaultProps = {
+    useDefaultClassName: true,
+    tools: [],
 };

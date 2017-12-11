@@ -45,8 +45,16 @@ export const getTestActionStore = () => {
                             return Promise.reject(`Event '${id}' not found!`);
                         }
 
+
+
+
                         return Promise.resolve(event);
                     }),
+                },
+                events_history: {
+                    query: sinon.spy(
+                        () => (store.spies.api._query('events_history'))
+                    ),
                 },
                 planning_history: {
                     query: sinon.spy(
