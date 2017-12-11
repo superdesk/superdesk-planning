@@ -110,7 +110,7 @@ export class Component extends React.Component {
                             coverage={assignment}
                             formProfile={formProfile}
                             readOnly={true}
-                            content_type={get(assignment, 'planning.g2_content_type')}
+                            contentType={get(assignment, 'planning.g2_content_type')}
                             keywords={keywords}
                         />
                     </div>

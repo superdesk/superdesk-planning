@@ -22,7 +22,7 @@ export class CoverageDetailsComponent extends React.Component {
         const {
             coverage,
             readOnly,
-            content_type, // eslint-disable-line camelcase
+            contentType,
             formProfile,
             keywords,
             assignmentState,
@@ -31,7 +31,7 @@ export class CoverageDetailsComponent extends React.Component {
             coverageId,
         } = this.props;
 
-        const isTextCoverage = content_type === 'text'; // eslint-disable-line camelcase
+        const isTextCoverage = contentType === 'text';
         const isExistingCoverage = !!coverageId;
         // for assignment form coverage props is object
         // for coverage form coverage props is string
@@ -151,7 +151,7 @@ CoverageDetailsComponent.propTypes = {
         PropTypes.string,
         PropTypes.object,
     ]).isRequired,
-    content_type: PropTypes.string,
+    contentType: PropTypes.string,
     readOnly: PropTypes.bool,
     formProfile: PropTypes.object,
     keywords: PropTypes.array,

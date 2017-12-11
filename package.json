@@ -51,6 +51,6 @@
     "simulant": "^0.2.2",
     "sinon": "~3.3.0",
     "superdesk-code-style": "^1.0.0",
-    "superdesk-core": "superdesk/superdesk-client-core#de0a6672"
+    "superdesk-core": "superdesk/superdesk-client-core#9d60fa6"
   }
 }
