@@ -74,6 +74,7 @@ export class EditAssignment extends React.Component {
 
         const assignmentPriorityInput = {value: get(this.props, 'input.value.priority', ASSIGNMENTS.DEFAULT_PRIORITY)};
 
+        /* eslint-disable camelcase */
         const {
             assignor_user,
             assignor_desk,
@@ -83,7 +84,6 @@ export class EditAssignment extends React.Component {
 
         const deskAssignor = getItemInArrayById(this.props.users, assignor_desk);
         const userAssignor = getItemInArrayById(this.props.users, assignor_user);
-
         const {context} = this.props;
 
         const assignmentSelectInput = {

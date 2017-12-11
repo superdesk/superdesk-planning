@@ -6,7 +6,7 @@ import {WORKFLOW_STATE} from '../../constants/index';
 export const RelatedEvents = ({events, dateFormat}) => (
     <ul className="related-events">
         {events.map(({
-            _id,
+            _id, // eslint-disable-line camelcase
             slugline,
             name,
             dates,

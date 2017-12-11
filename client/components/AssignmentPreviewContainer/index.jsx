@@ -170,22 +170,45 @@ class AssignmentPreviewContainerComponent extends React.Component {
                                     initials={false}
                                 />
                             </List.Column>
-                            <List.Column border={false} justifyTop={true} noPadding={true}>
+                            <List.Column border={false}>
                                 <List.Row classes="sd-list-item__row--no-margin">
-                                    <span className="sd-list-item__text-label sd-list-item__text-label--normal">
-                                        Desk
+                                    <span className="sd-list-item__normal">
+                                        Desk:
+                                    </span>
+                                    <span className="sd-list-item__strong">
+                                        {assignedDeskName}
                                     </span>
                                 </List.Row>
                                 <List.Row classes="sd-list-item__row--no-margin">
-                                    &nbsp;
+                                    <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                                        {deskAssignor &&
+                                        <span>Assigned by {deskAssignorName}, <Datetime
+                                            date={assignedDateDesk}/></span>}
+                                    </span>
+                                </List.Row>
+                                <List.Row classes="sd-list-item__row--no-margin">
+                                    <span className="sd-list-item__normal">
+                                        Assigned:
+                                    </span>
+                                    <span className="sd-list-item__strong">
+                                        {assignedUserName}
+                                    </span>
+                                </List.Row>
+                                <List.Row classes="sd-list-item__row--no-margin">
+                                    <span className="sd-list-item__text-label sd-list-item__text-label--normal">
+                                        {userAssignor &&
+                                        <span>Assigned by {userAssignorName}, <Datetime
+                                            date={assignedDateUser}/></span>}
+                                    </span>
                                 </List.Row>
                                 <List.Row classes="sd-list-item__row--margin-top">
-                                    <span className="sd-list-item__text-label sd-list-item__text-label--normal">
-                                        Assigned to
+                                    <span className="sd-list-item__normal">
+                                        Due:
                                     </span>
-                                </List.Row>
-                                <List.Row classes="sd-list-item__row--no-margin">
-                                    &nbsp;
+                                    <AbsoluteDate
+                                        date={get(assignment, 'planning.scheduled', '').toString()}
+                                        noDateString="'not scheduled yet'"
+                                    />
                                 </List.Row>
                                 <List.Row classes="sd-list-item__row--margin-top">
                                     <span
@@ -202,37 +225,6 @@ class AssignmentPreviewContainerComponent extends React.Component {
                                         item={assignment}
                                         priorities={priorities}
                                         tooltipFlow="down"/>
-                                </List.Row>
-                            </List.Column>
-                            <List.Column border={false} justifyTop={true}>
-                                <List.Row classes="sd-list-item__row--no-margin">
-                                    {assignedDeskName}
-                                </List.Row>
-                                <List.Row classes="sd-list-item__row--no-margin">
-                                    <span className="sd-list-item__text-label sd-list-item__text-label--normal">
-                                        {deskAssignor &&
-                                        <span><Datetime date={assignedDateDesk}/>, {deskAssignorName}</span>}
-                                    </span>
-                                </List.Row>
-                                <List.Row classes="sd-list-item__row--margin-top">
-                                    {assignedUserName}
-                                </List.Row>
-                                <List.Row classes="sd-list-item__row--no-margin">
-                                    <span className="sd-list-item__text-label sd-list-item__text-label--normal">
-                                        {userAssignor &&
-                                        <span><Datetime date={assignedDateUser}/>, {userAssignorName}</span>}
-                                    </span>
-                                </List.Row>
-                                <List.Row classes="sd-list-item__row--margin-top">
-                                    <span className="sd-list-item__text-label sd-list-item__text-label--normal">
-                                        Due
-                                    </span>
-                                    <AbsoluteDate
-                                        className="AssignmentPreview__scheduled AssignmentPreview__scheduled--padding"
-                                        date={get(assignment, 'planning.scheduled', '').toString()}
-                                        noDateString="'not scheduled yet'"
-                                    />
-                                    &nbsp;
                                     <StateLabel item={assignment.assigned_to}/>
                                 </List.Row>
                             </List.Column>
