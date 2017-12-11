@@ -381,6 +381,29 @@ describe('actions.events.api', () => {
         });
     });
 
+    describe('fetchEventHistory', () => {
+        it('calls events_history api and runs dispatch', (done) => {
+            store.test(done, eventsApi.fetchEventHistory('e2'))
+                .then((data) => {
+                    expect(data._items).toEqual(store.data.events_history);
+                    expect(store.dispatch.callCount).toBe(1);
+
+                    expect(store.services.api('events_history').query.callCount).toBe(1);
+                    expect(store.services.api('events_history').query.args[0]).toEqual([{
+                        where: {event_id: 'e2'},
+                        max_results: 200,
+                        sort: '[(\'_created\', 1)]',
+                    }]);
+
+                    expect(store.dispatch.args[0]).toEqual([{
+                        type: 'MAIN_HISTORY',
+                        payload: store.data.events_history,
+                    }]);
+                    done();
+                });
+        });
+    });
+
     describe('loadRecurringEventsAndPlanningItems', () => {
         beforeEach(() => {
             data.events[0].recurrence_id = 'rec1';

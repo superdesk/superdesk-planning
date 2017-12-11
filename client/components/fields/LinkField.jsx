@@ -5,6 +5,7 @@ import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
 import 'whatwg-fetch';
 import classNames from 'classnames';
+import {Row} from '../UI/Preview';
 import './style.scss';
 
 export class LinkFieldComponent extends React.Component {
@@ -58,25 +59,35 @@ export class LinkFieldComponent extends React.Component {
     render() {
         return (
             <li className="Link__Item">
-                <Field
-                    name={this.props.fieldName}
-                    className={classNames('line-input', {disabledInput: this.props.readOnly})}
-                    disabled={this.props.readOnly ? 'disabled' : ''}
-                    component="input"
-                    type="text"
-                    placeholder="Paste link"/>
-                { this.state.title &&
-                    <a href={this.props.link} target="_blank" className="line-input">
-                        {this.state.title}&nbsp;
-                    </a>
-                }
-                {!this.props.readOnly && <button
-                    className="Link__remove"
-                    onClick={this.props.onRemove}
-                    title="Remove link"
-                    type="button">
-                    <i className="icon-trash" />
-                </button>}
+                {this.props.readOnly && <Row
+                    className="link"
+                    value={this.props.link}>
+                    { this.state.title &&
+                        <a href={this.props.link} target="_blank" className="line-input">
+                            {this.state.title}&nbsp;
+                        </a>
+                    }
+                </Row>}
+                {!this.props.readOnly && (<div>
+                    <Field
+                        name={this.props.fieldName}
+                        className={classNames('line-input', {disabledInput: this.props.readOnly})}
+                        component="input"
+                        type="text"
+                        placeholder="Paste link"/>
+                    {this.state.title &&
+                        <a href={this.props.link} target="_blank" className="line-input">
+                            {this.state.title}&nbsp;
+                        </a>
+                    }
+                    <button
+                        className="Link__remove"
+                        onClick={this.props.onRemove}
+                        title="Remove link"
+                        type="button">
+                        <i className="icon-trash" />
+                    </button>
+                </div>)}
             </li>
         );
     }

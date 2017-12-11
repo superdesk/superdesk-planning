@@ -46,7 +46,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     fetchEventHistory: (highlightedEvent) => (
-        dispatch(actions.fetchEventHistory(highlightedEvent))
+        dispatch(actions.events.api.fetchEventHistory(highlightedEvent))
     ),
     openPlanningClick: (planningId) => (
         dispatch(actions.planning.ui.previewPlanningAndOpenAgenda(planningId))

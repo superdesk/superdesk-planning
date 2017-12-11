@@ -17,6 +17,9 @@ export default function(state = initialState, action) {
     case MAIN.ACTIONS.FILTER:
         return {...state, filter: action.payload || MAIN.FILTERS.COMBINED};
 
+    case MAIN.ACTIONS.HISTORY:
+        return {...state, history: action.payload || null};
+
     default:
         return state;
     }

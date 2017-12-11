@@ -7,7 +7,6 @@ import {FileInputField} from './FileInputField';
 
 const FileFieldComponent = ({onRemove, file, createLink, fieldName, readOnly}) => (
     <li className="File__item">
-        <i className="icon-desk-attach"/>
         {file.media &&
             <a href={createLink(file)} target="_blank">
                 {file.media.name}&nbsp;

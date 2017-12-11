@@ -39,12 +39,11 @@ class PlanningApp extends React.Component {
     }
 
     onItemClick(item) {
-        if (item === this.props.previewItem) {
-            this.setState({previewOpen: !this.state.previewOpen});
-        } else {
-            this.props.preview(item);
-            this.setState({previewOpen: true});
-        }
+        this.props.preview(item);
+        this.setState({
+            previewOpen: true,
+            initialLoad: !this.state.previewOpen,
+        });
     }
 
     componentWillReceiveProps(nextProps) {
@@ -63,7 +62,10 @@ class PlanningApp extends React.Component {
     }
 
     closePreview() {
-        this.setState({previewOpen: false});
+        this.setState({
+            previewOpen: false,
+            initialLoad: false,
+        });
     }
 
     render() {
@@ -117,6 +119,7 @@ class PlanningApp extends React.Component {
                             item={this.props.previewItem}
                             edit={this.openEditor}
                             closePreview={this.closePreview}
+                            initialLoad={this.state.initialLoad}
                         />
                     </div>
                 </div>
