@@ -672,6 +672,32 @@ export const planningHistory = [
     },
 ];
 
+export const eventsHistory = [
+    {
+        _id: 'e2',
+        _created: '2017-06-19T02:21:42+0000',
+        event_id: 'e2',
+        operation: 'create',
+        update: {
+            name: 'Test Event Wollongong',
+            dates: {
+                end: '2017-06-27T07:00:00+0000',
+                start: '2017-06-24T23:00:00+0000',
+                tz: 'Australia/Sydney',
+            },
+        },
+        user_id: '5923ac531d41c81e3290a5ee',
+    },
+    {
+        _id: 'e2',
+        _created: '2017-06-19T02:21:42+0000',
+        event_id: 'e2',
+        operation: 'update',
+        update: {name: 'Test Event Wollongong.'},
+        user_id: '5923ac531d41c81e3290a5ee',
+    },
+];
+
 export const lockedEvents = [
     {
         _id: 'e1',
@@ -761,6 +787,7 @@ export const items = {
     assignments: assignments,
     agendas: agendas,
     planning_history: planningHistory,
+    events_history: eventsHistory,
     locked_events: lockedEvents,
     locked_plannings: lockedPlannings,
     archive: archive,

@@ -8,7 +8,7 @@ import * as actions from '../../actions';
 import {WORKFLOW_STATE} from '../../constants/index';
 
 export const RelatedPlanningsComponent = ({plannings, openPlanningItem, openPlanningClick, short}) => (
-    <ul className="related-plannings">
+    <ul className="simple-list simple-list--dotted simple-list--no-padding">
         {plannings.map(({
             _id,
             slugline,
@@ -28,18 +28,20 @@ export const RelatedPlanningsComponent = ({plannings, openPlanningItem, openPlan
                 </span>
             )).reduce((accu, elem) => accu === null ? [elem] : [accu, ', ', elem], null);
 
+            const inAgendaText = _agendas.length > 0 ? ' in agenda ' : ''
+
             return (
-                <li key={_id}>
+                <li key={_id} className='simple-list__item simple-list__item--with-icon'>
                     <i className="icon-list-alt"/>&nbsp;
                     {state && state === WORKFLOW_STATE.SPIKED &&
                             <span className="label label--alert">spiked</span>
                     }
                     { short ? (
-                        <span>{slugline || headline} in agenda { agendaElements }</span>
+                        <span><strong>{slugline || headline}</strong>{inAgendaText}{ agendaElements }</span>
                     )
                         :
                         (
-                            <span>{slugline || headline} created by { display_name } in agenda { agendaElements }
+                            <span><strong>{slugline || headline}</strong> created by { display_name } {inAgendaText} { agendaElements }
                                 {anpa_category && anpa_category.length && (
                                     <span>&nbsp;[{anpa_category.map((c) => c.name).join(', ')}]</span>
                                 )
