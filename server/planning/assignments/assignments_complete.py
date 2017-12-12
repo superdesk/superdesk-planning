@@ -15,8 +15,8 @@ from apps.archive.common import get_user, get_auth
 from eve.utils import config
 from copy import deepcopy
 from .assignments import AssignmentsResource, assignments_schema
-from .common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information
-from .planning_notifications import PlanningNotifications
+from planning.common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information
+from planning.planning_notifications import PlanningNotifications
 
 
 assignments_complete_schema = deepcopy(assignments_schema)

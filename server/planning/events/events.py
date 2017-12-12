@@ -21,7 +21,7 @@ from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user
 from superdesk.users.services import current_user_has_privilege
 from superdesk.utc import utcnow
-from .common import UPDATE_SINGLE, UPDATE_FUTURE, UPDATE_ALL, UPDATE_METHODS, \
+from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, UPDATE_ALL, UPDATE_METHODS, \
     get_max_recurrent_events, WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA, \
     WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU

@@ -9,7 +9,7 @@ from apps.publish.enqueue import get_enqueue_service
 from superdesk.notification import push_notification
 
 from .events import EventsResource
-from .common import WORKFLOW_STATE, PUBLISHED_STATE, published_state
+from planning.common import WORKFLOW_STATE, PUBLISHED_STATE, published_state
 
 
 class EventsPublishResource(EventsResource):

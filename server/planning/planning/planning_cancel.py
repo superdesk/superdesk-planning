@@ -15,7 +15,7 @@ from apps.archive.common import get_user, get_auth
 from eve.utils import config
 from copy import deepcopy
 from .planning import PlanningResource, planning_schema
-from .common import WORKFLOW_STATE, ITEM_STATE
+from planning.common import WORKFLOW_STATE, ITEM_STATE
 
 
 planning_cancel_schema = deepcopy(planning_schema)

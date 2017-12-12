@@ -11,10 +11,10 @@
 from superdesk import get_resource_service
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
-from .item_lock import LOCK_USER, LOCK_SESSION
+from planning.item_lock import LOCK_USER, LOCK_SESSION
 from eve.utils import config
 from apps.archive.common import get_user, get_auth
-from .common import UPDATE_SINGLE, UPDATE_FUTURE, WORKFLOW_STATE
+from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, WORKFLOW_STATE
 from copy import deepcopy
 from .events import EventsResource, events_schema
 from flask import current_app as app

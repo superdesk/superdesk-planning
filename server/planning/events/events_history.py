@@ -9,7 +9,7 @@
 """Superdesk Files"""
 
 from superdesk import Resource
-from .history import HistoryService
+from planning.history import HistoryService
 import logging
 from eve.utils import config
 

@@ -24,15 +24,15 @@ from apps.duplication.archive_move import ITEM_MOVE
 from apps.publish.enqueue import ITEM_PUBLISH
 from eve.utils import config, ParsedRequest
 from superdesk.utc import utcnow
-from .planning import coverage_schema
+from planning.planning import coverage_schema
 from superdesk import get_resource_service
 from apps.common.components.utils import get_component
-from .item_lock import LockService, LOCK_USER
+from planning.item_lock import LockService, LOCK_USER
 from superdesk.users.services import current_user_has_privilege
-from .common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
+from planning.common import ASSIGNMENT_WORKFLOW_STATE, assignment_workflow_state, remove_lock_information, \
     get_local_end_of_day, is_locked_in_this_session
 from flask import request, json
-from .planning_notifications import PlanningNotifications
+from planning.planning_notifications import PlanningNotifications
 from apps.content import push_content_notification
 
 
