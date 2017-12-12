@@ -15,7 +15,7 @@ from superdesk.services import BaseService
 from superdesk.metadata.utils import item_url, generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from flask import request
-from .common import ITEM_STATE, WORKFLOW_STATE
+from planning.common import ITEM_STATE, WORKFLOW_STATE
 from copy import deepcopy
 
 

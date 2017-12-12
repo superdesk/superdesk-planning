@@ -14,12 +14,13 @@ from eve.utils import config
 from apps.archive.common import insert_into_versions
 from apps.auth import get_user_id
 from apps.templates.content_templates import get_item_from_template
-from planning.planning_export import get_desk_template
+from planning.planning import get_desk_template
 from superdesk.errors import SuperdeskApiError
-from .common import ASSIGNMENT_WORKFLOW_STATE
+from planning.common import ASSIGNMENT_WORKFLOW_STATE
 from superdesk.utc import utcnow
-from .planning_notifications import PlanningNotifications
 from superdesk import get_resource_service
+from planning.planning_notifications import PlanningNotifications
+
 
 FIELDS_TO_COPY = ('anpa_category', 'subject', 'urgency')
 

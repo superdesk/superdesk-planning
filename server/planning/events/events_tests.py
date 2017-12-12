@@ -1,10 +1,10 @@
-from planning.events import generate_recurring_dates
+from planning.events.events import generate_recurring_dates
 import datetime
 import pytz
 from superdesk import get_resource_service
 from superdesk.utc import utcnow
 from planning.tests import TestCase
-from .common import format_address
+from planning.common import format_address
 
 
 class EventTestCase(TestCase):

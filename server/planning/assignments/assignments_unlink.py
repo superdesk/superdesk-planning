@@ -9,11 +9,11 @@ from copy import deepcopy
 from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
 from eve.utils import config
+from planning.common import ASSIGNMENT_WORKFLOW_STATE
 from apps.content import push_content_notification
-from .common import ASSIGNMENT_WORKFLOW_STATE
-from .item_lock import LOCK_USER, LOCK_SESSION
+from planning.item_lock import LOCK_USER, LOCK_SESSION
 from apps.archive.common import get_user, get_auth
-from .planning_notifications import PlanningNotifications
+from planning.planning_notifications import PlanningNotifications
 
 
 class AssignmentsUnlinkService(Service):

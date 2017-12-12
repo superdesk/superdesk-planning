@@ -9,14 +9,14 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from .planning import PlanningResource
-from .common import ITEM_EXPIRY, ITEM_STATE, set_item_expiry, WORKFLOW_STATE
+from planning.common import ITEM_EXPIRY, ITEM_STATE, set_item_expiry, WORKFLOW_STATE
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from apps.auth import get_user
 from superdesk import config
-from .item_lock import LOCK_USER, LOCK_SESSION
+from planning.item_lock import LOCK_USER, LOCK_SESSION
 from superdesk import get_resource_service
-from .planning_notifications import PlanningNotifications
+from planning.planning_notifications import PlanningNotifications
 
 
 class PlanningSpikeResource(PlanningResource):

@@ -16,8 +16,8 @@ from eve.utils import config
 from copy import deepcopy
 from superdesk import get_resource_service
 from .assignments import AssignmentsResource, assignments_schema
-from .common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information
-from .planning_notifications import PlanningNotifications
+from planning.common import ASSIGNMENT_WORKFLOW_STATE, remove_lock_information
+from planning.planning_notifications import PlanningNotifications
 
 
 assignments_complete_schema = deepcopy(assignments_schema)

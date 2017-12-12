@@ -14,20 +14,21 @@ from apps.archive.common import get_user, get_auth
 from eve.utils import config
 from copy import deepcopy
 from .planning import PlanningResource, planning_schema
-from .common import WORKFLOW_STATE, ITEM_STATE
+from planning.common import WORKFLOW_STATE, ITEM_STATE
 from superdesk import get_resource_service
-from .planning_notifications import PlanningNotifications
+from planning.planning_notifications import PlanningNotifications
 
-planning_postpone_schema = deepcopy(planning_schema)
-planning_postpone_schema['reason'] = {
+
+planning_reschedule_schema = deepcopy(planning_schema)
+planning_reschedule_schema['reason'] = {
     'type': 'string',
     'nullable': True
 }
 
 
-class PlanningPostponeResource(PlanningResource):
-    url = 'planning/postpone'
-    resource_title = endpoint_name = 'planning_postpone'
+class PlanningRescheduleResource(PlanningResource):
+    url = 'planning/reschedule'
+    resource_title = endpoint_name = 'planning_reschedule'
 
     datasource = {'source': 'planning'}
     resource_methods = []
@@ -35,56 +36,56 @@ class PlanningPostponeResource(PlanningResource):
     privileges = {'PATCH': 'planning_planning_management'}
     internal_resource = True
 
-    schema = planning_postpone_schema
+    schema = planning_reschedule_schema
 
 
-class PlanningPostponeService(BaseService):
+class PlanningRescheduleService(BaseService):
     def update(self, id, updates, original):
-        self._postpone_plan(updates, original)
+        reason = updates.pop('reason', None)
+        self._reschedule_plan(updates, original, reason)
+
         updates['coverages'] = deepcopy(original.get('coverages'))
         coverages = updates.get('coverages') or []
 
         for coverage in coverages:
-            self._postpone_coverage(updates, coverage)
+            self._reschedule_coverage(coverage, reason)
 
-        reason = updates.get('reason', None)
-        if 'reason' in updates:
-            del updates['reason']
+        return self.backend.update(self.datasource, id, updates, original)
 
-        item = self.backend.update(self.datasource, id, updates, original)
-
+    def on_updated(self, updates, original):
         user = get_user(required=True).get(config.ID_FIELD, '')
         session = get_auth().get(config.ID_FIELD, '')
 
         push_notification(
-            'planning:postponed',
+            'planning:rescheduled',
             item=str(original[config.ID_FIELD]),
             user=str(user),
-            session=str(session),
-            reason=reason
+            session=str(session)
         )
 
-        return item
-
-    def _postpone_plan(self, updates, original):
+    def _reschedule_plan(self, updates, original, reason):
         ednote = '''------------------------------------------------------------
-Event Postponed
+Event Rescheduled
 '''
-        if updates.get('reason', None) is not None:
-            ednote += 'Reason: {}\n'.format(updates['reason'])
+        if reason:
+            ednote += 'Reason: {}\n'.format(reason)
 
         if 'ednote' in original:
             ednote = original['ednote'] + '\n\n' + ednote
 
         updates['ednote'] = ednote
-        updates[ITEM_STATE] = WORKFLOW_STATE.POSTPONED
 
-    def _postpone_coverage(self, updates, coverage):
+        if updates.get(ITEM_STATE) == WORKFLOW_STATE.DRAFT and original.get('pubstatus'):
+            updates[ITEM_STATE] = WORKFLOW_STATE.SCHEDULED
+        else:
+            updates[ITEM_STATE] = updates.get(ITEM_STATE) or WORKFLOW_STATE.RESCHEDULED
+
+    def _reschedule_coverage(self, coverage, reason):
         note = '''------------------------------------------------------------
-Event has been postponed
+Event has been rescheduled
 '''
-        if updates.get('reason', None) is not None:
-            note += 'Reason: {}\n'.format(updates['reason'])
+        if reason:
+            note += 'Reason: {}\n'.format(reason)
 
         if not coverage.get('planning'):
             coverage['planning'] = {}
@@ -102,6 +103,6 @@ Event has been postponed
                                                           'desk') if not assignment.get('assigned_to').get(
                                                           'user') else None,
                                                       message='The event associated with {{coverage_type}} coverage '
-                                                              '\"{{slugline}}\" has been marked as postponed',
+                                                              '\"{{slugline}}\" has been marked as rescheduled',
                                                       slugline=slugline,
                                                       coverage_type=coverage_type)

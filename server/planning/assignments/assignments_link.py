@@ -10,7 +10,7 @@ from superdesk import Resource, Service, get_resource_service
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.item import ITEM_STATE, CONTENT_STATE, PUBLISH_STATES
 from eve.utils import config
-from .common import ASSIGNMENT_WORKFLOW_STATE
+from planning.common import ASSIGNMENT_WORKFLOW_STATE
 from apps.archive.common import get_user, is_assigned_to_a_desk
 from apps.content import push_content_notification
 
