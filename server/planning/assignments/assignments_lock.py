@@ -16,11 +16,11 @@ from superdesk.resource import Resource, build_custom_hateoas
 from superdesk.metadata.utils import item_url
 from apps.archive.common import get_user, get_auth
 from superdesk.services import BaseService
-from .item_lock import LockService
+from planning.item_lock import LockService
 from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
 from apps.common.components.utils import get_component
-from .common import ASSIGNMENT_WORKFLOW_STATE
+from planning.common import ASSIGNMENT_WORKFLOW_STATE
 
 
 CUSTOM_HATEOAS = {'self': {'title': 'Assignments', 'href': '/assignments/{_id}'}}

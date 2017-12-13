@@ -17,6 +17,7 @@ from jinja2 import Template
 from apps.archive.common import get_user
 from superdesk.errors import SuperdeskApiError
 from superdesk.celery_app import celery
+
 try:
     from slackclient import SlackClient
     slack_client_installed = True

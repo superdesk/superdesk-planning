@@ -10,13 +10,13 @@
 
 from .events import EventsResource
 from superdesk.errors import SuperdeskApiError
-from .common import ITEM_EXPIRY, ITEM_STATE, set_item_expiry, UPDATE_SINGLE, UPDATE_FUTURE, \
+from planning.common import ITEM_EXPIRY, ITEM_STATE, set_item_expiry, UPDATE_SINGLE, UPDATE_FUTURE, \
     WORKFLOW_STATE, remove_lock_information
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from apps.archive.common import get_user
 from superdesk import config, get_resource_service
-from .item_lock import LOCK_USER, LOCK_SESSION
+from planning.item_lock import LOCK_USER, LOCK_SESSION
 
 
 class EventsSpikeResource(EventsResource):

@@ -15,8 +15,8 @@ from superdesk.services import BaseService
 from superdesk.notification import push_notification
 
 from eve.utils import config
-from .planning import PlanningResource
-from .common import WORKFLOW_STATE, PUBLISHED_STATE, published_state
+from planning.planning import PlanningResource
+from planning.common import WORKFLOW_STATE, PUBLISHED_STATE, published_state
 
 
 class PlanningPublishResource(PlanningResource):

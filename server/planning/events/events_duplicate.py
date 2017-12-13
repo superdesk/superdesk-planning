@@ -14,7 +14,7 @@ from superdesk.resource import Resource
 from superdesk.services import BaseService
 from superdesk.metadata.utils import item_url
 from flask import request, current_app as app
-from .common import ITEM_STATE, WORKFLOW_STATE
+from planning.common import ITEM_STATE, WORKFLOW_STATE
 from eve.utils import config
 
 

@@ -24,11 +24,11 @@ from superdesk.notification import push_notification
 from apps.archive.common import set_original_creator, get_user, get_auth
 from copy import deepcopy
 from eve.utils import config, ParsedRequest
-from .common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA, get_coverage_cancellation_state,\
+from planning.common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA, get_coverage_cancellation_state,\
     remove_lock_information
 from superdesk.utc import utcnow
 from itertools import chain
-from .planning_notifications import PlanningNotifications
+from planning.planning_notifications import PlanningNotifications
 from superdesk.utc import utc_to_local
 
 logger = logging.getLogger(__name__)
