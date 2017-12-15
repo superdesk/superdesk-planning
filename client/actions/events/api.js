@@ -1,5 +1,6 @@
 import {EVENTS, SPIKED_STATE, WORKFLOW_STATE, PUBLISHED_STATE} from '../../constants';
 import {EventUpdateMethods} from '../../components/fields';
+import main from '../main';
 import {get, isEqual} from 'lodash';
 import * as selectors from '../../selectors';
 import {isItemLockedInThisSession} from '../../utils';
@@ -618,6 +619,27 @@ const markEventHasPlannings = (event, planning) => ({
     },
 });
 
+/**
+ * Action Dispatcher to fetch event history from the server
+ * This will add the history of action on that event in event history list
+ * @param {object} eventId - Query parameters to send to the server
+ * @return arrow function
+ */
+const fetchEventHistory = (eventId) => (
+    (dispatch, getState, {api}) => (
+        // Query the API and sort by created
+        api('events_history').query({
+            where: {event_id: eventId},
+            max_results: 200,
+            sort: '[(\'_created\', 1)]',
+        })
+            .then((data) => {
+                dispatch(main.history(data._items));
+                return data;
+            })
+    )
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     loadEventsByRecurrenceId,
@@ -641,6 +663,7 @@ const self = {
     getEvent,
     loadAssociatedPlannings,
     publishEvent,
+    fetchEventHistory,
 };
 
 export default self;

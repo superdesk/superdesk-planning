@@ -83,6 +83,7 @@ export {SelectItemModal} from './SelectItemModal';
 export {Label} from './Label/index';
 export {LockContainer} from './LockContainer';
 export {ArchivePreview} from './ArchivePreview';
+export {EventHistory} from './EventHistory';
 export {HtmlPreview} from './HtmlPreview';
 export {ItemRendition} from './ItemRendition';
 export {PriorityLabel} from './PriorityLabel';

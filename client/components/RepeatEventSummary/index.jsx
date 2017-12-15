@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {InputField} from '../fields';
 
 export class RepeatEventSummary extends React.Component {
     getDaysFromByDays() {
@@ -88,25 +87,8 @@ export class RepeatEventSummary extends React.Component {
 
     render() {
         return (
-            <div>
-                {this.props.asInputField ? (
-                    <InputField
-                        label="Repeats"
-                        readOnly={true}
-                        type="text"
-                        input={{
-                            value: this.getRepeatSummary(),
-                            name: 'repeat_summary',
-                        }}
-                        meta={{}}
-                    />
-                ) : (
-                    <div className="recurring__summary">
-                        <span><strong className="repeatSummary">
-                            {'Repeat summary: ' + this.getRepeatSummary()}
-                        </strong></span>
-                    </div>
-                )}
+            <div className="recurring__summary">
+                <span>{'Repeat summary: ' + this.getRepeatSummary()}</span>
             </div>
         );
     }

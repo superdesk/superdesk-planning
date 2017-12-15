@@ -1,10 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-
+import {get} from 'lodash';
 import {gettext} from '../../utils';
-
-import {HistoryTab, PreviewContentTab} from './';
-
+import {HistoryTab, PreviewContentTab, PreviewHeader} from './';
 import {Tabs} from '../UI/Nav';
 import {Panel} from '../UI/Preview';
 import {SidePanel, Header, Tools, Content, ContentBlock} from '../UI/SidePanel';
@@ -41,6 +39,12 @@ export class PreviewPanel extends React.Component {
         ];
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (get(nextProps, 'initialLoad') && this.props.initialLoad !== nextProps.initialLoad) {
+            this.setActiveTab(0);
+        }
+    }
+
     openEditPanel() {
         this.props.edit(this.props.item);
     }
@@ -54,7 +58,8 @@ export class PreviewPanel extends React.Component {
     }
 
     render() {
-        const RenderTab = this.tabs[this.state.tab].render;
+        const currentTab = this.tabs[this.state.tab];
+        const RenderTab = currentTab.render;
 
         return (
             <Panel>
@@ -69,6 +74,9 @@ export class PreviewPanel extends React.Component {
                     </Header>
                     {this.props.item && (
                         <Content>
+                            {currentTab.label !== 'History' &&
+                                <PreviewHeader item={this.props.item} />
+                            }
                             <ContentBlock>
                                 <RenderTab item={this.props.item} />
                             </ContentBlock>
@@ -84,4 +92,5 @@ PreviewPanel.propTypes = {
     item: PropTypes.object,
     edit: PropTypes.func.isRequired,
     closePreview: PropTypes.func.isRequired,
+    initialLoad: PropTypes.bool,
 };
