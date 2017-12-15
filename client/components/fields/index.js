@@ -35,3 +35,6 @@ export {CoverageStatusField} from './CoverageStatusField';
 export {RepeatsField} from './RepeatsField';
 export {RepeatEveryField} from './RepeatEveryField';
 export {UserField} from './UserField';
+export {SelectSearchTermsField} from './SelectSearchTermsField/';
+export {ContactField} from './ContactField';
+export {ContactInfoContainer} from './ContactInfoContainer';

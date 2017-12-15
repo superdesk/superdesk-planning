@@ -378,6 +378,12 @@ export class Component extends React.Component {
                                 existingLocationSearchResults: existingLocationSearchResults,
                             }
                         )}
+                        {get(formProfile, 'editor.contacts.enabled') && fieldRenders.renderContact(
+                            {
+                                readOnly: forcedReadOnly,
+                                fieldSchema: get(formProfile, 'schema.contacts'),
+                            }
+                        )}
                         <ToggleBox title="Details" isOpen={false}>
                             {get(formProfile, 'editor.calendars.enabled') && fieldRenders.renderCalender(
                                 {

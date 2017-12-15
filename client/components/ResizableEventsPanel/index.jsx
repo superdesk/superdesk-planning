@@ -19,8 +19,8 @@ export class ResizableEventsPanelComponent extends React.Component {
         let windowWidth = $(window).width();
         let thisOffset = thisNode.offset();
         let rightBorder = parseInt(thisNode.css('border-right-width'), 10);
-        // Fix for firefox, if no 'delay', don't use setTimeout()
 
+        // Fix for firefox, if no 'delay', don't use setTimeout()
         if (!delay) {
             nextElement.css({
                 width: (windowWidth - (thisNode.width() + thisOffset.left + rightBorder)),

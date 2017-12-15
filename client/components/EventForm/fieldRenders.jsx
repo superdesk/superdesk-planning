@@ -36,6 +36,16 @@ const renderCalender = (props) => (
     </div>
 );
 
+const renderContact = (props) => (
+    <div className="form__row">
+        <Field name="event_contact_info"
+            component={fields.ContactField}
+            label="Contact"
+            required={props.fieldSchema.required}
+            readOnly={props.readOnly} />
+    </div>
+);
+
 const renderCategory = (props) => (
     <div className="form__row">
         <Field name="anpa_category"
@@ -144,6 +154,7 @@ export const fieldRenders = {
     renderSlugline,
     renderName,
     renderCalender,
+    renderContact,
     renderCategory,
     renderSubject,
     renderDescription,

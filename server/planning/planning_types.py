@@ -45,6 +45,7 @@ class EventSchema(BaseSchema):
             'parent': {'nullable': True}
         }
     })
+    contacts = schema.ListField()
     calendars = schema.ListField()
     files = schema.ListField()
     links = schema.ListField()
@@ -100,6 +101,7 @@ DEFAULT_EDITOR = [{
         'name': {'enabled': True},
         'occur_status': {'enabled': True},
         'subject': {'enabled': True},
+        'contacts': {'enabled': True},
         'calendars': {'enabled': True},
         'files': {'enabled': True},
         'links': {'enabled': True}

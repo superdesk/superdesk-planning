@@ -8,7 +8,17 @@ module.exports = {
         filename: 'app.bundle.js',
     },
     resolve: {
-        extensions: ['.js', '.jsx', '.json']
+        modules: [
+            __dirname,
+            path.join(__dirname, 'client'),
+            path.join(__dirname, 'node_modules/superdesk-core/styles/sass'),
+            'node_modules'
+        ],
+        extensions: ['.js', '.jsx', '.json'],
+        alias: {
+            images: path.resolve(__dirname, 'node_modules/superdesk-core/images'),
+            apps: path.resolve(__dirname, 'node_modules/superdesk-core/scripts/apps'),
+        }
     },
     module: {
         rules: [
@@ -56,7 +66,11 @@ module.exports = {
                     /tests\.js/,
                     /client\/controllers\//
                 ]
-            }
+            },
+            {
+                test: /\.(png|gif|jpeg|jpg|woff|woff2|eot|ttf|svg)(\?.*$|$)/,
+                loader: 'file-loader'
+            }            
         ],
     },
     externals: {
