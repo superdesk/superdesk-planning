@@ -91,12 +91,12 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (form) => (
-        dispatch(actions.fetchEvents({
+        dispatch(actions.events.ui.fetchEvents({
             advancedSearch: form,
             spikeState: get(form, 'state.value', SPIKED_STATE.NOT_SPIKED),
         }))
     ),
-    resetSearch: () => (dispatch(actions.fetchEvents())),
+    resetSearch: () => (dispatch(actions.events.ui.fetchEvents())),
 });
 
 export const EventsAdvancedSearchForm = connect(

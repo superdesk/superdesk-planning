@@ -6,6 +6,8 @@ import * as Preview from './Preview';
 import * as Form from './Form';
 import SearchBox from './SearchBox';
 import DateTime from './DateTime';
+import Checkbox from './Checkbox';
+import PanelInfo from './PanelInfo';
 
 export {
     List,
@@ -16,4 +18,6 @@ export {
     Preview,
     Form,
     DateTime,
+    Checkbox,
+    PanelInfo,
 };

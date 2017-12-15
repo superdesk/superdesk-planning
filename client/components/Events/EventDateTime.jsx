@@ -13,14 +13,14 @@ export const EventDateTime = ({item, timeFormat, dateFormat}) => {
     const withDate = !eventUtils.isEventSameDay(start, end);
 
     return isAllDay ? (
-        <span className="EventDateTime">
-            <time>All day</time>
+        <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
+            All day
         </span>
     ) : (
-        <span className="EventDateTime">
+        <span className="EventDateTime sd-list-item__slugline sd-no-wrap">
             <DateTime
                 withDate={withDate}
-                padLeft={true}
+                padLeft={false}
                 date={start}
                 dateFormat={dateFormat}
                 timeFormat={timeFormat}
@@ -28,7 +28,7 @@ export const EventDateTime = ({item, timeFormat, dateFormat}) => {
             <span className="EventDateTime__divider">-</span>
             <DateTime
                 withDate={withDate}
-                padLeft={true}
+                padLeft={false}
                 date={end}
                 dateFormat={dateFormat}
                 timeFormat={timeFormat}

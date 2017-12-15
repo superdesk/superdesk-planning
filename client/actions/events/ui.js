@@ -1,5 +1,5 @@
 import {showModal, hideModal, locks, uploadFilesAndSaveEvent} from '../index';
-import {PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS, PUBLISHED_STATE, MODALS} from '../../constants';
+import {PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS, PUBLISHED_STATE, MODALS, SPIKED_STATE} from '../../constants';
 import eventsApi from './api';
 import {fetchSelectedAgendaPlannings} from '../agenda';
 import main from '../main';
@@ -13,6 +13,36 @@ import {
     isItemRescheduled,
 } from '../../utils';
 import {EventUpdateMethods} from '../../components/fields/EventUpdateMethodField';
+
+/**
+ * Action Dispatcher to fetch events from the server
+ * This will add the events to the events list,
+ * and update the URL for deep linking
+ * @param {object} params - Query parameters to send to the server
+ * @return arrow function
+ */
+const fetchEvents = (params = {
+    spikeState: SPIKED_STATE.NOT_SPIKED,
+    page: 1,
+}) => (
+    (dispatch, getState, {$timeout, $location}) => {
+        dispatch({
+            type: EVENTS.ACTIONS.REQUEST_EVENTS,
+            payload: params,
+        });
+
+        return dispatch(eventsApi.query(params))
+            .then((data) => {
+                dispatch(eventsApi.receiveEvents(data._items));
+                dispatch(self.setEventsList(data._items.map((e) => e._id)));
+                // update the url (deep linking)
+                $timeout(() => (
+                    $location.search('searchEvent', JSON.stringify(params))
+                ), 0, false);
+                return data;
+            });
+    }
+);
 
 /**
  * Action to open the Edit Event panel with the supplied Event
@@ -575,6 +605,11 @@ const setEventsList = (idsList) => ({
 });
 
 /**
+ * Clears the Events List
+ */
+const clearList = () => ({type: EVENTS.ACTIONS.CLEAR_LIST});
+
+/**
  * Opens the Event in preview/read-only mode
  * @param {object} event - The Event ID to preview
  * @return Promise
@@ -627,6 +662,7 @@ const unlockAndOpenEventDetails = checkPermission(
 
 // eslint-disable-next-line consistent-this
 const self = {
+    fetchEvents,
     _openEventDetails,
     _unlockAndOpenEventDetails,
     _previewEvent,
@@ -634,6 +670,7 @@ const self = {
     unspike,
     refetchEvents,
     setEventsList,
+    clearList,
     openSpikeModal,
     openBulkSpikeModal,
     openUnspikeModal,

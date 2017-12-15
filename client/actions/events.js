@@ -268,36 +268,6 @@ const createDuplicate = (event) => (
     )
 );
 
-/**
- * Action Dispatcher to fetch events from the server
- * This will add the events to the events list,
- * and update the URL for deep linking
- * @param {object} params - Query parameters to send to the server
- * @return arrow function
- */
-const fetchEvents = (params = {
-    spikeState: SPIKED_STATE.NOT_SPIKED,
-    page: 1,
-}) => (
-    (dispatch, getState, {$timeout, $location}) => {
-        dispatch({
-            type: EVENTS.ACTIONS.REQUEST_EVENTS,
-            payload: params,
-        });
-
-        return dispatch(eventsApi.query(params))
-            .then((data) => {
-                dispatch(eventsApi.receiveEvents(data._items));
-                dispatch(eventsUi.setEventsList(data._items.map((e) => e._id)));
-                // update the url (deep linking)
-                $timeout(() => (
-                    $location.search('searchEvent', JSON.stringify(params)), 0, false)
-                );
-                return data;
-            });
-    }
-);
-
 /** Action factory that fetchs the next page of the previous request */
 function loadMoreEvents() {
     return (dispatch, getState) => {
@@ -461,7 +431,6 @@ export {
     toggleEventsList,
     receiveEventHistory,
     addToEventsList,
-    fetchEvents,
     fetchEventById,
     saveFiles,
     uploadFilesAndSaveEvent,

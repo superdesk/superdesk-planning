@@ -1,8 +1,7 @@
 import sinon from 'sinon';
 import * as actions from '../../actions';
-import {EVENTS} from '../../constants';
 import {createTestStore, registerNotifications} from '../../utils';
-import {range, cloneDeep} from 'lodash';
+import {cloneDeep} from 'lodash';
 import * as selectors from '../../selectors';
 import moment from 'moment';
 import {restoreSinonStub} from '../../utils/testUtils';
@@ -106,7 +105,6 @@ describe('events', () => {
             pop: sinon.spy(),
         };
         const $timeout = sinon.spy((func) => func());
-        let $location;
 
         const upload = {
             start: sinon.spy((file) => (Promise.resolve({
@@ -132,7 +130,6 @@ describe('events', () => {
             };
 
             dispatch = sinon.spy(() => (Promise.resolve()));
-            $location = {search: sinon.spy(() => (Promise.resolve()))};
 
             notify.error.reset();
             notify.success.reset();
@@ -202,83 +199,6 @@ describe('events', () => {
                     }]);
 
                     expect(newEvent.files).toEqual(['test_file_1', 'test_file_2']);
-
-                    done();
-                })
-                .catch((error) => {
-                    expect(error).toBe(null);
-                    expect(error.stack).toBe(null);
-                    done();
-                });
-        });
-
-        describe('fetchEvents', () => {
-            const store = createTestStore({initialState});
-
-            it('ids', (done) => {
-                const action = actions.fetchEvents(
-                    {ids: range(1, EVENTS.FETCH_IDS_CHUNK_SIZE + 10).map((i) => (`e${i}`))}
-                );
-
-                store.dispatch(action)
-                    .then((response) => {
-                        expect(response._items).toEqual([]);
-                        done();
-                    })
-                    .catch((error) => {
-                        expect(error).toBe(null);
-                        expect(error.stack).toBe(null);
-                        done();
-                    });
-            });
-
-            it('fulltext', (done) => {
-                store.dispatch(actions.fetchEvents({fulltext: 'search that'}))
-                    .then(() => done())
-                    .catch((error) => {
-                        expect(error).toBe(null);
-                        expect(error.stack).toBe(null);
-                        done();
-                    });
-            });
-        });
-
-        it('fetchEvents', (done) => {
-            dispatch = dispatchRunFunction;
-            const params = {};
-            const action = actions.fetchEvents(params);
-
-            return action(dispatch, getState, {
-                $timeout,
-                $location,
-            })
-                .then(() => {
-                    expect(dispatch.args[0]).toEqual([{
-                        type: 'REQUEST_EVENTS',
-                        payload: params,
-                    }]);
-
-                    // Cannot check dispatch(performFetchQuery()) using a spy on dispatch
-                    // As performFetchQuery is a thunk function
-
-                    expect(dispatch.args[2]).toEqual([jasmine.objectContaining({
-                        type: 'ADD_EVENTS',
-                        payload: events,
-                    })]);
-
-                    expect(dispatch.args[3]).toEqual([{
-                        type: 'SET_EVENTS_LIST',
-                        payload: ['e1', 'e2', 'e3'],
-                    }]);
-
-                    expect($timeout.callCount).toBe(1);
-
-                    expect($location.search.args[0]).toEqual([
-                        'searchEvent',
-                        JSON.stringify(params),
-                    ]);
-
-                    expect(dispatch.callCount).toBe(4);
 
                     done();
                 })

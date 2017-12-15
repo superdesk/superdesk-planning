@@ -142,7 +142,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
     openEventDetails: (event) => dispatch(actions.events.ui.openEventDetails(event)),
     previewEvent: (event) => dispatch(actions.events.ui.previewEvent(event)),
-    loadEvents: (keyword) => dispatch(actions.fetchEvents({fulltext: keyword})),
+    loadEvents: (keyword) => dispatch(actions.events.ui.fetchEvents({fulltext: keyword})),
     openAdvancedSearch: () => (dispatch(actions.events.ui.openAdvancedSearch())),
     closeAdvancedSearch: () => (dispatch(actions.events.ui.closeAdvancedSearch())),
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
