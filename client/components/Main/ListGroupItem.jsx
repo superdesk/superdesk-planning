@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {debounce} from 'lodash';
 
 import {EventItem} from '../Events/';
+import {PlanningItem} from '../Planning';
 
 import {ITEM_TYPE} from '../../constants';
 import {getItemType} from '../../utils';
@@ -48,7 +49,9 @@ export class ListGroupItem extends React.Component {
             onDoubleClick,
             lockedItems,
             dateFormat,
-            timeFormat
+            timeFormat,
+            agendas,
+            date,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -72,7 +75,17 @@ export class ListGroupItem extends React.Component {
             );
 
         case ITEM_TYPE.PLANNING:
-            return null;
+            return (
+                <PlanningItem
+                    item={item}
+                    date={date}
+                    onClick={clickHandler}
+                    lockedItems={lockedItems}
+                    dateFormat={dateFormat}
+                    timeFormat={timeFormat}
+                    agendas={agendas}
+                />
+            );
         }
 
         return null;
@@ -81,6 +94,7 @@ export class ListGroupItem extends React.Component {
 
 ListGroupItem.propTypes = {
     item: PropTypes.object.isRequired,
+    date: PropTypes.string.isRequired,
     onClick: PropTypes.func.isRequired,
     onDoubleClick: PropTypes.func,
     editItem: PropTypes.object,
@@ -88,4 +102,5 @@ ListGroupItem.propTypes = {
     lockedItems: PropTypes.object.isRequired,
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
+    agendas: PropTypes.array.isRequired,
 };

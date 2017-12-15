@@ -34,12 +34,6 @@ export const orderedEvents = createSelector(
             let eventDate = date || event.dates.start;
 
             eventDate = eventDate.format('YYYY-MM-DD');
-            let now = moment();
-
-            if (!moment(eventDate).isSameOrAfter(now.add(-1, 'days'))) {
-                return false;
-            }
-
             if (!days[eventDate]) {
                 days[eventDate] = [];
             }

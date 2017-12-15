@@ -1,5 +1,5 @@
 import {showModal, hideModal} from '../index';
-import planning from './index';
+import planningApi from './api';
 import {locks} from '../index';
 import {checkPermission, getErrorMessage, isItemLockedInThisSession, planningUtils} from '../../utils';
 import * as selectors from '../../selectors';
@@ -17,7 +17,7 @@ import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/help
  */
 const _spike = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.spike(item))
+        dispatch(planningApi.spike(item))
             .then(() => {
                 notify.success('The Planning Item has been spiked.');
                 if (selectors.getCurrentPlanningId(getState()) === item._id) {
@@ -41,7 +41,7 @@ const _spike = (item) => (
  */
 const _unspike = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.unspike(item))
+        dispatch(planningApi.unspike(item))
             .then(() => {
                 notify.success('The Planning Item has been unspiked.');
                 return Promise.resolve(item);
@@ -62,7 +62,7 @@ const _unspike = (item) => (
  */
 const save = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.save(item))
+        dispatch(planningApi.save(item))
             .then((item) => {
                 notify.success('The planning item has been saved.');
                 return dispatch(self.refetch())
@@ -88,11 +88,11 @@ const save = (item) => (
  */
 const saveAndReloadCurrentAgenda = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.saveAndReloadCurrentAgenda(item))
+        dispatch(planningApi.saveAndReloadCurrentAgenda(item))
             .then((item) => {
                 notify.success('The Planning item has been saved.');
                 return dispatch(self.refetch())
-                    .then(() => (dispatch(planning.api.fetchPlanningById(item._id, true))))
+                    .then(() => (dispatch(planningApi.fetchPlanningById(item._id, true))))
                     .then((item) => (Promise.resolve(item)));
             }, (error) => {
                 notify.error(getErrorMessage(error, 'Failed to save the Planning item!'));
@@ -149,7 +149,7 @@ const _unlockAndOpenEditor = (item) => (
  */
 const unlockAndCloseEditor = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.unlock(item))
+        dispatch(planningApi.unlock(item))
             .then(() => {
                 if (selectors.getCurrentPlanningId(getState()) === item._id) {
                     dispatch({type: PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR});
@@ -186,7 +186,7 @@ const _lockAndOpenEditor = (item, checkWorkspace = true) => (
             return Promise.resolve(item);
         }
 
-        return dispatch(planning.api.lock(item))
+        return dispatch(planningApi.lock(item))
             .then((lockedItem) => {
                 dispatch(self._openEditor(lockedItem));
                 return Promise.resolve(lockedItem);
@@ -211,7 +211,7 @@ const closeEditor = (item) => (
         if (!item) return Promise.resolve();
 
         if (isItemLockedInThisSession(item, selectors.getSessionDetails(getState()))) {
-            return dispatch(planning.api.unlock(item))
+            return dispatch(planningApi.unlock(item))
                 .then(() => Promise.resolve(item))
                 .catch(() => {
                     notify.error('Could not unlock the planning item.');
@@ -328,7 +328,7 @@ const addToList = (ids) => ({
 const fetchToList = (params) => (
     (dispatch) => {
         dispatch(self.requestPlannings(params));
-        return dispatch(planning.api.fetch(params))
+        return dispatch(planningApi.fetch(params))
             .then((items) => (dispatch(self.setInList(
                 items.map((p) => p._id)
             ))));
@@ -349,7 +349,7 @@ const fetchMoreToList = () => (
         };
 
         dispatch(self.requestPlannings(params));
-        return dispatch(planning.api.fetch(params))
+        return dispatch(planningApi.fetch(params))
             .then((items) => (dispatch(self.addToList(
                 items.map((p) => p._id)
             ))));
@@ -361,10 +361,10 @@ const fetchMoreToList = () => (
  */
 const refetch = () => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.refetch())
+        dispatch(planningApi.refetch())
             .then(
                 (items) => {
-                    dispatch(planning.ui.setInList(items.map((p) => p._id)));
+                    dispatch(self.setInList(items.map((p) => p._id)));
                     return Promise.resolve(items);
                 }, (error) => {
                     notify.error(
@@ -378,7 +378,7 @@ const refetch = () => (
 
 const duplicate = (plan) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.duplicate(plan))
+        dispatch(planningApi.duplicate(plan))
             .then((newPlan) => {
                 dispatch(self.refetch())
                     .then(() => {
@@ -400,7 +400,7 @@ const duplicate = (plan) => (
 
 const cancelPlanning = (plan) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.cancel(plan))
+        dispatch(planningApi.cancel(plan))
             .then((plan) => {
                 dispatch(hideModal());
                 notify.success('Planning Item has been cancelled');
@@ -423,7 +423,7 @@ const cancelAllCoverage = (plan) => (
         // delete _cancelAllCoverage used for UI purposes
         delete plan._cancelAllCoverage;
 
-        return dispatch(planning.api.cancelAllCoverage(plan))
+        return dispatch(planningApi.cancelAllCoverage(plan))
             .then((plan) => {
                 dispatch(hideModal());
                 notify.success('All Coverage has been cancelled');
@@ -466,7 +466,7 @@ const _openActionModal = (plan,
     large = false
 ) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.lock(plan, lockAction))
+        dispatch(planningApi.lock(plan, lockAction))
             .then((lockedPlanning) => {
                 lockedPlanning._publish = publish;
                 return dispatch(showModal({
@@ -494,7 +494,7 @@ const _openActionModal = (plan,
  */
 const publish = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.publish(item))
+        dispatch(planningApi.publish(item))
             .then(() => (
                 notify.success('Planning item published!')
             ), (error) => (
@@ -511,7 +511,7 @@ const publish = (item) => (
  */
 const unpublish = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.unpublish(item))
+        dispatch(planningApi.unpublish(item))
             .then(() => (
                 notify.success('Planning item unpublished!')
             ), (error) => (
@@ -528,7 +528,7 @@ const unpublish = (item) => (
  */
 const saveAndPublish = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.saveAndPublish(item))
+        dispatch(planningApi.saveAndPublish(item))
             .then(() => (
                 notify.success('Planning item published!')
             ), (error) => (
@@ -546,7 +546,7 @@ const saveAndPublish = (item) => (
  */
 const saveAndUnpublish = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.saveAndUnpublish(item))
+        dispatch(planningApi.saveAndUnpublish(item))
             .then(() => (
                 notify.success('Planning item unpublished!')
             ), (error) => (
@@ -676,7 +676,7 @@ const onAddCoverageClick = (plan = undefined) => (
         if (!plan) {
             plan = currentPlanning; // eslint-disable-line no-param-reassign
         } else if (currentPlanning) {
-            dispatch(planning.api.unlock(currentPlanning));
+            dispatch(planningApi.unlock(currentPlanning));
         }
 
         return dispatch(self.openEditor(plan, false))
@@ -710,7 +710,7 @@ const onAddPlanningClick = () => (
         const currentPlanning = selectors.getCurrentPlanning(getState());
 
         if (currentPlanning) {
-            dispatch(planning.api.unlock(currentPlanning));
+            dispatch(planningApi.unlock(currentPlanning));
         }
 
         const coverage = self.createCoverageFromNewsItem(newsItem, getState);
@@ -793,8 +793,8 @@ const saveFromAuthoring = (plan, publish = false) => (
     (dispatch, getState, {notify}) => {
         const {$scope, newsItem} = selectors.getCurrentModalProps(getState());
         const action = publish ?
-            planning.api.saveAndPublish(plan) :
-            planning.api.save(plan);
+            planningApi.saveAndPublish(plan) :
+            planningApi.save(plan);
 
         dispatch(actions.actionInProgress(true));
         return dispatch(action)

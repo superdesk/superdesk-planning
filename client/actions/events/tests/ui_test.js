@@ -612,4 +612,28 @@ describe('actions.events.ui', () => {
                 })
         ));
     });
+
+    describe('fetchEvents', () => {
+        beforeEach(() => {
+            sinon.stub(eventsApi, 'query').returns(Promise.resolve({_items: data.events}));
+            sinon.stub(eventsApi, 'receiveEvents').returns({type: 'RECEIVE_EVENTS'});
+        });
+
+        afterEach(() => {
+            restoreSinonStub(eventsApi.query);
+            restoreSinonStub(eventsApi.receiveEvents);
+        });
+
+        it('ids', (done) => (
+            store.test(done, eventsUi.fetchEvents({ids: ['e1', 'e2', 'e3']}))
+                .then((response) => {
+                    expect(store.dispatch.callCount).toBe(4);
+                    expect(eventsApi.query.callCount).toBe(1);
+                    expect(eventsApi.receiveEvents.callCount).toBe(1);
+                    expect(eventsUi.setEventsList.callCount).toBe(1);
+                    expect(response._items).toEqual(data.events);
+                    done();
+                })
+        ));
+    });
 });

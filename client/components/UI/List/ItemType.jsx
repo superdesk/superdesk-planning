@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {Column} from './Column';
 
 import {ITEM_TYPE} from '../../../constants';
-import {getItemType, eventUtils} from '../../../utils';
+import {getItemType, eventUtils, planningUtils} from '../../../utils';
 
 export const ItemType = ({onCheckToggle, item}) => {
     let span;
@@ -22,6 +22,21 @@ export const ItemType = ({onCheckToggle, item}) => {
             span = (
                 <span className="sd-list-item__item-type">
                     <i className="icon-calendar-list"/>
+                </span>
+            );
+        }
+    } else if (itemType === ITEM_TYPE.PLANNING) {
+        if (planningUtils.isPlanMultiDay(item)) {
+            span = (
+                <span className="icn-mix sd-list-item__item-type">
+                    <i className="icon-repeat icn-mix__sub-icn"/>
+                    <i className="icon-calendar"/>
+                </span>
+            );
+        } else {
+            span = (
+                <span className="sd-list-item__item-type">
+                    <i className="icon-calendar"/>
                 </span>
             );
         }

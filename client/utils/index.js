@@ -42,7 +42,7 @@ export const createTestStore = (params = {}) => {
             error: () => (undefined),
             pop: () => (undefined),
         },
-        $location: {search: () => (undefined)},
+        $location: extraArguments.$location ? extraArguments.$location : {search: () => (undefined)},
         vocabularies: {
             getAllActiveVocabularies: () => (
                 Promise.resolve({

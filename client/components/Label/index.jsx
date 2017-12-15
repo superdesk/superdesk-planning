@@ -29,7 +29,10 @@ export const Label = ({text, iconType, verbose, isHollow, tooltip}) => {
 };
 
 Label.propTypes = {
-    text: PropTypes.string.isRequired,
+    text: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.node,
+    ]).isRequired,
     iconType: PropTypes.string,
     isHollow: PropTypes.bool,
     tooltip: PropTypes.object,
