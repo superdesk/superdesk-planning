@@ -7,6 +7,7 @@ export const Menu = ({children, className, isOpen, alignRight}) => (
         <ul
             className={classNames(
                 'dropdown__menu',
+                'scrollable',
                 {'dropdown--align-right': alignRight},
                 className
             )}

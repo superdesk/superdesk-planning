@@ -6,7 +6,7 @@ import {ListGroupItem} from './';
 
 export class ListGroup extends React.Component {
     render() {
-        const {name, items, lockedItems, dateFormat, timeFormat} = this.props;
+        const {name, items, lockedItems, dateFormat, timeFormat, agendas} = this.props;
 
         return (
             <div>
@@ -17,12 +17,14 @@ export class ListGroup extends React.Component {
                     {items.map((item) =>
                         <ListGroupItem
                             key={item._id}
+                            date={name}
                             item={item}
                             onClick={this.props.onItemClick.bind(null, item)}
                             onDoubleClick={this.props.onDoubleClick.bind(null, item)}
                             lockedItems={lockedItems}
                             dateFormat={dateFormat}
                             timeFormat={timeFormat}
+                            agendas={agendas}
                         />
                     )}
                 </div>
@@ -41,4 +43,5 @@ ListGroup.propTypes = {
     lockedItems: PropTypes.object.isRequired,
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
+    agendas: PropTypes.array.isRequired,
 };

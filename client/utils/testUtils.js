@@ -150,7 +150,11 @@ export const getTestActionStore = () => {
             },
             $timeout: sinon.spy((func) => func()),
             api: sinon.spy((resource) => (store.spies.api[resource])),
-            $location: {search: sinon.spy(() => (Promise.resolve()))},
+
+            $location: {
+                search: sinon.spy(() => ({}))
+            },
+
             desks: {getCurrentDeskId: sinon.spy(() => 'desk1')},
             superdesk: {intent: sinon.spy(() => (Promise.resolve()))},
             lock: {
@@ -288,3 +292,14 @@ export const expectActions = (itemActions, expectedActions) => {
         expect(expectedActions[i]).toBe(itemActions[i].label);
     }
 };
+
+export const waitFor = (test, delay = 50) => (
+    new Promise((resolve) => {
+        const interval = setInterval(() => {
+            if (test()) {
+                clearInterval(interval);
+                resolve();
+            }
+        }, delay);
+    })
+);

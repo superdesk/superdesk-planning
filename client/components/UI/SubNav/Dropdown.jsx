@@ -38,13 +38,18 @@ export class Dropdown extends React.Component {
 
     render() {
         const isCreate = this.props.icon === 'icon-plus-large';
-        const buttonClassName = classNames('dropdown__toggle navbtn', {
-            'sd-create-btn': isCreate,
-            'navbtn--text-only': this.props.buttonLabel,
-        });
+        const buttonClassName = classNames(
+            'dropdown-toggle',
+            'dropdown__toggle',
+            'navbtn',
+            {
+                'sd-create-btn': isCreate,
+                'navbtn--text-only': this.props.buttonLabel,
+            }
+        );
 
         return (
-            <DropMenu isOpen={this.state.open} alignRight={true}>
+            <DropMenu isOpen={this.state.open} alignRight={false}>
                 <button
                     ref={(btn) => this.btn = btn}
                     className={buttonClassName}
@@ -60,7 +65,7 @@ export class Dropdown extends React.Component {
                         <span className="circle" />
                     )}
                 </button>
-                <Menu isOpen={this.state.open} alignRight={true}>
+                <Menu isOpen={this.state.open} alignRight={false}>
                     <Label>{this.props.label}</Label>
                     <Divider />
                     {this.props.items.map((item, index) => {
@@ -92,5 +97,7 @@ Dropdown.propTypes = {
     items: PropTypes.arrayOf(PropTypes.shape({
         label: PropTypes.string,
         divider: PropTypes.bool,
+        icon: PropTypes.string,
+        action: PropTypes.func,
     })).isRequired,
 };

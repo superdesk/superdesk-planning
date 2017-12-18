@@ -1,11 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import {StateLabel} from '../';
+import {Label} from '../';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {EventDateTime} from './';
 
-import {eventUtils} from '../../utils';
+import {eventUtils, getItemWorkflowStateLabel} from '../../utils';
 
 export const EventItem = ({item, onClick, lockedItems, dateFormat, timeFormat}) => {
     if (!item) {
@@ -14,6 +14,7 @@ export const EventItem = ({item, onClick, lockedItems, dateFormat, timeFormat}) 
 
     const hasPlanning = eventUtils.eventHasPlanning(item);
     const isItemLocked = eventUtils.isEventLocked(item, lockedItems);
+    const state = getItemWorkflowStateLabel(item);
 
     let borderState = false;
 
@@ -32,9 +33,9 @@ export const EventItem = ({item, onClick, lockedItems, dateFormat, timeFormat}) 
                 border={false}
             >
                 <Row>
-                    <StateLabel
-                        item={item}
-                        withPubStatus={false}
+                    <Label
+                        text={state.label}
+                        iconType={state.iconType}
                     />
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {item.slugline &&

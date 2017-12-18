@@ -31,24 +31,9 @@ export function PlanningController(
             registerNotifications($scope, store);
 
             $q.all({
-                events: store.dispatch(actions.fetchEvents({
-                    fulltext: JSON.parse(
-                        $location.search().searchEvent || '{}'
-                    ).fulltext,
-                })),
-
-                agendas: store.dispatch(actions.fetchAgendas())
-                    .then(() => {
-                        if ($location.search().agenda) {
-                            return store.dispatch(actions.selectAgenda($location.search().agenda));
-                        }
-
-                        return store.dispatch(
-                            actions.fetchSelectedAgendaPlannings()
-                        );
-                    }),
-
+                data: store.dispatch(actions.main.filter()),
                 locks: store.dispatch(locks.loadAllLocks()),
+                agendas: store.dispatch(actions.fetchAgendas()),
             })
                 .then(() => {
                     $scope.$on('$destroy', () => {

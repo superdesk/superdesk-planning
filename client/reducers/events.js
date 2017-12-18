@@ -157,6 +157,13 @@ const eventsReducer = createReducer(initialState, {
             ),
         }
     ),
+    [EVENTS.ACTIONS.CLEAR_LIST]: (state) => (
+        {
+            ...state,
+            eventsInList: []
+        }
+    ),
+
     [EVENTS.ACTIONS.ADD_TO_EVENTS_LIST]: (state, payload) => (
         eventsReducer(state, {
             type: EVENTS.ACTIONS.SET_EVENTS_LIST,

@@ -14,7 +14,7 @@ import {
 
 import './planning.scss';
 
-import {main} from './actions';
+import {main, selectAgenda} from './actions';
 
 import * as selectors from './selectors';
 
@@ -104,6 +104,9 @@ class PlanningApp extends React.Component {
                         toggleFilterPanel={this.toggleFilterPanel}
                         activeFilter={this.props.activeFilter}
                         setFilter={this.props.filter}
+                        agendas={this.props.agendas}
+                        selectAgenda={this.props.selectAgenda}
+                        currentAgendaId={this.props.currentAgendaId}
                     />
                     <div className="sd-column-box--3">
                         <SearchPanel />
@@ -114,6 +117,7 @@ class PlanningApp extends React.Component {
                             lockedItems={this.props.lockedItems}
                             dateFormat={this.props.dateFormat}
                             timeFormat={this.props.timeFormat}
+                            agendas={this.props.agendas}
                         />
                         <PreviewPanel
                             item={this.props.previewItem}
@@ -147,6 +151,9 @@ PlanningApp.propTypes = {
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
     activeFilter: PropTypes.string.isRequired,
+    agendas: PropTypes.array.isRequired,
+    selectAgenda: PropTypes.func.isRequired,
+    currentAgendaId: PropTypes.string.isRequired,
 };
 
 const mapStateToProps = (state) => ({
@@ -157,6 +164,8 @@ const mapStateToProps = (state) => ({
     dateFormat: selectors.getDateFormat(state),
     timeFormat: selectors.getTimeFormat(state),
     activeFilter: selectors.main.activeFilter(state),
+    agendas: selectors.getAgendas(state),
+    currentAgendaId: selectors.getCurrentAgendaId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -164,6 +173,7 @@ const mapDispatchToProps = (dispatch) => ({
     cancel: () => dispatch(main.cancel()),
     preview: (item) => dispatch(main.preview(item)),
     filter: (filterType) => dispatch(main.filter(filterType)),
+    selectAgenda: (agendaId) => dispatch(selectAgenda(agendaId)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningApp);

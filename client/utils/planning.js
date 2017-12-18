@@ -8,7 +8,7 @@ import {
     ASSIGNMENTS,
     PUBLISHED_STATE,
 } from '../constants/index';
-import {get, isNil} from 'lodash';
+import {get, isNil, uniq} from 'lodash';
 import {
     getItemWorkflowState,
     isItemLockedInThisSession,
@@ -127,6 +127,7 @@ const isPlanningLockRestricted = (plan, session, locks) =>
 export const mapCoverageByDate = (coverages = []) => (
     coverages.map((c) => {
         let coverage = {
+            ...c,
             g2_content_type: c.planning.g2_content_type || '',
             iconColor: '',
             assigned_to: get(c, 'assigned_to'),
@@ -144,6 +145,21 @@ export const mapCoverageByDate = (coverages = []) => (
 
 // ad hoc plan created directly from planning list and not from an event
 const isPlanAdHoc = (plan) => !get(plan, 'event_item');
+
+const isPlanMultiDay = (plan) => {
+    const coverages = get(plan, 'coverages', []);
+
+    if (coverages.length > 0) {
+        const days = uniq(coverages
+            .map((coverage) => get(coverage, 'planning.scheduled'))
+            .filter((schedule) => schedule)
+            .map((schedule) => moment(schedule).format('YYYY-MM-DD')));
+
+        return days.length > 1;
+    }
+
+    return false;
+};
 
 export const getPlanningItemActions = (plan, event = null, session, privileges, actions, locks) => {
     let itemActions = [];
@@ -333,6 +349,7 @@ const self = {
     canCancelCoverage,
     canEditCoverage,
     getCoverageReadOnlyFields,
+    isPlanMultiDay,
 };
 
 export default self;

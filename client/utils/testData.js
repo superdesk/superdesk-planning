@@ -756,6 +756,12 @@ export const archive = [
     }
 ];
 
+export const main = {
+    previewItem: null,
+    editItem: null,
+    filter: null,
+};
+
 export const initialState = {
     config: config,
     privileges: privileges,
@@ -779,6 +785,7 @@ export const initialState = {
     planning: planningInitialState,
     templates: templates,
     form: form,
+    main: main,
 };
 
 export const items = {
