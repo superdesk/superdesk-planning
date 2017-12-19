@@ -1,82 +1,91 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {get, some} from 'lodash';
-import {Datetime, StateLabel} from '../index';
-import {InputTextAreaField} from '../fields';
+import {get} from 'lodash';
+import {StateLabel, EventScheduleSummary} from '../index';
+import {Item, Column, Row} from '../UI/List';
+import {Row as PreviewRow} from '../UI/Preview';
+import {CollapseBox} from '../UI/CollapseBox';
+import {eventUtils, gettext} from '../../utils';
 
-const formatDate = (d) => React.createElement(Datetime, {date: d});
-const FIELDS = [
-    // 'Label', 'key1', 'key2', ['key3', func(value)] etc...
-    ['Name', 'name'],
-    ['From', ['dates.start', formatDate]],
-    ['To', ['dates.end', formatDate]],
-    ['Short Description', 'definition_short'],
-    ['Internal note', 'internal_note'],
-    ['Location', 'location[0].name'],
-    ['Status', 'occur_status.label'],
-    ['Source', 'source'],
-    ['Description', 'definition_long'],
-];
+export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly}) => {
+    const dateStr = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat, dateOnly);
 
-function renderDict(event, label, ...keys) {
-    function getValue(k) {
-        // key can be either a string or an array ['key', func] where
-        // func will take the value as parameter
-        if (typeof k === 'string') {
-            return get(event, k);
-        } else {
-            // this is an array with a function at the second position
-            const value = get(event, k[0]);
+    const eventListView = (
+        <Item noBg={true}>
+            <div className="sd-list-item__border" />
+            <Column>
+                <i className="icon-calendar-list" />
+            </Column>
+            <Column grow={true} border={false}>
+                <Row>
+                    <StateLabel item={event} verbose={true}/>
+                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                        <span className="sd-list-item__text-strong">{event.name}</span>
+                        <time title>{dateStr}</time>
+                    </span>
 
-            if (value) {
-                return k[1](value);
-            }
-        }
-    }
-    const keysContainValue = some(keys, (k) => getValue(k));
+                </Row>
+            </Column>
+        </Item>
+    );
 
-    if (keysContainValue) {
-        return [
-            <dt key="dt">{label}</dt>,
-            ...keys.map((key) => (
-                (key === 'definition_long') ? (
-                    <InputTextAreaField key={key}
-                        input={{
-                            value: getValue(key),
-                            name: key,
-                        }}
-                        meta={{}}
-                    />
-                ) : (
-                    <dd key={key}>{getValue(key)}</dd>
-                )
-            )),
-        ];
-    }
-}
-// eslint-disable-next-line react/no-multi-comp
-export function EventMetadata({event}) {
-    return (
+    const eventInDetailTopBar = (
+        <Item noBg={true} noHover={true}>
+            <Column border={false}>
+                <span className="double-size-icn double-size-icn--light">
+                    <i className="icon-calendar" /></span>
+            </Column>
+            <Column border={false} grow={true}>
+                <Row>
+                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                        <span className="sd-list-item__text-strong">{event.name}</span>
+                    </span>
+                </Row>
+                <Row>
+                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                        <span className="sd-list-item__location">{get(event, 'location[0].name', 'Unknown')}</span>
+                        <time title>{dateStr}</time>
+                    </span>
+                </Row>
+            </Column>
+        </Item>
+    );
+
+    const eventInDetail = (
         <div>
-            <StateLabel item={event} verbose={true}/>
-            <div className="metadata-view EditPlanningPanel__body--event">
-                <dl>
-                    {FIELDS.map((arrayProps) => renderDict.bind(null, event)(...arrayProps))}
-                </dl>
-            </div>
+            <PreviewRow>
+                <StateLabel item={event} verbose={true}/>
+            </PreviewRow>
+            <PreviewRow label={gettext('Name')} value={event.name} />
+            <EventScheduleSummary schedule={event.dates}
+                dateFormat={dateFormat}
+                timeFormat={timeFormat} />
+            <PreviewRow label={gettext('Location')}>
+                <p>{get(event, 'location[0].name')}<br />{get(event, 'location[0].formatted_address')}</p>
+            </PreviewRow>
+            <PreviewRow label={gettext('Occurance Status')}
+                value={get(event, 'occur_status.name', '')} />
+            <PreviewRow label={gettext('Description')}
+                value={event.definition_short || ''} />
         </div>
     );
-}
+
+    return (<CollapseBox
+        collapsedItem={eventListView}
+        openItemTopBar={eventInDetailTopBar}
+        openItem={eventInDetail}
+    />);
+};
 
 EventMetadata.propTypes = {
-    event: PropTypes.shape({
-        name: PropTypes.string.isRequired,
-        dates: PropTypes.object.isRequired,
-        definition_short: PropTypes.string,
-        definition_long: PropTypes.string,
-        internal_note: PropTypes.string,
-        location: PropTypes.array,
-        occur_status: PropTypes.object,
-        source: PropTypes.string,
-    }),
+    event: PropTypes.object,
+    dateOnly: PropTypes.bool,
+    dateFormat: PropTypes.string,
+    timeFormat: PropTypes.string,
+};
+
+
+EventMetadata.defaultProps = {
+    dateFormat: 'DD/MM/YYYY',
+    timeFormat: 'HH:mm',
 };

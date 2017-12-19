@@ -9,7 +9,7 @@ import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {get} from 'lodash';
 
-export class EventPreviewHeaderComponent extends React.Component {
+export class PlanningPreviewHeaderComponent extends React.Component {
     getEventActions() {
         const {
             item,
@@ -47,7 +47,7 @@ export class EventPreviewHeaderComponent extends React.Component {
 
         return (
             <Tools useDefaultClassName={false} className="side-panel__top-tools">
-                <i className="icon-calendar-list" />
+                <i className="icon-calendar" />
                 {lockRestricted &&
                     <LockContainer
                         lockedUser={lockedUser}
@@ -65,7 +65,7 @@ export class EventPreviewHeaderComponent extends React.Component {
     }
 }
 
-EventPreviewHeaderComponent.propTypes = {
+PlanningPreviewHeaderComponent.propTypes = {
     item: PropTypes.object,
     session: PropTypes.object,
     privileges: PropTypes.object,
@@ -76,7 +76,7 @@ EventPreviewHeaderComponent.propTypes = {
 };
 
 const mapStateToProps = (state, ownProps) => ({
-    item: selectors.events.eventWithRelatedDetails(state),
+    item: selectors.events.planningWithEventDetails(state),
     session: selectors.getSessionDetails(state),
     privileges: selectors.getPrivileges(state),
     users: selectors.getUsers(state),
@@ -88,4 +88,4 @@ const mapDispatchToProps = (dispatch) => ({
     onUnlock: (event) => dispatch(actions.events.ui.unlockAndOpenEventDetails(event)),
 });
 
-export const EventPreviewHeader = connect(mapStateToProps, mapDispatchToProps)(EventPreviewHeaderComponent);
+export const PlanningPreviewHeader = connect(mapStateToProps, mapDispatchToProps)(PlanningPreviewHeaderComponent);

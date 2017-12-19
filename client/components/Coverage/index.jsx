@@ -71,7 +71,7 @@ const mapStateToProps = (state, ownProps) => ({
     coverageProviders: selectors.getCoverageProviders(state),
     contentType: selector(state, ownProps.coverage + '.planning.g2_content_type'),
     assignmentState: selector(state, ownProps.coverage + '.assigned_to.state'),
-    formProfile: selectors.getCoverageFormsProfile(state),
+    formProfile: selectors.planning.coverageFormsProfile(state),
     keywords: selectors.getKeywords(state),
     assignmentPriorities: selectors.getAssignmentPriorities(state),
 });

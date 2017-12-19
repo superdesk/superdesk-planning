@@ -72,7 +72,7 @@ export class EventPreviewContentComponent extends React.Component {
                         <div>{item.location[0].name}</div>
                         <div>{item.location[0].formatted_address}</div>
                     </Row>}
-                <ToggleBox title="Details" isOpen={false}>
+                <ToggleBox title={gettext('Details')} isOpen={false}>
                     {get(formProfile, 'editor.calendars.enabled') && <Row
                         label={gettext('Calenders')}
                         value={calendarsText}
@@ -95,39 +95,38 @@ export class EventPreviewContentComponent extends React.Component {
                     />}
                 </ToggleBox>
                 {get(formProfile, 'editor.files.enabled') &&
-                    <ToggleBox title="Attached Files" isOpen={false}>
-                        {get(item, 'files.length') > 0 &&
-                        <ul>
-                            {get(item, 'files', []).map((file, index) => (
-                                <FileField
-                                    key={index}
-                                    file={file}
-                                    readOnly={true} />
-                            ))}
-                        </ul>}
-                        <span className="sd-text__info">No attached files added.</span>
+                    <ToggleBox title={gettext('Attached Files')} isOpen={false}>
+                        {get(item, 'files.length') > 0 ?
+                            <ul>
+                                {get(item, 'files', []).map((file, index) => (
+                                    <FileField
+                                        key={index}
+                                        file={file}
+                                        readOnly={true} />
+                                ))}
+                            </ul> :
+                            <span className="sd-text__info">{gettext('No attached files added.')}</span>}
                     </ToggleBox>
                 }
                 {get(formProfile, 'editor.links.enabled') &&
-                    <ToggleBox title="External Links" isOpen={false}>
-                        {get(item, 'links.length') > 0 &&
-                        <ul>
-                            {get(item, 'links', []).map((link, index) => (
-                                <LinkField
-                                    link={link}
-                                    key={index}
-                                    readOnly={true} />
-                            ))}
-                        </ul>}
-                        <span className="sd-text__info">No external links added.</span>
+                    <ToggleBox title={gettext('External Links')} isOpen={false}>
+                        {get(item, 'links.length') > 0 ?
+                            <ul>
+                                {get(item, 'links', []).map((link, index) => (
+                                    <LinkField
+                                        link={link}
+                                        key={index}
+                                        readOnly={true} />
+                                ))}
+                            </ul> :
+                            <span className="sd-text__info">{gettext('No external links added.')}</span>}
                     </ToggleBox>
                 }
-                <ToggleBox title="Related Planning Items" isOpen={false}>
-                    {get(item, '_plannings.length') > 0 &&
-                    <RelatedPlannings plannings={item._plannings}
-                        openPlanningItem={true}/>
-                    }
-                    <span className="sd-text__info">No related planning items.</span>
+                <ToggleBox title={gettext('Related Planning Items')} isOpen={false}>
+                    {get(item, '_plannings.length') > 0 ?
+                        <RelatedPlannings plannings={item._plannings}
+                            openPlanningItem={true}/> :
+                        <span className="sd-text__info">{gettext('No related planning items.')}</span>}
                 </ToggleBox>
             </div>
         );
@@ -137,8 +136,8 @@ export class EventPreviewContentComponent extends React.Component {
 EventPreviewContentComponent.propTypes = {
     item: PropTypes.object,
     users: PropTypes.array,
-    session: PropTypes.array,
-    lockedItems: PropTypes.array,
+    session: PropTypes.object,
+    lockedItems: PropTypes.object,
     formProfile: PropTypes.object,
     timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,

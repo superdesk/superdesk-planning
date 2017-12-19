@@ -67,8 +67,6 @@ export const getEventCalendars = (state) => get(state, 'vocabularies.event_calen
 export const getKeywords = (state) => get(state, 'vocabularies.keywords', []);
 export const getPlanningSearch = (state) => get(state, 'planning.search.currentSearch');
 export const getEventsFormsProfile = (state) => get(state, 'formsProfile.events');
-export const getPlanningsFormsProfile = (state) => get(state, 'formsProfile.planning');
-export const getCoverageFormsProfile = (state) => get(state, 'formsProfile.coverage');
 export const getNewsCoverageStatus = (state) => get(state, 'vocabularies.newscoveragestatus', []);
 export const getCoverageCancelState = (state) =>
     (get(state, 'vocabularies.newscoveragestatus', []).find((s) => s.qcode === 'ncostat:notint'));
@@ -91,16 +89,6 @@ export const getTemplates = (state) => get(state, 'templates', []);
 
 export const getAutosavePlanningItems = (state) => get(state, 'autosave.' + FORM_NAMES.PlanningForm);
 export const getAutosaveEventItems = (state) => get(state, 'autosave.' + FORM_NAMES.EventForm);
-
-export const getPlanningTypeProfile = createSelector(
-    [getPlanningsFormsProfile, getCoverageFormsProfile],
-    (planningProfile, coverageProfile) => (
-        {
-            planning: planningProfile,
-            coverage: coverageProfile,
-        }
-    )
-);
 
 export const getCoverageProviders = createSelector(
     [getVocabularies],

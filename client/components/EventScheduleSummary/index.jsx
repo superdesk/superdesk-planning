@@ -2,11 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {RepeatEventSummary} from '../index';
 import {Row} from '../UI/Preview';
-import {gettext} from '../../utils';
+import {gettext, eventUtils} from '../../utils';
 import {get} from 'lodash';
 import './style.scss';
 
-export const EventScheduleSummary = ({schedule, timeFormat, dateFormat}) => {
+export const EventScheduleSummary = ({schedule, dateFormat, timeFormat}) => {
     if (!schedule)
         return null;
 
@@ -17,26 +17,15 @@ export const EventScheduleSummary = ({schedule, timeFormat, dateFormat}) => {
     const count = get(schedule, 'recurring_rule.count');
     const byDay = get(schedule, 'recurring_rule.byday');
     const start = get(schedule, 'start');
-    const end = get(schedule, 'end');
     const interval = get(schedule, 'recurring_rule.interval');
-
-    let eventDateText;
-
-    if (start.isSame(end, 'day')) {
-        eventDateText = start.format(dateFormat + ' @ ' + timeFormat) + ' - ' +
-            end.format(timeFormat);
-    } else {
-        eventDateText = start.format(dateFormat + ' @ ' + timeFormat) + ' - ' +
-            end.format(dateFormat + ' @ ' + timeFormat);
-    }
+    const eventDateText = eventUtils.getDateStringForEvent({dates: schedule}, dateFormat, timeFormat);
 
     return (
-        <div>
-            <Row
-                label={gettext('Date')}
-                value={eventDateText || ''}
-            >
-                {doesRepeat &&
+        <Row
+            label={gettext('Date')}
+            value={eventDateText || ''}
+        >
+            {doesRepeat &&
                     <RepeatEventSummary
                         byDay={byDay}
                         interval={interval}
@@ -47,19 +36,18 @@ export const EventScheduleSummary = ({schedule, timeFormat, dateFormat}) => {
                         startDate={start}
                         asInputField={true}
                     />
-                }
-            </Row>
-        </div>
+            }
+        </Row>
     );
 };
 
 EventScheduleSummary.propTypes = {
     schedule: PropTypes.object,
-    timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,
+    timeFormat: PropTypes.string,
 };
 
 EventScheduleSummary.defaultProps = {
-    timeFormat: 'HH:mm',
     dateFormat: 'DD/MM/YYYY',
+    timeFormat: 'HH:mm',
 };

@@ -1,12 +1,12 @@
 import {EVENTS, SPIKED_STATE, WORKFLOW_STATE, PUBLISHED_STATE} from '../../constants';
 import {EventUpdateMethods} from '../../components/fields';
-import main from '../main';
 import {get, isEqual} from 'lodash';
 import * as selectors from '../../selectors';
 import {isItemLockedInThisSession} from '../../utils';
 import moment from 'moment';
 
 import planningApi from '../planning/api';
+import eventsUi from './ui';
 
 /**
  * Action dispatcher to load a series of recurring events into the local store.
@@ -634,7 +634,7 @@ const fetchEventHistory = (eventId) => (
             sort: '[(\'_created\', 1)]',
         })
             .then((data) => {
-                dispatch(main.history(data._items));
+                dispatch(eventsUi.receiveEventHistory(data._items));
                 return data;
             })
     )
