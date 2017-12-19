@@ -17,7 +17,8 @@ from eve.utils import config
 from apps.archive.common import get_user, get_auth, set_original_creator
 from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, WORKFLOW_STATE, ITEM_STATE, remove_lock_information
 from copy import deepcopy
-from .events import EventsResource, events_schema, generate_recurring_dates, set_next_occurrence
+from .events import EventsResource, events_schema, generate_recurring_dates, \
+    set_next_occurrence, set_planning_schedule
 from flask import current_app as app
 from itertools import islice
 import pytz
@@ -264,6 +265,7 @@ Event Rescheduled
                         new_updates['dates']['start'] = datetime.combine(event_date, updates['dates']['start'].time())
                         new_updates['dates']['end'] = new_updates['dates']['start'] + time_delta
                         new_updates['dates']['recurring_rule'] = updates['dates']['recurring_rule']
+                        set_planning_schedule(new_updates)
 
                     # And finally update the Event, and Reschedule associated Planning items
                     events_service.patch(event[config.ID_FIELD], new_updates)
@@ -297,6 +299,7 @@ Event Rescheduled
             new_event['dates']['end'] = new_event['dates']['start'] + time_delta
             new_event[config.ID_FIELD] = new_event['guid'] = generate_guid(type=GUID_NEWSML)
             new_event.pop('reason', None)
+            set_planning_schedule(new_event)
 
             # And finally add this event to the list of events to be created
             new_events.append(new_event)

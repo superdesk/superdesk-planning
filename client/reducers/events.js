@@ -4,16 +4,9 @@ import {EVENTS, RESET_STORE, INIT_STORE, LOCKS, SPIKED_STATE} from '../constants
 import {createReducer, getItemType} from '../utils';
 import {WORKFLOW_STATE, MAIN, ITEM_TYPE} from '../constants';
 
-const initialLastRequest = {page: 1};
-
 const initialState = {
     events: {},
     eventsInList: [],
-    search: {
-        currentSearch: undefined,
-        advancedSearchOpened: false,
-    },
-    lastRequestParams: initialLastRequest,
     show: true,
     showEventDetails: null,
     highlightedEvent: null,
@@ -55,12 +48,12 @@ const removeLock = (event, etag = null) => {
 };
 
 export const spikeEvent = (state, payload) => {
-    const spikeState = get(state, 'search.currentSearch.spikeState', SPIKED_STATE.NOT_SPIKED);
-    let event = state.events[payload._id];
+    const spikeState = get(payload, 'spikeState', SPIKED_STATE.NOT_SPIKED);
+    let event = state.events[payload.event._id];
 
-    removeLock(event, payload._etag);
+    removeLock(event, payload.event._etag);
     event.state = WORKFLOW_STATE.SPIKED;
-    event.revert_state = payload.revert_state;
+    event.revert_state = payload.event.revert_state;
 
     if (state.showEventDetails === event._id) {
         state.showEventDetails = null;
@@ -76,11 +69,11 @@ export const spikeEvent = (state, payload) => {
 };
 
 export const unspikeEvent = (state, payload) => {
-    const spikeState = get(state, 'search.currentSearch.spikeState', SPIKED_STATE.NOT_SPIKED);
-    let event = state.events[payload._id];
+    const spikeState = get(payload, 'spikeState', SPIKED_STATE.NOT_SPIKED);
+    let event = state.events[payload.event._id];
 
-    removeLock(event, payload._etag);
-    event.state = payload.state;
+    removeLock(event, payload.event._etag);
+    event.state = payload.event.state;
     delete event.revert_state;
 
     if (state.showEventDetails === event._id) {
@@ -125,19 +118,6 @@ const eventsReducer = createReducer(initialState, {
             show: !state.show,
         }
     ),
-    [EVENTS.ACTIONS.REQUEST_EVENTS]: (state, payload) => (
-        {
-            ...state,
-            lastRequestParams: {
-                ...initialLastRequest,
-                ...payload,
-            },
-            search: {
-                ...state.search,
-                currentSearch: payload,
-            },
-        }
-    ),
     [EVENTS.ACTIONS.ADD_EVENTS]: (state, payload) => {
         const _events = modifyEventsBeingAdded(state, payload);
 
@@ -175,7 +155,6 @@ const eventsReducer = createReducer(initialState, {
             ...state,
             search: {
                 ...state.search,
-                advancedSearchOpened: true,
             },
         }
     ),
@@ -184,7 +163,6 @@ const eventsReducer = createReducer(initialState, {
             ...state,
             search: {
                 ...state.search,
-                advancedSearchOpened: false,
             },
         }
     ),
@@ -342,7 +320,7 @@ Event Postponed
         if (!(get(payload, 'event._id') in state.events))
             return state;
 
-        return spikeEvent(cloneDeep(state), payload.event);
+        return spikeEvent(cloneDeep(state), payload);
     },
 
     [EVENTS.ACTIONS.UNSPIKE_EVENT]: (state, payload) => {
@@ -350,7 +328,7 @@ Event Postponed
         if (!(get(payload, 'event._id') in state.events))
             return state;
 
-        return unspikeEvent(cloneDeep(state), payload.event);
+        return unspikeEvent(cloneDeep(state), payload);
     },
 
     [EVENTS.ACTIONS.SPIKE_RECURRING_EVENTS]: (state, payload) => {
@@ -358,7 +336,7 @@ Event Postponed
 
         payload.events.forEach((event) => {
             if (get(event, '_id') in state.events) {
-                spikeEvent(newState, event);
+                spikeEvent(newState, {event: event, spikeState: payload.spikeState});
             }
         });
 

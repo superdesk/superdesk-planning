@@ -27,9 +27,9 @@ export const CoveragePreview = ({coverage, users, desks, newsCoverageStatus, dat
     const deskAssignor = getItemInArrayById(users, assignor_desk);
     const userAssignor = getItemInArrayById(users, assignor_user);
 
-    const coverageStatus = coverage.news_coverage_status.qcode ===
+    const coverageStatus = get(coverage, 'news_coverage_status.qcode', '') ===
         PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode ? PLANNING.NEWS_COVERAGE_CANCELLED_STATUS :
-        newsCoverageStatus.find((s) => s.qcode === coverage.news_coverage_status.qcode);
+        newsCoverageStatus.find((s) => s.qcode === get(coverage, 'news_coverage_status.qcode', '')) || {};
 
     const coverageDateText = !coverageDate ? 'Not scheduled yet' :
         getDateTimeString(coverageDate, dateFormat, timeFormat);

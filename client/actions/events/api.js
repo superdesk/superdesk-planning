@@ -1,8 +1,8 @@
 import {EVENTS, SPIKED_STATE, WORKFLOW_STATE, PUBLISHED_STATE, ITEM_TYPE} from '../../constants';
 import {EventUpdateMethods} from '../../components/Events';
-import {get, isEqual, cloneDeep, pickBy, isNil} from 'lodash';
+import {get, isEqual, cloneDeep, pickBy, isNil, isEmpty} from 'lodash';
 import * as selectors from '../../selectors';
-import {lockUtils} from '../../utils';
+import {eventUtils, getTimeZoneOffset, lockUtils, sanitizeTextForQuery} from '../../utils';
 import moment from 'moment';
 
 import planningApi from '../planning/api';
@@ -12,8 +12,11 @@ import locationApi from '../locations';
 /**
  * Action dispatcher to load a series of recurring events into the local store.
  * This does not update the list of visible Events
- * @param rid
- * @param spikeState
+ * @param {string} rid
+ * @param {string} spikeState
+ * @param {int} page - The page number to fetch
+ * @param {int} maxResults - The number to events per page
+ * @param {boolean} loadToStore - To load events into store
  */
 const loadEventsByRecurrenceId = (
     rid,
@@ -28,13 +31,14 @@ const loadEventsByRecurrenceId = (
             spikeState: spikeState,
             page: page,
             maxResults: maxResults,
+            onlyFuture: false
         }))
-            .then((data) => {
+            .then((items) => {
                 if (loadToStore) {
-                    dispatch(self.receiveEvents(data._items));
+                    dispatch(self.receiveEvents(items));
                 }
 
-                return Promise.resolve(data._items);
+                return Promise.resolve(items);
             }, (error) => (
                 Promise.reject(error)
             ))
@@ -80,6 +84,153 @@ const unspike = (events) => (
     }
 );
 
+
+const getCriteria = (
+    {
+        advancedSearch = {},
+        fulltext,
+        recurrenceId,
+        spikeState = SPIKED_STATE.NOT_SPIKED,
+        onlyFuture = true,
+        must = []
+    }
+) => {
+    let query = {};
+    const filter = {};
+    let mustNot = [];
+
+    // List of actions to perform if the condition is true
+    [
+        {
+            condition: () => (fulltext),
+            do: () => {
+                must.push({query_string: {query: fulltext}});
+            },
+        },
+        {
+            condition: () => (recurrenceId),
+            do: () => {
+                must.push({term: {recurrence_id: recurrenceId}});
+            },
+        },
+        {
+            condition: () => (advancedSearch.name),
+            do: () => {
+                must.push({query_string: {query: advancedSearch.name}});
+            },
+        },
+        {
+            condition: () => (advancedSearch.source),
+            do: () => {
+                const providers = advancedSearch.source.map((provider) => provider.name);
+
+                must.push({terms: {source: providers}});
+            },
+        },
+        {
+            condition: () => (advancedSearch.location),
+            do: () => {
+                const location = get(advancedSearch.location, 'name', advancedSearch.location);
+
+                must.push({match_phrase: {'location.name': location}});
+            },
+        },
+        {
+            condition: () => (advancedSearch.calendars),
+            do: () => {
+                const codes = advancedSearch.calendars.map((cat) => cat.qcode);
+
+                must.push({terms: {'calendars.qcode': codes}});
+            },
+        },
+        {
+            condition: () => (advancedSearch.anpa_category),
+            do: () => {
+                const codes = advancedSearch.anpa_category.map((cat) => cat.qcode);
+
+                must.push({terms: {'anpa_category.qcode': codes}});
+            },
+        },
+        {
+            condition: () => (advancedSearch.subject),
+            do: () => {
+                const codes = advancedSearch.subject.map((sub) => sub.qcode);
+
+                must.push({terms: {'subject.qcode': codes}});
+            },
+        },
+        {
+            condition: () => (advancedSearch.dates),
+            do: () => {
+                const range = {};
+
+                if (advancedSearch.dates.start) {
+                    range['dates.start'] = {gte: advancedSearch.dates.start};
+                }
+
+                if (advancedSearch.dates.end) {
+                    range['dates.end'] = {lte: advancedSearch.dates.end};
+                }
+
+                if (!isEmpty(range)) {
+                    range.time_zone = getTimeZoneOffset();
+                }
+
+                filter.range = range;
+            },
+        },
+        {
+            condition: () => (advancedSearch.slugline),
+            do: () => {
+                let queryText = sanitizeTextForQuery(advancedSearch.slugline);
+                let queryString = {
+                    query_string: {
+                        query: 'slugline:(' + queryText + ')',
+                        lenient: false,
+                        default_operator: 'AND',
+                    },
+                };
+
+                must.push(queryString);
+            },
+        },
+        {
+            condition: () => (advancedSearch.pubstatus),
+            do: () => {
+                must.push({term: {pubstatus: advancedSearch.pubstatus}});
+            },
+        }
+    // loop over actions and performs if conditions are met
+    ].forEach((action) => {
+        if (action.condition()) {
+            action.do();
+        }
+    });
+
+    // if advanced search dates are not specified and onlyfuture events
+    if (!get(advancedSearch, 'dates') && onlyFuture) {
+        filter.range = {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}};
+    }
+
+    switch (spikeState) {
+    case SPIKED_STATE.SPIKED:
+        must.push({term: {state: WORKFLOW_STATE.SPIKED}});
+        break;
+    case SPIKED_STATE.BOTH:
+        break;
+    case SPIKED_STATE.NOT_SPIKED:
+    default:
+        mustNot.push({term: {state: WORKFLOW_STATE.SPIKED}});
+    }
+
+    query.bool = {
+        must: must,
+        must_not: mustNot,
+    };
+
+    return {query, filter};
+};
+
 /**
  * Action Dispatcher for query the api for events
  * You can provide one of the following parameters to fetch from the server
@@ -87,9 +238,10 @@ const unspike = (events) => (
  * @param {object} fulltext - Full text search parameters
  * @param {Array} ids - An array of Event IDs to fetch
  * @param {string} recurrenceId - The recurrence_id to fetch recurring events
- * @param {date} startDateGreaterThan - Start date range
+ * @param {string} spikeState - The item state to filter by
+ * @param {boolean} onlyFuture - Get future events. Onlyfuture is ignored if advancedSearch.dates specified.
  * @param {int} page - The page number to fetch
- * @param {string} state - The item state to filter by
+ * @param {int} maxResults - The number to events per page
  * @return arrow function
  */
 const query = (
@@ -98,16 +250,13 @@ const query = (
         fulltext,
         ids,
         recurrenceId,
-        startDateGreaterThan,
+        spikeState = SPIKED_STATE.NOT_SPIKED,
+        onlyFuture = true,
         page = 1,
         maxResults = 25,
-        spikeState = SPIKED_STATE.NOT_SPIKED,
     }
 ) => (
     (dispatch, getState, {api}) => {
-        let query = {};
-        const filter = {};
-        let mustNot = [];
         let must = [];
 
         if (ids) {
@@ -129,134 +278,20 @@ const query = (
                 }
                 // flattern responses and return a response-like object
                 return Promise.all(requests).then((responses) => (
-                    {_items: Array.prototype.concat(...responses.map((r) => r._items))}
+                    Array.prototype.concat.apply([], responses)
                 ));
             }
         }
-        // List of actions to perform if the condition is true
-        [
+
+        const criteria = self.getCriteria(
             {
-                condition: () => (fulltext),
-                do: () => {
-                    must.push({query_string: {query: fulltext}});
-                },
-            },
-            {
-                condition: () => (recurrenceId),
-                do: () => {
-                    must.push({term: {recurrence_id: recurrenceId}});
-                },
-            },
-            {
-                condition: () => (startDateGreaterThan),
-                do: () => {
-                    filter.range = {
-                        ...get(filter, 'range', {}),
-                        'dates.start': {gt: startDateGreaterThan},
-                    };
-                },
-            },
-            {
-                condition: () => (advancedSearch.name),
-                do: () => {
-                    must.push({query_string: {query: advancedSearch.name}});
-                },
-            },
-            {
-                condition: () => (advancedSearch.source),
-                do: () => {
-                    const providers = advancedSearch.source.map((provider) => provider.name);
-                    const queries = providers.map((provider) => (
-                        {term: {source: provider}}
-                    ));
-
-                    must.push(...queries);
-                },
-            },
-            {
-                condition: () => (advancedSearch.location),
-                do: () => {
-                    const location = get(advancedSearch.location, 'name', advancedSearch.location);
-
-                    must.push({match_phrase: {'location.name': location}});
-                },
-            },
-            {
-                condition: () => (advancedSearch.calendars),
-                do: () => {
-                    const codes = advancedSearch.calendars.map((cat) => cat.qcode);
-                    const queries = codes.map((code) => (
-                        {term: {'calendars.qcode': code}}
-                    ));
-
-                    must.push(...queries);
-                },
-            },
-            {
-                condition: () => (advancedSearch.anpa_category),
-                do: () => {
-                    const codes = advancedSearch.anpa_category.map((cat) => cat.qcode);
-                    const queries = codes.map((code) => (
-                        {term: {'anpa_category.qcode': code}}
-                    ));
-
-                    must.push(...queries);
-                },
-            },
-            {
-                condition: () => (advancedSearch.subject),
-                do: () => {
-                    const codes = advancedSearch.subject.map((sub) => sub.qcode);
-                    const queries = codes.map((code) => (
-                        {term: {'subject.qcode': code}}
-                    ));
-
-                    must.push(...queries);
-                },
-            },
-            {
-                condition: () => (advancedSearch.dates),
-                do: () => {
-                    const range = {};
-
-                    if (advancedSearch.dates.start) {
-                        range['dates.start'] = {gte: advancedSearch.dates.start};
-                    }
-
-                    if (advancedSearch.dates.end) {
-                        range['dates.end'] = {lte: advancedSearch.dates.end};
-                    }
-
-                    filter.range = range;
-                },
-            },
-        // loop over actions and performs if conditions are met
-        ].forEach((action) => {
-            if (action.condition()) {
-                action.do();
-            }
-        });
-
-        // default filter
-        if (isEqual(filter, {}) && isEqual(must, []) && isEqual(mustNot, [])) {
-            filter.range = {'dates.end': {gte: 'now/d'}};
-        }
-
-        switch (spikeState) {
-        case SPIKED_STATE.SPIKED:
-            must.push({term: {state: WORKFLOW_STATE.SPIKED}});
-            break;
-        case SPIKED_STATE.BOTH:
-            break;
-        case SPIKED_STATE.NOT_SPIKED:
-        default:
-            mustNot.push({term: {state: WORKFLOW_STATE.SPIKED}});
-        }
-
-        query.bool = {
-            must: must,
-            must_not: mustNot,
-        };
+                advancedSearch,
+                fulltext,
+                recurrenceId,
+                spikeState,
+                onlyFuture,
+                must
+            });
 
         // Query the API and sort by date
         return api('events').query({
@@ -265,22 +300,19 @@ const query = (
             sort: '[("dates.start",1)]',
             embedded: {files: 1},
             source: JSON.stringify({
-                query: query,
-                filter: filter,
+                query: criteria.query,
+                filter: criteria.filter,
             }),
         })
         // convert dates to moment objects
-            .then((data) => ({
-                ...data,
-                _items: data._items.map((item) => ({
-                    ...item,
-                    dates: {
-                        ...item.dates,
-                        start: moment(item.dates.start),
-                        end: moment(item.dates.end),
-                    },
-                })),
-            }));
+            .then((data) => {
+                const results = {
+                    ...data,
+                    _items: data._items.map(eventUtils.convertToMoment),
+                };
+
+                return get(results, '_items');
+            });
     }
 );
 
@@ -291,8 +323,7 @@ const query = (
  */
 const refetchEvents = () => (
     (dispatch, getState) => {
-        const prevParams = selectors.getPreviousEventRequestParams(getState());
-
+        const prevParams = selectors.main.lastRequestParams(getState());
         const promises = [];
 
         for (let i = 1; i <= prevParams.page; i++) {
@@ -301,18 +332,14 @@ const refetchEvents = () => (
                 page: i,
             };
 
-            dispatch({
-                type: EVENTS.ACTIONS.REQUEST_EVENTS,
-                payload: params,
-            });
+            dispatch(eventsUi.requestEvents(params));
+
             promises.push(dispatch(self.query(params)));
         }
 
         return Promise.all(promises)
             .then((responses) => {
-                let events = responses
-                    .map((e) => e._items)
-                    .reduce((a, b) => a.concat(b));
+                let events = Array.prototype.concat.apply([], responses);
 
                 dispatch(self.receiveEvents(events));
                 return Promise.resolve(events);
@@ -537,9 +564,10 @@ const silentlyFetchEventsById = (ids, spikeState = SPIKED_STATE.NOT_SPIKED, save
                     // distinct ids
                     ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
                     spikeState: spikeState,
+                    onlyFuture: false
                 }))
                     .then(
-                        (data) => resolve(data._items),
+                        (items) => resolve(items),
                         (error) => reject(error)
                     );
             } else {
@@ -833,6 +861,7 @@ const self = {
     _save,
     save,
     _saveLocation,
+    getCriteria
 };
 
 export default self;

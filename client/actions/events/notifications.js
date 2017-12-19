@@ -1,10 +1,11 @@
 import * as selectors from '../../selectors';
-import {WORKFLOW_STATE, EVENTS, MODALS} from '../../constants';
+import {WORKFLOW_STATE, EVENTS, MODALS, SPIKED_STATE} from '../../constants';
 import {showModal, hideModal} from '../index';
 import eventsApi from './api';
 import eventsUi from './ui';
 import {get} from 'lodash';
 import {lockUtils} from '../../utils';
+import eventsPlanning from '../eventsPlanning';
 
 /**
  * Action Event when an Event gets unlocked
@@ -109,8 +110,17 @@ const onEventSpiked = (_e, data) => (
 
             dispatch({
                 type: EVENTS.ACTIONS.SPIKE_EVENT,
-                payload: {event: eventInStore},
+                payload: {
+                    event: eventInStore,
+                    spikeState: get(
+                        selectors.main.eventsSearch(getState()),
+                        'spikeState',
+                        SPIKED_STATE.NOT_SPIKED
+                    )
+                },
             });
+
+            dispatch(eventsPlanning.notifications.onEventSpiked(_e, data));
 
             return Promise.resolve(eventInStore);
         }
@@ -140,8 +150,17 @@ const onEventUnspiked = (_e, data) => (
 
             dispatch({
                 type: EVENTS.ACTIONS.UNSPIKE_EVENT,
-                payload: {event: eventInStore},
+                payload: {
+                    event: eventInStore,
+                    spikeState: get(
+                        selectors.main.eventsSearch(getState()),
+                        'spikeState',
+                        SPIKED_STATE.NOT_SPIKED
+                    )
+                },
             });
+
+            dispatch(eventsPlanning.notifications.onEventUnspiked(_e, data));
 
             return Promise.resolve(eventInStore);
         }
@@ -227,15 +246,22 @@ const onEventPublishChanged = (e, data) => (
 );
 
 const onRecurringEventSpiked = (e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (get(data, 'items')) {
             dispatch({
                 type: EVENTS.ACTIONS.SPIKE_RECURRING_EVENTS,
                 payload: {
                     events: data.items,
                     recurrence_id: data.recurrence_id,
+                    spikeState: get(
+                        selectors.main.eventsSearch(getState()),
+                        'spikeState',
+                        SPIKED_STATE.NOT_SPIKED
+                    )
                 },
             });
+
+            dispatch(eventsPlanning.notifications.onRecurringEventSpiked(e, data));
 
             return Promise.resolve(data.items);
         }

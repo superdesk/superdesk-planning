@@ -16,7 +16,7 @@ export class PlanningItem extends React.PureComponent {
     render() {
         const {
             item,
-            onClick,
+            onItemClick,
             lockedItems,
             dateFormat,
             timeFormat,
@@ -68,7 +68,7 @@ export class PlanningItem extends React.PureComponent {
             privileges, lockedItems, itemActionsCallBack);
 
         return (
-            <Item shadow={1} onClick={onClick}>
+            <Item shadow={1} onClick={() => onItemClick(item)}>
                 <Border state={borderState} />
                 <ItemType item={item} onCheckToggle={() => { /* no-op */ }}/>
                 <PubStatus item={item} />
@@ -124,7 +124,7 @@ export class PlanningItem extends React.PureComponent {
 PlanningItem.propTypes = {
     item: PropTypes.object.isRequired,
     date: PropTypes.string.isRequired,
-    onClick: PropTypes.func.isRequired,
+    onItemClick: PropTypes.func.isRequired,
     lockedItems: PropTypes.object.isRequired,
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,

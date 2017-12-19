@@ -39,6 +39,9 @@ WORKFLOW_STATE = namedtuple('WORKFLOW_STATE', ['DRAFT', 'INGESTED', 'SCHEDULED',
 published_state = ['usable', 'cancelled']
 PUBLISHED_STATE = namedtuple('PUBLISHED_STATE', ['USABLE', 'CANCELLED'])(*published_state)
 
+PLANNING_ITEM_CUSTOM_HATEOAS = {'self': {'title': 'planning', 'href': '/planning/{_id}'}}
+EVENT_ITEM_CUSTOM_HATEOAS = {'self': {'title': 'events', 'href': '/events/{_id}'}}
+
 PUBLISHED_STATE_SCHEMA = {
     'type': 'string',
     'allowed': published_state,

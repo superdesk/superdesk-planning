@@ -3,15 +3,17 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
 import {Label} from '../';
-import {EVENTS} from '../../constants';
+import {EVENTS, MAIN} from '../../constants';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {EventDateTime} from './';
 import {ItemActionsMenu} from '../index';
 import {eventUtils, getItemWorkflowStateLabel} from '../../utils';
 
+
 export class EventItem extends React.PureComponent {
     render() {
-        const {item, onClick, lockedItems, dateFormat, timeFormat, session, privileges} = this.props;
+        const {item, onItemClick, lockedItems, dateFormat, timeFormat,
+            session, privileges, activeFilter, toggleRelatedPlanning} = this.props;
 
         if (!item) {
             return null;
@@ -20,7 +22,6 @@ export class EventItem extends React.PureComponent {
         const hasPlanning = eventUtils.eventHasPlanning(item);
         const isItemLocked = eventUtils.isEventLocked(item, lockedItems);
         const state = getItemWorkflowStateLabel(item);
-
         let borderState = false;
 
         if (isItemLocked)
@@ -48,14 +49,13 @@ export class EventItem extends React.PureComponent {
         const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack);
 
         return (
-            <Item shadow={1} onClick={onClick}>
+            <Item shadow={1} onClick={() => onItemClick(item)}>
                 <Border state={borderState} />
                 <ItemType item={item} onCheckToggle={() => { /* no-op */ }} />
                 <PubStatus item={item} />
                 <Column
                     grow={true}
-                    border={false}
-                >
+                    border={false}>
                     <Row>
                         <Label
                             text={state.label}
@@ -63,7 +63,7 @@ export class EventItem extends React.PureComponent {
                         />
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             {item.slugline &&
-                                <span className="sd-list-item__slugline">{item.slugline}</span>
+                                    <span className="sd-list-item__slugline">{item.slugline}</span>
                             }
                             {item.name}
                         </span>
@@ -73,6 +73,17 @@ export class EventItem extends React.PureComponent {
                             timeFormat={timeFormat}
                         />
                     </Row>
+                    {activeFilter === MAIN.FILTERS.COMBINED && hasPlanning && <Row>
+                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                            <a
+                                className="text-link"
+                                onClick={toggleRelatedPlanning}
+                            >
+                                <i className="icon-calendar" />
+                                {this.props.relatedPlanningText}
+                            </a>
+                        </span>
+                    </Row>}
                 </Column>
                 {get(itemActions, 'length', 0) > 0 && <ActionMenu>
                     <ItemActionsMenu
@@ -86,12 +97,15 @@ export class EventItem extends React.PureComponent {
 
 EventItem.propTypes = {
     item: PropTypes.object.isRequired,
-    onClick: PropTypes.func.isRequired,
+    onItemClick: PropTypes.func.isRequired,
     lockedItems: PropTypes.object.isRequired,
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
     session: PropTypes.object,
     privileges: PropTypes.object,
+    activeFilter: PropTypes.string,
+    toggleRelatedPlanning: PropTypes.func,
+    relatedPlanningText: PropTypes.string,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
@@ -100,5 +114,9 @@ EventItem.propTypes = {
     [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: PropTypes.func
+};
+
+EventItem.defaultProps = {
+    togglePlanningItem: () => { /* no-op */ }
 };

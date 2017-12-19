@@ -46,10 +46,6 @@ describe('events', () => {
                     e3: events[2],
                 },
                 eventsInList: [],
-                search: {
-                    advancedSearchOpened: false,
-                    currentSearch: {fulltext: undefined},
-                },
                 show: true,
                 showEventDetails: null,
                 highlightedEvent: null,
@@ -69,6 +65,16 @@ describe('events', () => {
                 identity: {_id: 'user123'},
                 sessionId: 'session123',
             },
+            main: {
+                filter: 'EVENTS',
+                search: {
+                    EVENTS: {
+                        lastRequestParams: {page: 1},
+                        fulltext: undefined,
+                        currentSearch: undefined
+                    },
+                }
+            }
         };
         const getState = () => (initialState);
         let dispatch;
@@ -194,9 +200,9 @@ describe('events', () => {
             });
         });
 
-        it('addToEventsList', () => {
+        it('addToList', () => {
             const ids = ['e4', 'e5', 'e6'];
-            const action = actions.addToEventsList(ids);
+            const action = actions.events.ui.addToList(ids);
 
             expect(action).toEqual({
                 type: 'ADD_TO_EVENTS_LIST',
@@ -235,9 +241,18 @@ describe('events', () => {
                             end: '2017-05-31T17:37:11+0000',
                         },
                     },
-                },
-                lastRequestParams: {page: 1},
+                }
             },
+            main: {
+                filter: 'EVENTS',
+                search: {
+                    EVENTS: {
+                        lastRequestParams: {page: 1},
+                        fulltext: undefined,
+                        currentSearch: undefined
+                    },
+                }
+            }
         };
         const newEvent = {
             _id: 'e2',
@@ -476,7 +491,7 @@ describe('events', () => {
                                 start: moment('2017-05-31T17:00:00+0000'),
                                 end: moment('2017-05-31T18:00:00+0000'),
                             },
-                            _type: 'events',
+                            _type: 'events'
                         },
                     });
                     done();

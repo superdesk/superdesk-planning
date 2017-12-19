@@ -12,6 +12,7 @@ export class ItemActionsMenu extends React.Component {
         super(props);
         this.state = {isOpen: false};
         this.handleClickOutside = this.handleClickOutside.bind(this);
+        this.renderMenu = this.renderMenu.bind(this);
     }
 
     componentDidMount() {
@@ -64,7 +65,7 @@ export class ItemActionsMenu extends React.Component {
 
         return (
             <div className={classes}>
-                <a className={buttonClasses} onClick={this.renderMenu.bind(this)}>
+                <a className={buttonClasses} onClick={this.renderMenu}>
                     <i className="icon-dots-vertical" />
                 </a>
             </div>

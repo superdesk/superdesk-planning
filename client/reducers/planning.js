@@ -19,16 +19,8 @@ const initialState = {
     selectedItems: [],
     currentPlanningId: undefined,
     editorOpened: false,
-    planningsAreLoading: false,
-    onlyFuture: true,
-    filterPlanningKeyword: null,
     readOnly: true,
     planningHistoryItems: [],
-    lastRequestParams: {page: 1},
-    search: {
-        currentSearch: undefined,
-        advancedSearchOpened: false,
-    },
 };
 
 let plannings;
@@ -86,14 +78,6 @@ const planningReducer = createReducer(initialState, {
         }
     ),
 
-    [PLANNING.ACTIONS.REQUEST_PLANNINGS]: (state, payload) => (
-        {
-            ...state,
-            planningsAreLoading: true,
-            lastRequestParams: payload,
-        }
-    ),
-
     [PLANNING.ACTIONS.PLANNING_FILTER_BY_KEYWORD]: (state, payload) => (
         {
             ...state,
@@ -107,7 +91,6 @@ const planningReducer = createReducer(initialState, {
         return {
             ...state,
             plannings: plannings,
-            planningsAreLoading: false,
         };
     },
 
@@ -147,17 +130,6 @@ const planningReducer = createReducer(initialState, {
             ...state,
             editorOpened: false,
             currentPlanningId: undefined,
-        }
-    ),
-
-    [PLANNING.ACTIONS.SET_ONLY_FUTURE]: (state, payload) => (
-        {
-            ...state,
-            onlyFuture: payload,
-            search: {
-                ...state.search,
-                currentSearch: payload,
-            },
         }
     ),
 
@@ -206,26 +178,6 @@ const planningReducer = createReducer(initialState, {
         ...state,
         planningHistoryItems: payload,
     }),
-
-    [PLANNING.ACTIONS.OPEN_ADVANCED_SEARCH]: (state) => (
-        {
-            ...state,
-            search: {
-                ...state.search,
-                advancedSearchOpened: true,
-            },
-        }
-    ),
-
-    [PLANNING.ACTIONS.CLOSE_ADVANCED_SEARCH]: (state) => (
-        {
-            ...state,
-            search: {
-                ...state.search,
-                advancedSearchOpened: false,
-            },
-        }
-    ),
 
     [PLANNING.ACTIONS.SET_ADVANCED_SEARCH]: (state, payload) => (
         {
@@ -396,7 +348,7 @@ const planningReducer = createReducer(initialState, {
 
         // If the user is currently not showing spiked Planning items,
         // Then remove this Plan from the list (if it exists in the list)
-        const spikeState = get(state, 'search.currentSearch.spikeState', SPIKED_STATE.NOT_SPIKED);
+        const spikeState = get(payload, 'spikeState', SPIKED_STATE.NOT_SPIKED);
         let planningsInList = state.planningsInList;
 
         if (planningsInList.indexOf(plan._id) > -1 && spikeState === SPIKED_STATE.NOT_SPIKED) {
@@ -430,7 +382,7 @@ const planningReducer = createReducer(initialState, {
 
         // If the user is currently showing spiked only Planning items,
         // Then remove this Plan from the list (if it exists in the list)
-        const spikeState = get(state, 'search.currentSearch.spikeState', SPIKED_STATE.NOT_SPIKED);
+        const spikeState = get(payload, 'spikeState', SPIKED_STATE.NOT_SPIKED);
         let planningsInList = state.planningsInList;
 
         if (planningsInList.indexOf(plan._id) > -1 && spikeState === SPIKED_STATE.SPIKED) {

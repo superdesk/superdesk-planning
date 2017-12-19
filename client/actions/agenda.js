@@ -77,7 +77,7 @@ const receiveAgendas = (agendas) => ({
  * @param {string} agendaId - The ID of the Agenda
  * @return arrow function
  */
-const selectAgenda = (agendaId) => (
+const selectAgenda = (agendaId, params = {}) => (
     (dispatch, getState, {$timeout, $location}) => {
         // save in store selected agenda
         dispatch({
@@ -88,7 +88,7 @@ const selectAgenda = (agendaId) => (
         // update the url (deep linking)
         $timeout(() => ($location.search('agenda', agendaId)));
         // reload the plannings list
-        return dispatch(fetchSelectedAgendaPlannings());
+        return dispatch(fetchSelectedAgendaPlannings(params));
     }
 );
 
@@ -265,8 +265,8 @@ const _createPlanningFromEvent = (event) => (
  * currently selected agenda
  * @return arrow function
  */
-const fetchSelectedAgendaPlannings = () => (
-    (dispatch, getState) => {
+const fetchSelectedAgendaPlannings = (params = {}) => (
+    (dispatch, getState, {$location, $timeout}) => {
         const agendaId = selectors.getCurrentAgendaId(getState());
 
         if (!agendaId) {
@@ -274,9 +274,16 @@ const fetchSelectedAgendaPlannings = () => (
             return Promise.resolve();
         }
 
-        const params = selectors.getPlanningFilterParams(getState());
+        const filters = {
+            ...selectors.planning.getPlanningFilterParams(getState()),
+            ...params
+        };
 
-        return dispatch(planning.ui.fetchToList(params));
+        return dispatch(planning.ui.fetchToList(filters))
+            .then((result) => {
+                $timeout(() => $location.search('searchParams', JSON.stringify(params)));
+                return result;
+            });
     }
 );
 

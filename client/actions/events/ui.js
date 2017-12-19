@@ -1,5 +1,5 @@
-import {PRIVILEGES, EVENTS, PUBLISHED_STATE, MODALS, SPIKED_STATE} from '../../constants';
 import {showModal, hideModal, locks} from '../index';
+import {PRIVILEGES, EVENTS, PUBLISHED_STATE, MODALS, SPIKED_STATE, MAIN} from '../../constants';
 import eventsApi from './api';
 import {fetchSelectedAgendaPlannings} from '../agenda';
 import main from '../main';
@@ -26,20 +26,15 @@ const fetchEvents = (params = {
     page: 1,
 }) => (
     (dispatch, getState, {$timeout, $location}) => {
-        dispatch({
-            type: EVENTS.ACTIONS.REQUEST_EVENTS,
-            payload: params,
-        });
+        dispatch(self.requestEvents(params));
 
         return dispatch(eventsApi.query(params))
-            .then((data) => {
-                dispatch(eventsApi.receiveEvents(data._items));
-                dispatch(self.setEventsList(data._items.map((e) => e._id)));
+            .then((items) => {
+                dispatch(eventsApi.receiveEvents(items));
+                dispatch(self.setEventsList(items.map((e) => e._id)));
                 // update the url (deep linking)
-                $timeout(() => (
-                    $location.search('searchEvent', JSON.stringify(params))
-                ), 0, false);
-                return data;
+                $timeout(() => $location.search('searchParams', JSON.stringify(params)));
+                return items;
             });
     }
 );
@@ -521,6 +516,7 @@ const saveWithConfirmation = (event, save = true, publish = false) => (
         return dispatch(eventsApi.query({
             recurrenceId: originalEvent.recurrence_id,
             maxResults: maxRecurringEvents,
+            onlyFuture: false
         }))
             .then((relatedEvents) => (
                 dispatch(showModal({
@@ -528,7 +524,7 @@ const saveWithConfirmation = (event, save = true, publish = false) => (
                     modalProps: {
                         eventDetail: {
                             ...event,
-                            _recurring: get(relatedEvents, '_items', [event]),
+                            _recurring: relatedEvents || [event],
                             _publish: publish,
                             _save: save,
                             _events: [],
@@ -620,6 +616,31 @@ const unpublish = (event) => (
     )
 );
 
+
+/**
+ * Action to load more events
+ */
+const loadMore = () => (dispatch, getState) => {
+    const previousParams = selectors.main.lastRequestParams(getState());
+    const params = {
+        ...previousParams,
+        page: previousParams.page + 1,
+    };
+
+    dispatch(self.requestEvents(params));
+
+    return dispatch(eventsApi.query(params))
+        .then((items) => {
+            dispatch(eventsApi.receiveEvents(items));
+            dispatch(self.addToList(items.map((e) => e._id)));
+        });
+};
+
+const requestEvents = (params = {}) => ({
+    type: MAIN.ACTIONS.REQUEST,
+    payload: {[MAIN.FILTERS.EVENTS]: params},
+});
+
 /**
  * Action to set the list of events in the current list
  * @param {Array} idsList - An array of Event IDs to assign to the current list
@@ -634,6 +655,17 @@ const setEventsList = (idsList) => ({
  * Clears the Events List
  */
 const clearList = () => ({type: EVENTS.ACTIONS.CLEAR_LIST});
+
+/**
+ * Action to add events to the current list
+ * This action makes sure the list of events are unique, no duplicates
+ * @param {array} eventsIds - An array of Event IDs to add
+ * @return {{type: string, payload: *}}
+ */
+const addToList = (eventsIds) => ({
+    type: EVENTS.ACTIONS.ADD_TO_EVENTS_LIST,
+    payload: eventsIds,
+});
 
 /**
  * Opens the Event in preview/read-only mode
@@ -732,6 +764,9 @@ const self = {
     saveWithConfirmation,
     receiveEventHistory,
     unpublish,
+    loadMore,
+    addToList,
+    requestEvents
 };
 
 export default self;

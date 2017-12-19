@@ -15,12 +15,13 @@ import {
     isItemRescheduled,
     isItemPostponed,
     getDateTimeString,
-    isEmptyActions,
+    isEmptyActions
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
-import {get, map, isNil} from 'lodash';
+import {get, map, isNil, sortBy, cloneDeep} from 'lodash';
 import {EventUpdateMethods} from '../components/Events';
+
 
 /**
  * Helper function to determine if the starting and ending dates
@@ -412,6 +413,7 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks) => {
     );
 };
 
+
 const validateEventDates = (startDate, endDate) => {
     if (moment.isMoment(startDate) && moment.isMoment(endDate) &&
         endDate.isBefore(startDate)) {
@@ -420,6 +422,74 @@ const validateEventDates = (startDate, endDate) => {
 
     return false;
 };
+
+/*
+ * Groups the events by date
+ */
+const getEventsByDate = (events) => {
+    if (!events) return [];
+    // check if search exists
+    // order by date
+    let sortedEvents = events.sort((a, b) => a.dates.start - b.dates.start);
+    const days = {};
+
+    function addEventToDate(event, date) {
+        let eventDate = date || event.dates.start;
+
+        let eventDateFormatted = eventDate.format('YYYY-MM-DD');
+
+        if (!days[eventDateFormatted]) {
+            days[eventDateFormatted] = [];
+        }
+
+        let evt = cloneDeep(event);
+
+        evt._sortDate = eventDate;
+
+        days[eventDateFormatted].push(evt);
+    }
+
+    sortedEvents.forEach((event) => {
+        // compute the number of days of the event
+        if (!event.dates.start.isSame(event.dates.end, 'day')) {
+            let deltaDays = Math.max(event.dates.end.diff(event.dates.start, 'days'), 1);
+            // if the event happens during more that one day, add it to every day
+            // add the event to the other days
+
+            for (let i = 1; i <= deltaDays; i++) {
+                //  clone the date
+                const newDate = moment(event.dates.start.format('YYYY-MM-DD'), 'YYYY-MM-DD');
+
+                newDate.add(i, 'days');
+                addEventToDate(event, newDate);
+            }
+        }
+
+        // add event to its initial starting date
+        addEventToDate(event);
+    });
+
+    let sortable = [];
+
+    for (let day in days) sortable.push({
+        date: day,
+        events: sortBy(days[day], [(e) => (e._sortDate)]),
+    });
+
+    return sortBy(sortable, [(e) => (e.date)]);
+};
+
+/*
+ * Convert event dates to moment.
+ */
+const convertToMoment = (item) => ({
+    ...item,
+    dates: {
+        ...item.dates,
+        start: moment(item.dates.start),
+        end: moment(item.dates.end)
+    }
+});
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -449,6 +519,8 @@ const self = {
     getDateStringForEvent,
     getEventActions,
     validateEventDates,
+    getEventsByDate,
+    convertToMoment
 };
 
 export default self;
