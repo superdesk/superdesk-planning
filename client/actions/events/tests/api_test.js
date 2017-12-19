@@ -3,7 +3,8 @@ import planningApi from '../../planning/api';
 import sinon from 'sinon';
 import {EventUpdateMethods} from '../../../components/Events';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
-import {WORKFLOW_STATE, SPIKED_STATE} from '../../../constants';
+import {WORKFLOW_STATE, SPIKED_STATE, MAIN} from '../../../constants';
+import {getTimeZoneOffset} from '../../../utils';
 import moment from 'moment';
 
 describe('actions.events.api', () => {
@@ -53,10 +54,11 @@ describe('actions.events.api', () => {
                 expect(eventsApi.query.args[0]).toEqual([{
                     ids: ['e1', 'e2', 'e3'],
                     spikeState: SPIKED_STATE.BOTH,
+                    onlyFuture: false
                 }]);
 
                 expect(eventsApi.receiveEvents.callCount).toBe(1);
-                expect(eventsApi.receiveEvents.args[0]).toEqual([data.events]);
+                expect(eventsApi.receiveEvents.args[0]).toEqual([{_items: data.events}]);
 
                 done();
             });
@@ -70,7 +72,7 @@ describe('actions.events.api', () => {
         it('runs the query', (done) => (
             store.test(done, eventsApi.loadEventsByRecurrenceId('r1', SPIKED_STATE.NOT_SPIKED))
                 .then((items) => {
-                    expect(items).toEqual(data.events);
+                    expect(items).toEqual({_items: data.events});
 
                     expect(eventsApi.query.callCount).toBe(1);
                     expect(eventsApi.query.args[0]).toEqual([{
@@ -78,10 +80,11 @@ describe('actions.events.api', () => {
                         spikeState: SPIKED_STATE.NOT_SPIKED,
                         page: 1,
                         maxResults: 25,
+                        onlyFuture: false
                     }]);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
-                    expect(eventsApi.receiveEvents.args[0]).toEqual([data.events]);
+                    expect(eventsApi.receiveEvents.args[0]).toEqual([{_items: data.events}]);
 
                     done();
                 })
@@ -229,7 +232,7 @@ describe('actions.events.api', () => {
                                     ],
                                 },
                             },
-                            filter: {range: {'dates.end': {gte: 'now/d'}}},
+                            filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
                         }),
                     })]);
 
@@ -238,11 +241,12 @@ describe('actions.events.api', () => {
         ));
 
         it('by list of ids', (done) => {
-            store.test(done, eventsApi.query({ids: ['e1', 'e2']}))
+            store.test(done, eventsApi.query({ids: ['e1', 'e2'], onlyFuture: false}))
                 .then(() => {
                     expect(services.api('events').query.callCount).toBe(1);
                     expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
                         page: 1,
+                        max_results: 25,
                         sort: '[("dates.start",1)]',
                         embedded: {files: 1},
                         source: JSON.stringify({
@@ -283,7 +287,7 @@ describe('actions.events.api', () => {
                                     ],
                                 },
                             },
-                            filter: {},
+                            filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
                         }),
                     })]);
 
@@ -292,7 +296,7 @@ describe('actions.events.api', () => {
         ));
 
         it('by recurrence_id', (done) => {
-            store.test(done, eventsApi.query({recurrenceId: 'rec1'}))
+            store.test(done, eventsApi.query({recurrenceId: 'rec1', onlyFuture: false}))
                 .then(() => {
                     expect(services.api('events').query.callCount).toBe(1);
                     expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
@@ -329,27 +333,27 @@ describe('actions.events.api', () => {
                             qcode: 'finance',
                             name: 'Finance',
                         }],
-                    },
+                    }
                 }))
                     .then(() => {
                         expect(services.api('events').query.callCount).toBe(1);
                         expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
                             page: 1,
+                            max_results: 25,
                             sort: '[("dates.start",1)]',
                             embedded: {files: 1},
                             source: JSON.stringify({
                                 query: {
                                     bool: {
                                         must: [
-                                            {term: {'calendars.qcode': 'sport'}},
-                                            {term: {'calendars.qcode': 'finance'}},
+                                            {terms: {'calendars.qcode': ['sport', 'finance']}}
                                         ],
                                         must_not: [
                                             {term: {state: WORKFLOW_STATE.SPIKED}},
                                         ],
                                     },
                                 },
-                                filter: {},
+                                filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
                             }),
                         })]);
 
@@ -361,10 +365,11 @@ describe('actions.events.api', () => {
 
     describe('refetchEvents', () => {
         it('performs query', (done) => {
+            store.initialState.main.filter = MAIN.FILTERS.EVENTS;
             restoreSinonStub(eventsApi.refetchEvents);
             restoreSinonStub(eventsApi.query);
             sinon.stub(eventsApi, 'query').callsFake(
-                () => (Promise.resolve({_items: data.events}))
+                () => (Promise.resolve(data.events))
             );
 
             return store.test(done, eventsApi.refetchEvents())

@@ -103,6 +103,7 @@ class PlanningApp extends React.Component {
             timeFormat: this.props.timeFormat,
             session: this.props.session,
             privileges: this.props.privileges,
+            activeFilter: this.props.activeFilter,
             [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
@@ -131,6 +132,9 @@ class PlanningApp extends React.Component {
                 this.props[PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName],
             [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
+            showRelatedPlannings: this.props.showRelatedPlannings,
+            relatedPlanningsInList: this.props.relatedPlanningsInList,
+            loadMore: this.props.loadMore
         };
 
         return (
@@ -140,6 +144,9 @@ class PlanningApp extends React.Component {
                         addEvent={this.addEvent}
                         addPlanning={this.addPlanning}
                         openAgendas={this.props.openAgendas}
+                        value={this.props.fullText}
+                        search={this.props.search}
+                        activeFilter={this.props.activeFilter}
                     />
                     <FiltersBar
                         filterPanelOpen={this.state.filtersOpen}
@@ -215,11 +222,15 @@ PlanningApp.propTypes = {
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: PropTypes.func,
-
     onSave: PropTypes.func.isRequired,
     onUnpublish: PropTypes.func.isRequired,
     openCancelModal: PropTypes.func.isRequired,
     closePreview: PropTypes.func.isRequired,
+    showRelatedPlannings: PropTypes.func,
+    relatedPlanningsInList: PropTypes.object,
+    loadMore: PropTypes.func,
+    fullText: PropTypes.string,
+    search: PropTypes.func.isRequired
 };
 
 const mapStateToProps = (state) => ({
@@ -235,6 +246,8 @@ const mapStateToProps = (state) => ({
     currentAgendaId: selectors.getCurrentAgendaId(state),
     session: selectors.getSessionDetails(state),
     privileges: selectors.getPrivileges(state),
+    relatedPlanningsInList: selectors.eventsPlanning.getRelatedPlanningsInList(state),
+    fullText: selectors.main.fullText(state)
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -248,6 +261,9 @@ const mapDispatchToProps = (dispatch) => ({
     onUnpublish: (item) => dispatch(actions.main.unpublish(item)),
     openCancelModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
     closePreview: () => dispatch(actions.main.closePreview()),
+    showRelatedPlannings: (event) => dispatch(actions.eventsPlanning.ui.showRelatedPlannings(event)),
+    loadMore: (filterType) => dispatch(actions.main.loadMore(filterType)),
+    search: (searchText) => dispatch(actions.main.search(searchText)),
 
     // Event Item actions:
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: (event) => dispatch(actions.duplicateEvent(event)),
@@ -271,7 +287,7 @@ const mapDispatchToProps = (dispatch) => ({
     [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]:
         (planning) => dispatch(actions.planning.ui.openCancelPlanningModal(planning)),
     [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
-        (planning) => dispatch(actions.planning.ui.openCancelAllCoverageModal(planning)),
+        (planning) => dispatch(actions.planning.ui.openCancelAllCoverageModal(planning))
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningApp);

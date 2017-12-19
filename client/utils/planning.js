@@ -8,7 +8,7 @@ import {
     ASSIGNMENTS,
     PUBLISHED_STATE,
 } from '../constants/index';
-import {get, isNil, uniq} from 'lodash';
+import {get, isNil, uniq, sortBy, isEmpty, cloneDeep} from 'lodash';
 import {
     getItemWorkflowState,
     lockUtils,
@@ -436,6 +436,52 @@ const getCoverageReadOnlyFields = (
     }
 };
 
+const getPlanningByDate = (plansInList, events) => {
+    if (!plansInList) return [];
+
+    const days = {};
+
+    plansInList.forEach((plan) => {
+        const dates = {};
+        let groupDate = null;
+
+        plan.event = get(events, get(plan, 'event_item'));
+        plan.coverages.forEach((coverage) => {
+            groupDate = moment(get(coverage, 'planning.scheduled', plan._planning_date));
+
+            if (!get(dates, groupDate.format('YYYY-MM-DD'))) {
+                dates[groupDate.format('YYYY-MM-DD')] = groupDate;
+            }
+        });
+
+        if (isEmpty(dates)) {
+            groupDate = moment(plan._planning_date);
+            dates[groupDate.format('YYYY-MM-DD')] = groupDate;
+        }
+
+        for (let date in dates) {
+            if (!days[date]) {
+                days[date] = [];
+            }
+
+            const clonedPlan = cloneDeep(plan);
+
+            clonedPlan._sortDate = dates[date];
+            days[date].push(clonedPlan);
+        }
+    });
+
+    let sortable = [];
+
+    for (let day in days)
+        sortable.push({
+            date: day,
+            events: sortBy(days[day], [(e) => e._sortDate]),
+        });
+
+    return sortBy(sortable, [(e) => e.date]);
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     canPublishPlanning,
@@ -456,6 +502,7 @@ const self = {
     isPlanMultiDay,
     getPlanningActions,
     isNotForPublication,
+    getPlanningByDate,
 };
 
 export default self;

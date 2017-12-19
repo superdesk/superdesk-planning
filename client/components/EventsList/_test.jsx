@@ -117,7 +117,7 @@ xdescribe('<EventsList />', () => {
         };
 
         store.dispatch(actions.events.api.receiveEvents([newEvent]));
-        store.dispatch(actions.addToEventsList([newEvent._id]));
+        store.dispatch(actions.events.ui.addToList([newEvent._id]));
         // There are one more group
         expect(wrapper.find('.events-list__title').length).toEqual(4 + 1);
         // There is more event

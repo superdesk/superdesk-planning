@@ -1,10 +1,38 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {ListGroup} from './';
+import {ListGroup} from '.';
 import {PanelInfo} from '../UI';
 import {EVENTS, PLANNING} from '../../constants';
 
-export class ListPanel extends React.PureComponent {
+export class ListPanel extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            isNextPageLoading: false,
+            scrollTop: 0
+        };
+    }
+
+    handleScroll(event) {
+        if (this.state.isNextPageLoading) {
+            return;
+        }
+
+        const node = event.target;
+
+        // scroll event gets fired on hover of each item in the list.
+        // this.state.scrollTop is used to check if the scroll position has changed
+        if (node && node.scrollTop + node.offsetHeight + 100 >= node.scrollHeight &&
+            this.state.scrollTop !== node.scrollTop) {
+            this.setState({isNextPageLoading: true, scrollTop: node.scrollTop});
+
+            this.props.loadMore(this.props.activeFilter)
+                .finally(() => {
+                    this.setState({isNextPageLoading: false});
+                });
+        }
+    }
+
     render() {
         const {
             groups,
@@ -16,6 +44,9 @@ export class ListPanel extends React.PureComponent {
             agendas,
             session,
             privileges,
+            activeFilter,
+            showRelatedPlannings,
+            relatedPlanningsInList
         } = this.props;
 
         return groups.length <= 0 ? (
@@ -26,7 +57,8 @@ export class ListPanel extends React.PureComponent {
                 />
             </div>
         ) : (
-            <div className="sd-column-box__main-column">
+            <div className="sd-column-box__main-column"
+                onScroll={this.handleScroll.bind(this)}>
                 {groups.map((group) => {
                     const listGroupProps = {
                         name: group.date,
@@ -39,6 +71,9 @@ export class ListPanel extends React.PureComponent {
                         agendas: agendas,
                         session: session,
                         privileges: privileges,
+                        activeFilter: activeFilter,
+                        showRelatedPlannings: showRelatedPlannings,
+                        relatedPlanningsInList: relatedPlanningsInList,
                         [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
                             this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
                         [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
@@ -66,7 +101,7 @@ export class ListPanel extends React.PureComponent {
                         [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]:
                             this.props[PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName],
                         [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
-                            this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]
+                            this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
                     };
 
                     return <ListGroup key={group.date} {...listGroupProps} />;
@@ -88,6 +123,10 @@ ListPanel.propTypes = {
     agendas: PropTypes.array.isRequired,
     session: PropTypes.object,
     privileges: PropTypes.object,
+    activeFilter: PropTypes.string,
+    showRelatedPlannings: PropTypes.func,
+    relatedPlanningsInList: PropTypes.object,
+    loadMore: PropTypes.func.isRequired,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
@@ -101,5 +140,6 @@ ListPanel.propTypes = {
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: PropTypes.func,
-    [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: PropTypes.func
 };
+

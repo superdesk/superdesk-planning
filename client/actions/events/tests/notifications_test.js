@@ -4,6 +4,7 @@ import {registerNotifications} from '../../../utils';
 import eventsNotifications from '../notifications';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import moment from 'moment';
+import {EVENTS, EVENTS_PLANNING, MAIN} from '../../../constants';
 
 describe('actions.events.notifications', () => {
     let store;
@@ -337,16 +338,18 @@ describe('actions.events.notifications', () => {
         ));
     });
 
-    it('onEventSpiked dispatches `SPIKE_EVENT` action', (done) => {
+    it('onEventSpiked dispatches `SPIKE_EVENT` action combined view', (done) => {
         restoreSinonStub(eventsNotifications.onEventSpiked);
+        store.initialState.main.filter = MAIN.FILTERS.COMBINED;
         store.test(done, eventsNotifications.onEventSpiked({}, {
             item: data.events[0]._id,
             revert_state: 'draft',
             etag: 'e123',
         }))
             .then(() => {
+                expect(store.dispatch.callCount).toBe(3);
                 expect(store.dispatch.args[0]).toEqual([{
-                    type: 'SPIKE_EVENT',
+                    type: EVENTS.ACTIONS.SPIKE_EVENT,
                     payload: {
                         event: {
                             ...store.initialState.events.events.e1,
@@ -358,6 +361,15 @@ describe('actions.events.notifications', () => {
                             revert_state: 'draft',
                             _etag: 'e123',
                         },
+                        spikeState: 'draft'
+                    },
+                }]);
+
+                expect(store.dispatch.args[2]).toEqual([{
+                    type: EVENTS_PLANNING.ACTIONS.SPIKE_EVENT,
+                    payload: {
+                        id: data.events[0]._id,
+                        spikeState: 'draft'
                     },
                 }]);
 
@@ -365,16 +377,49 @@ describe('actions.events.notifications', () => {
             });
     });
 
-    it('onEventUnspiked dispatches `UNSPIKE_EVENT` action', (done) => {
+    it('onEventSpiked dispatches `SPIKE_EVENT` action not combined view', (done) => {
+        restoreSinonStub(eventsNotifications.onEventSpiked);
+        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
+        store.test(done, eventsNotifications.onEventSpiked({}, {
+            item: data.events[0]._id,
+            revert_state: 'draft',
+            etag: 'e123',
+        }))
+            .then(() => {
+                expect(store.dispatch.callCount).toBe(2);
+                expect(store.dispatch.args[0]).toEqual([{
+                    type: EVENTS.ACTIONS.SPIKE_EVENT,
+                    payload: {
+                        event: {
+                            ...store.initialState.events.events.e1,
+                            lock_action: null,
+                            lock_user: null,
+                            lock_session: null,
+                            lock_time: null,
+                            state: 'spiked',
+                            revert_state: 'draft',
+                            _etag: 'e123',
+                        },
+                        spikeState: 'draft'
+                    },
+                }]);
+
+                done();
+            });
+    });
+
+    it('onEventUnspiked dispatches `UNSPIKE_EVENT` action combined view', (done) => {
         restoreSinonStub(eventsNotifications.onEventUnspiked);
+        store.initialState.main.filter = MAIN.FILTERS.COMBINED;
         store.test(done, eventsNotifications.onEventUnspiked({}, {
             item: data.events[0]._id,
             state: 'draft',
             etag: 'e456',
         }))
             .then(() => {
+                expect(store.dispatch.callCount).toBe(3);
                 expect(store.dispatch.args[0]).toEqual([{
-                    type: 'UNSPIKE_EVENT',
+                    type: EVENTS.ACTIONS.UNSPIKE_EVENT,
                     payload: {
                         event: {
                             ...store.initialState.events.events.e1,
@@ -386,6 +431,15 @@ describe('actions.events.notifications', () => {
                             revert_state: null,
                             _etag: 'e456',
                         },
+                        spikeState: 'draft'
+                    },
+                }]);
+
+                expect(store.dispatch.args[2]).toEqual([{
+                    type: EVENTS_PLANNING.ACTIONS.UNSPIKE_EVENT,
+                    payload: {
+                        id: data.events[0]._id,
+                        spikeState: 'draft'
                     },
                 }]);
 
@@ -393,18 +447,83 @@ describe('actions.events.notifications', () => {
             });
     });
 
-    it('onRecurringEventSpiked dispatches `SPIKE_RECURRING_EVENTS` action', (done) => {
+    it('onEventUnspiked dispatches `UNSPIKE_EVENT` action not combined view', (done) => {
+        restoreSinonStub(eventsNotifications.onEventUnspiked);
+        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
+        store.test(done, eventsNotifications.onEventUnspiked({}, {
+            item: data.events[0]._id,
+            state: 'draft',
+            etag: 'e456',
+        }))
+            .then(() => {
+                expect(store.dispatch.callCount).toBe(2);
+                expect(store.dispatch.args[0]).toEqual([{
+                    type: EVENTS.ACTIONS.UNSPIKE_EVENT,
+                    payload: {
+                        event: {
+                            ...store.initialState.events.events.e1,
+                            lock_action: null,
+                            lock_user: null,
+                            lock_session: null,
+                            lock_time: null,
+                            state: 'draft',
+                            revert_state: null,
+                            _etag: 'e456',
+                        },
+                        spikeState: 'draft'
+                    },
+                }]);
+
+                done();
+            });
+    });
+
+    it('onRecurringEventSpiked dispatches `SPIKE_RECURRING_EVENTS` action combined view', (done) => {
         restoreSinonStub(eventsNotifications.onRecurringEventSpiked);
+        store.initialState.main.filter = MAIN.FILTERS.COMBINED;
         store.test(done, eventsNotifications.onRecurringEventSpiked({}, {
             items: data.events,
             recurrence_id: 'rec1',
         }))
             .then(() => {
+                expect(store.dispatch.callCount).toBe(3);
                 expect(store.dispatch.args[0]).toEqual([{
-                    type: 'SPIKE_RECURRING_EVENTS',
+                    type: EVENTS.ACTIONS.SPIKE_RECURRING_EVENTS,
                     payload: {
                         events: data.events,
                         recurrence_id: 'rec1',
+                        spikeState: 'draft'
+                    },
+                }]);
+
+                expect(store.dispatch.args[2]).toEqual([{
+                    type: EVENTS_PLANNING.ACTIONS.SPIKE_RECURRING_EVENTS,
+                    payload: {
+                        ids: data.events.map((e) => e._id),
+                        recurrence_id: 'rec1',
+                        spikeState: 'draft'
+                    },
+                }]);
+
+                done();
+            });
+    });
+
+    it('onRecurringEventSpiked dispatches `SPIKE_RECURRING_EVENTS` action not combined view', (done) => {
+        restoreSinonStub(eventsNotifications.onRecurringEventSpiked);
+        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
+        store.test(done, eventsNotifications.onRecurringEventSpiked({}, {
+            items: data.events,
+            recurrence_id: 'rec1',
+        }))
+            .then(() => {
+                expect(store.dispatch.callCount).toBe(2);
+                expect(store.dispatch.args[0]).toEqual([{
+                    type: EVENTS.ACTIONS.SPIKE_RECURRING_EVENTS,
+                    payload: {
+                        events: data.events,
+                        recurrence_id: 'rec1',
+                        spikeState: 'draft'
                     },
                 }]);
 

@@ -3,7 +3,8 @@ import planning from './index';
 import {getErrorMessage, lockUtils} from '../../utils';
 import * as selectors from '../../selectors';
 import {showModal, hideModal, events} from '../index';
-import {PLANNING, WORKFLOW_STATE, MODALS} from '../../constants';
+import {PLANNING, WORKFLOW_STATE, MODALS, SPIKED_STATE} from '../../constants';
+import eventsPlanning from '../eventsPlanning';
 
 /**
  * WS Action when a new Planning item is created
@@ -20,7 +21,8 @@ const onPlanningCreated = (_e, data) => (
                 ));
             }
 
-            return dispatch(planning.ui.refetch());
+            return dispatch(planning.ui.refetch())
+                .then(() => dispatch(eventsPlanning.ui.refetch()));
         }
 
         return Promise.resolve();
@@ -37,7 +39,8 @@ const onPlanningUpdated = (_e, data, refetch = true) => (
     (dispatch, getState, {notify}) => {
         if (get(data, 'item')) {
             if (refetch) {
-                return dispatch(planning.ui.refetch());
+                return dispatch(planning.ui.refetch())
+                    .then(() => dispatch(eventsPlanning.ui.refetch()));
             }
 
             // Otherwise send an Action to update the store
@@ -146,7 +149,8 @@ const onPlanningUnlocked = (_e, data) => (
 const onPlanningPublished = (_e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            return dispatch(planning.ui.refetch());
+            return dispatch(planning.ui.refetch())
+                .then(() => dispatch(eventsPlanning.ui.refetch()));
         }
 
         return Promise.resolve();
@@ -174,8 +178,17 @@ const onPlanningSpiked = (_e, data) => (
 
             dispatch({
                 type: PLANNING.ACTIONS.SPIKE_PLANNING,
-                payload: {plan: planningItem},
+                payload: {
+                    plan: planningItem,
+                    spikeState: get(
+                        selectors.main.planningSearch(getState()),
+                        'spikeState',
+                        SPIKED_STATE.NOT_SPIKED
+                    )
+                },
             });
+
+            dispatch(eventsPlanning.notifications.onPlanningSpiked(_e, data));
 
             return Promise.resolve(planningItem);
         }
@@ -205,8 +218,17 @@ const onPlanningUnspiked = (_e, data) => (
 
             dispatch({
                 type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
-                payload: {plan: planningItem},
+                payload: {
+                    plan: planningItem,
+                    spikeState: get(
+                        selectors.main.planningSearch(getState()),
+                        'spikeState',
+                        SPIKED_STATE.NOT_SPIKED
+                    )
+                },
             });
+
+            dispatch(eventsPlanning.notifications.onPlanningUnspiked(_e, data));
 
             return Promise.resolve(planningItem);
         }

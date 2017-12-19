@@ -61,7 +61,6 @@ describe('selectors', () => {
             search: {currentSearch: {fulltext: 'event'}},
         },
         planning: {
-            onlyFuture: false,
             onlySpiked: false,
             plannings: {
                 a: {

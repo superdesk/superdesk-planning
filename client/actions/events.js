@@ -7,6 +7,8 @@ import {eventUtils, getErrorMessage, retryDispatch} from '../utils';
 
 import eventsApi from './events/api';
 import eventsUi from './events/ui';
+import eventsPlanningUi from './eventsPlanning/ui';
+
 
 const duplicateEvent = (event) => (
     (dispatch) => {
@@ -47,6 +49,7 @@ const deselectAllTheEventList = () => (
     {type: EVENTS.ACTIONS.DESELECT_ALL_EVENT}
 );
 
+
 /**
  * Action Dispatcher to create a duplicate of the passed event
  * This action is private to this module only.
@@ -66,27 +69,6 @@ const createDuplicate = (event) => (
     )
 );
 
-/** Action factory that fetchs the next page of the previous request */
-function loadMoreEvents() {
-    return (dispatch, getState) => {
-        const previousParams = selectors.getPreviousEventRequestParams(getState());
-        const params = {
-            ...previousParams,
-            page: previousParams.page + 1,
-        };
-
-        dispatch({
-            type: EVENTS.ACTIONS.REQUEST_EVENTS,
-            payload: params,
-        });
-        return dispatch(eventsApi.query(params))
-            .then((data) => {
-                dispatch(eventsApi.receiveEvents(data._items));
-                dispatch(addToEventsList(data._items.map((e) => e._id)));
-            });
-    };
-}
-
 /**
  * Action Dispatcher to fetch a single event using its ID
  * and add or update the Event in the Redux Store
@@ -97,7 +79,7 @@ const fetchEventById = (_id) => (
         api.find('events', _id, {embedded: {files: 1}})
             .then((event) => {
                 dispatch(eventsApi.receiveEvents([event]));
-                dispatch(addToEventsList([event._id]));
+                dispatch(eventsUi.addToList([event._id]));
                 return Promise.resolve(event);
             }, (error) => {
                 notify.error(getErrorMessage(
@@ -107,17 +89,6 @@ const fetchEventById = (_id) => (
             })
     )
 );
-
-/**
- * Action to add events to the current list
- * This action makes sure the list of events are unique, no duplicates
- * @param {array} eventsIds - An array of Event IDs to add
- * @return {{type: string, payload: *}}
- */
-const addToEventsList = (eventsIds) => ({
-    type: EVENTS.ACTIONS.ADD_TO_EVENTS_LIST,
-    payload: eventsIds,
-});
 
 /**
  * Action to toggle the Events panel
@@ -134,9 +105,10 @@ const toggleEventsList = () => (
  * @param {object} data - Events and User IDs
  */
 const onEventCreated = (_e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (data && data.item) {
-            dispatch(fetchEventById(data.item));
+            return dispatch(fetchEventById(data.item))
+                .then(() => dispatch(eventsPlanningUi.refetch()));
         }
     }
 );
@@ -154,16 +126,17 @@ const onRecurringEventCreated = (_e, data) => (
             // a getById). So continue for 5 times, waiting 1 second between each request
             // until we receive the new events or an error occurs
             return dispatch(retryDispatch(
-                eventsApi.query({recurrenceId: data.item}),
-                (events) => get(events, '_items.length', 0) > 0,
+                eventsApi.query({recurrenceId: data.item, onlyFuture: false}),
+                (events) => get(events, 'length', 0) > 0,
                 5,
                 1000
             ))
             // Once we know our Recurring Events can be received from Elasticsearch,
             // go ahead and refresh the current list of events
-                .then((data) => {
+                .then((items) => {
                     dispatch(eventsUi.refetchEvents());
-                    return Promise.resolve(data._items);
+                    dispatch(eventsPlanningUi.refetch());
+                    return Promise.resolve(items);
                 }, (error) => {
                     notify.error(getErrorMessage(
                         error,
@@ -198,6 +171,8 @@ const onEventUpdated = (_e, data) => (
                         selectors.getStoredPlannings(getState()))) {
                         dispatch(fetchSelectedAgendaPlannings());
                     }
+
+                    dispatch(eventsPlanningUi.refetch());
                 });
         }
     }
@@ -216,9 +191,7 @@ export {
     duplicateEvent,
     toggleEventSelection,
     toggleEventsList,
-    addToEventsList,
     fetchEventById,
-    loadMoreEvents,
     eventNotifications,
     selectAllTheEventList,
     deselectAllTheEventList,

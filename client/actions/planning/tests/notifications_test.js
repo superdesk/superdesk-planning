@@ -1,9 +1,11 @@
 import planningApi from '../api';
 import planningUi from '../ui';
+import eventsPlanningUi from '../../eventsPlanning/ui';
 import sinon from 'sinon';
 import {registerNotifications} from '../../../utils';
 import planningNotifications from '../notifications';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
+import {EVENTS_PLANNING, MAIN, PLANNING} from '../../../constants';
 
 describe('actions.planning.notifications', () => {
     let store;
@@ -150,10 +152,15 @@ describe('actions.planning.notifications', () => {
     });
 
     describe('`planning:created`', () => {
+        beforeEach(() => {
+            sinon.stub(eventsPlanningUi, 'refetch').callsFake(() => (Promise.resolve()));
+        });
+
         afterEach(() => {
             restoreSinonStub(planningApi.refetch);
             restoreSinonStub(planningUi.setInList);
             restoreSinonStub(planningNotifications.canRefetchPlanning);
+            restoreSinonStub(eventsPlanningUi.refetch);
         });
 
         it('calls refetch on create', (done) => {
@@ -165,6 +172,7 @@ describe('actions.planning.notifications', () => {
                 .then(() => {
                     expect(planningApi.refetch.callCount).toBe(1);
                     expect(planningUi.setInList.callCount).toBe(1);
+                    expect(eventsPlanningUi.refetch.callCount).toBe(1);
                     done();
                 });
         });
@@ -189,12 +197,17 @@ describe('actions.planning.notifications', () => {
     });
 
     describe('onPlanningUpdated', () => {
+        beforeEach(() => {
+            sinon.stub(eventsPlanningUi, 'refetch').callsFake(() => (Promise.resolve()));
+        });
+
         afterEach(() => {
             restoreSinonStub(planningApi.loadPlanningById);
             restoreSinonStub(planningApi.refetch);
             restoreSinonStub(planningUi.setInList);
             restoreSinonStub(planningUi.refetch);
             restoreSinonStub(planningNotifications.canRefetchPlanning);
+            restoreSinonStub(eventsPlanningUi.refetch);
         });
 
         it('calls loadPlanningById on update', (done) => {
@@ -250,6 +263,7 @@ describe('actions.planning.notifications', () => {
                 .then(() => {
                     expect(planningUi.refetch.callCount).toBe(1);
                     expect(planningApi.loadPlanningById.callCount).toBe(0);
+                    expect(eventsPlanningUi.refetch.callCount).toBe(1);
                     done();
                 });
         });
@@ -369,8 +383,13 @@ describe('actions.planning.notifications', () => {
     });
 
     describe('onPlanningPublished', () => {
+        beforeEach(() => {
+            sinon.stub(eventsPlanningUi, 'refetch').callsFake(() => (Promise.resolve()));
+        });
+
         afterEach(() => {
             restoreSinonStub(planningUi.refetch);
+            restoreSinonStub(eventsPlanningUi.refetch);
         });
 
         it('onPlanningPublished calls fetchToList', (done) => {
@@ -380,21 +399,24 @@ describe('actions.planning.notifications', () => {
                 .then(() => {
                 // Reloads selected Agenda Plannings
                     expect(planningUi.refetch.callCount).toBe(1);
+                    expect(eventsPlanningUi.refetch.callCount).toBe(1);
                     done();
                 });
         });
     });
 
-    it('onPlanningSpiked dispatches `SPIKE_PLANNING` action', (done) => {
+    it('onPlanningSpiked dispatches `SPIKE_PLANNING` action combined view', (done) => {
         restoreSinonStub(planningNotifications.onPlanningSpiked);
+        store.initialState.main.filter = MAIN.FILTERS.COMBINED;
         store.test(done, planningNotifications.onPlanningSpiked({}, {
             item: data.plannings[0]._id,
             revert_state: 'draft',
             etag: 'e123',
         }))
             .then(() => {
+                expect(store.dispatch.callCount).toBe(3);
                 expect(store.dispatch.args[0]).toEqual([{
-                    type: 'SPIKE_PLANNING',
+                    type: PLANNING.ACTIONS.SPIKE_PLANNING,
                     payload: {
                         plan: {
                             ...data.plannings[0],
@@ -406,6 +428,15 @@ describe('actions.planning.notifications', () => {
                             revert_state: 'draft',
                             _etag: 'e123',
                         },
+                        spikeState: 'draft'
+                    },
+                }]);
+
+                expect(store.dispatch.args[2]).toEqual([{
+                    type: EVENTS_PLANNING.ACTIONS.SPIKE_PLANNING,
+                    payload: {
+                        id: data.plannings[0]._id,
+                        spikeState: 'draft'
                     },
                 }]);
 
@@ -413,16 +444,49 @@ describe('actions.planning.notifications', () => {
             });
     });
 
-    it('onPlanningUnspiked dispatches `UNSPIKE_PLANNING` action', (done) => {
+    it('onPlanningSpiked dispatches `SPIKE_PLANNING` action not combined view', (done) => {
+        restoreSinonStub(planningNotifications.onPlanningSpiked);
+        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
+        store.test(done, planningNotifications.onPlanningSpiked({}, {
+            item: data.plannings[0]._id,
+            revert_state: 'draft',
+            etag: 'e123',
+        }))
+            .then(() => {
+                expect(store.dispatch.callCount).toBe(2);
+                expect(store.dispatch.args[0]).toEqual([{
+                    type: PLANNING.ACTIONS.SPIKE_PLANNING,
+                    payload: {
+                        plan: {
+                            ...data.plannings[0],
+                            lock_action: null,
+                            lock_user: null,
+                            lock_session: null,
+                            lock_time: null,
+                            state: 'spiked',
+                            revert_state: 'draft',
+                            _etag: 'e123',
+                        },
+                        spikeState: 'draft'
+                    },
+                }]);
+
+                done();
+            });
+    });
+
+    it('onPlanningUnspiked dispatches `UNSPIKE_PLANNING` action combined view', (done) => {
         restoreSinonStub(planningNotifications.onPlanningUnspiked);
+        store.initialState.main.filter = MAIN.FILTERS.COMBINED;
         store.test(done, planningNotifications.onPlanningUnspiked({}, {
             item: data.plannings[0]._id,
             state: 'draft',
             etag: 'e456',
         }))
             .then(() => {
+                expect(store.dispatch.callCount).toBe(3);
                 expect(store.dispatch.args[0]).toEqual([{
-                    type: 'UNSPIKE_PLANNING',
+                    type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
                     payload: {
                         plan: {
                             ...data.plannings[0],
@@ -434,6 +498,46 @@ describe('actions.planning.notifications', () => {
                             revert_state: null,
                             _etag: 'e456',
                         },
+                        spikeState: 'draft'
+                    },
+                }]);
+
+                expect(store.dispatch.args[2]).toEqual([{
+                    type: EVENTS_PLANNING.ACTIONS.UNSPIKE_PLANNING,
+                    payload: {
+                        id: data.plannings[0]._id,
+                        spikeState: 'draft'
+                    },
+                }]);
+
+                done();
+            });
+    });
+
+    it('onPlanningUnspiked dispatches `UNSPIKE_PLANNING` action not combined view', (done) => {
+        restoreSinonStub(planningNotifications.onPlanningUnspiked);
+        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
+        store.test(done, planningNotifications.onPlanningUnspiked({}, {
+            item: data.plannings[0]._id,
+            state: 'draft',
+            etag: 'e456',
+        }))
+            .then(() => {
+                expect(store.dispatch.callCount).toBe(2);
+                expect(store.dispatch.args[0]).toEqual([{
+                    type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
+                    payload: {
+                        plan: {
+                            ...data.plannings[0],
+                            lock_action: null,
+                            lock_user: null,
+                            lock_session: null,
+                            lock_time: null,
+                            state: 'draft',
+                            revert_state: null,
+                            _etag: 'e456',
+                        },
+                        spikeState: 'draft'
                     },
                 }]);
 

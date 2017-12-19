@@ -313,5 +313,5 @@ EventScheduleInput.defaultProps = {
     readOnly: false,
     showRepeat: true,
     showRepeatSummary: true,
-    showRepeatToggle: true,
+    showRepeatToggle: true
 };

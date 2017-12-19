@@ -1,11 +1,10 @@
 import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
-
 import {main} from '../';
 import {MAIN} from '../../constants';
-
 import eventsUi from '../events/ui';
 import planningUi from '../planning/ui';
+import eventsPlanningUi from '../eventsPlanning/ui';
 import {locks} from '../';
 
 describe('actions.main', () => {
@@ -42,27 +41,36 @@ describe('actions.main', () => {
             sinon.stub(eventsUi, 'fetchEvents').returns(Promise.resolve());
             sinon.stub(eventsUi, 'clearList');
             sinon.stub(planningUi, 'clearList');
+            sinon.stub(eventsPlanningUi, 'clearList');
+            sinon.stub(eventsPlanningUi, 'fetch').returns(Promise.resolve());
         });
 
         afterEach(() => {
             restoreSinonStub(eventsUi.fetchEvents);
             restoreSinonStub(eventsUi.clearList);
             restoreSinonStub(planningUi.clearList);
+            restoreSinonStub(eventsPlanningUi.clearList);
+            restoreSinonStub(eventsPlanningUi.fetch);
         });
 
         it('filter combined', (done) => (
             store.test(done, main.filter(MAIN.FILTERS.COMBINED))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(1);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'MAIN_FILTER',
                         payload: 'COMBINED'
                     }]);
 
+                    expect(store.dispatch.callCount).toBe(4);
                     expect(services.$timeout.callCount).toBe(1);
-                    expect(services.$location.search.callCount).toBe(1);
-                    expect(services.$location.search.args[0]).toEqual(['filter', 'COMBINED']);
+                    expect(services.$location.search.callCount).toBe(3);
+                    expect(services.$location.search.args).toEqual(
+                        [[], [], ['filter', 'COMBINED']]
+                    );
 
+                    expect(eventsPlanningUi.fetch.callCount).toBe(1);
+                    expect(planningUi.clearList.callCount).toBe(1);
+                    expect(eventsUi.clearList.callCount).toBe(1);
                     done();
                 })
         ));
@@ -70,20 +78,20 @@ describe('actions.main', () => {
         it('filter events', (done) => (
             store.test(done, main.filter(MAIN.FILTERS.EVENTS))
                 .then(() => {
-                    expect(store.dispatch.callCount).toBe(3);
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'MAIN_FILTER',
                         payload: 'EVENTS'
                     }]);
 
+                    expect(store.dispatch.callCount).toBe(4);
                     expect(services.$timeout.callCount).toBe(1);
-                    expect(services.$location.search.callCount).toBe(2);
-                    expect(services.$location.search.args).toEqual([
-                        ['filter', 'EVENTS'],
-                        []
-                    ]);
+                    expect(services.$location.search.callCount).toBe(3);
+                    expect(services.$location.search.args).toEqual(
+                        [[], [], ['filter', 'EVENTS']]
+                    );
 
                     expect(planningUi.clearList.callCount).toBe(1);
+                    expect(eventsPlanningUi.clearList.callCount).toBe(1);
                     expect(eventsUi.fetchEvents.callCount).toBe(1);
 
                     done();
@@ -98,7 +106,12 @@ describe('actions.main', () => {
                         payload: 'PLANNING'
                     }]);
 
+                    expect(services.$location.search.args).toEqual(
+                        [[], [], ['filter', 'PLANNING'], [], ['searchParams', '{}']]
+                    );
+
                     expect(eventsUi.clearList.callCount).toBe(1);
+                    expect(eventsPlanningUi.clearList.callCount).toBe(1);
 
                     done();
                 })
@@ -219,6 +232,90 @@ describe('actions.main', () => {
                     expect(error).toEqual(errorMessage);
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
+                    done();
+                });
+        });
+    });
+
+    describe('loadmore', () => {
+        beforeEach(() => {
+            restoreSinonStub(planningUi.loadMore);
+            sinon.stub(eventsUi, 'loadMore').returns(Promise.resolve());
+            sinon.stub(planningUi, 'loadMore').returns(Promise.resolve());
+            sinon.stub(eventsPlanningUi, 'loadMore').returns(Promise.resolve());
+        });
+
+        afterEach(() => {
+            restoreSinonStub(eventsUi.loadMore);
+            restoreSinonStub(planningUi.loadMore);
+            restoreSinonStub(eventsPlanningUi.loadMore);
+        });
+
+        it('load more events', (done) => {
+            store.test(done, main.loadMore('EVENTS'))
+                .then(() => {
+                    expect(eventsUi.loadMore.callCount).toBe(1);
+                    done();
+                });
+        });
+
+        it('load more planning', (done) => {
+            store.test(done, main.loadMore('PLANNING'))
+                .then(() => {
+                    expect(planningUi.loadMore.callCount).toBe(1);
+                    done();
+                });
+        });
+
+        it('load more combined', (done) => {
+            store.test(done, main.loadMore('COMBINED'))
+                .then(() => {
+                    expect(eventsPlanningUi.loadMore.callCount).toBe(1);
+                    done();
+                });
+        });
+    });
+
+    describe('search', () => {
+        beforeEach(() => {
+            sinon.stub(eventsUi, 'fetchEvents').returns(Promise.resolve());
+            sinon.stub(planningUi, 'fetchToList').returns(Promise.resolve());
+            sinon.stub(eventsPlanningUi, 'fetch').returns(Promise.resolve());
+        });
+
+        afterEach(() => {
+            restoreSinonStub(eventsUi.fetchEvents);
+            restoreSinonStub(planningUi.fetchToList);
+            restoreSinonStub(eventsPlanningUi.fetch);
+        });
+
+        it('search events', (done) => {
+            store.initialState.main.filter = 'EVENTS';
+            store.test(done, main.search('EVENTS'))
+                .then(() => {
+                    expect(eventsUi.fetchEvents.callCount).toBe(1);
+                    expect(eventsUi.fetchEvents.args[0]).toEqual([{page: 1, fulltext: 'EVENTS'}]);
+                    done();
+                });
+        });
+
+        it('search planning', (done) => {
+            store.initialState.main.filter = 'PLANNING';
+            store.test(done, main.search('PLANNING'))
+                .then(() => {
+                    expect(planningUi.fetchToList.callCount).toBe(1);
+                    expect(planningUi.fetchToList.args[0][0].page).toBe(1);
+                    expect(planningUi.fetchToList.args[0][0].fulltext).toBe('PLANNING');
+                    done();
+                });
+        });
+
+        it('search combined', (done) => {
+            store.initialState.main.filter = 'COMBINED';
+            store.test(done, main.search('COMBINED'))
+                .then(() => {
+                    expect(eventsPlanningUi.fetch.callCount).toBe(1);
+                    expect(eventsPlanningUi.fetch.args[0]).toEqual([{page: 1, fulltext: 'COMBINED'}]);
                     done();
                 });
         });

@@ -5,6 +5,8 @@ import * as events from './events';
 import * as planning from './planning';
 import * as main from './main';
 import * as locks from './locks';
+import * as eventsPlanning from './eventsplanning';
+
 
 export * from './planning_old';
 export * from './assignments';
@@ -17,4 +19,5 @@ export {
     main,
     general,
     locks,
+    eventsPlanning
 };
