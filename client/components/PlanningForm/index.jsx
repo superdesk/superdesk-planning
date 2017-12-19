@@ -177,7 +177,7 @@ const mapStateToProps = (state) => ({
     pubstatus: selector(state, 'pubstatus'), // Used to determine `Published State`
     users: selectors.getUsers(state),
     desks: selectors.getDesks(state),
-    formProfile: selectors.getPlanningTypeProfile(state),
+    formProfile: selectors.planning.planningAndCoverageFormsProfile(state),
 });
 
 export const PlanningForm = connect(

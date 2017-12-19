@@ -159,7 +159,7 @@ PlanningApp.propTypes = {
 const mapStateToProps = (state) => ({
     groups: selectors.main.itemGroups(state),
     editItem: state.main.editItem,
-    previewItem: state.main.previewItem,
+    previewItem: selectors.main.previewItem(state),
     lockedItems: selectors.getLockedItems(state),
     dateFormat: selectors.getDateFormat(state),
     timeFormat: selectors.getTimeFormat(state),

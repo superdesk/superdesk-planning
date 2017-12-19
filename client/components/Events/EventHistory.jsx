@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
-import {getItemInArrayById} from '../../utils';
+import {getItemInArrayById, gettext} from '../../utils';
 import {get, includes} from 'lodash';
 import {AbsoluteDate} from '../index';
 
@@ -17,7 +17,6 @@ export class EventHistoryComponent extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        // If the Assignment item has changed, then load the new history
         const nextId = get(nextProps, 'item._id', null);
         const currentId = get(this.props, 'item._id', null);
 
@@ -27,7 +26,6 @@ export class EventHistoryComponent extends React.Component {
     }
 
     closeAndOpenDuplicate(duplicateId) {
-        // this.props.closeEventHistory();
         this.props.openEventPreview(duplicateId);
     }
 
@@ -48,19 +46,20 @@ export class EventHistoryComponent extends React.Component {
                             &&
                             <div>
                                 <strong>
-                                    {historyItem.operation === 'create' && 'Created by '}
-                                    {historyItem.operation === 'update' && 'Updated by '}
-                                    {historyItem.operation === 'spiked' && 'Spiked by '}
-                                    {historyItem.operation === 'unspiked' && 'Unspiked by '}
-                                    {historyItem.operation === 'planning created' && 'Planning item created by '}
-                                    {historyItem.operation === 'duplicate_from' && 'Duplicate created by '}
-                                    {historyItem.operation === 'duplicate' && 'Duplicated by '}
-                                    {historyItem.operation === 'publish' && 'Published by '}
-                                    {historyItem.operation === 'unpublish' && 'Un-published by '}
-                                    {historyItem.operation === 'cancel' && 'Cancelled by '}
-                                    {historyItem.operation === 'reschedule' && 'Rescheduled by '}
-                                    {historyItem.operation === 'reschedule_from' && 'Rescheduled by '}
-                                    {historyItem.operation === 'postpone' && 'Postponed by '}
+                                    {historyItem.operation === 'create' && gettext('Created by ')}
+                                    {historyItem.operation === 'update' && gettext('Updated by ')}
+                                    {historyItem.operation === 'spiked' && gettext('Spiked by ')}
+                                    {historyItem.operation === 'unspiked' && gettext('Unspiked by ')}
+                                    {historyItem.operation === 'planning created' &&
+                                        gettext('Planning item created by ')}
+                                    {historyItem.operation === 'duplicate_from' && gettext('Duplicate created by ')}
+                                    {historyItem.operation === 'duplicate' && gettext('Duplicated by ')}
+                                    {historyItem.operation === 'publish' && gettext('Published by ')}
+                                    {historyItem.operation === 'unpublish' && gettext('Un-published by ')}
+                                    {historyItem.operation === 'cancel' && gettext('Cancelled by ')}
+                                    {historyItem.operation === 'reschedule' && gettext('Rescheduled by ')}
+                                    {historyItem.operation === 'reschedule_from' && gettext('Rescheduled by ')}
+                                    {historyItem.operation === 'postpone' && gettext('Postponed by ')}
                                 </strong>
 
                                 <span className="user-name">{displayUser(historyItem.user_id)}</span>
@@ -68,7 +67,7 @@ export class EventHistoryComponent extends React.Component {
                                 <div>
                                     {historyItem.operation === 'update' &&
                                         <div className="more-description">
-                                            Updated Fields:
+                                            {gettext('Updated Fields:')}
                                             { // List updated fields as comma separated
                                                 <span>&nbsp;{Object.keys(historyItem.update).map((field) => field)
                                                     .join(', ')}</span>
@@ -140,7 +139,7 @@ EventHistoryComponent.propTypes = {
 
 const mapStateToProps = (state, ownProps) => ({
     users: selectors.getUsers(state),
-    historyItems: selectors.events.eventPreviewHistory(state),
+    historyItems: selectors.events.eventHistory(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -148,7 +147,10 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.events.api.fetchEventHistory(event))
     ),
     openPlanningClick: (planningId) => (
-        dispatch(actions.planning.ui.previewPlanningAndOpenAgenda(planningId))
+        dispatch(actions.main.preview({
+            _id: planningId,
+            _type: 'planning',
+        }))
     ),
     openEventPreview: (eventId) => {
         dispatch(actions.main.preview({

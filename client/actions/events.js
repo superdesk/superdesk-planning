@@ -322,16 +322,6 @@ const addToEventsList = (eventsIds) => ({
 });
 
 /**
- * Action to receive the history of actions on Event and store them in the store
- * @param {array} eventHistoryItems - An array of Event History items
- * @return object
- */
-const receiveEventHistory = (eventHistoryItems) => ({
-    type: EVENTS.ACTIONS.RECEIVE_EVENT_HISTORY,
-    payload: eventHistoryItems,
-});
-
-/**
  * Action to toggle the Events panel
  * @return object
  */
@@ -429,7 +419,6 @@ export {
     unpublishEvent,
     toggleEventSelection,
     toggleEventsList,
-    receiveEventHistory,
     addToEventsList,
     fetchEventById,
     saveFiles,

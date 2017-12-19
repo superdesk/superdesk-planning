@@ -559,3 +559,8 @@ export const getItemType = (item) => {
 
     return ITEM_TYPE.UNKNOWN;
 };
+
+export const getDateTimeString = (date, dateFormat, timeFormat) => (
+    // !! Note - expects date as instance of moment() !! //
+    date.format(dateFormat) + ' @ ' + date.format(timeFormat)
+);

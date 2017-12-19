@@ -1,13 +1,15 @@
 import {createSelector} from 'reselect';
 import {get, sortBy} from 'lodash';
 import moment from 'moment';
-import {storedPlannings} from './planning';
+import {storedPlannings, currentPlanning} from './planning';
 
-export const storedEvents = (state) => get(state, 'events.events', {});
+export const storedEvents = (state) =>
+    get(state, 'events.events', {})
+;
 export const eventIdsInList = (state) => get(state, 'events.eventsInList', []);
 export const agendas = (state) => get(state, 'agenda.agendas', []);
-export const previewItem = (state) => get(state, 'main.previewItem');
-export const eventPreviewHistory = (state) => get(state, 'main.history');
+export const showEventDetails = (state) => get(state, 'events.showEventDetails');
+export const eventHistory = (state) => get(state, 'events.eventHistoryItems');
 
 /** Used for the events list */
 export const eventsInList = createSelector(
@@ -73,23 +75,26 @@ export const orderedEvents = createSelector(
 
 /** Used for event details */
 export const eventWithRelatedDetails = createSelector(
-    [previewItem, storedEvents, storedPlannings, agendas],
+    [showEventDetails, storedEvents, storedPlannings, agendas],
     (item, events, plannings, agendas) => {
         const event = get(item, '_id') ? events[item._id] : null;
 
         if (event) {
             return {
                 ...event,
-                _plannings: Object.keys(plannings).filter((pKey) => (
-                    plannings[pKey].event_item === item._id
-                ))
-                    .map((key) => ({
-                        ...plannings[key],
-                        _agendas: !plannings[key].agendas ? [] :
-                            plannings[key].agendas.map((id) =>
-                                agendas.find(((agenda) => agenda._id === id))),
-                    })),
+                _plannings: get(event, 'planning_ids', []).map((id) => ({
+                    ...plannings[id],
+                    _agendas: !plannings[id].agendas ? [] :
+                        plannings[id].agendas.map((id) =>
+                            agendas.find(((agenda) => agenda._id === id))),
+                })),
             };
         }
     }
+);
+
+
+export const planningWithEventDetails = createSelector(
+    [currentPlanning, storedEvents],
+    (item, events) => item && events[item.event_item]
 );

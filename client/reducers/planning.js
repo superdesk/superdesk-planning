@@ -1,5 +1,5 @@
 import {cloneDeep, get, uniq, without, find} from 'lodash';
-import {createReducer} from '../utils';
+import {createReducer, getItemType} from '../utils';
 import moment from 'moment';
 import {
     PLANNING,
@@ -9,6 +9,8 @@ import {
     LOCKS,
     SPIKED_STATE,
     ASSIGNMENTS,
+    MAIN,
+    ITEM_TYPE,
 } from '../constants';
 
 const initialState = {
@@ -467,6 +469,16 @@ const planningReducer = createReducer(initialState, {
             plannings,
         };
     },
+    [MAIN.ACTIONS.PREVIEW]: (state, payload) => {
+        if (getItemType(payload) === ITEM_TYPE.PLANNING) {
+            return {
+                ...state,
+                currentPlanningId: payload._id,
+            };
+        } else {
+            return state;
+        }
+    }
 });
 
 const markPlaning = (plan, payload, action) => {
