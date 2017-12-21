@@ -14,6 +14,7 @@ import {
     isItemCancelled,
     isItemRescheduled,
     isItemPostponed,
+    getDateTimeString,
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
@@ -308,6 +309,29 @@ const isEventRecurring = (item) => (
     get(item, 'recurrence_id', null) !== null
 );
 
+const getDateStringForEvent = (event, dateFormat, timeFormat, dateOnly = false) => {
+    // !! Note - expects event dates as instance of moment() !! //
+    const start = get(event.dates, 'start');
+    const end = get(event.dates, 'end');
+
+    if (!start || !end)
+        return;
+
+    if (start.isSame(end, 'day')) {
+        if (dateOnly) {
+            return start.format(dateFormat);
+        } else {
+            return getDateTimeString(start, dateFormat, timeFormat) + ' - ' +
+                end.format(timeFormat);
+        }
+    } else if (dateOnly) {
+        return start.format(dateFormat) + ' - ' + end.format(dateFormat);
+    } else {
+        return getDateTimeString(start, dateFormat, timeFormat) + ' - ' +
+                getDateTimeString(end, dateFormat, timeFormat);
+    }
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     isEventAllDay,
@@ -333,6 +357,7 @@ const self = {
     isEventLockRestricted,
     isEventSameDay,
     isEventRecurring,
+    getDateStringForEvent,
 };
 
 export default self;

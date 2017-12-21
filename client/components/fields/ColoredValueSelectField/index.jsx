@@ -38,18 +38,19 @@ export class ColoredValueSelectField extends React.Component {
         const showMessage = touched && (error || warning);
         const divClasses = classNames(
             'ColoredValueSelect',
-            'sd-line-input',
             {'sd-line-input--label-left': labelLeft},
             {'sd-line-input--invalid': showMessage},
             {'sd-line-input--no-margin': !showMessage},
             {'sd-line-input--required': required}
         );
 
+        const showUIControl = !readOnly || (readOnly && get(input, 'value'));
+
         return (<div className={divClasses}>
-            { label && <label className="sd-line-input__label ColoredValueSelect__label" htmlFor={input.name}>
+            { label && <label className="form-label form-label--light" htmlFor={input.name}>
                 {label}
             </label> }
-            <div className="sd-line-input__input">
+            {showUIControl && <div className="sd-line-input__input">
                 <button type="button"
                     className="dropdown__toggle ColoredValueSelect__input"
                     disabled={readOnly}
@@ -70,7 +71,7 @@ export class ColoredValueSelectField extends React.Component {
                     }}
                     onCancel={this.toggleOpenPopup.bind(this)}
                     clearable={clearable} /> }
-            </div>
+            </div>}
             {touched && (
                 (error && <div className="sd-line-input__message">{error}</div>) ||
                 (warning && <div className="sd-line-input__message">{warning}</div>)

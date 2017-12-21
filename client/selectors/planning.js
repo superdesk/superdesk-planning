@@ -10,6 +10,31 @@ export const planIdsInList = (state) => get(state, 'planning.planningsInList', [
 export const agendas = (state) => get(state, 'agenda.agendas', []);
 export const currentAgendaId = (state) => get(state, 'agenda.currentAgendaId', null);
 
+export const planningsFormsProfile = (state) => get(state, 'formsProfile.planning');
+export const coverageFormsProfile = (state) => get(state, 'formsProfile.coverage');
+export const currentPlanningId = (state) => get(state, 'planning.currentPlanningId');
+
+export const currentPlanning = createSelector(
+    [currentPlanningId, storedPlannings],
+    (currentPlanningId, storedPlannings) => {
+        if (typeof currentPlanningId === 'string') {
+            return storedPlannings[currentPlanningId];
+        } else if (typeof currentPlanningId === 'object') {
+            return currentPlanningId;
+        }
+    }
+);
+
+export const planningAndCoverageFormsProfile = createSelector(
+    [planningsFormsProfile, coverageFormsProfile],
+    (planningProfile, coverageProfile) => (
+        {
+            planning: planningProfile,
+            coverage: coverageProfile,
+        }
+    )
+);
+
 export const currentAgenda = createSelector(
     [agendas, currentAgendaId],
     (agendas, agendaId) => (

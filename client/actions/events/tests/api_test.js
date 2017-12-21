@@ -396,7 +396,7 @@ describe('actions.events.api', () => {
                     }]);
 
                     expect(store.dispatch.args[0]).toEqual([{
-                        type: 'MAIN_HISTORY',
+                        type: 'RECEIVE_EVENT_HISTORY',
                         payload: store.data.events_history,
                     }]);
                     done();

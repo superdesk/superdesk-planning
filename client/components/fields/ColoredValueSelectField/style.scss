@@ -2,10 +2,6 @@
 @import '~superdesk-core/styles/sass/variables.scss';
 
 .ColoredValueSelect {
-    &__label {
-        max-width: inherit !important;
-    }
-
     &__input {
         padding-top: 10px;
     }

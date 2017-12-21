@@ -7,7 +7,6 @@ import {orderedPlanningList} from './planning';
 export const activeFilter = (state) => get(state, 'main.filter', MAIN.FILTERS.COMBINED);
 export const previewItem = (state) => get(state, 'main.previewItem', null);
 export const editItem = (state) => get(state, 'main.editItem', null);
-
 export const itemGroups = createSelector(
     [activeFilter, orderedEvents, orderedPlanningList],
     (filter, events, plans) => {

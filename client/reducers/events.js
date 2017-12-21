@@ -1,8 +1,8 @@
 import {orderBy, cloneDeep, uniq, get} from 'lodash';
 import moment from 'moment';
 import {EVENTS, RESET_STORE, INIT_STORE, LOCKS, SPIKED_STATE} from '../constants';
-import {createReducer} from '../utils';
-import {WORKFLOW_STATE} from '../constants';
+import {createReducer, getItemType} from '../utils';
+import {WORKFLOW_STATE, MAIN, ITEM_TYPE} from '../constants';
 
 const initialLastRequest = {page: 1};
 
@@ -372,6 +372,17 @@ Event Postponed
     [EVENTS.ACTIONS.MARK_EVENT_UNPUBLISHED]: (state, payload) => (
         onEventPublishChanged(state, payload)
     ),
+    [MAIN.ACTIONS.PREVIEW]: (state, payload) => {
+        if (getItemType(payload) === ITEM_TYPE.EVENT) {
+            return {
+                ...state,
+                showEventDetails: payload,
+                highlightedEvent: payload,
+            };
+        } else {
+            return state;
+        }
+    },
 });
 
 const onEventPublishChanged = (state, payload) => {

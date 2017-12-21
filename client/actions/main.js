@@ -16,11 +16,6 @@ const preview = (item) => ({
     payload: item
 });
 
-const history = (items) => ({
-    type: MAIN.ACTIONS.HISTORY,
-    payload: items
-});
-
 const filter = (ftype = null) => (
     (dispatch, getState, {$timeout, $location}) => {
         let filterType = ftype;

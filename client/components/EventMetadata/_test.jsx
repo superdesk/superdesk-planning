@@ -2,30 +2,42 @@ import React from 'react';
 import {mount} from 'enzyme';
 import {EventMetadata} from '../index';
 import moment from 'moment';
-import {createTestStore} from '../../utils';
+import {createTestStore, eventUtils} from '../../utils';
 import {Provider} from 'react-redux';
 
 describe('<EventMetadata />', () => {
-    it('renders an event', () => {
+    it('renders metadata of an event', () => {
         const event = {
-            dates: {start: '2016-10-15T13:01:11+0000'},
+            dates: {
+                start: moment('2016-10-15T13:01:11+0000'),
+                end: moment('2016-10-15T13:02:11+0000'),
+            },
             definition_short: 'definition_short 1',
-            definition_long: 'definition_long 1',
-            location: [{name: 'location1'}],
+            location: [{
+                name: 'location1',
+                formatted_address: 'address1',
+            }],
             name: 'name1',
+            occur_status: {name: 'Planned, occurs certainly'},
         };
         let store = createTestStore();
         const wrapper = mount(
             <Provider store={store}>
-                <EventMetadata event={event}/>
+                <EventMetadata event={event} />
             </Provider>
         );
 
-        expect(wrapper.text()).toContain('definition_short 1');
-        expect(wrapper.text()).toContain('definition_long 1');
-        expect(wrapper.text()).toContain('name1');
-        expect(wrapper.text()).toContain(moment('2016-10-15T13:01:11+0000').format('DD/MM/YYYY\u00a0HH:mm'));
-        expect(wrapper.text()).toContain('location1');
-        expect(wrapper.text()).not.toContain('Status');
+        wrapper.find('.sd-collapse-box').first()
+            .simulate('click');
+        const content = wrapper.find('.sd-collapse-box__content');
+        const metaDataTexts = content.find('p');
+        const eventDateText = eventUtils.getDateStringForEvent(event, 'DD/MM/YYYY', 'HH:mm');
+
+        expect(metaDataTexts.length).toBe(5);
+        expect(metaDataTexts.at(0).text()).toBe('name1');
+        expect(metaDataTexts.at(1).text()).toBe(eventDateText);
+        expect(metaDataTexts.at(2).text()).toBe('location1address1');
+        expect(metaDataTexts.at(3).text()).toBe('Planned, occurs certainly');
+        expect(metaDataTexts.at(4).text()).toBe('definition_short 1');
     });
 });

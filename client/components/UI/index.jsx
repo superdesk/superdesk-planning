@@ -8,6 +8,7 @@ import SearchBox from './SearchBox';
 import DateTime from './DateTime';
 import Checkbox from './Checkbox';
 import PanelInfo from './PanelInfo';
+import CollapseBox from './CollapseBox';
 
 export {
     List,
@@ -20,4 +21,5 @@ export {
     DateTime,
     Checkbox,
     PanelInfo,
+    CollapseBox,
 };
