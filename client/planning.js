@@ -14,9 +14,10 @@ import {
 
 import './planning.scss';
 
-import {main, selectAgenda} from './actions';
+import * as actions from './actions';
 
 import * as selectors from './selectors';
+import {EVENTS} from './constants';
 
 class PlanningApp extends React.Component {
     constructor(props) {
@@ -95,6 +96,24 @@ class PlanningApp extends React.Component {
             contentBlockFlags
         );
 
+        const listPanelProps = {
+            groups: this.props.groups,
+            onItemClick: this.onItemClick,
+            onDoubleClick: this.openEditor,
+            agendas: this.props.agendas,
+            lockedItems: this.props.lockedItems,
+            dateFormat: this.props.dateFormat,
+            timeFormat: this.props.timeFormat,
+            session: this.props.session,
+            privileges: this.props.privileges,
+            [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
+            [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
+            [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]
+        };
+
         return (
             <section className={sectionClassName}>
                 <div className={mainClassName}>
@@ -110,15 +129,7 @@ class PlanningApp extends React.Component {
                     />
                     <div className="sd-column-box--3">
                         <SearchPanel />
-                        <ListPanel
-                            groups={this.props.groups}
-                            onItemClick={this.onItemClick}
-                            onDoubleClick={this.openEditor}
-                            lockedItems={this.props.lockedItems}
-                            dateFormat={this.props.dateFormat}
-                            timeFormat={this.props.timeFormat}
-                            agendas={this.props.agendas}
-                        />
+                        <ListPanel { ...listPanelProps } />
                         <PreviewPanel
                             item={this.props.previewItem}
                             edit={this.openEditor}
@@ -154,6 +165,11 @@ PlanningApp.propTypes = {
     agendas: PropTypes.array.isRequired,
     selectAgenda: PropTypes.func.isRequired,
     currentAgendaId: PropTypes.string.isRequired,
+    session: PropTypes.object,
+    privileges: PropTypes.object,
+    [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -166,14 +182,20 @@ const mapStateToProps = (state) => ({
     activeFilter: selectors.main.activeFilter(state),
     agendas: selectors.getAgendas(state),
     currentAgendaId: selectors.getCurrentAgendaId(state),
+    session: selectors.getSessionDetails(state),
+    privileges: selectors.getPrivileges(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    edit: (item) => dispatch(main.edit(item)),
-    cancel: () => dispatch(main.cancel()),
-    preview: (item) => dispatch(main.preview(item)),
-    filter: (filterType) => dispatch(main.filter(filterType)),
-    selectAgenda: (agendaId) => dispatch(selectAgenda(agendaId)),
+    edit: (item) => dispatch(actions.main.edit(item)),
+    cancel: () => dispatch(actions.main.cancel()),
+    preview: (item) => dispatch(actions.main.preview(item)),
+    filter: (filterType) => dispatch(actions.main.filter(filterType)),
+    selectAgenda: (agendaId) => dispatch(actions.selectAgenda(agendaId)),
+    // Event Item actions:
+    [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: (event) => dispatch(actions.duplicateEvent(event)),
+    [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
+    [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningApp);

@@ -31,9 +31,20 @@ export const EVENTS = {
     // chunk size must be lower than page limit (25)
     FETCH_IDS_CHUNK_SIZE: 25,
     ITEM_ACTIONS: {
+        UNSPIKE: {
+            label: 'Unspike',
+            icon: 'icon-unspike',
+            actionName: 'onUnspikeEvent'
+        },
+        DUPLICATE: {
+            label: 'Duplicate',
+            icon: 'icon-copy',
+            actionName: 'onDuplicateEvent',
+        },
         CREATE_PLANNING: {
             label: 'Create Planning Item',
             icon: 'icon-new-doc',
+            actionName: 'onCreatePlanning',
         },
         CANCEL_EVENT: {
             label: 'Cancel',

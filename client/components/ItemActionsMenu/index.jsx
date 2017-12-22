@@ -2,9 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {get} from 'lodash';
 import {ActionsMenu} from './ActionsMenu';
-import {GENERIC_ITEM_ACTIONS} from '../../constants';
 import './style.scss';
 import {renderToBody, closeActionsMenu} from 'superdesk-core/scripts/apps/search/helpers';
 
@@ -44,16 +42,6 @@ export class ItemActionsMenu extends React.Component {
     }
 
 
-    isEmptyActions() {
-        if (get(this.props, 'actions.length', 0) < 1) {
-            return true;
-        } else {
-            // Do we have only dividers ?
-            return this.props.actions.filter((action) =>
-                action.label !== GENERIC_ITEM_ACTIONS.DIVIDER.label).length <= 0;
-        }
-    }
-
     render() {
         const classes = classNames(
             this.props.className,
@@ -63,11 +51,13 @@ export class ItemActionsMenu extends React.Component {
             {open: this.state.isOpen}
         );
 
+        const isEmptyActions = this.props.actions.length === 0;
+
         const buttonClasses = classNames(
             'dropdown__toggle',
             {[this.props.buttonClass]: this.props.buttonClass},
-            {ItemActionsMenu__hidden: this.isEmptyActions() || this.state.isOpen},
-            {ItemActionsMenu__visible: !this.state.isOpen}
+            {ItemActionsMenu__hidden: isEmptyActions || this.state.isOpen},
+            {ItemActionsMenu__visible: !isEmptyActions && !this.state.isOpen}
         );
 
         return (
