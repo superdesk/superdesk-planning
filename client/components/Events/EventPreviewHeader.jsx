@@ -4,43 +4,29 @@ import {connect} from 'react-redux';
 import {Tools} from '../UI/SidePanel';
 import {ItemActionsMenu, LockContainer} from '../index';
 import {eventUtils, getLockedUser} from '../../utils';
-import {GENERIC_ITEM_ACTIONS, PRIVILEGES} from '../../constants';
+import {PRIVILEGES, EVENTS} from '../../constants';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {get} from 'lodash';
 
 export class EventPreviewHeaderComponent extends React.Component {
-    getEventActions() {
+    render() {
         const {
-            item,
-            session,
+            users,
             privileges,
+            item,
             lockedItems,
+            session,
+            onUnlock,
         } = this.props;
 
-        if (!get(item, '_id')) {
-            return [];
-        }
-
-        const actions = [
-            {
-                ...GENERIC_ITEM_ACTIONS.DUPLICATE,
-                callback: () => (true), // Keeping this empty until we do ItemActions
-            },
-        ];
-
-        return eventUtils.getEventItemActions(
-            item,
-            session,
-            privileges,
-            actions,
-            lockedItems
-        );
-    }
-
-    render() {
-        const {users, privileges, item, lockedItems, session, onUnlock} = this.props;
-        const itemActions = this.getEventActions();
+        const itemActionsCallBack = {
+            [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
+            [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
+            [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
+        };
+        const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack);
         const lockedUser = getLockedUser(item, lockedItems, users);
         const lockRestricted = eventUtils.isEventLockRestricted(item, session, lockedItems);
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK];
@@ -57,9 +43,9 @@ export class EventPreviewHeaderComponent extends React.Component {
                         onUnlock={onUnlock.bind(null, item)}
                     />
                 }
-                <ItemActionsMenu
+                {get(itemActions, 'length', 0) > 0 && <ItemActionsMenu
                     className="side-panel__top-tools-right"
-                    actions={itemActions} />
+                    actions={itemActions} />}
             </Tools>
         );
     }
@@ -84,8 +70,10 @@ const mapStateToProps = (state, ownProps) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    duplicateEvent: (event) => dispatch(actions.duplicateEvent(event)),
     onUnlock: (event) => dispatch(actions.events.ui.unlockAndOpenEventDetails(event)),
+    [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: (event) => dispatch(actions.duplicateEvent(event)),
+    [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
+    [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
 });
 
 export const EventPreviewHeader = connect(mapStateToProps, mapDispatchToProps)(EventPreviewHeaderComponent);

@@ -5,7 +5,7 @@ import {debounce} from 'lodash';
 import {EventItem} from '../Events/';
 import {PlanningItem} from '../Planning';
 
-import {ITEM_TYPE} from '../../constants';
+import {ITEM_TYPE, EVENTS} from '../../constants';
 import {getItemType} from '../../utils';
 
 import '../../planning.scss';
@@ -52,6 +52,8 @@ export class ListGroupItem extends React.Component {
             timeFormat,
             agendas,
             date,
+            session,
+            privileges,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -59,19 +61,32 @@ export class ListGroupItem extends React.Component {
         const clickHandler = onClick && onDoubleClick ? this.handleSingleAndDoubleClick.bind(this, item) :
             onClick.bind(this, item);
 
+        let itemProps = {
+            item: item,
+            onClick: clickHandler,
+            lockedItems: lockedItems,
+            dateFormat: dateFormat,
+            timeFormat: timeFormat,
+            session: session,
+            privileges: privileges,
+        };
+
         switch (itemType) {
         case ITEM_TYPE.COMBINED:
             return null;
 
         case ITEM_TYPE.EVENT:
+            itemProps = {
+                ...itemProps,
+                [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
+                [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
+                [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]
+            };
             return (
-                <EventItem
-                    item={item}
-                    onClick={clickHandler}
-                    lockedItems={lockedItems}
-                    dateFormat={dateFormat}
-                    timeFormat={timeFormat}
-                />
+                <EventItem { ... itemProps } />
             );
 
         case ITEM_TYPE.PLANNING:
@@ -103,4 +118,9 @@ ListGroupItem.propTypes = {
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
     agendas: PropTypes.array.isRequired,
+    session: PropTypes.object,
+    privileges: PropTypes.object,
+    [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
 };

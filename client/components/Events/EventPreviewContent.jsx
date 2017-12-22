@@ -3,7 +3,6 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {gettext, getCreator} from '../../utils';
 import * as selectors from '../../selectors';
-import * as actions from '../../actions';
 import {get} from 'lodash';
 import {Row} from '../UI/Preview';
 import {
@@ -74,7 +73,7 @@ export class EventPreviewContentComponent extends React.Component {
                     </Row>}
                 <ToggleBox title={gettext('Details')} isOpen={false}>
                     {get(formProfile, 'editor.calendars.enabled') && <Row
-                        label={gettext('Calenders')}
+                        label={gettext('Calendars')}
                         value={calendarsText}
                     />}
                     {get(formProfile, 'editor.anpa_category.enabled') && <Row
@@ -154,9 +153,4 @@ const mapStateToProps = (state, ownProps) => ({
     dateFormat: selectors.getDateFormat(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
-    duplicateEvent: (event) => dispatch(actions.duplicateEvent(event)),
-    onUnlock: (event) => dispatch(actions.events.ui.unlockAndOpenEventDetails(event)),
-});
-
-export const EventPreviewContent = connect(mapStateToProps, mapDispatchToProps)(EventPreviewContentComponent);
+export const EventPreviewContent = connect(mapStateToProps, null)(EventPreviewContentComponent);

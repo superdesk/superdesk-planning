@@ -104,7 +104,7 @@ export class Component extends React.Component {
                 callback: spikeEvent.bind(null, initialValues),
             },
             {
-                ...GENERIC_ITEM_ACTIONS.UNSPIKE,
+                ...EVENTS.ITEM_ACTIONS.UNSPIKE,
                 callback: unspikeEvent.bind(null, initialValues),
             },
             {
