@@ -258,6 +258,16 @@ const canPostponeEvent = (event, session, privileges, locks) => (
         !isItemRescheduled(event)
 );
 
+const isEmptyActions = (actions) => {
+    if (get(actions, 'length', 0) < 1) {
+        return true;
+    } else {
+        // Do we have only dividers ?
+        return actions.filter((action) =>
+            action.label !== GENERIC_ITEM_ACTIONS.DIVIDER.label).length <= 0;
+    }
+};
+
 const getEventItemActions = (event, session, privileges, actions, locks) => {
     let itemActions = [];
     let key = 1;
@@ -265,9 +275,9 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
     const actionsValidator = {
         [GENERIC_ITEM_ACTIONS.SPIKE.label]: () =>
             canSpikeEvent(event, session, privileges, locks),
-        [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: () =>
+        [EVENTS.ITEM_ACTIONS.UNSPIKE.label]: () =>
             canUnspikeEvent(event, privileges, locks),
-        [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: () =>
+        [EVENTS.ITEM_ACTIONS.DUPLICATE.label]: () =>
             canDuplicateEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
             canCancelEvent(event, session, privileges, locks),
@@ -296,6 +306,10 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
 
         key++;
     });
+
+    if (isEmptyActions(itemActions)) {
+        return [];
+    }
 
     return itemActions;
 };
@@ -332,6 +346,48 @@ const getDateStringForEvent = (event, dateFormat, timeFormat, dateOnly = false) 
     }
 };
 
+const getEventActions = (item, session, privileges, lockedItems, callBacks) => {
+    if (!get(item, '_id')) {
+        return [];
+    }
+
+    let actions = [];
+
+    Object.keys(callBacks).forEach((callBackName) => {
+        switch (callBackName) {
+        case EVENTS.ITEM_ACTIONS.DUPLICATE.actionName:
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.DUPLICATE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.UNSPIKE.actionName:
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.UNSPIKE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+        }
+    });
+
+    actions.push(
+        GENERIC_ITEM_ACTIONS.DIVIDER,
+        {
+            ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
+            callback: callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName].bind(null, item),
+        }
+    );
+
+    return getEventItemActions(
+        item,
+        session,
+        privileges,
+        actions,
+        lockedItems
+    );
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
     isEventAllDay,
@@ -358,6 +414,7 @@ const self = {
     isEventSameDay,
     isEventRecurring,
     getDateStringForEvent,
+    getEventActions,
 };
 
 export default self;

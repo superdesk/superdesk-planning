@@ -242,9 +242,8 @@ describe('EventUtils', () => {
     describe('getEventItemActions', () => {
         const actions = [
             GENERIC_ITEM_ACTIONS.SPIKE,
-            GENERIC_ITEM_ACTIONS.UNSPIKE,
-            GENERIC_ITEM_ACTIONS.HISTORY,
-            GENERIC_ITEM_ACTIONS.DUPLICATE,
+            EVENTS.ITEM_ACTIONS.UNSPIKE,
+            EVENTS.ITEM_ACTIONS.DUPLICATE,
             EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
             EVENTS.ITEM_ACTIONS.UPDATE_TIME,
             EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
@@ -283,7 +282,6 @@ describe('EventUtils', () => {
 
             expectActions(itemActions, [
                 'Spike',
-                'View History',
                 'Duplicate',
                 'Update time',
                 'Reschedule',
@@ -301,7 +299,6 @@ describe('EventUtils', () => {
 
             expectActions(itemActions, [
                 'Spike',
-                'View History',
                 'Duplicate',
                 'Reschedule',
             ]);
@@ -312,7 +309,6 @@ describe('EventUtils', () => {
             );
 
             expectActions(itemActions, [
-                'View History',
                 'Duplicate',
                 'Cancel',
                 'Reschedule',

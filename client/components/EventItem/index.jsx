@@ -40,7 +40,7 @@ export const EventItem = ({
             callback: onSpikeEvent.bind(null, event),
         },
         {
-            ...GENERIC_ITEM_ACTIONS.UNSPIKE,
+            ...EVENTS.ITEM_ACTIONS.UNSPIKE,
             callback: onUnspikeEvent.bind(null, event),
         },
         {

@@ -1,17 +1,19 @@
 import React from 'react';
-import {mount} from 'enzyme';
+import {mount, shallow} from 'enzyme';
 import {ItemActionsMenu} from '../index';
 import sinon from 'sinon';
 import * as helpers from '../tests/helpers';
 
 describe('<ItemActionsMenu />', () => {
+    const callback = sinon.spy();
+    const actions = [{
+        label: 'label',
+        callback: callback,
+    }];
+
     it('render', () => {
-        const callback = sinon.spy();
         const wrapper = mount(
-            <ItemActionsMenu actions={[{
-                label: 'label',
-                callback: callback,
-            }]}/>
+            <ItemActionsMenu actions={actions}/>
         );
         const menu = new helpers.actionMenu(wrapper);
 
@@ -20,11 +22,10 @@ describe('<ItemActionsMenu />', () => {
         expect(callback.callCount).toBe(1);
     });
 
-    it('no visibility without actions ', () => {
-        const wrapper = mount(
-            <ItemActionsMenu actions={[]}/>
-        );
+    it('no visibility when action popup is already open', () => {
+        let wrapper = shallow(<ItemActionsMenu actions={actions}/>);
 
+        wrapper.instance().setState({isOpen: true});
         expect(wrapper.find('.ItemActionsMenu__hidden').length).toBe(1);
     });
 });
