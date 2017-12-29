@@ -1,5 +1,5 @@
 import {showModal, hideModal, locks, uploadFilesAndSaveEvent} from '../index';
-import {PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS, PUBLISHED_STATE, MODALS, SPIKED_STATE} from '../../constants';
+import {PRIVILEGES, EVENTS, PUBLISHED_STATE, MODALS, SPIKED_STATE} from '../../constants';
 import eventsApi from './api';
 import {fetchSelectedAgendaPlannings} from '../agenda';
 import main from '../main';
@@ -352,7 +352,7 @@ const updateTime = (event, publish = false) => (
 const openSpikeModal = (event, publish = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
-        GENERIC_ITEM_ACTIONS.SPIKE.label,
+        EVENTS.ITEM_ACTIONS.SPIKE.label,
         null,
         true,
         publish

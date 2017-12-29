@@ -145,9 +145,9 @@ const mapStateToProps = (state, ownProps) => ({
     desks: selectors.getDesks(state),
     lockedItems: selectors.getLockedItems(state),
     formProfile: selectors.planning.planningAndCoverageFormsProfile(state),
-    agendas: selectors.events.agendas(state),
-    dateFormat: selectors.getDateFormat(state),
-    timeFormat: selectors.getTimeFormat(state),
+    agendas: selectors.general.agendas(state),
+    dateFormat: selectors.general.dateFormat(state),
+    timeFormat: selectors.general.timeFormat(state),
     newsCoverageStatus: selectors.getNewsCoverageStatus(state)
 });
 

@@ -1,3 +1,4 @@
+import * as general from './general';
 import * as events from './events';
 import * as planning from './planning';
 import * as main from './main';
@@ -8,3 +9,4 @@ export * from './assignments';
 export {planning};
 export {events};
 export {main};
+export {general};

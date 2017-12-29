@@ -9,7 +9,7 @@ import {EventDateTime} from './';
 import {ItemActionsMenu} from '../index';
 import {eventUtils, getItemWorkflowStateLabel} from '../../utils';
 
-export class EventItem extends React.Component {
+export class EventItem extends React.PureComponent {
     render() {
         const {item, onClick, lockedItems, dateFormat, timeFormat, session, privileges} = this.props;
 
@@ -33,6 +33,7 @@ export class EventItem extends React.Component {
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
             [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
+            [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
         };
         const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack);
 
@@ -83,4 +84,6 @@ EventItem.propTypes = {
     privileges: PropTypes.object,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
 };

@@ -149,4 +149,5 @@ SelectField.defaultProps = {
     ),
     clearable: false,
     autoFocus: false,
+    meta: {},
 };
