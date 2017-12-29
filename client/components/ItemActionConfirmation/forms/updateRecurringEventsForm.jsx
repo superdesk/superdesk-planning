@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {reduxForm, formValueSelector} from 'redux-form';
 import * as actions from '../../../actions';
-import {getDateFormat} from '../../../selectors';
+import {dateFormat} from '../../../selectors/general';
 import moment from 'moment';
 import {EventUpdateMethods} from '../../fields';
 import '../style.scss';
@@ -79,7 +79,7 @@ const selector = formValueSelector(FORM_NAMES.UpdateRecurringEventsForm);
 
 const mapStateToProps = (state) => ({
     relatedEvents: selector(state, '_events'),
-    dateFormat: getDateFormat(state),
+    dateFormat: dateFormat(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

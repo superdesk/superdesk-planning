@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {Field, reduxForm, formValueSelector} from 'redux-form';
 import * as actions from '../../../actions';
-import {getDateFormat} from '../../../selectors';
+import {dateFormat} from '../../../selectors/general';
 import {EventUpdateMethods, TimePicker} from '../../fields';
 import '../style.scss';
 import {get} from 'lodash';
@@ -102,7 +102,7 @@ const selector = formValueSelector(FORM_NAMES.UpdateTimeForm);
 
 const mapStateToProps = (state) => ({
     relatedEvents: selector(state, '_events'),
-    dateFormat: getDateFormat(state),
+    dateFormat: dateFormat(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

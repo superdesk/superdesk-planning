@@ -5,7 +5,7 @@ import moment from 'moment';
 import {ListGroupItem} from './';
 import {EVENTS} from '../../constants';
 
-export class ListGroup extends React.Component {
+export class ListGroup extends React.PureComponent {
     render() {
         const {name, items, lockedItems, dateFormat, timeFormat, agendas, session, privileges} = this.props;
 
@@ -32,7 +32,9 @@ export class ListGroup extends React.Component {
                             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
                                 this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
                             [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
-                                this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]
+                                this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
+                            [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
+                                this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
                         };
 
                         return <ListGroupItem key={item._id} { ...listGroupItemProps } />;
@@ -59,4 +61,5 @@ ListGroup.propTypes = {
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
 };

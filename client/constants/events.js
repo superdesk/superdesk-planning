@@ -31,6 +31,11 @@ export const EVENTS = {
     // chunk size must be lower than page limit (25)
     FETCH_IDS_CHUNK_SIZE: 25,
     ITEM_ACTIONS: {
+        SPIKE: {
+            label: 'Spike',
+            icon: 'icon-trash',
+            actionName: 'onSpikeEvent',
+        },
         UNSPIKE: {
             label: 'Unspike',
             icon: 'icon-unspike',

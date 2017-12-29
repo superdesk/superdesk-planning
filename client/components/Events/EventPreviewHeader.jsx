@@ -9,7 +9,7 @@ import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {get} from 'lodash';
 
-export class EventPreviewHeaderComponent extends React.Component {
+export class EventPreviewHeaderComponent extends React.PureComponent {
     render() {
         const {
             users,
@@ -25,6 +25,7 @@ export class EventPreviewHeaderComponent extends React.Component {
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
             [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
+            [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
         };
         const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack);
         const lockedUser = getLockedUser(item, lockedItems, users);
@@ -59,6 +60,10 @@ EventPreviewHeaderComponent.propTypes = {
     lockedItems: PropTypes.object,
     duplicateEvent: PropTypes.func,
     onUnlock: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -74,6 +79,7 @@ const mapDispatchToProps = (dispatch) => ({
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: (event) => dispatch(actions.duplicateEvent(event)),
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
+    [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: (event) => dispatch(actions.events.ui.openSpikeModal(event)),
 });
 
 export const EventPreviewHeader = connect(mapStateToProps, mapDispatchToProps)(EventPreviewHeaderComponent);

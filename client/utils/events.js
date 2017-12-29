@@ -19,7 +19,6 @@ import {
 import moment from 'moment';
 import RRule from 'rrule';
 import {get, map, isNil} from 'lodash';
-import {actionTypes} from 'redux-form';
 import {EventUpdateMethods} from '../components/fields';
 
 /**
@@ -101,25 +100,20 @@ const doesRecurringEventsOverlap = (startingDate, endingDate, recurringRule) => 
     return nextEvent.isBetween(startingDate, endingDate) || nextEvent.isSame(endingDate);
 };
 
-const getRelatedEventsForRecurringEvent = (state = {}, action) => {
-    if (action.type !== actionTypes.CHANGE || get(action, 'meta.field') !== 'update_method') {
-        return state;
-    }
-
-    let event = state.values;
-    let eventsInSeries = get(event, '_recurring', []);
+const getRelatedEventsForRecurringEvent = (recurringEvent, filter) => {
+    let eventsInSeries = get(recurringEvent, '_recurring', []);
     let events = [];
-    let plannings = get(event, '_plannings', []);
+    let plannings = get(recurringEvent, '_plannings', []);
 
-    switch (action.payload.value) {
+    switch (filter.value) {
     case EventUpdateMethods[1].value: // Selected & Future Events
         events = eventsInSeries.filter((e) => (
-            moment(e.dates.start).isSameOrAfter(moment(event.dates.start)) &&
-                e._id !== event._id
+            moment(e.dates.start).isSameOrAfter(moment(recurringEvent.dates.start)) &&
+                e._id !== recurringEvent._id
         ));
         break;
     case EventUpdateMethods[2].value: // All Events
-        events = eventsInSeries.filter((e) => e._id !== event._id);
+        events = eventsInSeries.filter((e) => e._id !== recurringEvent._id);
         break;
     case EventUpdateMethods[0].value: // Selected Event Only
     default:
@@ -130,17 +124,14 @@ const getRelatedEventsForRecurringEvent = (state = {}, action) => {
         const eventIds = map(events, '_id');
 
         plannings = plannings.filter(
-            (p) => (eventIds.indexOf(p.event_item) > -1 || p.event_item === event._id)
+            (p) => (eventIds.indexOf(p.event_item) > -1 || p.event_item === recurringEvent._id)
         );
     }
 
     return {
-        ...state,
-        values: {
-            ...state.values,
-            _events: events,
-            _relatedPlannings: plannings,
-        },
+        ...recurringEvent,
+        _events: events,
+        _relatedPlannings: plannings,
     };
 };
 
@@ -273,7 +264,7 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
     let key = 1;
 
     const actionsValidator = {
-        [GENERIC_ITEM_ACTIONS.SPIKE.label]: () =>
+        [EVENTS.ITEM_ACTIONS.SPIKE.label]: () =>
             canSpikeEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.UNSPIKE.label]: () =>
             canUnspikeEvent(event, privileges, locks),
@@ -358,6 +349,13 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks) => {
         case EVENTS.ITEM_ACTIONS.DUPLICATE.actionName:
             actions.push({
                 ...EVENTS.ITEM_ACTIONS.DUPLICATE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.SPIKE.actionName:
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.SPIKE,
                 callback: callBacks[callBackName].bind(null, item)
             });
             break;
