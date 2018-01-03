@@ -5,7 +5,7 @@ import {debounce} from 'lodash';
 import {EventItem} from '../Events/';
 import {PlanningItem} from '../Planning';
 
-import {ITEM_TYPE, EVENTS} from '../../constants';
+import {ITEM_TYPE, EVENTS, PLANNING} from '../../constants';
 import {getItemType} from '../../utils';
 
 import '../../planning.scss';
@@ -85,23 +85,34 @@ export class ListGroupItem extends React.Component {
                 [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
                     this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
                 [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
-                        this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
+                    this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
+                [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
             };
             return (
                 <EventItem { ... itemProps } />
             );
 
         case ITEM_TYPE.PLANNING:
+            itemProps = {
+                ...itemProps,
+                date: date,
+                agendas: agendas,
+                [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
+                    this.props[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
+                [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
+                    this.props[PLANNING.ITEM_ACTIONS.SPIKE.actionName],
+                [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]:
+                    this.props[PLANNING.ITEM_ACTIONS.UNSPIKE.actionName],
+                [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]:
+                    this.props[PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName],
+                [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
+                    this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
+                [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
+            };
             return (
-                <PlanningItem
-                    item={item}
-                    date={date}
-                    onClick={clickHandler}
-                    lockedItems={lockedItems}
-                    dateFormat={dateFormat}
-                    timeFormat={timeFormat}
-                    agendas={agendas}
-                />
+                <PlanningItem { ...itemProps } />
             );
         }
 
@@ -126,4 +137,10 @@ ListGroupItem.propTypes = {
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: PropTypes.func,
 };

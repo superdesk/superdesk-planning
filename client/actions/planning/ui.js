@@ -1,6 +1,7 @@
 import {showModal, hideModal} from '../index';
 import planningApi from './api';
 import {locks} from '../index';
+import main from '../main';
 import {checkPermission, getErrorMessage, isItemLockedInThisSession, planningUtils} from '../../utils';
 import * as selectors from '../../selectors';
 import {PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, ASSIGNMENTS} from '../../constants';
@@ -21,9 +22,8 @@ const _spike = (item) => (
             .then(() => {
                 notify.success('The Planning Item has been spiked.');
                 if (selectors.getCurrentPlanningId(getState()) === item._id) {
-                    dispatch(self.closeEditor());
+                    dispatch(main.closePreview());
                 }
-
                 return Promise.resolve(item);
             }, (error) => {
                 notify.error(
@@ -382,9 +382,8 @@ const duplicate = (plan) => (
             .then((newPlan) => {
                 dispatch(self.refetch())
                     .then(() => {
-                        dispatch(self.closeEditor(plan));
                         notify.success('Planning duplicated');
-                        return dispatch(self.openEditor(newPlan));
+                        return dispatch(main.preview(newPlan));
                     }, (error) => (
                         notify.error(
                             getErrorMessage(error, 'Failed to fetch Planning items')

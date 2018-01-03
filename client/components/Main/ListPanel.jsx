@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {ListGroup} from './';
 import {PanelInfo} from '../UI';
-import {EVENTS} from '../../constants';
+import {EVENTS, PLANNING} from '../../constants';
 
 export class ListPanel extends React.PureComponent {
     render() {
@@ -47,6 +47,18 @@ export class ListPanel extends React.PureComponent {
                             this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
                         [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
                             this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
+                        [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
+                            this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
+                        [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
+                            this.props[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
+                        [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
+                            this.props[PLANNING.ITEM_ACTIONS.SPIKE.actionName],
+                        [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]:
+                            this.props[PLANNING.ITEM_ACTIONS.UNSPIKE.actionName],
+                        [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]:
+                            this.props[PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName],
+                        [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
+                            this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]
                     };
 
                     return <ListGroup key={group.date} {...listGroupProps} />;
@@ -72,4 +84,10 @@ ListPanel.propTypes = {
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: PropTypes.func,
 };

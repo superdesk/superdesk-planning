@@ -1,6 +1,8 @@
 import {createSelector} from 'reselect';
 import {get, sortBy} from 'lodash';
 import moment from 'moment';
+import {isItemLockedInThisSession} from '../utils';
+import {session} from './general';
 
 const storedEvents = (state) => get(state, 'events.events', {});
 
@@ -92,4 +94,12 @@ export const orderedPlanningList = createSelector(
 
         return sortBy(sortable, [(e) => e.date]);
     }
+);
+
+
+export const isCurrentPlanningLockedInThisSession = createSelector(
+    [currentPlanning, session],
+    (currentPlanning, session) => (
+        currentPlanning && isItemLockedInThisSession(currentPlanning, session)
+    )
 );
