@@ -149,8 +149,8 @@ const mapStateToProps = (state, ownProps) => ({
     users: selectors.getUsers(state),
     lockedItems: selectors.getLockedItems(state),
     formProfile: selectors.getEventsFormsProfile(state),
-    timeFormat: selectors.getTimeFormat(state),
-    dateFormat: selectors.getDateFormat(state),
+    timeFormat: selectors.general.timeFormat(state),
+    dateFormat: selectors.general.dateFormat(state),
 });
 
 export const EventPreviewContent = connect(mapStateToProps, null)(EventPreviewContentComponent);

@@ -2,12 +2,12 @@ import {createSelector} from 'reselect';
 import {get, sortBy} from 'lodash';
 import moment from 'moment';
 import {storedPlannings, currentPlanning} from './planning';
+import {agendas} from './general';
 
 export const storedEvents = (state) =>
     get(state, 'events.events', {})
 ;
 export const eventIdsInList = (state) => get(state, 'events.eventsInList', []);
-export const agendas = (state) => get(state, 'agenda.agendas', []);
 export const showEventDetails = (state) => get(state, 'events.showEventDetails');
 export const eventHistory = (state) => get(state, 'events.eventHistoryItems');
 

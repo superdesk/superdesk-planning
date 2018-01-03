@@ -4,7 +4,7 @@ import {ListGroup} from './';
 import {PanelInfo} from '../UI';
 import {EVENTS} from '../../constants';
 
-export class ListPanel extends React.Component {
+export class ListPanel extends React.PureComponent {
     render() {
         const {
             groups,
@@ -44,7 +44,9 @@ export class ListPanel extends React.Component {
                         [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
                             this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
                         [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
-                            this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]
+                            this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
+                        [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
+                            this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
                     };
 
                     return <ListGroup key={group.date} {...listGroupProps} />;
@@ -69,4 +71,5 @@ ListPanel.propTypes = {
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
 };

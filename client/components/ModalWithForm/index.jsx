@@ -15,12 +15,20 @@ export class Component extends React.Component {
         this.onHide = this.onHide.bind(this);
     }
 
+    getFormInstance() {
+        // Assignments forms use redux-form which needs getWrappedInstance()
+        // This should be edited when refactoring Assignments UI
+
+        return this.refs.form.getWrappedInstance() ||
+            this.refs.form;
+    }
+
     submit() {
-        this.refs.form.getWrappedInstance().submit();
+        this.getFormInstance().submit();
     }
 
     onHide() {
-        if ('onHide' in this.refs.form.getWrappedInstance().props) {
+        if ('onHide' in this.getFormInstance().props) {
             this.refs.form.getWrappedInstance().props.onHide(this.props.initialValues);
         }
 

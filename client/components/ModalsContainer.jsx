@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {modalType, modalProps} from '../selectors/general';
 import {hideModal, deselectAllTheEventList} from '../actions';
 import {
     AgendaModal,
@@ -45,8 +46,8 @@ Modals.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-    modalType: state.modal.modalType,
-    modalProps: state.modal.modalProps,
+    modalType: modalType(state),
+    modalProps: modalProps(state),
 });
 const mapDispatchToProps = (dispatch) => ({
     handleHide: (deselectEvents) => {

@@ -11,6 +11,7 @@ import {
     Editor,
     ListPanel
 } from './components/Main';
+import {ModalsContainer} from './components';
 
 import './planning.scss';
 
@@ -111,7 +112,9 @@ class PlanningApp extends React.Component {
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
             [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]
+                this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
+            [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName]
         };
 
         return (
@@ -145,6 +148,7 @@ class PlanningApp extends React.Component {
                         minimize={this.closeEditor}
                     />
                 </div>
+                <ModalsContainer />
             </section>
         );
     }
@@ -196,6 +200,7 @@ const mapDispatchToProps = (dispatch) => ({
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: (event) => dispatch(actions.duplicateEvent(event)),
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
+    [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: (event) => dispatch(actions.events.ui.openSpikeModal(event)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningApp);

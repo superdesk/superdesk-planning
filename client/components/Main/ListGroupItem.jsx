@@ -83,7 +83,9 @@ export class ListGroupItem extends React.Component {
                 [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
                     this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
                 [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
-                    this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]
+                    this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
+                [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
+                        this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
             };
             return (
                 <EventItem { ... itemProps } />
@@ -123,4 +125,5 @@ ListGroupItem.propTypes = {
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
 };
