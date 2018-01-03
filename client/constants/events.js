@@ -73,4 +73,9 @@ export const EVENTS = {
             icon: 'icon-repeat',
         },
     },
+    DEFAULT_VALUES: {
+        _type: 'events',
+        occur_status: {qcode: 'eocstat:eos5'},
+        dates: {}
+    }
 };

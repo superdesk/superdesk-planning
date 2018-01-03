@@ -481,9 +481,9 @@ export const getItemPublishedStateLabel = (item) => {
 };
 
 export const isItemPublic = (item = {}) =>
-    item && typeof item === 'string' ?
+    !!item && (typeof item === 'string' ?
         item === PUBLISHED_STATE.USABLE || item === PUBLISHED_STATE.CANCELLED :
-        item.pubstatus === PUBLISHED_STATE.USABLE || item.pubstatus === PUBLISHED_STATE.CANCELLED;
+        item.pubstatus === PUBLISHED_STATE.USABLE || item.pubstatus === PUBLISHED_STATE.CANCELLED);
 
 export const isItemSpiked = (item) => item ?
     getItemWorkflowState(item) === WORKFLOW_STATE.SPIKED : false;

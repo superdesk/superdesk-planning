@@ -16,24 +16,22 @@ import {ModalsContainer} from './components';
 import './planning.scss';
 
 import * as actions from './actions';
-
 import * as selectors from './selectors';
-import {EVENTS, PLANNING} from './constants';
+import {EVENTS, PLANNING, ITEM_TYPE} from './constants';
 
 class PlanningApp extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            editorOpen: false,
             filtersOpen: false,
             previewOpen: false,
         };
 
         this.toggleFilterPanel = this.toggleFilterPanel.bind(this);
         this.onItemClick = this.onItemClick.bind(this);
-        this.openEditor = this.openEditor.bind(this);
-        this.closeEditor = this.closeEditor.bind(this);
         this.closePreview = this.closePreview.bind(this);
+        this.addEvent = this.addEvent.bind(this);
+        this.onSave = this.onSave.bind(this);
     }
 
     toggleFilterPanel() {
@@ -48,34 +46,27 @@ class PlanningApp extends React.Component {
         });
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.editItem !== this.props.editItem) {
-            this.setState({editorOpen: !!nextProps.editItem});
-        }
-    }
-
-    openEditor(item) {
-        this.setState({editorOpen: true});
-        this.props.edit(item);
-    }
-
-    closeEditor() {
-        this.setState({editorOpen: false});
-    }
-
     closePreview() {
         this.setState({
             previewOpen: false,
             initialLoad: false,
         });
+
+        this.props.closePreview();
+    }
+
+    addEvent() {
+        this.props.edit({_type: ITEM_TYPE.EVENT});
+    }
+
+    onSave(item, save = true, publish = false) {
+        return this.props.onSave(item, save, publish);
     }
 
     render() {
         const sectionClassName = classNames(
             'sd-content sd-page-content--slide-in',
-            {
-                'sd-page-content--slide-in--open': this.state.editorOpen,
-            }
+            {'sd-page-content--slide-in--open': !!this.props.editItemType}
         );
 
         const contentBlockFlags = {
@@ -100,7 +91,7 @@ class PlanningApp extends React.Component {
         const listPanelProps = {
             groups: this.props.groups,
             onItemClick: this.onItemClick,
-            onDoubleClick: this.openEditor,
+            onDoubleClick: this.props.edit,
             agendas: this.props.agendas,
             lockedItems: this.props.lockedItems,
             dateFormat: this.props.dateFormat,
@@ -132,7 +123,10 @@ class PlanningApp extends React.Component {
         return (
             <section className={sectionClassName}>
                 <div className={mainClassName}>
-                    <SearchBar openAgendas={this.props.openAgendas}/>
+                    <SearchBar
+                        addEvent={this.addEvent}
+                        openAgendas={this.props.openAgendas}
+                    />
                     <FiltersBar
                         filterPanelOpen={this.state.filtersOpen}
                         toggleFilterPanel={this.toggleFilterPanel}
@@ -147,7 +141,7 @@ class PlanningApp extends React.Component {
                         <ListPanel { ...listPanelProps } />
                         <PreviewPanel
                             item={this.props.previewItem}
-                            edit={this.openEditor}
+                            edit={this.props.edit}
                             closePreview={this.closePreview}
                             initialLoad={this.state.initialLoad}
                         />
@@ -156,10 +150,18 @@ class PlanningApp extends React.Component {
                 <div className={editorClassName}>
                     <Editor
                         item={this.props.editItem}
-                        cancel={this.props.cancel}
-                        minimize={this.closeEditor}
+                        itemType={this.props.editItemType}
+                        cancel={this.props.cancel.bind(null, this.props.editItem)}
+                        minimize={this.props.cancel.bind(null, this.props.editItem)}
+                        onSave={this.onSave}
+                        onUnpublish={this.props.onUnpublish}
+                        session={this.props.session}
+                        privileges={this.props.privileges}
+                        lockedItems={this.props.lockedItems}
+                        openCancelModal={this.props.openCancelModal}
                     />
                 </div>
+
                 <ModalsContainer />
             </section>
         );
@@ -169,6 +171,7 @@ class PlanningApp extends React.Component {
 PlanningApp.propTypes = {
     groups: PropTypes.array,
     editItem: PropTypes.object,
+    editItemType: PropTypes.string,
     previewItem: PropTypes.object,
     edit: PropTypes.func.isRequired,
     cancel: PropTypes.func.isRequired,
@@ -194,15 +197,21 @@ PlanningApp.propTypes = {
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: PropTypes.func,
+
+    onSave: PropTypes.func.isRequired,
+    onUnpublish: PropTypes.func.isRequired,
+    openCancelModal: PropTypes.func.isRequired,
+    closePreview: PropTypes.func.isRequired,
 };
 
 const mapStateToProps = (state) => ({
     groups: selectors.main.itemGroups(state),
-    editItem: state.main.editItem,
+    editItem: selectors.forms.currentItem(state),
+    editItemType: selectors.forms.currentItemType(state),
     previewItem: selectors.main.previewItem(state),
     lockedItems: selectors.getLockedItems(state),
-    dateFormat: selectors.getDateFormat(state),
-    timeFormat: selectors.getTimeFormat(state),
+    dateFormat: selectors.config.getDateFormat(state),
+    timeFormat: selectors.config.getTimeFormat(state),
     activeFilter: selectors.main.activeFilter(state),
     agendas: selectors.getAgendas(state),
     currentAgendaId: selectors.getCurrentAgendaId(state),
@@ -211,12 +220,13 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    edit: (item) => dispatch(actions.main.edit(item)),
-    cancel: () => dispatch(actions.main.cancel()),
+    edit: (item) => dispatch(actions.main.lockAndEdit(item)),
+    cancel: (item) => dispatch(actions.main.unlockAndCancel(item)),
     preview: (item) => dispatch(actions.main.preview(item)),
     filter: (filterType) => dispatch(actions.main.filter(filterType)),
     selectAgenda: (agendaId) => dispatch(actions.selectAgenda(agendaId)),
     openAgendas: () => dispatch(actions.openAgenda()),
+
     // Event Item actions:
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: (event) => dispatch(actions.duplicateEvent(event)),
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
@@ -234,6 +244,11 @@ const mapDispatchToProps = (dispatch) => ({
         (planning) => dispatch(actions.planning.ui.openCancelPlanningModal(planning)),
     [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
         (planning) => dispatch(actions.planning.ui.openCancelAllCoverageModal(planning)),
+
+    onSave: (item, save = true, publish = false) => dispatch(actions.main.save(item, save, publish)),
+    onUnpublish: (item) => dispatch(actions.main.unpublish(item)),
+    openCancelModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
+    closePreview: () => dispatch(actions.main.closePreview())
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningApp);

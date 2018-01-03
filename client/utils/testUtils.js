@@ -180,6 +180,12 @@ export const getTestActionStore = () => {
             authoringWorkspace: {
                 edit: sinon.stub(),
                 view: sinon.stub(),
+            },
+
+            upload: {
+                start: sinon.spy((file) => Promise.resolve({
+                    data: {_id: file.data.media[0][0]}
+                }))
             }
         },
 

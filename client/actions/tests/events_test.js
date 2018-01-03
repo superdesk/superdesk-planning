@@ -106,15 +106,6 @@ describe('events', () => {
         };
         const $timeout = sinon.spy((func) => func());
 
-        const upload = {
-            start: sinon.spy((file) => (Promise.resolve({
-                data: {
-                    _id: file.data.media[0][0],
-                    file: file,
-                },
-            }))),
-        };
-
         let apiSpy;
         const api = () => (apiSpy);
 
@@ -144,74 +135,9 @@ describe('events', () => {
             restoreSinonStub(eventsUi.refetchEvents);
         });
 
-        it('uploadFilesAndSaveEvent', (done) => {
-            dispatch = dispatchRunFunction;
-            initialState.events.highlightedEvent = true;
-            initialState.events.showEventDetails = true;
-            const event = {
-                name: 'Event 4',
-                dates: {
-                    start: '2099-10-15T13:01:11',
-                    end: '2099-10-15T14:01:11',
-                },
-            };
-            const action = actions.uploadFilesAndSaveEvent(event);
-
-            api.save = sinon.spy(() => (Promise.resolve(event)));
-            return action(dispatch, getState)
-                .then(() => {
-                    expect(eventsUi.refetchEvents.callCount).toBe(1);
-                    done();
-                })
-                .catch((error) => {
-                    expect(error).toBe(null);
-                    expect(error.stack).toBe(null);
-                    done();
-                });
-        });
-
-        it('saveFiles', (done) => {
-            const event = {
-                files: [
-                    ['test_file_1'],
-                    ['test_file_2'],
-                ],
-            };
-
-            const action = actions.saveFiles(event);
-
-            return action(dispatch, getState, {upload})
-                .then((newEvent) => {
-                    expect(upload.start.callCount).toBe(2);
-                    expect(upload.start.args[0]).toEqual([{
-                        method: 'POST',
-                        url: 'http://server.com/events_files/',
-                        headers: {'Content-Type': 'multipart/form-data'},
-                        data: {media: [event.files[0]]},
-                        arrayKey: '',
-                    }]);
-                    expect(upload.start.args[1]).toEqual([{
-                        method: 'POST',
-                        url: 'http://server.com/events_files/',
-                        headers: {'Content-Type': 'multipart/form-data'},
-                        data: {media: [event.files[1]]},
-                        arrayKey: '',
-                    }]);
-
-                    expect(newEvent.files).toEqual(['test_file_1', 'test_file_2']);
-
-                    done();
-                })
-                .catch((error) => {
-                    expect(error).toBe(null);
-                    expect(error.stack).toBe(null);
-                    done();
-                });
-        });
-
         describe('fetchEventById', () => {
             it('calls api.getById and runs dispatches', (done) => {
-                apiSpy.getById = sinon.spy(() => Promise.resolve(events[1]));
+                api.find = sinon.spy(() => Promise.resolve(events[1]));
                 const action = actions.fetchEventById('e2');
 
                 return action(dispatch, getState, {
@@ -220,8 +146,12 @@ describe('events', () => {
                 })
                     .then((event) => {
                         expect(event).toEqual(events[1]);
-                        expect(apiSpy.getById.callCount).toBe(1);
-                        expect(apiSpy.getById.args[0]).toEqual(['e2']);
+                        expect(api.find.callCount).toBe(1);
+                        expect(api.find.args[0]).toEqual([
+                            'events',
+                            'e2',
+                            {embedded: {files: 1}}
+                        ]);
 
                         expect(dispatch.callCount).toBe(2);
                         expect(dispatch.args[0]).toEqual([jasmine.objectContaining({
@@ -244,7 +174,7 @@ describe('events', () => {
             });
 
             it('notifies end user if an error occurred', (done) => {
-                apiSpy.getById = sinon.spy(() => Promise.reject());
+                api.find = sinon.spy(() => Promise.reject());
                 const action = actions.fetchEventById('e2');
 
                 return action(dispatch, getState, {
@@ -319,6 +249,7 @@ describe('events', () => {
         };
 
         let store;
+        let apiSpy;
         let spyGetById;
         let spyQuery;
         let $rootScope;
@@ -334,14 +265,16 @@ describe('events', () => {
 
             $rootScope = _$rootScope_;
 
-            spyGetById = sinon.spy(() => newEvent);
-            spyQuery = sinon.spy(() => spyQueryResult);
+            spyGetById = sinon.spy(() => Promise.resolve(newEvent));
+            spyQuery = sinon.spy(() => Promise.resolve(spyQueryResult));
+
+            apiSpy = (resource) => ({query: spyQuery});
+            apiSpy.find = spyGetById;
 
             store = createTestStore({
                 initialState: cloneDeep(initialState),
                 extraArguments: {
-                    apiGetById: spyGetById,
-                    apiQuery: spyQuery,
+                    api: apiSpy,
                 },
             });
 
@@ -387,6 +320,7 @@ describe('events', () => {
                     expect(spyGetById.args[0]).toEqual([
                         'events',
                         'e2',
+                        {embedded: {files: 1}}
                     ]);
 
                     expect(selectors.getEvents(store.getState())).toEqual({
@@ -441,28 +375,25 @@ describe('events', () => {
                 // Expects run in setTimeout to give the event listener a change to execute
                 originalSetTimeout(() => {
                     expect(spyQuery.callCount).toBe(2);
-                    expect(spyQuery.args[0]).toEqual([
-                        'events',
-                        {
-                            page: 1,
-                            max_results: 25,
-                            sort: '[("dates.start",1)]',
-                            embedded: {files: 1},
-                            source: JSON.stringify({
-                                query: {
-                                    bool: {
-                                        must: [
-                                            {term: {recurrence_id: 'r1'}},
-                                        ],
-                                        must_not: [
-                                            {term: {state: 'spiked'}},
-                                        ],
-                                    },
+                    expect(spyQuery.args[0]).toEqual([{
+                        page: 1,
+                        max_results: 25,
+                        sort: '[("dates.start",1)]',
+                        embedded: {files: 1},
+                        source: JSON.stringify({
+                            query: {
+                                bool: {
+                                    must: [
+                                        {term: {recurrence_id: 'r1'}},
+                                    ],
+                                    must_not: [
+                                        {term: {state: 'spiked'}},
+                                    ],
                                 },
-                                filter: {},
-                            }),
-                        },
-                    ]);
+                            },
+                            filter: {},
+                        }),
+                    }]);
 
                     expect(selectors.getEvents(store.getState())).toEqual({
                         e1: {

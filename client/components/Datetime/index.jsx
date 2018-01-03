@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import {connect} from 'react-redux';
-import {dateFormat, timeFormat} from '../../selectors/general';
+import {dateFormat as getDateFormat, timeFormat as getTimeFormat} from '../../selectors/general';
 import './style.scss';
 
 function Datetime({date, withTime, withDate, withYear, dateFormat, timeFormat}) {
@@ -33,8 +33,8 @@ Datetime.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-    dateFormat: dateFormat(state),
-    timeFormat: timeFormat(state),
+    dateFormat: getDateFormat(state),
+    timeFormat: getTimeFormat(state),
 });
 
 export default connect(mapStateToProps)(Datetime);

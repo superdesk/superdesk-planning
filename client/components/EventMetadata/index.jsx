@@ -1,7 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {StateLabel, EventScheduleSummary} from '../index';
+import {StateLabel} from '../index';
+import {EventScheduleSummary} from '../Events';
 import {Item, Column, Row} from '../UI/List';
 import {Row as PreviewRow} from '../UI/Preview';
 import {CollapseBox} from '../UI/CollapseBox';

@@ -11,7 +11,7 @@ import eventsApi from '../../../actions/events/api';
 import eventsUi from '../../../actions/events/ui';
 import moment from 'moment';
 
-describe('<SpikeEventForm />', () => {
+xdescribe('<SpikeEventForm />', () => {
     let store;
     let astore;
     let services;

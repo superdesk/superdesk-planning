@@ -1,12 +1,13 @@
 import {EVENTS, SPIKED_STATE, WORKFLOW_STATE, PUBLISHED_STATE} from '../../constants';
-import {EventUpdateMethods} from '../../components/fields';
-import {get, isEqual} from 'lodash';
+import {EventUpdateMethods} from '../../components/Events';
+import {get, isEqual, cloneDeep, pickBy, isNil} from 'lodash';
 import * as selectors from '../../selectors';
 import {isItemLockedInThisSession} from '../../utils';
 import moment from 'moment';
 
 import planningApi from '../planning/api';
 import eventsUi from './ui';
+import locationApi from '../locations';
 
 /**
  * Action dispatcher to load a series of recurring events into the local store.
@@ -640,6 +641,152 @@ const fetchEventHistory = (eventId) => (
     )
 );
 
+/**
+ * Set event.pubstatus canceled and publish event.
+ *
+ * @param {Object} event
+ */
+const unpublish = (event) => (
+    (dispatch, getState, {api, notify}) => (
+        api.save('events_publish', {
+            event: event._id,
+            etag: event._etag,
+            pubstatus: PUBLISHED_STATE.CANCELLED,
+        })
+    )
+);
+
+const _uploadFiles = (event) => (
+    (dispatch, getState, {upload}) => {
+        const clonedEvent = cloneDeep(event);
+
+        // If no files, do nothing
+        if (get(clonedEvent, 'files.length', 0) === 0) {
+            return Promise.resolve([]);
+        }
+
+        // Calculate the files to upload
+        const filesToUpload = clonedEvent.files.filter(
+            (f) => f instanceof FileList || f instanceof Array
+        );
+
+        if (filesToUpload.length < 1) {
+            return Promise.resolve([]);
+        }
+
+        return Promise.all(filesToUpload.map((file) => (
+            upload.start({
+                method: 'POST',
+                url: getState().config.server.url + '/events_files/',
+                headers: {'Content-Type': 'multipart/form-data'},
+                data: {media: [file]},
+                arrayKey: ''
+            })
+                .then(
+                    (file) => Promise.resolve(file.data),
+                    (error) => Promise.reject(error)
+                )
+        )));
+    }
+);
+
+/**
+ * Action Dispatcher for saving the location for an event
+ * @param {object} event - The event the location is associated with
+ * @return arrow function
+ */
+const _saveLocation = (event) => (
+    (dispatch) => {
+        const location = get(event, 'location[0]');
+
+        if (!location || !location.name) {
+            event.location = [];
+            return Promise.resolve(event);
+        } else if (location.existingLocation) {
+            event.location[0] = {
+                name: location.name,
+                qcode: location.guid,
+                address: location.address
+            };
+
+            delete location.address.external;
+
+            return Promise.resolve(event);
+        } else if (isNil(location.qcode)) {
+            // the location is set, but doesn't have a qcode (not registered in the location collection)
+            return dispatch(locationApi.saveLocation(location))
+                .then((savedLocation) => {
+                    event.location[0] = savedLocation;
+                    return Promise.resolve(event);
+                });
+        } else {
+            return Promise.resolve(event);
+        }
+    }
+);
+
+const _save = (newEvent) => (
+    (dispatch, getState, {api}) => {
+        // remove links if it contains only null values
+        if (newEvent.links && newEvent.links.length > 0) {
+            newEvent.links = newEvent.links.filter((l) => (l));
+            if (!newEvent.links.length) {
+                delete newEvent.links;
+            }
+        }
+        // retrieve original
+        let original = selectors.getEvents(getState())[newEvent._id];
+        // clone the original because `save` will modify it
+
+        original = cloneDeep(original) || {};
+        let clonedEvent = cloneDeep(newEvent) || {};
+
+        // save the timezone. This is useful for recurring events
+        if (clonedEvent.dates) {
+            clonedEvent.dates.tz = moment.tz.guess();
+        }
+
+        // remove all properties starting with _,
+        // otherwise it will fail for "unknown field" with `_type`
+        clonedEvent = pickBy(clonedEvent, (v, k) => (
+            !k.startsWith('_') &&
+            !isEqual(clonedEvent[k], original[k])
+        ));
+
+        clonedEvent.update_method = get(clonedEvent, 'update_method.value', EventUpdateMethods[0].value);
+
+        // send the event on the backend
+        return api('events').save(original, clonedEvent)
+        // return a list of events (can have several because of reccurence)
+            .then((data) => (
+                Promise.resolve(data._items || [data])
+            ), (error) => Promise.reject(error));
+    }
+);
+
+const save = (event) => (
+    (dispatch, getState, {notify}) => (
+        Promise.all([
+            dispatch(self._uploadFiles(event)), // Returns the new files uploaded
+            dispatch(self._saveLocation(event)), // Returns the modified unsaved event with the locations changes
+        ])
+            .then((data) => {
+                const newFiles = data[0];
+                const modifiedEvent = data[1];
+                const originalFiles = get(modifiedEvent, 'files', []).filter(
+                    (f) => !(f instanceof FileList) && !(f instanceof Array)
+                );
+
+                modifiedEvent.files = [
+                    ...originalFiles.map((e) => e._id),
+                    ...newFiles.map((e) => e._id)
+                ];
+
+                return dispatch(self._save(modifiedEvent));
+            })
+    )
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     loadEventsByRecurrenceId,
@@ -664,6 +811,11 @@ const self = {
     loadAssociatedPlannings,
     publishEvent,
     fetchEventHistory,
+    unpublish,
+    _uploadFiles,
+    _save,
+    save,
+    _saveLocation,
 };
 
 export default self;

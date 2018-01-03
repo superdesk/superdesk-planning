@@ -1,19 +1,19 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import './style.scss';
-import {EventUpdateMethodField} from '../fields/index';
+import {EventUpdateMethodInput} from '../Events';
 import {RelatedEvents, RelatedPlannings} from '../index';
 import {gettext} from '../../utils';
 
 export const UpdateMethodSelection = ({
-    input,
+    value,
+    onChange,
     showMethodSelection,
     updateMethodLabel,
     relatedPlannings,
     relatedEvents,
     dateFormat,
     action,
-    handleSubmit,
     showSpace,
     readOnly,
 }) => (
@@ -21,9 +21,10 @@ export const UpdateMethodSelection = ({
         { showMethodSelection &&
             <div className="MethodSelect">
                 <p><strong>{gettext('This event is a recurring event!')}</strong></p>
-                <EventUpdateMethodField
-                    input={input}
-                    readOnly={readOnly}
+                <EventUpdateMethodInput
+                    value={value}
+                    onChange={onChange}
+                    disabled={readOnly}
                     label={updateMethodLabel}/>
             </div>
         }
@@ -64,14 +65,14 @@ UpdateMethodSelection.defaultProps = {
 };
 
 UpdateMethodSelection.propTypes = {
-    input: PropTypes.object.isRequired,
+    value: PropTypes.object,
+    onChange: PropTypes.func.isRequired,
     showMethodSelection: PropTypes.bool,
     updateMethodLabel: PropTypes.string,
     relatedPlannings: PropTypes.array,
     relatedEvents: PropTypes.array,
     dateFormat: PropTypes.string,
     action: PropTypes.string,
-    handleSubmit: PropTypes.func.isRequired,
     showSpace: PropTypes.bool,
     readOnly: PropTypes.bool,
 };

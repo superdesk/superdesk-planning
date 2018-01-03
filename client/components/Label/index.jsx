@@ -2,6 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import {gettext} from '../../utils';
 
 export const Label = ({text, iconType, verbose, isHollow, tooltip}) => {
     const labelClasses = classNames('label',
@@ -10,7 +11,7 @@ export const Label = ({text, iconType, verbose, isHollow, tooltip}) => {
 
     const label = (
         <span className={labelClasses}>
-            {verbose ? verbose : text}
+            {verbose ? gettext(verbose) : gettext(text)}
         </span>
     );
 
@@ -18,7 +19,7 @@ export const Label = ({text, iconType, verbose, isHollow, tooltip}) => {
         <span>
             {tooltip &&
                 <span
-                    data-sd-tooltip={tooltip.text}
+                    data-sd-tooltip={gettext(tooltip.text)}
                     data-flow={tooltip.flow ? tooltip.flow : 'down'}>
                     {label}
                 </span>

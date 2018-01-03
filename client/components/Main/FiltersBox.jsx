@@ -3,8 +3,9 @@ import PropTypes from 'prop-types';
 import {gettext} from '../../utils';
 
 import {Spacer} from '../UI/SubNav';
-import {Checkbox} from '../UI';
+import {Checkbox} from '../UI/Form';
 import {AgendaSubnavDropdown} from './';
+import {StretchBar} from '../UI/SubNav';
 
 import {MAIN} from '../../constants';
 
@@ -25,13 +26,16 @@ export const FiltersBox = ({activeFilter, setFilter, agendas, selectAgenda, curr
     ];
 
     return (
-        <div className="subnav__stretch-bar">
+        <StretchBar>
             {filters.map((filter) => (
                 <Checkbox
                     key={filter.filter}
                     label={filter.label}
-                    checked={filter.filter === activeFilter}
-                    onClick={() => setFilter(filter.filter)}
+                    value={activeFilter}
+                    checkedValue={filter.filter}
+                    onChange={(field, value) => setFilter(value)}
+                    type="radio"
+                    labelPosition="inside"
                 />
             ))}
 
@@ -45,7 +49,7 @@ export const FiltersBox = ({activeFilter, setFilter, agendas, selectAgenda, curr
                     currentAgendaId={currentAgendaId}
                 />
             )}
-        </div>
+        </StretchBar>
     );
 };
 

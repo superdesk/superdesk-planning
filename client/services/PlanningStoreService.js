@@ -127,12 +127,11 @@ export function PlanningStoreService(
                     urgency: metadata.values.urgency,
                     label: gettextCatalog.getString('Urgency'),
                 },
-                formsProfile: {},
-                contacts: data.contacts._items,
+                forms: {profiles: {}},
             };
 
             data.formsProfile._items.forEach((p) => {
-                initialState.formsProfile[p.name] = p;
+                initialState.forms.profiles[p.name] = p;
             });
 
             // create the application store

@@ -4,13 +4,12 @@ export {AGENDA} from './agenda';
 export {ASSIGNMENTS} from './assignments';
 export {TOOLTIPS} from './tooltips';
 export {LOCKS} from './locks';
-export {LOCATIONS} from './locations';
 export {WORKSPACE} from './workspace';
 export {MODALS} from './modals';
 export {UI} from './ui';
 export {AUTOSAVE} from './autosave';
 export {MAIN} from './main';
-
+export {KEYCODES} from './keycodes';
 
 export const LIST_ITEM_1_LINE_HEIGHT = 38;
 export const LIST_ITEM_2_LINES_HEIGHT = 56;

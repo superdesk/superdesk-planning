@@ -11,7 +11,8 @@ import {
     RequiredFieldsValidatorFactory,
     UntilDateValidator,
     EventMaxEndRepeatCount} from '../../../validators';
-import {EventScheduleForm, EventScheduleSummary} from '../../index';
+import {EventScheduleForm} from '../../index';
+import {EventScheduleSummary} from '../../Events';
 import moment from 'moment';
 import {FORM_NAMES, EVENTS} from '../../../constants';
 

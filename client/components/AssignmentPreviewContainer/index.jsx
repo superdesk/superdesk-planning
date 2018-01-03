@@ -21,13 +21,12 @@ import {
     ItemActionsMenu,
     StateLabel,
     AuditInformation,
-    ToggleBox,
     AbsoluteDate,
     Datetime,
     UserAvatar,
     PriorityLabel,
 } from '../';
-import {List} from '../UI';
+import {List, ToggleBox} from '../UI';
 import './style.scss';
 
 class AssignmentPreviewContainerComponent extends React.Component {
@@ -327,7 +326,7 @@ const mapStateToProps = (state) => ({
     priorities: get(state, 'vocabularies.assignment_priority'),
     privileges: selectors.getPrivileges(state),
     keywords: get(state, 'vocabularies.keywords', []),
-    formProfile: selectors.getFormsProfile(state),
+    formProfile: selectors.forms.profiles(state),
     lockedItems: selectors.getLockedItems(state),
     agendas: selectors.getAgendas(state),
 });

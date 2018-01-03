@@ -12,5 +12,12 @@
 }
 
 .history-list--no-padding {
-	padding: 0px !important;
+	padding: 0 !important;
+}
+
+.event-toggle {
+    margin: 0 0 1.8rem 0;
+    .sd-line-input__label {
+        margin-top: 0.4rem !important;
+    }
 }

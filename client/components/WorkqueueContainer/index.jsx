@@ -41,8 +41,8 @@ const mapStateToProps = (state) => ({
     currentPlanningId: selectors.getCurrentPlanningId(state),
     currentEvent: selectors.getHighlightedEvent(state),
     isEventListShown: selectors.isEventListShown(state),
-    autosavedPlanningItems: selectors.getAutosavePlanningItems(state),
-    autosavedEventItems: selectors.getAutosaveEventItems(state),
+    autosavedPlanningItems: selectors.forms.planningAutosaves(state),
+    autosavedEventItems: selectors.forms.eventAutosaves(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

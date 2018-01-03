@@ -8,7 +8,7 @@ import {createTestStore} from '../../../utils';
 import * as actions from '../../../actions';
 import sinon from 'sinon';
 
-describe('<UpdateRecurringEventsForm />', () => {
+xdescribe('<UpdateRecurringEventsForm />', () => {
     let store;
     let astore;
     let services;

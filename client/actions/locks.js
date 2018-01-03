@@ -1,7 +1,7 @@
 import * as selectors from '../selectors';
-import {LOCKS} from '../constants';
+import {LOCKS, ITEM_TYPE} from '../constants';
 import {planning, events, assignments} from './index';
-import {getLock} from '../utils';
+import {getLock, getItemType} from '../utils';
 
 /**
  * Action Dispatcher to load all Event and Planning locks
@@ -72,8 +72,24 @@ const unlock = (item) => (
     }
 );
 
+const lock = (item) => (
+    (dispatch) => {
+        const itemType = getItemType(item);
+
+        switch (itemType) {
+        case ITEM_TYPE.EVENT:
+            return dispatch(events.api.lock(item));
+        case ITEM_TYPE.PLANNING:
+            return dispatch(planning.api.lock(item));
+        }
+
+        return Promise.reject('Could not determine item type');
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
+    lock,
     unlock,
     loadAllLocks,
     loadAssignmentLocks,

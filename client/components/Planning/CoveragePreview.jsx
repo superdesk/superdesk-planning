@@ -105,8 +105,10 @@ export const CoveragePreview = ({coverage, users, desks, newsCoverageStatus, dat
             <PreviewRow label={gettext('Internal Note')} value={coverage.planning.internal_note} />}
             {get(formProfile, 'editor.g2_content_type.enabled') &&
             <PreviewRow label={gettext('Type')}
-                value={coverage.planning.g2_content_type.charAt(0).toUpperCase() +
-                 coverage.planning.g2_content_type.slice(1)} />}
+                value={!coverage.planning.g2_content_type ? '' :
+                    coverage.planning.g2_content_type.charAt(0).toUpperCase() +
+                        coverage.planning.g2_content_type.slice(1)}
+            />}
             {get(formProfile, 'editor.genre.enabled') && coverage.planning.genre &&
                 <PreviewRow label={gettext('Genre')} value={get(coverage, 'planning.genre.name')} />}
             <PreviewRow label={gettext('Coverage Status')} value={coverageStatus.label || ''} />

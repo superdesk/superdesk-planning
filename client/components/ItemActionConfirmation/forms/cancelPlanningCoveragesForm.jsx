@@ -2,10 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../../../actions';
-import {InputTextAreaField} from '../../fields/index';
 import {isItemCancelled, gettext} from '../../../utils';
 import {get} from 'lodash';
 import {Row} from '../../UI/Preview';
+import {TextAreaInput} from '../../UI/Form';
 import '../style.scss';
 
 export class PlanningCovergeCancelComponent extends React.Component {
@@ -15,14 +15,16 @@ export class PlanningCovergeCancelComponent extends React.Component {
             reason: '',
             submitting: false,
         };
+
+        this.onReasonChange = this.onReasonChange.bind(this);
     }
 
-    onReasonChange(event) {
-        this.setState({reason: get(event, 'target.value')});
+    onReasonChange(field, reason) {
+        this.setState({reason});
     }
 
     submit() {
-        // Modal closes after submit. So, reseting submitting is not required
+        // Modal closes after submit. So, resetting submitting is not required
         this.setState({submitting: true});
 
         this.props.onSubmit({
@@ -36,16 +38,16 @@ export class PlanningCovergeCancelComponent extends React.Component {
         let planning = initialValues;
         const labelText = initialValues._cancelAllCoverage ? gettext('Reason for cancelling all coverage:') :
             gettext('Reason for cancelling the planning item:');
-        const reasonInputProp = {onChange: this.onReasonChange.bind(this)};
 
         return (
             <div className="ItemActionConfirmation">
                 <Row value={planning.slugline} className="strong" />
                 <Row label={labelText}>
-                    <InputTextAreaField
-                        type="text"
-                        readOnly={this.state.submitting}
-                        input={reasonInputProp} />
+                    <TextAreaInput
+                        value={this.state.reason}
+                        onChange={this.onReasonChange}
+                        disabled={this.state.submitting}
+                    />
                 </Row>
             </div>
         );

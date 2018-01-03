@@ -61,10 +61,6 @@ describe('components.Main.FiltersBox', () => {
 
         expect(filters.activeFilter()).toBe(MAIN.FILTERS.COMBINED);
         expect(filters.currentAgendaId()).toBe(AGENDA.FILTER.ALL_PLANNING);
-
-        expect(filters.combined.checked()).toBe(true);
-        expect(filters.events.checked()).toBe(false);
-        expect(filters.planning.checked()).toBe(false);
     });
 
     it('executes `setFilter` on clicking checkboxes', () => {

@@ -4,11 +4,10 @@ import {connect} from 'react-redux';
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {eventUtils, gettext} from '../../../utils';
-import {EventUpdateMethods, InputTextAreaField} from '../../fields/index';
-import {EventScheduleSummary} from '../../index';
+import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {Row} from '../../UI/Preview';
-import {get} from 'lodash';
+import {TextAreaInput} from '../../UI/Form';
 import '../style.scss';
 
 export class CancelEventComponent extends React.Component {
@@ -21,6 +20,9 @@ export class CancelEventComponent extends React.Component {
             relatedPlannings: [],
             submitting: false,
         };
+
+        this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
+        this.onReasonChange = this.onReasonChange.bind(this);
     }
 
     componentWillMount() {
@@ -44,7 +46,7 @@ export class CancelEventComponent extends React.Component {
         });
     }
 
-    onEventUpdateMethodChange(option) {
+    onEventUpdateMethodChange(field, option) {
         const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
             option);
 
@@ -54,8 +56,8 @@ export class CancelEventComponent extends React.Component {
         });
     }
 
-    onReasonChange(event) {
-        this.setState({reason: get(event, 'target.value')});
+    onReasonChange(field, reason) {
+        this.setState({reason});
     }
 
     render() {
@@ -64,32 +66,50 @@ export class CancelEventComponent extends React.Component {
         const updateMethodLabel = gettext('Would you like to cancel all recurring events or just this one?');
         const numEvents = this.state.relatedEvents.length + 1;
         const numPlannings = this.state.relatedPlannings.length;
-        const updateMethodSelectionInput = {
-            value: this.state.eventUpdateMethod,
-            onChange: this.onEventUpdateMethodChange.bind(this)
-        };
-        const reasonInputProp = {onChange: this.onReasonChange.bind(this)};
 
         return (
             <div className="ItemActionConfirmation">
-                {initialValues.slugline && <Row label={gettext('Slugline')}
-                    value={initialValues.slugline || ''}
-                    className="slugline form__row--no-padding" />}
-                <Row label={gettext('Name')}
-                    value={initialValues.name || ''}
-                    className="strong form__row--no-padding"
-                />
-                <EventScheduleSummary schedule={initialValues.dates} timeFormat={timeFormat} dateFormat={dateFormat}/>
-                {isRecurring && <Row label={gettext('No. of Events')}
-                    value={numEvents}
-                    className="form__row--no-padding" />}
+                {initialValues.slugline && (
+                    <Row
+                        label={gettext('Slugline')}
+                        value={initialValues.slugline || ''}
+                        noPadding={true}
+                        className="slugline"
+                    />
+                )}
 
-                {!!numPlannings && <Row label={gettext('No. of Plannings')}
-                    value={numPlannings}
-                    className="form__row--no-padding" />}
+                <Row
+                    label={gettext('Name')}
+                    value={initialValues.name || ''}
+                    noPadding={true}
+                    className="strong"
+                />
+
+                <EventScheduleSummary
+                    schedule={initialValues.dates}
+                    timeFormat={timeFormat}
+                    dateFormat={dateFormat}
+                />
+
+                {isRecurring && (
+                    <Row
+                        label={gettext('No. of Events')}
+                        value={numEvents}
+                        noPadding={true}
+                    />
+                )}
+
+                {!!numPlannings && (
+                    <Row
+                        label={gettext('No. of Plannings')}
+                        value={numPlannings}
+                        noPadding={true}
+                    />
+                )}
 
                 <UpdateMethodSelection
-                    input={updateMethodSelectionInput}
+                    value={this.state.eventUpdateMethod}
+                    onChange={this.onEventUpdateMethodChange}
                     showMethodSelection={isRecurring}
                     updateMethodLabel={updateMethodLabel}
                     relatedPlannings={this.state.relatedPlannings}
@@ -98,10 +118,11 @@ export class CancelEventComponent extends React.Component {
                     action="cancel" />
 
                 <Row label={gettext('Reason for Event cancellation:')}>
-                    <InputTextAreaField
-                        type="text"
-                        readOnly={this.state.submitting}
-                        input={reasonInputProp} />
+                    <TextAreaInput
+                        value={this.state.reason}
+                        onChange={this.onReasonChange}
+                        disabled={this.state.submitting}
+                    />
                 </Row>
             </div>
         );
