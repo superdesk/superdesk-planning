@@ -4,7 +4,14 @@ import planningApp from '../reducers';
 import thunkMiddleware from 'redux-thunk';
 import createLogger from 'redux-logger';
 import {get, set, isNil, map, cloneDeep} from 'lodash';
-import {PUBLISHED_STATE, WORKFLOW_STATE, TOOLTIPS, ASSIGNMENTS, ITEM_TYPE} from '../constants/index';
+import {
+    PUBLISHED_STATE,
+    WORKFLOW_STATE,
+    TOOLTIPS,
+    ASSIGNMENTS,
+    ITEM_TYPE,
+    GENERIC_ITEM_ACTIONS
+} from '../constants/index';
 import * as testData from './testData';
 
 export {default as checkPermission} from './checkPermission';
@@ -564,3 +571,13 @@ export const getDateTimeString = (date, dateFormat, timeFormat) => (
     // !! Note - expects date as instance of moment() !! //
     date.format(dateFormat) + ' @ ' + date.format(timeFormat)
 );
+
+export const isEmptyActions = (actions) => {
+    if (get(actions, 'length', 0) < 1) {
+        return true;
+    } else {
+        // Do we have only dividers ?
+        return actions.filter((action) =>
+            action.label !== GENERIC_ITEM_ACTIONS.DIVIDER.label).length <= 0;
+    }
+};

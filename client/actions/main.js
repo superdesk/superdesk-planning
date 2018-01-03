@@ -11,6 +11,8 @@ const edit = (item) => ({
 
 const cancel = () => self.edit(null);
 
+const closePreview = () => self.preview(null);
+
 const preview = (item) => ({
     type: MAIN.ACTIONS.PREVIEW,
     payload: item
@@ -62,6 +64,7 @@ const filter = (ftype = null) => (
 const self = {
     edit,
     cancel,
+    closePreview,
     preview,
     filter,
     history,

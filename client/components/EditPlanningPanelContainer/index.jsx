@@ -438,7 +438,7 @@ const mapStateToProps = (state) => ({
     event: selectors.getCurrentPlanningEvent(state),
     users: selectors.getUsers(state),
     readOnly: selectors.getPlanningItemReadOnlyState(state),
-    lockedInThisSession: selectors.isCurrentPlanningLockedInThisSession(state),
+    lockedInThisSession: selectors.planning.isCurrentPlanningLockedInThisSession(state),
     notForPublication: selector(state, 'flags.marked_for_not_publication'),
     privileges: selectors.getPrivileges(state),
     session: selectors.getSessionDetails(state),

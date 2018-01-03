@@ -8,7 +8,7 @@ import {cloneDeep, get} from 'lodash';
 import * as actions from '../../actions';
 import eventsUi from '../../actions/events/ui';
 import moment from 'moment';
-import {restoreSinonStub, itemActionExists} from '../../utils/testUtils';
+import {restoreSinonStub} from '../../utils/testUtils';
 import * as helpers from '../tests/helpers';
 import {FORM_NAMES} from '../../constants';
 import * as testData from '../../utils/testData';
@@ -298,35 +298,6 @@ describe('events', () => {
 
                     expect(eventsUi.openSpikeModal.callCount).toBe(1);
                     expect(eventsUi.openSpikeModal.args[0]).toEqual([event]);
-                });
-
-                it('Lock restricted event has only view-event-history action available', () => {
-                    const recEvent = {
-                        ...event,
-                        dates: {
-                            start: moment('2016-10-15T14:30+0000'),
-                            end: moment('2016-10-20T15:00+0000'),
-                            recurring_rule: {
-                                frequency: 'DAILY',
-                                endRepeatMode: 'count',
-                            },
-                        },
-                        lock_user: testData.users[1]._id,
-                        lock_session: testData.sessions[1].sessionId,
-                    };
-
-                    const store = createTestStoreForEventEditing(recEvent);
-                    const wrapper = mount(
-                        <Provider store={store}>
-                            <EventForm
-                                initialValues={recEvent}
-                                enableReinitialize={true}
-                            />
-                        </Provider>
-                    );
-
-                    expect(wrapper.find('ItemActionsMenu').props().actions.length).toBe(2);
-                    expect(itemActionExists(wrapper, 'View History')).toBe(true);
                 });
             });
 

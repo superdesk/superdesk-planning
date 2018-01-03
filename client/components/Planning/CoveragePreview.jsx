@@ -8,6 +8,7 @@ import moment from 'moment-timezone';
 import {get} from 'lodash';
 import {getCoverageIcon, getCreator, getItemInArrayById, getDateTimeString, gettext} from '../../utils';
 import {UserAvatar, StateLabel} from '../index';
+import {PLANNING} from '../../constants';
 
 export const CoveragePreview = ({coverage, users, desks, newsCoverageStatus, dateFormat, timeFormat, formProfile}) => {
     const userAssigned = getCreator(coverage, 'assigned_to.user', users);
@@ -32,7 +33,11 @@ export const CoveragePreview = ({coverage, users, desks, newsCoverageStatus, dat
 
     const deskAssignor = getItemInArrayById(users, assignor_desk);
     const userAssignor = getItemInArrayById(users, assignor_user);
-    const coverageStatus = newsCoverageStatus.find((s) => s.qcode === coverage.news_coverage_status.qcode);
+
+    const coverageStatus = coverage.news_coverage_status.qcode ===
+        PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode ? PLANNING.NEWS_COVERAGE_CANCELLED_STATUS :
+        newsCoverageStatus.find((s) => s.qcode === coverage.news_coverage_status.qcode);
+
     const coverageDateText = !coverageDate ? 'Not scheduled yet' :
         getDateTimeString(coverageDate, dateFormat, timeFormat);
     const assignmentPriority = get(coverage, 'assigned_to.priority');

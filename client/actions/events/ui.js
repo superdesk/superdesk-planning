@@ -195,12 +195,15 @@ const _unlockAndOpenEventDetails = (event) => (
  * Spike an event and notify the user of the result
  * @param {object} event - The event to spike
  */
-const spike = (event) => (
+const spike = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.spike(event))
+        dispatch(eventsApi.spike(item))
             .then((events) => {
                 dispatch(hideModal());
                 notify.success('The event(s) have been spiked');
+                if (get(selectors.events.showEventDetails(getState()), '_id') === item._id) {
+                    dispatch(main.closePreview(null));
+                }
                 return Promise.resolve(events);
             }, (error) => {
                 dispatch(hideModal());

@@ -1,7 +1,7 @@
 import eventUtils from '../events';
 import moment from 'moment';
 import lockReducer from '../../reducers/locks';
-import {GENERIC_ITEM_ACTIONS, EVENTS} from '../../constants';
+import {EVENTS} from '../../constants';
 import {expectActions} from '../testUtils';
 
 describe('EventUtils', () => {
@@ -241,7 +241,7 @@ describe('EventUtils', () => {
 
     describe('getEventItemActions', () => {
         const actions = [
-            GENERIC_ITEM_ACTIONS.SPIKE,
+            EVENTS.ITEM_ACTIONS.SPIKE,
             EVENTS.ITEM_ACTIONS.UNSPIKE,
             EVENTS.ITEM_ACTIONS.DUPLICATE,
             EVENTS.ITEM_ACTIONS.CANCEL_EVENT,

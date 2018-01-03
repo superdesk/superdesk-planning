@@ -18,7 +18,7 @@ import './planning.scss';
 import * as actions from './actions';
 
 import * as selectors from './selectors';
-import {EVENTS} from './constants';
+import {EVENTS, PLANNING} from './constants';
 
 class PlanningApp extends React.Component {
     constructor(props) {
@@ -80,7 +80,7 @@ class PlanningApp extends React.Component {
 
         const contentBlockFlags = {
             'open-filters': this.state.filtersOpen,
-            'open-preview': this.state.previewOpen,
+            'open-preview': this.state.previewOpen && !!this.props.previewItem,
         };
 
         const mainClassName = classNames(
@@ -114,7 +114,19 @@ class PlanningApp extends React.Component {
             [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
             [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName]
+                this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
+            [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
+            [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
+                this.props[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
+            [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
+                this.props[PLANNING.ITEM_ACTIONS.SPIKE.actionName],
+            [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]:
+                this.props[PLANNING.ITEM_ACTIONS.UNSPIKE.actionName],
+            [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]:
+                this.props[PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName],
+            [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
+                this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
         };
 
         return (
@@ -174,6 +186,12 @@ PlanningApp.propTypes = {
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -201,6 +219,18 @@ const mapDispatchToProps = (dispatch) => ({
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
     [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: (event) => dispatch(actions.events.ui.openSpikeModal(event)),
+    [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: (event) => dispatch(actions.events.ui.openCancelModal(event)),
+    // Planning Item actions
+    [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
+        (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
+    [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
+        (planning) => (dispatch(actions.planning.ui.spike(planning))),
+    [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]:
+        (planning) => (dispatch(actions.planning.ui.unspike(planning))),
+    [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]:
+        (planning) => dispatch(actions.planning.ui.openCancelPlanningModal(planning)),
+    [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
+        (planning) => dispatch(actions.planning.ui.openCancelAllCoverageModal(planning)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningApp);

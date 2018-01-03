@@ -41,13 +41,30 @@ export const PLANNING = {
         NOT_SCHEDULED: 'NOT_SCHEDULED',
     },
     ITEM_ACTIONS: {
+        SPIKE: {
+            label: 'Spike',
+            icon: 'icon-trash',
+            actionName: 'onSpikePlanning'
+        },
+        UNSPIKE: {
+            label: 'Unspike',
+            icon: 'icon-unspike',
+            actionName: 'onUnspikePlanning'
+        },
+        DUPLICATE: {
+            label: 'Duplicate',
+            icon: 'icon-copy',
+            actionName: 'onDuplicatePlanning',
+        },
         CANCEL_PLANNING: {
             label: 'Cancel planning',
             icon: 'icon-close-small',
+            actionName: 'onCancelPlanning'
         },
         CANCEL_ALL_COVERAGE: {
             label: 'Cancel all coverage',
             icon: 'icon-close-small',
+            actionName: 'onCancelAllCoverage'
         },
     },
     NEWS_COVERAGE_CANCELLED_STATUS: {

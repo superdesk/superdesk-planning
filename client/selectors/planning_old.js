@@ -321,13 +321,6 @@ export const getDisabledAgendas = createSelector(
     )
 );
 
-export const isCurrentPlanningLockedInThisSession = createSelector(
-    [getCurrentPlanning, getSessionDetails],
-    (currentPlanning, session) => (
-        currentPlanning && isItemLockedInThisSession(currentPlanning, session)
-    )
-);
-
 export const isEventDetailLockedInThisSession = createSelector(
     [getShowEventDetails, getEvents, getSessionDetails],
     (showEventDetails, events, session) => {

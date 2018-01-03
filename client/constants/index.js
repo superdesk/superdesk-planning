@@ -45,22 +45,6 @@ export const PUBLISHED_STATE = {
 };
 
 export const GENERIC_ITEM_ACTIONS = {
-    SPIKE: {
-        label: 'Spike',
-        icon: 'icon-trash',
-    },
-    UNSPIKE: {
-        label: 'Unspike',
-        icon: 'icon-unspike',
-    },
-    DUPLICATE: {
-        label: 'Duplicate',
-        icon: 'icon-copy',
-    },
-    HISTORY: {
-        label: 'View History',
-        icon: 'icon-time',
-    },
     DIVIDER: {label: 'Divider'},
     LABEL: {label: 'Label'},
 };

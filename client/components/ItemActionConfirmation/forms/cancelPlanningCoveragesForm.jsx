@@ -1,47 +1,67 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {reduxForm, Field} from 'redux-form';
 import * as actions from '../../../actions';
 import {InputTextAreaField} from '../../fields/index';
-import {isItemCancelled} from '../../../utils';
+import {isItemCancelled, gettext} from '../../../utils';
 import {get} from 'lodash';
-import {FORM_NAMES} from '../../../constants';
+import {Row} from '../../UI/Preview';
 import '../style.scss';
 
-const Component = ({handleSubmit, initialValues, submitting}) => {
-    let planning = initialValues;
-    const labelText = initialValues._cancelAllCoverage ? 'Reason for cancelling all coverage:' :
-        'Reason for cancelling the planning item:';
+export class PlanningCovergeCancelComponent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            reason: '',
+            submitting: false,
+        };
+    }
 
-    return (
-        <div className="ItemActionConfirmation">
-            <form onSubmit={handleSubmit}>
-                <strong>{ planning.slugline }</strong>
-                <label>{labelText}</label>
-                <Field name="reason"
-                    component={InputTextAreaField}
-                    type="text"
-                    readOnly={submitting}/>
-            </form>
-        </div>
-    );
-};
+    onReasonChange(event) {
+        this.setState({reason: get(event, 'target.value')});
+    }
 
-Component.propTypes = {
-    handleSubmit: PropTypes.func.isRequired,
+    submit() {
+        // Modal closes after submit. So, reseting submitting is not required
+        this.setState({submitting: true});
+
+        this.props.onSubmit({
+            ...this.props.initialValues,
+            reason: this.state.reason,
+        });
+    }
+
+    render() {
+        const {initialValues} = this.props;
+        let planning = initialValues;
+        const labelText = initialValues._cancelAllCoverage ? gettext('Reason for cancelling all coverage:') :
+            gettext('Reason for cancelling the planning item:');
+        const reasonInputProp = {onChange: this.onReasonChange.bind(this)};
+
+        return (
+            <div className="ItemActionConfirmation">
+                <Row value={planning.slugline} className="strong" />
+                <Row label={labelText}>
+                    <InputTextAreaField
+                        type="text"
+                        readOnly={this.state.submitting}
+                        input={reasonInputProp} />
+                </Row>
+            </div>
+        );
+    }
+}
+
+PlanningCovergeCancelComponent.propTypes = {
+    onSubmit: PropTypes.func,
     initialValues: PropTypes.object.isRequired,
 
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
     onHide: PropTypes.func,
-    submitting: PropTypes.bool,
 };
 
-export const CancelPlanningCoverages = reduxForm({form: FORM_NAMES.CancelPlanningForm})(Component);
-
 const mapDispatchToProps = (dispatch) => ({
-    /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (plan) => {
         let cancelDispatch = () => (dispatch(actions.planning.ui.cancelPlanning(plan)));
 
@@ -75,4 +95,4 @@ export const CancelPlanningCoveragesForm = connect(
     mapDispatchToProps,
     null,
     {withRef: true}
-)(CancelPlanningCoverages);
+)(PlanningCovergeCancelComponent);

@@ -54,6 +54,7 @@ export const EVENTS = {
         CANCEL_EVENT: {
             label: 'Cancel',
             icon: 'icon-close-small',
+            actionName: 'onCancelEvent',
         },
         UPDATE_TIME: {
             label: 'Update time',

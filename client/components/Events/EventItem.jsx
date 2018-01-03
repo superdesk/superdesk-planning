@@ -34,6 +34,8 @@ export class EventItem extends React.PureComponent {
                 this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
             [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
             [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
+            [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
         };
         const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack);
 
@@ -86,4 +88,5 @@ EventItem.propTypes = {
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
 };

@@ -1,72 +1,120 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {reduxForm, formValueSelector, Field} from 'redux-form';
 import * as actions from '../../../actions';
-import moment from 'moment';
+import * as selectors from '../../../selectors';
+import {eventUtils, gettext} from '../../../utils';
 import {EventUpdateMethods, InputTextAreaField} from '../../fields/index';
+import {EventScheduleSummary} from '../../index';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
-import {FORM_NAMES} from '../../../constants';
+import {Row} from '../../UI/Preview';
+import {get} from 'lodash';
 import '../style.scss';
 
-const Component = ({
-    handleSubmit,
-    initialValues,
-    relatedEvents = [],
-    relatedPlannings = [],
-    submitting,
-}) => {
-    let event = initialValues;
-    const isRecurring = !!event.recurrence_id;
+export class CancelEventComponent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            eventUpdateMethod: EventUpdateMethods[0],
+            reason: '',
+            relatedEvents: [],
+            relatedPlannings: [],
+            submitting: false,
+        };
+    }
 
-    // Default the update_method to 'Cancel this event only'
-    event.update_method = EventUpdateMethods[0];
-    let startStr = moment(event.dates.start).format('MMMM Do YYYY, h:mm:ss a');
-    let endStr = moment(event.dates.end).format('MMMM Do YYYY, h:mm:ss a');
+    componentWillMount() {
+        const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
+            EventUpdateMethods[0]);
 
-    const numEvents = relatedEvents.length + 1;
-    const numPlannings = relatedPlannings.length;
+        this.setState({
+            relatedEvents: event._events,
+            relatedPlannings: event._relatedPlannings,
+        });
+    }
 
-    const updateMethodLabel = 'Would you like to cancel all recurring events or just this one?';
+    submit() {
+        // Modal closes after submit. So, reseting submitting is not required
+        this.setState({submitting: true});
 
-    return (
-        <div className="ItemActionConfirmation">
-            <strong>{ event.name }</strong>
-            <div className="metadata-view">
-                <dl>
-                    <dt>Starts:</dt>
-                    <dd>{ startStr }</dd>
-                    <dt>Ends:</dt>
-                    <dd>{ endStr }</dd>
-                    { isRecurring && (<dt>Events:</dt>)}
-                    { isRecurring && (<dd>{ numEvents }</dd>)}
-                    { isRecurring && (<dt>Plannings:</dt>)}
-                    { isRecurring && (<dd>{ numPlannings }</dd>)}
-                </dl>
+        this.props.onSubmit({
+            ...this.props.initialValues,
+            update_method: this.state.eventUpdateMethod,
+            reason: this.state.reason,
+        });
+    }
+
+    onEventUpdateMethodChange(option) {
+        const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
+            option);
+
+        this.setState({
+            eventUpdateMethod: option,
+            relatedEvents: event._events,
+        });
+    }
+
+    onReasonChange(event) {
+        this.setState({reason: get(event, 'target.value')});
+    }
+
+    render() {
+        const {initialValues, dateFormat, timeFormat} = this.props;
+        const isRecurring = !!initialValues.recurrence_id;
+        const updateMethodLabel = gettext('Would you like to cancel all recurring events or just this one?');
+        const numEvents = this.state.relatedEvents.length + 1;
+        const numPlannings = this.state.relatedPlannings.length;
+        const updateMethodSelectionInput = {
+            value: this.state.eventUpdateMethod,
+            onChange: this.onEventUpdateMethodChange.bind(this)
+        };
+        const reasonInputProp = {onChange: this.onReasonChange.bind(this)};
+
+        return (
+            <div className="ItemActionConfirmation">
+                {initialValues.slugline && <Row label={gettext('Slugline')}
+                    value={initialValues.slugline || ''}
+                    className="slugline form__row--no-padding" />}
+                <Row label={gettext('Name')}
+                    value={initialValues.name || ''}
+                    className="strong form__row--no-padding"
+                />
+                <EventScheduleSummary schedule={initialValues.dates} timeFormat={timeFormat} dateFormat={dateFormat}/>
+                {isRecurring && <Row label={gettext('No. of Events')}
+                    value={numEvents}
+                    className="form__row--no-padding" />}
+
+                {!!numPlannings && <Row label={gettext('No. of Plannings')}
+                    value={numPlannings}
+                    className="form__row--no-padding" />}
+
+                <UpdateMethodSelection
+                    input={updateMethodSelectionInput}
+                    showMethodSelection={isRecurring}
+                    updateMethodLabel={updateMethodLabel}
+                    relatedPlannings={this.state.relatedPlannings}
+                    showSpace={false}
+                    readOnly={this.state.submitting}
+                    action="cancel" />
+
+                <Row label={gettext('Reason for Event cancellation:')}>
+                    <InputTextAreaField
+                        type="text"
+                        readOnly={this.state.submitting}
+                        input={reasonInputProp} />
+                </Row>
             </div>
+        );
+    }
+}
 
-            <UpdateMethodSelection
-                showMethodSelection={isRecurring}
-                updateMethodLabel={updateMethodLabel}
-                relatedPlannings={relatedPlannings}
-                handleSubmit={handleSubmit}
-                readOnly={submitting}
-                action="cancel" />
-
-            <label>Reason for Event cancellation:</label>
-            <Field name="reason"
-                component={InputTextAreaField}
-                type="text"
-                readOnly={submitting}/>
-        </div>
-    );
-};
-
-Component.propTypes = {
-    handleSubmit: PropTypes.func.isRequired,
+CancelEventComponent.propTypes = {
+    onSubmit: PropTypes.func.isRequired,
     initialValues: PropTypes.object.isRequired,
     relatedEvents: PropTypes.array,
     relatedPlannings: PropTypes.array,
+    timeFormat: PropTypes.string,
+    dateFormat: PropTypes.string,
 
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
@@ -74,12 +122,9 @@ Component.propTypes = {
     submitting: PropTypes.bool,
 };
 
-export const CancelEvent = reduxForm({form: FORM_NAMES.CancelEventForm})(Component);
-
-const selector = formValueSelector(FORM_NAMES.CancelEventForm);
 const mapStateToProps = (state) => ({
-    relatedPlannings: selector(state, '_relatedPlannings'),
-    relatedEvents: selector(state, '_events'),
+    timeFormat: selectors.general.timeFormat(state),
+    dateFormat: selectors.general.dateFormat(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -97,4 +142,4 @@ export const CancelEventForm = connect(
     mapDispatchToProps,
     null,
     {withRef: true}
-)(CancelEvent);
+)(CancelEventComponent);
