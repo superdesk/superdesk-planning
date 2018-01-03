@@ -43,7 +43,7 @@ const events = {
     },
 };
 
-describe('<EventsList />', () => {
+xdescribe('<EventsList />', () => {
     // Give the space to Autosizer to display the list
     beforeEach(() => (
         spyOn(AutoSizer.prototype, 'render').and.callFake(function render() {

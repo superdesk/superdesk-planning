@@ -636,4 +636,37 @@ describe('actions.events.ui', () => {
                 })
         ));
     });
+
+    describe('unpublish', () => {
+        afterEach(() => {
+            restoreSinonStub(eventsApi.unpublish);
+        });
+
+        it('calls events.api.unpublish and notifies the user of success', (done) => {
+            sinon.stub(eventsApi, 'unpublish').returns(Promise.resolve(data.events[0]));
+            store.test(done, eventsUi.unpublish(data.events[0]))
+                .then(() => {
+                    expect(eventsApi.unpublish.callCount).toBe(1);
+                    expect(eventsApi.unpublish.args[0]).toEqual([data.events[0]]);
+
+                    expect(services.notify.error.callCount).toBe(0);
+                    expect(services.notify.success.callCount).toBe(1);
+                    expect(services.notify.success.args[0]).toEqual(['The Event has been published']);
+                    done();
+                });
+        });
+
+        it('calls events.api.unpublish and notifies the user of failure', (done) => {
+            sinon.stub(eventsApi, 'unpublish').callsFake(() => Promise.reject(errorMessage));
+            store.test(done, eventsUi.unpublish(data.events[0]))
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+
+                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.args[0]).toEqual(['Failed!']);
+
+                    done();
+                });
+        });
+    });
 });

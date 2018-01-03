@@ -7,16 +7,17 @@ import {get} from 'lodash';
 import {Row} from '../UI/Preview';
 import {
     AuditInformation,
-    EventScheduleSummary,
-    ToggleBox,
     RelatedPlannings,
     StateLabel
 } from '../index';
-import {FileField, LinkField} from '../fields';
+import {EventScheduleSummary} from './';
+import {ToggleBox} from '../UI';
+import {ContentBlock} from '../UI/SidePanel';
+import {LinkInput, FileInput} from '../UI/Form';
 
 export class EventPreviewContentComponent extends React.Component {
     render() {
-        const {item, users, formProfile, timeFormat, dateFormat} = this.props;
+        const {item, users, formProfile, timeFormat, dateFormat, createUploadLink} = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
         const creationDate = get(item, '_created');
@@ -32,7 +33,7 @@ export class EventPreviewContentComponent extends React.Component {
             item.subject.map((s) => s.name).join(', ');
 
         return (
-            <div>
+            <ContentBlock>
                 <div className="side-panel__content-block--flex">
                     <div className="side-panel__content-block-inner side-panel__content-block-inner--grow">
                         <AuditInformation
@@ -98,10 +99,12 @@ export class EventPreviewContentComponent extends React.Component {
                         {get(item, 'files.length') > 0 ?
                             <ul>
                                 {get(item, 'files', []).map((file, index) => (
-                                    <FileField
-                                        key={index}
-                                        file={file}
-                                        readOnly={true} />
+                                    <li key={index}>
+                                        <FileInput
+                                            value={file}
+                                            createLink={createUploadLink}
+                                            readOnly={true} />
+                                    </li>
                                 ))}
                             </ul> :
                             <span className="sd-text__info">{gettext('No attached files added.')}</span>}
@@ -112,10 +115,9 @@ export class EventPreviewContentComponent extends React.Component {
                         {get(item, 'links.length') > 0 ?
                             <ul>
                                 {get(item, 'links', []).map((link, index) => (
-                                    <LinkField
-                                        link={link}
-                                        key={index}
-                                        readOnly={true} />
+                                    <li key={index}>
+                                        <LinkInput value={link} readOnly={true} />
+                                    </li>
                                 ))}
                             </ul> :
                             <span className="sd-text__info">{gettext('No external links added.')}</span>}
@@ -127,7 +129,7 @@ export class EventPreviewContentComponent extends React.Component {
                             openPlanningItem={true}/> :
                         <span className="sd-text__info">{gettext('No related planning items.')}</span>}
                 </ToggleBox>
-            </div>
+            </ContentBlock>
         );
     }
 }
@@ -140,6 +142,7 @@ EventPreviewContentComponent.propTypes = {
     formProfile: PropTypes.object,
     timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,
+    createUploadLink: PropTypes.func,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -148,9 +151,10 @@ const mapStateToProps = (state, ownProps) => ({
     privileges: selectors.getPrivileges(state),
     users: selectors.getUsers(state),
     lockedItems: selectors.getLockedItems(state),
-    formProfile: selectors.getEventsFormsProfile(state),
     timeFormat: selectors.general.timeFormat(state),
     dateFormat: selectors.general.dateFormat(state),
+    formProfile: selectors.forms.eventProfile(state),
+    createUploadLink: (f) => selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
 });
 
 export const EventPreviewContent = connect(mapStateToProps, null)(EventPreviewContentComponent);

@@ -8,9 +8,13 @@ import * as ColumnBox from './ColumnBox/';
 import * as SlideInPanel from './SlideInPanel';
 import SearchBox from './SearchBox';
 import DateTime from './DateTime';
-import Checkbox from './Checkbox';
 import PanelInfo from './PanelInfo';
 import CollapseBox from './CollapseBox';
+import TermsList from './TermsList';
+import Popup from './Popup';
+import SearchBar from './SearchBar/';
+import {ToggleBox} from './ToggleBox/';
+import Toggle from './Toggle';
 
 export {
     List,
@@ -21,9 +25,13 @@ export {
     Preview,
     Form,
     DateTime,
-    Checkbox,
     PanelInfo,
     CollapseBox,
     ColumnBox,
     SlideInPanel,
+    TermsList,
+    Popup,
+    SearchBar,
+    ToggleBox,
+    Toggle,
 };

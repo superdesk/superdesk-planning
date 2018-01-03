@@ -1,9 +1,8 @@
 import {formatAddress} from '../utils';
 import {get} from 'lodash';
-import {LOCATIONS} from '../constants';
 
-export function saveNominatim(nominatim) {
-    return (dispatch, getState, {api}) => {
+const saveNominatim = (nominatim) => (
+    (dispatch, getState, {api}) => {
         const {address} = formatAddress(nominatim);
 
         return api('locations').save({}, {
@@ -15,27 +14,27 @@ export function saveNominatim(nominatim) {
                 longitude: nominatim.lon,
             },
         });
-    };
-}
+    }
+);
 
-export function saveFreeTextLocation(location) {
-    return (dispatch, getState, {api}) => (
+const saveFreeTextLocation = (location) => (
+    (dispatch, getState, {api}) => (
         api('locations').save({}, {
             unique_name: location,
             name: location,
         })
-    );
-}
+    )
+);
 
-export function saveLocation(newLocation) {
-    return (dispatch) => {
+const saveLocation = (newLocation) => (
+    (dispatch) => {
         const uniqueName = get(newLocation, 'nominatim.display_name')
             || get(newLocation, 'name')
             || newLocation;
         // Check if the newLocation is already saved in internal
         // locations resources, if so just return the name and guid as qcode
 
-        return dispatch(getLocation(uniqueName, true))
+        return dispatch(self.getLocation(uniqueName, true))
             .then((data) => {
                 if (data._items.length) {
                     // we have this location stored already
@@ -44,14 +43,14 @@ export function saveLocation(newLocation) {
 
                 // this is a new location
                 if (newLocation.nominatim) {
-                    return dispatch(saveNominatim(newLocation.nominatim))
+                    return dispatch(self.saveNominatim(newLocation.nominatim))
                         .then(
                             (result) => Promise.resolve(result),
                             () => Promise.reject('Failed to save location.!')
                         );
                 }
 
-                return dispatch(saveFreeTextLocation(uniqueName))
+                return dispatch(self.saveFreeTextLocation(uniqueName))
                     .then(
                         (result) => Promise.resolve(result),
                         () => Promise.reject('Failed to save location.!')
@@ -77,17 +76,17 @@ export function saveLocation(newLocation) {
 
                 return eventData;
             });
-    };
-}
+    }
+);
 
-export const getLocation = (searchText, unique = false) => (
+const getLocation = (searchText, unique = false) => (
     (dispatch, getState, {api}) => {
         if (unique) {
             return api('locations').query(
                 {
                     source: {
                         query: {
-                            bool: { // jscs:ignore objectCurlyNewline
+                            bool: {
                                 must: [{term: {unique_name: {value: searchText}}}],
                             },
                         },
@@ -96,31 +95,29 @@ export const getLocation = (searchText, unique = false) => (
         } else {
             return api('locations')
                 .query({
-                    source:
-                                {
-                                    query: {
-                                        bool: {
-                                            must: [{
-                                                query_string: {
-                                                    default_field: 'name',
-                                                    query: searchText + '*',
-                                                },
-                                            }],
-                                        },
+                    source: {
+                        query: {
+                            bool: {
+                                must: [{
+                                    query_string: {
+                                        default_field: 'name',
+                                        query: searchText + '*',
                                     },
-                                },
+                                }],
+                            },
+                        },
+                    },
                 });
         }
     }
 );
 
-export const searchLocation = (searchText) => (
-    (dispatch) => (
-        dispatch(getLocation(searchText)).then((data) => (
-            dispatch({
-                type: LOCATIONS.ACTIONS.SET_LOCATION_SEARCH_RESULTS,
-                payload: data._items,
-            })
-        ))
-    )
-);
+// eslint-disable-next-line consistent-this
+const self = {
+    saveNominatim,
+    saveFreeTextLocation,
+    saveLocation,
+    getLocation
+};
+
+export default self;

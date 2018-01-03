@@ -1,6 +1,6 @@
 import {FiltersBox as FB} from '../../../Main';
 import {Spacer} from '../../../UI/SubNav';
-import {Checkbox} from '../ui';
+import {Checkbox} from '../ui/form';
 import {Dropdown} from '../ui/subnav';
 
 export default class FiltersBox {

@@ -1,5 +1,4 @@
 export * from './events';
-export * from './locations';
 export * from './modal';
 export * from './agenda';
 export * from './assignments';
@@ -10,6 +9,7 @@ import locks from './locks';
 import assignments from './assignments/index';
 import autosave from './autosave';
 import main from './main';
+import locations from './locations';
 
 import {agendaNotifications} from './agenda';
 import {eventNotifications} from './events';
@@ -46,4 +46,5 @@ export {
     assignments,
     autosave,
     main,
+    locations,
 };

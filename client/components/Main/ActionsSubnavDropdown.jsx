@@ -16,9 +16,7 @@ export const ActionsSubnavDropdown = (props) => {
         {divider: true},
         {
             label: gettext('Manage agendas'),
-            action: () => {
-                props.openAgendas();
-            },
+            action: props.openAgendas,
         },
     ];
 
@@ -27,6 +25,7 @@ export const ActionsSubnavDropdown = (props) => {
             icon="icon-dots-vertical"
             label={gettext('Actions')}
             items={items}
+            alignRight={true}
         />
     );
 };

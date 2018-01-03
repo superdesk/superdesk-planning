@@ -1,8 +1,9 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {gettext} from '../../utils';
 import {Dropdown} from '../UI/SubNav';
 
-export const CreateNewSubnavDropdown = () => {
+export const CreateNewSubnavDropdown = ({addEvent}) => {
     const items = [
         {
             label: gettext('Planning Item'),
@@ -12,7 +13,7 @@ export const CreateNewSubnavDropdown = () => {
         {
             label: gettext('Event'),
             icon: 'icon-plus-sign icon--blue',
-            action: () => { /* no-op */ },
+            action: addEvent,
         },
     ];
 
@@ -21,6 +22,11 @@ export const CreateNewSubnavDropdown = () => {
             icon="icon-plus-large"
             label={gettext('Create new')}
             items={items}
+            alignRight={true}
         />
     );
+};
+
+CreateNewSubnavDropdown.propTypes = {
+    addEvent: PropTypes.func.isRequired,
 };

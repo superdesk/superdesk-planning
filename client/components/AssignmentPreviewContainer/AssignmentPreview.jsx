@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import TextareaAutosize from 'react-textarea-autosize';
 
-import {TermsList} from '../TermsList/index';
+import {TermsList} from '../UI';
 
 // eslint-disable-next-line complexity
 export const AssignmentPreview = ({

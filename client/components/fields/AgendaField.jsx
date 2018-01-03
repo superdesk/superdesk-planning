@@ -1,4 +1,4 @@
-import {SelectMetaTermsField} from './SelectMetaTermsField/';
+import {SelectMetaTermsInput} from '../UI/Form';
 import * as selectors from '../../selectors';
 import {connect} from 'react-redux';
 
@@ -22,4 +22,4 @@ const mapStateToProps = (state, ownProps) => ({
     }),
 });
 
-export const AgendaField = connect(mapStateToProps)(SelectMetaTermsField);
+export const AgendaField = connect(mapStateToProps)(SelectMetaTermsInput);

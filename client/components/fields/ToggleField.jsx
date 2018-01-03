@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {isBoolean, get} from 'lodash';
-import {Toggle} from '../index';
+import {Toggle} from '../UI';
 import './style.scss';
 
 export const ToggleField = ({input, label, readOnly, defaultValue = false, meta: {touched, error, warning}}) => {

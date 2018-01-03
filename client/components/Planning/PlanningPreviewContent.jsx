@@ -8,12 +8,13 @@ import {get} from 'lodash';
 import {Row} from '../UI/Preview';
 import {
     AuditInformation,
-    ToggleBox,
     StateLabel,
     EventMetadata
 } from '../index';
+import {ToggleBox} from '../UI';
 import {CoveragePreview} from './CoveragePreview';
 import {UrgencyField} from '../fields';
+import {ContentBlock} from '../UI/SidePanel';
 
 export class PlanningPreviewContentComponent extends React.Component {
     render() {
@@ -45,7 +46,7 @@ export class PlanningPreviewContentComponent extends React.Component {
         const hasCoverage = get(item, 'coverages.length', 0) > 0;
 
         return (
-            <div>
+            <ContentBlock>
                 <div className="side-panel__content-block--flex">
                     <div className="side-panel__content-block-inner side-panel__content-block-inner--grow">
                         <AuditInformation
@@ -117,7 +118,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                         timeFormat={timeFormat}
                         formProfile={formProfile.coverage} />)
                 )}
-            </div>
+            </ContentBlock>
         );
     }
 }
@@ -144,10 +145,10 @@ const mapStateToProps = (state, ownProps) => ({
     users: selectors.getUsers(state),
     desks: selectors.getDesks(state),
     lockedItems: selectors.getLockedItems(state),
-    formProfile: selectors.planning.planningAndCoverageFormsProfile(state),
     agendas: selectors.general.agendas(state),
     dateFormat: selectors.general.dateFormat(state),
     timeFormat: selectors.general.timeFormat(state),
+    formProfile: selectors.forms.profiles(state),
     newsCoverageStatus: selectors.getNewsCoverageStatus(state)
 });
 

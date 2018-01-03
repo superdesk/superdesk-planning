@@ -20,7 +20,7 @@ import {
 import moment from 'moment';
 import RRule from 'rrule';
 import {get, map, isNil} from 'lodash';
-import {EventUpdateMethods} from '../components/fields';
+import {EventUpdateMethods} from '../components/Events';
 
 /**
  * Helper function to determine if the starting and ending dates

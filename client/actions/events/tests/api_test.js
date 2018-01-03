@@ -1,7 +1,7 @@
 import eventsApi from '../api';
 import planningApi from '../../planning/api';
 import sinon from 'sinon';
-import {EventUpdateMethods} from '../../../components/fields';
+import {EventUpdateMethods} from '../../../components/Events';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {WORKFLOW_STATE, SPIKED_STATE} from '../../../constants';
 import moment from 'moment';
@@ -649,4 +649,169 @@ describe('actions.events.api', () => {
                 done();
             })
     ));
+
+    it('unpublish calls `events_publish` endpoint', (done) => (
+        store.test(done, eventsApi.unpublish(data.events[0]))
+            .then(() => {
+                expect(services.api.save.callCount).toBe(1);
+                expect(services.api.save.args[0]).toEqual([
+                    'events_publish',
+                    {
+                        event: data.events[0]._id,
+                        etag: data.events[0]._etag,
+                        pubstatus: 'cancelled',
+                    }
+                ]);
+                done();
+            })
+    ));
+
+    describe('_uploadFiles', () => {
+        it('uploads files', (done) => {
+            data.events[0].files = [['test_file_1'], ['test_file_2']];
+            store.test(done, eventsApi._uploadFiles(data.events[0]))
+                .then((files) => {
+                    expect(services.upload.start.callCount).toBe(2);
+                    expect(services.upload.start.args[0]).toEqual([{
+                        method: 'POST',
+                        url: 'http://server.com/events_files/',
+                        headers: {'Content-Type': 'multipart/form-data'},
+                        data: {media: [data.events[0].files[0]]},
+                        arrayKey: ''
+                    }]);
+                    expect(services.upload.start.args[1]).toEqual([{
+                        method: 'POST',
+                        url: 'http://server.com/events_files/',
+                        headers: {'Content-Type': 'multipart/form-data'},
+                        data: {media: [data.events[0].files[1]]},
+                        arrayKey: ''
+                    }]);
+
+                    expect(files).toEqual([
+                        {_id: 'test_file_1'},
+                        {_id: 'test_file_2'}
+                    ]);
+                    done();
+                });
+        });
+
+        it('returns Promise.reject if any upload fails', (done) => {
+            data.events[0].files = [['test_file_1'], ['test_file_2']];
+            services.upload.start = sinon.stub().returns(Promise.reject(errorMessage));
+            store.test(done, eventsApi._uploadFiles(data.events[0]))
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+                    done();
+                });
+        });
+
+        it('returns if event has no files', (done) => (
+            store.test(done, eventsApi._uploadFiles(data.events[0]))
+                .then((files) => {
+                    expect(files).toEqual([]);
+                    expect(services.upload.start.callCount).toBe(0);
+                    done();
+                })
+        ));
+
+        it('returns if no files to upload', (done) => {
+            data.events[0].files = [{_id: 'test_file_1'}, {_id: 'test_file_2'}];
+            store.test(done, eventsApi._uploadFiles(data.events[0]))
+                .then((files) => {
+                    expect(files).toEqual([]);
+                    expect(services.upload.start.callCount).toBe(0);
+                    done();
+                });
+        });
+
+        it('only uploads new files', (done) => {
+            data.events[0].files = [['test_file_1'], {_id: 'test_file_2'}];
+            store.test(done, eventsApi._uploadFiles(data.events[0]))
+                .then((files) => {
+                    expect(services.upload.start.callCount).toBe(1);
+                    expect(services.upload.start.args[0]).toEqual([{
+                        method: 'POST',
+                        url: 'http://server.com/events_files/',
+                        headers: {'Content-Type': 'multipart/form-data'},
+                        data: {media: [data.events[0].files[0]]},
+                        arrayKey: ''
+                    }]);
+
+                    expect(files).toEqual([{_id: 'test_file_1'}]);
+                    done();
+                });
+        });
+    });
+
+    describe('_saveLocation', () => {
+        // No location to save,  if (!get(event, 'location[0].name')
+        // Location is an existing location,  if (get(event, 'location[0].existingLocation'))
+        // if (get(event, 'location[0]') && isNil(event.location[0].qcode))
+        // else
+    });
+
+    // it('uploadFilesAndSaveEvent', (done) => {
+    //     dispatch = dispatchRunFunction;
+    //     initialState.events.highlightedEvent = true;
+    //     initialState.events.showEventDetails = true;
+    //     const event = {
+    //         name: 'Event 4',
+    //         dates: {
+    //             start: '2099-10-15T13:01:11',
+    //             end: '2099-10-15T14:01:11',
+    //         },
+    //     };
+    //     const action = actions.uploadFilesAndSaveEvent(event);
+    //
+    //     api.save = sinon.spy(() => (Promise.resolve(event)));
+    //     return action(dispatch, getState)
+    //         .then(() => {
+    //             expect(eventsUi.refetchEvents.callCount).toBe(1);
+    //             done();
+    //         })
+    //         .catch((error) => {
+    //             expect(error).toBe(null);
+    //             expect(error.stack).toBe(null);
+    //             done();
+    //         });
+    // });
+    //
+    // it('saveFiles', (done) => {
+    //     const event = {
+    //         files: [
+    //             ['test_file_1'],
+    //             ['test_file_2'],
+    //         ],
+    //     };
+    //
+    //     const action = actions.saveFiles(event);
+    //
+    //     return action(dispatch, getState, {upload})
+    //         .then((newEvent) => {
+    //             expect(upload.start.callCount).toBe(2);
+    //             expect(upload.start.args[0]).toEqual([{
+    //                 method: 'POST',
+    //                 url: 'http://server.com/events_files/',
+    //                 headers: {'Content-Type': 'multipart/form-data'},
+    //                 data: {media: [event.files[0]]},
+    //                 arrayKey: '',
+    //             }]);
+    //             expect(upload.start.args[1]).toEqual([{
+    //                 method: 'POST',
+    //                 url: 'http://server.com/events_files/',
+    //                 headers: {'Content-Type': 'multipart/form-data'},
+    //                 data: {media: [event.files[1]]},
+    //                 arrayKey: '',
+    //             }]);
+    //
+    //             expect(newEvent.files).toEqual(['test_file_1', 'test_file_2']);
+    //
+    //             done();
+    //         })
+    //         .catch((error) => {
+    //             expect(error).toBe(null);
+    //             expect(error.stack).toBe(null);
+    //             done();
+    //         });
+    // });
 });

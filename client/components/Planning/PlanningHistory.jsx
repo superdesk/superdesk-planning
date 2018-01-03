@@ -6,6 +6,7 @@ import * as selectors from '../../selectors';
 import {getItemInArrayById, gettext} from '../../utils';
 import {get, includes} from 'lodash';
 import {AbsoluteDate} from '../index';
+import {ContentBlock} from '../UI/SidePanel';
 
 export class PlanningHistoryComponent extends React.Component {
     componentWillMount() {
@@ -34,7 +35,7 @@ export class PlanningHistoryComponent extends React.Component {
         const displayUser = (recievedUserId) => get(getItemInArrayById(users, recievedUserId), 'display_name');
 
         return (
-            <div>
+            <ContentBlock>
                 <ul className="history-list">
                     {planningHistoryItems.map((historyItem) => (
                         <li className="item" key={historyItem._id}>
@@ -111,7 +112,7 @@ export class PlanningHistoryComponent extends React.Component {
                         </li>
                     ))}
                 </ul>
-            </div>
+            </ContentBlock>
         );
     }
 }

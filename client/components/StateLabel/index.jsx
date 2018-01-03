@@ -22,9 +22,8 @@ export const StateLabel = ({item, verbose, withPubStatus, className}) => {
 
     return (
         <span className={className}>
-            {getStateLabel(state)}
-            &nbsp;&nbsp;
-            {withPubStatus && pubState && getStateLabel(pubState)}
+            <div>{getStateLabel(state)}</div>
+            <div>{withPubStatus && pubState && getStateLabel(pubState)}</div>
         </span>
     );
 };

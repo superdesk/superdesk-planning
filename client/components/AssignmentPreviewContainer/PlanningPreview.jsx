@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import TextareaAutosize from 'react-textarea-autosize';
 
 import {get, keyBy} from 'lodash';
-import {TermsList, UrgencyLabel, Label} from '../../components';
-
+import {UrgencyLabel, Label} from '../../components';
+import {TermsList} from '../UI';
 
 export const PlanningPreview = ({urgencyLabel, item, formProfile, agendas}) => {
     const agendaMap = keyBy(agendas, '_id');

@@ -1,24 +1,26 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {gettext} from '../../utils';
-import {Row} from '../UI/Form';
+import {ITEM_TYPE} from '../../constants';
+import {EventEditor} from '../Events';
 
-export const EditorContentTab = ({diff, onChangeHandler}) => (
-    <div>
-        <Row
-            label={gettext('Slugline')}
-            value={diff.slugline || ''}
-            onChange={onChangeHandler('slugline')}
-        />
-        <Row
-            label={gettext('Name')}
-            value={diff.name || ''}
-            onChange={onChangeHandler('name')}
-        />
-    </div>
-);
+export const EditorContentTab = ({item, itemType, diff, onChangeHandler}) => {
+    switch (itemType) {
+    case ITEM_TYPE.EVENT:
+        return (
+            <EventEditor
+                item={item || diff}
+                diff={diff}
+                onChangeHandler={onChangeHandler}
+            />
+        );
+    }
+
+    return null;
+};
 
 EditorContentTab.propTypes = {
+    item: PropTypes.object,
+    itemType: PropTypes.string,
     diff: PropTypes.object.isRequired,
     onChangeHandler: PropTypes.func.isRequired,
 };

@@ -5,6 +5,8 @@ import {EventPreviewContent} from '../EventPreviewContent';
 import {getTestActionStore} from '../../../utils/testUtils';
 import {createTestStore, eventUtils} from '../../../utils';
 
+import {FileInput, LinkInput} from '../../UI/Form';
+
 describe('<EventPreviewContent />', () => {
     let astore = getTestActionStore();
 
@@ -37,7 +39,8 @@ describe('<EventPreviewContent />', () => {
         filemeta: {media_id: 'file'},
         media: {
             name: 'file1.jpg',
-            length: 1024
+            length: 1024,
+            content_type: 'video/ogg'
         }
     }];
     astore.initialState.events.events.e1.links = ['https://www.google.com'];
@@ -90,16 +93,24 @@ describe('<EventPreviewContent />', () => {
         const files = wrapper.find('.toggle-box').at(1);
 
         files.find('.toggle-box__header').simulate('click');
-        const file = files.find('a').first();
 
-        expect(file.text()).toBe('file1.jpg  (1kB)');
+        const file = files.find(FileInput).first();
+        const fileLabel = file.find('label').first();
+        const fileValue = file.find('a').first();
+
+        expect(fileLabel.text()).toBe('video/ogg (1kB)');
+        expect(fileValue.text()).toBe('file1.jpg');
 
         const links = wrapper.find('.toggle-box').at(2);
 
         links.find('.toggle-box__header').simulate('click');
-        const link = links.find('p').first();
 
-        expect(link.text()).toBe('https://www.google.com');
+        const link = links.find(LinkInput).first();
+        const linkLabel = link.find('label').first();
+        const linkValue = link.find('a').first();
+
+        expect(linkLabel.text()).toBe('www.google.com');
+        expect(linkValue.text()).toBe('https://www.google.com');
 
         const relatedPlannings = wrapper.find('.toggle-box').at(3);
 

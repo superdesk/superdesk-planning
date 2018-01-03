@@ -10,7 +10,8 @@ import {
     EditPlanningPanelContainer,
     PlanningList,
 } from '../index';
-import {QuickAddPlanning, Toggle, SearchBar, AdvancedSearchPanelContainer} from '../../components';
+import {QuickAddPlanning, AdvancedSearchPanelContainer} from '../../components';
+import {SearchBar, Toggle} from '../UI';
 import MultiSelectionActions from '../MultiSelectionActions';
 import * as selectors from '../../selectors';
 import {AGENDA} from '../../constants';

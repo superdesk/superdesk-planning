@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {fields, ToggleBox, EventMetadata, Autosave} from '../../components';
+import {fields, EventMetadata, Autosave} from '../../components';
+import {ToggleBox} from '../UI';
 import {connect} from 'react-redux';
 import {Field, FieldArray, reduxForm, propTypes, formValueSelector} from 'redux-form';
 import * as selectors from '../../selectors';
@@ -177,7 +178,7 @@ const mapStateToProps = (state) => ({
     pubstatus: selector(state, 'pubstatus'), // Used to determine `Published State`
     users: selectors.getUsers(state),
     desks: selectors.getDesks(state),
-    formProfile: selectors.planning.planningAndCoverageFormsProfile(state),
+    formProfile: selectors.forms.profiles(state),
 });
 
 export const PlanningForm = connect(

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {SearchBar} from '../index';
+import {SearchBar} from '../UI';
 import {ASSIGNMENTS} from '../../constants';
 
 export class AssignmentListHeader extends React.Component {
