@@ -1,8 +1,9 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {gettext} from '../../utils';
 import {Dropdown} from '../UI/SubNav';
 
-export const ActionsSubnavDropdown = () => {
+export const ActionsSubnavDropdown = (props) => {
     const items = [
         {
             label: 'Action 1',
@@ -15,7 +16,9 @@ export const ActionsSubnavDropdown = () => {
         {divider: true},
         {
             label: gettext('Manage agendas'),
-            action: () => { /* no-op */ },
+            action: () => {
+                props.openAgendas();
+            },
         },
     ];
 
@@ -27,3 +30,5 @@ export const ActionsSubnavDropdown = () => {
         />
     );
 };
+
+ActionsSubnavDropdown.propTypes = {openAgendas: PropTypes.func};

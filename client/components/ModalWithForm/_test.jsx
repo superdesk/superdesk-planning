@@ -1,6 +1,6 @@
 import React from 'react';
 import {mount} from 'enzyme';
-import {ModalWithForm, CreateEditAgendaForm} from '../index';
+import {ModalWithForm, AssignmentForm} from '../index';
 import {createTestStore} from '../../utils';
 import {Provider} from 'react-redux';
 
@@ -14,7 +14,7 @@ describe('<ModalWithForm />', () => {
             <Provider store={store}>
                 <ModalWithForm
                     title="Title"
-                    form={CreateEditAgendaForm}
+                    form={AssignmentForm}
                     initialValues={{field: 'value'}}
                     show={true} />
             </Provider>

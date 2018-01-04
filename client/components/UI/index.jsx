@@ -4,6 +4,8 @@ import * as Nav from './Nav/';
 import * as SubNav from './SubNav/';
 import * as Preview from './Preview';
 import * as Form from './Form';
+import * as ColumnBox from './ColumnBox/';
+import * as SlideInPanel from './SlideInPanel';
 import SearchBox from './SearchBox';
 import DateTime from './DateTime';
 import Checkbox from './Checkbox';
@@ -22,4 +24,6 @@ export {
     Checkbox,
     PanelInfo,
     CollapseBox,
+    ColumnBox,
+    SlideInPanel,
 };

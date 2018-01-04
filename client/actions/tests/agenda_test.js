@@ -114,8 +114,7 @@ describe('agenda', () => {
                     .then(() => {
                         expect(apiSpy.save.args[0]).toEqual([{}, item]);
                         expect(notify.success.args[0]).toEqual(['The agenda has been created/updated.']);
-                        expect(dispatch.args[1]).toEqual([{type: 'HIDE_MODAL'}]);
-                        expect(dispatch.args[2]).toEqual([{
+                        expect(dispatch.args[1]).toEqual([{
                             type: 'ADD_OR_REPLACE_AGENDA',
                             payload: {
                                 _id: 'a3',
