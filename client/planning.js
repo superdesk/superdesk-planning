@@ -132,7 +132,7 @@ class PlanningApp extends React.Component {
         return (
             <section className={sectionClassName}>
                 <div className={mainClassName}>
-                    <SearchBar />
+                    <SearchBar openAgendas={this.props.openAgendas}/>
                     <FiltersBar
                         filterPanelOpen={this.state.filtersOpen}
                         toggleFilterPanel={this.toggleFilterPanel}
@@ -183,9 +183,11 @@ PlanningApp.propTypes = {
     currentAgendaId: PropTypes.string.isRequired,
     session: PropTypes.object,
     privileges: PropTypes.object,
+    openAgendas: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
@@ -214,6 +216,7 @@ const mapDispatchToProps = (dispatch) => ({
     preview: (item) => dispatch(actions.main.preview(item)),
     filter: (filterType) => dispatch(actions.main.filter(filterType)),
     selectAgenda: (agendaId) => dispatch(actions.selectAgenda(agendaId)),
+    openAgendas: () => dispatch(actions.openAgenda()),
     // Event Item actions:
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: (event) => dispatch(actions.duplicateEvent(event)),
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: (event) => dispatch(actions.addEventToCurrentAgenda(event)),

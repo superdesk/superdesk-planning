@@ -4,7 +4,6 @@ import {connect} from 'react-redux';
 import {modalType, modalProps} from '../selectors/general';
 import {hideModal, deselectAllTheEventList} from '../actions';
 import {
-    AgendaModal,
     ConfirmationModal,
     NotificationModal,
     ItemActionConfirmationModal,
@@ -15,17 +14,17 @@ import {
 import {MODALS} from '../constants';
 
 import SortItemsModal from './SortItemsModal';
+import {ManageAgendasModal} from './Agendas/ManageAgendasModal';
 
 const modals = {
     [MODALS.CONFIRMATION]: ConfirmationModal,
-    [MODALS.CREATE_AGENDA]: AgendaModal,
-    [MODALS.EDIT_AGENDA]: AgendaModal,
     [MODALS.NOTIFICATION_MODAL]: NotificationModal,
     [MODALS.ITEM_ACTIONS_MODAL]: ItemActionConfirmationModal,
     [MODALS.SORT_SELECTED]: SortItemsModal,
     [MODALS.ADD_TO_PLANNING]: AddToPlanningModal,
     [MODALS.FULFIL_ASSIGNMENT]: FulFilAssignmentModal,
     [MODALS.SELECT_ITEM_MODAL]: SelectItemModal,
+    [MODALS.MANAGE_AGENDAS]: ManageAgendasModal,
 };
 
 export function Modals({modalType, modalProps, handleHide}) {

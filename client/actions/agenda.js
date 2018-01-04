@@ -1,10 +1,17 @@
-import {hideModal} from './modal';
 import * as selectors from '../selectors';
 import {SubmissionError} from 'redux-form';
 import {cloneDeep, pick, get} from 'lodash';
 import {PRIVILEGES, AGENDA, MODALS} from '../constants';
 import {checkPermission, getErrorMessage, isItemSpiked} from '../utils';
 import {planning, showModal} from './index';
+
+const openAgenda = () => (
+    (dispatch) => (
+        dispatch(showModal({
+            modalType: MODALS.MANAGE_AGENDAS,
+        }))
+    )
+);
 
 /**
  * Creates or updates an Agenda
@@ -26,7 +33,6 @@ const _createOrUpdateAgenda = (newAgenda) => (
         return api('agenda').save(originalAgenda, diff)
             .then((agenda) => {
                 notify.success('The agenda has been created/updated.');
-                dispatch(hideModal());
                 dispatch(addOrReplaceAgenda(agenda));
             }, (error) => {
                 let errorMessage = getErrorMessage(error);
@@ -366,4 +372,5 @@ export {
     fetchSelectedAgendaPlannings,
     agendaNotifications,
     deleteAgenda,
+    openAgenda,
 };
