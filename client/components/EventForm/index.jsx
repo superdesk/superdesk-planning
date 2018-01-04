@@ -100,7 +100,7 @@ export class Component extends React.Component {
 
         const actions = [
             {
-                ...GENERIC_ITEM_ACTIONS.SPIKE,
+                ...EVENTS.ITEM_ACTIONS.SPIKE,
                 callback: spikeEvent.bind(null, initialValues),
             },
             {
@@ -108,11 +108,7 @@ export class Component extends React.Component {
                 callback: unspikeEvent.bind(null, initialValues),
             },
             {
-                ...GENERIC_ITEM_ACTIONS.HISTORY,
-                callback: this.viewEventHistory.bind(this),
-            },
-            {
-                ...GENERIC_ITEM_ACTIONS.DUPLICATE,
+                ...EVENTS.ITEM_ACTIONS.DUPLICATE,
                 callback: duplicateEvent.bind(null, initialValues),
             },
         ];

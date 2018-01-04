@@ -1,6 +1,7 @@
 import planningUi from '../ui';
 import planningApi from '../api';
 import assignmentApi from '../../assignments/api';
+import main from '../../main';
 import sinon from 'sinon';
 import {PRIVILEGES, ASSIGNMENTS} from '../../../constants';
 import * as actions from '../../../actions/agenda';
@@ -48,6 +49,8 @@ describe('actions.planning.ui', () => {
         sinon.stub(assignmentApi, 'link').callsFake(() => (Promise.resolve()));
         sinon.stub(planningUi, 'saveFromAuthoring').callsFake(() => (Promise.resolve()));
         sinon.stub(planningUi, 'saveFromPlanning').callsFake(() => (Promise.resolve()));
+
+        sinon.stub(main, 'closePreview').callsFake(() => (Promise.resolve()));
     });
 
     afterEach(() => {
@@ -78,6 +81,7 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(assignmentApi.link);
         restoreSinonStub(planningUi.saveFromAuthoring);
         restoreSinonStub(planningUi.saveFromPlanning);
+        restoreSinonStub(main.closePreview);
     });
 
     describe('spike', () => {
@@ -114,7 +118,7 @@ describe('actions.planning.ui', () => {
             store.initialState.planning.currentPlanningId = data.plannings[1]._id;
             return store.test(done, planningUi.spike(data.plannings[1]))
                 .then(() => {
-                    expect(planningUi.closeEditor.callCount).toBe(1);
+                    expect(main.closePreview.callCount).toBe(1);
                     done();
                 });
         });

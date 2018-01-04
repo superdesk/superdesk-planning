@@ -18,6 +18,7 @@ import {
     eventUtils,
     isItemCancelled,
     getPublishedState,
+    isEmptyActions,
 } from './index';
 
 const canPublishPlanning = (planning, event, session, privileges, locks) => (
@@ -166,11 +167,11 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
     let key = 1;
 
     const actionsValidator = {
-        [GENERIC_ITEM_ACTIONS.SPIKE.label]: () =>
+        [PLANNING.ITEM_ACTIONS.SPIKE.label]: () =>
             canSpikePlanning(plan, session, privileges, locks),
-        [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: () =>
+        [PLANNING.ITEM_ACTIONS.UNSPIKE.label]: () =>
             canUnspikePlanning(plan, event, privileges),
-        [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: () =>
+        [PLANNING.ITEM_ACTIONS.DUPLICATE.label]: () =>
             canDuplicatePlanning(plan, event, session, privileges, locks),
         [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: () =>
             canCancelPlanning(plan, event, session, privileges, locks),
@@ -219,7 +220,79 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
         key++;
     });
 
+    if (isEmptyActions(itemActions)) {
+        return [];
+    }
+
     return itemActions;
+};
+
+const getPlanningActions = (item, event, session, privileges, lockedItems, callBacks) => {
+    if (!get(item, '_id')) {
+        return [];
+    }
+
+    let actions = [];
+    let eventActions = [GENERIC_ITEM_ACTIONS.DIVIDER];
+
+    Object.keys(callBacks).forEach((callBackName) => {
+        switch (callBackName) {
+        case PLANNING.ITEM_ACTIONS.DUPLICATE.actionName:
+            actions.push({
+                ...PLANNING.ITEM_ACTIONS.DUPLICATE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case PLANNING.ITEM_ACTIONS.SPIKE.actionName:
+            actions.push({
+                ...PLANNING.ITEM_ACTIONS.SPIKE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case PLANNING.ITEM_ACTIONS.UNSPIKE.actionName:
+            actions.push({
+                ...PLANNING.ITEM_ACTIONS.UNSPIKE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName:
+            actions.push({
+                ...PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName:
+            actions.push({
+                ...PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName:
+            eventActions.push({
+                ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+                callback: callBacks[callBackName].bind(null, event)
+            });
+            break;
+        }
+    });
+
+    if (eventActions.length > 1) {
+        actions.push(...eventActions);
+    }
+
+    return getPlanningItemActions(
+        item,
+        event,
+        session,
+        privileges,
+        actions,
+        lockedItems
+    );
 };
 
 /**
@@ -350,6 +423,7 @@ const self = {
     canEditCoverage,
     getCoverageReadOnlyFields,
     isPlanMultiDay,
+    getPlanningActions,
 };
 
 export default self;

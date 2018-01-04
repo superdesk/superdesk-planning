@@ -15,6 +15,7 @@ import {
     isItemRescheduled,
     isItemPostponed,
     getDateTimeString,
+    isEmptyActions,
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
@@ -249,16 +250,6 @@ const canPostponeEvent = (event, session, privileges, locks) => (
         !isItemRescheduled(event)
 );
 
-const isEmptyActions = (actions) => {
-    if (get(actions, 'length', 0) < 1) {
-        return true;
-    } else {
-        // Do we have only dividers ?
-        return actions.filter((action) =>
-            action.label !== GENERIC_ITEM_ACTIONS.DIVIDER.label).length <= 0;
-    }
-};
-
 const getEventItemActions = (event, session, privileges, actions, locks) => {
     let itemActions = [];
     let key = 1;
@@ -363,6 +354,13 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks) => {
         case EVENTS.ITEM_ACTIONS.UNSPIKE.actionName:
             actions.push({
                 ...EVENTS.ITEM_ACTIONS.UNSPIKE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName:
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
                 callback: callBacks[callBackName].bind(null, item)
             });
             break;

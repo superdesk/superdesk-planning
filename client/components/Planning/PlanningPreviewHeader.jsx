@@ -3,52 +3,46 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {Tools} from '../UI/SidePanel';
 import {ItemActionsMenu, LockContainer} from '../index';
-import {eventUtils, getLockedUser} from '../../utils';
-import {GENERIC_ITEM_ACTIONS, PRIVILEGES} from '../../constants';
+import {planningUtils, getLockedUser} from '../../utils';
+import {PLANNING, PRIVILEGES, WORKSPACE, EVENTS} from '../../constants';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {get} from 'lodash';
 
 export class PlanningPreviewHeaderComponent extends React.Component {
-    getEventActions() {
-        const {
-            item,
-            session,
-            privileges,
-            lockedItems,
-        } = this.props;
-
-        if (!get(item, '_id')) {
-            return [];
-        }
-
-        const actions = [
-            {
-                ...GENERIC_ITEM_ACTIONS.DUPLICATE,
-                callback: () => (true), // Keeping this empty until we do ItemActions
-            },
-        ];
-
-        return eventUtils.getEventItemActions(
-            item,
-            session,
-            privileges,
-            actions,
-            lockedItems
-        );
-    }
-
     render() {
-        const {users, privileges, item, lockedItems, session, onUnlock} = this.props;
-        const itemActions = this.getEventActions();
+        const {
+            users,
+            privileges,
+            item,
+            lockedItems,
+            session,
+            onUnlock,
+            lockedInThisSession,
+            currentWorkspace,
+            event,
+        } = this.props;
+        const inPlanning = currentWorkspace === WORKSPACE.PLANNING;
         const lockedUser = getLockedUser(item, lockedItems, users);
-        const lockRestricted = eventUtils.isEventLockRestricted(item, session, lockedItems);
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK];
+
+        const itemActionsCallBack = {
+            [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: this.props[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
+            [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: this.props[PLANNING.ITEM_ACTIONS.UNSPIKE.actionName],
+            [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: this.props[PLANNING.ITEM_ACTIONS.SPIKE.actionName],
+            [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]:
+                this.props[PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName],
+            [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
+                this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
+            [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
+        };
+        const itemActions = planningUtils.getPlanningActions(item, event, session, privileges,
+            lockedItems, itemActionsCallBack);
 
         return (
             <Tools useDefaultClassName={false} className="side-panel__top-tools">
                 <i className="icon-calendar" />
-                {lockRestricted &&
+                {(!lockedInThisSession || !inPlanning) && lockedUser &&
                     <LockContainer
                         lockedUser={lockedUser}
                         users={users}
@@ -57,9 +51,9 @@ export class PlanningPreviewHeaderComponent extends React.Component {
                         onUnlock={onUnlock.bind(null, item)}
                     />
                 }
-                <ItemActionsMenu
+                {get(itemActions, 'length', 0) > 0 && <ItemActionsMenu
                     className="side-panel__top-tools-right"
-                    actions={itemActions} />
+                    actions={itemActions} />}
             </Tools>
         );
     }
@@ -73,19 +67,36 @@ PlanningPreviewHeaderComponent.propTypes = {
     lockedItems: PropTypes.object,
     duplicateEvent: PropTypes.func,
     onUnlock: PropTypes.func,
+    lockedInThisSession: PropTypes.bool,
+    currentWorkspace: PropTypes.string,
+    event: PropTypes.object,
 };
 
 const mapStateToProps = (state, ownProps) => ({
-    item: selectors.events.planningWithEventDetails(state),
+    item: selectors.planning.currentPlanning(state),
+    event: selectors.events.planningWithEventDetails(state),
+    lockedInThisSession: selectors.planning.isCurrentPlanningLockedInThisSession(state),
     session: selectors.getSessionDetails(state),
     privileges: selectors.getPrivileges(state),
     users: selectors.getUsers(state),
     lockedItems: selectors.getLockedItems(state),
+    currentWorkspace: selectors.general.currentWorkspace(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    duplicateEvent: (event) => dispatch(actions.duplicateEvent(event)),
-    onUnlock: (event) => dispatch(actions.events.ui.unlockAndOpenEventDetails(event)),
+    unlockItem: (planning) => (dispatch(actions.planning.ui.unlockAndOpenEditor(planning))),
+    [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
+        (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
+    [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
+        (planning) => (dispatch(actions.planning.ui.spike(planning))),
+    [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]:
+        (planning) => (dispatch(actions.planning.ui.unspike(planning))),
+    [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]:
+        (planning) => dispatch(actions.planning.ui.openCancelPlanningModal(planning)),
+    [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
+        (planning) => dispatch(actions.planning.ui.openCancelAllCoverageModal(planning)),
+    [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
+        (event) => dispatch(actions.events.ui.openCancelModal(event)),
 });
 
 export const PlanningPreviewHeader = connect(mapStateToProps, mapDispatchToProps)(PlanningPreviewHeaderComponent);

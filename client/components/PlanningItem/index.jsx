@@ -73,15 +73,15 @@ const PlanningItem = ({
     if (inPlanning) {
         const actions = [
             {
-                ...GENERIC_ITEM_ACTIONS.SPIKE,
+                ...PLANNING.ITEM_ACTIONS.SPIKE,
                 callback: onSpike.bind(null, item),
             },
             {
-                ...GENERIC_ITEM_ACTIONS.UNSPIKE,
+                ...PLANNING.ITEM_ACTIONS.UNSPIKE,
                 callback: onUnspike.bind(null, item),
             },
             {
-                ...GENERIC_ITEM_ACTIONS.DUPLICATE,
+                ...PLANNING.ITEM_ACTIONS.DUPLICATE,
                 callback: onDuplicate.bind(null, item),
             },
             {

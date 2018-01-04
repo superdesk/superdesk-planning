@@ -57,4 +57,7 @@ InputTextAreaField.propTypes = {
     required: PropTypes.bool,
 };
 
-InputTextAreaField.defaultProps = {required: false};
+InputTextAreaField.defaultProps = {
+    required: false,
+    meta: {},
+};

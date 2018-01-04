@@ -13,7 +13,7 @@ import {
     UpdateAssignmentForm,
 } from './index';
 import {get} from 'lodash';
-import {GENERIC_ITEM_ACTIONS, EVENTS, FORM_NAMES, PLANNING, ASSIGNMENTS} from '../../constants';
+import {EVENTS, FORM_NAMES, PLANNING, ASSIGNMENTS} from '../../constants';
 
 export const ItemActionConfirmationModal = ({handleHide, modalProps}) => {
     let title;
@@ -34,7 +34,7 @@ export const ItemActionConfirmationModal = ({handleHide, modalProps}) => {
     };
 
     const modalFormsMapper = {
-        [GENERIC_ITEM_ACTIONS.SPIKE.label]: {
+        [EVENTS.ITEM_ACTIONS.SPIKE.label]: {
             title: 'Spike an event',
             saveText: 'Spike',
             form: SpikeEventForm,
