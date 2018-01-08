@@ -93,7 +93,7 @@ const query = ({
  * @param {boolean} force - Force using the API instead of local store
  * @return Promise
  */
-const fetchAssignmentById = (id, force = false) => (
+const fetchAssignmentById = (id, force = false, recieve = true) => (
     (dispatch, getState, {api}) => {
         // Test if the Assignment item is already loaded into the store
         // If so, return that instance instead
@@ -105,7 +105,10 @@ const fetchAssignmentById = (id, force = false) => (
 
         return api('assignments').getById(id)
             .then((item) => {
-                dispatch(self.receivedAssignments([item]));
+                if (recieve) {
+                    dispatch(self.receivedAssignments([item]));
+                }
+
                 return Promise.resolve(item);
             }, (error) => Promise.reject(error));
     }

@@ -150,12 +150,15 @@ export const getTestActionStore = () => {
             },
             $timeout: sinon.spy((func) => func()),
             api: sinon.spy((resource) => (store.spies.api[resource])),
-
-            $location: {
-                search: sinon.spy(() => ({}))
+            $location: {search: sinon.spy(() => (Promise.resolve()))},
+            desks: {
+                getCurrentDeskId: sinon.spy(() => 'desk1'),
+                active: {desk: 'desk1'},
+                deskMembers: {
+                    desk1: [{_id: 'ident1'}],
+                    desk2: [{_id: 'ident2'}],
+                },
             },
-
-            desks: {getCurrentDeskId: sinon.spy(() => 'desk1')},
             superdesk: {intent: sinon.spy(() => (Promise.resolve()))},
             lock: {
                 isLocked: (item) => {

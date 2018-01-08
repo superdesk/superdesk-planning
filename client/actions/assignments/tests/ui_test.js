@@ -502,4 +502,110 @@ describe('actions.assignments.ui', () => {
                 });
         });
     });
+
+    describe('updatePreviewItemOnRouteUpdate', () => {
+        const newAssignment = {
+            _id: 'as3',
+            _type: 'assignments',
+            coverage_id: 'c2',
+            planning_item: 'p1',
+            assigned_to: {
+                user: 'ident1',
+                desk: 'desk1',
+            },
+            planning: {
+                ednote: 'Photo coverage',
+                scheduled: '2016-10-15T14:01:11',
+                g2_content_type: 'photo',
+            },
+        };
+
+        const restrictedAssignment = {
+            _id: 'as4',
+            _type: 'assignments',
+            coverage_id: 'c2',
+            planning_item: 'p1',
+            assigned_to: {
+                user: 'ident2',
+                desk: 'desk2',
+            },
+            planning: {
+                ednote: 'Photo coverage',
+                scheduled: '2016-10-15T14:01:11',
+                g2_content_type: 'photo',
+            },
+        };
+
+        beforeEach(() => {
+            delete store.services.$location.search;
+            sinon.stub(assignmentsUi, 'preview').returns(Promise.resolve());
+        });
+
+        afterEach(() => {
+            restoreSinonStub(assignmentsUi.preview);
+            restoreSinonStub(assignmentsApi.fetchAssignmentById);
+            restoreSinonStub(store.services.$location.search);
+        });
+
+        it('Previews assignment if already in store', (done) => {
+            store.services['$location'] = {
+                ...store.services['$location'],
+                search: sinon.stub().callsFake(() => ({item: 'as1'})),
+            };
+
+            return store.test(done, assignmentsUi.updatePreviewItemOnRouteUpdate())
+                .then(() => {
+                    expect(assignmentsUi.preview.callCount).toBe(1);
+                    done();
+                });
+        });
+
+        it('Fetches assignment if not in store', (done) => {
+            store.services['$location'] = {
+                ...store.services['$location'],
+                search: sinon.stub().callsFake(() => ({item: 'as3'}))
+            };
+
+            sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (Promise.resolve(newAssignment)));
+            return store.test(done, assignmentsUi.updatePreviewItemOnRouteUpdate())
+                .then(() => {
+                    expect(assignmentsUi.preview.callCount).toBe(1);
+                    done();
+                });
+        });
+
+        it('Does not preview assignment if user is not part of assignment item desk', (done) => {
+            store.services['$location'] = {
+                ...store.services['$location'],
+                search: sinon.stub().callsFake(() => ({item: 'as4'})),
+            };
+
+            sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (Promise.resolve(restrictedAssignment)));
+            return store.test(done, assignmentsUi.updatePreviewItemOnRouteUpdate())
+                .then(() => {
+                    expect(assignmentsUi.preview.callCount).toBe(0);
+                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.args[0]).toEqual(
+                        ['Insufficient privileges to view the assignment']);
+                    done();
+                });
+        });
+
+        it('Notifies if assignment does not exist', (done) => {
+            store.services['$location'] = {
+                ...store.services['$location'],
+                search: sinon.stub().callsFake(() => ({item: 'as5'})),
+            };
+
+            sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (Promise.reject()));
+            return store.test(done, assignmentsUi.updatePreviewItemOnRouteUpdate())
+                .then(() => {
+                    expect(assignmentsUi.preview.callCount).toBe(0);
+                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.args[0]).toEqual(
+                        ['Assignment does not exist']);
+                    done();
+                });
+        });
+    });
 });
