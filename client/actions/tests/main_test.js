@@ -105,4 +105,36 @@ describe('actions.main', () => {
                 })
         ));
     });
+
+    describe('unpublish', () => {
+        beforeEach(() => {
+            sinon.stub(eventsUi, 'unpublish').returns(Promise.resolve(data.events[0]));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(eventsUi.unpublish);
+        });
+
+        it('calls events.ui.unpublish', (done) => (
+            store.test(done, main.unpublish(data.events[0]))
+                .then(() => {
+                    expect(eventsUi.unpublish.callCount).toBe(1);
+                    expect(eventsUi.unpublish.args[0]).toEqual([data.events[0]]);
+
+                    done();
+                })
+        ));
+
+        it('raises an error if the item type was not found', (done) => (
+            store.test(done, main.unpublish({}))
+                .then(null, () => {
+                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.args[0]).toEqual([
+                        'Failed to unpublish, could not find the item type!'
+                    ]);
+
+                    done();
+                })
+        ));
+    });
 });

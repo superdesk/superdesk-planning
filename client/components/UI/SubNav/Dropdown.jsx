@@ -17,7 +17,13 @@ export class Dropdown extends React.Component {
         // change state only when click event handling is over
         this.inToggle = true;
         defer(() => {
-            this.setState({open: !this.state.open});
+            this.setState({open: !this.state.open}, () => {
+                if (this.state.open) {
+                    document.addEventListener('click', this.close);
+                } else {
+                    document.removeEventListener('click', this.close);
+                }
+            });
             this.inToggle = false;
         });
     }
@@ -28,12 +34,10 @@ export class Dropdown extends React.Component {
         }
     }
 
-    componentDidMount() {
-        document.addEventListener('click', this.close);
-    }
-
     componentWillUnmount() {
-        document.removeEventListener('click', this.close);
+        if (this.state.open) {
+            document.removeEventListener('click', this.close);
+        }
     }
 
     render() {
@@ -49,7 +53,7 @@ export class Dropdown extends React.Component {
         );
 
         return (
-            <DropMenu isOpen={this.state.open} alignRight={false}>
+            <DropMenu isOpen={this.state.open} alignRight={this.props.alignRight}>
                 <button
                     ref={(btn) => this.btn = btn}
                     className={buttonClassName}
@@ -100,4 +104,9 @@ Dropdown.propTypes = {
         icon: PropTypes.string,
         action: PropTypes.func,
     })).isRequired,
+    alignRight: PropTypes.bool,
+};
+
+Dropdown.defaultProps = {
+    alignRight: false,
 };

@@ -144,7 +144,7 @@ const mapStateToProps = (state) => ({
     assignment: selectors.getCurrentAssignment(state),
     currentUserId: selectors.getCurrentUserId(state),
     desks: selectors.getDesks(state),
-    formProfile: selectors.planning.coverageFormsProfile(state),
+    formProfile: selectors.forms.coverageProfile(state),
     users: selectors.getUsers(state),
     coverageProviders: selectors.getCoverageProviders(state),
     keywords: selectors.getKeywords(state),

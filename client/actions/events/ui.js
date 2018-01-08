@@ -1,5 +1,5 @@
-import {showModal, hideModal, locks, uploadFilesAndSaveEvent} from '../index';
 import {PRIVILEGES, EVENTS, PUBLISHED_STATE, MODALS, SPIKED_STATE} from '../../constants';
+import {showModal, hideModal, locks} from '../index';
 import eventsApi from './api';
 import {fetchSelectedAgendaPlannings} from '../agenda';
 import main from '../main';
@@ -12,7 +12,7 @@ import {
     isItemSpiked,
     isItemRescheduled,
 } from '../../utils';
-import {EventUpdateMethods} from '../../components/fields/EventUpdateMethodField';
+import {EventUpdateMethods} from '../../components/Events';
 
 /**
  * Action Dispatcher to fetch events from the server
@@ -475,20 +475,28 @@ const saveAndPublish = (event, save = true, publish = false) => (
         if (!save) {
             if (publish) {
                 return dispatch(self.publishEvent(event))
-                    .then(() => Promise.resolve(dispatch(hideModal())));
+                    .then((publishedEvent) => {
+                        dispatch(hideModal());
+                        return Promise.resolve(publishedEvent);
+                    });
             }
 
-            return Promise.resolve(dispatch(hideModal()));
+            dispatch(hideModal());
+            return Promise.resolve(event);
         }
 
-        return dispatch(uploadFilesAndSaveEvent(event))
+        return dispatch(eventsApi.save(event))
             .then((events) => {
                 if (publish) {
                     return dispatch(self.publishEvent(events[0]))
-                        .then(() => Promise.resolve(dispatch(hideModal())));
+                        .then(() => {
+                            dispatch(hideModal());
+                            return Promise.resolve(events);
+                        });
                 }
 
-                return Promise.resolve(dispatch(hideModal()));
+                dispatch(hideModal());
+                return Promise.resolve(events);
             });
     }
 );
@@ -595,6 +603,21 @@ const publishEvent = (event) => (
                 );
             });
     }
+);
+
+const unpublish = (event) => (
+    (dispatch, getState, {notify}) => (
+        dispatch(eventsApi.unpublish(event))
+            .then((unpublishedEvent) => {
+                notify.success('The Event has been published');
+                return Promise.resolve(unpublishedEvent);
+            }, (error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to unpublish the Event!')
+                );
+                return Promise.reject(error);
+            })
+    )
 );
 
 /**
@@ -708,6 +731,7 @@ const self = {
     saveAndPublish,
     saveWithConfirmation,
     receiveEventHistory,
+    unpublish,
 };
 
 export default self;

@@ -29,7 +29,6 @@ export default class Main {
     }
 
     groups() {
-        // return this.isMounted ? this.element.prop('groups') : null;
         return this.isMounted ? this.element.props().groups : null;
     }
 }

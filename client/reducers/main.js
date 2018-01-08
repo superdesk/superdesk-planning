@@ -17,6 +17,9 @@ export default function(state = initialState, action) {
     case MAIN.ACTIONS.FILTER:
         return {...state, filter: action.payload || MAIN.FILTERS.COMBINED};
 
+    case MAIN.ACTIONS.CLOSE_PREVIEW:
+        return {...state, previewItem: null};
+
     default:
         return state;
     }

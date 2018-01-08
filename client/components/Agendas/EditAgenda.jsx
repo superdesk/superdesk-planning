@@ -1,9 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {gettext} from '../../utils';
-import {SlideInPanel, Form} from '../UI';
-import {Toggle} from '../index';
+import {SlideInPanel, Form, Toggle} from '../UI';
 
 export class EditAgenda extends React.Component {
     constructor(props) {
@@ -14,6 +12,9 @@ export class EditAgenda extends React.Component {
             agendaEnabled: true,
             agendaName: '',
         };
+
+        this.onChange = this.onChange.bind(this);
+        this.onEnableChange = this.onEnableChange.bind(this);
     }
 
     componentWillMount() {
@@ -35,12 +36,10 @@ export class EditAgenda extends React.Component {
             get(this.props, 'agenda.is_enabled') === newEnabled;
     }
 
-    onNameChange(event) {
-        const newName = get(event, 'target.value');
-
+    onChange(field, value) {
         this.setState({
-            pristine: this.isPristine(newName, this.state.agendaEnabled),
-            agendaName: newName,
+            pristine: this.isPristine(value, this.state.agendaEnabled),
+            agendaName: value,
         });
     }
 
@@ -82,13 +81,21 @@ export class EditAgenda extends React.Component {
             <SlideInPanel.Header
                 tools={tools} />
             <SlideInPanel.Content>
-                <Form.Row label={gettext('Name')}
-                    value={this.state.agendaName}
-                    onChange={this.onNameChange.bind(this)} />
-                <Form.Row label={gettext('Enabled')}
-                    showValue={false}>
-                    <Toggle value={this.state.agendaEnabled}
-                        onChange={this.onEnableChange.bind(this)} />
+                <Form.Row>
+                    <Form.TextInput
+                        field="name"
+                        label="Name"
+                        value={this.state.agendaName}
+                        onChange={this.onChange}
+                    />
+                </Form.Row>
+
+                <Form.Row>
+                    <Form.Label text="Enabled"/>
+                    <Toggle
+                        value={this.state.agendaEnabled}
+                        onChange={this.onEnableChange}
+                    />
                 </Form.Row>
             </SlideInPanel.Content>
         </SlideInPanel.Panel>);

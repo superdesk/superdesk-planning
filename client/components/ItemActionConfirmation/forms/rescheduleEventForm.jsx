@@ -3,7 +3,8 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {reduxForm, formValueSelector, Field} from 'redux-form';
 import * as actions from '../../../actions';
-import {EventUpdateMethods, InputTextAreaField} from '../../fields/index';
+import {InputTextAreaField} from '../../fields/index';
+import {EventUpdateMethods} from '../../Events';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {EventScheduleForm} from '../../index';
 import {

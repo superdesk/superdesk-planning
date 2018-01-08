@@ -7,7 +7,7 @@ import {PlanningItem} from '../../components';
 import {PlanningPanelContainer} from '../index';
 import {AutoSizer} from 'react-virtualized';
 
-describe('planning', () => {
+xdescribe('planning', () => {
     // Give the space to Autosizer to display the list
     beforeEach(() => (
         spyOn(AutoSizer.prototype, 'render').and.callFake(function render() {

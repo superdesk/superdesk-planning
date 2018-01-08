@@ -4,7 +4,7 @@ import {EventsListContainer} from './index';
 import React from 'react';
 import {Provider} from 'react-redux';
 
-describe('<EventsListContainer />', () => {
+xdescribe('<EventsListContainer />', () => {
     it('clicks on the buttons', () => {
         const initialState = {
             events: {

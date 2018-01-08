@@ -4,9 +4,9 @@ import classNames from 'classnames';
 import {
     AdvancedSearchPanelContainer,
     EventsList,
-    SearchBar,
     MultiEventsSelectionActions,
 } from '../index';
+import {SearchBar} from '../UI';
 import {connect} from 'react-redux';
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';

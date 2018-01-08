@@ -1,4 +1,4 @@
-import {ToggleBox} from '../../';
+import {ToggleBox} from '../../UI';
 
 export default class toggleBox {
     constructor(element) {

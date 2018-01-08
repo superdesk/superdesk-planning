@@ -1,10 +1,9 @@
 import {createSelector} from 'reselect';
 import {get, sortBy, includes, isEmpty, filter, matches, isNil} from 'lodash';
 import moment from 'moment';
-import {AGENDA, SPIKED_STATE, FORM_NAMES} from '../constants';
+import {AGENDA, SPIKED_STATE} from '../constants';
 import {isItemLockedInThisSession, isItemSpiked} from '../utils';
 
-export const getFormsProfile = (state) => get(state, 'formsProfile');
 export const getIngestProviders = (state) => get(state, 'ingest.providers');
 export const getAgendas = (state) => get(state, 'agenda.agendas', []);
 export const getCurrentPlanningId = (state) => get(state, 'planning.currentPlanningId');
@@ -26,10 +25,7 @@ export const getPlanningIdsInList = (state) => get(state, 'planning.planningsInL
 export const isOnlyFutureFiltered = (state) => get(state, 'planning.onlyFuture');
 export const filterPlanningKeyword = (state) => get(state, 'planning.filterPlanningKeyword');
 export const getServerUrl = (state) => get(state, 'config.server.url');
-export const getDateFormat = (state) => get(state, 'config.model.dateformat') ||
-    get(state, 'config.view.dateformat');
-export const getTimeFormat = (state) => get(state, 'config.shortTimeFormat') ||
-    get(state, 'config.view.timeformat');
+
 export const getIframelyKey = (state) => get(state, 'config.iframely.key', null);
 export const getMaxRecurrentEvents = (state) => get(state, 'deployConfig.max_recurrent_events', 200);
 export const getShowEventDetails = (state) => get(state, 'events.showEventDetails');
@@ -66,7 +62,6 @@ export const getCurrentUserId = (state) => get(state, 'session.identity._id');
 export const getEventCalendars = (state) => get(state, 'vocabularies.event_calendars', []);
 export const getKeywords = (state) => get(state, 'vocabularies.keywords', []);
 export const getPlanningSearch = (state) => get(state, 'planning.search.currentSearch');
-export const getEventsFormsProfile = (state) => get(state, 'formsProfile.events');
 export const getNewsCoverageStatus = (state) => get(state, 'vocabularies.newscoveragestatus', []);
 export const getCoverageCancelState = (state) =>
     (get(state, 'vocabularies.newscoveragestatus', []).find((s) => s.qcode === 'ncostat:notint'));
@@ -86,9 +81,6 @@ export const getCurrentDeskId = (state) => get(state, 'workspace.currentDeskId',
 export const getCurrentStageId = (state) => get(state, 'workspace.currentStageId', null);
 export const getDesks = (state) => get(state, 'desks', []);
 export const getTemplates = (state) => get(state, 'templates', []);
-
-export const getAutosavePlanningItems = (state) => get(state, 'autosave.' + FORM_NAMES.PlanningForm);
-export const getAutosaveEventItems = (state) => get(state, 'autosave.' + FORM_NAMES.EventForm);
 
 export const getCoverageProviders = createSelector(
     [getVocabularies],

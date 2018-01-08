@@ -2,10 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../../../actions';
-import {EventUpdateMethods} from '../../fields/index';
 import '../style.scss';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
-import {RelatedEvents, EventScheduleSummary} from '../../index';
+import {RelatedEvents} from '../../index';
+import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
 import * as selectors from '../../../selectors';
 import {get} from 'lodash';
 import {eventUtils, gettext} from '../../../utils';
@@ -19,6 +19,8 @@ export class SpikeEventComponent extends React.Component {
             relatedEvents: [],
             submitting: false,
         };
+
+        this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
     }
 
     componentWillMount() {
@@ -30,7 +32,7 @@ export class SpikeEventComponent extends React.Component {
         }
     }
 
-    onEventUpdateMethodChange(option) {
+    onEventUpdateMethodChange(field, option) {
         const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
             option);
 
@@ -58,27 +60,40 @@ export class SpikeEventComponent extends React.Component {
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
         ));
         const numEvents = this.state.relatedEvents.length + 1 - eventsInUse.length;
-        const updateMethodSelectionInput = {
-            value: this.state.eventUpdateMethod,
-            onChange: this.onEventUpdateMethodChange.bind(this)
-        };
 
         return (
             <div className="ItemActionConfirmation">
-                {initialValues.slugline && <Row label={gettext('Slugline')}
-                    value={initialValues.slugline || ''}
-                    className="slugline form__row--no-padding" />}
-                <Row label={gettext('Name')}
+                {initialValues.slugline && (
+                    <Row
+                        label={gettext('Slugline')}
+                        value={initialValues.slugline || ''}
+                        className="slugline form__row--no-padding"
+                    />
+                )}
+
+                <Row
+                    label={gettext('Name')}
                     value={initialValues.name || ''}
                     className="strong form__row--no-padding"
                 />
-                <EventScheduleSummary schedule={initialValues.dates} timeFormat={timeFormat} dateFormat={dateFormat}/>
-                {isRecurring && <Row label={gettext('No. of Events')}
-                    value={numEvents}
-                    className="form__row--no-padding" />}
+
+                <EventScheduleSummary
+                    schedule={initialValues.dates}
+                    timeFormat={timeFormat}
+                    dateFormat={dateFormat}
+                />
+
+                {isRecurring && (
+                    <Row
+                        label={gettext('No. of Events')}
+                        value={numEvents}
+                        className="form__row--no-padding"
+                    />
+                )}
 
                 <UpdateMethodSelection
-                    input={updateMethodSelectionInput}
+                    value={this.state.eventUpdateMethod}
+                    onChange={this.onEventUpdateMethodChange}
                     showMethodSelection={isRecurring}
                     updateMethodLabel={updateMethodLabel}
                     showSpace={false}
@@ -90,7 +105,8 @@ export class SpikeEventComponent extends React.Component {
                         <strong>{gettext('The following Events are in use and will not be spiked:')}</strong>
                         <RelatedEvents
                             events={eventsInUse}
-                            dateFormat={dateFormat}/>
+                            dateFormat={dateFormat}
+                        />
                     </div>
                 }
             </div>

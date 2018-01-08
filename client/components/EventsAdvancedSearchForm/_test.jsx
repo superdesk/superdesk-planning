@@ -5,7 +5,7 @@ import {createTestStore} from '../../utils';
 import {Provider} from 'react-redux';
 import moment from 'moment';
 
-describe('events', () => {
+xdescribe('events', () => {
     describe('containers', () => {
         describe('<EventsAdvancedSearchForm />', () => {
             function checkQueryForParameters({params, expectedQuery}) {

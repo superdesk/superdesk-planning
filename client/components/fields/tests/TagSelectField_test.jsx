@@ -63,7 +63,7 @@ describe('<TagSelectField />', () => {
         simulant.fire(document.body.querySelector('.sd-line-input__input'), event);
     });
 
-    it('ESC key will close the popup', () => {
+    xit('ESC key will close the popup', () => {
         const wrapper = mount(
             <TagSelectField options={options} input={input}/>,
             {attachTo: document.body}

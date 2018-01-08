@@ -5,7 +5,7 @@ import {gettext} from '../../utils';
 import {HistoryTab, PreviewContentTab, PreviewHeader} from './';
 import {Tabs} from '../UI/Nav';
 import {Panel} from '../UI/Preview';
-import {SidePanel, Header, Tools, Content, ContentBlock} from '../UI/SidePanel';
+import {SidePanel, Header, Tools, Content} from '../UI/SidePanel';
 
 export class PreviewPanel extends React.Component {
     constructor(props) {
@@ -31,10 +31,12 @@ export class PreviewPanel extends React.Component {
             {
                 label: gettext('Content'),
                 render: PreviewContentTab,
+                enabled: true,
             },
             {
                 label: gettext('History'),
                 render: HistoryTab,
+                enabled: true,
             },
         ];
     }
@@ -77,9 +79,7 @@ export class PreviewPanel extends React.Component {
                             {currentTab.label !== 'History' &&
                                 <PreviewHeader item={this.props.item} />
                             }
-                            <ContentBlock>
-                                <RenderTab item={this.props.item} />
-                            </ContentBlock>
+                            <RenderTab item={this.props.item} />
                         </Content>
                     )}
                 </SidePanel>

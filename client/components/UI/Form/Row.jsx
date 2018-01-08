@@ -1,20 +1,35 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 
-export const Row = ({label, value, onChange, children, showValue}) => (
-    <div className="sd-line-input">
-        <label className="sd-line-input__label">{label}</label>
-        { showValue && <input className="sd-line-input__input" type="text" value={value} onChange={onChange} /> }
+import './style.scss';
+
+export const Row = ({children, flex, noPadding, className}) => (
+    <div className={classNames(
+        'form__row',
+        {
+            'form__row--flex': flex,
+            'form__row--no-padding': noPadding
+        },
+        className
+    )}>
         {children}
     </div>
 );
 
 Row.propTypes = {
-    label: PropTypes.string.isRequired,
-    value: PropTypes.string,
-    onChange: PropTypes.func.isRequired,
-    showValue: PropTypes.bool,
     children: PropTypes.node,
+    flex: PropTypes.bool,
+    noPadding: PropTypes.bool,
+    className: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
+};
+
+Row.defaultProps = {
+    flex: false,
+    noPadding: false,
 };
 
 Row.defaultProps = {showValue: true};
