@@ -10,6 +10,7 @@ import {WORKSPACE} from '../constants';
 AssignmentController.$inject = [
     '$element',
     '$scope',
+    '$location',
     'desks',
     'sdPlanningStore',
     '$q',
@@ -17,6 +18,7 @@ AssignmentController.$inject = [
 export function AssignmentController(
     $element,
     $scope,
+    $location,
     desks,
     sdPlanningStore,
     $q
@@ -42,7 +44,14 @@ export function AssignmentController(
                                     currentStageId: get(desks, 'active.stage'),
                                 },
                             });
-                            return store.dispatch(actions.assignments.ui.reloadAssignments());
+                            return store.dispatch(actions.assignments.ui.reloadAssignments())
+                                .then(() => store.dispatch(actions.assignments.ui.updatePreviewItemOnRouteUpdate()))
+                                .then(() => {
+                                    $scope.$watch(
+                                        () => $location.search().item,
+                                        () => store.dispatch(actions.assignments.ui.updatePreviewItemOnRouteUpdate())
+                                    );
+                                });
                         }
                     );
 
