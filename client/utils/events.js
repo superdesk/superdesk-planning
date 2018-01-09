@@ -364,6 +364,13 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks) => {
                 callback: callBacks[callBackName].bind(null, item)
             });
             break;
+
+        case EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName:
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
         }
     });
 

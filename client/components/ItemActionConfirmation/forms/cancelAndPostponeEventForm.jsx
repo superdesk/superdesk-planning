@@ -4,13 +4,14 @@ import {connect} from 'react-redux';
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {eventUtils, gettext} from '../../../utils';
+import {EVENTS} from '../../../constants';
 import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {Row} from '../../UI/Preview';
 import {TextAreaInput} from '../../UI/Form';
 import '../style.scss';
 
-export class CancelEventComponent extends React.Component {
+export class CancelAndPostponeEventComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -23,6 +24,7 @@ export class CancelEventComponent extends React.Component {
 
         this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
         this.onReasonChange = this.onReasonChange.bind(this);
+        this.postponeAction = false;
     }
 
     componentWillMount() {
@@ -63,7 +65,14 @@ export class CancelEventComponent extends React.Component {
     render() {
         const {initialValues, dateFormat, timeFormat} = this.props;
         const isRecurring = !!initialValues.recurrence_id;
-        const updateMethodLabel = gettext('Would you like to cancel all recurring events or just this one?');
+        let updateMethodLabel = gettext('Would you like to postpone all recurring events or just this one?');
+        let reasonLabel = gettext('Reason for Event cancellation:');
+
+        if (initialValues.lock_action === EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action) {
+            updateMethodLabel = gettext('Would you like to postpone all recurring events or just this one?');
+            reasonLabel = gettext('Reason for Event postponement:');
+        }
+
         const numEvents = this.state.relatedEvents.length + 1;
         const numPlannings = this.state.relatedPlannings.length;
 
@@ -117,7 +126,7 @@ export class CancelEventComponent extends React.Component {
                     readOnly={this.state.submitting}
                     action="cancel" />
 
-                <Row label={gettext('Reason for Event cancellation:')}>
+                <Row label={reasonLabel}>
                     <TextAreaInput
                         value={this.state.reason}
                         onChange={this.onReasonChange}
@@ -129,7 +138,7 @@ export class CancelEventComponent extends React.Component {
     }
 }
 
-CancelEventComponent.propTypes = {
+CancelAndPostponeEventComponent.propTypes = {
     onSubmit: PropTypes.func.isRequired,
     initialValues: PropTypes.object.isRequired,
     relatedEvents: PropTypes.array,
@@ -150,17 +159,24 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event) => dispatch(actions.events.ui.cancelEvent(event)),
+    onSubmit: (event) => {
+        if (event.lock_action === EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action) {
+            return dispatch(actions.events.ui.postponeEvent(event));
+        } else {
+            return dispatch(actions.events.ui.cancelEvent(event));
+        }
+    },
     onHide: (event) => {
-        if (event.lock_action === 'cancel_event') {
-            dispatch(actions.events.api.unlock(event));
+        if (event.lock_action === EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action ||
+            event.lock_action === EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action) {
+            return dispatch(actions.events.api.unlock(event));
         }
     },
 });
 
-export const CancelEventForm = connect(
+export const CancelAndPostponeEventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
     {withRef: true}
-)(CancelEventComponent);
+)(CancelAndPostponeEventComponent);

@@ -35,6 +35,8 @@ export class PlanningPreviewHeaderComponent extends React.Component {
             [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
+            [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
         };
         const itemActions = planningUtils.getPlanningActions(item, event, session, privileges,
             lockedItems, itemActionsCallBack);
@@ -70,6 +72,13 @@ PlanningPreviewHeaderComponent.propTypes = {
     lockedInThisSession: PropTypes.bool,
     currentWorkspace: PropTypes.string,
     event: PropTypes.object,
+    [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: PropTypes.func,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -97,6 +106,8 @@ const mapDispatchToProps = (dispatch) => ({
         (planning) => dispatch(actions.planning.ui.openCancelAllCoverageModal(planning)),
     [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
         (event) => dispatch(actions.events.ui.openCancelModal(event)),
+    [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
+        (event) => dispatch(actions.events.ui.openPostponeModal(event)),
 });
 
 export const PlanningPreviewHeader = connect(mapStateToProps, mapDispatchToProps)(PlanningPreviewHeaderComponent);

@@ -37,6 +37,8 @@ export class ListGroup extends React.PureComponent {
                                 this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
                             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                                 this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
+                            [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
+                                this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
                             [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
                                 this.props[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
                             [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
@@ -75,6 +77,7 @@ ListGroup.propTypes = {
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

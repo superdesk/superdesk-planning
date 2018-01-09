@@ -278,6 +278,13 @@ const getPlanningActions = (item, event, session, privileges, lockedItems, callB
                 callback: callBacks[callBackName].bind(null, event)
             });
             break;
+
+        case EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName:
+            eventActions.push({
+                ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+                callback: callBacks[callBackName].bind(null, event)
+            });
+            break;
         }
     });
 

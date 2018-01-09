@@ -55,6 +55,8 @@ export class PlanningItem extends React.PureComponent {
                 this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
+            [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
         };
         const itemActions = planningUtils.getPlanningActions(item, event, session,
             privileges, lockedItems, itemActionsCallBack);
@@ -129,4 +131,5 @@ PlanningItem.propTypes = {
     [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: PropTypes.func,
 };
