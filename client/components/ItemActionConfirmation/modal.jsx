@@ -4,10 +4,9 @@ import {ModalWithForm} from '../index';
 import {
     SpikeEventForm,
     UpdateRecurringEventsForm,
-    CancelEventForm,
+    CancelAndPostponeEventForm,
     UpdateTimeForm,
     RescheduleEventForm,
-    PostponeEventForm,
     ConvertToRecurringEventForm,
     CancelPlanningCoveragesForm,
     UpdateAssignmentForm,
@@ -42,7 +41,7 @@ export const ItemActionConfirmationModal = ({handleHide, modalProps}) => {
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: {
             title: 'Cancel an event',
             saveText: 'OK',
-            form: CancelEventForm,
+            form: CancelAndPostponeEventForm,
         },
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: {
             title: 'Update time',
@@ -58,7 +57,7 @@ export const ItemActionConfirmationModal = ({handleHide, modalProps}) => {
         [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: {
             title: 'Postpone an event',
             saveText: 'Postpone',
-            form: PostponeEventForm,
+            form: CancelAndPostponeEventForm,
         },
         [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: {
             title: get(EVENTS, 'ITEM_ACTIONS.CONVERT_TO_RECURRING.label'),

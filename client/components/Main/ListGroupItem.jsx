@@ -88,6 +88,8 @@ export class ListGroupItem extends React.Component {
                     this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
                 [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                     this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
+                [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
             };
             return (
                 <EventItem { ... itemProps } />
@@ -110,6 +112,8 @@ export class ListGroupItem extends React.Component {
                     this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
                 [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                     this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
+                [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
             };
             return (
                 <PlanningItem { ...itemProps } />
@@ -138,6 +142,7 @@ ListGroupItem.propTypes = {
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

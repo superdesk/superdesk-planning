@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../../../actions';
 import {isItemCancelled, gettext} from '../../../utils';
+import {PLANNING} from '../../../constants';
 import {get} from 'lodash';
 import {Row} from '../../UI/Preview';
 import {TextAreaInput} from '../../UI/Form';
@@ -77,7 +78,7 @@ const mapDispatchToProps = (dispatch) => ({
                     dispatch(actions.planning.ui.publish(plan));
                 }
 
-                if (plan.lock_action === 'cancel_all_coverage' ||
+                if (plan.lock_action === PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.lock_action ||
                     isItemCancelled(plan)) {
                     dispatch(actions.planning.api.unlock(plan));
                 }
@@ -85,8 +86,8 @@ const mapDispatchToProps = (dispatch) => ({
     },
 
     onHide: (planning) => {
-        if (planning.lock_action === 'planning_cancel' ||
-                planning.lock_action === 'cancel_all_coverage') {
+        if (planning.lock_action === PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.lock_action ||
+                planning.lock_action === PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.lock_action) {
             dispatch(actions.planning.api.unlock(planning));
         }
     },

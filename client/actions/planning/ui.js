@@ -444,7 +444,7 @@ const openCancelPlanningModal = (plan, publish = false) => (
     (dispatch) => dispatch(self._openActionModal(
         plan,
         PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label,
-        'planning_cancel',
+        PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.lock_action,
         publish
     ))
 );
@@ -453,7 +453,7 @@ const openCancelAllCoverageModal = (plan, publish = false) => (
     (dispatch) => dispatch(self._openActionModal(
         plan,
         PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label,
-        'cancel_all_coverage',
+        PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.lock_action,
         publish
     ))
 );
