@@ -55,6 +55,7 @@ export const EVENTS = {
             label: 'Cancel',
             icon: 'icon-close-small',
             actionName: 'onCancelEvent',
+            lock_action: 'cancel_event',
         },
         UPDATE_TIME: {
             label: 'Update time',
@@ -67,6 +68,8 @@ export const EVENTS = {
         POSTPONE_EVENT: {
             label: 'Mark as Postponed',
             icon: 'icon-calendar-list',
+            actionName: 'onPostponeEvent',
+            lock_action: 'postpone_event',
         },
         CONVERT_TO_RECURRING: {
             label: 'Convert to recurring event',

@@ -59,12 +59,14 @@ export const PLANNING = {
         CANCEL_PLANNING: {
             label: 'Cancel planning',
             icon: 'icon-close-small',
-            actionName: 'onCancelPlanning'
+            actionName: 'onCancelPlanning',
+            lock_action: 'planning_cancel',
         },
         CANCEL_ALL_COVERAGE: {
             label: 'Cancel all coverage',
             icon: 'icon-close-small',
-            actionName: 'onCancelAllCoverage'
+            actionName: 'onCancelAllCoverage',
+            lock_action: 'cancel_all_coverage',
         },
     },
     NEWS_COVERAGE_CANCELLED_STATUS: {

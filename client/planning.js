@@ -108,6 +108,8 @@ class PlanningApp extends React.Component {
                 this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
+            [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
             [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
             [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
@@ -192,6 +194,7 @@ PlanningApp.propTypes = {
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
@@ -226,6 +229,10 @@ const mapDispatchToProps = (dispatch) => ({
     filter: (filterType) => dispatch(actions.main.filter(filterType)),
     selectAgenda: (agendaId) => dispatch(actions.selectAgenda(agendaId)),
     openAgendas: () => dispatch(actions.openAgenda()),
+    onSave: (item, save = true, publish = false) => dispatch(actions.main.save(item, save, publish)),
+    onUnpublish: (item) => dispatch(actions.main.unpublish(item)),
+    openCancelModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
+    closePreview: () => dispatch(actions.main.closePreview()),
 
     // Event Item actions:
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: (event) => dispatch(actions.duplicateEvent(event)),
@@ -233,6 +240,7 @@ const mapDispatchToProps = (dispatch) => ({
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
     [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: (event) => dispatch(actions.events.ui.openSpikeModal(event)),
     [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: (event) => dispatch(actions.events.ui.openCancelModal(event)),
+    [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: (event) => dispatch(actions.events.ui.openPostponeModal(event)),
     // Planning Item actions
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
         (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
@@ -244,11 +252,6 @@ const mapDispatchToProps = (dispatch) => ({
         (planning) => dispatch(actions.planning.ui.openCancelPlanningModal(planning)),
     [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
         (planning) => dispatch(actions.planning.ui.openCancelAllCoverageModal(planning)),
-
-    onSave: (item, save = true, publish = false) => dispatch(actions.main.save(item, save, publish)),
-    onUnpublish: (item) => dispatch(actions.main.unpublish(item)),
-    openCancelModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
-    closePreview: () => dispatch(actions.main.closePreview())
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(PlanningApp);

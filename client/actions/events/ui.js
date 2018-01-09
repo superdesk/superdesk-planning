@@ -366,7 +366,7 @@ const openCancelModal = (event, publish = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label,
-        'cancel_event',
+        EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action,
         true,
         publish
     ))
@@ -376,7 +376,7 @@ const openPostponeModal = (event, publish = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label,
-        'postpone_event',
+        EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action,
         true,
         publish
     ))
