@@ -371,6 +371,13 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks) => {
                 callback: callBacks[callBackName].bind(null, item)
             });
             break;
+
+        case EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName:
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
         }
     });
 
@@ -389,6 +396,15 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks) => {
         actions,
         lockedItems
     );
+};
+
+const validateEventDates = (startDate, endDate) => {
+    if (moment.isMoment(startDate) && moment.isMoment(endDate) &&
+        endDate.isBefore(startDate)) {
+        return true;
+    }
+
+    return false;
 };
 
 // eslint-disable-next-line consistent-this
@@ -418,6 +434,7 @@ const self = {
     isEventRecurring,
     getDateStringForEvent,
     getEventActions,
+    validateEventDates,
 };
 
 export default self;

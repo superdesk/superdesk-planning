@@ -60,6 +60,8 @@ export const EVENTS = {
         UPDATE_TIME: {
             label: 'Update time',
             icon: 'icon-time',
+            actionName: 'onEventUpdateTime',
+            lock_action: 'update_time',
         },
         RESCHEDULE_EVENT: {
             label: 'Reschedule',

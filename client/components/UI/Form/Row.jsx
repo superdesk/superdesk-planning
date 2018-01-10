@@ -4,12 +4,13 @@ import classNames from 'classnames';
 
 import './style.scss';
 
-export const Row = ({children, flex, noPadding, className}) => (
+export const Row = ({children, flex, noPadding, halfWidth, className}) => (
     <div className={classNames(
         'form__row',
         {
             'form__row--flex': flex,
-            'form__row--no-padding': noPadding
+            'form__row--no-padding': noPadding,
+            'form__row--half-width': halfWidth,
         },
         className
     )}>
@@ -25,6 +26,7 @@ Row.propTypes = {
         PropTypes.string,
         PropTypes.object,
     ]),
+    halfWidth: PropTypes.bool,
 };
 
 Row.defaultProps = {

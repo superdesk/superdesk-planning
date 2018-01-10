@@ -346,7 +346,7 @@ const updateTime = (event, publish = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.UPDATE_TIME.label,
-        'update_time',
+        EVENTS.ITEM_ACTIONS.UPDATE_TIME.lock_action,
         false,
         publish
     ))
