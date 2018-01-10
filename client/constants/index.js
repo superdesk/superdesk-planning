@@ -61,15 +61,9 @@ export const ADVANCED_SEARCH_CONTEXT = {
 export const RESET_STORE = 'RESET_STORE';
 export const INIT_STORE = 'INIT_STORE';
 export const FORM_NAMES = {
-    SpikeEventForm: 'spikeEvent',
-    CancelEventForm: 'cancelEvent',
-    CancelPlanningForm: 'cancelPlanning',
-    UpdateTimeForm: 'updateTime',
     UpdateRecurringEventsForm: 'updateEventConfirmation',
-    CreateEditAgendaForm: 'createEditAgenda',
     RescheduleForm: 'rescheduleEvent',
     ConvertEventToRecurringForm: 'convertEventToRecurring',
-    PostponeEventForm: 'postponeEvent',
     ReassignAssignmentForm: 'reassignAssignmentForm',
     EditAssignmentPriorityForm: 'editAssignmentPriorityForm',
     UpdateAssignmentForm: 'updateAssignmentForm',
