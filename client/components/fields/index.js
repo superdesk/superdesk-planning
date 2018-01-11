@@ -14,3 +14,5 @@ export {CheckboxField} from './CheckboxField';
 export {CoverageProviderField} from './CoverageProviderField';
 export {ContentTypeField} from './ContentTypeField';
 export {CoverageStatusField} from './CoverageStatusField';
+export {ContactField} from './ContactField';
+export {SelectSearchTermsField} from './SelectSearchTermsField/';

@@ -15,6 +15,7 @@ import * as Popup from './Popup';
 import SearchBar from './SearchBar/';
 import {ToggleBox} from './ToggleBox/';
 import Toggle from './Toggle';
+import SearchField from './SearchField/';
 
 export {
     List,
@@ -34,4 +35,5 @@ export {
     SearchBar,
     ToggleBox,
     Toggle,
+    SearchField,
 };

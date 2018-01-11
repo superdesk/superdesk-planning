@@ -25,6 +25,7 @@ PlanningStoreService.$inject = [
     '$q',
     '$interpolate',
     'search',
+    'contacts',
 ];
 export function PlanningStoreService(
     $rootScope,
@@ -49,7 +50,8 @@ export function PlanningStoreService(
     gettextCatalog,
     $q,
     $interpolate,
-    search
+    search,
+    contacts
 ) {
     let self = this;
 
@@ -86,6 +88,13 @@ export function PlanningStoreService(
                 max_results: 200,
                 page: 1,
             }),
+            contacts: contacts.query({
+                max_results: 200,
+                page: 1,
+                all: true,
+                default_operator: 'AND',
+                q: 'public:(1) is_active:(1)',
+            }).then((items) => items),
         }).then((data) => {
             const initialState = {
                 config: config,
@@ -119,6 +128,7 @@ export function PlanningStoreService(
                     label: gettextCatalog.getString('Urgency'),
                 },
                 forms: {profiles: {}},
+                contacts: data.contacts._items,
             };
 
             data.formsProfile._items.forEach((p) => {
@@ -150,6 +160,7 @@ export function PlanningStoreService(
                     $interpolate: $interpolate,
                     search: search,
                     config: config,
+                    contacts: contacts,
                 },
             });
             return self.store;

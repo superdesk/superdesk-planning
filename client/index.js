@@ -1,5 +1,6 @@
 import * as ctrl from './controllers';
 import * as svc from './services';
+import ng from 'superdesk-core/scripts/core/services/ng';
 
 export default angular.module('superdesk.planning', [])
     .directive('sdPlanning',
@@ -34,4 +35,5 @@ export default angular.module('superdesk.planning', [])
             controller: ctrl.AssignmentPreviewController,
         })
     )
-    .service('sdPlanningStore', svc.PlanningStoreService);
+    .service('sdPlanningStore', svc.PlanningStoreService)
+    .run(['$injector', ng.register]);
