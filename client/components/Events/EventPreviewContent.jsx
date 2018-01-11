@@ -14,8 +14,32 @@ import {EventScheduleSummary} from './';
 import {ToggleBox} from '../UI';
 import {ContentBlock} from '../UI/SidePanel';
 import {LinkInput, FileInput} from '../UI/Form';
+import {ContactInfoContainer} from '../index';
 
 export class EventPreviewContentComponent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            showContactInfo: false,
+            currentContact: [],
+        };
+        this.viewContactDetails = this.viewContactDetails.bind(this);
+        this.closeDetails = this.closeDetails.bind(this);
+    }
+
+    viewContactDetails(contact) {
+        this.setState({
+            showContactInfo: true,
+            currentContact: contact,
+        });
+    }
+
+    closeDetails() {
+        this.setState({
+            showContactInfo: false
+        });
+    }
+
     render() {
         const {item, users, formProfile, timeFormat, dateFormat, createUploadLink} = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
@@ -31,6 +55,22 @@ export class EventPreviewContentComponent extends React.Component {
             item.anpa_category.map((c) => c.name).join(', ');
         const subjectText = get(item, 'subject.length', 0) === 0 ? '' :
             item.subject.map((s) => s.name).join(', ');
+
+        /** Contact Field related */
+        const avatarClass = (contact) => contact.first_name ? 'avatar' : 'avatar organisation';
+        const displayContact = (contact) => (contact.first_name ?
+            `${contact.first_name} ${contact.last_name}` : contact.organisation);
+        const displayContactInfo = (contact) => (contact.first_name && contact.job_title && contact.organisation &&
+                    <h5>{contact.job_title}, {contact.organisation}</h5>);
+
+        const displayContactList = (contact) => (<span className="contact-info">
+            <figure className={avatarClass(contact)} />
+            <span>{displayContact(contact)} {displayContactInfo(contact)}</span>
+            <button className="btn-view-details" data-sd-tooltip="View Details" data-flow="left"
+                onClick={this.viewContactDetails.bind(this, contact)}>
+                <i className="icon-external" />
+            </button>
+        </span>);
 
         return (
             <ContentBlock>
@@ -72,6 +112,22 @@ export class EventPreviewContentComponent extends React.Component {
                         <div>{item.location[0].name}</div>
                         <div>{item.location[0].formatted_address}</div>
                     </Row>}
+
+                {get(formProfile, 'editor.contacts.enabled') && get(item, '_contacts.length') > 0 &&
+                    <Row label={gettext('Contact')}>
+                        {get(item, '_contacts', []).map((contact, index) => (
+                            <span key={index}>
+                                {displayContactList(contact)}
+                            </span>
+                        ))}
+                        {this.state.showContactInfo && (
+                            <ContactInfoContainer onCancel={this.closeDetails.bind(this)}
+                                target="icon-external" currentContact={this.state.currentContact} />
+                        )
+                        }
+                    </Row>
+                }
+
                 <ToggleBox title={gettext('Details')} isOpen={false}>
                     {get(formProfile, 'editor.calendars.enabled') && <Row
                         label={gettext('Calendars')}

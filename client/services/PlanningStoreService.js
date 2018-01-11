@@ -128,6 +128,7 @@ export function PlanningStoreService(
                     label: gettextCatalog.getString('Urgency'),
                 },
                 forms: {profiles: {}},
+                contacts: data.contacts._items,
             };
 
             data.formsProfile._items.forEach((p) => {

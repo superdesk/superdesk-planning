@@ -3,12 +3,12 @@ import {SelectSearchTermsField} from './SelectSearchTermsField/';
 import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
 import {get, join, find, map} from 'lodash';
-import {ContactInfoContainer} from './ContactInfoContainer';
+import {ContactInfoContainer} from '../index';
 
 // Renders Contact information card
-const viewDetails = (onCancel, currentContact) => (<div>
-    {<ContactInfoContainer onCancel={onCancel} currentContact={currentContact} />}
-</div>);
+const viewDetails = (onCancel, currentContact) => (
+    <ContactInfoContainer target="icon-external" onCancel={onCancel} currentContact={currentContact} />
+);
 
 const avatarClass = (contact) => contact.first_name ? 'avatar' : 'avatar organisation';
 
@@ -29,9 +29,8 @@ const getSearchFields = (contact) => {
 };
 
 const mapStateToProps = (state, ownProps) => ({
-    multi: true,
     valueKey: 'searchFields',
-    options: selectors.getEventContacts(state).map((contact) => {
+    options: selectors.events.getEventContacts(state).map((contact) => {
         let contactLabel = (<span className="contact-info">
             <figure className={avatarClass(contact)} />
             <span>{displayContact(contact)} {displayContactInfo(contact)}</span>
@@ -43,7 +42,7 @@ const mapStateToProps = (state, ownProps) => ({
             value: contact._id,
         };
     }),
-    value: (ownProps.input.value || []).map((contact) => {
+    value: (ownProps.value || []).map((contact) => {
         const currentContact = (state.contacts || []).find((c) => c._id === contact);
 
         let contactLabel = (<span className="contact-info">
@@ -61,3 +60,4 @@ const mapStateToProps = (state, ownProps) => ({
 });
 
 export const ContactField = connect(mapStateToProps)(SelectSearchTermsField);
+

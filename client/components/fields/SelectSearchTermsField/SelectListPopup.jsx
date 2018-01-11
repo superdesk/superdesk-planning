@@ -1,10 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import ReactDOM from 'react-dom';
-import {SearchField} from '../../index';
+import {SearchField} from '../../UI';
 import {differenceBy} from 'lodash';
 import {uiUtils} from '../../../utils';
 import './style.scss';
+import {Popup} from '../../UI/Popup';
+import {KEYCODES} from '../../../constants';
+
 
 export class SelectListPopup extends React.Component {
     constructor(props) {
@@ -16,46 +18,39 @@ export class SelectListPopup extends React.Component {
             activeOptionIndex: -1,
             openFilterList: false,
         };
-        this.handleClickOutside = this.handleClickOutside.bind(this);
-        this.handleKeyBoardEvent = this.handleKeyBoardEvent.bind(this);
+
+        this.onKeyDown = this.onKeyDown.bind(this);
+        this.closeSearchList = this.closeSearchList.bind(this);
     }
 
-    handleKeyBoardEvent(event) {
-        if (event && this.state.openFilterList) {
+    onKeyDown(event) {
+        if (event) {
             switch (event.keyCode) {
-            case 27:
-                // ESC key
-                event.preventDefault();
-                this.closeSearchList();
-                break;
-            case 13:
-                // ENTER key
+            case KEYCODES.ENTER:
                 event.preventDefault();
                 this.handleEnterKey(event);
                 break;
-            case 40:
-                // arrowDown key
+            case KEYCODES.DOWN:
                 event.preventDefault();
                 this.handleDownArrowKey(event);
                 break;
-            case 38:
-                // arrowUp key
+            case KEYCODES.UP:
                 event.preventDefault();
                 this.handleUpArrowKey(event);
                 break;
-            case 37:
-                // left key
+            case KEYCODES.LEFT:
                 event.preventDefault();
                 if (this.state.selectedAncestry.length > 0) {
                     this.popParent(true);
                 }
                 break;
-            case 39:
-                // right key
+            case KEYCODES.RIGHT:
                 event.preventDefault();
                 if (this.state.activeOptionIndex !== -1) {
-                    this.onMutiLevelSelect(this.state.filteredList[this.state.activeOptionIndex],
-                        true);
+                    this.onMutiLevelSelect(
+                        this.state.filteredList[this.state.activeOptionIndex],
+                        true
+                    );
                 }
                 break;
             }
@@ -86,14 +81,9 @@ export class SelectListPopup extends React.Component {
         }
     }
 
-    handleUpArrowKey() {
+    handleUpArrowKey(event) {
         if (this.state.activeOptionIndex === 0) {
-            if (this.state.selectedAncestry.length === 0) {
-                // Focus the search input
-                this.refs.searchField.refs.searchInput.focus();
-                this.setState({activeOptionIndex: -1});
-            } else {
-                // Choose entire category
+            if (this.state.selectedAncestry.length !== 0) {
                 this.setState({activeOptionIndex: -1});
             }
         } else {
@@ -104,24 +94,6 @@ export class SelectListPopup extends React.Component {
 
     componentWillMount() {
         this.setState({filteredList: this.getFilteredOptionList()});
-    }
-
-    componentDidMount() {
-        document.addEventListener('click', this.handleClickOutside, true);
-        document.addEventListener('keydown', this.handleKeyBoardEvent);
-    }
-
-    componentWillUnmount() {
-        document.removeEventListener('click', this.handleClickOutside, true);
-        document.removeEventListener('keydown', this.handleKeyBoardEvent);
-    }
-
-    handleClickOutside(event) {
-        const domNode = ReactDOM.findDOMNode(this);
-
-        if ((!domNode || !domNode.contains(event.target))) {
-            this.closeSearchList();
-        }
     }
 
     onSelect(opt) {
@@ -215,6 +187,7 @@ export class SelectListPopup extends React.Component {
 
     openSearchList() {
         if (!this.state.openFilterList) {
+            this.setState({filteredList: this.getFilteredOptionList()});
             this.setState({openFilterList: true});
         }
     }
@@ -230,64 +203,84 @@ export class SelectListPopup extends React.Component {
             <SearchField onSearch={(val) => {
                 this.filterSearchResults(val);
             }} minLength={1}
-            onSearchClick={this.openSearchList.bind(this)} ref="searchField"/>
-            {this.state.openFilterList && (<div className="Select__popup__wrapper">
-                <ul className="Select__popup__list" ref="listItems">
-                    {this.state.filteredList.map((opt, index) => (
-                        <li key={index} className={ (index === this.state.activeOptionIndex ?
-                            'Select__popup__item--active ' : '') + 'Select__popup__item'}>
-                            <button type="button" onClick={this.onSelect.bind(this,
-                                this.state.filteredList[index])} >
-                                <span>{ opt.label }</span>
-                            </button>
-                        </li>
-                    ))}
-                    {this.state.filteredList.length === 0 && <li>
-                        <button className="btn btn--small btn--expanded">Add contact</button></li>}
-                </ul>
-            </div>)}
+            onSearchClick={this.openSearchList.bind(this)} ref="searchField" />
+            {this.state.openFilterList &&
+                (
+                    <Popup
+                        close={this.closeSearchList}
+                        target={this.props.target}
+                        onKeyDown={this.onKeyDown}
+                        inheritWidth={true}
+                        noPadding={true}
+                    >
+                        <div className="Select__popup__wrapper">
+                            <ul className="Select__popup__list" ref="listItems">
+                                {this.state.filteredList.map((opt, index) => (
+                                    <li key={index} className={ (index === this.state.activeOptionIndex ?
+                                        'Select__popup__item--active ' : '') + 'Select__popup__item'}>
+                                        <button type="button" onClick={this.onSelect.bind(this,
+                                            this.state.filteredList[index])} >
+                                            <span>{ opt.label }</span>
+                                        </button>
+                                    </li>
+                                ))}
+                                {this.state.filteredList.length === 0 && <li>
+                                    <button className="btn btn--small btn--expanded">Add contact</button></li>}
+                            </ul>
+                        </div>
+                    </Popup>
+                )
+            }
         </div>);
     }
 
     renderMultiLevelSelect() {
-        return (<div>
-            <div className="form__row">
-                { (this.state.currentParent &&
-                            (<div>
-                                <i className="backlink" onClick={this.popParent.bind(this)}/>
-                                <button type="button" className={(this.state.activeOptionIndex === -1 ?
-                                    'Select__popup__item--active ' : '') + 'Select__popup__category'}
-                                onClick={this.chooseEntireCategory.bind(this)}>
-                                    <div id="parent" className="Select__popup__parent">
-                                        {this.state.currentParent.label}
-                                    </div>
-                                    <div id="choose" className="Select__popup__parent--choose">
-                                        Choose entire category</div>
+        return (
+            <Popup
+                close={this.closeSearchList}
+                target={this.props.target}
+                onKeyDown={this.onKeyDown}
+                inheritWidth={true}
+                noPadding={true}
+            >
+                <div className="form__row">
+                    { (this.state.currentParent &&
+                                (<div>
+                                    <i className="backlink" onClick={this.popParent.bind(this)}/>
+                                    <button type="button" className={(this.state.activeOptionIndex === -1 ?
+                                        'Select__popup__item--active ' : '') + 'Select__popup__category'}
+                                    onClick={this.chooseEntireCategory.bind(this)}>
+                                        <div id="parent" className="Select__popup__parent">
+                                            {this.state.currentParent.label}
+                                        </div>
+                                        <div id="choose" className="Select__popup__parent--choose">
+                                            Choose entire category</div>
+                                    </button>
+                                </div>))
+                            || <SearchField onSearch={(val) => {
+                                this.filterSearchResults(val);
+                            }} minLength={1}
+                            onSearchClick={this.openSearchList.bind(this)} ref="searchField"/>
+                    }
+                </div>
+                {this.state.openFilterList && (<div className="Select__popup__wrapper">
+                    <ul className="dropdown-menu Select__popup__list" ref="listItems">
+                        {this.state.filteredList.map((opt, index) => (
+                            <li key={index} className={ (index === this.state.activeOptionIndex ?
+                                'Select__popup__item--active ' : '') + 'Select__popup__item'} >
+                                <button type="button" onClick={this.onMutiLevelSelect.bind(this,
+                                    this.state.filteredList[index], false)}>
+                                    <span>{ opt.label }</span>
+                                    { !this.state.search && this.isOptionAParent(opt) &&
+                                        <i className="icon-chevron-right-thin" />
+                                    }
                                 </button>
-                            </div>))
-                        || <SearchField onSearch={(val) => {
-                            this.filterSearchResults(val);
-                        }} minLength={1}
-                        onSearchClick={this.openSearchList.bind(this)} ref="searchField"/>
-                }
-            </div>
-            {this.state.openFilterList && (<div className="Select__popup__wrapper">
-                <ul className="dropdown-menu Select__popup__list" ref="listItems">
-                    {this.state.filteredList.map((opt, index) => (
-                        <li key={index} className={ (index === this.state.activeOptionIndex ?
-                            'Select__popup__item--active ' : '') + 'Select__popup__item'} >
-                            <button type="button" onClick={this.onMutiLevelSelect.bind(this,
-                                this.state.filteredList[index], false)}>
-                                <span>{ opt.label }</span>
-                                { !this.state.search && this.isOptionAParent(opt) &&
-                                    <i className="icon-chevron-right-thin" />
-                                }
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            </div>)}
-        </div>);
+                            </li>
+                        ))}
+                    </ul>
+                </div>)}
+            </Popup>
+        );
     }
 
     render() {
@@ -320,6 +313,7 @@ SelectListPopup.propTypes = {
             PropTypes.string,
         ]),
     })),
+    target: PropTypes.string,
 };
 
 SelectListPopup.defaultProps = {valueKey: 'label'};

@@ -75,7 +75,7 @@ export {ItemIcon} from './ItemIcon';
 import * as UI from './UI/index';
 export {UI};
 export {UserSearchList} from './UserSearchList';
-export {AssignmentHistory} from './AssignmentHistory';
+export {ContactInfoContainer} from './ContactInfoContainer/index';
 
 // This must go last, as it imports Modals from above modules
 export {ModalsContainer} from './ModalsContainer';
