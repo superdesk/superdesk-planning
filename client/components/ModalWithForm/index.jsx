@@ -38,6 +38,8 @@ export class Component extends React.Component {
     render() {
         const form = React.createElement(this.props.form, {
             initialValues: this.props.initialValues,
+            enableSaveInModal: this.props.enableSaveInModal,
+            disableSaveInModal: this.props.disableSaveInModal,
             ref: 'form',
         });
 
@@ -67,7 +69,9 @@ export class Component extends React.Component {
                     <Button type="submit"
                         className="btn btn--primary"
                         onClick={this.submit}
-                        disabled={this.props.pristine || this.props.submitting}>
+                        disabled={this.props.pristine ||
+                        !this.props.canSave ||
+                        this.props.submitting}>
                         { this.props.saveButtonText || 'Save' }
                     </Button>
                 </Modal.Footer>
@@ -83,8 +87,11 @@ Component.propTypes = {
     initialValues: PropTypes.object,
     title: PropTypes.string,
     show: PropTypes.bool,
+    enableSaveInModal: PropTypes.func,
+    disableSaveInModal: PropTypes.func,
     onHide: PropTypes.func,
     pristine: PropTypes.bool,
+    canSave: PropTypes.bool,
     submitting: PropTypes.oneOfType([
         PropTypes.func,
         PropTypes.bool,

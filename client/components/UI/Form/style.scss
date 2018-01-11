@@ -16,6 +16,10 @@
     padding: 0;
 }
 
+.form__row--half-width {
+    max-width: 200px;
+}
+
 .sd-line-input__input--auto-height {
     resize: none;
     overflow: hidden;
