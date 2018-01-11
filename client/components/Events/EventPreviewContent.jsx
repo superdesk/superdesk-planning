@@ -151,10 +151,10 @@ const mapStateToProps = (state, ownProps) => ({
     privileges: selectors.getPrivileges(state),
     users: selectors.getUsers(state),
     lockedItems: selectors.getLockedItems(state),
-    timeFormat: selectors.general.timeFormat(state),
-    dateFormat: selectors.general.dateFormat(state),
+    timeFormat: selectors.config.getTimeFormat(state),
+    dateFormat: selectors.config.getDateFormat(state),
     formProfile: selectors.forms.eventProfile(state),
-    createUploadLink: (f) => selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
+    createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
 });
 
 export const EventPreviewContent = connect(mapStateToProps, null)(EventPreviewContentComponent);

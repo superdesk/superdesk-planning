@@ -4,6 +4,7 @@ import {get, isNil, isEqual} from 'lodash';
 import moment from 'moment';
 
 import {eventUtils} from '../../../utils';
+import {eventValidators} from '../../../validators';
 
 import {Toggle} from '../../UI';
 import {Row, DateTimeInput, Label, LineInput} from '../../UI/Form';
@@ -16,7 +17,8 @@ export class EventScheduleInput extends React.Component {
         this.state = {
             doesRepeat: false,
             recurringRuleEdited: false,
-            isAllDay: false
+            isAllDay: false,
+            error: null,
         };
 
         this.onChange = this.onChange.bind(this);
@@ -26,11 +28,14 @@ export class EventScheduleInput extends React.Component {
 
     componentWillMount() {
         const dates = get(this.props, 'item.dates');
+        const validation = eventValidators.validateEventDates(dates,
+            this.props.maxRecurrentEvents);
 
         this.setState({
             doesRepeat: !isNil(get(dates, 'recurring_rule.frequency')),
             recurringRuleEdited: false,
             isAllDay: eventUtils.isEventAllDay(dates.start, dates.end),
+            error: validation.hasErrors ? validation.data : null
         });
     }
 
@@ -43,6 +48,9 @@ export class EventScheduleInput extends React.Component {
             this.changeEndDate(value);
         } else if (field === 'dates.end.time') {
             this.changeEndTime(value);
+        } else if (field === 'dates.recurring_rule.count' && !value) {
+            // Count is an integer. So set it to null, not to ''
+            this.props.onChange(field, null);
         } else {
             this.props.onChange(field, value);
         }
@@ -128,6 +136,8 @@ export class EventScheduleInput extends React.Component {
         const recurringRuleNextState = this.getNextRecurringRuleState(nextProps);
 
         const isAllDay = eventUtils.isEventAllDay(nextDates.start, nextDates.end);
+        const validation = eventValidators.validateEventDates(nextDates,
+            nextProps.maxRecurrentEvents);
 
         const newState = {};
 
@@ -139,6 +149,8 @@ export class EventScheduleInput extends React.Component {
             newState.doesRepeat = true;
             newState.recurringRuleEdited = recurringRuleNextState;
         }
+
+        newState.error = validation.hasErrors ? validation.data : null;
 
         this.setState(newState);
     }
@@ -214,7 +226,7 @@ export class EventScheduleInput extends React.Component {
 
     render() {
         const {diff, showRepeat, showRepeatToggle, timeFormat, dateFormat, readOnly} = this.props;
-        const {doesRepeat, isAllDay} = this.state;
+        const {doesRepeat, isAllDay, error} = this.state;
 
         return (
             <div>
@@ -233,10 +245,16 @@ export class EventScheduleInput extends React.Component {
                     label="To"
                     value={get(diff, 'dates.end', null)}
                     onChange={this.onChange}
+                    invalid={get(error, 'dates.end', false)}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                     readOnly={readOnly}
                 />
+                {get(error, 'dates.end', false) && <Row>
+                    <LineInput invalid={true}
+                        message={error.dates.end}
+                        readOnly={true} />
+                </Row>}
 
                 <Row flex={true} className="event-toggle">
                     <Label text=" " row={true} />
@@ -270,6 +288,7 @@ export class EventScheduleInput extends React.Component {
                         schedule={diff || {}}
                         dateFormat={dateFormat}
                         readOnly={readOnly}
+                        error={get(error, 'dates.recurring_rule')}
                     />
                 )}
             </div>
@@ -287,6 +306,7 @@ EventScheduleInput.propTypes = {
     showRepeatToggle: PropTypes.bool,
     timeFormat: PropTypes.string.isRequired,
     dateFormat: PropTypes.string.isRequired,
+    maxRecurrentEvents: PropTypes.number.isRequired,
 };
 
 EventScheduleInput.defaultProps = {
