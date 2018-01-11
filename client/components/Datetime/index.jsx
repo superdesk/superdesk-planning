@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import {connect} from 'react-redux';
-import {dateFormat as getDateFormat, timeFormat as getTimeFormat} from '../../selectors/general';
+import {getDateFormat, getTimeFormat} from '../../selectors/config';
 import './style.scss';
 
 function Datetime({date, withTime, withDate, withYear, dateFormat, timeFormat}) {

@@ -11,6 +11,7 @@ export const DateTimeInput = ({
     onChange,
     required,
     invalid,
+    message,
     timeFormat,
     dateFormat,
     readOnly,
@@ -38,6 +39,7 @@ export const DateTimeInput = ({
             onChange={onChange}
             noMargin={true}
             invalid={invalid}
+            message={message}
             timeFormat={timeFormat}
             readOnly={readOnly}
         />
@@ -56,9 +58,9 @@ DateTimeInput.propTypes = {
     dateFormat: PropTypes.string.isRequired,
 
     hint: PropTypes.string,
-    message: PropTypes.string,
     required: PropTypes.bool,
     invalid: PropTypes.bool,
+    message: PropTypes.string,
     readOnly: PropTypes.bool,
     boxed: PropTypes.bool,
     noMargin: PropTypes.bool,

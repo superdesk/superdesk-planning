@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
+import {gettext} from '../../../utils';
 
 import {Label, LineInput} from '../../UI/Form';
 
@@ -13,6 +14,7 @@ export const RepeatEventSummary = ({
     count,
     startDate,
     noMargin,
+    forUpdating,
 }) => {
     const getDaysFromByDays = () => {
         let byDays = '';
@@ -98,7 +100,8 @@ export const RepeatEventSummary = ({
 
     return (
         <LineInput noMargin={noMargin}>
-            <Label text="Repeat Summary" row={true} light={true} />
+            <Label text={forUpdating ? gettext('Current Repeat Summary') :
+                gettext('Repeat Summary')} row={true} light={true} />
             <p className="sd-text__strong">{getRepeatSummary()}</p>
         </LineInput>
     );
@@ -119,6 +122,7 @@ RepeatEventSummary.propTypes = {
     ]),
     startDate: PropTypes.object,
     noMargin: PropTypes.bool,
+    forUpdating: PropTypes.bool,
 };
 
 RepeatEventSummary.defaultProps = {

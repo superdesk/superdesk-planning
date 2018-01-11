@@ -67,7 +67,6 @@ export class ItemActionConfirmationModal extends React.Component {
                 title: 'Reschedule an event',
                 saveText: 'Reschedule',
                 form: RescheduleEventForm,
-                formNameForPristineCheck: get(FORM_NAMES, 'RescheduleForm'),
             },
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: {
                 title: 'Postpone an event',

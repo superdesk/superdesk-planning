@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
+import {get} from 'lodash';
 
 import {Row, RowItem, LineInput, Label, Input, Checkbox, DateInput} from '../../UI/Form';
 
@@ -42,7 +43,7 @@ export class EndsInput extends React.Component {
     }
 
     render() {
-        const {label, endRepeatMode, count, until, dateFormat, readOnly} = this.props;
+        const {label, endRepeatMode, count, until, dateFormat, readOnly, error} = this.props;
 
         return (
             <div className="recurring-rules__end">
@@ -63,10 +64,13 @@ export class EndsInput extends React.Component {
                         </LineInput>
                     </RowItem>
                     <RowItem noGrow={true}>
-                        <LineInput noLabel={true}>
+                        <LineInput
+                            noLabel={true}
+                            invalid={get(error, 'count', false)}
+                            message={get(error, 'count', '')} >
                             <Input
                                 field="count"
-                                value={count}
+                                value={count || ''}
                                 onChange={this.onChange}
                                 type="number"
                                 readOnly={readOnly}
@@ -100,6 +104,8 @@ export class EndsInput extends React.Component {
                             onChange={this.onChange}
                             dateFormat={dateFormat}
                             readOnly={readOnly}
+                            invalid={get(error, 'until', false)}
+                            message={get(error, 'until', '')}
                         />
                     </RowItem>
                     <RowItem>
@@ -128,7 +134,7 @@ EndsInput.propTypes = {
     onChange: PropTypes.func.isRequired,
 
     required: PropTypes.bool,
-    invalid: PropTypes.bool,
+    error: PropTypes.object,
     readOnly: PropTypes.bool,
     boxed: PropTypes.bool,
     noMargin: PropTypes.bool,

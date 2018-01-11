@@ -386,7 +386,7 @@ const openRescheduleModal = (event, publish = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label,
-        'reschedule_event',
+        EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.lock_action,
         true,
         publish,
         true
@@ -449,9 +449,9 @@ const rescheduleEvent = (event) => (
                 const duplicatedEvent = last(get(updatedEvent, 'duplicate_to', []));
 
                 if (isItemRescheduled(updatedEvent) && duplicatedEvent) {
-                    dispatch(self._openEventDetails({_id: duplicatedEvent}));
+                    dispatch(main.preview({_id: duplicatedEvent}));
                 } else {
-                    dispatch(self._openEventDetails(event));
+                    dispatch(main.preview(event));
                 }
 
                 dispatch(hideModal());

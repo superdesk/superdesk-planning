@@ -24,7 +24,6 @@ export class CancelAndPostponeEventComponent extends React.Component {
 
         this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
         this.onReasonChange = this.onReasonChange.bind(this);
-        this.postponeAction = false;
     }
 
     componentWillMount() {
