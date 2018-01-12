@@ -1,3 +1,5 @@
+import React from 'react';
+import classNames from 'classnames';
 import {
     PRIVILEGES,
     WORKFLOW_STATE,
@@ -385,6 +387,13 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks) => {
                 callback: callBacks[callBackName].bind(null, item)
             });
             break;
+
+        case EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName:
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
         }
     });
 
@@ -412,6 +421,29 @@ const validateEventDates = (startDate, endDate) => {
     }
 
     return false;
+};
+
+const getEventIcon = (event, big = false) => {
+    const eventIcon = (<i className="icon-calendar-list" />);
+    const repeatIcon = (<i className={
+        classNames('icon-repeat icn-mix__sub-icn',
+            {'double-size-icn': big})} />);
+
+    if (!self.isEventRecurring(event)) {
+        return big ? null : eventIcon;
+    } else {
+        return big ?
+            (<span className="icn-mix sd-list-item__item-type">
+                {repeatIcon}
+                <span className="double-size-icn double-size-icn--light">
+                    {eventIcon}
+                </span>
+            </span>) :
+            (<span className="icn-mix sd-list-item__item-type">
+                {repeatIcon}
+                {eventIcon}
+            </span>);
+    }
 };
 
 // eslint-disable-next-line consistent-this
@@ -442,6 +474,7 @@ const self = {
     getDateStringForEvent,
     getEventActions,
     validateEventDates,
+    getEventIcon,
 };
 
 export default self;

@@ -13,6 +13,7 @@ import {
     GENERIC_ITEM_ACTIONS
 } from '../constants/index';
 import * as testData from './testData';
+import {gettext} from './gettext';
 
 export {default as checkPermission} from './checkPermission';
 export {default as retryDispatch} from './retryDispatch';
@@ -22,6 +23,7 @@ export {default as planningUtils} from './planning';
 export {default as uiUtils} from './ui';
 export {default as assignmentUtils} from './assignments';
 export {default as stringUtils} from './strings';
+export {gettext};
 
 export function createReducer(initialState, reducerMap) {
     return (state = initialState, action) => {
@@ -503,29 +505,6 @@ export const getPublishedState = (item) => get(item, 'pubstatus', null);
 export const sanitizeTextForQuery = (text) => (
     text.replace(/\//g, '\\/').replace(/[()]/g, '')
 );
-
-/**
- * Get translated string
- *
- * You can use params in translation like:
- *
- *    gettext('Hello {{ name }}', {name: 'John'})
- *
- * @param {String} text
- * @param {Object} params
- * @return {String}
- */
-export function gettext(text, params = null) {
-    const injector = angular.element(document.body).injector();
-
-    if (injector) { // in tests this will be empty
-        const translated = injector.get('gettext')(text);
-
-        return params ? injector.get('$interpolate')(translated)(params) : translated;
-    }
-
-    return text;
-}
 
 export function gettextCatalog(text, params = null) {
     const injector = angular.element(document.body).injector();

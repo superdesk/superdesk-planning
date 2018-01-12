@@ -397,7 +397,7 @@ const convertToRecurringEvent = (event, publish) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label,
-        'convert_recurring',
+        EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.lock_action,
         false,
         publish,
         true

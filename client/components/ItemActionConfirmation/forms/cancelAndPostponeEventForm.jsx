@@ -40,6 +40,9 @@ export class CancelAndPostponeEventComponent extends React.Component {
         // Modal closes after submit. So, reseting submitting is not required
         this.setState({submitting: true});
 
+        // To disable save in the modal
+        this.props.disableSaveInModal();
+
         this.props.onSubmit({
             ...this.props.initialValues,
             update_method: this.state.eventUpdateMethod,
@@ -144,6 +147,7 @@ CancelAndPostponeEventComponent.propTypes = {
     relatedPlannings: PropTypes.array,
     timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,
+    disableSaveInModal: PropTypes.func,
 
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
