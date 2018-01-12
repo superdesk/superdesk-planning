@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import {get, set, isEqual, cloneDeep} from 'lodash';
 import {gettext} from '../../utils';
 
+import {ITEM_TYPE} from '../../constants';
+
 import {
     HistoryTab,
     EditorContentTab
@@ -37,11 +39,14 @@ export class Editor extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         if (!get(nextProps, 'item') && get(nextProps, 'itemType') && !get(this.props, 'itemType')) {
+            let diff = {_type: nextProps.itemType};
+
+            if (nextProps.itemType === ITEM_TYPE.EVENT) {
+                diff.dates = {};
+            }
+
             this.setState({
-                diff: {
-                    _type: 'events',
-                    dates: {}
-                },
+                diff: diff,
                 dirty: false,
                 submitting: false,
             });

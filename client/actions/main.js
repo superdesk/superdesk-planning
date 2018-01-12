@@ -1,5 +1,5 @@
 import {MAIN, ITEM_TYPE} from '../constants';
-import {activeFilter} from '../selectors/main';
+import {activeFilter, previewItem} from '../selectors/main';
 import planningUi from './planning/ui';
 import eventsUi from './events/ui';
 import {locks, showModal} from './';
@@ -11,11 +11,17 @@ import {MODALS} from '../constants';
 const lockAndEdit = (item) => (
     (dispatch, getState, {notify}) => (
         !get(item, '_id') ?
-            dispatch(self.edit(item)) :
+            dispatch(self.edit(item)) && Promise.resolve(item) :
             dispatch(locks.lock(item))
                 .then((lockedItem) => {
                     // Restore the item type, as the lock endpoint does not provide this
                     lockedItem._type = item._type;
+
+                    // If the item being edited is currently opened in the Preview panel
+                    // then close the preview panel
+                    if (get(previewItem(getState()), '_id') === lockedItem._id) {
+                        dispatch(self.closePreview());
+                    }
 
                     dispatch(self.edit(lockedItem));
                     return Promise.resolve(lockedItem);
@@ -47,6 +53,9 @@ const save = (item, save = true, publish = false) => (
         case ITEM_TYPE.EVENT:
             promise = dispatch(eventsUi.saveAndPublish(item, save, publish));
             break;
+        case ITEM_TYPE.PLANNING:
+            promise = dispatch(planningUi.saveAndPublishPlanning(item, save, publish));
+            break;
         default:
             promise = Promise.reject('Failed to save, could not find the item type!');
             break;
@@ -54,13 +63,15 @@ const save = (item, save = true, publish = false) => (
 
         return promise
             .then((savedItems) => {
-                savedItems[0]._type = itemType;
+                const savedItem = Array.isArray(savedItems) ? savedItems[0] : savedItems;
+
+                savedItem._type = itemType;
 
                 if (!get(item, '_id')) {
-                    dispatch(self.lockAndEdit(savedItems[0]));
+                    return dispatch(self.lockAndEdit(savedItem));
                 }
 
-                return Promise.resolve(savedItems[0]);
+                return Promise.resolve(savedItem);
             }, (error) => {
                 notify.error(
                     getErrorMessage(error, 'Failed to save the item')
@@ -78,6 +89,8 @@ const unpublish = (item) => (
         switch (itemType) {
         case ITEM_TYPE.EVENT:
             return dispatch(eventsUi.unpublish(item));
+        case ITEM_TYPE.PLANNING:
+            return dispatch(planningUi.unpublish(item));
         }
 
         notify.error('Failed to unpublish, could not find the item type!');

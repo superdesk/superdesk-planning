@@ -98,3 +98,11 @@ export const planningWithEventDetails = createSelector(
     [currentPlanning, storedEvents],
     (item, events) => item && events[item.event_item]
 );
+
+
+const editItem = (state) => get(state, 'main.editItem', null);
+
+export const planningEditAssociatedEvent = createSelector(
+    [editItem, storedEvents],
+    (item, events) => item && events[item.event_item]
+);

@@ -2,7 +2,7 @@ import React from 'react';
 import {mount} from 'enzyme';
 import {EventMetadata} from '../index';
 import moment from 'moment';
-import {createTestStore, eventUtils} from '../../utils';
+import {createTestStore, eventUtils} from '../../../utils';
 import {Provider} from 'react-redux';
 
 describe('<EventMetadata />', () => {

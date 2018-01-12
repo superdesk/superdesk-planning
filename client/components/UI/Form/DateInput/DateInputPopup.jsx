@@ -1,10 +1,13 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
-import {Popup} from '../../';
+import {Popup, Content, Header, Footer} from '../../Popup';
 import {DayPicker} from './DayPicker';
 import {MonthPicker} from './MonthPicker';
 import {YearPicker} from './YearPicker';
+
+import {gettext} from '../../../../utils';
+
 import './style.scss';
 
 export class DateInputPopup extends React.Component {
@@ -145,60 +148,49 @@ export class DateInputPopup extends React.Component {
             <Popup
                 close={this.props.close}
                 target={this.props.target}
+                noPadding={true}
+                className="date-popup"
             >
-                <div className="datepickerPopup">
-                    <div className="datepickerPopup__Additional">
-                        <table>
-                            <tbody>
-                                <tr>
-                                    <td><button
-                                        type="button"
-                                        className="btn btn--mini"
-                                        onClick={this.handleConfirm.bind(this, 0)}>Today</button></td>
-                                    <td><button
-                                        type="button"
-                                        className="btn btn--mini"
-                                        onClick={this.handleConfirm.bind(this, 1)}>Tomorrow</button></td>
-                                    <td><button
-                                        type="button"
-                                        className="btn btn--mini"
-                                        onClick={this.handleConfirm.bind(this, 2)}>In 2 days</button></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <Header noBorder={true} className="date-popup__header">
+                    <div className="date-popup__header-row">
+                        <button
+                            type="button"
+                            className="btn"
+                            onClick={this.handleConfirm.bind(this, 0)}>{gettext('Today')}</button>
+                        <button
+                            type="button"
+                            className="btn"
+                            onClick={this.handleConfirm.bind(this, 1)}>{gettext('Tomorrow')}</button>
+                        <button
+                            type="button"
+                            className="btn"
+                            onClick={this.handleConfirm.bind(this, 2)}>{gettext('In 2 days')}</button>
                     </div>
-                    <div className="datepickerPopup__Tools">
-                        <table>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <button
-                                            type="button"
-                                            className="btn btn-default btn-sm pull-left">
-                                            <i className="icon-chevron-left-thin"
-                                                onClick={this.getFurtherValues.bind(this, 0)}/>
-                                        </button></td>
-                                    <td>
-                                        <button
-                                            type="button"
-                                            aria-live="assertive"
-                                            aria-atomic="true"
-                                            className="btn btn-default btn-sm"
-                                            onClick={this.handleModeChange}>
-                                            <strong>{this.state.modeTitle}</strong>
-                                        </button></td>
-                                    <td>
-                                        <button
-                                            type="button"
-                                            className="btn btn-default btn-sm pull-right"
-                                            onClick={this.getFurtherValues.bind(this, 1)}>
-                                            <i className="icon-chevron-right-thin"/>
-                                        </button></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <div className="date-popup__header-row date-popup__header-row--tools">
+                        <button
+                            type="button"
+                            className="btn btn-default"
+                            onClick={this.getFurtherValues.bind(this, 0)}>
+                            <i className="icon-chevron-left-thin"/>
+                        </button>
+                        <button
+                            type="button"
+                            aria-live="assertive"
+                            aria-atomic="true"
+                            className="btn btn-default btn--mode"
+                            onClick={this.handleModeChange}>
+                            <strong>{this.state.modeTitle}</strong>
+                        </button>
+                        <button
+                            type="button"
+                            className="btn btn-default"
+                            onClick={this.getFurtherValues.bind(this, 1)}>
+                            <i className="icon-chevron-right-thin"/>
+                        </button>
                     </div>
-                    <div className="datepickerPopup__core">
+                </Header>
+                <Content>
+                    <div className="date-popup__content">
                         { this.state.mode === 'day' && (
                             <DayPicker
                                 selectedDate={this.state.selectedDate}
@@ -215,11 +207,13 @@ export class DateInputPopup extends React.Component {
                                 selectedDate={this.state.selectedDate} onChange={this.handleSelectChange} />
                         )}
                     </div>
+                </Content>
+                <Footer>
                     <button
                         className="btn btn--small pull-right"
                         type="button"
-                        onClick={this.props.close}>Cancel</button>
-                </div>
+                        onClick={this.props.close}>{gettext('Cancel')}</button>
+                </Footer>
             </Popup>
         );
     }

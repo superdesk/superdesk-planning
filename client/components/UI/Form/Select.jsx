@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-export const Select = ({field, value, onChange, options, readOnly}) => (
+export const Select = ({field, value, onChange, options, readOnly, clearable}) => (
     <select
         className={classNames(
             'sd-line-input__select'
@@ -12,6 +12,9 @@ export const Select = ({field, value, onChange, options, readOnly}) => (
         name={field}
         disabled={readOnly}
     >
+        {clearable && (
+            <option value="" />
+        )}
         {options.map((opt) => (
             <option
                 key={opt.key}
@@ -38,6 +41,10 @@ Select.propTypes = {
         label: PropTypes.string,
     })),
     readOnly: PropTypes.bool,
+    clearable: PropTypes.bool,
 };
 
-Select.defaultProps = {readOnly: false};
+Select.defaultProps = {
+    readOnly: false,
+    clearable: false,
+};

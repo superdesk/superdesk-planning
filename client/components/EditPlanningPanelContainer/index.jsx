@@ -8,7 +8,6 @@ import {
     AuditInformation,
     StateLabel,
     ItemActionsMenu,
-    PlanningForm,
     LockContainer,
 } from '../';
 import * as selectors from '../../selectors';
@@ -368,13 +367,6 @@ export class EditPlanningPanel extends React.Component {
                                 <span className="EventSpiked label label--alert">event spiked</span>
                             }
                         </div>
-                        <PlanningForm
-                            ref="PlanningForm"
-                            onSubmit={this.onSubmit.bind(this)}
-                            event={event}
-                            readOnly={forceReadOnly}
-                            initialValues={planning}
-                        />
                     </div>
                 }
                 {this.state.previewHistory &&

@@ -1,16 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {get} from 'lodash';
 
 import {Column} from './Column';
-import {isItemPublic} from '../../../utils';
+import {isItemPublic, planningUtils} from '../../../utils';
 
 export const PubStatus = ({item}) => {
     let badge;
 
     if (isItemPublic(item)) {
         badge = <span className="badge badge--success">P</span>;
-    } else if (get(item, 'flags.marked_for_not_publication', false)) {
+    } else if (planningUtils.isNotForPublication(item)) {
         badge = <i
             className="icon-ban-circle icon--red"
             style={{

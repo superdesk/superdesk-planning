@@ -661,7 +661,7 @@ const save = (item, original = undefined) => (
     (dispatch, getState, {api}) => {
         // remove all properties starting with _,
         // otherwise it will fail for "unknown field" with `_type`
-        let updates = pickBy(item, (v, k) => (k === '_id' || !k.startsWith('_')));
+        let updates = pickBy(cloneDeep(item), (v, k) => (k === '_id' || !k.startsWith('_')));
 
         // remove nested original creator
         delete updates.original_creator;
@@ -790,9 +790,10 @@ const publish = (plan) => (
             planning: plan._id,
             etag: plan._etag,
             pubstatus: PUBLISHED_STATE.USABLE,
-        }).then(() => {
-            dispatch(self.fetchPlanningById(plan._id, true));
-        })
+        }).then(
+            () => dispatch(self.fetchPlanningById(plan._id, true)),
+            (error) => Promise.reject(error)
+        )
     )
 );
 

@@ -816,29 +816,45 @@ describe('actions.planning.api', () => {
             );
 
             return store.test(done, planningApi.fetchPlanningHistory('p2'))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 });
         });
     });
 
-    it('api.publish calls `planning` endpoint', (done) => {
-        restoreSinonStub(planningApi.publish);
-        store.test(done, planningApi.publish(data.plannings[0]))
-            .then(() => {
-                expect(services.api.save.callCount).toBe(1);
-                expect(services.api.save.args[0]).toEqual([
-                    'planning_publish',
-                    {
-                        planning: data.plannings[0]._id,
-                        etag: data.plannings[0]._etag,
-                        pubstatus: 'usable',
-                    },
-                ]);
+    describe('publish', () => {
+        it('api.publish calls `planning` endpoint', (done) => {
+            restoreSinonStub(planningApi.publish);
+            restoreSinonStub(planningApi.fetchPlanningById);
+            sinon.stub(planningApi, 'fetchPlanningById').returns(Promise.resolve(data.plannings[0]));
+            store.test(done, planningApi.publish(data.plannings[0]))
+                .then((item) => {
+                    expect(item).toEqual(data.plannings[0]);
 
-                done();
-            });
+                    expect(services.api.save.callCount).toBe(1);
+                    expect(services.api.save.args[0]).toEqual([
+                        'planning_publish',
+                        {
+                            planning: data.plannings[0]._id,
+                            etag: data.plannings[0]._etag,
+                            pubstatus: 'usable',
+                        },
+                    ]);
+
+                    done();
+                });
+        });
+
+        it('api.publish returns Promise.reject on error', (done) => {
+            restoreSinonStub(planningApi.publish);
+            services.api.save = sinon.stub().returns(Promise.reject(errorMessage));
+            store.test(done, planningApi.publish(data.plannings[0]))
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+                    done();
+                });
+        });
     });
 
     it('api.unpublish calls `planning` endpoint', (done) => {

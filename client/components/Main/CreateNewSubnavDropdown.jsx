@@ -3,12 +3,12 @@ import PropTypes from 'prop-types';
 import {gettext} from '../../utils';
 import {Dropdown} from '../UI/SubNav';
 
-export const CreateNewSubnavDropdown = ({addEvent}) => {
+export const CreateNewSubnavDropdown = ({addEvent, addPlanning}) => {
     const items = [
         {
             label: gettext('Planning Item'),
             icon: 'icon-plus-sign icon--blue',
-            action: () => { /* no-op */ },
+            action: addPlanning,
         },
         {
             label: gettext('Event'),
@@ -29,4 +29,5 @@ export const CreateNewSubnavDropdown = ({addEvent}) => {
 
 CreateNewSubnavDropdown.propTypes = {
     addEvent: PropTypes.func.isRequired,
+    addPlanning: PropTypes.func.isRequired,
 };
