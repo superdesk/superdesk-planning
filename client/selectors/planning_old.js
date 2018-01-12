@@ -24,10 +24,8 @@ export const getStoredPlannings = (state) => get(state, 'planning.plannings');
 export const getPlanningIdsInList = (state) => get(state, 'planning.planningsInList', []);
 export const isOnlyFutureFiltered = (state) => get(state, 'planning.onlyFuture');
 export const filterPlanningKeyword = (state) => get(state, 'planning.filterPlanningKeyword');
-export const getServerUrl = (state) => get(state, 'config.server.url');
 
 export const getIframelyKey = (state) => get(state, 'config.iframely.key', null);
-export const getMaxRecurrentEvents = (state) => get(state, 'deployConfig.max_recurrent_events', 200);
 export const getShowEventDetails = (state) => get(state, 'events.showEventDetails');
 export const getSelectedEvents = (state) => get(state, 'events.selectedEvents', []);
 export const getHighlightedEvent = (state) => get(state, 'events.highlightedEvent') === true ?

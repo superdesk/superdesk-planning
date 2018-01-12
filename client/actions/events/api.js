@@ -375,14 +375,15 @@ const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true) => (
 const loadEventDataForAction = (event, loadPlanning = true, publish = false) => (
     (dispatch) => (
         dispatch(self.loadRecurringEventsAndPlanningItems(event, loadPlanning))
-            .then((relatedEvents) => (
-                Promise.resolve({
+            .then((relatedEvents) => {
+                let modifiedEvent = {
                     ...event,
                     dates: {
                         ...event.dates,
                         start: moment(event.dates.start),
                         end: moment(event.dates.end),
                     },
+                    _type: 'events',
                     _recurring: relatedEvents.events,
                     _publish: publish,
                     _events: [],
@@ -391,8 +392,15 @@ const loadEventDataForAction = (event, loadPlanning = true, publish = false) => 
                     _relatedPlannings: relatedEvents.plannings.filter(
                         (p) => p.event_item === event._id
                     ),
-                })
-            ), (error) => Promise.reject(error))
+                };
+
+                if (get(modifiedEvent, 'dates.recurring_rule.until')) {
+                    modifiedEvent.dates.recurring_rule.until =
+                        moment(modifiedEvent.dates.recurring_rule.until);
+                }
+
+                return Promise.resolve(modifiedEvent);
+            }, (error) => Promise.reject(error))
     )
 );
 

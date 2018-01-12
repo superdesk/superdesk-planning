@@ -10,7 +10,7 @@ import {RepeatsEveryInput} from './RepeatsEveryInput';
 import {DaysOfWeekInput} from './DaysOfWeekInput';
 import {EndsInput} from './EndsInput';
 
-export const RecurringRulesInput = ({showRepeatSummary, schedule, onChange, dateFormat, readOnly}) => {
+export const RecurringRulesInput = ({showRepeatSummary, schedule, onChange, dateFormat, readOnly, error}) => {
     const frequency = get(schedule, 'dates.recurring_rule.frequency');
     const endRepeatMode = get(schedule, 'dates.recurring_rule.endRepeatMode');
     const until = get(schedule, 'dates.recurring_rule.until');
@@ -43,6 +43,8 @@ export const RecurringRulesInput = ({showRepeatSummary, schedule, onChange, date
                     value={byDay}
                     onChange={onChange}
                     readOnly={readOnly}
+                    invalid={get(error, 'byday', false)}
+                    message={get(error, 'byday', '')}
                 />
             )}
 
@@ -53,6 +55,7 @@ export const RecurringRulesInput = ({showRepeatSummary, schedule, onChange, date
                 onChange={onChange}
                 dateFormat={dateFormat}
                 readOnly={readOnly}
+                error={error}
             />
 
             {showRepeatSummary && (
@@ -78,6 +81,7 @@ RecurringRulesInput.propTypes = {
     showRepeatSummary: PropTypes.bool,
     dateFormat: PropTypes.string.isRequired,
     readOnly: PropTypes.bool,
+    error: PropTypes.object,
 };
 
 RecurringRulesInput.defaultProps = {

@@ -64,7 +64,7 @@ export class DateInput extends React.Component {
     handleInputBlur() {
         if (this.state.invalid) {
             this.setState({
-                viewValue: this.state.previousValidValue,
+                viewValue: this.state.previousValidValue.format(this.props.dateFormat),
                 invalid: false,
             });
         }

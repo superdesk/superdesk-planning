@@ -7,7 +7,7 @@ import {get} from 'lodash';
 import './style.scss';
 
 
-export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPadding}) => {
+export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPadding, forUpdating}) => {
     if (!schedule)
         return null;
 
@@ -24,7 +24,7 @@ export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPaddin
     return (
         <div>
             <Row
-                label={gettext('Date')}
+                label={forUpdating ? gettext('Current Date') : gettext('Date')}
                 value={eventDateText || ''}
                 noPadding={noPadding}
             />
@@ -41,6 +41,7 @@ export const EventScheduleSummary = ({schedule, dateFormat, timeFormat, noPaddin
                         startDate={start}
                         asInputField={true}
                         noMargin={noPadding}
+                        forUpdating={forUpdating}
                     />
                 </Row>
             )}
@@ -53,6 +54,7 @@ EventScheduleSummary.propTypes = {
     dateFormat: PropTypes.string,
     timeFormat: PropTypes.string,
     noPadding: PropTypes.bool,
+    forUpdating: PropTypes.bool,
 };
 
 EventScheduleSummary.defaultProps = {

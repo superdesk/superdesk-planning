@@ -244,7 +244,7 @@ const mapStateToProps = (state) => ({
     calendars: selectors.getEventCalendars(state),
     categories: state.vocabularies.categories,
     subjects: state.subjects,
-    createUploadLink: (f) => selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
+    createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
     iframelyKey: selectors.getIframelyKey(state),
     users: selectors.getUsers(state),
     timeFormat: selectors.config.getTimeFormat(state),

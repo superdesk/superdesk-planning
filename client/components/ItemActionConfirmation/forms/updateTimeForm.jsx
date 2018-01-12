@@ -2,10 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../../../actions';
-import {dateFormat as getDateFormat} from '../../../selectors/general';
-import {timeFormat as getTimeFormat} from '../../../selectors/general';
+import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import {eventUtils, gettext} from '../../../utils';
-import {Label, TimeInput, Row as FormRow} from '../../UI/Form/';
+import {Label, TimeInput, Row as FormRow, LineInput} from '../../UI/Form/';
 import {Row} from '../../UI/Preview/';
 import {EventUpdateMethods, EventScheduleSummary} from '../../Events';
 import '../style.scss';
@@ -125,6 +124,7 @@ export class UpdateTimeComponent extends React.Component {
                         label={gettext('Slugline')}
                         value={initialValues.slugline || ''}
                         className="slugline form__row--no-padding"
+                        noPadding={true}
                     />
                 )}
 
@@ -132,12 +132,15 @@ export class UpdateTimeComponent extends React.Component {
                     label={gettext('Name')}
                     value={initialValues.name || ''}
                     className="strong form__row--no-padding"
+                    noPadding={true}
                 />
 
                 <EventScheduleSummary
                     schedule={initialValues.dates}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
+                    noPadding={true}
+                    forUpdating={true}
                 />
 
                 {isRecurring && (
@@ -145,10 +148,11 @@ export class UpdateTimeComponent extends React.Component {
                         label={gettext('No. of Events')}
                         value={numEvents}
                         className="form__row--no-padding"
+                        noPadding={true}
                     />
                 )}
 
-                <FormRow flex={true} halfWidth={true}>
+                <FormRow flex={true} halfWidth={true} noPadding={true}>
                     <Label text={gettext('From')} row={true}/>
                     <TimeInput
                         field="fromTime"
@@ -165,10 +169,13 @@ export class UpdateTimeComponent extends React.Component {
                         value={this.state.toTime}
                         onChange={this.onChange.bind(this)}
                         noMargin={true}
-                        timeFormat={timeFormat}
-                        invalid={this.state.error}
-                        message={this.state.error ? 'To date should be greater than From date' : null} />
+                        timeFormat={timeFormat} />
                 </FormRow>
+                {this.state.error && <FormRow>
+                    <LineInput invalid={this.state.error}
+                        message="To date should be greater than From date"
+                        readOnly={true} />
+                </FormRow>}
 
                 <UpdateMethodSelection
                     value={this.state.eventUpdateMethod}
@@ -190,8 +197,6 @@ UpdateTimeComponent.propTypes = {
     disableSaveInModal: PropTypes.func,
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
-    change: PropTypes.func,
-    submitting: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({

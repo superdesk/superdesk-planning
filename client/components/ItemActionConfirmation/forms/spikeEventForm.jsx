@@ -6,7 +6,7 @@ import '../style.scss';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {RelatedEvents} from '../../index';
 import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
-import * as selectors from '../../../selectors';
+import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import {get} from 'lodash';
 import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
@@ -124,8 +124,8 @@ SpikeEventComponent.propTypes = {
 
 
 const mapStateToProps = (state) => ({
-    timeFormat: selectors.general.timeFormat(state),
-    dateFormat: selectors.general.dateFormat(state),
+    timeFormat: getTimeFormat(state),
+    dateFormat: getDateFormat(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
