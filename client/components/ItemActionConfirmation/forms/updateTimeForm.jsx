@@ -96,6 +96,9 @@ export class UpdateTimeComponent extends React.Component {
         // Modal closes after submit. So, reseting submitting is not required
         this.setState({submitting: true});
 
+        // To disable save in the modal
+        this.props.disableSaveInModal();
+
         let updatedEvent = {...this.props.initialValues};
 
         updatedEvent.dates.start = this.state.fromTime;

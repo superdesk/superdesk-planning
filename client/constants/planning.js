@@ -1,3 +1,5 @@
+import {gettext} from '../utils/gettext';
+
 export const PLANNING = {
     ACTIONS: {
         SPIKE_PLANNING: 'SPIKE_PLANNING',
@@ -42,28 +44,28 @@ export const PLANNING = {
     },
     ITEM_ACTIONS: {
         SPIKE: {
-            label: 'Spike',
+            label: gettext('Spike'),
             icon: 'icon-trash',
             actionName: 'onSpikePlanning'
         },
         UNSPIKE: {
-            label: 'Unspike',
+            label: gettext('Unspike'),
             icon: 'icon-unspike',
             actionName: 'onUnspikePlanning'
         },
         DUPLICATE: {
-            label: 'Duplicate',
+            label: gettext('Duplicate'),
             icon: 'icon-copy',
             actionName: 'onDuplicatePlanning',
         },
         CANCEL_PLANNING: {
-            label: 'Cancel planning',
+            label: gettext('Cancel planning'),
             icon: 'icon-close-small',
             actionName: 'onCancelPlanning',
             lock_action: 'planning_cancel',
         },
         CANCEL_ALL_COVERAGE: {
-            label: 'Cancel all coverage',
+            label: gettext('Cancel all coverage'),
             icon: 'icon-close-small',
             actionName: 'onCancelAllCoverage',
             lock_action: 'cancel_all_coverage',

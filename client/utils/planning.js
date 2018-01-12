@@ -302,6 +302,13 @@ const getPlanningActions = (item, event, session, privileges, lockedItems, callB
                 callback: callBacks[callBackName].bind(null, event)
             });
             break;
+
+        case EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName:
+            eventActions.push({
+                ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
+                callback: callBacks[callBackName].bind(null, event)
+            });
+            break;
         }
     });
 

@@ -14,9 +14,7 @@ export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly, scrollIn
     const eventListView = (
         <Item noBg={true}>
             <div className="sd-list-item__border" />
-            <Column>
-                <i className="icon-calendar-list" />
-            </Column>
+            <Column>{eventUtils.getEventIcon(event)}</Column>
             <Column grow={true} border={false}>
                 <Row>
                     <StateLabel item={event} verbose={true}/>
@@ -32,8 +30,7 @@ export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly, scrollIn
     const eventInDetailTopBar = (
         <Item noBg={true} noHover={true}>
             <Column border={false}>
-                <span className="double-size-icn double-size-icn--light">
-                    <i className="icon-calendar" /></span>
+                {eventUtils.getEventIcon(event, true)}
             </Column>
             <Column border={false} grow={true}>
                 {get(event, 'location[0].name') ? (
