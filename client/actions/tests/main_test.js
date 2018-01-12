@@ -6,11 +6,13 @@ import {MAIN} from '../../constants';
 
 import eventsUi from '../events/ui';
 import planningUi from '../planning/ui';
+import {locks} from '../';
 
 describe('actions.main', () => {
     let store;
     let services;
     let data;
+    const errorMessage = {data: {_message: 'Failed!'}};
 
     beforeEach(() => {
         store = getTestActionStore();
@@ -109,10 +111,12 @@ describe('actions.main', () => {
     describe('unpublish', () => {
         beforeEach(() => {
             sinon.stub(eventsUi, 'unpublish').returns(Promise.resolve(data.events[0]));
+            sinon.stub(planningUi, 'unpublish').returns(Promise.resolve(data.plannings[0]));
         });
 
         afterEach(() => {
             restoreSinonStub(eventsUi.unpublish);
+            restoreSinonStub(planningUi.unpublish);
         });
 
         it('calls events.ui.unpublish', (done) => (
@@ -120,6 +124,16 @@ describe('actions.main', () => {
                 .then(() => {
                     expect(eventsUi.unpublish.callCount).toBe(1);
                     expect(eventsUi.unpublish.args[0]).toEqual([data.events[0]]);
+
+                    done();
+                })
+        ));
+
+        it('calls planning.ui.unpublish', (done) => (
+            store.test(done, main.unpublish(data.plannings[0]))
+                .then(() => {
+                    expect(planningUi.unpublish.callCount).toBe(1);
+                    expect(planningUi.unpublish.args[0]).toEqual([data.plannings[0]]);
 
                     done();
                 })
@@ -136,5 +150,89 @@ describe('actions.main', () => {
                     done();
                 })
         ));
+    });
+
+    describe('lockAndEdit', () => {
+        beforeEach(() => {
+            sinon.spy(main, 'edit');
+            sinon.spy(main, 'closePreview');
+            sinon.stub(locks, 'lock').callsFake((item) => Promise.resolve({
+                ...item,
+                _type: null,
+            }));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(main.edit);
+            restoreSinonStub(main.closePreview);
+            restoreSinonStub(locks.lock);
+        });
+
+        it('calls main.edit when called with a new item', (done) => (
+            store.test(done, main.lockAndEdit({test: 'data'}))
+                .then((item) => {
+                    expect(item).toEqual({test: 'data'});
+
+                    expect(locks.lock.callCount).toBe(0);
+                    expect(main.edit.callCount).toBe(1);
+                    expect(main.edit.args[0]).toEqual([{test: 'data'}]);
+
+                    done();
+                })
+        ));
+
+        it('calls locks.lock then main.edit when called with an existing item', (done) => (
+            store.test(done, main.lockAndEdit(data.events[0]))
+                .then((item) => {
+                    expect(item).toEqual(data.events[0]);
+
+                    expect(locks.lock.callCount).toBe(1);
+                    expect(locks.lock.args[0]).toEqual([data.events[0]]);
+
+                    // Ensure the data type is restored from the lock response
+                    expect(item._type).toEqual('events');
+
+                    expect(main.closePreview.callCount).toBe(0);
+
+                    expect(main.edit.callCount).toBe(1);
+                    expect(main.edit.args[0]).toEqual([data.events[0]]);
+
+                    done();
+                })
+        ));
+
+        it('closes the preview panel if item being edited is open for preview', (done) => {
+            store.init();
+            store.initialState.main.previewItem = data.events[1];
+            store.test(done, main.lockAndEdit(data.events[1]))
+                .then((item) => {
+                    expect(item).toEqual(data.events[1]);
+
+                    expect(locks.lock.callCount).toBe(1);
+                    expect(locks.lock.args[0]).toEqual([data.events[1]]);
+
+                    // Ensure the data type is restored from the lock response
+                    expect(item._type).toEqual('events');
+
+                    expect(main.closePreview.callCount).toBe(1);
+
+                    expect(main.edit.callCount).toBe(1);
+                    expect(main.edit.args[0]).toEqual([data.events[1]]);
+
+                    done();
+                });
+        });
+
+        it('notifies the user if locking failed', (done) => {
+            restoreSinonStub(locks.lock);
+            sinon.stub(locks, 'lock').returns(Promise.reject(errorMessage));
+            store.test(done, main.lockAndEdit(data.events[2]))
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.args[0]).toEqual(['Failed!']);
+                    done();
+                });
+        });
     });
 });

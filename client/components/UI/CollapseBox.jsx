@@ -1,24 +1,54 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 
 export class CollapseBox extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {open: false};
+        this.state = {isOpen: this.props.isOpen};
+        this.scrollInView = this.scrollInView.bind(this);
+        this.toggleOpenState = this.toggleOpenState.bind(this);
+        this.dom = {node: null};
     }
 
     toggleOpenState() {
-        this.setState({open: !this.state.open});
+        this.setState({isOpen: !this.state.isOpen});
+    }
+
+    scrollInView() {
+        if (this.props.scrollInView && this.state.isOpen && this.dom.node) {
+            this.dom.node.scrollIntoView();
+        }
+    }
+
+    componentDidMount() {
+        // Upon first rendering, if the box is open then scroll it into view
+        this.scrollInView();
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        // Scroll into view only upon first opening
+        if (prevState.isOpen !== this.state.isOpen) {
+            this.scrollInView();
+        }
     }
 
     render() {
-        if (this.state.open) {
-            return (
-                <div className="sd-collapse-box sd-shadow--z2 sd-collapse-box--open">
+        return (
+            <div
+                className={classNames(
+                    'sd-collapse-box',
+                    'sd-shadow--z2',
+                    {'sd-collapse-box--open': this.state.isOpen}
+                )}
+                ref={(node) => this.dom.node = node}
+                onClick={this.state.isOpen ? null : this.toggleOpenState}
+            >
+                {this.state.isOpen && (
                     <div className="sd-collapse-box__content-wraper">
                         <div className="sd-collapse-box__content">
                             <div className="sd-collapse-box__tools">
-                                <a className="icn-btn" onClick={this.toggleOpenState.bind(this)}>
+                                <a className="icn-btn" onClick={this.toggleOpenState}>
                                     <i className="icon-chevron-up-thin" />
                                 </a>
                             </div>
@@ -29,13 +59,12 @@ export class CollapseBox extends React.Component {
                             {this.props.openItem}
                         </div>
                     </div>
-                </div>);
-        }
-
-        return (
-            <div className="sd-collapse-box sd-shadow--z2"
-                onClick={this.toggleOpenState.bind(this)}>
-                {this.props.collapsedItem}
+                ) || (
+                        <div className="sd-collapse-box__header">
+                            {this.props.collapsedItem}
+                        </div>
+                    )
+                }
             </div>
         );
     }
@@ -45,4 +74,11 @@ CollapseBox.propTypes = {
     collapsedItem: PropTypes.node.isRequired,
     openItem: PropTypes.node.isRequired,
     openItemTopBar: PropTypes.node,
+    isOpen: PropTypes.bool,
+    scrollInView: PropTypes.bool,
+};
+
+CollapseBox.defaultProps = {
+    isOpen: false,
+    scrollInView: false,
 };

@@ -521,6 +521,27 @@ const unpublish = (item) => (
     )
 );
 
+const saveAndPublishPlanning = (item, save = true, publish = false) => (
+    (dispatch) => {
+        if (!save) {
+            if (publish) {
+                return dispatch(planningApi.publish(item));
+            }
+
+            return Promise.resolve(item);
+        }
+
+        return dispatch(planningApi.save(item))
+            .then((savedItem) => {
+                if (publish) {
+                    return dispatch(planningApi.publish(savedItem));
+                }
+
+                return Promise.resolve(savedItem);
+            }, (error) => Promise.reject(error));
+    }
+);
+
 /**
  * Save Planning item then Publish it
  * @param {object} item - Planning item
@@ -528,15 +549,18 @@ const unpublish = (item) => (
 const saveAndPublish = (item) => (
     (dispatch, getState, {notify}) => (
         dispatch(planningApi.saveAndPublish(item))
-            .then(() => (
-                notify.success('Planning item published!')
-            ), (error) => (
+            .then((savedItem) => {
+                notify.success('Planning item published!');
+                return Promise.resolve(savedItem);
+            }, (error) => {
                 notify.error(
                     getErrorMessage(error, 'Failed to save Planning item!')
-                )
-            ))
+                );
+                return Promise.reject(error);
+            })
     )
 );
+
 
 /**
  * Save Planning item then Unpublish it
@@ -891,6 +915,8 @@ const self = {
     createCoverageFromNewsItem,
     saveFromPlanning,
     saveFromAuthoring,
+
+    saveAndPublishPlanning,
 };
 
 export default self;

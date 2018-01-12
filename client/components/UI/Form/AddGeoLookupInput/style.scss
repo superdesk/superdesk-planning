@@ -6,8 +6,11 @@
 }
 
 .addgeolookup {
-    
     width: 100%;
+
+    &__popup {
+        max-height: 200px;
+    }
 
     &__suggestItemLabel {
         font-size: 10px;
@@ -18,15 +21,8 @@
 
     &__suggests {
         overflow: auto;
-        left: 0;
-        min-width: 200px;
-        width: 482px;
         margin-right: 10px; // override default ul
         list-style: none;
-        background-color: $dropdownBackground;
-        box-shadow: 0 2px 10px rgba(0,0,0,.4),0 3px 1px -2px rgba(0,0,0,.1);
-        border-radius: 2px;
-        text-align: left;
         &--hidden {
             max-height: 0;
             overflow: hidden;

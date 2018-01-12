@@ -6,7 +6,7 @@ import {uiUtils} from '../../../../utils';
 import classNames from 'classnames';
 import './style.scss';
 
-import {Popup} from '../../';
+import {Popup} from '../../Popup';
 import {KEYCODES} from '../../../../constants';
 
 export class SelectFieldPopup extends React.Component {
@@ -216,7 +216,7 @@ export class SelectFieldPopup extends React.Component {
                 target={this.props.target}
                 onKeyDown={this.onKeyDown}
             >
-                <div className="dropdown__menu Select__popup" ref={(node) => this.dom.root = node}>
+                <div className="Select__popup" ref={(node) => this.dom.root = node}>
                     <div className="Select__popup__search">
                         <SearchBar
                             onSearch={this.filterSearchResults}
@@ -260,7 +260,7 @@ export class SelectFieldPopup extends React.Component {
                 target={this.props.target}
                 onKeyDown={this.onKeyDown}
             >
-                <div className="dropdown__menu Select__popup" ref={(node) => this.dom.root = node}>
+                <div className="Select__popup" ref={(node) => this.dom.root = node}>
                     <div className="Select__popup__search">
                         { this.state.currentParent && (
                             <div className="search-handler">

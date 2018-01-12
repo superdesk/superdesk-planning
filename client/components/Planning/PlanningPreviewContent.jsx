@@ -8,13 +8,13 @@ import {get} from 'lodash';
 import {Row} from '../UI/Preview';
 import {
     AuditInformation,
-    StateLabel,
-    EventMetadata
+    StateLabel
 } from '../index';
 import {ToggleBox} from '../UI';
-import {CoveragePreview} from './CoveragePreview';
-import {UrgencyField} from '../fields';
+import {ColouredValueInput} from '../UI/Form';
+import {CoveragePreview} from '../Coverages';
 import {ContentBlock} from '../UI/SidePanel';
+import {EventMetadata} from '../Events';
 
 export class PlanningPreviewContentComponent extends React.Component {
     render() {
@@ -27,6 +27,7 @@ export class PlanningPreviewContentComponent extends React.Component {
             timeFormat,
             desks,
             newsCoverageStatus,
+            urgencies,
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -42,8 +43,8 @@ export class PlanningPreviewContentComponent extends React.Component {
         const subjectText = get(item, 'subject.length', 0) === 0 ? '' :
             item.subject.map((s) => s.name).join(', ');
 
-        const urgencyFieldInput = {value: item.urgency};
         const hasCoverage = get(item, 'coverages.length', 0) > 0;
+        const urgency = getItemInArrayById(urgencies, item.urgency, 'qcode');
 
         return (
             <ContentBlock>
@@ -92,7 +93,14 @@ export class PlanningPreviewContentComponent extends React.Component {
                     />}
                     {get(formProfile, 'planning.editor.urgency.enabled') &&
                     <Row>
-                        <UrgencyField input={urgencyFieldInput} readOnly={true} />
+                        <ColouredValueInput
+                            value={urgency}
+                            label="Urgency"
+                            iconName="urgency-label"
+                            readOnly={true}
+                            options={urgencies}
+                        />
+
                     </Row>}
                     {get(formProfile, 'planning.editor.flags') &&
                         get(item, 'flags.marked_for_not_publication', false) && <Row>
@@ -135,6 +143,7 @@ PlanningPreviewContentComponent.propTypes = {
     dateFormat: PropTypes.string,
     timeFormat: PropTypes.string,
     newsCoverageStatus: PropTypes.array,
+    urgencies: PropTypes.array,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -146,10 +155,11 @@ const mapStateToProps = (state, ownProps) => ({
     desks: selectors.getDesks(state),
     lockedItems: selectors.getLockedItems(state),
     agendas: selectors.general.agendas(state),
-    dateFormat: selectors.general.dateFormat(state),
-    timeFormat: selectors.general.timeFormat(state),
+    dateFormat: selectors.config.getDateFormat(state),
+    timeFormat: selectors.config.getTimeFormat(state),
     formProfile: selectors.forms.profiles(state),
-    newsCoverageStatus: selectors.getNewsCoverageStatus(state)
+    newsCoverageStatus: selectors.getNewsCoverageStatus(state),
+    urgencies: selectors.getUrgencies(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

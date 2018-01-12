@@ -7,6 +7,7 @@ export default function Toggle({value, onChange, readOnly, className}) {
     const onClick = () => onChange({target: {value: !value}});
     const classes = classNames(
         'sd-toggle',
+        'sd-line-input__input',
         {
             checked: value,
             disabled: readOnly

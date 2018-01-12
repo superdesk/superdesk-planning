@@ -35,4 +35,11 @@ export default class Input {
 
         return null;
     }
+
+    click() {
+        if (this.isMounted) {
+            this.input.simulate('click');
+            this.root.update();
+        }
+    }
 }

@@ -27,15 +27,6 @@ function EventsAdvancedSearchFormComponent({
                     component={fields.IngestProviderField}
                     type="text"
                     label="Ingest Source"/>
-                <Field name="location"
-                    component={fields.GeoLookupInput}
-                    type="text"
-                    label="Location"
-                    localSearchResults={existingLocationSearchResults}
-                    disableSearch={true} />
-                <Field name="calendars"
-                    component={fields.EventCalendarField}
-                    label="Calendars"/>
                 <Field name="anpa_category"
                     component={fields.CategoryField}
                     label="Category"/>
@@ -46,13 +37,6 @@ function EventsAdvancedSearchFormComponent({
                     component={fields.SpikeStateField}
                     label="Event State"/>
                 <br/>&nbsp;From&nbsp;<br/>
-                <Field name="dates.start"
-                    component={fields.DayPickerInput}
-                    withTime={true}/>
-                <br/>&nbsp;To&nbsp;<br/>
-                <Field name="dates.end"
-                    component={fields.DayPickerInput}
-                    withTime={true}/>
             </fieldset>
             <button
                 className="btn btn-default"

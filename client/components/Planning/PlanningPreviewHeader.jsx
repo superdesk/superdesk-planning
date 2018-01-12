@@ -99,7 +99,7 @@ const mapStateToProps = (state, ownProps) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    unlockItem: (planning) => (dispatch(actions.planning.ui.unlockAndOpenEditor(planning))),
+    onUnlock: (planning) => (dispatch(actions.planning.ui.unlockAndOpenEditor(planning))),
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
         (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:

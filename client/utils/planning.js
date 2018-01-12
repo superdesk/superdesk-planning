@@ -32,7 +32,8 @@ const canPublishPlanning = (planning, event, session, privileges, locks) => (
         !isItemCancelled(planning) &&
         !isItemCancelled(event) &&
         !isItemRescheduled(planning) &&
-        !isItemRescheduled(event)
+        !isItemRescheduled(event) &&
+        !isNotForPublication(planning)
 );
 
 const canUnpublishPlanning = (planning, event, session, privileges, locks) => (
@@ -161,6 +162,8 @@ const isPlanMultiDay = (plan) => {
 
     return false;
 };
+
+export const isNotForPublication = (plan) => get(plan, 'flags.marked_for_not_publication', false);
 
 export const getPlanningItemActions = (plan, event = null, session, privileges, actions, locks) => {
     let itemActions = [];
@@ -445,6 +448,7 @@ const self = {
     getCoverageReadOnlyFields,
     isPlanMultiDay,
     getPlanningActions,
+    isNotForPublication,
 };
 
 export default self;

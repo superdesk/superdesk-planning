@@ -21,6 +21,7 @@ export {default as eventUtils} from './events';
 export {default as planningUtils} from './planning';
 export {default as uiUtils} from './ui';
 export {default as assignmentUtils} from './assignments';
+export {default as stringUtils} from './strings';
 
 export function createReducer(initialState, reducerMap) {
     return (state = initialState, action) => {
@@ -327,7 +328,7 @@ export const isItemLockedInThisSession = (item, session) => (
 );
 
 export const getItemInArrayById = (items, id, field = '_id') => (
-    items.find((item) => get(item, field) === id)
+    id ? items.find((item) => get(item, field) === id) : null
 );
 
 /**
@@ -359,8 +360,8 @@ export const getLock = (item, locks) => {
         return null;
     }
 
-    switch (get(item, '_type')) {
-    case 'events':
+    switch (getItemType(item)) {
+    case ITEM_TYPE.EVENT:
         if (item._id in locks.events) {
             return locks.events[item._id];
         } else if (get(item, 'recurrence_id') in locks.recurring) {
@@ -369,11 +370,13 @@ export const getLock = (item, locks) => {
 
         break;
 
-    case 'planning':
+    case ITEM_TYPE.PLANNING:
         if (item._id in locks.planning) {
             return locks.planning[item._id];
         } else if (get(item, 'event_item') in locks.events) {
             return locks.events[item.event_item];
+        } else if (get(item, 'recurrence_id') in locks.recurring) {
+            return locks.recurring[item.recurrence_id];
         }
 
         break;
@@ -517,6 +520,18 @@ export function gettext(text, params = null) {
 
     if (injector) { // in tests this will be empty
         const translated = injector.get('gettext')(text);
+
+        return params ? injector.get('$interpolate')(translated)(params) : translated;
+    }
+
+    return text;
+}
+
+export function gettextCatalog(text, params = null) {
+    const injector = angular.element(document.body).injector();
+
+    if (injector) { // in tests this will be empty
+        const translated = injector.get('gettextCatalog').getString(text);
 
         return params ? injector.get('$interpolate')(translated)(params) : translated;
     }

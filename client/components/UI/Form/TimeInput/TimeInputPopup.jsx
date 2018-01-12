@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import {range} from 'lodash';
-import {Popup} from '../../';
+import {Popup, Content, Header, Footer} from '../../Popup';
 import './style.scss';
 
 export class TimeInputPopup extends React.Component {
@@ -66,67 +66,65 @@ export class TimeInputPopup extends React.Component {
             <Popup
                 close={this.props.close}
                 target={this.props.target}
+                className="time-popup"
+                noPadding={true}
             >
-                <div className="timepickerPopup">
-                    <div className="timepickerPopup__core">
-                        <div className="timepickerPopup__additional">
-                            <table>
-                                <tbody>
-                                    <tr>
-                                        <td><button
-                                            className="btn btn--mini"
-                                            type="button"
-                                            onClick={this.handleConfirm.bind(this, 30)}>in 30 min</button></td>
-                                        <td><button
-                                            className="btn btn--mini"
-                                            type="button"
-                                            onClick={this.handleConfirm.bind(this, 60)}>in 1 h</button></td>
-                                        <td><button
-                                            className="btn btn--mini"
-                                            type="button"
-                                            onClick={this.handleConfirm.bind(this, 120)}>in 2 h</button></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className="timepickerPopup__selectArea">
-                            <div className="header">Hours</div>
-                            <ul>
-                                {this.hours.map((hour, index) => (
-                                    <li
-                                        key={index}
-                                        className={index === this.state.selectedHourIndex ? 'active' : ''}
-                                        onClick={this.setselectedHourIndex.bind(this, index)}>
-                                        {hour < 10 ? '0' + hour : hour}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div className="timepickerPopup__selectArea">
-                            <div className="header">Minutes</div>
-                            <ul>
-                                {this.minutes.map((minute, index) => (
-                                    <li
-                                        key={index}
-                                        className={index === this.state.selectedMinuteIndex ? 'active' : ''}
-                                        onClick={this.setselectedMinuteIndex.bind(this, index)}>
-                                        {minute < 10 ? '0' + minute : minute}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                        <div>
-                            <button
-                                className="btn btn--primary btn--small pull-right"
-                                type="button"
-                                onClick={this.handleConfirm.bind(this, 0)}>Confirm</button>
-                            <button
-                                className="btn btn--small pull-right"
-                                type="button"
-                                onClick={this.props.close}>Cancel</button>
-                        </div>
+                <Header noBorder={true} className="time-popup__header">
+                    <div className="time-popup__header-row">
+                        <button
+                            className="btn"
+                            type="button"
+                            onClick={this.handleConfirm.bind(this, 30)}>in 30 min</button>
+                        <button
+                            className="btn"
+                            type="button"
+                            onClick={this.handleConfirm.bind(this, 60)}>in 1 h</button>
+                        <button
+                            className="btn"
+                            type="button"
+                            onClick={this.handleConfirm.bind(this, 120)}>in 2 h</button>
                     </div>
-                </div>
+                </Header>
+
+                <Content>
+                    <div className="time-popup__select-area">
+                        <div className="header">Hours</div>
+                        <ul>
+                            {this.hours.map((hour, index) => (
+                                <li
+                                    key={index}
+                                    className={index === this.state.selectedHourIndex ? 'active' : ''}
+                                    onClick={this.setselectedHourIndex.bind(this, index)}>
+                                    {hour < 10 ? '0' + hour : hour}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div className="time-popup__select-area">
+                        <div className="header">Minutes</div>
+                        <ul>
+                            {this.minutes.map((minute, index) => (
+                                <li
+                                    key={index}
+                                    className={index === this.state.selectedMinuteIndex ? 'active' : ''}
+                                    onClick={this.setselectedMinuteIndex.bind(this, index)}>
+                                    {minute < 10 ? '0' + minute : minute}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </Content>
+
+                <Footer className="time-popup__footer">
+                    <button
+                        className="btn btn--primary btn--small pull-right"
+                        type="button"
+                        onClick={this.handleConfirm.bind(this, 0)}>Confirm</button>
+                    <button
+                        className="btn btn--small pull-right"
+                        type="button"
+                        onClick={this.props.close}>Cancel</button>
+                </Footer>
             </Popup>
         );
     }

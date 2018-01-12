@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {reduxForm, formValueSelector} from 'redux-form';
 import * as actions from '../../../actions';
-import {dateFormat as getDateFormat} from '../../../selectors/general';
+import {getDateFormat} from '../../../selectors/config';
 import moment from 'moment';
 import {EventUpdateMethods} from '../../Events';
 import '../style.scss';
