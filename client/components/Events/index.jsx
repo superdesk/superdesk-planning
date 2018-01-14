@@ -1,4 +1,5 @@
 export {EventDateTime} from './EventDateTime';
+export {EventMetadata} from './EventMetadata';
 export {EventItem} from './EventItem';
 export {EventHistory} from './EventHistory';
 export {EventPreviewContent} from './EventPreviewContent';

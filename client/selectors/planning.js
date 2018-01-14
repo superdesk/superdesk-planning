@@ -1,5 +1,5 @@
 import {createSelector} from 'reselect';
-import {get, sortBy} from 'lodash';
+import {get, sortBy, cloneDeep} from 'lodash';
 import moment from 'moment';
 import {isItemLockedInThisSession} from '../utils';
 import {session} from './general';
@@ -35,7 +35,7 @@ export const currentAgenda = createSelector(
 export const plansInList = createSelector(
     [storedPlannings, planIdsInList],
     (plans, planIds) => (
-        planIds.map((planId) => plans[planId])
+        cloneDeep(planIds.map((planId) => plans[planId]))
     )
 );
 

@@ -6,7 +6,7 @@ import {KEYCODES} from '../../../../constants';
 import {get} from 'lodash';
 import './style.scss';
 
-import {Popup} from '../../';
+import {Popup, Content} from '../../Popup';
 
 export class AddGeoLookupResultsPopUp extends React.Component {
     constructor(props) {
@@ -98,8 +98,11 @@ export class AddGeoLookupResultsPopUp extends React.Component {
                 close={this.props.onCancel}
                 target={this.props.target}
                 onKeyDown={this.handleKeyBoardEvent}
+                noPadding={true}
+                inheritWidth={true}
+                className="addgeolookup__popup"
             >
-                <div className="addgeolookup__suggests-wrapper">
+                <Content noPadding={true} className="addgeolookup__suggests-wrapper">
                     <ul className="addgeolookup__suggests" ref={(node) => this.dom.itemList = node}>
                         {localSuggests.map((suggest, index) => {
                             const shortName = suggest.existingLocation ?
@@ -166,7 +169,7 @@ export class AddGeoLookupResultsPopUp extends React.Component {
                             );
                         })}
                     </ul>
-                </div>
+                </Content>
             </Popup>
         );
     }

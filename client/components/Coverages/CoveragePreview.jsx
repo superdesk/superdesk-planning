@@ -1,27 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Item, Column, Row} from '../UI/List';
 import {Row as PreviewRow} from '../UI/Preview';
-import {CollapseBox} from '../UI/CollapseBox';
-import classNames from 'classnames';
+import {CollapseBox} from '../UI';
 import moment from 'moment-timezone';
 import {get} from 'lodash';
-import {getCoverageIcon, getCreator, getItemInArrayById, getDateTimeString, gettext} from '../../utils';
-import {UserAvatar, StateLabel} from '../index';
+import {getCreator, getItemInArrayById, getDateTimeString, gettext} from '../../utils';
+import {StateLabel} from '../index';
 import {PLANNING} from '../../constants';
+
+import {CoverageItem} from './';
 
 export const CoveragePreview = ({coverage, users, desks, newsCoverageStatus, dateFormat, timeFormat, formProfile}) => {
     const userAssigned = getCreator(coverage, 'assigned_to.user', users);
     const deskAssigned = desks.find((d) =>
         d._id === get(coverage, 'assigned_to.desk'));
     const coverageDate = get(coverage, 'planning.scheduled');
-    const classes = classNames(
-        getCoverageIcon(get(coverage, 'planning.g2_content_type')),
-        {
-            'icon--green': coverageDate && moment(coverageDate).isAfter(moment()),
-            'icon--red': coverageDate && !moment(coverageDate).isAfter(moment()),
-        }
-    );
     const coverageProvider = get(coverage, 'assigned_to.coverage_provider');
     /* eslint-disable camelcase */
     const {
@@ -45,20 +38,13 @@ export const CoveragePreview = ({coverage, users, desks, newsCoverageStatus, dat
         coverage.planning.keyword.join(', ');
 
     const coverageListItem = (
-        <Item noBg={true}>
-            <Column border={false}>
-                <Row>
-                    <i className={classes}/>&nbsp;&nbsp;
-                    {userAssigned && <UserAvatar user={userAssigned}/>}
-                    {!userAssigned && !deskAssigned && <span>Not assigned</span>}
-                    {deskAssigned && <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                        {gettext('Desk:') + get(deskAssigned, 'name')}
-                    </span>}
-                    <i className="icon-time"/>
-                    <time><span>{coverageDateText}</span></time>
-                </Row>
-            </Column>
-        </Item>
+        <CoverageItem
+            coverage={coverage}
+            users={users}
+            desks={desks}
+            dateFormat={dateFormat}
+            timeFormat={timeFormat}
+        />
     );
 
     let coverageTopBar = (<PreviewRow><label>Unassigned</label></PreviewRow>);

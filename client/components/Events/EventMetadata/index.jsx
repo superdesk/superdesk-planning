@@ -1,14 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {StateLabel} from '../index';
-import {EventScheduleSummary} from '../Events';
-import {Item, Column, Row} from '../UI/List';
-import {Row as PreviewRow} from '../UI/Preview';
-import {CollapseBox} from '../UI/CollapseBox';
-import {eventUtils, gettext} from '../../utils';
+import {StateLabel} from '../..';
+import {EventScheduleSummary} from '../';
+import {Item, Column, Row} from '../../UI/List';
+import {Row as PreviewRow} from '../../UI/Preview';
+import {CollapseBox} from '../../UI/CollapseBox';
+import {eventUtils, gettext} from '../../../utils';
 
-export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly}) => {
+export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly, scrollInView}) => {
     const dateStr = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat, dateOnly);
 
     const eventListView = (
@@ -22,9 +22,8 @@ export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly}) => {
                     <StateLabel item={event} verbose={true}/>
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         <span className="sd-list-item__text-strong">{event.name}</span>
-                        <time title>{dateStr}</time>
                     </span>
-
+                    <time title>{dateStr}</time>
                 </Row>
             </Column>
         </Item>
@@ -37,17 +36,28 @@ export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly}) => {
                     <i className="icon-calendar" /></span>
             </Column>
             <Column border={false} grow={true}>
-                <Row>
-                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                        <span className="sd-list-item__text-strong">{event.name}</span>
-                    </span>
-                </Row>
-                <Row>
-                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                        <span className="sd-list-item__location">{get(event, 'location[0].name', 'Unknown')}</span>
+                {get(event, 'location[0].name') ? (
+                    <div>
+                        <Row>
+                            <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                                <span className="sd-list-item__text-strong">{event.name}</span>
+                            </span>
+                        </Row>
+                        <Row>
+                            <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                                <span className="sd-list-item__location">{event.location[0].name}</span>
+                            </span>
+                            <time title>{dateStr}</time>
+                        </Row>
+                    </div>
+                ) : (
+                    <Row>
+                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                            <span className="sd-list-item__text-strong">{event.name}</span>
+                        </span>
                         <time title>{dateStr}</time>
-                    </span>
-                </Row>
+                    </Row>
+                )}
             </Column>
         </Item>
     );
@@ -75,6 +85,7 @@ export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly}) => {
         collapsedItem={eventListView}
         openItemTopBar={eventInDetailTopBar}
         openItem={eventInDetail}
+        scrollInView={scrollInView}
     />);
 };
 
@@ -83,10 +94,12 @@ EventMetadata.propTypes = {
     dateOnly: PropTypes.bool,
     dateFormat: PropTypes.string,
     timeFormat: PropTypes.string,
+    scrollInView: PropTypes.bool,
 };
 
 
 EventMetadata.defaultProps = {
     dateFormat: 'DD/MM/YYYY',
     timeFormat: 'HH:mm',
+    scrollInView: true,
 };

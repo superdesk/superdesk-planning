@@ -24,11 +24,6 @@ export const InputArray = ({
         onChange(field, value);
     };
 
-    const update = (index, newValue) => {
-        value[index] = newValue;
-        onChange(field, value);
-    };
-
     const Component = component;
 
     return (
@@ -37,7 +32,7 @@ export const InputArray = ({
                 <Component
                     key={index}
                     field={`${field}[${index}]`}
-                    onChange={(f, newValue) => update(index, newValue)}
+                    onChange={onChange}
                     value={val}
                     remove={remove.bind(null, index)}
                     readOnly={readOnly}

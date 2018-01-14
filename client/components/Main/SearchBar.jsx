@@ -5,7 +5,7 @@ import {SubNav} from '../UI/SubNav';
 import {SearchBox} from '../UI';
 import {ActionsSubnavDropdown, CreateNewSubnavDropdown} from './index';
 
-export const SearchBar = ({addEvent, openAgendas}) => (
+export const SearchBar = ({addEvent, addPlanning, openAgendas}) => (
     <SubNav>
         <SearchBox label="Search planning" />
         <ActionsSubnavDropdown
@@ -13,11 +13,13 @@ export const SearchBar = ({addEvent, openAgendas}) => (
         />
         <CreateNewSubnavDropdown
             addEvent={addEvent}
+            addPlanning={addPlanning}
         />
     </SubNav>
 );
 
 SearchBar.propTypes = {
     addEvent: PropTypes.func.isRequired,
+    addPlanning: PropTypes.func.isRequired,
     openAgendas: PropTypes.func.isRequired,
 };

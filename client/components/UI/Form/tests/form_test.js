@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {mount} from 'enzyme';
 import sinon from 'sinon';
+import {set} from 'lodash';
 
 import * as helpers from '../../../tests/helpers/ui/form';
 
@@ -84,7 +85,7 @@ describe('components.UI.Form', () => {
     beforeEach(() => {
         values = {};
 
-        onChange = sinon.spy((field, value) => values[field] = value);
+        onChange = sinon.spy((field, value) => set(values, field, value));
     });
 
     const setWrapper = () => {
@@ -168,7 +169,7 @@ describe('components.UI.Form', () => {
         inputs.links.update(0, 'https://github.com/superdesk');
         callCount += 1;
         expect(onChange.callCount).toBe(callCount);
-        expect(onChange.args[callCount - 1]).toEqual(['links', ['https://github.com/superdesk']]);
+        expect(onChange.args[callCount - 1]).toEqual(['links[0]', 'https://github.com/superdesk']);
         expect(inputs.links.value()).toEqual(['https://github.com/superdesk']);
         expect(inputs.links.value(0)).toEqual('https://github.com/superdesk');
         expect(values).toEqual({

@@ -39,7 +39,7 @@ export class PlanningItem extends React.PureComponent {
         if (isItemLocked)
             borderState = 'locked';
 
-        const agendaNames = item.agendas
+        const agendaNames = get(item, 'agendas', [])
             .map((agendaId) => agendas.find((agenda) => agenda._id === agendaId))
             .filter((agenda) => agenda)
             .map((agenda) => agenda.name)

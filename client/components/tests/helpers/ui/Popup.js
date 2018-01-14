@@ -1,5 +1,5 @@
 import React from 'react';
-import {Popup as P} from '../../../UI';
+import {Popup as P} from '../../../UI/Popup';
 import {ReactWrapper} from 'enzyme';
 import {Provider} from 'react-redux';
 

@@ -12,9 +12,12 @@ export const SelectInput = ({
     labelField,
     onChange,
     readOnly,
+    clearable,
     ...props
 }) => {
-    const key = get(value, keyField, get(options, `[0].${keyField}`));
+    const key = clearable ?
+        get(value, keyField, '') :
+        get(value, keyField, get(options, `[0].${keyField}`));
 
     const opts = options.map((opt) => ({
         key: get(opt, keyField),
@@ -24,7 +27,7 @@ export const SelectInput = ({
     const onChangeHandler = (field, key) => {
         const value = options.find(
             (option) => get(option, keyField) === key
-        );
+        ) || null;
 
         onChange(field, value);
     };
@@ -38,6 +41,7 @@ export const SelectInput = ({
                 onChange={onChangeHandler}
                 options={opts}
                 readOnly={readOnly}
+                clearable={clearable}
             />
         </LineInput>
     );
@@ -66,6 +70,7 @@ SelectInput.propTypes = {
     })).isRequired,
     keyField: PropTypes.string,
     labelField: PropTypes.string,
+    clearable: PropTypes.bool,
 };
 
 SelectInput.defaultProps = {
@@ -75,5 +80,6 @@ SelectInput.defaultProps = {
     boxed: false,
     noMargin: false,
     keyField: 'qcode',
-    labelField: 'label'
+    labelField: 'label',
+    clearable: false,
 };

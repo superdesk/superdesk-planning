@@ -31,6 +31,7 @@ class PlanningApp extends React.Component {
         this.onItemClick = this.onItemClick.bind(this);
         this.closePreview = this.closePreview.bind(this);
         this.addEvent = this.addEvent.bind(this);
+        this.addPlanning = this.addPlanning.bind(this);
         this.onSave = this.onSave.bind(this);
     }
 
@@ -57,6 +58,10 @@ class PlanningApp extends React.Component {
 
     addEvent() {
         this.props.edit({_type: ITEM_TYPE.EVENT});
+    }
+
+    addPlanning() {
+        this.props.edit({_type: ITEM_TYPE.PLANNING});
     }
 
     onSave(item, save = true, publish = false) {
@@ -131,6 +136,7 @@ class PlanningApp extends React.Component {
                 <div className={mainClassName}>
                     <SearchBar
                         addEvent={this.addEvent}
+                        addPlanning={this.addPlanning}
                         openAgendas={this.props.openAgendas}
                     />
                     <FiltersBar

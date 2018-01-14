@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {ITEM_TYPE} from '../../constants';
-import {gettext, getItemType, eventUtils, isItemPublic} from '../../utils';
+import {gettext, getItemType, eventUtils, planningUtils, isItemPublic} from '../../utils';
 
 import {Button as NavButton} from '../UI/Nav';
 import {Header} from '../UI/SidePanel';
@@ -38,6 +38,11 @@ export const EditorHeader = ({
         canUnpublish = eventUtils.canUnpublishEvent(item, session, privileges, lockedItems);
         canUpdate = eventUtils.canUpdateEvent(item, session, privileges, lockedItems);
         canEdit = eventUtils.canEditEvent(item, session, privileges, lockedItems);
+    } else if (itemType === ITEM_TYPE.PLANNING) {
+        canPublish = planningUtils.canPublishPlanning(item, null, session, privileges, lockedItems);
+        canUnpublish = planningUtils.canUnpublishPlanning(item, null, session, privileges, lockedItems);
+        canUpdate = planningUtils.canUpdatePlanning(item, null, session, privileges, lockedItems);
+        canEdit = planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
     }
 
     const onCancel = () => (

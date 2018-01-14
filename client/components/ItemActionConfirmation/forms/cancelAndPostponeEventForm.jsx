@@ -152,8 +152,8 @@ CancelAndPostponeEventComponent.propTypes = {
 };
 
 const mapStateToProps = (state) => ({
-    timeFormat: selectors.general.timeFormat(state),
-    dateFormat: selectors.general.dateFormat(state),
+    timeFormat: selectors.config.getTimeFormat(state),
+    dateFormat: selectors.config.getDateFormat(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

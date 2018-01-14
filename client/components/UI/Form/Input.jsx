@@ -1,7 +1,19 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-export const Input = ({field, type, value, onChange, placeholder, onBlur, readOnly, refNode}) => {
+
+export const Input = ({
+    field,
+    type,
+    value,
+    onChange,
+    placeholder,
+    onBlur,
+    onClick,
+    readOnly,
+    refNode,
+    className,
+}) => {
     const onInputChanged = (e) => {
         let data = e.target.value;
 
@@ -14,13 +26,14 @@ export const Input = ({field, type, value, onChange, placeholder, onBlur, readOn
 
     return (
         <input
-            className="sd-line-input__input"
+            className={className ? `sd-line-input__input ${className}` : 'sd-line-input__input'}
             type={type}
             name={field}
             value={value}
             placeholder={placeholder}
             onChange={onInputChanged}
             onBlur={onBlur}
+            onClick={onClick}
             disabled={readOnly}
             ref={refNode}
         />
@@ -36,9 +49,11 @@ Input.propTypes = {
     ]),
     onChange: PropTypes.func.isRequired,
     onBlur: PropTypes.func,
+    onClick: PropTypes.func,
     placeholder: PropTypes.string,
     readOnly: PropTypes.bool,
     refNode: PropTypes.func,
+    className: PropTypes.string,
 };
 
 Input.defaultProps = {

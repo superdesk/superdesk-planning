@@ -8,7 +8,7 @@ const TermsList = ({terms, displayField, onClick}) => (
             {terms.map((term, index) => (
                 <li key={index} onClick={onClick ? onClick.bind(null, index) : null}>
                     {onClick && <i className="icon-close-small"/>}
-                    {get(term, displayField)}
+                    {get(term, displayField) || term}
                 </li>
             ))}
         </ul>
@@ -17,7 +17,7 @@ const TermsList = ({terms, displayField, onClick}) => (
 
 TermsList.propTypes = {
     terms: PropTypes.array.isRequired,
-    displayField: PropTypes.string.isRequired,
+    displayField: PropTypes.string,
     onClick: PropTypes.func,
 };
 

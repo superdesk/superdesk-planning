@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {gettext} from '../../../utils';
+import {gettextCatalog} from '../../../utils';
 
 export const Label = ({text, row, light}) => (
     !text ? null : (
@@ -10,7 +10,7 @@ export const Label = ({text, row, light}) => (
             'form-label': row,
             'form-label--light': row && light
         })}>
-            {gettext(text)}
+            {gettextCatalog(text)}
         </label>
     )
 );

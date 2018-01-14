@@ -342,6 +342,14 @@ export const vocabularies = {
             qcode: 6,
         },
     ],
+    keywords: [
+        {qcode: 'SciTech', name: 'Science and Technology'},
+        {qcode: 'Medicine', name: 'International Health Stories'},
+        {qcode: 'Health', name: 'Health'},
+        {qcode: 'Motoring', name: 'Motoring'},
+        {qcode: 'Soccer', name: 'Soccer'},
+        {qcode: 'Property', name: 'Property'}
+    ]
 };
 
 export const subjects = [
@@ -786,7 +794,6 @@ export const initialState = {
     modal: modal,
     planning: planningInitialState,
     templates: templates,
-    form: form,
     main: main,
 };
 

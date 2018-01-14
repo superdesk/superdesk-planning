@@ -616,11 +616,12 @@ describe('actions.planning.ui', () => {
 
         it('ui.saveAndPublish notifies user on failulre to save and publish', (done) => {
             restoreSinonStub(planningApi.saveAndPublish);
-            sinon.stub(planningApi, 'saveAndPublish').callsFake(
-                () => (Promise.reject(errorMessage))
-            );
+            sinon.stub(planningApi, 'saveAndPublish').returns(Promise.reject(errorMessage));
+
             store.test(done, planningUi.saveAndPublish(data.plannings[1]))
-                .then(() => {
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+
                     expect(planningApi.saveAndPublish.callCount).toBe(1);
 
                     expect(services.notify.success.callCount).toBe(0);
