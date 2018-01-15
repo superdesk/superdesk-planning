@@ -10,7 +10,9 @@ export default function Toggle({value, onChange, readOnly, className}) {
         'sd-line-input__input',
         {
             checked: value,
-            disabled: readOnly
+            disabled: readOnly,
+            'sd-toggle--checked': value,
+            'sd-toggle--disabled': readOnly
         },
         className
     );

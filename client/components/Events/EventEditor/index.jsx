@@ -54,6 +54,8 @@ export class EventEditorComponent extends React.Component {
             users,
             timeFormat,
             dateFormat,
+            readOnly,
+            maxRecurrentEvents
         } = this.props;
 
         const existingEvent = !!get(diff, '_id');
@@ -83,6 +85,7 @@ export class EventEditorComponent extends React.Component {
                             onChange={this.onChange}
                             maxChars={15}
                             refNode={(node) => this.dom.slugline = node}
+                            readOnly={readOnly}
                         />
                     </Row>
                     <Row>
@@ -91,6 +94,7 @@ export class EventEditorComponent extends React.Component {
                             label="Name"
                             value={get(diff, 'name', '')}
                             onChange={this.onChange}
+                            readOnly={readOnly}
                         />
                     </Row>
                     <Row>
@@ -99,6 +103,7 @@ export class EventEditorComponent extends React.Component {
                             label="Description"
                             value={get(diff, 'definition_short', '')}
                             onChange={this.onChange}
+                            readOnly={readOnly}
                         />
                     </Row>
                     <Row>
@@ -109,6 +114,7 @@ export class EventEditorComponent extends React.Component {
                             onChange={this.onChange}
                             options={occurStatuses}
                             noMargin={true}
+                            readOnly={readOnly}
                         />
                     </Row>
 
@@ -119,6 +125,8 @@ export class EventEditorComponent extends React.Component {
                             onChange={this.onChange}
                             timeFormat={timeFormat}
                             dateFormat={dateFormat}
+                            maxRecurrentEvents={maxRecurrentEvents}
+                            readOnly={readOnly}
                         />
                     )}
 
@@ -128,6 +136,7 @@ export class EventEditorComponent extends React.Component {
                             label="Location"
                             value={get(diff, 'location[0]', null)}
                             onChange={this.onChange}
+                            readOnly={readOnly}
                         />
                     </Row>
 
@@ -147,6 +156,7 @@ export class EventEditorComponent extends React.Component {
                                 value={get(diff, 'calendars', [])}
                                 onChange={this.onChange}
                                 options={calendars}
+                                readOnly={readOnly}
                             />
                         </Row>
                         <Row>
@@ -156,6 +166,7 @@ export class EventEditorComponent extends React.Component {
                                 value={get(diff, 'anpa_category', [])}
                                 onChange={this.onChange}
                                 options={categories}
+                                readOnly={readOnly}
                             />
                         </Row>
                         <Row>
@@ -165,6 +176,7 @@ export class EventEditorComponent extends React.Component {
                                 value={get(diff, 'subject', [])}
                                 onChange={this.onChange}
                                 options={subjects}
+                                readOnly={readOnly}
                             />
                         </Row>
                         <Row>
@@ -173,6 +185,7 @@ export class EventEditorComponent extends React.Component {
                                 label="Long Description"
                                 value={get(diff, 'definition_long', '')}
                                 onChange={this.onChange}
+                                readOnly={readOnly}
                             />
                         </Row>
                         <Row>
@@ -182,6 +195,7 @@ export class EventEditorComponent extends React.Component {
                                 value={get(diff, 'internal_note', '')}
                                 onChange={this.onChange}
                                 noMargin={true}
+                                readOnly={readOnly}
                             />
                         </Row>
                     </ToggleBox>
@@ -199,6 +213,7 @@ export class EventEditorComponent extends React.Component {
                             createLink={createUploadLink}
                             addButtonText="Add a file"
                             component={FileInput}
+                            readOnly={readOnly}
                         />
                     </ToggleBox>
 
@@ -211,6 +226,7 @@ export class EventEditorComponent extends React.Component {
                             component={LinkInput}
                             iframelyKey={iframelyKey}
                             defaultValue=""
+                            readOnly={readOnly}
                         />
                     </ToggleBox>
 
@@ -245,7 +261,11 @@ EventEditorComponent.propTypes = {
     users: PropTypes.array,
     timeFormat: PropTypes.string.isRequired,
     dateFormat: PropTypes.string.isRequired,
+    readOnly: PropTypes.bool,
+    maxRecurrentEvents: PropTypes.number
 };
+
+EventEditorComponent.defaultProps = {readOnly: false};
 
 const mapStateToProps = (state) => ({
     formProfile: selectors.forms.eventProfile(state),
@@ -258,6 +278,7 @@ const mapStateToProps = (state) => ({
     users: selectors.getUsers(state),
     timeFormat: selectors.config.getTimeFormat(state),
     dateFormat: selectors.config.getDateFormat(state),
+    maxRecurrentEvents: selectors.config.getMaxRecurrentEvents(state)
 });
 
 export const EventEditor = connect(mapStateToProps)(EventEditorComponent);

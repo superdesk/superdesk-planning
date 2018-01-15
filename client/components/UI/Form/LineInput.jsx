@@ -69,7 +69,7 @@ export const LineInputDefaultProps = {
 };
 
 LineInput.propTypes = {
-    children: PropTypes.node.isRequired,
+    children: PropTypes.node,
     className: PropTypes.string,
     ...LineInputProps,
 };

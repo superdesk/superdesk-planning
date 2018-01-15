@@ -3,7 +3,7 @@ import {createStore as _createStore, applyMiddleware} from 'redux';
 import planningApp from '../reducers';
 import thunkMiddleware from 'redux-thunk';
 import createLogger from 'redux-logger';
-import {get, set, isNil, map, cloneDeep} from 'lodash';
+import {get, set, map, cloneDeep} from 'lodash';
 import {
     PUBLISHED_STATE,
     WORKFLOW_STATE,
@@ -14,7 +14,7 @@ import {
     PLANNING
 } from '../constants/index';
 import * as testData from './testData';
-import {gettext} from './gettext';
+import {gettext, gettextCatalog} from './gettext';
 
 export {default as checkPermission} from './checkPermission';
 export {default as retryDispatch} from './retryDispatch';
@@ -24,7 +24,7 @@ export {default as planningUtils} from './planning';
 export {default as uiUtils} from './ui';
 export {default as assignmentUtils} from './assignments';
 export {default as stringUtils} from './strings';
-export {gettext};
+export {gettext, gettextCatalog};
 export {default as lockUtils} from './locks';
 
 export function createReducer(initialState, reducerMap) {
@@ -326,11 +326,6 @@ export const getCreator = (item, creator, users) => {
     }
 };
 
-export const isItemLockedInThisSession = (item, session) => (
-    get(item, 'lock_user') === get(session, 'identity._id') &&
-        get(item, 'lock_session') === get(session, 'sessionId')
-);
-
 export const getItemInArrayById = (items, id, field = '_id') => (
     id ? items.find((item) => get(item, field) === id) : null
 );
@@ -350,50 +345,6 @@ export const getCoverageIcon = (type) => {
     };
 
     return get(coverageIcons, type, 'icon-file');
-};
-
-export const getLockedUser = (item, locks, users) => {
-    const lock = getLock(item, locks);
-
-    return lock !== null && Array.isArray(users) ?
-        users.find((u) => (u._id === lock.user)) : null;
-};
-
-export const getLock = (item, locks) => {
-    if (isNil(item)) {
-        return null;
-    }
-
-    switch (getItemType(item)) {
-    case ITEM_TYPE.EVENT:
-        if (item._id in locks.events) {
-            return locks.events[item._id];
-        } else if (get(item, 'recurrence_id') in locks.recurring) {
-            return locks.recurring[item.recurrence_id];
-        }
-
-        break;
-
-    case ITEM_TYPE.PLANNING:
-        if (item._id in locks.planning) {
-            return locks.planning[item._id];
-        } else if (get(item, 'event_item') in locks.events) {
-            return locks.events[item.event_item];
-        } else if (get(item, 'recurrence_id') in locks.recurring) {
-            return locks.recurring[item.recurrence_id];
-        }
-
-        break;
-
-    default:
-        if (item._id in locks.assignments) {
-            return locks.assignments[item._id];
-        }
-
-        break;
-    }
-
-    return null;
 };
 
 export const getItemWorkflowState = (item) => (get(item, 'state', WORKFLOW_STATE.DRAFT));
@@ -507,18 +458,6 @@ export const getPublishedState = (item) => get(item, 'pubstatus', null);
 export const sanitizeTextForQuery = (text) => (
     text.replace(/\//g, '\\/').replace(/[()]/g, '')
 );
-
-export function gettextCatalog(text, params = null) {
-    const injector = angular.element(document.body).injector();
-
-    if (injector) { // in tests this will be empty
-        const translated = injector.get('gettextCatalog').getString(text);
-
-        return params ? injector.get('$interpolate')(translated)(params) : translated;
-    }
-
-    return text;
-}
 
 export const getAssignmentPriority = (priorityQcode, priorities) => {
     // Returns default or given priority object

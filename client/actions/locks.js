@@ -1,7 +1,7 @@
 import * as selectors from '../selectors';
 import {LOCKS, ITEM_TYPE} from '../constants';
 import {planning, events, assignments} from './index';
-import {getLock, getItemType} from '../utils';
+import {lockUtils, getItemType} from '../utils';
 
 /**
  * Action Dispatcher to load all Event and Planning locks
@@ -56,7 +56,7 @@ const loadAssignmentLocks = () => (
 const unlock = (item) => (
     (dispatch, getState, {notify}) => {
         const locks = selectors.locks.getLockedItems(getState());
-        const currentLock = getLock(item, locks);
+        const currentLock = lockUtils.getLock(item, locks);
 
         if (currentLock === null) {
             notify.error('Failed to unlock the item. Lock not found!');
@@ -87,12 +87,23 @@ const lock = (item) => (
     }
 );
 
+const unlockThenLock = (item) => (
+    (dispatch) => (
+        dispatch(self.unlock(item))
+            .then(
+                (unlockedItem) => dispatch(self.lock(unlockedItem)),
+                (error) => Promise.reject(error)
+            )
+    )
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     lock,
     unlock,
     loadAllLocks,
     loadAssignmentLocks,
+    unlockThenLock,
 };
 
 export default self;

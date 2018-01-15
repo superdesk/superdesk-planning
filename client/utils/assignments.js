@@ -1,12 +1,12 @@
 import {get, includes} from 'lodash';
 import {ASSIGNMENTS, PRIVILEGES, PLANNING} from '../constants';
-import {isItemLockedInThisSession} from './index';
+import {lockUtils} from './index';
 
 const canEditAssignment = (assignment, session, privileges) => (
     !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
     self.isAssignmentInEditableState(assignment) &&
     (!get(assignment, 'lock_user') ||
-    isItemLockedInThisSession(assignment, session))
+    lockUtils.isItemLockedInThisSession(assignment, session))
 );
 
 const canStartWorking = (assignment, session, privileges) => (
@@ -27,14 +27,14 @@ const isAssignmentInEditableState = (assignment) => (
 const canCompleteAssignment = (assignment, session, privileges) => (
     !!privileges[PRIVILEGES.ARCHIVE] &&
         get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS &&
-        (!get(assignment, 'lock_user') || isItemLockedInThisSession(assignment, session))
+        (!get(assignment, 'lock_user') || lockUtils.isItemLockedInThisSession(assignment, session))
 );
 
 const canConfirmAvailability = (assignment, session, privileges) => (
     get(assignment, 'planning.g2_content_type') !== PLANNING.G2_CONTENT_TYPE.TEXT &&
     (get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED ||
     get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED) &&
-    (!get(assignment, 'lock_user') || isItemLockedInThisSession(assignment, session))
+    (!get(assignment, 'lock_user') || lockUtils.isItemLockedInThisSession(assignment, session))
 );
 
 const isAssignmentInUse = (assignment) => (

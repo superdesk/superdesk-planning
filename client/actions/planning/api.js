@@ -4,7 +4,7 @@ import * as selectors from '../../selectors';
 import {
     getTimeZoneOffset,
     sanitizeTextForQuery,
-    isItemLockedInThisSession,
+    lockUtils,
 } from '../../utils';
 import planningUtils from '../../utils/planning';
 import {
@@ -13,6 +13,7 @@ import {
     SPIKED_STATE,
     WORKFLOW_STATE,
     MODALS,
+    ITEM_TYPE,
 } from '../../constants';
 
 /**
@@ -870,6 +871,10 @@ const unlock = (item) => (
     )
         .then((item) => {
             planningUtils.convertCoveragesGenreToObject(item);
+
+            // Restore the item type, as the lock endpoint does not provide this
+            item._type = ITEM_TYPE.PLANNING;
+
             return Promise.resolve(item);
         }, (error) => Promise.reject(error))
 );
@@ -882,7 +887,7 @@ const unlock = (item) => (
 const lock = (planning, lockAction = 'edit') => (
     (dispatch, getState, {api}) => {
         if (lockAction === null ||
-            isItemLockedInThisSession(planning, selectors.getSessionDetails(getState()))
+            lockUtils.isItemLockedInThisSession(planning, selectors.getSessionDetails(getState()))
         ) {
             return Promise.resolve(planning);
         }
@@ -895,6 +900,10 @@ const lock = (planning, lockAction = 'edit') => (
         )
             .then((item) => {
                 planningUtils.convertCoveragesGenreToObject(item);
+
+                // Restore the item type, as the lock endpoint does not provide this
+                item._type = ITEM_TYPE.PLANNING;
+
                 return Promise.resolve(item);
             }, (error) => Promise.reject(error));
     }

@@ -3,7 +3,7 @@ import assignments from './index';
 import {get} from 'lodash';
 import planning from '../planning';
 import {ASSIGNMENTS, WORKSPACE} from '../../constants';
-import {getLock, assignmentUtils} from '../../utils';
+import {lockUtils, assignmentUtils} from '../../utils';
 import {hideModal, showModal} from '../index';
 
 /**
@@ -79,7 +79,7 @@ const onAssignmentUpdated = (_e, data) => (
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
                     const locks = selectors.locks.getLockedItems(getState());
-                    const itemLock = getLock(assignmentInStore, locks);
+                    const itemLock = lockUtils.getLock(assignmentInStore, locks);
 
                     if (itemLock) {
                         let item = {
@@ -178,7 +178,7 @@ const onAssignmentUnlocked = (_e, data) => (
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
                     const locks = selectors.locks.getLockedItems(getState());
-                    const itemLock = getLock(assignmentInStore, locks);
+                    const itemLock = lockUtils.getLock(assignmentInStore, locks);
                     const sessionId = selectors.getSessionDetails(getState()).sessionId;
 
                     let assignment = {

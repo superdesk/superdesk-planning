@@ -2,7 +2,7 @@ import * as selectors from '../../selectors';
 import {ASSIGNMENTS} from '../../constants';
 import planningUtils from '../../utils/planning';
 import {get, cloneDeep, has, pick} from 'lodash';
-import {isItemLockedInThisSession, getErrorMessage} from '../../utils';
+import {lockUtils, getErrorMessage} from '../../utils';
 import planning from '../planning';
 
 /**
@@ -244,7 +244,7 @@ const complete = (item) => (
  */
 const lock = (assignment, action = 'edit') => (
     (dispatch, getState, {api, notify}) => {
-        if (isItemLockedInThisSession(assignment, selectors.getSessionDetails(getState()))) {
+        if (lockUtils.isItemLockedInThisSession(assignment, selectors.getSessionDetails(getState()))) {
             return Promise.resolve(assignment);
         }
 

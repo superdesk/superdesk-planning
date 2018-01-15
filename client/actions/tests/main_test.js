@@ -153,10 +153,7 @@ describe('actions.main', () => {
         beforeEach(() => {
             sinon.spy(main, 'openEditor');
             sinon.spy(main, 'closePreview');
-            sinon.stub(locks, 'lock').callsFake((item) => Promise.resolve({
-                ...item,
-                _type: null,
-            }));
+            sinon.stub(locks, 'lock').callsFake((item) => Promise.resolve(item));
         });
 
         afterEach(() => {
@@ -186,9 +183,6 @@ describe('actions.main', () => {
                     expect(locks.lock.callCount).toBe(1);
                     expect(locks.lock.args[0]).toEqual([data.events[0]]);
 
-                    // Ensure the data type is restored from the lock response
-                    expect(item._type).toEqual('events');
-
                     expect(main.closePreview.callCount).toBe(0);
 
                     expect(main.openEditor.callCount).toBe(1);
@@ -207,9 +201,6 @@ describe('actions.main', () => {
 
                     expect(locks.lock.callCount).toBe(1);
                     expect(locks.lock.args[0]).toEqual([data.events[1]]);
-
-                    // Ensure the data type is restored from the lock response
-                    expect(item._type).toEqual('events');
 
                     expect(main.closePreview.callCount).toBe(1);
 

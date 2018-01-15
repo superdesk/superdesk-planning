@@ -79,6 +79,14 @@
         border-top: 1px solid #e5e5e5;
         display: inline-block;
         width: 100%;
+
+        &--no-border {
+            border-top: none;
+        }
+
+        &--no-padding {
+            padding: 0 !important;
+        }
     }
 
     &__menu-content {

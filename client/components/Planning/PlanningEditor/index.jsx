@@ -214,6 +214,7 @@ export class PlanningEditorComponent extends React.Component {
                     coverageProviders={coverageProviders}
                     priorities={priorities}
                     keywords={keywords}
+                    readOnly={readOnly}
                 />
 
             </div>

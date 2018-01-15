@@ -1,8 +1,8 @@
-import {EVENTS, SPIKED_STATE, WORKFLOW_STATE, PUBLISHED_STATE} from '../../constants';
+import {EVENTS, SPIKED_STATE, WORKFLOW_STATE, PUBLISHED_STATE, ITEM_TYPE} from '../../constants';
 import {EventUpdateMethods} from '../../components/Events';
 import {get, isEqual, cloneDeep, pickBy, isNil} from 'lodash';
 import * as selectors from '../../selectors';
-import {isItemLockedInThisSession} from '../../utils';
+import {lockUtils} from '../../utils';
 import moment from 'moment';
 
 import planningApi from '../planning/api';
@@ -479,7 +479,7 @@ const receiveEvents = (events) => ({
 const lock = (event, action = 'edit') => (
     (dispatch, getState, {api, notify}) => {
         if (action === null ||
-            isItemLockedInThisSession(event, selectors.getSessionDetails(getState()))
+            lockUtils.isItemLockedInThisSession(event, selectors.getSessionDetails(getState()))
         ) {
             return Promise.resolve(event);
         }
@@ -487,9 +487,13 @@ const lock = (event, action = 'edit') => (
         return api('events_lock', event).save({}, {lock_action: action})
             .then(
                 (item) => {
-                // On lock, file object in the event is lost, so, replace it from original event
+                    // On lock, file object in the event is lost, so, replace it from original event
                     item.files = event.files;
-                    return item;
+
+                    // Restore the item type, as the lock endpoint does not provide this
+                    item._type = ITEM_TYPE.EVENT;
+
+                    return Promise.resolve(item);
                 }, (error) => {
                     const msg = get(error, 'data._message') || 'Could not lock the event.';
 
@@ -502,13 +506,18 @@ const lock = (event, action = 'edit') => (
 const unlock = (event) => (
     (dispatch, getState, {api, notify}) => (
         api('events_unlock', event).save({})
-            .then((item) => (item),
-                (error) => {
-                    const msg = get(error, 'data._message') || 'Could not unlock the event.';
+            .then((item) => {
+                // Restore the item type, as the lock endpoint does not provide this
+                item._type = ITEM_TYPE.EVENT;
 
-                    notify.error(msg);
-                    throw error;
-                })
+                return Promise.resolve(item);
+            },
+            (error) => {
+                const msg = get(error, 'data._message') || 'Could not unlock the event.';
+
+                notify.error(msg);
+                throw error;
+            })
     )
 );
 

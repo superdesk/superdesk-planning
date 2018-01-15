@@ -129,6 +129,12 @@
         min-height: 3rem;
         padding-left: 2.8rem;
     }
+
+    &--disabled {
+        div.sd-line-input__input {
+            padding-left: 0;
+        }
+    }
 }
 
 .sd-line-input__plus-btn--disabled {

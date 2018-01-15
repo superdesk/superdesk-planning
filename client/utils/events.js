@@ -7,7 +7,7 @@ import {
 } from '../constants';
 import {
     getItemWorkflowState,
-    isItemLockedInThisSession,
+    lockUtils,
     isItemSpiked,
     isItemPublic,
     getPublishedState,
@@ -51,7 +51,7 @@ const isEventLocked = (event, locks) =>
 
 const isEventLockRestricted = (event, session, locks) =>
     isEventLocked(event, locks) &&
-    !isItemLockedInThisSession(event, session);
+    !lockUtils.isItemLockedInThisSession(event, session);
 
 /**
  * Helper function to determine if a recurring event instances overlap

@@ -1,7 +1,21 @@
+@import '~superdesk-core/styles/sass/variables.scss';
+
 time.Datetime {
     padding-left: 0 !important;
 }
 
 .form__row--no-padding {
 	padding: 0;
+}
+
+.terms-list {
+    &--disabled {
+        li {
+            cursor: not-allowed !important;
+            &:hover {
+                color: $black;
+                background-color: rgba(0,0,0,0.05);
+            }
+        }
+    }
 }

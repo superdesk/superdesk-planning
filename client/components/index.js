@@ -43,7 +43,6 @@ export {default as Datetime} from './Datetime/index';
 export {default as Checkbox} from './Checkbox/index';
 export {default as MultiEventsSelectionActions} from './MultiEventsSelectionActions/index';
 export {UserAvatar} from './UserAvatar/index';
-export {UnlockItem} from './UnlockItem';
 export {ItemActionsMenu} from './ItemActionsMenu/index';
 export {EventHistoryContainer} from './EventHistoryContainer/index';
 export {EventHistoryList} from './EventHistoryList/index';

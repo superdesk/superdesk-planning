@@ -23,6 +23,7 @@ export const CoverageForm = ({
     contentTypes,
     genres,
     keywords,
+    readOnly,
 }) => {
     const onScheduleChanged = (f, v) => {
         if (f.endsWith('.date')) {
@@ -67,6 +68,7 @@ export const CoverageForm = ({
                     options={contentTypes}
                     labelField="name"
                     clearable={true}
+                    readOnly={readOnly}
                 />
             </Row>
 
@@ -80,6 +82,7 @@ export const CoverageForm = ({
                         options={genres}
                         labelField="name"
                         clearable={true}
+                        readOnly={readOnly}
                     />
                 </Row>
             )}
@@ -90,6 +93,7 @@ export const CoverageForm = ({
                     label="Slugline"
                     value={get(value, 'planning.slugline', '')}
                     onChange={onChange}
+                    readOnly={readOnly}
                 />
             </Row>
 
@@ -99,6 +103,7 @@ export const CoverageForm = ({
                     label="Ed Note"
                     value={get(value, 'planning.ednote', '')}
                     onChange={onChange}
+                    readOnly={readOnly}
                 />
             </Row>
 
@@ -108,6 +113,7 @@ export const CoverageForm = ({
                 value={get(value, 'planning.keyword', [])}
                 onChange={onChange}
                 options={keywords}
+                readOnly={readOnly}
             />
 
             <Row>
@@ -116,6 +122,7 @@ export const CoverageForm = ({
                     label="Internal Note"
                     value={get(value, 'planning.internal_note', '')}
                     onChange={onChange}
+                    readOnly={readOnly}
                 />
             </Row>
 
@@ -123,9 +130,10 @@ export const CoverageForm = ({
                 <SelectInput
                     field={`${field}.news_coverage_status`}
                     label="Coverage Status"
-                    value={get(value, 'news_coverage_status')}
+                    value={get(value, 'news_coverage_status', newsCoverageStatus[0])}
                     onChange={onChange}
                     options={newsCoverageStatus}
+                    readOnly={readOnly}
                 />
             </Row>
 
@@ -136,6 +144,7 @@ export const CoverageForm = ({
                 onChange={onScheduleChanged}
                 timeFormat={timeFormat}
                 dateFormat={dateFormat}
+                readOnly={readOnly}
             />
         </div>
     );
@@ -151,6 +160,7 @@ CoverageForm.propTypes = {
     contentTypes: PropTypes.array,
     genres: PropTypes.array,
     keywords: PropTypes.array,
+    readOnly: PropTypes.bool,
 };
 
 CoverageForm.defaultProps = {

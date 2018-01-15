@@ -101,7 +101,7 @@ export class SelectTagInput extends React.Component {
     }
 
     render() {
-        const {label, value, labelKey, allowCustom} = this.props;
+        const {label, value, labelKey, allowCustom, readOnly} = this.props;
 
         return (
             <div>
@@ -109,7 +109,7 @@ export class SelectTagInput extends React.Component {
                     <LineInput noMargin={true}>
                         <Label text={label} />
 
-                        <div className="sd-line-input__input">
+                        <div className="sd-line-input__input" readOnly={readOnly}>
                             {get(value, 'length', 0) > 0 && (
                                 <TermsList terms={value} onClick={this.removeTag} />
                             )}
@@ -117,12 +117,13 @@ export class SelectTagInput extends React.Component {
                     </LineInput>
                 </Row>
                 <Row>
-                    <LineInput isSelect={true} noLabel={get(value, 'length', 0) > 0}>
+                    <LineInput isSelect={true} readOnly={readOnly} noLabel={get(value, 'length', 0) > 0}>
                         <Input
                             value={this.state.inputText}
-                            onChange={this.filterOptions}
-                            onClick={this.togglePopup}
+                            onChange={!readOnly && this.filterOptions}
+                            onClick={!readOnly && this.togglePopup}
                             className="select-tag__input"
+                            readOnly={readOnly}
                         />
 
                         {this.state.popupOpened && (
@@ -153,6 +154,7 @@ SelectTagInput.propTypes = {
     valueKey: PropTypes.string,
     searchKey: PropTypes.string,
     allowCustom: PropTypes.bool,
+    readOnly: PropTypes.bool,
 };
 
 SelectTagInput.defaultProps = {
@@ -160,4 +162,5 @@ SelectTagInput.defaultProps = {
     valueKey: 'qcode',
     searchKey: 'name',
     allowCustom: true,
+    readOnly: false,
 };

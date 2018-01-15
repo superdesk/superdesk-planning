@@ -2,7 +2,7 @@ import {createSelector} from 'reselect';
 import {get, sortBy, includes, isEmpty} from 'lodash';
 import moment from 'moment';
 import {AGENDA, SPIKED_STATE} from '../constants';
-import {isItemLockedInThisSession, isItemSpiked} from '../utils';
+import {lockUtils, isItemSpiked} from '../utils';
 
 export const getIngestProviders = (state) => get(state, 'ingest.providers');
 export const getAgendas = (state) => get(state, 'agenda.agendas', []);
@@ -310,7 +310,7 @@ export const isEventDetailLockedInThisSession = createSelector(
     (showEventDetails, events, session) => {
         const event = events[showEventDetails];
 
-        return event && isItemLockedInThisSession(event, session);
+        return event && lockUtils.isItemLockedInThisSession(event, session);
     }
 );
 
