@@ -239,6 +239,10 @@ class Component extends React.Component {
             value: this.state.coverageProviderAssigned,
             onChange: this.onCoverageProviderChange.bind(this),
         };
+        const deskSelectFieldInput = {
+            value: this.state.deskAssigned,
+            onChange: this.onDeskChange.bind(this),
+        };
 
         return (
             <div>
@@ -247,13 +251,14 @@ class Component extends React.Component {
                         name="assigned_to.desk"
                         label="Desk"
                         component={fields.DeskSelectField}
+                        input={deskSelectFieldInput}
                         desks={this.state.filteredDesks}
                         readOnly={false}
                         required={true} />
                 </div>}
-                <div className="form__row sd-line-input sd-line-input--label-left">
-                    <label className="sd-line-input__label">Coverage Provider</label>
+                <div className="form__row">
                     <fields.CoverageProviderField
+                        label="Coverage Provider"
                         coverageProviders={this.props.coverageProviders}
                         input={coverageProviderSelectFieldInput}/>
                 </div>
