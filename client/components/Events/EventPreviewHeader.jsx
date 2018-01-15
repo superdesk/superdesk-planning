@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {Tools} from '../UI/SidePanel';
-import {ItemActionsMenu, LockContainer} from '../index';
+import {ItemActionsMenu, LockContainer, ItemIcon} from '../index';
 import {eventUtils, getLockedUser} from '../../utils';
 import {PRIVILEGES, EVENTS} from '../../constants';
 import * as selectors from '../../selectors';
@@ -41,7 +41,7 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
 
         return (
             <Tools useDefaultClassName={false} className="side-panel__top-tools">
-                {eventUtils.getEventIcon(item)}
+                <ItemIcon item={item} />
                 {lockRestricted &&
                     <LockContainer
                         lockedUser={lockedUser}

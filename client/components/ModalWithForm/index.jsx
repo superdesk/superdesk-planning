@@ -11,16 +11,20 @@ export class Component extends React.Component {
     constructor(props) {
         super(props);
 
+        // This is to manage submitting state for non-Redux forms
+        this.state = {submitting: false};
+
         this.submit = this.submit.bind(this);
         this.onHide = this.onHide.bind(this);
+        this.dom = {form: null};
     }
 
     getFormInstance() {
         // Assignments forms use redux-form which needs getWrappedInstance()
         // This should be edited when refactoring Assignments UI
 
-        return this.refs.form.getWrappedInstance() ||
-            this.refs.form;
+        return this.dom.form.getWrappedInstance() ||
+            this.dom.form;
     }
 
     submit() {
@@ -29,7 +33,7 @@ export class Component extends React.Component {
 
     onHide() {
         if ('onHide' in this.getFormInstance().props) {
-            this.refs.form.getWrappedInstance().props.onHide(this.props.initialValues);
+            this.dom.form.getWrappedInstance().props.onHide(this.props.initialValues);
         }
 
         this.props.onHide();
@@ -40,7 +44,7 @@ export class Component extends React.Component {
             initialValues: this.props.initialValues,
             enableSaveInModal: this.props.enableSaveInModal,
             disableSaveInModal: this.props.disableSaveInModal,
-            ref: 'form',
+            ref: (node) => this.dom.form = node,
         });
 
         return (
@@ -71,7 +75,8 @@ export class Component extends React.Component {
                         onClick={this.submit}
                         disabled={this.props.pristine ||
                         !this.props.canSave ||
-                        this.props.submitting}>
+                        this.props.submitting ||
+                        this.state.submitting}>
                         { this.props.saveButtonText || 'Save' }
                     </Button>
                 </Modal.Footer>
