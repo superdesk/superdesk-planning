@@ -2,7 +2,7 @@ import {showModal, hideModal} from '../index';
 import planningApi from './api';
 import {locks} from '../index';
 import main from '../main';
-import {checkPermission, getErrorMessage, isItemLockedInThisSession, planningUtils} from '../../utils';
+import {checkPermission, getErrorMessage, lockUtils, planningUtils} from '../../utils';
 import * as selectors from '../../selectors';
 import {PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, ASSIGNMENTS} from '../../constants';
 import * as actions from '../index';
@@ -180,7 +180,7 @@ const _lockAndOpenEditor = (item, checkWorkspace = true) => (
         }
 
         // If the user already has a lock, don't obtain a new lock, open it directly
-        if (item && isItemLockedInThisSession(item,
+        if (item && lockUtils.isItemLockedInThisSession(item,
             selectors.getSessionDetails(getState()))) {
             dispatch(self._openEditor(item));
             return Promise.resolve(item);
@@ -210,7 +210,7 @@ const closeEditor = (item) => (
 
         if (!item) return Promise.resolve();
 
-        if (isItemLockedInThisSession(item, selectors.getSessionDetails(getState()))) {
+        if (lockUtils.isItemLockedInThisSession(item, selectors.getSessionDetails(getState()))) {
             return dispatch(planningApi.unlock(item))
                 .then(() => Promise.resolve(item))
                 .catch(() => {

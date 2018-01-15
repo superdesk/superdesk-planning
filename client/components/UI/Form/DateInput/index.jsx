@@ -92,7 +92,7 @@ export class DateInput extends React.Component {
         return (
             <LineInput {...props} readOnly={readOnly}>
                 <Label text={label} />
-                <a className="icn-btn sd-line-input__icon-right" onClick={this.toggleOpenDatePicker}>
+                <a className="icn-btn sd-line-input__icon-right" onClick={!readOnly && this.toggleOpenDatePicker}>
                     <i className="icon-calendar" />
                 </a>
                 <Input

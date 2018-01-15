@@ -1,13 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import classNames from 'classnames';
 import {get} from 'lodash';
 
-const TermsList = ({terms, displayField, onClick}) => (
-    <div className="terms-list">
+const TermsList = ({terms, displayField, onClick, readOnly}) => (
+    <div className={classNames(
+        'terms-list',
+        {'terms-list--disabled': readOnly}
+    )}>
         <ul>
             {terms.map((term, index) => (
-                <li key={index} onClick={onClick ? onClick.bind(null, index) : null}>
-                    {onClick && <i className="icon-close-small"/>}
+                <li key={index} onClick={(!readOnly && onClick) ? onClick.bind(null, index) : null}>
+                    {(!readOnly && onClick) && <i className="icon-close-small"/>}
                     {get(term, displayField) || term}
                 </li>
             ))}
@@ -19,6 +23,9 @@ TermsList.propTypes = {
     terms: PropTypes.array.isRequired,
     displayField: PropTypes.string,
     onClick: PropTypes.func,
+    readOnly: PropTypes.bool,
 };
+
+TermsList.defaultProps = {readOnly: false};
 
 export default TermsList;

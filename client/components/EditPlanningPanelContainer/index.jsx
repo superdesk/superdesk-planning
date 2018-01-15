@@ -15,10 +15,10 @@ import {get} from 'lodash';
 import './style.scss';
 import {
     getCreator,
-    getLockedUser,
     planningUtils,
     isItemSpiked,
     isItemPublic,
+    lockUtils,
 } from '../../utils';
 import {
     GENERIC_ITEM_ACTIONS,
@@ -233,7 +233,7 @@ export class EditPlanningPanel extends React.Component {
         const author = getCreator(planning, 'original_creator', users);
         const versionCreator = getCreator(planning, 'version_creator', users);
 
-        const lockedUser = getLockedUser(planning, lockedItems, users);
+        const lockedUser = lockUtils.getLockedUser(planning, lockedItems, users);
         const planningSpiked = isItemSpiked(planning);
         const eventSpiked = isItemSpiked(event);
 

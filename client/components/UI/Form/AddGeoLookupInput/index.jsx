@@ -5,12 +5,12 @@ import * as actions from '../../../../actions';
 import Geolookup from 'react-geolookup';
 import DebounceInput from 'react-debounce-input';
 import * as Nominatim from 'nominatim-browser';
-import './style.scss';
-import classNames from 'classnames';
 import {formatAddress} from '../../../../utils';
 import {get, has} from 'lodash';
-import TextareaAutosize from 'react-textarea-autosize';
+import {TextAreaInput} from '../';
 import {AddGeoLookupResultsPopUp} from './AddGeoLookupResultsPopUp';
+
+import './style.scss';
 
 /**
 * Modal for adding/editing a location with nominatim search
@@ -155,11 +155,6 @@ export class GeoLookupInputComponent extends React.Component {
     }
 
     render() {
-        const textAreaClassNames = classNames(
-            'sd-line-input__input',
-            {disabledInput: this.props.readOnly}
-        );
-
         let locationName = get(this.props.initialValue, 'name') || this.state.unsavedInput;
         let formattedAddress = '';
         let displayText = locationName;
@@ -175,34 +170,28 @@ export class GeoLookupInputComponent extends React.Component {
             displayText = locationName + '\n' + formattedAddress;
         }
 
-        return (
-            <div className="addgeolookup sd-line-input__input" ref={(node) => this.dom.parent = node}>
-                {this.props.readOnly && (
-                    <span className="addgeolookup__input-wrapper">
-                        {locationName}
-                        <span style={{
-                            fontStyle: 'italic',
-                            fontSize: 'small',
-                        }}>
-                            <br />
-                            {formattedAddress}
-                        </span>
+        return this.props.readOnly ? (
+            <div className="addgeolookup">
+                <div className="sd-line-input__input sd-line-input__input--disabled">
+                    {locationName}
+                    <span className="sd-line-input__input--address">
+                        <br />
+                        {formattedAddress}
                     </span>
-                )}
-
-                {!this.props.readOnly && (
-                    <span className="addgeolookup__input-wrapper">
-                        <DebounceInput
-                            minLength={2}
-                            debounceTimeout={500}
-                            value={displayText}
-                            onChange={this.handleInputChange}
-                            placeholder="Location"
-                            element={TextareaAutosize}
-                            className={textAreaClassNames}
-                            disabled={this.props.readOnly ? 'disabled' : ''} />
-                    </span>
-                )}
+                </div>
+            </div>
+        ) : (
+            <div className="addgeolookup" ref={(node) => this.dom.parent = node}>
+                <DebounceInput
+                    minLength={2}
+                    debounceTimeout={500}
+                    value={displayText}
+                    onChange={this.handleInputChange}
+                    placeholder="Search for a location"
+                    element={TextAreaInput}
+                    nativeOnChange={true}
+                    noLabel={true}
+                />
 
                 {this.state.openSuggestsPopUp && (
                     <AddGeoLookupResultsPopUp
@@ -220,19 +209,17 @@ export class GeoLookupInputComponent extends React.Component {
                     <div className="error-block" style={{display: 'table-row'}}>No results found</div>
                 )}
 
-                {!this.props.readOnly && (
-                    <Geolookup
-                        disableAutoLookup={true}
-                        onSuggestSelect={this.onSuggestSelect}
-                        onSuggestsLookup={this.onSuggestsLookup}
-                        onGeocodeSuggest={this.onGeocodeSuggest}
-                        onSuggestResults={this.onSuggestResults}
-                        getSuggestLabel={this.getSuggestLabel}
-                        readOnly={this.props.readOnly}
-                        ignoreTab
-                        ref={(node) => this.dom.geolookup = node}
-                    />
-                )}
+                <Geolookup
+                    disableAutoLookup={true}
+                    onSuggestSelect={this.onSuggestSelect}
+                    onSuggestsLookup={this.onSuggestsLookup}
+                    onGeocodeSuggest={this.onGeocodeSuggest}
+                    onSuggestResults={this.onSuggestResults}
+                    getSuggestLabel={this.getSuggestLabel}
+                    readOnly={false}
+                    ignoreTab
+                    ref={(node) => this.dom.geolookup = node}
+                />
             </div>
         );
     }

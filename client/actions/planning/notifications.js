@@ -1,6 +1,6 @@
 import {get} from 'lodash';
 import planning from './index';
-import {getErrorMessage, getLock} from '../../utils';
+import {getErrorMessage, lockUtils} from '../../utils';
 import * as selectors from '../../selectors';
 import {showModal, hideModal, events} from '../index';
 import {PLANNING, WORKFLOW_STATE, MODALS} from '../../constants';
@@ -97,7 +97,7 @@ const onPlanningUnlocked = (_e, data) => (
         if (get(data, 'item')) {
             let planningItem = selectors.getStoredPlannings(getState())[data.item];
             const locks = selectors.locks.getLockedItems(getState());
-            const itemLock = getLock(planningItem, locks);
+            const itemLock = lockUtils.getLock(planningItem, locks);
             const sessionId = selectors.getSessionDetails(getState()).sessionId;
 
             // If this is the planning item currently being edited, show popup notification

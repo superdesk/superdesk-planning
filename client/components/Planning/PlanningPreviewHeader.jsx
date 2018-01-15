@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {Tools} from '../UI/SidePanel';
 import {ItemActionsMenu, LockContainer, ItemIcon} from '../index';
-import {planningUtils, getLockedUser} from '../../utils';
+import {planningUtils, lockUtils} from '../../utils';
 import {PLANNING, PRIVILEGES, WORKSPACE, EVENTS} from '../../constants';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
@@ -23,7 +23,7 @@ export class PlanningPreviewHeaderComponent extends React.Component {
             event,
         } = this.props;
         const inPlanning = currentWorkspace === WORKSPACE.PLANNING;
-        const lockedUser = getLockedUser(item, lockedItems, users);
+        const lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK];
 
         const itemActionsCallBack = {

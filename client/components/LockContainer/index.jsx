@@ -1,8 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
 import {get} from 'lodash';
-import {UserAvatar, UnlockItem} from '../';
+
+import {UserAvatar} from '../';
+import {LockContainerPopup} from './LockContainerPopup';
+
 import './style.scss';
 
 export class LockContainer extends React.Component {
@@ -35,30 +37,27 @@ export class LockContainer extends React.Component {
         }
 
         return (
-            <div className={classNames(
-                'LockContainer',
-                'dropdown',
-                'dropdown--dropright',
-                {open: this.state.openUnlockPopup}
-            )} >
-                <div className="lock-avatar">
+            <div className="lock-container">
+                <div className="lock-container__avatar lock-avatar">
                     <button
                         type="button"
-                        onClick={this.toggleOpenUnlockPopup} >
+                        onClick={this.toggleOpenUnlockPopup}
+                    >
                         <UserAvatar
                             user={user}
                             withLoggedInfo={withLoggedInfo} />
                     </button>
-                    {this.state.openUnlockPopup &&
-                        <UnlockItem
-                            displayText={displayText}
-                            user={user}
-                            showUnlock={showUnlock}
-                            onCancel={this.toggleOpenUnlockPopup}
-                            onUnlock={onUnlock}
-                        />
-                    }
                 </div>
+                {this.state.openUnlockPopup &&
+                    <LockContainerPopup
+                        displayText={displayText}
+                        user={user}
+                        showUnlock={showUnlock}
+                        onCancel={this.toggleOpenUnlockPopup}
+                        onUnlock={onUnlock}
+                        target="lock-container__avatar"
+                    />
+                }
             </div>
         );
     }

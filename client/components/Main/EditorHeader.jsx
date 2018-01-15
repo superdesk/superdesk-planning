@@ -1,12 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import {ITEM_TYPE} from '../../constants';
-import {gettext, getItemType, eventUtils, planningUtils, isItemPublic} from '../../utils';
+import {ITEM_TYPE, PRIVILEGES} from '../../constants';
+import {gettext, getItemType, eventUtils, planningUtils, isItemPublic, lockUtils} from '../../utils';
 
 import {Button as NavButton} from '../UI/Nav';
 import {Header} from '../UI/SidePanel';
 import {StretchBar} from '../UI/SubNav';
+
+import {LockContainer} from '../';
 
 export const EditorHeader = ({
     item,
@@ -22,11 +24,15 @@ export const EditorHeader = ({
     privileges,
     lockedItems,
     openCancelModal,
+    users,
+    onUnlock,
+    onLock,
 }) => {
     // Do not show the tabs if we're creating a new item
     const existingItem = !!item;
     const itemType = getItemType(item);
     const isPublic = isItemPublic(item);
+    const isLocked = lockUtils.getLock(item, lockedItems);
 
     let canPublish = false;
     let canUnpublish = false;
@@ -36,14 +42,18 @@ export const EditorHeader = ({
     if (itemType === ITEM_TYPE.EVENT) {
         canPublish = eventUtils.canPublishEvent(item, session, privileges, lockedItems);
         canUnpublish = eventUtils.canUnpublishEvent(item, session, privileges, lockedItems);
-        canUpdate = eventUtils.canUpdateEvent(item, session, privileges, lockedItems);
-        canEdit = eventUtils.canEditEvent(item, session, privileges, lockedItems);
+        canUpdate = isLocked && eventUtils.canUpdateEvent(item, session, privileges, lockedItems);
+        canEdit = isLocked && eventUtils.canEditEvent(item, session, privileges, lockedItems);
     } else if (itemType === ITEM_TYPE.PLANNING) {
         canPublish = planningUtils.canPublishPlanning(item, null, session, privileges, lockedItems);
         canUnpublish = planningUtils.canUnpublishPlanning(item, null, session, privileges, lockedItems);
-        canUpdate = planningUtils.canUpdatePlanning(item, null, session, privileges, lockedItems);
-        canEdit = planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
+        canUpdate = isLocked && planningUtils.canUpdatePlanning(item, null, session, privileges, lockedItems);
+        canEdit = isLocked && planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
     }
+
+    const lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
+    const isLockRestricted = lockUtils.isLockRestricted(item, session, lockedItems);
+    const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK];
 
     const onCancel = () => (
         !dirty ? cancel() : openCancelModal({
@@ -58,9 +68,17 @@ export const EditorHeader = ({
 
     return (
         <Header className="subnav">
-            <StretchBar>
-                <figure className="avatar" style={{marginRight: 10}}>{'sd'}</figure>
-            </StretchBar>
+            {isLockRestricted && (
+                <StretchBar>
+                    <LockContainer
+                        lockedUser={lockedUser}
+                        users={users}
+                        showUnlock={unlockPrivilege}
+                        withLoggedInfo={true}
+                        onUnlock={onUnlock.bind(null, item)}
+                    />
+                </StretchBar>
+            )}
 
             <StretchBar right={true}>
                 <button
@@ -120,10 +138,24 @@ export const EditorHeader = ({
                         {gettext('Create')}
                     </button>
                 )}
+
+                {existingItem && !isLocked && (
+                    <button
+                        className="btn btn--primary"
+                        onClick={onLock.bind(null, item)}
+                    >
+                        {gettext('Edit')}
+                    </button>
+                )}
             </StretchBar>
 
-            <NavButton onClick={minimize} icon="big-icon--minimize" />
-            <NavButton icon="icon-dots-vertical" />
+            {!isLockRestricted && (
+                <NavButton onClick={minimize} icon="big-icon--minimize" />
+            )}
+
+            {!isLockRestricted && (
+                <NavButton icon="icon-dots-vertical" />
+            )}
         </Header>
     );
 };
@@ -142,4 +174,7 @@ EditorHeader.propTypes = {
     privileges: PropTypes.object,
     lockedItems: PropTypes.object,
     openCancelModal: PropTypes.func.isRequired,
+    users: PropTypes.array,
+    onUnlock: PropTypes.func,
+    onLock: PropTypes.func,
 };

@@ -4,42 +4,50 @@ import planningUi from './planning/ui';
 import eventsUi from './events/ui';
 import {locks, showModal} from './';
 import {selectAgenda, fetchSelectedAgendaPlannings} from './agenda';
-import {getErrorMessage, getItemType} from '../utils';
+import {getErrorMessage, getItemType, lockUtils} from '../utils';
 import {get} from 'lodash';
 import {MODALS} from '../constants';
 
 import * as selectors from '../selectors';
 
 const lockAndEdit = (item) => (
-    (dispatch, getState, {notify}) => (
-        !get(item, '_id') ?
-            dispatch(self.openEditor(item)) && Promise.resolve(item) :
-            dispatch(locks.lock(item))
-                .then((lockedItem) => {
-                    // Restore the item type, as the lock endpoint does not provide this
-                    lockedItem._type = item._type;
+    (dispatch, getState, {notify}) => {
+        const state = getState();
+        const lockedItems = selectors.locks.getLockedItems(state);
+        let promise;
 
-                    // If the item being edited is currently opened in the Preview panel
-                    // then close the preview panel
-                    if (get(previewItem(getState()), '_id') === lockedItem._id) {
-                        dispatch(self.closePreview());
-                    }
+        // If it is an existing item and the item is not locked
+        // then lock the item, otherwise return the existing item
+        if (get(item, '_id') && !lockUtils.getLock(item, lockedItems)) {
+            promise = dispatch(locks.lock(item));
+        } else {
+            promise = Promise.resolve(item);
+        }
 
-                    dispatch(self.openEditor(lockedItem));
-                    return Promise.resolve(lockedItem);
-                }, (error) => {
-                    notify.error(
-                        getErrorMessage(error, 'Failed to lock the item')
-                    );
+        return promise.then((lockedItem) => {
+            // If the item being edited is currently opened in the Preview panel
+            // then close the preview panel
+            if (get(previewItem(getState()), '_id') === lockedItem._id) {
+                dispatch(self.closePreview());
+            }
 
-                    return Promise.reject(error);
-                })
-    )
+            dispatch(self.openEditor(lockedItem));
+            return Promise.resolve(lockedItem);
+        }, (error) => {
+            notify.error(
+                getErrorMessage(error, 'Failed to lock the item')
+            );
+
+            return Promise.reject(error);
+        });
+    }
 );
 
 const unlockAndCancel = (item) => (
-    (dispatch) => {
-        if (item) {
+    (dispatch, getState) => {
+        // If the item exists and is locked in this session
+        // then unlock the item
+        if (item && lockUtils.isItemLockedInThisSession(item, selectors.getSessionDetails(getState()))) {
             dispatch(locks.unlock(item));
         }
         dispatch(self.closeEditor());

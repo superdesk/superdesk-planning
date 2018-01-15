@@ -4,7 +4,7 @@ import classNames from 'classnames';
 
 import Label from './Label';
 
-const Header = ({text, onClose, children, className, noBorder, noPadding}) => (
+const Header = ({text, onClose, children, className, noBorder, noPadding, centerText}) => (
     <div className={classNames(
         'popup__menu-header',
         {
@@ -14,7 +14,7 @@ const Header = ({text, onClose, children, className, noBorder, noPadding}) => (
         className
     )}>
         {text && (
-            <Label text={text}>
+            <Label text={text} centerText={centerText}>
                 {onClose && (
                     <button className="popup__menu-close" onClick={onClose}>
                         <i className="icon-close-small" />
@@ -33,6 +33,7 @@ Header.propTypes = {
     className: PropTypes.string,
     noBorder: PropTypes.bool,
     noPadding: PropTypes.bool,
+    centerText: PropTypes.bool,
 };
 
 export default Header;

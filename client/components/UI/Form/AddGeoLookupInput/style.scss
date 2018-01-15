@@ -7,6 +7,7 @@
 
 .addgeolookup {
     width: 100%;
+    padding-top: 3px;
 
     &__popup {
         max-height: 200px;
@@ -16,7 +17,6 @@
         font-size: 10px;
         font-weight: 400;
         padding: 1px 3px;
-
     }
 
     &__suggests {
@@ -64,5 +64,10 @@
     }
     &__button {
         margin-left: 25px !important;
+    }
+
+    .sd-line-input__input--address {
+        font-style: italic;
+        font-size: small;
     }
 }
