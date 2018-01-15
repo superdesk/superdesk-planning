@@ -46,6 +46,9 @@ export class SpikeEventComponent extends React.Component {
         // Modal closes after submit. So, reseting submitting is not required
         this.setState({submitting: true});
 
+        // To disable save in the modal
+        this.props.disableSaveInModal();
+
         this.props.onSubmit({
             ...this.props.initialValues,
             update_method: this.state.eventUpdateMethod,
@@ -116,6 +119,7 @@ export class SpikeEventComponent extends React.Component {
 
 SpikeEventComponent.propTypes = {
     initialValues: PropTypes.object.isRequired,
+    disableSaveInModal: PropTypes.func,
     dateFormat: PropTypes.string,
     timeFormat: PropTypes.string,
     submitting: PropTypes.bool,

@@ -55,6 +55,8 @@ export class ListPanel extends React.PureComponent {
                             this.props[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName],
                         [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
                             this.props[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName],
+                        [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
+                            this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
                         [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
                             this.props[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
                         [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
@@ -94,6 +96,7 @@ ListPanel.propTypes = {
     [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

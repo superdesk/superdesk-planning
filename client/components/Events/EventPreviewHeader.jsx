@@ -31,21 +31,17 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
             [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: this.props[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName],
             [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName],
+            [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
         };
         const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack);
         const lockedUser = getLockedUser(item, lockedItems, users);
         const lockRestricted = eventUtils.isEventLockRestricted(item, session, lockedItems);
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK];
-        const isRecurring = eventUtils.isEventRecurring(item);
 
         return (
             <Tools useDefaultClassName={false} className="side-panel__top-tools">
-                {!isRecurring && <i className="icon-calendar-list" />}
-                {isRecurring && (
-                    <span className="icn-mix sd-list-item__item-type">
-                        <i className="icon-repeat icn-mix__sub-icn"/>
-                        <i className="icon-calendar-list"/>
-                    </span>)}
+                {eventUtils.getEventIcon(item)}
                 {lockRestricted &&
                     <LockContainer
                         lockedUser={lockedUser}
@@ -79,6 +75,7 @@ EventPreviewHeaderComponent.propTypes = {
     [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: PropTypes.func,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -100,6 +97,8 @@ const mapDispatchToProps = (dispatch) => ({
     [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: (event) => dispatch(actions.events.ui.updateTime(event)),
     [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
         (event) => dispatch(actions.events.ui.openRescheduleModal(event)),
+    [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
+        (event) => dispatch(actions.events.ui.convertToRecurringEvent(event)),
 });
 
 export const EventPreviewHeader = connect(mapStateToProps, mapDispatchToProps)(EventPreviewHeaderComponent);

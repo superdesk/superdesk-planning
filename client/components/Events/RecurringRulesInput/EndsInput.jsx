@@ -66,7 +66,7 @@ export class EndsInput extends React.Component {
                     <RowItem noGrow={true}>
                         <LineInput
                             noLabel={true}
-                            invalid={get(error, 'count', false)}
+                            invalid={!!get(error, 'count', false)}
                             message={get(error, 'count', '')} >
                             <Input
                                 field="count"
@@ -104,7 +104,7 @@ export class EndsInput extends React.Component {
                             onChange={this.onChange}
                             dateFormat={dateFormat}
                             readOnly={readOnly}
-                            invalid={get(error, 'until', false)}
+                            invalid={!!get(error, 'until', false)}
                             message={get(error, 'until', '')}
                         />
                     </RowItem>

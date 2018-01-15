@@ -76,7 +76,6 @@ export class ItemActionConfirmationModal extends React.Component {
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: {
                 title: get(EVENTS, 'ITEM_ACTIONS.CONVERT_TO_RECURRING.label'),
                 form: ConvertToRecurringEventForm,
-                formNameForPristineCheck: get(FORM_NAMES, 'ConvertEventToRecurringForm'),
             },
             [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: {
                 title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_PLANNING.label'),
