@@ -30,6 +30,9 @@ export class SpikeEventComponent extends React.Component {
 
             this.setState({relatedEvents: event._events});
         }
+
+        // Enable save so that the user can action on this event.
+        this.props.enableSaveInModal();
     }
 
     onEventUpdateMethodChange(field, option) {
@@ -45,9 +48,6 @@ export class SpikeEventComponent extends React.Component {
     submit() {
         // Modal closes after submit. So, reseting submitting is not required
         this.setState({submitting: true});
-
-        // To disable save in the modal
-        this.props.disableSaveInModal();
 
         this.props.onSubmit({
             ...this.props.initialValues,
@@ -70,14 +70,16 @@ export class SpikeEventComponent extends React.Component {
                     <Row
                         label={gettext('Slugline')}
                         value={initialValues.slugline || ''}
-                        className="slugline form__row--no-padding"
+                        className="slugline"
+                        noPadding={true}
                     />
                 )}
 
                 <Row
                     label={gettext('Name')}
                     value={initialValues.name || ''}
-                    className="strong form__row--no-padding"
+                    className="strong"
+                    noPadding={true}
                 />
 
                 <EventScheduleSummary
@@ -90,7 +92,7 @@ export class SpikeEventComponent extends React.Component {
                     <Row
                         label={gettext('No. of Events')}
                         value={numEvents}
-                        className="form__row--no-padding"
+                        noPadding={true}
                     />
                 )}
 
@@ -119,11 +121,11 @@ export class SpikeEventComponent extends React.Component {
 
 SpikeEventComponent.propTypes = {
     initialValues: PropTypes.object.isRequired,
-    disableSaveInModal: PropTypes.func,
     dateFormat: PropTypes.string,
     timeFormat: PropTypes.string,
     submitting: PropTypes.bool,
     onSubmit: PropTypes.func,
+    enableSaveInModal: PropTypes.func,
 };
 
 

@@ -505,7 +505,7 @@ const saveWithConfirmation = (event, save = true, publish = false) => (
     (dispatch, getState, {notify}) => {
         const events = selectors.getEvents(getState());
         const originalEvent = get(events, event._id, {});
-        const maxRecurringEvents = selectors.getMaxRecurrentEvents(getState());
+        const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
 
         // If this is not from a recurring series, then simply publish this event
         if (!get(originalEvent, 'recurrence_id')) {

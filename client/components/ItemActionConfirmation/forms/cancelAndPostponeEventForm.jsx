@@ -34,14 +34,14 @@ export class CancelAndPostponeEventComponent extends React.Component {
             relatedEvents: event._events,
             relatedPlannings: event._relatedPlannings,
         });
+
+        // Enable save so that the user can action on this event.
+        this.props.enableSaveInModal();
     }
 
     submit() {
         // Modal closes after submit. So, reseting submitting is not required
         this.setState({submitting: true});
-
-        // To disable save in the modal
-        this.props.disableSaveInModal();
 
         this.props.onSubmit({
             ...this.props.initialValues,
@@ -147,7 +147,7 @@ CancelAndPostponeEventComponent.propTypes = {
     relatedPlannings: PropTypes.array,
     timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,
-    disableSaveInModal: PropTypes.func,
+    enableSaveInModal: PropTypes.func,
 
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types

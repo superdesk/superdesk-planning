@@ -1,5 +1,3 @@
-import React from 'react';
-import classNames from 'classnames';
 import {
     PRIVILEGES,
     WORKFLOW_STATE,
@@ -423,29 +421,6 @@ const validateEventDates = (startDate, endDate) => {
     return false;
 };
 
-const getEventIcon = (event, big = false) => {
-    const eventIcon = (<i className="icon-calendar-list" />);
-    const repeatIcon = (<i className={
-        classNames('icon-repeat icn-mix__sub-icn',
-            {'double-size-icn': big})} />);
-
-    if (!self.isEventRecurring(event)) {
-        return big ? null : eventIcon;
-    } else {
-        return big ?
-            (<span className="icn-mix sd-list-item__item-type">
-                {repeatIcon}
-                <span className="double-size-icn double-size-icn--light">
-                    {eventIcon}
-                </span>
-            </span>) :
-            (<span className="icn-mix sd-list-item__item-type">
-                {repeatIcon}
-                {eventIcon}
-            </span>);
-    }
-};
-
 // eslint-disable-next-line consistent-this
 const self = {
     isEventAllDay,
@@ -474,7 +449,6 @@ const self = {
     getDateStringForEvent,
     getEventActions,
     validateEventDates,
-    getEventIcon,
 };
 
 export default self;

@@ -20,6 +20,11 @@ export class PlanningCovergeCancelComponent extends React.Component {
         this.onReasonChange = this.onReasonChange.bind(this);
     }
 
+    componentWillMount() {
+        // Enable save so that the user can action on this event.
+        this.props.enableSaveInModal();
+    }
+
     onReasonChange(field, reason) {
         this.setState({reason});
     }
@@ -62,6 +67,7 @@ PlanningCovergeCancelComponent.propTypes = {
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
     onHide: PropTypes.func,
+    enableSaveInModal: PropTypes.func,
 };
 
 const mapDispatchToProps = (dispatch) => ({

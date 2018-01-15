@@ -5,7 +5,7 @@ import {get} from 'lodash';
 import {getCreator} from '../../../utils';
 
 import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
-import {AuditInformation, StateLabel} from '../..';
+import {AuditInformation, StateLabel, ItemIcon} from '../..';
 
 import './style.scss';
 
@@ -14,9 +14,7 @@ export const PlanningEditorHeader = ({item, users}) => {
         return (
             <ContentBlock padSmall={true} flex={true}>
                 <ContentBlockInner>
-                    <span className="double-size-icn double-size-icn--light">
-                        <i className="icon-calendar" />
-                    </span>
+                    <ItemIcon item={item} big={true} />
                 </ContentBlockInner>
             </ContentBlock>
         );
@@ -36,9 +34,7 @@ export const PlanningEditorHeader = ({item, users}) => {
             flex={true}
         >
             <ContentBlockInner>
-                <span className="double-size-icn double-size-icn--light">
-                    <i className="icon-calendar" />
-                </span>
+                <ItemIcon item={item} big={true} />
             </ContentBlockInner>
             <ContentBlockInner grow={true}>
                 <AuditInformation

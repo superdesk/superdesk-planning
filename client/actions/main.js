@@ -51,7 +51,7 @@ const save = (item, save = true, publish = false) => (
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            promise = dispatch(eventsUi.saveAndPublish(item, save, publish));
+            promise = dispatch(eventsUi.saveWithConfirmation(item, save, publish));
             break;
         case ITEM_TYPE.PLANNING:
             promise = dispatch(planningUi.saveAndPublishPlanning(item, save, publish));

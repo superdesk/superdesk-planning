@@ -71,6 +71,7 @@ export {HtmlPreview} from './HtmlPreview';
 export {ItemRendition} from './ItemRendition';
 export {PriorityLabel} from './PriorityLabel';
 export {UrgencyLabel} from './UrgencyLabel';
+export {ItemIcon} from './ItemIcon';
 
 import * as UI from './UI/index';
 export {UI};

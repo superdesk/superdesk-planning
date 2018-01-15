@@ -1,9 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-
-import {getCreator, eventUtils} from '../../../utils';
-
+import {getCreator} from '../../../utils';
+import {ItemIcon} from '../../';
 import {ContentBlock, ContentBlockInner} from '../../UI/SidePanel';
 import {AuditInformation, StateLabel} from '../..';
 
@@ -36,7 +35,7 @@ export const EventEditorHeader = ({item, users}) => {
             flex={true}
         >
             <ContentBlockInner>
-                {eventUtils.getEventIcon(item, true)}
+                <ItemIcon item={item} big={true} />
             </ContentBlockInner>
             <ContentBlockInner grow={true}>
                 <AuditInformation
