@@ -11,7 +11,7 @@ import {
     Editor,
     ListPanel
 } from './components/Main';
-import {ModalsContainer} from './components';
+import {ModalsContainer, WorkqueueContainer} from './components';
 
 import './planning.scss';
 
@@ -166,7 +166,6 @@ class PlanningApp extends React.Component {
                         item={this.props.editItem}
                         itemType={this.props.editItemType}
                         cancel={this.props.cancel.bind(null, this.props.editItem)}
-                        minimize={this.props.cancel.bind(null, this.props.editItem)}
                         onSave={this.onSave}
                         onUnpublish={this.props.onUnpublish}
                         session={this.props.session}
@@ -176,6 +175,7 @@ class PlanningApp extends React.Component {
                     />
                 </div>
 
+                <WorkqueueContainer />
                 <ModalsContainer />
             </section>
         );
@@ -227,7 +227,7 @@ const mapStateToProps = (state) => ({
     editItem: selectors.forms.currentItem(state),
     editItemType: selectors.forms.currentItemType(state),
     previewItem: selectors.main.previewItem(state),
-    lockedItems: selectors.getLockedItems(state),
+    lockedItems: selectors.locks.getLockedItems(state),
     dateFormat: selectors.config.getDateFormat(state),
     timeFormat: selectors.config.getTimeFormat(state),
     activeFilter: selectors.main.activeFilter(state),

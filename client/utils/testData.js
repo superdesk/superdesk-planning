@@ -779,6 +779,8 @@ export const initialState = {
     forms: {
         profiles: formsProfile,
         autosave: {},
+        itemId: null,
+        itemType: null,
     },
     workspace: workspace,
     vocabularies: vocabularies,

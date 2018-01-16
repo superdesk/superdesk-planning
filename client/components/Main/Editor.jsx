@@ -1,9 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
 import {get, set, isEqual, cloneDeep} from 'lodash';
 import {gettext} from '../../utils';
 
 import {ITEM_TYPE} from '../../constants';
+import * as actions from '../../actions';
 
 import {
     HistoryTab,
@@ -15,7 +17,7 @@ import {SidePanel, Content} from '../UI/SidePanel';
 
 import {EditorHeader} from './EditorHeader';
 
-export class Editor extends React.Component {
+export class EditorComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -159,7 +161,7 @@ export class Editor extends React.Component {
     }
 }
 
-Editor.propTypes = {
+EditorComponent.propTypes = {
     item: PropTypes.object,
     itemType: PropTypes.string,
     cancel: PropTypes.func.isRequired,
@@ -171,3 +173,9 @@ Editor.propTypes = {
     lockedItems: PropTypes.object,
     openCancelModal: PropTypes.func.isRequired,
 };
+
+const mapDispatchToProps = (dispatch) => ({
+    minimize: () => dispatch(actions.main.cancel()),
+});
+
+export const Editor = connect(null, mapDispatchToProps)(EditorComponent);

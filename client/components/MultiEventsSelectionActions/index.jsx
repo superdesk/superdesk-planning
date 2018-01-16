@@ -89,7 +89,7 @@ const mapStateToProps = (state) => ({
     selectedEvents: getSelectedEventsObjects(state),
     privileges: selectors.getPrivileges(state),
     session: selectors.getSessionDetails(state),
-    lockedItems: selectors.getLockedItems(state),
+    lockedItems: selectors.locks.getLockedItems(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

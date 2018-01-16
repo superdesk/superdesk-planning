@@ -4,13 +4,38 @@ import classNames from 'classnames';
 import {ITEM_TYPE} from '../constants';
 import {getItemType, eventUtils, planningUtils} from '../utils';
 
-export const ItemIcon = ({item, big}) => {
+export const ItemIcon = ({item, big, white, blue, showRepeating}) => {
     const getItemIcon = () => {
-        const eventIcon = (<i className="icon-calendar-list" />);
-        const repeatIcon = (<i className={
-            classNames('icon-repeat icn-mix__sub-icn',
-                {'double-size-icn': big})} />);
-        const planningIcon = (<i className="icon-calendar"/>);
+        const eventIcon = (
+            <i className={classNames(
+                'icon-calendar-list',
+                {
+                    'icon--white': white,
+                    'icon--blue': blue
+                })}
+            />
+        );
+
+        const repeatIcon = (
+            <i className={classNames(
+                'icon-repeat icn-mix__sub-icn',
+                {
+                    'double-size-icn': big,
+                    'icon--white': white,
+                    'icon--blue': blue
+                })}
+            />
+        );
+
+        const planningIcon = (
+            <i className={classNames(
+                'icon-calendar',
+                {
+                    'icon--white': white,
+                    'icon--blue': blue
+                }
+            )}/>
+        );
 
         const itemType = getItemType(item);
 
@@ -26,7 +51,7 @@ export const ItemIcon = ({item, big}) => {
             return null;
         }
 
-        if (!multiValidator(item)) {
+        if (!showRepeating || !multiValidator(item)) {
             return big ?
                 (<span className="double-size-icn double-size-icn--light">
                     {icon}
@@ -52,4 +77,13 @@ export const ItemIcon = ({item, big}) => {
 ItemIcon.propTypes = {
     item: PropTypes.object.isRequired,
     big: PropTypes.bool,
+    white: PropTypes.bool,
+    blue: PropTypes.bool,
+    showRepeating: PropTypes.bool,
+};
+
+ItemIcon.defaultProps = {
+    white: false,
+    blue: false,
+    showRepeating: true,
 };

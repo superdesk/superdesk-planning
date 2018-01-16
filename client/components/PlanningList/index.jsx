@@ -197,7 +197,7 @@ const mapStateToProps = (state) => ({
     session: selectors.getSessionDetails(state),
     users: selectors.getUsers(state),
     desks: state.desks && state.desks.length > 0 ? state.desks : [],
-    lockedItems: selectors.getLockedItems(state),
+    lockedItems: selectors.locks.getLockedItems(state),
     currentWorkspace: selectors.getCurrentWorkspace(state),
     editPlanningViewOpen: selectors.planningEditorOpened(state),
     planningEditorReadOnly: selectors.planningEditorReadOnly(state),

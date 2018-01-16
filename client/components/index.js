@@ -59,7 +59,6 @@ export {AuditInformation} from './AuditInformation/index';
 export {CoverageListItem} from './CoverageListItem/index';
 export {CoverageContainer} from './CoverageContainer/index';
 export {WorkqueueContainer} from './WorkqueueContainer/index';
-export {WorkqueueList} from './WorkqueueList/index';
 export {AddToPlanningModal} from './AddToPlanningModal';
 export {FulFilAssignmentModal} from './FulFilAssignmentModal';
 export {AssignmentsApp} from './AssignmentsApp';
