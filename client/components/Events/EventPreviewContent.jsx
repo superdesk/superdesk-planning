@@ -150,7 +150,7 @@ const mapStateToProps = (state, ownProps) => ({
     session: selectors.getSessionDetails(state),
     privileges: selectors.getPrivileges(state),
     users: selectors.getUsers(state),
-    lockedItems: selectors.getLockedItems(state),
+    lockedItems: selectors.locks.getLockedItems(state),
     timeFormat: selectors.config.getTimeFormat(state),
     dateFormat: selectors.config.getDateFormat(state),
     formProfile: selectors.forms.eventProfile(state),

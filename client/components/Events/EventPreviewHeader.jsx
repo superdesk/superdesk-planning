@@ -83,7 +83,7 @@ const mapStateToProps = (state, ownProps) => ({
     session: selectors.getSessionDetails(state),
     privileges: selectors.getPrivileges(state),
     users: selectors.getUsers(state),
-    lockedItems: selectors.getLockedItems(state),
+    lockedItems: selectors.locks.getLockedItems(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

@@ -434,7 +434,7 @@ const mapStateToProps = (state) => ({
     notForPublication: selector(state, 'flags.marked_for_not_publication'),
     privileges: selectors.getPrivileges(state),
     session: selectors.getSessionDetails(state),
-    lockedItems: selectors.getLockedItems(state),
+    lockedItems: selectors.locks.getLockedItems(state),
     pristine: isPristine(FORM_NAMES.PlanningForm)(state),
     valid: isValid(FORM_NAMES.PlanningForm)(state),
     submitting: isSubmitting(FORM_NAMES.PlanningForm)(state),

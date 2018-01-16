@@ -258,7 +258,7 @@ const mapStateToProps = (state) => ({
     isAdvancedSearchSpecified: isObject(selectors.getPlanningSearch(state)),
     session: selectors.getSessionDetails(state),
     selected: selectors.getSelectedPlanningItems(state),
-    lockedItems: selectors.getLockedItems(state),
+    lockedItems: selectors.locks.getLockedItems(state),
     currentWorkspace: selectors.getCurrentWorkspace(state),
 });
 

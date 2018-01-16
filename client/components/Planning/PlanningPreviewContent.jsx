@@ -153,7 +153,7 @@ const mapStateToProps = (state, ownProps) => ({
     privileges: selectors.getPrivileges(state),
     users: selectors.getUsers(state),
     desks: selectors.getDesks(state),
-    lockedItems: selectors.getLockedItems(state),
+    lockedItems: selectors.locks.getLockedItems(state),
     agendas: selectors.general.agendas(state),
     dateFormat: selectors.config.getDateFormat(state),
     timeFormat: selectors.config.getTimeFormat(state),

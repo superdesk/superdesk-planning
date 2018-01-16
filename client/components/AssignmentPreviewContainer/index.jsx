@@ -327,7 +327,7 @@ const mapStateToProps = (state) => ({
     privileges: selectors.getPrivileges(state),
     keywords: get(state, 'vocabularies.keywords', []),
     formProfile: selectors.forms.profiles(state),
-    lockedItems: selectors.getLockedItems(state),
+    lockedItems: selectors.locks.getLockedItems(state),
     agendas: selectors.getAgendas(state),
 });
 

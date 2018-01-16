@@ -4,6 +4,7 @@ import * as forms from './forms';
 import * as events from './events';
 import * as planning from './planning';
 import * as main from './main';
+import * as locks from './locks';
 
 export * from './planning_old';
 export * from './assignments';
@@ -15,4 +16,5 @@ export {
     events,
     main,
     general,
+    locks,
 };

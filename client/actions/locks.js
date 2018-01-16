@@ -55,7 +55,7 @@ const loadAssignmentLocks = () => (
  */
 const unlock = (item) => (
     (dispatch, getState, {notify}) => {
-        const locks = selectors.getLockedItems(getState());
+        const locks = selectors.locks.getLockedItems(getState());
         const currentLock = getLock(item, locks);
 
         if (currentLock === null) {

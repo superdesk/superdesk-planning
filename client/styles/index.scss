@@ -77,14 +77,6 @@
           animation-delay: -1.0s;
         }
     }
-
-    .opened-articles ul > li {
-        padding: 0 25px 0 5px;
-        .item-label {
-            margin-left: 3px;
-        }
-    }
-
 }
 
 // a vertical align on this class ensure an aligned icon with text.
@@ -97,5 +89,12 @@
 
     p {
         margin: 0;
+    }
+}
+
+.opened-articles ul > li {
+    padding: 0 25px 0 5px;
+    .item-label {
+        margin-left: 3px;
     }
 }

@@ -1,58 +1,56 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {WorkqueueList} from '../../components';
 import {connect} from 'react-redux';
+
 import {MODALS} from '../../constants';
+import {WorkqueueItem} from './WorkqueueItem';
+
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
 
-/* eslint-disable react/no-unused-prop-types*/
-class WorkqueueComponent extends React.Component {
-    render() {
-        const props = this.props;
-
-        return (
-            <div>
-                <WorkqueueList {...props} />
-            </div>
-        );
-    }
-}
+export const WorkqueueComponent = ({
+    workqueueItems,
+    currentEditId,
+    unlockAndCloseEditor,
+    openEditForm,
+    openConfirmationModal
+}) => (
+    <div className="opened-articles">
+        <div className="quick-actions pull-left">
+            <button>
+                <i className="icon-th-large icon--white" />
+            </button>
+        </div>
+        <ul className="list full-width">
+            {workqueueItems.map((openedItem, index) => (
+                <WorkqueueItem
+                    key={index}
+                    item={openedItem}
+                    currentEditId={currentEditId}
+                    onOpen={openEditForm}
+                    onClose={unlockAndCloseEditor}
+                />
+            ))}
+        </ul>
+    </div>
+);
 
 WorkqueueComponent.propTypes = {
-    workqueueItems: PropTypes.object,
-    currentPlanningId: PropTypes.string,
-    currentEvent: PropTypes.string,
-    isEventListShown: PropTypes.bool,
-    closePlanningItem: PropTypes.func,
-    openPlanningClick: PropTypes.func,
-    openEventDetails: PropTypes.func,
-    closeEventDetails: PropTypes.func,
-    toggleEventsList: PropTypes.func,
+    workqueueItems: PropTypes.array,
+    currentEditId: PropTypes.string,
+    unlockAndCloseEditor: PropTypes.func,
+    openEditForm: PropTypes.func,
     openConfirmationModal: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
-    workqueueItems:
-    {
-        Plannings: selectors.getLockedPlannings(state),
-        Events: selectors.getLockedEvents(state),
-    },
-    currentPlanningId: selectors.getCurrentPlanningId(state),
-    currentEvent: selectors.getHighlightedEvent(state),
-    isEventListShown: selectors.isEventListShown(state),
-    autosavedPlanningItems: selectors.forms.planningAutosaves(state),
-    autosavedEventItems: selectors.forms.eventAutosaves(state),
+    workqueueItems: selectors.locks.workqueueItems(state),
+    currentEditId: selectors.forms.currentItemId(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    unlockAndClosePlanningItem: (planning) => (dispatch(actions.planning.ui.unlockAndCloseEditor(planning))),
-    openPlanningClick: (planning, agendaId) => (
-        dispatch(actions.planning.ui.openPlanningWithAgenda(planning, agendaId))
-    ),
-    openEventDetails: (event) => dispatch(actions.events.ui.openEventDetails(event)),
-    unlockAndCloseEventItem: (event) => (dispatch(actions.events.ui.unlockAndCloseEditor(event))),
-    toggleEventsList: () => (dispatch(actions.toggleEventsList())),
+    unlockAndCloseEditor: (item) => dispatch(actions.main.unlockAndCancel(item)),
+    openEditForm: (item) => dispatch(actions.main.edit(item)),
     openConfirmationModal: (actionCallBack, ignoreCallBack) => dispatch(actions.showModal({
         modalType: MODALS.CONFIRMATION,
         modalProps: {
@@ -69,4 +67,3 @@ const mapDispatchToProps = (dispatch) => ({
 export const WorkqueueContainer = connect(
     mapStateToProps, mapDispatchToProps
 )(WorkqueueComponent);
-/* eslint-enable*/

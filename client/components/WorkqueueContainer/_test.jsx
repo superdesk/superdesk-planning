@@ -1,6 +1,6 @@
 import {createTestStore} from '../../utils';
 import {mount} from 'enzyme';
-import {WorkqueueContainer, WorkqueueList} from '../../components';
+import {WorkqueueContainer} from '../../components';
 import React from 'react';
 import {Provider} from 'react-redux';
 import * as selectors from '../../selectors';
@@ -92,12 +92,12 @@ describe('<WorkqueueContainer />', () => {
 
     it('displays WorkqueueList', () => {
         expect(wrapper).toBeDefined();
-        expect(wrapper.find(WorkqueueList).length).toBe(1);
+        expect(wrapper.find(WorkqueueContainer).length).toBe(1);
     });
 
     it('contains locked events and planning items for workqueue items', () => {
-        expect(selectors.getLockedEvents(store.getState()))
+        expect(selectors.locks.getLockedEvents(store.getState()))
             .toEqual([store.getState().events.events['event1']]);
-        expect(selectors.getLockedPlannings(store.getState()).length).toBe(2);
+        expect(selectors.locks.getLockedPlannings(store.getState()).length).toBe(2);
     });
 });

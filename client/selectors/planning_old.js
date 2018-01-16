@@ -1,5 +1,5 @@
 import {createSelector} from 'reselect';
-import {get, sortBy, includes, isEmpty, filter, matches, isNil} from 'lodash';
+import {get, sortBy, includes, isEmpty} from 'lodash';
 import moment from 'moment';
 import {AGENDA, SPIKED_STATE} from '../constants';
 import {isItemLockedInThisSession, isItemSpiked} from '../utils';
@@ -66,12 +66,6 @@ export const getCoverageCancelState = (state) =>
 export const getVocabularies = (state) => get(state, 'vocabularies');
 
 export const getSelectedPlanningItems = (state) => get(state, 'planning.selectedItems');
-export const getLockedItems = (state) => get(state, 'locks', {
-    events: {},
-    planning: {},
-    recurring: {},
-    assignments: {},
-});
 export const getCurrentWorkspace = (state) => get(state, 'workspace.currentWorkspace', null);
 export const getContentTypes = (state) => get(state, 'vocabularies.g2_content_type', []);
 
@@ -344,22 +338,3 @@ export const isAdvancedDateSearch = createSelector(
     )
 );
 
-/** Returns the list of currently locked planning items */
-export const getLockedPlannings = createSelector(
-    [getStoredPlannings, getCurrentUserId],
-    (plannings, userId) => filter(plannings, matches({
-        lock_user: userId,
-        lock_action: 'edit',
-    }))
-);
-
-/** Returns the list of currently locked events */
-export const getLockedEvents = createSelector(
-    [getEvents, getCurrentUserId],
-    (events, userId) => (
-        filter(events, (e) => (
-            !isNil(e.lock_session) && e.lock_action === 'edit' && e.lock_user === userId
-        )
-        )
-    )
-);
