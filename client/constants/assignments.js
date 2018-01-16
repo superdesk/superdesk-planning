@@ -57,6 +57,10 @@ export const ASSIGNMENTS = {
             label: 'Open Coverage',
             icon: 'icon-external',
         },
+        CONFIRM_AVAILABILITY: {
+            label: 'Confirm Availability',
+            icon: 'icon-ok',
+        }
     },
     DEFAULT_PRIORITY: 2,
     LIST_GROUPS: {

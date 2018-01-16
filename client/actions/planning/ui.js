@@ -764,7 +764,7 @@ const createCoverageFromNewsItem = (newsItem, getState) => {
     );
     const coverage = {
         planning: {
-            g2_content_type: get(contentType, 'qcode', 'text'),
+            g2_content_type: get(contentType, 'qcode', PLANNING.G2_CONTENT_TYPE.TEXT),
             slugline: get(newsItem, 'slugline', ''),
             ednote: get(newsItem, 'ednote', ''),
         },

@@ -37,8 +37,14 @@ class AssignmentsCompleteResource(AssignmentsResource):
 
 class AssignmentsCompleteService(BaseService):
     def on_update(self, updates, original):
-        if original.get('assigned_to').get('state') != ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
+        coverage_type = original.get('planning', {}).get('g2_content_type')
+        assignment_state = original.get('assigned_to').get('state')
+        if coverage_type == 'text' and assignment_state != ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
             raise SuperdeskApiError.forbiddenError('Cannot complete. Assignment not in progress.')
+        elif coverage_type != 'text' and \
+                assignment_state not in [ASSIGNMENT_WORKFLOW_STATE.ASSIGNED, ASSIGNMENT_WORKFLOW_STATE.SUBMITTED]:
+            raise SuperdeskApiError.forbiddenError(
+                'Cannot confirm availability. Assignment should be assigned or submitted.')
 
     def update(self, id, updates, original):
         user = get_user(required=True).get(config.ID_FIELD, '')

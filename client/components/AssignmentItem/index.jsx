@@ -62,7 +62,11 @@ export const AssignmentItem = ({
         {
             ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
             callback: onDoubleClick,
-        }
+        },
+        {
+            ...ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY,
+            callback: completeAssignment.bind(null, assignment),
+        },
     ];
 
     const itemActions = inAssignments && !isItemLocked ?

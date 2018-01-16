@@ -81,7 +81,11 @@ class AssignmentPreviewContainerComponent extends React.Component {
             {
                 ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
                 callback: openArchivePreview.bind(null, assignment),
-            }
+            },
+            {
+                ...ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY,
+                callback: completeAssignment.bind(null, assignment),
+            },
         ];
 
         return assignmentUtils.getAssignmentItemActions(
