@@ -10,7 +10,8 @@ import {
     TOOLTIPS,
     ASSIGNMENTS,
     ITEM_TYPE,
-    GENERIC_ITEM_ACTIONS
+    GENERIC_ITEM_ACTIONS,
+    PLANNING
 } from '../constants/index';
 import * as testData from './testData';
 import {gettext} from './gettext';
@@ -340,11 +341,11 @@ export const getItemInArrayById = (items, id, field = '_id') => (
  */
 export const getCoverageIcon = (type) => {
     const coverageIcons = {
-        text: 'icon-text',
-        video: 'icon-video',
-        live_video: 'icon-video',
-        audio: 'icon-audio',
-        picture: 'icon-photo',
+        [PLANNING.G2_CONTENT_TYPE.TEXT]: 'icon-text',
+        [PLANNING.G2_CONTENT_TYPE.VIDEO]: 'icon-video',
+        [PLANNING.G2_CONTENT_TYPE.LIVE_VIDEO]: 'icon-video',
+        [PLANNING.G2_CONTENT_TYPE.AUDIO]: 'icon-audio',
+        [PLANNING.G2_CONTENT_TYPE.PICTURE]: 'icon-photo',
     };
 
     return get(coverageIcons, type, 'icon-file');

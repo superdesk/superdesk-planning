@@ -145,7 +145,7 @@ Feature: Assignment Complete
 
 
     @auth
-    Scenario: Fail to complete when assignment not in progess state
+    Scenario: Fail to complete when assignment not in progess state for text assignments
     Given empty "assignments"
         When we post to "/planning"
         """
@@ -163,7 +163,8 @@ Feature: Assignment Complete
                 "planning": {
                     "ednote": "test coverage, I want 250 words",
                     "headline": "test headline",
-                    "slugline": "test slugline"
+                    "slugline": "test slugline",
+                    "g2_content_type": "text"
                 },
                 "assigned_to": {
                     "desk": "Politic Desk",
@@ -184,12 +185,142 @@ Feature: Assignment Complete
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
-                "slugline": "test slugline"
+                "slugline": "test slugline",
+                "g2_content_type": "text"
             },
             "assigned_to": {
                 "desk": "Politic Desk",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
+            }
+        }
+        """
+        When we perform complete on assignments "#firstassignment#"
+        """
+        { }
+        """
+        Then we get error 400
+
+    @auth
+    Scenario: Non text assignments in assigned / submitted can be completed
+    Given empty "assignments"
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "g2_content_type": "video"
+                },
+                "assigned_to": {
+                    "desk": "Politic Desk",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "assigned"
+                }
+            }]
+        }
+        """
+        # We are checking cancelled state because non text cannot be in_progress
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type": "video"
+            },
+            "assigned_to": {
+                "desk": "Politic Desk",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            }
+        }
+        """
+        When we perform complete on assignments "#firstassignment#"
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type": "video"
+            },
+            "assigned_to": {
+                "desk": "Politic Desk",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "completed"
+            }
+        }
+        """
+
+
+    @auth
+    Scenario: Non text assignments should be in submitted or assigned state only
+    Given empty "assignments"
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline"
+        }]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [{
+                "planning": {
+                    "ednote": "test coverage, I want 250 words",
+                    "headline": "test headline",
+                    "slugline": "test slugline",
+                    "g2_content_type": "video"
+                },
+                "assigned_to": {
+                    "desk": "Politic Desk",
+                    "user": "#CONTEXT_USER_ID#",
+                    "state": "cancelled"
+                }
+            }]
+        }
+        """
+        # We are checking cancelled state because non text cannot be in_progress
+        Then we get OK response
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type": "video"
+            },
+            "assigned_to": {
+                "desk": "Politic Desk",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "cancelled"
             }
         }
         """

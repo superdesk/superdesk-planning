@@ -76,4 +76,11 @@ export const PLANNING = {
         name: 'coverage not intended',
         label: 'Not planned',
     },
+    G2_CONTENT_TYPE: {
+        TEXT: 'text',
+        VIDEO: 'video',
+        LIVE_VIDEO: 'live_video',
+        AUDIO: 'audio',
+        PICTURE: 'picture',
+    }
 };
