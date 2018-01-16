@@ -2,7 +2,6 @@ import {get} from 'lodash';
 import {createSelector} from 'reselect';
 
 export const currentWorkspace = (state) => get(state, 'workspace.currentWorkspace', null);
-export const session = (state) => get(state, 'session');
 export const modalType = (state) => get(state, 'modal.modalType');
 export const modalProps = (state) => get(state, 'modal.modalProps');
 
@@ -13,3 +12,9 @@ export const enabledAgendas = createSelector(
 );
 
 export const coverageProviders = (state) => get(state, 'vocabularies.coverage_providers', []);
+
+export const session = (state) => get(state, 'session');
+export const currentUserId = createSelector(
+    [session],
+    (session) => get(session, 'identity._id')
+);

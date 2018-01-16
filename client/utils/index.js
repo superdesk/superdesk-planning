@@ -25,6 +25,7 @@ export {default as uiUtils} from './ui';
 export {default as assignmentUtils} from './assignments';
 export {default as stringUtils} from './strings';
 export {gettext};
+export {default as lockUtils} from './locks';
 
 export function createReducer(initialState, reducerMap) {
     return (state = initialState, action) => {

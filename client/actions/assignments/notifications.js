@@ -78,7 +78,7 @@ const onAssignmentUpdated = (_e, data) => (
             // Assignment was completed on editor but context was a different desk
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
-                    const locks = selectors.getLockedItems(getState());
+                    const locks = selectors.locks.getLockedItems(getState());
                     const itemLock = getLock(assignmentInStore, locks);
 
                     if (itemLock) {
@@ -177,7 +177,7 @@ const onAssignmentUnlocked = (_e, data) => (
         if (get(data, 'item')) {
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
-                    const locks = selectors.getLockedItems(getState());
+                    const locks = selectors.locks.getLockedItems(getState());
                     const itemLock = getLock(assignmentInStore, locks);
                     const sessionId = selectors.getSessionDetails(getState()).sessionId;
 

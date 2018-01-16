@@ -939,7 +939,7 @@ function exportAsArticle() {
         const state = getState();
         const sortableItems = [];
         const label = (item) => item.headline || item.slugline || item.description_text;
-        const locks = selectors.getLockedItems(state);
+        const locks = selectors.locks.getLockedItems(state);
 
         state.planning.selectedItems.forEach((id) => {
             const item = state.planning.plannings[id];

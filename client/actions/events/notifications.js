@@ -15,7 +15,7 @@ const onEventUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
             const events = selectors.getEvents(getState());
-            const locks = selectors.getLockedItems(getState());
+            const locks = selectors.locks.getLockedItems(getState());
             let eventInStore = get(events, data.item, {});
             const itemLock = getLock(eventInStore, locks);
             const sessionId = selectors.getSessionDetails(getState()).sessionId;

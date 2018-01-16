@@ -199,7 +199,7 @@ const mapStateToProps = (state, ownProps) => {
         previewOpened: selectors.getPreviewAssignmentOpened(state),
         session: selectors.getSessionDetails(state),
         users: selectors.getUsers(state),
-        lockedItems: selectors.getLockedItems(state),
+        lockedItems: selectors.locks.getLockedItems(state),
         currentAssignmentId: selectors.getCurrentAssignmentId(state),
         inAssignments: selectors.getCurrentWorkspace(state) === WORKSPACE.ASSIGNMENTS,
         privileges: selectors.getPrivileges(state),

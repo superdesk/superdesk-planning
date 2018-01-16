@@ -96,7 +96,7 @@ const onPlanningUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
             let planningItem = selectors.getStoredPlannings(getState())[data.item];
-            const locks = selectors.getLockedItems(getState());
+            const locks = selectors.locks.getLockedItems(getState());
             const itemLock = getLock(planningItem, locks);
             const sessionId = selectors.getSessionDetails(getState()).sessionId;
 
