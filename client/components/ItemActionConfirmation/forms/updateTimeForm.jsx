@@ -96,9 +96,6 @@ export class UpdateTimeComponent extends React.Component {
         // Modal closes after submit. So, reseting submitting is not required
         this.setState({submitting: true});
 
-        // To disable save in the modal
-        this.props.disableSaveInModal();
-
         let updatedEvent = {...this.props.initialValues};
 
         updatedEvent.dates.start = this.state.fromTime;
@@ -126,7 +123,7 @@ export class UpdateTimeComponent extends React.Component {
                     <Row
                         label={gettext('Slugline')}
                         value={initialValues.slugline || ''}
-                        className="slugline form__row--no-padding"
+                        className="slugline"
                         noPadding={true}
                     />
                 )}
@@ -134,7 +131,7 @@ export class UpdateTimeComponent extends React.Component {
                 <Row
                     label={gettext('Name')}
                     value={initialValues.name || ''}
-                    className="strong form__row--no-padding"
+                    className="strong"
                     noPadding={true}
                 />
 
@@ -150,7 +147,6 @@ export class UpdateTimeComponent extends React.Component {
                     <Row
                         label={gettext('No. of Events')}
                         value={numEvents}
-                        className="form__row--no-padding"
                         noPadding={true}
                     />
                 )}

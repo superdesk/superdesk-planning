@@ -80,9 +80,9 @@ export default class Popup extends React.Component {
             this.dom.child.style.top = top.toFixed() + 'px';
             this.dom.child.style.left = left.toFixed() + 'px';
             this.dom.child.style.position = 'absolute';
-            this.dom.child.style.zIndex = 2000;
+            this.dom.child.style.zIndex = 2100;
 
-            this.dom.root.style.zIndex = 1000;
+            this.dom.root.style.zIndex = 2000;
             this.dom.root.style.position = 'fixed';
             this.dom.root.style.top = 0;
             this.dom.root.style.left = 0;

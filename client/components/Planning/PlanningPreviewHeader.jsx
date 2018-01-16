@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {Tools} from '../UI/SidePanel';
-import {ItemActionsMenu, LockContainer} from '../index';
+import {ItemActionsMenu, LockContainer, ItemIcon} from '../index';
 import {planningUtils, getLockedUser} from '../../utils';
 import {PLANNING, PRIVILEGES, WORKSPACE, EVENTS} from '../../constants';
 import * as selectors from '../../selectors';
@@ -49,7 +49,7 @@ export class PlanningPreviewHeaderComponent extends React.Component {
 
         return (
             <Tools useDefaultClassName={false} className="side-panel__top-tools">
-                <i className="icon-calendar" />
+                <ItemIcon item={item} />
                 {(!lockedInThisSession || !inPlanning) && lockedUser &&
                     <LockContainer
                         lockedUser={lockedUser}

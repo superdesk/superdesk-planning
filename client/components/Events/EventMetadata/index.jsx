@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {StateLabel} from '../..';
 import {EventScheduleSummary} from '../';
+import {ItemIcon} from '../../index';
 import {Item, Column, Row} from '../../UI/List';
 import {Row as PreviewRow} from '../../UI/Preview';
 import {CollapseBox} from '../../UI/CollapseBox';
@@ -14,7 +15,7 @@ export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly, scrollIn
     const eventListView = (
         <Item noBg={true}>
             <div className="sd-list-item__border" />
-            <Column>{eventUtils.getEventIcon(event)}</Column>
+            <Column><ItemIcon item={event} /></Column>
             <Column grow={true} border={false}>
                 <Row>
                     <StateLabel item={event} verbose={true}/>
@@ -30,7 +31,7 @@ export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly, scrollIn
     const eventInDetailTopBar = (
         <Item noBg={true} noHover={true}>
             <Column border={false}>
-                {eventUtils.getEventIcon(event, true)}
+                <ItemIcon item={event} big={true} />
             </Column>
             <Column border={false} grow={true}>
                 {get(event, 'location[0].name') ? (

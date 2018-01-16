@@ -71,9 +71,6 @@ export class ConvertToRecurringEventComponent extends React.Component {
         // Modal closes after submit. So, reseting submitting is not required
         this.setState({submitting: true});
 
-        // To disable save in the modal
-        this.props.disableSaveInModal();
-
         const updatedEvent = {
             ...this.props.initialValues,
             ...this.state.diff,
