@@ -19,17 +19,23 @@ const formsReducer = createReducer(initialState, {
                 autosaves: {
                     ...state.autosaves,
                     [payload.formName]: {
-                        ...get(state, payload.formName, {}),
+                        ...get(state.autosaves, payload.formName, {}),
                         [payload.diff._id]: payload.diff,
                     },
                 }
             }
     ),
 
-    [MAIN.ACTIONS.EDIT]: (state, payload) => ({
+    [MAIN.ACTIONS.OPEN_EDITOR]: (state, payload) => ({
         ...state,
         itemId: get(payload, '_id') || null,
         itemType: get(payload, '_type') || null,
+    }),
+
+    [MAIN.ACTIONS.CLOSE_EDITOR]: (state) => ({
+        ...state,
+        itemId: null,
+        itemType: null,
     }),
 
     [EVENTS.ACTIONS.UNLOCK_EVENT]: (state, payload) => (
