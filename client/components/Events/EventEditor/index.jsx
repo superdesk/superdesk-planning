@@ -16,6 +16,7 @@ import {
     InputArray,
     LinkInput,
 } from '../../UI/Form';
+import {ContactField} from '../../fields';
 import {ToggleBox} from '../../UI';
 import {RelatedPlannings} from '../../RelatedPlannings';
 import {EventScheduleInput, EventScheduleSummary} from '../';
@@ -128,6 +129,14 @@ export class EventEditorComponent extends React.Component {
                             value={get(diff, 'location[0]', null)}
                             onChange={this.onChange}
                         />
+                    </Row>
+
+                    <Row>
+                        <ContactField
+                            field="event_contact_info"
+                            label="Contact"
+                            value={get(diff, 'event_contact_info', [])}
+                            onChange={this.onChange} />
                     </Row>
 
                     <ToggleBox title="Details" isOpen={false} scrollInView={true}>

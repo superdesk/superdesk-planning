@@ -73,10 +73,12 @@ export const orderedEvents = createSelector(
     }
 );
 
+export const getEventContacts = (state) => get(state, 'contacts', []);
+
 /** Used for event details */
 export const eventWithRelatedDetails = createSelector(
-    [showEventDetails, storedEvents, storedPlannings, agendas],
-    (item, events, plannings, agendas) => {
+    [showEventDetails, storedEvents, storedPlannings, agendas, getEventContacts],
+    (item, events, plannings, agendas, contacts) => {
         const event = get(item, '_id') ? events[item._id] : null;
 
         if (event) {
@@ -88,17 +90,18 @@ export const eventWithRelatedDetails = createSelector(
                         plannings[id].agendas.map((id) =>
                             agendas.find(((agenda) => agenda._id === id))),
                 })),
+                _contacts: get(event, 'event_contact_info', []).map((id) => (
+                    contacts.find((contact) => contact._id === id))
+                ),
             };
         }
     }
 );
 
-
 export const planningWithEventDetails = createSelector(
     [currentPlanning, storedEvents],
     (item, events) => item && events[item.event_item]
 );
-
 
 const editItem = (state) => get(state, 'main.editItem', null);
 
