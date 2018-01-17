@@ -1,7 +1,8 @@
 export const MAIN = {
     ACTIONS: {
         PREVIEW: 'MAIN_PREVIEW',
-        EDIT: 'MAIN_EDIT',
+        OPEN_EDITOR: 'MAIN_OPEN_EDITOR',
+        CLOSE_EDITOR: 'MAIN_CLOSE_EDITOR',
         FILTER: 'MAIN_FILTER',
         HISTORY: 'MAIN_HISTORY',
         CLOSE_PREVIEW: 'MAIN_CLOSE_PREVIEW'

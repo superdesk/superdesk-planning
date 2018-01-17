@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {change as _change} from 'redux-form';
 import * as actions from '../../actions';
 import {AUTOSAVE} from '../../constants';
 import {forEach, isEqual, get, throttle} from 'lodash';
@@ -34,7 +33,8 @@ export class AutosaveComponent extends React.Component {
         // Then reset the save throttle
         this.throttledSave = throttle(
             this.save,
-            nextProps.interval
+            nextProps.interval,
+            {leading: false, trailing: true}
         );
 
         this.load(nextProps);
@@ -45,15 +45,20 @@ export class AutosaveComponent extends React.Component {
             return;
         }
 
-        const changes = this.props.load(props.initialValues._id);
+        const changes = this.props.load(props.formName, props.initialValues._id);
 
         this.changeValues(changes, props);
     }
 
     save(currentValues, props) {
-        this.props.save(
-            this.changeValues(currentValues, props, false)
-        );
+        const diff = this.changeValues(currentValues, props, false);
+
+        if (diff !== null) {
+            this.props.save(
+                this.props.formName,
+                diff
+            );
+        }
     }
 
     changeValues(changes, props, updateFormValues = true) {
@@ -72,8 +77,12 @@ export class AutosaveComponent extends React.Component {
             }
         });
 
-        this.setState({diff});
-        return diff;
+        if (!isEqual(this.state.diff, diff)) {
+            this.setState({diff});
+            return diff;
+        }
+
+        return null;
     }
 
     componentWillReceiveProps(nextProps) {
@@ -101,7 +110,6 @@ export class AutosaveComponent extends React.Component {
     }
 }
 
-/* eslint-disable react/no-unused-prop-types */
 AutosaveComponent.propTypes = {
     formName: PropTypes.string.isRequired,
     initialValues: PropTypes.object,
@@ -114,26 +122,18 @@ AutosaveComponent.propTypes = {
     save: PropTypes.func,
     load: PropTypes.func,
 
-    // Redux-Form actions
     change: PropTypes.func.isRequired,
 };
-/* eslint-enable react/no-unused-prop-types */
 
 AutosaveComponent.defaultProps = {interval: AUTOSAVE.INTERVAL};
 
-const mapStateToProps = (state, ownProps) => ({
-    initialValues: get(state, `form.${ownProps.formName}.initial`),
-    currentValues: get(state, `form.${ownProps.formName}.values`),
-});
-
 const mapDispatchToProps = (dispatch, ownProps) => ({
-    save: (diff) => dispatch(actions.autosave.save(ownProps.formName, diff)),
-    load: (itemId) => dispatch(actions.autosave.load(ownProps.formName, itemId)),
-    change: (key, value) => dispatch(_change(ownProps.formName, key, value)),
+    save: (formName, diff) => dispatch(actions.autosave.save(formName, diff)),
+    load: (formName, itemId) => dispatch(actions.autosave.load(formName, itemId)),
 });
 
 export const Autosave = connect(
-    mapStateToProps,
+    null,
     mapDispatchToProps,
     null
 )(AutosaveComponent);

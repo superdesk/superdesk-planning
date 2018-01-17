@@ -766,7 +766,6 @@ export const archive = [
 
 export const main = {
     previewItem: null,
-    editItem: null,
     filter: null,
 };
 
@@ -778,7 +777,7 @@ export const initialState = {
     desks: desks,
     forms: {
         profiles: formsProfile,
-        autosave: {},
+        autosaves: {},
         itemId: null,
         itemType: null,
     },
