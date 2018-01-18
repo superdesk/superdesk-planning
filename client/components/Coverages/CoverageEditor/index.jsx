@@ -22,6 +22,7 @@ export const CoverageEditor = ({
     coverageProviders,
     priorities,
     keywords,
+    readOnly,
 }) => {
     const coverageItem = (
         <CoverageItem
@@ -30,6 +31,7 @@ export const CoverageEditor = ({
             desks={desks}
             dateFormat={dateFormat}
             timeFormat={timeFormat}
+            readOnly={readOnly}
         />
     );
 
@@ -42,6 +44,7 @@ export const CoverageEditor = ({
             desks={desks}
             coverageProviders={coverageProviders}
             priorities={priorities}
+            readOnly={readOnly}
         />
     );
 
@@ -56,6 +59,7 @@ export const CoverageEditor = ({
             contentTypes={contentTypes}
             genres={genres}
             keywords={keywords}
+            readOnly={readOnly}
         />
     );
 
@@ -65,7 +69,10 @@ export const CoverageEditor = ({
             openItemTopBar={coverageTopBar}
             openItem={coverageForm}
             scrollInView={true}
-            isOpen={isEqual(value, {planning: {}})}
+            isOpen={isEqual(value, {
+                planning: {},
+                news_coverage_status: newsCoverageStatus[0]
+            })}
         />
     );
 };
@@ -85,6 +92,7 @@ CoverageEditor.propTypes = {
     coverageProviders: PropTypes.array,
     priorities: PropTypes.array,
     keywords: PropTypes.array,
+    readOnly: PropTypes.bool,
 };
 
 CoverageEditor.defaultProps = {

@@ -4,7 +4,7 @@ import {showModal, hideModal} from '../index';
 import eventsApi from './api';
 import eventsUi from './ui';
 import {get} from 'lodash';
-import {getLock} from '../../utils';
+import {lockUtils} from '../../utils';
 
 /**
  * Action Event when an Event gets unlocked
@@ -17,7 +17,7 @@ const onEventUnlocked = (_e, data) => (
             const events = selectors.getEvents(getState());
             const locks = selectors.locks.getLockedItems(getState());
             let eventInStore = get(events, data.item, {});
-            const itemLock = getLock(eventInStore, locks);
+            const itemLock = lockUtils.getLock(eventInStore, locks);
             const sessionId = selectors.getSessionDetails(getState()).sessionId;
 
             // If this is the event item currently being edited, show popup notification

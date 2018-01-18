@@ -11,7 +11,7 @@ import {
 import {get, isNil, uniq} from 'lodash';
 import {
     getItemWorkflowState,
-    isItemLockedInThisSession,
+    lockUtils,
     isItemPublic,
     isItemSpiked,
     isItemRescheduled,
@@ -119,7 +119,7 @@ const isPlanningLocked = (plan, locks) =>
 
 const isPlanningLockRestricted = (plan, session, locks) =>
     isPlanningLocked(plan, locks) &&
-        !isItemLockedInThisSession(plan, session);
+        !lockUtils.isItemLockedInThisSession(plan, session);
 
 /**
  * Get the array of coverage content type and color base on the scheduled date

@@ -62,22 +62,28 @@ export class SelectMetaTermsInput extends React.Component {
     }
 
     render() {
-        const {value, label, labelKey, searchKey, valueKey, ...props} = this.props;
+        const {value, label, labelKey, searchKey, valueKey, readOnly, ...props} = this.props;
         const options = this.removeValuesFromOptions();
 
         return (
             <LineInput
                 {...props}
                 withButton={true}
-                className="select__meta-terms"
+                readOnly={readOnly}
+                className={classNames(
+                    'select__meta-terms',
+                    {'select__meta-terms--disabled': readOnly}
+                )}
             >
-                <span
-                    className={classNames(
-                        'sd-line-input__plus-btn',
-                        {'sd-line-input__plus-btn--disabled': options.length === 0}
-                    )}
-                    onClick={options.length > 0 ? this.toggleOpenSelectPopup : null}
-                />
+                {!readOnly && (
+                    <span
+                        className={classNames(
+                            'sd-line-input__plus-btn',
+                            {'sd-line-input__plus-btn--disabled': options.length === 0}
+                        )}
+                        onClick={options.length > 0 ? this.toggleOpenSelectPopup : null}
+                    />
+                )}
 
                 <Label text={label} />
 
@@ -87,6 +93,7 @@ export class SelectMetaTermsInput extends React.Component {
                             terms={value}
                             displayField={labelKey}
                             onClick={this.removeValue}
+                            readOnly={readOnly}
                         />
                     )}
                 </div>

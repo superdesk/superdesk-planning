@@ -20,8 +20,18 @@ export class TextAreaInput extends React.Component {
         }
     }
 
-    autoResize() {
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.value !== this.props.value && this.props.autoHeight) {
+            this.autoResize(nextProps.value);
+        }
+    }
+
+    autoResize(value = null) {
         if (this.dom.input) {
+            if (value !== null) {
+                this.dom.input.value = value;
+            }
+
             // This is required so that when the height is reduced, the scrollHeight
             // is recalculated based on the new height, otherwise it will not
             // shrink the height back down
@@ -34,7 +44,11 @@ export class TextAreaInput extends React.Component {
     }
 
     onChange(event) {
-        this.props.onChange(this.props.field, event.target.value);
+        if (this.props.nativeOnChange) {
+            this.props.onChange(event);
+        } else {
+            this.props.onChange(this.props.field, event.target.value);
+        }
 
         if (this.props.autoHeight) {
             if (!this.delayedResize) {
@@ -46,7 +60,7 @@ export class TextAreaInput extends React.Component {
     }
 
     render() {
-        const {field, label, value, autoHeight, readOnly, ...props} = this.props;
+        const {field, label, value, autoHeight, readOnly, placeholder, ...props} = this.props;
 
         return (
             <LineInput {...props} readOnly={readOnly}>
@@ -59,8 +73,9 @@ export class TextAreaInput extends React.Component {
                     )}
                     value={value}
                     name={field}
-                    onChange={this.onChange}
+                    onChange={readOnly ? null : this.onChange}
                     disabled={readOnly}
+                    placeholder={readOnly ? '' : placeholder}
                 />
             </LineInput>
         );
@@ -82,6 +97,8 @@ TextAreaInput.propTypes = {
     noMargin: PropTypes.bool,
     autoHeight: PropTypes.bool,
     autoHeightTimeout: PropTypes.number,
+    nativeOnChange: PropTypes.bool,
+    placeholder: PropTypes.string,
 };
 
 TextAreaInput.defaultProps = {
@@ -92,4 +109,5 @@ TextAreaInput.defaultProps = {
     noMargin: false,
     autoHeight: true,
     autoHeightTimeout: 50,
+    nativeOnChange: false,
 };

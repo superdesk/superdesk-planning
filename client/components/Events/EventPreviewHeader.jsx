@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {Tools} from '../UI/SidePanel';
 import {ItemActionsMenu, LockContainer, ItemIcon} from '../index';
-import {eventUtils, getLockedUser} from '../../utils';
+import {eventUtils, lockUtils} from '../../utils';
 import {PRIVILEGES, EVENTS} from '../../constants';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
@@ -35,7 +35,7 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
                 this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
         };
         const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack);
-        const lockedUser = getLockedUser(item, lockedItems, users);
+        const lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
         const lockRestricted = eventUtils.isEventLockRestricted(item, session, lockedItems);
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK];
 

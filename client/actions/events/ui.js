@@ -8,7 +8,7 @@ import {get, last} from 'lodash';
 import {
     checkPermission,
     getErrorMessage,
-    isItemLockedInThisSession,
+    lockUtils,
     isItemSpiked,
     isItemRescheduled,
 } from '../../utils';
@@ -66,7 +66,7 @@ const _openEventDetails = (event) => (
                 // In sessions with multiple tabs, state values of showEventDetails are different
                 // So, explicitly get the event from the store and see if we hold the lock on it
                     const eventInState = {...selectors.getEvents(getState())[id]};
-                    const eventLockedInThisSession = isItemLockedInThisSession(
+                    const eventLockedInThisSession = lockUtils.isItemLockedInThisSession(
                         eventInState,
                         selectors.getSessionDetails(getState())
                     );
@@ -110,7 +110,7 @@ const previewEvent = (event) => (
         const id = get(event, '_id');
         const eventInState = {...selectors.getEvents(getState())[id]};
 
-        if (eventInState && isItemLockedInThisSession(eventInState,
+        if (eventInState && lockUtils.isItemLockedInThisSession(eventInState,
             selectors.getSessionDetails(getState()))) {
             dispatch({
                 type: EVENTS.ACTIONS.OPEN_EVENT_DETAILS,

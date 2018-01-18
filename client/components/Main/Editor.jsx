@@ -2,9 +2,11 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, set, isEqual, cloneDeep} from 'lodash';
-import {gettext} from '../../utils';
+
+import {gettext, lockUtils} from '../../utils';
 
 import {ITEM_TYPE} from '../../constants';
+import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 
 import {
@@ -121,6 +123,12 @@ export class EditorComponent extends React.Component {
 
         // Do not show the tabs if we're creating a new item
         const existingItem = !!this.props.item;
+        const isLockRestricted = lockUtils.isLockRestricted(
+            this.props.item,
+            this.props.session,
+            this.props.lockedItems
+        );
+        const isLocked = lockUtils.getLock(this.props.item, this.props.lockedItems);
 
         return (
             <SidePanel shadowRight={true}>
@@ -144,6 +152,9 @@ export class EditorComponent extends React.Component {
                     privileges={this.props.privileges}
                     lockedItems={this.props.lockedItems}
                     openCancelModal={this.props.openCancelModal}
+                    users={this.props.users}
+                    onUnlock={this.props.onUnlock}
+                    onLock={this.props.onLock}
                 />
                 <Content flex={true}>
                     {existingItem && (
@@ -160,6 +171,7 @@ export class EditorComponent extends React.Component {
                             itemType={this.props.itemType}
                             diff={this.state.diff}
                             onChangeHandler={this.onChangeHandler}
+                            readOnly={!isLocked || isLockRestricted}
                         />
                     </div>
                 </Content>
@@ -179,10 +191,20 @@ EditorComponent.propTypes = {
     privileges: PropTypes.object,
     lockedItems: PropTypes.object,
     openCancelModal: PropTypes.func.isRequired,
+    users: PropTypes.array,
+    onUnlock: PropTypes.func,
+    onLock: PropTypes.func,
 };
 
+const mapStateToProps = (state) => ({
+    users: selectors.getUsers(state),
+});
+
 const mapDispatchToProps = (dispatch) => ({
+    onUnlock: (item) => dispatch(actions.locks.unlockThenLock(item)),
+    onLock: (item) => dispatch(actions.locks.lock(item)),
     minimize: () => dispatch(actions.main.closeEditor()),
 });
 
-export const Editor = connect(null, mapDispatchToProps)(EditorComponent);
+export const Editor = connect(mapStateToProps, mapDispatchToProps)(EditorComponent);
+

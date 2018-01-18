@@ -17,10 +17,10 @@ export const CoverageArrayInput = ({
     newsCoverageStatus,
     contentTypes,
     genres,
-    defaultValue,
     coverageProviders,
     priorities,
     keywords,
+    readOnly,
 }) => (
     <div>
         <h3 className="side-panel__heading side-panel__heading--big">
@@ -41,10 +41,14 @@ export const CoverageArrayInput = ({
                 newsCoverageStatus={newsCoverageStatus}
                 contentTypes={contentTypes}
                 genres={genres}
-                defaultValue={defaultValue}
+                defaultValue={{
+                    planning: {},
+                    news_coverage_status: newsCoverageStatus[0]
+                }}
                 coverageProviders={coverageProviders}
                 priorities={priorities}
                 keywords={keywords}
+                readOnly={readOnly}
             />
         </ContentBlock>
     </div>
@@ -66,10 +70,10 @@ CoverageArrayInput.propTypes = {
     coverageProviders: PropTypes.array,
     priorities: PropTypes.array,
     keywords: PropTypes.array,
+    readOnly: PropTypes.bool,
 };
 
 CoverageArrayInput.defaultProps = {
     field: 'coverages',
     addButtonText: 'Add a coverage',
-    defaultValue: {planning: {}}
 };
