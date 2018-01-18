@@ -227,7 +227,7 @@ const mapDispatchToProps = (dispatch) => ({
     },
 
     onAgendaClick: (agendaId) => (dispatch(actions.selectAgenda(agendaId))),
-    loadMorePlannings: () => (dispatch(actions.planning.ui.fetchMoreToList())),
+    loadMorePlannings: () => (dispatch(actions.planning.ui.loadMore())),
     handlePlanningDuplicate: (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
     onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
     onUpdateEventTime: (event) => dispatch(actions.events.ui.updateTime(event)),

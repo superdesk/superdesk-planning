@@ -101,6 +101,9 @@ export const getTestActionStore = () => {
                     ...item,
                 })),
                 _remove: () => Promise.resolve(),
+                planning_search: {
+                    query: sinon.spy(() => (store.spies.api._query('planning_search'))),
+                },
             },
         },
 
@@ -116,15 +119,7 @@ export const getTestActionStore = () => {
                 plannings: {},
                 currentPlanningId: undefined,
                 editorOpened: false,
-                planningsAreLoading: false,
-                onlyFuture: true,
                 onlyActive: false,
-                lastRequestParams: {
-                    agendas: ['a1'],
-                    noAgendaAssigned: false,
-                    page: 1,
-                },
-                search: {currentSearch: undefined},
             },
         },
 

@@ -1,17 +1,19 @@
 import {createSelector} from 'reselect';
-import {get, sortBy, cloneDeep} from 'lodash';
-import moment from 'moment';
+import {get, cloneDeep} from 'lodash';
 import {lockUtils} from '../utils';
 import {session} from './general';
+import {planningUtils} from '../utils';
+import {AGENDA, SPIKED_STATE} from '../constants';
 
 const storedEvents = (state) => get(state, 'events.events', {});
 
 export const storedPlannings = (state) => get(state, 'planning.plannings', {});
 export const planIdsInList = (state) => get(state, 'planning.planningsInList', []);
-
 export const agendas = (state) => get(state, 'agenda.agendas', []);
 export const currentAgendaId = (state) => get(state, 'agenda.currentAgendaId', null);
 export const currentPlanningId = (state) => get(state, 'planning.currentPlanningId');
+export const currentSearch = (state) => get(state, 'main.PLANNING.currentSearch');
+
 
 export const currentPlanning = createSelector(
     [currentPlanningId, storedPlannings],
@@ -41,48 +43,30 @@ export const plansInList = createSelector(
 
 export const orderedPlanningList = createSelector(
     [currentAgenda, plansInList, storedEvents],
-    (currentAgenda, plansInList, events) => {
-        if (!plansInList) return [];
-
-        const days = {};
-
-        plansInList.forEach((plan) => {
-            const dates = new Set();
-
-            plan.event = get(events, get(plan, 'event_item'));
-            plan.coverages.forEach((coverage) =>
-                dates.add(
-                    moment(
-                        get(coverage, 'planning.scheduled', plan._planning_date)
-                    ).format('YYYY-MM-DD')
-                )
-            );
-
-            if (dates.size < 1) {
-                dates.add(moment(plan._planning_date).format('YYYY-MM-DD'));
-            }
-
-            dates.forEach((date) => {
-                if (!days[date]) {
-                    days[date] = [];
-                }
-
-                days[date].push(plan);
-            });
-        });
-
-        let sortable = [];
-
-        for (let day in days)
-            sortable.push({
-                date: day,
-                events: days[day],
-            });
-
-        return sortBy(sortable, [(e) => e.date]);
-    }
+    (currentAgenda, plansInList, events) => planningUtils.getPlanningByDate(plansInList, events)
 );
 
+export const getPlanningFilterParams = createSelector(
+    [currentAgendaId, currentSearch],
+    (agendaId, currentSearch) => {
+        let agendas = null;
+
+        if (agendaId && agendaId !== AGENDA.FILTER.NO_AGENDA_ASSIGNED &&
+            agendaId !== AGENDA.FILTER.ALL_PLANNING) {
+            agendas = [agendaId];
+        }
+
+        const params = {
+            noAgendaAssigned: agendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED,
+            agendas: agendas,
+            advancedSearch: get(currentSearch, 'advancedSearch', {}),
+            spikeState: get(currentSearch, 'spikeState', SPIKED_STATE.NOT_SPIKED),
+            page: 1
+        };
+
+        return params;
+    }
+);
 
 export const isCurrentPlanningLockedInThisSession = createSelector(
     [currentPlanning, session],
@@ -90,3 +74,4 @@ export const isCurrentPlanningLockedInThisSession = createSelector(
         currentPlanning && lockUtils.isItemLockedInThisSession(currentPlanning, session)
     )
 );
+

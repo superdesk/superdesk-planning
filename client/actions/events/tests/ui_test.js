@@ -615,7 +615,7 @@ describe('actions.events.ui', () => {
 
     describe('fetchEvents', () => {
         beforeEach(() => {
-            sinon.stub(eventsApi, 'query').returns(Promise.resolve({_items: data.events}));
+            sinon.stub(eventsApi, 'query').returns(Promise.resolve(data.events));
             sinon.stub(eventsApi, 'receiveEvents').returns({type: 'RECEIVE_EVENTS'});
         });
 
@@ -631,7 +631,7 @@ describe('actions.events.ui', () => {
                     expect(eventsApi.query.callCount).toBe(1);
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
                     expect(eventsUi.setEventsList.callCount).toBe(1);
-                    expect(response._items).toEqual(data.events);
+                    expect(response).toEqual(data.events);
                     done();
                 })
         ));

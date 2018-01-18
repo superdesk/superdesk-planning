@@ -1,5 +1,6 @@
 import planning from '../planning';
 import actions from '../../actions/planning';
+import {PLANNING} from '../../constants';
 
 describe('planning', () => {
     describe('reducers', () => {
@@ -18,6 +19,8 @@ describe('planning', () => {
                     _id: 'c1',
                     planning_item: 'p1',
                 }],
+                state: 'draft',
+                _etag: 'old_etag'
             },
         };
 
@@ -27,38 +30,9 @@ describe('planning', () => {
                 planningsInList: [],
                 currentPlanningId: undefined,
                 editorOpened: false,
-                planningsAreLoading: false,
-                onlyFuture: true,
-                filterPlanningKeyword: null,
                 readOnly: true,
                 planningHistoryItems: [],
-                lastRequestParams: {page: 1},
-                search: {
-                    currentSearch: undefined,
-                    advancedSearchOpened: false,
-                },
                 selectedItems: [],
-            });
-        });
-
-        it('REQUEST_PLANNINGS', () => {
-            const result = planning(
-                initialState,
-                {
-                    type: 'REQUEST_PLANNINGS',
-                    payload: {
-                        agendas: ['a1'],
-                        noAgendaAssigned: false,
-                        page: 2,
-                    },
-                }
-            );
-
-            expect(result.planningsAreLoading).toBe(true);
-            expect(result.lastRequestParams).toEqual({
-                agendas: ['a1'],
-                noAgendaAssigned: false,
-                page: 2,
             });
         });
 
@@ -93,24 +67,6 @@ describe('planning', () => {
             const result = planning(initialState, {type: 'CLEAR_PLANNING_LIST'});
 
             expect(result.planningsInList).toEqual([]);
-        });
-
-        it('OPEN_ADVANCED_SEARCH', () => {
-            const result = planning(initialState, {type: 'PLANNING_OPEN_ADVANCED_SEARCH'});
-
-            expect(result.search).toEqual({
-                currentSearch: undefined,
-                advancedSearchOpened: true,
-            });
-        });
-
-        it('CLOSE_ADVANCED_SEARCH', () => {
-            const result = planning(initialState, {type: 'PLANNING_CLOSE_ADVANCED_SEARCH'});
-
-            expect(result.search).toEqual({
-                currentSearch: undefined,
-                advancedSearchOpened: false,
-            });
         });
 
         describe('RECEIVE_PLANNINGS', () => {
@@ -205,27 +161,6 @@ describe('planning', () => {
 
             expect(result.editorOpened).toBe(false);
             expect(result.currentPlanningId).toBe(undefined);
-        });
-
-        it('SET_ONLY_FUTURE', () => {
-            let result = planning(
-                initialState,
-                {
-                    type: 'SET_ONLY_FUTURE',
-                    payload: false,
-                }
-            );
-
-            expect(result.onlyFuture).toBe(false);
-
-            result = planning(
-                result,
-                {
-                    type: 'SET_ONLY_FUTURE',
-                    payload: true,
-                }
-            );
-            expect(result.onlyFuture).toBe(true);
         });
 
         it('PLANNING_FILTER_BY_KEYWORD', () => {
@@ -435,6 +370,167 @@ describe('planning', () => {
                         },
                     },
                 });
+            });
+        });
+
+        describe('spike planning', () => {
+            const payload = {
+                plan: {
+                    _id: 'p1',
+                    _etag: 'new_etag',
+                    revert_state: 'draft',
+                    state: 'spiked'
+                },
+                spikeState: 'draft'
+            };
+
+            it('marks the planning as spiked', () => {
+                initialState.plannings = plannings;
+                initialState.planningsInList = ['p1'];
+
+                let result = planning(
+                    initialState,
+                    {
+                        type: PLANNING.ACTIONS.SPIKE_PLANNING,
+                        payload: payload
+                    }
+                );
+
+                expect(result.plannings.p1).toEqual({
+                    ...plannings.p1,
+                    _etag: 'new_etag',
+                    revert_state: 'draft',
+                    state: 'spiked'
+                });
+
+                expect(result.planningsInList).toEqual([]);
+            });
+
+            it('removes spiked planning from list if not viewing spiked planning', () => {
+                let result = planning(
+                    {
+                        ...initialState,
+                        plannings: plannings,
+                        planningsInList: ['p1']
+                    },
+                    {
+                        type: PLANNING.ACTIONS.SPIKE_PLANNING,
+                        payload: payload
+                    }
+                );
+
+                expect(result.planningsInList).toEqual([]);
+
+                result = planning(
+                    {
+                        ...initialState,
+                        plannings: plannings,
+                        planningsInList: ['p1']
+                    },
+                    {
+                        type: PLANNING.ACTIONS.SPIKE_PLANNING,
+                        payload: {
+                            ...payload,
+                            spikeState: 'both'
+                        }
+                    }
+                );
+
+                expect(result.planningsInList).toEqual(['p1']);
+
+                result = planning(
+                    {
+                        ...initialState,
+                        plannings: plannings,
+                        planningsInList: ['p1']
+                    },
+                    {
+                        type: PLANNING.ACTIONS.SPIKE_PLANNING,
+                        payload: {
+                            ...payload,
+                            spikeState: 'spiked'
+                        }
+                    }
+                );
+                expect(result.planningsInList).toEqual(['p1']);
+            });
+        });
+
+        describe('unspike planning', () => {
+            let payload;
+
+            beforeEach(() => {
+                payload = {
+                    plan: {
+                        _id: 'p1',
+                        _etag: 'new_etag',
+                        revert_state: null,
+                        state: 'draft'
+                    },
+                    spikeState: 'draft'
+                };
+                initialState.plannings = {
+                    ...plannings,
+                    p1: {
+                        ...plannings.p1,
+                        state: 'spiked',
+                        revert_state: 'draft',
+                    }
+                };
+                initialState.planningsInList = ['p1'];
+            });
+
+            it('reverts the planning states', () => {
+                const result = planning(
+                    initialState,
+                    {
+                        type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
+                        payload: payload
+                    }
+                );
+
+                expect(result.plannings.p1).toEqual({
+                    ...plannings.p1,
+                    _etag: 'new_etag',
+                    revert_state: null,
+                    state: 'draft'
+                });
+            });
+
+            it('removes unspiked planning from list if viewing spiked only planning', () => {
+                let result = planning(
+                    initialState,
+                    {
+                        type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
+                        payload: payload
+                    }
+                );
+
+                expect(result.planningsInList).toEqual(['p1']);
+
+                result = planning(
+                    initialState,
+                    {
+                        type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
+                        payload: {
+                            ...payload,
+                            spikeState: 'both'
+                        }
+                    }
+                );
+                expect(result.planningsInList).toEqual(['p1']);
+
+                result = planning(
+                    initialState,
+                    {
+                        type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
+                        payload: {
+                            ...payload,
+                            spikeState: 'spiked'
+                        }
+                    }
+                );
+                expect(result.planningsInList).toEqual([]);
             });
         });
     });

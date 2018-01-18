@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {SubNav} from '../UI/SubNav';
-import {ToggleFiltersButton, FiltersBox} from './';
+import {ToggleFiltersButton, FiltersBox} from '.';
 
 export const FiltersBar = (props) => (
     <SubNav>

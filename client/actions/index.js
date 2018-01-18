@@ -10,7 +10,7 @@ import assignments from './assignments/index';
 import autosave from './autosave';
 import main from './main';
 import locations from './locations';
-
+import eventsPlanning from './eventsPlanning/index';
 import {agendaNotifications} from './agenda';
 import {eventNotifications} from './events';
 
@@ -27,13 +27,12 @@ const initStore = (workspace) => ({
  * This is used by client.controller.PlanningController to listen for
  * the WebSocket Notifications from the server, and dispatch events
  **/
-
 const notifications = {
     ...agendaNotifications,
     ...planning.notifications.events,
     ...eventNotifications,
     ...events.notifications.events,
-    ...assignments.notifications.events,
+    ...assignments.notifications.events
 };
 
 export {
@@ -47,4 +46,5 @@ export {
     autosave,
     main,
     locations,
+    eventsPlanning,
 };

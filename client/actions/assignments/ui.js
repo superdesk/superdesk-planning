@@ -34,7 +34,7 @@ const loadAssignments = (
  * Action dispatcher to load first page of the list of assignments for current list settings.
  */
 const reloadAssignments = (filterByState) => (
-    (dispatch, getState, {$location, notify, desks}) => {
+    (dispatch, getState) => {
         if (!filterByState || filterByState.length <= 0) {
             // Load all assignment groups
             let dispatches = [];

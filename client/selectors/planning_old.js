@@ -16,13 +16,9 @@ export const eventSearchActive = (state) => !!get(
 export const getEvents = (state) => get(state, 'events.events', {});
 export const getEventHistory = (state) => get(state, 'events.eventHistoryItems');
 export const isEventListShown = (state) => get(state, 'events.show');
-export const getPreviousEventRequestParams = (state) => get(state, 'events.lastRequestParams', {});
-export const getPreviousPlanningRequestParams = (state) =>
-    get(state, 'planning.lastRequestParams', {});
 export const getCurrentAgendaId = (state) => get(state, 'agenda.currentAgendaId');
 export const getStoredPlannings = (state) => get(state, 'planning.plannings');
 export const getPlanningIdsInList = (state) => get(state, 'planning.planningsInList', []);
-export const isOnlyFutureFiltered = (state) => get(state, 'planning.onlyFuture');
 export const filterPlanningKeyword = (state) => get(state, 'planning.filterPlanningKeyword');
 
 export const getIframelyKey = (state) => get(state, 'config.iframely.key', null);
@@ -311,24 +307,6 @@ export const isEventDetailLockedInThisSession = createSelector(
         const event = events[showEventDetails];
 
         return event && lockUtils.isItemLockedInThisSession(event, session);
-    }
-);
-
-export const getPlanningFilterParams = createSelector(
-    [getCurrentAgendaId, getCurrentAgenda, getPlanningSearch,
-        filterPlanningKeyword, isOnlyFutureFiltered],
-    (agendaId, agenda, planningSearch, filterKeyword, onlyFuture) => {
-        const params = {
-            noAgendaAssigned: agendaId === AGENDA.FILTER.NO_AGENDA_ASSIGNED,
-            agendas: agenda ? [agenda._id] : null,
-            page: 1,
-            advancedSearch: get(planningSearch, 'advancedSearch', {}),
-            spikeState: get(planningSearch, 'spikeState', SPIKED_STATE.NOT_SPIKED),
-            fulltext: filterKeyword,
-            onlyFuture: onlyFuture,
-        };
-
-        return params;
     }
 );
 
