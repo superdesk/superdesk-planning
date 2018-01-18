@@ -302,12 +302,18 @@ export const expectActions = (itemActions, expectedActions) => {
     }
 };
 
-export const waitFor = (test, delay = 50) => (
-    new Promise((resolve) => {
+export const waitFor = (test, delay = 50, maxTries = 100) => (
+    new Promise((resolve, reject) => {
+        let tries = 0;
+
         const interval = setInterval(() => {
+            tries += 1;
+
             if (test()) {
                 clearInterval(interval);
                 resolve();
+            } else if (tries >= maxTries) {
+                reject('waitFor: Maximum retries exceeded');
             }
         }, delay);
     })

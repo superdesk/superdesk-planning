@@ -8,10 +8,12 @@ import {getErrorMessage, getItemType} from '../utils';
 import {get} from 'lodash';
 import {MODALS} from '../constants';
 
+import * as selectors from '../selectors';
+
 const lockAndEdit = (item) => (
     (dispatch, getState, {notify}) => (
         !get(item, '_id') ?
-            dispatch(self.edit(item)) && Promise.resolve(item) :
+            dispatch(self.openEditor(item)) && Promise.resolve(item) :
             dispatch(locks.lock(item))
                 .then((lockedItem) => {
                     // Restore the item type, as the lock endpoint does not provide this
@@ -23,7 +25,7 @@ const lockAndEdit = (item) => (
                         dispatch(self.closePreview());
                     }
 
-                    dispatch(self.edit(lockedItem));
+                    dispatch(self.openEditor(lockedItem));
                     return Promise.resolve(lockedItem);
                 }, (error) => {
                     notify.error(
@@ -40,7 +42,20 @@ const unlockAndCancel = (item) => (
         if (item) {
             dispatch(locks.unlock(item));
         }
-        dispatch(self.cancel());
+        dispatch(self.closeEditor());
+    }
+);
+
+const unlockAndCloseEditor = (item) => (
+    (dispatch, getState) => {
+        const currentEditId = selectors.forms.currentItemId(getState());
+
+        if (item) {
+            dispatch(locks.unlock(item));
+            if (currentEditId === get(item, '_id')) {
+                dispatch(self.closeEditor());
+            }
+        }
     }
 );
 
@@ -126,12 +141,14 @@ const openConfirmationModal = ({title, body, okText, showIgnore, action, ignore}
     )
 );
 
-const edit = (item) => ({
-    type: MAIN.ACTIONS.EDIT,
+const openEditor = (item) => ({
+    type: MAIN.ACTIONS.OPEN_EDITOR,
     payload: item
 });
 
-const cancel = () => self.edit(null);
+const closeEditor = () => ({
+    type: MAIN.ACTIONS.CLOSE_EDITOR
+});
 
 const preview = (item) => ({
     type: MAIN.ACTIONS.PREVIEW,
@@ -189,12 +206,13 @@ const self = {
     save,
     unpublish,
     openCancelModal,
-    edit,
-    cancel,
+    openEditor,
+    closeEditor,
     preview,
     filter,
     openConfirmationModal,
     closePreview,
+    unlockAndCloseEditor,
 };
 
 export default self;

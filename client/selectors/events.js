@@ -3,6 +3,7 @@ import {get, sortBy} from 'lodash';
 import moment from 'moment';
 import {storedPlannings, currentPlanning} from './planning';
 import {agendas} from './general';
+import {currentItem} from './forms';
 
 export const storedEvents = (state) =>
     get(state, 'events.events', {})
@@ -103,9 +104,7 @@ export const planningWithEventDetails = createSelector(
     (item, events) => item && events[item.event_item]
 );
 
-const editItem = (state) => get(state, 'main.editItem', null);
-
 export const planningEditAssociatedEvent = createSelector(
-    [editItem, storedEvents],
+    [currentItem, storedEvents],
     (item, events) => item && events[item.event_item]
 );

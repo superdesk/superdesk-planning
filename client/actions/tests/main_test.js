@@ -20,24 +20,21 @@ describe('actions.main', () => {
         data = store.data;
     });
 
-    it('edit', () => {
-        store.dispatch(main.edit(data.events[0]));
+    it('openEditor', () => {
+        store.dispatch(main.openEditor(data.events[0]));
 
         expect(store.dispatch.callCount).toBe(1);
         expect(store.dispatch.args[0]).toEqual([{
-            type: 'MAIN_EDIT',
+            type: 'MAIN_OPEN_EDITOR',
             payload: data.events[0]
         }]);
     });
 
-    it('cancel', () => {
-        store.dispatch(main.cancel());
+    it('closeEditor', () => {
+        store.dispatch(main.closeEditor());
 
         expect(store.dispatch.callCount).toBe(1);
-        expect(store.dispatch.args[0]).toEqual([{
-            type: 'MAIN_EDIT',
-            payload: null
-        }]);
+        expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_CLOSE_EDITOR'}]);
     });
 
     describe('filter', () => {
@@ -154,7 +151,7 @@ describe('actions.main', () => {
 
     describe('lockAndEdit', () => {
         beforeEach(() => {
-            sinon.spy(main, 'edit');
+            sinon.spy(main, 'openEditor');
             sinon.spy(main, 'closePreview');
             sinon.stub(locks, 'lock').callsFake((item) => Promise.resolve({
                 ...item,
@@ -163,25 +160,25 @@ describe('actions.main', () => {
         });
 
         afterEach(() => {
-            restoreSinonStub(main.edit);
+            restoreSinonStub(main.openEditor);
             restoreSinonStub(main.closePreview);
             restoreSinonStub(locks.lock);
         });
 
-        it('calls main.edit when called with a new item', (done) => (
+        it('calls main.openEditor when called with a new item', (done) => (
             store.test(done, main.lockAndEdit({test: 'data'}))
                 .then((item) => {
                     expect(item).toEqual({test: 'data'});
 
                     expect(locks.lock.callCount).toBe(0);
-                    expect(main.edit.callCount).toBe(1);
-                    expect(main.edit.args[0]).toEqual([{test: 'data'}]);
+                    expect(main.openEditor.callCount).toBe(1);
+                    expect(main.openEditor.args[0]).toEqual([{test: 'data'}]);
 
                     done();
                 })
         ));
 
-        it('calls locks.lock then main.edit when called with an existing item', (done) => (
+        it('calls locks.lock then main.openEditor when called with an existing item', (done) => (
             store.test(done, main.lockAndEdit(data.events[0]))
                 .then((item) => {
                     expect(item).toEqual(data.events[0]);
@@ -194,8 +191,8 @@ describe('actions.main', () => {
 
                     expect(main.closePreview.callCount).toBe(0);
 
-                    expect(main.edit.callCount).toBe(1);
-                    expect(main.edit.args[0]).toEqual([data.events[0]]);
+                    expect(main.openEditor.callCount).toBe(1);
+                    expect(main.openEditor.args[0]).toEqual([data.events[0]]);
 
                     done();
                 })
@@ -216,8 +213,8 @@ describe('actions.main', () => {
 
                     expect(main.closePreview.callCount).toBe(1);
 
-                    expect(main.edit.callCount).toBe(1);
-                    expect(main.edit.args[0]).toEqual([data.events[1]]);
+                    expect(main.openEditor.callCount).toBe(1);
+                    expect(main.openEditor.args[0]).toEqual([data.events[1]]);
 
                     done();
                 });

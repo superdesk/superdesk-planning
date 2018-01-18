@@ -16,6 +16,7 @@ import {Tabs as NavTabs} from '../UI/Nav';
 import {SidePanel, Content} from '../UI/SidePanel';
 
 import {EditorHeader} from './EditorHeader';
+import {Autosave} from '../';
 
 export class EditorComponent extends React.Component {
     constructor(props) {
@@ -123,6 +124,12 @@ export class EditorComponent extends React.Component {
 
         return (
             <SidePanel shadowRight={true}>
+                <Autosave
+                    formName={this.props.itemType}
+                    initialValues={cloneDeep(this.props.item)}
+                    currentValues={cloneDeep(this.state.diff)}
+                    change={this.onChangeHandler}
+                />
                 <EditorHeader
                     item={this.props.item}
                     onSave={this.onSave}
@@ -175,7 +182,7 @@ EditorComponent.propTypes = {
 };
 
 const mapDispatchToProps = (dispatch) => ({
-    minimize: () => dispatch(actions.main.cancel()),
+    minimize: () => dispatch(actions.main.closeEditor()),
 });
 
 export const Editor = connect(null, mapDispatchToProps)(EditorComponent);

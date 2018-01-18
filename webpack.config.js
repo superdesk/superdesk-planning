@@ -11,6 +11,7 @@ module.exports = {
         modules: [
             __dirname,
             path.join(__dirname, 'client'),
+            path.join(__dirname, 'node_modules/superdesk-core'),
             path.join(__dirname, 'node_modules/superdesk-core/styles/sass'),
             'node_modules'
         ],
