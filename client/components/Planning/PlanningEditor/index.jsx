@@ -1,10 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get} from 'lodash';
+import {get, cloneDeep} from 'lodash';
 import * as selectors from '../../../selectors';
 
-import {isItemPublic, gettext, getItemInArrayById} from '../../../utils';
+import {isItemPublic, gettext, getItemInArrayById, planningUtils} from '../../../utils';
 
 import {ContentBlock} from '../../UI/SidePanel';
 import {
@@ -20,6 +20,8 @@ import {ToggleBox} from '../../UI';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
 import {CoverageArrayInput} from '../../Coverages';
 import {EventMetadata} from '../../Events';
+import {ITEM_TYPE} from '../../../constants';
+import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
 export class PlanningEditorComponent extends React.Component {
     constructor(props) {
@@ -27,6 +29,63 @@ export class PlanningEditorComponent extends React.Component {
 
         this.dom = {slugline: null};
         this.onChange = this.onChange.bind(this);
+        this.createNewPlanningFromNewsItem = this.createNewPlanningFromNewsItem.bind(this);
+    }
+
+    componentWillMount() {
+        // If we are creating a new planning item for 'add-to-planning'
+        if (!this.props.addNewsItemToPlanning) {
+            return;
+        }
+
+        if (!get(this.props, 'item._id')) {
+            const newPlanning = this.createNewPlanningFromNewsItem();
+
+            this.props.onChangeHandler(null, newPlanning);
+        } else if (get(this.props, 'item._addNewCoverage')) {
+            let dupItem = cloneDeep(this.props.item);
+
+            dupItem.coverages.push(planningUtils.createCoverageFromNewsItem(
+                this.props.addNewsItemToPlanning,
+                this.props.newsCoverageStatus,
+                this.props.desk,
+                this.props.user,
+                this.props.contentTypes));
+
+            delete dupItem._addedNewCoverage;
+
+            // reset the object to trigger a save
+            this.props.onChangeHandler(null, dupItem);
+        }
+    }
+
+    createNewPlanningFromNewsItem() {
+        const {addNewsItemToPlanning} = this.props;
+        const newCoverage = planningUtils.createCoverageFromNewsItem(
+            this.props.addNewsItemToPlanning,
+            this.props.newsCoverageStatus,
+            this.props.desk,
+            this.props.user,
+            this.props.contentTypes);
+
+        let newPlanning = {
+            _type: ITEM_TYPE.PLANNING,
+            slugline: addNewsItemToPlanning.slugline,
+            ednote: get(addNewsItemToPlanning, 'ednote'),
+            subject: get(addNewsItemToPlanning, 'subject'),
+            anpa_category: get(addNewsItemToPlanning, 'anpa_category'),
+            urgency: get(addNewsItemToPlanning, 'urgency'),
+            description_text: stripHtmlRaw(
+                get(addNewsItemToPlanning, 'abstract', get(addNewsItemToPlanning, 'headline', ''))
+            ),
+            coverages: [newCoverage],
+        };
+
+        if (get(addNewsItemToPlanning, 'flags.marked_for_not_publication')) {
+            newPlanning.flags = {marked_for_not_publication: true};
+        }
+
+        return newPlanning;
     }
 
     onChange(field, value) {
@@ -34,6 +93,14 @@ export class PlanningEditorComponent extends React.Component {
             this.props.onChangeHandler(field, value.map((agenda) => agenda._id));
         } else if (field === 'urgency') {
             this.props.onChangeHandler(field, get(value, 'qcode') || null);
+        } else if (field === 'coverages' && this.props.addNewsItemToPlanning) {
+            value[value.length - 1] = planningUtils.createCoverageFromNewsItem(
+                this.props.addNewsItemToPlanning,
+                this.props.newsCoverageStatus,
+                this.props.desk,
+                this.props.user,
+                this.props.contentTypes);
+            this.props.onChangeHandler(field, value);
         } else {
             this.props.onChangeHandler(field, value);
         }
@@ -63,6 +130,8 @@ export class PlanningEditorComponent extends React.Component {
             coverageProviders,
             priorities,
             keywords,
+            addNewsItemToPlanning,
+            currentWorkspace,
         } = this.props;
 
         const isPublic = isItemPublic(item);
@@ -74,6 +143,22 @@ export class PlanningEditorComponent extends React.Component {
 
         const urgencyQcode = get(diff, 'urgency') || null;
         const urgency = getItemInArrayById(urgencies, urgencyQcode, 'qcode');
+        const existingPlanning = !!get(diff, '_id');
+
+        // Read-only if
+        // 1 - it is supposed to be readOnly by parernt props
+        // 2 - for add-to-planning and existing planning item
+        const updatedReadOnly = readOnly || (!!addNewsItemToPlanning && existingPlanning);
+
+        let maxCoverageCount = 0;
+
+        if (addNewsItemToPlanning) {
+            if (!existingPlanning) {
+                maxCoverageCount = 1;
+            } else {
+                maxCoverageCount = get(item, 'coverages.length', 0) + 1;
+            }
+        }
 
         return (
             <div className="planning-editor">
@@ -90,7 +175,7 @@ export class PlanningEditorComponent extends React.Component {
                             value={get(diff, 'slugline', '')}
                             onChange={this.onChange}
                             refNode={(node) => this.dom.slugline = node}
-                            readOnly={readOnly}
+                            readOnly={updatedReadOnly}
                         />
                     </Row>
 
@@ -100,7 +185,7 @@ export class PlanningEditorComponent extends React.Component {
                             label="Description"
                             value={get(diff, 'description_text', '')}
                             onChange={this.onChange}
-                            readOnly={readOnly}
+                            readOnly={updatedReadOnly}
                         />
                     </Row>
 
@@ -110,7 +195,7 @@ export class PlanningEditorComponent extends React.Component {
                             label="Internal Note"
                             value={get(diff, 'internal_note', '')}
                             onChange={this.onChange}
-                            readOnly={readOnly}
+                            readOnly={updatedReadOnly}
                         />
                     </Row>
 
@@ -122,7 +207,7 @@ export class PlanningEditorComponent extends React.Component {
                             onChange={this.onChange}
                             options={enabledAgendas}
                             valueKey="_id"
-                            readOnly={readOnly}
+                            readOnly={updatedReadOnly}
                         />
                     </Row>
 
@@ -133,7 +218,7 @@ export class PlanningEditorComponent extends React.Component {
                                 label="Ed Note"
                                 value={get(diff, 'ednote', '')}
                                 onChange={this.onChange}
-                                readOnly={readOnly}
+                                readOnly={updatedReadOnly}
                             />
                         </Row>
 
@@ -144,7 +229,7 @@ export class PlanningEditorComponent extends React.Component {
                                 value={get(diff, 'anpa_category', [])}
                                 onChange={this.onChange}
                                 options={categories}
-                                readOnly={readOnly}
+                                readOnly={updatedReadOnly}
                             />
                         </Row>
 
@@ -155,7 +240,7 @@ export class PlanningEditorComponent extends React.Component {
                                 value={get(diff, 'subject', [])}
                                 onChange={this.onChange}
                                 options={subjects}
-                                readOnly={readOnly}
+                                readOnly={updatedReadOnly}
                             />
                         </Row>
 
@@ -165,7 +250,7 @@ export class PlanningEditorComponent extends React.Component {
                                 label="Urgency"
                                 value={urgency}
                                 onChange={this.onChange}
-                                readOnly={readOnly}
+                                readOnly={updatedReadOnly}
                                 options={urgencies}
                                 iconName="urgency-label"
                                 labelLeft={true}
@@ -178,7 +263,7 @@ export class PlanningEditorComponent extends React.Component {
                                 label="Not for Publication"
                                 value={get(diff, 'flags.marked_for_not_publication')}
                                 onChange={this.onChange}
-                                readOnly={readOnly || isPublic}
+                                readOnly={updatedReadOnly || isPublic}
                                 labelLeft={true}
                             />
                         </Row>
@@ -215,6 +300,10 @@ export class PlanningEditorComponent extends React.Component {
                     priorities={priorities}
                     keywords={keywords}
                     readOnly={readOnly}
+                    maxCoverageCount={maxCoverageCount}
+                    addOnly={!!addNewsItemToPlanning && existingPlanning}
+                    originalCount={get(item, 'coverages', []).length}
+                    currentWorkspace={currentWorkspace}
                 />
 
             </div>
@@ -242,6 +331,10 @@ PlanningEditorComponent.propTypes = {
     coverageProviders: PropTypes.array,
     priorities: PropTypes.array,
     keywords: PropTypes.array,
+    addNewsItemToPlanning: PropTypes.object,
+    desk: PropTypes.string,
+    user: PropTypes.string,
+    currentWorkspace: PropTypes.string,
 };
 
 PlanningEditorComponent.defaultProps = {readOnly: false};
@@ -262,6 +355,9 @@ const mapStateToProps = (state) => ({
     priorities: selectors.getAssignmentPriorities(state),
     keywords: selectors.getKeywords(state),
     event: selectors.events.planningEditAssociatedEvent(state),
+    desk: selectors.getCurrentDeskId(state),
+    user: selectors.getCurrentUserId(state),
+    currentWorkspace: selectors.getCurrentWorkspace(state),
 });
 
 export const PlanningEditor = connect(mapStateToProps)(PlanningEditorComponent);

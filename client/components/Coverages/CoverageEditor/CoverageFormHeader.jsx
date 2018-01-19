@@ -30,6 +30,7 @@ export class CoverageFormHeader extends React.Component {
             desks,
             coverageProviders,
             priorities,
+            disableDeskSelection,
         } = this.props;
 
         const isExistingCoverage = !!get(value, 'coverage_id');
@@ -139,6 +140,7 @@ export class CoverageFormHeader extends React.Component {
                         onClose={this.togglePopup}
                         target="btn--hollow"
                         priorityPrefix="assigned_to."
+                        disableDeskSelection={disableDeskSelection}
                     />
                 )}
             </Item>
@@ -154,4 +156,5 @@ CoverageFormHeader.propTypes = {
     desks: PropTypes.array,
     coverageProviders: PropTypes.array,
     priorities: PropTypes.array,
+    disableDeskSelection: PropTypes.bool,
 };

@@ -83,7 +83,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
         const {initialValues, dateFormat, timeFormat, maxRecurrentEvents} = this.props;
 
         return (
-            <div className="ItemActionConfirmation">
+            <div className="MetadataView">
                 {initialValues.slugline && (
                     <Row
                         label={gettext('Slugline')}

@@ -356,6 +356,47 @@ const canEditCoverage = (coverage) => (
     get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
 );
 
+const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, desk, user, contentTypes) => {
+    let newCoverage = {
+        planning: {},
+        news_coverage_status: newsCoverageStatus[0]
+    };
+
+    // Add fields from news item to the coverage
+    const contentType = contentTypes.find(
+        (ctype) => get(ctype, 'content item type') === addNewsItemToPlanning.type
+    );
+
+    newCoverage.planning = {
+        g2_content_type: get(contentType, 'qcode', PLANNING.G2_CONTENT_TYPE.TEXT),
+        slugline: get(addNewsItemToPlanning, 'slugline', ''),
+        ednote: get(addNewsItemToPlanning, 'ednote', ''),
+    };
+
+    if (get(addNewsItemToPlanning, 'genre')) {
+        newCoverage.planning.genre = addNewsItemToPlanning.genre;
+        self.convertGenreToObject(newCoverage);
+    }
+
+    // Add assignment to coverage
+    if (get(addNewsItemToPlanning, 'state') === 'published') {
+        newCoverage.planning.scheduled = addNewsItemToPlanning._updated;
+        newCoverage.assigned_to = {
+            desk: addNewsItemToPlanning.task.desk,
+            user: addNewsItemToPlanning.task.user,
+        };
+    } else {
+        newCoverage.planning.scheduled = moment().endOf('day');
+        newCoverage.assigned_to = {
+            desk: desk,
+            user: user,
+        };
+    }
+
+    newCoverage.assigned_to.priority = ASSIGNMENTS.DEFAULT_PRIORITY;
+    return newCoverage;
+};
+
 const getCoverageReadOnlyFields = (
     readOnly,
     newsCoverageStatus,
@@ -503,6 +544,7 @@ const self = {
     getPlanningActions,
     isNotForPublication,
     getPlanningByDate,
+    createCoverageFromNewsItem,
 };
 
 export default self;

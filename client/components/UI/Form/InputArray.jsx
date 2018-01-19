@@ -11,7 +11,10 @@ export const InputArray = ({
     addButtonText,
     component,
     defaultValue,
+    maxCount,
     readOnly,
+    addOnly,
+    originalCount,
     ...props
 }) => {
     const add = () => {
@@ -26,6 +29,8 @@ export const InputArray = ({
 
     const Component = component;
 
+    const showAddButton = maxCount ? value.length < maxCount : true;
+
     return (
         <Row>
             {value.map((val, index) => (
@@ -35,12 +40,12 @@ export const InputArray = ({
                     onChange={onChange}
                     value={val}
                     remove={remove.bind(null, index)}
-                    readOnly={readOnly}
+                    readOnly={readOnly || (addOnly && index < originalCount)}
                     {...props}
                 />
             ))}
 
-            {!readOnly && (
+            {!readOnly && showAddButton && (
                 <button
                     className="btn btn-default"
                     onClick={add}
@@ -61,6 +66,9 @@ InputArray.propTypes = {
     addButtonText: PropTypes.string.isRequired,
     component: PropTypes.func.isRequired,
     defaultValue: PropTypes.any,
+    maxCount: PropTypes.number,
+    addOnly: PropTypes.bool,
+    originalCount: PropTypes.number,
 
     hint: PropTypes.string,
     message: PropTypes.string,
@@ -79,4 +87,5 @@ InputArray.defaultProps = {
     readOnly: false,
     boxed: false,
     noMargin: true,
+    maxCount: 0,
 };

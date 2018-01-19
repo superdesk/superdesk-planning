@@ -7,7 +7,6 @@ import * as selectors from '../../selectors';
 import {PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, ASSIGNMENTS, MAIN} from '../../constants';
 import * as actions from '../index';
 import {get, orderBy} from 'lodash';
-import {change} from 'redux-form';
 import moment from 'moment';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
@@ -522,7 +521,7 @@ const unpublish = (item) => (
 );
 
 const saveAndPublishPlanning = (item, save = true, publish = false) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (!save) {
             if (publish) {
                 return dispatch(planningApi.publish(item));
@@ -531,14 +530,13 @@ const saveAndPublishPlanning = (item, save = true, publish = false) => (
             return Promise.resolve(item);
         }
 
-        return dispatch(planningApi.save(item))
-            .then((savedItem) => {
-                if (publish) {
-                    return dispatch(planningApi.publish(savedItem));
-                }
+        const modalType = selectors.getCurrentModalType(getState());
 
-                return Promise.resolve(savedItem);
-            }, (error) => Promise.reject(error));
+        if (modalType === MODALS.ADD_TO_PLANNING) {
+            return dispatch(self.saveFromAuthoring(item, publish));
+        } else {
+            return dispatch(self.saveFromPlanning(item, publish));
+        }
     }
 );
 
@@ -678,38 +676,39 @@ function deselectAll() {
     return {type: PLANNING.ACTIONS.DESELECT_ALL};
 }
 
-const onAddCoverageClick = (plan = undefined) => (
+const onAddCoverageClick = (item, addNewsItemToPlanning = null) => (
     (dispatch, getState, {notify}) => {
-        const modalType = selectors.getCurrentModalType(getState());
+        const state = getState();
+        const lockedItems = selectors.locks.getLockedItems(state);
+        let promise;
 
-        if (modalType !== MODALS.ADD_TO_PLANNING)
-            return Promise.resolve();
+        // If a differet planning item is already open in editor, unlock that.
+        const currentItem = selectors.forms.currentItem(state);
 
-        const modalProps = selectors.getCurrentModalProps(getState());
-
-        if (!get(modalProps, 'newsItem')) {
-            notify.error('No content item provided.');
-            return Promise.reject('No content item provided.');
+        if (currentItem && get(item, '_id') !== get(currentItem, '_id')) {
+            dispatch(locks.unlock(currentItem));
         }
 
-        const newsItem = modalProps.newsItem;
-        const currentPlanning = selectors.getCurrentPlanning(getState());
-
-        // Unlock the currentPlanning if it exists
-        if (!plan) {
-            plan = currentPlanning; // eslint-disable-line no-param-reassign
-        } else if (currentPlanning) {
-            dispatch(planningApi.unlock(currentPlanning));
+        // If it is an existing item and the item is not locked
+        // then lock the item, otherwise return the existing item
+        if (get(item, '_id') && !lockUtils.getLock(item, lockedItems)) {
+            promise = dispatch(locks.lock(item));
+        } else {
+            promise = Promise.resolve(item);
         }
 
-        return dispatch(self.openEditor(plan, false))
-            .then((lockedItem) => {
-                const coverageIndex = get(lockedItem, 'coverages.length', 0);
-                const coverage = self.createCoverageFromNewsItem(newsItem, getState);
+        return promise.then((lockedItem) => {
+            lockedItem._addNewCoverage = true;
+            dispatch(planningApi.receivePlannings([lockedItem]));
+            dispatch(main.openEditor(lockedItem));
+            return Promise.resolve(lockedItem);
+        }, (error) => {
+            notify.error(
+                getErrorMessage(error, 'Failed to lock the item')
+            );
 
-                dispatch(change('planning', `coverages[${coverageIndex}]`, coverage));
-                return Promise.resolve(lockedItem);
-            });
+            return Promise.reject(error);
+        });
     }
 );
 
@@ -830,6 +829,13 @@ const saveFromAuthoring = (plan, publish = false) => (
                         notify.success('Content linked to the planning item.');
                         $scope.resolve();
                         dispatch(actions.actionInProgress(false));
+
+                        // If a new planning item was created, close editor
+                        // As it is too early for scope.destroy() watcher to get hold of it
+                        if (!get(plan, '_id')) {
+                            return dispatch(main.closeEditor(newPlan));
+                        }
+
                         return Promise.resolve(newPlan);
                     }, (error) => {
                         notify.error(

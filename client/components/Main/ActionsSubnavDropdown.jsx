@@ -4,21 +4,11 @@ import {gettext} from '../../utils';
 import {Dropdown} from '../UI/SubNav';
 
 export const ActionsSubnavDropdown = (props) => {
-    const items = [
-        {
-            label: 'Action 1',
-            action: () => { /* no-op */ },
-        },
-        {
-            label: 'Action 2',
-            action: () => { /* no-op */ },
-        },
-        {divider: true},
-        {
+    const items = props.disableAgendaManagement ? [] :
+        [{
             label: gettext('Manage agendas'),
             action: props.openAgendas,
-        },
-    ];
+        }];
 
     return (
         <Dropdown
@@ -30,4 +20,7 @@ export const ActionsSubnavDropdown = (props) => {
     );
 };
 
-ActionsSubnavDropdown.propTypes = {openAgendas: PropTypes.func};
+ActionsSubnavDropdown.propTypes = {
+    openAgendas: PropTypes.func,
+    disableAgendaManagement: PropTypes.bool,
+};

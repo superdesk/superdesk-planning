@@ -1,5 +1,5 @@
 import * as actions from '../actions';
-import {getCurrentPlanning} from '../selectors';
+import {currentItem} from '../selectors/forms';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
@@ -7,9 +7,10 @@ import {ModalsContainer} from '../components';
 import {locks} from '../actions';
 import {get} from 'lodash';
 import {registerNotifications, getErrorMessage} from '../utils';
-import {WORKSPACE, MODALS} from '../constants';
+import {WORKSPACE, MODALS, MAIN} from '../constants';
 
 AddToPlanningController.$inject = [
+    '$element',
     '$scope',
     '$location',
     'sdPlanningStore',
@@ -25,6 +26,7 @@ AddToPlanningController.$inject = [
 ];
 
 export function AddToPlanningController(
+    $element,
     $scope,
     $location,
     sdPlanningStore,
@@ -117,28 +119,17 @@ export function AddToPlanningController(
                     registerNotifications($scope, store);
 
                     $q.all({
-                        agendas: store.dispatch(actions.fetchAgendas())
-                            .then(() => {
-                                if ($location.search().agenda) {
-                                    return store.dispatch(actions.selectAgenda($location.search().agenda));
-                                }
-
-                                return store.dispatch(
-                                    actions.fetchSelectedAgendaPlannings()
-                                );
-                            }),
-
+                        data: store.dispatch(actions.main.filter(MAIN.FILTERS.PLANNING)),
                         locks: store.dispatch(locks.loadAllLocks()),
+                        agendas: store.dispatch(actions.fetchAgendas()),
                     })
                         .then(() => {
                             ReactDOM.render(
                                 <Provider store={store}>
                                     <ModalsContainer/>
                                 </Provider>,
-                                document.getElementById('react-placeholder')
+                                $element.get(0)
                             );
-
-                            store.dispatch(actions.planning.ui.openAdvancedSearch());
 
                             store.dispatch(actions.showModal({
                                 modalType: MODALS.ADD_TO_PLANNING,
@@ -150,24 +141,25 @@ export function AddToPlanningController(
                             }));
 
                             $scope.$on('$destroy', () => {
-                                store.dispatch(actions.planning.ui.closeEditor(
-                                    getCurrentPlanning(store.getState())
-                                ))
-                                    .then(() => {
-                                        store.dispatch(actions.hideModal());
-                                        $timeout(() => {
-                                            store.dispatch(actions.resetStore());
-                                        }, 1000);
-                                    });
+                                const planningEdited = currentItem(store.getState());
+
+                                if (get(planningEdited, '_id')) {
+                                    store.dispatch(actions.main.unlockAndCancel(planningEdited))
+                                        .then(() => {
+                                            store.dispatch(actions.hideModal());
+                                            $timeout(() => {
+                                                store.dispatch(actions.resetStore());
+                                            }, 1000);
+                                        });
+                                }
 
                                 // Only unlock the item if it was locked when launching this modal
                                 if (get(newsItem, 'lock_session', null) !== null &&
-                        get(newsItem, 'lock_action', 'edit') === 'add_to_planning'
-                                ) {
+                                    get(newsItem, 'lock_action', 'edit') === 'add_to_planning') {
                                     lock.unlock(newsItem);
                                 }
 
-                                ReactDOM.unmountComponentAtNode(document.getElementById('react-placeholder'));
+                                ReactDOM.unmountComponentAtNode($element.get(0));
                             });
 
                             $scope.$on('item:unlock', (_e, data) => {

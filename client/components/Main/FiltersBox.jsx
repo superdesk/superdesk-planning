@@ -9,21 +9,29 @@ import {StretchBar} from '../UI/SubNav';
 
 import {MAIN} from '../../constants';
 
-export const FiltersBox = ({activeFilter, setFilter, agendas, selectAgenda, currentAgendaId}) => {
-    const filters = [
-        {
-            label: gettext('Events & Planning'),
-            filter: MAIN.FILTERS.COMBINED,
-        },
-        {
-            label: gettext('Events only'),
-            filter: MAIN.FILTERS.EVENTS,
-        },
-        {
-            label: gettext('Planning only'),
-            filter: MAIN.FILTERS.PLANNING,
-        },
-    ];
+export const FiltersBox = ({
+    activeFilter,
+    setFilter,
+    agendas,
+    selectAgenda,
+    currentAgendaId,
+    showFilters,
+}) => {
+    const filters = !showFilters ? [] :
+        [
+            {
+                label: gettext('Events & Planning'),
+                filter: MAIN.FILTERS.COMBINED,
+            },
+            {
+                label: gettext('Events only'),
+                filter: MAIN.FILTERS.EVENTS,
+            },
+            {
+                label: gettext('Planning only'),
+                filter: MAIN.FILTERS.PLANNING,
+            },
+        ];
 
     return (
         <StretchBar>
@@ -42,7 +50,7 @@ export const FiltersBox = ({activeFilter, setFilter, agendas, selectAgenda, curr
             {activeFilter === MAIN.FILTERS.PLANNING && (
                 <Spacer />
             )}
-            {activeFilter === MAIN.FILTERS.PLANNING && (
+            {(activeFilter === MAIN.FILTERS.PLANNING) && (
                 <AgendaSubnavDropdown
                     agendas={agendas}
                     selectAgenda={selectAgenda}
@@ -59,4 +67,7 @@ FiltersBox.propTypes = {
     agendas: PropTypes.array.isRequired,
     selectAgenda: PropTypes.func.isRequired,
     currentAgendaId: PropTypes.string.isRequired,
+    showFilters: PropTypes.bool,
 };
+
+FiltersBox.defaultProps = {showFilters: true};

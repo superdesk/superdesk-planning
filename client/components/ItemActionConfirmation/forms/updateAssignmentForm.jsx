@@ -11,6 +11,7 @@ import {getItemInArrayById, getUsersForDesk, getDesksForUser, assignmentUtils} f
 import '../style.scss';
 import {FORM_NAMES, ASSIGNMENTS, TOOLTIPS} from '../../../constants';
 import {ChainValidators, RequiredFieldsValidatorFactory} from '../../../validators';
+import {Row} from '../../UI/Preview';
 
 class Component extends React.Component {
     constructor(props) {
@@ -72,9 +73,11 @@ class Component extends React.Component {
             {
                 key: 'Slugline:',
                 value: (
-                    <span className="ItemActionConfirmation__metadata__slugline">
-                        { initialValues.planning.slugline }
-                    </span>
+                    <Row
+                        value={initialValues.planning.slugline || ''}
+                        className="slugline"
+                        noPadding={true}
+                    />
                 ),
             },
             {
@@ -111,7 +114,7 @@ class Component extends React.Component {
                 {metaData.map((data) => (
                     <div key={data.key}
                         className="form__row sd-line-input sd-line-input--label-left
-                         ItemActionConfirmation__metadata__dataRow">
+                         MetadataView__metadata__dataRow">
                         <label className="sd-line-input__label sd-line-input--label-left--noMaxWdth">{data.key}</label>
                         <label className="sd-line-input__label sd-line-input--label-left--noMaxWdth">
                             {data.value}
@@ -129,9 +132,11 @@ class Component extends React.Component {
             {
                 key: 'Slugline:',
                 value: (
-                    <span className="ItemActionConfirmation__metadata__slugline">
-                        { initialValues.planning.slugline }
-                    </span>),
+                    <Row
+                        value={initialValues.planning.slugline || ''}
+                        className="slugline"
+                        noPadding={true}
+                    />),
             },
             {
                 key: 'Priority:',
@@ -166,7 +171,7 @@ class Component extends React.Component {
                 {metaData.map((data) => (
                     <div key={data.key}
                         className="form__row sd-line-input sd-line-input--label-left
-                         ItemActionConfirmation__metadata__dataRow">
+                         MetadataView__metadata__dataRow">
                         <label className="sd-line-input__label sd-line-input--label-left--noMaxWdth">{data.key}</label>
                         <label className="sd-line-input__label sd-line-input--label-left--noMaxWdth">
                             {data.value}
@@ -282,9 +287,9 @@ class Component extends React.Component {
     }
 
     render() {
-        return (<div className="ItemActionConfirmation" >
+        return (<div className="MetadataView" >
             <form onSubmit={this.props.handleSubmit}>
-                <div className="ItemActionConfirmation__metadata">
+                <div className="MetadataView__metadata">
                     { this.getAssignmentDetails() }
                 </div>
                 {this.getAssignmentActions()}

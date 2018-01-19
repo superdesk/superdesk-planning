@@ -16,6 +16,7 @@ export const FiltersBar = (props) => (
             agendas={props.agendas}
             selectAgenda={props.selectAgenda}
             currentAgendaId={props.currentAgendaId}
+            showFilters={props.showFilters}
         />
     </SubNav>
 );
@@ -28,4 +29,8 @@ FiltersBar.propTypes = {
     agendas: PropTypes.array.isRequired,
     selectAgenda: PropTypes.func.isRequired,
     currentAgendaId: PropTypes.string.isRequired,
+    addNewsItemToPlanning: PropTypes.object,
+    showFilters: PropTypes.bool,
+    showAgendaSelection: PropTypes.bool,
+
 };

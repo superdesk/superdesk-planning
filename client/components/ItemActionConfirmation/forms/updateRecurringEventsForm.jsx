@@ -64,7 +64,7 @@ export class UpdateRecurringEventsComponent extends React.Component {
         const numEvents = this.state.relatedEvents.length + 1 - eventsInUse.length;
 
         return (
-            <div className="ItemActionConfirmation">
+            <div className="MetadataView">
                 {initialValues.slugline && (
                     <Row
                         label={gettext('Slugline')}
