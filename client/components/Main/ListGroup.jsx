@@ -19,7 +19,9 @@ export class ListGroup extends React.PureComponent {
             showRelatedPlannings,
             relatedPlanningsInList,
             onItemClick,
-            onDoubleClick
+            onDoubleClick,
+            currentWorkspace,
+            onAddCoverageClick
         } = this.props;
 
         return (
@@ -34,6 +36,7 @@ export class ListGroup extends React.PureComponent {
                             item: item,
                             onItemClick: onItemClick,
                             onDoubleClick: onDoubleClick,
+                            onAddCoverageClick: onAddCoverageClick.bind(null, item),
                             lockedItems: lockedItems,
                             dateFormat: dateFormat,
                             timeFormat: timeFormat,
@@ -43,6 +46,7 @@ export class ListGroup extends React.PureComponent {
                             activeFilter: activeFilter,
                             showRelatedPlannings: showRelatedPlannings,
                             relatedPlanningsInList: relatedPlanningsInList,
+                            currentWorkspace: currentWorkspace,
                             [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
                                 this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
                             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
@@ -97,6 +101,8 @@ ListGroup.propTypes = {
     activeFilter: PropTypes.string,
     showRelatedPlannings: PropTypes.func,
     relatedPlanningsInList: PropTypes.object,
+    currentWorkspace: PropTypes.string,
+    onAddCoverageClick: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

@@ -11,7 +11,7 @@ import {
     Editor,
     ListPanel
 } from './components/Main';
-import {ModalsContainer, WorkqueueContainer} from './components';
+import {WorkqueueContainer, ModalsContainer} from './components';
 
 import './planning.scss';
 
@@ -40,11 +40,24 @@ class PlanningApp extends React.Component {
     }
 
     onItemClick(item) {
-        this.props.preview(item);
-        this.setState({
-            previewOpen: true,
-            initialLoad: !this.state.previewOpen,
-        });
+        // If we are linking a news item - open it for edit
+        if (this.props.addNewsItemToPlanning) {
+            if (this.props.editItem) {
+                // Unlock this item and close editor first
+                return this.props.cancel(this.props.editItem).then(
+                    () => {
+                        this.props.edit(item);
+                    });
+            }
+
+            this.props.edit(item);
+        } else {
+            this.props.preview(item);
+            this.setState({
+                previewOpen: true,
+                initialLoad: !this.state.previewOpen,
+            });
+        }
     }
 
     closePreview() {
@@ -93,17 +106,38 @@ class PlanningApp extends React.Component {
             contentBlockFlags
         );
 
+        const {
+            groups,
+            edit,
+            addNewsItemToPlanning,
+            agendas,
+            lockedItems,
+            dateFormat,
+            timeFormat,
+            session,
+            privileges,
+            activeFilter,
+            currentWorkspace,
+            onAddCoverageClick,
+            showRelatedPlannings,
+            relatedPlanningsInList,
+            loadMore,
+
+        } = this.props;
+
         const listPanelProps = {
-            groups: this.props.groups,
+            groups: groups,
             onItemClick: this.onItemClick,
-            onDoubleClick: this.props.edit,
-            agendas: this.props.agendas,
-            lockedItems: this.props.lockedItems,
-            dateFormat: this.props.dateFormat,
-            timeFormat: this.props.timeFormat,
-            session: this.props.session,
-            privileges: this.props.privileges,
-            activeFilter: this.props.activeFilter,
+            onDoubleClick: edit,
+            agendas: agendas,
+            lockedItems: lockedItems,
+            dateFormat: dateFormat,
+            timeFormat: timeFormat,
+            session: session,
+            privileges: privileges,
+            activeFilter: activeFilter,
+            currentWorkspace: currentWorkspace,
+            onAddCoverageClick: onAddCoverageClick,
             [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
@@ -132,9 +166,9 @@ class PlanningApp extends React.Component {
                 this.props[PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName],
             [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
-            showRelatedPlannings: this.props.showRelatedPlannings,
-            relatedPlanningsInList: this.props.relatedPlanningsInList,
-            loadMore: this.props.loadMore
+            showRelatedPlannings: showRelatedPlannings,
+            relatedPlanningsInList: relatedPlanningsInList,
+            loadMore: loadMore
         };
 
         return (
@@ -147,6 +181,8 @@ class PlanningApp extends React.Component {
                         value={this.props.fullText}
                         search={this.props.search}
                         activeFilter={this.props.activeFilter}
+                        createPlanningOnly={!!addNewsItemToPlanning}
+                        disableAgendaManagement={!!addNewsItemToPlanning}
                     />
                     <FiltersBar
                         filterPanelOpen={this.state.filtersOpen}
@@ -156,16 +192,16 @@ class PlanningApp extends React.Component {
                         agendas={this.props.agendas}
                         selectAgenda={this.props.selectAgenda}
                         currentAgendaId={this.props.currentAgendaId}
+                        showFilters={!addNewsItemToPlanning}
                     />
                     <div className="sd-column-box--3">
                         <SearchPanel />
                         <ListPanel { ...listPanelProps } />
-                        <PreviewPanel
+                        {!addNewsItemToPlanning && (<PreviewPanel
                             item={this.props.previewItem}
                             edit={this.props.edit}
                             closePreview={this.closePreview}
-                            initialLoad={this.state.initialLoad}
-                        />
+                            initialLoad={this.state.initialLoad} />)}
                     </div>
                 </div>
                 <div className={editorClassName}>
@@ -179,11 +215,11 @@ class PlanningApp extends React.Component {
                         privileges={this.props.privileges}
                         lockedItems={this.props.lockedItems}
                         openCancelModal={this.props.openCancelModal}
+                        addNewsItemToPlanning={addNewsItemToPlanning}
                     />
                 </div>
-
+                {!addNewsItemToPlanning && <ModalsContainer />}
                 <WorkqueueContainer />
-                <ModalsContainer />
             </section>
         );
     }
@@ -208,6 +244,9 @@ PlanningApp.propTypes = {
     session: PropTypes.object,
     privileges: PropTypes.object,
     openAgendas: PropTypes.func,
+    onAddCoverageClick: PropTypes.func,
+    addNewsItemToPlanning: PropTypes.object,
+    currentWorkspace: PropTypes.string,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
@@ -247,10 +286,11 @@ const mapStateToProps = (state) => ({
     session: selectors.getSessionDetails(state),
     privileges: selectors.getPrivileges(state),
     relatedPlanningsInList: selectors.eventsPlanning.getRelatedPlanningsInList(state),
-    fullText: selectors.main.fullText(state)
+    fullText: selectors.main.fullText(state),
+    currentWorkspace: selectors.getCurrentWorkspace(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
     edit: (item) => dispatch(actions.main.lockAndEdit(item)),
     cancel: (item) => dispatch(actions.main.unlockAndCancel(item)),
     preview: (item) => dispatch(actions.main.preview(item)),
@@ -264,7 +304,8 @@ const mapDispatchToProps = (dispatch) => ({
     showRelatedPlannings: (event) => dispatch(actions.eventsPlanning.ui.showRelatedPlannings(event)),
     loadMore: (filterType) => dispatch(actions.main.loadMore(filterType)),
     search: (searchText) => dispatch(actions.main.search(searchText)),
-
+    onAddCoverageClick: (item) => dispatch(actions.planning.ui.onAddCoverageClick(
+        item, ownProps.addNewsItemToPlanning)),
     // Event Item actions:
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: (event) => dispatch(actions.duplicateEvent(event)),
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: (event) => dispatch(actions.addEventToCurrentAgenda(event)),

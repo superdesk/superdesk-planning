@@ -38,6 +38,7 @@ export class ListPanel extends React.Component {
             groups,
             onItemClick,
             onDoubleClick,
+            onAddCoverageClick,
             lockedItems,
             dateFormat,
             timeFormat,
@@ -46,7 +47,8 @@ export class ListPanel extends React.Component {
             privileges,
             activeFilter,
             showRelatedPlannings,
-            relatedPlanningsInList
+            relatedPlanningsInList,
+            currentWorkspace,
         } = this.props;
 
         return groups.length <= 0 ? (
@@ -65,6 +67,7 @@ export class ListPanel extends React.Component {
                         items: group.events,
                         onItemClick: onItemClick,
                         onDoubleClick: onDoubleClick,
+                        onAddCoverageClick: onAddCoverageClick,
                         lockedItems: lockedItems,
                         dateFormat: dateFormat,
                         timeFormat: timeFormat,
@@ -74,6 +77,7 @@ export class ListPanel extends React.Component {
                         activeFilter: activeFilter,
                         showRelatedPlannings: showRelatedPlannings,
                         relatedPlanningsInList: relatedPlanningsInList,
+                        currentWorkspace: currentWorkspace,
                         [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
                             this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
                         [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
@@ -127,6 +131,8 @@ ListPanel.propTypes = {
     showRelatedPlannings: PropTypes.func,
     relatedPlanningsInList: PropTypes.object,
     loadMore: PropTypes.func.isRequired,
+    currentWorkspace: PropTypes.string,
+    onAddCoverageClick: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

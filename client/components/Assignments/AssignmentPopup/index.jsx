@@ -46,6 +46,7 @@ export class AssignmentPopup extends React.Component {
             coverageProviders,
             priorities,
             priorityPrefix,
+            disableDeskSelection,
         } = this.props;
 
         const {diff} = this.state;
@@ -69,6 +70,7 @@ export class AssignmentPopup extends React.Component {
                         priorities={priorities}
                         priorityPrefix={priorityPrefix}
                         popupContainer={this.getPopupContainer}
+                        disableDeskSelection={disableDeskSelection}
                     />
                 </Content>
                 <Footer>
@@ -96,6 +98,7 @@ AssignmentPopup.propTypes = {
     coverageProviders: PropTypes.array,
     priorities: PropTypes.array,
     priorityPrefix: PropTypes.string,
+    disableDeskSelection: PropTypes.bool,
 };
 
 AssignmentPopup.defaultProps = {priorityPrefix: ''};

@@ -50,6 +50,7 @@ export class ListGroupItem extends React.Component {
             item,
             onItemClick,
             onDoubleClick,
+            onAddCoverageClick,
             lockedItems,
             dateFormat,
             timeFormat,
@@ -58,6 +59,7 @@ export class ListGroupItem extends React.Component {
             session,
             privileges,
             activeFilter,
+            currentWorkspace,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -102,6 +104,8 @@ export class ListGroupItem extends React.Component {
             ...itemProps,
             agendas: agendas,
             date: date,
+            currentWorkspace: currentWorkspace,
+            onAddCoverageClick: onAddCoverageClick,
             [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
             [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
@@ -167,6 +171,8 @@ ListGroupItem.propTypes = {
     activeFilter: PropTypes.string,
     showRelatedPlannings: PropTypes.func,
     relatedPlanningsInList: PropTypes.object,
+    currentWorkspace: PropTypes.string,
+    onAddCoverageClick: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

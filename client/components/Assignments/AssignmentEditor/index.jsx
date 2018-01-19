@@ -119,6 +119,7 @@ export class AssignmentEditor extends React.Component {
             coverageProviders,
             priorities,
             popupContainer,
+            disableDeskSelection,
         } = this.props;
 
         return (
@@ -133,6 +134,7 @@ export class AssignmentEditor extends React.Component {
                         labelField="name"
                         keyField="_id"
                         clearable={true}
+                        readOnly={disableDeskSelection}
                     />
                 </Row>
 
@@ -183,6 +185,7 @@ AssignmentEditor.propTypes = {
     priorities: PropTypes.array,
     priorityPrefix: PropTypes.string,
     fromCoverage: PropTypes.bool,
+    disableDeskSelection: PropTypes.bool,
     popupContainer: PropTypes.func,
 };
 

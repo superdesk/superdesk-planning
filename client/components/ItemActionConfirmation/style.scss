@@ -1,18 +1,5 @@
 
-.ItemActionConfirmation {
-    .metadata-view {
-        dl {
-            margin-top: 0;
-            > dt {
-                line-height: 20px;
-            }
-            > dd {
-                padding-left: 90px;
-                line-height: 20px;
-            }
-        }
-    }
-
+.MetadataView {
     .spacing {
         min-height: 75px;
     }
@@ -40,10 +27,6 @@
         time {
             color: #333;
             font-weight: normal;
-        }
-
-        &__slugline {
-            color: #005b7f !important;
         }
     }
 

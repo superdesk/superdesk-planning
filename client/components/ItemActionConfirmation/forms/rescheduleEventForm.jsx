@@ -122,7 +122,7 @@ export class RescheduleEventComponent extends React.Component {
         const numPlannings = this.state.relatedPlannings.length;
 
         return (
-            <div className="ItemActionConfirmation">
+            <div className="MetadataView">
                 {initialValues.slugline && (
                     <Row
                         label={gettext('Slugline')}

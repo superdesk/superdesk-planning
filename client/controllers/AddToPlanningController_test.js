@@ -69,7 +69,7 @@ describe('AddToPlanningController', () => {
         userList
     ) => {
         api.find = sinon.stub().returns($q.reject({}));
-        return AddToPlanningController(
+        return AddToPlanningController(null,
             scope, $location, sdPlanningStore, $q, notify,
             gettext, api, lock, session, userList
         )
@@ -98,7 +98,7 @@ describe('AddToPlanningController', () => {
         delete newsItem.subject;
         delete newsItem.anpa_category;
 
-        return AddToPlanningController(
+        return AddToPlanningController(null,
             scope, $location, sdPlanningStore, $q, notify,
             gettext, api, lock, session, userList
         )
@@ -123,7 +123,7 @@ describe('AddToPlanningController', () => {
         userList
     ) => {
         newsItem.assignment_id = 'as1';
-        return AddToPlanningController(
+        return AddToPlanningController(null,
             scope, $location, sdPlanningStore, $q, notify,
             gettext, api, lock, session, userList
         )
@@ -145,7 +145,7 @@ describe('AddToPlanningController', () => {
             session,
             userList
         ) => (
-            AddToPlanningController(
+            AddToPlanningController(null,
                 scope, $location, sdPlanningStore, $q, notify,
                 gettext, api, lock, session, userList
             )

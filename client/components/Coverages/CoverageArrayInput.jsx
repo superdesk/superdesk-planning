@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {ContentBlock} from '../UI/SidePanel';
 import {InputArray} from '../UI/Form';
 import {CoverageEditor} from './CoverageEditor';
+import {WORKSPACE} from '../../constants';
 
 export const CoverageArrayInput = ({
     field,
@@ -20,6 +21,10 @@ export const CoverageArrayInput = ({
     coverageProviders,
     priorities,
     keywords,
+    maxCoverageCount,
+    addOnly,
+    originalCount,
+    currentWorkspace,
     readOnly,
 }) => (
     <div>
@@ -48,7 +53,11 @@ export const CoverageArrayInput = ({
                 coverageProviders={coverageProviders}
                 priorities={priorities}
                 keywords={keywords}
+                disableDeskSelection={currentWorkspace === WORKSPACE.AUTHORING}
                 readOnly={readOnly}
+                maxCount={maxCoverageCount}
+                addOnly={addOnly}
+                originalCount={originalCount}
             />
         </ContentBlock>
     </div>
@@ -71,9 +80,14 @@ CoverageArrayInput.propTypes = {
     priorities: PropTypes.array,
     keywords: PropTypes.array,
     readOnly: PropTypes.bool,
+    maxCoverageCount: PropTypes.number,
+    addOnly: PropTypes.bool,
+    originalCount: PropTypes.number,
+    currentWorkspace: PropTypes.string,
 };
 
 CoverageArrayInput.defaultProps = {
     field: 'coverages',
     addButtonText: 'Add a coverage',
+    maxCoverageCount: 0,
 };

@@ -4,7 +4,7 @@ import {ITEM_TYPE} from '../../constants';
 import {EventEditor} from '../Events';
 import {PlanningEditor} from '../Planning';
 
-export const EditorContentTab = ({item, itemType, diff, onChangeHandler, readOnly}) => {
+export const EditorContentTab = ({item, itemType, diff, onChangeHandler, addNewsItemToPlanning, readOnly}) => {
     switch (itemType) {
     case ITEM_TYPE.EVENT:
         return (
@@ -22,6 +22,7 @@ export const EditorContentTab = ({item, itemType, diff, onChangeHandler, readOnl
                 diff={diff}
                 onChangeHandler={onChangeHandler}
                 readOnly={readOnly}
+                addNewsItemToPlanning={addNewsItemToPlanning}
             />
         );
     }
@@ -35,6 +36,7 @@ EditorContentTab.propTypes = {
     diff: PropTypes.object.isRequired,
     onChangeHandler: PropTypes.func.isRequired,
     readOnly: PropTypes.bool,
+    addNewsItemToPlanning: PropTypes.object,
 };
 
 EditorContentTab.defaultProps = {readOnly: false};

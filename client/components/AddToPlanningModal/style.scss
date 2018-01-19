@@ -4,7 +4,6 @@
     right: 0;
     top: 0;
     bottom: 0;
-    overflow: hidden;
 
     .Planning {
         position: absolute;
@@ -26,21 +25,6 @@
             height: 100%;
             overflow-y: scroll;
             position: relative;
-        }
-    }
-
-    .metadata-view {
-        padding: 10px;
-        dl {
-            margin-top: 0;
-            > dt {
-                width: 90px;
-                line-height: 20px;
-            }
-            > dd {
-                padding-left: 90px;
-                line-height: 20px;
-            }
         }
     }
 }
