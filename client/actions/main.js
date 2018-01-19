@@ -4,7 +4,13 @@ import planningUi from './planning/ui';
 import eventsUi from './events/ui';
 import {locks, showModal} from './';
 import {selectAgenda, fetchSelectedAgendaPlannings} from './agenda';
-import {getErrorMessage, getItemType, lockUtils, gettext} from '../utils';
+import {
+    getErrorMessage,
+    getItemType,
+    lockUtils,
+    gettext,
+    eventUtils
+} from '../utils';
 import {MODALS, WORKSPACE} from '../constants';
 import eventsPlanningUi from './eventsPlanning/ui';
 import {get, omit, isEmpty} from 'lodash';
@@ -169,10 +175,14 @@ const preview = (item) => ({
 
 const closePreview = () => ({type: MAIN.ACTIONS.CLOSE_PREVIEW});
 
+/**
+ * Action to fetch data from events, planning or both.
+ * @param {string} ftype - type of filter
+  * @return {Object} - returns Promise
+ */
 const filter = (ftype = null) => (
     (dispatch, getState, {$timeout, $location}) => {
         let filterType = ftype;
-        let promise = Promise.resolve();
 
         if (filterType === null) {
             filterType = $location.search().filter ||
@@ -193,8 +203,27 @@ const filter = (ftype = null) => (
             params = searchParams;
         }
 
+        if (get(params, 'advancedSearch.dates')) {
+            params.advancedSearch = eventUtils.convertToMoment(get(params, 'advancedSearch'));
+        }
+
         // Update the url (deep linking)
         $timeout(() => $location.search('filter', filterType));
+
+
+        return dispatch(self._filter(filterType, params));
+    }
+);
+
+/**
+ * Action to fetch data from events, planning or both.
+ * @param {string} filterType - type of filter
+ * @param {Object} params - Search params from advanced search
+ * @return {Object} - returns Promise
+ */
+const _filter = (filterType, params = {}) => (
+    (dispatch, getState, {$location}) => {
+        let promise = Promise.resolve();
 
         if (filterType === MAIN.FILTERS.EVENTS) {
             dispatch(eventsPlanningUi.clearList());
@@ -243,7 +272,13 @@ const loadMore = (filterType) => (
     }
 );
 
-const search = (searchText) => (
+/**
+ * Action to search based on the search parameters
+ * @param {string} fulltext - Fulltext search
+ * @param {Object} currentSearch - Search params from advanced search
+ * @return {Object} - returns Promise
+ */
+const search = (fulltext, currentSearch) => (
     (dispatch, getState, {notify}) => {
         let filterType = activeFilter(getState());
 
@@ -255,10 +290,12 @@ const search = (searchText) => (
         }
 
         const previousParams = lastRequestParams(getState());
+        const advancedSearch = currentSearch || previousParams.currentSearch || {};
         const params = {
             ...previousParams,
             page: 1,
-            fulltext: searchText
+            fulltext: fulltext || previousParams.fulltext,
+            ...advancedSearch
         };
 
         if (filterType === MAIN.FILTERS.EVENTS) {
@@ -273,6 +310,23 @@ const search = (searchText) => (
     }
 );
 
+/**
+ * Action to clear the search parameters and reload.
+ * @return {function(*, *)}
+ */
+const clearSearch = () => (
+    (dispatch, getState) => {
+        let filterType = activeFilter(getState());
+
+        dispatch({
+            type: MAIN.ACTIONS.CLEAR_SEARCH,
+            payload: filterType
+        });
+
+        return dispatch(self._filter(filterType));
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     lockAndEdit,
@@ -284,12 +338,14 @@ const self = {
     closeEditor,
     preview,
     filter,
+    _filter,
     openConfirmationModal,
     closePreview,
     unlockAndCloseEditor,
     history,
     loadMore,
-    search
+    search,
+    clearSearch
 };
 
 export default self;

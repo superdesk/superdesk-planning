@@ -16,6 +16,7 @@ import {
 import * as testData from './testData';
 import {gettext, gettextCatalog} from './gettext';
 
+
 export {default as checkPermission} from './checkPermission';
 export {default as retryDispatch} from './retryDispatch';
 export {default as registerNotifications} from './notifications';
