@@ -1,5 +1,5 @@
 import {MAIN} from '../constants';
-import {cloneDeep, get} from 'lodash';
+import {cloneDeep, get, omit} from 'lodash';
 
 const search = {
     lastRequestParams: {page: 1},
@@ -25,7 +25,9 @@ const modifyParams = (state, action) => {
 
         params[key] = {
             ...params[key],
-            ...payloadParam
+            currentSearch: {
+                ...omit(payloadParam, ['fulltext', 'page'])
+            }
         };
 
         params[key].lastRequestParams = {
@@ -52,6 +54,14 @@ export default function(state = initialState, action) {
         return {
             ...state,
             search: modifyParams(state, action)
+        };
+    case MAIN.ACTIONS.CLEAR_SEARCH:
+        return {
+            ...state,
+            search: {
+                ...state.search,
+                [action.payload]: cloneDeep(search)
+            }
         };
     default:
         return state;

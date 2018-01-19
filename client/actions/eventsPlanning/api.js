@@ -1,8 +1,8 @@
-import {pick, get} from 'lodash';
+import {pick, get, isEmpty} from 'lodash';
 import {SPIKED_STATE} from '../../constants';
 import eventsApi from '../events/api';
 import planningApi from '../planning/api';
-import {getTimeZoneOffset, planningUtils, eventUtils} from '../../utils';
+import {planningUtils, eventUtils, getTimeZoneOffset} from '../../utils';
 import * as selectors from '../../selectors';
 
 /**
@@ -24,7 +24,7 @@ const query = ({
             spikeState: spikeState,
             adHocPlanning: true, // only adhoc planning items,
             advancedSearch: pick(advancedSearch,
-                ['anpa_category', 'subject', 'slugline', 'pubstatus'])
+                ['anpa_category', 'subject', 'slugline', 'published', 'spikeState', 'dates'])
         };
 
         const planningCriteria = planningApi.getCriteria(search);
@@ -51,29 +51,43 @@ const query = ({
             ]
         };
 
-        let sort = [
-            {
-                '_planning_schedule.scheduled': {
-                    order: 'asc',
-                    nested_path: '_planning_schedule',
-                    nested_filter: {
-                        range: {
-                            '_planning_schedule.scheduled': {
-                                gte: 'now/d',
-                                time_zone: getTimeZoneOffset(),
-                            }
+        const sortField = '_planning_schedule.scheduled';
+        const sortParams = {
+            [sortField]: {
+                order: 'asc',
+                nested_path: '_planning_schedule',
+                nested_filter: {
+                    range: {
+                        [sortField]: {
+                            gte: 'now/d',
+                            time_zone: getTimeZoneOffset(),
                         },
                     },
                 },
             },
-        ];
+        };
+
+        let range = {};
+
+        if (get(advancedSearch, 'dates.start')) {
+            range.gte = get(advancedSearch, 'dates.start');
+        }
+
+        if (get(advancedSearch, 'dates.end')) {
+            range.lte = get(advancedSearch, 'dates.end');
+        }
+
+        if (!isEmpty(range)) {
+            range.time_zone = getTimeZoneOffset();
+            sortParams[sortField].nested_filter.range[sortField] = range;
+        }
 
         // Query the API
         return api('planning_search').query({
             source: JSON.stringify({
                 query: planningCriteria.query,
                 filter: filter,
-                sort: sort,
+                sort: [sortParams],
                 size: maxResults,
                 from: (page - 1) * maxResults
             }),

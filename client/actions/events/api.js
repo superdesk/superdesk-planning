@@ -116,7 +116,15 @@ const getCriteria = (
         {
             condition: () => (advancedSearch.name),
             do: () => {
-                must.push({query_string: {query: advancedSearch.name}});
+                let queryText = sanitizeTextForQuery(advancedSearch.name);
+
+                must.push({
+                    query_string: {
+                        query: 'name:(' + queryText + ')',
+                        lenient: false,
+                        default_operator: 'AND',
+                    },
+                });
             },
         },
         {
@@ -162,18 +170,24 @@ const getCriteria = (
         {
             condition: () => (advancedSearch.dates),
             do: () => {
-                const range = {};
+                let range = {};
 
                 if (advancedSearch.dates.start) {
-                    range['dates.start'] = {gte: advancedSearch.dates.start};
+                    range['dates.start'] = {
+                        gte: advancedSearch.dates.start,
+                        time_zone: getTimeZoneOffset()
+                    };
                 }
 
                 if (advancedSearch.dates.end) {
-                    range['dates.end'] = {lte: advancedSearch.dates.end};
+                    range['dates.end'] = {
+                        lte: advancedSearch.dates.end,
+                        time_zone: getTimeZoneOffset()
+                    };
                 }
 
-                if (!isEmpty(range)) {
-                    range.time_zone = getTimeZoneOffset();
+                if (isEmpty(range)) {
+                    range = {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}};
                 }
 
                 filter.range = range;
@@ -183,21 +197,20 @@ const getCriteria = (
             condition: () => (advancedSearch.slugline),
             do: () => {
                 let queryText = sanitizeTextForQuery(advancedSearch.slugline);
-                let queryString = {
+
+                must.push({
                     query_string: {
                         query: 'slugline:(' + queryText + ')',
                         lenient: false,
                         default_operator: 'AND',
                     },
-                };
-
-                must.push(queryString);
+                });
             },
         },
         {
-            condition: () => (advancedSearch.pubstatus),
+            condition: () => (advancedSearch.published),
             do: () => {
-                must.push({term: {pubstatus: advancedSearch.pubstatus}});
+                must.push({term: {pubstatus: PUBLISHED_STATE.USABLE}});
             },
         }
     // loop over actions and performs if conditions are met
@@ -212,15 +225,17 @@ const getCriteria = (
         filter.range = {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}};
     }
 
-    switch (spikeState) {
-    case SPIKED_STATE.SPIKED:
-        must.push({term: {state: WORKFLOW_STATE.SPIKED}});
-        break;
-    case SPIKED_STATE.BOTH:
-        break;
-    case SPIKED_STATE.NOT_SPIKED:
-    default:
-        mustNot.push({term: {state: WORKFLOW_STATE.SPIKED}});
+    if (!advancedSearch.published) {
+        switch (spikeState) {
+        case SPIKED_STATE.SPIKED:
+            must.push({term: {state: WORKFLOW_STATE.SPIKED}});
+            break;
+        case SPIKED_STATE.BOTH:
+            break;
+        case SPIKED_STATE.NOT_SPIKED:
+        default:
+            mustNot.push({term: {state: WORKFLOW_STATE.SPIKED}});
+        }
     }
 
     query.bool = {

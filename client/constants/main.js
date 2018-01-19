@@ -6,7 +6,8 @@ export const MAIN = {
         FILTER: 'MAIN_FILTER',
         HISTORY: 'MAIN_HISTORY',
         CLOSE_PREVIEW: 'MAIN_CLOSE_PREVIEW',
-        REQUEST: 'MAIN_REQUEST'
+        REQUEST: 'MAIN_REQUEST',
+        CLEAR_SEARCH: 'MAIN_CLEAR_SEARCH'
     },
     FILTERS: {
         COMBINED: 'COMBINED',

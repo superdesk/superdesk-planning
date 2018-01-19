@@ -1,7 +1,7 @@
 import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
 import {main} from '../';
-import {MAIN} from '../../constants';
+import {AGENDA, MAIN} from '../../constants';
 import eventsUi from '../events/ui';
 import planningUi from '../planning/ui';
 import eventsPlanningUi from '../eventsPlanning/ui';
@@ -61,7 +61,7 @@ describe('actions.main', () => {
                         payload: 'COMBINED'
                     }]);
 
-                    expect(store.dispatch.callCount).toBe(4);
+                    expect(store.dispatch.callCount).toBe(5);
                     expect(services.$timeout.callCount).toBe(1);
                     expect(services.$location.search.callCount).toBe(3);
                     expect(services.$location.search.args).toEqual(
@@ -83,7 +83,7 @@ describe('actions.main', () => {
                         payload: 'EVENTS'
                     }]);
 
-                    expect(store.dispatch.callCount).toBe(4);
+                    expect(store.dispatch.callCount).toBe(5);
                     expect(services.$timeout.callCount).toBe(1);
                     expect(services.$location.search.callCount).toBe(3);
                     expect(services.$location.search.args).toEqual(
@@ -316,6 +316,56 @@ describe('actions.main', () => {
                 .then(() => {
                     expect(eventsPlanningUi.fetch.callCount).toBe(1);
                     expect(eventsPlanningUi.fetch.args[0]).toEqual([{page: 1, fulltext: 'COMBINED'}]);
+                    done();
+                });
+        });
+    });
+
+    describe('clearSearch', () => {
+        beforeEach(() => {
+            sinon.stub(eventsUi, 'fetchEvents').returns(Promise.resolve());
+            sinon.stub(planningUi, 'fetchToList').returns(Promise.resolve());
+            sinon.stub(eventsPlanningUi, 'fetch').returns(Promise.resolve());
+        });
+
+        afterEach(() => {
+            restoreSinonStub(eventsUi.fetchEvents);
+            restoreSinonStub(planningUi.fetchToList);
+            restoreSinonStub(eventsPlanningUi.fetch);
+        });
+
+        it('clear search events', (done) => {
+            store.initialState.main.filter = 'EVENTS';
+            store.test(done, main.clearSearch())
+                .then(() => {
+                    expect(eventsUi.fetchEvents.callCount).toBe(1);
+                    expect(eventsUi.fetchEvents.args[0]).toEqual([{}]);
+                    done();
+                });
+        });
+
+        it('clear search planning', (done) => {
+            store.initialState.main.filter = 'PLANNING';
+            store.initialState.agenda.currentAgendaId = AGENDA.FILTER.ALL_PLANNING;
+            store.test(done, main.clearSearch())
+                .then(() => {
+                    expect(planningUi.fetchToList.callCount).toBe(1);
+                    expect(planningUi.fetchToList.args[0]).toEqual([{
+                        noAgendaAssigned: false,
+                        agendas: null,
+                        advancedSearch: {},
+                        spikeState: 'draft',
+                        page: 1}]);
+                    done();
+                });
+        });
+
+        it('clear search event planning', (done) => {
+            store.initialState.main.filter = 'COMBINED';
+            store.test(done, main.clearSearch())
+                .then(() => {
+                    expect(eventsPlanningUi.fetch.callCount).toBe(1);
+                    expect(eventsPlanningUi.fetch.args[0]).toEqual([{}]);
                     done();
                 });
         });

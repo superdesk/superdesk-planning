@@ -33,20 +33,9 @@ export const currentSearch = createSelector(
     (filter, params) => get(params, `${filter}.currentSearch`, {})
 );
 
-export const eventsSearch = createSelector(
-    [searchParams],
-    (params) => get(params, 'EVENTS.currentSearch', {})
-);
-
-export const planningSearch = createSelector(
-    [searchParams],
-    (params) => get(params, 'PLANNING.currentSearch', {})
-);
-
-export const combinedSearch = createSelector(
-    [searchParams],
-    (params) => get(params, 'COMBINED.currentSearch', {})
-);
+export const eventsSearch = (state) => get(state, 'main.search.EVENTS.currentSearch', {});
+export const planningSearch = (state) => get(state, 'main.search.PLANNING.currentSearch', {});
+export const combinedSearch = (state) => get(state, 'main.search.COMBINED.currentSearch', {});
 
 export const lastRequestParams = createSelector(
     [activeFilter, searchParams],

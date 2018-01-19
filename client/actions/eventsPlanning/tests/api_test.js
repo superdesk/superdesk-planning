@@ -78,10 +78,10 @@ describe('actions.eventsplanning.api', () => {
                                         range: {
                                             '_planning_schedule.scheduled': {
                                                 gte: 'now/d',
-                                                time_zone: getTimeZoneOffset(),
-                                            },
-                                        },
-                                    },
+                                                time_zone: getTimeZoneOffset()
+                                            }
+                                        }
+                                    }
                                 },
                             },
                         ]

@@ -195,7 +195,7 @@ class PlanningApp extends React.Component {
                         showFilters={!addNewsItemToPlanning}
                     />
                     <div className="sd-column-box--3">
-                        <SearchPanel />
+                        <SearchPanel toggleFilterPanel={this.toggleFilterPanel} />
                         <ListPanel { ...listPanelProps } />
                         {!addNewsItemToPlanning && (<PreviewPanel
                             item={this.props.previewItem}

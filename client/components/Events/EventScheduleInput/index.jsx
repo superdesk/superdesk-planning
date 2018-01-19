@@ -257,8 +257,6 @@ export class EventScheduleInput extends React.Component {
                 </Row>}
 
                 <Row flex={true} className="event-toggle">
-                    <Label text=" " row={true} />
-
                     {showRepeat && showRepeatToggle && (
                         <LineInput labelLeftAuto={true} readOnly={readOnly}>
                             <Label text="Repeat" />
