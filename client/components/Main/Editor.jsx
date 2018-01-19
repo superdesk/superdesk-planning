@@ -171,7 +171,7 @@ export class EditorComponent extends React.Component {
                             itemType={this.props.itemType}
                             diff={this.state.diff}
                             onChangeHandler={this.onChangeHandler}
-                            readOnly={!isLocked || isLockRestricted}
+                            readOnly={existingItem && (!isLocked || isLockRestricted)}
                         />
                     </div>
                 </Content>
