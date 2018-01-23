@@ -48,6 +48,7 @@ export class CollapseBox extends React.Component {
                     <div className="sd-collapse-box__content-wraper">
                         <div className="sd-collapse-box__content">
                             <div className="sd-collapse-box__tools">
+                                {this.props.tools}
                                 <a className="icn-btn" onClick={this.toggleOpenState}>
                                     <i className="icon-chevron-up-thin" />
                                 </a>
@@ -74,6 +75,7 @@ CollapseBox.propTypes = {
     collapsedItem: PropTypes.node.isRequired,
     openItem: PropTypes.node.isRequired,
     openItemTopBar: PropTypes.node,
+    tools: PropTypes.node,
     isOpen: PropTypes.bool,
     scrollInView: PropTypes.bool,
 };

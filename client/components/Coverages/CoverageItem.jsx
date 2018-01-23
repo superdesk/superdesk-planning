@@ -4,12 +4,20 @@ import classNames from 'classnames';
 import {get} from 'lodash';
 import moment from 'moment-timezone';
 
-import {Item, Column, Row, Border} from '../UI/List';
+import {Item, Column, Row, Border, ActionMenu} from '../UI/List';
 import {UserAvatar} from '../';
 
 import {getCoverageIcon, getCreator, getItemInArrayById, getDateTimeString, gettext, stringUtils} from '../../utils';
 
-export const CoverageItem = ({coverage, users, desks, dateFormat, timeFormat}) => {
+export const CoverageItem = ({
+    coverage,
+    users,
+    desks,
+    dateFormat,
+    timeFormat,
+    contentTypes,
+    itemActionComponent
+}) => {
     const userAssigned = getCreator(coverage, 'assigned_to.user', users);
     const deskAssigned = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
 
@@ -83,6 +91,9 @@ export const CoverageItem = ({coverage, users, desks, dateFormat, timeFormat}) =
                     </span>
                 </Row>
             </Column>
+            {itemActionComponent && <ActionMenu>
+                {itemActionComponent}
+            </ActionMenu>}
         </Item>
     );
 };
@@ -93,9 +104,15 @@ CoverageItem.propTypes = {
     desks: PropTypes.array,
     dateFormat: PropTypes.string,
     timeFormat: PropTypes.string,
+    onDuplicateCoverage: PropTypes.func,
+    onCancelCoverage: PropTypes.func,
+    currentWorkspace: PropTypes.string,
+    itemActionComponent: PropTypes.node,
+    contentTypes: PropTypes.array,
 };
 
 CoverageItem.defaultProps = {
     dateFormat: 'DD/MM/YYYY',
     timeFormat: 'HH:mm',
+    contentTypes: [],
 };

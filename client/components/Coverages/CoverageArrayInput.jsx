@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import {ContentBlock} from '../UI/SidePanel';
 import {InputArray} from '../UI/Form';
 import {CoverageEditor} from './CoverageEditor';
-import {WORKSPACE} from '../../constants';
 
 export const CoverageArrayInput = ({
     field,
@@ -24,6 +23,8 @@ export const CoverageArrayInput = ({
     maxCoverageCount,
     addOnly,
     originalCount,
+    onDuplicateCoverage,
+    onCancelCoverage,
     currentWorkspace,
     readOnly,
 }) => (
@@ -43,6 +44,7 @@ export const CoverageArrayInput = ({
                 desks={desks}
                 timeFormat={timeFormat}
                 dateFormat={dateFormat}
+                currentWorkspace={currentWorkspace}
                 newsCoverageStatus={newsCoverageStatus}
                 contentTypes={contentTypes}
                 genres={genres}
@@ -53,7 +55,8 @@ export const CoverageArrayInput = ({
                 coverageProviders={coverageProviders}
                 priorities={priorities}
                 keywords={keywords}
-                disableDeskSelection={currentWorkspace === WORKSPACE.AUTHORING}
+                onDuplicateCoverage={onDuplicateCoverage}
+                onCancelCoverage={onCancelCoverage}
                 readOnly={readOnly}
                 maxCount={maxCoverageCount}
                 addOnly={addOnly}
@@ -83,6 +86,8 @@ CoverageArrayInput.propTypes = {
     maxCoverageCount: PropTypes.number,
     addOnly: PropTypes.bool,
     originalCount: PropTypes.number,
+    onDuplicateCoverage: PropTypes.func,
+    onCancelCoverage: PropTypes.func,
     currentWorkspace: PropTypes.string,
 };
 
