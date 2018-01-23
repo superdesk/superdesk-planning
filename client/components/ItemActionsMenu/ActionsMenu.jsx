@@ -20,7 +20,7 @@ export class ActionsMenu extends React.Component {
 
         let items = actions.map(this.renderItem.bind(this));
 
-        return (<ul className="dropdown__menu">
+        return (<ul className="dropdown dropdown__menu more-activity-menu open">
             <li onClick={this.ignoreAction.bind(this)}>
                 <div className="dropdown__menu-label">Actions<button className="dropdown__menu-close"
                     onClick={closeActionsMenu}>
@@ -49,11 +49,11 @@ export class ActionsMenu extends React.Component {
 
             return (
                 <li key={'submenu-' + key}>
-                    <div className="dropdown">
-                        <button className="dropdown__toggle" onClick={this.props.closeMenu.bind(this)}>
+                    <div className="dropdown dropdown--noarrow">
+                        <a className="dropdown__toggle" onClick={this.props.closeMenu.bind(this)}>
                             {action.icon && (<i className={action.icon}/>)}
                             {action.label}
-                        </button>
+                        </a>
                         <ul className={'dropdown__menu dropdown__menu--submenu-' + submenuDirection}>
                             {items}
                         </ul>

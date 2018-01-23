@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, cloneDeep} from 'lodash';
+import {get, cloneDeep, remove as _remove} from 'lodash';
 import * as selectors from '../../../selectors';
 
 import {isItemPublic, gettext, getItemInArrayById, planningUtils} from '../../../utils';
@@ -23,21 +23,25 @@ import {EventMetadata} from '../../Events';
 import {ITEM_TYPE} from '../../../constants';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
+import {PLANNING} from '../../../constants';
+
 export class PlanningEditorComponent extends React.Component {
     constructor(props) {
         super(props);
 
         this.dom = {slugline: null};
         this.onChange = this.onChange.bind(this);
+        this.onDuplicateCoverage = this.onDuplicateCoverage.bind(this);
+        this.onCancelCoverage = this.onCancelCoverage.bind(this);
         this.createNewPlanningFromNewsItem = this.createNewPlanningFromNewsItem.bind(this);
     }
 
     componentWillMount() {
-        // If we are creating a new planning item for 'add-to-planning'
         if (!this.props.addNewsItemToPlanning) {
             return;
         }
 
+        // If we are creating a new planning item for 'add-to-planning'
         if (!get(this.props, 'item._id')) {
             const newPlanning = this.createNewPlanningFromNewsItem();
 
@@ -86,6 +90,46 @@ export class PlanningEditorComponent extends React.Component {
         }
 
         return newPlanning;
+    }
+
+    onDuplicateCoverage(coverage, duplicateAs) {
+        let diffCoverages = cloneDeep(this.props.diff.coverages);
+        let newCoverage = cloneDeep(coverage);
+
+        newCoverage.news_coverage_status = {qcode: 'ncostat:int'};
+        delete newCoverage.coverage_id;
+        delete newCoverage.assigned_to;
+
+        if (duplicateAs) {
+            newCoverage.planning.g2_content_type = duplicateAs;
+        }
+
+        diffCoverages.push(newCoverage);
+        this.onChange('coverages', diffCoverages);
+    }
+
+    onCancelCoverage(coverage, remove = false) {
+        let coverages = cloneDeep(this.props.diff.coverages);
+
+        if (remove) {
+            _remove(coverages, (c) => c.coverage_id === coverage.coverage_id);
+        } else {
+            // Cancel only
+            let coverageToUpdate = coverages.find((c) => c.coverage_id === coverage.coverage_id);
+
+            coverageToUpdate.news_coverage_status = PLANNING.NEWS_COVERAGE_CANCELLED_STATUS,
+            coverageToUpdate.planning = {
+                ...coverageToUpdate.planning,
+                internal_note: `------------------------------------------------------------
+        Coverage cancelled
+        `,
+                ednote: `------------------------------------------------------------
+        Coverage cancelled
+        `,
+            };
+        }
+
+        this.onChange('coverages', coverages);
     }
 
     onChange(field, value) {
@@ -299,11 +343,13 @@ export class PlanningEditorComponent extends React.Component {
                     coverageProviders={coverageProviders}
                     priorities={priorities}
                     keywords={keywords}
+                    onDuplicateCoverage={this.onDuplicateCoverage}
+                    onCancelCoverage={this.onCancelCoverage}
+                    currentWorkspace={currentWorkspace}
                     readOnly={readOnly}
                     maxCoverageCount={maxCoverageCount}
                     addOnly={!!addNewsItemToPlanning && existingPlanning}
                     originalCount={get(item, 'coverages', []).length}
-                    currentWorkspace={currentWorkspace}
                 />
 
             </div>

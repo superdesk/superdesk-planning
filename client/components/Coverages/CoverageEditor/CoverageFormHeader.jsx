@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
 import {getCreator, getItemInArrayById, gettext} from '../../../utils';
+import {WORKSPACE} from '../../../constants';
 
 import {Item, Border, Column, Row as ListRow} from '../../UI/List';
 import {UserAvatar} from '../../';
@@ -30,7 +31,7 @@ export class CoverageFormHeader extends React.Component {
             desks,
             coverageProviders,
             priorities,
-            disableDeskSelection,
+            currentWorkspace,
         } = this.props;
 
         const isExistingCoverage = !!get(value, 'coverage_id');
@@ -140,7 +141,7 @@ export class CoverageFormHeader extends React.Component {
                         onClose={this.togglePopup}
                         target="btn--hollow"
                         priorityPrefix="assigned_to."
-                        disableDeskSelection={disableDeskSelection}
+                        disableDeskSelection={currentWorkspace === WORKSPACE.AUTHORING}
                     />
                 )}
             </Item>
@@ -156,5 +157,5 @@ CoverageFormHeader.propTypes = {
     desks: PropTypes.array,
     coverageProviders: PropTypes.array,
     priorities: PropTypes.array,
-    disableDeskSelection: PropTypes.bool,
+    currentWorkspace: PropTypes.string,
 };
