@@ -1,12 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {
-    Modal,
-    PlanningPanelContainer,
-} from '../index';
+import {Modal} from '../index';
+import {default as PlanningApp} from '../../planning';
 import {Button} from 'react-bootstrap';
 import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
+import {Row} from '../UI/Preview';
 import './style.scss';
 import {get} from 'lodash';
 
@@ -46,20 +45,23 @@ export function AddToPlanningComponent({
             <Modal.Body>
                 <div className="AddToPlanning">
                     <div>
-                        <div className="metadata-view">
-                            <dl>
-                                <dt>Slugline:</dt>
-                                <dd>{slugline}</dd>
-                            </dl>
-                            <dl>
-                                <dt>Headline:</dt>
-                                <dd>{headline}</dd>
-                            </dl>
+                        <div className="MetadataView">
+                            <Row
+                                label={gettext('Slugline')}
+                                value={slugline}
+                                className="slugline"
+                                noPadding={true}
+                            />
+                            <Row
+                                label={gettext('Headline')}
+                                value={headline}
+                                className="strong"
+                                noPadding={true}
+                            />
+
                         </div>
                     </div>
-                    <div className="Planning">
-                        <PlanningPanelContainer />
-                    </div>
+                    <PlanningApp addNewsItemToPlanning={newsItem}/>
                 </div>
             </Modal.Body>
 
@@ -90,5 +92,4 @@ const mapStateToProps = (state) => ({
 
 export const AddToPlanningModal = connect(
     mapStateToProps,
-    null
-)(AddToPlanningComponent);
+    null)(AddToPlanningComponent);

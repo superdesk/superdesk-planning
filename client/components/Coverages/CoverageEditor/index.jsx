@@ -23,6 +23,7 @@ export const CoverageEditor = ({
     priorities,
     keywords,
     readOnly,
+    disableDeskSelection,
 }) => {
     const coverageItem = (
         <CoverageItem
@@ -45,6 +46,7 @@ export const CoverageEditor = ({
             coverageProviders={coverageProviders}
             priorities={priorities}
             readOnly={readOnly}
+            disableDeskSelection={disableDeskSelection}
         />
     );
 
@@ -93,6 +95,7 @@ CoverageEditor.propTypes = {
     priorities: PropTypes.array,
     keywords: PropTypes.array,
     readOnly: PropTypes.bool,
+    disableDeskSelection: PropTypes.bool,
 };
 
 CoverageEditor.defaultProps = {

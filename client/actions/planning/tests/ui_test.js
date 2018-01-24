@@ -2,6 +2,7 @@ import planningUi from '../ui';
 import planningApi from '../api';
 import assignmentApi from '../../assignments/api';
 import main from '../../main';
+import locks from '../../locks';
 import sinon from 'sinon';
 import {PRIVILEGES, ASSIGNMENTS, MAIN} from '../../../constants';
 import {getTestActionStore, restoreSinonStub, expectAccessDenied} from '../../../utils/testUtils';
@@ -50,6 +51,8 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningUi, 'saveFromPlanning').callsFake(() => (Promise.resolve()));
 
         sinon.stub(main, 'closePreview').callsFake(() => (Promise.resolve()));
+        sinon.stub(main, 'openEditor').callsFake((item) => (Promise.resolve(item)));
+        sinon.stub(locks, 'lock').callsFake((item) => (Promise.resolve(item)));
     });
 
     afterEach(() => {
@@ -80,8 +83,11 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(assignmentApi.link);
         restoreSinonStub(planningUi.saveFromAuthoring);
         restoreSinonStub(planningUi.saveFromPlanning);
-        restoreSinonStub(main.closePreview);
         restoreSinonStub(planningUi.loadMore);
+
+        restoreSinonStub(main.closePreview);
+        restoreSinonStub(main.openEditor);
+        restoreSinonStub(locks.lock);
     });
 
     describe('spike', () => {
@@ -652,19 +658,6 @@ describe('actions.planning.ui', () => {
     });
 
     describe('onAddCoverageClick', () => {
-        const publishedNewsItem = {
-            _id: 'news1',
-            slugline: 'slugger',
-            ednote: 'Edit my note!',
-            state: 'published',
-            _updated: moment('2099-10-13T13:26'),
-            task: {
-                desk: 'desk2',
-                user: 'ident2',
-            },
-            type: 'picture',
-        };
-
         const newsItem = {
             _id: 'news1',
             slugline: 'slugger',
@@ -681,94 +674,30 @@ describe('actions.planning.ui', () => {
                 modalType: 'ADD_TO_PLANNING',
                 modalProps: {newsItem},
             };
+
+            sinon.stub(locks, 'unlock').callsFake((item) => (Promise.resolve(item)));
         });
 
         it('unlocks current planning opens the new planning', (done) => {
-            store.initialState.planning.currentPlanningId = data.plannings[1]._id;
+            store.initialState.forms.itemId = data.plannings[1]._id;
+            store.initialState.forms.itemType = 'planning';
             store.test(done, planningUi.onAddCoverageClick(
                 store.initialState.planning.plannings.p1
             ))
                 .then(() => {
-                    expect(planningApi.unlock.callCount).toBe(1);
-                    expect(planningApi.unlock.args[0]).toEqual([
+                    expect(locks.unlock.callCount).toBe(1);
+                    expect(locks.unlock.args[0]).toEqual([
                         store.initialState.planning.plannings.p2,
                     ]);
 
-                    expect(planningUi.openEditor.callCount).toBe(1);
-                    expect(planningUi.openEditor.args[0]).toEqual([
-                        store.initialState.planning.plannings.p1,
-                        false,
-                    ]);
-
+                    expect(main.openEditor.callCount).toBe(1);
+                    expect(main.openEditor.args[0]).toEqual([store.initialState.planning.plannings.p1]);
                     done();
                 });
         });
 
-        it('creates a new coverage for a non-published news item', (done) => (
-            store.test(done, planningUi.onAddCoverageClick(
-                store.initialState.planning.plannings.p1
-            ))
-                .then(() => {
-                    expect(store.dispatch.args[1]).toEqual([{
-                        type: '@@redux-form/CHANGE',
-                        payload: {
-                            news_coverage_status: {qcode: 'ncostat:int'},
-                            assigned_to: {
-                                desk: 'desk1',
-                                user: 'ident1',
-                                priority: ASSIGNMENTS.DEFAULT_PRIORITY,
-                            },
-                            planning: {
-                                ednote: 'Edit my note!',
-                                g2_content_type: 'text',
-                                slugline: 'slugger',
-                                scheduled: moment().endOf('day'),
-                            },
-                        },
-                        meta: {
-                            form: 'planning',
-                            field: 'coverages[3]',
-                            persistentSubmitErrors: undefined,
-                            touch: undefined,
-                        },
-                    }]);
-
-                    done();
-                })
-        ));
-
-        it('creates a new coverage for a published new item', (done) => {
-            store.initialState.modal.modalProps.newsItem = publishedNewsItem;
-            store.test(done, planningUi.onAddCoverageClick(
-                store.initialState.planning.plannings.p1
-            ))
-                .then(() => {
-                    expect(store.dispatch.args[1]).toEqual([{
-                        type: '@@redux-form/CHANGE',
-                        payload: {
-                            news_coverage_status: {qcode: 'ncostat:int'},
-                            assigned_to: {
-                                desk: 'desk2',
-                                user: 'ident2',
-                                priority: ASSIGNMENTS.DEFAULT_PRIORITY,
-                            },
-                            planning: {
-                                ednote: 'Edit my note!',
-                                g2_content_type: 'photo',
-                                slugline: 'slugger',
-                                scheduled: moment('2099-10-13T13:26'),
-                            },
-                        },
-                        meta: {
-                            form: 'planning',
-                            field: 'coverages[3]',
-                            persistentSubmitErrors: undefined,
-                            touch: undefined,
-                        },
-                    }]);
-
-                    done();
-                });
+        afterEach(() => {
+            restoreSinonStub(locks.unlock);
         });
     });
 

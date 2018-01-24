@@ -46,7 +46,7 @@ export class PlanningCovergeCancelComponent extends React.Component {
             gettext('Reason for cancelling the planning item:');
 
         return (
-            <div className="ItemActionConfirmation">
+            <div className="MetadataView">
                 <Row value={planning.slugline} className="strong" />
                 <Row label={labelText}>
                     <TextAreaInput

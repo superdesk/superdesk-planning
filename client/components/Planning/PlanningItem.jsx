@@ -8,11 +8,17 @@ import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/
 import {EventDateTime} from '../Events';
 import {PlanningDateTime} from './';
 import {ItemActionsMenu} from '../index';
-import {PLANNING, EVENTS} from '../../constants';
+import {PLANNING, EVENTS, WORKSPACE} from '../../constants';
 
 import {planningUtils, getItemWorkflowStateLabel} from '../../utils';
 
 export class PlanningItem extends React.PureComponent {
+    onAddCoverageButtonClick(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.props.onAddCoverageClick();
+    }
+
     render() {
         const {
             item,
@@ -24,6 +30,7 @@ export class PlanningItem extends React.PureComponent {
             date,
             session,
             privileges,
+            currentWorkspace,
         } = this.props;
 
         if (!item) {
@@ -64,8 +71,11 @@ export class PlanningItem extends React.PureComponent {
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
         };
-        const itemActions = planningUtils.getPlanningActions(item, event, session,
-            privileges, lockedItems, itemActionsCallBack);
+        const itemActions = currentWorkspace === WORKSPACE.PLANNING ?
+            planningUtils.getPlanningActions(item, event, session, privileges, lockedItems, itemActionsCallBack) :
+            [];
+
+        const showAddCoverage = currentWorkspace === WORKSPACE.AUTHORING;
 
         return (
             <Item shadow={1} onClick={() => onItemClick(item)}>
@@ -111,11 +121,22 @@ export class PlanningItem extends React.PureComponent {
                         />
                     </Row>
                 </Column>
-                {get(itemActions, 'length', 0) > 0 && <ActionMenu>
-                    <ItemActionsMenu
+                <ActionMenu>
+                    {get(itemActions, 'length', 0) > 0 && <ItemActionsMenu
                         className="side-panel__top-tools-right"
-                        actions={itemActions} />
-                </ActionMenu>}
+                        actions={itemActions} />}
+                    {showAddCoverage &&
+                        <a data-sd-tooltip="Add as coverage" data-flow="left">
+                            <button
+                                className="navbtn dropdown sd-create-btn"
+                                onClick={this.onAddCoverageButtonClick.bind(this)}
+                            >
+                                <i className="icon-plus-large" />
+                                <span className="circle" />
+                            </button>
+                        </a>
+                    }
+                </ActionMenu>
             </Item>
         );
     }
@@ -131,6 +152,8 @@ PlanningItem.propTypes = {
     agendas: PropTypes.array.isRequired,
     session: PropTypes.object,
     privileges: PropTypes.object,
+    onAddCoverageClick: PropTypes.func,
+    currentWorkspace: PropTypes.string,
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

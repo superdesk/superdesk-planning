@@ -5,7 +5,7 @@ import eventsUi from './events/ui';
 import {locks, showModal} from './';
 import {selectAgenda, fetchSelectedAgendaPlannings} from './agenda';
 import {getErrorMessage, getItemType, lockUtils, gettext} from '../utils';
-import {MODALS} from '../constants';
+import {MODALS, WORKSPACE} from '../constants';
 import eventsPlanningUi from './eventsPlanning/ui';
 import {get, omit, isEmpty} from 'lodash';
 
@@ -52,6 +52,7 @@ const unlockAndCancel = (item) => (
             dispatch(locks.unlock(item));
         }
         dispatch(self.closeEditor());
+        return Promise.resolve();
     }
 );
 
@@ -91,7 +92,7 @@ const save = (item, save = true, publish = false) => (
 
                 savedItem._type = itemType;
 
-                if (!get(item, '_id')) {
+                if (!get(item, '_id') && selectors.getCurrentWorkspace(getState()) !== WORKSPACE.AUTHORING) {
                     return dispatch(self.lockAndEdit(savedItem));
                 }
 

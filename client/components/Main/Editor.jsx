@@ -80,9 +80,13 @@ export class EditorComponent extends React.Component {
     }
 
     onChangeHandler(field, value) {
-        const diff = Object.assign({}, this.state.diff);
+        // If field (name) is passed, it will replace that field
+        // Else, entire object will be replaced
+        const diff = field ? Object.assign({}, this.state.diff) : cloneDeep(value);
 
-        set(diff, field, value);
+        if (field) {
+            set(diff, field, value);
+        }
 
         this.setState({
             diff: diff,
@@ -172,6 +176,7 @@ export class EditorComponent extends React.Component {
                             diff={this.state.diff}
                             onChangeHandler={this.onChangeHandler}
                             readOnly={existingItem && (!isLocked || isLockRestricted)}
+                            addNewsItemToPlanning={this.props.addNewsItemToPlanning}
                         />
                     </div>
                 </Content>
@@ -194,6 +199,7 @@ EditorComponent.propTypes = {
     users: PropTypes.array,
     onUnlock: PropTypes.func,
     onLock: PropTypes.func,
+    addNewsItemToPlanning: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
