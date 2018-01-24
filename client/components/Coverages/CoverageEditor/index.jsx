@@ -1,11 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {isEqual} from 'lodash';
+import {isEqual, get} from 'lodash';
 
+import {ItemActionsMenu} from '../../index';
 import {CollapseBox} from '../../UI';
 import {CoverageItem} from '../CoverageItem';
 import {CoverageForm} from './CoverageForm';
 import {CoverageFormHeader} from './CoverageFormHeader';
+
+import {planningUtils, gettext} from '../../../utils';
+import {WORKSPACE} from '../../../constants';
 
 export const CoverageEditor = ({
     field,
@@ -14,6 +18,7 @@ export const CoverageEditor = ({
     desks,
     dateFormat,
     timeFormat,
+    currentWorkspace,
     remove,
     contentTypes,
     genres,
@@ -22,9 +27,61 @@ export const CoverageEditor = ({
     coverageProviders,
     priorities,
     keywords,
+    onDuplicateCoverage,
+    onCancelCoverage,
     readOnly,
-    disableDeskSelection,
 }) => {
+    // Coverage item actions
+    let itemActions = [];
+
+    if (!readOnly) {
+        if (value.coverage_id) {
+            const duplicateActions = contentTypes
+                .filter((contentType) => (
+                    contentType.qcode !== get(value, 'planning.g2_content_type')
+                ))
+                .map((contentType) => ({
+                    label: contentType.name,
+                    callback: onDuplicateCoverage.bind(null, value, contentType.qcode)
+                }));
+
+            itemActions = [{
+                label: gettext('Duplicate'),
+                icon: 'icon-copy',
+                callback: onDuplicateCoverage.bind(null, value)
+            },
+            {
+                label: gettext('Duplicate As'),
+                icon: 'icon-copy',
+                callback: duplicateActions,
+            }];
+
+            if (planningUtils.canCancelCoverage(value)) {
+                itemActions.push({
+                    label: gettext('Cancel coverage'),
+                    icon: 'icon-close-small',
+                    callback: onCancelCoverage.bind(null, value),
+                });
+            }
+        }
+
+        if (currentWorkspace === WORKSPACE.PLANNING &&
+            !get(value, 'assigned_to.assignment_id')) {
+            itemActions.push({
+                label: gettext('Remove coverage'),
+                icon: 'icon-trash',
+                callback: onCancelCoverage.bind(null, value, true),
+            });
+        }
+    }
+
+    const itemActionComponent = get(itemActions, 'length', 0) > 0 ?
+        (
+            <ItemActionsMenu
+                className="side-panel__top-tools-right"
+                actions={itemActions} />
+        ) : null;
+
     const coverageItem = (
         <CoverageItem
             coverage={value}
@@ -32,6 +89,8 @@ export const CoverageEditor = ({
             desks={desks}
             dateFormat={dateFormat}
             timeFormat={timeFormat}
+            contentTypes={contentTypes}
+            itemActionComponent={itemActionComponent}
             readOnly={readOnly}
         />
     );
@@ -46,7 +105,7 @@ export const CoverageEditor = ({
             coverageProviders={coverageProviders}
             priorities={priorities}
             readOnly={readOnly}
-            disableDeskSelection={disableDeskSelection}
+            currentWorkspace={currentWorkspace}
         />
     );
 
@@ -68,6 +127,7 @@ export const CoverageEditor = ({
     return (
         <CollapseBox
             collapsedItem={coverageItem}
+            tools={itemActionComponent}
             openItemTopBar={coverageTopBar}
             openItem={coverageForm}
             scrollInView={true}
@@ -95,7 +155,9 @@ CoverageEditor.propTypes = {
     priorities: PropTypes.array,
     keywords: PropTypes.array,
     readOnly: PropTypes.bool,
-    disableDeskSelection: PropTypes.bool,
+    onDuplicateCoverage: PropTypes.func,
+    onCancelCoverage: PropTypes.func,
+    currentWorkspace: PropTypes.string,
 };
 
 CoverageEditor.defaultProps = {
