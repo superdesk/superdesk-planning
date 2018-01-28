@@ -22,7 +22,7 @@ export class ListPanel extends React.Component {
 
         // scroll event gets fired on hover of each item in the list.
         // this.state.scrollTop is used to check if the scroll position has changed
-        if (node && node.scrollTop + node.offsetHeight + 100 >= node.scrollHeight &&
+        if (node && node.scrollTop + node.offsetHeight + 50 >= node.scrollHeight &&
             this.state.scrollTop !== node.scrollTop) {
             this.setState({isNextPageLoading: true, scrollTop: node.scrollTop});
 

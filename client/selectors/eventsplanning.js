@@ -4,6 +4,7 @@ import {storedEvents} from './events';
 import {storedPlannings} from './planning';
 import {eventUtils, planningUtils} from '../utils';
 
+
 export const getEventsPlanningList = (state) => get(state, 'eventsPlanning.eventsAndPlanningInList', []);
 export const getRelatedPlanningsList = (state) => get(state, 'eventsPlanning.relatedPlannings', {});
 

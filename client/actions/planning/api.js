@@ -124,7 +124,9 @@ const getCriteria = ({
         {
             condition: () => (adHocPlanning),
             do: () => {
-                mustNot.push({exists: {field: 'event_item'}});
+                mustNot.push({
+                    constant_score: {filter: {exists: {field: 'event_item'}}}
+                });
             }
         },
         {
@@ -168,6 +170,10 @@ const getCriteria = ({
 
                     if (get(advancedSearch, 'dates.end')) {
                         range[fieldName].lte = get(advancedSearch, 'dates.end');
+                    }
+
+                    if (!range[fieldName].gte && !range[fieldName].lte) {
+                        range[fieldName].gte = 'now/d';
                     }
                 }
 
@@ -296,22 +302,26 @@ const query = ({
             adHocPlanning
         });
 
-        let sort = [
-            {
-                '_planning_schedule.scheduled': {
-                    order: 'asc',
-                    nested_path: '_planning_schedule',
-                    nested_filter: {
-                        range: {
-                            '_planning_schedule.scheduled': {
-                                gte: 'now/d',
-                                time_zone: getTimeZoneOffset(),
-                            },
+
+        const sortField = '_planning_schedule.scheduled';
+        const sortParams = {
+            [sortField]: {
+                order: 'asc',
+                nested_path: '_planning_schedule',
+                nested_filter: {
+                    range: {
+                        [sortField]: {
+                            gte: 'now/d',
+                            time_zone: getTimeZoneOffset(),
                         },
                     },
                 },
             },
-        ];
+        };
+
+        if (get(criteria.filter, 'nested.filter.range')) {
+            sortParams[sortField].nested_filter.range = get(criteria.filter, 'nested.filter.range');
+        }
 
         // Query the API
         return api('planning').query({
@@ -320,7 +330,7 @@ const query = ({
             source: JSON.stringify({
                 query: criteria.query,
                 filter: criteria.filter,
-                sort: sort,
+                sort: [sortParams],
             }),
             timestamp: new Date(),
         })

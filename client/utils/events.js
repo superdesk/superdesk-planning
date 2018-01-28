@@ -486,8 +486,8 @@ const convertToMoment = (item) => ({
     ...item,
     dates: {
         ...item.dates,
-        start: moment(item.dates.start),
-        end: moment(item.dates.end)
+        start: get(item.dates, 'start') ? moment(item.dates.start) : null,
+        end: get(item.dates, 'end') ? moment(item.dates.end) : null
     }
 });
 

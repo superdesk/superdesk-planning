@@ -1,8 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
-import {Row, Label, DateInput, TimeInput} from '../';
+import {Row, DateInput, TimeInput} from '..';
 import './style.scss';
+import Button from '../../Button';
+import {gettext} from '../../../../utils';
 
 export const DateTimeInput = ({
     field,
@@ -15,6 +17,7 @@ export const DateTimeInput = ({
     timeFormat,
     dateFormat,
     readOnly,
+    canClear,
     ...props
 }) => (
     <Row flex={true} className={{
@@ -22,7 +25,6 @@ export const DateTimeInput = ({
         'date-time-input__row--required': required,
         'date-time-input__row--invalid': invalid,
     }}>
-        <Label text={label} row={true}/>
         <DateInput
             field={`${field}.date`}
             value={value}
@@ -31,6 +33,7 @@ export const DateTimeInput = ({
             invalid={invalid}
             dateFormat={dateFormat}
             readOnly={readOnly}
+            label={label}
         />
 
         <TimeInput
@@ -43,6 +46,14 @@ export const DateTimeInput = ({
             timeFormat={timeFormat}
             readOnly={readOnly}
         />
+        {canClear && <Button
+            onClick={() => onChange(field, null)}
+            icon="icon-close-small"
+            size="small"
+            iconOnly={true}
+            title={gettext('Clear date and time')}
+            className="btn--icon-only-circle"
+        />}
     </Row>
 );
 
@@ -64,6 +75,7 @@ DateTimeInput.propTypes = {
     readOnly: PropTypes.bool,
     boxed: PropTypes.bool,
     noMargin: PropTypes.bool,
+    canClear: PropTypes.bool,
 };
 
 DateTimeInput.defaultProps = {
@@ -72,4 +84,5 @@ DateTimeInput.defaultProps = {
     readOnly: false,
     boxed: false,
     noMargin: false,
+    canClear: false,
 };

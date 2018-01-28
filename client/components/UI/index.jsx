@@ -16,6 +16,7 @@ import SearchBar from './SearchBar/';
 import {ToggleBox} from './ToggleBox/';
 import Toggle from './Toggle';
 import SearchField from './SearchField/';
+import Button from './Button';
 
 export {
     List,
@@ -36,4 +37,5 @@ export {
     ToggleBox,
     Toggle,
     SearchField,
+    Button
 };
