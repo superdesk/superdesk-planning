@@ -3,14 +3,15 @@ import PropTypes from 'prop-types';
 
 import {Column} from './Column';
 import {ItemIcon} from '../../';
+import {Checkbox} from '../Form';
 
-export const ItemType = ({onCheckToggle, item}) => (
-    <Column hasCheck={!!onCheckToggle}>
-        {onCheckToggle && (
-            <div className="sd-list-item__checkbox-container" onClick={onCheckToggle}>
-                <span className="sd-check__wrapper">
-                    <span className="sd-checkbox"/>
-                </span>
+export const ItemType = ({hasCheck, checked, onCheckToggle, item}) => (
+    <Column hasCheck={hasCheck} checked={checked} >
+        {hasCheck && (
+            <div className="sd-list-item__checkbox-container">
+                <Checkbox value={checked} onChange={(field, value) => {
+                    onCheckToggle(value);
+                }}/>
             </div>
         )}
         <ItemIcon item={item} />
@@ -20,4 +21,6 @@ export const ItemType = ({onCheckToggle, item}) => (
 ItemType.propTypes = {
     onCheckToggle: PropTypes.func,
     item: PropTypes.object.isRequired,
+    checked: PropTypes.bool,
+    hasCheck: PropTypes.bool,
 };

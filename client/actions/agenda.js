@@ -2,7 +2,7 @@ import * as selectors from '../selectors';
 import {SubmissionError} from 'redux-form';
 import {cloneDeep, pick, get} from 'lodash';
 import {PRIVILEGES, AGENDA, MODALS} from '../constants';
-import {checkPermission, getErrorMessage, isItemSpiked} from '../utils';
+import {checkPermission, getErrorMessage, isItemSpiked, gettext} from '../utils';
 import {planning, showModal} from './index';
 
 const openAgenda = () => (
@@ -139,30 +139,18 @@ const fetchAgendaById = (_id) => (
  */
 const askForAddEventToCurrentAgenda = (events) => (
     (dispatch, getState) => {
-        const currentAgendaId = selectors.getCurrentAgendaId(getState());
+        const message = events.length === 1 ?
+            gettext('Do you want to add this event to the planning list') :
+            gettext(`Do you want to add these ${events.length} events to the planning list ?`);
 
-        if (currentAgendaId) {
-            const message = events.length === 1 ?
-                'Do you want to add this event to the current agenda'
-                : `Do you want to add these ${events.length} events to the current agenda ?`;
-
-            return dispatch(showModal({
-                modalType: MODALS.CONFIRMATION,
-                modalProps: {
-                    body: message,
-                    action: () => dispatch(addEventToCurrentAgenda(events)),
-                    deselectEventsAfterAction: true,
-                },
-            }));
-        } else {
-            dispatch(showModal({
-                modalType: MODALS.CONFIRMATION,
-                modalProps: {
-                    body: 'You have to select an agenda first',
-                    action: () => { /* no-op */ },
-                },
-            }));
-        }
+        return dispatch(showModal({
+            modalType: MODALS.CONFIRMATION,
+            modalProps: {
+                body: message,
+                action: () => dispatch(addEventToCurrentAgenda(events)),
+                deselectEventsAfterAction: true,
+            },
+        }));
     }
 );
 

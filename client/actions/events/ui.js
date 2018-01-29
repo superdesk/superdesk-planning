@@ -211,36 +211,6 @@ const spike = (item) => (
     )
 );
 
-const _openBulkSpikeModal = (events) => (
-    (dispatch) => {
-        let eventsToSpike = Array.isArray(events) ? events : [events];
-
-        dispatch(showModal({
-            modalType: MODALS.CONFIRMATION,
-            modalProps: {
-                body: `Do you want to spike these ${eventsToSpike.length} events?`,
-                action: () => dispatch(self.spike(eventsToSpike)),
-                deselectEventsAfterAction: true,
-            },
-        }));
-    }
-);
-
-const _openUnspikeModal = (events) => (
-    (dispatch) => {
-        let eventsToUnspike = Array.isArray(events) ? events : [events];
-
-        dispatch(showModal({
-            modalType: MODALS.CONFIRMATION,
-            modalProps: {
-                body: `Do you want to unspike these ${eventsToUnspike.length} events?`,
-                action: () => dispatch(self.unspike(eventsToUnspike)),
-                deselectEventsAfterAction: true,
-            },
-        }));
-    }
-);
-
 const unspike = (event) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.unspike(event))
@@ -693,18 +663,6 @@ const closeAdvancedSearch = () => (
     {type: EVENTS.ACTIONS.CLOSE_ADVANCED_SEARCH}
 );
 
-const openBulkSpikeModal = checkPermission(
-    _openBulkSpikeModal,
-    PRIVILEGES.SPIKE_EVENT,
-    'Unauthorised to spike an Event'
-);
-
-const openUnspikeModal = checkPermission(
-    _openUnspikeModal,
-    PRIVILEGES.UNSPIKE_EVENT,
-    'Unauthorised to unspike an Event'
-);
-
 const openEventDetails = checkPermission(
     _openEventDetails,
     PRIVILEGES.EVENT_MANAGEMENT,
@@ -740,8 +698,6 @@ const self = {
     setEventsList,
     clearList,
     openSpikeModal,
-    openBulkSpikeModal,
-    openUnspikeModal,
     openEventDetails,
     unlockAndOpenEventDetails,
     closeEventDetails,

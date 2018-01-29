@@ -1,5 +1,6 @@
 import PlanningApp from '../../../../planning';
 import {
+    SubNavBar,
     FiltersBox,
     ListPanel,
     PreviewPanel,
@@ -19,6 +20,7 @@ export default class Main {
         this.isMounted = this.element.exists();
 
         if (this.isMounted) {
+            this.subNavBar = new SubNavBar(this.element);
             this.filters = new FiltersBox(this.element);
             this.list = new ListPanel(this.element);
             this.preview = new PreviewPanel(this.element);

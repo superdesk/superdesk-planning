@@ -8,6 +8,7 @@ export const ItemIcon = ({item, big, white, blue, showRepeating}) => {
     const getItemIcon = () => {
         const eventIcon = (
             <i className={classNames(
+                'sd-list-item__item-type',
                 'icon-calendar-list',
                 {
                     'icon--white': white,
@@ -29,6 +30,7 @@ export const ItemIcon = ({item, big, white, blue, showRepeating}) => {
 
         const planningIcon = (
             <i className={classNames(
+                'sd-list-item__item-type',
                 'icon-calendar',
                 {
                     'icon--white': white,

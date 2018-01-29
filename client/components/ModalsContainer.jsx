@@ -2,7 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {modalType, modalProps} from '../selectors/general';
-import {hideModal, deselectAllTheEventList} from '../actions';
+import {hideModal} from '../actions';
+import multiSelect from '../actions/multiSelect';
 import {
     ConfirmationModal,
     NotificationModal,
@@ -11,7 +12,7 @@ import {
     FulFilAssignmentModal,
     SelectItemModal,
 } from './index';
-import {MODALS} from '../constants';
+import {MODALS, ITEM_TYPE} from '../constants';
 
 import SortItemsModal from './SortItemsModal';
 import {ManageAgendasModal} from './Agendas/ManageAgendasModal';
@@ -49,10 +50,12 @@ const mapStateToProps = (state) => ({
     modalProps: modalProps(state),
 });
 const mapDispatchToProps = (dispatch) => ({
-    handleHide: (deselectEvents) => {
+    handleHide: (itemType) => {
         dispatch(hideModal());
-        if (deselectEvents) {
-            dispatch(deselectAllTheEventList());
+        if (itemType === ITEM_TYPE.EVENT) {
+            dispatch(multiSelect.deSelectEvents(null, true));
+        } else {
+            dispatch(multiSelect.deSelectPlannings(null, true));
         }
     },
 });

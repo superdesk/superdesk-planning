@@ -11,6 +11,7 @@ import autosave from './autosave';
 import main from './main';
 import locations from './locations';
 import eventsPlanning from './eventsPlanning/index';
+import multiSelect from './multiSelect';
 import {agendaNotifications} from './agenda';
 import {eventNotifications} from './events';
 
@@ -47,4 +48,5 @@ export {
     main,
     locations,
     eventsPlanning,
+    multiSelect,
 };

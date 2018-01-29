@@ -523,6 +523,8 @@ const getPlanningByDate = (plansInList, events) => {
 
 // eslint-disable-next-line consistent-this
 const self = {
+    canSpikePlanning,
+    canUnspikePlanning,
     canPublishPlanning,
     canUnpublishPlanning,
     canEditPlanning,
