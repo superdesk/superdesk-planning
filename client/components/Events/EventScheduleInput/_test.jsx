@@ -38,29 +38,6 @@ describe('<EventScheduleInput />', () => {
         />
     );
 
-    it('detects a non recurring event', () => {
-        item.dates = {
-            start: '2016-10-15T13:01:11',
-            end: '2016-10-15T14:01:11',
-        };
-
-        const wrapper = getShallowWrapper();
-
-        expect(wrapper.state().doesRepeat).toBe(false);
-    });
-
-    it('detects a recurring event', () => {
-        item.dates = {
-            start: '2016-10-15T13:01:11',
-            end: '2016-10-15T14:01:11',
-            recurring_rule: {frequency: 'DAILY'},
-        };
-
-        const wrapper = getShallowWrapper();
-
-        expect(wrapper.state().doesRepeat).toBe(true);
-    });
-
     it('detects a non all day event', () => {
         item.dates = {
             start: '2016-10-15T13:01:11',

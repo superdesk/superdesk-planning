@@ -20,6 +20,7 @@ describe('events', () => {
                 },
                 lock_user: 'user123',
                 lock_session: 'session123',
+                _type: 'events',
             },
             {
                 _id: 'e2',
@@ -28,6 +29,7 @@ describe('events', () => {
                     start: '2014-10-15T14:01:11+0000',
                     end: '2014-10-15T15:01:11+0000',
                 },
+                _type: 'events',
             },
             {
                 _id: 'e3',
@@ -36,6 +38,7 @@ describe('events', () => {
                     start: '2015-10-15T14:01:11+0000',
                     end: '2015-10-15T15:01:11+0000',
                 },
+                _type: 'events',
             },
         ];
         const initialState = {
@@ -240,6 +243,7 @@ describe('events', () => {
                             start: '2017-05-31T16:37:11+0000',
                             end: '2017-05-31T17:37:11+0000',
                         },
+                        _type: 'events',
                     },
                 }
             },
@@ -261,6 +265,7 @@ describe('events', () => {
                 start: '2017-06-30T12:37:11+0000',
                 end: '2017-06-30T13:37:11+0000',
             },
+            _type: 'events',
         };
 
         let store;
@@ -306,6 +311,7 @@ describe('events', () => {
                             start: '2017-06-30T12:37:11+0000',
                             end: '2017-06-30T13:37:11+0000',
                         },
+                        _type: 'events',
                     },
                     {
                         _id: 'e4',
@@ -315,6 +321,7 @@ describe('events', () => {
                             start: '2017-06-30T12:37:11+0000',
                             end: '2017-06-30T13:37:11+0000',
                         },
+                        _type: 'events',
                     },
                 ],
             };
@@ -346,6 +353,7 @@ describe('events', () => {
                                 start: moment('2017-05-31T16:37:11+0000'),
                                 end: moment('2017-05-31T17:37:11+0000'),
                             },
+                            _type: 'events',
                         },
                         e2: {
                             _id: 'e2',
@@ -375,6 +383,7 @@ describe('events', () => {
                                 start: moment('2017-05-31T16:37:11+0000'),
                                 end: moment('2017-05-31T17:37:11+0000'),
                             },
+                            _type: 'events',
                         },
                     });
                     done();
@@ -418,6 +427,7 @@ describe('events', () => {
                                 start: moment('2017-05-31T16:37:11+0000'),
                                 end: moment('2017-05-31T17:37:11+0000'),
                             },
+                            _type: 'events',
                         },
                         e3: {
                             _id: 'e3',
@@ -459,6 +469,7 @@ describe('events', () => {
                                 start: moment('2017-05-31T16:37:11+0000'),
                                 end: moment('2017-05-31T17:37:11+0000'),
                             },
+                            _type: 'events',
                         },
                     });
                     done();
@@ -476,6 +487,7 @@ describe('events', () => {
                             start: '2017-05-31T17:00:00+0000',
                             end: '2017-05-31T18:00:00+0000',
                         },
+                        _type: 'events',
                     }],
                 };
 
@@ -511,6 +523,7 @@ describe('events', () => {
                                 start: moment('2017-05-31T16:37:11+0000'),
                                 end: moment('2017-05-31T17:37:11+0000'),
                             },
+                            _type: 'events',
                         },
                     });
                     done();

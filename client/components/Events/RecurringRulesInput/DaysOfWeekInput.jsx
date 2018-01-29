@@ -73,9 +73,8 @@ export class DaysOfWeekInput extends React.Component {
 
         return (
             <div>
-                <Label row={true} text={label} />
-                {invalid && <LineInput noLabel={true} invalid={invalid} message={message} />}
-                <Row flex={true}>
+                <Label row={true} text={label} invalid={invalid}/>
+                <Row flex={true} noPadding={invalid}>
                     {Object.keys(this.state).map((day) => (
                         <LineInput key={day} noLabel={true} noMargin={true}>
                             <Checkbox
@@ -88,6 +87,7 @@ export class DaysOfWeekInput extends React.Component {
                         </LineInput>
                     ))}
                 </Row>
+                {invalid && <LineInput noLabel={true} invalid={invalid} message={message} />}
             </div>
         );
     }

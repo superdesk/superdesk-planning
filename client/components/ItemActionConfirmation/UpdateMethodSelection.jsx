@@ -6,6 +6,7 @@ import {RelatedEvents, RelatedPlannings} from '../index';
 import {gettext} from '../../utils';
 
 export const UpdateMethodSelection = ({
+    field,
     value,
     onChange,
     showMethodSelection,
@@ -22,6 +23,7 @@ export const UpdateMethodSelection = ({
             <div className="MethodSelect">
                 <p><strong>{gettext('This event is a recurring event!')}</strong></p>
                 <EventUpdateMethodInput
+                    field={field}
                     value={value}
                     onChange={onChange}
                     disabled={readOnly}
@@ -65,6 +67,7 @@ UpdateMethodSelection.defaultProps = {
 };
 
 UpdateMethodSelection.propTypes = {
+    field: PropTypes.string,
     value: PropTypes.object,
     onChange: PropTypes.func.isRequired,
     showMethodSelection: PropTypes.bool,

@@ -1,92 +1,126 @@
 import moment from 'moment';
-import {get} from 'lodash';
-import {gettext} from '../utils';
+import {get, set, isEmpty, isEqual} from 'lodash';
+import {gettext, eventUtils} from '../utils';
+import * as selectors from '../selectors';
+import {formProfile} from './profile';
 
-const endAfterStart = (startDate, endDate) => {
-    let errors = {
-        hasErrors: false,
-        data: {},
-    };
-
-    if (moment.isMoment(startDate) && moment.isMoment(endDate) &&
-        endDate.isBefore(startDate)) {
-        errors.hasErrors = true;
-        errors.data.end = gettext('End date should be after start date');
+const validateRequiredDates = (dates, errors) => {
+    if (!get(dates, 'start')) {
+        set(errors, 'start.date', gettext('This field is required'));
+        set(errors, 'start.time', gettext('This field is required'));
     }
 
-    return errors;
+    if (!get(dates, 'end')) {
+        set(errors, 'end.date', gettext('This field is required'));
+        set(errors, 'end.time', gettext('This field is required'));
+    }
 };
 
-const recurringRuleValidation = (dates, maxRecurrentEvents) => {
+const validateDateRange = (dates, errors) => {
+    const startDate = get(dates, 'start');
+    const endDate = get(dates, 'end');
+
+    if (moment.isMoment(startDate) &&
+        moment.isMoment(endDate) &&
+        endDate.isSameOrBefore(startDate)
+    ) {
+        if (eventUtils.isEventSameDay(startDate, endDate)) {
+            set(errors, 'end.time', gettext('End time should be after start time'));
+        } else {
+            set(errors, 'end.date', gettext('End date should be after start date'));
+        }
+    }
+};
+
+const validateRecurringRules = (getState, dates, errors) => {
+    const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
     const frequency = get(dates, 'recurring_rule.frequency');
     const byday = get(dates, 'recurring_rule.byday');
     const endRepeatMode = get(dates, 'recurring_rule.endRepeatMode');
     const until = get(dates, 'recurring_rule.until');
-    const count = get(dates, 'recurring_rule.count');
+    let count = get(dates, 'recurring_rule.count');
+    const startDate = get(dates, 'start');
 
-    let errors = {
-        hasErrors: false,
-        data: {},
-    };
+    let recurringErrors = {};
 
-    if (until && dates.start > until) {
-        errors.hasErrors = true;
-        errors.data.until = gettext('Must be greater than starting date');
+    if (until && startDate > until) {
+        recurringErrors.until = gettext('Must be greater than starting date');
     }
 
     if (frequency === 'WEEKLY' && !byday) {
-        errors.hasErrors = true;
-        errors.data.byday = gettext('Required');
+        recurringErrors.byday = gettext('Required');
     }
 
     if (endRepeatMode === 'until' && !until) {
-        errors.hasErrors = true;
-        errors.data.until = gettext('Required');
+        recurringErrors.until = gettext('Required');
     }
 
     if (endRepeatMode === 'count') {
         if (!count) {
-            errors.hasErrors = true;
-            errors.data.count = gettext('Required');
+            recurringErrors.count = gettext('Required');
         } else {
-            let count = parseInt(dates.recurring_rule.count, 10);
+            count = parseInt(count, 10);
 
-            if (count > maxRecurrentEvents) {
-                errors.hasErrors = true;
-                errors.data.count = gettext('Must be less than ') + (maxRecurrentEvents + 1);
+            if (count > maxRecurringEvents) {
+                recurringErrors.count = gettext('Must be less than ') + (maxRecurringEvents + 1);
             } else if (count < 2) {
-                errors.hasErrors = true;
-                errors.data.count = gettext('Must be greater than 1');
+                recurringErrors.count = gettext('Must be greater than 1');
             }
         }
     }
 
-    return errors;
+    // If there are any recurring rule errors then set it
+    // Otherwise delete the recurring rule errors
+    if (!isEqual(recurringErrors, {})) {
+        set(errors, 'recurring_rule', recurringErrors);
+    }
 };
 
-const validateEventDates = (dates, maxRecurrentEvents) => {
-    let errors = {
-        hasErrors: false,
-        data: {},
-    };
-    const datesErrors = self.endAfterStart(dates.start, dates.end);
-    const recurringErrors = self.recurringRuleValidation(dates, maxRecurrentEvents);
-
-    if (datesErrors.hasErrors || recurringErrors.hasErrors) {
-        errors.hasErrors = true;
-        errors.data.dates = datesErrors.data;
-        errors.data.dates.recurring_rule = recurringErrors.data;
+const validateDates = (dispatch, getState, field, value, profile, errors) => {
+    if (!value) {
+        return;
     }
 
-    return errors;
+    const newErrors = {};
+
+    self.validateRequiredDates(value, newErrors);
+    self.validateDateRange(value, newErrors);
+    self.validateRecurringRules(getState, value, newErrors);
+
+    if (!isEqual(newErrors, {})) {
+        errors.dates = newErrors;
+    } else {
+        delete errors.dates;
+    }
+};
+
+const validateFilesAndLinks = (dispatch, getState, field, value, profile, errors) => {
+    const error = {};
+
+    formProfile(dispatch, field, value, profile, error);
+
+    if (Array.isArray(value)) {
+        value.forEach((item, index) => {
+            if (isEmpty(item)) {
+                set(error, `[${index}]`, gettext('Required'));
+            }
+        });
+    }
+
+    if (!isEqual(error, {})) {
+        errors[field] = error;
+    } else if (errors[field]) {
+        delete errors[field];
+    }
 };
 
 // eslint-disable-next-line consistent-this
 const self = {
-    endAfterStart,
-    recurringRuleValidation,
-    validateEventDates,
-
+    validateRequiredDates,
+    validateDateRange,
+    validateRecurringRules,
+    validateDates,
+    validateFilesAndLinks,
 };
 
 export default self;

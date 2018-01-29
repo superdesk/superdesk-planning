@@ -87,68 +87,81 @@ export class EventPreviewContentComponent extends React.Component {
                         <StateLabel item={item} verbose={true}/>
                     </div>
                 </div>
-                {get(formProfile, 'editor.slugline.enabled') && <Row
+
+                <Row
+                    enabled={get(formProfile, 'editor.slugline.enabled')}
                     label={gettext('Slugline')}
                     value={item.slugline || ''}
                     className="slugline"
-                />}
-                {get(formProfile, 'editor.name.enabled') && <Row
+                />
+                <Row
+                    enabled={get(formProfile, 'editor.name.enabled')}
                     label={gettext('Name')}
                     value={item.name || ''}
                     className="strong"
-                />}
-                {get(formProfile, 'editor.definition_short.enabled') && <Row
+                />
+                <Row
+                    enabled={get(formProfile, 'editor.definition_short.enabled')}
                     label={gettext('Description')}
                     value={item.definition_short || ''}
-                />}
-                {get(formProfile, 'editor.occur_status.enabled') && <Row
+                />
+                <Row
+                    enabled={get(formProfile, 'editor.occur_status.enabled')}
                     label={gettext('Occurance Status')}
                     value={get(item, 'occur_status.name', '')}
-                />}
+                />
                 <EventScheduleSummary schedule={item.dates} timeFormat={timeFormat} dateFormat={dateFormat}/>
-                {get(formProfile, 'editor.location.enabled') &&
-                    get(item, 'location.length') > 0 &&
-                    <Row label={gettext('Location')}>
-                        <div>{item.location[0].name}</div>
-                        <div>{item.location[0].formatted_address}</div>
-                    </Row>}
+                <Row
+                    enabled={get(formProfile, 'editor.location.enabled')}
+                    label={gettext('Location')}
+                >
+                    <div>{get(item, 'location.name')}</div>
+                    <div>{get(item, 'location.formatted_address')}</div>
+                </Row>
 
-                {get(formProfile, 'editor.contacts.enabled') && get(item, '_contacts.length') > 0 &&
-                    <Row label={gettext('Contact')}>
-                        {get(item, '_contacts', []).map((contact, index) => (
-                            <span key={index}>
-                                {displayContactList(contact)}
-                            </span>
-                        ))}
-                        {this.state.showContactInfo && (
-                            <ContactInfoContainer onCancel={this.closeDetails.bind(this)}
-                                target="icon-external" currentContact={this.state.currentContact} />
-                        )
-                        }
-                    </Row>
-                }
+                <Row
+                    enabled={get(formProfile, 'editor.event_contact_info.enabled') && get(item, '_contacts.length') > 0}
+                    label={gettext('Contact')}
+                >
+                    {get(item, '_contacts', []).map((contact, index) => (
+                        <span key={index}>
+                            {displayContactList(contact)}
+                        </span>
+                    ))}
+                    {this.state.showContactInfo && (
+                        <ContactInfoContainer onCancel={this.closeDetails.bind(this)}
+                            target="icon-external" currentContact={this.state.currentContact} />
+                    )
+                    }
+                </Row>
 
                 <ToggleBox title={gettext('Details')} isOpen={false}>
-                    {get(formProfile, 'editor.calendars.enabled') && <Row
+                    <Row
+                        enabled={get(formProfile, 'editor.calendars.enabled')}
                         label={gettext('Calendars')}
                         value={calendarsText}
-                    />}
-                    {get(formProfile, 'editor.anpa_category.enabled') && <Row
+                    />
+
+                    <Row
+                        enabled={get(formProfile, 'editor.anpa_category.enabled')}
                         label={gettext('Category')}
                         value={categoryText}
-                    />}
-                    {get(formProfile, 'editor.subject.enabled') && <Row
+                    />
+                    <Row
+                        enabled={get(formProfile, 'editor.subject.enabled')}
                         label={gettext('Subject')}
                         value={subjectText}
-                    />}
-                    {get(formProfile, 'editor.definition_long.enabled') && <Row
+                    />
+                    <Row
+                        enabled={get(formProfile, 'editor.definition_long.enabled')}
                         label={gettext('Long Description')}
                         value={item.definition_long || ''}
-                    />}
-                    {get(formProfile, 'editor.internal_note.enabled') && <Row
+                    />
+                    <Row
+                        enabled={get(formProfile, 'editor.internal_note.enabled')}
                         label={gettext('Internal Note')}
                         value={item.internal_note || ''}
-                    />}
+                    />
                 </ToggleBox>
                 {get(formProfile, 'editor.files.enabled') &&
                     <ToggleBox title={gettext('Attached Files')} isOpen={false}>

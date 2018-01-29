@@ -14,6 +14,8 @@ export const enabledAgendas = createSelector(
 export const coverageProviders = (state) => get(state, 'vocabularies.coverage_providers', []);
 
 export const session = (state) => get(state, 'session');
+export const sessionId = (state) => get(state, 'session.sessionId');
+
 export const currentUserId = createSelector(
     [session],
     (session) => get(session, 'identity._id')

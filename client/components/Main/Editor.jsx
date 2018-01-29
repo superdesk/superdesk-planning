@@ -5,7 +5,7 @@ import {get, set, isEqual, cloneDeep} from 'lodash';
 
 import {gettext, lockUtils} from '../../utils';
 
-import {ITEM_TYPE} from '../../constants';
+import {ITEM_TYPE, EVENTS, PLANNING} from '../../constants';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 
@@ -14,11 +14,15 @@ import {
     EditorContentTab
 } from './';
 
+import {Button} from '../UI';
+import {Toolbar as SlideInToolbar} from '../UI/SlideInPanel';
 import {Tabs as NavTabs} from '../UI/Nav';
 import {SidePanel, Content} from '../UI/SidePanel';
 
 import {EditorHeader} from './EditorHeader';
 import {Autosave} from '../';
+
+import {validateItem} from '../../validators';
 
 export class EditorComponent extends React.Component {
     constructor(props) {
@@ -26,15 +30,21 @@ export class EditorComponent extends React.Component {
         this.state = {
             tab: 0,
             diff: {},
+            errors: {},
             dirty: false,
             submitting: false,
+            submitFailed: false,
+            showSubmitFailed: false,
         };
+
         this.onChangeHandler = this.onChangeHandler.bind(this);
         this.setActiveTab = this.setActiveTab.bind(this);
         this.onSave = this.onSave.bind(this);
         this.onPublish = this.onPublish.bind(this);
         this.onSaveAndPublish = this.onSaveAndPublish.bind(this);
         this.onUnpublish = this.onUnpublish.bind(this);
+        this.onCancel = this.onCancel.bind(this);
+        this.hideSubmitFailed = this.hideSubmitFailed.bind(this);
 
         this.tabs = [
             {label: gettext('Content'), render: EditorContentTab, enabled: true},
@@ -44,10 +54,14 @@ export class EditorComponent extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         if (!get(nextProps, 'item') && get(nextProps, 'itemType') && !get(this.props, 'itemType')) {
-            let diff = {_type: nextProps.itemType};
+            let diff;
 
             if (nextProps.itemType === ITEM_TYPE.EVENT) {
-                diff.dates = {};
+                diff = cloneDeep(EVENTS.DEFAULT_VALUE(nextProps.occurStatuses));
+            } else if (nextProps.itemType === ITEM_TYPE.PLANNING) {
+                diff = cloneDeep(PLANNING.DEFAULT_VALUE);
+            } else {
+                diff = {};
             }
 
             this.setState({
@@ -83,39 +97,106 @@ export class EditorComponent extends React.Component {
         // If field (name) is passed, it will replace that field
         // Else, entire object will be replaced
         const diff = field ? Object.assign({}, this.state.diff) : cloneDeep(value);
+        const errors = cloneDeep(this.state.errors);
 
         if (field) {
             set(diff, field, value);
         }
 
+        this.props.onValidate(
+            this.props.itemType,
+            diff,
+            this.props.formProfiles,
+            errors
+        );
+
         this.setState({
             diff: diff,
-            dirty: !isEqual(this.props.item, diff)
+            dirty: !isEqual(this.props.item, diff),
+            errors: errors
         });
     }
 
     onSave() {
-        this.setState({submitting: true});
-        return this.props.onSave(this.state.diff, true, false);
+        if (!isEqual(this.state.errors, {})) {
+            this.setState({
+                submitFailed: true,
+                showSubmitFailed: true,
+            });
+        } else {
+            this.setState({
+                submitting: true,
+                submitFailed: false,
+                showSubmitFailed: false,
+            });
+            return this.props.onSave(this.state.diff, true, false);
+        }
     }
 
     onPublish() {
-        this.setState({submitting: true});
-        return this.props.onSave(this.state.diff, false, true);
+        if (!isEqual(this.state.errors, {})) {
+            this.setState({
+                submitFailed: true,
+                showSubmitFailed: true,
+            });
+        } else {
+            this.setState({
+                submitting: true,
+                submitFailed: false,
+                showSubmitFailed: false,
+            });
+            return this.props.onSave(this.state.diff, false, true);
+        }
     }
 
     onSaveAndPublish() {
-        this.setState({submitting: true});
-        return this.props.onSave(this.state.diff, true, true);
+        if (!isEqual(this.state.errors, {})) {
+            this.setState({
+                submitFailed: true,
+                showSubmitFailed: true,
+            });
+        } else {
+            this.setState({
+                submitting: true,
+                submitFailed: false,
+                showSubmitFailed: false
+            });
+            return this.props.onSave(this.state.diff, true, true);
+        }
     }
 
     onUnpublish() {
-        this.setState({submitting: true});
-        return this.props.onUnpublish(this.state.diff);
+        if (!isEqual(this.state.errors, {})) {
+            this.setState({
+                submitFailed: true,
+                showSubmitFailed: true,
+            });
+        } else {
+            this.setState({
+                submitting: true,
+                submitFailed: false,
+                showSubmitFailed: false,
+            });
+            return this.props.onUnpublish(this.state.diff);
+        }
+    }
+
+    onCancel() {
+        this.setState({
+            errors: {},
+            submitFailed: false,
+            showSubmitFailed: false,
+        });
+
+        this.props.cancel(this.props.item);
     }
 
     setActiveTab(tab) {
         this.setState({tab});
+    }
+
+    hideSubmitFailed() {
+        this.setState({showSubmitFailed: false});
     }
 
     render() {
@@ -148,7 +229,7 @@ export class EditorComponent extends React.Component {
                     onPublish={this.onPublish}
                     onSaveAndPublish={this.onSaveAndPublish}
                     onUnpublish={this.onUnpublish}
-                    cancel={this.props.cancel}
+                    cancel={this.onCancel}
                     minimize={this.props.minimize}
                     submitting={this.state.submitting}
                     dirty={this.state.dirty}
@@ -161,7 +242,23 @@ export class EditorComponent extends React.Component {
                     onLock={this.props.onLock}
                 />
                 <Content flex={true}>
-                    {existingItem && (
+                    {this.state.showSubmitFailed && (
+                        <div>
+                            <SlideInToolbar invalid={true}>
+                                <h3>{existingItem ?
+                                    gettext('Failed to save!') :
+                                    gettext('Failed to create!')}
+                                </h3>
+                                <Button
+                                    text={gettext('OK')}
+                                    hollow={true}
+                                    color="alert"
+                                    onClick={this.hideSubmitFailed}
+                                />
+                            </SlideInToolbar>
+                        </div>
+                    )}
+                    {!this.state.showSubmitFailed && existingItem && (
                         <NavTabs
                             tabs={this.tabs}
                             active={this.state.tab}
@@ -177,6 +274,9 @@ export class EditorComponent extends React.Component {
                             onChangeHandler={this.onChangeHandler}
                             readOnly={existingItem && (!isLocked || isLockRestricted)}
                             addNewsItemToPlanning={this.props.addNewsItemToPlanning}
+                            submitFailed={this.state.submitFailed}
+                            errors={this.state.errors}
+                            dirty={this.state.dirty}
                         />
                     </div>
                 </Content>
@@ -200,16 +300,28 @@ EditorComponent.propTypes = {
     onUnlock: PropTypes.func,
     onLock: PropTypes.func,
     addNewsItemToPlanning: PropTypes.object,
+    onValidate: PropTypes.func,
+    formProfiles: PropTypes.object,
+    occurStatuses: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
+    item: selectors.forms.currentItem(state),
+    itemType: selectors.forms.currentItemType(state),
     users: selectors.getUsers(state),
+    formProfiles: selectors.forms.profiles(state),
+    occurStatuses: state.vocabularies.eventoccurstatus,
 });
 
 const mapDispatchToProps = (dispatch) => ({
     onUnlock: (item) => dispatch(actions.locks.unlockThenLock(item)),
     onLock: (item) => dispatch(actions.locks.lock(item)),
     minimize: () => dispatch(actions.main.closeEditor()),
+    cancel: (item) => dispatch(actions.main.unlockAndCancel(item)),
+    onSave: (item, save, publish) => dispatch(actions.main.save(item, save, publish)),
+    onUnpublish: (item) => dispatch(actions.main.unpublish(item)),
+    openCancelModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
+    onValidate: (type, item, profile, errors) => dispatch(validateItem(type, item, profile, errors))
 });
 
 export const Editor = connect(mapStateToProps, mapDispatchToProps)(EditorComponent);

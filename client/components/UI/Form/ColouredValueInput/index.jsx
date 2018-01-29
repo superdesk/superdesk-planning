@@ -47,6 +47,7 @@ export class ColouredValueInput extends React.Component {
             valueKey,
             noMargin,
             popupContainer,
+            ...props
         } = this.props;
 
         return (
@@ -56,6 +57,7 @@ export class ColouredValueInput extends React.Component {
                 readOnly={readOnly}
                 labelLeft={labelLeft}
                 noMargin={noMargin}
+                {...props}
             >
                 <Label text={label} row={readOnly} light={readOnly} />
 

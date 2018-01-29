@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {SelectFieldPopup} from './SelectFieldPopup';
-import {differenceBy, get} from 'lodash';
+import {differenceBy, get, cloneDeep} from 'lodash';
 
 import {LineInput, Label} from '../';
 import {TermsList} from '../../';
@@ -33,9 +33,10 @@ export class SelectMetaTermsInput extends React.Component {
 
     removeValue(index) {
         const {value, field, onChange} = this.props;
+        let newValue = cloneDeep(value);
 
-        value.splice(index, 1);
-        onChange(field, value);
+        newValue.splice(index, 1);
+        onChange(field, newValue);
     }
 
     removeValuesFromOptions() {

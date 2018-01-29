@@ -66,14 +66,13 @@ export class SpikeEventComponent extends React.Component {
 
         return (
             <div className="MetadataView">
-                {initialValues.slugline && (
-                    <Row
-                        label={gettext('Slugline')}
-                        value={initialValues.slugline || ''}
-                        className="slugline"
-                        noPadding={true}
-                    />
-                )}
+                <Row
+                    enabled={!!initialValues.slugline}
+                    label={gettext('Slugline')}
+                    value={initialValues.slugline || ''}
+                    className="slugline"
+                    noPadding={true}
+                />
 
                 <Row
                     label={gettext('Name')}
@@ -88,13 +87,12 @@ export class SpikeEventComponent extends React.Component {
                     dateFormat={dateFormat}
                 />
 
-                {isRecurring && (
-                    <Row
-                        label={gettext('No. of Events')}
-                        value={numEvents}
-                        noPadding={true}
-                    />
-                )}
+                <Row
+                    enabled={isRecurring}
+                    label={gettext('No. of Events')}
+                    value={numEvents}
+                    noPadding={true}
+                />
 
                 <UpdateMethodSelection
                     value={this.state.eventUpdateMethod}

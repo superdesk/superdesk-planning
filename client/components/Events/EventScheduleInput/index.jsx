@@ -1,25 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {get, isNil, isEqual} from 'lodash';
+import {get} from 'lodash';
 import moment from 'moment';
 
-import {eventUtils} from '../../../utils';
-import {eventValidators} from '../../../validators';
+import {eventUtils, gettext} from '../../../utils';
 
-import {Toggle} from '../../UI';
-import {Row, DateTimeInput, Label, LineInput} from '../../UI/Form';
+import {Row, DateTimeInput, LineInput, ToggleInput, Field} from '../../UI/Form';
 import {RecurringRulesInput} from '../RecurringRulesInput';
 
 export class EventScheduleInput extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {
-            doesRepeat: false,
-            recurringRuleEdited: false,
-            isAllDay: false,
-            error: null,
-        };
+        this.state = {isAllDay: false};
 
         this.onChange = this.onChange.bind(this);
         this.handleAllDayChange = this.handleAllDayChange.bind(this);
@@ -27,16 +20,9 @@ export class EventScheduleInput extends React.Component {
     }
 
     componentWillMount() {
-        const dates = get(this.props, 'item.dates');
-        const validation = eventValidators.validateEventDates(dates,
-            this.props.maxRecurrentEvents);
+        const dates = get(this.props, 'item.dates') || {};
 
-        this.setState({
-            doesRepeat: !isNil(get(dates, 'recurring_rule.frequency')),
-            recurringRuleEdited: false,
-            isAllDay: eventUtils.isEventAllDay(dates.start, dates.end),
-            error: validation.hasErrors ? validation.data : null
-        });
+        this.setState({isAllDay: eventUtils.isEventAllDay(dates.start, dates.end)});
     }
 
     onChange(field, value) {
@@ -131,13 +117,7 @@ export class EventScheduleInput extends React.Component {
 
     componentWillReceiveProps(nextProps) {
         const nextDates = get(nextProps, 'diff.dates') || {};
-
-        const doesRepeat = !isNil(get(nextDates, 'recurring_rule.frequency'));
-        const recurringRuleNextState = this.getNextRecurringRuleState(nextProps);
-
         const isAllDay = eventUtils.isEventAllDay(nextDates.start, nextDates.end);
-        const validation = eventValidators.validateEventDates(nextDates,
-            nextProps.maxRecurrentEvents);
 
         const newState = {};
 
@@ -145,37 +125,14 @@ export class EventScheduleInput extends React.Component {
             newState.isAllDay = isAllDay;
         }
 
-        if (doesRepeat || this.state.recurringRuleEdited !== recurringRuleNextState) {
-            newState.doesRepeat = true;
-            newState.recurringRuleEdited = recurringRuleNextState;
-        }
-
-        newState.error = validation.hasErrors ? validation.data : null;
-
         this.setState(newState);
     }
 
-    getNextRecurringRuleState(nextProps) {
-        const recurringRuleFields = [
-            'dates.start',
-            'dates.end',
-            'dates.recurring_rule'
-        ];
-
-        // Return true if any recurring-rules field got changes
-        return recurringRuleFields.some(
-            (field) => !isEqual(
-                get(nextProps.diff, field),
-                get(this.props.item, field)
-            )
-        );
-    }
-
-    handleAllDayChange(event) {
+    handleAllDayChange(field, value) {
         let newStart;
         let newEnd;
 
-        if (event.target.value) {
+        if (value) {
             // If allDay is enabled, then set the event to all day
             newStart = get(this.props, 'diff.dates.start', moment())
                 .clone()
@@ -187,7 +144,7 @@ export class EventScheduleInput extends React.Component {
             // If allDay is disabled, then set the new dates to the initial values
             // since last save
             newStart = get(this.props, 'item.dates.start', moment()).clone();
-            newEnd = get(this.props, 'item.dates.end', moment()).clone();
+            newEnd = get(this.props, 'item.dates.end', moment().add(1, 'h')).clone();
 
             // If the initial values were all day, then set the end minutes to 55
             // So that the allDay toggle is turned off
@@ -200,8 +157,8 @@ export class EventScheduleInput extends React.Component {
         this.onChange('dates.end', newEnd);
     }
 
-    handleDoesRepeatChange(event) {
-        if (!event.target.value) {
+    handleDoesRepeatChange(field, value) {
+        if (!value) {
             // If unchecked, remove the recurring rules
             this.onChange(
                 'dates.recurring_rule',
@@ -215,69 +172,104 @@ export class EventScheduleInput extends React.Component {
                     frequency: 'DAILY',
                     interval: 1,
                     endRepeatMode: 'count',
-                    count: 1,
+                    count: 2,
                 }
             );
         }
-
-        // Update the state to hide the recurrent date form
-        this.setState({doesRepeat: event.target.value});
     }
 
     render() {
-        const {diff, showRepeat, showRepeatToggle, timeFormat, dateFormat, readOnly} = this.props;
-        const {doesRepeat, isAllDay, error} = this.state;
+        const {
+            item,
+            diff,
+            showRepeat,
+            showRepeatToggle,
+            timeFormat,
+            dateFormat,
+            readOnly,
+            errors,
+            showErrors,
+        } = this.props;
+        const {isAllDay} = this.state;
+
+        const doesRepeat = !!get(diff, 'dates.recurring_rule');
+
+        const fieldProps = {
+            item: item,
+            diff: diff,
+            readOnly: readOnly,
+            onChange: this.onChange,
+            formProfile: {
+                schema: {
+                    'dates.start': {required: true},
+                    'dates.end': {required: true},
+                }
+            },
+            errors: errors,
+            showErrors: showErrors
+        };
+
+        const toggleProps = {
+            row: false,
+            component: ToggleInput,
+            readOnly: readOnly,
+            className: 'sd-line-input__input',
+            labelLeftAuto: true,
+            defaultValue: false
+        };
 
         return (
             <div>
-                <DateTimeInput
+                <Field
+                    component={DateTimeInput}
                     field="dates.start"
-                    label="From"
-                    value={get(diff, 'dates.start', null)}
-                    onChange={this.onChange}
+                    label={gettext('From')}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
-                    readOnly={readOnly}
+                    row={false}
+                    defaultValue={null}
+                    {...fieldProps}
                 />
 
-                <DateTimeInput
+                <Field
+                    component={DateTimeInput}
                     field="dates.end"
-                    label="To"
-                    value={get(diff, 'dates.end', null)}
-                    onChange={this.onChange}
-                    invalid={get(error, 'dates.end', false)}
+                    label={gettext('To')}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
-                    readOnly={readOnly}
+                    row={false}
+                    defaultValue={null}
+                    {...fieldProps}
                 />
-                {get(error, 'dates.end', false) && <Row>
+
+                <Row
+                    enabled={!!get(errors, 'dates.range')}
+                    noPadding={true}
+                >
                     <LineInput invalid={true}
-                        message={error.dates.end}
+                        message={get(errors, 'dates.range')}
                         readOnly={true} />
-                </Row>}
+                </Row>
+
 
                 <Row flex={true} className="event-toggle">
-                    {showRepeat && showRepeatToggle && (
-                        <LineInput labelLeftAuto={true} readOnly={readOnly}>
-                            <Label text="Repeat" />
-                            <Toggle
-                                value={doesRepeat}
-                                onChange={this.handleDoesRepeatChange}
-                                readOnly={readOnly}
-                                className="sd-line-input__input"
-                            />
-                        </LineInput>
-                    )}
+                    <Field
+                        enabled={showRepeat && showRepeatToggle}
+                        onChange={this.handleDoesRepeatChange}
+                        field="dates.recurring"
+                        label={gettext('Repeat')}
+                        value={doesRepeat}
+                        {...toggleProps}
+                    />
 
-                    <LineInput labelLeftAuto={true} readOnly={readOnly}>
-                        <Label text="All Day" />
-                        <Toggle
-                            value={isAllDay}
-                            onChange={this.handleAllDayChange}
-                            readOnly={readOnly}
-                            className="sd-line-input__input"
-                        />
-                    </LineInput>
+                    <Field
+                        onChange={this.handleAllDayChange}
+                        field="dates.all_day"
+                        label={gettext('All Day')}
+                        value={!!isAllDay}
+
+                        {...toggleProps}
+                    />
                 </Row>
 
                 {showRepeat && doesRepeat && (
@@ -286,7 +278,7 @@ export class EventScheduleInput extends React.Component {
                         schedule={diff || {}}
                         dateFormat={dateFormat}
                         readOnly={readOnly}
-                        error={get(error, 'dates.recurring_rule')}
+                        errors={get(errors, 'dates.recurring_rule')}
                     />
                 )}
             </div>
@@ -304,7 +296,9 @@ EventScheduleInput.propTypes = {
     showRepeatToggle: PropTypes.bool,
     timeFormat: PropTypes.string.isRequired,
     dateFormat: PropTypes.string.isRequired,
-    maxRecurrentEvents: PropTypes.number.isRequired,
+    errors: PropTypes.object,
+    showErrors: PropTypes.bool,
+    dirty: PropTypes.bool,
 };
 
 EventScheduleInput.defaultProps = {

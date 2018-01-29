@@ -80,14 +80,13 @@ export class CancelAndPostponeEventComponent extends React.Component {
 
         return (
             <div className="ItemActionConfirmation">
-                {initialValues.slugline && (
-                    <Row
-                        label={gettext('Slugline')}
-                        value={initialValues.slugline || ''}
-                        noPadding={true}
-                        className="slugline"
-                    />
-                )}
+                <Row
+                    enabled={initialValues.slugline}
+                    label={gettext('Slugline')}
+                    value={initialValues.slugline}
+                    noPadding={true}
+                    className="slugline"
+                />
 
                 <Row
                     label={gettext('Name')}
@@ -102,21 +101,19 @@ export class CancelAndPostponeEventComponent extends React.Component {
                     dateFormat={dateFormat}
                 />
 
-                {isRecurring && (
-                    <Row
-                        label={gettext('No. of Events')}
-                        value={numEvents}
-                        noPadding={true}
-                    />
-                )}
+                <Row
+                    enabled={isRecurring}
+                    label={gettext('No. of Events')}
+                    value={numEvents}
+                    noPadding={true}
+                />
 
-                {!!numPlannings && (
-                    <Row
-                        label={gettext('No. of Plannings')}
-                        value={numPlannings}
-                        noPadding={true}
-                    />
-                )}
+                <Row
+                    enabled={!!numPlannings}
+                    label={gettext('No. of Plannings')}
+                    value={numPlannings}
+                    noPadding={true}
+                />
 
                 <UpdateMethodSelection
                     value={this.state.eventUpdateMethod}

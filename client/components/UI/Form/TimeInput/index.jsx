@@ -79,6 +79,7 @@ export class TimeInput extends React.Component {
 
         newMoment.hour(newTime.hour());
         newMoment.minute(newTime.minute());
+        newMoment.second(0);
 
         if (!newMoment.isSame(value) || !value) {
             onChange(field, newMoment);

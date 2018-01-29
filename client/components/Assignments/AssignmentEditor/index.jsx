@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {get} from 'lodash';
-import {getItemInArrayById, getUsersForDesk, getDesksForUser} from '../../../utils';
+import {getItemInArrayById, getUsersForDesk, getDesksForUser, gettext} from '../../../utils';
 
 import {
     Row,
@@ -64,7 +64,7 @@ export class AssignmentEditor extends React.Component {
         }
 
         if (priorityQcode !== this.state.priorityQcode) {
-            this.onPriorityChange(null, getItemInArrayById(nextProps.priorities, priorityQcode));
+            this.onPriorityChange(null, getItemInArrayById(nextProps.priorities, priorityQcode, 'qcode'));
         }
     }
 
@@ -127,7 +127,7 @@ export class AssignmentEditor extends React.Component {
                 <Row>
                     <SelectInput
                         field={this.FIELDS.DESK}
-                        label="Desk"
+                        label={gettext('Desk')}
                         value={this.state.desk}
                         onChange={this.onDeskChange}
                         options={this.state.filteredDesks}
@@ -140,7 +140,7 @@ export class AssignmentEditor extends React.Component {
 
                 <SelectInput
                     field={this.FIELDS.PROVIDER}
-                    label="Coverage Provider"
+                    label={gettext('Coverage Provider')}
                     value={get(value, this.FIELDS.PROVIDER, null)}
                     onChange={onChange}
                     options={coverageProviders}
@@ -151,7 +151,7 @@ export class AssignmentEditor extends React.Component {
 
                 <SelectUserInput
                     field={this.FIELDS.USER}
-                    label="User"
+                    label={gettext('User')}
                     value={this.state.user}
                     onChange={this.onUserChange}
                     users={this.state.filteredUsers}
@@ -161,7 +161,7 @@ export class AssignmentEditor extends React.Component {
                 <Row noPadding={true}>
                     <ColouredValueInput
                         field={this.FIELDS.PRIORITY}
-                        label="Assignment Priority"
+                        label={gettext('Assignment Priority')}
                         value={this.state.priority}
                         onChange={this.onPriorityChange}
                         options={priorities}

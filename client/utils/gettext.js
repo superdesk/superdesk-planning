@@ -13,7 +13,7 @@ export const gettext = (text, params = null) => {
     const injector = angular.element(document.body).injector();
 
     if (injector) { // in tests this will be empty
-        const translated = injector.get('gettext')(text);
+        const translated = injector.get('gettextCatalog').getString(text);
 
         return params ? injector.get('$interpolate')(translated)(params) : translated;
     }

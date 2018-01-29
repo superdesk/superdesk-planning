@@ -1,19 +1,19 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, cloneDeep, remove as _remove} from 'lodash';
+import {get, cloneDeep, remove as _remove, some} from 'lodash';
 import * as selectors from '../../../selectors';
 
-import {isItemPublic, gettext, getItemInArrayById, planningUtils} from '../../../utils';
+import {gettext, getItemInArrayById, planningUtils} from '../../../utils';
 
 import {ContentBlock} from '../../UI/SidePanel';
 import {
-    Row,
     TextInput,
     TextAreaInput,
     SelectMetaTermsInput,
     ToggleInput,
     ColouredValueInput,
+    Field,
 } from '../../UI/Form';
 import {ToggleBox} from '../../UI';
 
@@ -23,7 +23,14 @@ import {EventMetadata} from '../../Events';
 import {ITEM_TYPE} from '../../../constants';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
+
 import {PLANNING} from '../../../constants';
+
+const toggleDetails = [
+    'ednote',
+    'anpa_category',
+    'subject',
+];
 
 export class PlanningEditorComponent extends React.Component {
     constructor(props) {
@@ -176,9 +183,12 @@ export class PlanningEditorComponent extends React.Component {
             keywords,
             addNewsItemToPlanning,
             currentWorkspace,
+            submitFailed,
+            dirty,
+            errors,
+            planningProfile,
+            coverageProfile,
         } = this.props;
-
-        const isPublic = isItemPublic(item);
 
         const agendaValues = get(diff, 'agendas', [])
             .map((agendaId) => agendas.find((a) => a._id === agendaId));
@@ -204,6 +214,18 @@ export class PlanningEditorComponent extends React.Component {
             }
         }
 
+        const fieldProps = {
+            item: item,
+            diff: diff,
+            readOnly: updatedReadOnly,
+            onChange: this.onChange,
+            formProfile: planningProfile,
+            errors: errors,
+            showErrors: submitFailed
+        };
+
+        const detailsErrored = some(toggleDetails, (field) => !!get(errors, field));
+
         return (
             <div className="planning-editor">
                 <PlanningEditorHeader
@@ -212,105 +234,89 @@ export class PlanningEditorComponent extends React.Component {
                 />
 
                 <ContentBlock>
-                    <Row>
-                        <TextInput
-                            field="slugline"
-                            label="Slugline"
-                            value={get(diff, 'slugline', '')}
-                            onChange={this.onChange}
-                            refNode={(node) => this.dom.slugline = node}
-                            readOnly={updatedReadOnly}
+                    <Field
+                        component={TextInput}
+                        field="slugline"
+                        label={gettext('Slugline')}
+                        refNode={(node) => this.dom.slugline = node}
+                        {...fieldProps}
+                    />
+
+                    <Field
+                        component={TextAreaInput}
+                        field="description_text"
+                        label={gettext('Description')}
+                        {...fieldProps}
+                    />
+
+                    <Field
+                        component={TextAreaInput}
+                        field="internal_note"
+                        label={gettext('Internal Note')}
+                        {...fieldProps}
+                    />
+
+                    <Field
+                        component={SelectMetaTermsInput}
+                        field="agendas"
+                        label={gettext('Agenda')}
+                        options={enabledAgendas}
+                        valueKey="_id"
+                        value={agendaValues}
+                        {...fieldProps}
+                    />
+
+                    <ToggleBox
+                        title={gettext('Details')}
+                        isOpen={false}
+                        scrollInView={true}
+                        invalid={detailsErrored && (dirty || submitFailed)}
+                    >
+                        <Field
+                            component={TextAreaInput}
+                            field="ednote"
+                            label={gettext('Ed Note')}
+                            {...fieldProps}
                         />
-                    </Row>
 
-                    <Row>
-                        <TextAreaInput
-                            field="description_text"
-                            label="Description"
-                            value={get(diff, 'description_text', '')}
-                            onChange={this.onChange}
-                            readOnly={updatedReadOnly}
+                        <Field
+                            component={SelectMetaTermsInput}
+                            field="anpa_category"
+                            label={gettext('Category')}
+                            options={categories}
+                            defaultValue={[]}
+                            {...fieldProps}
                         />
-                    </Row>
 
-                    <Row>
-                        <TextAreaInput
-                            field="internal_note"
-                            label="Internal Note"
-                            value={get(diff, 'internal_note', '')}
-                            onChange={this.onChange}
-                            readOnly={updatedReadOnly}
+                        <Field
+                            component={SelectMetaTermsInput}
+                            field="subject"
+                            label={gettext('Subject')}
+                            options={subjects}
+                            defaultValue={[]}
+                            {...fieldProps}
                         />
-                    </Row>
 
-                    <Row>
-                        <SelectMetaTermsInput
-                            field="agendas"
-                            label="Agenda"
-                            value={agendaValues}
-                            onChange={this.onChange}
-                            options={enabledAgendas}
-                            valueKey="_id"
-                            readOnly={updatedReadOnly}
+                        <Field
+                            component={ColouredValueInput}
+                            field="urgency"
+                            label={gettext('Urgency')}
+                            value={urgency}
+                            options={urgencies}
+                            iconName="urgency-label"
+                            labelLeft={true}
+                            defaultValue={null}
+                            {...fieldProps}
                         />
-                    </Row>
 
-                    <ToggleBox title="Details" isOpen={false} scrollInView={true}>
-                        <Row>
-                            <TextAreaInput
-                                field="ednote"
-                                label="Ed Note"
-                                value={get(diff, 'ednote', '')}
-                                onChange={this.onChange}
-                                readOnly={updatedReadOnly}
-                            />
-                        </Row>
-
-                        <Row>
-                            <SelectMetaTermsInput
-                                field="anpa_category"
-                                label="Category"
-                                value={get(diff, 'anpa_category', [])}
-                                onChange={this.onChange}
-                                options={categories}
-                                readOnly={updatedReadOnly}
-                            />
-                        </Row>
-
-                        <Row>
-                            <SelectMetaTermsInput
-                                field="subject"
-                                label="Subject"
-                                value={get(diff, 'subject', [])}
-                                onChange={this.onChange}
-                                options={subjects}
-                                readOnly={updatedReadOnly}
-                            />
-                        </Row>
-
-                        <Row>
-                            <ColouredValueInput
-                                field="urgency"
-                                label="Urgency"
-                                value={urgency}
-                                onChange={this.onChange}
-                                readOnly={updatedReadOnly}
-                                options={urgencies}
-                                iconName="urgency-label"
-                                labelLeft={true}
-                            />
-                        </Row>
-
-                        <Row>
-                            <ToggleInput
-                                field="flags.marked_for_not_publication"
-                                label="Not for Publication"
-                                value={get(diff, 'flags.marked_for_not_publication')}
-                                onChange={this.onChange}
-                                readOnly={updatedReadOnly || isPublic}
-                                labelLeft={true}
-                            />
-                        </Row>
+                        <Field
+                            component={ToggleInput}
+                            field="flags.marked_for_not_publication"
+                            label={gettext('Not for Publication')}
+                            labelLeft={true}
+                            defaultValue={false}
+                            {...fieldProps}
+                        />
                     </ToggleBox>
                 </ContentBlock>
 
@@ -330,9 +336,10 @@ export class PlanningEditorComponent extends React.Component {
                     </ContentBlock>
                 )}
 
-                <CoverageArrayInput
-                    value={get(diff, 'coverages', [])}
-                    onChange={this.onChange}
+                <Field
+                    component={CoverageArrayInput}
+                    row={false}
+                    field="coverages"
                     users={users}
                     desks={desks}
                     timeFormat={timeFormat}
@@ -350,8 +357,10 @@ export class PlanningEditorComponent extends React.Component {
                     maxCoverageCount={maxCoverageCount}
                     addOnly={!!addNewsItemToPlanning && existingPlanning}
                     originalCount={get(item, 'coverages', []).length}
+                    defaultValue={[]}
+                    {...fieldProps}
+                    formProfile={coverageProfile}
                 />
-
             </div>
         );
     }
@@ -381,6 +390,11 @@ PlanningEditorComponent.propTypes = {
     desk: PropTypes.string,
     user: PropTypes.string,
     currentWorkspace: PropTypes.string,
+    errors: PropTypes.object,
+    submitFailed: PropTypes.bool,
+    dirty: PropTypes.bool,
+    planningProfile: PropTypes.object,
+    coverageProfile: PropTypes.object,
 };
 
 PlanningEditorComponent.defaultProps = {readOnly: false};
@@ -404,6 +418,8 @@ const mapStateToProps = (state) => ({
     desk: selectors.getCurrentDeskId(state),
     user: selectors.getCurrentUserId(state),
     currentWorkspace: selectors.getCurrentWorkspace(state),
+    planningProfile: selectors.forms.planningProfile(state),
+    coverageProfile: selectors.forms.coverageProfile(state),
 });
 
 export const PlanningEditor = connect(mapStateToProps)(PlanningEditorComponent);

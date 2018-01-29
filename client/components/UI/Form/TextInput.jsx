@@ -9,7 +9,7 @@ export const TextInput = ({
     label,
     value,
     onChange,
-    maxChars,
+    maxLength,
     invalid,
     readOnly,
     type,
@@ -27,8 +27,8 @@ export const TextInput = ({
             refNode={refNode}
         />
 
-        {maxChars > 0 &&
-            <div className="sd-line-input__char-count">{get(value, 'length', 0)}/{maxChars}</div>
+        {maxLength > 0 &&
+            <div className="sd-line-input__char-count">{get(value, 'length', 0)}/{maxLength}</div>
         }
     </LineInput>
 );
@@ -41,14 +41,14 @@ TextInput.propTypes = {
         PropTypes.number,
     ]),
     onChange: PropTypes.func.isRequired,
-    maxChars: PropTypes.number,
+    maxLength: PropTypes.number,
     type: PropTypes.string,
     refNode: PropTypes.func,
     ...LineInputProps,
 };
 
 TextInput.defaultProps = {
-    maxChars: 0,
+    maxLength: 0,
     type: 'text',
     value: '',
     ...LineInputDefaultProps,

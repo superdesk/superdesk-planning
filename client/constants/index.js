@@ -11,6 +11,7 @@ export {AUTOSAVE} from './autosave';
 export {MAIN} from './main';
 export {KEYCODES} from './keycodes';
 export {EVENTS_PLANNING} from './eventsplanning';
+export {COVERAGES} from './coverages';
 
 
 export const LIST_ITEM_1_LINE_HEIGHT = 38;

@@ -1,8 +1,8 @@
-import {EVENTS, SPIKED_STATE, WORKFLOW_STATE, PUBLISHED_STATE, ITEM_TYPE} from '../../constants';
+import {EVENTS, SPIKED_STATE, WORKFLOW_STATE, PUBLISHED_STATE} from '../../constants';
 import {EventUpdateMethods} from '../../components/Events';
 import {get, isEqual, cloneDeep, pickBy, isNil, isEmpty} from 'lodash';
 import * as selectors from '../../selectors';
-import {eventUtils, getTimeZoneOffset, lockUtils, sanitizeTextForQuery} from '../../utils';
+import {eventUtils, getTimeZoneOffset, lockUtils, sanitizeTextForQuery, getErrorMessage} from '../../utils';
 import moment from 'moment';
 
 import planningApi from '../planning/api';
@@ -532,9 +532,6 @@ const lock = (event, action = 'edit') => (
                     // On lock, file object in the event is lost, so, replace it from original event
                     item.files = event.files;
 
-                    // Restore the item type, as the lock endpoint does not provide this
-                    item._type = ITEM_TYPE.EVENT;
-
                     return Promise.resolve(item);
                 }, (error) => {
                     const msg = get(error, 'data._message') || 'Could not lock the event.';
@@ -548,18 +545,15 @@ const lock = (event, action = 'edit') => (
 const unlock = (event) => (
     (dispatch, getState, {api, notify}) => (
         api('events_unlock', event).save({})
-            .then((item) => {
-                // Restore the item type, as the lock endpoint does not provide this
-                item._type = ITEM_TYPE.EVENT;
-
-                return Promise.resolve(item);
-            },
-            (error) => {
-                const msg = get(error, 'data._message') || 'Could not unlock the event.';
-
-                notify.error(msg);
-                throw error;
-            })
+            .then(
+                (item) => Promise.resolve(item),
+                (error) => {
+                    notify.error(
+                        getErrorMessage(error, 'Could not unlock the event')
+                    );
+                    return Promise.reject(error);
+                }
+            )
     )
 );
 
@@ -757,13 +751,13 @@ const _uploadFiles = (event) => (
  */
 const _saveLocation = (event) => (
     (dispatch) => {
-        const location = get(event, 'location[0]');
+        const location = get(event, 'location');
 
         if (!location || !location.name) {
-            event.location = [];
+            delete event.location;
             return Promise.resolve(event);
         } else if (location.existingLocation) {
-            event.location[0] = {
+            event.location = {
                 name: location.name,
                 qcode: location.guid,
                 address: location.address
@@ -776,7 +770,7 @@ const _saveLocation = (event) => (
             // the location is set, but doesn't have a qcode (not registered in the location collection)
             return dispatch(locationApi.saveLocation(location))
                 .then((savedLocation) => {
-                    event.location[0] = savedLocation;
+                    event.location = savedLocation;
                     return Promise.resolve(event);
                 });
         } else {
@@ -805,6 +799,9 @@ const _save = (newEvent) => (
         if (clonedEvent.dates) {
             clonedEvent.dates.tz = moment.tz.guess();
         }
+
+        original.location = original.location ? [original.location] : null;
+        clonedEvent.location = clonedEvent.location ? [clonedEvent.location] : null;
 
         // remove all properties starting with _,
         // otherwise it will fail for "unknown field" with `_type`

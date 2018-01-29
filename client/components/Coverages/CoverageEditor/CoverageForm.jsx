@@ -2,15 +2,16 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {get} from 'lodash';
-import {getItemInArrayById} from '../../../utils';
+import {getItemInArrayById, gettext} from '../../../utils';
+import {COVERAGES} from '../../../constants';
 
 import {
-    Row,
     TextInput,
     TextAreaInput,
     SelectInput,
     DateTimeInput,
     SelectTagInput,
+    Field,
 } from '../../UI/Form';
 
 export const CoverageForm = ({
@@ -24,6 +25,11 @@ export const CoverageForm = ({
     genres,
     keywords,
     readOnly,
+    item,
+    diff,
+    formProfile,
+    errors,
+    showErrors,
 }) => {
     const onScheduleChanged = (f, v) => {
         if (f.endsWith('.date')) {
@@ -57,94 +63,100 @@ export const CoverageForm = ({
     const contentType = contentTypeQcode ? getItemInArrayById(contentTypes, contentTypeQcode, 'qcode') : null;
     const onContentTypeChange = (f, v) => onChange(f, get(v, 'qcode') || null);
 
+    const fieldProps = {
+        item: item,
+        diff: diff,
+        readOnly: readOnly,
+        onChange: onChange,
+        formProfile: formProfile,
+        errors: errors,
+        showErrors: showErrors,
+    };
+
     return (
         <div>
-            <Row>
-                <SelectInput
-                    field={`${field}.planning.g2_content_type`}
-                    label="Content Type"
-                    value={contentType}
-                    onChange={onContentTypeChange}
-                    options={contentTypes}
-                    labelField="name"
-                    clearable={true}
-                    readOnly={readOnly}
-                />
-            </Row>
-
-            {contentTypeQcode === 'text' && (
-                <Row>
-                    <SelectInput
-                        field={`${field}.planning.genre`}
-                        label="Genre"
-                        value={get(value, 'planning.genre')}
-                        onChange={onChange}
-                        options={genres}
-                        labelField="name"
-                        clearable={true}
-                        readOnly={readOnly}
-                    />
-                </Row>
-            )}
-
-            <Row>
-                <TextInput
-                    field={`${field}.planning.slugline`}
-                    label="Slugline"
-                    value={get(value, 'planning.slugline', '')}
-                    onChange={onChange}
-                    readOnly={readOnly}
-                />
-            </Row>
-
-            <Row>
-                <TextAreaInput
-                    field={`${field}.planning.ednote`}
-                    label="Ed Note"
-                    value={get(value, 'planning.ednote', '')}
-                    onChange={onChange}
-                    readOnly={readOnly}
-                />
-            </Row>
-
-            <SelectTagInput
-                field={`${field}.planning.keyword`}
-                label="Keywords"
-                value={get(value, 'planning.keyword', [])}
-                onChange={onChange}
-                options={keywords}
-                readOnly={readOnly}
+            <Field
+                component={SelectInput}
+                field={`${field}.planning.g2_content_type`}
+                profileName="g2_content_type"
+                label={gettext('Content Type')}
+                options={contentTypes}
+                labelField="name"
+                clearable={true}
+                value={contentType}
+                defaultValue={null}
+                {...fieldProps}
+                onChange={onContentTypeChange}
             />
 
-            <Row>
-                <TextAreaInput
-                    field={`${field}.planning.internal_note`}
-                    label="Internal Note"
-                    value={get(value, 'planning.internal_note', '')}
-                    onChange={onChange}
-                    readOnly={readOnly}
-                />
-            </Row>
+            <Field
+                component={SelectInput}
+                enabled={contentTypeQcode === 'text'}
+                field={`${field}.planning.genre`}
+                profileName="genre"
+                label={gettext('Genre')}
+                options={genres}
+                labelField="name"
+                clearable={true}
+                defaultValue={null}
+                {...fieldProps}
+            />
 
-            <Row>
-                <SelectInput
-                    field={`${field}.news_coverage_status`}
-                    label="Coverage Status"
-                    value={get(value, 'news_coverage_status', newsCoverageStatus[0])}
-                    onChange={onChange}
-                    options={newsCoverageStatus}
-                    readOnly={readOnly}
-                />
-            </Row>
+            <Field
+                component={TextInput}
+                field={`${field}.planning.slugline`}
+                profileName="slugline"
+                label={gettext('Slugline')}
+                {...fieldProps}
+            />
 
-            <DateTimeInput
+            <Field
+                component={TextAreaInput}
+                field={`${field}.planning.ednote`}
+                profileName="ednote"
+                label={gettext('Ed Note')}
+                {...fieldProps}
+            />
+
+            <Field
+                component={SelectTagInput}
+                field={`${field}.planning.keyword`}
+                profileName="keyword"
+                label={gettext('Keywords')}
+                defaultValue={[]}
+                options={keywords}
+                {...fieldProps}
+            />
+
+            <Field
+                component={TextAreaInput}
+                field={`${field}.planning.internal_note`}
+                profileName="internal_note"
+                label={gettext('Internal Note')}
+                {...fieldProps}
+            />
+
+            <Field
+                component={SelectInput}
+                field={`${field}.news_coverage_status`}
+                profileName="news_coverage_status"
+                label={gettext('Coverage Status')}
+                defaultValue={COVERAGES.DEFAULT_VALUE(newsCoverageStatus).news_coverage_status}
+                options={newsCoverageStatus}
+                {...fieldProps}
+            />
+
+            <Field
+                component={DateTimeInput}
                 field={`${field}.planning.scheduled`}
-                label="Due"
-                value={get(value, 'planning.scheduled', null)}
-                onChange={onScheduleChanged}
+                profileName="scheduled"
+                label={gettext('Due')}
                 timeFormat={timeFormat}
                 dateFormat={dateFormat}
-                readOnly={readOnly}
+                defaultValue={null}
+                row={false}
+                {...fieldProps}
+                onChange={onScheduleChanged}
             />
         </div>
     );
@@ -161,6 +173,16 @@ CoverageForm.propTypes = {
     genres: PropTypes.array,
     keywords: PropTypes.array,
     readOnly: PropTypes.bool,
+    message: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
+
+    item: PropTypes.object,
+    diff: PropTypes.object,
+    formProfile: PropTypes.object,
+    errors: PropTypes.object,
+    showErrors: PropTypes.bool,
 };
 
 CoverageForm.defaultProps = {
