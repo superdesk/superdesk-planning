@@ -137,11 +137,11 @@ describe('events', () => {
             dispatchRunFunction.reset();
             $timeout.reset();
 
-            sinon.stub(eventsUi, 'refetchEvents').callsFake(() => (Promise.resolve()));
+            sinon.stub(eventsUi, 'refetch').callsFake(() => (Promise.resolve()));
         });
 
         afterEach(() => {
-            restoreSinonStub(eventsUi.refetchEvents);
+            restoreSinonStub(eventsUi.refetch);
         });
 
         describe('fetchEventById', () => {

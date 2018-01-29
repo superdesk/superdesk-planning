@@ -12,8 +12,9 @@ import {
     PUBLISHED_STATE,
     SPIKED_STATE,
     WORKFLOW_STATE,
-    MODALS,
+    MODALS, MAIN,
 } from '../../constants';
+import main from '../main';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -287,16 +288,19 @@ const getCriteria = ({
  * @param {int} page - The page number to query for
  * @return Promise
  */
-const query = ({
-    spikeState = SPIKED_STATE.BOTH,
-    agendas,
-    noAgendaAssigned = false,
-    page = 1,
-    advancedSearch = {},
-    fulltext,
-    maxResults = 25,
-    adHocPlanning = false,
-}) => (
+const query = (
+    {
+        spikeState = SPIKED_STATE.BOTH,
+        agendas,
+        noAgendaAssigned = false,
+        page = 1,
+        advancedSearch = {},
+        fulltext,
+        maxResults = MAIN.PAGE_SIZE,
+        adHocPlanning = false
+    },
+    storeTotal = true
+) => (
     (dispatch, getState, {api}) => {
         let criteria = self.getCriteria({
             spikeState,
@@ -340,6 +344,10 @@ const query = ({
             timestamp: new Date(),
         })
             .then((data) => {
+                if (storeTotal) {
+                    dispatch(main.setTotal(MAIN.FILTERS.PLANNING, get(data, '_meta.total')));
+                }
+
                 if (get(data, '_items')) {
                     data._items.forEach(planningUtils.convertCoveragesGenreToObject);
                     return Promise.resolve(data._items);
@@ -359,7 +367,7 @@ const query = ({
  */
 const fetch = (params = {}) => (
     (dispatch) => (
-        dispatch(self.query(params))
+        dispatch(self.query(params, true))
             .then((items) => (
                 dispatch(self.fetchPlanningsEvents(items))
                     .then(() => {
@@ -387,7 +395,7 @@ const refetch = (page = 1, plannings = []) => (
             page,
         };
 
-        return dispatch(self.query(params))
+        return dispatch(self.query(params, true))
             .then((items) => {
                 plannings = plannings.concat(items); // eslint-disable-line no-param-reassign
                 page++; // eslint-disable-line no-param-reassign
@@ -489,26 +497,6 @@ const receivePlanningHistory = (planningHistoryItems) => ({
     type: PLANNING.ACTIONS.RECEIVE_PLANNING_HISTORY,
     payload: planningHistoryItems,
 });
-
-/**
- * Action dispatcher to load a Planning item from the API, and place them
- * in the local store. This does not update the list of visible Planning items
- * @param {object} query - The query used to query the Planning items
- * @param {boolean} saveToStore - If true, save the Planning item in the Redux store
- * @return Promise
- */
-const loadPlanning = (query, saveToStore = true) => (
-    (dispatch) => (
-        dispatch(self.query(query))
-            .then((data) => {
-                if (saveToStore) {
-                    dispatch(self.receivePlannings(data));
-                }
-
-                return Promise.resolve(data);
-            }, (error) => (Promise.reject(error)))
-    )
-);
 
 /**
  * Action dispatcher to load Planning items by ID from the API, and place them
@@ -987,7 +975,6 @@ const self = {
     fetchPlanningsEvents,
     unlock,
     lock,
-    loadPlanning,
     loadPlanningById,
     fetchPlanningHistory,
     receivePlanningHistory,

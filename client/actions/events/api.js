@@ -1,4 +1,10 @@
-import {EVENTS, SPIKED_STATE, WORKFLOW_STATE, PUBLISHED_STATE} from '../../constants';
+import {
+    EVENTS,
+    SPIKED_STATE,
+    WORKFLOW_STATE,
+    PUBLISHED_STATE,
+    MAIN
+} from '../../constants';
 import {EventUpdateMethods} from '../../components/Events';
 import {get, isEqual, cloneDeep, pickBy, isNil, isEmpty} from 'lodash';
 import * as selectors from '../../selectors';
@@ -8,6 +14,7 @@ import moment from 'moment';
 import planningApi from '../planning/api';
 import eventsUi from './ui';
 import locationApi from '../locations';
+import main from '../main';
 
 /**
  * Action dispatcher to load a series of recurring events into the local store.
@@ -257,6 +264,7 @@ const getCriteria = (
  * @param {boolean} onlyFuture - Get future events. Onlyfuture is ignored if advancedSearch.dates specified.
  * @param {int} page - The page number to fetch
  * @param {int} maxResults - The number to events per page
+ * @param {boolean} storeTotal - True to store total in the store
  * @return arrow function
  */
 const query = (
@@ -268,8 +276,9 @@ const query = (
         spikeState = SPIKED_STATE.NOT_SPIKED,
         onlyFuture = true,
         page = 1,
-        maxResults = 25,
-    }
+        maxResults = MAIN.PAGE_SIZE
+    },
+    storeTotal = false
 ) => (
     (dispatch, getState, {api}) => {
         let must = [];
@@ -317,7 +326,7 @@ const query = (
             source: JSON.stringify({
                 query: criteria.query,
                 filter: criteria.filter,
-            }),
+            })
         })
         // convert dates to moment objects
             .then((data) => {
@@ -326,6 +335,9 @@ const query = (
                     _items: data._items.map(eventUtils.convertToMoment),
                 };
 
+                if (storeTotal) {
+                    dispatch(main.setTotal(MAIN.FILTERS.EVENTS, get(data, '_meta.total')));
+                }
                 return get(results, '_items');
             });
     }
@@ -336,7 +348,7 @@ const query = (
  * It achieves this by performing a fetch using the params from
  * the store value `events.lastRequestParams`
  */
-const refetchEvents = () => (
+const refetch = () => (
     (dispatch, getState) => {
         const prevParams = selectors.main.lastRequestParams(getState());
         const promises = [];
@@ -348,8 +360,7 @@ const refetchEvents = () => (
             };
 
             dispatch(eventsUi.requestEvents(params));
-
-            promises.push(dispatch(self.query(params)));
+            promises.push(dispatch(self.query(params, true)));
         }
 
         return Promise.all(promises)
@@ -850,7 +861,7 @@ const self = {
     spike,
     unspike,
     query,
-    refetchEvents,
+    refetch,
     receiveEvents,
     loadRecurringEventsAndPlanningItems,
     lock,

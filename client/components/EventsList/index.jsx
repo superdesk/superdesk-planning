@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import {EventItem} from '../index';
-import {InfiniteLoader, List, AutoSizer} from 'react-virtualized';
 import {LIST_ITEM_1_LINE_HEIGHT, EVENT_LIST_DAY_HEADER_HEIGHT} from '../../constants';
 import './style.scss';
 
@@ -120,28 +119,6 @@ export class EventsList extends React.Component {
 
         return (
             <div className="events-list">
-                <InfiniteLoader
-                    isRowLoaded={this.isRowLoaded.bind(this)}
-                    loadMoreRows={this.loadMoreRows.bind(this)}
-                    rowCount={events.length + 20}
-                >
-                    {({onRowsRendered, registerChild}) => (
-                        <AutoSizer>
-                            {({height, width}) => (
-                                <List
-                                    ref={registerChild}
-                                    onRowsRendered={onRowsRendered}
-                                    rowRenderer={this.rowRenderer.bind(this)}
-                                    height={height}
-                                    width={width}
-                                    events={events}
-                                    rowCount={events.length}
-                                    rowHeight={this.getRowHeight.bind(this)}
-                                />
-                            )}
-                        </AutoSizer>
-                    )}
-                </InfiniteLoader>
                 { !events || events.length === 0 &&
                 <p className="events-list__empty-msg">There is no event yet</p>
                 }

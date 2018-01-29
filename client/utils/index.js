@@ -18,7 +18,7 @@ import {gettext, gettextCatalog} from './gettext';
 
 
 export {default as checkPermission} from './checkPermission';
-export {default as retryDispatch} from './retryDispatch';
+export {default as dispatchUtils} from './dispatch';
 export {default as registerNotifications} from './notifications';
 export {default as eventUtils} from './events';
 export {default as planningUtils} from './planning';

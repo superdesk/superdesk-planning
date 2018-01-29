@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {set, isEqual, cloneDeep} from 'lodash';
+import {set, cloneDeep} from 'lodash';
 import {gettext} from '../../utils';
 import {Button} from '../UI';
 import {Content, Footer, Header, SidePanel, Tools} from '../UI/SidePanel';
@@ -15,16 +15,12 @@ export class SearchPanelComponent extends React.Component {
         super(props);
         this.onChangeHandler = this.onChangeHandler.bind(this);
         this.onClear = this.onClear.bind(this);
-        this.state = {
-            diff: cloneDeep(this.props.currentSearch) || {},
-            dirty: false,
-        };
+        this.state = {diff: cloneDeep(this.props.currentSearch) || {}};
     }
 
     onClear() {
         this.setState({
-            diff: {},
-            dirty: false
+            diff: {}
         });
         this.props.clearSearch();
     }
@@ -32,8 +28,7 @@ export class SearchPanelComponent extends React.Component {
     componentWillReceiveProps(nextProps) {
         if (nextProps.activeFilter !== this.props.activeFilter) {
             this.setState({
-                diff: cloneDeep(nextProps.currentSearch) || {},
-                dirty: false
+                diff: cloneDeep(nextProps.currentSearch) || {}
             });
         }
     }
@@ -42,11 +37,7 @@ export class SearchPanelComponent extends React.Component {
         const diff = cloneDeep(this.state.diff);
 
         set(diff, field, value);
-
-        this.setState({
-            diff: diff,
-            dirty: !isEqual(this.props.currentSearch, diff)
-        });
+        this.setState({diff: diff});
     }
 
     render() {
@@ -66,8 +57,7 @@ export class SearchPanelComponent extends React.Component {
         } = this.props;
 
         const {
-            diff,
-            dirty
+            diff
         } = this.state;
 
         const tools = [
@@ -113,7 +103,6 @@ export class SearchPanelComponent extends React.Component {
                                 text={gettext('Search')}
                                 onClick={() => search(diff)}
                                 color={'primary'}
-                                disabled={!dirty}
                             />
                         </div>
                     </Footer>

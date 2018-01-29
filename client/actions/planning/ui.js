@@ -2,7 +2,7 @@ import {showModal, hideModal} from '../index';
 import planningApi from './api';
 import {locks} from '../index';
 import main from '../main';
-import {checkPermission, getErrorMessage, lockUtils, planningUtils} from '../../utils';
+import {checkPermission, getErrorMessage, lockUtils, planningUtils, dispatchUtils} from '../../utils';
 import * as selectors from '../../selectors';
 import {PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, ASSIGNMENTS, MAIN} from '../../constants';
 import * as actions from '../index';
@@ -64,7 +64,7 @@ const save = (item) => (
         dispatch(planningApi.save(item))
             .then((item) => {
                 notify.success('The planning item has been saved.');
-                return dispatch(self.refetch())
+                return dispatch(self.scheduleRefetch())
                     .then(() => Promise.resolve(item));
             }, (error) => {
                 notify.error(
@@ -90,8 +90,8 @@ const saveAndReloadCurrentAgenda = (item) => (
         dispatch(planningApi.saveAndReloadCurrentAgenda(item))
             .then((item) => {
                 notify.success('The Planning item has been saved.');
-                return dispatch(self.refetch())
-                    .then(() => (dispatch(planningApi.fetchPlanningById(item._id, true))))
+                return dispatch(self.scheduleRefetch())
+                    .then(() => dispatch(planningApi.fetchPlanningById(item._id, true)))
                     .then((item) => (Promise.resolve(item)));
             }, (error) => {
                 notify.error(getErrorMessage(error, 'Failed to save the Planning item!'));
@@ -341,17 +341,26 @@ const fetchToList = (params) => (
 const loadMore = () => (
     (dispatch, getState) => {
         const previousParams = selectors.main.lastRequestParams(getState());
+        const totalItems = selectors.main.planningTotalItems(getState());
+        const planIdsInList = selectors.planning.planIdsInList(getState());
+
+        if (totalItems === get(planIdsInList, 'length', 0)) {
+            return Promise.resolve();
+        }
 
         const params = {
             ...previousParams,
-            page: get(previousParams, 'page', 0) + 1,
+            page: get(previousParams, 'page', 1) + 1,
         };
 
-        dispatch(self.requestPlannings(params));
         return dispatch(planningApi.fetch(params))
-            .then((items) => (dispatch(self.addToList(
-                items.map((p) => p._id)
-            ))));
+            .then((items) => {
+                if (get(items, 'length', 0) === MAIN.PAGE_SIZE) {
+                    dispatch(self.requestPlannings(params));
+                }
+                dispatch(self.addToList(items.map((p) => p._id)));
+                return Promise.resolve(items);
+            });
     }
 );
 
@@ -375,11 +384,25 @@ const refetch = () => (
     )
 );
 
+/**
+ * Schedule the refetch to run after one second and avoid any other refetch
+ */
+let nextRefetch = {
+    called: 0
+};
+const scheduleRefetch = () => (
+    (dispatch) => (
+        dispatch(
+            dispatchUtils.scheduleDispatch(self.refetch(), nextRefetch)
+        )
+    )
+);
+
 const duplicate = (plan) => (
     (dispatch, getState, {notify}) => (
         dispatch(planningApi.duplicate(plan))
             .then((newPlan) => {
-                dispatch(self.refetch())
+                dispatch(self.scheduleRefetch())
                     .then(() => {
                         notify.success('Planning duplicated');
                         return dispatch(main.preview(newPlan));
@@ -909,8 +932,8 @@ const self = {
     createCoverageFromNewsItem,
     saveFromPlanning,
     saveFromAuthoring,
-
     saveAndPublishPlanning,
+    scheduleRefetch
 };
 
 export default self;

@@ -1,21 +1,25 @@
 import {pick, get, isEmpty} from 'lodash';
-import {SPIKED_STATE} from '../../constants';
+import {MAIN, SPIKED_STATE} from '../../constants';
 import eventsApi from '../events/api';
 import planningApi from '../planning/api';
 import {planningUtils, eventUtils, getTimeZoneOffset} from '../../utils';
 import * as selectors from '../../selectors';
+import main from '../main';
 
 /**
  * Action Dispatcher for query the api for events and planning combined view
  * You can provide one of the following parameters to fetch from the server
  */
-const query = ({
-    advancedSearch = {},
-    fulltext,
-    spikeState = SPIKED_STATE.NOT_SPIKED,
-    page = 1,
-    maxResults = 25,
-}) => (
+const query = (
+    {
+        advancedSearch = {},
+        fulltext,
+        spikeState = SPIKED_STATE.NOT_SPIKED,
+        page = 1,
+        maxResults = MAIN.PAGE_SIZE
+    },
+    storeTotal = false
+) => (
     (dispatch, getState, {api}) => {
         const filter = {};
 
@@ -94,6 +98,10 @@ const query = ({
             timestamp: new Date(),
         })
             .then((data) => {
+                if (storeTotal) {
+                    dispatch(main.setTotal(MAIN.FILTERS.COMBINED, get(data, '_meta.total')));
+                }
+
                 if (get(data, '_items')) {
                     data._items.forEach((item) => {
                         if (item._type === 'events') {
@@ -125,7 +133,7 @@ const refetch = (page = 1, items = []) => (
             currentPage
         };
 
-        return dispatch(self.query(params))
+        return dispatch(self.query(params, true))
             .then((result) => {
                 const totalItems = items.concat(result);
 

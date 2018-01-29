@@ -188,7 +188,8 @@ const onEventCancelled = (e, data) => (
 const onEventRescheduled = (e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            dispatch(eventsUi.refetchEvents());
+            dispatch(eventsUi.scheduleRefetch());
+            dispatch(eventsPlanning.ui.scheduleRefetch());
             dispatch(eventsApi.getEvent(data.item, false))
                 .then((event) => (
                     dispatch({

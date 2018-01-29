@@ -7,11 +7,13 @@ export const MAIN = {
         HISTORY: 'MAIN_HISTORY',
         CLOSE_PREVIEW: 'MAIN_CLOSE_PREVIEW',
         REQUEST: 'MAIN_REQUEST',
-        CLEAR_SEARCH: 'MAIN_CLEAR_SEARCH'
+        CLEAR_SEARCH: 'MAIN_CLEAR_SEARCH',
+        SET_TOTAL: 'MAIN_SET_TOTAL'
     },
     FILTERS: {
         COMBINED: 'COMBINED',
         EVENTS: 'EVENTS',
         PLANNING: 'PLANNING',
-    }
+    },
+    PAGE_SIZE: 25,
 };
