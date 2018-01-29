@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {debounce} from 'lodash';
+import {debounce, indexOf} from 'lodash';
 
 import {EventItem, EventItemWithPlanning} from '../Events';
 import {PlanningItem} from '../Planning';
@@ -60,6 +60,9 @@ export class ListGroupItem extends React.Component {
             privileges,
             activeFilter,
             currentWorkspace,
+            onMultiSelectClick,
+            selectedEventIds,
+            selectedPlanningIds,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -76,10 +79,12 @@ export class ListGroupItem extends React.Component {
             session: session,
             privileges: privileges,
             activeFilter: activeFilter,
+            onMultiSelectClick: onMultiSelectClick,
         };
 
         let eventProps = {
             ...itemProps,
+            multiSelected: indexOf(selectedEventIds, item._id) !== -1,
             [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
@@ -106,6 +111,7 @@ export class ListGroupItem extends React.Component {
             date: date,
             currentWorkspace: currentWorkspace,
             onAddCoverageClick: onAddCoverageClick,
+            multiSelected: indexOf(selectedPlanningIds, item._id) !== -1,
             [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
             [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
@@ -173,6 +179,9 @@ ListGroupItem.propTypes = {
     relatedPlanningsInList: PropTypes.object,
     currentWorkspace: PropTypes.string,
     onAddCoverageClick: PropTypes.func,
+    onMultiSelectClick: PropTypes.func,
+    selectedEventIds: PropTypes.array,
+    selectedPlanningIds: PropTypes.array,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

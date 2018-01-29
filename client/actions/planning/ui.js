@@ -15,11 +15,11 @@ import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/help
  * @param {object} item - The planning item to spike
  * @return Promise
  */
-const _spike = (item) => (
+const spike = (item) => (
     (dispatch, getState, {notify}) => (
         dispatch(planningApi.spike(item))
             .then(() => {
-                notify.success('The Planning Item has been spiked.');
+                notify.success('The Planning Item(s) has been spiked.');
                 if (selectors.getCurrentPlanningId(getState()) === item._id) {
                     dispatch(main.closePreview());
                 }
@@ -38,11 +38,11 @@ const _spike = (item) => (
  * @param {object} item - The Planning item to unspike
  * @return Promise
  */
-const _unspike = (item) => (
+const unspike = (item) => (
     (dispatch, getState, {notify}) => (
         dispatch(planningApi.unspike(item))
             .then(() => {
-                notify.success('The Planning Item has been unspiked.');
+                notify.success('The Planning Item(s) has been unspiked.');
                 return Promise.resolve(item);
             }, (error) => {
                 notify.error(
@@ -625,18 +625,6 @@ const requestPlannings = (params = {}) => ({
     type: MAIN.ACTIONS.REQUEST,
     payload: {[MAIN.FILTERS.PLANNING]: params},
 });
-
-const spike = checkPermission(
-    _spike,
-    PRIVILEGES.SPIKE_PLANNING,
-    'Unauthorised to spike a planning item!'
-);
-
-const unspike = checkPermission(
-    _unspike,
-    PRIVILEGES.UNSPIKE_PLANNING,
-    'Unauthorised to unspike a planning item!'
-);
 
 const openEditor = checkPermission(
     _lockAndOpenEditor,

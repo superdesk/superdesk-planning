@@ -6,6 +6,7 @@ import * as planning from './planning';
 import * as main from './main';
 import * as locks from './locks';
 import * as eventsPlanning from './eventsplanning';
+import * as multiSelect from './multiSelect';
 
 
 export * from './planning_old';
@@ -19,5 +20,6 @@ export {
     main,
     general,
     locks,
-    eventsPlanning
+    eventsPlanning,
+    multiSelect,
 };

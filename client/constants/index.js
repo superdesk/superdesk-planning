@@ -12,7 +12,7 @@ export {MAIN} from './main';
 export {KEYCODES} from './keycodes';
 export {EVENTS_PLANNING} from './eventsplanning';
 export {COVERAGES} from './coverages';
-
+export {MULTISELECT} from './multiselect';
 
 export const LIST_ITEM_1_LINE_HEIGHT = 38;
 export const LIST_ITEM_2_LINES_HEIGHT = 56;

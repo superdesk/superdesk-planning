@@ -111,7 +111,7 @@ describe('actions.planning.ui', () => {
                     // Notifies end user of success
                     expect(services.notify.success.callCount).toBe(1);
                     expect(services.notify.success.args[0]).toEqual([
-                        'The Planning Item has been spiked.',
+                        'The Planning Item(s) has been spiked.',
                     ]);
 
                     expect(services.notify.error.callCount).toBe(0);
@@ -144,21 +144,6 @@ describe('actions.planning.ui', () => {
                     done();
                 });
         });
-
-        it('ui.spike raises ACCESS_DENIED without permission', (done) => {
-            store.initialState.privileges.planning_planning_spike = 0;
-            return store.test(done, planningUi.spike(data.plannings[1]))
-                .catch(() => {
-                    expectAccessDenied({
-                        store: store,
-                        permission: PRIVILEGES.SPIKE_PLANNING,
-                        action: '_spike',
-                        errorMessage: 'Unauthorised to spike a planning item!',
-                        args: [data.plannings[1]],
-                    });
-                    done();
-                });
-        });
     });
 
     describe('unspike', () => {
@@ -178,7 +163,7 @@ describe('actions.planning.ui', () => {
                     // Notified end user of success
                     expect(services.notify.success.callCount).toBe(1);
                     expect(services.notify.success.args[0]).toEqual([
-                        'The Planning Item has been unspiked.',
+                        'The Planning Item(s) has been unspiked.',
                     ]);
 
                     expect(services.notify.error.callCount).toBe(0);
@@ -199,21 +184,6 @@ describe('actions.planning.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     expect(services.notify.success.callCount).toBe(0);
-                    done();
-                });
-        });
-
-        it('ui.unspike raises ACCESS_DENIED without permission', (done) => {
-            store.initialState.privileges.planning_planning_unspike = 0;
-            return store.test(done, planningUi.unspike(data.plannings[1]))
-                .catch(() => {
-                    expectAccessDenied({
-                        store: store,
-                        permission: PRIVILEGES.UNSPIKE_PLANNING,
-                        action: '_unspike',
-                        errorMessage: 'Unauthorised to unspike a planning item!',
-                        args: [data.plannings[1]],
-                    });
                     done();
                 });
         });

@@ -12,6 +12,7 @@ import workspace from './workspace';
 import templates from './templates';
 import main from './main';
 import eventsPlanning from './eventsplanning';
+import multiSelect from './multiSelect';
 
 const returnState = (state) => state || {};
 
@@ -29,6 +30,7 @@ const planningApp = combineReducers({
     templates: templates,
     main: main,
     eventsPlanning: eventsPlanning,
+    multiSelect: multiSelect,
 
 
     // The following doesn't require reducers as they are loaded using sdPlanningService

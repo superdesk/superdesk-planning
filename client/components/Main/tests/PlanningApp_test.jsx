@@ -51,6 +51,8 @@ describe('PlanningApp', () => {
         expect(app.list.isMounted).toBe(true);
         expect(app.preview.isMounted).toBe(true);
         expect(app.editor.isMounted).toBe(true);
+        expect(app.subNavBar.isMounted).toBe(true);
+        expect(app.subNavBar.multiActionBarHidden).toBe(true);
 
         expect(services.api('events').query.callCount).toBe(0);
         expect(services.api('planning').query.callCount).toBe(0);
@@ -77,5 +79,22 @@ describe('PlanningApp', () => {
 
                 done();
             });
+    });
+
+    it('renders MultiSelectActions bar if list item is multi selected', (done) => {
+        astore.initialState.main.filter = MAIN.FILTERS.EVENTS;
+        astore.initialState.multiSelect.selectedEventIds = ['e1'];
+        initStore();
+        const wrapper = getWrapper();
+        const app = new helpers.main.Main(wrapper);
+
+        expect(app.isMounted).toBe(true);
+        expect(app.filters.isMounted).toBe(true);
+        expect(app.list.isMounted).toBe(true);
+        expect(app.preview.isMounted).toBe(true);
+        expect(app.editor.isMounted).toBe(true);
+        expect(app.subNavBar.isMounted).toBe(true);
+        expect(app.subNavBar.multiActionBarHidden).toBe(false);
+        done();
     });
 });

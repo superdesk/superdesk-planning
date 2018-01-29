@@ -2,9 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {connect} from 'react-redux';
+import {indexOf} from 'lodash';
 
 import {
-    SearchBar,
+    SubNavBar,
     FiltersBar,
     SearchPanel,
     PreviewPanel,
@@ -12,6 +13,8 @@ import {
     ListPanel
 } from './components/Main';
 import {WorkqueueContainer, ModalsContainer} from './components';
+
+import {getItemType} from './utils';
 
 import './planning.scss';
 
@@ -32,6 +35,7 @@ class PlanningApp extends React.Component {
         this.closePreview = this.closePreview.bind(this);
         this.addEvent = this.addEvent.bind(this);
         this.addPlanning = this.addPlanning.bind(this);
+        this.handleItemSelection = this.handleItemSelection.bind(this);
     }
 
     toggleFilterPanel() {
@@ -76,6 +80,20 @@ class PlanningApp extends React.Component {
         this.props.edit({_type: ITEM_TYPE.PLANNING});
     }
 
+    handleItemSelection(item) {
+        let selectedList = this.props.selectedEventIds;
+        let multiSelectDispatch = this.props.multiSelectEvent;
+
+        if (getItemType(item) === ITEM_TYPE.PLANNING) {
+            selectedList = this.props.selectedPlanningIds;
+            multiSelectDispatch = this.props.multiSelectPlanning;
+        }
+
+        const deSelect = indexOf(selectedList, item._id) !== -1;
+
+        multiSelectDispatch(item._id, deSelect);
+    }
+
     render() {
         const sectionClassName = classNames(
             'sd-content sd-page-content--slide-in',
@@ -117,7 +135,14 @@ class PlanningApp extends React.Component {
             showRelatedPlannings,
             relatedPlanningsInList,
             loadMore,
-
+            selectedEventIds,
+            selectedPlanningIds,
+            openAgendas,
+            fullText,
+            search,
+            selectAgenda,
+            currentAgendaId,
+            filter,
         } = this.props;
 
         const listPanelProps = {
@@ -133,6 +158,9 @@ class PlanningApp extends React.Component {
             activeFilter: activeFilter,
             currentWorkspace: currentWorkspace,
             onAddCoverageClick: onAddCoverageClick,
+            onMultiSelectClick: this.handleItemSelection,
+            selectedEventIds: selectedEventIds,
+            selectedPlanningIds: selectedPlanningIds,
             [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
@@ -169,24 +197,24 @@ class PlanningApp extends React.Component {
         return (
             <section className={sectionClassName}>
                 <div className={mainClassName}>
-                    <SearchBar
+                    <SubNavBar
                         addEvent={this.addEvent}
                         addPlanning={this.addPlanning}
-                        openAgendas={this.props.openAgendas}
-                        value={this.props.fullText}
-                        search={this.props.search}
-                        activeFilter={this.props.activeFilter}
+                        openAgendas={openAgendas}
+                        value={fullText}
+                        search={search}
+                        activeFilter={activeFilter}
                         createPlanningOnly={!!addNewsItemToPlanning}
                         disableAgendaManagement={!!addNewsItemToPlanning}
                     />
                     <FiltersBar
                         filterPanelOpen={this.state.filtersOpen}
                         toggleFilterPanel={this.toggleFilterPanel}
-                        activeFilter={this.props.activeFilter}
-                        setFilter={this.props.filter}
-                        agendas={this.props.agendas}
-                        selectAgenda={this.props.selectAgenda}
-                        currentAgendaId={this.props.currentAgendaId}
+                        activeFilter={activeFilter}
+                        setFilter={filter}
+                        agendas={agendas}
+                        selectAgenda={selectAgenda}
+                        currentAgendaId={currentAgendaId}
                         showFilters={!addNewsItemToPlanning}
                     />
                     <div className="sd-column-box--3">
@@ -255,7 +283,11 @@ PlanningApp.propTypes = {
     relatedPlanningsInList: PropTypes.object,
     loadMore: PropTypes.func,
     fullText: PropTypes.string,
-    search: PropTypes.func.isRequired
+    search: PropTypes.func.isRequired,
+    multiSelectEvent: PropTypes.func,
+    multiSelectPlanning: PropTypes.func,
+    selectedEventIds: PropTypes.array,
+    selectedPlanningIds: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
@@ -274,6 +306,8 @@ const mapStateToProps = (state) => ({
     relatedPlanningsInList: selectors.eventsPlanning.getRelatedPlanningsInList(state),
     fullText: selectors.main.fullText(state),
     currentWorkspace: selectors.getCurrentWorkspace(state),
+    selectedEventIds: selectors.multiSelect.selectedEventIds(state),
+    selectedPlanningIds: selectors.multiSelect.selectedPlanningIds(state),
 });
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
@@ -289,6 +323,20 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     search: (searchText) => dispatch(actions.main.search(searchText)),
     onAddCoverageClick: (item) => dispatch(actions.planning.ui.onAddCoverageClick(
         item, ownProps.addNewsItemToPlanning)),
+    multiSelectEvent: (eventId, deselect = false) => {
+        if (deselect) {
+            return dispatch(actions.multiSelect.deSelectEvents(eventId));
+        }
+
+        return dispatch(actions.multiSelect.selectEvents(eventId));
+    },
+    multiSelectPlanning: (planningId, deselect = false) => {
+        if (deselect) {
+            return dispatch(actions.multiSelect.deSelectPlannings(planningId));
+        }
+
+        return dispatch(actions.multiSelect.selectPlannings(planningId));
+    },
     // Event Item actions:
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: (event) => dispatch(actions.duplicateEvent(event)),
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
