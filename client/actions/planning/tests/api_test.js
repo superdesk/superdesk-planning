@@ -279,7 +279,7 @@ describe('actions.planning.api', () => {
             return store.test(done, planningApi.fetch(params))
                 .then((items) => {
                     expect(planningApi.query.callCount).toBe(1);
-                    expect(planningApi.query.args[0]).toEqual([params]);
+                    expect(planningApi.query.args[0]).toEqual([params, true]);
 
                     expect(planningApi.fetchPlanningsEvents.callCount).toBe(1);
                     expect(planningApi.fetchPlanningsEvents.args[0]).toEqual([data.plannings]);

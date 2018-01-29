@@ -37,6 +37,10 @@ export const eventsSearch = (state) => get(state, 'main.search.EVENTS.currentSea
 export const planningSearch = (state) => get(state, 'main.search.PLANNING.currentSearch', {});
 export const combinedSearch = (state) => get(state, 'main.search.COMBINED.currentSearch', {});
 
+export const eventsTotalItems = (state) => get(state, 'main.search.EVENTS.totalItems', 0);
+export const planningTotalItems = (state) => get(state, 'main.search.PLANNING.totalItems', 0);
+export const combinedTotalItems = (state) => get(state, 'main.search.COMBINED.totalItems', 0);
+
 export const lastRequestParams = createSelector(
     [activeFilter, searchParams],
     (filter, params) => get(params, `${filter}.lastRequestParams`, {})

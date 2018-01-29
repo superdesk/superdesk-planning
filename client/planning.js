@@ -191,7 +191,8 @@ class PlanningApp extends React.Component {
                 this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
             showRelatedPlannings: showRelatedPlannings,
             relatedPlanningsInList: relatedPlanningsInList,
-            loadMore: loadMore
+            loadMore: loadMore,
+            filter: filter
         };
 
         return (

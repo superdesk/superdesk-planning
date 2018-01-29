@@ -49,7 +49,10 @@ describe('Utils', () => {
 
         beforeEach(() => {
             // Mock window.setTimeout
-            jasmine.getGlobal().setTimeout = (func) => func();
+            jasmine.getGlobal().setTimeout = (func) => {
+                func();
+                return 1;
+            };
 
             mockAction = sinon.spy((dispatch) => {
                 dispatch({type: 'MOCK_ACTION'});
@@ -70,7 +73,7 @@ describe('Utils', () => {
         });
 
         it('sends dispatch on every retry', (done) => (
-            dispatch(utils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
+            dispatch(utils.dispatchUtils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
                 .then(() => {
                     expect(1).toBe(0, 'Should never get executed');
                     done();
@@ -95,7 +98,7 @@ describe('Utils', () => {
         ));
 
         it('rejects when maxRetries is exceeded', (done) => (
-            dispatch(utils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
+            dispatch(utils.dispatchUtils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
                 .then(() => {
                     expect(1).toBe(0, 'Should never get executed');
                     done();
@@ -110,7 +113,7 @@ describe('Utils', () => {
         it('fails on first action error', (done) => {
             mockAction = sinon.spy(() => Promise.reject({error_msg: 'Action failed!'}));
             mockCheck = sinon.spy(() => true);
-            return dispatch(utils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
+            return dispatch(utils.dispatchUtils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
                 .then(() => {
                     expect(1).toBe(0, 'Should never get executed');
                     done();
@@ -125,7 +128,7 @@ describe('Utils', () => {
 
         it('returns the action response on success', (done) => {
             mockCheck = sinon.spy(() => true);
-            return dispatch(utils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
+            return dispatch(utils.dispatchUtils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
                 .then((data) => {
                     expect(data).toEqual({_items: [1, 2, 3]});
                     expect(mockCheck.callCount).toBe(1);
@@ -145,11 +148,45 @@ describe('Utils', () => {
                 return tries === 2;
             });
 
-            return dispatch(utils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
+            return dispatch(utils.dispatchUtils.retryDispatch(mockActionDispatcher(), mockCheck, maxRetries))
                 .then(() => {
                     expect(mockCheck.callCount).toBe(2);
                     expect(mockCheck.args[0]).toEqual([{_items: [1, 2, 3]}]);
                     expect(tries).toBe(2);
+                    done();
+                }, () => {
+                    expect(1).toBe(0, 'Should never get executed');
+                    done();
+                });
+        });
+
+        it('if not scheduled dispatch is called', (done) => {
+            let nextDispatch = {
+                called: false
+            };
+
+            return dispatch(utils.dispatchUtils.scheduleDispatch(mockActionDispatcher(), nextDispatch))
+                .then(() => {
+                    expect(mockAction.callCount).toBe(1);
+                    // nextDispatch.called value is modified
+                    expect(nextDispatch.called).toBe(0);
+                    done();
+                }, () => {
+                    expect(1).toBe(0, 'Should never get executed');
+                    done();
+                });
+        });
+
+        it('if scheduled dispatch is not called', (done) => {
+            let nextDispatch = {
+                called: true
+            };
+
+            return dispatch(utils.dispatchUtils.scheduleDispatch(mockActionDispatcher(), nextDispatch))
+                .then(() => {
+                    expect(mockAction.callCount).toBe(0);
+                    // nextDispatch.called value is not modified
+                    expect(nextDispatch.called).toBe(true);
                     done();
                 }, () => {
                     expect(1).toBe(0, 'Should never get executed');

@@ -16,6 +16,11 @@ class SearchBox extends React.Component {
          this.props.activeFilter !== nextProps.activeFilter) {
             this.setState({inputValue: nextProps.value});
         }
+
+        if (this.state.inputValue !== '' && this.props.value !== '' &&
+            nextProps.value === '' && this.props.activeFilter === nextProps.activeFilter) {
+            this.setState({inputValue: nextProps.value});
+        }
     }
 
     onChangeHandler(evt) {

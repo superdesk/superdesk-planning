@@ -28,8 +28,8 @@ const onPlanningCreated = (_e, data) => (
                 dispatch(planning.api.fetchPlanningById(data.item));
             }
 
-            return dispatch(planning.ui.refetch())
-                .then(() => dispatch(eventsPlanning.ui.refetch()));
+            return dispatch(planning.ui.scheduleRefetch())
+                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()));
         }
 
         return Promise.resolve();
@@ -46,8 +46,9 @@ const onPlanningUpdated = (_e, data, refetch = true) => (
     (dispatch, getState, {notify}) => {
         if (get(data, 'item')) {
             if (refetch) {
-                return dispatch(planning.ui.refetch())
-                    .then(() => dispatch(eventsPlanning.ui.refetch()));
+                dispatch(planning.ui.scheduleRefetch());
+                dispatch(eventsPlanning.ui.scheduleRefetch());
+                return Promise.resolve();
             }
 
             // Otherwise send an Action to update the store
@@ -156,8 +157,8 @@ const onPlanningUnlocked = (_e, data) => (
 const onPlanningPublished = (_e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            return dispatch(planning.ui.refetch())
-                .then(() => dispatch(eventsPlanning.ui.refetch()));
+            dispatch(planning.ui.scheduleRefetch());
+            dispatch(eventsPlanning.ui.scheduleRefetch());
         }
 
         return Promise.resolve();

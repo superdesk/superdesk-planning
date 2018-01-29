@@ -34,13 +34,13 @@ describe('actions.events.ui', () => {
             () => (Promise.resolve(data.events))
         );
 
-        sinon.stub(eventsApi, 'refetchEvents').callsFake(() => (Promise.resolve()));
+        sinon.stub(eventsApi, 'refetch').callsFake(() => (Promise.resolve()));
 
         sinon.stub(eventsUi, '_openActionModal').callsFake(
             () => (Promise.resolve())
         );
 
-        sinon.stub(eventsUi, 'refetchEvents').callsFake(() => (Promise.resolve()));
+        sinon.stub(eventsUi, 'refetch').callsFake(() => (Promise.resolve()));
         sinon.stub(eventsUi, 'closeEventDetails').callsFake(() => (Promise.resolve()));
 
         sinon.stub(planningApi, 'loadPlanningByEventId').callsFake(
@@ -68,9 +68,9 @@ describe('actions.events.ui', () => {
         restoreSinonStub(eventsApi.unspike);
         restoreSinonStub(eventsApi.loadEventsByRecurrenceId);
         restoreSinonStub(eventsApi.loadRecurringEventsAndPlanningItems);
-        restoreSinonStub(eventsApi.refetchEvents);
+        restoreSinonStub(eventsApi.refetch);
         restoreSinonStub(eventsUi._openActionModal);
-        restoreSinonStub(eventsUi.refetchEvents);
+        restoreSinonStub(eventsUi.refetch);
         restoreSinonStub(eventsUi.setEventsList);
         restoreSinonStub(eventsUi._openEventDetails);
         restoreSinonStub(eventsUi.closeEventDetails);
@@ -280,7 +280,7 @@ describe('actions.events.ui', () => {
                     expect(eventsApi.unspike.callCount).toBe(1);
                     expect(eventsApi.unspike.args[0]).toEqual([data.events[0]]);
 
-                    expect(eventsUi.refetchEvents.callCount).toBe(1);
+                    expect(eventsUi.refetch.callCount).toBe(1);
 
                     expect(services.notify.success.callCount).toBe(1);
                     expect(services.notify.success.args[0]).toEqual(['The event(s) have been unspiked']);
@@ -319,18 +319,18 @@ describe('actions.events.ui', () => {
 
     describe('refetchEvents', () => {
         it('updates list', (done) => {
-            restoreSinonStub(eventsApi.refetchEvents);
-            restoreSinonStub(eventsUi.refetchEvents);
+            restoreSinonStub(eventsApi.refetch);
+            restoreSinonStub(eventsUi.refetch);
 
-            sinon.stub(eventsApi, 'refetchEvents').callsFake(
+            sinon.stub(eventsApi, 'refetch').callsFake(
                 () => (Promise.resolve(data.events))
             );
 
-            return store.test(done, eventsUi.refetchEvents())
+            return store.test(done, eventsUi.refetch())
                 .then((events) => {
                     expect(events).toEqual(data.events);
 
-                    expect(eventsApi.refetchEvents.callCount).toBe(1);
+                    expect(eventsApi.refetch.callCount).toBe(1);
 
                     expect(eventsUi.setEventsList.callCount).toBe(1);
                     expect(eventsUi.setEventsList.args[0]).toEqual([['e1', 'e2', 'e3']]);
@@ -340,14 +340,14 @@ describe('actions.events.ui', () => {
         });
 
         it('notifies user if api.refetchEvents fails', (done) => {
-            restoreSinonStub(eventsApi.refetchEvents);
-            restoreSinonStub(eventsUi.refetchEvents);
+            restoreSinonStub(eventsApi.refetch);
+            restoreSinonStub(eventsUi.refetch);
 
-            sinon.stub(eventsApi, 'refetchEvents').callsFake(
+            sinon.stub(eventsApi, 'refetch').callsFake(
                 () => (Promise.reject(errorMessage))
             );
 
-            return store.test(done, eventsUi.refetchEvents())
+            return store.test(done, eventsUi.refetch())
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 

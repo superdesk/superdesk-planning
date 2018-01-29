@@ -22,7 +22,7 @@ describe('actions.events.api', () => {
         sinon.stub(eventsApi, 'query').callsFake(
             () => (Promise.resolve({_items: data.events}))
         );
-        sinon.stub(eventsApi, 'refetchEvents').callsFake(() => (Promise.resolve()));
+        sinon.stub(eventsApi, 'refetch').callsFake(() => (Promise.resolve()));
         sinon.stub(eventsApi, 'receiveEvents').callsFake(() => (Promise.resolve()));
         sinon.stub(eventsApi, 'loadEventsByRecurrenceId').callsFake(
             () => (Promise.resolve(data.events))
@@ -39,7 +39,7 @@ describe('actions.events.api', () => {
 
     afterEach(() => {
         restoreSinonStub(eventsApi.query);
-        restoreSinonStub(eventsApi.refetchEvents);
+        restoreSinonStub(eventsApi.refetch);
         restoreSinonStub(eventsApi.receiveEvents);
         restoreSinonStub(eventsApi.loadEventsByRecurrenceId);
         restoreSinonStub(planningApi.fetch);
@@ -366,17 +366,17 @@ describe('actions.events.api', () => {
     describe('refetchEvents', () => {
         it('performs query', (done) => {
             store.initialState.main.filter = MAIN.FILTERS.EVENTS;
-            restoreSinonStub(eventsApi.refetchEvents);
+            restoreSinonStub(eventsApi.refetch);
             restoreSinonStub(eventsApi.query);
             sinon.stub(eventsApi, 'query').callsFake(
                 () => (Promise.resolve(data.events))
             );
 
-            return store.test(done, eventsApi.refetchEvents())
+            return store.test(done, eventsApi.refetch())
                 .then((events) => {
                     expect(events).toEqual(data.events);
                     expect(eventsApi.query.callCount).toBe(1);
-                    expect(eventsApi.query.args[0]).toEqual([{page: 1}]);
+                    expect(eventsApi.query.args[0]).toEqual([{page: 1}, true]);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
                     expect(eventsApi.receiveEvents.args[0]).toEqual([data.events]);
@@ -747,76 +747,4 @@ describe('actions.events.api', () => {
                 });
         });
     });
-
-    describe('_saveLocation', () => {
-        // No location to save,  if (!get(event, 'location[0].name')
-        // Location is an existing location,  if (get(event, 'location[0].existingLocation'))
-        // if (get(event, 'location[0]') && isNil(event.location[0].qcode))
-        // else
-    });
-
-    // it('uploadFilesAndSaveEvent', (done) => {
-    //     dispatch = dispatchRunFunction;
-    //     initialState.events.highlightedEvent = true;
-    //     initialState.events.showEventDetails = true;
-    //     const event = {
-    //         name: 'Event 4',
-    //         dates: {
-    //             start: '2099-10-15T13:01:11',
-    //             end: '2099-10-15T14:01:11',
-    //         },
-    //     };
-    //     const action = actions.uploadFilesAndSaveEvent(event);
-    //
-    //     api.save = sinon.spy(() => (Promise.resolve(event)));
-    //     return action(dispatch, getState)
-    //         .then(() => {
-    //             expect(eventsUi.refetchEvents.callCount).toBe(1);
-    //             done();
-    //         })
-    //         .catch((error) => {
-    //             expect(error).toBe(null);
-    //             expect(error.stack).toBe(null);
-    //             done();
-    //         });
-    // });
-    //
-    // it('saveFiles', (done) => {
-    //     const event = {
-    //         files: [
-    //             ['test_file_1'],
-    //             ['test_file_2'],
-    //         ],
-    //     };
-    //
-    //     const action = actions.saveFiles(event);
-    //
-    //     return action(dispatch, getState, {upload})
-    //         .then((newEvent) => {
-    //             expect(upload.start.callCount).toBe(2);
-    //             expect(upload.start.args[0]).toEqual([{
-    //                 method: 'POST',
-    //                 url: 'http://server.com/events_files/',
-    //                 headers: {'Content-Type': 'multipart/form-data'},
-    //                 data: {media: [event.files[0]]},
-    //                 arrayKey: '',
-    //             }]);
-    //             expect(upload.start.args[1]).toEqual([{
-    //                 method: 'POST',
-    //                 url: 'http://server.com/events_files/',
-    //                 headers: {'Content-Type': 'multipart/form-data'},
-    //                 data: {media: [event.files[1]]},
-    //                 arrayKey: '',
-    //             }]);
-    //
-    //             expect(newEvent.files).toEqual(['test_file_1', 'test_file_2']);
-    //
-    //             done();
-    //         })
-    //         .catch((error) => {
-    //             expect(error).toBe(null);
-    //             expect(error.stack).toBe(null);
-    //             done();
-    //         });
-    // });
 });

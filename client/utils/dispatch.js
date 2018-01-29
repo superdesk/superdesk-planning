@@ -41,4 +41,40 @@ const retryDispatch = (action, check, maxRetries = 5, interval = 1000, retries =
     }
 );
 
-export default retryDispatch;
+/**
+ * Action Dispatcher to schedule after interval.
+ * @param {action} action - The Action to dispatch
+ * @param {object} next - called property indicates that action is executing
+ * @param {int} interval - The ms between before the first dispatch, defaults to 1000
+ */
+const scheduleDispatch = (action, next, interval = 1000) => (
+    (dispatch) => {
+        if (next.called) {
+            return Promise.resolve([]);
+        }
+
+        return new Promise((resolve) => {
+            next.called = setTimeout(resolve, interval);
+        })
+            .then(() => dispatch(action)
+                .then(
+                    (data) => {
+                        next.called = 0;
+                        return Promise.resolve(data);
+                    },
+                    (error) => {
+                        next.called = 0;
+                        return Promise.reject(error);
+                    }
+                )
+            );
+    }
+);
+
+// eslint-disable-next-line consistent-this
+const self = {
+    retryDispatch,
+    scheduleDispatch
+};
+
+export default self;

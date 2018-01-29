@@ -156,7 +156,6 @@ export class ListGroupItem extends React.Component {
                 <PlanningItem { ...planningProps } />
             );
         }
-
         return null;
     }
 }
