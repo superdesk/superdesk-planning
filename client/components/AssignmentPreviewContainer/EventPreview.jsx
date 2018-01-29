@@ -12,7 +12,7 @@ export const EventPreviewComponent = ({item, formProfile, createLink}) => {
         return null;
     }
 
-    let location = get(item, 'location[0]', {});
+    let location = get(item, 'location', {});
     let locationName = get(location, 'name');
     let formattedAddress = get(location, 'formatted_address', '');
 

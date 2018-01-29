@@ -7,6 +7,7 @@ import {
     PLANNING,
     ASSIGNMENTS,
     PUBLISHED_STATE,
+    COVERAGES,
 } from '../constants/index';
 import {get, isNil, uniq, sortBy, isEmpty, cloneDeep} from 'lodash';
 import {
@@ -357,10 +358,7 @@ const canEditCoverage = (coverage) => (
 );
 
 const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, desk, user, contentTypes) => {
-    let newCoverage = {
-        planning: {},
-        news_coverage_status: newsCoverageStatus[0]
-    };
+    let newCoverage = COVERAGES.DEFAULT_VALUE(newsCoverageStatus);
 
     // Add fields from news item to the coverage
     const contentType = contentTypes.find(

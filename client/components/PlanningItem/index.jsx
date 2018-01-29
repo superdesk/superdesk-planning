@@ -42,7 +42,7 @@ const PlanningItem = ({
     editPlanningViewOpen,
     planningEditorReadOnly,
 }) => {
-    const location = get(event, 'location[0].name');
+    const location = get(event, 'location.name');
     const coverages = get(item, 'coverages', []);
     const dueDates = get(item, 'coverages', []).map((c) => (get(c, 'planning.scheduled')))
         .filter((d) => (d));

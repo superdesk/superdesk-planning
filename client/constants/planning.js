@@ -82,5 +82,6 @@ export const PLANNING = {
         LIVE_VIDEO: 'live_video',
         AUDIO: 'audio',
         PICTURE: 'picture',
-    }
+    },
+    DEFAULT_VALUE: {_type: 'planning'}
 };

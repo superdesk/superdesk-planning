@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
-import {Row, DateInput, TimeInput} from '..';
+import {Row, DateInput, TimeInput, Field} from '..';
 import './style.scss';
 import Button from '../../Button';
 import {gettext} from '../../../../utils';
@@ -13,38 +13,51 @@ export const DateTimeInput = ({
     onChange,
     required,
     invalid,
-    message,
     timeFormat,
     dateFormat,
     readOnly,
     canClear,
+    item,
+    diff,
+    errors,
+    showErrors,
     ...props
 }) => (
-    <Row flex={true} className={{
+    <Row flex={true} noPadding={!!invalid} className={{
         'date-time-input__row': true,
         'date-time-input__row--required': required,
         'date-time-input__row--invalid': invalid,
     }}>
-        <DateInput
+        <Field
+            row={false}
+            component={DateInput}
             field={`${field}.date`}
             value={value}
-            onChange={onChange}
-            noMargin={true}
-            invalid={invalid}
-            dateFormat={dateFormat}
+            item={item}
+            diff={diff}
             readOnly={readOnly}
+            onChange={onChange}
+            errors={errors}
+            showErrors={showErrors}
+            noMargin={!invalid}
+            dateFormat={dateFormat}
             label={label}
+            required={required}
         />
 
-        <TimeInput
+        <Field
+            row={false}
+            component={TimeInput}
             field={`${field}.time`}
             value={value}
-            onChange={onChange}
-            noMargin={true}
-            invalid={invalid}
-            message={message}
-            timeFormat={timeFormat}
+            item={item}
+            diff={diff}
             readOnly={readOnly}
+            onChange={onChange}
+            errors={errors}
+            showErrors={showErrors}
+            noMargin={!invalid}
+            timeFormat={timeFormat}
         />
         {canClear && <Button
             onClick={() => onChange(field, null)}
@@ -59,7 +72,7 @@ export const DateTimeInput = ({
 
 DateTimeInput.propTypes = {
     field: PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
+    label: PropTypes.string,
     value: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.instanceOf(moment),
@@ -71,11 +84,15 @@ DateTimeInput.propTypes = {
     hint: PropTypes.string,
     required: PropTypes.bool,
     invalid: PropTypes.bool,
-    message: PropTypes.string,
     readOnly: PropTypes.bool,
     boxed: PropTypes.bool,
     noMargin: PropTypes.bool,
     canClear: PropTypes.bool,
+
+    item: PropTypes.object,
+    diff: PropTypes.object,
+    errors: PropTypes.object,
+    showErrors: PropTypes.bool,
 };
 
 DateTimeInput.defaultProps = {
@@ -85,4 +102,5 @@ DateTimeInput.defaultProps = {
     boxed: false,
     noMargin: false,
     canClear: false,
+    showErrors: false,
 };

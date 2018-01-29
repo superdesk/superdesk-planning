@@ -25,3 +25,5 @@ export {GeoLookupInput} from './GeoLookupInput';
 
 export {InputArray} from './InputArray';
 export {RadioButtonInput} from './RadioButtonInput';
+
+export {Field} from './Field';

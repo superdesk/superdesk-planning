@@ -1,3 +1,21 @@
-.toggle-box__content--hidden {
-    display: none;
+@import '~superdesk-ui-framework/app/styles/variables/_colors.scss';
+
+.toggle-box {
+    &__content--hidden {
+        display: none;
+    }
+
+    &--invalid {
+        .toggle-box {
+            &__chevron {
+                background-color: $red;
+            }
+            &__label {
+                color: $red;
+            }
+            &__line {
+                background-color: $red;
+            }
+        }
+    }
 }

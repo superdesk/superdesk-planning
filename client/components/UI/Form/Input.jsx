@@ -47,7 +47,7 @@ Input.propTypes = {
         PropTypes.string,
         PropTypes.number,
     ]),
-    onChange: PropTypes.func.isRequired,
+    onChange: PropTypes.func,
     onBlur: PropTypes.func,
     onClick: PropTypes.func,
     placeholder: PropTypes.string,

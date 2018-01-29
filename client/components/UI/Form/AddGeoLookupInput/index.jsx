@@ -107,7 +107,11 @@ export class GeoLookupInputComponent extends React.Component {
     }
 
     handleChange(value) {
-        this.props.onChange(this.props.field, {name: value});
+        if (!value) {
+            this.props.onChange(this.props.field, null);
+        } else {
+            this.props.onChange(this.props.field, {name: value});
+        }
     }
 
     /**
@@ -191,6 +195,7 @@ export class GeoLookupInputComponent extends React.Component {
                     element={TextAreaInput}
                     nativeOnChange={true}
                     noLabel={true}
+                    noMargin={true}
                 />
 
                 {this.state.openSuggestsPopUp && (

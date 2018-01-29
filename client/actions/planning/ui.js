@@ -535,7 +535,7 @@ const saveAndPublishPlanning = (item, save = true, publish = false) => (
         if (modalType === MODALS.ADD_TO_PLANNING) {
             return dispatch(self.saveFromAuthoring(item, publish));
         } else {
-            return dispatch(self.saveFromPlanning(item, publish));
+            return dispatch(self.saveFromPlanning(item, {save, publish}));
         }
     }
 );

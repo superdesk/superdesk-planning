@@ -2,14 +2,15 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../../../actions';
-import {eventValidators} from '../../../validators';
-import {getDateFormat, getTimeFormat, getMaxRecurrentEvents} from '../../../selectors/config';
+import {validateItem} from '../../../validators';
+import {getDateFormat, getTimeFormat} from '../../../selectors/config';
+import * as selectors from '../../../selectors';
 import '../style.scss';
 import {eventUtils, gettext} from '../../../utils';
 import {EventScheduleSummary, EventUpdateMethods, EventScheduleInput} from '../../Events';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {Row} from '../../UI/Preview';
-import {TextAreaInput} from '../../UI/Form';
+import {TextAreaInput, Field} from '../../UI/Form';
 import {set, isEqual, cloneDeep} from 'lodash';
 
 export class RescheduleEventComponent extends React.Component {
@@ -22,11 +23,12 @@ export class RescheduleEventComponent extends React.Component {
             relatedEvents: [],
             relatedPlannings: [],
             submitting: false,
-            errors: null,
+            errors: {},
         };
 
         this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
         this.onReasonChange = this.onReasonChange.bind(this);
+        this.onDatesChange = this.onDatesChange.bind(this);
     }
 
     componentWillMount() {
@@ -65,24 +67,24 @@ export class RescheduleEventComponent extends React.Component {
             set(diff, field, val);
         }
 
-        const validtionErrors = eventValidators.validateEventDates(diff.dates,
-            this.props.maxRecurrentEvents);
+        const errors = cloneDeep(this.state.errors);
 
-        let newStateErrors = null;
-
-        if (validtionErrors.hasErrors) {
-            newStateErrors = validtionErrors.data;
-        }
+        this.props.onValidate(
+            diff,
+            this.props.formProfiles,
+            errors
+        );
 
         this.setState({
             diff: diff,
-            errors: newStateErrors,
+            errors: errors,
         });
 
         if (isEqual(diff.dates, this.props.initialValues.dates) ||
             (diff.dates.recurring_rule &&
             !diff.dates.recurring_rule.until && !diff.dates.recurring_rule.count) ||
-            validtionErrors.hasErrors) {
+            !isEqual(errors, {})
+        ) {
             this.props.disableSaveInModal();
         } else {
             this.props.enableSaveInModal();
@@ -108,7 +110,7 @@ export class RescheduleEventComponent extends React.Component {
 
 
     render() {
-        const {initialValues, dateFormat, timeFormat, maxRecurrentEvents} = this.props;
+        const {initialValues, dateFormat, timeFormat} = this.props;
         const isRecurring = !!initialValues.recurrence_id;
         const updateMethodLabel = gettext('Would you like to reschedule all recurring events or just this one?');
         const multiEvent = this.state.eventUpdateMethod.value !== EventUpdateMethods[0].value;
@@ -123,14 +125,13 @@ export class RescheduleEventComponent extends React.Component {
 
         return (
             <div className="MetadataView">
-                {initialValues.slugline && (
-                    <Row
-                        label={gettext('Slugline')}
-                        value={initialValues.slugline || ''}
-                        noPadding={true}
-                        className="slugline"
-                    />
-                )}
+                <Row
+                    enabled={!!initialValues.slugline}
+                    label={gettext('Slugline')}
+                    value={initialValues.slugline || ''}
+                    noPadding={true}
+                    className="slugline"
+                />
 
                 <Row
                     label={gettext('Name')}
@@ -147,21 +148,19 @@ export class RescheduleEventComponent extends React.Component {
                     forUpdating={true}
                 />
 
-                {isRecurring && (
-                    <Row
-                        label={gettext('No. of Events')}
-                        value={numEvents}
-                        noPadding={true}
-                    />
-                )}
+                <Row
+                    enabled={isRecurring}
+                    label={gettext('No. of Events')}
+                    value={numEvents}
+                    noPadding={true}
+                />
 
-                {!!numPlannings && (
-                    <Row
-                        label={gettext('No. of Plannings')}
-                        value={numPlannings}
-                        noPadding={true}
-                    />
-                )}
+                <Row
+                    enabled={!!numPlannings}
+                    label={gettext('No. of Plannings')}
+                    value={numPlannings}
+                    noPadding={true}
+                />
 
                 <UpdateMethodSelection
                     value={this.state.eventUpdateMethod}
@@ -173,15 +172,19 @@ export class RescheduleEventComponent extends React.Component {
                     readOnly={this.state.submitting}
                     action="cancel" />
 
-                <EventScheduleInput
-                    item={initialValues}
+                <Field
+                    component={EventScheduleInput}
+                    field="dates"
+                    item={this.state.diff}
                     diff={this.state.diff}
-                    onChange={this.onDatesChange.bind(this)}
+                    onChange={this.onDatesChange}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                     showRepeat={multiEvent}
                     showRepeatToggle={false}
-                    maxRecurrentEvents={maxRecurrentEvents} />
+                    showErrors={true}
+                    errors={this.state.errors}
+                />
 
                 <Row label={reasonLabel}>
                     <TextAreaInput
@@ -197,7 +200,6 @@ export class RescheduleEventComponent extends React.Component {
 
 RescheduleEventComponent.propTypes = {
     initialValues: PropTypes.object.isRequired,
-    maxRecurrentEvents: PropTypes.number.isRequired,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
@@ -207,19 +209,24 @@ RescheduleEventComponent.propTypes = {
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
     onHide: PropTypes.func,
+
+    onValidate: PropTypes.func,
+    formProfiles: PropTypes.object,
 };
 
 
 const mapStateToProps = (state) => ({
     timeFormat: getTimeFormat(state),
     dateFormat: getDateFormat(state),
-    maxRecurrentEvents: getMaxRecurrentEvents(state),
+    formProfiles: selectors.forms.profiles(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (event) => dispatch(actions.events.ui.rescheduleEvent(event)),
     onHide: (event) => dispatch(actions.events.api.unlock(event)),
+
+    onValidate: (item, profile, errors) => dispatch(validateItem('events', item, profile, errors, ['dates']))
 });
 
 export const RescheduleEventForm = connect(

@@ -10,7 +10,9 @@ import {RepeatsEveryInput} from './RepeatsEveryInput';
 import {DaysOfWeekInput} from './DaysOfWeekInput';
 import {EndsInput} from './EndsInput';
 
-export const RecurringRulesInput = ({showRepeatSummary, schedule, onChange, dateFormat, readOnly, error}) => {
+import {gettext} from '../../../utils';
+
+export const RecurringRulesInput = ({showRepeatSummary, schedule, onChange, dateFormat, readOnly, errors}) => {
     const frequency = get(schedule, 'dates.recurring_rule.frequency');
     const endRepeatMode = get(schedule, 'dates.recurring_rule.endRepeatMode');
     const until = get(schedule, 'dates.recurring_rule.until');
@@ -27,6 +29,7 @@ export const RecurringRulesInput = ({showRepeatSummary, schedule, onChange, date
                     onChange={onChange}
                     noMargin={true}
                     readOnly={readOnly}
+                    label={gettext('Repeats')}
                 />
 
                 <RepeatsEveryInput
@@ -35,6 +38,7 @@ export const RecurringRulesInput = ({showRepeatSummary, schedule, onChange, date
                     onChange={onChange}
                     noMargin={true}
                     readOnly={readOnly}
+                    label={gettext('Repeat Every')}
                 />
             </Row>
 
@@ -43,8 +47,9 @@ export const RecurringRulesInput = ({showRepeatSummary, schedule, onChange, date
                     value={byDay}
                     onChange={onChange}
                     readOnly={readOnly}
-                    invalid={get(error, 'byday', false)}
-                    message={get(error, 'byday', '')}
+                    invalid={!!get(errors, 'byday', false)}
+                    message={get(errors, 'byday', '')}
+                    label={gettext('Repeat On')}
                 />
             )}
 
@@ -55,7 +60,8 @@ export const RecurringRulesInput = ({showRepeatSummary, schedule, onChange, date
                 onChange={onChange}
                 dateFormat={dateFormat}
                 readOnly={readOnly}
-                error={error}
+                errors={errors}
+                label={gettext('Ends')}
             />
 
             {showRepeatSummary && (
@@ -81,7 +87,7 @@ RecurringRulesInput.propTypes = {
     showRepeatSummary: PropTypes.bool,
     dateFormat: PropTypes.string.isRequired,
     readOnly: PropTypes.bool,
-    error: PropTypes.object,
+    errors: PropTypes.object,
 };
 
 RecurringRulesInput.defaultProps = {

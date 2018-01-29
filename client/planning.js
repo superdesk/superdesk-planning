@@ -32,7 +32,6 @@ class PlanningApp extends React.Component {
         this.closePreview = this.closePreview.bind(this);
         this.addEvent = this.addEvent.bind(this);
         this.addPlanning = this.addPlanning.bind(this);
-        this.onSave = this.onSave.bind(this);
     }
 
     toggleFilterPanel() {
@@ -75,10 +74,6 @@ class PlanningApp extends React.Component {
 
     addPlanning() {
         this.props.edit({_type: ITEM_TYPE.PLANNING});
-    }
-
-    onSave(item, save = true, publish = false) {
-        return this.props.onSave(item, save, publish);
     }
 
     render() {
@@ -206,15 +201,9 @@ class PlanningApp extends React.Component {
                 </div>
                 <div className={editorClassName}>
                     <Editor
-                        item={this.props.editItem}
-                        itemType={this.props.editItemType}
-                        cancel={this.props.cancel.bind(null, this.props.editItem)}
-                        onSave={this.onSave}
-                        onUnpublish={this.props.onUnpublish}
                         session={this.props.session}
                         privileges={this.props.privileges}
                         lockedItems={this.props.lockedItems}
-                        openCancelModal={this.props.openCancelModal}
                         addNewsItemToPlanning={addNewsItemToPlanning}
                     />
                 </div>
@@ -261,9 +250,6 @@ PlanningApp.propTypes = {
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: PropTypes.func,
-    onSave: PropTypes.func.isRequired,
-    onUnpublish: PropTypes.func.isRequired,
-    openCancelModal: PropTypes.func.isRequired,
     closePreview: PropTypes.func.isRequired,
     showRelatedPlannings: PropTypes.func,
     relatedPlanningsInList: PropTypes.object,
@@ -297,9 +283,6 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     filter: (filterType) => dispatch(actions.main.filter(filterType)),
     selectAgenda: (agendaId) => dispatch(actions.selectAgenda(agendaId)),
     openAgendas: () => dispatch(actions.openAgenda()),
-    onSave: (item, save = true, publish = false) => dispatch(actions.main.save(item, save, publish)),
-    onUnpublish: (item) => dispatch(actions.main.unpublish(item)),
-    openCancelModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
     closePreview: () => dispatch(actions.main.closePreview()),
     showRelatedPlannings: (event) => dispatch(actions.eventsPlanning.ui.showRelatedPlannings(event)),
     loadMore: (filterType) => dispatch(actions.main.loadMore(filterType)),

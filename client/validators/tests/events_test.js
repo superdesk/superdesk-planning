@@ -1,15 +1,19 @@
 import eventValidators from '../events';
 import moment from 'moment';
+import {deployConfig} from '../../utils/testData';
+import {cloneDeep} from 'lodash';
 
 describe('eventValidators', () => {
-    const maxRecurrentEvents = 200;
     let event;
+    let errors;
+    let state;
+    let getState = () => state;
 
     beforeEach(() => {
         event = {
             dates: {
                 start: moment('2014-10-15T14:01:11'),
-                end: moment('2014-10-15T14:01:11'),
+                end: moment('2014-10-15T16:01:11'),
                 recurring_rule: {
                     frequency: 'DAILY',
                     endRepeatMode: 'count',
@@ -18,97 +22,110 @@ describe('eventValidators', () => {
                 }
             }
         };
+        errors = {};
+        state = {deployConfig: cloneDeep(deployConfig)};
     });
 
-    it('validation pass if data is valid', () => {
-        const result = eventValidators.validateEventDates(event.dates, maxRecurrentEvents);
+    const testValidate = (func, field, response) => {
+        func(null, getState, field, event[field], null, errors);
+        expect(errors).toEqual(response);
+    };
 
-        expect(result.hasErrors).toBe(false);
-    });
+    it('passes valid dates', () =>
+        testValidate(eventValidators.validateDates, 'dates', {})
+    );
 
-    it('fail when end date is before start', () => {
-        event.dates.end = moment('2013-10-15T14:01:11');
-        const result = eventValidators.validateEventDates(event.dates, maxRecurrentEvents);
+    describe('validateRequiredDates', () => {
+        it('fails if start date is not defined', () => {
+            event.dates.start = null;
+            testValidate(eventValidators.validateDates, 'dates', {
+                dates: {
+                    start: {
+                        date: 'This field is required',
+                        time: 'This field is required',
+                    }
+                }
+            });
+        });
 
-        expect(result.hasErrors).toBe(true);
-        expect(result.data).toEqual({
-            dates: {
-                end: 'End date should be after start date',
-                recurring_rule: {},
-            }
+        it('fails if end date is not defined', () => {
+            event.dates.end = null;
+            testValidate(eventValidators.validateDates, 'dates', {
+                dates: {
+                    end: {
+                        date: 'This field is required',
+                        time: 'This field is required',
+                    }
+                }
+            });
         });
     });
 
-    it('fail if byday is empty for WEEKLY frequency', () => {
-        event.dates.recurring_rule.frequency = 'WEEKLY';
-        const result = eventValidators.validateEventDates(event.dates, maxRecurrentEvents);
+    describe('validateDateRange', () => {
+        it('fail if end time should is after start time', () => {
+            event.dates.end = moment('2014-10-15T11:01:11');
+            testValidate(eventValidators.validateDates, 'dates', {
+                dates: {end: {time: 'End time should be after start time'}}
+            });
+        });
 
-        expect(result.hasErrors).toBe(true);
-        expect(result.data).toEqual({
-            dates: {
-                recurring_rule: {
-                    byday: 'Required',
-                },
-            }
+        it('fail if end date should is after start date', () => {
+            event.dates.end = moment('2014-10-13T14:01:11');
+            testValidate(eventValidators.validateDates, 'dates', {
+                dates: {end: {date: 'End date should be after start date'}}
+            });
         });
     });
 
-    it('fail if no until date when repeat mode is until', () => {
-        event.dates.recurring_rule.endRepeatMode = 'until';
-        event.dates.recurring_rule.count = null;
-        const result = eventValidators.validateEventDates(event.dates, maxRecurrentEvents);
+    describe('validateRecurringRules', () => {
+        it('fail if byday is empty for WEEKLY frequency', () => {
+            event.dates.recurring_rule.frequency = 'WEEKLY';
+            testValidate(eventValidators.validateDates, 'dates', {
+                dates: {recurring_rule: {byday: 'Required'}}
+            });
+        });
 
-        expect(result.hasErrors).toBe(true);
-        expect(result.data).toEqual({
-            dates: {
-                recurring_rule: {
-                    until: 'Required',
-                },
-            }
+        it('fail if no until date when repeat mode is until', () => {
+            event.dates.recurring_rule.endRepeatMode = 'until';
+            event.dates.recurring_rule.count = null;
+            testValidate(eventValidators.validateDates, 'dates', {
+                dates: {recurring_rule: {until: 'Required'}}
+            });
+        });
+
+        it('fail if until date is before start date', () => {
+            event.dates.recurring_rule.endRepeatMode = 'until';
+            event.dates.recurring_rule.count = null;
+            event.dates.recurring_rule.until = moment('2013-10-15T14:01:11');
+            testValidate(eventValidators.validateDates, 'dates', {
+                dates: {recurring_rule: {until: 'Must be greater than starting date'}}
+            });
+        });
+
+        it('fail if count is greater than', () => {
+            event.dates.recurring_rule.count = 250;
+            testValidate(eventValidators.validateDates, 'dates', {
+                dates: {recurring_rule: {count: 'Must be less than 201'}}
+            });
+        });
+
+        it('fail if count is not greater than 1', () => {
+            event.dates.recurring_rule.count = 1;
+            testValidate(eventValidators.validateDates, 'dates', {
+                dates: {recurring_rule: {count: 'Must be greater than 1'}}
+            });
         });
     });
 
-    it('fail if until date is before start date', () => {
-        event.dates.recurring_rule.endRepeatMode = 'until';
-        event.dates.recurring_rule.count = null;
-        event.dates.recurring_rule.until = moment('2013-10-15T14:01:11');
-        const result = eventValidators.validateEventDates(event.dates, maxRecurrentEvents);
+    it('validateFilesAndLinks', () => {
+        testValidate(eventValidators.validateFilesAndLinks, 'files', {});
 
-        expect(result.hasErrors).toBe(true);
-        expect(result.data).toEqual({
-            dates: {
-                recurring_rule: {
-                    until: 'Must be greater than starting date',
-                },
-            }
-        });
-    });
+        event.files = [];
+        testValidate(eventValidators.validateFilesAndLinks, 'files', {});
 
-    it('fail if count is greater than', () => {
-        event.dates.recurring_rule.count = 250;
-        const result = eventValidators.validateEventDates(event.dates, maxRecurrentEvents);
-
-        expect(result.hasErrors).toBe(true);
-        expect(result.data).toEqual({
-            dates: {
-                recurring_rule: {
-                    count: 'Must be less than 201',
-                },
-            }
-        });
-    });
-
-    it('fail if count is not greater than 1', () => {
-        event.dates.recurring_rule.count = 1;
-        const result = eventValidators.validateEventDates(event.dates, maxRecurrentEvents);
-
-        expect(result.hasErrors).toBe(true);
-        expect(result.data).toEqual({
-            dates: {
-                recurring_rule: {
-                    count: 'Must be greater than 1',
-                },
-            }
+        event.files = [{}];
+        testValidate(eventValidators.validateFilesAndLinks, 'files', {
+            files: {0: 'Required'}
         });
     });
 });

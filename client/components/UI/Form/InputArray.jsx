@@ -1,39 +1,51 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Row} from './';
-import {gettext} from '../../../utils';
-import {cloneDeep} from 'lodash';
+import {cloneDeep, get} from 'lodash';
+
+import {Row, LineInput} from './';
+import {Button} from '../';
 
 export const InputArray = ({
     field,
     value,
     onChange,
     addButtonText,
-    component,
-    defaultValue,
     maxCount,
-    readOnly,
     addOnly,
     originalCount,
+    element,
+    defaultElement,
+    readOnly,
+    message,
+    invalid,
+    row,
     ...props
 }) => {
     const add = () => {
-        value.push(cloneDeep(defaultValue));
-        onChange(field, value);
+        value.push(cloneDeep(defaultElement));
+        onChange(field, [...value]);
     };
 
     const remove = (index) => {
         value.splice(index, 1);
-        onChange(field, value);
+        onChange(field, [...value]);
     };
 
-    const Component = component;
+    const Component = element;
 
     const showAddButton = maxCount ? value.length < maxCount : true;
 
-    return (
-        <Row>
-            {value.map((val, index) => (
+    return row ? (
+        <Row noPadding={!!message}>
+            {get(message, field) && (
+                <LineInput
+                    invalid={true}
+                    message={get(message, field)}
+                    readOnly={true}
+                    noLabel={true}
+                />
+            )}
+            {value && value.map((val, index) => (
                 <Component
                     key={index}
                     field={`${field}[${index}]`}
@@ -41,20 +53,50 @@ export const InputArray = ({
                     value={val}
                     remove={remove.bind(null, index)}
                     readOnly={readOnly || (addOnly && index < originalCount)}
+                    message={get(message, `[${index}]`)}
+                    invalid={!!get(message, `[${index}]`)}
                     {...props}
                 />
             ))}
 
             {!readOnly && showAddButton && (
-                <button
-                    className="btn btn-default"
+                <Button
                     onClick={add}
-                    type="button"
-                >
-                    {gettext(addButtonText)}
-                </button>
+                    text={addButtonText}
+                />
             )}
         </Row>
+    ) : (
+        <div>
+            {get(message, field) && (
+                <LineInput
+                    invalid={true}
+                    message={get(message, field)}
+                    readOnly={true}
+                    noLabel={true}
+                />
+            )}
+            {value && value.map((val, index) => (
+                <Component
+                    key={index}
+                    field={`${field}[${index}]`}
+                    onChange={onChange}
+                    value={val}
+                    remove={remove.bind(null, index)}
+                    readOnly={readOnly || (addOnly && index < originalCount)}
+                    message={get(message, `[${index}]`)}
+                    invalid={!!get(message, `[${index}]`)}
+                    {...props}
+                />
+            ))}
+
+            {!readOnly && showAddButton && (
+                <Button
+                    onClick={add}
+                    text={addButtonText}
+                />
+            )}
+        </div>
     );
 };
 
@@ -64,28 +106,39 @@ InputArray.propTypes = {
     value: PropTypes.array,
     onChange: PropTypes.func.isRequired,
     addButtonText: PropTypes.string.isRequired,
-    component: PropTypes.func.isRequired,
-    defaultValue: PropTypes.any,
     maxCount: PropTypes.number,
     addOnly: PropTypes.bool,
     originalCount: PropTypes.number,
+    element: PropTypes.func.isRequired,
+    defaultElement: PropTypes.any,
 
     hint: PropTypes.string,
-    message: PropTypes.string,
+    message: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
     required: PropTypes.bool,
     invalid: PropTypes.bool,
     readOnly: PropTypes.bool,
     boxed: PropTypes.bool,
     noMargin: PropTypes.bool,
+
+    item: PropTypes.object,
+    diff: PropTypes.object,
+    formProfile: PropTypes.object,
+    errors: PropTypes.object,
+    showErrors: PropTypes.bool,
+    row: PropTypes.bool,
 };
 
 InputArray.defaultProps = {
     value: [],
-    defaultValue: {},
+    defaultElement: {},
     required: false,
     invalid: false,
     readOnly: false,
     boxed: false,
     noMargin: true,
     maxCount: 0,
+    row: true,
 };

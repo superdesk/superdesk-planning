@@ -13,12 +13,13 @@ describe('<EventMetadata />', () => {
                 end: moment('2016-10-15T13:02:11+0000'),
             },
             definition_short: 'definition_short 1',
-            location: [{
+            location: {
                 name: 'location1',
                 formatted_address: 'address1',
-            }],
+            },
             name: 'name1',
             occur_status: {name: 'Planned, occurs certainly'},
+            _type: 'events',
         };
         let store = createTestStore();
         const wrapper = mount(

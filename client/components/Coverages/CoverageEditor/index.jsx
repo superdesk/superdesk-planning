@@ -9,7 +9,7 @@ import {CoverageForm} from './CoverageForm';
 import {CoverageFormHeader} from './CoverageFormHeader';
 
 import {planningUtils, gettext} from '../../../utils';
-import {WORKSPACE} from '../../../constants';
+import {WORKSPACE, COVERAGES} from '../../../constants';
 
 export const CoverageEditor = ({
     field,
@@ -30,6 +30,9 @@ export const CoverageEditor = ({
     onDuplicateCoverage,
     onCancelCoverage,
     readOnly,
+    message,
+    invalid,
+    ...props,
 }) => {
     // Coverage item actions
     let itemActions = [];
@@ -121,6 +124,9 @@ export const CoverageEditor = ({
             genres={genres}
             keywords={keywords}
             readOnly={readOnly}
+            message={message}
+            invalid={invalid}
+            {...props}
         />
     );
 
@@ -131,10 +137,8 @@ export const CoverageEditor = ({
             openItemTopBar={coverageTopBar}
             openItem={coverageForm}
             scrollInView={true}
-            isOpen={isEqual(value, {
-                planning: {},
-                news_coverage_status: newsCoverageStatus[0]
-            })}
+            isOpen={isEqual(value, COVERAGES.DEFAULT_VALUE(newsCoverageStatus))}
+            invalid={invalid}
         />
     );
 };
@@ -158,6 +162,17 @@ CoverageEditor.propTypes = {
     onDuplicateCoverage: PropTypes.func,
     onCancelCoverage: PropTypes.func,
     currentWorkspace: PropTypes.string,
+
+    message: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.object,
+    ]),
+    item: PropTypes.object,
+    diff: PropTypes.object,
+    formProfile: PropTypes.object,
+    errors: PropTypes.object,
+    showErrors: PropTypes.bool,
+    invalid: PropTypes.bool,
 };
 
 CoverageEditor.defaultProps = {

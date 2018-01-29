@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {ITEM_TYPE, PRIVILEGES} from '../../constants';
 import {gettext, getItemType, eventUtils, planningUtils, isItemPublic, lockUtils} from '../../utils';
 
+import {Button} from '../UI';
 import {Button as NavButton} from '../UI/Nav';
 import {Header} from '../UI/SidePanel';
 import {StretchBar} from '../UI/SubNav';
@@ -81,71 +82,63 @@ export const EditorHeader = ({
             )}
 
             <StretchBar right={true}>
-                <button
-                    className="btn"
+                <Button
                     disabled={submitting}
                     onClick={onCancel}
-                >
-                    {gettext('Cancel')}
-                </button>
+                    text={gettext('Cancel')}
+                />
 
                 {canPublish && (
-                    <button
-                        className="btn btn--success"
+                    <Button
+                        color="success"
                         disabled={submitting}
                         onClick={dirty ? onSaveAndPublish : onPublish}
-                    >
-                        {dirty ? gettext('Save & Publish') : gettext('Publish')}
-                    </button>
+                        text={dirty ? gettext('Save & Publish') : gettext('Publish')}
+                    />
                 )}
 
                 {canUnpublish && (
-                    <button
-                        className="btn btn--hollow"
+                    <Button
+                        hollow={true}
                         disabled={submitting}
                         onClick={onUnpublish}
-                    >
-                        {dirty ? gettext('Save & Unpublish') : gettext('Unpublish')}
-                    </button>
+                        text={dirty ? gettext('Save & Unpublish') : gettext('Unpublish')}
+                    />
                 )}
 
                 {isPublic && canUpdate && (
-                    <button
-                        className="btn btn--primary"
+                    <Button
+                        color="primary"
                         disabled={!dirty || submitting}
                         onClick={onSave}
-                    >
-                        {gettext('Update')}
-                    </button>
+                        text={gettext('Update')}
+                    />
                 )}
 
                 {!isPublic && canEdit && (
-                    <button
-                        className="btn btn--primary"
+                    <Button
+                        color="primary"
                         disabled={!dirty || submitting}
                         onClick={onSave}
-                    >
-                        {gettext('Save')}
-                    </button>
+                        text={gettext('Save')}
+                    />
                 )}
 
                 {!existingItem && (
-                    <button
-                        className="btn btn--primary"
+                    <Button
+                        color="primary"
                         disabled={!dirty || submitting}
                         onClick={onSave}
-                    >
-                        {gettext('Create')}
-                    </button>
+                        text={gettext('Create')}
+                    />
                 )}
 
                 {existingItem && !isLocked && (
-                    <button
-                        className="btn btn--primary"
+                    <Button
+                        color="primary"
                         onClick={onLock.bind(null, item)}
-                    >
-                        {gettext('Edit')}
-                    </button>
+                        text={gettext('Edit')}
+                    />
                 )}
             </StretchBar>
 
