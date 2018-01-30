@@ -34,7 +34,7 @@ export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly, scrollIn
                 <ItemIcon item={event} big={true} />
             </Column>
             <Column border={false} grow={true}>
-                {get(event, 'location[0].name') ? (
+                {get(event, 'location.name') ? (
                     <div>
                         <Row>
                             <span className="sd-overflow-ellipsis sd-list-item--element-grow">
@@ -43,7 +43,7 @@ export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly, scrollIn
                         </Row>
                         <Row>
                             <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                                <span className="sd-list-item__location">{event.location[0].name}</span>
+                                <span className="sd-list-item__location">{event.location.name}</span>
                             </span>
                             <time title>{dateStr}</time>
                         </Row>
@@ -70,7 +70,7 @@ export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly, scrollIn
                 dateFormat={dateFormat}
                 timeFormat={timeFormat} />
             <PreviewRow label={gettext('Location')}>
-                <p>{get(event, 'location[0].name')}<br />{get(event, 'location[0].formatted_address')}</p>
+                <p>{get(event, 'location.name')}<br />{get(event, 'location.formatted_address')}</p>
             </PreviewRow>
             <PreviewRow label={gettext('Occurance Status')}
                 value={get(event, 'occur_status.name', '')} />

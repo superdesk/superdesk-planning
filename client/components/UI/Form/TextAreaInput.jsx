@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {LineInput, Label} from './';
 import './style.scss';
-import {debounce} from 'lodash';
+import {debounce, get} from 'lodash';
 
 export class TextAreaInput extends React.Component {
     constructor(props) {
@@ -15,14 +15,15 @@ export class TextAreaInput extends React.Component {
     }
 
     componentDidMount() {
+        this.delayedResize = debounce(this.autoResize, this.props.autoHeightTimeout);
         if (this.props.autoHeight) {
-            this.autoResize();
+            this.delayedResize();
         }
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.value !== this.props.value && this.props.autoHeight) {
-            this.autoResize(nextProps.value);
+        if (this.props.autoHeight && nextProps.value !== this.props.value) {
+            this.delayedResize(nextProps.value);
         }
     }
 
@@ -51,16 +52,12 @@ export class TextAreaInput extends React.Component {
         }
 
         if (this.props.autoHeight) {
-            if (!this.delayedResize) {
-                this.delayedResize = debounce(this.autoResize, this.props.autoHeightTimeout);
-            }
-
             this.delayedResize();
         }
     }
 
     render() {
-        const {field, label, value, autoHeight, readOnly, placeholder, ...props} = this.props;
+        const {field, label, value, autoHeight, readOnly, placeholder, maxLength, ...props} = this.props;
 
         return (
             <LineInput {...props} readOnly={readOnly}>
@@ -77,6 +74,10 @@ export class TextAreaInput extends React.Component {
                     disabled={readOnly}
                     placeholder={readOnly ? '' : placeholder}
                 />
+
+                {maxLength > 0 &&
+                    <div className="sd-line-input__char-count">{get(value, 'length', 0)}/{maxLength}</div>
+                }
             </LineInput>
         );
     }
@@ -87,6 +88,7 @@ TextAreaInput.propTypes = {
     label: PropTypes.string,
     value: PropTypes.string,
     onChange: PropTypes.func.isRequired,
+    maxLength: PropTypes.number,
 
     hint: PropTypes.string,
     message: PropTypes.string,
@@ -94,6 +96,7 @@ TextAreaInput.propTypes = {
     invalid: PropTypes.bool,
     readOnly: PropTypes.bool,
     boxed: PropTypes.bool,
+    noLabel: PropTypes.bool,
     noMargin: PropTypes.bool,
     autoHeight: PropTypes.bool,
     autoHeightTimeout: PropTypes.number,
@@ -110,4 +113,5 @@ TextAreaInput.defaultProps = {
     autoHeight: true,
     autoHeightTimeout: 50,
     nativeOnChange: false,
+    maxLength: 0,
 };

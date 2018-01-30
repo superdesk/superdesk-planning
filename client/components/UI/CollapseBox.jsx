@@ -39,7 +39,10 @@ export class CollapseBox extends React.Component {
                 className={classNames(
                     'sd-collapse-box',
                     'sd-shadow--z2',
-                    {'sd-collapse-box--open': this.state.isOpen}
+                    {
+                        'sd-collapse-box--open': this.state.isOpen,
+                        'sd-collapse-box--invalid': this.props.invalid
+                    }
                 )}
                 ref={(node) => this.dom.node = node}
                 onClick={this.state.isOpen ? null : this.toggleOpenState}
@@ -78,9 +81,11 @@ CollapseBox.propTypes = {
     tools: PropTypes.node,
     isOpen: PropTypes.bool,
     scrollInView: PropTypes.bool,
+    invalid: PropTypes.bool,
 };
 
 CollapseBox.defaultProps = {
     isOpen: false,
     scrollInView: false,
+    invalid: false,
 };

@@ -413,16 +413,6 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks) => {
     );
 };
 
-
-const validateEventDates = (startDate, endDate) => {
-    if (moment.isMoment(startDate) && moment.isMoment(endDate) &&
-        endDate.isBefore(startDate)) {
-        return true;
-    }
-
-    return false;
-};
-
 /*
  * Groups the events by date
  */
@@ -482,14 +472,22 @@ const getEventsByDate = (events) => {
 /*
  * Convert event dates to moment.
  */
-const convertToMoment = (item) => ({
-    ...item,
-    dates: {
-        ...item.dates,
-        start: get(item.dates, 'start') ? moment(item.dates.start) : null,
-        end: get(item.dates, 'end') ? moment(item.dates.end) : null
+const convertToMoment = (item) => {
+    const newItem = {
+        ...item,
+        dates: {
+            ...item.dates,
+            start: get(item.dates, 'start') ? moment(item.dates.start) : null,
+            end: get(item.dates, 'end') ? moment(item.dates.end) : null
+        },
+    };
+
+    if (get(item, 'location[0]')) {
+        newItem.location = item.location[0];
     }
-});
+
+    return newItem;
+};
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -518,7 +516,6 @@ const self = {
     isEventRecurring,
     getDateStringForEvent,
     getEventActions,
-    validateEventDates,
     getEventsByDate,
     convertToMoment
 };

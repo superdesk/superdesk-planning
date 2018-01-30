@@ -6,9 +6,11 @@ import '../style.scss';
 import {get, set, isEqual, cloneDeep} from 'lodash';
 import {EventScheduleSummary, EventScheduleInput} from '../../Events';
 import {EVENTS} from '../../../constants';
-import {getDateFormat, getTimeFormat, getMaxRecurrentEvents} from '../../../selectors/config';
+import {getDateFormat, getTimeFormat} from '../../../selectors/config';
+import * as selectors from '../../../selectors';
 import {Row} from '../../UI/Preview';
-import {eventValidators} from '../../../validators';
+import {Field} from '../../UI/Form';
+import {validateItem} from '../../../validators';
 
 export class ConvertToRecurringEventComponent extends React.Component {
     constructor(props) {
@@ -16,8 +18,10 @@ export class ConvertToRecurringEventComponent extends React.Component {
         this.state = {
             diff: null,
             submitting: false,
-            errors: null,
+            errors: {},
         };
+
+        this.onChange = this.onChange.bind(this);
     }
 
     componentWillMount() {
@@ -43,24 +47,24 @@ export class ConvertToRecurringEventComponent extends React.Component {
             set(diff, field, val);
         }
 
-        const validtionErrors = eventValidators.validateEventDates(diff.dates,
-            this.props.maxRecurrentEvents);
+        const errors = cloneDeep(this.state.errors);
 
-        let newStateErrors = null;
-
-        if (validtionErrors.hasErrors) {
-            newStateErrors = validtionErrors.data;
-        }
+        this.props.onValidate(
+            diff,
+            this.props.formProfiles,
+            errors
+        );
 
         this.setState({
             diff: diff,
-            errors: newStateErrors,
+            errors: errors,
         });
 
-        if (isEqual(diff.dates, this.props.initialValues.dates) ||
-            (diff.dates.recurring_rule &&
-            !diff.dates.recurring_rule.until && !diff.dates.recurring_rule.count) ||
-            validtionErrors.hasErrors) {
+        if (
+            isEqual(diff.dates, this.props.initialValues.dates) ||
+            (!diff.dates.recurring_rule && !diff.dates.recurring_rule.until && !diff.dates.recurring_rule.count) ||
+            !isEqual(errors, {})
+        ) {
             this.props.disableSaveInModal();
         } else {
             this.props.enableSaveInModal();
@@ -80,18 +84,17 @@ export class ConvertToRecurringEventComponent extends React.Component {
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat, maxRecurrentEvents} = this.props;
+        const {initialValues, dateFormat, timeFormat} = this.props;
 
         return (
             <div className="MetadataView">
-                {initialValues.slugline && (
-                    <Row
-                        label={gettext('Slugline')}
-                        value={initialValues.slugline || ''}
-                        noPadding={true}
-                        className="slugline"
-                    />
-                )}
+                <Row
+                    enabled={!!initialValues.slugline}
+                    label={gettext('Slugline')}
+                    value={initialValues.slugline || ''}
+                    noPadding={true}
+                    className="slugline"
+                />
 
                 <Row
                     label={gettext('Name')}
@@ -108,14 +111,18 @@ export class ConvertToRecurringEventComponent extends React.Component {
                     forUpdating={true}
                 />
 
-                <EventScheduleInput
+                <Field
+                    component={EventScheduleInput}
+                    field="dates"
                     item={this.state.diff}
                     diff={this.state.diff}
-                    onChange={this.onChange.bind(this)}
+                    onChange={this.onChange}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
-                    maxRecurrentEvents={maxRecurrentEvents}
-                    showRepeatToggle={false} />
+                    showRepeatToggle={false}
+                    showErrors={true}
+                    errors={this.state.errors}
+                />
             </div>
         );
     }
@@ -123,7 +130,6 @@ export class ConvertToRecurringEventComponent extends React.Component {
 
 ConvertToRecurringEventComponent.propTypes = {
     initialValues: PropTypes.object.isRequired,
-    maxRecurrentEvents: PropTypes.number.isRequired,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
     disableSaveInModal: PropTypes.func,
@@ -133,12 +139,15 @@ ConvertToRecurringEventComponent.propTypes = {
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
     onHide: PropTypes.func,
+
+    onValidate: PropTypes.func,
+    formProfiles: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
     timeFormat: getTimeFormat(state),
     dateFormat: getDateFormat(state),
-    maxRecurrentEvents: getMaxRecurrentEvents(state),
+    formProfiles: selectors.forms.profiles(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -158,6 +167,8 @@ const mapDispatchToProps = (dispatch) => ({
             dispatch(actions.events.api.unlock(event));
         }
     },
+
+    onValidate: (item, profile, errors) => dispatch(validateItem('events', item, profile, errors, ['dates']))
 });
 
 export const ConvertToRecurringEventForm = connect(

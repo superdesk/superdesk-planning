@@ -84,9 +84,9 @@ export const EVENTS = {
             lock_action: 'convert_recurring',
         },
     },
-    DEFAULT_VALUES: {
+    DEFAULT_VALUE: (occurStatuses) => ({
         _type: 'events',
-        occur_status: {qcode: 'eocstat:eos5'},
+        occur_status: occurStatuses[5], // eocstat:eos5: Planned, occurs certainly
         dates: {}
-    }
+    })
 };

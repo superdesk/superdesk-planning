@@ -9,7 +9,7 @@ export default class InputArray {
         this.isMounted = this.element.exists();
 
         if (this.isMounted) {
-            this.addButton = this.element.find('button').first();
+            this.addButton = this.element.find('.btn').first();
         } else {
             this.addButton = null;
         }

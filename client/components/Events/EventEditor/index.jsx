@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get} from 'lodash';
+import {get, some} from 'lodash';
 import * as selectors from '../../../selectors';
+import {EVENTS} from '../../../constants';
 
 import {ContentBlock} from '../../UI/SidePanel';
 import {
-    Row,
     TextInput,
     SelectInput,
     SelectMetaTermsInput,
@@ -15,6 +15,7 @@ import {
     FileInput,
     InputArray,
     LinkInput,
+    Field,
 } from '../../UI/Form';
 import {ContactField} from '../../fields';
 import {ToggleBox} from '../../UI';
@@ -22,8 +23,17 @@ import {RelatedPlannings} from '../../RelatedPlannings';
 import {EventScheduleInput, EventScheduleSummary} from '../';
 
 import {EventEditorHeader} from './EventEditorHeader';
+import {gettext} from '../../../utils';
 
 import '../style.scss';
+
+const toggleDetails = [
+    'calendars',
+    'anpa_category',
+    'subject',
+    'definition_long',
+    'internal_note',
+];
 
 export class EventEditorComponent extends React.Component {
     constructor(props) {
@@ -55,10 +65,24 @@ export class EventEditorComponent extends React.Component {
             timeFormat,
             dateFormat,
             readOnly,
-            maxRecurrentEvents
+            formProfile,
+            submitFailed,
+            dirty,
+            errors,
         } = this.props;
 
         const existingEvent = !!get(diff, '_id');
+        const detailsErrored = some(toggleDetails, (field) => !!get(errors, field));
+
+        const fieldProps = {
+            item: item,
+            diff: diff,
+            readOnly: readOnly,
+            onChange: this.onChange,
+            formProfile: formProfile,
+            errors: errors,
+            showErrors: submitFailed,
+        };
 
         return (
             <div className="event-editor">
@@ -77,156 +101,139 @@ export class EventEditorComponent extends React.Component {
                 )}
 
                 <ContentBlock>
-                    <Row>
-                        <TextInput
-                            field="slugline"
-                            label="Slugline"
-                            value={get(diff, 'slugline', '')}
-                            onChange={this.onChange}
-                            maxChars={15}
-                            refNode={(node) => this.dom.slugline = node}
-                            readOnly={readOnly}
+                    <Field
+                        component={TextInput}
+                        field="slugline"
+                        label={gettext('Slugline')}
+                        refNode={(node) => this.dom.slugline = node}
+                        {...fieldProps}
+                    />
+                    <Field
+                        component={TextInput}
+                        field="name"
+                        label={gettext('Name')}
+                        {...fieldProps}
+                    />
+                    <Field
+                        component={TextAreaInput}
+                        field="definition_short"
+                        label={gettext('Description')}
+                        {...fieldProps}
+                    />
+                    <Field
+                        component={SelectInput}
+                        field="occur_status"
+                        label={gettext('Occurrence Status')}
+                        defaultValue={EVENTS.DEFAULT_VALUE(occurStatuses).occur_status}
+                        options={occurStatuses}
+                        noMargin={true}
+                        {...fieldProps}
+                    />
+
+                    <Field
+                        component={EventScheduleInput}
+                        field="dates"
+                        enabled={!existingEvent}
+                        timeFormat={timeFormat}
+                        dateFormat={dateFormat}
+                        {...fieldProps}
+                    />
+
+                    <Field
+                        component={GeoLookupInput}
+                        field="location"
+                        label={gettext('Location')}
+                        {...fieldProps}
+                    />
+
+                    <Field
+                        component={ContactField}
+                        field="event_contact_info"
+                        label={gettext('Contact')}
+                        {...fieldProps}
+                    />
+
+                    <ToggleBox
+                        title={gettext('Details')}
+                        isOpen={false}
+                        scrollInView={true}
+                        invalid={detailsErrored && (dirty || submitFailed)}
+                    >
+                        <Field
+                            component={SelectMetaTermsInput}
+                            field="calendars"
+                            label={gettext('Calendars')}
+                            options={calendars}
+                            defaultValue={[]}
+                            {...fieldProps}
                         />
-                    </Row>
-                    <Row>
-                        <TextInput
-                            field="name"
-                            label="Name"
-                            value={get(diff, 'name', '')}
-                            onChange={this.onChange}
-                            readOnly={readOnly}
+
+                        <Field
+                            component={SelectMetaTermsInput}
+                            field="anpa_category"
+                            label={gettext('Category')}
+                            options={categories}
+                            defaultValue={[]}
+                            {...fieldProps}
                         />
-                    </Row>
-                    <Row>
-                        <TextAreaInput
-                            field="definition_short"
-                            label="Description"
-                            value={get(diff, 'definition_short', '')}
-                            onChange={this.onChange}
-                            readOnly={readOnly}
+
+                        <Field
+                            component={SelectMetaTermsInput}
+                            field="subject"
+                            label={gettext('Subject')}
+                            options={subjects}
+                            defaultValue={[]}
+                            {...fieldProps}
                         />
-                    </Row>
-                    <Row>
-                        <SelectInput
-                            field="occur_status"
-                            label="Occurrence Status"
-                            value={get(diff, 'occur_status', {qcode: 'eocstat:eos5'})}
-                            onChange={this.onChange}
-                            options={occurStatuses}
+
+                        <Field
+                            component={TextAreaInput}
+                            field="definition_long"
+                            label={gettext('Long Description')}
+                            {...fieldProps}
+                        />
+                        <Field
+                            component={TextAreaInput}
+                            field="internal_note"
+                            label={gettext('Internal Note')}
                             noMargin={true}
-                            readOnly={readOnly}
+                            {...fieldProps}
                         />
-                    </Row>
-
-                    {!existingEvent && (
-                        <EventScheduleInput
-                            item={item}
-                            diff={diff}
-                            onChange={this.onChange}
-                            timeFormat={timeFormat}
-                            dateFormat={dateFormat}
-                            maxRecurrentEvents={maxRecurrentEvents}
-                            readOnly={readOnly}
-                        />
-                    )}
-
-                    <Row>
-                        <GeoLookupInput
-                            field="location[0]"
-                            label="Location"
-                            value={get(diff, 'location[0]', null)}
-                            onChange={this.onChange}
-                            readOnly={readOnly}
-                        />
-                    </Row>
-
-                    <Row>
-                        <ContactField
-                            field="event_contact_info"
-                            label="Contact"
-                            value={get(diff, 'event_contact_info', [])}
-                            onChange={this.onChange} />
-                    </Row>
-
-                    <ToggleBox title="Details" isOpen={false} scrollInView={true}>
-                        <Row>
-                            <SelectMetaTermsInput
-                                field="calendars"
-                                label="Calendars"
-                                value={get(diff, 'calendars', [])}
-                                onChange={this.onChange}
-                                options={calendars}
-                                readOnly={readOnly}
-                            />
-                        </Row>
-                        <Row>
-                            <SelectMetaTermsInput
-                                field="anpa_category"
-                                label="Category"
-                                value={get(diff, 'anpa_category', [])}
-                                onChange={this.onChange}
-                                options={categories}
-                                readOnly={readOnly}
-                            />
-                        </Row>
-                        <Row>
-                            <SelectMetaTermsInput
-                                field="subject"
-                                label="Subject"
-                                value={get(diff, 'subject', [])}
-                                onChange={this.onChange}
-                                options={subjects}
-                                readOnly={readOnly}
-                            />
-                        </Row>
-                        <Row>
-                            <TextAreaInput
-                                field="definition_long"
-                                label="Long Description"
-                                value={get(diff, 'definition_long', '')}
-                                onChange={this.onChange}
-                                readOnly={readOnly}
-                            />
-                        </Row>
-                        <Row>
-                            <TextAreaInput
-                                field="internal_note"
-                                label="Internal Note"
-                                value={get(diff, 'internal_note', '')}
-                                onChange={this.onChange}
-                                noMargin={true}
-                                readOnly={readOnly}
-                            />
-                        </Row>
                     </ToggleBox>
 
                     <ToggleBox
-                        title="Attached Files"
+                        title={gettext('Attached Files')}
                         isOpen={false}
                         scrollInView={true}
                         hideUsingCSS={true} // hideUsingCSS so the file data is kept on hide/show
+                        invalid={!!errors.files && (dirty || submitFailed)}
                     >
-                        <InputArray
+                        <Field
+                            component={InputArray}
                             field="files"
-                            value={get(diff, 'files', [])}
-                            onChange={this.onChange}
                             createLink={createUploadLink}
-                            addButtonText="Add a file"
-                            component={FileInput}
-                            readOnly={readOnly}
+                            addButtonText={gettext('Add a file')}
+                            element={FileInput}
+                            defaultValue={[]}
+                            {...fieldProps}
                         />
                     </ToggleBox>
 
-                    <ToggleBox title="External Links" isOpen={false} scrollInView={true}>
-                        <InputArray
+                    <ToggleBox
+                        title={gettext('External Links')}
+                        isOpen={false}
+                        scrollInView={true}
+                        invalid={!!errors.links && (dirty || submitFailed)}
+                    >
+                        <Field
+                            component={InputArray}
                             field="links"
-                            value={get(diff, 'links', [])}
-                            onChange={this.onChange}
-                            addButtonText="Add a link"
-                            component={LinkInput}
                             iframelyKey={iframelyKey}
-                            defaultValue=""
-                            readOnly={readOnly}
+                            defaultValue={[]}
+                            defaultElement=""
+                            addButtonText={gettext('Add a link')}
+                            element={LinkInput}
+                            {...fieldProps}
                         />
                     </ToggleBox>
 
@@ -238,7 +245,7 @@ export class EventEditorComponent extends React.Component {
                             />
                         ) ||
                         (
-                            <span className="sd-text__info">No related planning items.</span>
+                            <span className="sd-text__info">{gettext('No related planning items.')}</span>
                         )}
                     </ToggleBox>
                 </ContentBlock>
@@ -262,10 +269,15 @@ EventEditorComponent.propTypes = {
     timeFormat: PropTypes.string.isRequired,
     dateFormat: PropTypes.string.isRequired,
     readOnly: PropTypes.bool,
-    maxRecurrentEvents: PropTypes.number
+    submitFailed: PropTypes.bool,
+    dirty: PropTypes.bool,
+    errors: PropTypes.object,
 };
 
-EventEditorComponent.defaultProps = {readOnly: false};
+EventEditorComponent.defaultProps = {
+    readOnly: false,
+    submitFailed: false,
+};
 
 const mapStateToProps = (state) => ({
     formProfile: selectors.forms.eventProfile(state),
@@ -278,7 +290,6 @@ const mapStateToProps = (state) => ({
     users: selectors.getUsers(state),
     timeFormat: selectors.config.getTimeFormat(state),
     dateFormat: selectors.config.getDateFormat(state),
-    maxRecurrentEvents: selectors.config.getMaxRecurrentEvents(state)
 });
 
 export const EventEditor = connect(mapStateToProps)(EventEditorComponent);

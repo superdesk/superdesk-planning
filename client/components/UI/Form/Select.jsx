@@ -1,12 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
 
 export const Select = ({field, value, onChange, options, readOnly, clearable}) => (
     <select
-        className={classNames(
-            'sd-line-input__select'
-        )}
+        className="sd-line-input__select"
         value={value}
         onChange={(e) => onChange(field, e.target.value)}
         name={field}

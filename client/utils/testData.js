@@ -429,7 +429,7 @@ export const urgency = {
     ],
 };
 
-export const deployConfig = {};
+export const deployConfig = {max_recurrent_events: 200};
 
 export const locks = {
     events: {},

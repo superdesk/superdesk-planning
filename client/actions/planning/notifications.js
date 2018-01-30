@@ -12,13 +12,20 @@ import eventsPlanning from '../eventsPlanning';
  * @param {object} data - Planning and User IDs
  */
 const onPlanningCreated = (_e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (get(data, 'item')) {
             if (get(data, 'event_item', null) !== null) {
                 dispatch(events.api.markEventHasPlannings(
                     data.event_item,
                     data.item
                 ));
+            }
+
+            const currentSessionId = selectors.general.sessionId(getState());
+            const currentUserId = selectors.general.currentUserId(getState());
+
+            if (get(data, 'session') === currentSessionId && get(data, 'user') === currentUserId) {
+                dispatch(planning.api.fetchPlanningById(data.item));
             }
 
             return dispatch(planning.ui.refetch())

@@ -56,6 +56,7 @@ class PlanningSchema(BaseSchema):
     The planning schema used to validate the planning form
     """
 
+    slugline = schema.StringField(required=True)
     anpa_category = schema.ListField()
     description_text = schema.StringField()
     ednote = schema.StringField()
@@ -87,6 +88,7 @@ class CoverageSchema(BaseSchema):
     keyword = schema.ListField()
     headline = schema.StringField()
     internal_note = schema.StringField()
+    news_coverage_status = schema.ListField()
 
 
 DEFAULT_EDITOR = [{
@@ -130,7 +132,8 @@ DEFAULT_EDITOR = [{
             'g2_content_type': {'enabled': True},
             'genre': {'enabled': True},
             'internal_note': {'enabled': True},
-            'scheduled': {'enabled': True}
+            'scheduled': {'enabled': True},
+            'news_coverage_status': {'enabled': True}
         },
         'schema': dict(CoverageSchema)}]
 

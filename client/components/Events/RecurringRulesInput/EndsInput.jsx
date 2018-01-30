@@ -4,6 +4,7 @@ import moment from 'moment';
 import {get} from 'lodash';
 
 import {Row, RowItem, LineInput, Label, Input, Checkbox, DateInput} from '../../UI/Form';
+import {gettext} from '../../../utils';
 
 import './style.scss';
 
@@ -43,11 +44,12 @@ export class EndsInput extends React.Component {
     }
 
     render() {
-        const {label, endRepeatMode, count, until, dateFormat, readOnly, error} = this.props;
+        const {label, endRepeatMode, count, until, dateFormat, readOnly, errors} = this.props;
+        const invalid = !!(get(errors, 'count') || get(errors, 'until'));
 
         return (
             <div className="recurring-rules__end">
-                <Label row={true} text={label} />
+                <Label row={true} text={label} invalid={invalid}/>
                 <Row flex={true} noPadding={true}>
                     <RowItem noGrow={true}>
                         <LineInput noLabel={true}>
@@ -56,7 +58,7 @@ export class EndsInput extends React.Component {
                                 value={endRepeatMode}
                                 checkedValue="count"
                                 type="radio"
-                                label="After"
+                                label={gettext('After')}
                                 labelPosition="inside"
                                 onChange={this.handleModeChange}
                                 readOnly={readOnly}
@@ -66,8 +68,8 @@ export class EndsInput extends React.Component {
                     <RowItem noGrow={true}>
                         <LineInput
                             noLabel={true}
-                            invalid={!!get(error, 'count', false)}
-                            message={get(error, 'count', '')} >
+                            invalid={!!get(errors, 'count')}
+                            message={get(errors, 'count', '')} >
                             <Input
                                 field="count"
                                 value={count || ''}
@@ -89,7 +91,7 @@ export class EndsInput extends React.Component {
                                 value={endRepeatMode}
                                 checkedValue="until"
                                 type="radio"
-                                label="On"
+                                label={gettext('On')}
                                 labelPosition="inside"
                                 onChange={this.handleModeChange}
                                 readOnly={readOnly}
@@ -104,12 +106,12 @@ export class EndsInput extends React.Component {
                             onChange={this.onChange}
                             dateFormat={dateFormat}
                             readOnly={readOnly}
-                            invalid={!!get(error, 'until', false)}
-                            message={get(error, 'until', '')}
+                            invalid={!!get(errors, 'until')}
+                            message={get(errors, 'until', '')}
                         />
                     </RowItem>
                     <RowItem>
-                        <Label row={true} text="Date" />
+                        <Label row={true} text={gettext('Date')} />
                     </RowItem>
                 </Row>
             </div>
@@ -134,7 +136,7 @@ EndsInput.propTypes = {
     onChange: PropTypes.func.isRequired,
 
     required: PropTypes.bool,
-    error: PropTypes.object,
+    errors: PropTypes.object,
     readOnly: PropTypes.bool,
     boxed: PropTypes.bool,
     noMargin: PropTypes.bool,

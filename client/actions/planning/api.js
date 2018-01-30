@@ -13,7 +13,6 @@ import {
     SPIKED_STATE,
     WORKFLOW_STATE,
     MODALS,
-    ITEM_TYPE
 } from '../../constants';
 
 /**
@@ -640,7 +639,7 @@ const save = (item, original = undefined) => (
 
         // Find the original (if it exists) either from the store or the API
         return new Promise((resolve, reject) => {
-            if (original !== undefined) {
+            if (original !== undefined && !isEqual(original, {})) {
                 return resolve(original);
             } else if (get(updates, '_id')) {
                 return dispatch(self.fetchPlanningById(updates._id))
@@ -832,9 +831,6 @@ const unlock = (item) => (
         .then((item) => {
             planningUtils.convertCoveragesGenreToObject(item);
 
-            // Restore the item type, as the lock endpoint does not provide this
-            item._type = ITEM_TYPE.PLANNING;
-
             return Promise.resolve(item);
         }, (error) => Promise.reject(error))
 );
@@ -860,9 +856,6 @@ const lock = (planning, lockAction = 'edit') => (
         )
             .then((item) => {
                 planningUtils.convertCoveragesGenreToObject(item);
-
-                // Restore the item type, as the lock endpoint does not provide this
-                item._type = ITEM_TYPE.PLANNING;
 
                 return Promise.resolve(item);
             }, (error) => Promise.reject(error));

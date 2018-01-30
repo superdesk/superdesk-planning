@@ -96,8 +96,6 @@ const save = (item, save = true, publish = false) => (
             .then((savedItems) => {
                 const savedItem = Array.isArray(savedItems) ? savedItems[0] : savedItems;
 
-                savedItem._type = itemType;
-
                 if (!get(item, '_id') && selectors.getCurrentWorkspace(getState()) !== WORKSPACE.AUTHORING) {
                     return dispatch(self.lockAndEdit(savedItem));
                 }

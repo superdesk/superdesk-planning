@@ -65,8 +65,8 @@ const TestForm = ({onChange, values}) => (
             value={values.links}
             onChange={onChange}
             addButtonText="Add a link"
-            component={LinkInput}
-            defaultValue=""
+            element={LinkInput}
+            defaultElement=""
         />
     </div>
 );

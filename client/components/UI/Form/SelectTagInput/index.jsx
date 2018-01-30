@@ -101,12 +101,12 @@ export class SelectTagInput extends React.Component {
     }
 
     render() {
-        const {label, value, labelKey, allowCustom, readOnly} = this.props;
+        const {label, value, labelKey, allowCustom, readOnly, invalid, required, ...props} = this.props;
 
         return (
             <div>
                 <Row noPadding={true}>
-                    <LineInput noMargin={true}>
+                    <LineInput noMargin={true} invalid={invalid} required={required}>
                         <Label text={label} />
 
                         <div className="sd-line-input__input" readOnly={readOnly}>
@@ -117,11 +117,17 @@ export class SelectTagInput extends React.Component {
                     </LineInput>
                 </Row>
                 <Row>
-                    <LineInput isSelect={true} readOnly={readOnly} noLabel={get(value, 'length', 0) > 0}>
+                    <LineInput
+                        isSelect={true}
+                        readOnly={readOnly}
+                        noLabel={get(value, 'length', 0) > 0}
+                        invalid={invalid}
+                        {...props}
+                    >
                         <Input
                             value={this.state.inputText}
-                            onChange={!readOnly && this.filterOptions}
-                            onClick={!readOnly && this.togglePopup}
+                            onChange={!readOnly ? this.filterOptions : null}
+                            onClick={!readOnly ? this.togglePopup : null}
                             className="select-tag__input"
                             readOnly={readOnly}
                         />
@@ -155,6 +161,8 @@ SelectTagInput.propTypes = {
     searchKey: PropTypes.string,
     allowCustom: PropTypes.bool,
     readOnly: PropTypes.bool,
+    invalid: PropTypes.bool,
+    required: PropTypes.bool,
 };
 
 SelectTagInput.defaultProps = {
@@ -163,4 +171,5 @@ SelectTagInput.defaultProps = {
     searchKey: 'name',
     allowCustom: true,
     readOnly: false,
+    required: false,
 };

@@ -65,14 +65,13 @@ export class UpdateRecurringEventsComponent extends React.Component {
 
         return (
             <div className="MetadataView">
-                {initialValues.slugline && (
-                    <Row
-                        label={gettext('Slugline')}
-                        value={initialValues.slugline || ''}
-                        noPadding={true}
-                        className="slugline"
-                    />
-                )}
+                <Row
+                    enabled={!!initialValues.slugline}
+                    label={gettext('Slugline')}
+                    value={initialValues.slugline || ''}
+                    noPadding={true}
+                    className="slugline"
+                />
 
                 <Row
                     label={gettext('Name')}
@@ -87,13 +86,12 @@ export class UpdateRecurringEventsComponent extends React.Component {
                     dateFormat={dateFormat}
                 />
 
-                {isRecurring && (
-                    <Row
-                        label={gettext('No. of Events')}
-                        value={numEvents}
-                        noPadding={true}
-                    />
-                )}
+                <Row
+                    enabled={isRecurring}
+                    label={gettext('No. of Events')}
+                    value={numEvents}
+                    noPadding={true}
+                />
 
                 <UpdateMethodSelection
                     value={this.state.eventUpdateMethod}

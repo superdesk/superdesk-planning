@@ -40,6 +40,7 @@ export class ToggleBox extends React.Component {
             title,
             children,
             hideUsingCSS,
+            invalid,
         } = this.props;
 
         return (
@@ -47,7 +48,10 @@ export class ToggleBox extends React.Component {
                 className={classNames(
                     'toggle-box toggle-box--circle',
                     style,
-                    {hidden: !this.state.isOpen}
+                    {
+                        hidden: !this.state.isOpen,
+                        'toggle-box--invalid': invalid,
+                    }
                 )}
                 ref={(node) => this.dom.node = node}
             >
@@ -84,10 +88,12 @@ ToggleBox.propTypes = {
     children: PropTypes.node,
     scrollInView: PropTypes.bool,
     hideUsingCSS: PropTypes.bool,
+    invalid: PropTypes.bool,
 };
 
 ToggleBox.defaultProps = {
     isOpen: true,
     scrollInView: false,
     hideUsingCSS: false,
+    invalid: false,
 };
