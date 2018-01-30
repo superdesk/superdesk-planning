@@ -49,9 +49,14 @@ export class EventItem extends React.PureComponent {
         const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack);
 
         return (
-            <Item shadow={1} onClick={() => onItemClick(item)}>
+            <Item shadow={1} activated={this.props.multiSelected} onClick={() => onItemClick(item)}>
                 <Border state={borderState} />
-                <ItemType item={item} onCheckToggle={() => { /* no-op */ }} />
+                <ItemType item={item}
+                    hasCheck={activeFilter !== MAIN.FILTERS.COMBINED}
+                    checked={this.props.multiSelected}
+                    onCheckToggle={(value) => {
+                        this.props.onMultiSelectClick(item);
+                    }} />
                 <PubStatus item={item} />
                 <Column
                     grow={true}
@@ -106,6 +111,8 @@ EventItem.propTypes = {
     activeFilter: PropTypes.string,
     toggleRelatedPlanning: PropTypes.func,
     relatedPlanningText: PropTypes.string,
+    multiSelected: PropTypes.bool,
+    onMultiSelectClick: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,

@@ -49,6 +49,9 @@ export class ListPanel extends React.Component {
             showRelatedPlannings,
             relatedPlanningsInList,
             currentWorkspace,
+            onMultiSelectClick,
+            selectedEventIds,
+            selectedPlanningIds,
         } = this.props;
 
         return groups.length <= 0 ? (
@@ -78,6 +81,9 @@ export class ListPanel extends React.Component {
                         showRelatedPlannings: showRelatedPlannings,
                         relatedPlanningsInList: relatedPlanningsInList,
                         currentWorkspace: currentWorkspace,
+                        onMultiSelectClick: onMultiSelectClick,
+                        selectedEventIds: selectedEventIds,
+                        selectedPlanningIds: selectedPlanningIds,
                         [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
                             this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
                         [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
@@ -133,6 +139,9 @@ ListPanel.propTypes = {
     loadMore: PropTypes.func.isRequired,
     currentWorkspace: PropTypes.string,
     onAddCoverageClick: PropTypes.func,
+    onMultiSelectClick: PropTypes.func,
+    selectedEventIds: PropTypes.array,
+    selectedPlanningIds: PropTypes.array,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

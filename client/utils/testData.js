@@ -779,6 +779,11 @@ export const main = {
     }
 };
 
+export const multiSelect = {
+    selectedEventIds: [],
+    selectedPlanningIds: [],
+};
+
 export const initialState = {
     config: config,
     privileges: privileges,
@@ -806,7 +811,8 @@ export const initialState = {
     planning: planningInitialState,
     templates: templates,
     main: main,
-    eventsPlanning: eventsPlanningInitialState
+    eventsPlanning: eventsPlanningInitialState,
+    multiSelect: multiSelect,
 };
 
 export const items = {

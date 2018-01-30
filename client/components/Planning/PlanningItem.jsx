@@ -8,7 +8,7 @@ import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/
 import {EventDateTime} from '../Events';
 import {PlanningDateTime} from './';
 import {ItemActionsMenu} from '../index';
-import {PLANNING, EVENTS, WORKSPACE} from '../../constants';
+import {PLANNING, EVENTS, WORKSPACE, MAIN} from '../../constants';
 
 import {planningUtils, getItemWorkflowStateLabel} from '../../utils';
 
@@ -31,6 +31,9 @@ export class PlanningItem extends React.PureComponent {
             session,
             privileges,
             currentWorkspace,
+            onMultiSelectClick,
+            multiSelected,
+            activeFilter,
         } = this.props;
 
         if (!item) {
@@ -78,9 +81,14 @@ export class PlanningItem extends React.PureComponent {
         const showAddCoverage = currentWorkspace === WORKSPACE.AUTHORING;
 
         return (
-            <Item shadow={1} onClick={() => onItemClick(item)}>
+            <Item shadow={1} activated={multiSelected} onClick={() => onItemClick(item)}>
                 <Border state={borderState} />
-                <ItemType item={item} onCheckToggle={() => { /* no-op */ }}/>
+                <ItemType item={item}
+                    hasCheck={activeFilter !== MAIN.FILTERS.COMBINED}
+                    checked={multiSelected}
+                    onCheckToggle={(value) => {
+                        onMultiSelectClick(item);
+                    }} />
                 <PubStatus item={item} />
                 <Column
                     grow={true}
@@ -154,6 +162,9 @@ PlanningItem.propTypes = {
     privileges: PropTypes.object,
     onAddCoverageClick: PropTypes.func,
     currentWorkspace: PropTypes.string,
+    onMultiSelectClick: PropTypes.func,
+    multiSelected: PropTypes.bool,
+    activeFilter: PropTypes.string,
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

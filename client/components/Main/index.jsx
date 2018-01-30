@@ -15,3 +15,4 @@ export {ListGroupItem} from './ListGroupItem';
 export {ListGroup} from './ListGroup';
 export {ListPanel} from './ListPanel';
 export {PreviewHeader} from './PreviewHeader';
+export {SubNavBar} from './SubNavBar';

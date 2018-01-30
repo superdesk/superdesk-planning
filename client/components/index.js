@@ -70,6 +70,7 @@ export {ItemRendition} from './ItemRendition';
 export {PriorityLabel} from './PriorityLabel';
 export {UrgencyLabel} from './UrgencyLabel';
 export {ItemIcon} from './ItemIcon';
+export {MultiSelectActions} from './MultiSelectActions';
 
 import * as UI from './UI/index';
 export {UI};

@@ -20,14 +20,17 @@ import {
  * @param {object} item - The planning item to spike
  * @return Promise
  */
-const spike = (item) => (
-    (dispatch, getState, {api}) => (
-        api.update('planning_spike', {...item}, {})
-            .then(
-                () => Promise.resolve(item),
-                (error) => Promise.reject(error)
-            )
-    )
+const spike = (items) => (
+    (dispatch, getState, {api}) => {
+        let plansToSpike = (Array.isArray(items) ? items : [items]);
+
+        return Promise.all(
+            plansToSpike.map((plan) => (api.update('planning_spike', {...plan}, {})))
+        ).then(
+            () => Promise.resolve(plansToSpike),
+            (error) => (Promise.reject(error))
+        );
+    }
 );
 
 /**
@@ -35,14 +38,17 @@ const spike = (item) => (
  * @param {object} item - The Planning item to unspike
  * @return Promise
  */
-const unspike = (item) => (
-    (dispatch, getState, {api}) => (
-        api.update('planning_unspike', {...item}, {})
-            .then(
-                () => Promise.resolve(item),
-                (error) => Promise.reject(error)
-            )
-    )
+const unspike = (items) => (
+    (dispatch, getState, {api}) => {
+        let plansToSpike = (Array.isArray(items) ? items : [items]);
+
+        return Promise.all(
+            plansToSpike.map((plan) => (api.update('planning_unspike', {...plan}, {})))
+        ).then(
+            () => Promise.resolve(plansToSpike),
+            (error) => (Promise.reject(error))
+        );
+    }
 );
 
 const cancel = (item) => (
@@ -903,8 +909,7 @@ function exportAsArticle() {
         const label = (item) => item.headline || item.slugline || item.description_text;
         const locks = selectors.locks.getLockedItems(state);
 
-        state.planning.selectedItems.forEach((id) => {
-            const item = state.planning.plannings[id];
+        selectors.multiSelect.selectedPlannings(getState()).forEach((item) => {
             const isLocked = planningUtils.isPlanningLocked(item, locks);
             const isNotForPublication = get(item, 'flags.marked_for_not_publication');
 
@@ -913,7 +918,7 @@ function exportAsArticle() {
             }
 
             sortableItems.push({
-                id: id,
+                id: item._id,
                 label: label(item),
             });
         });
