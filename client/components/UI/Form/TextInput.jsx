@@ -13,6 +13,7 @@ export const TextInput = ({
     invalid,
     readOnly,
     type,
+    inputClassName,
     refNode,
     ...props
 }) => (
@@ -25,6 +26,7 @@ export const TextInput = ({
             type={type}
             readOnly={readOnly}
             refNode={refNode}
+            className={inputClassName}
         />
 
         {maxLength > 0 &&
@@ -34,16 +36,17 @@ export const TextInput = ({
 );
 
 TextInput.propTypes = {
-    field: PropTypes.string.isRequired,
+    field: PropTypes.string,
     label: PropTypes.string,
     value: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.number,
     ]),
-    onChange: PropTypes.func.isRequired,
+    onChange: PropTypes.func,
     maxLength: PropTypes.number,
     type: PropTypes.string,
     refNode: PropTypes.func,
+    inputClassName: PropTypes.string,
     ...LineInputProps,
 };
 

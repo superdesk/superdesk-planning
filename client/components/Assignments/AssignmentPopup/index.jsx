@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import {set, cloneDeep} from 'lodash';
 import {gettext} from '../../../utils';
 
+import {Button} from '../../UI';
 import {Popup, Header, Footer, Content} from '../../UI/Popup';
 import {AssignmentEditor} from '../AssignmentEditor';
 
@@ -13,12 +14,16 @@ export class AssignmentPopup extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {diff: cloneDeep(props.value) || {}};
+        this.state = {
+            diff: cloneDeep(props.value) || {},
+            valid: true,
+        };
         this.dom = {popupContainer: null};
 
         this.onChange = this.onChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
         this.getPopupContainer = this.getPopupContainer.bind(this);
+        this.setValid = this.setValid.bind(this);
     }
 
     onChange(field, value) {
@@ -35,6 +40,10 @@ export class AssignmentPopup extends React.Component {
 
     getPopupContainer() {
         return this.dom.popupContainer;
+    }
+
+    setValid(valid) {
+        this.setState({valid});
     }
 
     render() {
@@ -71,15 +80,22 @@ export class AssignmentPopup extends React.Component {
                         priorityPrefix={priorityPrefix}
                         popupContainer={this.getPopupContainer}
                         disableDeskSelection={disableDeskSelection}
+                        setValid={this.setValid}
                     />
                 </Content>
                 <Footer>
-                    <button className="btn btn--primary pull-right" onClick={this.onSubmit}>
-                        {gettext('Submit')}
-                    </button>
-                    <button className="btn pull-right" onClick={onClose}>
-                        {gettext('Cancel')}
-                    </button>
+                    <Button
+                        color="primary"
+                        className="pull-right"
+                        onClick={this.onSubmit}
+                        disabled={!this.state.valid}
+                        text={gettext('Submit')}
+                    />
+                    <Button
+                        className="pull-right"
+                        onClick={onClose}
+                        text={gettext('Cancel')}
+                    />
                 </Footer>
                 <div ref={(node) => this.dom.popupContainer = node} />
             </Popup>

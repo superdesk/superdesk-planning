@@ -9,6 +9,10 @@ export const formProfile = (dispatch, getState, field, value, profile, errors) =
 
     const schema = get(profile, `schema.${field}`) || {};
 
+    if (!schema.required && get(value, length, 0) < 1) {
+        return;
+    }
+
     if (get(schema, 'maxlength', 0) > 0 && get(value, 'length', 0) > schema.maxlength) {
         if (get(schema, 'type', 'string') === 'list') {
             errors[field] = gettext('Too many ') + field;

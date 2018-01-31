@@ -7,3 +7,4 @@ export {RescheduleEventForm} from './forms/rescheduleEventForm';
 export {ConvertToRecurringEventForm} from './forms/convertToRecurringEventForm';
 export {CancelPlanningCoveragesForm} from './forms/cancelPlanningCoveragesForm';
 export {UpdateAssignmentForm} from './forms/updateAssignmentForm';
+export {EditPriorityForm} from './forms/editPriorityForm';

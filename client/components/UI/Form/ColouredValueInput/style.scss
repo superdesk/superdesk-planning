@@ -4,6 +4,12 @@
 .select-coloured-value {
     &__input {
         padding-top: 4px;
+        height: 2.4rem;
+        font-size: 1.4rem;
+
+        span {
+            vertical-align: middle;
+        }
     }
 
     &__popup {
