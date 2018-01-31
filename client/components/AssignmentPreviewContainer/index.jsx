@@ -15,6 +15,7 @@ import {
     getCreator,
     getCoverageIcon,
     getItemInArrayById,
+    lockUtils,
 } from '../../utils';
 import {ASSIGNMENTS, WORKSPACE} from '../../constants';
 import {
@@ -51,9 +52,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
             openArchivePreview,
         } = this.props;
 
-        const isItemLocked = get(lockedItems, 'assignments') && assignment._id in lockedItems.assignments;
-
-        if (!inAssignments || isItemLocked) {
+        if (!inAssignments || lockUtils.isLockRestricted(assignment, session, lockedItems)) {
             return [];
         }
 

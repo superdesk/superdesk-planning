@@ -13,7 +13,7 @@ import {List} from '../UI';
 import classNames from 'classnames';
 import moment from 'moment';
 import {get} from 'lodash';
-import {getCoverageIcon, assignmentUtils, gettext} from '../../utils/index';
+import {getCoverageIcon, assignmentUtils, gettext, lockUtils} from '../../utils/index';
 import {ASSIGNMENTS} from '../../constants';
 import './style.scss';
 
@@ -69,7 +69,7 @@ export const AssignmentItem = ({
         },
     ];
 
-    const itemActions = inAssignments && !isItemLocked ?
+    const itemActions = inAssignments && !lockUtils.isLockRestricted(assignment, session, lockedItems) ?
         assignmentUtils.getAssignmentItemActions(
             assignment,
             session,
