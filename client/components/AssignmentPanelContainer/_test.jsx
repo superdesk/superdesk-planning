@@ -1,7 +1,10 @@
 import React from 'react';
-import {shallow} from 'enzyme';
-import {AssignmentPanel} from './';
+import {shallow, mount} from 'enzyme';
+import {Provider} from 'react-redux';
+import {AssignmentPanel, AssignmentPanelContainer} from './';
 import {AssignmentPreviewContainer} from '../';
+import {createTestStore} from '../../utils';
+import {getTestActionStore} from '../../utils/testUtils';
 import * as helpers from '../tests/helpers';
 import sinon from 'sinon';
 
@@ -57,5 +60,58 @@ describe('<AssignmentPanelContainer />', () => {
             <div className="sd-preview-panel content-item-preview hidden" />
         )).toBe(true);
         expect(wrapper.find(AssignmentPreviewContainer).length).toBe(0);
+    });
+
+    describe('unlock', () => {
+        let store;
+        let astore;
+        let services;
+        let data;
+        let assignment;
+
+        beforeEach(() => {
+            astore = getTestActionStore();
+            services = astore.services;
+            data = astore.data;
+            assignment = data.assignments[0];
+            assignment.lock_user = 'someone';
+            assignment.lock_session = 'somesession';
+
+            astore.initialState.workspace.currentWorkspace = 'ASSIGNMENTS';
+        });
+
+        const initStore = () => {
+            astore.initialState.assignment.currentAssignmentId = assignment._id;
+            astore.init();
+            store = createTestStore({
+                initialState: astore.initialState,
+                extraArguments: {api: services.api},
+            });
+            return store;
+        };
+
+        const getWrapper = () => mount(
+            <Provider store={initStore()}>
+                <AssignmentPanelContainer previewOpened={true} />
+            </Provider>
+        );
+
+        it('unlock option available when assignment is locked', () => {
+            assignment.lock_action = 'not_content_edit';
+
+            const wrapper = getWrapper();
+            const lockContainer = wrapper.find('LockContainer').first();
+
+            expect(lockContainer.props().showUnlock).toBe(true);
+        });
+
+        it('unlock option not available if content is locked', () => {
+            assignment.lock_action = 'content_edit';
+
+            const wrapper = getWrapper();
+            const lockContainer = wrapper.find('LockContainer').first();
+
+            expect(lockContainer.props().showUnlock).toBe(false);
+        });
     });
 });

@@ -36,6 +36,7 @@ export class AssignmentPanel extends React.Component {
             previewOpened,
             assignment,
             users,
+            unlockAssignment,
         } = this.props;
 
         const hasContent = assignmentUtils.assignmentHasContent(assignment);
@@ -77,8 +78,9 @@ export class AssignmentPanel extends React.Component {
                                             'Content locked' :
                                             'Assignment locked'
                                         }
-                                        showUnlock={false}
+                                        showUnlock={get(assignment, 'lock_action') !== 'content_edit'}
                                         withLoggedInfo={true}
+                                        onUnlock={unlockAssignment.bind(null, assignment)}
                                     />
                                 </div>
                             }
@@ -122,6 +124,7 @@ AssignmentPanel.propTypes = {
         PropTypes.array,
         PropTypes.object,
     ]),
+    unlockAssignment: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -129,7 +132,10 @@ const mapStateToProps = (state) => ({
     users: selectors.getUsers(state),
 });
 
-const mapDispatchToProps = (dispatch) => ({closePanel: () => dispatch(actions.assignments.ui.closePreview())});
+const mapDispatchToProps = (dispatch) => ({
+    closePanel: () => dispatch(actions.assignments.ui.closePreview()),
+    unlockAssignment: (assignment) => dispatch(actions.assignments.ui.unlockAssignment(assignment)),
+});
 
 export const AssignmentPanelContainer = connect(
     mapStateToProps,

@@ -1,4 +1,4 @@
-import {get, includes} from 'lodash';
+import {get, includes, isNil} from 'lodash';
 import {ASSIGNMENTS, PRIVILEGES, PLANNING} from '../constants';
 import {lockUtils} from './index';
 
@@ -135,6 +135,16 @@ const canEditDesk = (assignment) => {
         state !== ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS;
 };
 
+const isAssignmentLocked = (assignment, locks) =>
+    !isNil(assignment) && (
+        assignment._id in locks.assignments
+    );
+
+const isAssignmentLockRestricted = (assignment, session, locks) =>
+    isAssignmentLocked(assignment, locks) &&
+        !lockUtils.isItemLockedInThisSession(assignment, session);
+
+
 // eslint-disable-next-line consistent-this
 const self = {
     canEditAssignment,
@@ -148,6 +158,7 @@ const self = {
     canRemoveAssignment,
     canEditDesk,
     assignmentHasContent,
+    isAssignmentLockRestricted,
 };
 
 export default self;
