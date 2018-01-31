@@ -15,6 +15,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
 
         this.itemSpike = this.itemSpike.bind(this);
         this.itemUnSpike = this.itemUnSpike.bind(this);
+        this.createPlanning = this.createPlanning.bind(this);
         this.handleDeSelectAll = this.handleDeSelectAll.bind(this);
     }
 
@@ -112,7 +113,6 @@ export class MultiSelectActionsComponent extends React.PureComponent {
     getEventTools() {
         const {
             selectedEvents,
-            createPlanning,
             privileges,
             session,
             lockedItems,
@@ -138,7 +138,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
         if (showCreatePlan) {
             tools.push(<Button
                 key={1}
-                onClick={createPlanning}
+                onClick={this.createPlanning}
                 color="primary"
                 text={gettext('Create a planning')} />);
         }
@@ -175,6 +175,10 @@ export class MultiSelectActionsComponent extends React.PureComponent {
 
     itemUnSpike() {
         this.props.unspikeItems(this.getItemList());
+    }
+
+    createPlanning() {
+        this.props.addEventToCurrentAgenda(this.getItemList());
     }
 
     render() {
@@ -219,6 +223,7 @@ MultiSelectActionsComponent.propTypes = {
     createPlanning: PropTypes.func,
     spikeItems: PropTypes.func,
     unspikeItems: PropTypes.func,
+    addEventToCurrentAgenda: PropTypes.func,
     selectedPlanningIds: PropTypes.array,
     selectedEventIds: PropTypes.array,
 };
