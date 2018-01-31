@@ -140,21 +140,36 @@ export class PlanningEditorComponent extends React.Component {
     }
 
     onChange(field, value) {
+        let valueToUpdate = value;
+
         if (field === 'agendas') {
-            this.props.onChangeHandler(field, value.map((agenda) => agenda._id));
-        } else if (field === 'urgency') {
-            this.props.onChangeHandler(field, get(value, 'qcode') || null);
-        } else if (field === 'coverages' && this.props.addNewsItemToPlanning) {
-            value[value.length - 1] = planningUtils.createCoverageFromNewsItem(
+            valueToUpdate = value.map((agenda) => agenda._id);
+        }
+
+        if (field === 'urgency') {
+            valueToUpdate = get(value, 'qcode', null);
+        }
+
+        if (field === 'coverages' && this.props.addNewsItemToPlanning) {
+            valueToUpdate[value.length - 1] = planningUtils.createCoverageFromNewsItem(
                 this.props.addNewsItemToPlanning,
                 this.props.newsCoverageStatus,
                 this.props.desk,
                 this.props.user,
                 this.props.contentTypes);
-            this.props.onChangeHandler(field, value);
-        } else {
-            this.props.onChangeHandler(field, value);
+        } else if (field.match(/coverages\[/)) {
+            // If there is an assignment and coverage status not planned,
+            // change it to 'planned'
+            if (get(value, 'news_coverage_status.qcode') !== this.props.newsCoverageStatus[0].qcode &&
+                !!get(value, 'assigned_to.desk')) {
+                valueToUpdate = {
+                    ...value,
+                    news_coverage_status: this.props.newsCoverageStatus[0]
+                };
+            }
         }
+
+        this.props.onChangeHandler(field, valueToUpdate);
     }
 
     componentDidMount() {
