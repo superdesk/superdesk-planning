@@ -3,7 +3,7 @@ import assignments from './index';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {ASSIGNMENTS, MODALS, WORKSPACE} from '../../constants';
-import {getErrorMessage, assignmentUtils} from '../../utils';
+import {getErrorMessage, assignmentUtils, gettext} from '../../utils';
 import {get} from 'lodash';
 
 /**
@@ -648,10 +648,13 @@ const unlockAssignment = (assignment) => (
     (dispatch, getState, {notify}) => (
         dispatch(assignments.api.unlock(assignment))
             .then(
-                (unlockedAssignment) => Promise.resolve(unlockedAssignment),
+                (unlockedAssignment) => {
+                    notify.success(gettext('Assignment has been unlocked.'));
+                    return Promise.resolve(unlockedAssignment);
+                },
                 (error) => {
                     notify.error(
-                        getErrorMessage(error, 'Failed to unlock the Assignment')
+                        getErrorMessage(error, gettext('Failed to unlock the Assignment'))
                     );
 
                     return Promise.reject(error);
