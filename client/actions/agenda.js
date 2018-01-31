@@ -1,7 +1,7 @@
 import * as selectors from '../selectors';
 import {SubmissionError} from 'redux-form';
 import {cloneDeep, pick, get} from 'lodash';
-import {PRIVILEGES, AGENDA, MODALS} from '../constants';
+import {PRIVILEGES, AGENDA, MODALS, ITEM_TYPE} from '../constants';
 import {checkPermission, getErrorMessage, isItemSpiked, gettext} from '../utils';
 import {planning, showModal} from './index';
 
@@ -148,7 +148,7 @@ const askForAddEventToCurrentAgenda = (events) => (
             modalProps: {
                 body: message,
                 action: () => dispatch(addEventToCurrentAgenda(events)),
-                deselectEventsAfterAction: true,
+                itemType: ITEM_TYPE.EVENT,
             },
         }));
     }
