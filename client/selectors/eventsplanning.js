@@ -26,8 +26,10 @@ export const orderedEventsPlanning = createSelector(
             }
         });
 
-        const eventsByDate = keyBy(eventUtils.getEventsByDate(eventsList), 'date');
-        const planningByDate = keyBy(planningUtils.getPlanningByDate(planningList), 'date');
+        const eventsByDate = eventsList.length ?
+            keyBy(eventUtils.getEventsByDate(eventsList), 'date') : {};
+        const planningByDate = planningList.length ?
+            keyBy(planningUtils.getPlanningByDate(planningList), 'date') : {};
         const days = uniq(Object.keys(eventsByDate).concat(Object.keys(planningByDate)));
 
         let sortable = [];

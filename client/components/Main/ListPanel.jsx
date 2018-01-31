@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {get} from 'lodash';
 import {ListGroup} from '.';
 import {PanelInfo} from '../UI';
 import {EVENTS, PLANNING} from '../../constants';
@@ -11,6 +12,15 @@ export class ListPanel extends React.Component {
             isNextPageLoading: false,
             scrollTop: 0
         };
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (get(nextProps, 'activeFilter') !== get(this.props, 'activeFilter')) {
+            this.setState({
+                isNextPageLoading: false,
+                scrollTop: 0
+            });
+        }
     }
 
     handleScroll(event) {
@@ -27,7 +37,16 @@ export class ListPanel extends React.Component {
             this.setState({isNextPageLoading: true, scrollTop: node.scrollTop});
 
             this.props.loadMore(this.props.activeFilter)
-                .finally(() => {
+                .then(() => {
+                    this.setState({isNextPageLoading: false});
+                });
+        }
+
+        if (node.scrollTop === 0 && this.state.scrollTop > 0) {
+            this.setState({isNextPageLoading: true, scrollTop: 0});
+
+            this.props.filter(this.props.activeFilter)
+                .then(() => {
                     this.setState({isNextPageLoading: false});
                 });
         }
@@ -142,6 +161,7 @@ ListPanel.propTypes = {
     onMultiSelectClick: PropTypes.func,
     selectedEventIds: PropTypes.array,
     selectedPlanningIds: PropTypes.array,
+    filter: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

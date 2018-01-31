@@ -4,7 +4,8 @@ import {cloneDeep, get, omit} from 'lodash';
 const search = {
     lastRequestParams: {page: 1},
     fulltext: undefined,
-    currentSearch: undefined
+    currentSearch: undefined,
+    totalItems: 0
 };
 
 const initialState = {
@@ -27,7 +28,8 @@ const modifyParams = (state, action) => {
             ...params[key],
             currentSearch: {
                 ...omit(payloadParam, ['fulltext', 'page'])
-            }
+            },
+            fulltext: payloadParam.fulltext
         };
 
         params[key].lastRequestParams = {
@@ -55,6 +57,19 @@ export default function(state = initialState, action) {
             ...state,
             search: modifyParams(state, action)
         };
+
+    case MAIN.ACTIONS.SET_TOTAL:
+        return {
+            ...state,
+            search: {
+                ...state.search,
+                [action.payload.filter]: {
+                    ...state.search[action.payload.filter],
+                    totalItems: action.payload.total || 0
+                }
+            }
+        };
+
     case MAIN.ACTIONS.CLEAR_SEARCH:
         return {
             ...state,

@@ -3,7 +3,7 @@ import * as selectors from '../selectors';
 import {SubmissionError} from 'redux-form';
 import {fetchSelectedAgendaPlannings} from './index';
 import {EVENTS, SPIKED_STATE} from '../constants';
-import {eventUtils, getErrorMessage, retryDispatch} from '../utils';
+import {eventUtils, getErrorMessage, dispatchUtils} from '../utils';
 
 import eventsApi from './events/api';
 import eventsUi from './events/ui';
@@ -24,7 +24,7 @@ const duplicateEvent = (event) => (
                 duplicate.files = event.files;
                 dispatch(eventsUi.closeEventDetails(original));
             })
-            .then(() => dispatch(eventsUi.refetchEvents()))
+            .then(() => dispatch(eventsUi.scheduleRefetch()))
             .then(() => dispatch(eventsUi.openEventDetails(duplicate)));
     }
 );
@@ -125,8 +125,11 @@ const onRecurringEventCreated = (_e, data) => (
             // (because we receive this notification fast, and we're performing a query not
             // a getById). So continue for 5 times, waiting 1 second between each request
             // until we receive the new events or an error occurs
-            return dispatch(retryDispatch(
-                eventsApi.query({recurrenceId: data.item, onlyFuture: false}),
+            return dispatch(dispatchUtils.retryDispatch(
+                eventsApi.query({
+                    recurrenceId: data.item,
+                    onlyFuture: false
+                }),
                 (events) => get(events, 'length', 0) > 0,
                 5,
                 1000
@@ -134,8 +137,8 @@ const onRecurringEventCreated = (_e, data) => (
             // Once we know our Recurring Events can be received from Elasticsearch,
             // go ahead and refresh the current list of events
                 .then((items) => {
-                    dispatch(eventsUi.refetchEvents());
-                    dispatch(eventsPlanningUi.refetch());
+                    dispatch(eventsUi.scheduleRefetch());
+                    dispatch(eventsPlanningUi.scheduleRefetch());
                     return Promise.resolve(items);
                 }, (error) => {
                     notify.error(getErrorMessage(
@@ -155,7 +158,7 @@ const onRecurringEventCreated = (_e, data) => (
 const onEventUpdated = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
-            dispatch(eventsUi.refetchEvents())
+            dispatch(eventsUi.scheduleRefetch())
                 .then((events) => {
                     const selectedEvents = selectors.getSelectedEvents(getState());
 
@@ -172,7 +175,7 @@ const onEventUpdated = (_e, data) => (
                         dispatch(fetchSelectedAgendaPlannings());
                     }
 
-                    dispatch(eventsPlanningUi.refetch());
+                    dispatch(eventsPlanningUi.scheduleRefetch());
                 });
         }
     }

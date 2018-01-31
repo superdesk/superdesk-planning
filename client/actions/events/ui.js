@@ -11,6 +11,7 @@ import {
     lockUtils,
     isItemSpiked,
     isItemRescheduled,
+    dispatchUtils
 } from '../../utils';
 import {EventUpdateMethods} from '../../components/Events';
 
@@ -28,7 +29,7 @@ const fetchEvents = (params = {
     (dispatch, getState, {$timeout, $location}) => {
         dispatch(self.requestEvents(params));
 
-        return dispatch(eventsApi.query(params))
+        return dispatch(eventsApi.query(params, true))
             .then((items) => {
                 dispatch(eventsApi.receiveEvents(items));
                 dispatch(self.setEventsList(items.map((e) => e._id)));
@@ -217,7 +218,7 @@ const unspike = (event) => (
             .then((events) => (
                 Promise.all(
                     [
-                        dispatch(self.refetchEvents()),
+                        dispatch(self.scheduleRefetch()),
                         dispatch(fetchSelectedAgendaPlannings()),
                     ]
                 )
@@ -251,9 +252,9 @@ const unspike = (event) => (
 /**
  * Action Dispatcher to re-fetch the current list of events.
  */
-const refetchEvents = () => (
+const refetch = () => (
     (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.refetchEvents())
+        dispatch(eventsApi.refetch())
             .then((events) => {
                 dispatch(self.setEventsList(events.map((e) => (e._id))));
                 return Promise.resolve(events);
@@ -264,6 +265,21 @@ const refetchEvents = () => (
 
                 return Promise.reject(error);
             })
+    )
+);
+
+
+/**
+ * Schedule the refetch to run after one second and avoid any other refetch
+ */
+let nextRefetch = {
+    called: 0
+};
+const scheduleRefetch = () => (
+    (dispatch) => (
+        dispatch(
+            dispatchUtils.scheduleDispatch(self.refetch(), nextRefetch)
+        )
     )
 );
 
@@ -592,15 +608,23 @@ const unpublish = (event) => (
  */
 const loadMore = () => (dispatch, getState) => {
     const previousParams = selectors.main.lastRequestParams(getState());
+    const totalItems = selectors.main.eventsTotalItems(getState());
+    const eventIdsInList = selectors.events.eventIdsInList(getState());
+
+    if (totalItems === get(eventIdsInList, 'length', 0)) {
+        return Promise.resolve();
+    }
+
     const params = {
         ...previousParams,
-        page: previousParams.page + 1,
+        page: get(previousParams, 'page', 1) + 1,
     };
 
-    dispatch(self.requestEvents(params));
-
-    return dispatch(eventsApi.query(params))
+    return dispatch(eventsApi.query(params, true))
         .then((items) => {
+            if (get(items, 'length', 0) === MAIN.PAGE_SIZE) {
+                dispatch(self.requestEvents(params));
+            }
             dispatch(eventsApi.receiveEvents(items));
             dispatch(self.addToList(items.map((e) => e._id)));
         });
@@ -694,7 +718,8 @@ const self = {
     _previewEvent,
     spike,
     unspike,
-    refetchEvents,
+    refetch,
+    scheduleRefetch,
     setEventsList,
     clearList,
     openSpikeModal,

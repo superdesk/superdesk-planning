@@ -16,13 +16,13 @@ describe('actions.eventsplanning.ui', () => {
         data = store.data;
 
         sinon.stub(eventsPlanningApi, 'query').callsFake(
-            () => Promise.resolve(store.data.planning_search)
+            () => Promise.resolve([...Array(MAIN.PAGE_SIZE).keys()])
         );
         sinon.stub(eventsPlanningApi, 'refetch').callsFake(
-            () => Promise.resolve(store.data.planning_search)
+            () => Promise.resolve(data.planning_search)
         );
         sinon.stub(eventsApi, 'loadAssociatedPlannings').callsFake(
-            () => Promise.resolve(store.data.plannings)
+            () => Promise.resolve(data.plannings)
         );
     });
 
@@ -37,7 +37,6 @@ describe('actions.eventsplanning.ui', () => {
             .then(() => {
                 expect(eventsPlanningApi.query.callCount).toBe(1);
                 expect(store.dispatch.callCount).toBe(6);
-
                 expect(store.dispatch.args[0][0]).toEqual(
                     {
                         type: MAIN.ACTIONS.REQUEST,
@@ -48,7 +47,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: EVENTS.ACTIONS.ADD_EVENTS,
-                            payload: data.events
+                            payload: []
                         }
                     )
                 );
@@ -57,7 +56,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
-                            payload: data.plannings
+                            payload: []
                         }
                     )
                 );
@@ -66,7 +65,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: EVENTS_PLANNING.ACTIONS.SET_EVENTS_PLANNING_LIST,
-                            payload: data.planning_search
+                            payload: [...Array(MAIN.PAGE_SIZE).keys()]
                         }
                     )
                 );
@@ -79,8 +78,9 @@ describe('actions.eventsplanning.ui', () => {
             })
     ));
 
-    it('load more', (done) => {
+    it('load more and fetch data equal to page size', (done) => {
         store.initialState.main.search.COMBINED.lastRequestParams = {page: 2};
+        store.initialState.main.search.COMBINED.totalItems = 50;
         store.initialState.main.filter = MAIN.FILTERS.COMBINED;
 
         store.test(done, eventsPlanningUi.loadMore())
@@ -88,7 +88,7 @@ describe('actions.eventsplanning.ui', () => {
                 expect(eventsPlanningApi.query.callCount).toBe(1);
                 expect(store.dispatch.callCount).toBe(6);
 
-                expect(store.dispatch.args[0][0]).toEqual(
+                expect(store.dispatch.args[1][0]).toEqual(
                     {
                         type: MAIN.ACTIONS.REQUEST,
                         payload: {COMBINED: {page: 3}}}
@@ -98,7 +98,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: EVENTS.ACTIONS.ADD_EVENTS,
-                            payload: data.events
+                            payload: []
                         }
                     )
                 );
@@ -107,7 +107,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
-                            payload: data.plannings
+                            payload: []
                         }
                     )
                 );
@@ -116,7 +116,7 @@ describe('actions.eventsplanning.ui', () => {
                     jasmine.objectContaining(
                         {
                             type: EVENTS_PLANNING.ACTIONS.ADD_EVENTS_PLANNING_LIST,
-                            payload: data.planning_search
+                            payload: [...Array(MAIN.PAGE_SIZE).keys()]
                         }
                     )
                 );
@@ -125,6 +125,59 @@ describe('actions.eventsplanning.ui', () => {
             });
     });
 
+    describe('load more', () => {
+        beforeEach(() => {
+            restoreSinonStub(eventsPlanningApi.query);
+            sinon.stub(eventsPlanningApi, 'query').callsFake(
+                () => Promise.resolve(store.data.planning_search)
+            );
+        });
+
+        afterEach(() => {
+            restoreSinonStub(eventsPlanningApi.query);
+        });
+
+        it('load more and fetch data less than page size', (done) => {
+            store.initialState.main.search.COMBINED.lastRequestParams = {page: 2};
+            store.initialState.main.search.COMBINED.totalItems = 35;
+            store.initialState.main.filter = MAIN.FILTERS.COMBINED;
+
+            store.test(done, eventsPlanningUi.loadMore())
+                .then(() => {
+                    expect(eventsPlanningApi.query.callCount).toBe(1);
+                    expect(store.dispatch.callCount).toBe(5);
+
+                    expect(store.dispatch.args[2][0]).toEqual(
+                        jasmine.objectContaining(
+                            {
+                                type: EVENTS.ACTIONS.ADD_EVENTS,
+                                payload: data.events
+                            }
+                        )
+                    );
+
+                    expect(store.dispatch.args[3][0]).toEqual(
+                        jasmine.objectContaining(
+                            {
+                                type: PLANNING.ACTIONS.RECEIVE_PLANNINGS,
+                                payload: data.plannings
+                            }
+                        )
+                    );
+
+                    expect(store.dispatch.args[4][0]).toEqual(
+                        jasmine.objectContaining(
+                            {
+                                type: EVENTS_PLANNING.ACTIONS.ADD_EVENTS_PLANNING_LIST,
+                                payload: data.planning_search
+                            }
+                        )
+                    );
+
+                    done();
+                });
+        });
+    });
 
     it('refetch', (done) => {
         store.initialState.main.search.COMBINED.lastRequestParams = {page: 2};

@@ -152,7 +152,11 @@ describe('actions.planning.notifications', () => {
     });
 
     describe('`planning:created`', () => {
+        let originalSetTimeout = window.setTimeout;
+
         beforeEach(() => {
+            // Mock window.setTimeout
+            jasmine.getGlobal().setTimeout = (func) => func();
             sinon.stub(eventsPlanningUi, 'refetch').callsFake(() => (Promise.resolve()));
         });
 
@@ -161,6 +165,8 @@ describe('actions.planning.notifications', () => {
             restoreSinonStub(planningUi.setInList);
             restoreSinonStub(planningNotifications.canRefetchPlanning);
             restoreSinonStub(eventsPlanningUi.refetch);
+            // Restore window.setTimeout
+            jasmine.getGlobal().setTimeout = originalSetTimeout;
         });
 
         it('calls refetch on create', (done) => {

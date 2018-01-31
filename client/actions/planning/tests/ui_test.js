@@ -455,8 +455,9 @@ describe('actions.planning.ui', () => {
             });
     });
 
-    it('loadMore', (done) => {
+    it('loadMore with data fetched less than page size', (done) => {
         store.initialState.main.filter = MAIN.FILTERS.PLANNING;
+        store.initialState.main.search.PLANNING.totalItems = 50;
         store.initialState.main.search.PLANNING.lastRequestParams = {
             agendas: ['a1'],
             noAgendaAssigned: false,
@@ -477,6 +478,41 @@ describe('actions.planning.ui', () => {
 
         store.test(done, planningUi.loadMore())
             .then(() => {
+                expect(planningUi.requestPlannings.callCount).toBe(0);
+
+                expect(planningApi.fetch.callCount).toBe(1);
+                expect(planningApi.fetch.args[0]).toEqual([expectedParams]);
+
+                expect(planningUi.addToList.callCount).toBe(1);
+                expect(planningUi.addToList.args[0]).toEqual([['p1', 'p2']]);
+
+                done();
+            });
+    });
+
+    it('loadMore with data fetched equal to page size', (done) => {
+        store.initialState.main.filter = MAIN.FILTERS.PLANNING;
+        store.initialState.main.search.PLANNING.totalItems = 50;
+        store.initialState.main.search.PLANNING.lastRequestParams = {
+            agendas: ['a1'],
+            noAgendaAssigned: false,
+            page: 1
+        };
+
+        restoreSinonStub(planningUi.loadMore);
+        restoreSinonStub(planningApi.fetch);
+        sinon.stub(planningApi, 'fetch').callsFake(
+            () => (Promise.resolve([...Array(25).keys()]))
+        );
+
+        const expectedParams = {
+            agendas: ['a1'],
+            noAgendaAssigned: false,
+            page: 2
+        };
+
+        store.test(done, planningUi.loadMore())
+            .then(() => {
                 expect(planningUi.requestPlannings.callCount).toBe(1);
                 expect(planningUi.requestPlannings.args[0]).toEqual([expectedParams]);
 
@@ -484,7 +520,6 @@ describe('actions.planning.ui', () => {
                 expect(planningApi.fetch.args[0]).toEqual([expectedParams]);
 
                 expect(planningUi.addToList.callCount).toBe(1);
-                expect(planningUi.addToList.args[0]).toEqual([['p1', 'p2']]);
 
                 done();
             });

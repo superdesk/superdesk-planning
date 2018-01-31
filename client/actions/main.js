@@ -13,7 +13,7 @@ import {
 } from '../utils';
 import {MODALS, WORKSPACE} from '../constants';
 import eventsPlanningUi from './eventsPlanning/ui';
-import {get, omit, isEmpty} from 'lodash';
+import {get, omit, isEmpty, isNil} from 'lodash';
 
 import * as selectors from '../selectors';
 
@@ -292,7 +292,7 @@ const search = (fulltext, currentSearch) => (
         const params = {
             ...previousParams,
             page: 1,
-            fulltext: fulltext || previousParams.fulltext,
+            fulltext: !isNil(fulltext) ? fulltext : previousParams.fulltext,
             ...advancedSearch
         };
 
@@ -325,6 +325,14 @@ const clearSearch = () => (
     }
 );
 
+const setTotal = (filter, total) => ({
+    type: MAIN.ACTIONS.SET_TOTAL,
+    payload: {
+        filter,
+        total
+    }
+});
+
 // eslint-disable-next-line consistent-this
 const self = {
     lockAndEdit,
@@ -343,7 +351,8 @@ const self = {
     history,
     loadMore,
     search,
-    clearSearch
+    clearSearch,
+    setTotal
 };
 
 export default self;
