@@ -67,6 +67,12 @@ class AssignmentsLinkService(Service):
                 'coverage_id': assignment['coverage_item']
             }])
 
+            # Save assignment history
+            assignment_history_service = get_resource_service('assignments_history')
+            assignment_history_service.on_item_updated(updates, assignment, 'content_link')
+            if updates['assigned_to'].get('state') == ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+                assignment_history_service.on_item_updated(updates, assignment, 'complete')
+
             doc.update(item)
             ids.append(doc[config.ID_FIELD])
             items.append(item)

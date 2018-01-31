@@ -58,6 +58,7 @@ export const getFulFilledItem = (state) => get(state, 'assignment.fulfilledItem'
 export const getAssignmentPriorities = (state) => get(state, 'vocabularies.assignment_priority', []);
 export const getArchivePriorities = (state) => get(state, 'vocabularies.priority', []);
 export const getUrgencies = (state) => get(state, 'vocabularies.urgency', []);
+export const getAssignmentHistory = (state) => get(state, 'assignment.assignmentHistoryItems');
 
 export const getTodoAssignments = createSelector(
     [getAssignmentsInTodoList, getStoredAssignments],

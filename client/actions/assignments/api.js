@@ -279,6 +279,35 @@ const unlock = (assignment) => (
 );
 
 /**
+ * Fetch history of an assignment
+ * @param {object} assignment - The Assignment to load history for
+ */
+const fetchAssignmentHistory = (assignment) => (
+    (dispatch, getState, {api}) => (
+        // Query the API and sort by created
+        api('assignments_history').query({
+            where: {assignment_id: assignment._id},
+            max_results: 200,
+            sort: '[(\'_created\', 1)]',
+        })
+            .then((data) => {
+                dispatch(self.receiveAssignmentHistory(data._items));
+                return Promise.resolve(data);
+            }, (error) => (Promise.reject(error)))
+    )
+);
+
+/**
+ * Action to receive the history of actions on an assignment
+ * @param {array} planningHistoryItems - An array of assignment history items
+ * @return object
+ */
+const receiveAssignmentHistory = (items) => ({
+    type: ASSIGNMENTS.ACTIONS.RECEIVE_ASSIGNMENT_HISTORY,
+    payload: items,
+});
+
+/**
  * Fetch the Event and/or Planning item(s) associated with this Assignment
  * @param {object} assignment - The Assignment to load items for
  */
@@ -377,6 +406,8 @@ const self = {
     loadPlanningAndEvent,
     loadArchiveItem,
     removeAssignment,
+    fetchAssignmentHistory,
+    receiveAssignmentHistory,
 };
 
 export default self;

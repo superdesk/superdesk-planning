@@ -32,6 +32,7 @@ Feature: Assignments
     @notification
     Scenario: Assignments are created via coverages
         Given empty "assignments"
+        Given empty "assignments_history"
         When we post to "assignments"
         """
         [
@@ -125,6 +126,16 @@ Feature: Assignments
             }
         }
         """
+        When we get "/assignments_history"
+        Then we get list with 1 items
+        """
+        {"_items": [
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "create"
+            }
+        ]}
+        """
         And we get notifications
         """
         [{
@@ -181,6 +192,7 @@ Feature: Assignments
     @auth
     @vocabularies
     Scenario: Assignee changes as the author of content changes
+        Given empty "assignments_history"
         When we post to "/archive"
         """
         [{
@@ -275,6 +287,24 @@ Feature: Assignments
                 "user": "#USERS_ID#"
             }
         }
+        """
+        When we get "/assignments_history"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "create"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "update"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "update"
+            }
+        ]}
         """
 
     @auth
@@ -490,6 +520,28 @@ Feature: Assignments
         }
         """
         Then we get OK response
+        When we get "/assignments_history"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "create"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "content_link"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "submitted"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "update"
+            }
+        ]}
+        """
         When we get "/assignments/#firstassignment#"
         Then we get OK response
         Then we get existing resource
@@ -606,6 +658,24 @@ Feature: Assignments
                 "state": "submitted"
             }
         }
+        """
+        When we get "/assignments_history"
+        Then we get list with 3 items
+        """
+        {"_items": [
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "create"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "content_link"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "submitted"
+            }
+        ]}
         """
 
     @auth

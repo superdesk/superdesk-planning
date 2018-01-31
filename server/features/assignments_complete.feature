@@ -81,6 +81,11 @@ Feature: Assignment Complete
         """
         Given empty "activity"
         When we switch user
+        When we post to "/assignments/#firstassignment#/lock"
+        """
+        {"lock_action": "complete"}
+        """
+        Then we get OK response
         When we perform complete on assignments "#firstassignment#"
         """
         { }
@@ -140,6 +145,20 @@ Feature: Assignment Complete
             "resource" : "assignments"}
         ]
         }
+        """
+        When we get "/assignments_history"
+        Then we get list with 2 items
+        """
+        {"_items": [
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "create"
+            },
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "complete"
+            }
+        ]}
         """
 
 
