@@ -3,7 +3,9 @@ export {RequiredFieldsValidatorFactory} from './RequiredFieldsValidatorFactory';
 
 import {default as eventValidators} from './events';
 import {formProfile} from './profile';
-export {eventValidators, formProfile};
+import {validateAssignment} from './assignments';
+
+export {eventValidators, formProfile, validateAssignment};
 
 import {get, set, isEqual} from 'lodash';
 
@@ -21,7 +23,7 @@ export const validateItem = (profileName, item, formProfiles, errors, fields = n
                 getState,
                 profileName,
                 key,
-                item[key],
+                key === '_all' ? item : get(item, key),
                 key !== 'coverages' ? formProfiles[profileName] : formProfiles.coverage,
                 errors
             )
@@ -112,5 +114,8 @@ export const validators = {
         keyword: [formProfile],
         scheduled: [formProfile],
         slugline: [formProfile],
+    },
+    assignment: {
+        _all: [validateAssignment],
     }
 };

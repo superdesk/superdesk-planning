@@ -47,6 +47,8 @@ export class ColouredValueInput extends React.Component {
             valueKey,
             noMargin,
             popupContainer,
+            row,
+            noValueString,
             ...props
         } = this.props;
 
@@ -59,23 +61,25 @@ export class ColouredValueInput extends React.Component {
                 noMargin={noMargin}
                 {...props}
             >
-                <Label text={label} row={readOnly} light={readOnly} />
+                <Label text={label} row={row} light={row && readOnly} />
 
                 <div className="sd-line-input__input">
                     {readOnly ? (
-                        <span className="select-coloured-value__input">
+                        <div className="select-coloured-value__input">
                             <span className={this.getIconClasses(value)}>
-                                {get(value, valueKey, get(value, labelKey, gettext('None')))}
+                                {get(value, valueKey, get(value, labelKey, noValueString || gettext('None')))}
                             </span>
+                            <span>
                             &nbsp;&nbsp;{get(value, labelKey, '')}
-                        </span>
+                            </span>
+                        </div>
                     ) : (
                         <button type="button"
                             className="dropdown__toggle select-coloured-value__input"
                             onClick={this.togglePopup}
                         >
                             <span className={this.getIconClasses(value)}>
-                                {get(value, valueKey, get(value, labelKey, gettext('None')))}
+                                {get(value, valueKey, get(value, labelKey, noValueString || gettext('None')))}
                             </span>
                             &nbsp;&nbsp;{get(value, labelKey, '')}
                             <b className="dropdown__caret" />
@@ -121,6 +125,8 @@ ColouredValueInput.propTypes = {
     valueKey: PropTypes.string,
     noMargin: PropTypes.bool,
     popupContainer: PropTypes.func,
+    row: PropTypes.bool,
+    noValueString: PropTypes.string,
 };
 
 ColouredValueInput.defaultProps = {
@@ -131,4 +137,5 @@ ColouredValueInput.defaultProps = {
     valueKey: 'qcode',
     noMargin: false,
     readOnly: false,
+    row: false,
 };

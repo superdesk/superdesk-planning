@@ -1,8 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
 
-import {get} from 'lodash';
+import {get, cloneDeep, isEqual} from 'lodash';
 import {getItemInArrayById, getUsersForDesk, getDesksForUser, gettext} from '../../../utils';
+import {validateItem} from '../../../validators';
 
 import {
     Row,
@@ -11,7 +13,7 @@ import {
     SelectUserInput,
 } from '../../UI/Form';
 
-export class AssignmentEditor extends React.Component {
+export class AssignmentEditorComponent extends React.Component {
     constructor(props) {
         super(props);
 
@@ -34,6 +36,8 @@ export class AssignmentEditor extends React.Component {
         const priorityQcode = get(props.value, this.FIELDS.PRIORITY);
         const priority = getItemInArrayById(props.priorities, priorityQcode);
 
+        const errors = {};
+
         this.state = {
             userId,
             user,
@@ -43,11 +47,18 @@ export class AssignmentEditor extends React.Component {
             filteredDesks,
             priorityQcode,
             priority,
+            errors
         };
 
+        this.onChange = this.onChange.bind(this);
         this.onUserChange = this.onUserChange.bind(this);
         this.onDeskChange = this.onDeskChange.bind(this);
         this.onPriorityChange = this.onPriorityChange.bind(this);
+    }
+
+    componentWillMount() {
+        // Force field validation
+        this.onChange(null, null);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -68,18 +79,37 @@ export class AssignmentEditor extends React.Component {
         }
     }
 
+    onChange(field, value, state = {}) {
+        const errors = cloneDeep(this.state.errors);
+        const newState = {
+            ...this.state,
+            ...state,
+        };
+
+        this.props.onValidate(newState, errors);
+        newState.errors = errors;
+        this.setState(newState);
+
+        // If a field name is provided, then call onChange so
+        // the parent can update the field's value
+        if (field !== null) {
+            this.props.onChange(field, value || null);
+        }
+
+        // If there are no errors, then tell our parent the Assignment is valid
+        // otherwise, tell the parent the Assignment is invalid
+        this.props.setValid(isEqual(errors, {}));
+    }
+
     onUserChange(field, value) {
         const userId = get(value, '_id');
 
         if (userId !== this.state.userId) {
-            this.setState(
-                {
-                    userId: userId,
-                    user: value,
-                    filteredDesks: getDesksForUser(value, this.props.desks),
-                },
-                () => this.props.onChange(this.FIELDS.USER, get(value, '_id') || null)
-            );
+            this.onChange(this.FIELDS.USER, get(value, '_id'), {
+                userId: userId,
+                user: value,
+                filteredDesks: getDesksForUser(value, this.props.desks)
+            });
         }
     }
 
@@ -87,14 +117,11 @@ export class AssignmentEditor extends React.Component {
         const deskId = get(value, '_id');
 
         if (deskId !== this.state.deskId) {
-            this.setState(
-                {
-                    deskId: deskId,
-                    desk: value,
-                    filteredUsers: getUsersForDesk(value, this.props.users),
-                },
-                () => this.props.onChange(this.FIELDS.DESK, get(value, '_id') || null)
-            );
+            this.onChange(this.FIELDS.DESK, get(value, '_id'), {
+                deskId: deskId,
+                desk: value,
+                filteredUsers: getUsersForDesk(value, this.props.users)
+            });
         }
     }
 
@@ -102,52 +129,57 @@ export class AssignmentEditor extends React.Component {
         const priorityQcode = get(value, 'qcode');
 
         if (priorityQcode !== this.state.priorityQcode) {
-            this.setState(
-                {
-                    priorityQcode: priorityQcode,
-                    priority: value,
-                },
-                () => this.props.onChange(this.FIELDS.PRIORITY, get(value, 'qcode') || null)
-            );
+            this.onChange(this.FIELDS.PRIORITY, get(value, 'qcode'), {
+                priorityQcode: priorityQcode,
+                priority: value,
+            });
         }
     }
 
     render() {
         const {
             value,
-            onChange,
             coverageProviders,
             priorities,
             popupContainer,
             disableDeskSelection,
+            showDesk,
+            showPriority,
+            className,
         } = this.props;
 
         return (
-            <div>
-                <Row>
+            <div className={className}>
+                {showDesk && (
+                    <Row>
+                        <SelectInput
+                            field={this.FIELDS.DESK}
+                            label={gettext('Desk')}
+                            value={this.state.desk}
+                            onChange={this.onDeskChange}
+                            options={this.state.filteredDesks}
+                            labelField="name"
+                            keyField="_id"
+                            clearable={true}
+                            readOnly={disableDeskSelection}
+                            message={get(this.state, 'errors.desk')}
+                            invalid={!!get(this.state, 'errors.desk')}
+                        />
+                    </Row>
+                )}
+
+                <Row noPadding={showDesk}>
                     <SelectInput
-                        field={this.FIELDS.DESK}
-                        label={gettext('Desk')}
-                        value={this.state.desk}
-                        onChange={this.onDeskChange}
-                        options={this.state.filteredDesks}
+                        field={this.FIELDS.PROVIDER}
+                        label={gettext('Coverage Provider')}
+                        value={get(value, this.FIELDS.PROVIDER, null)}
+                        onChange={this.onChange}
+                        options={coverageProviders}
                         labelField="name"
-                        keyField="_id"
+                        keyField="qcode"
                         clearable={true}
-                        readOnly={disableDeskSelection}
                     />
                 </Row>
-
-                <SelectInput
-                    field={this.FIELDS.PROVIDER}
-                    label={gettext('Coverage Provider')}
-                    value={get(value, this.FIELDS.PROVIDER, null)}
-                    onChange={onChange}
-                    options={coverageProviders}
-                    labelField="name"
-                    keyField="qcode"
-                    clearable={true}
-                />
 
                 <SelectUserInput
                     field={this.FIELDS.USER}
@@ -158,24 +190,26 @@ export class AssignmentEditor extends React.Component {
                     popupContainer={popupContainer}
                 />
 
-                <Row noPadding={true}>
-                    <ColouredValueInput
-                        field={this.FIELDS.PRIORITY}
-                        label={gettext('Assignment Priority')}
-                        value={this.state.priority}
-                        onChange={this.onPriorityChange}
-                        options={priorities}
-                        iconName="priority-label"
-                        noMargin={true}
-                        popupContainer={popupContainer}
-                    />
-                </Row>
+                {showPriority && (
+                    <Row noPadding={true}>
+                        <ColouredValueInput
+                            field={this.FIELDS.PRIORITY}
+                            label={gettext('Assignment Priority')}
+                            value={this.state.priority}
+                            onChange={this.onPriorityChange}
+                            options={priorities}
+                            iconName="priority-label"
+                            noMargin={true}
+                            popupContainer={popupContainer}
+                        />
+                    </Row>
+                )}
             </div>
         );
     }
 }
 
-AssignmentEditor.propTypes = {
+AssignmentEditorComponent.propTypes = {
     value: PropTypes.object,
     onChange: PropTypes.func,
     onClose: PropTypes.func,
@@ -187,9 +221,25 @@ AssignmentEditor.propTypes = {
     fromCoverage: PropTypes.bool,
     disableDeskSelection: PropTypes.bool,
     popupContainer: PropTypes.func,
+    showDesk: PropTypes.bool,
+    showPriority: PropTypes.bool,
+    className: PropTypes.string,
+    onValidate: PropTypes.func,
+    setValid: PropTypes.func,
 };
 
-AssignmentEditor.defaultProps = {
+AssignmentEditorComponent.defaultProps = {
     priorityPrefix: '',
     fromCoverage: false,
+    showDesk: true,
+    showPriority: true,
 };
+
+const mapDispatchToProps = (dispatch) => ({
+    onValidate: (diff, errors) => dispatch(validateItem('assignment', diff, {}, errors))
+});
+
+export const AssignmentEditor = connect(
+    null,
+    mapDispatchToProps
+)(AssignmentEditorComponent);

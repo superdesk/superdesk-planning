@@ -16,7 +16,8 @@ export const LineInput = ({
     labelLeftAuto,
     hint,
     message,
-    className
+    className,
+    borderBottom,
 }) => (
     <div className={classNames(
         'sd-line-input',
@@ -31,6 +32,7 @@ export const LineInput = ({
             'sd-line-input--with-button': withButton,
             'sd-line-input--label-left': labelLeft,
             'sd-line-input--label-left-auto': labelLeftAuto,
+            'sd-line-input--no-border-bottom': !borderBottom
         },
         className
     )}>
@@ -53,6 +55,7 @@ export const LineInputProps = {
     labelLeftAuto: PropTypes.bool,
     hint: PropTypes.string,
     message: PropTypes.string,
+    borderBottom: PropTypes.bool,
 };
 
 export const LineInputDefaultProps = {
@@ -65,7 +68,8 @@ export const LineInputDefaultProps = {
     noLabel: false,
     withButton: false,
     labelLeft: false,
-    labelLeftAuto: false
+    labelLeftAuto: false,
+    borderBottom: true,
 };
 
 LineInput.propTypes = {
