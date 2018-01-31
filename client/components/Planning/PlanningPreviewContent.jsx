@@ -99,6 +99,8 @@ export class PlanningPreviewContentComponent extends React.Component {
                             iconName="urgency-label"
                             readOnly={true}
                             options={urgencies}
+                            row={true}
+                            borderBottom={false}
                         />
 
                     </Row>}
