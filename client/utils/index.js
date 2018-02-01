@@ -367,6 +367,11 @@ export const getItemWorkflowStateLabel = (item) => {
             label: 'spiked',
             iconType: 'alert',
         };
+    case WORKFLOW_STATE.INGESTED:
+        return {
+            label: 'ingested',
+            iconHollow: true,
+        };
     case WORKFLOW_STATE.SCHEDULED:
         return {
             label: 'Scheduled',
