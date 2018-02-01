@@ -3,26 +3,22 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, set, isEqual, cloneDeep} from 'lodash';
 
-import {gettext, lockUtils} from '../../utils';
+import {gettext, lockUtils} from '../../../utils';
 
-import {ITEM_TYPE, EVENTS, PLANNING} from '../../constants';
-import * as selectors from '../../selectors';
-import * as actions from '../../actions';
+import {ITEM_TYPE, EVENTS, PLANNING} from '../../../constants';
+import * as selectors from '../../../selectors';
+import * as actions from '../../../actions';
 
-import {
-    HistoryTab,
-    EditorContentTab
-} from './';
+import {Button} from '../../UI';
+import {Toolbar as SlideInToolbar} from '../../UI/SlideInPanel';
+import {Tabs as NavTabs} from '../../UI/Nav';
+import {SidePanel, Content} from '../../UI/SidePanel';
 
-import {Button} from '../UI';
-import {Toolbar as SlideInToolbar} from '../UI/SlideInPanel';
-import {Tabs as NavTabs} from '../UI/Nav';
-import {SidePanel, Content} from '../UI/SidePanel';
+import {EditorHeader, EditorContentTab} from './index';
+import {HistoryTab} from '../index';
+import {Autosave} from '../../index';
 
-import {EditorHeader} from './EditorHeader';
-import {Autosave} from '../';
-
-import {validateItem} from '../../validators';
+import {validateItem} from '../../../validators';
 
 export class EditorComponent extends React.Component {
     constructor(props) {
@@ -240,6 +236,8 @@ export class EditorComponent extends React.Component {
                     users={this.props.users}
                     onUnlock={this.props.onUnlock}
                     onLock={this.props.onLock}
+                    itemActions={this.props.itemActions}
+                    currentWorkspace={this.props.currentWorkspace}
                 />
                 <Content flex={true}>
                     {this.state.showSubmitFailed && (
@@ -303,6 +301,8 @@ EditorComponent.propTypes = {
     onValidate: PropTypes.func,
     formProfiles: PropTypes.object,
     occurStatuses: PropTypes.array,
+    itemActions: PropTypes.object,
+    currentWorkspace: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({

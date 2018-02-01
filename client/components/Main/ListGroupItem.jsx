@@ -63,6 +63,7 @@ export class ListGroupItem extends React.Component {
             onMultiSelectClick,
             selectedEventIds,
             selectedPlanningIds,
+            itemActions,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -86,23 +87,23 @@ export class ListGroupItem extends React.Component {
             ...itemProps,
             multiSelected: indexOf(selectedEventIds, item._id) !== -1,
             [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
+                itemActions[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
+                itemActions[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
             [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
+                itemActions[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
             [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
+                itemActions[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
+                itemActions[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
+                itemActions[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName],
+                itemActions[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName],
             [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName],
+                itemActions[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
+                itemActions[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
         };
 
         let planningProps = {
@@ -113,25 +114,25 @@ export class ListGroupItem extends React.Component {
             onAddCoverageClick: onAddCoverageClick,
             multiSelected: indexOf(selectedPlanningIds, item._id) !== -1,
             [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
-                this.props[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
+                itemActions[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
             [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
-                this.props[PLANNING.ITEM_ACTIONS.SPIKE.actionName],
+                itemActions[PLANNING.ITEM_ACTIONS.SPIKE.actionName],
             [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]:
-                this.props[PLANNING.ITEM_ACTIONS.UNSPIKE.actionName],
+                itemActions[PLANNING.ITEM_ACTIONS.UNSPIKE.actionName],
             [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]:
-                this.props[PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName],
+                itemActions[PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName],
             [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
-                this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
+                itemActions[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
+                itemActions[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
+                itemActions[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName],
+                itemActions[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName],
             [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName],
+                itemActions[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
+                itemActions[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
         };
 
         switch (itemType) {
@@ -181,18 +182,5 @@ ListGroupItem.propTypes = {
     onMultiSelectClick: PropTypes.func,
     selectedEventIds: PropTypes.array,
     selectedPlanningIds: PropTypes.array,
-    [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: PropTypes.func,
-    [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
-    [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
-    [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
-    [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: PropTypes.func,
-    [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: PropTypes.func,
+    itemActions: PropTypes.array,
 };

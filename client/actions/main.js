@@ -173,6 +173,23 @@ const preview = (item) => ({
 
 const closePreview = () => ({type: MAIN.ACTIONS.CLOSE_PREVIEW});
 
+const closePreviewAndEditorForItems = (items) => (
+    (dispatch, getState) => {
+        const previewId = get(selectors.main.previewItem(getState()), '_id');
+        const editId = selectors.forms.currentItemId(getState());
+
+        if (previewId && items.find((i) => i._id === previewId)) {
+            dispatch(self.closePreview());
+        }
+
+        if (editId && items.find((i) => i._id === editId)) {
+            dispatch(self.closeEditor());
+        }
+
+        return Promise.resolve();
+    }
+);
+
 /**
  * Action to fetch data from events, planning or both.
  * @param {string} ftype - type of filter
@@ -352,7 +369,8 @@ const self = {
     loadMore,
     search,
     clearSearch,
-    setTotal
+    setTotal,
+    closePreviewAndEditorForItems,
 };
 
 export default self;

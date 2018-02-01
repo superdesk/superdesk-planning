@@ -50,7 +50,7 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningUi, 'saveFromAuthoring').callsFake(() => (Promise.resolve()));
         sinon.stub(planningUi, 'saveFromPlanning').callsFake(() => (Promise.resolve()));
 
-        sinon.stub(main, 'closePreview').callsFake(() => (Promise.resolve()));
+        sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
         sinon.stub(main, 'openEditor').callsFake((item) => (Promise.resolve(item)));
         sinon.stub(locks, 'lock').callsFake((item) => (Promise.resolve(item)));
     });
@@ -85,7 +85,7 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(planningUi.saveFromPlanning);
         restoreSinonStub(planningUi.loadMore);
 
-        restoreSinonStub(main.closePreview);
+        restoreSinonStub(main.closePreviewAndEditorForItems);
         restoreSinonStub(main.openEditor);
         restoreSinonStub(locks.lock);
     });
@@ -124,7 +124,7 @@ describe('actions.planning.ui', () => {
             store.initialState.planning.currentPlanningId = data.plannings[1]._id;
             return store.test(done, planningUi.spike(data.plannings[1]))
                 .then(() => {
-                    expect(main.closePreview.callCount).toBe(1);
+                    expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
                     done();
                 });
         });
