@@ -144,6 +144,7 @@ export const CoverageForm = ({
                 defaultValue={COVERAGES.DEFAULT_VALUE(newsCoverageStatus).news_coverage_status}
                 options={newsCoverageStatus}
                 {...fieldProps}
+                readOnly={!!get(value, 'assigned_to.desk', readOnly)}
             />
 
             <Field
