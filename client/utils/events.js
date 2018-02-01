@@ -204,11 +204,16 @@ const isEventInUse = (event) => (
         (eventHasPlanning(event) || isItemPublic(event))
 );
 
+const isEventLockedForMetadataEdit = (event) => (
+    get(event, 'lock_action', null) === 'edit'
+);
+
 const canConvertToRecurringEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
         !event.recurrence_id &&
         canEditEvent(event, session, privileges, locks) &&
-        !isItemPostponed(event)
+        !isItemPostponed(event) &&
+        !isEventLockedForMetadataEdit(event)
 );
 
 const canEditEvent = (event, session, privileges, locks) => (
@@ -229,7 +234,8 @@ const canUpdateEvent = (event, session, privileges, locks) => (
 const canUpdateEventTime = (event, session, privileges, locks) => (
     !isNil(event) &&
         canEditEvent(event, session, privileges, locks) &&
-        !isItemPostponed(event)
+        !isItemPostponed(event) &&
+        !isEventLockedForMetadataEdit(event)
 );
 
 const canRescheduleEvent = (event, session, privileges, locks) => (
@@ -238,7 +244,8 @@ const canRescheduleEvent = (event, session, privileges, locks) => (
         !isItemCancelled(event) &&
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
-        !isItemRescheduled(event)
+        !isItemRescheduled(event) &&
+        !isEventLockedForMetadataEdit(event)
 );
 
 const canPostponeEvent = (event, session, privileges, locks) => (
@@ -248,7 +255,8 @@ const canPostponeEvent = (event, session, privileges, locks) => (
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemPostponed(event) &&
-        !isItemRescheduled(event)
+        !isItemRescheduled(event) &&
+        !isEventLockedForMetadataEdit(event)
 );
 
 const getEventItemActions = (event, session, privileges, actions, locks) => {

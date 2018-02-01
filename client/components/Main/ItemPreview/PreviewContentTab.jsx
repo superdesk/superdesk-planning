@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {getItemType} from '../../utils';
-import {ITEM_TYPE} from '../../constants';
-import {EventPreviewContent} from '../Events/EventPreviewContent';
-import {PlanningPreviewContent} from '../Planning/PlanningPreviewContent';
+import {getItemType} from '../../../utils';
+import {ITEM_TYPE} from '../../../constants';
+import {EventPreviewContent} from '../../Events/EventPreviewContent';
+import {PlanningPreviewContent} from '../../Planning/PlanningPreviewContent';
 
 export const PreviewContentTab = ({item}) => {
     const itemType = getItemType(item);

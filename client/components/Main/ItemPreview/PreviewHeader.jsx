@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {ITEM_TYPE} from '../../constants';
-import {EventPreviewHeader} from '../Events';
-import {PlanningPreviewHeader} from '../Planning';
-import {getItemType} from '../../utils';
+import {ITEM_TYPE} from '../../../constants';
+import {EventPreviewHeader} from '../../Events';
+import {PlanningPreviewHeader} from '../../Planning';
+import {getItemType} from '../../../utils';
 
 export const PreviewHeader = ({item}) => {
     const itemType = getItemType(item);

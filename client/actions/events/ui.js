@@ -11,7 +11,8 @@ import {
     lockUtils,
     isItemSpiked,
     isItemRescheduled,
-    dispatchUtils
+    dispatchUtils,
+    gettext,
 } from '../../utils';
 import {EventUpdateMethods} from '../../components/Events';
 
@@ -196,15 +197,13 @@ const spike = (item) => (
         dispatch(eventsApi.spike(item))
             .then((events) => {
                 dispatch(hideModal());
-                notify.success('The event(s) have been spiked');
-                if (get(selectors.events.showEventDetails(getState()), '_id') === item._id) {
-                    dispatch(main.closePreview(null));
-                }
+                notify.success(gettext('The event(s) have been spiked'));
+                dispatch(main.closePreviewAndEditorForItems(events));
                 return Promise.resolve(events);
             }, (error) => {
                 dispatch(hideModal());
                 notify.error(
-                    getErrorMessage(error, 'Failed to spike the event(s)')
+                    getErrorMessage(error, gettext('Failed to spike the event(s)'))
                 );
 
                 return Promise.reject(error);
@@ -225,14 +224,14 @@ const unspike = (event) => (
                     .then(
                         () => {
                             dispatch(hideModal());
-
-                            notify.success('The event(s) have been unspiked');
+                            dispatch(main.closePreviewAndEditorForItems(events));
+                            notify.success(gettext('The event(s) have been unspiked'));
                             return Promise.resolve(events);
                         },
 
                         (error) => {
                             notify.error(
-                                getErrorMessage(error, 'Failed to load events and plannings')
+                                getErrorMessage(error, gettext('Failed to load events and plannings'))
                             );
 
                             return Promise.reject(error);
@@ -687,6 +686,20 @@ const closeAdvancedSearch = () => (
     {type: EVENTS.ACTIONS.CLOSE_ADVANCED_SEARCH}
 );
 
+const openUnspikeModal = (events) => (
+    (dispatch) => {
+        let eventsToUnspike = Array.isArray(events) ? events : [events];
+
+        dispatch(showModal({
+            modalType: MODALS.CONFIRMATION,
+            modalProps: {
+                body: gettext(`Do you want to unspike these ${eventsToUnspike.length} event(s) ?`),
+                action: () => dispatch(self.unspike(eventsToUnspike)),
+            },
+        }));
+    }
+);
+
 const openEventDetails = checkPermission(
     _openEventDetails,
     PRIVILEGES.EVENT_MANAGEMENT,
@@ -723,6 +736,7 @@ const self = {
     setEventsList,
     clearList,
     openSpikeModal,
+    openUnspikeModal,
     openEventDetails,
     unlockAndOpenEventDetails,
     closeEventDetails,

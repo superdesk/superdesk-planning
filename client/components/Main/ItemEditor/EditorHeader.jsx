@@ -1,15 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import {ITEM_TYPE, PRIVILEGES} from '../../constants';
-import {gettext, getItemType, eventUtils, planningUtils, isItemPublic, lockUtils} from '../../utils';
+import {ITEM_TYPE, PRIVILEGES} from '../../../constants';
+import {gettext, getItemType, eventUtils, planningUtils, isItemPublic, lockUtils} from '../../../utils';
 
-import {Button} from '../UI';
-import {Button as NavButton} from '../UI/Nav';
-import {Header} from '../UI/SidePanel';
-import {StretchBar} from '../UI/SubNav';
+import {Button} from '../../UI';
+import {Button as NavButton} from '../../UI/Nav';
+import {Header} from '../../UI/SidePanel';
+import {StretchBar} from '../../UI/SubNav';
 
-import {LockContainer} from '../';
+import {LockContainer} from '../../index';
+import {EditorItemActions} from './index';
 
 export const EditorHeader = ({
     item,
@@ -24,10 +25,12 @@ export const EditorHeader = ({
     session,
     privileges,
     lockedItems,
+    itemActions,
     openCancelModal,
     users,
     onUnlock,
     onLock,
+    currentWorkspace,
 }) => {
     // Do not show the tabs if we're creating a new item
     const existingItem = !!item;
@@ -147,7 +150,12 @@ export const EditorHeader = ({
             )}
 
             {!isLockRestricted && (
-                <NavButton icon="icon-dots-vertical" />
+                <EditorItemActions item={item}
+                    itemActions={itemActions}
+                    session={session}
+                    privileges={privileges}
+                    lockedItems={lockedItems}
+                    currentWorkspace={currentWorkspace} />
             )}
         </Header>
     );
@@ -170,4 +178,6 @@ EditorHeader.propTypes = {
     users: PropTypes.array,
     onUnlock: PropTypes.func,
     onLock: PropTypes.func,
+    itemActions: PropTypes.object,
+    currentWorkspace: PropTypes.string,
 };
