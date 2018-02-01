@@ -1,4 +1,4 @@
-import {MAIN} from '../constants';
+import {MAIN, RESET_STORE} from '../constants';
 import {cloneDeep, get, omit} from 'lodash';
 
 const search = {
@@ -43,6 +43,11 @@ const modifyParams = (state, action) => {
 
 export default function(state = initialState, action) {
     switch (action.type) {
+    case RESET_STORE:
+        return {
+            ...state,
+            previewItem: null,
+        };
     case MAIN.ACTIONS.PREVIEW:
         return {...state, previewItem: action.payload || null};
 
@@ -57,7 +62,6 @@ export default function(state = initialState, action) {
             ...state,
             search: modifyParams(state, action)
         };
-
     case MAIN.ACTIONS.SET_TOTAL:
         return {
             ...state,
@@ -69,7 +73,6 @@ export default function(state = initialState, action) {
                 }
             }
         };
-
     case MAIN.ACTIONS.CLEAR_SEARCH:
         return {
             ...state,
