@@ -56,7 +56,6 @@ export class ItemActionsMenu extends React.Component {
         const isEmptyActions = this.props.actions.length === 0;
 
         const buttonClasses = classNames(
-            'icn-btn',
             'dropdown__toggle',
             {[this.props.buttonClass]: this.props.buttonClass},
             {ItemActionsMenu__hidden: isEmptyActions || this.state.isOpen},

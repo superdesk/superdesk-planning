@@ -145,6 +145,37 @@ class PlanningApp extends React.Component {
             filter,
         } = this.props;
 
+        const itemActions = {
+            [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
+            [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
+            [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
+            [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
+            [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
+            [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
+            [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName],
+            [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName],
+            [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
+                    this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
+            [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
+                    this.props[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
+            [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
+                    this.props[PLANNING.ITEM_ACTIONS.SPIKE.actionName],
+            [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]:
+                    this.props[PLANNING.ITEM_ACTIONS.UNSPIKE.actionName],
+            [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]:
+                    this.props[PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName],
+            [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
+                    this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
+        };
+
         const listPanelProps = {
             groups: groups,
             onItemClick: this.onItemClick,
@@ -161,38 +192,11 @@ class PlanningApp extends React.Component {
             onMultiSelectClick: this.handleItemSelection,
             selectedEventIds: selectedEventIds,
             selectedPlanningIds: selectedPlanningIds,
-            [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
-            [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName],
-            [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.UNSPIKE.actionName],
-            [EVENTS.ITEM_ACTIONS.SPIKE.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.SPIKE.actionName],
-            [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
-            [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
-            [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName],
-            [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName],
-            [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
-                this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
-            [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]:
-                this.props[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
-            [PLANNING.ITEM_ACTIONS.SPIKE.actionName]:
-                this.props[PLANNING.ITEM_ACTIONS.SPIKE.actionName],
-            [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]:
-                this.props[PLANNING.ITEM_ACTIONS.UNSPIKE.actionName],
-            [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]:
-                this.props[PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName],
-            [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
-                this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
             showRelatedPlannings: showRelatedPlannings,
             relatedPlanningsInList: relatedPlanningsInList,
             loadMore: loadMore,
-            filter: filter
+            filter: filter,
+            itemActions: itemActions,
         };
 
         return (
@@ -234,6 +238,8 @@ class PlanningApp extends React.Component {
                         privileges={this.props.privileges}
                         lockedItems={this.props.lockedItems}
                         addNewsItemToPlanning={addNewsItemToPlanning}
+                        currentWorkspace={currentWorkspace}
+                        itemActions={itemActions}
                     />
                 </div>
                 {!addNewsItemToPlanning && <ModalsContainer />}

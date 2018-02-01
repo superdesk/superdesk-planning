@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {ITEM_TYPE} from '../../constants';
-import {EventEditor} from '../Events';
-import {PlanningEditor} from '../Planning';
+import {ITEM_TYPE} from '../../../constants';
+import {EventEditor} from '../../Events';
+import {PlanningEditor} from '../../Planning';
 
 export const EditorContentTab = ({
     item,

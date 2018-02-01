@@ -2,7 +2,7 @@ import {showModal, hideModal} from '../index';
 import planningApi from './api';
 import {locks} from '../index';
 import main from '../main';
-import {checkPermission, getErrorMessage, lockUtils, planningUtils, dispatchUtils} from '../../utils';
+import {checkPermission, getErrorMessage, lockUtils, planningUtils, dispatchUtils, gettext} from '../../utils';
 import * as selectors from '../../selectors';
 import {PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, ASSIGNMENTS, MAIN} from '../../constants';
 import * as actions from '../index';
@@ -18,15 +18,13 @@ import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/help
 const spike = (item) => (
     (dispatch, getState, {notify}) => (
         dispatch(planningApi.spike(item))
-            .then(() => {
-                notify.success('The Planning Item(s) has been spiked.');
-                if (selectors.getCurrentPlanningId(getState()) === item._id) {
-                    dispatch(main.closePreview());
-                }
+            .then((items) => {
+                notify.success(gettext('The Planning Item(s) has been spiked.'));
+                dispatch(main.closePreviewAndEditorForItems(items));
                 return Promise.resolve(item);
             }, (error) => {
                 notify.error(
-                    getErrorMessage(error, 'There was a problem, Planning item not spiked!')
+                    getErrorMessage(error, gettext('There was a problem, Planning item not spiked!'))
                 );
                 return Promise.reject(error);
             })
@@ -41,12 +39,13 @@ const spike = (item) => (
 const unspike = (item) => (
     (dispatch, getState, {notify}) => (
         dispatch(planningApi.unspike(item))
-            .then(() => {
-                notify.success('The Planning Item(s) has been unspiked.');
+            .then((items) => {
+                dispatch(main.closePreviewAndEditorForItems(items));
+                notify.success(gettext('The Planning Item(s) has been unspiked.'));
                 return Promise.resolve(item);
             }, (error) => {
                 notify.error(
-                    getErrorMessage(error, 'There was a problem, Planning item not unspiked!')
+                    getErrorMessage(error, gettext('There was a problem, Planning item not unspiked!'))
                 );
                 return Promise.reject(error);
             })

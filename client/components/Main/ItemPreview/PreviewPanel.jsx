@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {gettext} from '../../utils';
-import {HistoryTab, PreviewContentTab, PreviewHeader} from './';
-import {Tabs} from '../UI/Nav';
-import {Panel} from '../UI/Preview';
-import {SidePanel, Header, Tools, Content} from '../UI/SidePanel';
+import {gettext} from '../../../utils';
+import {HistoryTab} from '../index';
+import {PreviewContentTab, PreviewHeader} from './index';
+import {Tabs} from '../../UI/Nav';
+import {Panel} from '../../UI/Preview';
+import {SidePanel, Header, Tools, Content} from '../../UI/SidePanel';
 
 export class PreviewPanel extends React.Component {
     constructor(props) {
