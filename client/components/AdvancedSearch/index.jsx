@@ -152,12 +152,13 @@ export class AdvancedSearch extends React.Component {
                     },
                     component: SelectMetaTermsInput
                 },
-                ingestProvider: {
+                source: {
                     props: {
-                        field: 'advancedSearch.ingestProvider',
+                        field: 'advancedSearch.source',
                         label: gettext('Source'),
-                        value: get(diff, 'advancedSearch.ingestProvider', []),
-                        options: ingestProviders
+                        value: get(diff, 'advancedSearch.source', []),
+                        options: ingestProviders,
+                        valueKey: 'id',
                     },
                     component: SelectMetaTermsInput
                 },
@@ -284,7 +285,7 @@ export class AdvancedSearch extends React.Component {
 
                 ],
                 [MAIN.FILTERS.EVENTS]: [
-                    fields.name, fields.slugline, fields.location,
+                    fields.name, fields.slugline, fields.source, fields.location,
                     fields.anpa_category, fields.subject, fields.calendars,
                     fields.pubstatus, fields.spikeState,
                     fields.startDateTime, fields.endDateTime,
