@@ -154,7 +154,7 @@ describe('actions.events.ui', () => {
                 expect(eventsUi._openActionModal.args[0]).toEqual([
                     data.events[1],
                     'Reschedule',
-                    'reschedule_event',
+                    'reschedule',
                     true,
                     false,
                     true,

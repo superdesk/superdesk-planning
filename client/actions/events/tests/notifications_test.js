@@ -35,7 +35,7 @@ describe('actions.events.notifications', () => {
                 () => (Promise.resolve())
             );
 
-            sinon.stub(eventsNotifications, 'onEventRescheduled').callsFake(
+            sinon.stub(eventsNotifications, 'onEventScheduleChanged').callsFake(
                 () => (Promise.resolve())
             );
 
@@ -57,7 +57,7 @@ describe('actions.events.notifications', () => {
             restoreSinonStub(eventsNotifications.onEventUnlocked);
             restoreSinonStub(eventsNotifications.onEventSpiked);
             restoreSinonStub(eventsNotifications.onEventUnspiked);
-            restoreSinonStub(eventsNotifications.onEventRescheduled);
+            restoreSinonStub(eventsNotifications.onEventScheduleChanged);
             restoreSinonStub(eventsNotifications.onEventPublishChanged);
             restoreSinonStub(eventsNotifications.onRecurringEventSpiked);
         });
@@ -106,12 +106,45 @@ describe('actions.events.notifications', () => {
             }, delay);
         });
 
-        it('`events:rescheduled` calls onEventRescheduled', (done) => {
-            $rootScope.$broadcast('events:rescheduled', {item: 'e1'});
+        it('`events:reschedule` calls onEventScheduleChanged', (done) => {
+            $rootScope.$broadcast('events:reschedule', {item: 'e1'});
 
             setTimeout(() => {
-                expect(eventsNotifications.onEventRescheduled.callCount).toBe(1);
-                expect(eventsNotifications.onEventRescheduled.args[0][1]).toEqual({item: 'e1'});
+                expect(eventsNotifications.onEventScheduleChanged.callCount).toBe(1);
+                expect(eventsNotifications.onEventScheduleChanged.args[0][1]).toEqual({item: 'e1'});
+
+                done();
+            }, delay);
+        });
+
+        it('`events:reschedule:recurring` calls onEventScheduleChanged', (done) => {
+            $rootScope.$broadcast('events:reschedule:recurring', {item: 'e1'});
+
+            setTimeout(() => {
+                expect(eventsNotifications.onEventScheduleChanged.callCount).toBe(1);
+                expect(eventsNotifications.onEventScheduleChanged.args[0][1]).toEqual({item: 'e1'});
+
+                done();
+            }, delay);
+        });
+
+        it('`events:update_time` calls onEventScheduleChanged', (done) => {
+            $rootScope.$broadcast('events:update_time', {item: 'e1'});
+
+            setTimeout(() => {
+                expect(eventsNotifications.onEventScheduleChanged.callCount).toBe(1);
+                expect(eventsNotifications.onEventScheduleChanged.args[0][1]).toEqual({item: 'e1'});
+
+                done();
+            }, delay);
+        });
+
+        it('`events:update_time:recurring` calls onEventScheduleChanged', (done) => {
+            $rootScope.$broadcast('events:update_time:recurring', {item: 'e1'});
+
+            setTimeout(() => {
+                expect(eventsNotifications.onEventScheduleChanged.callCount).toBe(1);
+                expect(eventsNotifications.onEventScheduleChanged.args[0][1]).toEqual({item: 'e1'});
 
                 done();
             }, delay);

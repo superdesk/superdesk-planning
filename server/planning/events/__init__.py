@@ -19,6 +19,7 @@ from .events_publish import EventsPublishService, EventsPublishResource
 from .events_cancel import EventsCancelService, EventsCancelResource
 from .events_reschedule import EventsRescheduleService, EventsRescheduleResource
 from .events_postpone import EventsPostponeService, EventsPostponeResource
+from .events_update_time import EventsUpdateTimeService, EventsUpdateTimeResource
 
 
 def init_app(app):
@@ -74,6 +75,16 @@ def init_app(app):
 
     events_duplicate_service = EventsDuplicateService('events_duplicate', backend=superdesk.get_backend())
     EventsDuplicateResource('events_duplicate', app=app, service=events_duplicate_service)
+
+    events_update_time_service = EventsUpdateTimeService(
+        EventsUpdateTimeResource.endpoint_name,
+        backend=superdesk.get_backend()
+    )
+    EventsUpdateTimeResource(
+        EventsUpdateTimeResource.endpoint_name,
+        app=app,
+        service=events_update_time_service
+    )
 
     app.on_updated_events += events_history_service.on_item_updated
     app.on_inserted_events += events_history_service.on_item_created

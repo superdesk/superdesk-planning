@@ -660,6 +660,19 @@ const publishEvent = (event) => (
     )
 );
 
+const updateEventTime = (event) => (
+    (dispatch, getState, {api}) => (
+        api.update(
+            'events_update_time',
+            event,
+            {
+                update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
+                dates: event.dates,
+            }
+        )
+    )
+);
+
 const markEventCancelled = (event, reason, occurStatus) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_CANCELLED,
     payload: {
@@ -871,6 +884,7 @@ const self = {
     markEventCancelled,
     markEventHasPlannings,
     rescheduleEvent,
+    updateEventTime,
     markEventPostponed,
     postponeEvent,
     loadEventDataForAction,

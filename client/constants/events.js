@@ -69,7 +69,7 @@ export const EVENTS = {
             label: gettext('Reschedule'),
             icon: 'icon-calendar',
             actionName: 'onRescheduleEvent',
-            lock_action: 'reschedule_event',
+            lock_action: 'reschedule',
         },
         POSTPONE_EVENT: {
             label: gettext('Mark as Postponed'),

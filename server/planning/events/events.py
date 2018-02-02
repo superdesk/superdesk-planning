@@ -13,17 +13,15 @@
 import superdesk
 import logging
 from superdesk import get_resource_service
-from superdesk.resource import not_analyzed
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid
-from superdesk.metadata.item import GUID_NEWSML, ITEM_TYPE, metadata_schema
+from superdesk.metadata.item import GUID_NEWSML
 from superdesk.notification import push_notification
 from apps.auth import get_user, get_user_id
 from apps.archive.common import set_original_creator, get_auth
 from superdesk.users.services import current_user_has_privilege
 from superdesk.utc import utcnow
-from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, UPDATE_ALL, UPDATE_METHODS, \
-    get_max_recurrent_events, WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA, \
+from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, get_max_recurrent_events, \
     WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
@@ -34,8 +32,9 @@ import itertools
 import copy
 import pytz
 import re
-from deepdiff import DeepDiff
 from copy import deepcopy
+
+from .events_schema import events_schema
 
 logger = logging.getLogger(__name__)
 
@@ -69,17 +68,18 @@ class EventsService(superdesk.Service):
 
     def on_fetched(self, docs):
         for doc in docs['_items']:
-            self._enchance_event_item(doc)
+            self._enhance_event_item(doc)
 
     def on_fetched_item(self, doc):
-        self._enchance_event_item(doc)
+        self._enhance_event_item(doc)
 
-    def get_plannings_for_event(self, event):
+    @staticmethod
+    def get_plannings_for_event(event):
         return get_resource_service('planning').find(where={
             'event_item': event[config.ID_FIELD]
         })
 
-    def _enchance_event_item(self, doc):
+    def _enhance_event_item(self, doc):
         plannings = self.get_plannings_for_event(doc)
 
         if plannings.count() > 0:
@@ -91,8 +91,9 @@ class EventsService(superdesk.Service):
         # Ensure the _type is set so the UI can differentiate between object types
         doc['_type'] = 'events'
 
-    def has_planning_items(self, doc):
-        return self.get_plannings_for_event(doc).count() > 0
+    @staticmethod
+    def has_planning_items(doc):
+        return EventsService.get_plannings_for_event(doc).count() > 0
 
     def get_all_items_in_relationship(self, item):
         # Get recurring items
@@ -106,9 +107,10 @@ class EventsService(superdesk.Service):
             return self.get_plannings_for_event(item)
 
     def on_locked_event(self, doc, user_id):
-        self._enchance_event_item(doc)
+        self._enhance_event_item(doc)
 
-    def set_ingest_provider_sequence(self, item, provider):
+    @staticmethod
+    def set_ingest_provider_sequence(item, provider):
         """Sets the value of ingest_provider_sequence in item.
 
         :param item: object to which ingest_provider_sequence to be set
@@ -180,7 +182,8 @@ class EventsService(superdesk.Service):
                 user=user_id
             )
 
-    def can_edit(self, item, user_id):
+    @staticmethod
+    def can_edit(item, user_id):
         # Check privileges
         if not current_user_has_privilege('planning_event_management'):
             return False, 'User does not have sufficient permissions.'
@@ -205,11 +208,7 @@ class EventsService(superdesk.Service):
             del updates['skip_on_update']
             return
 
-        if 'update_method' in updates:
-            update_method = updates['update_method']
-            del updates['update_method']
-        else:
-            update_method = UPDATE_SINGLE
+        update_method = updates.pop('update_method', UPDATE_SINGLE)
 
         user = get_user()
         user_id = user.get(config.ID_FIELD) if user else None
@@ -225,7 +224,7 @@ class EventsService(superdesk.Service):
 
         # Run the specific methods based on if the original is a
         # single or a series of recurring events
-        if not original.get('dates', {}).get('recurring_rule', None):
+        if not original.get('dates', {}).get('recurring_rule', None) or update_method == UPDATE_SINGLE:
             self._update_single_event(updates, original)
         else:
             self._update_recurring_events(updates, original, update_method)
@@ -241,7 +240,7 @@ class EventsService(superdesk.Service):
             )
 
     def _update_single_event(self, updates, original):
-        """Updates the metadata and occurrence of a single event.
+        """Updates the metadata of a single event.
 
         If recurring_rule is provided, we convert this single event into
         a series of recurring events, otherwise we simply update this event.
@@ -258,11 +257,7 @@ class EventsService(superdesk.Service):
                 recurrence_id=str(generated_events[0]['recurrence_id'])
             )
         else:
-            # In case of stand-alone event, only time is updated - other date updates have endpoints
-            if updates.get('dates'):
-                remove_lock_information(updates)
-                set_planning_schedule(updates)
-
+            # This updates Event metadata only
             push_notification(
                 'events:updated',
                 item=str(original[config.ID_FIELD]),
@@ -275,101 +270,31 @@ class EventsService(superdesk.Service):
         If the recurring_rule has been removed for this event, process
         it separately, otherwise update the event and/or its recurring rules
         """
-        # If dates has not been updated, then we're updating the metadata
-        # of this series of recurring events
-        if not updates.get('dates'):
-            self._update_metadata_recurring(updates, original, update_method)
-            # And finally push a notification to connected clients
-            push_notification(
-                'events:updated:recurring',
-                item=str(original[config.ID_FIELD]),
-                recurrence_id=str(original['recurrence_id']),
-                user=str(updates.get('version_creator', ''))
-            )
-            return
-        # Otherwise if the recurring_rule has bee removed, then we're
-        # disassociating this event from the series of recurring events
-        elif not updates['dates'].get('recurring_rule', None):
-            # Recurring rule has been removed for this event,
-            # Remove this rule and return from this method
-            self._remove_recurring_rules(updates, original)
-            push_notification(
-                'events:updated',
-                item=str(original[config.ID_FIELD]),
-                user=str(updates.get('version_creator'))
-            )
-            return
-        elif update_method == UPDATE_SINGLE:
-            set_next_occurrence(updates)
-            remove_lock_information(updates)
+        # This method now only handles updating of Event metadata
+        # So make sure to remove any date information that might be in
+        # the updates
+        updates.pop('dates', None)
 
-            push_notification(
-                'events:updated:recurring',
-                item=str(original[config.ID_FIELD]),
-                recurrence_id=str(original['recurrence_id']),
-                user=str(updates.get('version_creator', ''))
-            )
-
-            return
-        # Otherwise we're modifying the recurring_rules for the event
-        elif update_method in [UPDATE_FUTURE, UPDATE_ALL]:
-            self._update_recurring_rules(updates, original, update_method)
-
-            # And finally push a notification to connected clients
-            push_notification(
-                'events:updated:recurring',
-                item=str(original[config.ID_FIELD]),
-                recurrence_id=str(updates.get('recurrence_id', original['recurrence_id'])),
-                previous_recurrence_id=str(updates.get('previous_recurrence_id', None)),
-                user=str(updates.get('version_creator', ''))
-            )
-
-    def _update_metadata_recurring(self, updates, original, update_method):
-        """Update the Metadata for a series of recurring events
-
-        Based on the update_method, it will update:
-        single: the provided event only
-        future: the provided event, and all future events
-        all: all events in the series
-        """
-        events = []
         if update_method == UPDATE_FUTURE:
             historic, past, future = self.get_recurring_timeline(original)
-            events.extend(future)
-        elif update_method == UPDATE_ALL:
+            events = future
+        else:
             historic, past, future = self.get_recurring_timeline(original)
-            events.extend(historic)
-            events.extend(past)
-            events.extend(future)
+            events = historic + past + future
 
         for e in events:
-            self._patch_event_in_recurrent_series(e[config.ID_FIELD], updates)
+            new_updates = deepcopy(updates)
+            new_updates['skip_on_update'] = True
+            self.patch(e[config.ID_FIELD], new_updates)
+            app.on_updated_events(new_updates, {'_id': e[config.ID_FIELD]})
 
-    def _patch_event_in_recurrent_series(self, event_id, updated_event):
-        updated_event['skip_on_update'] = True
-        self.patch(event_id, updated_event)
-        app.on_updated_events(updated_event, {'_id': event_id})
-
-    def _get_empty_updates_for_recurring_event(self, event):
-        updates = {}
-        updates['dates'] = copy.deepcopy(event['dates'])
-        return updates
-
-    def _remove_recurring_rules(self, updates, original):
-        """Remove recurring rules for an event
-        """
-
-        (historic, past, future) = self.get_recurring_timeline(original)
-
-        # 1 - Disassociate the selected event from the series
-        updates['recurrence_id'] = None
-
-        # 2 - Original series will end one event before the selected event
-        self._set_series_end_date(historic + past)
-
-        # 3 - Create a new series for the future events
-        count = future[0]['dates']['recurring_rule']['count'] - (len(historic) + len(past) + 1)
-        self._set_series_end_count(future, generate_guid(type=GUID_NEWSML), count)
+        # And finally push a notification to connected clients
+        push_notification(
+            'events:updated:recurring',
+            item=str(original[config.ID_FIELD]),
+            recurrence_id=str(original['recurrence_id']),
+            user=str(updates.get('version_creator', ''))
+        )
 
     def _convert_to_recurring_event(self, updates, original):
         """Convert a single event to a series of recurring events"""
@@ -393,9 +318,7 @@ class EventsService(superdesk.Service):
             event_reschedule_service = get_resource_service('events_reschedule')
             updates['dates'] = updated_event['dates']
             set_planning_schedule(updates)
-            event_reschedule_service.update(original.get(config.ID_FIELD),
-                                            updates,
-                                            original)
+            event_reschedule_service.update_single_event(updates, original)
             app.on_updated_events_reschedule(updates, original)
         else:
             # Original event falls as a part of the series
@@ -410,86 +333,6 @@ class EventsService(superdesk.Service):
         self.create(generated_events)
         app.on_inserted_events(generated_events)
         return generated_events
-
-    def _update_recurring_rules(self, updates, original, update_method):
-        """Modify the recurring rules of a series of recurring events
-
-        This is achieved by splitting the series into 2 separate series of events
-        based on the updated_method ('future' or 'all').
-        If existing events do not occur in the new recurring_rules, then either
-        delete them (or spike if they have Planning items, or a set 'pubstatus').
-        """
-        historic, past, future = self.get_recurring_timeline(original)
-
-        # Determine if the selected event is the first one, if so then
-        # act as if we're changing future events
-        if len(historic) == 0 and len(past) == 0:
-            update_method = UPDATE_FUTURE
-
-        if update_method == UPDATE_FUTURE:
-            new_series = [updates] + future
-        else:
-            new_series = past + [updates] + future
-
-        # Check if the updates contain only an update in event's time
-        update_time_only, new_start_time, new_end_time = self._is_only_time_updated(
-            original.get('dates'), updates.get('dates'))
-
-        # Updating the recurring rules is only allowed via the `events_reschedule` endpoint
-        # So last check is to see if only time is updated
-        if update_time_only:
-            self._set_series_time(new_series, new_start_time, new_end_time)
-            remove_lock_information(updates)
-
-    def _set_series_time(self, series, new_start_time, new_end_time):
-        # Update the time for all event in the series
-        for event in series:
-            if event.get(config.ID_FIELD):
-                time_updates = self._get_empty_updates_for_recurring_event(event)
-                if new_start_time:
-                    time_updates['dates']['start'] = time_updates.get('dates').get('start').replace(
-                        hour=new_start_time.hour,
-                        minute=new_start_time.minute)
-
-                if new_end_time:
-                    time_updates['dates']['end'] = time_updates.get('dates').get('end').replace(
-                        hour=new_end_time.hour,
-                        minute=new_end_time.minute)
-
-                self._patch_event_in_recurrent_series(event[config.ID_FIELD], time_updates)
-
-    def _set_series_end_date(self, series):
-        for event in series:
-            updates = self._get_empty_updates_for_recurring_event(event)
-            recurring_rule = updates['dates']['recurring_rule']
-            if recurring_rule:
-                recurring_rule['until'] = series[-1]['dates']['start']
-                recurring_rule['endRepeatMode'] = 'until'
-                recurring_rule['count'] = None
-
-                self._patch_event_in_recurrent_series(event[config.ID_FIELD], updates)
-
-    def _set_series_end_count(self, series, new_recurrence_id, count):
-        for event in series:
-            updates = self._get_empty_updates_for_recurring_event(event)
-            updates['previous_recurrence_id'] = updates.get('recurrence_id', None)
-            updates['recurrence_id'] = new_recurrence_id
-            recurring_rule = updates['dates']['recurring_rule']
-            if recurring_rule and recurring_rule['endRepeatMode'] == 'count':
-                recurring_rule['count'] = count
-
-            self._patch_event_in_recurrent_series(event[config.ID_FIELD], updates)
-
-    def _filter_events_with_planning_items(self, events):
-        planning_service = get_resource_service('planning')
-
-        event_ids = [event[config.ID_FIELD] for event in events]
-
-        planning_items = list(planning_service.get_from_mongo(
-            req=None, lookup={'event_item': {'$in': event_ids}}
-        ))
-
-        return set([planning['event_item'] for planning in planning_items])
 
     def get_recurring_timeline(self, selected):
         """Utility method to get all events in the series
@@ -525,325 +368,6 @@ class EventsService(superdesk.Service):
                 future.append(event)
 
         return historic, past, future
-
-    def _is_only_time_updated(self, original_dates, updated_dates):
-        new_start_time = None
-        new_end_time = None
-
-        diffs = DeepDiff(original_dates, updated_dates, ignore_order=True)
-        values_changed = diffs.get('values_changed')
-        if values_changed:
-            for diff in values_changed:
-                if diff != 'root[\'start\']' and diff != 'root[\'end\']':
-                    # something other than start/end has changed
-                    return False, new_start_time, new_end_time
-                elif values_changed.get(diff).get('new_value').date() != \
-                        values_changed.get(diff).get('old_value').date():
-                    # date has changed, not just time
-                    return False, new_start_time, new_end_time
-                else:
-                    if diff == 'root[\'start\']':
-                        new_start_time = values_changed.get(diff).get('new_value').time()
-                    else:
-                        new_end_time = values_changed.get(diff).get('new_value').time()
-
-        return True, new_start_time, new_end_time
-
-
-event_type = deepcopy(superdesk.Resource.rel('events', type='string'))
-event_type['mapping'] = not_analyzed
-
-events_schema = {
-    # Identifiers
-    '_id': metadata_schema['_id'],
-    'guid': metadata_schema['guid'],
-    'unique_id': metadata_schema['unique_id'],
-    'unique_name': metadata_schema['unique_name'],
-    'version': metadata_schema['version'],
-    'ingest_id': metadata_schema['ingest_id'],
-    'recurrence_id': {
-        'type': 'string',
-        'mapping': not_analyzed,
-        'nullable': True,
-    },
-
-    # This is used when recurring series are split
-    'previous_recurrence_id': {
-        'type': 'string',
-        'mapping': not_analyzed,
-        'nullable': True
-    },
-
-    # Audit Information
-    'original_creator': metadata_schema['original_creator'],
-    'version_creator': metadata_schema['version_creator'],
-    'firstcreated': metadata_schema['firstcreated'],
-    'versioncreated': metadata_schema['versioncreated'],
-
-    # Ingest Details
-    'ingest_provider': metadata_schema['ingest_provider'],
-    'source': metadata_schema['source'],
-    'original_source': metadata_schema['original_source'],
-    'ingest_provider_sequence': metadata_schema['ingest_provider_sequence'],
-
-    'event_created': {
-        'type': 'datetime'
-    },
-    'event_lastmodified': {
-        'type': 'datetime'
-    },
-    # Event Details
-    # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.2
-    'name': {
-        'type': 'string',
-        'required': True,
-    },
-    'definition_short': {'type': 'string'},
-    'definition_long': {'type': 'string'},
-    'internal_note': {'type': 'string'},
-    'anpa_category': metadata_schema['anpa_category'],
-    'files': {
-        'type': 'list',
-        'nullable': True,
-        'schema': superdesk.Resource.rel('events_files'),
-        'mapping': not_analyzed,
-    },
-    'relationships': {
-        'type': 'dict',
-        'schema': {
-            'broader': {'type': 'string'},
-            'narrower': {'type': 'string'},
-            'related': {'type': 'string'}
-        },
-    },
-    'links': {
-        'type': 'list',
-        'nullable': True
-    },
-
-    # NewsML-G2 Event properties See IPTC-G2-Implementation_Guide 15.4.3
-    'dates': {
-        'type': 'dict',
-        'schema': {
-            'start': {'type': 'datetime'},
-            'end': {'type': 'datetime'},
-            'tz': {'type': 'string'},
-            'duration': {'type': 'string'},
-            'confirmation': {'type': 'string'},
-            'recurring_date': {
-                'type': 'list',
-                'nullable': True,
-                'mapping': {
-                    'type': 'date'
-                }
-            },
-            'recurring_rule': {
-                'type': 'dict',
-                'schema': {
-                    'frequency': {'type': 'string'},
-                    'interval': {'type': 'integer'},
-                    'endRepeatMode': {
-                        'type': 'string',
-                        'allowed': ['count', 'until']
-                    },
-                    'until': {'type': 'datetime', 'nullable': True},
-                    'count': {'type': 'integer', 'nullable': True},
-                    'bymonth': {'type': 'string', 'nullable': True},
-                    'byday': {'type': 'string', 'nullable': True},
-                    'byhour': {'type': 'string', 'nullable': True},
-                    'byminute': {'type': 'string', 'nullable': True},
-                },
-                'nullable': True
-            },
-            'occur_status': {
-                'nullable': True,
-                'type': 'dict',
-                'mapping': {
-                    'properties': {
-                        'qcode': not_analyzed,
-                        'name': not_analyzed
-                    }
-                },
-                'schema': {
-                    'qcode': {'type': 'string'},
-                    'name': {'type': 'string'},
-                }
-            },
-            'ex_date': {
-                'type': 'list',
-                'mapping': {
-                    'type': 'date'
-                }
-            },
-            'ex_rule': {
-                'type': 'dict',
-                'schema': {
-                    'frequency': {'type': 'string'},
-                    'interval': {'type': 'string'},
-                    'until': {'type': 'datetime', 'nullable': True},
-                    'count': {'type': 'integer', 'nullable': True},
-                    'bymonth': {'type': 'string', 'nullable': True},
-                    'byday': {'type': 'string', 'nullable': True},
-                    'byhour': {'type': 'string', 'nullable': True},
-                    'byminute': {'type': 'string', 'nullable': True}
-                }
-            }
-        }
-    },  # end dates
-    # This is a extra field so that we can sort in the combined view of events and planning.
-    # It will store the dates.start of the event.
-    '_planning_schedule': {
-        'type': 'list',
-        'mapping': {
-            'type': 'nested',
-            'properties': {
-                'scheduled': {'type': 'date'},
-            }
-        }
-    },
-    'occur_status': {
-        'type': 'dict',
-        'schema': {
-            'qcode': {'type': 'string'},
-            'name': {'type': 'string'},
-            'label': {'type': 'string'}
-        }
-    },
-    'news_coverage_status': {
-        'type': 'dict',
-        'schema': {
-            'qcode': {'type': 'string'},
-            'name': {'type': 'string'}
-        }
-    },
-    'registration': {
-        'type': 'string'
-    },
-    'access_status': {
-        'type': 'list',
-        'mapping': {
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed
-            }
-        }
-    },
-
-    # Content metadata
-    'subject': metadata_schema['subject'],
-    'slugline': metadata_schema['slugline'],
-
-    # Item metadata
-    'location': {
-        'type': 'list',
-        'mapping': {
-            'properties': {
-                'qcode': {'type': 'string'},
-                'name': {'type': 'string'},
-                'address': {'type': 'object'},
-                'geo': {'type': 'string'},
-                'location': {'type': 'geo_point'},
-            }
-        },
-        'nullable': True
-    },
-    'participant': {
-        'type': 'list',
-        'mapping': {
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed
-            }
-        }
-    },
-    'participant_requirement': {
-        'type': 'list',
-        'mapping': {
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed
-            }
-        }
-    },
-    'organizer': {
-        'type': 'list',
-        'mapping': {
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed
-            }
-        }
-    },
-    'event_contact_info': {
-        'type': 'list',
-        'schema': superdesk.Resource.rel('contacts'),
-        'mapping': not_analyzed
-    },
-    'event_language': {  # TODO: this is only placeholder schema
-        'type': 'list',
-        'mapping': {
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed
-            }
-        }
-    },
-
-    # These next two are for spiking/unspiking and purging events
-    'state': WORKFLOW_STATE_SCHEMA,
-    'expiry': {
-        'type': 'datetime',
-        'nullable': True
-    },
-    # says if the event is for internal usage or published
-    'pubstatus': PUBLISHED_STATE_SCHEMA,
-
-    'lock_user': metadata_schema['lock_user'],
-    'lock_time': metadata_schema['lock_time'],
-    'lock_session': metadata_schema['lock_session'],
-    'lock_action': metadata_schema['lock_action'],
-
-    # The update method used for recurring events
-    'update_method': {
-        'type': 'string',
-        'allowed': UPDATE_METHODS,
-        'mapping': not_analyzed,
-        'nullable': True
-    },
-
-    # Item type used by superdesk publishing
-    ITEM_TYPE: {
-        'type': 'string',
-        'mapping': not_analyzed,
-        'default': 'event',
-    },
-
-    # Named Calendars
-    'calendars': {
-        'type': 'list',
-        'nullable': True,
-        'mapping': {
-            'type': 'object',
-            'properties': {
-                'qcode': not_analyzed,
-                'name': not_analyzed,
-            }
-        }
-    },
-
-    # The previous state the item was in before for example being spiked,
-    # when un-spiked it will revert to this state
-    'revert_state': metadata_schema['revert_state'],
-
-    # Used when duplicating/rescheduling of Events
-    'duplicate_from': event_type,
-    'duplicate_to': {
-        'type': 'list',
-        'nullable': True,
-        'schema': superdesk.Resource.rel('events', type='string'),
-        'mapping': not_analyzed
-    }
-}  # end events_schema
 
 
 class EventsResource(superdesk.Resource):
@@ -998,14 +522,3 @@ def set_planning_schedule(event):
         event['_planning_schedule'] = [
             {'scheduled': event['dates']['start']}
         ]
-
-
-def set_next_occurrence(updates):
-    new_dates = [date for date in itertools.islice(generate_recurring_dates(
-        start=updates['dates']['start'],
-        tz=updates['dates'].get('tz') and pytz.timezone(updates['dates']['tz'] or None),
-        **updates['dates']['recurring_rule']), 0, 10)]
-    time_delta = updates['dates']['end'] - updates['dates']['start']
-    updates['dates']['start'] = new_dates[0]
-    updates['dates']['end'] = new_dates[0] + time_delta
-    set_planning_schedule(updates)

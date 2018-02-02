@@ -80,8 +80,8 @@ export class UpdateTimeComponent extends React.Component {
             relatedEvents: relatedEvents,
         });
 
-        if (
-            isEqual(diff.dates, this.props.initialValues.dates) ||
+        if ((isEqual(diff.dates, this.props.initialValues.dates) &&
+                diff.update_method.value === EventUpdateMethods[0].value) ||
             !isEqual(errors, {})
         ) {
             this.props.disableSaveInModal();
@@ -218,24 +218,12 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => dispatch(actions.events.ui.saveAndPublish(
-        event,
-        get(event, '_save', true),
-        get(event, '_publish', false)
-    ))
-        .then(() => {
-            dispatch({
-                type: EVENTS.ACTIONS.UNLOCK_EVENT,
-                payload: {event},
-            });
-        }),
-
+    onSubmit: (event) => dispatch(actions.events.ui.updateEventTime(event)),
     onHide: (event) => {
         if (event.lock_action === EVENTS.ITEM_ACTIONS.UPDATE_TIME.lock_action) {
             dispatch(actions.events.api.unlock(event));
         }
     },
-
     onValidate: (item, profile, errors) => dispatch(validateItem('events', item, profile, errors, ['dates']))
 });
 
