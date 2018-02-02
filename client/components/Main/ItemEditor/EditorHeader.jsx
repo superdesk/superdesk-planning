@@ -88,7 +88,7 @@ export const EditorHeader = ({
                 <Button
                     disabled={submitting}
                     onClick={onCancel}
-                    text={gettext('Cancel')}
+                    text={dirty ? gettext('Cancel') : gettext('Close')}
                 />
 
                 {canPublish && (
