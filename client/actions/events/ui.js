@@ -450,6 +450,25 @@ const rescheduleEvent = (event) => (
     )
 );
 
+const updateEventTime = (event) => (
+    (dispatch, getState, {notify}) => (
+        dispatch(eventsApi.updateEventTime(event))
+            .then(() => {
+                dispatch(hideModal());
+                notify.success('Event time has been update');
+                return Promise.resolve();
+            }, (error) => {
+                dispatch(hideModal());
+
+                notify.error(
+                    getErrorMessage(error, 'Failed to update the Event time!')
+                );
+
+                return Promise.reject(error);
+            })
+    )
+);
+
 const saveAndPublish = (event, save = true, publish = false) => (
     (dispatch) => {
         if (!save) {
@@ -761,7 +780,8 @@ const self = {
     unpublish,
     loadMore,
     addToList,
-    requestEvents
+    requestEvents,
+    updateEventTime
 };
 
 export default self;

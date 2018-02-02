@@ -9,23 +9,21 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from superdesk import get_resource_service
-from superdesk.services import BaseService
-from superdesk.notification import push_notification
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import GUID_NEWSML
 from eve.utils import config
-from apps.archive.common import get_user, get_auth, set_original_creator
-from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, WORKFLOW_STATE, ITEM_STATE, remove_lock_information
+from apps.archive.common import set_original_creator
+from planning.common import UPDATE_FUTURE, WORKFLOW_STATE, ITEM_STATE, remove_lock_information
 from copy import deepcopy
-from .events import EventsResource, events_schema, generate_recurring_dates, \
-    set_next_occurrence, set_planning_schedule
+from .events import EventsResource, events_schema, generate_recurring_dates
 from flask import current_app as app
-from itertools import islice
 import pytz
 from datetime import datetime
+from itertools import islice
+from .events_base_service import EventsBaseService
 
-event_cancel_schema = deepcopy(events_schema)
-event_cancel_schema['reason'] = {
+event_reschedule_schema = deepcopy(events_schema)
+event_reschedule_schema['reason'] = {
     'type': 'string',
     'nullable': True
 }
@@ -41,49 +39,17 @@ class EventsRescheduleResource(EventsResource):
     item_methods = ['PATCH']
     privileges = {'PATCH': 'planning_event_management'}
 
-    schema = event_cancel_schema
+    schema = event_reschedule_schema
 
 
-class EventsRescheduleService(BaseService):
-    def update(self, id, updates, original):
-        if 'skip_on_update' in updates:
-            del updates['skip_on_update']
-        else:
-            events_service = get_resource_service('events')
-            update_method = updates.pop('update_method', UPDATE_SINGLE)
-            # Release the Lock on the selected Event
-            remove_lock_information(item=updates)
+class EventsRescheduleService(EventsBaseService):
+    ACTION = 'reschedule'
 
-            # Run the specific methods based on if the original is a
-            # single or a series of recurring events
-            if not original.get('dates', {}).get('recurring_rule', None) or \
-                    update_method == UPDATE_SINGLE:
-                self._reschedule_single_event(updates, original, events_service)
-            else:
-                if not self._reschedule_recurring_events(
-                        updates,
-                        original,
-                        update_method,
-                        events_service
-                ):
-                    return
-
-        updates.pop('reason', None)
-        return self.backend.update(self.datasource, id, updates, original)
-
-    def on_updated(self, updates, original):
-        user = get_user(required=True).get(config.ID_FIELD, '')
-        session = get_auth().get(config.ID_FIELD, '')
-
-        push_notification(
-            'events:rescheduled',
-            item=str(original[config.ID_FIELD]),
-            user=str(user),
-            session=str(session)
-        )
-
-    def _reschedule_single_event(self, updates, original, events_service):
+    def update_single_event(self, updates, original):
+        events_service = get_resource_service('events')
         has_plannings = events_service.has_planning_items(original)
+
+        remove_lock_information(updates)
 
         # If the Event is in use, then we will duplicate the original
         # and set the original's status to `rescheduled`
@@ -97,7 +63,8 @@ class EventsRescheduleService(BaseService):
             if has_plannings:
                 self._reschedule_event_plannings(updates, original)
 
-    def _mark_event_rescheduled(self, updates, original, keep_dates=False):
+    @staticmethod
+    def _mark_event_rescheduled(updates, original, keep_dates=False):
         definition = '''------------------------------------------------------------
 Event Rescheduled
 '''
@@ -120,7 +87,8 @@ Event Rescheduled
         if not keep_dates:
             updates.pop('dates', None)
 
-    def _reschedule_event_plannings(self, updates, original, plans=None, state=None):
+    @staticmethod
+    def _reschedule_event_plannings(updates, original, plans=None, state=None):
         planning_service = get_resource_service('planning')
         planning_reschedule_service = get_resource_service('planning_reschedule')
         reason = updates.get('reason', None)
@@ -142,7 +110,8 @@ Event Rescheduled
                 plan
             )
 
-    def _duplicate_event(self, updates, original, events_service):
+    @staticmethod
+    def _duplicate_event(updates, original, events_service):
         new_event = deepcopy(original)
         new_event.update(updates)
 
@@ -162,14 +131,16 @@ Event Rescheduled
         history_service.on_reschedule_from(new_event)
         return created_event
 
-    def _reschedule_recurring_events(self, updates, original, update_method, events_service):
-        original_deleted = False
+    def update_recurring_events(self, updates, original, update_method):
+        remove_lock_information(updates)
+
         rules_changed = updates['dates']['recurring_rule'] != original['dates']['recurring_rule']
         times_changed = updates['dates']['start'] != original['dates']['start'] or \
             updates['dates']['end'] != original['dates']['end']
         reason = updates.get('reason')
 
-        historic, past, future = events_service.get_recurring_timeline(original)
+        events_service = get_resource_service('events')
+        historic, past, future = self.get_recurring_timeline(original)
 
         # Determine if the selected event is the first one, if so then
         # act as if we're changing future events
@@ -213,7 +184,7 @@ Event Rescheduled
             **original_rule
         ), 0, 200)]
 
-        set_next_occurrence(updates)
+        self.set_next_occurrence(updates)
 
         dates_processed = []
 
@@ -254,7 +225,10 @@ Event Rescheduled
                     self._reschedule_event_plannings(updates, event, state=WORKFLOW_STATE.DRAFT)
 
                 else:
-                    new_updates = {'reason': reason}
+                    new_updates = {
+                        'reason': reason,
+                        'skip_on_update': True
+                    }
                     self._mark_event_rescheduled(new_updates, event)
                     new_updates['state'] = new_state
 
@@ -265,11 +239,11 @@ Event Rescheduled
                         new_updates['dates']['start'] = datetime.combine(event_date, updates['dates']['start'].time())
                         new_updates['dates']['end'] = new_updates['dates']['start'] + time_delta
                         new_updates['dates']['recurring_rule'] = updates['dates']['recurring_rule']
-                        set_planning_schedule(new_updates)
+                        self.set_planning_schedule(new_updates)
 
                     # And finally update the Event, and Reschedule associated Planning items
-                    events_service.patch(event[config.ID_FIELD], new_updates)
-                    self._reschedule_event_plannings(new_updates, event, state=WORKFLOW_STATE.DRAFT)
+                    self.patch(event[config.ID_FIELD], new_updates)
+                    self._reschedule_event_plannings({'reason': reason}, event, state=WORKFLOW_STATE.DRAFT)
                     app.on_updated_events_reschedule(new_updates, {'_id': event[config.ID_FIELD]})
 
                 # Mark this date as being already processed
@@ -299,7 +273,7 @@ Event Rescheduled
             new_event['dates']['end'] = new_event['dates']['start'] + time_delta
             new_event[config.ID_FIELD] = new_event['guid'] = generate_guid(type=GUID_NEWSML)
             new_event.pop('reason', None)
-            set_planning_schedule(new_event)
+            self.set_planning_schedule(new_event)
 
             # And finally add this event to the list of events to be created
             new_events.append(new_event)
@@ -337,11 +311,10 @@ Event Rescheduled
                 app.on_deleted_item_events(event)
 
                 if is_original:
-                    original_deleted = True
+                    updates['_deleted'] = True
 
-        return not original_deleted
-
-    def _set_events_planning(self, events):
+    @staticmethod
+    def _set_events_planning(events):
         planning_service = get_resource_service('planning')
 
         planning_items = list(planning_service.get_from_mongo(
@@ -353,3 +326,14 @@ Event Rescheduled
             if '_plans' not in event:
                 event['_plans'] = []
             event['_plans'].append(plan)
+
+    @staticmethod
+    def set_next_occurrence(updates):
+        new_dates = [date for date in islice(generate_recurring_dates(
+            start=updates['dates']['start'],
+            tz=updates['dates'].get('tz') and pytz.timezone(updates['dates']['tz'] or None),
+            **updates['dates']['recurring_rule']), 0, 10)]
+        time_delta = updates['dates']['end'] - updates['dates']['start']
+        updates['dates']['start'] = new_dates[0]
+        updates['dates']['end'] = new_dates[0] + time_delta
+        EventsRescheduleService.set_planning_schedule(updates)
