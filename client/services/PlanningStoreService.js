@@ -1,5 +1,6 @@
 import {isNil, zipObject, get} from 'lodash';
 import {createStore} from '../utils';
+import {EVENT_FEED_PARSERS} from '../constants';
 
 PlanningStoreService.$inject = [
     '$rootScope',
@@ -104,10 +105,14 @@ export function PlanningStoreService(
                     data.voc._items.map((cv) => cv.items)
                 ),
                 ingest: {
-                    providers: data.ingest._items.map((provider) => ({
-                        name: provider.name,
-                        id: provider._id,
-                    })),
+                    providers: data.ingest._items.filter((p) =>
+                        p.feeding_service === EVENT_FEED_PARSERS.EVENT_FILE ||
+                        p.feeding_service === EVENT_FEED_PARSERS.EVENT_HTTP ||
+                        p.feeding_service === EVENT_FEED_PARSERS.EVENT_EMAIL)
+                        .map((provider) => ({
+                            name: provider.name,
+                            id: provider._id,
+                        })),
                 },
                 privileges: data.privileges,
                 subjects: metadata.values.subjectcodes,

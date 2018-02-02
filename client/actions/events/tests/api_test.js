@@ -360,6 +360,41 @@ describe('actions.events.api', () => {
                         done();
                     })
             ));
+
+            it('by source', (done) => (
+                store.test(done, eventsApi.query({
+                    advancedSearch: {
+                        source: [{
+                            id: 'ingest123',
+                            name: 'AFP',
+                        }],
+                    }
+                }))
+                    .then(() => {
+                        expect(services.api('events').query.callCount).toBe(1);
+                        expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
+                            page: 1,
+                            max_results: 25,
+                            sort: '[("dates.start",1)]',
+                            embedded: {files: 1},
+                            source: JSON.stringify({
+                                query: {
+                                    bool: {
+                                        must: [
+                                            {terms: {source: ['AFP']}}
+                                        ],
+                                        must_not: [
+                                            {term: {state: WORKFLOW_STATE.SPIKED}},
+                                        ],
+                                    },
+                                },
+                                filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
+                            }),
+                        })]);
+
+                        done();
+                    })
+            ));
         });
     });
 
