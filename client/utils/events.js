@@ -137,15 +137,21 @@ const getRelatedEventsForRecurringEvent = (recurringEvent, filter) => {
     };
 };
 
-const canSpikeEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
+const isEventIngested = (event) => (
+    get(event, 'state', WORKFLOW_STATE.DRAFT) === WORKFLOW_STATE.INGESTED
+);
+
+const canSpikeEvent = (event, session, privileges, locks) => {
+    const eventState = getItemWorkflowState(event);
+
+    return !isNil(event) &&
         !isItemPublic(event) &&
-        (getItemWorkflowState(event) === WORKFLOW_STATE.DRAFT || isItemPostponed(event)) &&
+        (eventState === WORKFLOW_STATE.DRAFT || isEventIngested(event) || isItemPostponed(event)) &&
         !!privileges[PRIVILEGES.SPIKE_EVENT] &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isEventLockRestricted(event, session, locks) &&
-        !isEventInUse(event)
-);
+        !isEventInUse(event);
+};
 
 const canUnspikeEvent = (event, privileges) => (
     !isNil(event) &&
