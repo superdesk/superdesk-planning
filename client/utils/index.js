@@ -15,6 +15,7 @@ import {
 } from '../constants/index';
 import * as testData from './testData';
 import {gettext, gettextCatalog} from './gettext';
+import {default as lockUtils} from './locks';
 
 
 export {default as checkPermission} from './checkPermission';
@@ -26,7 +27,7 @@ export {default as uiUtils} from './ui';
 export {default as assignmentUtils} from './assignments';
 export {default as stringUtils} from './strings';
 export {gettext, gettextCatalog};
-export {default as lockUtils} from './locks';
+export {lockUtils};
 
 export function createReducer(initialState, reducerMap) {
     return (state = initialState, action) => {
@@ -451,6 +452,9 @@ export const isItemPublic = (item = {}) =>
 
 export const isItemSpiked = (item) => item ?
     getItemWorkflowState(item) === WORKFLOW_STATE.SPIKED : false;
+
+export const shouldLockItemForEdit = (item, lockedItems) =>
+    get(item, '_id') && !lockUtils.getLock(item, lockedItems) && !isItemSpiked(item);
 
 /**
  * Get the timezone offset

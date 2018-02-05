@@ -620,6 +620,9 @@ const save = (item, original = undefined) => (
         // remove nested original creator
         delete updates.original_creator;
 
+        // remove revert_state
+        delete updates.revert_state;
+
         if (updates.agendas) {
             updates.agendas = updates.agendas.map((agenda) => agenda._id || agenda);
         }

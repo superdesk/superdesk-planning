@@ -9,7 +9,8 @@ import {
     getItemType,
     lockUtils,
     gettext,
-    eventUtils
+    eventUtils,
+    shouldLockItemForEdit,
 } from '../utils';
 import {MODALS, WORKSPACE} from '../constants';
 import eventsPlanningUi from './eventsPlanning/ui';
@@ -25,7 +26,7 @@ const lockAndEdit = (item) => (
 
         // If it is an existing item and the item is not locked
         // then lock the item, otherwise return the existing item
-        if (get(item, '_id') && !lockUtils.getLock(item, lockedItems)) {
+        if (shouldLockItemForEdit(item, lockedItems)) {
             promise = dispatch(locks.lock(item));
         } else {
             promise = Promise.resolve(item);

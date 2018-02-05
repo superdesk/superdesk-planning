@@ -81,7 +81,7 @@ export class CancelAndPostponeEventComponent extends React.Component {
         return (
             <div className="ItemActionConfirmation">
                 <Row
-                    enabled={initialValues.slugline}
+                    enabled={!!initialValues.slugline}
                     label={gettext('Slugline')}
                     value={initialValues.slugline}
                     noPadding={true}
