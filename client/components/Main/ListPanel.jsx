@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {ListGroup} from '.';
 import {PanelInfo} from '../UI';
+import './style.scss';
 
 export class ListPanel extends React.Component {
     constructor(props) {
@@ -11,6 +12,8 @@ export class ListPanel extends React.Component {
             isNextPageLoading: false,
             scrollTop: 0
         };
+        this.handleScroll = this.handleScroll.bind(this);
+        this.unsetNextPageLoading = this.unsetNextPageLoading.bind(this);
     }
 
     componentWillReceiveProps(nextProps) {
@@ -22,6 +25,10 @@ export class ListPanel extends React.Component {
         }
     }
 
+    unsetNextPageLoading() {
+        this.setState({isNextPageLoading: false});
+    }
+
     handleScroll(event) {
         if (this.state.isNextPageLoading) {
             return;
@@ -31,23 +38,19 @@ export class ListPanel extends React.Component {
 
         // scroll event gets fired on hover of each item in the list.
         // this.state.scrollTop is used to check if the scroll position has changed
-        if (node && node.scrollTop + node.offsetHeight + 50 >= node.scrollHeight &&
-            this.state.scrollTop !== node.scrollTop) {
+        if (node && node.scrollTop + node.offsetHeight + 100 >= node.scrollHeight &&
+            this.state.scrollTop < node.scrollTop) {
             this.setState({isNextPageLoading: true, scrollTop: node.scrollTop});
 
             this.props.loadMore(this.props.activeFilter)
-                .then(() => {
-                    this.setState({isNextPageLoading: false});
-                });
+                .then(this.unsetNextPageLoading, this.unsetNextPageLoading);
         }
 
         if (node.scrollTop === 0 && this.state.scrollTop > 0) {
             this.setState({isNextPageLoading: true, scrollTop: 0});
 
             this.props.filter(this.props.activeFilter)
-                .then(() => {
-                    this.setState({isNextPageLoading: false});
-                });
+                .then(this.unsetNextPageLoading, this.unsetNextPageLoading);
         }
     }
 
@@ -81,33 +84,36 @@ export class ListPanel extends React.Component {
                 />
             </div>
         ) : (
-            <div className="sd-column-box__main-column"
-                onScroll={this.handleScroll.bind(this)}>
-                {groups.map((group) => {
-                    const listGroupProps = {
-                        name: group.date,
-                        items: group.events,
-                        onItemClick: onItemClick,
-                        onDoubleClick: onDoubleClick,
-                        onAddCoverageClick: onAddCoverageClick,
-                        lockedItems: lockedItems,
-                        dateFormat: dateFormat,
-                        timeFormat: timeFormat,
-                        agendas: agendas,
-                        session: session,
-                        privileges: privileges,
-                        activeFilter: activeFilter,
-                        showRelatedPlannings: showRelatedPlannings,
-                        relatedPlanningsInList: relatedPlanningsInList,
-                        currentWorkspace: currentWorkspace,
-                        onMultiSelectClick: onMultiSelectClick,
-                        selectedEventIds: selectedEventIds,
-                        selectedPlanningIds: selectedPlanningIds,
-                        itemActions: itemActions,
-                    };
+            <div className="sd-column-box__main-column sd-column-box__main-column__listpanel">
+                {/* div add here so that infinite scroll is not jittery */}
+                <div className="sd-column-box__main-column__items"
+                    onScroll={this.handleScroll}>
+                    {groups.map((group) => {
+                        const listGroupProps = {
+                            name: group.date,
+                            items: group.events,
+                            onItemClick: onItemClick,
+                            onDoubleClick: onDoubleClick,
+                            onAddCoverageClick: onAddCoverageClick,
+                            lockedItems: lockedItems,
+                            dateFormat: dateFormat,
+                            timeFormat: timeFormat,
+                            agendas: agendas,
+                            session: session,
+                            privileges: privileges,
+                            activeFilter: activeFilter,
+                            showRelatedPlannings: showRelatedPlannings,
+                            relatedPlanningsInList: relatedPlanningsInList,
+                            currentWorkspace: currentWorkspace,
+                            onMultiSelectClick: onMultiSelectClick,
+                            selectedEventIds: selectedEventIds,
+                            selectedPlanningIds: selectedPlanningIds,
+                            itemActions: itemActions,
+                        };
 
-                    return <ListGroup key={group.date} {...listGroupProps} />;
-                })}
+                        return <ListGroup key={group.date} {...listGroupProps} />;
+                    })}
+                </div>
             </div>
         );
     }
