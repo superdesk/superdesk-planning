@@ -1,6 +1,7 @@
 import planningApi from '../api';
 import planningUi from '../ui';
 import eventsPlanningUi from '../../eventsPlanning/ui';
+import main from '../../main';
 import sinon from 'sinon';
 import {registerNotifications} from '../../../utils';
 import planningNotifications from '../notifications';
@@ -420,7 +421,7 @@ describe('actions.planning.notifications', () => {
             etag: 'e123',
         }))
             .then(() => {
-                expect(store.dispatch.callCount).toBe(3);
+                expect(store.dispatch.callCount).toBe(4);
                 expect(store.dispatch.args[0]).toEqual([{
                     type: PLANNING.ACTIONS.SPIKE_PLANNING,
                     payload: {
@@ -459,7 +460,7 @@ describe('actions.planning.notifications', () => {
             etag: 'e123',
         }))
             .then(() => {
-                expect(store.dispatch.callCount).toBe(2);
+                expect(store.dispatch.callCount).toBe(3);
                 expect(store.dispatch.args[0]).toEqual([{
                     type: PLANNING.ACTIONS.SPIKE_PLANNING,
                     payload: {
@@ -481,6 +482,24 @@ describe('actions.planning.notifications', () => {
             });
     });
 
+    it('onPlanningSpiked calls for closing preview or editor', (done) => {
+        sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
+        restoreSinonStub(planningNotifications.onPlanningSpiked);
+        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
+        store.test(done, planningNotifications.onPlanningSpiked({}, {
+            item: data.plannings[0]._id,
+            revert_state: 'draft',
+            etag: 'e123',
+        }))
+            .then(() => {
+                expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
+                restoreSinonStub(main.closePreviewAndEditorForItems);
+
+                done();
+            });
+    });
+
+
     it('onPlanningUnspiked dispatches `UNSPIKE_PLANNING` action combined view', (done) => {
         restoreSinonStub(planningNotifications.onPlanningUnspiked);
         store.initialState.main.filter = MAIN.FILTERS.COMBINED;
@@ -490,7 +509,7 @@ describe('actions.planning.notifications', () => {
             etag: 'e456',
         }))
             .then(() => {
-                expect(store.dispatch.callCount).toBe(3);
+                expect(store.dispatch.callCount).toBe(4);
                 expect(store.dispatch.args[0]).toEqual([{
                     type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
                     payload: {
@@ -529,7 +548,7 @@ describe('actions.planning.notifications', () => {
             etag: 'e456',
         }))
             .then(() => {
-                expect(store.dispatch.callCount).toBe(2);
+                expect(store.dispatch.callCount).toBe(3);
                 expect(store.dispatch.args[0]).toEqual([{
                     type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
                     payload: {
@@ -546,6 +565,23 @@ describe('actions.planning.notifications', () => {
                         spikeState: 'draft'
                     },
                 }]);
+
+                done();
+            });
+    });
+
+    it('onPlanningUnspiked calls for closing preview or editor', (done) => {
+        sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
+        restoreSinonStub(planningNotifications.onPlanningUnspiked);
+        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
+        store.test(done, planningNotifications.onPlanningUnspiked({}, {
+            item: data.plannings[0]._id,
+            state: 'draft',
+            etag: 'e456',
+        }))
+            .then(() => {
+                expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
+                restoreSinonStub(main.closePreviewAndEditorForItems);
 
                 done();
             });

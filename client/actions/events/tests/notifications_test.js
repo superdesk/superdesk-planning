@@ -1,4 +1,5 @@
 import eventsApi from '../api';
+import main from '../../main';
 import sinon from 'sinon';
 import {registerNotifications} from '../../../utils';
 import eventsNotifications from '../notifications';
@@ -347,7 +348,7 @@ describe('actions.events.notifications', () => {
             etag: 'e123',
         }))
             .then(() => {
-                expect(store.dispatch.callCount).toBe(3);
+                expect(store.dispatch.callCount).toBe(4);
                 expect(store.dispatch.args[0]).toEqual([{
                     type: EVENTS.ACTIONS.SPIKE_EVENT,
                     payload: {
@@ -386,7 +387,7 @@ describe('actions.events.notifications', () => {
             etag: 'e123',
         }))
             .then(() => {
-                expect(store.dispatch.callCount).toBe(2);
+                expect(store.dispatch.callCount).toBe(3);
                 expect(store.dispatch.args[0]).toEqual([{
                     type: EVENTS.ACTIONS.SPIKE_EVENT,
                     payload: {
@@ -408,6 +409,22 @@ describe('actions.events.notifications', () => {
             });
     });
 
+    it('onEventSpiked calls for closing preview or editor', (done) => {
+        sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
+        restoreSinonStub(eventsNotifications.onEventSpiked);
+        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
+        store.test(done, eventsNotifications.onEventSpiked({}, {
+            item: data.events[0]._id,
+            revert_state: 'draft',
+            etag: 'e123',
+        }))
+            .then(() => {
+                expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
+                restoreSinonStub(main.closePreviewAndEditorForItems);
+                done();
+            });
+    });
+
     it('onEventUnspiked dispatches `UNSPIKE_EVENT` action combined view', (done) => {
         restoreSinonStub(eventsNotifications.onEventUnspiked);
         store.initialState.main.filter = MAIN.FILTERS.COMBINED;
@@ -417,7 +434,7 @@ describe('actions.events.notifications', () => {
             etag: 'e456',
         }))
             .then(() => {
-                expect(store.dispatch.callCount).toBe(3);
+                expect(store.dispatch.callCount).toBe(4);
                 expect(store.dispatch.args[0]).toEqual([{
                     type: EVENTS.ACTIONS.UNSPIKE_EVENT,
                     payload: {
@@ -456,7 +473,7 @@ describe('actions.events.notifications', () => {
             etag: 'e456',
         }))
             .then(() => {
-                expect(store.dispatch.callCount).toBe(2);
+                expect(store.dispatch.callCount).toBe(3);
                 expect(store.dispatch.args[0]).toEqual([{
                     type: EVENTS.ACTIONS.UNSPIKE_EVENT,
                     payload: {
@@ -478,6 +495,23 @@ describe('actions.events.notifications', () => {
             });
     });
 
+    it('onEventUnspiked calls for closing preview or editor', (done) => {
+        sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
+        restoreSinonStub(eventsNotifications.onEventUnspiked);
+        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
+        store.test(done, eventsNotifications.onEventUnspiked({}, {
+            item: data.events[0]._id,
+            state: 'draft',
+            etag: 'e456',
+        }))
+            .then(() => {
+                expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
+                restoreSinonStub(main.closePreviewAndEditorForItems);
+
+                done();
+            });
+    });
+
     it('onRecurringEventSpiked dispatches `SPIKE_RECURRING_EVENTS` action combined view', (done) => {
         restoreSinonStub(eventsNotifications.onRecurringEventSpiked);
         store.initialState.main.filter = MAIN.FILTERS.COMBINED;
@@ -486,7 +520,7 @@ describe('actions.events.notifications', () => {
             recurrence_id: 'rec1',
         }))
             .then(() => {
-                expect(store.dispatch.callCount).toBe(3);
+                expect(store.dispatch.callCount).toBe(4);
                 expect(store.dispatch.args[0]).toEqual([{
                     type: EVENTS.ACTIONS.SPIKE_RECURRING_EVENTS,
                     payload: {
@@ -517,7 +551,7 @@ describe('actions.events.notifications', () => {
             recurrence_id: 'rec1',
         }))
             .then(() => {
-                expect(store.dispatch.callCount).toBe(2);
+                expect(store.dispatch.callCount).toBe(3);
                 expect(store.dispatch.args[0]).toEqual([{
                     type: EVENTS.ACTIONS.SPIKE_RECURRING_EVENTS,
                     payload: {
@@ -526,6 +560,22 @@ describe('actions.events.notifications', () => {
                         spikeState: 'draft'
                     },
                 }]);
+
+                done();
+            });
+    });
+
+    it('onRecurringEventSpiked calls for closing preview or editor', (done) => {
+        sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
+        restoreSinonStub(eventsNotifications.onRecurringEventSpiked);
+        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
+        store.test(done, eventsNotifications.onRecurringEventSpiked({}, {
+            items: data.events,
+            recurrence_id: 'rec1',
+        }))
+            .then(() => {
+                expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
+                restoreSinonStub(main.closePreviewAndEditorForItems);
 
                 done();
             });
