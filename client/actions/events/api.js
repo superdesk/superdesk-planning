@@ -1,17 +1,29 @@
-import {EVENTS, SPIKED_STATE, WORKFLOW_STATE, PUBLISHED_STATE} from '../../constants';
-import {EventUpdateMethods} from '../../components/fields';
-import {get, isEqual} from 'lodash';
+import {
+    EVENTS,
+    SPIKED_STATE,
+    WORKFLOW_STATE,
+    PUBLISHED_STATE,
+    MAIN
+} from '../../constants';
+import {EventUpdateMethods} from '../../components/Events';
+import {get, isEqual, cloneDeep, pickBy, isNil, isEmpty} from 'lodash';
 import * as selectors from '../../selectors';
-import {isItemLockedInThisSession} from '../../utils';
+import {eventUtils, getTimeZoneOffset, lockUtils, sanitizeTextForQuery, getErrorMessage} from '../../utils';
 import moment from 'moment';
 
 import planningApi from '../planning/api';
+import eventsUi from './ui';
+import locationApi from '../locations';
+import main from '../main';
 
 /**
  * Action dispatcher to load a series of recurring events into the local store.
  * This does not update the list of visible Events
- * @param rid
- * @param spikeState
+ * @param {string} rid
+ * @param {string} spikeState
+ * @param {int} page - The page number to fetch
+ * @param {int} maxResults - The number to events per page
+ * @param {boolean} loadToStore - To load events into store
  */
 const loadEventsByRecurrenceId = (
     rid,
@@ -26,13 +38,14 @@ const loadEventsByRecurrenceId = (
             spikeState: spikeState,
             page: page,
             maxResults: maxResults,
+            onlyFuture: false
         }))
-            .then((data) => {
+            .then((items) => {
                 if (loadToStore) {
-                    dispatch(self.receiveEvents(data._items));
+                    dispatch(self.receiveEvents(items));
                 }
 
-                return Promise.resolve(data._items);
+                return Promise.resolve(items);
             }, (error) => (
                 Promise.reject(error)
             ))
@@ -78,6 +91,168 @@ const unspike = (events) => (
     }
 );
 
+
+const getCriteria = (
+    {
+        advancedSearch = {},
+        fulltext,
+        recurrenceId,
+        spikeState = SPIKED_STATE.NOT_SPIKED,
+        onlyFuture = true,
+        must = []
+    }
+) => {
+    let query = {};
+    const filter = {};
+    let mustNot = [];
+
+    // List of actions to perform if the condition is true
+    [
+        {
+            condition: () => (fulltext),
+            do: () => {
+                must.push({query_string: {query: fulltext}});
+            },
+        },
+        {
+            condition: () => (recurrenceId),
+            do: () => {
+                must.push({term: {recurrence_id: recurrenceId}});
+            },
+        },
+        {
+            condition: () => (advancedSearch.name),
+            do: () => {
+                let queryText = sanitizeTextForQuery(advancedSearch.name);
+
+                must.push({
+                    query_string: {
+                        query: 'name:(' + queryText + ')',
+                        lenient: false,
+                        default_operator: 'AND',
+                    },
+                });
+            },
+        },
+        {
+            condition: () => (advancedSearch.source),
+            do: () => {
+                const providers = advancedSearch.source.map((provider) => provider.name);
+
+                must.push({terms: {source: providers}});
+            },
+        },
+        {
+            condition: () => (advancedSearch.location),
+            do: () => {
+                const location = get(advancedSearch.location, 'name', advancedSearch.location);
+
+                must.push({match_phrase: {'location.name': location}});
+            },
+        },
+        {
+            condition: () => (advancedSearch.calendars),
+            do: () => {
+                const codes = advancedSearch.calendars.map((cat) => cat.qcode);
+
+                must.push({terms: {'calendars.qcode': codes}});
+            },
+        },
+        {
+            condition: () => (advancedSearch.anpa_category),
+            do: () => {
+                const codes = advancedSearch.anpa_category.map((cat) => cat.qcode);
+
+                must.push({terms: {'anpa_category.qcode': codes}});
+            },
+        },
+        {
+            condition: () => (advancedSearch.subject),
+            do: () => {
+                const codes = advancedSearch.subject.map((sub) => sub.qcode);
+
+                must.push({terms: {'subject.qcode': codes}});
+            },
+        },
+        {
+            condition: () => (advancedSearch.dates),
+            do: () => {
+                let range = {};
+
+                if (advancedSearch.dates.start) {
+                    range['dates.start'] = {
+                        gte: advancedSearch.dates.start,
+                        time_zone: getTimeZoneOffset()
+                    };
+                }
+
+                if (advancedSearch.dates.end) {
+                    range['dates.end'] = {
+                        lte: advancedSearch.dates.end,
+                        time_zone: getTimeZoneOffset()
+                    };
+                }
+
+                if (isEmpty(range)) {
+                    range = {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}};
+                }
+
+                filter.range = range;
+            },
+        },
+        {
+            condition: () => (advancedSearch.slugline),
+            do: () => {
+                let queryText = sanitizeTextForQuery(advancedSearch.slugline);
+
+                must.push({
+                    query_string: {
+                        query: 'slugline:(' + queryText + ')',
+                        lenient: false,
+                        default_operator: 'AND',
+                    },
+                });
+            },
+        },
+        {
+            condition: () => (advancedSearch.published),
+            do: () => {
+                must.push({term: {pubstatus: PUBLISHED_STATE.USABLE}});
+            },
+        }
+    // loop over actions and performs if conditions are met
+    ].forEach((action) => {
+        if (action.condition()) {
+            action.do();
+        }
+    });
+
+    // if advanced search dates are not specified and onlyfuture events
+    if (!get(advancedSearch, 'dates') && onlyFuture) {
+        filter.range = {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}};
+    }
+
+    if (!advancedSearch.published) {
+        switch (spikeState) {
+        case SPIKED_STATE.SPIKED:
+            must.push({term: {state: WORKFLOW_STATE.SPIKED}});
+            break;
+        case SPIKED_STATE.BOTH:
+            break;
+        case SPIKED_STATE.NOT_SPIKED:
+        default:
+            mustNot.push({term: {state: WORKFLOW_STATE.SPIKED}});
+        }
+    }
+
+    query.bool = {
+        must: must,
+        must_not: mustNot,
+    };
+
+    return {query, filter};
+};
+
 /**
  * Action Dispatcher for query the api for events
  * You can provide one of the following parameters to fetch from the server
@@ -85,9 +260,11 @@ const unspike = (events) => (
  * @param {object} fulltext - Full text search parameters
  * @param {Array} ids - An array of Event IDs to fetch
  * @param {string} recurrenceId - The recurrence_id to fetch recurring events
- * @param {date} startDateGreaterThan - Start date range
+ * @param {string} spikeState - The item state to filter by
+ * @param {boolean} onlyFuture - Get future events. Onlyfuture is ignored if advancedSearch.dates specified.
  * @param {int} page - The page number to fetch
- * @param {string} state - The item state to filter by
+ * @param {int} maxResults - The number to events per page
+ * @param {boolean} storeTotal - True to store total in the store
  * @return arrow function
  */
 const query = (
@@ -96,16 +273,14 @@ const query = (
         fulltext,
         ids,
         recurrenceId,
-        startDateGreaterThan,
-        page = 1,
-        maxResults = 25,
         spikeState = SPIKED_STATE.NOT_SPIKED,
-    }
+        onlyFuture = true,
+        page = 1,
+        maxResults = MAIN.PAGE_SIZE
+    },
+    storeTotal = false
 ) => (
     (dispatch, getState, {api}) => {
-        let query = {};
-        const filter = {};
-        let mustNot = [];
         let must = [];
 
         if (ids) {
@@ -127,134 +302,20 @@ const query = (
                 }
                 // flattern responses and return a response-like object
                 return Promise.all(requests).then((responses) => (
-                    {_items: Array.prototype.concat(...responses.map((r) => r._items))}
+                    Array.prototype.concat.apply([], responses)
                 ));
             }
         }
-        // List of actions to perform if the condition is true
-        [
+
+        const criteria = self.getCriteria(
             {
-                condition: () => (fulltext),
-                do: () => {
-                    must.push({query_string: {query: fulltext}});
-                },
-            },
-            {
-                condition: () => (recurrenceId),
-                do: () => {
-                    must.push({term: {recurrence_id: recurrenceId}});
-                },
-            },
-            {
-                condition: () => (startDateGreaterThan),
-                do: () => {
-                    filter.range = {
-                        ...get(filter, 'range', {}),
-                        'dates.start': {gt: startDateGreaterThan},
-                    };
-                },
-            },
-            {
-                condition: () => (advancedSearch.name),
-                do: () => {
-                    must.push({query_string: {query: advancedSearch.name}});
-                },
-            },
-            {
-                condition: () => (advancedSearch.source),
-                do: () => {
-                    const providers = advancedSearch.source.map((provider) => provider.name);
-                    const queries = providers.map((provider) => (
-                        {term: {source: provider}}
-                    ));
-
-                    must.push(...queries);
-                },
-            },
-            {
-                condition: () => (advancedSearch.location),
-                do: () => {
-                    const location = get(advancedSearch.location, 'name', advancedSearch.location);
-
-                    must.push({match_phrase: {'location.name': location}});
-                },
-            },
-            {
-                condition: () => (advancedSearch.calendars),
-                do: () => {
-                    const codes = advancedSearch.calendars.map((cat) => cat.qcode);
-                    const queries = codes.map((code) => (
-                        {term: {'calendars.qcode': code}}
-                    ));
-
-                    must.push(...queries);
-                },
-            },
-            {
-                condition: () => (advancedSearch.anpa_category),
-                do: () => {
-                    const codes = advancedSearch.anpa_category.map((cat) => cat.qcode);
-                    const queries = codes.map((code) => (
-                        {term: {'anpa_category.qcode': code}}
-                    ));
-
-                    must.push(...queries);
-                },
-            },
-            {
-                condition: () => (advancedSearch.subject),
-                do: () => {
-                    const codes = advancedSearch.subject.map((sub) => sub.qcode);
-                    const queries = codes.map((code) => (
-                        {term: {'subject.qcode': code}}
-                    ));
-
-                    must.push(...queries);
-                },
-            },
-            {
-                condition: () => (advancedSearch.dates),
-                do: () => {
-                    const range = {};
-
-                    if (advancedSearch.dates.start) {
-                        range['dates.start'] = {gte: advancedSearch.dates.start};
-                    }
-
-                    if (advancedSearch.dates.end) {
-                        range['dates.end'] = {lte: advancedSearch.dates.end};
-                    }
-
-                    filter.range = range;
-                },
-            },
-        // loop over actions and performs if conditions are met
-        ].forEach((action) => {
-            if (action.condition()) {
-                action.do();
-            }
-        });
-
-        // default filter
-        if (isEqual(filter, {}) && isEqual(must, []) && isEqual(mustNot, [])) {
-            filter.range = {'dates.end': {gte: 'now/d'}};
-        }
-
-        switch (spikeState) {
-        case SPIKED_STATE.SPIKED:
-            must.push({term: {state: WORKFLOW_STATE.SPIKED}});
-            break;
-        case SPIKED_STATE.BOTH:
-            break;
-        case SPIKED_STATE.NOT_SPIKED:
-        default:
-            mustNot.push({term: {state: WORKFLOW_STATE.SPIKED}});
-        }
-
-        query.bool = {
-            must: must,
-            must_not: mustNot,
-        };
+                advancedSearch,
+                fulltext,
+                recurrenceId,
+                spikeState,
+                onlyFuture,
+                must
+            });
 
         // Query the API and sort by date
         return api('events').query({
@@ -263,22 +324,22 @@ const query = (
             sort: '[("dates.start",1)]',
             embedded: {files: 1},
             source: JSON.stringify({
-                query: query,
-                filter: filter,
-            }),
+                query: criteria.query,
+                filter: criteria.filter,
+            })
         })
         // convert dates to moment objects
-            .then((data) => ({
-                ...data,
-                _items: data._items.map((item) => ({
-                    ...item,
-                    dates: {
-                        ...item.dates,
-                        start: moment(item.dates.start),
-                        end: moment(item.dates.end),
-                    },
-                })),
-            }));
+            .then((data) => {
+                const results = {
+                    ...data,
+                    _items: data._items.map(eventUtils.convertToMoment),
+                };
+
+                if (storeTotal) {
+                    dispatch(main.setTotal(MAIN.FILTERS.EVENTS, get(data, '_meta.total')));
+                }
+                return get(results, '_items');
+            });
     }
 );
 
@@ -287,10 +348,9 @@ const query = (
  * It achieves this by performing a fetch using the params from
  * the store value `events.lastRequestParams`
  */
-const refetchEvents = () => (
+const refetch = () => (
     (dispatch, getState) => {
-        const prevParams = selectors.getPreviousEventRequestParams(getState());
-
+        const prevParams = selectors.main.lastRequestParams(getState());
         const promises = [];
 
         for (let i = 1; i <= prevParams.page; i++) {
@@ -299,18 +359,13 @@ const refetchEvents = () => (
                 page: i,
             };
 
-            dispatch({
-                type: EVENTS.ACTIONS.REQUEST_EVENTS,
-                payload: params,
-            });
-            promises.push(dispatch(self.query(params)));
+            dispatch(eventsUi.requestEvents(params));
+            promises.push(dispatch(self.query(params, true)));
         }
 
         return Promise.all(promises)
             .then((responses) => {
-                let events = responses
-                    .map((e) => e._items)
-                    .reduce((a, b) => a.concat(b));
+                let events = Array.prototype.concat.apply([], responses);
 
                 dispatch(self.receiveEvents(events));
                 return Promise.resolve(events);
@@ -373,14 +428,15 @@ const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true) => (
 const loadEventDataForAction = (event, loadPlanning = true, publish = false) => (
     (dispatch) => (
         dispatch(self.loadRecurringEventsAndPlanningItems(event, loadPlanning))
-            .then((relatedEvents) => (
-                Promise.resolve({
+            .then((relatedEvents) => {
+                let modifiedEvent = {
                     ...event,
                     dates: {
                         ...event.dates,
                         start: moment(event.dates.start),
                         end: moment(event.dates.end),
                     },
+                    _type: 'events',
                     _recurring: relatedEvents.events,
                     _publish: publish,
                     _events: [],
@@ -389,8 +445,15 @@ const loadEventDataForAction = (event, loadPlanning = true, publish = false) => 
                     _relatedPlannings: relatedEvents.plannings.filter(
                         (p) => p.event_item === event._id
                     ),
-                })
-            ), (error) => Promise.reject(error))
+                };
+
+                if (get(modifiedEvent, 'dates.recurring_rule.until')) {
+                    modifiedEvent.dates.recurring_rule.until =
+                        moment(modifiedEvent.dates.recurring_rule.until);
+                }
+
+                return Promise.resolve(modifiedEvent);
+            }, (error) => Promise.reject(error))
     )
 );
 
@@ -469,7 +532,7 @@ const receiveEvents = (events) => ({
 const lock = (event, action = 'edit') => (
     (dispatch, getState, {api, notify}) => {
         if (action === null ||
-            isItemLockedInThisSession(event, selectors.getSessionDetails(getState()))
+            lockUtils.isItemLockedInThisSession(event, selectors.getSessionDetails(getState()))
         ) {
             return Promise.resolve(event);
         }
@@ -477,9 +540,10 @@ const lock = (event, action = 'edit') => (
         return api('events_lock', event).save({}, {lock_action: action})
             .then(
                 (item) => {
-                // On lock, file object in the event is lost, so, replace it from original event
+                    // On lock, file object in the event is lost, so, replace it from original event
                     item.files = event.files;
-                    return item;
+
+                    return Promise.resolve(item);
                 }, (error) => {
                     const msg = get(error, 'data._message') || 'Could not lock the event.';
 
@@ -492,13 +556,15 @@ const lock = (event, action = 'edit') => (
 const unlock = (event) => (
     (dispatch, getState, {api, notify}) => (
         api('events_unlock', event).save({})
-            .then((item) => (item),
+            .then(
+                (item) => Promise.resolve(item),
                 (error) => {
-                    const msg = get(error, 'data._message') || 'Could not unlock the event.';
-
-                    notify.error(msg);
-                    throw error;
-                })
+                    notify.error(
+                        getErrorMessage(error, 'Could not unlock the event')
+                    );
+                    return Promise.reject(error);
+                }
+            )
     )
 );
 
@@ -518,9 +584,10 @@ const silentlyFetchEventsById = (ids, spikeState = SPIKED_STATE.NOT_SPIKED, save
                     // distinct ids
                     ids: ids.filter((v, i, a) => (a.indexOf(v) === i)),
                     spikeState: spikeState,
+                    onlyFuture: false
                 }))
                     .then(
-                        (data) => resolve(data._items),
+                        (items) => resolve(items),
                         (error) => reject(error)
                     );
             } else {
@@ -593,6 +660,19 @@ const publishEvent = (event) => (
     )
 );
 
+const updateEventTime = (event) => (
+    (dispatch, getState, {api}) => (
+        api.update(
+            'events_update_time',
+            event,
+            {
+                update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
+                dates: event.dates,
+            }
+        )
+    )
+);
+
 const markEventCancelled = (event, reason, occurStatus) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_CANCELLED,
     payload: {
@@ -618,13 +698,183 @@ const markEventHasPlannings = (event, planning) => ({
     },
 });
 
+/**
+ * Action Dispatcher to fetch event history from the server
+ * This will add the history of action on that event in event history list
+ * @param {object} eventId - Query parameters to send to the server
+ * @return arrow function
+ */
+const fetchEventHistory = (eventId) => (
+    (dispatch, getState, {api}) => (
+        // Query the API and sort by created
+        api('events_history').query({
+            where: {event_id: eventId},
+            max_results: 200,
+            sort: '[(\'_created\', 1)]',
+        })
+            .then((data) => {
+                dispatch(eventsUi.receiveEventHistory(data._items));
+                return data;
+            })
+    )
+);
+
+/**
+ * Set event.pubstatus canceled and publish event.
+ *
+ * @param {Object} event
+ */
+const unpublish = (event) => (
+    (dispatch, getState, {api, notify}) => (
+        api.save('events_publish', {
+            event: event._id,
+            etag: event._etag,
+            pubstatus: PUBLISHED_STATE.CANCELLED,
+        })
+    )
+);
+
+const _uploadFiles = (event) => (
+    (dispatch, getState, {upload}) => {
+        const clonedEvent = cloneDeep(event);
+
+        // If no files, do nothing
+        if (get(clonedEvent, 'files.length', 0) === 0) {
+            return Promise.resolve([]);
+        }
+
+        // Calculate the files to upload
+        const filesToUpload = clonedEvent.files.filter(
+            (f) => f instanceof FileList || f instanceof Array
+        );
+
+        if (filesToUpload.length < 1) {
+            return Promise.resolve([]);
+        }
+
+        return Promise.all(filesToUpload.map((file) => (
+            upload.start({
+                method: 'POST',
+                url: getState().config.server.url + '/events_files/',
+                headers: {'Content-Type': 'multipart/form-data'},
+                data: {media: [file]},
+                arrayKey: ''
+            })
+                .then(
+                    (file) => Promise.resolve(file.data),
+                    (error) => Promise.reject(error)
+                )
+        )));
+    }
+);
+
+/**
+ * Action Dispatcher for saving the location for an event
+ * @param {object} event - The event the location is associated with
+ * @return arrow function
+ */
+const _saveLocation = (event) => (
+    (dispatch) => {
+        const location = get(event, 'location');
+
+        if (!location || !location.name) {
+            delete event.location;
+            return Promise.resolve(event);
+        } else if (location.existingLocation) {
+            event.location = {
+                name: location.name,
+                qcode: location.guid,
+                address: location.address
+            };
+
+            delete location.address.external;
+
+            return Promise.resolve(event);
+        } else if (isNil(location.qcode)) {
+            // the location is set, but doesn't have a qcode (not registered in the location collection)
+            return dispatch(locationApi.saveLocation(location))
+                .then((savedLocation) => {
+                    event.location = savedLocation;
+                    return Promise.resolve(event);
+                });
+        } else {
+            return Promise.resolve(event);
+        }
+    }
+);
+
+const _save = (newEvent) => (
+    (dispatch, getState, {api}) => {
+        // remove links if it contains only null values
+        if (newEvent.links && newEvent.links.length > 0) {
+            newEvent.links = newEvent.links.filter((l) => (l));
+            if (!newEvent.links.length) {
+                delete newEvent.links;
+            }
+        }
+        // retrieve original
+        let original = selectors.getEvents(getState())[newEvent._id];
+        // clone the original because `save` will modify it
+
+        original = cloneDeep(original) || {};
+        let clonedEvent = cloneDeep(newEvent) || {};
+
+        // save the timezone. This is useful for recurring events
+        if (clonedEvent.dates) {
+            clonedEvent.dates.tz = moment.tz.guess();
+        }
+
+        original.location = original.location ? [original.location] : null;
+        clonedEvent.location = clonedEvent.location ? [clonedEvent.location] : null;
+
+        // remove all properties starting with _,
+        // otherwise it will fail for "unknown field" with `_type`
+        clonedEvent = pickBy(clonedEvent, (v, k) => (
+            !k.startsWith('_') &&
+            !isEqual(clonedEvent[k], original[k])
+        ));
+
+        clonedEvent.update_method = get(clonedEvent, 'update_method.value', EventUpdateMethods[0].value);
+
+        // send the event on the backend
+        return api('events').save(original, clonedEvent)
+        // return a list of events (can have several because of reccurence)
+            .then((data) => (
+                Promise.resolve(data._items || [data])
+            ), (error) => Promise.reject(error));
+    }
+);
+
+const save = (event) => (
+    (dispatch, getState, {notify}) => (
+        Promise.all([
+            dispatch(self._uploadFiles(event)), // Returns the new files uploaded
+            dispatch(self._saveLocation(event)), // Returns the modified unsaved event with the locations changes
+        ])
+            .then((data) => {
+                const newFiles = data[0];
+                const modifiedEvent = data[1];
+                const originalFiles = get(modifiedEvent, 'files', []).filter(
+                    (f) => !(f instanceof FileList) && !(f instanceof Array)
+                );
+
+                modifiedEvent.files = [
+                    ...originalFiles.map((e) => e._id),
+                    ...newFiles.map((e) => e._id)
+                ];
+
+                return dispatch(self._save(modifiedEvent));
+            })
+    )
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     loadEventsByRecurrenceId,
     spike,
     unspike,
     query,
-    refetchEvents,
+    refetch,
     receiveEvents,
     loadRecurringEventsAndPlanningItems,
     lock,
@@ -634,6 +884,7 @@ const self = {
     markEventCancelled,
     markEventHasPlannings,
     rescheduleEvent,
+    updateEventTime,
     markEventPostponed,
     postponeEvent,
     loadEventDataForAction,
@@ -641,6 +892,13 @@ const self = {
     getEvent,
     loadAssociatedPlannings,
     publishEvent,
+    fetchEventHistory,
+    unpublish,
+    _uploadFiles,
+    _save,
+    save,
+    _saveLocation,
+    getCriteria
 };
 
 export default self;

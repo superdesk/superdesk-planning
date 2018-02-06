@@ -1,10 +1,12 @@
 import * as selectors from '../../selectors';
-import {WORKFLOW_STATE, EVENTS, MODALS} from '../../constants';
+import {WORKFLOW_STATE, EVENTS, MODALS, SPIKED_STATE} from '../../constants';
 import {showModal, hideModal} from '../index';
 import eventsApi from './api';
 import eventsUi from './ui';
+import main from '../main';
 import {get} from 'lodash';
-import {getLock} from '../../utils';
+import {lockUtils} from '../../utils';
+import eventsPlanning from '../eventsPlanning';
 
 /**
  * Action Event when an Event gets unlocked
@@ -15,9 +17,9 @@ const onEventUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
             const events = selectors.getEvents(getState());
-            const locks = selectors.getLockedItems(getState());
+            const locks = selectors.locks.getLockedItems(getState());
             let eventInStore = get(events, data.item, {});
-            const itemLock = getLock(eventInStore, locks);
+            const itemLock = lockUtils.getLock(eventInStore, locks);
             const sessionId = selectors.getSessionDetails(getState()).sessionId;
 
             // If this is the event item currently being edited, show popup notification
@@ -109,8 +111,18 @@ const onEventSpiked = (_e, data) => (
 
             dispatch({
                 type: EVENTS.ACTIONS.SPIKE_EVENT,
-                payload: {event: eventInStore},
+                payload: {
+                    event: eventInStore,
+                    spikeState: get(
+                        selectors.main.eventsSearch(getState()),
+                        'spikeState',
+                        SPIKED_STATE.NOT_SPIKED
+                    )
+                },
             });
+
+            dispatch(eventsPlanning.notifications.onEventSpiked(_e, data));
+            dispatch(main.closePreviewAndEditorForItems([eventInStore]));
 
             return Promise.resolve(eventInStore);
         }
@@ -140,8 +152,18 @@ const onEventUnspiked = (_e, data) => (
 
             dispatch({
                 type: EVENTS.ACTIONS.UNSPIKE_EVENT,
-                payload: {event: eventInStore},
+                payload: {
+                    event: eventInStore,
+                    spikeState: get(
+                        selectors.main.eventsSearch(getState()),
+                        'spikeState',
+                        SPIKED_STATE.NOT_SPIKED
+                    )
+                },
             });
+
+            dispatch(eventsPlanning.notifications.onEventUnspiked(_e, data));
+            dispatch(main.closePreviewAndEditorForItems([eventInStore]));
 
             return Promise.resolve(eventInStore);
         }
@@ -166,17 +188,12 @@ const onEventCancelled = (e, data) => (
     }
 );
 
-const onEventRescheduled = (e, data) => (
+const onEventScheduleChanged = (e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            dispatch(eventsUi.refetchEvents());
-            dispatch(eventsApi.getEvent(data.item, false))
-                .then((event) => (
-                    dispatch({
-                        type: EVENTS.ACTIONS.UNLOCK_EVENT,
-                        payload: {event},
-                    })
-                ));
+            dispatch(eventsUi.scheduleRefetch());
+            dispatch(eventsPlanning.ui.scheduleRefetch());
+            dispatch(eventsApi.getEvent(data.item, false));
         }
     }
 );
@@ -227,15 +244,23 @@ const onEventPublishChanged = (e, data) => (
 );
 
 const onRecurringEventSpiked = (e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (get(data, 'items')) {
             dispatch({
                 type: EVENTS.ACTIONS.SPIKE_RECURRING_EVENTS,
                 payload: {
                     events: data.items,
                     recurrence_id: data.recurrence_id,
+                    spikeState: get(
+                        selectors.main.eventsSearch(getState()),
+                        'spikeState',
+                        SPIKED_STATE.NOT_SPIKED
+                    )
                 },
             });
+
+            dispatch(eventsPlanning.notifications.onRecurringEventSpiked(e, data));
+            dispatch(main.closePreviewAndEditorForItems(data.items));
 
             return Promise.resolve(data.items);
         }
@@ -251,7 +276,7 @@ const self = {
     onEventSpiked,
     onEventUnspiked,
     onEventCancelled,
-    onEventRescheduled,
+    onEventScheduleChanged,
     onEventPostponed,
     onEventPublishChanged,
     onRecurringEventSpiked,
@@ -264,11 +289,14 @@ self.events = {
     'events:spiked': () => (self.onEventSpiked),
     'events:unspiked': () => (self.onEventUnspiked),
     'events:cancelled': () => (self.onEventCancelled),
-    'events:rescheduled': () => (self.onEventRescheduled),
+    'events:reschedule': () => (self.onEventScheduleChanged),
+    'events:reschedule:recurring': () => (self.onEventScheduleChanged),
     'events:postponed': () => (self.onEventPostponed),
     'events:published': () => (self.onEventPublishChanged),
     'events:unpublished': () => (self.onEventPublishChanged),
     'events:spiked:recurring': () => (self.onRecurringEventSpiked),
+    'events:update_time': () => (self.onEventScheduleChanged),
+    'events:update_time:recurring': () => (self.onEventScheduleChanged),
 };
 
 export default self;

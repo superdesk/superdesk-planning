@@ -1,65 +1,82 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import {Provider} from 'react-redux';
+
 import {mount} from 'enzyme';
 import sinon from 'sinon';
-import {Provider} from 'react-redux';
+import {set, cloneDeep} from 'lodash';
+
 import {Autosave} from './index';
+import {TextInput} from '../UI/Form';
+
 import {createTestStore} from '../../utils';
-import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
+import {getTestActionStore, restoreSinonStub, waitFor} from '../../utils/testUtils';
 import {autosave} from '../../actions';
-import {reduxForm, Field, initialize} from 'redux-form';
-import * as helpers from '../tests/helpers';
+import * as helpers from '../tests/helpers/ui/form';
+
+const TestForm = ({onChange, formData, formName}) => (
+    <div>
+        <Autosave
+            formName={formName}
+            initialValues={cloneDeep(formData.initial)}
+            currentValues={cloneDeep(formData.current)}
+            change={onChange}
+            interval={250}
+        />
+        <TextInput
+            label="Name"
+            field="name"
+            value={formData.current.name}
+            onChange={onChange}
+        />
+        <TextInput
+            label="Slugline"
+            field="slugline"
+            value={formData.current.slugline}
+            onChange={onChange}
+        />
+        <TextInput
+            label="Description"
+            field="definition_short"
+            value={formData.current.definition_short}
+            onChange={onChange}
+        />
+    </div>
+);
+
+TestForm.propTypes = {
+    onChange: PropTypes.func,
+    formName: PropTypes.string,
+    formData: PropTypes.object,
+};
 
 describe('<Autosave />', () => {
     let formName;
+    let formData;
+    let onChange;
     let autosaveData;
+
     let astore;
+    let store;
     let services;
     let data;
-    let store;
 
-    const TestFormComponent = () => (
-        <form>
-            <Autosave formName={formName} interval={1000}/>
-            <Field
-                name="name"
-                component="input"
-                type="text"
-                readOnly={false}
-            />
-            <Field
-                name="slugline"
-                component="input"
-                type="text"
-                readOnly={false}
-            />
-            <Field
-                name="definition_short"
-                component="input"
-                type="text"
-                readOnly={false}
-            />
-        </form>
-    );
-
-    const getWrapper = (values = {}) => {
-        const TestForm = reduxForm({form: formName})(TestFormComponent);
-
-        return mount(
-            <Provider store={store}>
-                <TestForm
-                    initialValues={values}
-                />
-            </Provider>
-        );
-    };
+    let wrapper;
+    let inputs;
 
     beforeEach(() => {
+        formName = 'testForm';
+        formData = {
+            initial: {},
+            current: {}
+        };
+        autosaveData = {};
+
+        onChange = sinon.spy((field, value) => set(formData.current, field, value));
+
         astore = getTestActionStore();
         services = astore.services;
         data = astore.data;
-
-        formName = 'testForm';
-        autosaveData = {};
 
         sinon.spy(autosave, 'load');
         sinon.spy(autosave, 'save');
@@ -72,21 +89,44 @@ describe('<Autosave />', () => {
 
     const initStore = () => {
         astore.init();
-        astore.initialState.autosave[formName] = autosaveData;
+        astore.initialState.forms.autosaves[formName] = autosaveData;
         store = createTestStore({
             initialState: astore.initialState,
             extraArguments: {
                 api: services.api,
                 notify: services.notify,
-            },
+            }
         });
     };
 
-    const getAutosave = () => store.getState().autosave[formName];
+    const setWrapper = (values) => {
+        formData = {
+            initial: cloneDeep(values),
+            current: cloneDeep(values)
+        };
+
+        wrapper = mount(
+            <Provider store={store}>
+                <TestForm
+                    onChange={onChange}
+                    formName={formName}
+                    formData={formData}
+                />
+            </Provider>
+        );
+
+        inputs = {
+            name: new helpers.Input(wrapper, 'name'),
+            slugline: new helpers.Input(wrapper, 'slugline'),
+            description: new helpers.Input(wrapper, 'definition_short'),
+        };
+    };
+
+    const getAutosave = () => store.getState().forms.autosaves[formName];
 
     it('doesnt load from autosave if a new object is provided', () => {
         initStore();
-        getWrapper({slugline: 'new slugline'});
+        setWrapper({slugline: 'new slugline'});
         expect(autosave.load.callCount).toBe(0);
         expect(getAutosave()).toEqual({});
     });
@@ -97,114 +137,141 @@ describe('<Autosave />', () => {
 
         expect(getAutosave()).toEqual({e1: {slugline: 'New Slugline'}});
 
-        const wrapper = getWrapper(data.events[0]);
-        const form = new helpers.form(wrapper);
+        setWrapper(data.events[0]);
+        wrapper.update();
 
         expect(autosave.load.callCount).toBe(1);
         expect(autosave.load.args[0]).toEqual([formName, data.events[0]._id]);
 
-        expect(form.getValue('slugline')).toBe('New Slugline');
+        expect(inputs.slugline.value()).toBe('New Slugline');
     });
 
-    it('changes to values get stored in redux', () => {
+    it('changes to values get stored in redux', (done) => {
         initStore();
-
-        const wrapper = getWrapper(data.events[0]);
-        const form = new helpers.form(wrapper);
+        setWrapper(data.events[0]);
 
         expect(autosave.save.callCount).toBe(0);
 
-        form.setValue('slugline', 'New Slugline');
-        expect(autosave.save.callCount).toBe(1);
+        inputs.slugline.change('New Slugline');
 
-        expect(store.getState().autosave[formName].e1).toEqual({
-            _id: 'e1',
-            slugline: 'New Slugline',
-        });
+        // Wait for <Autosave>.save (lodash.throttle) to trigger
+        waitFor(() => autosave.save.callCount > 0)
+            .then(() => {
+                expect(autosave.save.callCount).toBe(1);
+                expect(getAutosave().e1).toEqual({
+                    _id: 'e1',
+                    slugline: 'New Slugline',
+                });
+
+                done();
+            });
     });
 
     it('throttles autosaving the data', (done) => {
         initStore();
-
-        const wrapper = getWrapper(data.events[0]);
-        const form = new helpers.form(wrapper);
-        const slugline = form.field('slugline');
-
-        expect(autosave.save.callCount).toBe(0);
+        setWrapper(data.events[0]);
 
         for (let i = 0; i < 100; i++) {
-            slugline.setValue(`Slug ${i}`);
+            inputs.slugline.change(`Slug ${i}`);
         }
 
-        expect(autosave.save.callCount).toBe(1);
-        setTimeout(() => {
-            expect(autosave.save.callCount).toBe(2);
-            done();
-        }, 1500);
+        // Because of throttling, we haven't actually saved the data yet
+        expect(autosave.save.callCount).toBe(0);
+
+        // Wait for <Autosave>.save (lodash.throttle) to trigger
+        waitFor(() => autosave.save.callCount > 0)
+            .then(() => {
+                expect(autosave.save.callCount).toBe(1);
+                done();
+            });
     });
 
-    it('switching form objects', () => {
+    it('switching form objects', (done) => {
         initStore();
-
-        const wrapper = getWrapper(data.events[0]);
-        const form = new helpers.form(wrapper);
-        const slugline = form.field('slugline');
-        const definition = form.field('definition_short');
+        setWrapper(data.events[0]);
 
         expect(autosave.load.callCount).toBe(1);
         expect(autosave.load.args[0]).toEqual([formName, data.events[0]._id]);
 
-        slugline.setValue('New Slugline 1');
-        definition.setValue('define me');
-        expect(autosave.save.callCount).toBe(1);
+        inputs.slugline.change('New Slugline 1');
+        inputs.description.change('define me');
 
-        store.dispatch(initialize(formName, data.events[1]));
+        // Wait for <Autosave>.save (lodash.throttle) to trigger
+        waitFor(() => autosave.save.callCount > 0)
+            .then(() => {
+                expect(autosave.save.callCount).toBe(1);
+                expect(getAutosave()).toEqual({
+                    e1: {
+                        _id: 'e1',
+                        slugline: 'New Slugline 1',
+                        definition_short: 'define me',
+                    },
+                });
 
-        expect(getAutosave()).toEqual({
-            e1: {
-                _id: 'e1',
-                slugline: 'New Slugline 1',
-                definition_short: 'define me',
-            },
-        });
+                // Change the form to another object
+                formData.initial = cloneDeep(data.events[1]);
+                formData.current = cloneDeep(data.events[1]);
+                wrapper.update();
 
-        expect(autosave.load.callCount).toBe(2);
-        expect(autosave.load.args[1]).toEqual([formName, data.events[1]._id]);
+                expect(autosave.load.callCount).toBe(2);
+                expect(autosave.load.args[1]).toEqual([formName, data.events[1]._id]);
 
-        slugline.setValue('New Slugline 2');
-        expect(autosave.save.callCount).toBe(3);
+                inputs.slugline.change('New Slugline 2');
 
-        expect(getAutosave()).toEqual({
-            e1: {
-                _id: 'e1',
-                slugline: 'New Slugline 1',
-                definition_short: 'define me',
-            },
-            e2: {
-                _id: 'e2',
-                slugline: 'New Slugline 2',
-            },
-        });
+                // Wait for <Autosave>.save (lodash.throttle) to trigger
+                return waitFor(() => autosave.save.callCount > 1);
+            })
+            .then(() => {
+                expect(autosave.save.callCount).toBe(2);
+                wrapper.update();
 
-        store.dispatch(initialize(formName, {slugline: 'New Form Object'}));
+                expect(getAutosave()).toEqual({
+                    e1: {
+                        _id: 'e1',
+                        slugline: 'New Slugline 1',
+                        definition_short: 'define me',
+                    },
+                    e2: {
+                        _id: 'e2',
+                        slugline: 'New Slugline 2',
+                    },
+                });
 
-        slugline.setValue('Wont Save Autosave');
-        expect(autosave.save.callCount).toBe(3);
+                // Change the form to create a new object
+                formData.initial = {slugline: 'New Form Object'};
+                formData.current = {slugline: 'New Form Object'};
+                wrapper.update();
 
-        expect(getAutosave()).toEqual({
-            e1: {
-                _id: 'e1',
-                slugline: 'New Slugline 1',
-                definition_short: 'define me',
-            },
-            e2: {
-                _id: 'e2',
-                slugline: 'New Slugline 2',
-            },
-        });
+                inputs.slugline.change('Wont Save Autosave');
+                return waitFor(() => autosave.save.callCount > 2, 250, 2);
+            })
+            .then(null, (msg) => {
+                expect(msg).toBe('waitFor: Maximum retries exceeded');
+                expect(autosave.save.callCount).toBe(2);
 
-        store.dispatch(initialize(formName, data.events[0]));
-        expect(slugline.getValue()).toBe('New Slugline 1');
-        expect(definition.getValue()).toBe('define me');
+                expect(getAutosave()).toEqual({
+                    e1: {
+                        _id: 'e1',
+                        slugline: 'New Slugline 1',
+                        definition_short: 'define me',
+                    },
+                    e2: {
+                        _id: 'e2',
+                        slugline: 'New Slugline 2',
+                    },
+                });
+
+                // Change the form back to the first event
+                formData.initial = cloneDeep(data.events[0]);
+                formData.current = cloneDeep(data.events[0]);
+                wrapper.update();
+
+                expect(autosave.load.callCount).toBe(3);
+                wrapper.update();
+
+                expect(inputs.slugline.value()).toBe('New Slugline 1');
+                expect(inputs.description.value()).toBe('define me');
+                done();
+            });
     });
 });

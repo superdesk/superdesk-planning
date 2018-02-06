@@ -24,7 +24,6 @@ export class CoverageDetailsComponent extends React.Component {
             readOnly,
             contentType,
             formProfile,
-            keywords,
             assignmentState,
             hasAssignment,
             newsCoverageStatus,
@@ -72,17 +71,6 @@ export class CoverageDetailsComponent extends React.Component {
                             label="Ed Note"
                             required={get(formProfile, 'schema.ednote.required')}
                             readOnly={roFields.ednote} />
-                    </div>
-                }
-                {get(formProfile, 'editor.keyword.enabled') &&
-                    <div className="form__row">
-                        <Field
-                            name={`${coverage}.planning.keyword`}
-                            component={fields.TagSelectField}
-                            label="Keywords"
-                            required={get(formProfile, 'schema.keyword.required')}
-                            options={keywords}
-                            readOnly={roFields.keyword} />
                     </div>
                 }
                 {get(formProfile, 'editor.internal_note.enabled') &&

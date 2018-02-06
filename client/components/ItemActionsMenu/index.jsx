@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {get} from 'lodash';
 import {ActionsMenu} from './ActionsMenu';
 import {GENERIC_ITEM_ACTIONS} from '../../constants';
 import './style.scss';
@@ -13,6 +12,7 @@ export class ItemActionsMenu extends React.Component {
         super(props);
         this.state = {isOpen: false};
         this.handleClickOutside = this.handleClickOutside.bind(this);
+        this.renderMenu = this.renderMenu.bind(this);
     }
 
     componentDidMount() {
@@ -26,7 +26,7 @@ export class ItemActionsMenu extends React.Component {
     handleClickOutside(event) {
         const domNode = ReactDOM.findDOMNode(this);
 
-        if ((!domNode && event.target.className !== 'ItemActionsMenu__action')) {
+        if ((!domNode || event.target.className !== 'ItemActionsMenu__action')) {
             if (this.state.isOpen) {
                 this.closeMenu();
             }
@@ -44,38 +44,29 @@ export class ItemActionsMenu extends React.Component {
     }
 
 
-    isEmptyActions() {
-        if (get(this.props, 'actions.length', 0) < 1) {
-            return true;
-        } else {
-            // Do we have only dividers ?
-            return this.props.actions.filter((action) =>
-                action.label !== GENERIC_ITEM_ACTIONS.DIVIDER.label).length <= 0;
-        }
-    }
-
     render() {
-        if (this.isEmptyActions() || this.state.isOpen) {
-            return null;
-        }
-
         const classes = classNames(
+            this.props.className,
             'dropdown',
             'ItemActionsMenu',
             'pull-right',
             {open: this.state.isOpen}
         );
 
+        const isEmptyActions = this.props.actions.length === 0;
+
         const buttonClasses = classNames(
             'dropdown__toggle',
-            {[this.props.buttonClass]: this.props.buttonClass}
+            {[this.props.buttonClass]: this.props.buttonClass},
+            {ItemActionsMenu__hidden: isEmptyActions || this.state.isOpen},
+            {ItemActionsMenu__visible: !isEmptyActions && !this.state.isOpen}
         );
 
         return (
             <div className={classes}>
-                <button className={buttonClasses} onClick={this.renderMenu.bind(this)}>
+                <a className={buttonClasses} onClick={this.renderMenu}>
                     <i className="icon-dots-vertical" />
-                </button>
+                </a>
             </div>
         );
     }
@@ -83,8 +74,14 @@ export class ItemActionsMenu extends React.Component {
     renderMenu(event) {
         event.preventDefault();
         event.stopPropagation();
+        let actions = this.props.actions;
+
+        if (actions[actions.length - 1].label === GENERIC_ITEM_ACTIONS.DIVIDER.label) {
+            actions.pop();
+        }
+
         let elem = React.createElement(ActionsMenu, {
-            actions: this.props.actions,
+            actions: actions,
             closeMenu: this.closeMenu.bind(this),
         });
 
@@ -98,6 +95,7 @@ export class ItemActionsMenu extends React.Component {
 
 ItemActionsMenu.propTypes = {
     actions: PropTypes.array.isRequired,
+    className: PropTypes.string,
     buttonClass: PropTypes.string,
 };
 

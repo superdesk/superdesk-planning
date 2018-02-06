@@ -1,9 +1,10 @@
 import planningUi from '../ui';
 import planningApi from '../api';
 import assignmentApi from '../../assignments/api';
+import main from '../../main';
+import locks from '../../locks';
 import sinon from 'sinon';
-import {PRIVILEGES, ASSIGNMENTS} from '../../../constants';
-import * as actions from '../../../actions/agenda';
+import {PRIVILEGES, ASSIGNMENTS, MAIN} from '../../../constants';
 import {getTestActionStore, restoreSinonStub, expectAccessDenied} from '../../../utils/testUtils';
 import moment from 'moment';
 
@@ -39,7 +40,7 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningUi, 'setInList').callsFake(() => ({type: 'setInList'}));
         sinon.stub(planningUi, 'addToList').callsFake(() => ({type: 'addToList'}));
         sinon.stub(planningUi, 'fetchToList').callsFake(() => (Promise.resolve()));
-        sinon.stub(planningUi, 'fetchMoreToList').callsFake(() => (Promise.resolve()));
+        sinon.stub(planningUi, 'loadMore').callsFake(() => (Promise.resolve()));
         sinon.stub(planningApi, 'publish').callsFake(() => (Promise.resolve()));
         sinon.stub(planningApi, 'unpublish').callsFake(() => (Promise.resolve()));
         sinon.stub(planningApi, 'saveAndPublish').callsFake((item) => (Promise.resolve(item)));
@@ -48,6 +49,10 @@ describe('actions.planning.ui', () => {
         sinon.stub(assignmentApi, 'link').callsFake(() => (Promise.resolve()));
         sinon.stub(planningUi, 'saveFromAuthoring').callsFake(() => (Promise.resolve()));
         sinon.stub(planningUi, 'saveFromPlanning').callsFake(() => (Promise.resolve()));
+
+        sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
+        sinon.stub(main, 'openEditor').callsFake((item) => (Promise.resolve(item)));
+        sinon.stub(locks, 'lock').callsFake((item) => (Promise.resolve(item)));
     });
 
     afterEach(() => {
@@ -78,6 +83,11 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(assignmentApi.link);
         restoreSinonStub(planningUi.saveFromAuthoring);
         restoreSinonStub(planningUi.saveFromPlanning);
+        restoreSinonStub(planningUi.loadMore);
+
+        restoreSinonStub(main.closePreviewAndEditorForItems);
+        restoreSinonStub(main.openEditor);
+        restoreSinonStub(locks.lock);
     });
 
     describe('spike', () => {
@@ -101,7 +111,7 @@ describe('actions.planning.ui', () => {
                     // Notifies end user of success
                     expect(services.notify.success.callCount).toBe(1);
                     expect(services.notify.success.args[0]).toEqual([
-                        'The Planning Item has been spiked.',
+                        'The Planning Item(s) has been spiked.',
                     ]);
 
                     expect(services.notify.error.callCount).toBe(0);
@@ -114,7 +124,7 @@ describe('actions.planning.ui', () => {
             store.initialState.planning.currentPlanningId = data.plannings[1]._id;
             return store.test(done, planningUi.spike(data.plannings[1]))
                 .then(() => {
-                    expect(planningUi.closeEditor.callCount).toBe(1);
+                    expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
                     done();
                 });
         });
@@ -131,21 +141,6 @@ describe('actions.planning.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     expect(services.notify.success.callCount).toBe(0);
-                    done();
-                });
-        });
-
-        it('ui.spike raises ACCESS_DENIED without permission', (done) => {
-            store.initialState.privileges.planning_planning_spike = 0;
-            return store.test(done, planningUi.spike(data.plannings[1]))
-                .catch(() => {
-                    expectAccessDenied({
-                        store: store,
-                        permission: PRIVILEGES.SPIKE_PLANNING,
-                        action: '_spike',
-                        errorMessage: 'Unauthorised to spike a planning item!',
-                        args: [data.plannings[1]],
-                    });
                     done();
                 });
         });
@@ -168,7 +163,7 @@ describe('actions.planning.ui', () => {
                     // Notified end user of success
                     expect(services.notify.success.callCount).toBe(1);
                     expect(services.notify.success.args[0]).toEqual([
-                        'The Planning Item has been unspiked.',
+                        'The Planning Item(s) has been unspiked.',
                     ]);
 
                     expect(services.notify.error.callCount).toBe(0);
@@ -189,43 +184,6 @@ describe('actions.planning.ui', () => {
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 
                     expect(services.notify.success.callCount).toBe(0);
-                    done();
-                });
-        });
-
-        it('ui.unspike raises ACCESS_DENIED without permission', (done) => {
-            store.initialState.privileges.planning_planning_unspike = 0;
-            return store.test(done, planningUi.unspike(data.plannings[1]))
-                .catch(() => {
-                    expectAccessDenied({
-                        store: store,
-                        permission: PRIVILEGES.UNSPIKE_PLANNING,
-                        action: '_unspike',
-                        errorMessage: 'Unauthorised to unspike a planning item!',
-                        args: [data.plannings[1]],
-                    });
-                    done();
-                });
-        });
-    });
-
-    describe('planning filters', () => {
-        beforeEach(() => {
-            sinon.stub(actions, 'fetchSelectedAgendaPlannings').callsFake(() => (Promise.resolve()));
-        });
-
-        afterEach(() => {
-            restoreSinonStub(actions.fetchSelectedAgendaPlannings);
-        });
-
-        it('toggle future only', (done) => {
-            store.test(done, planningUi.toggleOnlyFutureFilter())
-                .then(() => {
-                    expect(store.dispatch.args[0][0]).toEqual({
-                        type: 'SET_ONLY_FUTURE',
-                        payload: false,
-                    });
-                    expect(actions.fetchSelectedAgendaPlannings.callCount).toBe(1);
                     done();
                 });
         });
@@ -497,8 +455,16 @@ describe('actions.planning.ui', () => {
             });
     });
 
-    it('fetchMoreToList', (done) => {
-        restoreSinonStub(planningUi.fetchMoreToList);
+    it('loadMore with data fetched less than page size', (done) => {
+        store.initialState.main.filter = MAIN.FILTERS.PLANNING;
+        store.initialState.main.search.PLANNING.totalItems = 50;
+        store.initialState.main.search.PLANNING.lastRequestParams = {
+            agendas: ['a1'],
+            noAgendaAssigned: false,
+            page: 1
+        };
+
+        restoreSinonStub(planningUi.loadMore);
         restoreSinonStub(planningApi.fetch);
         sinon.stub(planningApi, 'fetch').callsFake(
             () => (Promise.resolve(data.plannings))
@@ -507,13 +473,12 @@ describe('actions.planning.ui', () => {
         const expectedParams = {
             agendas: ['a1'],
             noAgendaAssigned: false,
-            page: 2,
+            page: 2
         };
 
-        store.test(done, planningUi.fetchMoreToList())
+        store.test(done, planningUi.loadMore())
             .then(() => {
-                expect(planningUi.requestPlannings.callCount).toBe(1);
-                expect(planningUi.requestPlannings.args[0]).toEqual([expectedParams]);
+                expect(planningUi.requestPlannings.callCount).toBe(0);
 
                 expect(planningApi.fetch.callCount).toBe(1);
                 expect(planningApi.fetch.args[0]).toEqual([expectedParams]);
@@ -525,11 +490,46 @@ describe('actions.planning.ui', () => {
             });
     });
 
+    it('loadMore with data fetched equal to page size', (done) => {
+        store.initialState.main.filter = MAIN.FILTERS.PLANNING;
+        store.initialState.main.search.PLANNING.totalItems = 50;
+        store.initialState.main.search.PLANNING.lastRequestParams = {
+            agendas: ['a1'],
+            noAgendaAssigned: false,
+            page: 1
+        };
+
+        restoreSinonStub(planningUi.loadMore);
+        restoreSinonStub(planningApi.fetch);
+        sinon.stub(planningApi, 'fetch').callsFake(
+            () => (Promise.resolve([...Array(25).keys()]))
+        );
+
+        const expectedParams = {
+            agendas: ['a1'],
+            noAgendaAssigned: false,
+            page: 2
+        };
+
+        store.test(done, planningUi.loadMore())
+            .then(() => {
+                expect(planningUi.requestPlannings.callCount).toBe(1);
+                expect(planningUi.requestPlannings.args[0]).toEqual([expectedParams]);
+
+                expect(planningApi.fetch.callCount).toBe(1);
+                expect(planningApi.fetch.args[0]).toEqual([expectedParams]);
+
+                expect(planningUi.addToList.callCount).toBe(1);
+
+                done();
+            });
+    });
+
     it('requestPlannings', () => {
         restoreSinonStub(planningUi.requestPlannings);
         expect(planningUi.requestPlannings({page: 2})).toEqual({
-            type: 'REQUEST_PLANNINGS',
-            payload: {page: 2},
+            type: MAIN.ACTIONS.REQUEST,
+            payload: {[MAIN.FILTERS.PLANNING]: {page: 2}},
         });
     });
 
@@ -612,11 +612,12 @@ describe('actions.planning.ui', () => {
 
         it('ui.saveAndPublish notifies user on failulre to save and publish', (done) => {
             restoreSinonStub(planningApi.saveAndPublish);
-            sinon.stub(planningApi, 'saveAndPublish').callsFake(
-                () => (Promise.reject(errorMessage))
-            );
+            sinon.stub(planningApi, 'saveAndPublish').returns(Promise.reject(errorMessage));
+
             store.test(done, planningUi.saveAndPublish(data.plannings[1]))
-                .then(() => {
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+
                     expect(planningApi.saveAndPublish.callCount).toBe(1);
 
                     expect(services.notify.success.callCount).toBe(0);
@@ -662,19 +663,6 @@ describe('actions.planning.ui', () => {
     });
 
     describe('onAddCoverageClick', () => {
-        const publishedNewsItem = {
-            _id: 'news1',
-            slugline: 'slugger',
-            ednote: 'Edit my note!',
-            state: 'published',
-            _updated: moment('2099-10-13T13:26'),
-            task: {
-                desk: 'desk2',
-                user: 'ident2',
-            },
-            type: 'picture',
-        };
-
         const newsItem = {
             _id: 'news1',
             slugline: 'slugger',
@@ -691,94 +679,30 @@ describe('actions.planning.ui', () => {
                 modalType: 'ADD_TO_PLANNING',
                 modalProps: {newsItem},
             };
+
+            sinon.stub(locks, 'unlock').callsFake((item) => (Promise.resolve(item)));
         });
 
         it('unlocks current planning opens the new planning', (done) => {
-            store.initialState.planning.currentPlanningId = data.plannings[1]._id;
+            store.initialState.forms.itemId = data.plannings[1]._id;
+            store.initialState.forms.itemType = 'planning';
             store.test(done, planningUi.onAddCoverageClick(
                 store.initialState.planning.plannings.p1
             ))
                 .then(() => {
-                    expect(planningApi.unlock.callCount).toBe(1);
-                    expect(planningApi.unlock.args[0]).toEqual([
+                    expect(locks.unlock.callCount).toBe(1);
+                    expect(locks.unlock.args[0]).toEqual([
                         store.initialState.planning.plannings.p2,
                     ]);
 
-                    expect(planningUi.openEditor.callCount).toBe(1);
-                    expect(planningUi.openEditor.args[0]).toEqual([
-                        store.initialState.planning.plannings.p1,
-                        false,
-                    ]);
-
+                    expect(main.openEditor.callCount).toBe(1);
+                    expect(main.openEditor.args[0]).toEqual([store.initialState.planning.plannings.p1]);
                     done();
                 });
         });
 
-        it('creates a new coverage for a non-published news item', (done) => (
-            store.test(done, planningUi.onAddCoverageClick(
-                store.initialState.planning.plannings.p1
-            ))
-                .then(() => {
-                    expect(store.dispatch.args[1]).toEqual([{
-                        type: '@@redux-form/CHANGE',
-                        payload: {
-                            news_coverage_status: {qcode: 'ncostat:int'},
-                            assigned_to: {
-                                desk: 'desk1',
-                                user: 'ident1',
-                                priority: ASSIGNMENTS.DEFAULT_PRIORITY,
-                            },
-                            planning: {
-                                ednote: 'Edit my note!',
-                                g2_content_type: 'text',
-                                slugline: 'slugger',
-                                scheduled: moment().endOf('day'),
-                            },
-                        },
-                        meta: {
-                            form: 'planning',
-                            field: 'coverages[3]',
-                            persistentSubmitErrors: undefined,
-                            touch: undefined,
-                        },
-                    }]);
-
-                    done();
-                })
-        ));
-
-        it('creates a new coverage for a published new item', (done) => {
-            store.initialState.modal.modalProps.newsItem = publishedNewsItem;
-            store.test(done, planningUi.onAddCoverageClick(
-                store.initialState.planning.plannings.p1
-            ))
-                .then(() => {
-                    expect(store.dispatch.args[1]).toEqual([{
-                        type: '@@redux-form/CHANGE',
-                        payload: {
-                            news_coverage_status: {qcode: 'ncostat:int'},
-                            assigned_to: {
-                                desk: 'desk2',
-                                user: 'ident2',
-                                priority: ASSIGNMENTS.DEFAULT_PRIORITY,
-                            },
-                            planning: {
-                                ednote: 'Edit my note!',
-                                g2_content_type: 'photo',
-                                slugline: 'slugger',
-                                scheduled: moment('2099-10-13T13:26'),
-                            },
-                        },
-                        meta: {
-                            form: 'planning',
-                            field: 'coverages[3]',
-                            persistentSubmitErrors: undefined,
-                            touch: undefined,
-                        },
-                    }]);
-
-                    done();
-                });
+        afterEach(() => {
+            restoreSinonStub(locks.unlock);
         });
     });
 

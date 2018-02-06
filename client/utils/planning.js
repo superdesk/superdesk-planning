@@ -7,17 +7,19 @@ import {
     PLANNING,
     ASSIGNMENTS,
     PUBLISHED_STATE,
+    COVERAGES,
 } from '../constants/index';
-import {get, isNil} from 'lodash';
+import {get, isNil, uniq, sortBy, isEmpty, cloneDeep} from 'lodash';
 import {
     getItemWorkflowState,
-    isItemLockedInThisSession,
+    lockUtils,
     isItemPublic,
     isItemSpiked,
     isItemRescheduled,
     eventUtils,
     isItemCancelled,
     getPublishedState,
+    isEmptyActions,
 } from './index';
 
 const canPublishPlanning = (planning, event, session, privileges, locks) => (
@@ -31,7 +33,8 @@ const canPublishPlanning = (planning, event, session, privileges, locks) => (
         !isItemCancelled(planning) &&
         !isItemCancelled(event) &&
         !isItemRescheduled(planning) &&
-        !isItemRescheduled(event)
+        !isItemRescheduled(event) &&
+        !isNotForPublication(planning)
 );
 
 const canUnpublishPlanning = (planning, event, session, privileges, locks) => (
@@ -117,7 +120,7 @@ const isPlanningLocked = (plan, locks) =>
 
 const isPlanningLockRestricted = (plan, session, locks) =>
     isPlanningLocked(plan, locks) &&
-        !isItemLockedInThisSession(plan, session);
+        !lockUtils.isItemLockedInThisSession(plan, session);
 
 /**
  * Get the array of coverage content type and color base on the scheduled date
@@ -127,6 +130,7 @@ const isPlanningLockRestricted = (plan, session, locks) =>
 export const mapCoverageByDate = (coverages = []) => (
     coverages.map((c) => {
         let coverage = {
+            ...c,
             g2_content_type: c.planning.g2_content_type || '',
             iconColor: '',
             assigned_to: get(c, 'assigned_to'),
@@ -145,16 +149,33 @@ export const mapCoverageByDate = (coverages = []) => (
 // ad hoc plan created directly from planning list and not from an event
 const isPlanAdHoc = (plan) => !get(plan, 'event_item');
 
+const isPlanMultiDay = (plan) => {
+    const coverages = get(plan, 'coverages', []);
+
+    if (coverages.length > 0) {
+        const days = uniq(coverages
+            .map((coverage) => get(coverage, 'planning.scheduled'))
+            .filter((schedule) => schedule)
+            .map((schedule) => moment(schedule).format('YYYY-MM-DD')));
+
+        return days.length > 1;
+    }
+
+    return false;
+};
+
+export const isNotForPublication = (plan) => get(plan, 'flags.marked_for_not_publication', false);
+
 export const getPlanningItemActions = (plan, event = null, session, privileges, actions, locks) => {
     let itemActions = [];
     let key = 1;
 
     const actionsValidator = {
-        [GENERIC_ITEM_ACTIONS.SPIKE.label]: () =>
+        [PLANNING.ITEM_ACTIONS.SPIKE.label]: () =>
             canSpikePlanning(plan, session, privileges, locks),
-        [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: () =>
+        [PLANNING.ITEM_ACTIONS.UNSPIKE.label]: () =>
             canUnspikePlanning(plan, event, privileges),
-        [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: () =>
+        [PLANNING.ITEM_ACTIONS.DUPLICATE.label]: () =>
             canDuplicatePlanning(plan, event, session, privileges, locks),
         [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: () =>
             canCancelPlanning(plan, event, session, privileges, locks),
@@ -203,7 +224,107 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
         key++;
     });
 
+    if (isEmptyActions(itemActions)) {
+        return [];
+    }
+
     return itemActions;
+};
+
+const getPlanningActions = (item, event, session, privileges, lockedItems, callBacks) => {
+    if (!get(item, '_id')) {
+        return [];
+    }
+
+    let actions = [];
+    let eventActions = [GENERIC_ITEM_ACTIONS.DIVIDER];
+
+    Object.keys(callBacks).forEach((callBackName) => {
+        switch (callBackName) {
+        case PLANNING.ITEM_ACTIONS.DUPLICATE.actionName:
+            actions.push({
+                ...PLANNING.ITEM_ACTIONS.DUPLICATE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case PLANNING.ITEM_ACTIONS.SPIKE.actionName:
+            actions.push({
+                ...PLANNING.ITEM_ACTIONS.SPIKE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case PLANNING.ITEM_ACTIONS.UNSPIKE.actionName:
+            actions.push({
+                ...PLANNING.ITEM_ACTIONS.UNSPIKE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName:
+            actions.push({
+                ...PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName:
+            actions.push({
+                ...PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName:
+            eventActions.push({
+                ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+                callback: callBacks[callBackName].bind(null, event)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName:
+            eventActions.push({
+                ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+                callback: callBacks[callBackName].bind(null, event)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName:
+            eventActions.push({
+                ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+                callback: callBacks[callBackName].bind(null, event)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName:
+            eventActions.push({
+                ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+                callback: callBacks[callBackName].bind(null, event)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName:
+            eventActions.push({
+                ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
+                callback: callBacks[callBackName].bind(null, event)
+            });
+            break;
+        }
+    });
+
+    if (eventActions.length > 1) {
+        actions.push(...eventActions);
+    }
+
+    return getPlanningItemActions(
+        item,
+        event,
+        session,
+        privileges,
+        actions,
+        lockedItems
+    );
 };
 
 /**
@@ -235,6 +356,44 @@ const canEditCoverage = (coverage) => (
     !isCoverageCancelled(coverage) &&
     get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
 );
+
+const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, desk, user, contentTypes) => {
+    let newCoverage = COVERAGES.DEFAULT_VALUE(newsCoverageStatus);
+
+    // Add fields from news item to the coverage
+    const contentType = contentTypes.find(
+        (ctype) => get(ctype, 'content item type') === addNewsItemToPlanning.type
+    );
+
+    newCoverage.planning = {
+        g2_content_type: get(contentType, 'qcode', PLANNING.G2_CONTENT_TYPE.TEXT),
+        slugline: get(addNewsItemToPlanning, 'slugline', ''),
+        ednote: get(addNewsItemToPlanning, 'ednote', ''),
+    };
+
+    if (get(addNewsItemToPlanning, 'genre')) {
+        newCoverage.planning.genre = addNewsItemToPlanning.genre;
+        self.convertGenreToObject(newCoverage);
+    }
+
+    // Add assignment to coverage
+    if (get(addNewsItemToPlanning, 'state') === 'published') {
+        newCoverage.planning.scheduled = addNewsItemToPlanning._updated;
+        newCoverage.assigned_to = {
+            desk: addNewsItemToPlanning.task.desk,
+            user: addNewsItemToPlanning.task.user,
+        };
+    } else {
+        newCoverage.planning.scheduled = moment().endOf('day');
+        newCoverage.assigned_to = {
+            desk: desk,
+            user: user,
+        };
+    }
+
+    newCoverage.assigned_to.priority = ASSIGNMENTS.DEFAULT_PRIORITY;
+    return newCoverage;
+};
 
 const getCoverageReadOnlyFields = (
     readOnly,
@@ -316,8 +475,56 @@ const getCoverageReadOnlyFields = (
     }
 };
 
+const getPlanningByDate = (plansInList, events) => {
+    if (!plansInList) return [];
+
+    const days = {};
+
+    plansInList.forEach((plan) => {
+        const dates = {};
+        let groupDate = null;
+
+        plan.event = get(events, get(plan, 'event_item'));
+        plan.coverages.forEach((coverage) => {
+            groupDate = moment(get(coverage, 'planning.scheduled', plan._planning_date));
+
+            if (!get(dates, groupDate.format('YYYY-MM-DD'))) {
+                dates[groupDate.format('YYYY-MM-DD')] = groupDate;
+            }
+        });
+
+        if (isEmpty(dates)) {
+            groupDate = moment(plan._planning_date);
+            dates[groupDate.format('YYYY-MM-DD')] = groupDate;
+        }
+
+        for (let date in dates) {
+            if (!days[date]) {
+                days[date] = [];
+            }
+
+            const clonedPlan = cloneDeep(plan);
+
+            clonedPlan._sortDate = dates[date];
+            days[date].push(clonedPlan);
+        }
+    });
+
+    let sortable = [];
+
+    for (let day in days)
+        sortable.push({
+            date: day,
+            events: sortBy(days[day], [(e) => e._sortDate]),
+        });
+
+    return sortBy(sortable, [(e) => e.date]);
+};
+
 // eslint-disable-next-line consistent-this
 const self = {
+    canSpikePlanning,
+    canUnspikePlanning,
     canPublishPlanning,
     canUnpublishPlanning,
     canEditPlanning,
@@ -333,6 +540,11 @@ const self = {
     canCancelCoverage,
     canEditCoverage,
     getCoverageReadOnlyFields,
+    isPlanMultiDay,
+    getPlanningActions,
+    isNotForPublication,
+    getPlanningByDate,
+    createCoverageFromNewsItem,
 };
 
 export default self;

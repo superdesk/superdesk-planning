@@ -1,19 +1,19 @@
-import {get, includes} from 'lodash';
-import {ASSIGNMENTS, PRIVILEGES} from '../constants';
-import {isItemLockedInThisSession} from './index';
+import {get, includes, isNil} from 'lodash';
+import {ASSIGNMENTS, PRIVILEGES, PLANNING} from '../constants';
+import {lockUtils} from './index';
 
 const canEditAssignment = (assignment, session, privileges) => (
     !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
     self.isAssignmentInEditableState(assignment) &&
     (!get(assignment, 'lock_user') ||
-    isItemLockedInThisSession(assignment, session))
+    lockUtils.isItemLockedInThisSession(assignment, session))
 );
 
 const canStartWorking = (assignment, session, privileges) => (
     !!privileges[PRIVILEGES.ARCHIVE] &&
     (!get(assignment, 'assigned_to.user') ||
     assignment.assigned_to.user === get(session, 'identity._id')) &&
-    get(assignment, 'planning.g2_content_type') === 'text' &&
+    get(assignment, 'planning.g2_content_type') === PLANNING.G2_CONTENT_TYPE.TEXT &&
     get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
     !get(assignment, 'lock_user')
 );
@@ -27,7 +27,14 @@ const isAssignmentInEditableState = (assignment) => (
 const canCompleteAssignment = (assignment, session, privileges) => (
     !!privileges[PRIVILEGES.ARCHIVE] &&
         get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS &&
-        (!get(assignment, 'lock_user') || isItemLockedInThisSession(assignment, session))
+        (!get(assignment, 'lock_user') || lockUtils.isItemLockedInThisSession(assignment, session))
+);
+
+const canConfirmAvailability = (assignment, session, privileges) => (
+    get(assignment, 'planning.g2_content_type') !== PLANNING.G2_CONTENT_TYPE.TEXT &&
+    (get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED ||
+    get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED) &&
+    (!get(assignment, 'lock_user') || lockUtils.isItemLockedInThisSession(assignment, session))
 );
 
 const isAssignmentInUse = (assignment) => (
@@ -62,6 +69,8 @@ const getAssignmentItemActions = (assignment, session, privileges, actions) => {
             canRemoveAssignment(assignment, session, privileges),
         [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label]: () =>
             assignmentHasContent(assignment),
+        [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.label]: () =>
+            canConfirmAvailability(assignment, session, privileges),
     };
 
     actions.forEach((action) => {
@@ -126,6 +135,16 @@ const canEditDesk = (assignment) => {
         state !== ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS;
 };
 
+const isAssignmentLocked = (assignment, locks) =>
+    !isNil(assignment) && (
+        assignment._id in locks.assignments
+    );
+
+const isAssignmentLockRestricted = (assignment, session, locks) =>
+    isAssignmentLocked(assignment, locks) &&
+        !lockUtils.isItemLockedInThisSession(assignment, session);
+
+
 // eslint-disable-next-line consistent-this
 const self = {
     canEditAssignment,
@@ -139,6 +158,7 @@ const self = {
     canRemoveAssignment,
     canEditDesk,
     assignmentHasContent,
+    isAssignmentLockRestricted,
 };
 
 export default self;

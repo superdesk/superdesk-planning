@@ -1,129 +1,230 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {Field, reduxForm, formValueSelector} from 'redux-form';
 import * as actions from '../../../actions';
-import {getDateFormat} from '../../../selectors';
-import {EventUpdateMethods, TimePicker} from '../../fields';
+import {getDateFormat, getTimeFormat} from '../../../selectors/config';
+import * as selectors from '../../../selectors';
+import {eventUtils, gettext} from '../../../utils';
+import {Label, TimeInput, Row as FormRow, LineInput, Field} from '../../UI/Form/';
+import {Row} from '../../UI/Preview/';
+import {EventUpdateMethods, EventScheduleSummary} from '../../Events';
 import '../style.scss';
-import {get} from 'lodash';
+import {get, set, cloneDeep, isEqual} from 'lodash';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
-import {ChainValidators, EndDateAfterStartDate} from '../../../validators';
-import {FORM_NAMES, EVENTS} from '../../../constants';
+import {EVENTS} from '../../../constants';
+import {validateItem} from '../../../validators';
 
-export class Component extends React.Component {
-    onFromTimeChange(value) {
-        this.props.change('dates.start', value);
+export class UpdateTimeComponent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            relatedEvents: [],
+            submitting: false,
+            errors: {},
+            diff: {},
+        };
+
+        this.onChange = this.onChange.bind(this);
     }
 
-    onToTimeChange(value) {
-        this.props.change('dates.end', value);
+    componentWillMount() {
+        const diff = cloneDeep(this.props.initialValues);
+        let relatedEvents = [];
+
+        if (get(this.props, 'initialValues.recurrence_id')) {
+            const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
+                EventUpdateMethods[0]);
+
+            relatedEvents = event._events;
+        }
+
+        diff.update_method = EventUpdateMethods[0];
+
+        this.setState({
+            relatedEvents: relatedEvents,
+            diff: diff,
+        });
+    }
+
+    onChange(field, value) {
+        const diff = Object.assign({}, this.state.diff);
+        const errors = cloneDeep(this.state.errors);
+        let relatedEvents = this.state.relatedEvents;
+
+        if (field === 'dates.start.time') {
+            diff.dates.start = value;
+        } else if (field === 'dates.end.time') {
+            diff.dates.end = value;
+        } else if (field === 'update_method') {
+            const event = eventUtils.getRelatedEventsForRecurringEvent(
+                this.props.initialValues,
+                value
+            );
+
+            relatedEvents = event._events;
+            diff.update_method = value;
+        } else {
+            set(diff, field, value);
+        }
+
+        this.props.onValidate(
+            diff,
+            this.props.formProfiles,
+            errors
+        );
+
+        this.setState({
+            diff: diff,
+            dirty: !isEqual(this.props.initialValues, diff),
+            errors: errors,
+            relatedEvents: relatedEvents,
+        });
+
+        if ((isEqual(diff.dates, this.props.initialValues.dates) &&
+                diff.update_method.value === EventUpdateMethods[0].value) ||
+            !isEqual(errors, {})
+        ) {
+            this.props.disableSaveInModal();
+        } else {
+            this.props.enableSaveInModal();
+        }
+    }
+
+    submit() {
+        // Modal closes after submit. So, reseting submitting is not required
+        this.setState({submitting: true});
+        this.props.onSubmit(this.state.diff);
     }
 
     render() {
-        const {handleSubmit, initialValues, relatedEvents = [], dateFormat, submitting} = this.props;
+        const {initialValues, dateFormat, timeFormat} = this.props;
+        const isRecurring = !!initialValues.recurrence_id;
+        const updateMethodLabel = gettext('Would you like to update all recurring events or just this one?');
+        const eventsInUse = this.state.relatedEvents.filter((e) => (
+            get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
+        ));
+        const numEvents = this.state.relatedEvents.length + 1 - eventsInUse.length;
 
-        let event = initialValues;
-        let isRecurring = !!event.recurrence_id;
-
-        const dateStr = event.dates.start.format('MMMM Do YYYY');
-
-        // Default the update_method to 'Update this event only'
-        event.update_method = EventUpdateMethods[0];
-
-        let updateMethodLabel = 'Would you like to update all recurring events or just this one?';
+        const fieldProps = {
+            row: false,
+            item: this.props.initialValues,
+            diff: this.state.diff,
+            onChange: this.onChange,
+            showErrors: true,
+            errors: this.state.errors,
+            readOnly: this.state.submitting
+        };
 
         return (
-            <div className="ItemActionConfirmation">
-                <form onSubmit={handleSubmit}>
-                    <div className="metadata-view">
-                        <dl>
-                            { event.slugline && (<dt>Slugline:</dt>) }
-                            { event.slugline && (<dd>{ event.slugline }</dd>) }
-                            { event.name && (<dt>Name:</dt>) }
-                            { event.name && (<dd>{ event.name }</dd>) }
-                            <dt>Date:</dt>
-                            <dd>{ dateStr }</dd>
-                            { isRecurring && (<dt>Events:</dt>)}
-                            { isRecurring && (<dd>{ relatedEvents.length + 1 }</dd>)}
-                        </dl>
-                    </div>
-                    <div>
-                        <label>From:</label>
-                    </div>
-                    <div>
-                        <Field
-                            name="dates.start"
-                            component={TimePicker}
-                            readOnly={submitting}
-                            placeholder="Time" />
-                    </div>
-                    <div>
-                        <label>To:</label>
-                    </div>
-                    <div>
-                        <Field
-                            name="dates.end"
-                            component={TimePicker}
-                            readOnly={submitting}
-                            placeholder="Time" />
-                    </div>
-                </form>
+            <div className="MetadataView">
+                <Row
+                    enabled={!!initialValues.slugline}
+                    label={gettext('Slugline')}
+                    value={initialValues.slugline || ''}
+                    className="slugline"
+                    noPadding={true}
+                />
 
-                <UpdateMethodSelection
-                    showMethodSelection={!!isRecurring}
-                    updateMethodLabel={updateMethodLabel}
-                    relatedEvents={relatedEvents}
+                <Row
+                    label={gettext('Name')}
+                    value={initialValues.name || ''}
+                    className="strong"
+                    noPadding={true}
+                />
+
+                <EventScheduleSummary
+                    schedule={initialValues.dates}
+                    timeFormat={timeFormat}
                     dateFormat={dateFormat}
-                    readOnly={submitting}
-                    handleSubmit={handleSubmit} />
+                    noPadding={true}
+                    forUpdating={true}
+                />
 
+                <Row
+                    enabled={isRecurring}
+                    label={gettext('No. of Events')}
+                    value={numEvents}
+                    noPadding={true}
+                />
+
+                <FormRow
+                    flex={true}
+                    halfWidth={true}
+                    noPadding={true}
+                    invalid={!!get(this.state, 'errors.dates.start.time')}
+                >
+                    <Label text={gettext('From')} row={true}/>
+                    <Field
+                        component={TimeInput}
+                        field="dates.start.time"
+                        value={get(this.state, 'diff.dates.start')}
+                        timeFormat={timeFormat}
+                        noMargin={true}
+                        {...fieldProps}
+                    />
+                </FormRow>
+
+                <FormRow flex={true} halfWidth={true}>
+                    <Label
+                        text={gettext('To')}
+                        row={true}
+                        invalid={!!get(this.state, 'errors.dates.end.time')}
+                    />
+                    <Field
+                        component={TimeInput}
+                        field="dates.end.time"
+                        value={get(this.state, 'diff.dates.end')}
+                        timeFormat={timeFormat}
+                        noMargin={true}
+                        {...fieldProps}
+                    />
+                </FormRow>
+
+                {this.state.error && <FormRow>
+                    <LineInput invalid={this.state.error}
+                        message="To date should be greater than From date"
+                        readOnly={true} />
+                </FormRow>}
+
+                <Field
+                    component={UpdateMethodSelection}
+                    field="update_method"
+                    showMethodSelection={isRecurring}
+                    updateMethodLabel={updateMethodLabel}
+                    showSpace={false}
+                    action="update time"
+                    {...fieldProps}
+                />
             </div>
         );
     }
 }
 
-Component.propTypes = {
-    handleSubmit: PropTypes.func.isRequired,
+UpdateTimeComponent.propTypes = {
     initialValues: PropTypes.object.isRequired,
-    relatedEvents: PropTypes.array,
+    onSubmit: PropTypes.func,
+    enableSaveInModal: PropTypes.func,
+    disableSaveInModal: PropTypes.func,
     dateFormat: PropTypes.string.isRequired,
-    change: PropTypes.func,
-    submitting: PropTypes.bool,
+    timeFormat: PropTypes.string.isRequired,
+    onValidate: PropTypes.func,
+    formProfiles: PropTypes.object,
 };
 
-// Decorate the form container
-export const UpdateTime = reduxForm({
-    form: FORM_NAMES.UpdateTimeForm,
-    validate: ChainValidators([EndDateAfterStartDate]),
-})(Component);
-
-const selector = formValueSelector(FORM_NAMES.UpdateTimeForm);
-
 const mapStateToProps = (state) => ({
-    relatedEvents: selector(state, '_events'),
+    timeFormat: getTimeFormat(state),
     dateFormat: getDateFormat(state),
+    formProfiles: selectors.forms.profiles(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event) => dispatch(actions.events.ui.saveAndPublish(
-        event,
-        get(event, '_save', true),
-        get(event, '_publish', false)
-    ))
-        .then(() => {
-            dispatch({
-                type: EVENTS.ACTIONS.UNLOCK_EVENT,
-                payload: {event},
-            });
-        }),
-
+    onSubmit: (event) => dispatch(actions.events.ui.updateEventTime(event)),
     onHide: (event) => {
-        if (event.lock_action === 'update_time') {
+        if (event.lock_action === EVENTS.ITEM_ACTIONS.UPDATE_TIME.lock_action) {
             dispatch(actions.events.api.unlock(event));
         }
     },
+    onValidate: (item, profile, errors) => dispatch(validateItem('events', item, profile, errors, ['dates']))
 });
 
 export const UpdateTimeForm = connect(
@@ -131,4 +232,4 @@ export const UpdateTimeForm = connect(
     mapDispatchToProps,
     null,
     {withRef: true}
-)(UpdateTime);
+)(UpdateTimeComponent);

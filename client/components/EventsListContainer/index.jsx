@@ -4,9 +4,9 @@ import classNames from 'classnames';
 import {
     AdvancedSearchPanelContainer,
     EventsList,
-    SearchBar,
     MultiEventsSelectionActions,
 } from '../index';
+import {SearchBar} from '../UI';
 import {connect} from 'react-redux';
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
@@ -136,17 +136,17 @@ const mapStateToProps = (state) => ({
     privileges: selectors.getPrivileges(state),
     selectedEvents: selectors.getSelectedEvents(state),
     session: selectors.getSessionDetails(state),
-    lockedItems: selectors.getLockedItems(state),
+    lockedItems: selectors.locks.getLockedItems(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
     openEventDetails: (event) => dispatch(actions.events.ui.openEventDetails(event)),
     previewEvent: (event) => dispatch(actions.events.ui.previewEvent(event)),
-    loadEvents: (keyword) => dispatch(actions.fetchEvents({fulltext: keyword})),
+    loadEvents: (keyword) => dispatch(actions.events.ui.fetchEvents({fulltext: keyword})),
     openAdvancedSearch: () => (dispatch(actions.events.ui.openAdvancedSearch())),
     closeAdvancedSearch: () => (dispatch(actions.events.ui.closeAdvancedSearch())),
     toggleEventsList: () => (dispatch(actions.toggleEventsList())),
-    loadMoreEvents: () => (dispatch(actions.loadMoreEvents())),
+    loadMoreEvents: () => (dispatch(actions.events.ui.loadMore())),
     spikeEvent: (event) => dispatch(actions.events.ui.openSpikeModal(event)),
     unspikeEvent: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
     duplicateEvent: (event) => dispatch(actions.duplicateEvent(event)),

@@ -36,15 +36,15 @@ export const EventItem = ({
 
     const actions = [
         {
-            ...GENERIC_ITEM_ACTIONS.SPIKE,
+            ...EVENTS.ITEM_ACTIONS.SPIKE,
             callback: onSpikeEvent.bind(null, event),
         },
         {
-            ...GENERIC_ITEM_ACTIONS.UNSPIKE,
+            ...EVENTS.ITEM_ACTIONS.UNSPIKE,
             callback: onUnspikeEvent.bind(null, event),
         },
         {
-            ...GENERIC_ITEM_ACTIONS.DUPLICATE,
+            ...EVENTS.ITEM_ACTIONS.DUPLICATE,
             callback: onDuplicateEvent.bind(null, event),
         },
         {

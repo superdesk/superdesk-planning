@@ -1,47 +1,76 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {reduxForm, Field} from 'redux-form';
 import * as actions from '../../../actions';
-import {InputTextAreaField} from '../../fields/index';
-import {isItemCancelled} from '../../../utils';
+import {isItemCancelled, gettext} from '../../../utils';
+import {PLANNING} from '../../../constants';
 import {get} from 'lodash';
-import {FORM_NAMES} from '../../../constants';
+import {Row} from '../../UI/Preview';
+import {TextAreaInput} from '../../UI/Form';
 import '../style.scss';
 
-const Component = ({handleSubmit, initialValues, submitting}) => {
-    let planning = initialValues;
-    const labelText = initialValues._cancelAllCoverage ? 'Reason for cancelling all coverage:' :
-        'Reason for cancelling the planning item:';
+export class PlanningCovergeCancelComponent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            reason: '',
+            submitting: false,
+        };
 
-    return (
-        <div className="ItemActionConfirmation">
-            <form onSubmit={handleSubmit}>
-                <strong>{ planning.slugline }</strong>
-                <label>{labelText}</label>
-                <Field name="reason"
-                    component={InputTextAreaField}
-                    type="text"
-                    readOnly={submitting}/>
-            </form>
-        </div>
-    );
-};
+        this.onReasonChange = this.onReasonChange.bind(this);
+    }
 
-Component.propTypes = {
-    handleSubmit: PropTypes.func.isRequired,
+    componentWillMount() {
+        // Enable save so that the user can action on this event.
+        this.props.enableSaveInModal();
+    }
+
+    onReasonChange(field, reason) {
+        this.setState({reason});
+    }
+
+    submit() {
+        // Modal closes after submit. So, resetting submitting is not required
+        this.setState({submitting: true});
+
+        this.props.onSubmit({
+            ...this.props.initialValues,
+            reason: this.state.reason,
+        });
+    }
+
+    render() {
+        const {initialValues} = this.props;
+        let planning = initialValues;
+        const labelText = initialValues._cancelAllCoverage ? gettext('Reason for cancelling all coverage:') :
+            gettext('Reason for cancelling the planning item:');
+
+        return (
+            <div className="MetadataView">
+                <Row value={planning.slugline} className="strong" />
+                <Row label={labelText}>
+                    <TextAreaInput
+                        value={this.state.reason}
+                        onChange={this.onReasonChange}
+                        disabled={this.state.submitting}
+                    />
+                </Row>
+            </div>
+        );
+    }
+}
+
+PlanningCovergeCancelComponent.propTypes = {
+    onSubmit: PropTypes.func,
     initialValues: PropTypes.object.isRequired,
 
     // If `onHide` is defined, then `ModalWithForm` component will call it
     // eslint-disable-next-line react/no-unused-prop-types
     onHide: PropTypes.func,
-    submitting: PropTypes.bool,
+    enableSaveInModal: PropTypes.func,
 };
 
-export const CancelPlanningCoverages = reduxForm({form: FORM_NAMES.CancelPlanningForm})(Component);
-
 const mapDispatchToProps = (dispatch) => ({
-    /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (plan) => {
         let cancelDispatch = () => (dispatch(actions.planning.ui.cancelPlanning(plan)));
 
@@ -55,7 +84,7 @@ const mapDispatchToProps = (dispatch) => ({
                     dispatch(actions.planning.ui.publish(plan));
                 }
 
-                if (plan.lock_action === 'cancel_all_coverage' ||
+                if (plan.lock_action === PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.lock_action ||
                     isItemCancelled(plan)) {
                     dispatch(actions.planning.api.unlock(plan));
                 }
@@ -63,8 +92,8 @@ const mapDispatchToProps = (dispatch) => ({
     },
 
     onHide: (planning) => {
-        if (planning.lock_action === 'planning_cancel' ||
-                planning.lock_action === 'cancel_all_coverage') {
+        if (planning.lock_action === PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.lock_action ||
+                planning.lock_action === PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.lock_action) {
             dispatch(actions.planning.api.unlock(planning));
         }
     },
@@ -75,4 +104,4 @@ export const CancelPlanningCoveragesForm = connect(
     mapDispatchToProps,
     null,
     {withRef: true}
-)(CancelPlanningCoverages);
+)(PlanningCovergeCancelComponent);

@@ -7,19 +7,21 @@ import {
 } from '../constants';
 import {
     getItemWorkflowState,
-    isItemLockedInThisSession,
+    lockUtils,
     isItemSpiked,
     isItemPublic,
     getPublishedState,
     isItemCancelled,
     isItemRescheduled,
     isItemPostponed,
+    getDateTimeString,
+    isEmptyActions
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
-import {get, map, isNil} from 'lodash';
-import {actionTypes} from 'redux-form';
-import {EventUpdateMethods} from '../components/fields';
+import {get, map, isNil, sortBy, cloneDeep} from 'lodash';
+import {EventUpdateMethods} from '../components/Events';
+
 
 /**
  * Helper function to determine if the starting and ending dates
@@ -36,6 +38,10 @@ const isEventAllDay = (startingDate, endingDate) => {
         end.isSame(end.clone().endOf('day'), 'minute');
 };
 
+const isEventSameDay = (startingDate, endingDate) => (
+    moment(startingDate).format('DD/MM/YYYY') === moment(endingDate).format('DD/MM/YYYY')
+);
+
 const eventHasPlanning = (event) => get(event, 'planning_ids', []).length > 0;
 
 const isEventLocked = (event, locks) =>
@@ -46,7 +52,7 @@ const isEventLocked = (event, locks) =>
 
 const isEventLockRestricted = (event, session, locks) =>
     isEventLocked(event, locks) &&
-    !isItemLockedInThisSession(event, session);
+    !lockUtils.isItemLockedInThisSession(event, session);
 
 /**
  * Helper function to determine if a recurring event instances overlap
@@ -96,25 +102,20 @@ const doesRecurringEventsOverlap = (startingDate, endingDate, recurringRule) => 
     return nextEvent.isBetween(startingDate, endingDate) || nextEvent.isSame(endingDate);
 };
 
-const getRelatedEventsForRecurringEvent = (state = {}, action) => {
-    if (action.type !== actionTypes.CHANGE || get(action, 'meta.field') !== 'update_method') {
-        return state;
-    }
-
-    let event = state.values;
-    let eventsInSeries = get(event, '_recurring', []);
+const getRelatedEventsForRecurringEvent = (recurringEvent, filter) => {
+    let eventsInSeries = get(recurringEvent, '_recurring', []);
     let events = [];
-    let plannings = get(event, '_plannings', []);
+    let plannings = get(recurringEvent, '_plannings', []);
 
-    switch (action.payload.value) {
+    switch (filter.value) {
     case EventUpdateMethods[1].value: // Selected & Future Events
         events = eventsInSeries.filter((e) => (
-            moment(e.dates.start).isSameOrAfter(moment(event.dates.start)) &&
-                e._id !== event._id
+            moment(e.dates.start).isSameOrAfter(moment(recurringEvent.dates.start)) &&
+                e._id !== recurringEvent._id
         ));
         break;
     case EventUpdateMethods[2].value: // All Events
-        events = eventsInSeries.filter((e) => e._id !== event._id);
+        events = eventsInSeries.filter((e) => e._id !== recurringEvent._id);
         break;
     case EventUpdateMethods[0].value: // Selected Event Only
     default:
@@ -125,29 +126,32 @@ const getRelatedEventsForRecurringEvent = (state = {}, action) => {
         const eventIds = map(events, '_id');
 
         plannings = plannings.filter(
-            (p) => (eventIds.indexOf(p.event_item) > -1 || p.event_item === event._id)
+            (p) => (eventIds.indexOf(p.event_item) > -1 || p.event_item === recurringEvent._id)
         );
     }
 
     return {
-        ...state,
-        values: {
-            ...state.values,
-            _events: events,
-            _relatedPlannings: plannings,
-        },
+        ...recurringEvent,
+        _events: events,
+        _relatedPlannings: plannings,
     };
 };
 
-const canSpikeEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
+const isEventIngested = (event) => (
+    get(event, 'state', WORKFLOW_STATE.DRAFT) === WORKFLOW_STATE.INGESTED
+);
+
+const canSpikeEvent = (event, session, privileges, locks) => {
+    const eventState = getItemWorkflowState(event);
+
+    return !isNil(event) &&
         !isItemPublic(event) &&
-        (getItemWorkflowState(event) === WORKFLOW_STATE.DRAFT || isItemPostponed(event)) &&
+        (eventState === WORKFLOW_STATE.DRAFT || isEventIngested(event) || isItemPostponed(event)) &&
         !!privileges[PRIVILEGES.SPIKE_EVENT] &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isEventLockRestricted(event, session, locks) &&
-        !isEventInUse(event)
-);
+        !isEventInUse(event);
+};
 
 const canUnspikeEvent = (event, privileges) => (
     !isNil(event) &&
@@ -206,11 +210,16 @@ const isEventInUse = (event) => (
         (eventHasPlanning(event) || isItemPublic(event))
 );
 
+const isEventLockedForMetadataEdit = (event) => (
+    get(event, 'lock_action', null) === 'edit'
+);
+
 const canConvertToRecurringEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
         !event.recurrence_id &&
         canEditEvent(event, session, privileges, locks) &&
-        !isItemPostponed(event)
+        !isItemPostponed(event) &&
+        !isEventLockedForMetadataEdit(event)
 );
 
 const canEditEvent = (event, session, privileges, locks) => (
@@ -231,7 +240,8 @@ const canUpdateEvent = (event, session, privileges, locks) => (
 const canUpdateEventTime = (event, session, privileges, locks) => (
     !isNil(event) &&
         canEditEvent(event, session, privileges, locks) &&
-        !isItemPostponed(event)
+        !isItemPostponed(event) &&
+        !isEventLockedForMetadataEdit(event)
 );
 
 const canRescheduleEvent = (event, session, privileges, locks) => (
@@ -240,7 +250,8 @@ const canRescheduleEvent = (event, session, privileges, locks) => (
         !isItemCancelled(event) &&
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
-        !isItemRescheduled(event)
+        !isItemRescheduled(event) &&
+        !isEventLockedForMetadataEdit(event)
 );
 
 const canPostponeEvent = (event, session, privileges, locks) => (
@@ -250,7 +261,8 @@ const canPostponeEvent = (event, session, privileges, locks) => (
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemPostponed(event) &&
-        !isItemRescheduled(event)
+        !isItemRescheduled(event) &&
+        !isEventLockedForMetadataEdit(event)
 );
 
 const getEventItemActions = (event, session, privileges, actions, locks) => {
@@ -258,11 +270,11 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
     let key = 1;
 
     const actionsValidator = {
-        [GENERIC_ITEM_ACTIONS.SPIKE.label]: () =>
+        [EVENTS.ITEM_ACTIONS.SPIKE.label]: () =>
             canSpikeEvent(event, session, privileges, locks),
-        [GENERIC_ITEM_ACTIONS.UNSPIKE.label]: () =>
+        [EVENTS.ITEM_ACTIONS.UNSPIKE.label]: () =>
             canUnspikeEvent(event, privileges, locks),
-        [GENERIC_ITEM_ACTIONS.DUPLICATE.label]: () =>
+        [EVENTS.ITEM_ACTIONS.DUPLICATE.label]: () =>
             canDuplicateEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
             canCancelEvent(event, session, privileges, locks),
@@ -292,6 +304,10 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
         key++;
     });
 
+    if (isEmptyActions(itemActions)) {
+        return [];
+    }
+
     return itemActions;
 };
 
@@ -299,6 +315,193 @@ const isEventAssociatedWithPlannings = (eventId, allPlannings) => (
     Object.keys(allPlannings)
         .filter((pid) => get(allPlannings[pid], 'event_item', null) === eventId).length > 0
 );
+
+const isEventRecurring = (item) => (
+    get(item, 'recurrence_id', null) !== null
+);
+
+const getDateStringForEvent = (event, dateFormat, timeFormat, dateOnly = false) => {
+    // !! Note - expects event dates as instance of moment() !! //
+    const start = get(event.dates, 'start');
+    const end = get(event.dates, 'end');
+
+    if (!start || !end)
+        return;
+
+    if (start.isSame(end, 'day')) {
+        if (dateOnly) {
+            return start.format(dateFormat);
+        } else {
+            return getDateTimeString(start, dateFormat, timeFormat) + ' - ' +
+                end.format(timeFormat);
+        }
+    } else if (dateOnly) {
+        return start.format(dateFormat) + ' - ' + end.format(dateFormat);
+    } else {
+        return getDateTimeString(start, dateFormat, timeFormat) + ' - ' +
+                getDateTimeString(end, dateFormat, timeFormat);
+    }
+};
+
+const getEventActions = (item, session, privileges, lockedItems, callBacks) => {
+    if (!get(item, '_id')) {
+        return [];
+    }
+
+    let actions = [];
+
+    Object.keys(callBacks).forEach((callBackName) => {
+        switch (callBackName) {
+        case EVENTS.ITEM_ACTIONS.DUPLICATE.actionName:
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.DUPLICATE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.SPIKE.actionName:
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.SPIKE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.UNSPIKE.actionName:
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.UNSPIKE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName:
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName:
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName:
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName:
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName:
+            actions.push({
+                ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+        }
+    });
+
+    actions.push(
+        GENERIC_ITEM_ACTIONS.DIVIDER,
+        {
+            ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
+            callback: callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName].bind(null, item),
+        }
+    );
+
+    return getEventItemActions(
+        item,
+        session,
+        privileges,
+        actions,
+        lockedItems
+    );
+};
+
+/*
+ * Groups the events by date
+ */
+const getEventsByDate = (events) => {
+    if (!events) return [];
+    // check if search exists
+    // order by date
+    let sortedEvents = events.sort((a, b) => a.dates.start - b.dates.start);
+    const days = {};
+
+    function addEventToDate(event, date) {
+        let eventDate = date || event.dates.start;
+
+        let eventDateFormatted = eventDate.format('YYYY-MM-DD');
+
+        if (!days[eventDateFormatted]) {
+            days[eventDateFormatted] = [];
+        }
+
+        let evt = cloneDeep(event);
+
+        evt._sortDate = eventDate;
+
+        days[eventDateFormatted].push(evt);
+    }
+
+    sortedEvents.forEach((event) => {
+        // compute the number of days of the event
+        if (!event.dates.start.isSame(event.dates.end, 'day')) {
+            let deltaDays = Math.max(event.dates.end.diff(event.dates.start, 'days'), 1);
+            // if the event happens during more that one day, add it to every day
+            // add the event to the other days
+
+            for (let i = 1; i <= deltaDays; i++) {
+                //  clone the date
+                const newDate = moment(event.dates.start.format('YYYY-MM-DD'), 'YYYY-MM-DD');
+
+                newDate.add(i, 'days');
+                addEventToDate(event, newDate);
+            }
+        }
+
+        // add event to its initial starting date
+        addEventToDate(event);
+    });
+
+    let sortable = [];
+
+    for (let day in days) sortable.push({
+        date: day,
+        events: sortBy(days[day], [(e) => (e._sortDate)]),
+    });
+
+    return sortBy(sortable, [(e) => (e.date)]);
+};
+
+/*
+ * Convert event dates to moment.
+ */
+const convertToMoment = (item) => {
+    const newItem = {
+        ...item,
+        dates: {
+            ...item.dates,
+            start: get(item.dates, 'start') ? moment(item.dates.start) : null,
+            end: get(item.dates, 'end') ? moment(item.dates.end) : null
+        },
+    };
+
+    if (get(item, 'location[0]')) {
+        newItem.location = item.location[0];
+    }
+
+    return newItem;
+};
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -323,6 +526,12 @@ const self = {
     canConvertToRecurringEvent,
     isEventLocked,
     isEventLockRestricted,
+    isEventSameDay,
+    isEventRecurring,
+    getDateStringForEvent,
+    getEventActions,
+    getEventsByDate,
+    convertToMoment
 };
 
 export default self;

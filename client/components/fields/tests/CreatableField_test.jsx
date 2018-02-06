@@ -13,7 +13,7 @@ const renderComponentField = (component) => (
     )
 );
 
-describe('<CreatableField />', () => {
+xdescribe('<CreatableField />', () => {
     it('IngestProviderField', () => {
         const FormComponent = reduxForm({form: 'form'})(renderComponentField(IngestProviderField));
         const initialState = {

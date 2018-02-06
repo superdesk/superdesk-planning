@@ -3,11 +3,8 @@ import PropTypes from 'prop-types';
 import {PlanningItem} from '../../components/index';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {InfiniteLoader, List, AutoSizer} from 'react-virtualized';
 import {connect} from 'react-redux';
 import {
-    LIST_ITEM_2_LINES_HEIGHT,
-    PLANNING_LIST_ITEM_MARGIN_HEIGHT,
     WORKSPACE,
     MODALS,
 } from '../../constants';
@@ -125,34 +122,7 @@ class PlanningList extends React.Component {
     }
 
     render() {
-        const {plannings} = this.props;
-
-        return (
-            <div className="PlanningList">
-                <InfiniteLoader
-                    isRowLoaded={this.isRowLoaded.bind(this)}
-                    loadMoreRows={this.loadMoreRows.bind(this)}
-                    rowCount={plannings.length + 20}
-                >
-                    {({onRowsRendered, registerChild}) => (
-                        <AutoSizer>
-                            {({height, width}) => (
-                                <List
-                                    ref={registerChild}
-                                    onRowsRendered={onRowsRendered}
-                                    rowRenderer={this.rowRenderer.bind(this)}
-                                    height={height}
-                                    width={width}
-                                    plannings={plannings}
-                                    rowCount={plannings.length}
-                                    rowHeight={LIST_ITEM_2_LINES_HEIGHT + PLANNING_LIST_ITEM_MARGIN_HEIGHT}
-                                />
-                            )}
-                        </AutoSizer>
-                    )}
-                </InfiniteLoader>
-            </div>
-        );
+        return null;
     }
 }
 
@@ -197,7 +167,7 @@ const mapStateToProps = (state) => ({
     session: selectors.getSessionDetails(state),
     users: selectors.getUsers(state),
     desks: state.desks && state.desks.length > 0 ? state.desks : [],
-    lockedItems: selectors.getLockedItems(state),
+    lockedItems: selectors.locks.getLockedItems(state),
     currentWorkspace: selectors.getCurrentWorkspace(state),
     editPlanningViewOpen: selectors.planningEditorOpened(state),
     planningEditorReadOnly: selectors.planningEditorReadOnly(state),
@@ -227,7 +197,7 @@ const mapDispatchToProps = (dispatch) => ({
     },
 
     onAgendaClick: (agendaId) => (dispatch(actions.selectAgenda(agendaId))),
-    loadMorePlannings: () => (dispatch(actions.planning.ui.fetchMoreToList())),
+    loadMorePlannings: () => (dispatch(actions.planning.ui.loadMore())),
     handlePlanningDuplicate: (planning) => (dispatch(actions.planning.ui.duplicate(planning))),
     onCancelEvent: (event) => dispatch(actions.events.ui.openCancelModal(event)),
     onUpdateEventTime: (event) => dispatch(actions.events.ui.updateTime(event)),

@@ -1,95 +1,143 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {reduxForm, formValueSelector} from 'redux-form';
 import * as actions from '../../../actions';
-import moment from 'moment';
-import {EventUpdateMethods} from '../../fields/index';
 import '../style.scss';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {RelatedEvents} from '../../index';
-import {getDateFormat} from '../../../selectors';
+import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
+import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import {get} from 'lodash';
-import {FORM_NAMES} from '../../../constants';
+import {eventUtils, gettext} from '../../../utils';
+import {Row} from '../../UI/Preview';
 
-const Component = ({handleSubmit, initialValues, relatedEvents = [], dateFormat, submitting}) => {
-    let event = initialValues;
-    const isRecurring = !!event.recurrence_id;
+export class SpikeEventComponent extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            eventUpdateMethod: EventUpdateMethods[0],
+            relatedEvents: [],
+            submitting: false,
+        };
 
-    // Default the update_method to 'Spike this event only'
-    event.update_method = EventUpdateMethods[0];
-    let startStr = moment(event.dates.start).format('MMMM Do YYYY, h:mm:ss a');
-    let endStr = moment(event.dates.end).format('MMMM Do YYYY, h:mm:ss a');
+        this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
+    }
 
-    const updateMethodLabel = 'Would you like to spike all recurring events or just this one?';
+    componentWillMount() {
+        if (get(this.props, 'initialValues.recurrence_id')) {
+            const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
+                EventUpdateMethods[0]);
 
-    const eventsInUse = relatedEvents.filter((e) => (
-        get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
-    ));
+            this.setState({relatedEvents: event._events});
+        }
 
-    const numEvents = relatedEvents.length + 1 - eventsInUse.length;
+        // Enable save so that the user can action on this event.
+        this.props.enableSaveInModal();
+    }
 
-    return (
-        <div className="ItemActionConfirmation">
-            <strong>{ event.name }</strong>
-            <div className="metadata-view">
-                <dl>
-                    <dt>Starts:</dt>
-                    <dd>{ startStr }</dd>
-                    <dt>Ends:</dt>
-                    <dd>{ endStr }</dd>
-                    { isRecurring && (<dt>Events:</dt>)}
-                    { isRecurring && (<dd>{ numEvents }</dd>)}
-                </dl>
+    onEventUpdateMethodChange(field, option) {
+        const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
+            option);
+
+        this.setState({
+            eventUpdateMethod: option,
+            relatedEvents: event._events,
+        });
+    }
+
+    submit() {
+        // Modal closes after submit. So, reseting submitting is not required
+        this.setState({submitting: true});
+
+        this.props.onSubmit({
+            ...this.props.initialValues,
+            update_method: this.state.eventUpdateMethod,
+        });
+    }
+
+    render() {
+        const {initialValues, dateFormat, timeFormat} = this.props;
+        const isRecurring = !!initialValues.recurrence_id;
+        const updateMethodLabel = gettext('Would you like to spike all recurring events or just this one?');
+        const eventsInUse = this.state.relatedEvents.filter((e) => (
+            get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
+        ));
+        const numEvents = this.state.relatedEvents.length + 1 - eventsInUse.length;
+
+        return (
+            <div className="MetadataView">
+                <Row
+                    enabled={!!initialValues.slugline}
+                    label={gettext('Slugline')}
+                    value={initialValues.slugline || ''}
+                    className="slugline"
+                    noPadding={true}
+                />
+
+                <Row
+                    label={gettext('Name')}
+                    value={initialValues.name || ''}
+                    className="strong"
+                    noPadding={true}
+                />
+
+                <EventScheduleSummary
+                    schedule={initialValues.dates}
+                    timeFormat={timeFormat}
+                    dateFormat={dateFormat}
+                />
+
+                <Row
+                    enabled={isRecurring}
+                    label={gettext('No. of Events')}
+                    value={numEvents}
+                    noPadding={true}
+                />
+
+                <UpdateMethodSelection
+                    value={this.state.eventUpdateMethod}
+                    onChange={this.onEventUpdateMethodChange}
+                    showMethodSelection={isRecurring}
+                    updateMethodLabel={updateMethodLabel}
+                    showSpace={false}
+                    readOnly={this.state.submitting}
+                    action="spike" />
+
+                {eventsInUse.length > 0 &&
+                    <div className="sd-alert sd-alert--hollow sd-alert--alert">
+                        <strong>{gettext('The following Events are in use and will not be spiked:')}</strong>
+                        <RelatedEvents
+                            events={eventsInUse}
+                            dateFormat={dateFormat}
+                        />
+                    </div>
+                }
             </div>
+        );
+    }
+}
 
-            <UpdateMethodSelection
-                showMethodSelection={isRecurring}
-                updateMethodLabel={updateMethodLabel}
-                handleSubmit={handleSubmit}
-                showSpace={false}
-                readOnly={submitting}
-                action="spike" />
-
-            {eventsInUse.length > 0 &&
-                <div className="sd-alert sd-alert--hollow sd-alert--alert">
-                    <strong>The following Events are in use and will not be spiked:</strong>
-                    <RelatedEvents
-                        events={eventsInUse}
-                        dateFormat={dateFormat}/>
-                </div>
-            }
-        </div>
-    );
-};
-
-Component.propTypes = {
-    handleSubmit: PropTypes.func.isRequired,
+SpikeEventComponent.propTypes = {
     initialValues: PropTypes.object.isRequired,
-    relatedEvents: PropTypes.array,
-    dateFormat: PropTypes.string.isRequired,
+    dateFormat: PropTypes.string,
+    timeFormat: PropTypes.string,
     submitting: PropTypes.bool,
+    onSubmit: PropTypes.func,
+    enableSaveInModal: PropTypes.func,
 };
 
-// Decorate the form container
-export const SpikeEvent = reduxForm({form: FORM_NAMES.SpikeEventForm})(Component);
 
-const selector = formValueSelector(FORM_NAMES.SpikeEventForm);
 const mapStateToProps = (state) => ({
-    relatedEvents: selector(state, '_events'),
+    timeFormat: getTimeFormat(state),
     dateFormat: getDateFormat(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event) => (
-        dispatch(actions.events.ui.spike(event))
-    ),
+    onSubmit: (event) => (dispatch(actions.events.ui.spike(event))),
 });
 
 export const SpikeEventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    {withRef: true}
-)(SpikeEvent);
+    {withRef: true})(SpikeEventComponent);

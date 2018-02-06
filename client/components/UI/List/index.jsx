@@ -4,3 +4,8 @@ export {Border} from './Border';
 export {Column} from './Column';
 export {Row} from './Row';
 export {ActionMenu} from './ActionMenu';
+export {ItemType} from './ItemType';
+export {PubStatus} from './PubStatus';
+export {Header} from './Header';
+export {NestedItem} from './NestedItem';
+

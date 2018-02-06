@@ -342,6 +342,14 @@ export const vocabularies = {
             qcode: 6,
         },
     ],
+    keywords: [
+        {qcode: 'SciTech', name: 'Science and Technology'},
+        {qcode: 'Medicine', name: 'International Health Stories'},
+        {qcode: 'Health', name: 'Health'},
+        {qcode: 'Motoring', name: 'Motoring'},
+        {qcode: 'Soccer', name: 'Soccer'},
+        {qcode: 'Property', name: 'Property'}
+    ]
 };
 
 export const subjects = [
@@ -421,7 +429,7 @@ export const urgency = {
     ],
 };
 
-export const deployConfig = {};
+export const deployConfig = {max_recurrent_events: 200};
 
 export const locks = {
     events: {},
@@ -433,11 +441,6 @@ export const locks = {
 export const eventsInitialState = {
     events: {},
     eventsInList: [],
-    search: {
-        currentSearch: undefined,
-        advancedSearchOpened: false,
-    },
-    lastRequestParams: {page: 1},
     show: true,
     showEventDetails: null,
     highlightedEvent: null,
@@ -478,16 +481,14 @@ export const planningInitialState = {
     selectedItems: [],
     currentPlanningId: undefined,
     editorOpened: false,
-    planningsAreLoading: false,
-    onlyFuture: true,
     filterPlanningKeyword: null,
     readOnly: true,
     planningHistoryItems: [],
-    lastRequestParams: {page: 1},
-    search: {
-        currentSearch: undefined,
-        advancedSearchOpened: false,
-    },
+};
+
+export const eventsPlanningInitialState = {
+    eventsAndPlanningInList: [],
+    relatedPlannings: {}
 };
 
 export const templates = {templates: []};
@@ -672,6 +673,32 @@ export const planningHistory = [
     },
 ];
 
+export const eventsHistory = [
+    {
+        _id: 'e2',
+        _created: '2017-06-19T02:21:42+0000',
+        event_id: 'e2',
+        operation: 'create',
+        update: {
+            name: 'Test Event Wollongong',
+            dates: {
+                end: '2017-06-27T07:00:00+0000',
+                start: '2017-06-24T23:00:00+0000',
+                tz: 'Australia/Sydney',
+            },
+        },
+        user_id: '5923ac531d41c81e3290a5ee',
+    },
+    {
+        _id: 'e2',
+        _created: '2017-06-19T02:21:42+0000',
+        event_id: 'e2',
+        operation: 'update',
+        update: {name: 'Test Event Wollongong.'},
+        user_id: '5923ac531d41c81e3290a5ee',
+    },
+];
+
 export const lockedEvents = [
     {
         _id: 'e1',
@@ -730,13 +757,45 @@ export const archive = [
     }
 ];
 
+export const main = {
+    previewItem: null,
+    filter: null,
+    search: {
+        EVENTS: {
+            lastRequestParams: {page: 1},
+            fulltext: undefined,
+            currentSearch: undefined
+        },
+        PLANNING: {
+            lastRequestParams: {page: 1},
+            fulltext: undefined,
+            currentSearch: undefined
+        },
+        COMBINED: {
+            lastRequestParams: {page: 1},
+            fulltext: undefined,
+            currentSearch: undefined
+        }
+    }
+};
+
+export const multiSelect = {
+    selectedEventIds: [],
+    selectedPlanningIds: [],
+};
+
 export const initialState = {
     config: config,
     privileges: privileges,
     session: sessions[0],
     users: users,
     desks: desks,
-    formsProfile: formsProfile,
+    forms: {
+        profiles: formsProfile,
+        autosaves: {},
+        itemId: null,
+        itemType: null,
+    },
     workspace: workspace,
     vocabularies: vocabularies,
     subjects: subjects,
@@ -748,11 +807,12 @@ export const initialState = {
     events: eventsInitialState,
     agenda: agendaInitialState,
     assignment: assignmentInitialState,
-    autosave: {},
     modal: modal,
     planning: planningInitialState,
     templates: templates,
-    form: form,
+    main: main,
+    eventsPlanning: eventsPlanningInitialState,
+    multiSelect: multiSelect,
 };
 
 export const items = {
@@ -761,7 +821,9 @@ export const items = {
     assignments: assignments,
     agendas: agendas,
     planning_history: planningHistory,
+    events_history: eventsHistory,
     locked_events: lockedEvents,
     locked_plannings: lockedPlannings,
     archive: archive,
+    planning_search: events.concat(plannings)
 };

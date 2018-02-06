@@ -9,6 +9,10 @@
 	float: right;
 }
 
+.sd-text__link {
+	margin-bottom: 0px;
+}
+
 .error-block {
 	color: #E51C23;
 	text-transform: none;
@@ -36,14 +40,16 @@
 }
 
 
-.sd-list-item__column {
-	overflow: visible !important;
-}
+.Planning {
+    .sd-list-item__column {
+      overflow: visible !important;
+    }
 
-.sd-list-item__row {
-	overflow: visible !important;
-}
+    .sd-list-item__row {
+      overflow: visible !important;
+    }
 
-.tooltipVisibleElement {
-	overflow: visible !important;
+    .tooltipVisibleElement {
+      overflow: visible !important;
+    }
 }

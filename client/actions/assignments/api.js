@@ -2,7 +2,7 @@ import * as selectors from '../../selectors';
 import {ASSIGNMENTS} from '../../constants';
 import planningUtils from '../../utils/planning';
 import {get, cloneDeep, has, pick} from 'lodash';
-import {isItemLockedInThisSession, getErrorMessage} from '../../utils';
+import {lockUtils, getErrorMessage} from '../../utils';
 import planning from '../planning';
 
 /**
@@ -93,7 +93,7 @@ const query = ({
  * @param {boolean} force - Force using the API instead of local store
  * @return Promise
  */
-const fetchAssignmentById = (id, force = false) => (
+const fetchAssignmentById = (id, force = false, recieve = true) => (
     (dispatch, getState, {api}) => {
         // Test if the Assignment item is already loaded into the store
         // If so, return that instance instead
@@ -105,7 +105,10 @@ const fetchAssignmentById = (id, force = false) => (
 
         return api('assignments').getById(id)
             .then((item) => {
-                dispatch(self.receivedAssignments([item]));
+                if (recieve) {
+                    dispatch(self.receivedAssignments([item]));
+                }
+
                 return Promise.resolve(item);
             }, (error) => Promise.reject(error));
     }
@@ -241,7 +244,7 @@ const complete = (item) => (
  */
 const lock = (assignment, action = 'edit') => (
     (dispatch, getState, {api, notify}) => {
-        if (isItemLockedInThisSession(assignment, selectors.getSessionDetails(getState()))) {
+        if (lockUtils.isItemLockedInThisSession(assignment, selectors.getSessionDetails(getState()))) {
             return Promise.resolve(assignment);
         }
 

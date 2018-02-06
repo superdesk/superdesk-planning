@@ -1,3 +1,5 @@
+import {gettext} from '../utils/gettext';
+
 export const EVENTS = {
     ACTIONS: {
         SPIKE_EVENT: 'SPIKE_EVENT',
@@ -5,6 +7,7 @@ export const EVENTS = {
         UNSPIKE_EVENT: 'UNSPIKE_EVENT',
         REQUEST_EVENTS: 'REQUEST_EVENTS',
         SET_EVENTS_LIST: 'SET_EVENTS_LIST',
+        CLEAR_LIST: 'CLEAR_EVENTS_LIST',
         ADD_TO_EVENTS_LIST: 'ADD_TO_EVENTS_LIST',
         OPEN_ADVANCED_SEARCH: 'EVENT_OPEN_ADVANCED_SEARCH',
         CLOSE_ADVANCED_SEARCH: 'EVENT_CLOSE_ADVANCED_SEARCH',
@@ -30,29 +33,60 @@ export const EVENTS = {
     // chunk size must be lower than page limit (25)
     FETCH_IDS_CHUNK_SIZE: 25,
     ITEM_ACTIONS: {
+        SPIKE: {
+            label: gettext('Spike'),
+            icon: 'icon-trash',
+            actionName: 'onSpikeEvent',
+        },
+        UNSPIKE: {
+            label: gettext('Unspike'),
+            icon: 'icon-unspike',
+            actionName: 'onUnspikeEvent'
+        },
+        DUPLICATE: {
+            label: gettext('Duplicate'),
+            icon: 'icon-copy',
+            actionName: 'onDuplicateEvent',
+        },
         CREATE_PLANNING: {
-            label: 'Create Planning Item',
+            label: gettext('Create Planning Item'),
             icon: 'icon-new-doc',
+            actionName: 'onCreatePlanning',
         },
         CANCEL_EVENT: {
-            label: 'Cancel',
+            label: gettext('Cancel'),
             icon: 'icon-close-small',
+            actionName: 'onCancelEvent',
+            lock_action: 'cancel_event',
         },
         UPDATE_TIME: {
-            label: 'Update time',
+            label: gettext('Update time'),
             icon: 'icon-time',
+            actionName: 'onEventUpdateTime',
+            lock_action: 'update_time',
         },
         RESCHEDULE_EVENT: {
-            label: 'Reschedule',
+            label: gettext('Reschedule'),
             icon: 'icon-calendar',
+            actionName: 'onRescheduleEvent',
+            lock_action: 'reschedule',
         },
         POSTPONE_EVENT: {
-            label: 'Mark as Postponed',
+            label: gettext('Mark as Postponed'),
             icon: 'icon-calendar-list',
+            actionName: 'onPostponeEvent',
+            lock_action: 'postpone_event',
         },
         CONVERT_TO_RECURRING: {
-            label: 'Convert to recurring event',
+            label: gettext('Convert to recurring event'),
             icon: 'icon-repeat',
+            actionName: 'onConvertToRecurringEvent',
+            lock_action: 'convert_recurring',
         },
     },
+    DEFAULT_VALUE: (occurStatuses) => ({
+        _type: 'events',
+        occur_status: occurStatuses[5], // eocstat:eos5: Planned, occurs certainly
+        dates: {}
+    })
 };

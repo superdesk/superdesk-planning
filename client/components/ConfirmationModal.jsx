@@ -6,7 +6,7 @@ import {Button} from 'react-bootstrap';
 export function ConfirmationModal({handleHide, modalProps}) {
     const action = () => (
         Promise.resolve(modalProps.action())
-            .then(handleHide(modalProps.deselectEventsAfterAction))
+            .then(handleHide(modalProps.itemType))
     );
     const handleCancel = () => {
         handleHide();

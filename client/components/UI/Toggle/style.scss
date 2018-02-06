@@ -1,0 +1,10 @@
+.sd-toggle {
+    &--disabled {
+        cursor: not-allowed;
+    }
+
+    &--checked {
+        background: #b0b0b0;
+    }
+}
+

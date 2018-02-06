@@ -3,7 +3,7 @@ import assignments from './index';
 import {get} from 'lodash';
 import planning from '../planning';
 import {ASSIGNMENTS, WORKSPACE} from '../../constants';
-import {getLock, assignmentUtils} from '../../utils';
+import {lockUtils, assignmentUtils} from '../../utils';
 import {hideModal, showModal} from '../index';
 
 /**
@@ -78,8 +78,8 @@ const onAssignmentUpdated = (_e, data) => (
             // Assignment was completed on editor but context was a different desk
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
-                    const locks = selectors.getLockedItems(getState());
-                    const itemLock = getLock(assignmentInStore, locks);
+                    const locks = selectors.locks.getLockedItems(getState());
+                    const itemLock = lockUtils.getLock(assignmentInStore, locks);
 
                     if (itemLock) {
                         let item = {
@@ -177,8 +177,8 @@ const onAssignmentUnlocked = (_e, data) => (
         if (get(data, 'item')) {
             return dispatch(assignments.api.fetchAssignmentById(data.item, false))
                 .then((assignmentInStore) => {
-                    const locks = selectors.getLockedItems(getState());
-                    const itemLock = getLock(assignmentInStore, locks);
+                    const locks = selectors.locks.getLockedItems(getState());
+                    const itemLock = lockUtils.getLock(assignmentInStore, locks);
                     const sessionId = selectors.getSessionDetails(getState()).sessionId;
 
                     let assignment = {

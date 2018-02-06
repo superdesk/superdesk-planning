@@ -131,7 +131,7 @@ describe('planning', () => {
                 expect(store.getState().planning.editorOpened).toBe(false);
             });
 
-            it('cancel', () => {
+            xit('cancel', () => {
                 const wrapper = getWrapper();
 
                 store.dispatch({

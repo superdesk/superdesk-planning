@@ -4,12 +4,15 @@ export {AGENDA} from './agenda';
 export {ASSIGNMENTS} from './assignments';
 export {TOOLTIPS} from './tooltips';
 export {LOCKS} from './locks';
-export {LOCATIONS} from './locations';
 export {WORKSPACE} from './workspace';
 export {MODALS} from './modals';
 export {UI} from './ui';
 export {AUTOSAVE} from './autosave';
-
+export {MAIN} from './main';
+export {KEYCODES} from './keycodes';
+export {EVENTS_PLANNING} from './eventsplanning';
+export {COVERAGES} from './coverages';
+export {MULTISELECT} from './multiselect';
 
 export const LIST_ITEM_1_LINE_HEIGHT = 38;
 export const LIST_ITEM_2_LINES_HEIGHT = 56;
@@ -44,22 +47,6 @@ export const PUBLISHED_STATE = {
 };
 
 export const GENERIC_ITEM_ACTIONS = {
-    SPIKE: {
-        label: 'Spike',
-        icon: 'icon-trash',
-    },
-    UNSPIKE: {
-        label: 'Unspike',
-        icon: 'icon-unspike',
-    },
-    DUPLICATE: {
-        label: 'Duplicate',
-        icon: 'icon-copy',
-    },
-    HISTORY: {
-        label: 'View History',
-        icon: 'icon-time',
-    },
     DIVIDER: {label: 'Divider'},
     LABEL: {label: 'Label'},
 };
@@ -77,18 +64,25 @@ export const ADVANCED_SEARCH_CONTEXT = {
 export const RESET_STORE = 'RESET_STORE';
 export const INIT_STORE = 'INIT_STORE';
 export const FORM_NAMES = {
-    SpikeEventForm: 'spikeEvent',
-    CancelEventForm: 'cancelEvent',
-    CancelPlanningForm: 'cancelPlanning',
-    UpdateTimeForm: 'updateTime',
     UpdateRecurringEventsForm: 'updateEventConfirmation',
-    CreateEditAgendaForm: 'createEditAgenda',
     RescheduleForm: 'rescheduleEvent',
     ConvertEventToRecurringForm: 'convertEventToRecurring',
-    PostponeEventForm: 'postponeEvent',
     ReassignAssignmentForm: 'reassignAssignmentForm',
     EditAssignmentPriorityForm: 'editAssignmentPriorityForm',
     UpdateAssignmentForm: 'updateAssignmentForm',
     PlanningForm: 'planning',
     EventForm: 'events',
+};
+
+export const ITEM_TYPE = {
+    EVENT: 'events',
+    PLANNING: 'planning',
+    ASSIGNMENT: 'assignments',
+    UNKNOWN: 'unknown'
+};
+
+export const EVENT_FEED_PARSERS = {
+    EVENT_FILE: 'event_file',
+    EVENT_HTTP: 'event_http',
+    EVENT_EMAIL: 'event_email',
 };

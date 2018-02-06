@@ -1,18 +1,5 @@
 
-.ItemActionConfirmation {
-    .metadata-view {
-        dl {
-            margin-top: 0;
-            > dt {
-                line-height: 20px;
-            }
-            > dd {
-                padding-left: 90px;
-                line-height: 20px;
-            }
-        }
-    }
-
+.MetadataView {
     .spacing {
         min-height: 75px;
     }
@@ -41,14 +28,16 @@
             color: #333;
             font-weight: normal;
         }
-
-        &__slugline {
-            color: #005b7f !important;
-        }
     }
 
     .sd-line-input--label-left--noMaxWdth {
         max-width: none;
         min-width: 15rem;
+    }
+}
+
+.update-assignment {
+    &__form {
+        padding-top: 2rem;
     }
 }

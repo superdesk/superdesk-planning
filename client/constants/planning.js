@@ -1,3 +1,5 @@
+import {gettext} from '../utils/gettext';
+
 export const PLANNING = {
     ACTIONS: {
         SPIKE_PLANNING: 'SPIKE_PLANNING',
@@ -41,13 +43,32 @@ export const PLANNING = {
         NOT_SCHEDULED: 'NOT_SCHEDULED',
     },
     ITEM_ACTIONS: {
+        SPIKE: {
+            label: gettext('Spike'),
+            icon: 'icon-trash',
+            actionName: 'onSpikePlanning'
+        },
+        UNSPIKE: {
+            label: gettext('Unspike'),
+            icon: 'icon-unspike',
+            actionName: 'onUnspikePlanning'
+        },
+        DUPLICATE: {
+            label: gettext('Duplicate'),
+            icon: 'icon-copy',
+            actionName: 'onDuplicatePlanning',
+        },
         CANCEL_PLANNING: {
-            label: 'Cancel planning',
+            label: gettext('Cancel planning'),
             icon: 'icon-close-small',
+            actionName: 'onCancelPlanning',
+            lock_action: 'planning_cancel',
         },
         CANCEL_ALL_COVERAGE: {
-            label: 'Cancel all coverage',
+            label: gettext('Cancel all coverage'),
             icon: 'icon-close-small',
+            actionName: 'onCancelAllCoverage',
+            lock_action: 'cancel_all_coverage',
         },
     },
     NEWS_COVERAGE_CANCELLED_STATUS: {
@@ -55,4 +76,12 @@ export const PLANNING = {
         name: 'coverage not intended',
         label: 'Not planned',
     },
+    G2_CONTENT_TYPE: {
+        TEXT: 'text',
+        VIDEO: 'video',
+        LIVE_VIDEO: 'live_video',
+        AUDIO: 'audio',
+        PICTURE: 'picture',
+    },
+    DEFAULT_VALUE: {_type: 'planning'}
 };

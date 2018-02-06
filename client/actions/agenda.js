@@ -1,10 +1,17 @@
-import {hideModal} from './modal';
 import * as selectors from '../selectors';
 import {SubmissionError} from 'redux-form';
 import {cloneDeep, pick, get} from 'lodash';
-import {PRIVILEGES, AGENDA, MODALS} from '../constants';
-import {checkPermission, getErrorMessage, isItemSpiked} from '../utils';
+import {PRIVILEGES, AGENDA, MODALS, ITEM_TYPE} from '../constants';
+import {checkPermission, getErrorMessage, isItemSpiked, gettext} from '../utils';
 import {planning, showModal} from './index';
+
+const openAgenda = () => (
+    (dispatch) => (
+        dispatch(showModal({
+            modalType: MODALS.MANAGE_AGENDAS,
+        }))
+    )
+);
 
 /**
  * Creates or updates an Agenda
@@ -26,7 +33,6 @@ const _createOrUpdateAgenda = (newAgenda) => (
         return api('agenda').save(originalAgenda, diff)
             .then((agenda) => {
                 notify.success('The agenda has been created/updated.');
-                dispatch(hideModal());
                 dispatch(addOrReplaceAgenda(agenda));
             }, (error) => {
                 let errorMessage = getErrorMessage(error);
@@ -71,7 +77,7 @@ const receiveAgendas = (agendas) => ({
  * @param {string} agendaId - The ID of the Agenda
  * @return arrow function
  */
-const selectAgenda = (agendaId) => (
+const selectAgenda = (agendaId, params = {}) => (
     (dispatch, getState, {$timeout, $location}) => {
         // save in store selected agenda
         dispatch({
@@ -82,7 +88,7 @@ const selectAgenda = (agendaId) => (
         // update the url (deep linking)
         $timeout(() => ($location.search('agenda', agendaId)));
         // reload the plannings list
-        return dispatch(fetchSelectedAgendaPlannings());
+        return dispatch(fetchSelectedAgendaPlannings(params));
     }
 );
 
@@ -133,30 +139,18 @@ const fetchAgendaById = (_id) => (
  */
 const askForAddEventToCurrentAgenda = (events) => (
     (dispatch, getState) => {
-        const currentAgendaId = selectors.getCurrentAgendaId(getState());
+        const message = events.length === 1 ?
+            gettext('Do you want to add this event to the planning list') :
+            gettext(`Do you want to add these ${events.length} events to the planning list ?`);
 
-        if (currentAgendaId) {
-            const message = events.length === 1 ?
-                'Do you want to add this event to the current agenda'
-                : `Do you want to add these ${events.length} events to the current agenda ?`;
-
-            return dispatch(showModal({
-                modalType: MODALS.CONFIRMATION,
-                modalProps: {
-                    body: message,
-                    action: () => dispatch(addEventToCurrentAgenda(events)),
-                    deselectEventsAfterAction: true,
-                },
-            }));
-        } else {
-            dispatch(showModal({
-                modalType: MODALS.CONFIRMATION,
-                modalProps: {
-                    body: 'You have to select an agenda first',
-                    action: () => { /* no-op */ },
-                },
-            }));
-        }
+        return dispatch(showModal({
+            modalType: MODALS.CONFIRMATION,
+            modalProps: {
+                body: message,
+                action: () => dispatch(addEventToCurrentAgenda(events)),
+                itemType: ITEM_TYPE.EVENT,
+            },
+        }));
     }
 );
 
@@ -259,8 +253,8 @@ const _createPlanningFromEvent = (event) => (
  * currently selected agenda
  * @return arrow function
  */
-const fetchSelectedAgendaPlannings = () => (
-    (dispatch, getState) => {
+const fetchSelectedAgendaPlannings = (params = {}) => (
+    (dispatch, getState, {$location, $timeout}) => {
         const agendaId = selectors.getCurrentAgendaId(getState());
 
         if (!agendaId) {
@@ -268,9 +262,16 @@ const fetchSelectedAgendaPlannings = () => (
             return Promise.resolve();
         }
 
-        const params = selectors.getPlanningFilterParams(getState());
+        const filters = {
+            ...selectors.planning.getPlanningFilterParams(getState()),
+            ...params
+        };
 
-        return dispatch(planning.ui.fetchToList(params));
+        return dispatch(planning.ui.fetchToList(filters))
+            .then((result) => {
+                $timeout(() => $location.search('searchParams', JSON.stringify(params)));
+                return result;
+            });
     }
 );
 
@@ -366,4 +367,5 @@ export {
     fetchSelectedAgendaPlannings,
     agendaNotifications,
     deleteAgenda,
+    openAgenda,
 };

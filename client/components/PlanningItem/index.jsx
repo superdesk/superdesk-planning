@@ -42,7 +42,7 @@ const PlanningItem = ({
     editPlanningViewOpen,
     planningEditorReadOnly,
 }) => {
-    const location = get(event, 'location[0].name');
+    const location = get(event, 'location.name');
     const coverages = get(item, 'coverages', []);
     const dueDates = get(item, 'coverages', []).map((c) => (get(c, 'planning.scheduled')))
         .filter((d) => (d));
@@ -73,15 +73,15 @@ const PlanningItem = ({
     if (inPlanning) {
         const actions = [
             {
-                ...GENERIC_ITEM_ACTIONS.SPIKE,
+                ...PLANNING.ITEM_ACTIONS.SPIKE,
                 callback: onSpike.bind(null, item),
             },
             {
-                ...GENERIC_ITEM_ACTIONS.UNSPIKE,
+                ...PLANNING.ITEM_ACTIONS.UNSPIKE,
                 callback: onUnspike.bind(null, item),
             },
             {
-                ...GENERIC_ITEM_ACTIONS.DUPLICATE,
+                ...PLANNING.ITEM_ACTIONS.DUPLICATE,
                 callback: onDuplicate.bind(null, item),
             },
             {

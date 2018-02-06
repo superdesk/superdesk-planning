@@ -1,9 +1,11 @@
 import {get} from 'lodash';
 import planning from './index';
-import {getErrorMessage, getLock} from '../../utils';
+import {getErrorMessage, lockUtils} from '../../utils';
 import * as selectors from '../../selectors';
 import {showModal, hideModal, events} from '../index';
-import {PLANNING, WORKFLOW_STATE, MODALS} from '../../constants';
+import main from '../main';
+import {PLANNING, WORKFLOW_STATE, MODALS, SPIKED_STATE} from '../../constants';
+import eventsPlanning from '../eventsPlanning';
 
 /**
  * WS Action when a new Planning item is created
@@ -11,7 +13,7 @@ import {PLANNING, WORKFLOW_STATE, MODALS} from '../../constants';
  * @param {object} data - Planning and User IDs
  */
 const onPlanningCreated = (_e, data) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (get(data, 'item')) {
             if (get(data, 'event_item', null) !== null) {
                 dispatch(events.api.markEventHasPlannings(
@@ -20,7 +22,15 @@ const onPlanningCreated = (_e, data) => (
                 ));
             }
 
-            return dispatch(planning.ui.refetch());
+            const currentSessionId = selectors.general.sessionId(getState());
+            const currentUserId = selectors.general.currentUserId(getState());
+
+            if (get(data, 'session') === currentSessionId && get(data, 'user') === currentUserId) {
+                dispatch(planning.api.fetchPlanningById(data.item));
+            }
+
+            return dispatch(planning.ui.scheduleRefetch())
+                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()));
         }
 
         return Promise.resolve();
@@ -37,7 +47,9 @@ const onPlanningUpdated = (_e, data, refetch = true) => (
     (dispatch, getState, {notify}) => {
         if (get(data, 'item')) {
             if (refetch) {
-                return dispatch(planning.ui.refetch());
+                dispatch(planning.ui.scheduleRefetch());
+                dispatch(eventsPlanning.ui.scheduleRefetch());
+                return Promise.resolve();
             }
 
             // Otherwise send an Action to update the store
@@ -96,8 +108,8 @@ const onPlanningUnlocked = (_e, data) => (
     (dispatch, getState) => {
         if (get(data, 'item')) {
             let planningItem = selectors.getStoredPlannings(getState())[data.item];
-            const locks = selectors.getLockedItems(getState());
-            const itemLock = getLock(planningItem, locks);
+            const locks = selectors.locks.getLockedItems(getState());
+            const itemLock = lockUtils.getLock(planningItem, locks);
             const sessionId = selectors.getSessionDetails(getState()).sessionId;
 
             // If this is the planning item currently being edited, show popup notification
@@ -146,7 +158,8 @@ const onPlanningUnlocked = (_e, data) => (
 const onPlanningPublished = (_e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
-            return dispatch(planning.ui.refetch());
+            dispatch(planning.ui.scheduleRefetch());
+            dispatch(eventsPlanning.ui.scheduleRefetch());
         }
 
         return Promise.resolve();
@@ -174,8 +187,18 @@ const onPlanningSpiked = (_e, data) => (
 
             dispatch({
                 type: PLANNING.ACTIONS.SPIKE_PLANNING,
-                payload: {plan: planningItem},
+                payload: {
+                    plan: planningItem,
+                    spikeState: get(
+                        selectors.main.planningSearch(getState()),
+                        'spikeState',
+                        SPIKED_STATE.NOT_SPIKED
+                    )
+                },
             });
+
+            dispatch(eventsPlanning.notifications.onPlanningSpiked(_e, data));
+            dispatch(main.closePreviewAndEditorForItems([planningItem]));
 
             return Promise.resolve(planningItem);
         }
@@ -205,8 +228,18 @@ const onPlanningUnspiked = (_e, data) => (
 
             dispatch({
                 type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
-                payload: {plan: planningItem},
+                payload: {
+                    plan: planningItem,
+                    spikeState: get(
+                        selectors.main.planningSearch(getState()),
+                        'spikeState',
+                        SPIKED_STATE.NOT_SPIKED
+                    )
+                },
             });
+
+            dispatch(eventsPlanning.notifications.onPlanningUnspiked(_e, data));
+            dispatch(main.closePreviewAndEditorForItems([planningItem]));
 
             return Promise.resolve(planningItem);
         }

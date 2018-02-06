@@ -15,19 +15,19 @@ import {
     getCreator,
     getCoverageIcon,
     getItemInArrayById,
+    lockUtils,
 } from '../../utils';
 import {ASSIGNMENTS, WORKSPACE} from '../../constants';
 import {
     ItemActionsMenu,
     StateLabel,
     AuditInformation,
-    ToggleBox,
     AbsoluteDate,
     Datetime,
     UserAvatar,
     PriorityLabel,
 } from '../';
-import {List} from '../UI';
+import {List, ToggleBox} from '../UI';
 import './style.scss';
 
 class AssignmentPreviewContainerComponent extends React.Component {
@@ -52,9 +52,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
             openArchivePreview,
         } = this.props;
 
-        const isItemLocked = get(lockedItems, 'assignments') && assignment._id in lockedItems.assignments;
-
-        if (!inAssignments || isItemLocked) {
+        if (!inAssignments || lockUtils.isLockRestricted(assignment, session, lockedItems)) {
             return [];
         }
 
@@ -82,7 +80,11 @@ class AssignmentPreviewContainerComponent extends React.Component {
             {
                 ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
                 callback: openArchivePreview.bind(null, assignment),
-            }
+            },
+            {
+                ...ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY,
+                callback: completeAssignment.bind(null, assignment),
+            },
         ];
 
         return assignmentUtils.getAssignmentItemActions(
@@ -327,8 +329,8 @@ const mapStateToProps = (state) => ({
     priorities: get(state, 'vocabularies.assignment_priority'),
     privileges: selectors.getPrivileges(state),
     keywords: get(state, 'vocabularies.keywords', []),
-    formProfile: selectors.getFormsProfile(state),
-    lockedItems: selectors.getLockedItems(state),
+    formProfile: selectors.forms.profiles(state),
+    lockedItems: selectors.locks.getLockedItems(state),
     agendas: selectors.getAgendas(state),
 });
 

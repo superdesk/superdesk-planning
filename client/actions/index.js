@@ -1,5 +1,4 @@
 export * from './events';
-export * from './locations';
 export * from './modal';
 export * from './agenda';
 export * from './assignments';
@@ -9,7 +8,10 @@ import events from './events/index';
 import locks from './locks';
 import assignments from './assignments/index';
 import autosave from './autosave';
-
+import main from './main';
+import locations from './locations';
+import eventsPlanning from './eventsPlanning/index';
+import multiSelect from './multiSelect';
 import {agendaNotifications} from './agenda';
 import {eventNotifications} from './events';
 
@@ -26,13 +28,12 @@ const initStore = (workspace) => ({
  * This is used by client.controller.PlanningController to listen for
  * the WebSocket Notifications from the server, and dispatch events
  **/
-
 const notifications = {
     ...agendaNotifications,
     ...planning.notifications.events,
     ...eventNotifications,
     ...events.notifications.events,
-    ...assignments.notifications.events,
+    ...assignments.notifications.events
 };
 
 export {
@@ -44,4 +45,8 @@ export {
     locks,
     assignments,
     autosave,
+    main,
+    locations,
+    eventsPlanning,
+    multiSelect,
 };

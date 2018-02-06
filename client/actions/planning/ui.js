@@ -1,12 +1,12 @@
 import {showModal, hideModal} from '../index';
-import planning from './index';
+import planningApi from './api';
 import {locks} from '../index';
-import {checkPermission, getErrorMessage, isItemLockedInThisSession, planningUtils} from '../../utils';
+import main from '../main';
+import {checkPermission, getErrorMessage, lockUtils, planningUtils, dispatchUtils, gettext} from '../../utils';
 import * as selectors from '../../selectors';
-import {PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, ASSIGNMENTS} from '../../constants';
+import {PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, ASSIGNMENTS, MAIN} from '../../constants';
 import * as actions from '../index';
 import {get, orderBy} from 'lodash';
-import {change} from 'redux-form';
 import moment from 'moment';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
@@ -15,19 +15,16 @@ import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/help
  * @param {object} item - The planning item to spike
  * @return Promise
  */
-const _spike = (item) => (
+const spike = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.spike(item))
-            .then(() => {
-                notify.success('The Planning Item has been spiked.');
-                if (selectors.getCurrentPlanningId(getState()) === item._id) {
-                    dispatch(self.closeEditor());
-                }
-
+        dispatch(planningApi.spike(item))
+            .then((items) => {
+                notify.success(gettext('The Planning Item(s) has been spiked.'));
+                dispatch(main.closePreviewAndEditorForItems(items));
                 return Promise.resolve(item);
             }, (error) => {
                 notify.error(
-                    getErrorMessage(error, 'There was a problem, Planning item not spiked!')
+                    getErrorMessage(error, gettext('There was a problem, Planning item not spiked!'))
                 );
                 return Promise.reject(error);
             })
@@ -39,15 +36,16 @@ const _spike = (item) => (
  * @param {object} item - The Planning item to unspike
  * @return Promise
  */
-const _unspike = (item) => (
+const unspike = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.unspike(item))
-            .then(() => {
-                notify.success('The Planning Item has been unspiked.');
+        dispatch(planningApi.unspike(item))
+            .then((items) => {
+                dispatch(main.closePreviewAndEditorForItems(items));
+                notify.success(gettext('The Planning Item(s) has been unspiked.'));
                 return Promise.resolve(item);
             }, (error) => {
                 notify.error(
-                    getErrorMessage(error, 'There was a problem, Planning item not unspiked!')
+                    getErrorMessage(error, gettext('There was a problem, Planning item not unspiked!'))
                 );
                 return Promise.reject(error);
             })
@@ -62,10 +60,10 @@ const _unspike = (item) => (
  */
 const save = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.save(item))
+        dispatch(planningApi.save(item))
             .then((item) => {
                 notify.success('The planning item has been saved.');
-                return dispatch(self.refetch())
+                return dispatch(self.scheduleRefetch())
                     .then(() => Promise.resolve(item));
             }, (error) => {
                 notify.error(
@@ -88,11 +86,11 @@ const save = (item) => (
  */
 const saveAndReloadCurrentAgenda = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.saveAndReloadCurrentAgenda(item))
+        dispatch(planningApi.saveAndReloadCurrentAgenda(item))
             .then((item) => {
                 notify.success('The Planning item has been saved.');
-                return dispatch(self.refetch())
-                    .then(() => (dispatch(planning.api.fetchPlanningById(item._id, true))))
+                return dispatch(self.scheduleRefetch())
+                    .then(() => dispatch(planningApi.fetchPlanningById(item._id, true)))
                     .then((item) => (Promise.resolve(item)));
             }, (error) => {
                 notify.error(getErrorMessage(error, 'Failed to save the Planning item!'));
@@ -149,7 +147,7 @@ const _unlockAndOpenEditor = (item) => (
  */
 const unlockAndCloseEditor = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.unlock(item))
+        dispatch(planningApi.unlock(item))
             .then(() => {
                 if (selectors.getCurrentPlanningId(getState()) === item._id) {
                     dispatch({type: PLANNING.ACTIONS.CLOSE_PLANNING_EDITOR});
@@ -180,13 +178,13 @@ const _lockAndOpenEditor = (item, checkWorkspace = true) => (
         }
 
         // If the user already has a lock, don't obtain a new lock, open it directly
-        if (item && isItemLockedInThisSession(item,
+        if (item && lockUtils.isItemLockedInThisSession(item,
             selectors.getSessionDetails(getState()))) {
             dispatch(self._openEditor(item));
             return Promise.resolve(item);
         }
 
-        return dispatch(planning.api.lock(item))
+        return dispatch(planningApi.lock(item))
             .then((lockedItem) => {
                 dispatch(self._openEditor(lockedItem));
                 return Promise.resolve(lockedItem);
@@ -210,8 +208,8 @@ const closeEditor = (item) => (
 
         if (!item) return Promise.resolve();
 
-        if (isItemLockedInThisSession(item, selectors.getSessionDetails(getState()))) {
-            return dispatch(planning.api.unlock(item))
+        if (lockUtils.isItemLockedInThisSession(item, selectors.getSessionDetails(getState()))) {
+            return dispatch(planningApi.unlock(item))
                 .then(() => Promise.resolve(item))
                 .catch(() => {
                     notify.error('Could not unlock the planning item.');
@@ -275,7 +273,6 @@ const toggleOnlyFutureFilter = () => (
     (dispatch, getState) => {
         dispatch({
             type: PLANNING.ACTIONS.SET_ONLY_FUTURE,
-            payload: !getState().planning.onlyFuture,
         });
 
         return dispatch(actions.fetchSelectedAgendaPlannings());
@@ -328,7 +325,7 @@ const addToList = (ids) => ({
 const fetchToList = (params) => (
     (dispatch) => {
         dispatch(self.requestPlannings(params));
-        return dispatch(planning.api.fetch(params))
+        return dispatch(planningApi.fetch(params))
             .then((items) => (dispatch(self.setInList(
                 items.map((p) => p._id)
             ))));
@@ -340,19 +337,29 @@ const fetchToList = (params) => (
  * Uses planning.lastRequestParams from the redux store for the api query,
  * then adds the received Planning items to the Planning List
  */
-const fetchMoreToList = () => (
+const loadMore = () => (
     (dispatch, getState) => {
-        const previousParams = selectors.getPreviousPlanningRequestParams(getState());
+        const previousParams = selectors.main.lastRequestParams(getState());
+        const totalItems = selectors.main.planningTotalItems(getState());
+        const planIdsInList = selectors.planning.planIdsInList(getState());
+
+        if (totalItems === get(planIdsInList, 'length', 0)) {
+            return Promise.resolve();
+        }
+
         const params = {
             ...previousParams,
-            page: get(previousParams, 'page', 0) + 1,
+            page: get(previousParams, 'page', 1) + 1,
         };
 
-        dispatch(self.requestPlannings(params));
-        return dispatch(planning.api.fetch(params))
-            .then((items) => (dispatch(self.addToList(
-                items.map((p) => p._id)
-            ))));
+        return dispatch(planningApi.fetch(params))
+            .then((items) => {
+                if (get(items, 'length', 0) === MAIN.PAGE_SIZE) {
+                    dispatch(self.requestPlannings(params));
+                }
+                dispatch(self.addToList(items.map((p) => p._id)));
+                return Promise.resolve(items);
+            });
     }
 );
 
@@ -361,10 +368,10 @@ const fetchMoreToList = () => (
  */
 const refetch = () => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.refetch())
+        dispatch(planningApi.refetch())
             .then(
                 (items) => {
-                    dispatch(planning.ui.setInList(items.map((p) => p._id)));
+                    dispatch(self.setInList(items.map((p) => p._id)));
                     return Promise.resolve(items);
                 }, (error) => {
                     notify.error(
@@ -376,15 +383,28 @@ const refetch = () => (
     )
 );
 
+/**
+ * Schedule the refetch to run after one second and avoid any other refetch
+ */
+let nextRefetch = {
+    called: 0
+};
+const scheduleRefetch = () => (
+    (dispatch) => (
+        dispatch(
+            dispatchUtils.scheduleDispatch(self.refetch(), nextRefetch)
+        )
+    )
+);
+
 const duplicate = (plan) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.duplicate(plan))
+        dispatch(planningApi.duplicate(plan))
             .then((newPlan) => {
-                dispatch(self.refetch())
+                dispatch(self.scheduleRefetch())
                     .then(() => {
-                        dispatch(self.closeEditor(plan));
                         notify.success('Planning duplicated');
-                        return dispatch(self.openEditor(newPlan));
+                        return dispatch(main.preview(newPlan));
                     }, (error) => (
                         notify.error(
                             getErrorMessage(error, 'Failed to fetch Planning items')
@@ -400,7 +420,7 @@ const duplicate = (plan) => (
 
 const cancelPlanning = (plan) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.cancel(plan))
+        dispatch(planningApi.cancel(plan))
             .then((plan) => {
                 dispatch(hideModal());
                 notify.success('Planning Item has been cancelled');
@@ -423,7 +443,7 @@ const cancelAllCoverage = (plan) => (
         // delete _cancelAllCoverage used for UI purposes
         delete plan._cancelAllCoverage;
 
-        return dispatch(planning.api.cancelAllCoverage(plan))
+        return dispatch(planningApi.cancelAllCoverage(plan))
             .then((plan) => {
                 dispatch(hideModal());
                 notify.success('All Coverage has been cancelled');
@@ -445,7 +465,7 @@ const openCancelPlanningModal = (plan, publish = false) => (
     (dispatch) => dispatch(self._openActionModal(
         plan,
         PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label,
-        'planning_cancel',
+        PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.lock_action,
         publish
     ))
 );
@@ -454,7 +474,7 @@ const openCancelAllCoverageModal = (plan, publish = false) => (
     (dispatch) => dispatch(self._openActionModal(
         plan,
         PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label,
-        'cancel_all_coverage',
+        PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.lock_action,
         publish
     ))
 );
@@ -466,7 +486,7 @@ const _openActionModal = (plan,
     large = false
 ) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.lock(plan, lockAction))
+        dispatch(planningApi.lock(plan, lockAction))
             .then((lockedPlanning) => {
                 lockedPlanning._publish = publish;
                 return dispatch(showModal({
@@ -494,7 +514,7 @@ const _openActionModal = (plan,
  */
 const publish = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.publish(item))
+        dispatch(planningApi.publish(item))
             .then(() => (
                 notify.success('Planning item published!')
             ), (error) => (
@@ -511,7 +531,7 @@ const publish = (item) => (
  */
 const unpublish = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.unpublish(item))
+        dispatch(planningApi.unpublish(item))
             .then(() => (
                 notify.success('Planning item unpublished!')
             ), (error) => (
@@ -522,22 +542,45 @@ const unpublish = (item) => (
     )
 );
 
+const saveAndPublishPlanning = (item, save = true, publish = false) => (
+    (dispatch, getState) => {
+        if (!save) {
+            if (publish) {
+                return dispatch(planningApi.publish(item));
+            }
+
+            return Promise.resolve(item);
+        }
+
+        const modalType = selectors.getCurrentModalType(getState());
+
+        if (modalType === MODALS.ADD_TO_PLANNING) {
+            return dispatch(self.saveFromAuthoring(item, publish));
+        } else {
+            return dispatch(self.saveFromPlanning(item, {save, publish}));
+        }
+    }
+);
+
 /**
  * Save Planning item then Publish it
  * @param {object} item - Planning item
  */
 const saveAndPublish = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.saveAndPublish(item))
-            .then(() => (
-                notify.success('Planning item published!')
-            ), (error) => (
+        dispatch(planningApi.saveAndPublish(item))
+            .then((savedItem) => {
+                notify.success('Planning item published!');
+                return Promise.resolve(savedItem);
+            }, (error) => {
                 notify.error(
                     getErrorMessage(error, 'Failed to save Planning item!')
-                )
-            ))
+                );
+                return Promise.reject(error);
+            })
     )
 );
+
 
 /**
  * Save Planning item then Unpublish it
@@ -546,7 +589,7 @@ const saveAndPublish = (item) => (
  */
 const saveAndUnpublish = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(planning.api.saveAndUnpublish(item))
+        dispatch(planningApi.saveAndUnpublish(item))
             .then(() => (
                 notify.success('Planning item unpublished!')
             ), (error) => (
@@ -601,21 +644,9 @@ const _resetAdvancedSearch = () => ({type: PLANNING.ACTIONS.CLEAR_ADVANCED_SEARC
  * @param {object} params - Parameters used when querying for planning items
  */
 const requestPlannings = (params = {}) => ({
-    type: PLANNING.ACTIONS.REQUEST_PLANNINGS,
-    payload: params,
+    type: MAIN.ACTIONS.REQUEST,
+    payload: {[MAIN.FILTERS.PLANNING]: params},
 });
-
-const spike = checkPermission(
-    _spike,
-    PRIVILEGES.SPIKE_PLANNING,
-    'Unauthorised to spike a planning item!'
-);
-
-const unspike = checkPermission(
-    _unspike,
-    PRIVILEGES.UNSPIKE_PLANNING,
-    'Unauthorised to unspike a planning item!'
-);
 
 const openEditor = checkPermission(
     _lockAndOpenEditor,
@@ -655,38 +686,39 @@ function deselectAll() {
     return {type: PLANNING.ACTIONS.DESELECT_ALL};
 }
 
-const onAddCoverageClick = (plan = undefined) => (
+const onAddCoverageClick = (item, addNewsItemToPlanning = null) => (
     (dispatch, getState, {notify}) => {
-        const modalType = selectors.getCurrentModalType(getState());
+        const state = getState();
+        const lockedItems = selectors.locks.getLockedItems(state);
+        let promise;
 
-        if (modalType !== MODALS.ADD_TO_PLANNING)
-            return Promise.resolve();
+        // If a differet planning item is already open in editor, unlock that.
+        const currentItem = selectors.forms.currentItem(state);
 
-        const modalProps = selectors.getCurrentModalProps(getState());
-
-        if (!get(modalProps, 'newsItem')) {
-            notify.error('No content item provided.');
-            return Promise.reject('No content item provided.');
+        if (currentItem && get(item, '_id') !== get(currentItem, '_id')) {
+            dispatch(locks.unlock(currentItem));
         }
 
-        const newsItem = modalProps.newsItem;
-        const currentPlanning = selectors.getCurrentPlanning(getState());
-
-        // Unlock the currentPlanning if it exists
-        if (!plan) {
-            plan = currentPlanning; // eslint-disable-line no-param-reassign
-        } else if (currentPlanning) {
-            dispatch(planning.api.unlock(currentPlanning));
+        // If it is an existing item and the item is not locked
+        // then lock the item, otherwise return the existing item
+        if (get(item, '_id') && !lockUtils.getLock(item, lockedItems)) {
+            promise = dispatch(locks.lock(item));
+        } else {
+            promise = Promise.resolve(item);
         }
 
-        return dispatch(self.openEditor(plan, false))
-            .then((lockedItem) => {
-                const coverageIndex = get(lockedItem, 'coverages.length', 0);
-                const coverage = self.createCoverageFromNewsItem(newsItem, getState);
+        return promise.then((lockedItem) => {
+            lockedItem._addNewCoverage = true;
+            dispatch(planningApi.receivePlannings([lockedItem]));
+            dispatch(main.openEditor(lockedItem));
+            return Promise.resolve(lockedItem);
+        }, (error) => {
+            notify.error(
+                getErrorMessage(error, 'Failed to lock the item')
+            );
 
-                dispatch(change('planning', `coverages[${coverageIndex}]`, coverage));
-                return Promise.resolve(lockedItem);
-            });
+            return Promise.reject(error);
+        });
     }
 );
 
@@ -710,7 +742,7 @@ const onAddPlanningClick = () => (
         const currentPlanning = selectors.getCurrentPlanning(getState());
 
         if (currentPlanning) {
-            dispatch(planning.api.unlock(currentPlanning));
+            dispatch(planningApi.unlock(currentPlanning));
         }
 
         const coverage = self.createCoverageFromNewsItem(newsItem, getState);
@@ -741,7 +773,7 @@ const createCoverageFromNewsItem = (newsItem, getState) => {
     );
     const coverage = {
         planning: {
-            g2_content_type: get(contentType, 'qcode', 'text'),
+            g2_content_type: get(contentType, 'qcode', PLANNING.G2_CONTENT_TYPE.TEXT),
             slugline: get(newsItem, 'slugline', ''),
             ednote: get(newsItem, 'ednote', ''),
         },
@@ -793,8 +825,8 @@ const saveFromAuthoring = (plan, publish = false) => (
     (dispatch, getState, {notify}) => {
         const {$scope, newsItem} = selectors.getCurrentModalProps(getState());
         const action = publish ?
-            planning.api.saveAndPublish(plan) :
-            planning.api.save(plan);
+            planningApi.saveAndPublish(plan) :
+            planningApi.save(plan);
 
         dispatch(actions.actionInProgress(true));
         return dispatch(action)
@@ -807,6 +839,13 @@ const saveFromAuthoring = (plan, publish = false) => (
                         notify.success('Content linked to the planning item.');
                         $scope.resolve();
                         dispatch(actions.actionInProgress(false));
+
+                        // If a new planning item was created, close editor
+                        // As it is too early for scope.destroy() watcher to get hold of it
+                        if (!get(plan, '_id')) {
+                            return dispatch(main.closeEditor(newPlan));
+                        }
+
                         return Promise.resolve(newPlan);
                     }, (error) => {
                         notify.error(
@@ -866,7 +905,7 @@ const self = {
     requestPlannings,
     setInList,
     addToList,
-    fetchMoreToList,
+    loadMore,
     publish,
     unpublish,
     saveAndPublish,
@@ -892,6 +931,8 @@ const self = {
     createCoverageFromNewsItem,
     saveFromPlanning,
     saveFromAuthoring,
+    saveAndPublishPlanning,
+    scheduleRefetch
 };
 
 export default self;

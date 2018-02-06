@@ -37,11 +37,6 @@ describe('events', () => {
             expect(initialState).toEqual({
                 events: {},
                 eventsInList: [],
-                lastRequestParams: {page: 1},
-                search: {
-                    currentSearch: undefined,
-                    advancedSearchOpened: false,
-                },
                 show: true,
                 showEventDetails: null,
                 highlightedEvent: null,
@@ -55,18 +50,6 @@ describe('events', () => {
             const result = events(initialState, {type: 'TOGGLE_EVENT_LIST'});
 
             expect(result.show).toBe(false);
-        });
-
-        it('REQUEST_EVENTS', () => {
-            const result = events(initialState, {
-                type: 'REQUEST_EVENTS',
-                payload: {},
-            });
-
-            expect(result.search).toEqual({
-                currentSearch: {},
-                advancedSearchOpened: false,
-            });
         });
 
         it('ADD_EVENTS', () => {
@@ -107,24 +90,6 @@ describe('events', () => {
             });
 
             expect(result.eventsInList).toEqual(['e1', 'e3', 'e2']);
-        });
-
-        it('OPEN_ADVANCED_SEARCH', () => {
-            const result = events(initialState, {type: 'EVENT_OPEN_ADVANCED_SEARCH'});
-
-            expect(result.search).toEqual({
-                currentSearch: undefined,
-                advancedSearchOpened: true,
-            });
-        });
-
-        it('CLOSE_ADVANCED_SEARCH', () => {
-            const result = events(initialState, {type: 'EVENT_CLOSE_ADVANCED_SEARCH'});
-
-            expect(result.search).toEqual({
-                currentSearch: undefined,
-                advancedSearchOpened: false,
-            });
         });
 
         it('OPEN_EVENT_DETAILS', () => {
@@ -190,9 +155,12 @@ describe('events', () => {
 
         describe('spikeEvent', () => {
             const payload = {
-                _id: 'e1',
-                _etag: 'e456',
-                revert_state: 'draft',
+                event: {
+                    _id: 'e1',
+                    _etag: 'e456',
+                    revert_state: 'draft',
+                },
+                spikeState: 'draft'
             };
 
             it('marks the event as spiked', () => {
@@ -214,7 +182,8 @@ describe('events', () => {
                 });
             });
 
-            it('closes details if spiked event is opened', () => {
+            // to be refactored using the PREVIEW action
+            xit('closes details if spiked event is opened', () => {
                 let result = spikeEvent(
                     {
                         ...initialState,
@@ -263,20 +232,16 @@ describe('events', () => {
                         ...initialState,
                         events: items,
                         eventsInList: ['e1'],
-                        search: {currentSearch: {spikeState: 'draft'}},
-                    },
-                    payload
-                );
-                expect(result.eventsInList).toEqual([]);
-
-                result = spikeEvent(
-                    {
-                        ...initialState,
-                        events: items,
-                        eventsInList: ['e1'],
                         search: {currentSearch: {spikeState: 'both'}},
                     },
-                    payload
+                    {
+                        event: {
+                            _id: 'e1',
+                            _etag: 'e456',
+                            revert_state: 'draft',
+                        },
+                        spikeState: 'both'
+                    }
                 );
                 expect(result.eventsInList).toEqual(['e1']);
 
@@ -285,9 +250,15 @@ describe('events', () => {
                         ...initialState,
                         events: items,
                         eventsInList: ['e1'],
-                        search: {currentSearch: {spikeState: 'spiked'}},
                     },
-                    payload
+                    {
+                        event: {
+                            _id: 'e1',
+                            _etag: 'e456',
+                            revert_state: 'draft',
+                        },
+                        spikeState: 'spiked'
+                    }
                 );
                 expect(result.eventsInList).toEqual(['e1']);
             });
@@ -296,7 +267,7 @@ describe('events', () => {
         it('SPIKE_EVENT returns if spiked event not loaded', () => {
             const result = events(initialState, {
                 type: 'SPIKE_EVENT',
-                payload: {event: {_id: 'e6'}},
+                payload: {event: {_id: 'e6'}, spikeState: 'draft'},
             });
 
             expect(result).toEqual(initialState);
@@ -307,9 +278,12 @@ describe('events', () => {
 
             beforeEach(() => {
                 payload = {
-                    _id: 'e1',
-                    _etag: 'e456',
-                    state: 'draft',
+                    event: {
+                        _id: 'e1',
+                        _etag: 'e456',
+                        state: 'draft',
+                    },
+                    spikeState: 'draft'
                 };
                 initialState.events = {
                     ...items,
@@ -336,7 +310,7 @@ describe('events', () => {
                 });
             });
 
-            it('closes details if unspiked event is opened', () => {
+            xit('closes details if unspiked event is opened', () => {
                 let result = unspikeEvent(
                     initialState,
                     payload
@@ -377,10 +351,16 @@ describe('events', () => {
                 result = unspikeEvent(
                     {
                         ...initialState,
-                        eventsInList: ['e1'],
-                        search: {currentSearch: {spikeState: 'draft'}},
+                        eventsInList: ['e1']
                     },
-                    payload
+                    {
+                        event: {
+                            _id: 'e1',
+                            _etag: 'e456',
+                            state: 'draft',
+                        },
+                        spikeState: 'both'
+                    }
                 );
                 expect(result.eventsInList).toEqual(['e1']);
 
@@ -388,19 +368,15 @@ describe('events', () => {
                     {
                         ...initialState,
                         eventsInList: ['e1'],
-                        search: {currentSearch: {spikeState: 'both'}},
                     },
-                    payload
-                );
-                expect(result.eventsInList).toEqual(['e1']);
-
-                result = unspikeEvent(
                     {
-                        ...initialState,
-                        eventsInList: ['e1'],
-                        search: {currentSearch: {spikeState: 'spiked'}},
-                    },
-                    payload
+                        event: {
+                            _id: 'e1',
+                            _etag: 'e456',
+                            state: 'draft',
+                        },
+                        spikeState: 'spiked'
+                    }
                 );
                 expect(result.eventsInList).toEqual([]);
             });
@@ -409,7 +385,7 @@ describe('events', () => {
         it('UNSPIKE_EVENT returns if unspiked event not loaded', () => {
             const result = events(initialState, {
                 type: 'UNSPIKE_EVENT',
-                payload: {event: {_id: 'e6'}},
+                payload: {event: {_id: 'e6'}, spikeState: 'draft'},
             });
 
             expect(result).toEqual(initialState);
@@ -437,6 +413,7 @@ describe('events', () => {
                             _etag: 'e456',
                             revert_state: 'draft',
                         }],
+                        spikeState: 'draft'
                     },
                 }
             );

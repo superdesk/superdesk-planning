@@ -3,7 +3,7 @@ import assignments from './index';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {ASSIGNMENTS, MODALS, WORKSPACE} from '../../constants';
-import {getErrorMessage, assignmentUtils} from '../../utils';
+import {getErrorMessage, assignmentUtils, gettext} from '../../utils';
 import {get} from 'lodash';
 
 /**
@@ -34,22 +34,67 @@ const loadAssignments = (
  * Action dispatcher to load first page of the list of assignments for current list settings.
  */
 const reloadAssignments = (filterByState) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         if (!filterByState || filterByState.length <= 0) {
             // Load all assignment groups
+            let dispatches = [];
+
             Object.keys(ASSIGNMENTS.LIST_GROUPS).forEach((key) => {
                 const states = ASSIGNMENTS.LIST_GROUPS[key].states;
 
                 dispatch(self.changeLastAssignmentLoadedPage(states));
-                dispatch(queryAndSetAssignmentListGroups(states));
+                dispatches.push(dispatch(self.queryAndSetAssignmentListGroups(states)));
             });
+
+            return Promise.all(dispatches);
         } else {
             dispatch(self.changeLastAssignmentLoadedPage(
                 assignmentUtils.getAssignmentGroupByStates(filterByState)));
             return dispatch(queryAndSetAssignmentListGroups(filterByState));
         }
+    }
+);
 
-        return Promise.resolve();
+const updatePreviewItemOnRouteUpdate = () => (
+    (dispatch, getState, {$location, notify, desks}) => {
+        // Load assignment item in URL
+        const urlItem = $location.search().item;
+
+        if (urlItem && urlItem !== get(selectors.getCurrentAssignment(getState()), '_id')) {
+            const assignment =
+                get(selectors.getStoredAssignments(getState()), urlItem);
+
+            if (!assignment) {
+                // Fetch it from backend
+                return dispatch(assignments.api.fetchAssignmentById(urlItem, false, false))
+                    .then((item) => {
+                        if (item) {
+                            // Preview only if user is a member of that assignment's desk
+                            const currentUserId = selectors.getCurrentUserId(getState());
+                            const user = desks.deskMembers[item.assigned_to.desk].find(
+                                (u) => u._id === currentUserId);
+
+                            if (user) {
+                            // For previewing, add it to the store even though it might be from another
+                                dispatch(assignments.api.receivedAssignments([item]));
+                                return dispatch(self.preview(item));
+                            } else {
+                                notify.error('Insufficient privileges to view the assignment');
+                                $location.search('item', null);
+                                return dispatch(self.closePreview());
+                            }
+                        }
+                    },
+                    () => {
+                        notify.error('Assignment does not exist');
+                        return dispatch(self.closePreview());
+                    });
+            } else {
+                return dispatch(self.preview(assignment));
+            }
+        } else {
+            return Promise.resolve();
+        }
     }
 );
 
@@ -235,14 +280,15 @@ const addToAssignmentListGroup = (assignments, group) => (
  * @return object
  */
 const preview = (assignment) => (
-    (dispatch) => (
+    (dispatch, getState, {$timeout, $location}) => (
         dispatch(assignments.api.loadPlanningAndEvent(assignment))
-            .then(() => (
-                dispatch({
+            .then(() => {
+                $timeout(() => $location.search('item', get(assignment, '_id', null)));
+                return dispatch({
                     type: ASSIGNMENTS.ACTIONS.PREVIEW_ASSIGNMENT,
                     payload: assignment,
-                })
-            ))
+                });
+            })
     )
 );
 
@@ -251,7 +297,10 @@ const preview = (assignment) => (
  * @return object
  */
 const closePreview = () => (
-    {type: ASSIGNMENTS.ACTIONS.CLOSE_PREVIEW_ASSIGNMENT}
+    (dispatch, getState, {$timeout, $location}) => {
+        $timeout(() => $location.search('item', null));
+        return dispatch({type: ASSIGNMENTS.ACTIONS.CLOSE_PREVIEW_ASSIGNMENT});
+    }
 );
 
 /**
@@ -599,10 +648,13 @@ const unlockAssignment = (assignment) => (
     (dispatch, getState, {notify}) => (
         dispatch(assignments.api.unlock(assignment))
             .then(
-                (unlockedAssignment) => Promise.resolve(unlockedAssignment),
+                (unlockedAssignment) => {
+                    notify.success(gettext('Assignment has been unlocked.'));
+                    return Promise.resolve(unlockedAssignment);
+                },
                 (error) => {
                     notify.error(
-                        getErrorMessage(error, 'Failed to unlock the Assignment')
+                        getErrorMessage(error, gettext('Failed to unlock the Assignment'))
                     );
 
                     return Promise.reject(error);
@@ -728,7 +780,7 @@ const self = {
     onArchivePreviewImageClick,
     showRemoveAssignmentModal,
     removeAssignment,
-
+    updatePreviewItemOnRouteUpdate,
     lockAssignment,
     lockPlanning,
     lockAssignmentAndPlanning,

@@ -10,7 +10,8 @@ import {
     EditPlanningPanelContainer,
     PlanningList,
 } from '../index';
-import {QuickAddPlanning, Toggle, SearchBar, AdvancedSearchPanelContainer} from '../../components';
+import {QuickAddPlanning, AdvancedSearchPanelContainer} from '../../components';
+import {SearchBar, Toggle} from '../UI';
 import MultiSelectionActions from '../MultiSelectionActions';
 import * as selectors from '../../selectors';
 import {AGENDA} from '../../constants';
@@ -257,7 +258,7 @@ const mapStateToProps = (state) => ({
     isAdvancedSearchSpecified: isObject(selectors.getPlanningSearch(state)),
     session: selectors.getSessionDetails(state),
     selected: selectors.getSelectedPlanningItems(state),
-    lockedItems: selectors.getLockedItems(state),
+    lockedItems: selectors.locks.getLockedItems(state),
     currentWorkspace: selectors.getCurrentWorkspace(state),
 });
 

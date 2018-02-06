@@ -5,4 +5,13 @@
         left: auto;
         right: 0;
     }
+
+    &__hidden {
+    	visibility: hidden;
+    }
+
+    &__visible {
+    	visibility: visible;
+        padding-right: 5px;
+    }
 }

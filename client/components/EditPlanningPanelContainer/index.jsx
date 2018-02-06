@@ -8,7 +8,6 @@ import {
     AuditInformation,
     StateLabel,
     ItemActionsMenu,
-    PlanningForm,
     LockContainer,
 } from '../';
 import * as selectors from '../../selectors';
@@ -16,10 +15,10 @@ import {get} from 'lodash';
 import './style.scss';
 import {
     getCreator,
-    getLockedUser,
     planningUtils,
     isItemSpiked,
     isItemPublic,
+    lockUtils,
 } from '../../utils';
 import {
     GENERIC_ITEM_ACTIONS,
@@ -234,7 +233,7 @@ export class EditPlanningPanel extends React.Component {
         const author = getCreator(planning, 'original_creator', users);
         const versionCreator = getCreator(planning, 'version_creator', users);
 
-        const lockedUser = getLockedUser(planning, lockedItems, users);
+        const lockedUser = lockUtils.getLockedUser(planning, lockedItems, users);
         const planningSpiked = isItemSpiked(planning);
         const eventSpiked = isItemSpiked(event);
 
@@ -368,13 +367,6 @@ export class EditPlanningPanel extends React.Component {
                                 <span className="EventSpiked label label--alert">event spiked</span>
                             }
                         </div>
-                        <PlanningForm
-                            ref="PlanningForm"
-                            onSubmit={this.onSubmit.bind(this)}
-                            event={event}
-                            readOnly={forceReadOnly}
-                            initialValues={planning}
-                        />
                     </div>
                 }
                 {this.state.previewHistory &&
@@ -438,11 +430,11 @@ const mapStateToProps = (state) => ({
     event: selectors.getCurrentPlanningEvent(state),
     users: selectors.getUsers(state),
     readOnly: selectors.getPlanningItemReadOnlyState(state),
-    lockedInThisSession: selectors.isCurrentPlanningLockedInThisSession(state),
+    lockedInThisSession: selectors.planning.isCurrentPlanningLockedInThisSession(state),
     notForPublication: selector(state, 'flags.marked_for_not_publication'),
     privileges: selectors.getPrivileges(state),
     session: selectors.getSessionDetails(state),
-    lockedItems: selectors.getLockedItems(state),
+    lockedItems: selectors.locks.getLockedItems(state),
     pristine: isPristine(FORM_NAMES.PlanningForm)(state),
     valid: isValid(FORM_NAMES.PlanningForm)(state),
     submitting: isSubmitting(FORM_NAMES.PlanningForm)(state),

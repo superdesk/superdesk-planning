@@ -5,7 +5,7 @@ import {get} from 'lodash';
 import {Label} from '../../components';
 import {getItemWorkflowStateLabel, getItemPublishedStateLabel} from '../../utils';
 
-export const StateLabel = ({item, verbose, withPubStatus}) => {
+export const StateLabel = ({item, verbose, withPubStatus, className}) => {
     const state = getItemWorkflowStateLabel(item);
     const pubState = withPubStatus ? getItemPublishedStateLabel(item) : null;
 
@@ -21,10 +21,9 @@ export const StateLabel = ({item, verbose, withPubStatus}) => {
     />;
 
     return (
-        <span>
-            {getStateLabel(state)}
-            &nbsp;&nbsp;
-            {withPubStatus && pubState && getStateLabel(pubState)}
+        <span className={className}>
+            <div>{getStateLabel(state)}</div>
+            <div>{withPubStatus && pubState && getStateLabel(pubState)}</div>
         </span>
     );
 };
@@ -33,6 +32,7 @@ StateLabel.propTypes = {
     item: PropTypes.object,
     verbose: PropTypes.bool,
     withPubStatus: PropTypes.bool,
+    className: PropTypes.string,
 };
 
 StateLabel.defaultProps = {withPubStatus: true};

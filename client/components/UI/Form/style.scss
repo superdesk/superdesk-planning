@@ -1,0 +1,33 @@
+@import '~superdesk-ui-framework/app/styles/variables/_colors.scss';
+
+// Add some padding to the right for long filenames
+// so that the trash icon is still visible
+.file-input {
+    .sd-line-input__input {
+        padding-right: 25px !important;
+    }
+}
+
+.link-input {
+    .sd-line-input__input {
+        padding-right: 35px !important;
+    }
+}
+
+.form__row--no-padding {
+    padding: 0;
+}
+
+.form__row--half-width {
+    max-width: 50%;
+}
+
+.sd-line-input__input--auto-height {
+    resize: none;
+    overflow: hidden;
+    min-height: 2.4rem;
+}
+
+.sd-line-input--invalid, .form-label--invalid {
+    color: $red;
+}

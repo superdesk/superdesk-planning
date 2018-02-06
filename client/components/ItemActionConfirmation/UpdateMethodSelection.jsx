@@ -1,42 +1,40 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import './style.scss';
-import {EventUpdateMethodField} from '../fields/index';
-import {Field} from 'redux-form';
+import {EventUpdateMethodInput} from '../Events';
 import {RelatedEvents, RelatedPlannings} from '../index';
+import {gettext} from '../../utils';
 
 export const UpdateMethodSelection = ({
+    field,
+    value,
+    onChange,
     showMethodSelection,
     updateMethodLabel,
     relatedPlannings,
     relatedEvents,
     dateFormat,
     action,
-    handleSubmit,
     showSpace,
     readOnly,
 }) => (
     <div>
         { showMethodSelection &&
-            <form onSubmit={handleSubmit}>
-                <div className="MethodSelect">
-                    <span>
-                        <strong>This event is a recurring event!</strong>
-                    </span>
-
-                    <Field name="update_method"
-                        component={EventUpdateMethodField}
-                        readOnly={readOnly}
-                        label={updateMethodLabel}/>
-                </div>
-
-                <button type="submit" style={{visibility: 'hidden'}}>Submit</button>
-            </form>}
+            <div className="MethodSelect">
+                <p><strong>{gettext('This event is a recurring event!')}</strong></p>
+                <EventUpdateMethodInput
+                    field={field}
+                    value={value}
+                    onChange={onChange}
+                    disabled={readOnly}
+                    label={updateMethodLabel}/>
+            </div>
+        }
 
         { relatedPlannings.length > 0 && (
             <div>
                 <div className="sd-alert sd-alert--hollow sd-alert--alert">
-                    <strong>This will also {action} the following planning items</strong>
+                    <strong>{gettext('This will also {action} the following planning items')}</strong>
                     <RelatedPlannings
                         plannings={relatedPlannings}
                         openPlanningItem={true}
@@ -46,13 +44,11 @@ export const UpdateMethodSelection = ({
         )}
 
         { showMethodSelection && relatedEvents.length > 0 && (
-            <div>
-                <div className="sd-alert sd-alert--hollow sd-alert--alert">
-                    <strong>This will also {action} the following events</strong>
-                    <RelatedEvents
-                        events={relatedEvents}
-                        dateFormat={dateFormat} />
-                </div>
+            <div className="sd-alert sd-alert--hollow sd-alert--alert">
+                <strong>{gettext('This will also {action} the following events')}</strong>
+                <RelatedEvents
+                    events={relatedEvents}
+                    dateFormat={dateFormat} />
             </div>
         )}
 
@@ -71,13 +67,15 @@ UpdateMethodSelection.defaultProps = {
 };
 
 UpdateMethodSelection.propTypes = {
+    field: PropTypes.string,
+    value: PropTypes.object,
+    onChange: PropTypes.func.isRequired,
     showMethodSelection: PropTypes.bool,
     updateMethodLabel: PropTypes.string,
     relatedPlannings: PropTypes.array,
     relatedEvents: PropTypes.array,
     dateFormat: PropTypes.string,
     action: PropTypes.string,
-    handleSubmit: PropTypes.func.isRequired,
     showSpace: PropTypes.bool,
     readOnly: PropTypes.bool,
 };

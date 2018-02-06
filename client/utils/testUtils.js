@@ -48,6 +48,11 @@ export const getTestActionStore = () => {
                         return Promise.resolve(event);
                     }),
                 },
+                events_history: {
+                    query: sinon.spy(
+                        () => (store.spies.api._query('events_history'))
+                    ),
+                },
                 planning_history: {
                     query: sinon.spy(
                         () => (store.spies.api._query('planning_history'))
@@ -96,6 +101,9 @@ export const getTestActionStore = () => {
                     ...item,
                 })),
                 _remove: () => Promise.resolve(),
+                planning_search: {
+                    query: sinon.spy(() => (store.spies.api._query('planning_search'))),
+                },
             },
         },
 
@@ -111,15 +119,7 @@ export const getTestActionStore = () => {
                 plannings: {},
                 currentPlanningId: undefined,
                 editorOpened: false,
-                planningsAreLoading: false,
-                onlyFuture: true,
                 onlyActive: false,
-                lastRequestParams: {
-                    agendas: ['a1'],
-                    noAgendaAssigned: false,
-                    page: 1,
-                },
-                search: {currentSearch: undefined},
             },
         },
 
@@ -146,7 +146,14 @@ export const getTestActionStore = () => {
             $timeout: sinon.spy((func) => func()),
             api: sinon.spy((resource) => (store.spies.api[resource])),
             $location: {search: sinon.spy(() => (Promise.resolve()))},
-            desks: {getCurrentDeskId: sinon.spy(() => 'desk1')},
+            desks: {
+                getCurrentDeskId: sinon.spy(() => 'desk1'),
+                active: {desk: 'desk1'},
+                deskMembers: {
+                    desk1: [{_id: 'ident1'}],
+                    desk2: [{_id: 'ident2'}],
+                },
+            },
             superdesk: {intent: sinon.spy(() => (Promise.resolve()))},
             lock: {
                 isLocked: (item) => {
@@ -171,6 +178,12 @@ export const getTestActionStore = () => {
             authoringWorkspace: {
                 edit: sinon.stub(),
                 view: sinon.stub(),
+            },
+
+            upload: {
+                start: sinon.spy((file) => Promise.resolve({
+                    data: {_id: file.data.media[0][0]}
+                }))
             }
         },
 
@@ -283,3 +296,20 @@ export const expectActions = (itemActions, expectedActions) => {
         expect(expectedActions[i]).toBe(itemActions[i].label);
     }
 };
+
+export const waitFor = (test, delay = 50, maxTries = 100) => (
+    new Promise((resolve, reject) => {
+        let tries = 0;
+
+        const interval = setInterval(() => {
+            tries += 1;
+
+            if (test()) {
+                clearInterval(interval);
+                resolve();
+            } else if (tries >= maxTries) {
+                reject('waitFor: Maximum retries exceeded');
+            }
+        }, delay);
+    })
+);

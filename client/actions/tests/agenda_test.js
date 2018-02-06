@@ -114,8 +114,7 @@ describe('agenda', () => {
                     .then(() => {
                         expect(apiSpy.save.args[0]).toEqual([{}, item]);
                         expect(notify.success.args[0]).toEqual(['The agenda has been created/updated.']);
-                        expect(dispatch.args[1]).toEqual([{type: 'HIDE_MODAL'}]);
-                        expect(dispatch.args[2]).toEqual([{
+                        expect(dispatch.args[1]).toEqual([{
                             type: 'ADD_OR_REPLACE_AGENDA',
                             payload: {
                                 _id: 'a3',
@@ -335,8 +334,11 @@ describe('agenda', () => {
                             payload: 'a1',
                         }]);
 
-                        expect(services.$location.search.callCount).toBe(1);
-                        expect(services.$location.search.args[0]).toEqual(['agenda', 'a1']);
+                        expect(services.$location.search.callCount).toBe(2);
+                        expect(services.$location.search.args).toEqual([
+                            ['agenda', 'a1'],
+                            ['searchParams', '{}']
+                        ]);
 
                         expect(planningUi.fetchToList.callCount).toBe(1);
                         expect(planningUi.fetchToList.args[0]).toEqual([
@@ -345,9 +347,7 @@ describe('agenda', () => {
                                 agendas: ['a1'],
                                 page: 1,
                                 advancedSearch: {},
-                                spikeState: 'draft',
-                                fulltext: undefined,
-                                onlyFuture: true,
+                                spikeState: 'draft'
                             },
                         ]);
 
@@ -499,9 +499,7 @@ describe('agenda', () => {
                             agendas: ['a1'],
                             page: 1,
                             advancedSearch: {},
-                            spikeState: 'draft',
-                            fulltext: undefined,
-                            onlyFuture: true,
+                            spikeState: 'draft'
                         }]);
                         done();
                     });
@@ -518,9 +516,7 @@ describe('agenda', () => {
                             agendas: null,
                             page: 1,
                             advancedSearch: {},
-                            spikeState: 'draft',
-                            fulltext: undefined,
-                            onlyFuture: true,
+                            spikeState: 'draft'
                         }]);
                         done();
                     });

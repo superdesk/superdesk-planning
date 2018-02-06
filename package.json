@@ -23,10 +23,10 @@
     "react-form-input": "^0.3.0",
     "react-geolookup": "^1.1.0",
     "react-moment-proptypes": "^1.4.0",
+    "react-portal": "^4.1.1",
     "react-select": "1.0.0-rc.5",
     "react-sortable-hoc": "^0.6.7",
     "react-textarea-autosize": "^5.0.7",
-    "react-virtualized": "^9.8.0",
     "redux-form": "^6.8.0",
     "redux-logger": "^2.7.0",
     "reselect": "^2.5.4",
@@ -51,6 +51,6 @@
     "simulant": "^0.2.2",
     "sinon": "~3.3.0",
     "superdesk-code-style": "^1.0.0",
-    "superdesk-core": "superdesk/superdesk-client-core#9d60fa6"
+    "superdesk-core": "superdesk/superdesk-client-core#dc18b9b"
   }
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-export const Item = ({children, noBg, noHover, shadow, activated, className, onClick, draggable, onDragStart}) => (
+export const Item = ({children, noBg, noHover, shadow, activated, className, onClick}) => (
     <div className={classNames(
         className,
         'ListItem',
@@ -13,8 +13,6 @@ export const Item = ({children, noBg, noHover, shadow, activated, className, onC
         {'sd-list-item--activated': activated}
     )}
     onClick={onClick}
-    draggable={draggable}
-    onDragStart={onDragStart}
     >
         {children}
     </div>
@@ -28,8 +26,6 @@ Item.propTypes = {
     activated: PropTypes.bool,
     className: PropTypes.string,
     onClick: PropTypes.func,
-    draggable: PropTypes.bool,
-    onDragStart: PropTypes.func,
 };
 
 Item.defaultProps = {

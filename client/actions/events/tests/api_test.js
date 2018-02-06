@@ -1,9 +1,10 @@
 import eventsApi from '../api';
 import planningApi from '../../planning/api';
 import sinon from 'sinon';
-import {EventUpdateMethods} from '../../../components/fields';
+import {EventUpdateMethods} from '../../../components/Events';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
-import {WORKFLOW_STATE, SPIKED_STATE} from '../../../constants';
+import {WORKFLOW_STATE, SPIKED_STATE, MAIN} from '../../../constants';
+import {getTimeZoneOffset} from '../../../utils';
 import moment from 'moment';
 
 describe('actions.events.api', () => {
@@ -21,7 +22,7 @@ describe('actions.events.api', () => {
         sinon.stub(eventsApi, 'query').callsFake(
             () => (Promise.resolve({_items: data.events}))
         );
-        sinon.stub(eventsApi, 'refetchEvents').callsFake(() => (Promise.resolve()));
+        sinon.stub(eventsApi, 'refetch').callsFake(() => (Promise.resolve()));
         sinon.stub(eventsApi, 'receiveEvents').callsFake(() => (Promise.resolve()));
         sinon.stub(eventsApi, 'loadEventsByRecurrenceId').callsFake(
             () => (Promise.resolve(data.events))
@@ -38,7 +39,7 @@ describe('actions.events.api', () => {
 
     afterEach(() => {
         restoreSinonStub(eventsApi.query);
-        restoreSinonStub(eventsApi.refetchEvents);
+        restoreSinonStub(eventsApi.refetch);
         restoreSinonStub(eventsApi.receiveEvents);
         restoreSinonStub(eventsApi.loadEventsByRecurrenceId);
         restoreSinonStub(planningApi.fetch);
@@ -53,10 +54,11 @@ describe('actions.events.api', () => {
                 expect(eventsApi.query.args[0]).toEqual([{
                     ids: ['e1', 'e2', 'e3'],
                     spikeState: SPIKED_STATE.BOTH,
+                    onlyFuture: false
                 }]);
 
                 expect(eventsApi.receiveEvents.callCount).toBe(1);
-                expect(eventsApi.receiveEvents.args[0]).toEqual([data.events]);
+                expect(eventsApi.receiveEvents.args[0]).toEqual([{_items: data.events}]);
 
                 done();
             });
@@ -70,7 +72,7 @@ describe('actions.events.api', () => {
         it('runs the query', (done) => (
             store.test(done, eventsApi.loadEventsByRecurrenceId('r1', SPIKED_STATE.NOT_SPIKED))
                 .then((items) => {
-                    expect(items).toEqual(data.events);
+                    expect(items).toEqual({_items: data.events});
 
                     expect(eventsApi.query.callCount).toBe(1);
                     expect(eventsApi.query.args[0]).toEqual([{
@@ -78,10 +80,11 @@ describe('actions.events.api', () => {
                         spikeState: SPIKED_STATE.NOT_SPIKED,
                         page: 1,
                         maxResults: 25,
+                        onlyFuture: false
                     }]);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
-                    expect(eventsApi.receiveEvents.args[0]).toEqual([data.events]);
+                    expect(eventsApi.receiveEvents.args[0]).toEqual([{_items: data.events}]);
 
                     done();
                 })
@@ -229,7 +232,7 @@ describe('actions.events.api', () => {
                                     ],
                                 },
                             },
-                            filter: {range: {'dates.end': {gte: 'now/d'}}},
+                            filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
                         }),
                     })]);
 
@@ -238,11 +241,12 @@ describe('actions.events.api', () => {
         ));
 
         it('by list of ids', (done) => {
-            store.test(done, eventsApi.query({ids: ['e1', 'e2']}))
+            store.test(done, eventsApi.query({ids: ['e1', 'e2'], onlyFuture: false}))
                 .then(() => {
                     expect(services.api('events').query.callCount).toBe(1);
                     expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
                         page: 1,
+                        max_results: 25,
                         sort: '[("dates.start",1)]',
                         embedded: {files: 1},
                         source: JSON.stringify({
@@ -283,7 +287,7 @@ describe('actions.events.api', () => {
                                     ],
                                 },
                             },
-                            filter: {},
+                            filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
                         }),
                     })]);
 
@@ -292,7 +296,7 @@ describe('actions.events.api', () => {
         ));
 
         it('by recurrence_id', (done) => {
-            store.test(done, eventsApi.query({recurrenceId: 'rec1'}))
+            store.test(done, eventsApi.query({recurrenceId: 'rec1', onlyFuture: false}))
                 .then(() => {
                     expect(services.api('events').query.callCount).toBe(1);
                     expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
@@ -329,27 +333,62 @@ describe('actions.events.api', () => {
                             qcode: 'finance',
                             name: 'Finance',
                         }],
-                    },
+                    }
                 }))
                     .then(() => {
                         expect(services.api('events').query.callCount).toBe(1);
                         expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
                             page: 1,
+                            max_results: 25,
                             sort: '[("dates.start",1)]',
                             embedded: {files: 1},
                             source: JSON.stringify({
                                 query: {
                                     bool: {
                                         must: [
-                                            {term: {'calendars.qcode': 'sport'}},
-                                            {term: {'calendars.qcode': 'finance'}},
+                                            {terms: {'calendars.qcode': ['sport', 'finance']}}
                                         ],
                                         must_not: [
                                             {term: {state: WORKFLOW_STATE.SPIKED}},
                                         ],
                                     },
                                 },
-                                filter: {},
+                                filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
+                            }),
+                        })]);
+
+                        done();
+                    })
+            ));
+
+            it('by source', (done) => (
+                store.test(done, eventsApi.query({
+                    advancedSearch: {
+                        source: [{
+                            id: 'ingest123',
+                            name: 'AFP',
+                        }],
+                    }
+                }))
+                    .then(() => {
+                        expect(services.api('events').query.callCount).toBe(1);
+                        expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
+                            page: 1,
+                            max_results: 25,
+                            sort: '[("dates.start",1)]',
+                            embedded: {files: 1},
+                            source: JSON.stringify({
+                                query: {
+                                    bool: {
+                                        must: [
+                                            {terms: {source: ['AFP']}}
+                                        ],
+                                        must_not: [
+                                            {term: {state: WORKFLOW_STATE.SPIKED}},
+                                        ],
+                                    },
+                                },
+                                filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
                             }),
                         })]);
 
@@ -361,21 +400,45 @@ describe('actions.events.api', () => {
 
     describe('refetchEvents', () => {
         it('performs query', (done) => {
-            restoreSinonStub(eventsApi.refetchEvents);
+            store.initialState.main.filter = MAIN.FILTERS.EVENTS;
+            restoreSinonStub(eventsApi.refetch);
             restoreSinonStub(eventsApi.query);
             sinon.stub(eventsApi, 'query').callsFake(
-                () => (Promise.resolve({_items: data.events}))
+                () => (Promise.resolve(data.events))
             );
 
-            return store.test(done, eventsApi.refetchEvents())
+            return store.test(done, eventsApi.refetch())
                 .then((events) => {
                     expect(events).toEqual(data.events);
                     expect(eventsApi.query.callCount).toBe(1);
-                    expect(eventsApi.query.args[0]).toEqual([{page: 1}]);
+                    expect(eventsApi.query.args[0]).toEqual([{page: 1}, true]);
 
                     expect(eventsApi.receiveEvents.callCount).toBe(1);
                     expect(eventsApi.receiveEvents.args[0]).toEqual([data.events]);
 
+                    done();
+                });
+        });
+    });
+
+    describe('fetchEventHistory', () => {
+        it('calls events_history api and runs dispatch', (done) => {
+            store.test(done, eventsApi.fetchEventHistory('e2'))
+                .then((data) => {
+                    expect(data._items).toEqual(store.data.events_history);
+                    expect(store.dispatch.callCount).toBe(1);
+
+                    expect(store.services.api('events_history').query.callCount).toBe(1);
+                    expect(store.services.api('events_history').query.args[0]).toEqual([{
+                        where: {event_id: 'e2'},
+                        max_results: 200,
+                        sort: '[(\'_created\', 1)]',
+                    }]);
+
+                    expect(store.dispatch.args[0]).toEqual([{
+                        type: 'RECEIVE_EVENT_HISTORY',
+                        payload: store.data.events_history,
+                    }]);
                     done();
                 });
         });
@@ -626,4 +689,97 @@ describe('actions.events.api', () => {
                 done();
             })
     ));
+
+    it('unpublish calls `events_publish` endpoint', (done) => (
+        store.test(done, eventsApi.unpublish(data.events[0]))
+            .then(() => {
+                expect(services.api.save.callCount).toBe(1);
+                expect(services.api.save.args[0]).toEqual([
+                    'events_publish',
+                    {
+                        event: data.events[0]._id,
+                        etag: data.events[0]._etag,
+                        pubstatus: 'cancelled',
+                    }
+                ]);
+                done();
+            })
+    ));
+
+    describe('_uploadFiles', () => {
+        it('uploads files', (done) => {
+            data.events[0].files = [['test_file_1'], ['test_file_2']];
+            store.test(done, eventsApi._uploadFiles(data.events[0]))
+                .then((files) => {
+                    expect(services.upload.start.callCount).toBe(2);
+                    expect(services.upload.start.args[0]).toEqual([{
+                        method: 'POST',
+                        url: 'http://server.com/events_files/',
+                        headers: {'Content-Type': 'multipart/form-data'},
+                        data: {media: [data.events[0].files[0]]},
+                        arrayKey: ''
+                    }]);
+                    expect(services.upload.start.args[1]).toEqual([{
+                        method: 'POST',
+                        url: 'http://server.com/events_files/',
+                        headers: {'Content-Type': 'multipart/form-data'},
+                        data: {media: [data.events[0].files[1]]},
+                        arrayKey: ''
+                    }]);
+
+                    expect(files).toEqual([
+                        {_id: 'test_file_1'},
+                        {_id: 'test_file_2'}
+                    ]);
+                    done();
+                });
+        });
+
+        it('returns Promise.reject if any upload fails', (done) => {
+            data.events[0].files = [['test_file_1'], ['test_file_2']];
+            services.upload.start = sinon.stub().returns(Promise.reject(errorMessage));
+            store.test(done, eventsApi._uploadFiles(data.events[0]))
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+                    done();
+                });
+        });
+
+        it('returns if event has no files', (done) => (
+            store.test(done, eventsApi._uploadFiles(data.events[0]))
+                .then((files) => {
+                    expect(files).toEqual([]);
+                    expect(services.upload.start.callCount).toBe(0);
+                    done();
+                })
+        ));
+
+        it('returns if no files to upload', (done) => {
+            data.events[0].files = [{_id: 'test_file_1'}, {_id: 'test_file_2'}];
+            store.test(done, eventsApi._uploadFiles(data.events[0]))
+                .then((files) => {
+                    expect(files).toEqual([]);
+                    expect(services.upload.start.callCount).toBe(0);
+                    done();
+                });
+        });
+
+        it('only uploads new files', (done) => {
+            data.events[0].files = [['test_file_1'], {_id: 'test_file_2'}];
+            store.test(done, eventsApi._uploadFiles(data.events[0]))
+                .then((files) => {
+                    expect(services.upload.start.callCount).toBe(1);
+                    expect(services.upload.start.args[0]).toEqual([{
+                        method: 'POST',
+                        url: 'http://server.com/events_files/',
+                        headers: {'Content-Type': 'multipart/form-data'},
+                        data: {media: [data.events[0].files[0]]},
+                        arrayKey: ''
+                    }]);
+
+                    expect(files).toEqual([{_id: 'test_file_1'}]);
+                    done();
+                });
+        });
+    });
 });

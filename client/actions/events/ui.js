@@ -1,17 +1,45 @@
-import {showModal, hideModal, locks, uploadFilesAndSaveEvent} from '../index';
-import {PRIVILEGES, EVENTS, GENERIC_ITEM_ACTIONS, PUBLISHED_STATE, MODALS} from '../../constants';
+import {showModal, hideModal, locks} from '../index';
+import {PRIVILEGES, EVENTS, PUBLISHED_STATE, MODALS, SPIKED_STATE, MAIN} from '../../constants';
 import eventsApi from './api';
 import {fetchSelectedAgendaPlannings} from '../agenda';
+import main from '../main';
 import * as selectors from '../../selectors';
 import {get, last} from 'lodash';
 import {
     checkPermission,
     getErrorMessage,
-    isItemLockedInThisSession,
+    lockUtils,
     isItemSpiked,
     isItemRescheduled,
+    dispatchUtils,
+    gettext,
 } from '../../utils';
-import {EventUpdateMethods} from '../../components/fields/EventUpdateMethodField';
+import {EventUpdateMethods} from '../../components/Events';
+
+/**
+ * Action Dispatcher to fetch events from the server
+ * This will add the events to the events list,
+ * and update the URL for deep linking
+ * @param {object} params - Query parameters to send to the server
+ * @return arrow function
+ */
+const fetchEvents = (params = {
+    spikeState: SPIKED_STATE.NOT_SPIKED,
+    page: 1,
+}) => (
+    (dispatch, getState, {$timeout, $location}) => {
+        dispatch(self.requestEvents(params));
+
+        return dispatch(eventsApi.query(params, true))
+            .then((items) => {
+                dispatch(eventsApi.receiveEvents(items));
+                dispatch(self.setEventsList(items.map((e) => e._id)));
+                // update the url (deep linking)
+                $timeout(() => $location.search('searchParams', JSON.stringify(params)));
+                return items;
+            });
+    }
+);
 
 /**
  * Action to open the Edit Event panel with the supplied Event
@@ -35,7 +63,7 @@ const _openEventDetails = (event) => (
                 // In sessions with multiple tabs, state values of showEventDetails are different
                 // So, explicitly get the event from the store and see if we hold the lock on it
                     const eventInState = {...selectors.getEvents(getState())[id]};
-                    const eventLockedInThisSession = isItemLockedInThisSession(
+                    const eventLockedInThisSession = lockUtils.isItemLockedInThisSession(
                         eventInState,
                         selectors.getSessionDetails(getState())
                     );
@@ -79,7 +107,7 @@ const previewEvent = (event) => (
         const id = get(event, '_id');
         const eventInState = {...selectors.getEvents(getState())[id]};
 
-        if (eventInState && isItemLockedInThisSession(eventInState,
+        if (eventInState && lockUtils.isItemLockedInThisSession(eventInState,
             selectors.getSessionDetails(getState()))) {
             dispatch({
                 type: EVENTS.ACTIONS.OPEN_EVENT_DETAILS,
@@ -150,10 +178,12 @@ const _unlockAndOpenEventDetails = (event) => (
     (dispatch) => (
         dispatch(locks.unlock(event))
             .then(() => {
-            // Call openPlanningEditor to obtain a new lock for editing
-            // Recurring events item resolved might not be the item we want to open
-            // So, use original parameter (event) to open
-                dispatch(self._openEventDetails(event));
+                // Call openPlanningEditor to obtain a new lock for editing
+                // Recurring events item resolved might not be the item we want to open
+                // So, use original parameter (event) to open
+
+                // (TEMPORARY!) Keeping this as preview until we finish new ui forms
+                dispatch(main.preview(event));
             }, () => (Promise.reject()))
     )
 );
@@ -162,52 +192,23 @@ const _unlockAndOpenEventDetails = (event) => (
  * Spike an event and notify the user of the result
  * @param {object} event - The event to spike
  */
-const spike = (event) => (
+const spike = (item) => (
     (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.spike(event))
+        dispatch(eventsApi.spike(item))
             .then((events) => {
                 dispatch(hideModal());
-                notify.success('The event(s) have been spiked');
+                notify.success(gettext('The event(s) have been spiked'));
+                dispatch(main.closePreviewAndEditorForItems(events));
                 return Promise.resolve(events);
             }, (error) => {
                 dispatch(hideModal());
                 notify.error(
-                    getErrorMessage(error, 'Failed to spike the event(s)')
+                    getErrorMessage(error, gettext('Failed to spike the event(s)'))
                 );
 
                 return Promise.reject(error);
             })
     )
-);
-
-const _openBulkSpikeModal = (events) => (
-    (dispatch) => {
-        let eventsToSpike = Array.isArray(events) ? events : [events];
-
-        dispatch(showModal({
-            modalType: MODALS.CONFIRMATION,
-            modalProps: {
-                body: `Do you want to spike these ${eventsToSpike.length} events?`,
-                action: () => dispatch(self.spike(eventsToSpike)),
-                deselectEventsAfterAction: true,
-            },
-        }));
-    }
-);
-
-const _openUnspikeModal = (events) => (
-    (dispatch) => {
-        let eventsToUnspike = Array.isArray(events) ? events : [events];
-
-        dispatch(showModal({
-            modalType: MODALS.CONFIRMATION,
-            modalProps: {
-                body: `Do you want to unspike these ${eventsToUnspike.length} events?`,
-                action: () => dispatch(self.unspike(eventsToUnspike)),
-                deselectEventsAfterAction: true,
-            },
-        }));
-    }
 );
 
 const unspike = (event) => (
@@ -216,21 +217,21 @@ const unspike = (event) => (
             .then((events) => (
                 Promise.all(
                     [
-                        dispatch(self.refetchEvents()),
+                        dispatch(self.scheduleRefetch()),
                         dispatch(fetchSelectedAgendaPlannings()),
                     ]
                 )
                     .then(
                         () => {
                             dispatch(hideModal());
-
-                            notify.success('The event(s) have been unspiked');
+                            dispatch(main.closePreviewAndEditorForItems(events));
+                            notify.success(gettext('The event(s) have been unspiked'));
                             return Promise.resolve(events);
                         },
 
                         (error) => {
                             notify.error(
-                                getErrorMessage(error, 'Failed to load events and plannings')
+                                getErrorMessage(error, gettext('Failed to load events and plannings'))
                             );
 
                             return Promise.reject(error);
@@ -250,9 +251,9 @@ const unspike = (event) => (
 /**
  * Action Dispatcher to re-fetch the current list of events.
  */
-const refetchEvents = () => (
+const refetch = () => (
     (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.refetchEvents())
+        dispatch(eventsApi.refetch())
             .then((events) => {
                 dispatch(self.setEventsList(events.map((e) => (e._id))));
                 return Promise.resolve(events);
@@ -263,6 +264,21 @@ const refetchEvents = () => (
 
                 return Promise.reject(error);
             })
+    )
+);
+
+
+/**
+ * Schedule the refetch to run after one second and avoid any other refetch
+ */
+let nextRefetch = {
+    called: 0
+};
+const scheduleRefetch = () => (
+    (dispatch) => (
+        dispatch(
+            dispatchUtils.scheduleDispatch(self.refetch(), nextRefetch)
+        )
     )
 );
 
@@ -310,7 +326,7 @@ const updateTime = (event, publish = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.UPDATE_TIME.label,
-        'update_time',
+        EVENTS.ITEM_ACTIONS.UPDATE_TIME.lock_action,
         false,
         publish
     ))
@@ -319,7 +335,7 @@ const updateTime = (event, publish = false) => (
 const openSpikeModal = (event, publish = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
-        GENERIC_ITEM_ACTIONS.SPIKE.label,
+        EVENTS.ITEM_ACTIONS.SPIKE.label,
         null,
         true,
         publish
@@ -330,7 +346,7 @@ const openCancelModal = (event, publish = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label,
-        'cancel_event',
+        EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action,
         true,
         publish
     ))
@@ -340,7 +356,7 @@ const openPostponeModal = (event, publish = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label,
-        'postpone_event',
+        EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action,
         true,
         publish
     ))
@@ -350,7 +366,7 @@ const openRescheduleModal = (event, publish = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label,
-        'reschedule_event',
+        EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.lock_action,
         true,
         publish,
         true
@@ -361,7 +377,7 @@ const convertToRecurringEvent = (event, publish) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label,
-        'convert_recurring',
+        EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.lock_action,
         false,
         publish,
         true
@@ -413,9 +429,9 @@ const rescheduleEvent = (event) => (
                 const duplicatedEvent = last(get(updatedEvent, 'duplicate_to', []));
 
                 if (isItemRescheduled(updatedEvent) && duplicatedEvent) {
-                    dispatch(self._openEventDetails({_id: duplicatedEvent}));
+                    dispatch(main.preview({_id: duplicatedEvent}));
                 } else {
-                    dispatch(self._openEventDetails(event));
+                    dispatch(main.preview(event));
                 }
 
                 dispatch(hideModal());
@@ -434,25 +450,52 @@ const rescheduleEvent = (event) => (
     )
 );
 
+const updateEventTime = (event) => (
+    (dispatch, getState, {notify}) => (
+        dispatch(eventsApi.updateEventTime(event))
+            .then(() => {
+                dispatch(hideModal());
+                notify.success('Event time has been update');
+                return Promise.resolve();
+            }, (error) => {
+                dispatch(hideModal());
+
+                notify.error(
+                    getErrorMessage(error, 'Failed to update the Event time!')
+                );
+
+                return Promise.reject(error);
+            })
+    )
+);
+
 const saveAndPublish = (event, save = true, publish = false) => (
     (dispatch) => {
         if (!save) {
             if (publish) {
                 return dispatch(self.publishEvent(event))
-                    .then(() => Promise.resolve(dispatch(hideModal())));
+                    .then((publishedEvent) => {
+                        dispatch(hideModal());
+                        return Promise.resolve(publishedEvent);
+                    });
             }
 
-            return Promise.resolve(dispatch(hideModal()));
+            dispatch(hideModal());
+            return Promise.resolve(event);
         }
 
-        return dispatch(uploadFilesAndSaveEvent(event))
+        return dispatch(eventsApi.save(event))
             .then((events) => {
                 if (publish) {
                     return dispatch(self.publishEvent(events[0]))
-                        .then(() => Promise.resolve(dispatch(hideModal())));
+                        .then(() => {
+                            dispatch(hideModal());
+                            return Promise.resolve(events);
+                        });
                 }
 
-                return Promise.resolve(dispatch(hideModal()));
+                dispatch(hideModal());
+                return Promise.resolve(events);
             });
     }
 );
@@ -461,7 +504,7 @@ const saveWithConfirmation = (event, save = true, publish = false) => (
     (dispatch, getState, {notify}) => {
         const events = selectors.getEvents(getState());
         const originalEvent = get(events, event._id, {});
-        const maxRecurringEvents = selectors.getMaxRecurrentEvents(getState());
+        const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
 
         // If this is not from a recurring series, then simply publish this event
         if (!get(originalEvent, 'recurrence_id')) {
@@ -477,6 +520,7 @@ const saveWithConfirmation = (event, save = true, publish = false) => (
         return dispatch(eventsApi.query({
             recurrenceId: originalEvent.recurrence_id,
             maxResults: maxRecurringEvents,
+            onlyFuture: false
         }))
             .then((relatedEvents) => (
                 dispatch(showModal({
@@ -484,7 +528,7 @@ const saveWithConfirmation = (event, save = true, publish = false) => (
                     modalProps: {
                         eventDetail: {
                             ...event,
-                            _recurring: get(relatedEvents, '_items', [event]),
+                            _recurring: relatedEvents || [event],
                             _publish: publish,
                             _save: save,
                             _events: [],
@@ -561,6 +605,54 @@ const publishEvent = (event) => (
     }
 );
 
+const unpublish = (event) => (
+    (dispatch, getState, {notify}) => (
+        dispatch(eventsApi.unpublish(event))
+            .then((unpublishedEvent) => {
+                notify.success('The Event has been published');
+                return Promise.resolve(unpublishedEvent);
+            }, (error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to unpublish the Event!')
+                );
+                return Promise.reject(error);
+            })
+    )
+);
+
+
+/**
+ * Action to load more events
+ */
+const loadMore = () => (dispatch, getState) => {
+    const previousParams = selectors.main.lastRequestParams(getState());
+    const totalItems = selectors.main.eventsTotalItems(getState());
+    const eventIdsInList = selectors.events.eventIdsInList(getState());
+
+    if (totalItems === get(eventIdsInList, 'length', 0)) {
+        return Promise.resolve();
+    }
+
+    const params = {
+        ...previousParams,
+        page: get(previousParams, 'page', 1) + 1,
+    };
+
+    return dispatch(eventsApi.query(params, true))
+        .then((items) => {
+            if (get(items, 'length', 0) === MAIN.PAGE_SIZE) {
+                dispatch(self.requestEvents(params));
+            }
+            dispatch(eventsApi.receiveEvents(items));
+            dispatch(self.addToList(items.map((e) => e._id)));
+        });
+};
+
+const requestEvents = (params = {}) => ({
+    type: MAIN.ACTIONS.REQUEST,
+    payload: {[MAIN.FILTERS.EVENTS]: params},
+});
+
 /**
  * Action to set the list of events in the current list
  * @param {Array} idsList - An array of Event IDs to assign to the current list
@@ -569,6 +661,22 @@ const publishEvent = (event) => (
 const setEventsList = (idsList) => ({
     type: EVENTS.ACTIONS.SET_EVENTS_LIST,
     payload: idsList,
+});
+
+/**
+ * Clears the Events List
+ */
+const clearList = () => ({type: EVENTS.ACTIONS.CLEAR_LIST});
+
+/**
+ * Action to add events to the current list
+ * This action makes sure the list of events are unique, no duplicates
+ * @param {array} eventsIds - An array of Event IDs to add
+ * @return {{type: string, payload: *}}
+ */
+const addToList = (eventsIds) => ({
+    type: EVENTS.ACTIONS.ADD_TO_EVENTS_LIST,
+    payload: eventsIds,
 });
 
 /**
@@ -597,16 +705,18 @@ const closeAdvancedSearch = () => (
     {type: EVENTS.ACTIONS.CLOSE_ADVANCED_SEARCH}
 );
 
-const openBulkSpikeModal = checkPermission(
-    _openBulkSpikeModal,
-    PRIVILEGES.SPIKE_EVENT,
-    'Unauthorised to spike an Event'
-);
+const openUnspikeModal = (events) => (
+    (dispatch) => {
+        let eventsToUnspike = Array.isArray(events) ? events : [events];
 
-const openUnspikeModal = checkPermission(
-    _openUnspikeModal,
-    PRIVILEGES.UNSPIKE_EVENT,
-    'Unauthorised to unspike an Event'
+        dispatch(showModal({
+            modalType: MODALS.CONFIRMATION,
+            modalProps: {
+                body: gettext(`Do you want to unspike these ${eventsToUnspike.length} event(s) ?`),
+                action: () => dispatch(self.unspike(eventsToUnspike)),
+            },
+        }));
+    }
 );
 
 const openEventDetails = checkPermission(
@@ -622,17 +732,29 @@ const unlockAndOpenEventDetails = checkPermission(
     'Unauthorised to edit an event!'
 );
 
+/**
+ * Action to receive the history of actions on Event and store them in the store
+ * @param {array} eventHistoryItems - An array of Event History items
+ * @return object
+ */
+const receiveEventHistory = (eventHistoryItems) => ({
+    type: EVENTS.ACTIONS.RECEIVE_EVENT_HISTORY,
+    payload: eventHistoryItems,
+});
+
 // eslint-disable-next-line consistent-this
 const self = {
+    fetchEvents,
     _openEventDetails,
     _unlockAndOpenEventDetails,
     _previewEvent,
     spike,
     unspike,
-    refetchEvents,
+    refetch,
+    scheduleRefetch,
     setEventsList,
+    clearList,
     openSpikeModal,
-    openBulkSpikeModal,
     openUnspikeModal,
     openEventDetails,
     unlockAndOpenEventDetails,
@@ -654,6 +776,12 @@ const self = {
     publishEvent,
     saveAndPublish,
     saveWithConfirmation,
+    receiveEventHistory,
+    unpublish,
+    loadMore,
+    addToList,
+    requestEvents,
+    updateEventTime
 };
 
 export default self;

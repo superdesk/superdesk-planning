@@ -3,17 +3,31 @@ import {createStore as _createStore, applyMiddleware} from 'redux';
 import planningApp from '../reducers';
 import thunkMiddleware from 'redux-thunk';
 import createLogger from 'redux-logger';
-import {get, set, isNil, map, cloneDeep} from 'lodash';
-import {PUBLISHED_STATE, WORKFLOW_STATE, TOOLTIPS, ASSIGNMENTS} from '../constants/index';
+import {get, set, map, cloneDeep} from 'lodash';
+import {
+    PUBLISHED_STATE,
+    WORKFLOW_STATE,
+    TOOLTIPS,
+    ASSIGNMENTS,
+    ITEM_TYPE,
+    GENERIC_ITEM_ACTIONS,
+    PLANNING
+} from '../constants/index';
 import * as testData from './testData';
+import {gettext, gettextCatalog} from './gettext';
+import {default as lockUtils} from './locks';
+
 
 export {default as checkPermission} from './checkPermission';
-export {default as retryDispatch} from './retryDispatch';
+export {default as dispatchUtils} from './dispatch';
 export {default as registerNotifications} from './notifications';
 export {default as eventUtils} from './events';
 export {default as planningUtils} from './planning';
 export {default as uiUtils} from './ui';
 export {default as assignmentUtils} from './assignments';
+export {default as stringUtils} from './strings';
+export {gettext, gettextCatalog};
+export {lockUtils};
 
 export function createReducer(initialState, reducerMap) {
     return (state = initialState, action) => {
@@ -42,7 +56,7 @@ export const createTestStore = (params = {}) => {
             error: () => (undefined),
             pop: () => (undefined),
         },
-        $location: {search: () => (undefined)},
+        $location: extraArguments.$location ? extraArguments.$location : {search: () => (undefined)},
         vocabularies: {
             getAllActiveVocabularies: () => (
                 Promise.resolve({
@@ -314,13 +328,8 @@ export const getCreator = (item, creator, users) => {
     }
 };
 
-export const isItemLockedInThisSession = (item, session) => (
-    get(item, 'lock_user') === get(session, 'identity._id') &&
-        get(item, 'lock_session') === get(session, 'sessionId')
-);
-
 export const getItemInArrayById = (items, id, field = '_id') => (
-    items.find((item) => get(item, field) === id)
+    id ? items.find((item) => get(item, field) === id) : null
 );
 
 /**
@@ -330,56 +339,14 @@ export const getItemInArrayById = (items, id, field = '_id') => (
  */
 export const getCoverageIcon = (type) => {
     const coverageIcons = {
-        text: 'icon-text',
-        video: 'icon-video',
-        live_video: 'icon-video',
-        audio: 'icon-audio',
-        picture: 'icon-photo',
+        [PLANNING.G2_CONTENT_TYPE.TEXT]: 'icon-text',
+        [PLANNING.G2_CONTENT_TYPE.VIDEO]: 'icon-video',
+        [PLANNING.G2_CONTENT_TYPE.LIVE_VIDEO]: 'icon-video',
+        [PLANNING.G2_CONTENT_TYPE.AUDIO]: 'icon-audio',
+        [PLANNING.G2_CONTENT_TYPE.PICTURE]: 'icon-photo',
     };
 
     return get(coverageIcons, type, 'icon-file');
-};
-
-export const getLockedUser = (item, locks, users) => {
-    const lock = getLock(item, locks);
-
-    return lock !== null && Array.isArray(users) ?
-        users.find((u) => (u._id === lock.user)) : null;
-};
-
-export const getLock = (item, locks) => {
-    if (isNil(item)) {
-        return null;
-    }
-
-    switch (get(item, '_type')) {
-    case 'events':
-        if (item._id in locks.events) {
-            return locks.events[item._id];
-        } else if (get(item, 'recurrence_id') in locks.recurring) {
-            return locks.recurring[item.recurrence_id];
-        }
-
-        break;
-
-    case 'planning':
-        if (item._id in locks.planning) {
-            return locks.planning[item._id];
-        } else if (get(item, 'event_item') in locks.events) {
-            return locks.events[item.event_item];
-        }
-
-        break;
-
-    default:
-        if (item._id in locks.assignments) {
-            return locks.assignments[item._id];
-        }
-
-        break;
-    }
-
-    return null;
 };
 
 export const getItemWorkflowState = (item) => (get(item, 'state', WORKFLOW_STATE.DRAFT));
@@ -401,6 +368,11 @@ export const getItemWorkflowStateLabel = (item) => {
             label: 'spiked',
             iconType: 'alert',
         };
+    case WORKFLOW_STATE.INGESTED:
+        return {
+            label: 'ingested',
+            iconHollow: true,
+        };
     case WORKFLOW_STATE.SCHEDULED:
         return {
             label: 'Scheduled',
@@ -417,7 +389,7 @@ export const getItemWorkflowStateLabel = (item) => {
     case WORKFLOW_STATE.RESCHEDULED:
         return {
             label: 'Rescheduled',
-            iconType: 'warning',
+            iconType: 'highlight2',
         };
     case WORKFLOW_STATE.CANCELLED:
         return {
@@ -474,12 +446,15 @@ export const getItemPublishedStateLabel = (item) => {
 };
 
 export const isItemPublic = (item = {}) =>
-    item && typeof item === 'string' ?
+    !!item && (typeof item === 'string' ?
         item === PUBLISHED_STATE.USABLE || item === PUBLISHED_STATE.CANCELLED :
-        item.pubstatus === PUBLISHED_STATE.USABLE || item.pubstatus === PUBLISHED_STATE.CANCELLED;
+        item.pubstatus === PUBLISHED_STATE.USABLE || item.pubstatus === PUBLISHED_STATE.CANCELLED);
 
 export const isItemSpiked = (item) => item ?
     getItemWorkflowState(item) === WORKFLOW_STATE.SPIKED : false;
+
+export const shouldLockItemForEdit = (item, lockedItems) =>
+    get(item, '_id') && !lockUtils.getLock(item, lockedItems) && !isItemSpiked(item);
 
 /**
  * Get the timezone offset
@@ -493,29 +468,6 @@ export const getPublishedState = (item) => get(item, 'pubstatus', null);
 export const sanitizeTextForQuery = (text) => (
     text.replace(/\//g, '\\/').replace(/[()]/g, '')
 );
-
-/**
- * Get translated string
- *
- * You can use params in translation like:
- *
- *    gettext('Hello {{ name }}', {name: 'John'})
- *
- * @param {String} text
- * @param {Object} params
- * @return {String}
- */
-export function gettext(text, params = null) {
-    const injector = angular.element(document.body).injector();
-
-    if (injector) { // in tests this will be empty
-        const translated = injector.get('gettext')(text);
-
-        return params ? injector.get('$interpolate')(translated)(params) : translated;
-    }
-
-    return text;
-}
 
 export const getAssignmentPriority = (priorityQcode, priorities) => {
     // Returns default or given priority object
@@ -544,4 +496,33 @@ export const getDesksForUser = (user, desksList = []) => {
 
     return desksList.filter((desk) =>
         map(desk.members, 'user').indexOf(user._id) !== -1);
+};
+
+export const getItemType = (item) => {
+    const itemType = get(item, '_type');
+
+    if (itemType === ITEM_TYPE.EVENT) {
+        return ITEM_TYPE.EVENT;
+    } else if (itemType === ITEM_TYPE.PLANNING) {
+        return ITEM_TYPE.PLANNING;
+    } else if (itemType === ITEM_TYPE.ASSIGNMENT) {
+        return ITEM_TYPE.ASSIGNMENT;
+    }
+
+    return ITEM_TYPE.UNKNOWN;
+};
+
+export const getDateTimeString = (date, dateFormat, timeFormat) => (
+    // !! Note - expects date as instance of moment() !! //
+    date.format(dateFormat) + ' @ ' + date.format(timeFormat)
+);
+
+export const isEmptyActions = (actions) => {
+    if (get(actions, 'length', 0) < 1) {
+        return true;
+    } else {
+        // Do we have only dividers ?
+        return actions.filter((action) =>
+            action.label !== GENERIC_ITEM_ACTIONS.DIVIDER.label).length <= 0;
+    }
 };

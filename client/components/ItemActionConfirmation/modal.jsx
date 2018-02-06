@@ -4,114 +4,129 @@ import {ModalWithForm} from '../index';
 import {
     SpikeEventForm,
     UpdateRecurringEventsForm,
-    CancelEventForm,
+    CancelAndPostponeEventForm,
     UpdateTimeForm,
     RescheduleEventForm,
-    PostponeEventForm,
     ConvertToRecurringEventForm,
     CancelPlanningCoveragesForm,
     UpdateAssignmentForm,
+    EditPriorityForm,
 } from './index';
 import {get} from 'lodash';
-import {GENERIC_ITEM_ACTIONS, EVENTS, FORM_NAMES, PLANNING, ASSIGNMENTS} from '../../constants';
+import {EVENTS, PLANNING, ASSIGNMENTS} from '../../constants';
+import {gettext} from '../../utils';
 
-export const ItemActionConfirmationModal = ({handleHide, modalProps}) => {
-    let title;
-    let form;
-    let formNameForPristineCheck;
-    let saveText = 'Save';
-    let propToForm = modalProps.eventDetail;
+export class ItemActionConfirmationModal extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {canSave: false};
 
-    const getSaveAndPublishTitle = () => {
-        const publish = get(modalProps, 'eventDetail._publish', false);
-        const save = get(modalProps, 'eventDetail._save', true);
+        this.enableSaveInModal = this.enableSaveInModal.bind(this);
+        this.disableSaveInModal = this.disableSaveInModal.bind(this);
+    }
 
-        if (save && publish)
-            return 'Save & Publish Event';
-        else if (publish)
-            return 'Publish Event';
-        return 'Save Event';
-    };
+    enableSaveInModal() {
+        this.setState({canSave: true});
+    }
 
-    const modalFormsMapper = {
-        [GENERIC_ITEM_ACTIONS.SPIKE.label]: {
-            title: 'Spike an event',
-            saveText: 'Spike',
-            form: SpikeEventForm,
-        },
-        [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: {
-            title: 'Cancel an event',
-            saveText: 'OK',
-            form: CancelEventForm,
-        },
-        [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: {
-            title: 'Update time',
-            form: UpdateTimeForm,
-            formNameForPristineCheck: get(FORM_NAMES, 'UpdateTimeForm'),
-        },
-        [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: {
-            title: 'Reschedule an event',
-            saveText: 'Reschedule',
-            form: RescheduleEventForm,
-            formNameForPristineCheck: get(FORM_NAMES, 'RescheduleForm'),
-        },
-        [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: {
-            title: 'Postpone an event',
-            saveText: 'Postpone',
-            form: PostponeEventForm,
-        },
-        [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: {
-            title: get(EVENTS, 'ITEM_ACTIONS.CONVERT_TO_RECURRING.label'),
-            form: ConvertToRecurringEventForm,
-            formNameForPristineCheck: get(FORM_NAMES, 'ConvertEventToRecurringForm'),
-        },
-        [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: {
-            title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_PLANNING.label'),
-            propToForm: {...modalProps.planning},
-            form: CancelPlanningCoveragesForm,
-        },
-        [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label]: {
-            title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label'),
-            propToForm: {
-                ...modalProps.planning,
-                _cancelAllCoverage: true,
+    disableSaveInModal() {
+        this.setState({canSave: false});
+    }
+
+    render() {
+        const {handleHide, modalProps} = this.props;
+
+        let title;
+        let form;
+        let saveText = gettext('Save');
+        let propToForm = modalProps.eventDetail;
+
+        const getSaveAndPublishTitle = () => {
+            const publish = get(modalProps, 'eventDetail._publish', false);
+            const save = get(modalProps, 'eventDetail._save', true);
+
+            if (save && publish)
+                return gettext('Save & Publish Event');
+            else if (publish)
+                return gettext('Publish Event');
+            return gettext('Save Event');
+        };
+
+        const modalFormsMapper = {
+            [EVENTS.ITEM_ACTIONS.SPIKE.label]: {
+                title: gettext('Spike an event'),
+                saveText: gettext('Spike'),
+                form: SpikeEventForm,
             },
-            form: CancelPlanningCoveragesForm,
-        },
-        [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: {
-            title: ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label,
-            propToForm: {...modalProps.assignment},
-            form: UpdateAssignmentForm,
-            formNameForPristineCheck: get(FORM_NAMES, 'UpdateAssignmentForm'),
-            customValidation: true,
-        },
-    };
+            [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: {
+                title: gettext('Cancel an event'),
+                saveText: gettext('OK'),
+                form: CancelAndPostponeEventForm,
+            },
+            [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: {
+                title: gettext('Update time'),
+                form: UpdateTimeForm,
+            },
+            [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.label]: {
+                title: gettext('Reschedule an event'),
+                saveText: gettext('Reschedule'),
+                form: RescheduleEventForm,
+            },
+            [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: {
+                title: gettext('Postpone an event'),
+                saveText: gettext('Postpone'),
+                form: CancelAndPostponeEventForm,
+            },
+            [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: {
+                title: get(EVENTS, 'ITEM_ACTIONS.CONVERT_TO_RECURRING.label'),
+                form: ConvertToRecurringEventForm,
+            },
+            [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: {
+                title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_PLANNING.label'),
+                propToForm: {...modalProps.planning},
+                form: CancelPlanningCoveragesForm,
+            },
+            [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label]: {
+                title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label'),
+                propToForm: {
+                    ...modalProps.planning,
+                    _cancelAllCoverage: true,
+                },
+                form: CancelPlanningCoveragesForm,
+            },
+            [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: {
+                title: ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label,
+                propToForm: {...modalProps.assignment},
+                form: UpdateAssignmentForm,
+            },
+            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: {
+                title: ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label,
+                form: EditPriorityForm,
+                propToForm: {...modalProps.assignment},
+            }
+        };
 
-    modalFormsMapper[ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label] = {
-        ...modalFormsMapper[ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label],
-        title: ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label,
-    };
+        title = get(modalFormsMapper[modalProps.actionType], 'title', getSaveAndPublishTitle());
+        form = get(modalFormsMapper[modalProps.actionType], 'form', UpdateRecurringEventsForm);
+        propToForm = get(modalFormsMapper[modalProps.actionType], 'propToForm', propToForm);
+        saveText = get(modalFormsMapper[modalProps.actionType], 'saveText', saveText);
 
-    title = get(modalFormsMapper[modalProps.actionType], 'title', getSaveAndPublishTitle());
-    form = get(modalFormsMapper[modalProps.actionType], 'form', UpdateRecurringEventsForm);
-    formNameForPristineCheck = get(modalFormsMapper[modalProps.actionType],
-        'formNameForPristineCheck');
-    propToForm = get(modalFormsMapper[modalProps.actionType], 'propToForm', propToForm);
-    saveText = get(modalFormsMapper[modalProps.actionType], 'saveText', saveText);
-
-    return (
-        <ModalWithForm
-            title={title}
-            onHide={handleHide}
-            form={form}
-            formNameForPristineCheck={formNameForPristineCheck}
-            initialValues={propToForm}
-            saveButtonText={saveText}
-            cancelButtonText="Cancel"
-            large={get(modalProps, 'large', false)}
-            show={true}/>
-    );
-};
+        return (
+            <ModalWithForm
+                title={title}
+                onHide={handleHide}
+                form={form}
+                initialValues={propToForm}
+                saveButtonText={saveText}
+                cancelButtonText={gettext('Cancel')}
+                large={get(modalProps, 'large', false)}
+                show={true}
+                canSave={this.state.canSave}
+                enableSaveInModal={this.enableSaveInModal}
+                disableSaveInModal={this.disableSaveInModal} />
+        );
+    }
+}
 
 ItemActionConfirmationModal.propTypes = {
     handleHide: PropTypes.func.isRequired,

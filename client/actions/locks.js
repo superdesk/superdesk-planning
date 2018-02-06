@@ -1,7 +1,7 @@
 import * as selectors from '../selectors';
-import {LOCKS} from '../constants';
+import {LOCKS, ITEM_TYPE} from '../constants';
 import {planning, events, assignments} from './index';
-import {getLock} from '../utils';
+import {lockUtils, getItemType} from '../utils';
 
 /**
  * Action Dispatcher to load all Event and Planning locks
@@ -55,8 +55,8 @@ const loadAssignmentLocks = () => (
  */
 const unlock = (item) => (
     (dispatch, getState, {notify}) => {
-        const locks = selectors.getLockedItems(getState());
-        const currentLock = getLock(item, locks);
+        const locks = selectors.locks.getLockedItems(getState());
+        const currentLock = lockUtils.getLock(item, locks);
 
         if (currentLock === null) {
             notify.error('Failed to unlock the item. Lock not found!');
@@ -72,11 +72,38 @@ const unlock = (item) => (
     }
 );
 
+const lock = (item) => (
+    (dispatch) => {
+        const itemType = getItemType(item);
+
+        switch (itemType) {
+        case ITEM_TYPE.EVENT:
+            return dispatch(events.api.lock(item));
+        case ITEM_TYPE.PLANNING:
+            return dispatch(planning.api.lock(item));
+        }
+
+        return Promise.reject('Could not determine item type');
+    }
+);
+
+const unlockThenLock = (item) => (
+    (dispatch) => (
+        dispatch(self.unlock(item))
+            .then(
+                (unlockedItem) => dispatch(self.lock(unlockedItem)),
+                (error) => Promise.reject(error)
+            )
+    )
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
+    lock,
     unlock,
     loadAllLocks,
     loadAssignmentLocks,
+    unlockThenLock,
 };
 
 export default self;

@@ -1,6 +1,6 @@
 import planUtils from '../planning';
 import lockReducer from '../../reducers/locks';
-import {GENERIC_ITEM_ACTIONS, EVENTS, PLANNING} from '../../constants';
+import {EVENTS, PLANNING} from '../../constants';
 import {expectActions} from '../testUtils';
 
 describe('PlanningUtils', () => {
@@ -231,10 +231,9 @@ describe('PlanningUtils', () => {
 
     describe('getPlanningItemActions', () => {
         const actions = [
-            GENERIC_ITEM_ACTIONS.SPIKE,
-            GENERIC_ITEM_ACTIONS.UNSPIKE,
-            GENERIC_ITEM_ACTIONS.HISTORY,
-            GENERIC_ITEM_ACTIONS.DUPLICATE,
+            PLANNING.ITEM_ACTIONS.SPIKE,
+            PLANNING.ITEM_ACTIONS.UNSPIKE,
+            PLANNING.ITEM_ACTIONS.DUPLICATE,
 
             PLANNING.ITEM_ACTIONS.CANCEL_PLANNING,
             PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
@@ -279,7 +278,6 @@ describe('PlanningUtils', () => {
 
             expectActions(itemActions, [
                 'Spike',
-                'View History',
                 'Duplicate',
             ]);
 
@@ -294,7 +292,6 @@ describe('PlanningUtils', () => {
 
             expectActions(itemActions, [
                 'Spike',
-                'View History',
                 'Duplicate',
                 'Cancel Event',
                 'Update Event Time',
@@ -311,7 +308,6 @@ describe('PlanningUtils', () => {
             );
 
             expectActions(itemActions, [
-                'View History',
                 'Duplicate',
             ]);
 
@@ -325,7 +321,6 @@ describe('PlanningUtils', () => {
             );
 
             expectActions(itemActions, [
-                'View History',
                 'Duplicate',
                 'Cancel Event',
                 'Reschedule Event',

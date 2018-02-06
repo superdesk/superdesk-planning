@@ -34,13 +34,13 @@ describe('actions.events.ui', () => {
             () => (Promise.resolve(data.events))
         );
 
-        sinon.stub(eventsApi, 'refetchEvents').callsFake(() => (Promise.resolve()));
+        sinon.stub(eventsApi, 'refetch').callsFake(() => (Promise.resolve()));
 
         sinon.stub(eventsUi, '_openActionModal').callsFake(
             () => (Promise.resolve())
         );
 
-        sinon.stub(eventsUi, 'refetchEvents').callsFake(() => (Promise.resolve()));
+        sinon.stub(eventsUi, 'refetch').callsFake(() => (Promise.resolve()));
         sinon.stub(eventsUi, 'closeEventDetails').callsFake(() => (Promise.resolve()));
 
         sinon.stub(planningApi, 'loadPlanningByEventId').callsFake(
@@ -68,9 +68,9 @@ describe('actions.events.ui', () => {
         restoreSinonStub(eventsApi.unspike);
         restoreSinonStub(eventsApi.loadEventsByRecurrenceId);
         restoreSinonStub(eventsApi.loadRecurringEventsAndPlanningItems);
-        restoreSinonStub(eventsApi.refetchEvents);
+        restoreSinonStub(eventsApi.refetch);
         restoreSinonStub(eventsUi._openActionModal);
-        restoreSinonStub(eventsUi.refetchEvents);
+        restoreSinonStub(eventsUi.refetch);
         restoreSinonStub(eventsUi.setEventsList);
         restoreSinonStub(eventsUi._openEventDetails);
         restoreSinonStub(eventsUi.closeEventDetails);
@@ -154,7 +154,7 @@ describe('actions.events.ui', () => {
                 expect(eventsUi._openActionModal.args[0]).toEqual([
                     data.events[1],
                     'Reschedule',
-                    'reschedule_event',
+                    'reschedule',
                     true,
                     false,
                     true,
@@ -235,74 +235,6 @@ describe('actions.events.ui', () => {
         });
     });
 
-    describe('openBulkSpikeModal', () => {
-        it('shows the spike modal', (done) => (
-            store.test(done, eventsUi.openBulkSpikeModal(data.events))
-                .then(() => {
-                    expect(store.dispatch.callCount).toBe(2);
-                    expect(store.dispatch.args[1]).toEqual([{
-                        type: 'SHOW_MODAL',
-                        modalType: 'CONFIRMATION',
-                        modalProps: jasmine.objectContaining(
-                            {body: 'Do you want to spike these 3 events?'}
-                        ),
-                    }]);
-
-                    done();
-                })
-        ));
-
-        it('openBulkSpikeModal raises ACCESS_DENIED without permission', (done) => {
-            store.initialState.privileges.planning_event_spike = 0;
-            return store.test(done, eventsUi.openBulkSpikeModal(data.events))
-                .catch(() => {
-                    expectAccessDenied({
-                        store: store,
-                        permission: PRIVILEGES.SPIKE_EVENT,
-                        action: '_openBulkSpikeModal',
-                        errorMessage: 'Unauthorised to spike an Event',
-                        args: [data.events],
-                    });
-
-                    done();
-                });
-        });
-    });
-
-    describe('openUnspikeModal', () => {
-        it('shows the unspike modal', (done) => (
-            store.test(done, eventsUi.openUnspikeModal(data.events))
-                .then(() => {
-                    expect(store.dispatch.callCount).toBe(2);
-                    expect(store.dispatch.args[1]).toEqual([{
-                        type: 'SHOW_MODAL',
-                        modalType: 'CONFIRMATION',
-                        modalProps: jasmine.objectContaining(
-                            {body: 'Do you want to unspike these 3 events?'}
-                        ),
-                    }]);
-
-                    done();
-                })
-        ));
-
-        it('openUnspikeModal raises ACCESS_DENIED without permission', (done) => {
-            store.initialState.privileges.planning_event_unspike = 0;
-            return store.test(done, eventsUi.openUnspikeModal(data.events))
-                .catch(() => {
-                    expectAccessDenied({
-                        store: store,
-                        permission: PRIVILEGES.UNSPIKE_EVENT,
-                        action: '_openUnspikeModal',
-                        errorMessage: 'Unauthorised to unspike an Event',
-                        args: [data.events],
-                    });
-
-                    done();
-                });
-        });
-    });
-
     describe('spike', () => {
         it('calls `api.spike`', (done) => (
             store.test(done, eventsUi.spike(data.events[0]))
@@ -348,7 +280,7 @@ describe('actions.events.ui', () => {
                     expect(eventsApi.unspike.callCount).toBe(1);
                     expect(eventsApi.unspike.args[0]).toEqual([data.events[0]]);
 
-                    expect(eventsUi.refetchEvents.callCount).toBe(1);
+                    expect(eventsUi.refetch.callCount).toBe(1);
 
                     expect(services.notify.success.callCount).toBe(1);
                     expect(services.notify.success.args[0]).toEqual(['The event(s) have been unspiked']);
@@ -387,18 +319,18 @@ describe('actions.events.ui', () => {
 
     describe('refetchEvents', () => {
         it('updates list', (done) => {
-            restoreSinonStub(eventsApi.refetchEvents);
-            restoreSinonStub(eventsUi.refetchEvents);
+            restoreSinonStub(eventsApi.refetch);
+            restoreSinonStub(eventsUi.refetch);
 
-            sinon.stub(eventsApi, 'refetchEvents').callsFake(
+            sinon.stub(eventsApi, 'refetch').callsFake(
                 () => (Promise.resolve(data.events))
             );
 
-            return store.test(done, eventsUi.refetchEvents())
+            return store.test(done, eventsUi.refetch())
                 .then((events) => {
                     expect(events).toEqual(data.events);
 
-                    expect(eventsApi.refetchEvents.callCount).toBe(1);
+                    expect(eventsApi.refetch.callCount).toBe(1);
 
                     expect(eventsUi.setEventsList.callCount).toBe(1);
                     expect(eventsUi.setEventsList.args[0]).toEqual([['e1', 'e2', 'e3']]);
@@ -408,14 +340,14 @@ describe('actions.events.ui', () => {
         });
 
         it('notifies user if api.refetchEvents fails', (done) => {
-            restoreSinonStub(eventsApi.refetchEvents);
-            restoreSinonStub(eventsUi.refetchEvents);
+            restoreSinonStub(eventsApi.refetch);
+            restoreSinonStub(eventsUi.refetch);
 
-            sinon.stub(eventsApi, 'refetchEvents').callsFake(
+            sinon.stub(eventsApi, 'refetch').callsFake(
                 () => (Promise.reject(errorMessage))
             );
 
-            return store.test(done, eventsUi.refetchEvents())
+            return store.test(done, eventsUi.refetch())
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toEqual(errorMessage);
 
@@ -611,5 +543,62 @@ describe('actions.events.ui', () => {
                     done();
                 })
         ));
+    });
+
+    describe('fetchEvents', () => {
+        beforeEach(() => {
+            sinon.stub(eventsApi, 'query').returns(Promise.resolve(data.events));
+            sinon.stub(eventsApi, 'receiveEvents').returns({type: 'RECEIVE_EVENTS'});
+        });
+
+        afterEach(() => {
+            restoreSinonStub(eventsApi.query);
+            restoreSinonStub(eventsApi.receiveEvents);
+        });
+
+        it('ids', (done) => (
+            store.test(done, eventsUi.fetchEvents({ids: ['e1', 'e2', 'e3']}))
+                .then((response) => {
+                    expect(store.dispatch.callCount).toBe(4);
+                    expect(eventsApi.query.callCount).toBe(1);
+                    expect(eventsApi.receiveEvents.callCount).toBe(1);
+                    expect(eventsUi.setEventsList.callCount).toBe(1);
+                    expect(response).toEqual(data.events);
+                    done();
+                })
+        ));
+    });
+
+    describe('unpublish', () => {
+        afterEach(() => {
+            restoreSinonStub(eventsApi.unpublish);
+        });
+
+        it('calls events.api.unpublish and notifies the user of success', (done) => {
+            sinon.stub(eventsApi, 'unpublish').returns(Promise.resolve(data.events[0]));
+            store.test(done, eventsUi.unpublish(data.events[0]))
+                .then(() => {
+                    expect(eventsApi.unpublish.callCount).toBe(1);
+                    expect(eventsApi.unpublish.args[0]).toEqual([data.events[0]]);
+
+                    expect(services.notify.error.callCount).toBe(0);
+                    expect(services.notify.success.callCount).toBe(1);
+                    expect(services.notify.success.args[0]).toEqual(['The Event has been published']);
+                    done();
+                });
+        });
+
+        it('calls events.api.unpublish and notifies the user of failure', (done) => {
+            sinon.stub(eventsApi, 'unpublish').callsFake(() => Promise.reject(errorMessage));
+            store.test(done, eventsUi.unpublish(data.events[0]))
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+
+                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.args[0]).toEqual(['Failed!']);
+
+                    done();
+                });
+        });
     });
 });

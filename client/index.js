@@ -2,7 +2,7 @@ import * as ctrl from './controllers';
 import * as svc from './services';
 import ng from 'superdesk-core/scripts/core/services/ng';
 
-export default angular.module('superdesk.planning', [])
+export default angular.module('superdesk-planning', [])
     .directive('sdPlanning',
         () => ({
             scope: {app: '='},
