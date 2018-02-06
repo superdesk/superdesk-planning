@@ -32,6 +32,7 @@ export const CoverageEditor = ({
     readOnly,
     message,
     invalid,
+    openComponent,
     ...props,
 }) => {
     // Coverage item actions
@@ -126,6 +127,7 @@ export const CoverageEditor = ({
             readOnly={readOnly}
             message={message}
             invalid={invalid}
+            currentWorkspace={currentWorkspace}
             {...props}
         />
     );
@@ -137,7 +139,7 @@ export const CoverageEditor = ({
             openItemTopBar={coverageTopBar}
             openItem={coverageForm}
             scrollInView={true}
-            isOpen={isEqual(value, COVERAGES.DEFAULT_VALUE(newsCoverageStatus))}
+            isOpen={openComponent || isEqual(value, COVERAGES.DEFAULT_VALUE(newsCoverageStatus))}
             invalid={invalid}
         />
     );
@@ -173,6 +175,7 @@ CoverageEditor.propTypes = {
     errors: PropTypes.object,
     showErrors: PropTypes.bool,
     invalid: PropTypes.bool,
+    openComponent: PropTypes.bool,
 };
 
 CoverageEditor.defaultProps = {

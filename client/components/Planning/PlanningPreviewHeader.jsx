@@ -54,7 +54,7 @@ export class PlanningPreviewHeaderComponent extends React.Component {
                     <LockContainer
                         lockedUser={lockedUser}
                         users={users}
-                        showUnlock={unlockPrivilege}
+                        showUnlock={unlockPrivilege && inPlanning}
                         withLoggedInfo={true}
                         onUnlock={onUnlock.bind(null, item)}
                     />
