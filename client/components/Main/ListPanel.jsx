@@ -140,7 +140,7 @@ ListPanel.propTypes = {
     onMultiSelectClick: PropTypes.func,
     selectedEventIds: PropTypes.array,
     selectedPlanningIds: PropTypes.array,
-    itemActions: PropTypes.array,
+    itemActions: PropTypes.object,
     filter: PropTypes.func,
 };
 

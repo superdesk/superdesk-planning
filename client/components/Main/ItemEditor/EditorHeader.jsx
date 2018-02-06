@@ -70,6 +70,10 @@ export const EditorHeader = ({
         })
     );
 
+    const showUpdate = isPublic && canUpdate;
+    const showSave = !isPublic && canEdit;
+    const isBeingEdited = showUpdate || showSave;
+
     return (
         <Header className="subnav">
             {isLockRestricted && (
@@ -109,7 +113,7 @@ export const EditorHeader = ({
                     />
                 )}
 
-                {isPublic && canUpdate && (
+                {showUpdate && (
                     <Button
                         color="primary"
                         disabled={!dirty || submitting}
@@ -118,7 +122,7 @@ export const EditorHeader = ({
                     />
                 )}
 
-                {!isPublic && canEdit && (
+                {showSave && (
                     <Button
                         color="primary"
                         disabled={!dirty || submitting}
@@ -136,7 +140,7 @@ export const EditorHeader = ({
                     />
                 )}
 
-                {existingItem && !isLocked && (
+                {existingItem && !isLocked && canEdit && (
                     <Button
                         color="primary"
                         onClick={onLock.bind(null, item)}
@@ -145,7 +149,7 @@ export const EditorHeader = ({
                 )}
             </StretchBar>
 
-            {!isLockRestricted && (
+            {isBeingEdited && (
                 <NavButton onClick={minimize} icon="big-icon--minimize" />
             )}
 

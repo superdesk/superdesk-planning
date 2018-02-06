@@ -3,6 +3,7 @@ import {WORKFLOW_STATE, EVENTS, MODALS, SPIKED_STATE} from '../../constants';
 import {showModal, hideModal} from '../index';
 import eventsApi from './api';
 import eventsUi from './ui';
+import main from '../main';
 import {get} from 'lodash';
 import {lockUtils} from '../../utils';
 import eventsPlanning from '../eventsPlanning';
@@ -121,6 +122,7 @@ const onEventSpiked = (_e, data) => (
             });
 
             dispatch(eventsPlanning.notifications.onEventSpiked(_e, data));
+            dispatch(main.closePreviewAndEditorForItems([eventInStore]));
 
             return Promise.resolve(eventInStore);
         }
@@ -161,6 +163,7 @@ const onEventUnspiked = (_e, data) => (
             });
 
             dispatch(eventsPlanning.notifications.onEventUnspiked(_e, data));
+            dispatch(main.closePreviewAndEditorForItems([eventInStore]));
 
             return Promise.resolve(eventInStore);
         }
@@ -257,6 +260,7 @@ const onRecurringEventSpiked = (e, data) => (
             });
 
             dispatch(eventsPlanning.notifications.onRecurringEventSpiked(e, data));
+            dispatch(main.closePreviewAndEditorForItems(data.items));
 
             return Promise.resolve(data.items);
         }

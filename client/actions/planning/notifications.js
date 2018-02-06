@@ -3,6 +3,7 @@ import planning from './index';
 import {getErrorMessage, lockUtils} from '../../utils';
 import * as selectors from '../../selectors';
 import {showModal, hideModal, events} from '../index';
+import main from '../main';
 import {PLANNING, WORKFLOW_STATE, MODALS, SPIKED_STATE} from '../../constants';
 import eventsPlanning from '../eventsPlanning';
 
@@ -197,6 +198,7 @@ const onPlanningSpiked = (_e, data) => (
             });
 
             dispatch(eventsPlanning.notifications.onPlanningSpiked(_e, data));
+            dispatch(main.closePreviewAndEditorForItems([planningItem]));
 
             return Promise.resolve(planningItem);
         }
@@ -237,6 +239,7 @@ const onPlanningUnspiked = (_e, data) => (
             });
 
             dispatch(eventsPlanning.notifications.onPlanningUnspiked(_e, data));
+            dispatch(main.closePreviewAndEditorForItems([planningItem]));
 
             return Promise.resolve(planningItem);
         }
