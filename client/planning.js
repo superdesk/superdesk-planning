@@ -14,7 +14,7 @@ import {
 } from './components/Main';
 import {WorkqueueContainer, ModalsContainer} from './components';
 
-import {getItemType} from './utils';
+import {getItemType, planningUtils} from './utils';
 
 import './planning.scss';
 
@@ -32,6 +32,7 @@ class PlanningApp extends React.Component {
 
         this.toggleFilterPanel = this.toggleFilterPanel.bind(this);
         this.onItemClick = this.onItemClick.bind(this);
+        this.onItemDoubleClick = this.onItemDoubleClick.bind(this);
         this.closePreview = this.closePreview.bind(this);
         this.addEvent = this.addEvent.bind(this);
         this.addPlanning = this.addPlanning.bind(this);
@@ -43,24 +44,22 @@ class PlanningApp extends React.Component {
     }
 
     onItemClick(item) {
-        // If we are linking a news item - open it for edit
-        if (this.props.addNewsItemToPlanning) {
-            if (this.props.editItem) {
-                // Unlock this item and close editor first
-                return this.props.cancel(this.props.editItem).then(
-                    () => {
-                        this.props.edit(item);
-                    });
-            }
+        this.props.preview(item);
+        this.setState({
+            previewOpen: true,
+            initialLoad: !this.state.previewOpen,
+        });
+    }
 
-            this.props.edit(item);
-        } else {
-            this.props.preview(item);
-            this.setState({
-                previewOpen: true,
-                initialLoad: !this.state.previewOpen,
-            });
+    onItemDoubleClick(item) {
+        if (!!this.props.addNewsItemToPlanning &&
+                planningUtils.isLockedForAddToPlanning(this.props.editItem)) {
+            // Currently edited item is locked for add_to_planning, release lock on it
+            // Unlock this item and close editor first
+            this.props.cancel(this.props.editItem);
         }
+
+        this.props.edit(item);
     }
 
     closePreview() {
@@ -77,7 +76,13 @@ class PlanningApp extends React.Component {
     }
 
     addPlanning() {
-        this.props.edit({_type: ITEM_TYPE.PLANNING});
+        const newPlanning = {_type: ITEM_TYPE.PLANNING};
+
+        if (this.props.addNewsItemToPlanning) {
+            this.onItemDoubleClick(newPlanning);
+        } else {
+            this.props.edit(newPlanning);
+        }
     }
 
     handleItemSelection(item) {
@@ -121,7 +126,6 @@ class PlanningApp extends React.Component {
 
         const {
             groups,
-            edit,
             addNewsItemToPlanning,
             agendas,
             lockedItems,
@@ -179,7 +183,7 @@ class PlanningApp extends React.Component {
         const listPanelProps = {
             groups: groups,
             onItemClick: this.onItemClick,
-            onDoubleClick: edit,
+            onDoubleClick: this.onItemDoubleClick,
             agendas: agendas,
             lockedItems: lockedItems,
             dateFormat: dateFormat,
@@ -225,11 +229,11 @@ class PlanningApp extends React.Component {
                     <div className="sd-column-box--3">
                         <SearchPanel toggleFilterPanel={this.toggleFilterPanel} />
                         <ListPanel { ...listPanelProps } />
-                        {!addNewsItemToPlanning && (<PreviewPanel
+                        <PreviewPanel
                             item={this.props.previewItem}
                             edit={this.props.edit}
                             closePreview={this.closePreview}
-                            initialLoad={this.state.initialLoad} />)}
+                            initialLoad={this.state.initialLoad} />
                     </div>
                 </div>
                 <div className={editorClassName}>
@@ -271,6 +275,7 @@ PlanningApp.propTypes = {
     onAddCoverageClick: PropTypes.func,
     addNewsItemToPlanning: PropTypes.object,
     currentWorkspace: PropTypes.string,
+    closeEditor: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
@@ -318,6 +323,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
+    closeEditor: () => dispatch(actions.main.closeEditor()),
     edit: (item) => dispatch(actions.main.lockAndEdit(item)),
     cancel: (item) => dispatch(actions.main.unlockAndCancel(item)),
     preview: (item) => dispatch(actions.main.preview(item)),

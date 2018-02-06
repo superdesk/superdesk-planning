@@ -7,10 +7,10 @@ import {selectAgenda, fetchSelectedAgendaPlannings} from './agenda';
 import {
     getErrorMessage,
     getItemType,
-    lockUtils,
     gettext,
     eventUtils,
     shouldLockItemForEdit,
+    shouldUnLockItem,
 } from '../utils';
 import {MODALS, WORKSPACE} from '../constants';
 import eventsPlanningUi from './eventsPlanning/ui';
@@ -53,9 +53,13 @@ const lockAndEdit = (item) => (
 
 const unlockAndCancel = (item) => (
     (dispatch, getState) => {
+        const state = getState();
+
         // If the item exists and is locked in this session
         // then unlock the item
-        if (item && lockUtils.isItemLockedInThisSession(item, selectors.getSessionDetails(getState()))) {
+        if (shouldUnLockItem(item,
+            selectors.getSessionDetails(state),
+            selectors.general.currentWorkspace(state))) {
             dispatch(locks.unlock(item));
         }
         dispatch(self.closeEditor());

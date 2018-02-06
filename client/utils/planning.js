@@ -521,6 +521,9 @@ const getPlanningByDate = (plansInList, events) => {
     return sortBy(sortable, [(e) => e.date]);
 };
 
+const isLockedForAddToPlanning = (item) => get(item, 'lock_action') ===
+    PLANNING.ITEM_ACTIONS.ADD_TO_PLANNING.lock_action;
+
 // eslint-disable-next-line consistent-this
 const self = {
     canSpikePlanning,
@@ -545,6 +548,7 @@ const self = {
     isNotForPublication,
     getPlanningByDate,
     createCoverageFromNewsItem,
+    isLockedForAddToPlanning,
 };
 
 export default self;

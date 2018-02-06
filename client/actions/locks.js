@@ -1,5 +1,5 @@
 import * as selectors from '../selectors';
-import {LOCKS, ITEM_TYPE} from '../constants';
+import {LOCKS, ITEM_TYPE, WORKSPACE, PLANNING} from '../constants';
 import {planning, events, assignments} from './index';
 import {lockUtils, getItemType} from '../utils';
 
@@ -73,14 +73,18 @@ const unlock = (item) => (
 );
 
 const lock = (item) => (
-    (dispatch) => {
+    (dispatch, getState) => {
         const itemType = getItemType(item);
+        const currentWorkspace = selectors.general.currentWorkspace(getState());
+        let lockAction;
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
             return dispatch(events.api.lock(item));
         case ITEM_TYPE.PLANNING:
-            return dispatch(planning.api.lock(item));
+            lockAction = currentWorkspace === WORKSPACE.AUTHORING ?
+                PLANNING.ITEM_ACTIONS.ADD_TO_PLANNING.lock_action : 'edit';
+            return dispatch(planning.api.lock(item, lockAction));
         }
 
         return Promise.reject('Could not determine item type');

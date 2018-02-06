@@ -708,8 +708,8 @@ const onAddCoverageClick = (item, addNewsItemToPlanning = null) => (
         }
 
         return promise.then((lockedItem) => {
-            lockedItem._addNewCoverage = true;
             dispatch(planningApi.receivePlannings([lockedItem]));
+            dispatch(main.closeEditor());
             dispatch(main.openEditor(lockedItem));
             return Promise.resolve(lockedItem);
         }, (error) => {
