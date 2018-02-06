@@ -147,6 +147,7 @@ class PlanningApp extends React.Component {
             selectAgenda,
             currentAgendaId,
             filter,
+            loadingIndicator
         } = this.props;
 
         const itemActions = {
@@ -200,6 +201,7 @@ class PlanningApp extends React.Component {
             relatedPlanningsInList: relatedPlanningsInList,
             loadMore: loadMore,
             filter: filter,
+            loadingIndicator: loadingIndicator,
             itemActions: itemActions,
         };
 
@@ -276,6 +278,7 @@ PlanningApp.propTypes = {
     addNewsItemToPlanning: PropTypes.object,
     currentWorkspace: PropTypes.string,
     closeEditor: PropTypes.func,
+    loadingIndicator: PropTypes.bool,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
@@ -320,6 +323,7 @@ const mapStateToProps = (state) => ({
     currentWorkspace: selectors.getCurrentWorkspace(state),
     selectedEventIds: selectors.multiSelect.selectedEventIds(state),
     selectedPlanningIds: selectors.multiSelect.selectedPlanningIds(state),
+    loadingIndicator: selectors.main.loadingIndicator(state)
 });
 
 const mapDispatchToProps = (dispatch, ownProps) => ({

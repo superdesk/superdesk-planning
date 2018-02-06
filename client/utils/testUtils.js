@@ -4,6 +4,9 @@ import {get, map, cloneDeep} from 'lodash';
 import {PRIVILEGES} from '../constants';
 import {ItemActionsMenu} from '../components/index';
 import * as testData from './testData';
+import promiseFinally from 'promise.prototype.finally';
+
+promiseFinally.shim();
 
 export const getTestActionStore = () => {
     let store = {
@@ -133,7 +136,6 @@ export const getTestActionStore = () => {
                     store.services
                 );
             }
-
             return action;
         }),
 
@@ -145,7 +147,7 @@ export const getTestActionStore = () => {
             },
             $timeout: sinon.spy((func) => func()),
             api: sinon.spy((resource) => (store.spies.api[resource])),
-            $location: {search: sinon.spy(() => (Promise.resolve()))},
+            $location: {search: sinon.spy(() => Promise.resolve())},
             desks: {
                 getCurrentDeskId: sinon.spy(() => 'desk1'),
                 active: {desk: 'desk1'},

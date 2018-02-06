@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {ListGroup} from '.';
 import {PanelInfo} from '../UI';
+import {gettext} from '../../utils';
 import './style.scss';
 
 export class ListPanel extends React.Component {
@@ -74,18 +75,19 @@ export class ListPanel extends React.Component {
             selectedEventIds,
             selectedPlanningIds,
             itemActions,
+            loadingIndicator
         } = this.props;
 
-        return groups.length <= 0 ? (
-            <div className="sd-column-box__main-column">
+        return (
+            <div className="sd-column-box__main-column sd-column-box__main-column__listpanel">
+                {loadingIndicator &&
+                <div className="loading-indicator">{gettext('Loading')}</div>}
+                {!loadingIndicator && groups.length <= 0 &&
                 <PanelInfo
                     heading="No Event or Planning items found"
                     description="Create new items or change your search filters"
-                />
-            </div>
-        ) : (
-            <div className="sd-column-box__main-column sd-column-box__main-column__listpanel">
-                {/* div add here so that infinite scroll is not jittery */}
+                />}
+                {groups.length > 0 &&
                 <div className="sd-column-box__main-column__items"
                     onScroll={this.handleScroll}>
                     {groups.map((group) => {
@@ -114,6 +116,7 @@ export class ListPanel extends React.Component {
                         return <ListGroup key={group.date} {...listGroupProps} />;
                     })}
                 </div>
+                }
             </div>
         );
     }
@@ -142,5 +145,6 @@ ListPanel.propTypes = {
     selectedPlanningIds: PropTypes.array,
     itemActions: PropTypes.object,
     filter: PropTypes.func,
+    loadingIndicator: PropTypes.bool
 };
 

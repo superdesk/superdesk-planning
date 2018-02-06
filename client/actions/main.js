@@ -242,9 +242,10 @@ const filter = (ftype = null) => (
  * @return {Object} - returns Promise
  */
 const _filter = (filterType, params = {}) => (
-    (dispatch, getState, {$location}) => {
+    (dispatch, getState, {$location, notify}) => {
         let promise = Promise.resolve();
 
+        dispatch(self.setUnsetLoadingIndicator(true));
         if (filterType === MAIN.FILTERS.EVENTS) {
             dispatch(eventsPlanningUi.clearList());
             dispatch(planningUi.clearList());
@@ -267,28 +268,51 @@ const _filter = (filterType, params = {}) => (
             promise = dispatch(eventsPlanningUi.fetch(params));
         }
 
-        return promise;
+        return promise
+            .then(
+                (results) => Promise.resolve(results),
+                (error) => {
+                    notify.error(gettext('Failed to run the query.'));
+                    return Promise.reject(error);
+                }
+            )
+            .finally(() => {
+                dispatch(self.setUnsetLoadingIndicator(false));
+            });
     }
 );
 
 const loadMore = (filterType) => (
     (dispatch, getState, {notify}) => {
         if (!filterType) {
-            const errMessage = gettext('Cannot load more data.');
+            const errMessage = gettext('Cannot load more data as filter type is not selected.');
 
             notify.error(errMessage);
             return Promise.reject(errMessage);
         }
 
+        let promise = Promise.resolve();
+
+        dispatch(self.setUnsetLoadingIndicator(true));
         if (filterType === MAIN.FILTERS.EVENTS) {
-            return dispatch(eventsUi.loadMore());
+            promise = dispatch(eventsUi.loadMore());
         } else if (filterType === MAIN.FILTERS.PLANNING) {
-            return dispatch(planningUi.loadMore());
+            promise = dispatch(planningUi.loadMore());
         } else if (filterType === MAIN.FILTERS.COMBINED) {
-            return dispatch(eventsPlanningUi.loadMore());
+            promise = dispatch(eventsPlanningUi.loadMore());
         }
 
-        return Promise.resolve();
+        return promise
+            .then(
+                (results) => Promise.resolve(results),
+                (error) => {
+                    notify.error(gettext('Cannot load more data. Failed to run the query.'));
+                    return Promise.reject(error);
+                }
+            )
+            .finally(() => {
+                dispatch(self.setUnsetLoadingIndicator(false));
+            });
     }
 );
 
@@ -318,15 +342,28 @@ const search = (fulltext, currentSearch) => (
             ...advancedSearch
         };
 
+        let promise = Promise.resolve();
+
+        dispatch(self.setUnsetLoadingIndicator(true));
         if (filterType === MAIN.FILTERS.EVENTS) {
-            return dispatch(eventsUi.fetchEvents(params));
+            promise = dispatch(eventsUi.fetchEvents(params));
         } else if (filterType === MAIN.FILTERS.PLANNING) {
-            return dispatch(fetchSelectedAgendaPlannings(params));
+            promise = dispatch(fetchSelectedAgendaPlannings(params));
         } else if (filterType === MAIN.FILTERS.COMBINED) {
-            return dispatch(eventsPlanningUi.fetch(params));
+            promise = dispatch(eventsPlanningUi.fetch(params));
         }
 
-        return Promise.resolve();
+        return promise
+            .then(
+                (results) => Promise.resolve(results),
+                (error) => {
+                    notify.error(gettext('Failed to run the query..'));
+                    return Promise.reject(error);
+                }
+            )
+            .finally(() => {
+                dispatch(self.setUnsetLoadingIndicator(false));
+            });
     }
 );
 
@@ -355,6 +392,12 @@ const setTotal = (filter, total) => ({
     }
 });
 
+
+const setUnsetLoadingIndicator = (value = false) => ({
+    type: MAIN.ACTIONS.SET_UNSET_LOADING_INDICATOR,
+    payload: value
+});
+
 // eslint-disable-next-line consistent-this
 const self = {
     lockAndEdit,
@@ -376,6 +419,7 @@ const self = {
     clearSearch,
     setTotal,
     closePreviewAndEditorForItems,
+    setUnsetLoadingIndicator,
 };
 
 export default self;
