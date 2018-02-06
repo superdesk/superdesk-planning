@@ -97,6 +97,10 @@ Feature: Events Recurring
         """
         And we store "EVENT_ID" with value "#events._id#" to context
         When we reset notifications
+        When we post to "/events/#events._id#/lock" with success
+        """
+        {"lock_action": "edit"}
+        """
         And we patch "/events/#EVENT_ID#"
         """
         {
@@ -185,6 +189,7 @@ Feature: Events Recurring
     @auth
     @notification
     Scenario: Converting an event in use to be a recurring event will reschedule it
+        Given we have sessions "/sessions"
         Given "events"
         """
         [{
@@ -199,7 +204,7 @@ Feature: Events Recurring
             "state": "scheduled",
             "pubstatus": "usable",
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "session123",
+            "lock_session": "#SESSION_ID#",
             "lock_action": "reschedule",
             "lock_time": "#DATE#"
         }]
@@ -302,335 +307,6 @@ Feature: Events Recurring
             {"operation": "create", "event_id": "__any_value__"},
             {"operation": "update", "event_id": "#events._id#"}
         ]}
-        """
-
-    @auth
-    @notification
-    Scenario: Remove recurring rule from an event isolates that event from the series
-        When we post to "events"
-        """
-        [{
-            "name": "Friday Club",
-            "dates": {
-                "start": "2019-11-21T12:00:00.000Z",
-                "end": "2019-11-21T14:00:00.000Z",
-                "tz": "Australia/Sydney",
-                "recurring_rule": {
-                    "frequency": "WEEKLY",
-                    "interval": 1,
-                    "byday": "FR",
-                    "count": 5,
-                    "endRepeatMode": "count"
-                }
-            }
-        }]
-        """
-        Then we get OK response
-        Then we store "EVENT1" with first item
-        Then we store "EVENT2" with 2 item
-        Then we store "EVENT3" with 3 item
-        Then we store "EVENT4" with 4 item
-        Then we store "EVENT5" with 5 item
-        When we get "/events"
-        Then we get list with 5 items
-        """
-        {"_items": [
-          {
-              "dates": {
-                  "start": "2019-11-22T12:00:00+0000",
-                  "end": "2019-11-22T14:00:00+0000"
-              },
-              "name": "Friday Club"
-          }, {
-              "dates": {
-                  "start": "2019-11-29T12:00:00+0000",
-                  "end": "2019-11-29T14:00:00+0000"
-              },
-              "name": "Friday Club"
-          }, {
-              "dates": {
-                  "start": "2019-12-06T12:00:00+0000",
-                  "end": "2019-12-06T14:00:00+0000"
-              },
-              "name": "Friday Club"
-          }, {
-              "dates": {
-                  "start": "2019-12-13T12:00:00+0000",
-                  "end": "2019-12-13T14:00:00+0000"
-              },
-              "name": "Friday Club"
-          }, {
-              "dates": {
-                  "start": "2019-12-20T12:00:00+0000",
-                  "end": "2019-12-20T14:00:00+0000"
-              },
-              "name": "Friday Club"
-          }
-        ]}
-        """
-        When we patch "/events/#EVENT3._id#"
-        """
-        {
-            "name": "Detached Friday Club",
-            "dates": {
-                "start": "#EVENT3.dates.start#",
-                "end": "#EVENT3.dates.end#",
-                "tz": "Australia/Sydney",
-                "recurring_rule": null
-            }
-        }
-        """
-        Then we get OK response
-        When we get "/events/#EVENT3._id#"
-        Then we get existing resource
-        """
-            {
-                "name": "Detached Friday Club",
-                "dates": {
-                    "start": "#EVENT3.dates.start#",
-                    "end": "#EVENT3.dates.end#",
-                    "tz": "Australia/Sydney",
-                    "recurring_rule": null
-                },
-                "recurrence_id": null
-            }
-        """
-
-    @auth
-    @notification
-    Scenario: Remove recurring rule from an event creates new recurrence series for future events
-        When we post to "events"
-        """
-        [{
-            "name": "Friday Club",
-            "dates": {
-                "start": "2019-11-21T12:00:00.000Z",
-                "end": "2019-11-21T14:00:00.000Z",
-                "tz": "Australia/Sydney",
-                "recurring_rule": {
-                    "frequency": "WEEKLY",
-                    "interval": 1,
-                    "byday": "FR",
-                    "count": 5,
-                    "endRepeatMode": "count"
-                }
-            }
-        }]
-        """
-        Then we get OK response
-        Then we store "EVENT1" with first item
-        Then we store "EVENT2" with 2 item
-        Then we store "EVENT3" with 3 item
-        Then we store "EVENT4" with 4 item
-        Then we store "EVENT5" with 5 item
-        When we get "/events"
-        Then we get list with 5 items
-        """
-        {"_items": [
-          {
-              "dates": {
-                  "start": "2019-11-22T12:00:00+0000",
-                  "end": "2019-11-22T14:00:00+0000"
-              },
-              "name": "Friday Club"
-          }, {
-              "dates": {
-                  "start": "2019-11-29T12:00:00+0000",
-                  "end": "2019-11-29T14:00:00+0000"
-              },
-              "name": "Friday Club"
-          }, {
-              "dates": {
-                  "start": "2019-12-06T12:00:00+0000",
-                  "end": "2019-12-06T14:00:00+0000"
-              },
-              "name": "Friday Club"
-          }, {
-              "dates": {
-                  "start": "2019-12-13T12:00:00+0000",
-                  "end": "2019-12-13T14:00:00+0000"
-              },
-              "name": "Friday Club"
-          }, {
-              "dates": {
-                  "start": "2019-12-20T12:00:00+0000",
-                  "end": "2019-12-20T14:00:00+0000"
-              },
-              "name": "Friday Club"
-          }
-        ]}
-        """
-        When we patch "/events/#EVENT3._id#"
-        """
-        {
-            "dates": {
-                "start": "#EVENT3.dates.start#",
-                "end": "#EVENT3.dates.end#",
-                "tz": "Australia/Sydney",
-                "recurring_rule": null
-            }
-        }
-        """
-        Then we get OK response
-        When we get "/events/#EVENT4._id#"
-        Then we get existing resource
-        """
-            {
-                "name": "Friday Club",
-                "dates": {
-                    "start": "#EVENT4.dates.start#",
-                    "end": "#EVENT4.dates.end#",
-                    "tz": "Australia/Sydney",
-                    "recurring_rule": {
-                        "frequency": "WEEKLY",
-                        "interval": 1,
-                        "byday": "FR",
-                        "count": 2,
-                        "endRepeatMode": "count"
-                    }
-                },
-                "recurrence_id": "__any_value__"
-            }
-        """
-        When we get "/events/#EVENT5._id#"
-        Then we get existing resource
-        """
-            {
-                "name": "Friday Club",
-                "dates": {
-                    "start": "#EVENT5.dates.start#",
-                    "end": "#EVENT5.dates.end#",
-                    "tz": "Australia/Sydney",
-                    "recurring_rule": {
-                        "frequency": "WEEKLY",
-                        "interval": 1,
-                        "byday": "FR",
-                        "count": 2,
-                        "endRepeatMode": "count"
-                    }
-                },
-                "recurrence_id": "__any_value__"
-            }
-        """
-
-
-    @auth
-    @notification
-    Scenario: Remove recurring rule from an event ends original series at the last of the past events
-        When we post to "events"
-        """
-        [{
-            "name": "Friday Club",
-            "dates": {
-                "start": "2019-11-21T12:00:00.000Z",
-                "end": "2019-11-21T14:00:00.000Z",
-                "tz": "Australia/Sydney",
-                "recurring_rule": {
-                    "frequency": "WEEKLY",
-                    "interval": 1,
-                    "byday": "FR",
-                    "count": 5,
-                    "endRepeatMode": "count"
-                }
-            }
-        }]
-        """
-        Then we get OK response
-        Then we store "EVENT1" with first item
-        Then we store "EVENT2" with 2 item
-        Then we store "EVENT3" with 3 item
-        Then we store "EVENT4" with 4 item
-        Then we store "EVENT5" with 5 item
-
-        When we get "/events"
-        Then we get a list with 5 items
-        """
-        {"_items": [
-          {
-              "dates": {
-                  "start": "2019-11-22T12:00:00+0000",
-                  "end": "2019-11-22T14:00:00+0000"
-              },
-              "name": "Friday Club"
-          }, {
-              "dates": {
-                  "start": "2019-11-29T12:00:00+0000",
-                  "end": "2019-11-29T14:00:00+0000"
-              },
-              "name": "Friday Club"
-          }, {
-              "dates": {
-                  "start": "2019-12-06T12:00:00+0000",
-                  "end": "2019-12-06T14:00:00+0000"
-              },
-              "name": "Friday Club"
-          }, {
-              "dates": {
-                  "start": "2019-12-13T12:00:00+0000",
-                  "end": "2019-12-13T14:00:00+0000"
-              },
-              "name": "Friday Club"
-          }, {
-              "dates": {
-                  "start": "2019-12-20T12:00:00+0000",
-                  "end": "2019-12-20T14:00:00+0000"
-              },
-              "name": "Friday Club"
-          }
-        ]}
-        """
-
-        When we patch "/events/#EVENT3._id#"
-        """
-        {
-            "dates": {
-                "start": "#EVENT3.dates.start#",
-                "end": "#EVENT3.dates.end#",
-                "tz": "Australia/Sydney",
-                "recurring_rule": null
-            }
-        }
-        """
-        Then we get OK response
-        When we get "/events/#EVENT1._id#"
-        Then we get existing resource
-        """
-            {
-                "name": "Friday Club",
-                "dates": {
-                    "start": "#EVENT1.dates.start#",
-                    "end": "#EVENT1.dates.end#",
-                    "tz": "Australia/Sydney",
-                    "recurring_rule": {
-                        "frequency": "WEEKLY",
-                        "interval": 1,
-                        "byday": "FR",
-                        "count": null,
-                        "endRepeatMode": "until",
-                        "until": "#EVENT2.dates.start#"
-                    }
-                }
-            }
-        """
-        When we get "/events/#EVENT2._id#"
-        Then we get existing resource
-        """
-            {
-                "name": "Friday Club",
-                "dates": {
-                    "start": "#EVENT2.dates.start#",
-                    "end": "#EVENT2.dates.end#",
-                    "tz": "Australia/Sydney",
-                    "recurring_rule": {
-                        "frequency": "WEEKLY",
-                        "interval": 1,
-                        "byday": "FR",
-                        "count": null,
-                        "endRepeatMode": "until",
-                        "until": "#EVENT2.dates.start#"
-                    }
-                }
-            }
         """
 
     @auth
@@ -838,10 +514,9 @@ Feature: Events Recurring
         And we get notifications
         """
         [{
-            "event": "events:updated:recurring",
+            "event": "events:updated",
             "extra": {
                 "item": "#EVENT2._id#",
-                "recurrence_id": "#EVENT1.recurrence_id#",
                 "user": "#CONTEXT_USER_ID#"
             }
         }]

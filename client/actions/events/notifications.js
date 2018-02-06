@@ -185,18 +185,12 @@ const onEventCancelled = (e, data) => (
     }
 );
 
-const onEventRescheduled = (e, data) => (
+const onEventScheduleChanged = (e, data) => (
     (dispatch) => {
         if (get(data, 'item')) {
             dispatch(eventsUi.scheduleRefetch());
             dispatch(eventsPlanning.ui.scheduleRefetch());
-            dispatch(eventsApi.getEvent(data.item, false))
-                .then((event) => (
-                    dispatch({
-                        type: EVENTS.ACTIONS.UNLOCK_EVENT,
-                        payload: {event},
-                    })
-                ));
+            dispatch(eventsApi.getEvent(data.item, false));
         }
     }
 );
@@ -278,7 +272,7 @@ const self = {
     onEventSpiked,
     onEventUnspiked,
     onEventCancelled,
-    onEventRescheduled,
+    onEventScheduleChanged,
     onEventPostponed,
     onEventPublishChanged,
     onRecurringEventSpiked,
@@ -291,11 +285,14 @@ self.events = {
     'events:spiked': () => (self.onEventSpiked),
     'events:unspiked': () => (self.onEventUnspiked),
     'events:cancelled': () => (self.onEventCancelled),
-    'events:rescheduled': () => (self.onEventRescheduled),
+    'events:reschedule': () => (self.onEventScheduleChanged),
+    'events:reschedule:recurring': () => (self.onEventScheduleChanged),
     'events:postponed': () => (self.onEventPostponed),
     'events:published': () => (self.onEventPublishChanged),
     'events:unpublished': () => (self.onEventPublishChanged),
     'events:spiked:recurring': () => (self.onRecurringEventSpiked),
+    'events:update_time': () => (self.onEventScheduleChanged),
+    'events:update_time:recurring': () => (self.onEventScheduleChanged),
 };
 
 export default self;
