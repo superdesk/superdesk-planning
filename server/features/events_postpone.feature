@@ -4,6 +4,7 @@ Feature: Events Postpone
     @notification
     @vocabulary
     Scenario: Changes state to `postponed`
+        Given we have sessions "/sessions"
         Given "events"
         """
         [{
@@ -17,7 +18,9 @@ Feature: Events Postpone
             },
             "state": "draft",
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "session123"
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "postpone",
+            "lock_time": "#DATE#"
         }]
         """
         When we perform postpone on events "event1"
@@ -29,7 +32,7 @@ Feature: Events Postpone
             "extra": {"item": "event1"}
         },
         {
-            "event": "events:postponed",
+            "event": "events:postpone",
             "extra": {"item": "event1","user": "#CONTEXT_USER_ID#"}
         }]
         """
@@ -57,6 +60,7 @@ Feature: Events Postpone
     @notification
     @vocabulary
     Scenario: Postponing an Event also postpones associated Planning items
+        Given we have sessions "/sessions"
         Given "events"
         """
         [{
@@ -68,7 +72,11 @@ Feature: Events Postpone
                 "end": "2029-11-21T14:00:00.000Z",
                 "tz": "Australia/Sydney"
             },
-            "state": "draft"
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "postpone",
+            "lock_time": "#DATE#"
         }]
         """
         Given "planning"
@@ -105,7 +113,7 @@ Feature: Events Postpone
             "extra": {"item": "plan2"}
         },
         {
-            "event": "events:postponed",
+            "event": "events:postpone",
             "extra": {"item": "event1", "user": "#CONTEXT_USER_ID#"}
         },
         {
@@ -213,6 +221,10 @@ Feature: Events Postpone
         }]
         """
         Then we get OK response
+        When we post to "/events/#EVENT3._id#/lock" with success
+        """
+        {"lock_action": "postpone"}
+        """
         When we perform postpone on events "#EVENT3._id#"
         """
         {"update_method": "all"}
@@ -266,6 +278,10 @@ Feature: Events Postpone
         }]
         """
         Then we get OK response
+        When we post to "/events/#EVENT3._id#/lock" with success
+        """
+        {"lock_action": "postpone"}
+        """
         When we perform postpone on events "#EVENT3._id#"
         """
         {"update_method": "future"}
@@ -287,6 +303,7 @@ Feature: Events Postpone
     @notification
     @vocabulary
     Scenario: Postponing an Event sets item notes
+        Given we have sessions "/sessions"
         Given "desks"
         """
         [{"_id": "desk_123", "name": "Politic Desk"}]
@@ -324,7 +341,11 @@ Feature: Events Postpone
                 "qcode": "eocstat:eos5",
                 "name": "Planned, occurs certainly"
             },
-            "state": "draft"
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "postpone",
+            "lock_time": "#DATE#"
         }]
         """
         Given "planning"
@@ -395,4 +416,76 @@ Feature: Events Postpone
                 }
             }
         }]
+        """
+
+    @auth
+    Scenario: Event must be locked to be postponed
+        Given we have sessions "/sessions"
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "_id": "event2",
+            "guid": "event2",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "session123",
+            "lock_action": "postpone",
+            "lock_time": "#DATE#"
+        }, {
+            "_id": "event3",
+            "guid": "event3",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "lock_user": "user123",
+            "lock_session": "session456",
+            "lock_action": "postpone",
+            "lock_time": "#DATE#"
+        }, {
+            "_id": "event4",
+            "guid": "event4",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we perform postpone on events "event1"
+        Then we get error 400
+        """
+        {"_issues": {"validator exception": "403: The event must be locked"}, "_status": "ERR"}
+        """
+        When we perform postpone on events "event2"
+        Then we get error 400
+        """
+        {"_issues": {"validator exception": "403: The event is locked by you in another session"}, "_status": "ERR"}
+        """
+        When we perform postpone on events "event3"
+        Then we get error 400
+        """
+        {"_issues": {"validator exception": "403: The event is locked by another user"}, "_status": "ERR"}
+        """
+        When we perform postpone on events "event4"
+        Then we get error 400
+        """
+        {"_issues": {"validator exception": "403: The lock must be for the `postpone` action"}, "_status": "ERR"}
         """

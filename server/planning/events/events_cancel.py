@@ -9,14 +9,13 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from superdesk import get_resource_service
-from superdesk.services import BaseService
 from superdesk.notification import push_notification
-from planning.item_lock import LOCK_USER, LOCK_SESSION
 from eve.utils import config
 from apps.archive.common import get_user, get_auth
-from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, WORKFLOW_STATE
+from planning.common import UPDATE_FUTURE, WORKFLOW_STATE, remove_lock_information
 from copy import deepcopy
 from .events import EventsResource, events_schema
+from .events_base_service import EventsBaseService
 from flask import current_app as app
 
 event_cancel_schema = deepcopy(events_schema)
@@ -39,56 +38,57 @@ class EventsCancelResource(EventsResource):
     schema = event_cancel_schema
 
 
-class EventsCancelService(BaseService):
-    def update(self, id, updates, original):
-        if 'skip_on_update' in updates:
-            del updates['skip_on_update']
-        else:
-            eocstat_map = get_resource_service('vocabularies').find_one(
-                req=None,
-                _id='eventoccurstatus'
-            )
+class EventsCancelService(EventsBaseService):
+    ACTION = 'cancel'
 
-            occur_cancel_state = [x for x in eocstat_map.get('items', []) if
-                                  x['qcode'] == 'eocstat:eos6'][0]
-            occur_cancel_state.pop('is_active', None)
-
-            if not original.get('dates', {}).get('recurring_rule', None) or \
-                    updates.get('update_method', UPDATE_SINGLE) == UPDATE_SINGLE:
-
-                self._set_event_cancelled(updates, original, occur_cancel_state)
-                self._cancel_event_plannings(updates, original)
-            else:
-                self._cancel_recurring_events(
-                    updates,
-                    original,
-                    occur_cancel_state
-                )
-
-        reason = updates.get('reason', None)
-        if 'reason' in updates:
-            del updates['reason']
-
-        if 'update_method' in updates:
-            del updates['update_method']
-
-        item = self.backend.update(self.datasource, id, updates, original)
-
-        user = get_user(required=True).get(config.ID_FIELD, '')
-        session = get_auth().get(config.ID_FIELD, '')
-
-        push_notification(
-            'events:cancelled',
-            item=str(original[config.ID_FIELD]),
-            user=str(user),
-            session=str(session),
-            reason=reason,
-            occur_status=updates['occur_status']
+    @staticmethod
+    def _get_cancel_state():
+        eocstat_map = get_resource_service('vocabularies').find_one(
+            req=None,
+            _id='eventoccurstatus'
         )
+
+        occur_cancel_state = [x for x in eocstat_map.get('items', []) if
+                              x['qcode'] == 'eocstat:eos6'][0]
+        occur_cancel_state.pop('is_active', None)
+        return occur_cancel_state
+
+    def update_single_event(self, updates, original):
+        occur_cancel_state = self._get_cancel_state()
+        self._set_event_cancelled(updates, original, occur_cancel_state)
+        self._cancel_event_plannings(updates, original)
+
+    def update(self, id, updates, original):
+        reason = updates.pop('reason', None)
+        cancelled_items = updates.pop('_cancelled_events', [])
+        item = super().update(id, updates, original)
+
+        if self.is_original_event(updates, original):
+            user = get_user(required=True).get(config.ID_FIELD, '')
+            session = get_auth().get(config.ID_FIELD, '')
+
+            push_notification(
+                'events:cancel',
+                item=str(original[config.ID_FIELD]),
+                user=str(user),
+                session=str(session),
+                occur_status=updates.get('occur_status'),
+                etag=item.get('_etag'),
+                cancelled_items=cancelled_items,
+                reason=reason or ''
+            )
 
         return item
 
-    def _cancel_event_plannings(self, updates, original):
+    @staticmethod
+    def push_notification(name, updates, original):
+        """
+        Ignore this request, as we want to handle the notification separately in update
+        """
+        pass
+
+    @staticmethod
+    def _cancel_event_plannings(updates, original):
         planning_service = get_resource_service('planning')
         planning_cancel_service = get_resource_service('planning_cancel')
         reason = updates.get('reason', None)
@@ -104,7 +104,8 @@ class EventsCancelService(BaseService):
                 plan
             )
 
-    def _set_event_cancelled(self, updates, original, occur_cancel_state):
+    @staticmethod
+    def _set_event_cancelled(updates, original, occur_cancel_state):
         reason = updates.get('reason', None)
 
         definition = '''------------------------------------------------------------
@@ -116,21 +117,17 @@ Event Cancelled
         if 'definition_long' in original:
             definition = original['definition_long'] + '\n\n' + definition
 
+        remove_lock_information(updates)
         updates.update({
-            LOCK_USER: None,
-            LOCK_SESSION: None,
-            'lock_time': None,
-            'lock_action': None,
             'state': WORKFLOW_STATE.CANCELLED,
             'definition_long': definition,
             'occur_status': occur_cancel_state
         })
 
-    def _cancel_recurring_events(self, updates, original, occur_cancel_state):
-        events_service = get_resource_service('events')
+    def update_recurring_events(self, updates, original, update_method):
+        occur_cancel_state = self._get_cancel_state()
         events_spike_service = get_resource_service('events_spike')
-        update_method = updates.get('update_method', UPDATE_SINGLE)
-        historic, past, future = events_service.get_recurring_timeline(original)
+        historic, past, future = self.get_recurring_timeline(original, True)
 
         # Determine if the selected event is the first one, if so then
         # act as if we're changing future events
@@ -144,19 +141,17 @@ Event Cancelled
 
         self._set_event_cancelled(updates, original, occur_cancel_state)
 
+        notifications = []
+
         for event in cancelled_events:
-            has_plannings = events_service.has_planning_items(event)
-            cloned_updates = deepcopy(updates)
+            new_updates = deepcopy(updates)
 
-            if not has_plannings and 'pubstatus' not in event:
-                if 'reason' in cloned_updates:
-                    del cloned_updates['reason']
-
-                if 'update_method' in cloned_updates:
-                    del cloned_updates['update_method']
+            if not self.is_event_in_use(event):
+                new_updates.pop('reason', None)
+                new_updates.pop('update_method', None)
 
                 # Spike this Event as it is not in use
-                updated_event = events_spike_service.patch(event[config.ID_FIELD], cloned_updates)
+                updated_event = events_spike_service.patch(event[config.ID_FIELD], new_updates)
                 app.on_updated_events_spike(
                     updated_event,
                     event
@@ -164,13 +159,17 @@ Event Cancelled
 
             else:
                 # Cancel this Event as it is in use
-                self._cancel_event_plannings(cloned_updates, event)
-                cloned_updates['skip_on_update'] = True
-
-                self.update(
+                self._cancel_event_plannings(new_updates, event)
+                new_updates['skip_on_update'] = True
+                updated_event = self.patch(
                     event[config.ID_FIELD],
-                    cloned_updates,
-                    event
+                    new_updates
                 )
 
+                notifications.append({
+                    '_id': event.get(config.ID_FIELD),
+                    '_etag': updated_event.get('_etag')
+                })
+
         self._cancel_event_plannings(updates, original)
+        updates['_cancelled_events'] = notifications

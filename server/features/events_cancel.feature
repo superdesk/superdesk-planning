@@ -4,6 +4,7 @@ Feature: Events Cancel
     @notification
     @vocabulary
     Scenario: Changes state to `cancelled`
+        Given we have sessions "/sessions"
         Given "events"
         """
         [{
@@ -17,7 +18,9 @@ Feature: Events Cancel
             },
             "state": "draft",
             "lock_user": "#CONTEXT_USER_ID#",
-            "lock_session": "session123"
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "cancel",
+            "lock_time": "#DATE#"
         }]
         """
         When we perform cancel on events "event1"
@@ -29,8 +32,20 @@ Feature: Events Cancel
             "extra": {"item": "event1"}
         },
         {
-            "event": "events:cancelled",
-            "extra": {"item": "event1","user": "#CONTEXT_USER_ID#"}
+            "event": "events:unlock",
+            "extra": {
+                "item": "event1",
+                "user": "#CONTEXT_USER_ID#",
+                "lock_session": "#SESSION_ID#",
+                "etag": "__any_value__"
+            }
+        }, {
+            "event": "events:cancel",
+            "extra": {
+                "item": "event1",
+                "user": "#CONTEXT_USER_ID#",
+                "reason": ""
+            }
         }]
         """
         When we get "/events"
@@ -40,7 +55,9 @@ Feature: Events Cancel
             "_id": "event1",
             "state": "cancelled",
             "lock_user": null,
-            "lock_session": null
+            "lock_session": null,
+            "lock_action": null,
+            "lock_time": null
         }]}
         """
         When we get "/events_history?where=event_id==%22event1%22"
@@ -56,7 +73,8 @@ Feature: Events Cancel
     @auth
     @notification
     @vocabulary
-    Scenario: Cancelling an Event also cancels associated Planning items
+    Scenario: Provides `reason` in the notification
+        Given we have sessions "/sessions"
         Given "events"
         """
         [{
@@ -68,7 +86,76 @@ Feature: Events Cancel
                 "end": "2029-11-21T14:00:00.000Z",
                 "tz": "Australia/Sydney"
             },
-            "state": "draft"
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "cancel",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we perform cancel on events "event1"
+        """
+        {"reason": "Cancelling the Event"}
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "events:created",
+            "extra": {"item": "event1"}
+        },
+        {
+            "event": "events:unlock",
+            "extra": {
+                "item": "event1",
+                "user": "#CONTEXT_USER_ID#",
+                "lock_session": "#SESSION_ID#",
+                "etag": "__any_value__"
+            }
+        }, {
+            "event": "events:cancel",
+            "extra": {
+                "item": "event1",
+                "user": "#CONTEXT_USER_ID#",
+                "reason": "Cancelling the Event"
+            }
+        }]
+        """
+        When we get "/events"
+        Then we get a list with 1 items
+        """
+        {"_items": [{
+            "_id": "event1",
+            "state": "cancelled",
+            "lock_user": null,
+            "lock_session": null,
+            "lock_action": null,
+            "lock_time": null,
+            "reason": "__no_value__"
+        }]}
+        """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Cancelling an Event also cancels associated Planning items
+        Given we have sessions "/sessions"
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "cancel",
+            "lock_time": "#DATE#"
         }]
         """
         Given "planning"
@@ -105,7 +192,15 @@ Feature: Events Cancel
             "extra": {"item": "plan2"}
         },
         {
-            "event": "events:cancelled",
+            "event": "events:unlock",
+            "extra": {
+                "item": "event1",
+                "user": "#CONTEXT_USER_ID#",
+                "lock_session": "#SESSION_ID#",
+                "etag": "__any_value__"
+            }
+        }, {
+            "event": "events:cancel",
             "extra": {"item": "event1", "user": "#CONTEXT_USER_ID#"}
         },
         {
@@ -122,7 +217,11 @@ Feature: Events Cancel
         """
         {"_items": [{
             "_id": "event1",
-            "state": "cancelled"
+            "state": "cancelled",
+            "lock_user": null,
+            "lock_session": null,
+            "lock_action": null,
+            "lock_time": null
         }]}
         """
         When we get "/planning"
@@ -181,6 +280,7 @@ Feature: Events Cancel
     @notification
     @vocabulary
     Scenario: Cancelling a series of recurring Events
+        Given we have sessions "/sessions"
         When we post to "events"
         """
         [{
@@ -213,9 +313,13 @@ Feature: Events Cancel
         }]
         """
         Then we get OK response
+        When we post to "/events/#EVENT3._id#/lock" with success
+        """
+        {"lock_action": "cancel"}
+        """
         When we perform cancel on events "#EVENT3._id#"
         """
-        {"update_method": "all"}
+        {"update_method": "all", "reason": "blaablaa"}
         """
         Then we get OK response
         When we get "/events"
@@ -231,8 +335,9 @@ Feature: Events Cancel
 
     @auth
     @notification
-    @vocabulary @wip
+    @vocabulary
     Scenario: Cancelling an Event sets states and notes
+        Given we have sessions "/sessions"
         Given "desks"
         """
         [{"_id": "desk_123", "name": "Politic Desk"}]
@@ -270,7 +375,11 @@ Feature: Events Cancel
                 "qcode": "eocstat:eos5",
                 "name": "Planned, occurs certainly"
             },
-            "state": "draft"
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "cancel",
+            "lock_time": "#DATE#"
         }]
         """
         Given "planning"
@@ -313,7 +422,11 @@ Feature: Events Cancel
             "_id": "event1",
             "state": "cancelled",
             "definition_long": "An event with exciting things\n\n------------------------------------------------------------\nEvent Cancelled\nReason: Not happening anymore!\n",
-            "occur_status": {"qcode": "eocstat:eos6"}
+            "occur_status": {"qcode": "eocstat:eos6"},
+            "lock_user": null,
+            "lock_session": null,
+            "lock_action": null,
+            "lock_time": null
         }]}
         """
         When we get "/planning"
@@ -345,3 +458,74 @@ Feature: Events Cancel
         }]
         """
 
+    @auth
+    Scenario: Event must be locked to be cancelled
+        Given we have sessions "/sessions"
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "_id": "event2",
+            "guid": "event2",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "session123",
+            "lock_action": "cancel",
+            "lock_time": "#DATE#"
+        }, {
+            "_id": "event3",
+            "guid": "event3",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "lock_user": "user123",
+            "lock_session": "session456",
+            "lock_action": "cancel",
+            "lock_time": "#DATE#"
+        }, {
+            "_id": "event4",
+            "guid": "event4",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "edit",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we perform cancel on events "event1"
+        Then we get error 400
+        """
+        {"_issues": {"validator exception": "403: The event must be locked"}, "_status": "ERR"}
+        """
+        When we perform cancel on events "event2"
+        Then we get error 400
+        """
+        {"_issues": {"validator exception": "403: The event is locked by you in another session"}, "_status": "ERR"}
+        """
+        When we perform cancel on events "event3"
+        Then we get error 400
+        """
+        {"_issues": {"validator exception": "403: The event is locked by another user"}, "_status": "ERR"}
+        """
+        When we perform cancel on events "event4"
+        Then we get error 400
+        """
+        {"_issues": {"validator exception": "403: The lock must be for the `cancel` action"}, "_status": "ERR"}
+        """

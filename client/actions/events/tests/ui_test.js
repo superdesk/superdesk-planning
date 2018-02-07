@@ -106,7 +106,7 @@ describe('actions.events.ui', () => {
                 expect(eventsUi._openActionModal.args[0]).toEqual([
                     data.events[1],
                     'Cancel',
-                    'cancel_event',
+                    'cancel',
                     true,
                     false,
                 ]);
@@ -122,7 +122,7 @@ describe('actions.events.ui', () => {
                 expect(eventsUi._openActionModal.args[0]).toEqual([
                     data.events[1],
                     'Mark as Postponed',
-                    'postpone_event',
+                    'postpone',
                     true,
                     false,
                 ]);
@@ -173,12 +173,12 @@ describe('actions.events.ui', () => {
             store.test(done, eventsUi._openActionModal(
                 data.events[1],
                 'Cancel Event',
-                'cancel_event',
+                'cancel',
                 true,
                 false
             )).then(() => {
                 expect(eventsApi.lock.callCount).toBe(1);
-                expect(eventsApi.lock.args[0]).toEqual([data.events[1], 'cancel_event']);
+                expect(eventsApi.lock.args[0]).toEqual([data.events[1], 'cancel']);
 
                 expect(eventsApi.loadEventDataForAction.callCount).toBe(1);
                 expect(eventsApi.loadEventDataForAction.args[0]).toEqual([
@@ -208,7 +208,7 @@ describe('actions.events.ui', () => {
             return store.test(done, eventsUi._openActionModal(
                 data.events[1],
                 'Cancel Event',
-                'cancel_event',
+                'cancel',
                 true,
                 false
             )).then(() => { /* no-op */ }, (error) => {
@@ -225,7 +225,7 @@ describe('actions.events.ui', () => {
             return store.test(done, eventsUi._openActionModal(
                 data.events[1],
                 'Cancel Event',
-                'cancel_event',
+                'cancel',
                 true,
                 false
             )).then(() => { /* no-op */ }, (error) => {

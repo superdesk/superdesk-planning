@@ -57,7 +57,7 @@ export const EVENTS = {
             label: gettext('Cancel'),
             icon: 'icon-close-small',
             actionName: 'onCancelEvent',
-            lock_action: 'cancel_event',
+            lock_action: 'cancel',
         },
         UPDATE_TIME: {
             label: gettext('Update time'),
@@ -75,7 +75,7 @@ export const EVENTS = {
             label: gettext('Mark as Postponed'),
             icon: 'icon-calendar-list',
             actionName: 'onPostponeEvent',
-            lock_action: 'postpone_event',
+            lock_action: 'postpone',
         },
         CONVERT_TO_RECURRING: {
             label: gettext('Convert to recurring event'),

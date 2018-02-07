@@ -81,8 +81,8 @@ class EventsUpdateTimeService(EventsBaseService):
                 self.patch(event[config.ID_FIELD], new_updates)
                 app.on_updated_events_update_time(new_updates, {'_id': event[config.ID_FIELD]})
 
-    def _validate(self, updates, original):
-        super()._validate(updates, original)
+    def validate(self, updates, original):
+        super().validate(updates, original)
 
         if not updates.get('dates'):
             raise SuperdeskApiError.badRequestError('No new time was provided')
