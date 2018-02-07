@@ -70,6 +70,7 @@ export const PLANNING = {
             actionName: 'onCancelAllCoverage',
             lock_action: 'cancel_all_coverage',
         },
+        ADD_TO_PLANNING: {lock_action: 'add_to_planning'}
     },
     NEWS_COVERAGE_CANCELLED_STATUS: {
         qcode: 'ncostat:notint',

@@ -34,6 +34,7 @@ export const InputArray = ({
     const Component = element;
 
     const showAddButton = maxCount ? value.length < maxCount : true;
+    const isIndexReadOnly = (index) => (addOnly && index === originalCount) ? false : readOnly;
 
     return row ? (
         <Row noPadding={!!message}>
@@ -45,19 +46,23 @@ export const InputArray = ({
                     noLabel={true}
                 />
             )}
-            {value && value.map((val, index) => (
-                <Component
+            {value && value.map((val, index) => {
+                const indexReadOnly = isIndexReadOnly(index);
+
+                return <Component
                     key={index}
                     field={`${field}[${index}]`}
                     onChange={onChange}
                     value={val}
                     remove={remove.bind(null, index)}
-                    readOnly={readOnly || (addOnly && index < originalCount)}
+                    readOnly={indexReadOnly}
                     message={get(message, `[${index}]`)}
                     invalid={!!get(message, `[${index}]`)}
+                    openComponent={addOnly && !indexReadOnly}
                     {...props}
-                />
-            ))}
+                />;
+            }
+            )}
 
             {!readOnly && showAddButton && (
                 <Button
@@ -76,19 +81,23 @@ export const InputArray = ({
                     noLabel={true}
                 />
             )}
-            {value && value.map((val, index) => (
-                <Component
+            {value && value.map((val, index) => {
+                const indexReadOnly = isIndexReadOnly(index);
+
+                return <Component
                     key={index}
                     field={`${field}[${index}]`}
                     onChange={onChange}
                     value={val}
                     remove={remove.bind(null, index)}
-                    readOnly={readOnly || (addOnly && index < originalCount)}
+                    readOnly={indexReadOnly}
                     message={get(message, `[${index}]`)}
                     invalid={!!get(message, `[${index}]`)}
+                    openComponent={addOnly && !indexReadOnly}
                     {...props}
-                />
-            ))}
+                />;
+            }
+            )}
 
             {!readOnly && showAddButton && (
                 <Button
