@@ -11,23 +11,25 @@ import {
     ASSIGNMENTS,
     ITEM_TYPE,
     GENERIC_ITEM_ACTIONS,
-    PLANNING
+    PLANNING,
+    WORKSPACE,
 } from '../constants/index';
 import * as testData from './testData';
 import {gettext, gettextCatalog} from './gettext';
 import {default as lockUtils} from './locks';
+import {default as planningUtils} from './planning';
 
 
 export {default as checkPermission} from './checkPermission';
 export {default as dispatchUtils} from './dispatch';
 export {default as registerNotifications} from './notifications';
 export {default as eventUtils} from './events';
-export {default as planningUtils} from './planning';
 export {default as uiUtils} from './ui';
 export {default as assignmentUtils} from './assignments';
 export {default as stringUtils} from './strings';
 export {gettext, gettextCatalog};
 export {lockUtils};
+export {planningUtils};
 
 export function createReducer(initialState, reducerMap) {
     return (state = initialState, action) => {
@@ -455,6 +457,10 @@ export const isItemSpiked = (item) => item ?
 
 export const shouldLockItemForEdit = (item, lockedItems) =>
     get(item, '_id') && !lockUtils.getLock(item, lockedItems) && !isItemSpiked(item);
+
+export const shouldUnLockItem = (item, session, currentWorkspace) =>
+    (currentWorkspace === WORKSPACE.AUTHORING && planningUtils.isLockedForAddToPlanning(item)) ||
+    (currentWorkspace !== WORKSPACE.AUTHORING && lockUtils.isItemLockedInThisSession(item, session));
 
 /**
  * Get the timezone offset

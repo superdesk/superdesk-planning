@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import {get} from 'lodash';
 import {getItemInArrayById, gettext} from '../../../utils';
-import {COVERAGES} from '../../../constants';
+import {COVERAGES, WORKSPACE} from '../../../constants';
 
 import {
     TextInput,
@@ -30,6 +30,7 @@ export const CoverageForm = ({
     formProfile,
     errors,
     showErrors,
+    currentWorkspace,
 }) => {
     const onScheduleChanged = (f, v) => {
         if (f.endsWith('.date')) {
@@ -87,6 +88,7 @@ export const CoverageForm = ({
                 defaultValue={null}
                 {...fieldProps}
                 onChange={onContentTypeChange}
+                readOnly={currentWorkspace === WORKSPACE.AUTHORING || readOnly}
             />
 
             <Field
@@ -184,6 +186,7 @@ CoverageForm.propTypes = {
     formProfile: PropTypes.object,
     errors: PropTypes.object,
     showErrors: PropTypes.bool,
+    currentWorkspace: PropTypes.string,
 };
 
 CoverageForm.defaultProps = {

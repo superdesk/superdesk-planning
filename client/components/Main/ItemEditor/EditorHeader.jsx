@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-import {ITEM_TYPE, PRIVILEGES} from '../../../constants';
+import {ITEM_TYPE, PRIVILEGES, WORKSPACE} from '../../../constants';
 import {gettext, getItemType, eventUtils, planningUtils, isItemPublic, lockUtils} from '../../../utils';
 
 import {Button} from '../../UI';
@@ -36,31 +36,36 @@ export const EditorHeader = ({
     const existingItem = !!item;
     const itemType = getItemType(item);
     const isPublic = isItemPublic(item);
-    const isLocked = lockUtils.getLock(item, lockedItems);
+    const itemLock = lockUtils.getLock(item, lockedItems);
+    const inPlanning = currentWorkspace === WORKSPACE.PLANNING;
+
+    const isLockedInContext = !inPlanning ? planningUtils.isLockedForAddToPlanning(item) : !!itemLock;
 
     let canPublish = false;
     let canUnpublish = false;
     let canUpdate = false;
     let canEdit = false;
 
-    if (itemType === ITEM_TYPE.EVENT) {
-        canPublish = eventUtils.canPublishEvent(item, session, privileges, lockedItems);
-        canUnpublish = eventUtils.canUnpublishEvent(item, session, privileges, lockedItems);
-        canUpdate = isLocked && eventUtils.canUpdateEvent(item, session, privileges, lockedItems);
-        canEdit = isLocked && eventUtils.canEditEvent(item, session, privileges, lockedItems);
-    } else if (itemType === ITEM_TYPE.PLANNING) {
-        canPublish = planningUtils.canPublishPlanning(item, null, session, privileges, lockedItems);
-        canUnpublish = planningUtils.canUnpublishPlanning(item, null, session, privileges, lockedItems);
-        canUpdate = isLocked && planningUtils.canUpdatePlanning(item, null, session, privileges, lockedItems);
-        canEdit = isLocked && planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
+    if (isLockedInContext) {
+        if (itemType === ITEM_TYPE.EVENT) {
+            canPublish = eventUtils.canPublishEvent(item, session, privileges, lockedItems);
+            canUnpublish = eventUtils.canUnpublishEvent(item, session, privileges, lockedItems);
+            canUpdate = eventUtils.canUpdateEvent(item, session, privileges, lockedItems);
+            canEdit = eventUtils.canEditEvent(item, session, privileges, lockedItems);
+        } else if (itemType === ITEM_TYPE.PLANNING) {
+            canPublish = planningUtils.canPublishPlanning(item, null, session, privileges, lockedItems);
+            canUnpublish = planningUtils.canUnpublishPlanning(item, null, session, privileges, lockedItems);
+            canUpdate = planningUtils.canUpdatePlanning(item, null, session, privileges, lockedItems);
+            canEdit = planningUtils.canEditPlanning(item, null, session, privileges, lockedItems);
+        }
     }
 
     const lockedUser = lockUtils.getLockedUser(item, lockedItems, users);
-    const isLockRestricted = lockUtils.isLockRestricted(item, session, lockedItems);
+    const isLockRestricted = lockUtils.isLockRestricted(item, session, lockedItems) || !isLockedInContext;
     const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK];
 
     const onCancel = () => (
-        !dirty ? cancel() : openCancelModal({
+        !isLockedInContext || !dirty ? cancel() : openCancelModal({
             title: 'Save changes?',
             body: 'There are some unsaved changes, do you want to save it now?',
             okText: 'Save',
@@ -81,7 +86,7 @@ export const EditorHeader = ({
                     <LockContainer
                         lockedUser={lockedUser}
                         users={users}
-                        showUnlock={unlockPrivilege}
+                        showUnlock={unlockPrivilege && inPlanning}
                         withLoggedInfo={true}
                         onUnlock={onUnlock.bind(null, item)}
                     />
@@ -140,7 +145,7 @@ export const EditorHeader = ({
                     />
                 )}
 
-                {existingItem && !isLocked && canEdit && (
+                {existingItem && !isLockedInContext && canEdit && (
                     <Button
                         color="primary"
                         onClick={onLock.bind(null, item)}
@@ -149,7 +154,7 @@ export const EditorHeader = ({
                 )}
             </StretchBar>
 
-            {isBeingEdited && (
+            {isBeingEdited && inPlanning && (
                 <NavButton onClick={minimize} icon="big-icon--minimize" />
             )}
 

@@ -124,6 +124,7 @@ export function AddToPlanningController(
                         agendas: store.dispatch(actions.fetchAgendas()),
                     })
                         .then(() => {
+                            store.dispatch(actions.main.closeEditor());
                             ReactDOM.render(
                                 <Provider store={store}>
                                     <ModalsContainer/>

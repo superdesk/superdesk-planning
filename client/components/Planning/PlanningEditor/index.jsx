@@ -20,11 +20,8 @@ import {ToggleBox} from '../../UI';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
 import {CoverageArrayInput} from '../../Coverages';
 import {EventMetadata} from '../../Events';
-import {ITEM_TYPE} from '../../../constants';
+import {ITEM_TYPE, PLANNING} from '../../../constants';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
-
-
-import {PLANNING} from '../../../constants';
 
 const toggleDetails = [
     'ednote',
@@ -44,7 +41,7 @@ export class PlanningEditorComponent extends React.Component {
     }
 
     componentWillMount() {
-        if (!this.props.addNewsItemToPlanning) {
+        if (!this.props.addNewsItemToPlanning || !planningUtils.isLockedForAddToPlanning(this.props.item)) {
             return;
         }
 
@@ -53,7 +50,7 @@ export class PlanningEditorComponent extends React.Component {
             const newPlanning = this.createNewPlanningFromNewsItem();
 
             this.props.onChangeHandler(null, newPlanning);
-        } else if (get(this.props, 'item._addNewCoverage')) {
+        } else {
             let dupItem = cloneDeep(this.props.item);
 
             dupItem.coverages.push(planningUtils.createCoverageFromNewsItem(
@@ -62,8 +59,6 @@ export class PlanningEditorComponent extends React.Component {
                 this.props.desk,
                 this.props.user,
                 this.props.contentTypes));
-
-            delete dupItem._addedNewCoverage;
 
             // reset the object to trigger a save
             this.props.onChangeHandler(null, dupItem);

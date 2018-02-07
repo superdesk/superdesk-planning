@@ -78,7 +78,7 @@ export class PlanningItem extends React.PureComponent {
             planningUtils.getPlanningActions(item, event, session, privileges, lockedItems, itemActionsCallBack) :
             [];
 
-        const showAddCoverage = currentWorkspace === WORKSPACE.AUTHORING;
+        const showAddCoverage = currentWorkspace === WORKSPACE.AUTHORING && !isItemLocked;
 
         return (
             <Item shadow={1} activated={multiSelected} onClick={() => onItemClick(item)}>
