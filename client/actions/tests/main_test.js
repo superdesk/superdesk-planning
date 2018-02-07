@@ -60,8 +60,7 @@ describe('actions.main', () => {
                         type: 'MAIN_FILTER',
                         payload: 'COMBINED'
                     }]);
-
-                    expect(store.dispatch.callCount).toBe(5);
+                    expect(store.dispatch.callCount).toBe(7);
                     expect(services.$timeout.callCount).toBe(1);
                     expect(services.$location.search.callCount).toBe(3);
                     expect(services.$location.search.args).toEqual(
@@ -83,7 +82,7 @@ describe('actions.main', () => {
                         payload: 'EVENTS'
                     }]);
 
-                    expect(store.dispatch.callCount).toBe(5);
+                    expect(store.dispatch.callCount).toBe(7);
                     expect(services.$timeout.callCount).toBe(1);
                     expect(services.$location.search.callCount).toBe(3);
                     expect(services.$location.search.args).toEqual(
@@ -106,6 +105,7 @@ describe('actions.main', () => {
                         payload: 'PLANNING'
                     }]);
 
+                    expect(store.dispatch.callCount).toBe(15);
                     expect(services.$location.search.args).toEqual(
                         [[], [], ['filter', 'PLANNING'], [], ['searchParams', '{}']]
                     );

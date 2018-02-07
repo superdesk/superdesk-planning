@@ -40,6 +40,7 @@ export const combinedSearch = (state) => get(state, 'main.search.COMBINED.curren
 export const eventsTotalItems = (state) => get(state, 'main.search.EVENTS.totalItems', 0);
 export const planningTotalItems = (state) => get(state, 'main.search.PLANNING.totalItems', 0);
 export const combinedTotalItems = (state) => get(state, 'main.search.COMBINED.totalItems', 0);
+export const loadingIndicator = (state) => get(state, 'main.loadingIndicator', false);
 
 export const lastRequestParams = createSelector(
     [activeFilter, searchParams],

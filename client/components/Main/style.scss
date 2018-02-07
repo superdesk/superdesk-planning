@@ -15,4 +15,7 @@
         width: 100%;
         height: calc(100vh - (#{$nav-height} + #{$subnav-height} * 2 + 30px));
     }
+    .loading-indicator{
+        top: calc(#{$nav-height} + #{$subnav-height});
+    }
 }

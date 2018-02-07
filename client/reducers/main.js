@@ -15,7 +15,8 @@ const initialState = {
         [MAIN.FILTERS.EVENTS]: cloneDeep(search),
         [MAIN.FILTERS.PLANNING]: cloneDeep(search),
         [MAIN.FILTERS.COMBINED]: cloneDeep(search)
-    }
+    },
+    loadingIndicator: false
 };
 
 const modifyParams = (state, action) => {
@@ -80,6 +81,11 @@ export default function(state = initialState, action) {
                 ...state.search,
                 [action.payload]: cloneDeep(search)
             }
+        };
+    case MAIN.ACTIONS.SET_UNSET_LOADING_INDICATOR:
+        return {
+            ...state,
+            loadingIndicator: action.payload
         };
     default:
         return state;
