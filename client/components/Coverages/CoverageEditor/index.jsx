@@ -74,7 +74,7 @@ export const CoverageEditor = ({
             itemActions.push({
                 label: gettext('Remove coverage'),
                 icon: 'icon-trash',
-                callback: onCancelCoverage.bind(null, value, true),
+                callback: remove,
             });
         }
     }
