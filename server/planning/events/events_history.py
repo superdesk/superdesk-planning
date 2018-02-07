@@ -47,4 +47,6 @@ class EventsHistoryService(HistoryService):
                 history['operation'] = 'publish'
             elif 'canceled' == update.get('state', ''):
                 history['operation'] = 'unpublish'
+        elif operation == 'create' and 'ingested' == update.get('state', ''):
+                history['operation'] = 'ingested'
         self.post([history])

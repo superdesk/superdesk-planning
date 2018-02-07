@@ -147,6 +147,11 @@ class EventsService(superdesk.Service):
                 generated_events.extend(generate_recurring_events(event))
                 # remove the event that contains the recurring rule. We don't need it anymore
                 docs.remove(event)
+
+            if event['state'] == 'ingested':
+                events_history = get_resource_service('events_history')
+                events_history.on_item_created([event])
+
         if generated_events:
             docs.extend(generated_events)
 
