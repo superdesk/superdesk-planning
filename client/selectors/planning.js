@@ -5,6 +5,7 @@ import {session} from './general';
 import {planningUtils} from '../utils';
 import {AGENDA, SPIKED_STATE} from '../constants';
 
+
 const storedEvents = (state) => get(state, 'events.events', {});
 
 export const storedPlannings = (state) => get(state, 'planning.plannings', {});
@@ -12,7 +13,8 @@ export const planIdsInList = (state) => get(state, 'planning.planningsInList', [
 export const agendas = (state) => get(state, 'agenda.agendas', []);
 export const currentAgendaId = (state) => get(state, 'agenda.currentAgendaId', null);
 export const currentPlanningId = (state) => get(state, 'planning.currentPlanningId');
-export const currentSearch = (state) => get(state, 'main.PLANNING.currentSearch');
+export const currentSearch = (state) => get(state, 'main.search.PLANNING.currentSearch');
+const fullText = (state) => get(state, 'main.search.PLANNING.fulltext', '');
 
 
 export const currentPlanning = createSelector(
@@ -47,8 +49,8 @@ export const orderedPlanningList = createSelector(
 );
 
 export const getPlanningFilterParams = createSelector(
-    [currentAgendaId, currentSearch],
-    (agendaId, currentSearch) => {
+    [currentAgendaId, currentSearch, fullText],
+    (agendaId, currentSearch, fullText) => {
         let agendas = null;
 
         if (agendaId && agendaId !== AGENDA.FILTER.NO_AGENDA_ASSIGNED &&
@@ -61,6 +63,7 @@ export const getPlanningFilterParams = createSelector(
             agendas: agendas,
             advancedSearch: get(currentSearch, 'advancedSearch', {}),
             spikeState: get(currentSearch, 'spikeState', SPIKED_STATE.NOT_SPIKED),
+            fulltext: fullText,
             page: 1
         };
 

@@ -355,6 +355,7 @@ describe('actions.main', () => {
                         agendas: null,
                         advancedSearch: {},
                         spikeState: 'draft',
+                        fulltext: '',
                         page: 1}]);
                     done();
                 });

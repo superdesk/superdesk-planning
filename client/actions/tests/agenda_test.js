@@ -326,8 +326,9 @@ describe('agenda', () => {
                 restoreSinonStub(planningUi.fetchToList);
             });
 
-            it('calls `planning.ui.fetchToList`', (done) => (
-                store.test(done, actions.selectAgenda('a1'))
+            it('calls `planning.ui.fetchToList`', (done) => {
+                store.initialState.main.search.PLANNING.fulltext = 'hello world';
+                return store.test(done, actions.selectAgenda('a1'))
                     .then(() => {
                         expect(store.dispatch.args[0]).toEqual([{
                             type: 'SELECT_AGENDA',
@@ -347,13 +348,14 @@ describe('agenda', () => {
                                 agendas: ['a1'],
                                 page: 1,
                                 advancedSearch: {},
-                                spikeState: 'draft'
+                                spikeState: 'draft',
+                                fulltext: 'hello world'
                             },
                         ]);
 
                         done();
-                    })
-            ));
+                    });
+            });
         });
 
         describe('addEventToCurrentAgenda', () => {
@@ -490,6 +492,7 @@ describe('agenda', () => {
             });
 
             it('fetches planning items for the agenda', (done) => {
+                store.initialState.main.search.PLANNING.fulltext = 'hello world';
                 store.test(done, actions.fetchSelectedAgendaPlannings())
                     .then(() => {
                         expect(planningUi.clearList.callCount).toBe(0);
@@ -499,7 +502,8 @@ describe('agenda', () => {
                             agendas: ['a1'],
                             page: 1,
                             advancedSearch: {},
-                            spikeState: 'draft'
+                            spikeState: 'draft',
+                            fulltext: 'hello world'
                         }]);
                         done();
                     });
@@ -516,7 +520,8 @@ describe('agenda', () => {
                             agendas: null,
                             page: 1,
                             advancedSearch: {},
-                            spikeState: 'draft'
+                            spikeState: 'draft',
+                            fulltext: ''
                         }]);
                         done();
                     });
