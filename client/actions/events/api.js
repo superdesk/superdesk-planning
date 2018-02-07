@@ -673,12 +673,14 @@ const updateEventTime = (event) => (
     )
 );
 
-const markEventCancelled = (event, reason, occurStatus) => ({
+const markEventCancelled = (eventId, etag, reason, occurStatus, cancelledItems) => ({
     type: EVENTS.ACTIONS.MARK_EVENT_CANCELLED,
     payload: {
-        event: event,
+        event_id: eventId,
+        etag: etag,
         reason: reason,
         occur_status: occurStatus,
+        cancelled_items: cancelledItems,
     },
 });
 

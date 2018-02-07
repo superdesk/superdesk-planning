@@ -297,39 +297,6 @@ describe('lock reducers', () => {
         });
     });
 
-    it('MARK_EVENT_CANCELLED', () => {
-        // Event item with direct Event lock
-        let result = locks(
-            getInitialLocks(),
-            {
-                type: 'MARK_EVENT_CANCELLED',
-                payload: {event: lockTypes.events.event},
-            }
-        );
-
-        expect(result).toEqual({
-            events: {e3: lockItems.events.e3},
-            planning: lockItems.planning,
-            recurring: lockItems.recurring,
-            assignments: lockItems.assignments,
-        });
-
-        // Event item with series of Recurring Events lock
-        result = locks(
-            getInitialLocks(),
-            {
-                type: 'MARK_EVENT_CANCELLED',
-                payload: {event: lockTypes.events.recurring},
-            }
-        );
-        expect(result).toEqual({
-            events: lockItems.events,
-            planning: lockItems.planning,
-            recurring: {r2: lockItems.recurring.r2},
-            assignments: lockItems.assignments,
-        });
-    });
-
     it('MARK_EVENT_POSTPONED', () => {
         // Event item with direct Event lock
         let result = locks(

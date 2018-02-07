@@ -9,14 +9,13 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from superdesk import get_resource_service
-from superdesk.services import BaseService
 from superdesk.notification import push_notification
-from planning.item_lock import LOCK_USER, LOCK_SESSION
 from eve.utils import config
 from apps.archive.common import get_user, get_auth
-from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, WORKFLOW_STATE
+from planning.common import UPDATE_FUTURE, WORKFLOW_STATE, remove_lock_information
 from copy import deepcopy
 from .events import EventsResource, events_schema
+from .events_base_service import EventsBaseService
 from flask import current_app as app
 
 event_postpone_schema = deepcopy(events_schema)
@@ -39,45 +38,43 @@ class EventsPostponeResource(EventsResource):
     schema = event_postpone_schema
 
 
-class EventsPostponeService(BaseService):
+class EventsPostponeService(EventsBaseService):
+    ACTION = 'postpone'
+
+    def update_single_event(self, updates, original):
+        self._set_event_postponed(updates, original)
+        self._postpone_event_plannings(updates, original)
+
     def update(self, id, updates, original):
-        if 'skip_on_update' in updates:
-            del updates['skip_on_update']
-        else:
-            if not original.get('dates', {}).get('recurring_rule', None) or \
-                    updates.get('update_method', UPDATE_SINGLE) == UPDATE_SINGLE:
+        reason = updates.pop('reason', None)
+        item = super().update(id, updates, original)
 
-                self._set_event_postponed(updates, original)
-                self._postpone_event_plannings(updates, original)
-            else:
-                self._postpone_recurring_events(
-                    updates,
-                    original
-                )
+        # Because we require the original item being actioned against to be locked
+        # then we can check the lock information of original and updates to check if this
+        # event was the original event.
+        if self.is_original_event(updates, original):
+            user = get_user(required=True).get(config.ID_FIELD, '')
+            session = get_auth().get(config.ID_FIELD, '')
 
-        reason = updates.get('reason', None)
-        if 'reason' in updates:
-            del updates['reason']
-
-        if 'update_method' in updates:
-            del updates['update_method']
-
-        item = self.backend.update(self.datasource, id, updates, original)
-
-        user = get_user(required=True).get(config.ID_FIELD, '')
-        session = get_auth().get(config.ID_FIELD, '')
-
-        push_notification(
-            'events:postponed',
-            item=str(original[config.ID_FIELD]),
-            user=str(user),
-            session=str(session),
-            reason=reason
-        )
+            push_notification(
+                'events:postpone',
+                item=str(original[config.ID_FIELD]),
+                user=str(user),
+                session=str(session),
+                reason=reason
+            )
 
         return item
 
-    def _postpone_event_plannings(self, updates, original):
+    @staticmethod
+    def push_notification(name, updates, original):
+        """
+        Ignore this request, as we want to handle the notification separately in update
+        """
+        pass
+
+    @staticmethod
+    def _postpone_event_plannings(updates, original):
         planning_service = get_resource_service('planning')
         planning_postpone_service = get_resource_service('planning_postpone')
         reason = updates.get('reason', None)
@@ -93,7 +90,8 @@ class EventsPostponeService(BaseService):
                 plan
             )
 
-    def _set_event_postponed(self, updates, original):
+    @staticmethod
+    def _set_event_postponed(updates, original):
         reason = updates.get('reason', None)
 
         definition = '''------------------------------------------------------------
@@ -105,18 +103,15 @@ Event Postponed
         if 'definition_long' in original:
             definition = original['definition_long'] + '\n\n' + definition
 
+        remove_lock_information(updates)
+
         updates.update({
-            LOCK_USER: None,
-            LOCK_SESSION: None,
-            'lock_time': None,
-            'lock_action': None,
             'state': WORKFLOW_STATE.POSTPONED,
             'definition_long': definition
         })
 
-    def _postpone_recurring_events(self, updates, original):
-        update_method = updates.get('update_method', UPDATE_SINGLE)
-        historic, past, future = get_resource_service('events').get_recurring_timeline(original)
+    def update_recurring_events(self, updates, original, update_method):
+        historic, past, future = self.get_recurring_timeline(original)
 
         # Determine if the selected event is the first one, if so then
         # act as if we're changing future events
@@ -131,16 +126,14 @@ Event Postponed
         self._set_event_postponed(updates, original)
 
         for event in postponed_events:
-            cloned_updates = deepcopy(updates)
+            new_updates = deepcopy(updates)
 
             # Mark the Event as being Postponed
-            self._postpone_event_plannings(cloned_updates, event)
-            cloned_updates['skip_on_update'] = True
-
-            self.update(
+            self._postpone_event_plannings(new_updates, event)
+            new_updates['skip_on_update'] = True
+            self.patch(
                 event[config.ID_FIELD],
-                cloned_updates,
-                event
+                new_updates
             )
 
         self._postpone_event_plannings(updates, original)

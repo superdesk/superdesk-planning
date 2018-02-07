@@ -10,16 +10,17 @@
 
 from superdesk.errors import SuperdeskApiError
 from superdesk.services import BaseService
+from superdesk import get_resource_service
 from superdesk.notification import push_notification
 from superdesk.utc import utcnow
 from apps.auth import get_user_id
 from apps.archive.common import get_auth
 
-from planning.common import UPDATE_SINGLE
+from planning.common import UPDATE_SINGLE, WORKFLOW_STATE
 from planning.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
 
-from eve.utils import config, ParsedRequest
-from flask import json
+from eve.utils import config
+from datetime import datetime
 
 
 class EventsBaseService(BaseService):
@@ -51,7 +52,7 @@ class EventsBaseService(BaseService):
 
         # We only validate the original event,
         # not the events that are automatically updated by the system
-        self._validate(updates, original)
+        self.validate(updates, original)
 
         # Run the specific method based on if the original is a single or a series of recurring events
         # Or if the 'update_method' is 'UPDATE_SINGLE'
@@ -73,6 +74,7 @@ class EventsBaseService(BaseService):
         if '_deleted' in updates:
             return
 
+        updates.pop('update_method', None)
         updates.pop('skip_on_update', None)
         return self.backend.update(self.datasource, id, updates, original)
 
@@ -80,7 +82,7 @@ class EventsBaseService(BaseService):
         # Because we require the original item being actioned against to be locked
         # then we can check the lock information of original and updates to check if this
         # event was the original event.
-        if original.get('lock_user') and 'lock_user' in updates and updates.get('lock_user') is None:
+        if self.is_original_event(updates, original):
             # when the event is unlocked by the patch.
             push_notification(
                 'events:unlock',
@@ -102,7 +104,7 @@ class EventsBaseService(BaseService):
     def update_recurring_events(self, updates, original, update_method):
         raise NotImplementedError('BaseService._update_recurring_events not implemented')
 
-    def _validate(self, updates, original):
+    def validate(self, updates, original):
         """
         Generic validation for event actions
 
@@ -157,7 +159,7 @@ class EventsBaseService(BaseService):
             **data
         )
 
-    def get_recurring_timeline(self, selected):
+    def get_recurring_timeline(self, selected, include_postponed=False):
         """Utility method to get all events in the series
 
         This splits up the series of events into 3 separate arrays.
@@ -171,16 +173,35 @@ class EventsBaseService(BaseService):
 
         selected_start = selected.get('dates', {}).get('start', utcnow())
 
-        req = ParsedRequest()
-        req.sort = '[("dates.start", 1)]'
-        req.where = json.dumps({
-            '$and': [
-                {'recurrence_id': selected['recurrence_id']},
-                {'_id': {'$ne': selected[config.ID_FIELD]}}
-            ]
-        })
+        query = {
+            'query': {
+                'bool': {
+                    'must': [
+                        {'term': {'recurrence_id': selected['recurrence_id']}}
+                    ],
+                    'must_not': [
+                        {'term': {'_id': selected[config.ID_FIELD]}},
+                        {'terms': {
+                            'state': [
+                                WORKFLOW_STATE.SPIKED,
+                                WORKFLOW_STATE.RESCHEDULED,
+                                WORKFLOW_STATE.CANCELLED
+                            ] if include_postponed else [
+                                WORKFLOW_STATE.SPIKED,
+                                WORKFLOW_STATE.RESCHEDULED,
+                                WORKFLOW_STATE.CANCELLED,
+                                WORKFLOW_STATE.POSTPONED
+                            ]
+                        }}
+                    ]
+                }
+            },
+            'sort': [{'dates.start': 'asc'}]
+        }
 
-        for event in list(self.get_from_mongo(req, {})):
+        for event in list(self.search(query)):
+            event['dates']['end'] = datetime.strptime(event['dates']['end'], '%Y-%m-%dT%H:%M:%S%z')
+            event['dates']['start'] = datetime.strptime(event['dates']['start'], '%Y-%m-%dT%H:%M:%S%z')
             end = event['dates']['end']
             start = event['dates']['start']
             if end < utcnow():
@@ -191,3 +212,21 @@ class EventsBaseService(BaseService):
                 future.append(event)
 
         return historic, past, future
+
+    @staticmethod
+    def get_plannings_for_event(event):
+        return get_resource_service('planning').find(where={
+            'event_item': event[config.ID_FIELD]
+        })
+
+    @staticmethod
+    def has_planning_items(doc):
+        return EventsBaseService.get_plannings_for_event(doc).count() > 0
+
+    @staticmethod
+    def is_event_in_use(event):
+        return EventsBaseService.has_planning_items(event) or 'pubstatus' in event
+
+    @staticmethod
+    def is_original_event(updates, original):
+        return original.get('lock_user') and 'lock_user' in updates and updates.get('lock_user') is None

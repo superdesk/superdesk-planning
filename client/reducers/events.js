@@ -199,28 +199,30 @@ const eventsReducer = createReducer(initialState, {
 
     [EVENTS.ACTIONS.MARK_EVENT_CANCELLED]: (state, payload) => {
         // If the event is not loaded, disregard this action
-        if (!(payload.event._id in state.events)) return state;
+        if (!(payload.event_id in state.events) && get(payload, 'cancelled_items.length', 0) < 1)
+            return state;
 
         let events = cloneDeep(state.events);
-        let event = events[payload.event._id];
 
-        let definition = `------------------------------------------------------------
-Event Cancelled
-`;
+        // First mark the original Event as cancelled
+        markEventCancelled(
+            events,
+            payload.event_id,
+            payload.etag,
+            payload.reason,
+            payload.occur_status
+        );
 
-        if (get(payload, 'reason', null) !== null) {
-            definition += `Reason: ${payload.reason}\n`;
-        }
-
-        if (get(event, 'definition_long', null) !== null) {
-            definition = `${event.definition_long}\n\n${definition}`;
-        }
-
-        event.definition_long = definition;
-        event.state = WORKFLOW_STATE.CANCELLED;
-        event.occur_status = payload.occur_status;
-
-        removeLock(event);
+        // Now mark all associated Events that are also cancelled
+        (get(payload, 'cancelled_items') || []).forEach(
+            (event) => markEventCancelled(
+                events,
+                event._id,
+                event._etag,
+                payload.reason,
+                payload.occur_status
+            )
+        );
 
         return {
             ...state,
@@ -381,6 +383,29 @@ const onEventPublishChanged = (state, payload) => {
         ...state,
         events,
     };
+};
+
+const markEventCancelled = (events, eventId, etag, reason, occurStatus) => {
+    if (!(eventId in events)) return;
+
+    let updatedEvent = events[eventId];
+
+    let definition = `------------------------------------------------------------
+Event Cancelled
+`;
+
+    if (reason !== null) {
+        definition += `Reason: ${reason}\n`;
+    }
+
+    if (get(updatedEvent, 'definition_long', null) !== null) {
+        definition = `${updatedEvent.definition_long}\n\n${definition}`;
+    }
+
+    updatedEvent.definition_long = definition;
+    updatedEvent.state = WORKFLOW_STATE.CANCELLED;
+    updatedEvent.occur_status = occurStatus;
+    updatedEvent._etag = etag;
 };
 
 export default eventsReducer;

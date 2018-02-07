@@ -94,10 +94,6 @@ export default createReducer(initialLockState, {
         return locks;
     },
 
-    [EVENTS.ACTIONS.MARK_EVENT_CANCELLED]: (state, payload) => (
-        removeLock(payload.event, cloneDeep(state), 'events')
-    ),
-
     [EVENTS.ACTIONS.MARK_EVENT_POSTPONED]: (state, payload) => (
         removeLock(payload.event, cloneDeep(state), 'events')
     ),

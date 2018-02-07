@@ -173,17 +173,15 @@ const onEventUnspiked = (_e, data) => (
 );
 
 const onEventCancelled = (e, data) => (
-    (dispatch, getState) => {
+    (dispatch) => {
         if (get(data, 'item')) {
-            let events = selectors.getEvents(getState());
-
-            if (data.item in events) {
-                dispatch(eventsApi.markEventCancelled(
-                    events[data.item],
-                    data.reason,
-                    data.occur_status
-                ));
-            }
+            dispatch(eventsApi.markEventCancelled(
+                data.item,
+                data.etag,
+                data.reason,
+                data.occur_status,
+                get(data, 'cancelled_items') || []
+            ));
         }
     }
 );
@@ -288,10 +286,10 @@ self.events = {
     'events:unlock': () => (self.onEventUnlocked),
     'events:spiked': () => (self.onEventSpiked),
     'events:unspiked': () => (self.onEventUnspiked),
-    'events:cancelled': () => (self.onEventCancelled),
+    'events:cancel': () => (self.onEventCancelled),
     'events:reschedule': () => (self.onEventScheduleChanged),
     'events:reschedule:recurring': () => (self.onEventScheduleChanged),
-    'events:postponed': () => (self.onEventPostponed),
+    'events:postpone': () => (self.onEventPostponed),
     'events:published': () => (self.onEventPublishChanged),
     'events:unpublished': () => (self.onEventPublishChanged),
     'events:spiked:recurring': () => (self.onRecurringEventSpiked),

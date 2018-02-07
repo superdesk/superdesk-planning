@@ -919,7 +919,7 @@ Feature: Events Reschedule
         """
         When we post to "/events/#EVENT1._id#/lock" with success
         """
-        {"lock_action": "postpone_event"}
+        {"lock_action": "postpone"}
         """
         When we perform postpone on events "#EVENT1._id#"
         """
