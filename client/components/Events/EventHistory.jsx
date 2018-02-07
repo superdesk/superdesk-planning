@@ -44,7 +44,7 @@ export class EventHistoryComponent extends React.Component {
                                 includes(['create', 'update', 'spiked', 'unspiked',
                                     'planning created', 'duplicate', 'duplicate_from',
                                     'publish', 'unpublish', 'cancel', 'reschedule',
-                                    'reschedule_from', 'postpone'], historyItem.operation)
+                                    'reschedule_from', 'postpone', 'ingested'], historyItem.operation)
                                 &&
                                 <div>
                                     <strong>
@@ -62,6 +62,7 @@ export class EventHistoryComponent extends React.Component {
                                         {historyItem.operation === 'reschedule' && gettext('Rescheduled by ')}
                                         {historyItem.operation === 'reschedule_from' && gettext('Rescheduled by ')}
                                         {historyItem.operation === 'postpone' && gettext('Postponed by ')}
+                                        {historyItem.operation === 'ingested' && gettext('Ingested ')}
                                     </strong>
 
                                     <span className="user-name">{displayUser(historyItem.user_id)}</span>

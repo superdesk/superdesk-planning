@@ -43,7 +43,7 @@ class NTBEventXMLFeedParser(XMLFeedParser):
                 guid = xml.find('guid').text
 
             item = {
-                ITEM_TYPE: CONTENT_TYPE.TEXT,
+                ITEM_TYPE: CONTENT_TYPE.EVENT,
                 GUID_FIELD: guid,
                 FORMAT: FORMATS.PRESERVED
             }
@@ -53,8 +53,7 @@ class NTBEventXMLFeedParser(XMLFeedParser):
             item['dates'] = {
                 'start': xml.find('timeStart').text,
                 'end': xml.find('timeEnd').text,
-                'tz': '',
-                'recurring_rule': {}
+                'tz': ''
             }
             # add location
             item['location'] = [{

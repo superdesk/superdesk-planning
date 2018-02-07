@@ -47,7 +47,7 @@ class IcsTwoFeedParser(FileFeedParser):
             for component in cal.walk():
                 if component.name == "VEVENT":
                     item = {
-                        ITEM_TYPE: CONTENT_TYPE.TEXT,
+                        ITEM_TYPE: CONTENT_TYPE.EVENT,
                         GUID_FIELD: generate_guid(type=GUID_NEWSML),
                         FORMAT: FORMATS.PRESERVED
                     }
@@ -81,29 +81,31 @@ class IcsTwoFeedParser(FileFeedParser):
                     item['dates'] = {
                         'start': dates_start,
                         'end': dates_end,
-                        'tz': '',
-                        'recurring_rule': {}
+                        'tz': ''
                     }
                     # parse ics RRULE to fit eventsML recurring_rule
                     r_rule = component.get('rrule')
                     if isinstance(r_rule, vRecur):
                         r_rule_dict = vRecur.from_ical(r_rule)
                         if 'FREQ' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['frequency'] = ''.join(r_rule_dict.get('FREQ'))
+                            item['dates'].setdefault('recurring_rule', {})['frequency'] = ''.join(
+                                r_rule_dict.get('FREQ'))
                         if 'INTERVAL' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['interval'] = r_rule_dict.get('INTERVAL')[0]
+                            item['dates'].setdefault('recurring_rule', {})['interval'] = r_rule_dict.get('INTERVAL')[0]
                         if 'UNTIL' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['until'] = r_rule_dict.get('UNTIL')[0]
+                            item['dates'].setdefault('recurring_rule', {})['until'] = r_rule_dict.get('UNTIL')[0]
                         if 'COUNT' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['count'] = r_rule_dict.get('COUNT')
+                            item['dates'].setdefault('recurring_rule', {})['count'] = r_rule_dict.get('COUNT')
                         if 'BYMONTH' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['bymonth'] = ' '.join(r_rule_dict.get('BYMONTH'))
+                            item['dates'].setdefault('recurring_rule', {})['bymonth'] = ' '.join(
+                                r_rule_dict.get('BYMONTH'))
                         if 'BYDAY' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['byday'] = ' '.join(r_rule_dict.get('BYDAY'))
+                            item['dates'].setdefault('recurring_rule', {})['byday'] = ' '.join(r_rule_dict.get('BYDAY'))
                         if 'BYHOUR' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['byhour'] = ' '.join(r_rule_dict.get('BYHOUR'))
+                            item['dates'].setdefault('recurring_rule', {})['byhour'] = ' '.join(
+                                r_rule_dict.get('BYHOUR'))
                         if 'BYMIN' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['bymin'] = ' '.join(r_rule_dict.get('BYMIN'))
+                            item['dates'].setdefault('recurring_rule', {})['bymin'] = ' '.join(r_rule_dict.get('BYMIN'))
 
                     # set timezone info if date is a datetime
                     if isinstance(component.get('dtstart').dt, datetime.datetime):

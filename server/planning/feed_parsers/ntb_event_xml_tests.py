@@ -55,5 +55,5 @@ class NTBEventXMLFeedParserTestCase(TestCase):
             self.assertEqual('MARKS XML TEST', self.event[0].get('name'))
             self.assertEqual('MARKS XML TEST.', self.event[0].get('definition_long'))
             self.assertEqual(
-                {'end': '2016-09-16T16:00:00', 'tz': '', 'start': '2016-09-05T09:00:00', 'recurring_rule': {}},
+                {'end': '2016-09-16T16:00:00', 'tz': '', 'start': '2016-09-05T09:00:00'},
                 self.event[0].get('dates'))
