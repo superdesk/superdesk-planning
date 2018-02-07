@@ -140,7 +140,7 @@ const fetchAgendaById = (_id) => (
 const askForAddEventToCurrentAgenda = (events) => (
     (dispatch, getState) => {
         const message = events.length === 1 ?
-            gettext('Do you want to add this event to the planning list') :
+            gettext('Do you want to add this event to the planning list ?') :
             gettext(`Do you want to add these ${events.length} events to the planning list ?`);
 
         return dispatch(showModal({
@@ -194,7 +194,7 @@ const _addEventToCurrentAgenda = (events) => (
                     .then(() => {
                         notify.pop();
                         notify.success(
-                            `created ${plannings.length}/${eventsList.length} plannings`
+                            gettext(`created ${plannings.length}/${eventsList.length} planning item(s)`)
                         );
                     })
             ));
@@ -203,7 +203,7 @@ const _addEventToCurrentAgenda = (events) => (
         return promise
             .then(() => {
                 notify.pop();
-                notify.success(`created ${eventsList.length} plannings !`);
+                notify.success(gettext(`created ${eventsList.length} planning item.`));
             })
             .then(() => dispatch(fetchSelectedAgendaPlannings()));
     }

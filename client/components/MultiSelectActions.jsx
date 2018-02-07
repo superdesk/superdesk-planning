@@ -140,7 +140,7 @@ export class MultiSelectActionsComponent extends React.PureComponent {
                 key={1}
                 onClick={this.createPlanning}
                 color="primary"
-                text={gettext('Create a planning')} />);
+                text={gettext('Create planning')} />);
         }
 
         if (showSpike) {

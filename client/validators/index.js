@@ -45,6 +45,11 @@ export const validateCoverages = (dispatch, getState, field, value, profile, err
                 const coverageErrors = {};
                 const keyName = key === 'news_coverage_status' ? key : `planning.${key}`;
 
+                // For existing coverages, no validation on scheduled
+                if (key === 'scheduled' && !!coverage.coverage_id) {
+                    return;
+                }
+
                 validateField(
                     dispatch,
                     getState,
@@ -57,11 +62,8 @@ export const validateCoverages = (dispatch, getState, field, value, profile, err
 
                 if (get(coverageErrors, key)) {
                     if (key === 'scheduled') {
-                        // Set the errors for date and time fields
-                        set(error, `${index}.${keyName}`, {
-                            date: coverageErrors[key],
-                            time: coverageErrors[key]
-                        });
+                        // Set the errors for the date field
+                        set(error, `${index}.${keyName}`, {date: coverageErrors[key]});
                     } else {
                         set(error, `${index}.${keyName}`, coverageErrors[key]);
                     }
@@ -74,6 +76,21 @@ export const validateCoverages = (dispatch, getState, field, value, profile, err
         errors.coverages = error;
     } else if (errors.coverages) {
         delete errors.coverages;
+    }
+};
+
+const validateCoverageScheduleDate = (dispatch, getState, field, value, profile, errors) => {
+    if (!profile.schema.scheduled) {
+        return;
+    }
+
+    if (profile.schema.scheduled.required && !value) {
+        errors[field] = gettext('Required');
+        return;
+    }
+
+    if (moment.isMoment(value) && value.isBefore(moment(), 'day')) {
+        errors[field] = 'Date cannot be in past';
     }
 };
 
@@ -112,7 +129,7 @@ export const validators = {
         headline: [formProfile],
         internal_note: [formProfile],
         keyword: [formProfile],
-        scheduled: [formProfile],
+        scheduled: [validateCoverageScheduleDate],
         slugline: [formProfile],
     },
     assignment: {

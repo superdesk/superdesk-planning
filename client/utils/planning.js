@@ -22,6 +22,8 @@ import {
     isEmptyActions,
 } from './index';
 
+const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
+
 const canPublishPlanning = (planning, event, session, privileges, locks) => (
     !!privileges[PRIVILEGES.PUBLISH_PLANNING] &&
         !!get(planning, '_id') &&
@@ -63,7 +65,8 @@ const canSpikePlanning = (plan, session, privileges, locks) => (
         getItemWorkflowState(plan) === WORKFLOW_STATE.DRAFT &&
         !!privileges[PRIVILEGES.SPIKE_PLANNING] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isPlanningLockRestricted(plan, session, locks)
+        !isPlanningLockRestricted(plan, session, locks) &&
+        !get(plan, 'coverages', []).find((c) => isCoverageAssigned(c))
 );
 
 const canUnspikePlanning = (plan, event = null, privileges) => (
