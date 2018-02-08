@@ -239,13 +239,13 @@ const getCriteria = ({
         {
             condition: () => (advancedSearch.urgency),
             do: () => {
-                must.push({term: {urgency: advancedSearch.urgency}});
+                must.push({term: {urgency: advancedSearch.urgency.qcode}});
             },
         },
         {
             condition: () => (advancedSearch.g2_content_type),
             do: () => {
-                let term = {'coverages.planning.g2_content_type': advancedSearch.g2_content_type};
+                let term = {'coverages.planning.g2_content_type': advancedSearch.g2_content_type.qcode};
 
                 must.push({
                     nested: {
@@ -266,6 +266,12 @@ const getCriteria = ({
                 });
             },
         },
+        {
+            condition: () => (advancedSearch.published),
+            do: () => {
+                must.push({term: {pubstatus: PUBLISHED_STATE.USABLE}});
+            },
+        }
     ].forEach((action) => {
         if (action.condition()) {
             action.do();

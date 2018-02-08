@@ -184,9 +184,9 @@ export class AdvancedSearch extends React.Component {
                 },
                 contentType: {
                     props: {
-                        field: 'advancedSearch.contentType',
+                        field: 'advancedSearch.g2_content_type',
                         label: gettext('Coverage Type'),
-                        value: get(diff, 'advancedSearch.contentType', {}),
+                        value: get(diff, 'advancedSearch.g2_content_type', {}),
                         options: contentTypes,
                         labelField: 'name',
                         clearable: true
