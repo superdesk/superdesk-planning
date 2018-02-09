@@ -6,7 +6,7 @@ import {
     MAIN
 } from '../../constants';
 import {EventUpdateMethods} from '../../components/Events';
-import {get, isEqual, cloneDeep, pickBy, isNil, isEmpty} from 'lodash';
+import {get, isEqual, cloneDeep, pickBy, isNil, isEmpty, has} from 'lodash';
 import * as selectors from '../../selectors';
 import {eventUtils, getTimeZoneOffset, lockUtils, sanitizeTextForQuery, getErrorMessage} from '../../utils';
 import moment from 'moment';
@@ -610,6 +610,50 @@ const silentlyFetchEventsById = (ids, spikeState = SPIKED_STATE.NOT_SPIKED, save
     )
 );
 
+/**
+ * Action Dispatcher to fetch a single event using its ID
+ * and add or update the Event in the Redux Store
+ * @param {string} eventId - The ID of the Event to fetch
+ * @param {boolean} force - Force using the API instead of Redux store
+ * @param {boolean} saveToStore - If true, save the Event item in the Redux store
+ * @param {boolean} loadPlanning - If true, load associated Planning items as well
+ */
+const fetchById = (eventId, {force = false, saveToStore = true, loadPlanning = true} = {}) => (
+    (dispatch, getState, {api}) => {
+        // Test if the Event item is already loaded into the store
+        // If so, return that instance instead
+        const storedEvents = selectors.events.storedEvents(getState());
+        let promise;
+
+        if (has(storedEvents, eventId) && !force) {
+            promise = Promise.resolve(storedEvents[eventId]);
+        } else {
+            promise = api.find('events', eventId, {embedded: {files: 1}})
+                .then((event) => {
+                    const newEvent = eventUtils.convertToMoment(event);
+
+                    if (saveToStore) {
+                        dispatch(self.receiveEvents([newEvent]));
+                    }
+
+                    return Promise.resolve(newEvent);
+                }, (error) => Promise.reject(error));
+        }
+
+        return promise.then((event) => {
+            if (loadPlanning) {
+                return dispatch(self.loadAssociatedPlannings(event))
+                    .then(
+                        () => Promise.resolve(event),
+                        (error) => Promise.reject(error)
+                    );
+            }
+
+            return Promise.resolve(event);
+        }, (error) => Promise.reject(error));
+    }
+);
+
 const cancelEvent = (event) => (
     (dispatch, getState, {api}) => (
         api.update(
@@ -900,7 +944,8 @@ const self = {
     _save,
     save,
     _saveLocation,
-    getCriteria
+    getCriteria,
+    fetchById
 };
 
 export default self;

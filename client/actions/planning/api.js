@@ -397,7 +397,7 @@ const refetch = (page = 1, plannings = []) => (
         const prevParams = selectors.main.lastRequestParams(getState());
 
         let params = {
-            ...selectors.planning.getPlanningFilterParams(getState()),
+            ...prevParams,
             page,
         };
 
@@ -446,30 +446,44 @@ const fetchPlanningsEvents = (plannings) => (
  * If the Planning item already exists in the local store, then don't
  * fetch the Planning item from the API
  * @param {string} pid - The ID of the Planning item to fetch
- * @param {boolean} force - Force using the API instead of local store
+ * @param {boolean} force - Force using the API instead of Redux store
+ * @param {boolean} saveToStore - If true, save the Planning item in the Redux store
+ * @param {boolean} loadEvents - If true, load associated Event item as well
  * @return Promise
  */
-const fetchPlanningById = (pid, force = false) => (
+const fetchById = (pid, {force = false, saveToStore = true, loadEvents = true} = {}) => (
     (dispatch, getState, {api}) => {
         // Test if the Planning item is already loaded into the store
         // If so, return that instance instead
         const storedPlannings = selectors.getStoredPlannings(getState());
+        let promise;
 
         if (has(storedPlannings, pid) && !force) {
-            return Promise.resolve(storedPlannings[pid]);
+            promise = Promise.resolve(storedPlannings[pid]);
+        } else {
+            promise = api('planning').getById(pid)
+                .then((item) => {
+                    planningUtils.convertCoveragesGenreToObject(item);
+
+                    if (saveToStore) {
+                        dispatch(self.receivePlannings([item]));
+                    }
+
+                    return Promise.resolve(item);
+                }, (error) => Promise.reject(error));
         }
 
-        return api('planning').getById(pid)
-            .then((item) => (
-                dispatch(self.fetchPlanningsEvents([planningUtils.convertCoveragesGenreToObject(item)]))
-                    .then(() => {
-                        dispatch(self.receivePlannings([item]));
-                        return Promise.resolve(item);
-                    }, (error) => (Promise.reject(error)))
-            ), (error) => {
-                dispatch(self.receivePlannings([]));
-                return Promise.reject(error);
-            });
+        return promise.then((item) => {
+            if (loadEvents) {
+                return dispatch(self.fetchPlanningsEvents([item]))
+                    .then(
+                        () => Promise.resolve(item),
+                        (error) => Promise.reject(error)
+                    );
+            }
+
+            return Promise.resolve(item);
+        }, (error) => Promise.reject(error));
     }
 );
 
@@ -645,7 +659,7 @@ const save = (item, original = undefined) => (
             if (original !== undefined && !isEqual(original, {})) {
                 return resolve(original);
             } else if (get(updates, '_id')) {
-                return dispatch(self.fetchPlanningById(updates._id))
+                return dispatch(self.fetchById(updates._id))
                     .then(
                         (planning) => resolve(planning),
                         (error) => reject(error)
@@ -692,7 +706,7 @@ const saveAndReloadCurrentAgenda = (item) => (
     (dispatch, getState) => (
         new Promise((resolve, reject) => {
             if (get(item, '_id')) {
-                return dispatch(self.fetchPlanningById(item._id))
+                return dispatch(self.fetchById(item._id))
                     .then(
                         (item) => (resolve(item)),
                         (error) => (reject(error))
@@ -754,7 +768,7 @@ const publish = (plan) => (
             etag: plan._etag,
             pubstatus: PUBLISHED_STATE.USABLE,
         }).then(
-            () => dispatch(self.fetchPlanningById(plan._id, true)),
+            () => dispatch(self.fetchById(plan._id, {force: true})),
             (error) => Promise.reject(error)
         )
     )
@@ -980,7 +994,7 @@ const self = {
     receivePlannings,
     save,
     saveAndReloadCurrentAgenda,
-    fetchPlanningById,
+    fetchById,
     fetchPlanningsEvents,
     unlock,
     lock,

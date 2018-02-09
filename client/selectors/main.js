@@ -1,15 +1,35 @@
 import {createSelector} from 'reselect';
 import {get} from 'lodash';
 import {MAIN} from '../constants';
-import {orderedEvents} from './events';
-import {orderedPlanningList} from './planning';
+import {orderedEvents, storedEvents} from './events';
+import {orderedPlanningList, storedPlannings} from './planning';
 import {orderedEventsPlanning} from './eventsplanning';
+import {ITEM_TYPE} from '../constants';
 
 
 export const activeFilter = (state) => get(state, 'main.filter', MAIN.FILTERS.COMBINED);
 export const isEventsPlanningView = (state) =>
     get(state, 'main.filter', '') === MAIN.FILTERS.COMBINED;
-export const previewItem = (state) => get(state, 'main.previewItem', null);
+
+export const previewId = (state) => get(state, 'main.previewId', null);
+export const previewType = (state) => get(state, 'main.previewType', null);
+export const previewLoading = (state) => get(state, 'main.loadingPreview', false);
+
+export const getPreviewItem = createSelector(
+    [previewLoading, previewId, previewType, storedEvents, storedPlannings],
+    (previewLoading, itemId, itemType, events, plannings) => {
+        if (previewLoading || itemId === null || itemType === null) {
+            return null;
+        } else if (itemType === ITEM_TYPE.EVENT) {
+            return get(events, itemId);
+        } else if (itemType === ITEM_TYPE.PLANNING) {
+            return get(plannings, itemId);
+        }
+
+        return null;
+    }
+);
+
 export const itemGroups = createSelector(
     [activeFilter, orderedEvents, orderedPlanningList, orderedEventsPlanning],
     (filter, events, plans, eventsPlannings) => {

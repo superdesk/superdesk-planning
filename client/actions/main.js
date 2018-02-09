@@ -1,7 +1,9 @@
 import {MAIN, ITEM_TYPE} from '../constants';
-import {activeFilter, previewItem, lastRequestParams} from '../selectors/main';
+import {activeFilter, previewId, lastRequestParams} from '../selectors/main';
 import planningUi from './planning/ui';
+import planningApi from './planning/api';
 import eventsUi from './events/ui';
+import eventsApi from './events/api';
 import {locks, showModal} from './';
 import {selectAgenda, fetchSelectedAgendaPlannings} from './agenda';
 import {
@@ -15,11 +17,27 @@ import {
 import {MODALS, WORKSPACE} from '../constants';
 import eventsPlanningUi from './eventsPlanning/ui';
 import {get, omit, isEmpty, isNil} from 'lodash';
+import {lockUtils} from '../utils';
 
 import * as selectors from '../selectors';
 
 const lockAndEdit = (item) => (
     (dispatch, getState, {notify}) => {
+        const currentItemId = selectors.forms.currentItemId(getState());
+        const currentSession = selectors.general.session(getState());
+
+        if (currentItemId === item._id && lockUtils.isItemLockedInThisSession(item, currentSession)) {
+            return Promise.resolve(item);
+        }
+
+        dispatch({type: MAIN.ACTIONS.EDIT_LOADING_START});
+        dispatch(self.openEditor(item));
+        // If the item being edited is currently opened in the Preview panel
+        // then close the preview panel
+        if (previewId(getState()) === item._id) {
+            dispatch(self.closePreview());
+        }
+
         const state = getState();
         const lockedItems = selectors.locks.getLockedItems(state);
         let promise;
@@ -33,18 +51,19 @@ const lockAndEdit = (item) => (
         }
 
         return promise.then((lockedItem) => {
-            // If the item being edited is currently opened in the Preview panel
-            // then close the preview panel
-            if (get(previewItem(getState()), '_id') === lockedItem._id) {
-                dispatch(self.closePreview());
+            if (!item._id) {
+                dispatch({type: MAIN.ACTIONS.EDIT_LOADING_COMPLETE});
             }
 
-            dispatch(self.openEditor(lockedItem));
             return Promise.resolve(lockedItem);
         }, (error) => {
             notify.error(
                 getErrorMessage(error, 'Failed to lock the item')
             );
+
+            if (!item._id) {
+                dispatch({type: MAIN.ACTIONS.EDIT_LOADING_COMPLETE});
+            }
 
             return Promise.reject(error);
         });
@@ -162,33 +181,25 @@ const openConfirmationModal = ({title, body, okText, showIgnore, action, ignore}
     )
 );
 
-const openEditor = (item) => ({
-    type: MAIN.ACTIONS.OPEN_EDITOR,
-    payload: item
-});
-
-const closeEditor = () => ({
-    type: MAIN.ACTIONS.CLOSE_EDITOR
-});
-
-const preview = (item) => ({
-    type: MAIN.ACTIONS.PREVIEW,
-    payload: item
-});
-
-const closePreview = () => ({type: MAIN.ACTIONS.CLOSE_PREVIEW});
-
-const closePreviewAndEditorForItems = (items) => (
-    (dispatch, getState) => {
-        const previewId = get(selectors.main.previewItem(getState()), '_id');
+const closePreviewAndEditorForItems = (items, actionMessage = '') => (
+    (dispatch, getState, {notify}) => {
+        const previewId = selectors.main.previewId(getState());
         const editId = selectors.forms.currentItemId(getState());
 
         if (previewId && items.find((i) => i._id === previewId)) {
             dispatch(self.closePreview());
+
+            if (actionMessage !== '') {
+                notify.warning(actionMessage);
+            }
         }
 
         if (editId && items.find((i) => i._id === editId)) {
             dispatch(self.closeEditor());
+
+            if (actionMessage !== '') {
+                notify.warning(actionMessage);
+            }
         }
 
         return Promise.resolve();
@@ -398,6 +409,175 @@ const setUnsetLoadingIndicator = (value = false) => ({
     payload: value
 });
 
+
+/**
+ * Action to open the editor and update the URL
+ * @param {object} item - The item to open. Must have _id and _type attributes
+ */
+const openEditor = (item) => (
+    (dispatch, getState, {$timeout, $location}) => {
+        dispatch({
+            type: MAIN.ACTIONS.OPEN_EDITOR,
+            payload: item
+        });
+
+        // Update the URL
+        $timeout(() => $location.search('edit', JSON.stringify({id: item._id, type: item._type})));
+    }
+);
+
+/**
+ * Action to close the editor and update the URL
+ */
+const closeEditor = () => (
+    (dispatch, getState, {$timeout, $location}) => {
+        dispatch({type: MAIN.ACTIONS.CLOSE_EDITOR});
+
+        // Update the URL
+        $timeout(() => $location.search('edit', null));
+    }
+);
+
+/**
+ * Action to open the preview panel and update the URL
+ * @param {object} item - The item to open. Must have _id and _type attributes
+ */
+const openPreview = (item) => (
+    (dispatch, getState, {$timeout, $location}) => {
+        const currentPreviewId = selectors.main.previewId(getState());
+
+        if (currentPreviewId === item._id) {
+            return;
+        }
+
+        dispatch({type: MAIN.ACTIONS.PREVIEW_LOADING_START});
+        dispatch({
+            type: MAIN.ACTIONS.SET_PREVIEW_ITEM,
+            payload: {
+                itemId: item._id,
+                itemType: item._type
+            }
+        });
+
+        // Update the URL
+        $timeout(() => $location.search('preview', JSON.stringify({id: item._id, type: item._type})));
+    }
+);
+
+/**
+ * Action to close the preview panel and update the URL
+ */
+const closePreview = () => (
+    (dispatch, getState, {$timeout, $location}) => {
+        dispatch({type: MAIN.ACTIONS.CLOSE_PREVIEW});
+
+        // Update the URL
+        $timeout(() => $location.search('preview', null));
+    }
+);
+
+/**
+ * Action to load an item for a specific action (preview/edit).
+ * Will dispatch the *_LOADING_START/*_LOADING_COMPLETE actions on start/finish of the action.
+ * These actions will indicate to the preview panel/editor that the item is currently loading.
+ * This action is executed from the PreviewPanel/Editor React components.
+ * @param {string} itemId - The ID of the item to load
+ * @param {string} itemType - The type of item to load (ITEM_TYPE.EVENT/ITEM_TYPE.PLANNING)
+ * @param {string} action - The action the item is for (MAIN.PREVIEW/MAIN.EDIT)
+ */
+const loadItem = (itemId, itemType, action) => (
+    (dispatch, getState, {notify}) => {
+        if (action !== MAIN.PREVIEW && action !== MAIN.EDIT) {
+            let error = `Unknown action "${action}"`;
+
+            notify.error(error);
+            return Promise.reject(error);
+        } else if (itemType !== ITEM_TYPE.EVENT && itemType !== ITEM_TYPE.PLANNING) {
+            let error = `Unknown item type "${itemType}"`;
+
+            notify.error(error);
+            return Promise.reject(error);
+        }
+
+        if (action === MAIN.PREVIEW) {
+            dispatch({type: MAIN.ACTIONS.PREVIEW_LOADING_START});
+        } else if (action === MAIN.EDIT) {
+            dispatch({type: MAIN.ACTIONS.EDIT_LOADING_START});
+        }
+
+        let promise;
+
+        if (itemId === null) {
+            promise = Promise.resolve({});
+        } else if (itemType === ITEM_TYPE.EVENT) {
+            promise = dispatch(eventsApi.fetchById(itemId));
+        } else if (itemType === ITEM_TYPE.PLANNING) {
+            promise = dispatch(planningApi.fetchById(itemId));
+        }
+
+        return promise
+            .then(
+                (item) => Promise.resolve(item),
+                (error) => {
+                    notify.error(
+                        getErrorMessage(error, 'Failed to load the item')
+                    );
+                    return Promise.reject(error);
+                }
+            )
+            .finally(() => {
+                if (action === MAIN.PREVIEW) {
+                    dispatch({type: MAIN.ACTIONS.PREVIEW_LOADING_COMPLETE});
+                } else if (action === MAIN.EDIT) {
+                    dispatch({type: MAIN.ACTIONS.EDIT_LOADING_COMPLETE});
+                }
+            });
+    }
+);
+
+/**
+ * Action to open either the PreviewPanel or Editor based on the item ID and Type
+ * from either the URL params or the redux-store
+ * @param {string} action - The action to load the item for (MAIN.PREVIEW/MAIN.EDIT)
+ */
+const openFromURLOrRedux = (action) => (
+    (dispatch, getState, {$location}) => {
+        let item;
+        const itemSearch = get($location.search(), action) || null;
+
+        if (itemSearch) {
+            item = JSON.parse(itemSearch);
+        } else if (action === MAIN.PREVIEW) {
+            item = {
+                id: selectors.main.previewId(getState()),
+                type: selectors.main.previewType(getState())
+            };
+        } else if (action === MAIN.EDIT) {
+            item = {
+                id: selectors.forms.currentItemId(getState()),
+                type: selectors.forms.currentItemType(getState())
+            };
+        }
+
+        if (item.id && item.type) {
+            if (action === MAIN.PREVIEW) {
+                dispatch(self.openPreview({
+                    _id: item.id,
+                    _type: item.type
+                }));
+            } else if (action === MAIN.EDIT) {
+                dispatch(self.openEditor({
+                    _id: item.id,
+                    _type: item.type
+                }));
+            }
+        } else {
+            // Remove the item from the URL
+            $location.search(action, null);
+        }
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     lockAndEdit,
@@ -407,19 +587,20 @@ const self = {
     openCancelModal,
     openEditor,
     closeEditor,
-    preview,
     filter,
     _filter,
     openConfirmationModal,
     closePreview,
     unlockAndCloseEditor,
-    history,
     loadMore,
     search,
     clearSearch,
     setTotal,
     closePreviewAndEditorForItems,
     setUnsetLoadingIndicator,
+    openFromURLOrRedux,
+    loadItem,
+    openPreview,
 };
 
 export default self;

@@ -181,9 +181,7 @@ const _unlockAndOpenEventDetails = (event) => (
                 // Call openPlanningEditor to obtain a new lock for editing
                 // Recurring events item resolved might not be the item we want to open
                 // So, use original parameter (event) to open
-
-                // (TEMPORARY!) Keeping this as preview until we finish new ui forms
-                dispatch(main.preview(event));
+                dispatch(main.lockAndEdit(event));
             }, () => (Promise.reject()))
     )
 );
@@ -429,9 +427,9 @@ const rescheduleEvent = (event) => (
                 const duplicatedEvent = last(get(updatedEvent, 'duplicate_to', []));
 
                 if (isItemRescheduled(updatedEvent) && duplicatedEvent) {
-                    dispatch(main.preview({_id: duplicatedEvent}));
+                    dispatch(main.openPreview({_id: duplicatedEvent}));
                 } else {
-                    dispatch(main.preview(event));
+                    dispatch(main.openPreview(event));
                 }
 
                 dispatch(hideModal());

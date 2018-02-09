@@ -8,7 +8,6 @@ import {eventUtils} from '../utils';
 
 export const storedEvents = (state) => get(state, 'events.events', {});
 export const eventIdsInList = (state) => get(state, 'events.eventsInList', []);
-export const showEventDetails = (state) => get(state, 'events.showEventDetails');
 export const eventHistory = (state) => get(state, 'events.eventHistoryItems');
 
 /** Used for the events list */
@@ -30,11 +29,15 @@ export const orderedEvents = createSelector(
 
 export const getEventContacts = (state) => get(state, 'contacts', []);
 
-/** Used for event details */
-export const eventWithRelatedDetails = createSelector(
-    [showEventDetails, storedEvents, storedPlannings, agendas, getEventContacts],
-    (item, events, plannings, agendas, contacts) => {
-        const event = get(item, '_id') ? events[item._id] : null;
+export const previewId = (state) => get(state, 'main.previewId', null);
+export const getEventPreviewRelatedDetails = createSelector(
+    [previewId, storedEvents, storedPlannings, agendas, getEventContacts],
+    (itemId, events, plannings, agendas, contacts) => {
+        const event = get(events, itemId) || null;
+
+        if (event === null) {
+            return null;
+        }
 
         if (event) {
             return {
@@ -49,6 +52,27 @@ export const eventWithRelatedDetails = createSelector(
                     contacts.find((contact) => contact._id === id))
                 ),
             };
+        }
+    }
+);
+
+export const editId = (state) => get(state, 'forms.itemId', null);
+export const getRelatedPlannings = createSelector(
+    [editId, storedEvents, storedPlannings, agendas],
+    (itemId, events, plannings, agendas) => {
+        const event = get(events, itemId) || null;
+
+        if (event === null) {
+            return [];
+        }
+
+        if (event) {
+            return get(event, 'planning_ids', []).map((id) => ({
+                ...plannings[id],
+                _agendas: !get(plannings[id], 'agendas') ? [] :
+                    plannings[id].agendas.map((id) =>
+                        agendas.find(((agenda) => agenda._id === id))),
+            }));
         }
     }
 );

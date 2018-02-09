@@ -140,7 +140,7 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.planning.api.fetchPlanningHistory(currentPlanningId))
     ),
     openPlanningPreview: (planningId) => (
-        dispatch(actions.main.preview({
+        dispatch(actions.main.openPreview({
             _id: planningId,
             _type: 'planning',
         }))

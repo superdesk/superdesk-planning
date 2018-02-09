@@ -313,7 +313,7 @@ const receiveAssignmentHistory = (items) => ({
  */
 const loadPlanningAndEvent = (assignment) => (
     (dispatch) => (
-        dispatch(planning.api.fetchPlanningById(assignment.planning_item))
+        dispatch(planning.api.fetchById(assignment.planning_item))
     )
 );
 

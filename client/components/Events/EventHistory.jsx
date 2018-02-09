@@ -151,13 +151,13 @@ const mapDispatchToProps = (dispatch) => ({
         dispatch(actions.events.api.fetchEventHistory(event))
     ),
     openPlanningClick: (planningId) => (
-        dispatch(actions.main.preview({
+        dispatch(actions.main.openPreview({
             _id: planningId,
             _type: 'planning',
         }))
     ),
     openEventPreview: (eventId) => {
-        dispatch(actions.main.preview({
+        dispatch(actions.main.openPreview({
             _id: eventId,
             _type: 'events',
         }));

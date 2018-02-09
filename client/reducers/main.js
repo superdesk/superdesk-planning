@@ -1,5 +1,6 @@
 import {MAIN, RESET_STORE} from '../constants';
 import {cloneDeep, get, omit} from 'lodash';
+import {createReducer} from '../utils';
 
 const search = {
     lastRequestParams: {page: 1},
@@ -9,7 +10,9 @@ const search = {
 };
 
 const initialState = {
-    previewItem: null,
+    previewId: null,
+    previewType: null,
+    loadingPreview: false,
     filter: null,
     search: {
         [MAIN.FILTERS.EVENTS]: cloneDeep(search),
@@ -19,11 +22,11 @@ const initialState = {
     loadingIndicator: false
 };
 
-const modifyParams = (state, action) => {
+const modifyParams = (state, payload) => {
     let params = cloneDeep(state.search) || {};
 
-    Object.keys(action.payload).forEach((key) => {
-        const payloadParam = get(action.payload, key, {});
+    Object.keys(payload).forEach((key) => {
+        const payloadParam = get(payload, key, {});
 
         params[key] = {
             ...params[key],
@@ -42,52 +45,70 @@ const modifyParams = (state, action) => {
     return params;
 };
 
-export default function(state = initialState, action) {
-    switch (action.type) {
-    case RESET_STORE:
-        return {
-            ...state,
-            previewItem: null,
-        };
-    case MAIN.ACTIONS.PREVIEW:
-        return {...state, previewItem: action.payload || null};
+export default createReducer(initialState, {
+    [RESET_STORE]: (state) => ({
+        ...state,
+        previewItem: null,
+    }),
+    [MAIN.ACTIONS.PREVIEW]: (state, payload) => ({
+        ...state,
+        previewItem: payload || null
+    }),
 
-    case MAIN.ACTIONS.FILTER:
-        return {...state, filter: action.payload || MAIN.FILTERS.COMBINED};
+    [MAIN.ACTIONS.FILTER]: (state, payload) => ({
+        ...state,
+        filter: payload || MAIN.FILTERS.COMBINED
+    }),
 
-    case MAIN.ACTIONS.CLOSE_PREVIEW:
-        return {...state, previewItem: null};
+    [MAIN.ACTIONS.CLOSE_PREVIEW]: (state) => ({
+        ...state,
+        previewItem: null,
+        previewId: null,
+        previewType: null
+    }),
 
-    case MAIN.ACTIONS.REQUEST:
-        return {
-            ...state,
-            search: modifyParams(state, action)
-        };
-    case MAIN.ACTIONS.SET_TOTAL:
-        return {
-            ...state,
-            search: {
-                ...state.search,
-                [action.payload.filter]: {
-                    ...state.search[action.payload.filter],
-                    totalItems: action.payload.total || 0
-                }
+    [MAIN.ACTIONS.REQUEST]: (state, payload) => ({
+        ...state,
+        search: modifyParams(state, payload)
+    }),
+
+    [MAIN.ACTIONS.SET_TOTAL]: (state, payload) => ({
+        ...state,
+        search: {
+            ...state.search,
+            [payload.filter]: {
+                ...state.search[payload.filter],
+                totalItems: payload.total || 0
             }
-        };
-    case MAIN.ACTIONS.CLEAR_SEARCH:
-        return {
-            ...state,
-            search: {
-                ...state.search,
-                [action.payload]: cloneDeep(search)
-            }
-        };
-    case MAIN.ACTIONS.SET_UNSET_LOADING_INDICATOR:
-        return {
-            ...state,
-            loadingIndicator: action.payload
-        };
-    default:
-        return state;
-    }
-}
+        }
+    }),
+
+    [MAIN.ACTIONS.SET_UNSET_LOADING_INDICATOR]: (state, payload) => ({
+        ...state,
+        loadingIndicator: payload
+    }),
+
+    [MAIN.ACTIONS.CLEAR_SEARCH]: (state, payload) => ({
+        ...state,
+        search: {
+            ...state.search,
+            [payload]: cloneDeep(search)
+        }
+    }),
+
+    [MAIN.ACTIONS.SET_PREVIEW_ITEM]: (state, payload) => ({
+        ...state,
+        previewId: payload.itemId,
+        previewType: payload.itemType
+    }),
+
+    [MAIN.ACTIONS.PREVIEW_LOADING_START]: (state) => ({
+        ...state,
+        loadingPreview: true,
+    }),
+
+    [MAIN.ACTIONS.PREVIEW_LOADING_COMPLETE]: (state) => ({
+        ...state,
+        loadingPreview: false,
+    }),
+});

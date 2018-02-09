@@ -11,7 +11,7 @@ import {restoreSinonStub, getTestActionStore} from '../../utils/testUtils';
 import planningApi from '../../actions/planning/api';
 import {PLANNING} from '../../constants';
 
-describe('planning', () => {
+xdescribe('planning', () => {
     describe('containers', () => {
         describe('<EditPlanningPanelContainer />', () => {
             let store;

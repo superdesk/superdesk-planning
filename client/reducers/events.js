@@ -1,15 +1,12 @@
 import {orderBy, cloneDeep, uniq, get} from 'lodash';
 import moment from 'moment';
 import {EVENTS, RESET_STORE, INIT_STORE, LOCKS, SPIKED_STATE} from '../constants';
-import {createReducer, getItemType} from '../utils';
-import {WORKFLOW_STATE, MAIN, ITEM_TYPE} from '../constants';
+import {createReducer} from '../utils';
+import {WORKFLOW_STATE} from '../constants';
 
 const initialState = {
     events: {},
     eventsInList: [],
-    show: true,
-    showEventDetails: null,
-    highlightedEvent: null,
     selectedEvents: [],
     readOnly: true,
     eventHistoryItems: [],
@@ -57,10 +54,6 @@ export const spikeEvent = (state, payload) => {
     event.state = WORKFLOW_STATE.SPIKED;
     event.revert_state = payload.event.revert_state;
 
-    if (state.showEventDetails === event._id) {
-        state.showEventDetails = null;
-    }
-
     const eventIndex = state.eventsInList.indexOf(event._id);
 
     if (eventIndex > -1 && spikeState === SPIKED_STATE.NOT_SPIKED) {
@@ -77,10 +70,6 @@ export const unspikeEvent = (state, payload) => {
     removeLock(event, payload.event._etag);
     event.state = payload.event.state;
     delete event.revert_state;
-
-    if (state.showEventDetails === event._id) {
-        state.showEventDetails = null;
-    }
 
     const eventIndex = state.eventsInList.indexOf(event._id);
 
@@ -114,12 +103,6 @@ const eventsReducer = createReducer(initialState, {
             selectedEvents: [],
         }
     ),
-    [EVENTS.ACTIONS.TOGGLE_EVENT_LIST]: (state) => (
-        {
-            ...state,
-            show: !state.show,
-        }
-    ),
     [EVENTS.ACTIONS.ADD_EVENTS]: (state, payload) => {
         const _events = modifyEventsBeingAdded(state, payload);
 
@@ -151,44 +134,6 @@ const eventsReducer = createReducer(initialState, {
             type: EVENTS.ACTIONS.SET_EVENTS_LIST,
             payload: [...state.eventsInList, ...payload],
         })
-    ),
-    [EVENTS.ACTIONS.OPEN_ADVANCED_SEARCH]: (state) => (
-        {
-            ...state,
-            search: {
-                ...state.search,
-            },
-        }
-    ),
-    [EVENTS.ACTIONS.CLOSE_ADVANCED_SEARCH]: (state) => (
-        {
-            ...state,
-            search: {
-                ...state.search,
-            },
-        }
-    ),
-    [EVENTS.ACTIONS.PREVIEW_EVENT]: (state, payload) => (
-        {
-            ...state,
-            showEventDetails: payload,
-            highlightedEvent: payload,
-        }
-    ),
-    [EVENTS.ACTIONS.OPEN_EVENT_DETAILS]: (state, payload) => (
-        {
-            ...state,
-            showEventDetails: payload,
-            highlightedEvent: payload,
-            readOnly: false,
-        }
-    ),
-    [EVENTS.ACTIONS.CLOSE_EVENT_DETAILS]: (state) => (
-        {
-            ...state,
-            showEventDetails: null,
-            readOnly: true,
-        }
     ),
     [EVENTS.ACTIONS.RECEIVE_EVENT_HISTORY]: (state, payload) => (
         {
@@ -354,17 +299,6 @@ Event Postponed
     [EVENTS.ACTIONS.MARK_EVENT_UNPUBLISHED]: (state, payload) => (
         onEventPublishChanged(state, payload)
     ),
-    [MAIN.ACTIONS.PREVIEW]: (state, payload) => {
-        if (getItemType(payload) === ITEM_TYPE.EVENT) {
-            return {
-                ...state,
-                showEventDetails: payload,
-                highlightedEvent: payload,
-            };
-        } else {
-            return state;
-        }
-    },
 });
 
 const onEventPublishChanged = (state, payload) => {

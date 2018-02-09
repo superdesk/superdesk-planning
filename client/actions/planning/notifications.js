@@ -1,6 +1,6 @@
 import {get} from 'lodash';
 import planning from './index';
-import {getErrorMessage, lockUtils} from '../../utils';
+import {lockUtils, gettext} from '../../utils';
 import * as selectors from '../../selectors';
 import {showModal, hideModal, events} from '../index';
 import main from '../main';
@@ -22,13 +22,6 @@ const onPlanningCreated = (_e, data) => (
                 ));
             }
 
-            const currentSessionId = selectors.general.sessionId(getState());
-            const currentUserId = selectors.general.currentUserId(getState());
-
-            if (get(data, 'session') === currentSessionId && get(data, 'user') === currentUserId) {
-                dispatch(planning.api.fetchPlanningById(data.item));
-            }
-
             return dispatch(planning.ui.scheduleRefetch())
                 .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()));
         }
@@ -43,26 +36,24 @@ const onPlanningCreated = (_e, data) => (
  * @param {object} _e - Event object
  * @param {object} data - Planning and User IDs
  */
-const onPlanningUpdated = (_e, data, refetch = true) => (
-    (dispatch, getState, {notify}) => {
+const onPlanningUpdated = (_e, data) => (
+    (dispatch, getState) => {
         if (get(data, 'item')) {
-            if (refetch) {
-                dispatch(planning.ui.scheduleRefetch());
-                dispatch(eventsPlanning.ui.scheduleRefetch());
-                return Promise.resolve();
-            }
+            dispatch(planning.ui.scheduleRefetch())
+                .then((items) => {
+                    const selectedItems = selectors.getSelectedPlanningItems(getState());
+                    const currentPreviewId = selectors.main.previewId(getState());
+                    const currentEditId = selectors.forms.currentItemId(getState());
 
-            // Otherwise send an Action to update the store
-            return dispatch(planning.api.loadPlanningById(data.item, true))
-                .then(
-                    (item) => (Promise.resolve(item)),
-                    (error) => {
-                        notify.error(
-                            getErrorMessage(error, 'Failed to get a new Planning Item!')
-                        );
-                        return Promise.reject(error);
+                    const loadedFromRefetch = selectedItems.indexOf(data.item) !== -1 &&
+                        !items.find((plan) => plan._id === data.item);
+
+                    if (!loadedFromRefetch && (currentPreviewId === data.item || currentEditId === data.item)) {
+                        dispatch(planning.api.fetchById(data.item, {force: true}));
                     }
-                );
+
+                    dispatch(eventsPlanning.ui.scheduleRefetch());
+                });
         }
 
         return Promise.resolve();
@@ -198,7 +189,10 @@ const onPlanningSpiked = (_e, data) => (
             });
 
             dispatch(eventsPlanning.notifications.onPlanningSpiked(_e, data));
-            dispatch(main.closePreviewAndEditorForItems([planningItem]));
+            dispatch(main.closePreviewAndEditorForItems(
+                [planningItem],
+                gettext('The Planning item was spiked')
+            ));
 
             return Promise.resolve(planningItem);
         }
@@ -239,7 +233,10 @@ const onPlanningUnspiked = (_e, data) => (
             });
 
             dispatch(eventsPlanning.notifications.onPlanningUnspiked(_e, data));
-            dispatch(main.closePreviewAndEditorForItems([planningItem]));
+            dispatch(main.closePreviewAndEditorForItems(
+                [planningItem],
+                gettext('The Planning item was unspiked')
+            ));
 
             return Promise.resolve(planningItem);
         }

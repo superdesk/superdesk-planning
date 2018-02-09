@@ -112,6 +112,8 @@ export const getTestActionStore = () => {
 
         data: cloneDeep(testData.items),
 
+        urlParams: {},
+
         initialState: {
             ...cloneDeep(testData.initialState),
             agenda: {
@@ -147,7 +149,19 @@ export const getTestActionStore = () => {
             },
             $timeout: sinon.spy((func) => func()),
             api: sinon.spy((resource) => (store.spies.api[resource])),
-            $location: {search: sinon.spy(() => Promise.resolve())},
+            $location: {search: sinon.spy(
+                (key, value = null) => {
+                    if (key) {
+                        if (value) {
+                            store.urlParams[key] = value;
+                        } else {
+                            delete store.urlParams[key];
+                        }
+                    }
+
+                    return store.urlParams;
+                })
+            },
             desks: {
                 getCurrentDeskId: sinon.spy(() => 'desk1'),
                 active: {desk: 'desk1'},
@@ -191,7 +205,13 @@ export const getTestActionStore = () => {
 
         test: (done, action) => {
             if (!store._ready) store.init();
-            return action(store.dispatch, store.getState, store.services)
+            let response = action(store.dispatch, store.getState, store.services);
+
+            if (!get(response, 'then')) {
+                return;
+            }
+
+            return response
                 .catch((error) => {
                 // If this is from a Promise.reject, then pass that on
                     if (get(error, 'stack', null) === null) return Promise.reject(error);

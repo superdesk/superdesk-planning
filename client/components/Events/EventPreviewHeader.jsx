@@ -79,7 +79,7 @@ EventPreviewHeaderComponent.propTypes = {
 };
 
 const mapStateToProps = (state, ownProps) => ({
-    item: selectors.events.eventWithRelatedDetails(state),
+    item: selectors.events.getEventPreviewRelatedDetails(state),
     session: selectors.getSessionDetails(state),
     privileges: selectors.getPrivileges(state),
     users: selectors.getUsers(state),

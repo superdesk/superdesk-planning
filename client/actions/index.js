@@ -13,7 +13,6 @@ import locations from './locations';
 import eventsPlanning from './eventsPlanning/index';
 import multiSelect from './multiSelect';
 import {agendaNotifications} from './agenda';
-import {eventNotifications} from './events';
 
 import {RESET_STORE, INIT_STORE} from '../constants';
 
@@ -31,7 +30,6 @@ const initStore = (workspace) => ({
 const notifications = {
     ...agendaNotifications,
     ...planning.notifications.events,
-    ...eventNotifications,
     ...events.notifications.events,
     ...assignments.notifications.events
 };
