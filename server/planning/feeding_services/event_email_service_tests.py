@@ -15,7 +15,7 @@ class EventEmailFeedingServiceTestCase(TestCase):
 
             service = EventEmailFeedingService()
             provider = {
-                'feed_parser': 'ics20',
+                'feed_parser': 'ntb_event_xml',
                 'config': {
                     'server': 'imap.test.server',
                     'port': '993',

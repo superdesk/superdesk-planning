@@ -15,11 +15,13 @@ from superdesk.errors import ParserError
 from superdesk.io.feed_parsers import FileFeedParser
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE, GUID_FIELD, GUID_NEWSML, FORMAT, FORMATS, CONTENT_STATE
-from superdesk.utc import utcnow
+from superdesk.utc import utcnow, local_to_utc
+from eve.utils import config
 from icalendar import vRecur, vCalAddress, vGeo
 from icalendar.parser import tzid_from_dt
 from superdesk import get_resource_service
 import pytz
+from icalendar import Calendar
 
 utc = pytz.UTC
 logger = logging.getLogger(__name__)
@@ -37,7 +39,7 @@ class IcsTwoFeedParser(FileFeedParser):
     label = 'iCalendar v2.0'
 
     def can_parse(self, cal):
-        return True
+        return isinstance(cal, Calendar)
 
     def parse(self, cal, provider=None):
 
@@ -69,13 +71,17 @@ class IcsTwoFeedParser(FileFeedParser):
                     dates_start = dtstart if isinstance(dtstart, datetime.datetime) \
                         else datetime.datetime.combine(dtstart, datetime.datetime.min.time())
                     if not dates_start.tzinfo:
-                        dates_start = utc.localize(dates_start)
+                        dates_start = local_to_utc(config.DEFAULT_TIMEZONE, dates_start)
                     try:
                         dtend = component.get('dtend').dt
-                        dates_end = dtend if isinstance(dtend, datetime.datetime) \
-                            else datetime.datetime.combine(dtend, datetime.datetime.min.time())
+                        if isinstance(dtend, datetime.datetime):
+                            dates_end = dtend
+                        else:  # Date only is non inclusive
+                            dates_end = \
+                                (datetime.datetime.combine(dtend, datetime.datetime.max.time()) -
+                                 datetime.timedelta(days=1)).replace(microsecond=0)
                         if not dates_end.tzinfo:
-                            dates_end = utc.localize(dates_end)
+                            dates_end = local_to_utc(config.DEFAULT_TIMEZONE, dates_end)
                     except AttributeError as e:
                         dates_end = None
                     item['dates'] = {
