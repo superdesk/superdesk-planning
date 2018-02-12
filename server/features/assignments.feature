@@ -140,7 +140,18 @@ Feature: Assignments
         """
         [{
             "event": "assignments:created",
-            "extra": {"item": "#firstassignment#"}
+            "extra": {
+                "item": "#firstassignment#",
+                "coverage": "#firstcoverage#",
+                "planning": "#planning._id#",
+                "assignment_state": "assigned",
+                "assigned_user": "#CONTEXT_USER_ID#",
+                "assigned_desk": "#desks._id#",
+                "lock_user": null,
+                "user": "#CONTEXT_USER_ID#",
+                "original_assigned_desk": null,
+                "original_assigned_user": null
+            }
         },
         {
             "event": "planning:updated",
@@ -163,7 +174,18 @@ Feature: Assignments
         """
         [{
             "event": "assignments:updated",
-            "extra": {"item": "#firstassignment#"}
+            "extra": {
+                "item": "#firstassignment#",
+                "coverage": "#firstcoverage#",
+                "planning": "#planning._id#",
+                "assignment_state": "assigned",
+                "assigned_user": "#CONTEXT_USER_ID#",
+                "assigned_desk": "#desks._id#",
+                "lock_user": null,
+                "user": "#CONTEXT_USER_ID#",
+                "original_assigned_desk": "#desks._id#",
+                "original_assigned_user": "#CONTEXT_USER_ID#"
+            }
         }]
         """
         When we reset notifications
@@ -190,7 +212,7 @@ Feature: Assignments
         """
 
     @auth
-    @vocabularies
+    @vocabularies  @wip
     Scenario: Assignee changes as the author of content changes
         Given empty "assignments_history"
         When we post to "/archive"
@@ -262,7 +284,8 @@ Feature: Assignments
             },
             "assigned_to": {
                 "desk": "#desks._id#",
-                "user": "#CONTEXT_USER_ID#"
+                "user": "#CONTEXT_USER_ID#",
+                "state": "in_progress"
             }
         }
         """
@@ -284,7 +307,8 @@ Feature: Assignments
             },
             "assigned_to": {
                 "desk": "#desks._id#",
-                "user": "#USERS_ID#"
+                "user": "#USERS_ID#",
+                "state": "in_progress"
             }
         }
         """

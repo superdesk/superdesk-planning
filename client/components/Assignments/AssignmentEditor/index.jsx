@@ -12,6 +12,7 @@ import {
     ColouredValueInput,
     SelectUserInput,
 } from '../../UI/Form';
+import {ASSIGNMENTS} from '../../../constants';
 
 export class AssignmentEditorComponent extends React.Component {
     constructor(props) {
@@ -33,8 +34,8 @@ export class AssignmentEditorComponent extends React.Component {
         const filteredUsers = getUsersForDesk(desk, props.users);
         const filteredDesks = getDesksForUser(user, props.desks);
 
-        const priorityQcode = get(props.value, this.FIELDS.PRIORITY);
-        const priority = getItemInArrayById(props.priorities, priorityQcode);
+        const priorityQcode = get(props.value, this.FIELDS.PRIORITY) || ASSIGNMENTS.DEFAULT_PRIORITY;
+        const priority = getItemInArrayById(props.priorities, priorityQcode, 'qcode');
 
         const errors = {};
 
@@ -74,7 +75,7 @@ export class AssignmentEditorComponent extends React.Component {
             this.onDeskChange(null, getItemInArrayById(nextProps.desks, deskId));
         }
 
-        if (priorityQcode !== this.state.priorityQcode) {
+        if (priorityQcode && priorityQcode !== this.state.priorityQcode) {
             this.onPriorityChange(null, getItemInArrayById(nextProps.priorities, priorityQcode, 'qcode'));
         }
     }

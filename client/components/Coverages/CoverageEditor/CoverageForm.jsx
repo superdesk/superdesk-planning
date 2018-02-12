@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {get} from 'lodash';
-import {getItemInArrayById, gettext} from '../../../utils';
+import {getItemInArrayById, gettext, planningUtils} from '../../../utils';
 import {COVERAGES, WORKSPACE} from '../../../constants';
 
 import {
@@ -63,16 +63,26 @@ export const CoverageForm = ({
     const contentTypeQcode = get(value, 'planning.g2_content_type') || null;
     const contentType = contentTypeQcode ? getItemInArrayById(contentTypes, contentTypeQcode, 'qcode') : null;
     const onContentTypeChange = (f, v) => onChange(f, get(v, 'qcode') || null);
+    const isExistingCoverage = !!value.coverage_id;
+    const assignmentState = get(value, 'assigned_to.state');
+    const hasAssignment = !!get(value, 'assigned_to.assignment_id');
 
     const fieldProps = {
         item: item,
         diff: diff,
-        readOnly: readOnly,
         onChange: onChange,
         formProfile: formProfile,
         errors: errors,
         showErrors: showErrors,
     };
+
+    const roFields = planningUtils.getCoverageReadOnlyFields(
+        readOnly,
+        newsCoverageStatus,
+        hasAssignment,
+        isExistingCoverage,
+        assignmentState
+    );
 
     return (
         <div>
@@ -88,7 +98,7 @@ export const CoverageForm = ({
                 defaultValue={null}
                 {...fieldProps}
                 onChange={onContentTypeChange}
-                readOnly={currentWorkspace === WORKSPACE.AUTHORING || readOnly}
+                readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.g2_content_type}
             />
 
             <Field
@@ -101,6 +111,7 @@ export const CoverageForm = ({
                 labelField="name"
                 clearable={true}
                 defaultValue={null}
+                readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.genre}
                 {...fieldProps}
             />
 
@@ -109,6 +120,7 @@ export const CoverageForm = ({
                 field={`${field}.planning.slugline`}
                 profileName="slugline"
                 label={gettext('Slugline')}
+                readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.slugline}
                 {...fieldProps}
             />
 
@@ -117,6 +129,7 @@ export const CoverageForm = ({
                 field={`${field}.planning.ednote`}
                 profileName="ednote"
                 label={gettext('Ed Note')}
+                readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.ednote}
                 {...fieldProps}
             />
 
@@ -127,6 +140,7 @@ export const CoverageForm = ({
                 label={gettext('Keywords')}
                 defaultValue={[]}
                 options={keywords}
+                readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.keyword}
                 {...fieldProps}
             />
 
@@ -135,6 +149,7 @@ export const CoverageForm = ({
                 field={`${field}.planning.internal_note`}
                 profileName="internal_note"
                 label={gettext('Internal Note')}
+                readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.internal_note}
                 {...fieldProps}
             />
 
@@ -160,6 +175,7 @@ export const CoverageForm = ({
                 row={false}
                 {...fieldProps}
                 onChange={onScheduleChanged}
+                readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.scheduled}
             />
         </div>
     );

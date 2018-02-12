@@ -64,10 +64,12 @@ class AssignmentsCompleteService(BaseService):
             'assignments:completed',
             item=str(original[config.ID_FIELD]),
             planning=original.get('planning_item'),
+            assigned_user=(original.get('assigned_to') or {}).get('user'),
             assigned_desk=(original.get('assigned_to') or {}).get('desk'),
             assignment_state=ASSIGNMENT_WORKFLOW_STATE.COMPLETED,
             user=str(user),
-            session=str(session)
+            session=str(session),
+            coverage=original.get('coverage_item')
         )
 
         # Send notification that the work has been completed

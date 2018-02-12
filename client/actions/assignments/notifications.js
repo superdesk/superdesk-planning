@@ -118,17 +118,9 @@ const _getPlanningItemOnAssignmentUpdate = (data, plans) => {
         return;
     }
 
-    if (data.assigned_user) {
-        coverage.assigned_to.user = data.assigned_user;
-    }
-
-    if (data.assigned_desk) {
-        coverage.assigned_to.desk = data.assigned_desk;
-    }
-
-    if (get(data, 'assignment_state')) {
-        coverage.assigned_to.state = data.assignment_state;
-    }
+    coverage.assigned_to.user = data.assigned_user;
+    coverage.assigned_to.desk = data.assigned_desk;
+    coverage.assigned_to.state = data.assignment_state;
 
     if (get(data, 'priority')) {
         coverage.assigned_to.priority = data.priority;

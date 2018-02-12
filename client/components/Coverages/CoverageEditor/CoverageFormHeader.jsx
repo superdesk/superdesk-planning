@@ -1,14 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-
 import {getCreator, getItemInArrayById, gettext} from '../../../utils';
 import {WORKSPACE} from '../../../constants';
-
 import {Item, Border, Column, Row as ListRow} from '../../UI/List';
-import {UserAvatar} from '../../';
-
 import {AssignmentPopup} from '../../Assignments';
+import {StateLabel} from '../../../components';
 
 export class CoverageFormHeader extends React.Component {
     constructor(props) {
@@ -31,14 +28,14 @@ export class CoverageFormHeader extends React.Component {
             desks,
             coverageProviders,
             priorities,
-            currentWorkspace,
+            currentWorkspace
         } = this.props;
 
         const isExistingCoverage = !!get(value, 'coverage_id');
-
         const userAssigned = getCreator(value, 'assigned_to.user', users);
         const deskAssigned = getItemInArrayById(desks, get(value, 'assigned_to.desk'));
         const coverageProvider = get(value, 'assigned_to.coverage_provider');
+        const assignmentState = get(value, 'assigned_to.state');
 
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (
@@ -121,6 +118,13 @@ export class CoverageFormHeader extends React.Component {
                             </span>
                         </ListRow>
                     )}
+                    {assignmentState &&
+                        <ListRow>
+                            <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                                <StateLabel item={get(value, 'assigned_to', {})}/>
+                            </span>
+                        </ListRow>
+                    }
                 </Column>
                 {!isExistingCoverage && (
                     <Column>
@@ -157,5 +161,5 @@ CoverageFormHeader.propTypes = {
     desks: PropTypes.array,
     coverageProviders: PropTypes.array,
     priorities: PropTypes.array,
-    currentWorkspace: PropTypes.string,
+    currentWorkspace: PropTypes.string
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, cloneDeep, remove as _remove, some} from 'lodash';
+import {get, cloneDeep, remove as _remove, some, isEqual} from 'lodash';
 import * as selectors from '../../../selectors';
 
 import {gettext, getItemInArrayById, planningUtils} from '../../../utils';
@@ -20,7 +20,7 @@ import {ToggleBox} from '../../UI';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
 import {CoverageArrayInput} from '../../Coverages';
 import {EventMetadata} from '../../Events';
-import {ITEM_TYPE, PLANNING} from '../../../constants';
+import {ASSIGNMENTS, ITEM_TYPE, PLANNING} from '../../../constants';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
 const toggleDetails = [
@@ -165,6 +165,34 @@ export class PlanningEditorComponent extends React.Component {
         }
 
         this.props.onChangeHandler(field, valueToUpdate);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        // if the assignment associated with the planning item are modified
+
+        if (get(this.props, 'item._id') === get(nextProps, 'item._id')) {
+            const storedCoverages = get(nextProps, 'item.coverages') || [];
+            const diffCoverages = get(this.props, 'diff.coverages') || [];
+
+            if (get(storedCoverages, 'length', 0) > 0) {
+                storedCoverages.forEach((coverage) => {
+                    if (get(coverage, 'assigned_to', '') !== ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED) {
+                        const index = diffCoverages.findIndex((c) => c.coverage_id === coverage.coverage_id);
+
+                        if (index >= 0) {
+                            const diffCoverage = diffCoverages[index];
+                            const storedAssigmentState = get(coverage, 'assigned_to.state');
+
+                            if (diffCoverage && storedAssigmentState &&
+                                storedAssigmentState !== ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
+                                !isEqual(diffCoverage.assigned_to, coverage.assigned_to)) {
+                                this.onChange(`coverages[${index}].assigned_to`, coverage.assigned_to);
+                            }
+                        }
+                    }
+                });
+            }
+        }
     }
 
     componentDidMount() {

@@ -6,6 +6,7 @@ import moment from 'moment-timezone';
 
 import {Item, Column, Row, Border, ActionMenu} from '../UI/List';
 import {UserAvatar} from '../';
+import {StateLabel} from '../../components';
 
 import {getCoverageIcon, getCreator, getItemInArrayById, getDateTimeString, gettext, stringUtils} from '../../utils';
 
@@ -29,22 +30,6 @@ export const CoverageItem = ({
         <Item noBg={true}>
             <Border/>
 
-            <Column border={false}>
-                {userAssigned ? (
-                    <UserAvatar
-                        user={userAssigned}
-                        small={false}
-                    />
-                ) : (
-                    <UserAvatar
-                        empty={true}
-                        noMargin={true}
-                        initials={false}
-                        small={false}
-                    />
-                )}
-            </Column>
-
             <Column grow={true} border={false}>
                 <Row>
                     <i className={classNames(
@@ -58,6 +43,11 @@ export const CoverageItem = ({
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {stringUtils.capitalize(get(coverage, 'planning.g2_content_type', ''))}
                     </span>
+                    {get(coverage, 'assigned_to.state') &&
+                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                            <StateLabel item={get(coverage, 'assigned_to', {})}/>
+                        </span>
+                    }
                     <time>
                         <i className="icon-time"/>
                         {coverageDateText}

@@ -7,7 +7,7 @@ export const Select = ({field, value, onChange, options, readOnly, clearable}) =
         value={value}
         onChange={(e) => onChange(field, e.target.value)}
         name={field}
-        disabled={readOnly}
+        disabled={readOnly ? 'disabled' : ''}
     >
         {clearable && (
             <option value="" />
