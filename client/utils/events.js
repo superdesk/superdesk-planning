@@ -353,70 +353,79 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks) => {
     Object.keys(callBacks).forEach((callBackName) => {
         switch (callBackName) {
         case EVENTS.ITEM_ACTIONS.DUPLICATE.actionName:
-            actions.push({
-                ...EVENTS.ITEM_ACTIONS.DUPLICATE,
-                callback: callBacks[callBackName].bind(null, item)
-            });
+            callBacks[callBackName] &&
+                actions.push({
+                    ...EVENTS.ITEM_ACTIONS.DUPLICATE,
+                    callback: callBacks[callBackName].bind(null, item)
+                });
             break;
 
         case EVENTS.ITEM_ACTIONS.SPIKE.actionName:
-            actions.push({
-                ...EVENTS.ITEM_ACTIONS.SPIKE,
-                callback: callBacks[callBackName].bind(null, item)
-            });
+            callBacks[callBackName] &&
+                actions.push({
+                    ...EVENTS.ITEM_ACTIONS.SPIKE,
+                    callback: callBacks[callBackName].bind(null, item)
+                });
             break;
 
         case EVENTS.ITEM_ACTIONS.UNSPIKE.actionName:
-            actions.push({
-                ...EVENTS.ITEM_ACTIONS.UNSPIKE,
-                callback: callBacks[callBackName].bind(null, item)
-            });
+            callBacks[callBackName] &&
+                actions.push({
+                    ...EVENTS.ITEM_ACTIONS.UNSPIKE,
+                    callback: callBacks[callBackName].bind(null, item)
+                });
             break;
 
         case EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName:
-            actions.push({
-                ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
-                callback: callBacks[callBackName].bind(null, item)
-            });
+            callBacks[callBackName] &&
+                actions.push({
+                    ...EVENTS.ITEM_ACTIONS.CANCEL_EVENT,
+                    callback: callBacks[callBackName].bind(null, item)
+                });
             break;
 
         case EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName:
-            actions.push({
-                ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
-                callback: callBacks[callBackName].bind(null, item)
-            });
+            callBacks[callBackName] &&
+                actions.push({
+                    ...EVENTS.ITEM_ACTIONS.POSTPONE_EVENT,
+                    callback: callBacks[callBackName].bind(null, item)
+                });
             break;
 
         case EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName:
-            actions.push({
-                ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
-                callback: callBacks[callBackName].bind(null, item)
-            });
+            callBacks[callBackName] &&
+                actions.push({
+                    ...EVENTS.ITEM_ACTIONS.UPDATE_TIME,
+                    callback: callBacks[callBackName].bind(null, item)
+                });
             break;
 
         case EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName:
-            actions.push({
-                ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
-                callback: callBacks[callBackName].bind(null, item)
-            });
+            callBacks[callBackName] &&
+                actions.push({
+                    ...EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT,
+                    callback: callBacks[callBackName].bind(null, item)
+                });
             break;
 
         case EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName:
-            actions.push({
-                ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
-                callback: callBacks[callBackName].bind(null, item)
-            });
+            callBacks[callBackName] &&
+                actions.push({
+                    ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
+                    callback: callBacks[callBackName].bind(null, item)
+                });
             break;
         }
     });
 
-    actions.push(
-        GENERIC_ITEM_ACTIONS.DIVIDER,
-        {
-            ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
-            callback: callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName].bind(null, item),
-        }
-    );
+    callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName] &&
+        actions.push(
+            GENERIC_ITEM_ACTIONS.DIVIDER,
+            {
+                ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
+                callback: callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName].bind(null, item),
+            }
+        );
 
     return getEventItemActions(
         item,
