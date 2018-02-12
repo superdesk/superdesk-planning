@@ -45,6 +45,7 @@ export const CoveragePreview = ({coverage, users, desks, newsCoverageStatus, dat
             dateFormat={dateFormat}
             timeFormat={timeFormat}
             readOnly={true}
+            isPreview={true}
         />
     );
 

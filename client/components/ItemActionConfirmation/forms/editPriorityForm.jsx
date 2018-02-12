@@ -21,7 +21,7 @@ export class EditPriorityComponent extends React.Component {
     }
 
     componentWillMount() {
-        const priorityQcode = get(this.props, 'initialValues.priority') || null;
+        const priorityQcode = get(this.props, 'initialValues.priority');
         const priority = priorityQcode ?
             getItemInArrayById(this.props.priorities, priorityQcode, 'qcode') :
             null;

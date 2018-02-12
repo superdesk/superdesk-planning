@@ -34,7 +34,7 @@ export class AssignmentEditorComponent extends React.Component {
         const filteredUsers = getUsersForDesk(desk, props.users);
         const filteredDesks = getDesksForUser(user, props.desks);
 
-        const priorityQcode = get(props.value, this.FIELDS.PRIORITY) || ASSIGNMENTS.DEFAULT_PRIORITY;
+        const priorityQcode = get(props.value, this.FIELDS.PRIORITY);
         const priority = getItemInArrayById(props.priorities, priorityQcode, 'qcode');
 
         const errors = {};
@@ -60,6 +60,12 @@ export class AssignmentEditorComponent extends React.Component {
     componentWillMount() {
         // Force field validation
         this.onChange(null, null);
+        if (!this.state.priorityQcode) {
+            this.onPriorityChange(
+                this.FIELDS.PRIORITY,
+                getItemInArrayById(this.props.priorities, ASSIGNMENTS.DEFAULT_PRIORITY, 'qcode')
+            );
+        }
     }
 
     componentWillReceiveProps(nextProps) {

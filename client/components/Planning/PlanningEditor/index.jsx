@@ -176,7 +176,7 @@ export class PlanningEditorComponent extends React.Component {
 
             if (get(storedCoverages, 'length', 0) > 0) {
                 storedCoverages.forEach((coverage) => {
-                    if (get(coverage, 'assigned_to', '') !== ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED) {
+                    if (get(coverage, 'assigned_to.state', '') !== ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED) {
                         const index = diffCoverages.findIndex((c) => c.coverage_id === coverage.coverage_id);
 
                         if (index >= 0) {

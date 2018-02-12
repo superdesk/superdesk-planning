@@ -58,7 +58,7 @@ const reloadAssignments = (filterByState) => (
 const updatePreviewItemOnRouteUpdate = () => (
     (dispatch, getState, {$location, notify, desks}) => {
         // Load assignment item in URL
-        const urlItem = $location.search().item;
+        const urlItem = $location.search().assignment;
 
         if (urlItem && urlItem !== get(selectors.getCurrentAssignment(getState()), '_id')) {
             const assignment =
@@ -80,7 +80,7 @@ const updatePreviewItemOnRouteUpdate = () => (
                                 return dispatch(self.preview(item));
                             } else {
                                 notify.error('Insufficient privileges to view the assignment');
-                                $location.search('item', null);
+                                $location.search('assignment', null);
                                 return dispatch(self.closePreview());
                             }
                         }
@@ -283,7 +283,7 @@ const preview = (assignment) => (
     (dispatch, getState, {$timeout, $location}) => (
         dispatch(assignments.api.loadPlanningAndEvent(assignment))
             .then(() => {
-                $timeout(() => $location.search('item', get(assignment, '_id', null)));
+                $timeout(() => $location.search('assignment', get(assignment, '_id', null)));
                 return dispatch({
                     type: ASSIGNMENTS.ACTIONS.PREVIEW_ASSIGNMENT,
                     payload: assignment,
@@ -298,7 +298,7 @@ const preview = (assignment) => (
  */
 const closePreview = () => (
     (dispatch, getState, {$timeout, $location}) => {
-        $timeout(() => $location.search('item', null));
+        $timeout(() => $location.search('assignment', null));
         return dispatch({type: ASSIGNMENTS.ACTIONS.CLOSE_PREVIEW_ASSIGNMENT});
     }
 );

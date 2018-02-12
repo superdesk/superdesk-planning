@@ -4,6 +4,7 @@ import {get} from 'lodash';
 import {getCreator, getItemInArrayById, gettext} from '../../../utils';
 import {WORKSPACE} from '../../../constants';
 import {Item, Border, Column, Row as ListRow} from '../../UI/List';
+import {UserAvatar} from '../../';
 import {AssignmentPopup} from '../../Assignments';
 import {StateLabel} from '../../../components';
 

@@ -550,7 +550,7 @@ describe('actions.assignments.ui', () => {
         it('Previews assignment if already in store', (done) => {
             store.services['$location'] = {
                 ...store.services['$location'],
-                search: sinon.stub().callsFake(() => ({item: 'as1'})),
+                search: sinon.stub().callsFake(() => ({assignment: 'as1'})),
             };
 
             return store.test(done, assignmentsUi.updatePreviewItemOnRouteUpdate())
@@ -563,7 +563,7 @@ describe('actions.assignments.ui', () => {
         it('Fetches assignment if not in store', (done) => {
             store.services['$location'] = {
                 ...store.services['$location'],
-                search: sinon.stub().callsFake(() => ({item: 'as3'}))
+                search: sinon.stub().callsFake(() => ({assignment: 'as3'}))
             };
 
             sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (Promise.resolve(newAssignment)));
@@ -577,7 +577,7 @@ describe('actions.assignments.ui', () => {
         it('Does not preview assignment if user is not part of assignment item desk', (done) => {
             store.services['$location'] = {
                 ...store.services['$location'],
-                search: sinon.stub().callsFake(() => ({item: 'as4'})),
+                search: sinon.stub().callsFake(() => ({assignment: 'as4'})),
             };
 
             sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (Promise.resolve(restrictedAssignment)));
@@ -594,7 +594,7 @@ describe('actions.assignments.ui', () => {
         it('Notifies if assignment does not exist', (done) => {
             store.services['$location'] = {
                 ...store.services['$location'],
-                search: sinon.stub().callsFake(() => ({item: 'as5'})),
+                search: sinon.stub().callsFake(() => ({assignment: 'as5'})),
             };
 
             sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (Promise.reject()));
