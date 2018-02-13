@@ -212,29 +212,22 @@ const onEventPostponed = (e, data) => (
 );
 
 const onEventPublishChanged = (e, data) => (
-    (dispatch, getState) => {
+    (dispatch) => {
         if (get(data, 'item')) {
-            // Just update the event in store with updates and etag
-            const events = selectors.getEvents(getState());
-
-            let eventInStore = get(events, data.item, {});
-
-            eventInStore = {
-                ...eventInStore,
-                _id: data.item,
-                state: data.state,
-                pubstatus: data.pubstatus,
-                _etag: data.etag,
-            };
-
             dispatch({
                 type: data.state === WORKFLOW_STATE.SCHEDULED ?
                     EVENTS.ACTIONS.MARK_EVENT_PUBLISHED :
                     EVENTS.ACTIONS.MARK_EVENT_UNPUBLISHED,
-                payload: {event: eventInStore},
+                payload: {
+                    item: data.item,
+                    items: get(data, 'items', [{
+                        id: data.item,
+                        etag: data.etag
+                    }]),
+                    state: data.state,
+                    pubstatus: data.pubstatus,
+                },
             });
-
-            return Promise.resolve(eventInStore);
         }
 
         return Promise.resolve();
@@ -291,7 +284,9 @@ self.events = {
     'events:reschedule:recurring': () => (self.onEventScheduleChanged),
     'events:postpone': () => (self.onEventPostponed),
     'events:published': () => (self.onEventPublishChanged),
+    'events:published:recurring': () => (self.onEventPublishChanged),
     'events:unpublished': () => (self.onEventPublishChanged),
+    'events:unpublished:recurring': () => (self.onEventPublishChanged),
     'events:spiked:recurring': () => (self.onRecurringEventSpiked),
     'events:update_time': () => (self.onEventScheduleChanged),
     'events:update_time:recurring': () => (self.onEventScheduleChanged),

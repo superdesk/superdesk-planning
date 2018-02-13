@@ -161,8 +161,30 @@ describe('actions.events.notifications', () => {
             }, delay);
         });
 
+        it('`events:published:recurring` calls onEventPublishChanged', (done) => {
+            $rootScope.$broadcast('events:published:recurring', {item: 'e1'});
+
+            setTimeout(() => {
+                expect(eventsNotifications.onEventPublishChanged.callCount).toBe(1);
+                expect(eventsNotifications.onEventPublishChanged.args[0][1]).toEqual({item: 'e1'});
+
+                done();
+            }, delay);
+        });
+
         it('`events:unpublished` calls onEventPublishChanged', (done) => {
             $rootScope.$broadcast('events:unpublished', {item: 'e1'});
+
+            setTimeout(() => {
+                expect(eventsNotifications.onEventPublishChanged.callCount).toBe(1);
+                expect(eventsNotifications.onEventPublishChanged.args[0][1]).toEqual({item: 'e1'});
+
+                done();
+            }, delay);
+        });
+
+        it('`events:unpublished:recurring` calls onEventPublishChanged', (done) => {
+            $rootScope.$broadcast('events:unpublished:recurring', {item: 'e1'});
 
             setTimeout(() => {
                 expect(eventsNotifications.onEventPublishChanged.callCount).toBe(1);
@@ -201,7 +223,7 @@ describe('actions.events.notifications', () => {
                     item: data.events[0]._id,
                     state: 'scheduled',
                     pubstatus: 'usable',
-                    etag: 'e123',
+                    etag: data.events[0]._etag,
                 }
             ))
                 .then(() => {
@@ -209,12 +231,57 @@ describe('actions.events.notifications', () => {
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'MARK_EVENT_PUBLISHED',
                         payload: {
-                            event: {
-                                ...store.initialState.events.events.e1,
-                                state: 'scheduled',
-                                pubstatus: 'usable',
-                                _etag: 'e123',
-                            },
+                            item: data.events[0]._id,
+                            items: [{
+                                id: data.events[0]._id,
+                                etag: data.events[0]._etag
+                            }],
+                            state: 'scheduled',
+                            pubstatus: 'usable',
+                        },
+                    }]);
+                    done();
+                })
+        ));
+
+        it('dispatches `MARK_EVENT_PUBLISHED` for multiple events', (done) => (
+            store.test(done, eventsNotifications.onEventPublishChanged(
+                {},
+                {
+                    item: data.events[0]._id,
+                    items: [{
+                        id: data.events[0]._id,
+                        etag: data.events[0]._etag
+                    }, {
+                        id: data.events[1]._id,
+                        etag: data.events[1]._etag
+                    }, {
+                        id: data.events[2]._id,
+                        etag: data.events[2]._etag
+                    }],
+                    state: 'scheduled',
+                    pubstatus: 'usable',
+                    etag: data.events[0]._etag,
+                }
+            ))
+                .then(() => {
+                    expect(store.dispatch.callCount).toBe(1);
+                    expect(store.dispatch.args[0]).toEqual([{
+                        type: 'MARK_EVENT_PUBLISHED',
+                        payload: {
+                            item: data.events[0]._id,
+                            items: [{
+                                id: data.events[0]._id,
+                                etag: data.events[0]._etag
+                            }, {
+                                id: data.events[1]._id,
+                                etag: data.events[1]._etag
+                            }, {
+                                id: data.events[2]._id,
+                                etag: data.events[2]._etag
+                            }],
+                            state: 'scheduled',
+                            pubstatus: 'usable',
                         },
                     }]);
                     done();
@@ -236,12 +303,57 @@ describe('actions.events.notifications', () => {
                     expect(store.dispatch.args[0]).toEqual([{
                         type: 'MARK_EVENT_UNPUBLISHED',
                         payload: {
-                            event: {
-                                ...store.initialState.events.events.e1,
-                                state: 'killed',
-                                pubstatus: 'cancelled',
-                                _etag: 'e123',
-                            },
+                            item: data.events[0]._id,
+                            items: [{
+                                id: data.events[0]._id,
+                                etag: data.events[0]._etag
+                            }],
+                            state: 'killed',
+                            pubstatus: 'cancelled',
+                        },
+                    }]);
+                    done();
+                })
+        ));
+
+        it('dispatches `MARK_EVENT_UNPUBLISHED` for multiple events', (done) => (
+            store.test(done, eventsNotifications.onEventPublishChanged(
+                {},
+                {
+                    item: data.events[0]._id,
+                    items: [{
+                        id: data.events[0]._id,
+                        etag: data.events[0]._etag
+                    }, {
+                        id: data.events[1]._id,
+                        etag: data.events[1]._etag
+                    }, {
+                        id: data.events[2]._id,
+                        etag: data.events[2]._etag
+                    }],
+                    state: 'killed',
+                    pubstatus: 'cancelled',
+                    etag: 'e123',
+                }
+            ))
+                .then(() => {
+                    expect(store.dispatch.callCount).toBe(1);
+                    expect(store.dispatch.args[0]).toEqual([{
+                        type: 'MARK_EVENT_UNPUBLISHED',
+                        payload: {
+                            item: data.events[0]._id,
+                            items: [{
+                                id: data.events[0]._id,
+                                etag: data.events[0]._etag
+                            }, {
+                                id: data.events[1]._id,
+                                etag: data.events[1]._etag
+                            }, {
+                                id: data.events[2]._id,
+                                etag: data.events[2]._etag
+                            }],
+                            state: 'killed',
+                            pubstatus: 'cancelled',
                         },
                     }]);
                     done();

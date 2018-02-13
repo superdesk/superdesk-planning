@@ -28,6 +28,7 @@ export class ModalWithForm extends React.Component {
     }
 
     submit() {
+        this.setState({submitting: true});
         // Call the submit method of the form Component
         this.getFormInstance().submit();
     }

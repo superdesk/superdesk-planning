@@ -4,7 +4,6 @@ import planningApi from '../../planning/api';
 import {PRIVILEGES} from '../../../constants';
 import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub, expectAccessDenied} from '../../../utils/testUtils';
-import moment from 'moment';
 
 describe('actions.events.ui', () => {
     let errorMessage;
@@ -438,37 +437,6 @@ describe('actions.events.ui', () => {
     });
 
     describe('publishEvent', () => {
-        const event = {
-            _id: 'e1',
-            dates: {start: moment('2099-10-15T12:30+0000')},
-            _recurring: [
-                {
-                    _id: 'e1',
-                    dates: {start: moment('2099-10-15T12:30+0000')},
-                },
-                {
-                    _id: 'e2',
-                    dates: {start: moment('2099-10-16T12:30+0000')},
-                },
-                {
-                    _id: 'e3',
-                    dates: {start: moment('2099-10-17T12:30+0000')},
-                },
-                {
-                    _id: 'e4',
-                    dates: {start: moment('2099-10-18T12:30+0000')},
-                },
-                {
-                    _id: 'e5',
-                    dates: {start: moment('2099-10-19T12:30+0000')},
-                },
-                {
-                    _id: 'e6',
-                    dates: {start: moment('2099-10-20T12:30+0000')},
-                },
-            ],
-        };
-
         it('publishes a single event', (done) => (
             store.test(done, eventsUi.publishEvent(data.events[0]))
                 .then((publishedEvent) => {
@@ -478,7 +446,7 @@ describe('actions.events.ui', () => {
                     expect(eventsApi.publishEvent.args[0]).toEqual([data.events[0]]);
 
                     expect(services.notify.success.callCount).toBe(1);
-                    expect(services.notify.success.args[0]).toEqual(['The event has been published']);
+                    expect(services.notify.success.args[0]).toEqual(['The event(s) has been published']);
 
                     expect(eventsUi.closeEventDetails.callCount).toBe(1);
 
@@ -488,55 +456,23 @@ describe('actions.events.ui', () => {
 
         it('publishes all events in a series of recurring events', (done) => (
             store.test(done, eventsUi.publishEvent({
-                ...event,
+                ...data.events[0],
                 update_method: {value: 'all'},
             }))
                 .then((publishedEvents) => {
-                    expect(publishedEvents).toEqual(event._recurring);
+                    expect(publishedEvents).toEqual({
+                        ...data.events[0],
+                        update_method: {value: 'all'},
+                    });
 
-                    expect(eventsApi.publishEvent.callCount).toBe(6);
-                    expect(eventsApi.publishEvent.args[0]).toEqual([event._recurring[0]]);
-                    expect(eventsApi.publishEvent.args[1]).toEqual([event._recurring[1]]);
-                    expect(eventsApi.publishEvent.args[2]).toEqual([event._recurring[2]]);
-                    expect(eventsApi.publishEvent.args[3]).toEqual([event._recurring[3]]);
-                    expect(eventsApi.publishEvent.args[4]).toEqual([event._recurring[4]]);
-                    expect(eventsApi.publishEvent.args[5]).toEqual([event._recurring[5]]);
+                    expect(eventsApi.publishEvent.callCount).toBe(1);
+                    expect(eventsApi.publishEvent.args[0]).toEqual([{
+                        ...data.events[0],
+                        update_method: {value: 'all'}
+                    }]);
 
-                    expect(services.notify.pop.callCount).toBe(2);
-                    expect(services.notify.success.callCount).toBe(2);
-                    expect(services.notify.success.args[0]).toEqual(['Published 5/6 Events']);
-                    expect(services.notify.success.args[1]).toEqual(['Published 6 Events']);
-
-                    expect(eventsUi.closeEventDetails.callCount).toBe(1);
-
-                    done();
-                })
-        ));
-
-        it('publishes future events in a series of recurring events', (done) => (
-            store.test(done, eventsUi.publishEvent({
-                ...event,
-                _id: 'e3',
-                dates: {start: moment('2099-10-17T12:30+0000')},
-                update_method: {value: 'future'},
-            }))
-                .then((publishedEvents) => {
-                    expect(publishedEvents).toEqual([
-                        event._recurring[2],
-                        event._recurring[3],
-                        event._recurring[4],
-                        event._recurring[5],
-                    ]);
-
-                    expect(eventsApi.publishEvent.callCount).toBe(4);
-                    expect(eventsApi.publishEvent.args[0]).toEqual([event._recurring[2]]);
-                    expect(eventsApi.publishEvent.args[1]).toEqual([event._recurring[3]]);
-                    expect(eventsApi.publishEvent.args[2]).toEqual([event._recurring[4]]);
-                    expect(eventsApi.publishEvent.args[3]).toEqual([event._recurring[5]]);
-
-                    expect(services.notify.pop.callCount).toBe(1);
                     expect(services.notify.success.callCount).toBe(1);
-                    expect(services.notify.success.args[0]).toEqual(['Published 4 Events']);
+                    expect(services.notify.success.args[0]).toEqual(['The event(s) has been published']);
 
                     expect(eventsUi.closeEventDetails.callCount).toBe(1);
 
