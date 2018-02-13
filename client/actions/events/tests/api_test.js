@@ -785,6 +785,7 @@ describe('actions.events.api', () => {
                         event: data.events[0]._id,
                         etag: data.events[0]._etag,
                         pubstatus: 'usable',
+                        update_method: 'single',
                     },
                 ]);
                 done();
@@ -801,6 +802,7 @@ describe('actions.events.api', () => {
                         event: data.events[0]._id,
                         etag: data.events[0]._etag,
                         pubstatus: 'cancelled',
+                        update_method: 'single',
                     }
                 ]);
                 done();

@@ -302,21 +302,40 @@ Event Postponed
 });
 
 const onEventPublishChanged = (state, payload) => {
-    // If the event is not loaded, disregard this action
-    if (!(payload.event._id in state.events)) return state;
+    // If there is only 1 event and that event is not loaded,
+    // then disregard this action
+    if (get(payload, 'items.length', 0) === 1 && !get(state.events, payload.item))
+        return state;
 
+    // Otherwise iterate over the items and mark them
+    // with their new etag, state and pubstatus values
     let events = cloneDeep(state.events);
-    const newEvent = payload.event;
-    let event = events[newEvent._id];
 
-    event.state = newEvent.state;
-    event.pubstatus = newEvent.pubstatus;
-    event._etag = newEvent._etag;
+    payload.items.forEach((event) =>
+        updateEventPubstatus(
+            events,
+            event.id,
+            event.etag,
+            payload.state,
+            payload.pubstatus
+        )
+    );
 
     return {
         ...state,
         events,
     };
+};
+
+const updateEventPubstatus = (events, eventId, etag, state, pubstatus) => {
+    // If the event is not loaded, disregard this action
+    if (!(eventId in events)) return;
+
+    const updatedEvent = events[eventId];
+
+    updatedEvent.state = state;
+    updatedEvent.pubstatus = pubstatus;
+    updatedEvent._etag = etag;
 };
 
 const markEventCancelled = (events, eventId, etag, reason, occurStatus) => {

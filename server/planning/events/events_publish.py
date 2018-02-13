@@ -3,13 +3,14 @@ from flask import abort
 from eve.utils import config
 
 from superdesk import get_resource_service
-from superdesk.resource import Resource
-from superdesk.services import BaseService
+from superdesk.resource import Resource, not_analyzed
 from apps.publish.enqueue import get_enqueue_service
 from superdesk.notification import push_notification
 
 from .events import EventsResource
-from planning.common import WORKFLOW_STATE, PUBLISHED_STATE, published_state
+from .events_base_service import EventsBaseService
+from planning.common import WORKFLOW_STATE, PUBLISHED_STATE, published_state,\
+    UPDATE_SINGLE, UPDATE_METHODS, UPDATE_FUTURE
 
 
 class EventsPublishResource(EventsResource):
@@ -17,6 +18,14 @@ class EventsPublishResource(EventsResource):
         'event': Resource.rel('events', type='string', required=True),
         'etag': {'type': 'string', 'required': True},
         'pubstatus': {'type': 'string', 'required': True, 'allowed': published_state},
+
+        # The update method used for recurring events
+        'update_method': {
+            'type': 'string',
+            'allowed': UPDATE_METHODS,
+            'mapping': not_analyzed,
+            'nullable': True
+        },
     }
 
     url = 'events/publish'
@@ -26,47 +35,100 @@ class EventsPublishResource(EventsResource):
     item_methods = []
 
 
-class EventsPublishService(BaseService):
+class EventsPublishService(EventsBaseService):
     def create(self, docs):
         ids = []
         for doc in docs:
             event = get_resource_service('events').find_one(req=None, _id=doc['event'], _etag=doc['etag'])
-            if event:
-                event['pubstatus'] = doc['pubstatus']
-                self.validate_event(event)
-                self.publish_event(event)
-                ids.append(doc['event'])
-            else:
+
+            if not event:
                 abort(412)
+
+            update_method = self.get_update_method(event, doc)
+
+            if update_method == UPDATE_SINGLE:
+                ids.extend(
+                    self._publish_single_event(doc, event)
+                )
+            else:
+                ids.extend(
+                    self._publish_recurring_events(doc, event, update_method)
+                )
         return ids
 
-    def validate_event(self, event):
+    @staticmethod
+    def validate_event(event):
         try:
             assert event.get('pubstatus') in published_state
         except AssertionError:
             abort(409)
+
+    def _publish_single_event(self, doc, event):
+        event['pubstatus'] = doc['pubstatus']
+        self.validate_event(event)
+        updated_event = self.publish_event(event)
+
+        event_type = 'events:published' if doc['pubstatus'] == PUBLISHED_STATE.USABLE else 'events:unpublished'
+        push_notification(
+            event_type,
+            item=event[config.ID_FIELD],
+            etag=updated_event['_etag'],
+            pubstatus=updated_event['pubstatus'],
+            state=updated_event['state']
+        )
+
+        return [doc['event']]
+
+    def _publish_recurring_events(self, doc, original, update_method):
+        historic, past, future = self.get_recurring_timeline(original)
+
+        # Determine if the selected event is the first one, if so then
+        # act as if we're changing future events
+        if len(historic) == 0 and len(past) == 0:
+            update_method = UPDATE_FUTURE
+
+        if update_method == UPDATE_FUTURE:
+            published_events = [original] + future
+        else:
+            published_events = historic + past + [original] + future
+
+        updated_event = None
+        ids = []
+        items = []
+        for event in published_events:
+            event['pubstatus'] = doc['pubstatus']
+            self.validate_event(event)
+            updated_event = self.publish_event(event)
+            ids.append(event[config.ID_FIELD])
+            items.append({
+                'id': event[config.ID_FIELD],
+                'etag': event['_etag']
+            })
+
+        event_type = 'events:published:recurring' if doc['pubstatus'] == PUBLISHED_STATE.USABLE \
+            else 'events:unpublished:recurring'
+
+        push_notification(
+            event_type,
+            item=original[config.ID_FIELD],
+            items=items,
+            pubstatus=updated_event['pubstatus'],
+            state=updated_event['state']
+        )
+
+        return ids
 
     def publish_event(self, event):
         event.setdefault(config.VERSION, 1)
         event.setdefault('item_id', event['_id'])
         get_enqueue_service('publish').enqueue_item(event, 'event')
         updates = {'state': self._get_publish_state(event), 'pubstatus': event['pubstatus']}
-        updatedEvent = get_resource_service('events').update(event['_id'], updates, event)
+        updated_event = get_resource_service('events').update(event['_id'], updates, event)
         get_resource_service('events_history')._save_history(event, updates, 'publish')
+        return updated_event
 
-        event_type = 'events:published'
-        if updatedEvent['state'] == WORKFLOW_STATE.KILLED:
-            event_type = 'events:unpublished'
-
-        push_notification(
-            event_type,
-            item=event[config.ID_FIELD],
-            etag=updatedEvent['_etag'],
-            pubstatus=updatedEvent['pubstatus'],
-            state=updatedEvent['state']
-        )
-
-    def _get_publish_state(self, event):
+    @staticmethod
+    def _get_publish_state(event):
         if event.get('pubstatus') == PUBLISHED_STATE.CANCELLED:
             return WORKFLOW_STATE.KILLED
         return WORKFLOW_STATE.SCHEDULED

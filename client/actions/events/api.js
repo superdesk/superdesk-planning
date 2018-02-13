@@ -700,6 +700,7 @@ const publishEvent = (event) => (
             event: event._id,
             etag: event._etag,
             pubstatus: PUBLISHED_STATE.USABLE,
+            update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
         })
     )
 );
@@ -776,6 +777,7 @@ const unpublish = (event) => (
             event: event._id,
             etag: event._etag,
             pubstatus: PUBLISHED_STATE.CANCELLED,
+            update_method: get(event, 'update_method.value', EventUpdateMethods[0].value),
         })
     )
 );

@@ -24,11 +24,15 @@ describe('events', () => {
                     _id: 'e2',
                     name: 'name 2',
                     dates: {start: '2014-10-15T14:01:11+0000'},
+                    state: 'draft',
+                    _etag: 'e456',
                 },
                 e3: {
                     _id: 'e3',
                     name: 'name 3',
                     dates: {start: '2015-10-15T14:01:11+0000'},
+                    state: 'draft',
+                    _etag: 'e789',
                 },
             };
         });
@@ -88,12 +92,13 @@ describe('events', () => {
             const result = events(initialState, {
                 type: 'MARK_EVENT_PUBLISHED',
                 payload: {
-                    event: {
-                        _id: 'e1',
-                        state: 'scheduled',
-                        pubstatus: 'usable',
-                        _etag: 'e123',
-                    },
+                    item: 'e1',
+                    items: [{
+                        id: 'e1',
+                        etag: 'e123'
+                    }],
+                    state: 'scheduled',
+                    pubstatus: 'usable',
                 },
             });
 
@@ -105,17 +110,56 @@ describe('events', () => {
             });
         });
 
+        it('MARK_EVENT_PUBLISHED on multiple events', () => {
+            initialState.events = items;
+            const result = events(initialState, {
+                type: 'MARK_EVENT_PUBLISHED',
+                payload: {
+                    item: 'e1',
+                    items: [
+                        {id: 'e1', etag: 'e123'},
+                        {id: 'e2', etag: 'e456'},
+                        {id: 'e3', etag: 'e789'},
+                    ],
+                    state: 'scheduled',
+                    pubstatus: 'usable',
+                },
+            });
+
+            expect(result.events.e1).toEqual({
+                ...items.e1,
+                state: 'scheduled',
+                pubstatus: 'usable',
+                _etag: 'e123',
+            });
+
+            expect(result.events.e2).toEqual({
+                ...items.e2,
+                state: 'scheduled',
+                pubstatus: 'usable',
+                _etag: 'e456',
+            });
+
+            expect(result.events.e3).toEqual({
+                ...items.e3,
+                state: 'scheduled',
+                pubstatus: 'usable',
+                _etag: 'e789',
+            });
+        });
+
         it('MARK_EVENT_UNPUBLISHED', () => {
             initialState.events = items;
             const result = events(initialState, {
                 type: 'MARK_EVENT_UNPUBLISHED',
                 payload: {
-                    event: {
-                        _id: 'e1',
-                        state: 'killed',
-                        pubstatus: 'cancelled',
-                        _etag: 'e123',
-                    },
+                    item: 'e1',
+                    items: [{
+                        id: 'e1',
+                        etag: 'e123'
+                    }],
+                    state: 'killed',
+                    pubstatus: 'cancelled',
                 },
             });
 
@@ -124,6 +168,44 @@ describe('events', () => {
                 state: 'killed',
                 pubstatus: 'cancelled',
                 _etag: 'e123',
+            });
+        });
+
+        it('MARK_EVENT_UNPUBLISHED on multiple events', () => {
+            initialState.events = items;
+            const result = events(initialState, {
+                type: 'MARK_EVENT_UNPUBLISHED',
+                payload: {
+                    item: 'e1',
+                    items: [
+                        {id: 'e1', etag: 'e123'},
+                        {id: 'e2', etag: 'e456'},
+                        {id: 'e3', etag: 'e789'},
+                    ],
+                    state: 'killed',
+                    pubstatus: 'cancelled',
+                },
+            });
+
+            expect(result.events.e1).toEqual({
+                ...items.e1,
+                state: 'killed',
+                pubstatus: 'cancelled',
+                _etag: 'e123',
+            });
+
+            expect(result.events.e2).toEqual({
+                ...items.e2,
+                state: 'killed',
+                pubstatus: 'cancelled',
+                _etag: 'e456',
+            });
+
+            expect(result.events.e3).toEqual({
+                ...items.e3,
+                state: 'killed',
+                pubstatus: 'cancelled',
+                _etag: 'e789',
             });
         });
 

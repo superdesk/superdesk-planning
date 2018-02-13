@@ -16,7 +16,7 @@ from superdesk.utc import utcnow
 from apps.auth import get_user_id
 from apps.archive.common import get_auth
 
-from planning.common import UPDATE_SINGLE, WORKFLOW_STATE
+from planning.common import UPDATE_SINGLE, WORKFLOW_STATE, get_max_recurrent_events
 from planning.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
 
 from eve.utils import config
@@ -56,11 +56,22 @@ class EventsBaseService(BaseService):
 
         # Run the specific method based on if the original is a single or a series of recurring events
         # Or if the 'update_method' is 'UPDATE_SINGLE'
-        update_method = updates.pop('update_method', UPDATE_SINGLE)
-        if not original.get('dates', {}).get('recurring_rule', None) or update_method == UPDATE_SINGLE:
+        update_method = self.get_update_method(original, updates)
+        if update_method == UPDATE_SINGLE:
             self.update_single_event(updates, original)
         else:
             self.update_recurring_events(updates, original, update_method)
+
+    @staticmethod
+    def get_update_method(event, updates):
+        update_method = updates.pop('update_method', UPDATE_SINGLE)
+
+        # If the Event is not a recurring series, then we can only update a single event
+        if not event.get('dates', {}).get('recurring_rule', None):
+            return UPDATE_SINGLE
+
+        # Otherwise we return the update_method supplied
+        return update_method
 
     def update(self, id, updates, original):
         """
@@ -99,10 +110,10 @@ class EventsBaseService(BaseService):
             )
 
     def update_single_event(self, updates, original):
-        raise NotImplementedError('BaseService._update_single_event not implemented')
+        pass
 
     def update_recurring_events(self, updates, original, update_method):
-        raise NotImplementedError('BaseService._update_recurring_events not implemented')
+        pass
 
     def validate(self, updates, original):
         """
@@ -196,7 +207,8 @@ class EventsBaseService(BaseService):
                     ]
                 }
             },
-            'sort': [{'dates.start': 'asc'}]
+            'sort': [{'dates.start': 'asc'}],
+            'size': get_max_recurrent_events()
         }
 
         for event in list(self.search(query)):

@@ -1,5 +1,5 @@
 import {showModal, hideModal, locks} from '../index';
-import {PRIVILEGES, EVENTS, PUBLISHED_STATE, MODALS, SPIKED_STATE, MAIN} from '../../constants';
+import {PRIVILEGES, EVENTS, MODALS, SPIKED_STATE, MAIN} from '../../constants';
 import eventsApi from './api';
 import {fetchSelectedAgendaPlannings} from '../agenda';
 import main from '../main';
@@ -14,7 +14,6 @@ import {
     dispatchUtils,
     gettext,
 } from '../../utils';
-import {EventUpdateMethods} from '../../components/Events';
 
 /**
  * Action Dispatcher to fetch events from the server
@@ -485,7 +484,10 @@ const saveAndPublish = (event, save = true, publish = false) => (
         return dispatch(eventsApi.save(event))
             .then((events) => {
                 if (publish) {
-                    return dispatch(self.publishEvent(events[0]))
+                    return dispatch(self.publishEvent({
+                        ...events[0],
+                        update_method: get(event, 'update_method')
+                    }))
                         .then(() => {
                             dispatch(hideModal());
                             return Promise.resolve(events);
@@ -540,67 +542,20 @@ const saveWithConfirmation = (event, save = true, publish = false) => (
 );
 
 const publishEvent = (event) => (
-    (dispatch, getState, {notify}) => {
-        const updateMethod = get(event, 'update_method.value', EventUpdateMethods[0].value);
-
-        if (get(event, '_recurring.length', 0) > 0 && updateMethod !== 'single') {
-            let recurring;
-
-            switch (updateMethod) {
-            case 'future':
-                recurring = event._recurring.filter((e) =>
-                    e.dates.start.isSameOrAfter(event.dates.start) &&
-                        get(e, 'pubstatus') !== PUBLISHED_STATE.USABLE
-                );
-                break;
-            case 'all':
-            default:
-                recurring = event._recurring.filter((e) =>
-                    get(e, 'pubstatus') !== PUBLISHED_STATE.USABLE
-                );
-                break;
-            }
-
-            const chunkSize = 5;
-            let promise = Promise.resolve();
-            let events = [];
-
-            for (let i = 0; i < Math.ceil(recurring.length / chunkSize); i++) {
-                let eventsChunk = recurring.slice(i * chunkSize, (i + 1) * chunkSize);
-
-                promise = promise.then(() => (
-                    Promise.all(
-                        eventsChunk.map((e) => dispatch(eventsApi.publishEvent(e)))
-                    )
-                        .then((data) => {
-                            data.forEach((e) => events.push(e));
-                            notify.pop();
-                            if (events.length < recurring.length) {
-                                notify.success(`Published ${events.length}/${recurring.length} Events`);
-                            }
-                        })
-                ));
-            }
-
-            return promise
-                .then(() => {
-                    notify.success(`Published ${recurring.length} Events`);
-                    dispatch(self.closeEventDetails());
-                    return Promise.resolve(events);
-                });
-        }
-
-        return dispatch(eventsApi.publishEvent(event))
+    (dispatch, getState, {notify}) => (
+        dispatch(eventsApi.publishEvent(event))
             .then((publishedEvent) => {
-                notify.success('The event has been published');
+                notify.success('The event(s) has been published');
                 dispatch(self.closeEventDetails());
                 return Promise.resolve(publishedEvent);
             }, (error) => {
                 notify.error(
-                    getErrorMessage(error, 'Failed to publish the Event!')
+                    getErrorMessage(error, 'Failed to publish the Event(s)!')
                 );
-            });
-    }
+
+                return Promise.reject(error);
+            })
+    )
 );
 
 const unpublish = (event) => (
