@@ -8,8 +8,8 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
-from superdesk import get_resource_service
 from superdesk.errors import SuperdeskApiError
+from superdesk.utc import local_to_utc, utc_to_local
 from flask import current_app as app
 from eve.utils import config
 from copy import deepcopy
@@ -17,6 +17,8 @@ from copy import deepcopy
 from .events import EventsResource, events_schema
 from planning.common import remove_lock_information, UPDATE_FUTURE
 from .events_base_service import EventsBaseService
+
+from datetime import date, datetime
 
 
 class EventsUpdateTimeResource(EventsResource):
@@ -43,8 +45,7 @@ class EventsUpdateTimeService(EventsBaseService):
         self.set_planning_schedule(updates)
 
     def update_recurring_events(self, updates, original, update_method):
-        events_service = get_resource_service('events')
-        historic, past, future = events_service.get_recurring_timeline(original)
+        historic, past, future = self.get_recurring_timeline(original)
 
         # Determine if the selected event is the first one, if so then
         # act as if we're changing future events
@@ -59,9 +60,17 @@ class EventsUpdateTimeService(EventsBaseService):
         # Release the Lock on the selected Event
         remove_lock_information(updates)
 
-        # Calculate the delta between the original date/time and the updated date/time
-        start_delta = updates['dates']['start'] - original['dates']['start']
-        end_delta = updates['dates']['end'] - original['dates']['end']
+        # Get the timezone from the original Event (as the series was created with that timezone in mind)
+        timezone = original['dates']['tz']
+
+        # First find the hour and minute of the start date in local time
+        start_time = utc_to_local(timezone, updates['dates']['start']).time()
+
+        # Next convert that to seconds since midnight (which gives us a timedelta instance)
+        delta_since_midnight = datetime.combine(date.min, start_time) - datetime.min
+
+        # And calculate the new duration of the events
+        duration = updates['dates']['end'] - updates['dates']['start']
 
         for event in new_series:
             if not event.get(config.ID_FIELD):
@@ -69,9 +78,19 @@ class EventsUpdateTimeService(EventsBaseService):
 
             new_updates = {'dates': deepcopy(event['dates'])}
 
-            # Add the delta to the events original date/time
-            new_updates['dates']['start'] = event['dates']['start'] + start_delta
-            new_updates['dates']['end'] = event['dates']['end'] + end_delta
+            # Calculate midnight in local time for this occurrence
+            start_of_day_local = utc_to_local(timezone, event['dates']['start'])\
+                .replace(hour=0, minute=0, second=0)
+
+            # Then convert midnight in local time to UTC
+            start_date_time = local_to_utc(timezone, start_of_day_local)
+
+            # Finally add the delta since midnight
+            start_date_time += delta_since_midnight
+
+            # Set the new start and end times
+            new_updates['dates']['start'] = start_date_time
+            new_updates['dates']['end'] = start_date_time + duration
 
             # Set '_planning_schedule' on the Event item
             self.set_planning_schedule(new_updates)

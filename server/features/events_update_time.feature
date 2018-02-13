@@ -522,3 +522,321 @@ Feature: Events Update Time
             }
         }]}
         """
+
+    @auth
+    @notification
+    Scenario: Update time on a series with a 'rescheduled' event
+        Given we have sessions "/sessions"
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2029-11-18T22:00:00.000Z",
+                "end": "2029-11-19T02:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "count": 4,
+                    "endRepeatMode": "count",
+                    "byday": "MO"
+                }
+            },
+            "state": "draft"
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        Then we store "EVENT4" with 4 item
+        When we post to "/planning" with success
+        """
+        [{
+            "event_item": "#EVENT3._id#",
+            "slugline": "Friday Club"
+        }]
+        """
+        When we post to "/events/#EVENT3._id#/lock" with success
+        """
+        {"lock_action": "reschedule"}
+        """
+        When we perform reschedule on events "#EVENT3._id#"
+        """
+        {
+            "reason": "Changed to the next day!",
+            "dates": {
+                "start": "2029-12-04T01:00:00.000Z",
+                "end": "2029-12-04T05:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        Then we store "DUPLICATE" from last duplicated item
+        When we post to "/events/#EVENT2._id#/lock" with success
+        """
+        {"lock_action": "update_time"}
+        """
+        When we perform update_time on events "#EVENT2._id#"
+        """
+        {
+            "dates": {
+                "start": "2029-11-26T03:00:00.000Z",
+                "end": "2029-11-26T09:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "update_method": "all"
+        }
+        """
+        Then we get OK response
+        When we get "events"
+        Then we get list with 5 items
+        """
+        {"_items": [{
+            "_id": "#EVENT1._id#",
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "state": "draft",
+            "dates": {
+                "start": "2029-11-19T03:00:00+0000",
+                "end": "2029-11-19T09:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "_id": "#EVENT2._id#",
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "state": "draft",
+            "dates": {
+                "start": "2029-11-26T03:00:00+0000",
+                "end": "2029-11-26T09:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "_id": "#EVENT3._id#",
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "state": "rescheduled",
+            "dates": {
+                "start": "2029-12-02T22:00:00+0000",
+                "end": "2029-12-03T02:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "_id": "#DUPLICATE.id#",
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "state": "draft",
+            "dates": {
+                "start": "2029-12-04T03:00:00+0000",
+                "end": "2029-12-04T09:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "_id": "#EVENT4._id#",
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "state": "draft",
+            "dates": {
+                "start": "2029-12-10T03:00:00+0000",
+                "end": "2029-12-10T09:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }]}
+        """
+
+    @auth
+    @notification
+    Scenario: Update time on a series with a 'postponed' event
+        Given we have sessions "/sessions"
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2029-11-19T03:00:00.000Z",
+                "end": "2029-11-19T09:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "count": 4,
+                    "endRepeatMode": "count",
+                    "byday": "MO"
+                }
+            },
+            "state": "draft"
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        Then we store "EVENT4" with 4 item
+        When we post to "/planning" with success
+        """
+        [{
+            "event_item": "#EVENT3._id#",
+            "slugline": "Friday Club"
+        }]
+        """
+        When we post to "/events/#EVENT3._id#/lock" with success
+        """
+        {"lock_action": "postpone"}
+        """
+        When we perform postpone on events "#EVENT3._id#"
+        Then we get OK response
+        When we post to "/events/#EVENT2._id#/lock" with success
+        """
+        {"lock_action": "update_time"}
+        """
+        When we perform update_time on events "#EVENT2._id#"
+        """
+        {
+            "dates": {
+                "start": "2029-11-25T22:00:00.000Z",
+                "end": "2029-11-26T02:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "update_method": "all"
+        }
+        """
+        Then we get OK response
+        When we get "events"
+        Then we get list with 4 items
+        """
+        {"_items": [{
+            "_id": "#EVENT1._id#",
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "state": "draft",
+            "dates": {
+                "start": "2029-11-18T22:00:00+0000",
+                "end": "2029-11-19T02:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "_id": "#EVENT2._id#",
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "state": "draft",
+            "dates": {
+                "start": "2029-11-25T22:00:00+0000",
+                "end": "2029-11-26T02:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "_id": "#EVENT3._id#",
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "state": "postponed",
+            "dates": {
+                "start": "2029-12-03T03:00:00+0000",
+                "end": "2029-12-03T09:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "_id": "#EVENT4._id#",
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "state": "draft",
+            "dates": {
+                "start": "2029-12-09T22:00:00+0000",
+                "end": "2029-12-10T02:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }]}
+        """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Update time on a series with a 'cancelled' event
+        Given we have sessions "/sessions"
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2029-11-19T03:00:00.000Z",
+                "end": "2029-11-19T09:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "WEEKLY",
+                    "interval": 1,
+                    "count": 4,
+                    "endRepeatMode": "count",
+                    "byday": "MO"
+                }
+            },
+            "state": "draft"
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        Then we store "EVENT4" with 4 item
+        When we post to "/planning" with success
+        """
+        [{
+            "event_item": "#EVENT3._id#",
+            "slugline": "Friday Club"
+        }]
+        """
+        When we post to "/events/#EVENT3._id#/lock" with success
+        """
+        {"lock_action": "cancel"}
+        """
+        When we perform cancel on events "#EVENT3._id#"
+        Then we get OK response
+        When we post to "/events/#EVENT2._id#/lock" with success
+        """
+        {"lock_action": "update_time"}
+        """
+        When we perform update_time on events "#EVENT2._id#"
+        """
+        {
+            "dates": {
+                "start": "2029-11-25T22:00:00.000Z",
+                "end": "2029-11-25T23:30:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "update_method": "all"
+        }
+        """
+        Then we get OK response
+        When we get "events"
+        Then we get list with 4 items
+        """
+        {"_items": [{
+            "_id": "#EVENT1._id#",
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "state": "draft",
+            "dates": {
+                "start": "2029-11-18T22:00:00+0000",
+                "end": "2029-11-18T23:30:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "_id": "#EVENT2._id#",
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "state": "draft",
+            "dates": {
+                "start": "2029-11-25T22:00:00+0000",
+                "end": "2029-11-25T23:30:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "_id": "#EVENT3._id#",
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "state": "cancelled",
+            "dates": {
+                "start": "2029-12-03T03:00:00+0000",
+                "end": "2029-12-03T09:00:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }, {
+            "_id": "#EVENT4._id#",
+            "recurrence_id": "#EVENT1.recurrence_id#",
+            "state": "draft",
+            "dates": {
+                "start": "2029-12-09T22:00:00+0000",
+                "end": "2029-12-09T23:30:00+0000",
+                "tz": "Australia/Sydney"
+            }
+        }]}
+        """
