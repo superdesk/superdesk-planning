@@ -4,9 +4,6 @@ import {get, map, cloneDeep} from 'lodash';
 import {PRIVILEGES} from '../constants';
 import {ItemActionsMenu} from '../components/index';
 import * as testData from './testData';
-import promiseFinally from 'promise.prototype.finally';
-
-promiseFinally.shim();
 
 export const getTestActionStore = () => {
     let store = {

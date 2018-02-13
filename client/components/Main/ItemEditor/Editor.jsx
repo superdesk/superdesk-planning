@@ -139,7 +139,6 @@ export class EditorComponent extends React.Component {
                 showSubmitFailed: true,
             });
         } else {
-            this.props.onSave(this.state.diff, true, false);
             this.setState({
                 submitting: true,
                 submitFailed: false,
