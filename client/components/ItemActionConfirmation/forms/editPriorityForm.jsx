@@ -2,12 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {isEqual, get} from 'lodash';
-
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
 import {ASSIGNMENTS} from '../../../constants';
 import {gettext, getItemInArrayById} from '../../../utils';
-
 import {Row, TextInput, ColouredValueInput} from '../../UI/Form';
 import {AbsoluteDate} from '../..';
 
@@ -23,7 +21,7 @@ export class EditPriorityComponent extends React.Component {
     }
 
     componentWillMount() {
-        const priorityQcode = get(this.props, 'initialValues.priority') || null;
+        const priorityQcode = get(this.props, 'initialValues.priority');
         const priority = priorityQcode ?
             getItemInArrayById(this.props.priorities, priorityQcode, 'qcode') :
             null;

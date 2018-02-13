@@ -140,7 +140,18 @@ Feature: Assignments
         """
         [{
             "event": "assignments:created",
-            "extra": {"item": "#firstassignment#"}
+            "extra": {
+                "item": "#firstassignment#",
+                "coverage": "#firstcoverage#",
+                "planning": "#planning._id#",
+                "assignment_state": "assigned",
+                "assigned_user": "#CONTEXT_USER_ID#",
+                "assigned_desk": "#desks._id#",
+                "lock_user": null,
+                "user": "#CONTEXT_USER_ID#",
+                "original_assigned_desk": null,
+                "original_assigned_user": null
+            }
         },
         {
             "event": "planning:updated",
@@ -163,7 +174,18 @@ Feature: Assignments
         """
         [{
             "event": "assignments:updated",
-            "extra": {"item": "#firstassignment#"}
+            "extra": {
+                "item": "#firstassignment#",
+                "coverage": "#firstcoverage#",
+                "planning": "#planning._id#",
+                "assignment_state": "assigned",
+                "assigned_user": "#CONTEXT_USER_ID#",
+                "assigned_desk": "#desks._id#",
+                "lock_user": null,
+                "user": "#CONTEXT_USER_ID#",
+                "original_assigned_desk": "#desks._id#",
+                "original_assigned_user": "#CONTEXT_USER_ID#"
+            }
         }]
         """
         When we reset notifications
@@ -191,6 +213,7 @@ Feature: Assignments
 
     @auth
     @vocabularies
+    @notification
     Scenario: Assignee changes as the author of content changes
         Given empty "assignments_history"
         When we post to "/archive"
@@ -213,6 +236,7 @@ Feature: Assignments
         }]
         """
         Then we get OK response
+        When we reset notifications
         When we patch "/planning/#planning._id#"
         """
         {
@@ -229,12 +253,33 @@ Feature: Assignments
         }
         """
         Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        And we get notifications
+        """
+        [{
+            "event": "assignments:created",
+            "extra": {
+                "item": "#firstassignment#",
+                "coverage": "#firstcoverage#",
+                "planning": "#planning._id#",
+                "assignment_state": "assigned",
+                "assigned_user": "#CONTEXT_USER_ID#",
+                "assigned_desk": "#desks._id#",
+                "lock_user": null,
+                "user": "#CONTEXT_USER_ID#",
+                "original_assigned_desk": null,
+                "original_assigned_user": null
+            }
+        }]
+        """
         Then we store assignment id in "firstassignment" from coverage 0
         When we patch "/archive/#archive._id#"
         """
         {"headline": "test headline 2"}
         """
         Then we get OK response
+        When we reset notifications
         When we post to "assignments/link"
         """
         [{
@@ -243,6 +288,24 @@ Feature: Assignments
         }]
         """
         Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "assignments:updated",
+            "extra": {
+                "item": "#firstassignment#",
+                "coverage": "#firstcoverage#",
+                "planning": "#planning._id#",
+                "assignment_state": "in_progress",
+                "assigned_user": "#CONTEXT_USER_ID#",
+                "assigned_desk": "#desks._id#",
+                "lock_user": null,
+                "user": "#CONTEXT_USER_ID#",
+                "original_assigned_desk": "#desks._id#",
+                "original_assigned_user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
         When we get "/archive/#archive._id#"
         Then we get existing resource
         """
@@ -262,7 +325,8 @@ Feature: Assignments
             },
             "assigned_to": {
                 "desk": "#desks._id#",
-                "user": "#CONTEXT_USER_ID#"
+                "user": "#CONTEXT_USER_ID#",
+                "state": "in_progress"
             }
         }
         """
@@ -284,7 +348,8 @@ Feature: Assignments
             },
             "assigned_to": {
                 "desk": "#desks._id#",
-                "user": "#USERS_ID#"
+                "user": "#USERS_ID#",
+                "state": "in_progress"
             }
         }
         """

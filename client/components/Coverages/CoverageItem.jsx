@@ -5,9 +5,10 @@ import {get} from 'lodash';
 import moment from 'moment-timezone';
 
 import {Item, Column, Row, Border, ActionMenu} from '../UI/List';
-import {UserAvatar} from '../';
+import {StateLabel} from '../../components';
 
 import {getCoverageIcon, getCreator, getItemInArrayById, getDateTimeString, gettext, stringUtils} from '../../utils';
+import {UserAvatar} from '../UserAvatar';
 
 export const CoverageItem = ({
     coverage,
@@ -16,7 +17,8 @@ export const CoverageItem = ({
     dateFormat,
     timeFormat,
     contentTypes,
-    itemActionComponent
+    itemActionComponent,
+    isPreview
 }) => {
     const userAssigned = getCreator(coverage, 'assigned_to.user', users);
     const deskAssigned = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
@@ -28,8 +30,7 @@ export const CoverageItem = ({
     return (
         <Item noBg={true}>
             <Border/>
-
-            <Column border={false}>
+            {!isPreview && <Column border={false}>
                 {userAssigned ? (
                     <UserAvatar
                         user={userAssigned}
@@ -43,8 +44,7 @@ export const CoverageItem = ({
                         small={false}
                     />
                 )}
-            </Column>
-
+            </Column>}
             <Column grow={true} border={false}>
                 <Row>
                     <i className={classNames(
@@ -58,6 +58,11 @@ export const CoverageItem = ({
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {stringUtils.capitalize(get(coverage, 'planning.g2_content_type', ''))}
                     </span>
+                    {get(coverage, 'assigned_to.state') &&
+                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                            <StateLabel item={get(coverage, 'assigned_to', {})}/>
+                        </span>
+                    }
                     <time>
                         <i className="icon-time"/>
                         {coverageDateText}
@@ -79,11 +84,14 @@ export const CoverageItem = ({
                                 {get(deskAssigned, 'name')}
                             </span>
                         )}
-
+                    </span>
+                </Row>
+                <Row>
+                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {userAssigned && (
                             <span>
                                 <span className="sd-list-item__text-label sd-list-item__text-label--normal">
-                                    {'; ' + gettext('Assignee: ')}
+                                    {gettext('Assignee: ')}
                                 </span>
                                 {get(userAssigned, 'display_name', '')}
                             </span>
@@ -109,10 +117,12 @@ CoverageItem.propTypes = {
     currentWorkspace: PropTypes.string,
     itemActionComponent: PropTypes.node,
     contentTypes: PropTypes.array,
+    isPreview: PropTypes.bool
 };
 
 CoverageItem.defaultProps = {
     dateFormat: 'DD/MM/YYYY',
     timeFormat: 'HH:mm',
     contentTypes: [],
+    isPreview: false
 };

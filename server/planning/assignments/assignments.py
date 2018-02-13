@@ -447,6 +447,7 @@ class AssignmentsService(superdesk.Service):
             # re-assign the user to the lock user
             updated_assignment = self._set_user_for_assignment(assignment_update_data.get('assignment'),
                                                                assignment_update_data.get('item_user_id'))
+            updated_assignment.get('assigned_to')['state'] = ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS
             self._update_assignment_and_notify(updated_assignment, assignment_update_data.get('assignment'))
             get_resource_service('assignments_history').on_item_updated(updated_assignment,
                                                                         assignment_update_data.get('assignment'))
