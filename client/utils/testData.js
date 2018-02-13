@@ -784,6 +784,8 @@ export const multiSelect = {
     selectedPlanningIds: [],
 };
 
+export const contacts = [];
+
 export const initialState = {
     config: config,
     privileges: privileges,
@@ -813,6 +815,7 @@ export const initialState = {
     main: main,
     eventsPlanning: eventsPlanningInitialState,
     multiSelect: multiSelect,
+    contacts: contacts,
 };
 
 export const items = {
@@ -825,5 +828,6 @@ export const items = {
     locked_events: lockedEvents,
     locked_plannings: lockedPlannings,
     archive: archive,
-    planning_search: events.concat(plannings)
+    planning_search: events.concat(plannings),
+    contacts: contacts,
 };

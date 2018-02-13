@@ -125,7 +125,8 @@ export class EditorComponent extends React.Component {
                 submitFailed: false,
                 showSubmitFailed: false,
             });
-            return this.props.onSave(this.state.diff, true, false);
+            return this.props.onSave(this.state.diff, true, false)
+                .finally(() => this.setState({submitting: false}));
         }
     }
 
@@ -141,7 +142,8 @@ export class EditorComponent extends React.Component {
                 submitFailed: false,
                 showSubmitFailed: false,
             });
-            return this.props.onSave(this.state.diff, false, true);
+            return this.props.onSave(this.state.diff, false, true)
+                .finally(() => this.setState({submitting: false}));
         }
     }
 
@@ -157,7 +159,8 @@ export class EditorComponent extends React.Component {
                 submitFailed: false,
                 showSubmitFailed: false
             });
-            return this.props.onSave(this.state.diff, true, true);
+            return this.props.onSave(this.state.diff, true, true)
+                .finally(() => this.setState({submitting: false}));
         }
     }
 
@@ -173,7 +176,8 @@ export class EditorComponent extends React.Component {
                 submitFailed: false,
                 showSubmitFailed: false,
             });
-            return this.props.onUnpublish(this.state.diff);
+            return this.props.onUnpublish(this.state.diff)
+                .finally(() => this.setState({submitting: false}));
         }
     }
 
