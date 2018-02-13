@@ -41,6 +41,8 @@ export class EditorComponent extends React.Component {
         this.onUnpublish = this.onUnpublish.bind(this);
         this.onCancel = this.onCancel.bind(this);
         this.hideSubmitFailed = this.hideSubmitFailed.bind(this);
+        this.resetForm = this.resetForm.bind(this);
+        this.createNew = this.createNew.bind(this);
 
         this.tabs = [
             {label: gettext('Content'), render: EditorContentTab, enabled: true},
@@ -48,45 +50,62 @@ export class EditorComponent extends React.Component {
         ];
     }
 
+    componentDidMount() {
+        // If the item is located in the URL, on first mount copy the diff from the item.
+        // Otherwise all item changes will occur during the componentWillReceiveProps
+        if (this.props.itemId && this.props.itemType) {
+            this.props.loadItem(this.props.itemId, this.props.itemType);
+        }
+    }
+
+    resetForm(item = null) {
+        this.setState({
+            diff: item === null ? {} : cloneDeep(item),
+            dirty: false,
+            submitting: false,
+        });
+    }
+
+    createNew(props) {
+        if (props.itemType === ITEM_TYPE.EVENT) {
+            this.resetForm(EVENTS.DEFAULT_VALUE(props.occurStatuses));
+        } else if (props.itemType === ITEM_TYPE.PLANNING) {
+            this.resetForm(PLANNING.DEFAULT_VALUE);
+        } else {
+            this.resetForm();
+        }
+    }
+
     componentWillReceiveProps(nextProps) {
-        if (!get(nextProps, 'item') && get(nextProps, 'itemType') && !get(this.props, 'itemType')) {
-            let diff;
-
-            if (nextProps.itemType === ITEM_TYPE.EVENT) {
-                diff = cloneDeep(EVENTS.DEFAULT_VALUE(nextProps.occurStatuses));
-            } else if (nextProps.itemType === ITEM_TYPE.PLANNING) {
-                diff = cloneDeep(PLANNING.DEFAULT_VALUE);
+        if (nextProps.itemId !== this.props.itemId) {
+            if (nextProps.itemId === null) {
+                // This happens when the editor is opened on an existing item and
+                // the user attempts to create a new item
+                setTimeout(() => {
+                    this.createNew(nextProps);
+                }, 0);
+            } else if (nextProps.item === null) {
+                // This happens when the items have changed
+                // Using setTimeout allows the Editor to clear before displaying the new item
+                setTimeout(() => {
+                    this.props.loadItem(nextProps.itemId, nextProps.itemType);
+                }, 0);
             } else {
-                diff = {};
+                // This happens when the Editor has finished loading an existing item
+                this.resetForm(nextProps.item);
             }
-
-            this.setState({
-                diff: diff,
-                dirty: false,
-                submitting: false,
-            });
-        } else if (get(nextProps, 'item._id') !== get(this.props, 'item._id')) {
-            const diff = cloneDeep(get(nextProps, 'item') || {});
-
-            this.setState({
-                diff: diff,
-                dirty: false,
-                submitting: false
-            });
-        } else if (!isEqual(
-            get(nextProps, 'item'),
-            get(this.props, 'item')
-        )) {
-            const diff = cloneDeep(get(nextProps, 'item') || {});
-
-            this.setState({
-                diff: diff,
-                dirty: false,
-                submitting: false
-            });
+        } else if (nextProps.item !== null && this.props.item === null) {
+            // This happens when the Editor has finished loading an existing item
+            this.resetForm(nextProps.item);
+        } else if (this.props.itemType === null && nextProps.itemType !== null) {
+            // This happens when creating a new item (when the editor is not currently open)
+            this.createNew(nextProps);
+        } else if (!isEqual(get(nextProps, 'item'), get(this.props, 'item'))) {
+            // This happens when the item attributes have changed
+            this.resetForm(get(nextProps, 'item') || {});
         }
 
-        this.tabs[1].enabled = !!get(nextProps, 'item._id');
+        this.tabs[1].enabled = !!nextProps.itemId;
     }
 
     onChangeHandler(field, value) {
@@ -120,6 +139,7 @@ export class EditorComponent extends React.Component {
                 showSubmitFailed: true,
             });
         } else {
+            this.props.onSave(this.state.diff, true, false);
             this.setState({
                 submitting: true,
                 submitFailed: false,
@@ -217,12 +237,14 @@ export class EditorComponent extends React.Component {
 
         return (
             <SidePanel shadowRight={true}>
-                <Autosave
-                    formName={this.props.itemType}
-                    initialValues={cloneDeep(this.props.item)}
-                    currentValues={cloneDeep(this.state.diff)}
-                    change={this.onChangeHandler}
-                />
+                {(!this.props.isLoadingItem && this.props.itemType) && (
+                    <Autosave
+                        formName={this.props.itemType}
+                        initialValues={cloneDeep(this.props.item)}
+                        currentValues={cloneDeep(this.state.diff)}
+                        change={this.onChangeHandler}
+                    />
+                )}
                 <EditorHeader
                     item={this.props.item}
                     onSave={this.onSave}
@@ -268,18 +290,21 @@ export class EditorComponent extends React.Component {
                             className="side-panel__content-tab-nav"
                         />
                     )}
+
                     <div className="side-panel__content-tab-content">
-                        <RenderTab
-                            item={this.props.item}
-                            itemType={this.props.itemType}
-                            diff={this.state.diff}
-                            onChangeHandler={this.onChangeHandler}
-                            readOnly={existingItem && (!isLocked || isLockRestricted)}
-                            addNewsItemToPlanning={this.props.addNewsItemToPlanning}
-                            submitFailed={this.state.submitFailed}
-                            errors={this.state.errors}
-                            dirty={this.state.dirty}
-                        />
+                        {(!this.props.isLoadingItem && this.props.itemType) && (
+                            <RenderTab
+                                item={this.props.item}
+                                itemType={this.props.itemType}
+                                diff={this.state.diff}
+                                onChangeHandler={this.onChangeHandler}
+                                readOnly={existingItem && (!isLocked || isLockRestricted)}
+                                addNewsItemToPlanning={this.props.addNewsItemToPlanning}
+                                submitFailed={this.state.submitFailed}
+                                errors={this.state.errors}
+                                dirty={this.state.dirty}
+                            />
+                        )}
                     </div>
                 </Content>
             </SidePanel>
@@ -289,6 +314,7 @@ export class EditorComponent extends React.Component {
 
 EditorComponent.propTypes = {
     item: PropTypes.object,
+    itemId: PropTypes.string,
     itemType: PropTypes.string,
     cancel: PropTypes.func.isRequired,
     minimize: PropTypes.func.isRequired,
@@ -307,14 +333,18 @@ EditorComponent.propTypes = {
     occurStatuses: PropTypes.array,
     itemActions: PropTypes.object,
     currentWorkspace: PropTypes.string,
+    loadItem: PropTypes.func,
+    isLoadingItem: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
     item: selectors.forms.currentItem(state),
+    itemId: selectors.forms.currentItemId(state),
     itemType: selectors.forms.currentItemType(state),
     users: selectors.getUsers(state),
     formProfiles: selectors.forms.profiles(state),
     occurStatuses: state.vocabularies.eventoccurstatus,
+    isLoadingItem: selectors.forms.isLoadingItem(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -325,7 +355,8 @@ const mapDispatchToProps = (dispatch) => ({
     onSave: (item, save, publish) => dispatch(actions.main.save(item, save, publish)),
     onUnpublish: (item) => dispatch(actions.main.unpublish(item)),
     openCancelModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
-    onValidate: (type, item, profile, errors) => dispatch(validateItem(type, item, profile, errors))
+    onValidate: (type, item, profile, errors) => dispatch(validateItem(type, item, profile, errors)),
+    loadItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'edit'))
 });
 
 export const Editor = connect(mapStateToProps, mapDispatchToProps)(EditorComponent);

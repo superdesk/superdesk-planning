@@ -27,7 +27,7 @@ describe('actions.planning.api', () => {
         sinon.stub(planningApi, 'query').callsFake(() => (Promise.resolve()));
         sinon.stub(planningApi, 'receivePlannings').callsFake(() => (Promise.resolve()));
         sinon.stub(planningApi, 'fetchPlanningsEvents').callsFake(() => (Promise.resolve()));
-        sinon.stub(planningApi, 'fetchPlanningById').callsFake(() => (Promise.resolve()));
+        sinon.stub(planningApi, 'fetchById').callsFake(() => (Promise.resolve()));
         sinon.stub(planningApi, 'fetchPlanningHistory').callsFake(() => (Promise.resolve()));
         sinon.stub(planningApi, 'publish').callsFake(() => (Promise.resolve()));
         sinon.stub(planningApi, 'unpublish').callsFake(() => (Promise.resolve()));
@@ -39,7 +39,7 @@ describe('actions.planning.api', () => {
         restoreSinonStub(planningApi.query);
         restoreSinonStub(planningApi.receivePlannings);
         restoreSinonStub(planningApi.fetchPlanningsEvents);
-        restoreSinonStub(planningApi.fetchPlanningById);
+        restoreSinonStub(planningApi.fetchById);
         restoreSinonStub(planningApi.fetchPlanningHistory);
         restoreSinonStub(planningApi.publish);
         restoreSinonStub(planningApi.unpublish);
@@ -363,15 +363,15 @@ describe('actions.planning.api', () => {
         ));
     });
 
-    describe('fetchPlanningById', () => {
+    describe('fetchById', () => {
         beforeEach(() => {
-            restoreSinonStub(planningApi.fetchPlanningById);
+            restoreSinonStub(planningApi.fetchById);
         });
 
         it('fetches using planning id', (done) => (
             store.test(done, () => {
                 store.initialState.planning.plannings = {};
-                return store.dispatch(planningApi.fetchPlanningById('p1'));
+                return store.dispatch(planningApi.fetchById('p1'));
             })
                 .then((item) => {
                     expect(item).toEqual(data.plannings[0]);
@@ -394,7 +394,7 @@ describe('actions.planning.api', () => {
         ));
 
         it('fetches using force=true', (done) => (
-            store.test(done, planningApi.fetchPlanningById('p1', true))
+            store.test(done, planningApi.fetchById('p1', {force: true}))
                 .then((item) => {
                     expect(item).toEqual(data.plannings[0]);
 
@@ -416,29 +416,21 @@ describe('actions.planning.api', () => {
         ));
 
         it('returns Promise.reject on error', (done) => {
-            services.api('planning').getById = sinon.spy(() => (Promise.reject('Failed!')));
-            store.test(done, () => {
-                store.initialState.planning.plannings = {};
-                return store.dispatch(planningApi.fetchPlanningById('p1'));
-            })
-                .then(() => { /* no-op */ }, (error) => {
-                    expect(planningApi.fetchPlanningsEvents.callCount).toBe(0);
-
-                    expect(planningApi.receivePlannings.callCount).toBe(1);
-                    expect(planningApi.receivePlannings.args[0]).toEqual([[]]);
-
-                    expect(error).toBe('Failed!');
+            services.api('planning').getById = sinon.spy(() => (Promise.reject(errorMessage)));
+            store.test(done, planningApi.fetchById('p1', {force: true}))
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
                     done();
                 });
         });
 
         it('returns store instance when already loaded', (done) => (
-            store.test(done, planningApi.fetchPlanningById('p1'))
+            store.test(done, planningApi.fetchById('p1'))
                 .then((item) => {
                     expect(item).toEqual(data.plannings[0]);
 
                     expect(services.api('planning').getById.callCount).toBe(0);
-                    expect(planningApi.fetchPlanningsEvents.callCount).toBe(0);
+                    expect(planningApi.fetchPlanningsEvents.callCount).toBe(1);
                     expect(planningApi.receivePlannings.callCount).toBe(0);
 
                     done();
@@ -449,7 +441,7 @@ describe('actions.planning.api', () => {
     describe('save', () => {
         beforeEach(() => {
             restoreSinonStub(planningApi.save);
-            restoreSinonStub(planningApi.fetchPlanningById);
+            restoreSinonStub(planningApi.fetchById);
         });
 
         it('creates new planning item', (done) => {
@@ -458,13 +450,13 @@ describe('actions.planning.api', () => {
                 coverages: [],
             };
 
-            sinon.stub(planningApi, 'fetchPlanningById');
+            sinon.stub(planningApi, 'fetchById');
 
             return store.test(done, planningApi.save(planningItem))
                 .then((item) => {
                     expect(item).toEqual(jasmine.objectContaining({...planningItem}));
 
-                    expect(planningApi.fetchPlanningById.callCount).toBe(0);
+                    expect(planningApi.fetchById.callCount).toBe(0);
 
                     expect(services.api('planning').save.callCount).toBe(1);
                     expect(services.api('planning').save.args[0]).toEqual([
@@ -492,13 +484,13 @@ describe('actions.planning.api', () => {
                 }],
             };
 
-            sinon.stub(planningApi, 'fetchPlanningById');
+            sinon.stub(planningApi, 'fetchById');
 
             return store.test(done, planningApi.save(planningItem))
                 .then((item) => {
                     expect(item).toEqual(jasmine.objectContaining({...planningItem}));
 
-                    expect(planningApi.fetchPlanningById.callCount).toBe(0);
+                    expect(planningApi.fetchById.callCount).toBe(0);
 
                     expect(services.api('planning').save.callCount).toBe(2);
                     expect(services.api('planning').save.args[0]).toEqual([
@@ -524,7 +516,7 @@ describe('actions.planning.api', () => {
         it('saves existing item', (done) => {
             let planningItem;
 
-            sinon.stub(planningApi, 'fetchPlanningById').callsFake((id) => (Promise.resolve(
+            sinon.stub(planningApi, 'fetchById').callsFake((id) => (Promise.resolve(
                 store.initialState.planning.plannings[id]
             )));
 
@@ -536,8 +528,8 @@ describe('actions.planning.api', () => {
                 .then((item) => {
                     expect(item).toEqual(planningItem);
 
-                    expect(planningApi.fetchPlanningById.callCount).toBe(1);
-                    expect(planningApi.fetchPlanningById.args[0]).toEqual([
+                    expect(planningApi.fetchById.callCount).toBe(1);
+                    expect(planningApi.fetchById.args[0]).toEqual([
                         planningItem._id,
                     ]);
 
@@ -548,8 +540,8 @@ describe('actions.planning.api', () => {
                 });
         });
 
-        it('returns Promise.reject on fetchPlanningById error', (done) => {
-            sinon.stub(planningApi, 'fetchPlanningById').callsFake(
+        it('returns Promise.reject on fetchById error', (done) => {
+            sinon.stub(planningApi, 'fetchById').callsFake(
                 () => (Promise.reject('Failed!'))
             );
 
@@ -557,7 +549,7 @@ describe('actions.planning.api', () => {
                 .then(() => { /* no-op */ }, (error) => {
                     expect(error).toBe('Failed!');
 
-                    expect(planningApi.fetchPlanningById.callCount).toBe(1);
+                    expect(planningApi.fetchById.callCount).toBe(1);
                     expect(services.api('planning').save.callCount).toBe(0);
                     done();
                 });
@@ -569,7 +561,7 @@ describe('actions.planning.api', () => {
                 headline: 'Some Plan 3',
             };
 
-            sinon.stub(planningApi, 'fetchPlanningById').callsFake((id) => (Promise.resolve(
+            sinon.stub(planningApi, 'fetchById').callsFake((id) => (Promise.resolve(
                 store.initialState.planning.plannings[id]
             )));
 
@@ -608,7 +600,7 @@ describe('actions.planning.api', () => {
                         _id: 'p3',
                     });
 
-                    expect(planningApi.fetchPlanningById.callCount).toBe(0);
+                    expect(planningApi.fetchById.callCount).toBe(0);
 
                     expect(planningApi.save.callCount).toBe(1);
                     expect(planningApi.save.args[0]).toEqual([newItem, {}]);
@@ -618,9 +610,9 @@ describe('actions.planning.api', () => {
         });
 
         it('saves an existing item', (done) => {
-            restoreSinonStub(planningApi.fetchPlanningById);
+            restoreSinonStub(planningApi.fetchById);
 
-            sinon.stub(planningApi, 'fetchPlanningById').callsFake(() => (
+            sinon.stub(planningApi, 'fetchById').callsFake(() => (
                 Promise.resolve(data.plannings[0]))
             );
 
@@ -639,8 +631,8 @@ describe('actions.planning.api', () => {
                 .then((item) => {
                     expect(item).toEqual(data.plannings[0]);
 
-                    expect(planningApi.fetchPlanningById.callCount).toBe(1);
-                    expect(planningApi.fetchPlanningById.args[0]).toEqual(
+                    expect(planningApi.fetchById.callCount).toBe(1);
+                    expect(planningApi.fetchById.args[0]).toEqual(
                         [data.plannings[0]._id]
                     );
 
@@ -737,8 +729,8 @@ describe('actions.planning.api', () => {
     describe('publish', () => {
         it('api.publish calls `planning` endpoint', (done) => {
             restoreSinonStub(planningApi.publish);
-            restoreSinonStub(planningApi.fetchPlanningById);
-            sinon.stub(planningApi, 'fetchPlanningById').returns(Promise.resolve(data.plannings[0]));
+            restoreSinonStub(planningApi.fetchById);
+            sinon.stub(planningApi, 'fetchById').returns(Promise.resolve(data.plannings[0]));
             store.test(done, planningApi.publish(data.plannings[0]))
                 .then((item) => {
                     expect(item).toEqual(data.plannings[0]);

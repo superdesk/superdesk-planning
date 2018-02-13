@@ -90,7 +90,7 @@ const saveAndReloadCurrentAgenda = (item) => (
             .then((item) => {
                 notify.success('The Planning item has been saved.');
                 return dispatch(self.scheduleRefetch())
-                    .then(() => dispatch(planningApi.fetchPlanningById(item._id, true)))
+                    .then(() => dispatch(planningApi.fetchById(item._id, {force: true})))
                     .then((item) => (Promise.resolve(item)));
             }, (error) => {
                 notify.error(getErrorMessage(error, 'Failed to save the Planning item!'));
@@ -404,7 +404,7 @@ const duplicate = (plan) => (
                 dispatch(self.scheduleRefetch())
                     .then(() => {
                         notify.success('Planning duplicated');
-                        return dispatch(main.preview(newPlan));
+                        return dispatch(main.openPreview(newPlan));
                     }, (error) => (
                         notify.error(
                             getErrorMessage(error, 'Failed to fetch Planning items')

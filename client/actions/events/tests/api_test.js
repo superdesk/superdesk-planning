@@ -4,7 +4,7 @@ import sinon from 'sinon';
 import {EventUpdateMethods} from '../../../components/Events';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {WORKFLOW_STATE, SPIKED_STATE, MAIN} from '../../../constants';
-import {getTimeZoneOffset} from '../../../utils';
+import {getTimeZoneOffset, eventUtils} from '../../../utils';
 import moment from 'moment';
 
 describe('actions.events.api', () => {
@@ -62,6 +62,107 @@ describe('actions.events.api', () => {
 
                 done();
             });
+    });
+
+    describe('fetchById', () => {
+        beforeEach(() => {
+            sinon.stub(eventsApi, 'loadAssociatedPlannings').callsFake(() => Promise.resolve());
+            services.api.find = sinon.spy(() => Promise.resolve(data.events[1]));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(eventsApi.loadAssociatedPlannings);
+        });
+
+        it('returns the Events from the API (with default options)', (done) => {
+            store.init();
+            // Clear the store so that the Event is loaded via an api call
+            store.initialState.events.events = {};
+            store.test(done, eventsApi.fetchById('e2'))
+                .then((event) => {
+                    expect(event).toEqual(eventUtils.convertToMoment(data.events[1]));
+
+                    expect(services.api.find.callCount).toBe(1);
+                    expect(services.api.find.args[0]).toEqual([
+                        'events',
+                        'e2',
+                        {embedded: {files: 1}}
+                    ]);
+
+                    expect(eventsApi.receiveEvents.callCount).toBe(1);
+                    expect(eventsApi.loadAssociatedPlannings.callCount).toBe(1);
+
+                    done();
+                });
+        });
+
+        it('returns the Event from the store instead of the API', (done) => (
+            store.test(done, eventsApi.fetchById('e2'))
+                .then((event) => {
+                    expect(event).toEqual(eventUtils.convertToMoment(data.events[1]));
+
+                    expect(services.api.find.callCount).toBe(0);
+
+                    expect(eventsApi.receiveEvents.callCount).toBe(0);
+                    expect(eventsApi.loadAssociatedPlannings.callCount).toBe(1);
+
+                    done();
+                })
+        ));
+
+        it('returns the Event from the API if force = true', (done) => (
+            store.test(done, eventsApi.fetchById('e2', {force: true}))
+                .then((event) => {
+                    expect(event).toEqual(eventUtils.convertToMoment(data.events[1]));
+
+                    expect(services.api.find.callCount).toBe(1);
+                    expect(services.api.find.args[0]).toEqual([
+                        'events',
+                        'e2',
+                        {embedded: {files: 1}}
+                    ]);
+
+                    expect(eventsApi.receiveEvents.callCount).toBe(1);
+                    expect(eventsApi.loadAssociatedPlannings.callCount).toBe(1);
+
+                    done();
+                })
+        ));
+
+        it('doesnt save to the store if saveToStore = false', (done) => (
+            store.test(done, eventsApi.fetchById('e2', {saveToStore: false}))
+                .then(() => {
+                    expect(eventsApi.receiveEvents.callCount).toBe(0);
+                    done();
+                })
+        ));
+
+        it('doesnt load associated Planning if loadPlanning = false', (done) => (
+            store.test(done, eventsApi.fetchById('e2', {loadPlanning: false}))
+                .then(() => {
+                    expect(eventsApi.loadAssociatedPlannings.callCount).toBe(0);
+                    done();
+                })
+        ));
+
+        it('returns rejected promise if API fails', (done) => {
+            services.api.find = sinon.spy(() => Promise.reject(errorMessage));
+            store.test(done, eventsApi.fetchById('e2', {force: true}))
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+                    done();
+                });
+        });
+
+        it('returns rejected promise if loadPlanning fails', (done) => {
+            restoreSinonStub(eventsApi.loadAssociatedPlannings);
+            sinon.stub(eventsApi, 'loadAssociatedPlannings').callsFake(() => Promise.reject(errorMessage));
+            store.test(done, eventsApi.fetchById('e2', {force: true}))
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+                    done();
+                });
+        });
     });
 
     describe('loadEventsByRecurrenceId', () => {

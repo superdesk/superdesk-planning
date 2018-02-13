@@ -1,4 +1,6 @@
 import eventsApi from '../api';
+import eventsUi from '../ui';
+import eventsPlanningUi from '../../eventsPlanning/ui';
 import main from '../../main';
 import sinon from 'sinon';
 import {registerNotifications} from '../../../utils';
@@ -47,6 +49,18 @@ describe('actions.events.notifications', () => {
                 () => (Promise.resolve())
             );
 
+            sinon.stub(eventsNotifications, 'onRecurringEventCreated').callsFake(
+                () => (Promise.resolve())
+            );
+
+            sinon.stub(eventsNotifications, 'onEventUpdated').callsFake(
+                () => (Promise.resolve())
+            );
+
+            sinon.stub(eventsNotifications, 'onEventCreated').callsFake(
+                () => (Promise.resolve())
+            );
+
             $rootScope = _$rootScope_;
             registerNotifications($rootScope, store);
             $rootScope.$digest();
@@ -60,6 +74,9 @@ describe('actions.events.notifications', () => {
             restoreSinonStub(eventsNotifications.onEventScheduleChanged);
             restoreSinonStub(eventsNotifications.onEventPublishChanged);
             restoreSinonStub(eventsNotifications.onRecurringEventSpiked);
+            restoreSinonStub(eventsNotifications.onRecurringEventCreated);
+            restoreSinonStub(eventsNotifications.onEventUpdated);
+            restoreSinonStub(eventsNotifications.onEventCreated);
         });
 
         it('`events:lock` calls onEventLocked', (done) => {
@@ -187,6 +204,50 @@ describe('actions.events.notifications', () => {
                 done();
             }, delay);
         });
+
+        it('`events:created` calls onEventCreated', (done) => {
+            $rootScope.$broadcast('events:created', {item: 'e1'});
+
+            setTimeout(() => {
+                expect(eventsNotifications.onEventCreated.callCount).toBe(1);
+                expect(eventsNotifications.onEventCreated.args[0][1]).toEqual({item: 'e1'});
+
+                done();
+            }, delay);
+        });
+
+        it('`events:created:recurring` calls onRecurringEventCreated', (done) => {
+            $rootScope.$broadcast('events:created:recurring', {item: 'rec1'});
+
+            setTimeout(() => {
+                expect(eventsNotifications.onRecurringEventCreated.callCount).toBe(1);
+                expect(eventsNotifications.onRecurringEventCreated.args[0][1]).toEqual({item: 'rec1'});
+
+                done();
+            }, delay);
+        });
+
+        it('`events:updated` calls onEventUpdated', (done) => {
+            $rootScope.$broadcast('events:updated', {item: 'e1'});
+
+            setTimeout(() => {
+                expect(eventsNotifications.onEventUpdated.callCount).toBe(1);
+                expect(eventsNotifications.onEventUpdated.args[0][1]).toEqual({item: 'e1'});
+
+                done();
+            }, delay);
+        });
+
+        it('`events:updated:recurring` calls onEventUpdated', (done) => {
+            $rootScope.$broadcast('events:updated:recurring', {item: 'e1'});
+
+            setTimeout(() => {
+                expect(eventsNotifications.onEventUpdated.callCount).toBe(1);
+                expect(eventsNotifications.onEventUpdated.args[0][1]).toEqual({item: 'e1'});
+
+                done();
+            }, delay);
+        });
     });
 
     describe('onEventPublishChanged', () => {
@@ -297,7 +358,6 @@ describe('actions.events.notifications', () => {
 
     describe('onEventUnlocked', () => {
         beforeEach(() => {
-            store.initialState.events.showEventDetails = 'e1';
             store.initialState.events.events.e1.lock_user = 'ident1';
             store.initialState.events.events.e1.lock_session = 'session1';
         });
@@ -609,6 +669,22 @@ describe('actions.events.notifications', () => {
             .then(() => {
                 expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
                 restoreSinonStub(main.closePreviewAndEditorForItems);
+
+                done();
+            });
+    });
+
+    it('calls scheduleRefetch for events.ui and eventsPlanning.ui', (done) => {
+        sinon.stub(eventsUi, 'scheduleRefetch').returns(Promise.resolve());
+        sinon.stub(eventsPlanningUi, 'scheduleRefetch').returns(Promise.resolve());
+
+        store.test(done, eventsNotifications.onEventCreated({}, {item: 'e1'}))
+            .then(() => {
+                expect(eventsUi.scheduleRefetch.callCount).toBe(1);
+                expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
+
+                restoreSinonStub(eventsUi.scheduleRefetch);
+                restoreSinonStub(eventsPlanningUi.scheduleRefetch);
 
                 done();
             });

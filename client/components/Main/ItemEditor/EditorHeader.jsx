@@ -81,7 +81,7 @@ export const EditorHeader = ({
 
     return (
         <Header className="subnav">
-            {isLockRestricted && (
+            {item !== null && item.lock_user && isLockRestricted && (
                 <StretchBar>
                     <LockContainer
                         lockedUser={lockedUser}

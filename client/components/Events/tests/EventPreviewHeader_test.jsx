@@ -14,7 +14,8 @@ describe('<EventPreviewHeader />', () => {
     astore.initialState.events.events.e1.lock_user = sessions[1].identity;
     astore.initialState.events.events.e1.lock_session = sessions[1].session;
     astore.initialState.locks.events = {e1: {user: sessions[1].identity._id}};
-    astore.initialState.events.showEventDetails = astore.initialState.events.events.e1;
+    astore.initialState.main.previewId = 'e1';
+    astore.initialState.main.previewType = 'events';
 
     const getWrapper = () => {
         const store = createTestStore({initialState: astore.initialState});

@@ -5,8 +5,22 @@ import eventsApi from './api';
 import eventsUi from './ui';
 import main from '../main';
 import {get} from 'lodash';
-import {lockUtils} from '../../utils';
+import {lockUtils, gettext, dispatchUtils, getErrorMessage} from '../../utils';
 import eventsPlanning from '../eventsPlanning';
+
+/**
+ * Action Event when a new Event is created
+ * @param _e
+ * @param {object} data - Events and User IDs
+ */
+const onEventCreated = (_e, data) => (
+    (dispatch) => {
+        if (data && data.item) {
+            return dispatch(eventsUi.scheduleRefetch())
+                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()));
+        }
+    }
+);
 
 /**
  * Action Event when an Event gets unlocked
@@ -122,7 +136,10 @@ const onEventSpiked = (_e, data) => (
             });
 
             dispatch(eventsPlanning.notifications.onEventSpiked(_e, data));
-            dispatch(main.closePreviewAndEditorForItems([eventInStore]));
+            dispatch(main.closePreviewAndEditorForItems(
+                [eventInStore],
+                gettext('The Event was spiked')
+            ));
 
             return Promise.resolve(eventInStore);
         }
@@ -163,7 +180,10 @@ const onEventUnspiked = (_e, data) => (
             });
 
             dispatch(eventsPlanning.notifications.onEventUnspiked(_e, data));
-            dispatch(main.closePreviewAndEditorForItems([eventInStore]));
+            dispatch(main.closePreviewAndEditorForItems(
+                [eventInStore],
+                gettext('The Event was unspiked')
+            ));
 
             return Promise.resolve(eventInStore);
         }
@@ -258,7 +278,10 @@ const onRecurringEventSpiked = (e, data) => (
             });
 
             dispatch(eventsPlanning.notifications.onRecurringEventSpiked(e, data));
-            dispatch(main.closePreviewAndEditorForItems(data.items));
+            dispatch(main.closePreviewAndEditorForItems(
+                data.items,
+                gettext('The Event was spiked')
+            ));
 
             return Promise.resolve(data.items);
         }
@@ -267,8 +290,75 @@ const onRecurringEventSpiked = (e, data) => (
     }
 );
 
+/**
+ * Action Event when a new Recurring Event is created
+ * @param _e
+ * @param {object} data - Recurring Event and user IDs
+ */
+const onRecurringEventCreated = (_e, data) => (
+    (dispatch, getState, {notify}) => {
+        if (data && data.item) {
+            // Perform retryDispatch as the Elasticsearch index may not yet be created
+            // (because we receive this notification fast, and we're performing a query not
+            // a getById). So continue for 5 times, waiting 1 second between each request
+            // until we receive the new events or an error occurs
+            return dispatch(dispatchUtils.retryDispatch(
+                eventsApi.query({
+                    recurrenceId: data.item,
+                    onlyFuture: false
+                }),
+                (events) => get(events, 'length', 0) > 0,
+                5,
+                1000
+            ))
+            // Once we know our Recurring Events can be received from Elasticsearch,
+            // go ahead and refresh the current list of events
+                .then((items) => {
+                    dispatch(eventsUi.scheduleRefetch());
+                    dispatch(eventsPlanning.ui.scheduleRefetch());
+                    return Promise.resolve(items);
+                }, (error) => {
+                    notify.error(getErrorMessage(
+                        error,
+                        'There was a problem fetching Recurring Events!'
+                    ));
+                });
+        }
+    }
+);
+
+/**
+ * Action Event when an Event gets updated
+ * @param _e
+ * @param {object} data - Event and User IDs
+ */
+const onEventUpdated = (_e, data) => (
+    (dispatch, getState) => {
+        if (data && data.item) {
+            dispatch(eventsUi.scheduleRefetch())
+                .then((events) => {
+                    const selectedEvents = selectors.getSelectedEvents(getState());
+                    const currentPreviewId = selectors.main.previewId(getState());
+                    const currentEditId = selectors.forms.currentItemId(getState());
+
+                    const loadedFromRefetch = selectedEvents.indexOf(data.item) !== -1 &&
+                        !events.find((event) => event._id === data.item);
+
+                    if (!loadedFromRefetch && (currentPreviewId === data.item || currentEditId === data.item)) {
+                        dispatch(eventsApi.fetchById(data.item, {force: true}));
+                    }
+
+                    dispatch(eventsPlanning.ui.scheduleRefetch());
+                });
+        }
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
+    onEventCreated,
+    onRecurringEventCreated,
+    onEventUpdated,
     onEventLocked,
     onEventUnlocked,
     onEventSpiked,
@@ -282,6 +372,10 @@ const self = {
 
 // Map of notification name and Action Event to execute
 self.events = {
+    'events:created': () => (self.onEventCreated),
+    'events:created:recurring': () => (self.onRecurringEventCreated),
+    'events:updated': () => (self.onEventUpdated),
+    'events:updated:recurring': () => (self.onEventUpdated),
     'events:lock': () => (self.onEventLocked),
     'events:unlock': () => (self.onEventUnlocked),
     'events:spiked': () => (self.onEventSpiked),

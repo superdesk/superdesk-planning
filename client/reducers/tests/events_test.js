@@ -37,19 +37,10 @@ describe('events', () => {
             expect(initialState).toEqual({
                 events: {},
                 eventsInList: [],
-                show: true,
-                showEventDetails: null,
-                highlightedEvent: null,
                 selectedEvents: [],
                 readOnly: true,
                 eventHistoryItems: [],
             });
-        });
-
-        it('TOGGLE_EVENT_LIST', () => {
-            const result = events(initialState, {type: 'TOGGLE_EVENT_LIST'});
-
-            expect(result.show).toBe(false);
         });
 
         it('ADD_EVENTS', () => {
@@ -90,23 +81,6 @@ describe('events', () => {
             });
 
             expect(result.eventsInList).toEqual(['e1', 'e3', 'e2']);
-        });
-
-        it('OPEN_EVENT_DETAILS', () => {
-            const result = events(initialState, {
-                type: 'OPEN_EVENT_DETAILS',
-                payload: 'e1',
-            });
-
-            expect(result.showEventDetails).toBe('e1');
-            expect(result.highlightedEvent).toBe('e1');
-            expect(result.readOnly).toBe(false);
-        });
-
-        it('CLOSE_EVENT_DETAILS', () => {
-            const result = events(initialState, {type: 'CLOSE_EVENT_DETAILS'});
-
-            expect(result.showEventDetails).toBe(null);
         });
 
         it('MARK_EVENT_PUBLISHED', () => {
@@ -180,39 +154,6 @@ describe('events', () => {
                     state: 'spiked',
                     revert_state: 'draft',
                 });
-            });
-
-            // to be refactored using the PREVIEW action
-            xit('closes details if spiked event is opened', () => {
-                let result = spikeEvent(
-                    {
-                        ...initialState,
-                        events: items,
-                    },
-                    payload
-                );
-
-                expect(result.showEventDetails).toBe(null);
-
-                result = spikeEvent(
-                    {
-                        ...initialState,
-                        events: items,
-                        showEventDetails: 'e1',
-                    },
-                    payload
-                );
-                expect(result.showEventDetails).toBe(null);
-
-                result = spikeEvent(
-                    {
-                        ...initialState,
-                        events: items,
-                        showEventDetails: 'e2',
-                    },
-                    payload
-                );
-                expect(result.showEventDetails).toBe('e2');
             });
 
             it('removes spiked event from list if not viewing spiked events', () => {
@@ -308,33 +249,6 @@ describe('events', () => {
                     _etag: 'e456',
                     state: 'draft',
                 });
-            });
-
-            xit('closes details if unspiked event is opened', () => {
-                let result = unspikeEvent(
-                    initialState,
-                    payload
-                );
-
-                expect(result.showEventDetails).toBe(null);
-
-                result = unspikeEvent(
-                    {
-                        ...initialState,
-                        showEventDetails: 'e1',
-                    },
-                    payload
-                );
-                expect(result.showEventDetails).toBe(null);
-
-                result = unspikeEvent(
-                    {
-                        ...initialState,
-                        showEventDetails: 'e2',
-                    },
-                    payload
-                );
-                expect(result.showEventDetails).toBe('e2');
             });
 
             it('removes unspiked event from list if viewing spiked only events', () => {

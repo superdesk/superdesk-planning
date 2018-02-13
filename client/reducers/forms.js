@@ -7,6 +7,7 @@ const initialState = {
     autosaves: {},
     itemId: null,
     itemType: null,
+    loadingEditItem: false,
 };
 
 const formsReducer = createReducer(initialState, {
@@ -59,6 +60,22 @@ const formsReducer = createReducer(initialState, {
                 }
             }
     ),
+
+    [MAIN.ACTIONS.SET_EDIT_ITEM]: (state, payload) => ({
+        ...state,
+        itemId: payload.itemId,
+        itemType: payload.itemType
+    }),
+
+    [MAIN.ACTIONS.EDIT_LOADING_START]: (state) => ({
+        ...state,
+        loadingEditItem: true,
+    }),
+
+    [MAIN.ACTIONS.EDIT_LOADING_COMPLETE]: (state) => ({
+        ...state,
+        loadingEditItem: false,
+    }),
 });
 
 export default formsReducer;

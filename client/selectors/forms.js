@@ -17,14 +17,15 @@ export const planningAutosaves = createSelector([autosaves], (a) => get(a, 'plan
 /** Forms */
 export const currentItemId = (state) => get(state, 'forms.itemId', null);
 export const currentItemType = (state) => get(state, 'forms.itemType', null);
+export const isLoadingItem = (state) => get(state, 'forms.loadingEditItem', false);
 
 const storedEvents = (state) => get(state, 'events.events', {});
 const storedPlannings = (state) => get(state, 'planning.plannings', {});
 
 export const currentItem = createSelector(
-    [currentItemId, currentItemType, storedEvents, storedPlannings],
-    (itemId, itemType, events, plannings) => {
-        if (itemId === null) {
+    [currentItemId, currentItemType, storedEvents, storedPlannings, isLoadingItem],
+    (itemId, itemType, events, plannings, isLoading) => {
+        if (itemId === null || isLoading) {
             return null;
         } else if (itemType === ITEM_TYPE.EVENT) {
             return get(events, itemId);

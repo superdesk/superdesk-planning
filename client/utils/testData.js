@@ -441,9 +441,6 @@ export const locks = {
 export const eventsInitialState = {
     events: {},
     eventsInList: [],
-    show: true,
-    showEventDetails: null,
-    highlightedEvent: null,
     selectedEvents: [],
     readOnly: true,
     eventHistoryItems: [],
@@ -758,7 +755,9 @@ export const archive = [
 ];
 
 export const main = {
-    previewItem: null,
+    previewId: null,
+    previewIType: null,
+    loadingPreview: false,
     filter: null,
     search: {
         EVENTS: {

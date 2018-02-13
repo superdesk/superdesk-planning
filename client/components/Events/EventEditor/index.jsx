@@ -69,6 +69,7 @@ export class EventEditorComponent extends React.Component {
             submitFailed,
             dirty,
             errors,
+            plannings,
         } = this.props;
 
         const existingEvent = !!get(diff, '_id');
@@ -238,9 +239,9 @@ export class EventEditorComponent extends React.Component {
                     </ToggleBox>
 
                     <ToggleBox title="Related Planning Items" isOpen={false} scrollInView={true}>
-                        {get(diff, '_plannings.length', 0) > 0 && (
+                        {get(plannings, 'length', 0) > 0 && (
                             <RelatedPlannings
-                                plannings={diff._plannings}
+                                plannings={plannings}
                                 openPlanningItem={true}
                             />
                         ) ||
@@ -272,6 +273,7 @@ EventEditorComponent.propTypes = {
     submitFailed: PropTypes.bool,
     dirty: PropTypes.bool,
     errors: PropTypes.object,
+    plannings: PropTypes.array,
 };
 
 EventEditorComponent.defaultProps = {
@@ -290,6 +292,7 @@ const mapStateToProps = (state) => ({
     users: selectors.getUsers(state),
     timeFormat: selectors.config.getTimeFormat(state),
     dateFormat: selectors.config.getDateFormat(state),
+    plannings: selectors.events.getRelatedPlannings(state),
 });
 
 export const EventEditor = connect(mapStateToProps)(EventEditorComponent);

@@ -27,7 +27,8 @@ class PlanningApp extends React.Component {
         super(props);
         this.state = {
             filtersOpen: false,
-            previewOpen: false,
+            previewOpen: !!props.previewId,
+            initialLoad: false,
         };
 
         this.toggleFilterPanel = this.toggleFilterPanel.bind(this);
@@ -107,7 +108,7 @@ class PlanningApp extends React.Component {
 
         const contentBlockFlags = {
             'open-filters': this.state.filtersOpen,
-            'open-preview': this.state.previewOpen && !!this.props.previewItem,
+            'open-preview': this.state.previewOpen && !!this.props.previewId,
         };
 
         const mainClassName = classNames(
@@ -232,10 +233,10 @@ class PlanningApp extends React.Component {
                         <SearchPanel toggleFilterPanel={this.toggleFilterPanel} />
                         <ListPanel { ...listPanelProps } />
                         <PreviewPanel
-                            item={this.props.previewItem}
                             edit={this.props.edit}
                             closePreview={this.closePreview}
-                            initialLoad={this.state.initialLoad} />
+                            initialLoad={this.state.initialLoad}
+                        />
                     </div>
                 </div>
                 <div className={editorClassName}>
@@ -259,7 +260,7 @@ PlanningApp.propTypes = {
     groups: PropTypes.array,
     editItem: PropTypes.object,
     editItemType: PropTypes.string,
-    previewItem: PropTypes.object,
+    previewId: PropTypes.string,
     edit: PropTypes.func.isRequired,
     cancel: PropTypes.func.isRequired,
     preview: PropTypes.func.isRequired,
@@ -309,7 +310,7 @@ const mapStateToProps = (state) => ({
     groups: selectors.main.itemGroups(state),
     editItem: selectors.forms.currentItem(state),
     editItemType: selectors.forms.currentItemType(state),
-    previewItem: selectors.main.previewItem(state),
+    previewId: selectors.main.previewId(state),
     lockedItems: selectors.locks.getLockedItems(state),
     dateFormat: selectors.config.getDateFormat(state),
     timeFormat: selectors.config.getTimeFormat(state),
@@ -330,7 +331,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     closeEditor: () => dispatch(actions.main.closeEditor()),
     edit: (item) => dispatch(actions.main.lockAndEdit(item)),
     cancel: (item) => dispatch(actions.main.unlockAndCancel(item)),
-    preview: (item) => dispatch(actions.main.preview(item)),
+    preview: (item) => dispatch(actions.main.openPreview(item)),
     filter: (filterType) => dispatch(actions.main.filter(filterType)),
     selectAgenda: (agendaId) => dispatch(actions.selectAgenda(agendaId)),
     openAgendas: () => dispatch(actions.openAgenda()),

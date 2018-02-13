@@ -36,6 +36,10 @@ export function PlanningController(
                 agendas: store.dispatch(actions.fetchAgendas()),
             })
                 .then(() => {
+                    // Load the current items that are currently open for Preview/Editing
+                    store.dispatch(actions.main.openFromURLOrRedux('edit'));
+                    store.dispatch(actions.main.openFromURLOrRedux('preview'));
+
                     $scope.$on('$destroy', () => {
                         // Unmount the React application
                         ReactDOM.unmountComponentAtNode($element.get(0));

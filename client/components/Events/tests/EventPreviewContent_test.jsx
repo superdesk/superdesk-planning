@@ -12,41 +12,46 @@ describe('<EventPreviewContent />', () => {
 
     astore.init();
 
-    astore.initialState.events.events.e1.definition_short = 'description';
-    astore.initialState.events.events.e1.anpa_category = [{
-        name: 'cat1',
-        qcode: 'cat1'
-    }];
-    astore.initialState.events.events.e1.occur_status = {
-        name: 'Planned, occurs certainly',
-        qcode: 'qcode1'
+    astore.initialState.events.events.e1 = {
+        ...astore.initialState.events.events.e1,
+        definition_short: 'description',
+        definition_long: 'long description',
+        internal_note: 'internal note',
+        anpa_category: [{
+            name: 'cat1',
+            qcode: 'cat1'
+        }],
+        occur_status: {
+            name: 'Planned, occurs certainly',
+            qcode: 'qcode1'
+        },
+        location: {
+            name: 'location',
+            formatted_address: 'address',
+        },
+        calendars: [{
+            name: 'calender1',
+            qcode: 'calender1'
+        }],
+        subject: [{
+            name: 'sub1',
+            qcode: 'sub1'
+        }],
+        files: [{
+            filemeta: {media_id: 'file'},
+            media: {
+                name: 'file1.jpg',
+                length: 1024,
+                content_type: 'video/ogg'
+            }
+        }],
+        links: ['https://www.google.com'],
     };
-    astore.initialState.events.events.e1.location = [{
-        name: 'location',
-        formatted_address: 'address',
-    }];
-    astore.initialState.events.events.e1.calendars = [{
-        name: 'calender1',
-        qcode: 'calender1'
-    }];
-    astore.initialState.events.events.e1.subject = [{
-        name: 'sub1',
-        qcode: 'sub1'
-    }];
-    astore.initialState.events.events.e1.definition_long = 'long description';
-    astore.initialState.events.events.e1.internal_note = 'internal note';
-    astore.initialState.events.events.e1.files = [{
-        filemeta: {media_id: 'file'},
-        media: {
-            name: 'file1.jpg',
-            length: 1024,
-            content_type: 'video/ogg'
-        }
-    }];
-    astore.initialState.events.events.e1.links = ['https://www.google.com'];
+
     astore.initialState.planning.plannings.p2.original_creator =
         astore.initialState.users[0];
-    astore.initialState.events.showEventDetails = astore.initialState.events.events.e1;
+    astore.initialState.main.previewId = 'e1';
+    astore.initialState.main.previewType = 'events';
 
     const getWrapper = () => {
         const store = createTestStore({initialState: astore.initialState});

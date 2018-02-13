@@ -3,7 +3,9 @@ import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
 import {main} from '../';
 import {AGENDA, MAIN} from '../../constants';
 import eventsUi from '../events/ui';
+import eventsApi from '../events/api';
 import planningUi from '../planning/ui';
+import planningApi from '../planning/api';
 import eventsPlanningUi from '../eventsPlanning/ui';
 import {locks} from '../';
 
@@ -20,20 +22,31 @@ describe('actions.main', () => {
     });
 
     it('openEditor', () => {
-        store.dispatch(main.openEditor(data.events[0]));
-
+        store.test(null, main.openEditor(data.events[0]));
         expect(store.dispatch.callCount).toBe(1);
         expect(store.dispatch.args[0]).toEqual([{
             type: 'MAIN_OPEN_EDITOR',
             payload: data.events[0]
         }]);
+
+        expect(services.$location.search.callCount).toBe(1);
+        expect(services.$location.search.args[0]).toEqual([
+            'edit',
+            JSON.stringify({id: 'e1', type: 'events'})
+        ]);
     });
 
     it('closeEditor', () => {
-        store.dispatch(main.closeEditor());
+        store.test(null, main.closeEditor());
 
         expect(store.dispatch.callCount).toBe(1);
         expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_CLOSE_EDITOR'}]);
+
+        expect(services.$location.search.callCount).toBe(1);
+        expect(services.$location.search.args[0]).toEqual([
+            'edit',
+            null
+        ]);
     });
 
     describe('filter', () => {
@@ -207,7 +220,8 @@ describe('actions.main', () => {
 
         it('closes the preview panel if item being edited is open for preview', (done) => {
             store.init();
-            store.initialState.main.previewItem = data.events[1];
+            store.initialState.main.previewId = data.events[1]._id;
+            store.initialState.main.previewType = data.events[1]._type;
             store.test(done, main.lockAndEdit(data.events[1]))
                 .then((item) => {
                     expect(item).toEqual(data.events[1]);
@@ -369,6 +383,160 @@ describe('actions.main', () => {
                     expect(eventsPlanningUi.fetch.args[0]).toEqual([{}]);
                     done();
                 });
+        });
+    });
+
+    describe('loadItem', () => {
+        beforeEach(() => {
+            sinon.stub(eventsApi, 'fetchById').returns(Promise.resolve(data.events[0]));
+            sinon.stub(planningApi, 'fetchById').returns(Promise.resolve(data.plannings[0]));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(eventsApi.fetchById);
+            restoreSinonStub(planningApi.fetchById);
+        });
+
+        it('loads an Event for preview', (done) => (
+            store.test(done, main.loadItem('e1', 'events', 'preview'))
+                .then((item) => {
+                    expect(item).toEqual(data.events[0]);
+
+                    expect(store.dispatch.callCount).toBe(3);
+                    expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_PREVIEW_LOADING_START'}]);
+
+                    expect(eventsApi.fetchById.callCount).toBe(1);
+                    expect(eventsApi.fetchById.args[0]).toEqual(['e1']);
+
+                    expect(store.dispatch.args[2]).toEqual([{type: 'MAIN_PREVIEW_LOADING_COMPLETE'}]);
+
+                    done();
+                })
+        ));
+
+        it('loads an Event for editing', (done) => (
+            store.test(done, main.loadItem('e1', 'events', 'edit'))
+                .then((item) => {
+                    expect(item).toEqual(data.events[0]);
+
+                    expect(store.dispatch.callCount).toBe(3);
+                    expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_EDIT_LOADING_START'}]);
+
+                    expect(eventsApi.fetchById.callCount).toBe(1);
+                    expect(eventsApi.fetchById.args[0]).toEqual(['e1']);
+
+                    expect(store.dispatch.args[2]).toEqual([{type: 'MAIN_EDIT_LOADING_COMPLETE'}]);
+
+                    done();
+                })
+        ));
+
+        it('loads an Planning for preview', (done) => (
+            store.test(done, main.loadItem('p1', 'planning', 'preview'))
+                .then((item) => {
+                    expect(item).toEqual(data.plannings[0]);
+
+                    expect(store.dispatch.callCount).toBe(3);
+                    expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_PREVIEW_LOADING_START'}]);
+
+                    expect(planningApi.fetchById.callCount).toBe(1);
+                    expect(planningApi.fetchById.args[0]).toEqual(['p1']);
+
+                    expect(store.dispatch.args[2]).toEqual([{type: 'MAIN_PREVIEW_LOADING_COMPLETE'}]);
+
+                    done();
+                })
+        ));
+
+        it('loads an Planning for editing', (done) => (
+            store.test(done, main.loadItem('p1', 'planning', 'edit'))
+                .then((item) => {
+                    expect(item).toEqual(data.plannings[0]);
+
+                    expect(store.dispatch.callCount).toBe(3);
+                    expect(store.dispatch.args[0]).toEqual([{type: 'MAIN_EDIT_LOADING_START'}]);
+
+                    expect(planningApi.fetchById.callCount).toBe(1);
+                    expect(planningApi.fetchById.args[0]).toEqual(['p1']);
+
+                    expect(store.dispatch.args[2]).toEqual([{type: 'MAIN_EDIT_LOADING_COMPLETE'}]);
+
+                    done();
+                })
+        ));
+
+        it('fails if unknown action type supplied', (done) => (
+            store.test(done, main.loadItem('e1', 'events', 'dummy'))
+                .then(null, (error) => {
+                    expect(error).toBe('Unknown action "dummy"');
+                    expect(store.dispatch.callCount).toBe(0);
+                    expect(eventsApi.fetchById.callCount).toBe(0);
+
+                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.args[0]).toEqual(['Unknown action "dummy"']);
+
+                    done();
+                })
+        ));
+
+        it('fails if unknown item type supplied', (done) => (
+            store.test(done, main.loadItem('e1', 'dummy', 'edit'))
+                .then(null, (error) => {
+                    expect(error).toBe('Unknown item type "dummy"');
+                    expect(store.dispatch.callCount).toBe(0);
+                    expect(eventsApi.fetchById.callCount).toBe(0);
+
+                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.args[0]).toEqual(['Unknown item type "dummy"']);
+
+                    done();
+                })
+        ));
+    });
+
+    describe('openFromURLOrRedux', () => {
+        beforeEach(() => {
+            sinon.stub(main, 'openPreview');
+            sinon.stub(main, 'openEditor');
+        });
+
+        afterEach(() => {
+            restoreSinonStub(main.openPreview);
+            restoreSinonStub(main.openEditor);
+        });
+
+        it('loads the preview item from the URL', () => {
+            store.init();
+            services.$location.search('preview', JSON.stringify({id: 'e1', type: 'events'}));
+            store.test(null, main.openFromURLOrRedux('preview'));
+            expect(main.openPreview.callCount).toBe(1);
+            expect(main.openPreview.args[0]).toEqual([{_id: 'e1', _type: 'events'}]);
+        });
+
+        it('loads the preview item from the Redux store', () => {
+            store.init();
+            store.initialState.main.previewId = 'e1';
+            store.initialState.main.previewType = 'events';
+            store.test(null, main.openFromURLOrRedux('preview'));
+            expect(main.openPreview.callCount).toBe(1);
+            expect(main.openPreview.args[0]).toEqual([{_id: 'e1', _type: 'events'}]);
+        });
+
+        it('loads the edit item from the URL', () => {
+            store.init();
+            services.$location.search('edit', JSON.stringify({id: 'e1', type: 'events'}));
+            store.test(null, main.openFromURLOrRedux('edit'));
+            expect(main.openEditor.callCount).toBe(1);
+            expect(main.openEditor.args[0]).toEqual([{_id: 'e1', _type: 'events'}]);
+        });
+
+        it('loads the edit item from the Redux store', () => {
+            store.init();
+            store.initialState.forms.itemId = 'e1';
+            store.initialState.forms.itemType = 'events';
+            store.test(null, main.openFromURLOrRedux('edit'));
+            expect(main.openEditor.callCount).toBe(1);
+            expect(main.openEditor.args[0]).toEqual([{_id: 'e1', _type: 'events'}]);
         });
     });
 });

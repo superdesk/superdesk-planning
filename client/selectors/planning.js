@@ -15,10 +15,10 @@ export const currentAgendaId = (state) => get(state, 'agenda.currentAgendaId', n
 export const currentPlanningId = (state) => get(state, 'planning.currentPlanningId');
 export const currentSearch = (state) => get(state, 'main.search.PLANNING.currentSearch');
 const fullText = (state) => get(state, 'main.search.PLANNING.fulltext', '');
-
+const previewId = (state) => get(state, 'main.previewId', null);
 
 export const currentPlanning = createSelector(
-    [currentPlanningId, storedPlannings],
+    [previewId, storedPlannings],
     (currentPlanningId, storedPlannings) => {
         if (typeof currentPlanningId === 'string') {
             return storedPlannings[currentPlanningId];
