@@ -62,45 +62,42 @@ export class ColouredValueInput extends React.Component {
                 {...props}
             >
                 <Label text={label} row={row} light={row && readOnly} />
+                {readOnly ? (
+                    <div className="select-coloured-value__input">
+                        <span className={this.getIconClasses(value)}>
+                            {get(value, valueKey, get(value, labelKey, noValueString || gettext('None')))}
+                        </span>
+                        <span>
+                        &nbsp;&nbsp;{get(value, labelKey, '')}
+                        </span>
+                    </div>
+                ) : (
+                    <button type="button"
+                        className="dropdown__toggle select-coloured-value__input line-input"
+                        onClick={this.togglePopup}
+                    >
+                        <span className={this.getIconClasses(value)}>
+                            {get(value, valueKey, get(value, labelKey, noValueString || gettext('None')))}
+                        </span>
+                        &nbsp;&nbsp;{get(value, labelKey, '')}
+                        <b className="dropdown__caret" />
+                    </button>
+                )}
 
-                <div className="sd-line-input__input">
-                    {readOnly ? (
-                        <div className="select-coloured-value__input">
-                            <span className={this.getIconClasses(value)}>
-                                {get(value, valueKey, get(value, labelKey, noValueString || gettext('None')))}
-                            </span>
-                            <span>
-                            &nbsp;&nbsp;{get(value, labelKey, '')}
-                            </span>
-                        </div>
-                    ) : (
-                        <button type="button"
-                            className="dropdown__toggle select-coloured-value__input"
-                            onClick={this.togglePopup}
-                        >
-                            <span className={this.getIconClasses(value)}>
-                                {get(value, valueKey, get(value, labelKey, noValueString || gettext('None')))}
-                            </span>
-                            &nbsp;&nbsp;{get(value, labelKey, '')}
-                            <b className="dropdown__caret" />
-                        </button>
-                    )}
-
-                    {this.state.openPopup && (
-                        <ColouredValuePopup
-                            title={label}
-                            options={options}
-                            getClassNamesForOption={this.getIconClasses}
-                            onChange={this.onChange}
-                            onCancel={this.togglePopup}
-                            clearable={clearable}
-                            target="dropdown__caret"
-                            labelKey={labelKey}
-                            valueKey={valueKey}
-                            popupContainer={popupContainer}
-                        />
-                    )}
-                </div>
+                {this.state.openPopup && (
+                    <ColouredValuePopup
+                        title={label}
+                        options={options}
+                        getClassNamesForOption={this.getIconClasses}
+                        onChange={this.onChange}
+                        onCancel={this.togglePopup}
+                        clearable={clearable}
+                        target="dropdown__caret"
+                        labelKey={labelKey}
+                        valueKey={valueKey}
+                        popupContainer={popupContainer}
+                    />
+                )}
             </LineInput>
         );
     }

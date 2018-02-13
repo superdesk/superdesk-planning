@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {SearchField} from '../../UI';
 import {differenceBy} from 'lodash';
-import {uiUtils} from '../../../utils';
+import {uiUtils, onEventCapture} from '../../../utils';
 import './style.scss';
 import {Popup} from '../../UI/Popup';
 import {KEYCODES} from '../../../constants';
@@ -27,25 +27,25 @@ export class SelectListPopup extends React.Component {
         if (event) {
             switch (event.keyCode) {
             case KEYCODES.ENTER:
-                event.preventDefault();
+                onEventCapture(event);
                 this.handleEnterKey(event);
                 break;
             case KEYCODES.DOWN:
-                event.preventDefault();
+                onEventCapture(event);
                 this.handleDownArrowKey(event);
                 break;
             case KEYCODES.UP:
-                event.preventDefault();
+                onEventCapture(event);
                 this.handleUpArrowKey(event);
                 break;
             case KEYCODES.LEFT:
-                event.preventDefault();
+                onEventCapture(event);
                 if (this.state.selectedAncestry.length > 0) {
                     this.popParent(true);
                 }
                 break;
             case KEYCODES.RIGHT:
-                event.preventDefault();
+                onEventCapture(event);
                 if (this.state.activeOptionIndex !== -1) {
                     this.onMutiLevelSelect(
                         this.state.filteredList[this.state.activeOptionIndex],

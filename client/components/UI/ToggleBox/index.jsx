@@ -1,7 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {gettext} from '../../../utils';
+import {gettext, onEventCapture} from '../../../utils';
+import {KEYCODES} from '../../../constants';
 
 import './style.scss';
 
@@ -11,7 +12,18 @@ export class ToggleBox extends React.Component {
         this.state = {isOpen: this.props.isOpen};
         this.scrollInView = this.scrollInView.bind(this);
         this.toggle = this.toggle.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.dom = {node: null};
+    }
+
+    handleKeyDown(event) {
+        if (event.keyCode === KEYCODES.RIGHT && !this.state.isOpen) {
+            onEventCapture(event);
+            this.setState({isOpen: true});
+        } else if (event.keyCode === KEYCODES.LEFT && this.state.isOpen) {
+            onEventCapture(event);
+            this.setState({isOpen: false});
+        }
     }
 
     toggle() {
@@ -55,7 +67,11 @@ export class ToggleBox extends React.Component {
                 )}
                 ref={(node) => this.dom.node = node}
             >
-                <div className="toggle-box__header" onClick={this.toggle}>
+                <div className="toggle-box__header"
+                    onClick={this.toggle}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={this.handleKeyDown}>
                     <div className="toggle-box__chevron"><i className="icon-chevron-right-thin"/></div>
                     <div className="toggle-box__label">{gettext(title)}</div>
                     <div className="toggle-box__line"/>

@@ -33,3 +33,13 @@ time.Datetime {
         border: 1px solid $red;
     }
 }
+
+.sd-collapse-box--autoFocus {
+    &:focus {
+        background-color: #f4f4f4;
+    }
+}
+
+.sd-collapse-box {
+    @extend .sd-collapse-box--autoFocus
+}

@@ -13,6 +13,8 @@ export const SelectInput = ({
     onChange,
     readOnly,
     clearable,
+    autoFocus,
+    refNode,
     ...props
 }) => {
     const key = clearable ?
@@ -42,6 +44,8 @@ export const SelectInput = ({
                 options={opts}
                 readOnly={readOnly}
                 clearable={clearable}
+                autoFocus={autoFocus}
+                refNode={refNode}
             />
         </LineInput>
     );
@@ -71,6 +75,8 @@ SelectInput.propTypes = {
     keyField: PropTypes.string,
     labelField: PropTypes.string,
     clearable: PropTypes.bool,
+    autoFocus: PropTypes.bool,
+    refNode: PropTypes.func,
 };
 
 SelectInput.defaultProps = {
@@ -82,4 +88,5 @@ SelectInput.defaultProps = {
     keyField: 'qcode',
     labelField: 'label',
     clearable: false,
+    autoFocus: false,
 };

@@ -171,6 +171,7 @@ export class AssignmentEditorComponent extends React.Component {
                             readOnly={disableDeskSelection}
                             message={get(this.state, 'errors.desk')}
                             invalid={!!get(this.state, 'errors.desk')}
+                            autoFocus
                         />
                     </Row>
                 )}

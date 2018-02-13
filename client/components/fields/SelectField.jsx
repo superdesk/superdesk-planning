@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {get} from 'lodash';
+import {onEventCapture} from '../../utils';
 
 export class SelectField extends React.Component {
     constructor(props) {
@@ -59,8 +60,7 @@ export class SelectField extends React.Component {
     }
 
     onChange(event) {
-        event.stopPropagation();
-        event.preventDefault();
+        onEventCapture(event);
 
         this.setValueFromState(event.target.value);
     }

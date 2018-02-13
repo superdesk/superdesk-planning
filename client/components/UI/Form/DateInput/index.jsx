@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import {LineInput, Label, Input} from '../';
 import {DateInputPopup} from './DateInputPopup';
+import {KEYCODES} from '../../../../constants';
+import {onEventCapture} from '../../../../utils';
 import './style.scss';
 
 export class DateInput extends React.Component {
@@ -14,6 +16,7 @@ export class DateInput extends React.Component {
             viewValue: '',
             previousValidValue: '',
         };
+        this.dom = {inputField: null};
 
         this.validateDateText = this.validateDateText.bind(this);
         this.handleInputBlur = this.handleInputBlur.bind(this);
@@ -41,18 +44,24 @@ export class DateInput extends React.Component {
 
     toggleOpenDatePicker() {
         this.setState({openDatePicker: !this.state.openDatePicker});
+
+        if (this.state.openDatePicker) {
+            // Keep the focus to enable tab navigation
+            this.dom.inputField.focus();
+        }
     }
 
     validateDateText(field, val) {
         let regex = new RegExp('[0-9][0-9]/[0-9][0-9]/[0-9][0-9][0-9][0-9]', 'i');
+        const valMoment = moment(val, this.props.dateFormat);
 
-        if (val.match(regex) && moment(val, this.props.dateFormat).isValid()) {
+        if (val.match(regex) && valMoment.isValid()) {
             this.setState({
                 invalid: false,
-                viewValue: val,
-                previousValidValue: val,
+                viewValue: valMoment,
+                previousValidValue: valMoment,
             });
-            this.onChange(val);
+            this.onChange(valMoment);
         } else {
             this.setState({
                 invalid: true,
@@ -103,6 +112,14 @@ export class DateInput extends React.Component {
                     onBlur={this.handleInputBlur}
                     type="text"
                     readOnly={readOnly}
+                    onKeyDown={(event) => {
+                        if (event.keyCode === KEYCODES.ENTER) {
+                            onEventCapture(event);
+                            this.setState({openDatePicker: true});
+                        }
+                    }
+                    }
+                    refNode={(ref) => this.dom.inputField = ref}
                 />
                 {this.state.openDatePicker && (
                     <DateInputPopup

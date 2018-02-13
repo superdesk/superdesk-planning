@@ -4,6 +4,8 @@ import PropTypes from 'prop-types';
 import {Row, LineInput, Label, Input} from '../';
 import {UserAvatar} from '../../../';
 import {SelectUserPopup} from './SelectUserPopup';
+import {KEYCODES} from '../../../../constants';
+import {onEventCapture} from '../../../../utils';
 
 export class SelectUserInput extends React.Component {
     constructor(props) {
@@ -88,6 +90,14 @@ export class SelectUserInput extends React.Component {
                             onChange={this.filterUserList}
                             onClick={this.openPopup}
                             placeholder="Search"
+                            onKeyDown={(event) => {
+                                if (event.keyCode === KEYCODES.ENTER ||
+                                    event.keyCode === KEYCODES.DOWN) {
+                                    onEventCapture(event);
+                                    this.openPopup();
+                                }
+                            }
+                            }
                         />
 
                         {this.state.openFilterList && (

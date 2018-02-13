@@ -532,3 +532,10 @@ export const isEmptyActions = (actions) => {
             action.label !== GENERIC_ITEM_ACTIONS.DIVIDER.label).length <= 0;
     }
 };
+
+export const onEventCapture = (event) => {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+};

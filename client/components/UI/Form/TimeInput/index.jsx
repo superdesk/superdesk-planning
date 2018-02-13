@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import moment from 'moment';
 import {LineInput, Label, Input} from '../';
 import {TimeInputPopup} from './TimeInputPopup';
+import {KEYCODES} from '../../../../constants';
 import './style.scss';
 
 export class TimeInput extends React.Component {
@@ -15,6 +16,7 @@ export class TimeInput extends React.Component {
             previousValidValue: '',
         };
 
+        this.dom = {inputField: null};
         this.handleInputBlur = this.handleInputBlur.bind(this);
         this.validateTimeText = this.validateTimeText.bind(this);
         this.toggleOpenTimePicker = this.toggleOpenTimePicker.bind(this);
@@ -41,6 +43,11 @@ export class TimeInput extends React.Component {
 
     toggleOpenTimePicker() {
         this.setState({openTimePicker: !this.state.openTimePicker});
+
+        if (this.state.openTimePicker) {
+            // Keep the focus to enable tab navigation
+            this.dom.inputField.focus();
+        }
     }
 
     validateTimeText(field, val) {
@@ -106,6 +113,13 @@ export class TimeInput extends React.Component {
                     placeholder={placeholder}
                     onBlur={this.handleInputBlur}
                     readOnly={readOnly}
+                    onKeyDown={(event) => {
+                        if (event.keyCode === KEYCODES.ENTER) {
+                            this.setState({openTimePicker: true});
+                        }
+                    }
+                    }
+                    refNode={(ref) => this.dom.inputField = ref}
                 />
                 {this.state.openTimePicker && (
                     <TimeInputPopup

@@ -14,25 +14,22 @@ import {
     Field,
 } from '../../UI/Form';
 
-export const CoverageForm = ({
-    field,
-    value,
-    onChange,
-    newsCoverageStatus,
-    dateFormat,
-    timeFormat,
-    contentTypes,
-    genres,
-    keywords,
-    readOnly,
-    item,
-    diff,
-    formProfile,
-    errors,
-    showErrors,
-    currentWorkspace,
-}) => {
-    const onScheduleChanged = (f, v) => {
+export class CoverageForm extends React.Component {
+    constructor(props) {
+        super(props);
+        this.onScheduleChanged = this.onScheduleChanged.bind(this);
+        this.dom = {contentType: null};
+    }
+
+    componentDidUpdate(prevProps) {
+        if (!prevProps.hasAssignment && this.props.hasAssignment) {
+            this.dom.contentType.focus();
+        }
+    }
+
+    onScheduleChanged(f, v) {
+        const {value, onChange} = this.props;
+
         if (f.endsWith('.date')) {
             // If there is no current scheduled date, then set the time value to end of the day
             if (!get(value, 'planning.scheduled')) {
@@ -58,128 +55,152 @@ export const CoverageForm = ({
         } else {
             onChange(f, v);
         }
-    };
+    }
 
-    const contentTypeQcode = get(value, 'planning.g2_content_type') || null;
-    const contentType = contentTypeQcode ? getItemInArrayById(contentTypes, contentTypeQcode, 'qcode') : null;
-    const onContentTypeChange = (f, v) => onChange(f, get(v, 'qcode') || null);
-    const isExistingCoverage = !!value.coverage_id;
-    const assignmentState = get(value, 'assigned_to.state');
-    const hasAssignment = !!get(value, 'assigned_to.assignment_id');
+    render() {
+        const {
+            field,
+            value,
+            onChange,
+            newsCoverageStatus,
+            dateFormat,
+            timeFormat,
+            contentTypes,
+            genres,
+            keywords,
+            readOnly,
+            item,
+            diff,
+            formProfile,
+            errors,
+            showErrors,
+            currentWorkspace,
+            hasAssignment,
+        } = this.props;
 
-    const fieldProps = {
-        item: item,
-        diff: diff,
-        onChange: onChange,
-        formProfile: formProfile,
-        errors: errors,
-        showErrors: showErrors,
-    };
+        const contentTypeQcode = get(value, 'planning.g2_content_type') || null;
+        const contentType = contentTypeQcode ? getItemInArrayById(contentTypes, contentTypeQcode, 'qcode') : null;
+        const onContentTypeChange = (f, v) => onChange(f, get(v, 'qcode') || null);
+        const isExistingCoverage = !!value.coverage_id;
+        const assignmentState = get(value, 'assigned_to.state');
+        const hasExistingAssignment = !!get(value, 'assigned_to.assignment_id');
 
-    const roFields = planningUtils.getCoverageReadOnlyFields(
-        readOnly,
-        newsCoverageStatus,
-        hasAssignment,
-        isExistingCoverage,
-        assignmentState
-    );
+        const fieldProps = {
+            item: item,
+            diff: diff,
+            onChange: onChange,
+            formProfile: formProfile,
+            errors: errors,
+            showErrors: showErrors,
+        };
 
-    return (
-        <div>
-            <Field
-                component={SelectInput}
-                field={`${field}.planning.g2_content_type`}
-                profileName="g2_content_type"
-                label={gettext('Content Type')}
-                options={contentTypes}
-                labelField="name"
-                clearable={true}
-                value={contentType}
-                defaultValue={null}
-                {...fieldProps}
-                onChange={onContentTypeChange}
-                readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.g2_content_type}
-            />
+        const roFields = planningUtils.getCoverageReadOnlyFields(
+            readOnly,
+            newsCoverageStatus,
+            hasExistingAssignment,
+            isExistingCoverage,
+            assignmentState
+        );
 
-            <Field
-                component={SelectInput}
-                enabled={contentTypeQcode === 'text'}
-                field={`${field}.planning.genre`}
-                profileName="genre"
-                label={gettext('Genre')}
-                options={genres}
-                labelField="name"
-                clearable={true}
-                defaultValue={null}
-                readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.genre}
-                {...fieldProps}
-            />
+        return (
+            <div>
+                <Field
+                    component={SelectInput}
+                    field={`${field}.planning.g2_content_type`}
+                    profileName="g2_content_type"
+                    label={gettext('Content Type')}
+                    options={contentTypes}
+                    labelField="name"
+                    clearable={true}
+                    value={contentType}
+                    defaultValue={null}
+                    {...fieldProps}
+                    onChange={onContentTypeChange}
+                    readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.g2_content_type}
+                    autoFocus={hasAssignment}
+                    refNode={(ref) => this.dom.contentType = ref}
+                />
 
-            <Field
-                component={TextInput}
-                field={`${field}.planning.slugline`}
-                profileName="slugline"
-                label={gettext('Slugline')}
-                readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.slugline}
-                {...fieldProps}
-            />
+                <Field
+                    component={SelectInput}
+                    enabled={contentTypeQcode === 'text'}
+                    field={`${field}.planning.genre`}
+                    profileName="genre"
+                    label={gettext('Genre')}
+                    options={genres}
+                    labelField="name"
+                    clearable={true}
+                    defaultValue={null}
+                    readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.genre}
+                    {...fieldProps}
+                />
 
-            <Field
-                component={TextAreaInput}
-                field={`${field}.planning.ednote`}
-                profileName="ednote"
-                label={gettext('Ed Note')}
-                readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.ednote}
-                {...fieldProps}
-            />
+                <Field
+                    component={TextInput}
+                    field={`${field}.planning.slugline`}
+                    profileName="slugline"
+                    label={gettext('Slugline')}
+                    readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.slugline}
+                    {...fieldProps}
+                />
 
-            <Field
-                component={SelectTagInput}
-                field={`${field}.planning.keyword`}
-                profileName="keyword"
-                label={gettext('Keywords')}
-                defaultValue={[]}
-                options={keywords}
-                readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.keyword}
-                {...fieldProps}
-            />
+                <Field
+                    component={TextAreaInput}
+                    field={`${field}.planning.ednote`}
+                    profileName="ednote"
+                    label={gettext('Ed Note')}
+                    readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.ednote}
+                    {...fieldProps}
+                />
 
-            <Field
-                component={TextAreaInput}
-                field={`${field}.planning.internal_note`}
-                profileName="internal_note"
-                label={gettext('Internal Note')}
-                readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.internal_note}
-                {...fieldProps}
-            />
+                <Field
+                    component={SelectTagInput}
+                    field={`${field}.planning.keyword`}
+                    profileName="keyword"
+                    label={gettext('Keywords')}
+                    defaultValue={[]}
+                    options={keywords}
+                    readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.keyword}
+                    {...fieldProps}
+                />
 
-            <Field
-                component={SelectInput}
-                field={`${field}.news_coverage_status`}
-                profileName="news_coverage_status"
-                label={gettext('Coverage Status')}
-                defaultValue={COVERAGES.DEFAULT_VALUE(newsCoverageStatus).news_coverage_status}
-                options={newsCoverageStatus}
-                {...fieldProps}
-                readOnly={!!get(value, 'assigned_to.desk', readOnly)}
-            />
+                <Field
+                    component={TextAreaInput}
+                    field={`${field}.planning.internal_note`}
+                    profileName="internal_note"
+                    label={gettext('Internal Note')}
+                    readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.internal_note}
+                    {...fieldProps}
+                />
 
-            <Field
-                component={DateTimeInput}
-                field={`${field}.planning.scheduled`}
-                profileName="scheduled"
-                label={gettext('Due')}
-                timeFormat={timeFormat}
-                dateFormat={dateFormat}
-                defaultValue={null}
-                row={false}
-                {...fieldProps}
-                onChange={onScheduleChanged}
-                readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.scheduled}
-            />
-        </div>
-    );
-};
+                <Field
+                    component={SelectInput}
+                    field={`${field}.news_coverage_status`}
+                    profileName="news_coverage_status"
+                    label={gettext('Coverage Status')}
+                    defaultValue={COVERAGES.DEFAULT_VALUE(newsCoverageStatus).news_coverage_status}
+                    options={newsCoverageStatus}
+                    {...fieldProps}
+                    readOnly={!!get(value, 'assigned_to.desk', readOnly)}
+                />
+
+                <Field
+                    component={DateTimeInput}
+                    field={`${field}.planning.scheduled`}
+                    profileName="scheduled"
+                    label={gettext('Due')}
+                    timeFormat={timeFormat}
+                    dateFormat={dateFormat}
+                    defaultValue={null}
+                    row={false}
+                    {...fieldProps}
+                    onChange={this.onScheduleChanged}
+                    readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.scheduled}
+                />
+            </div>
+        );
+    }
+}
 
 CoverageForm.propTypes = {
     field: PropTypes.string,
@@ -203,6 +224,7 @@ CoverageForm.propTypes = {
     errors: PropTypes.object,
     showErrors: PropTypes.bool,
     currentWorkspace: PropTypes.string,
+    hasAssignment: PropTypes.bool,
 };
 
 CoverageForm.defaultProps = {

@@ -95,6 +95,7 @@ export class LinkInput extends React.Component {
                         type="text"
                         placeholder="Paste link"
                         readOnly={readOnly}
+                        autoFocus
                     />
                     {this.state.title && (
                         <a href={value} target="_blank">{this.state.title}</a>

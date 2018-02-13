@@ -10,12 +10,11 @@ import {PlanningDateTime} from './';
 import {ItemActionsMenu} from '../index';
 import {PLANNING, EVENTS, WORKSPACE, MAIN} from '../../constants';
 
-import {planningUtils, getItemWorkflowStateLabel} from '../../utils';
+import {planningUtils, getItemWorkflowStateLabel, onEventCapture} from '../../utils';
 
 export class PlanningItem extends React.PureComponent {
     onAddCoverageButtonClick(event) {
-        event.preventDefault();
-        event.stopPropagation();
+        onEventCapture(event);
         this.props.onAddCoverageClick();
     }
 

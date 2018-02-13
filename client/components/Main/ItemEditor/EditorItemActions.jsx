@@ -62,7 +62,7 @@ export const EditorItemActions = ({item, session, privileges, lockedItems, curre
 };
 
 EditorItemActions.propTypes = {
-    item: PropTypes.object.isRequired,
+    item: PropTypes.object,
     session: PropTypes.object,
     privileges: PropTypes.object,
     lockedItems: PropTypes.object,

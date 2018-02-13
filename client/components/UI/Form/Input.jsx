@@ -13,6 +13,7 @@ export const Input = ({
     readOnly,
     refNode,
     className,
+    ...props,
 }) => {
     const onInputChanged = (e) => {
         let data = e.target.value;
@@ -36,6 +37,7 @@ export const Input = ({
             onClick={onClick}
             disabled={readOnly}
             ref={refNode}
+            {...props}
         />
     );
 };

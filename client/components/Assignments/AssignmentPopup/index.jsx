@@ -90,11 +90,13 @@ export class AssignmentPopup extends React.Component {
                         onClick={this.onSubmit}
                         disabled={!this.state.valid}
                         text={gettext('Submit')}
+                        enterKeyIsClick
                     />
                     <Button
                         className="pull-right"
                         onClick={onClose}
                         text={gettext('Cancel')}
+                        enterKeyIsClick
                     />
                 </Footer>
                 <div ref={(node) => this.dom.popupContainer = node} />

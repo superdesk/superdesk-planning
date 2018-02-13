@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {SearchBar} from '../../';
 import {differenceBy, get} from 'lodash';
-import {uiUtils} from '../../../../utils';
+import {uiUtils, onEventCapture} from '../../../../utils';
 import classNames from 'classnames';
 import './style.scss';
 
@@ -36,25 +36,25 @@ export class SelectFieldPopup extends React.Component {
         if (event) {
             switch (event.keyCode) {
             case KEYCODES.ENTER:
-                event.preventDefault();
+                onEventCapture(event);
                 this.handleEnterKey(event);
                 break;
             case KEYCODES.DOWN:
-                event.preventDefault();
+                onEventCapture(event);
                 this.handleDownArrowKey(event);
                 break;
             case KEYCODES.UP:
-                event.preventDefault();
+                onEventCapture(event);
                 this.handleUpArrowKey(event);
                 break;
             case KEYCODES.LEFT:
-                event.preventDefault();
+                onEventCapture(event);
                 if (this.state.selectedAncestry.length > 0) {
                     this.popParent(true);
                 }
                 break;
             case KEYCODES.RIGHT:
-                event.preventDefault();
+                onEventCapture(event);
                 if (this.state.activeOptionIndex !== -1) {
                     this.onMutiLevelSelect(
                         this.state.filteredList[this.state.activeOptionIndex],
@@ -168,10 +168,7 @@ export class SelectFieldPopup extends React.Component {
         const opt = len > 1 ? this.state.selectedAncestry[len - 2] : null;
         const activeOption = keydown === true ? 0 : -1;
 
-        if (get(keydown, 'preventDefault')) {
-            keydown.preventDefault();
-            keydown.stopPropagation();
-        }
+        onEventCapture(keydown);
 
         this.setState({
             currentParent: opt,

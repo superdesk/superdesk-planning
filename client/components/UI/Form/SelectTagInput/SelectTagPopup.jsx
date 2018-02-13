@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import {get} from 'lodash';
 
 import {KEYCODES} from '../../../../constants';
+import {onEventCapture} from '../../../../utils';
 
 import {Popup, Content} from '../../Popup';
 
@@ -22,18 +23,15 @@ export class SelectTagPopup extends React.Component {
         if (event) {
             switch (event.keyCode) {
             case KEYCODES.ENTER:
-                event.preventDefault();
-                event.stopPropagation();
+                onEventCapture(event);
                 this.handleEnterKey(event);
                 break;
             case KEYCODES.DOWN:
-                event.preventDefault();
-                event.stopPropagation();
+                onEventCapture(event);
                 this.handleDownKey(event);
                 break;
             case KEYCODES.UP:
-                event.preventDefault();
-                event.stopPropagation();
+                onEventCapture(event);
                 this.handleUpKey(event);
                 break;
             }

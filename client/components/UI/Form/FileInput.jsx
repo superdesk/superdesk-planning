@@ -33,7 +33,7 @@ export const FileInput = ({field, label, value, onChange, createLink, remove, re
                     <a className="icn-btn sd-line-input__icon-right" onClick={remove}>
                         <i className="icon-trash" />
                     </a>
-                    <Input field={field} onChange={onChange} type="file"/>
+                    <Input field={field} onChange={onChange} type="file" autoFocus/>
                 </LineInput>
             )}
         </Row>

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import {formatAddress, uiUtils} from '../../../../utils';
+import {formatAddress, uiUtils, onEventCapture} from '../../../../utils';
 import {KEYCODES} from '../../../../constants';
 import {get} from 'lodash';
 import './style.scss';
@@ -24,15 +24,15 @@ export class AddGeoLookupResultsPopUp extends React.Component {
         if (event) {
             switch (event.keyCode) {
             case KEYCODES.ENTER:
-                event.preventDefault();
+                onEventCapture(event);
                 this.handleEnterKey(event);
                 break;
             case KEYCODES.DOWN:
-                event.preventDefault();
+                onEventCapture(event);
                 this.handleDownArrowKey(event);
                 break;
             case KEYCODES.UP:
-                event.preventDefault();
+                onEventCapture(event);
                 this.handleUpArrowKey(event);
                 break;
             }
