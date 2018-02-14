@@ -6,9 +6,9 @@ import {validateItem} from '../../../validators';
 import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
 import '../style.scss';
-import {eventUtils, gettext} from '../../../utils';
-import {EventScheduleSummary, EventUpdateMethods, EventScheduleInput} from '../../Events';
-import {UpdateMethodSelection} from '../UpdateMethodSelection';
+import {gettext} from '../../../utils';
+import {EventScheduleSummary, EventScheduleInput} from '../../Events';
+import {RelatedPlannings} from '../../';
 import {Row} from '../../UI/Preview';
 import {TextAreaInput, Field} from '../../UI/Form';
 import {set, isEqual, cloneDeep} from 'lodash';
@@ -18,40 +18,17 @@ export class RescheduleEventComponent extends React.Component {
         super(props);
         this.state = {
             diff: null,
-            eventUpdateMethod: EventUpdateMethods[0],
             reason: '',
-            relatedEvents: [],
-            relatedPlannings: [],
             submitting: false,
             errors: {},
         };
 
-        this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
         this.onReasonChange = this.onReasonChange.bind(this);
         this.onDatesChange = this.onDatesChange.bind(this);
     }
 
     componentWillMount() {
-        const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-            EventUpdateMethods[0]);
-
-        this.setState({
-            diff: {dates: cloneDeep(event.dates)},
-            relatedEvents: event._events,
-            relatedPlannings: event._relatedPlannings,
-        });
-
-        this.currentDate = cloneDeep(this.props.initialValues.dates);
-    }
-
-    onEventUpdateMethodChange(field, option) {
-        const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-            option);
-
-        this.setState({
-            eventUpdateMethod: option,
-            relatedEvents: event._events,
-        });
+        this.setState({diff: {dates: cloneDeep(this.props.initialValues.dates)}});
     }
 
     onReasonChange(field, reason) {
@@ -101,27 +78,14 @@ export class RescheduleEventComponent extends React.Component {
             reason: this.state.reason,
         };
 
-        if (this.props.initialValues.recurrence_id) {
-            updatedEvent.update_method = this.state.eventUpdateMethod;
-        }
-
         this.props.onSubmit(updatedEvent);
     }
 
 
     render() {
         const {initialValues, dateFormat, timeFormat} = this.props;
-        const isRecurring = !!initialValues.recurrence_id;
-        const updateMethodLabel = gettext('Would you like to reschedule all recurring events or just this one?');
-        const multiEvent = this.state.eventUpdateMethod.value !== EventUpdateMethods[0].value;
         let reasonLabel = gettext('Reason for rescheduling this event:');
-
-        if (multiEvent) {
-            reasonLabel = gettext('Reason for rescheduling these events:');
-        }
-
-        const numEvents = this.state.relatedEvents.length + 1;
-        const numPlannings = this.state.relatedPlannings.length;
+        const numPlannings = initialValues._plannings.length;
 
         return (
             <div className="MetadataView">
@@ -141,18 +105,11 @@ export class RescheduleEventComponent extends React.Component {
                 />
 
                 <EventScheduleSummary
-                    schedule={this.currentDate}
+                    schedule={this.props.initialValues.dates}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
                     noPadding={true}
                     forUpdating={true}
-                />
-
-                <Row
-                    enabled={isRecurring}
-                    label={gettext('No. of Events')}
-                    value={numEvents}
-                    noPadding={true}
                 />
 
                 <Row
@@ -162,15 +119,17 @@ export class RescheduleEventComponent extends React.Component {
                     noPadding={true}
                 />
 
-                <UpdateMethodSelection
-                    value={this.state.eventUpdateMethod}
-                    onChange={this.onEventUpdateMethodChange}
-                    showMethodSelection={isRecurring}
-                    updateMethodLabel={updateMethodLabel}
-                    relatedPlannings={this.state.relatedPlannings}
-                    showSpace={false}
-                    readOnly={this.state.submitting}
-                    action="cancel" />
+                {numPlannings > 0 && (
+                    <div>
+                        <div className="sd-alert sd-alert--hollow sd-alert--alert">
+                            <strong>{gettext('This will mark as rescheduled the following planning items')}</strong>
+                            <RelatedPlannings
+                                plannings={initialValues._plannings}
+                                openPlanningItem={false}
+                                short={true} />
+                        </div>
+                    </div>
+                )}
 
                 <Field
                     component={EventScheduleInput}
@@ -180,7 +139,7 @@ export class RescheduleEventComponent extends React.Component {
                     onChange={this.onDatesChange}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
-                    showRepeat={multiEvent}
+                    showRepeat={false}
                     showRepeatToggle={false}
                     showErrors={true}
                     errors={this.state.errors}

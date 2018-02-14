@@ -157,6 +157,7 @@ describe('actions.events.ui', () => {
                     true,
                     false,
                     true,
+                    false
                 ]);
 
                 done();
@@ -184,6 +185,7 @@ describe('actions.events.ui', () => {
                     data.events[1],
                     true,
                     false,
+                    true
                 ]);
 
                 expect(store.dispatch.callCount).toBe(3);
