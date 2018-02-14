@@ -4,7 +4,8 @@ import {ModalWithForm} from '../index';
 import {
     SpikeEventForm,
     UpdateRecurringEventsForm,
-    CancelAndPostponeEventForm,
+    CancelEventForm,
+    PostponeEventForm,
     UpdateTimeForm,
     RescheduleEventForm,
     ConvertToRecurringEventForm,
@@ -61,7 +62,7 @@ export class ItemActionConfirmationModal extends React.Component {
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: {
                 title: gettext('Cancel an event'),
                 saveText: gettext('OK'),
-                form: CancelAndPostponeEventForm,
+                form: CancelEventForm,
             },
             [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: {
                 title: gettext('Update time'),
@@ -75,7 +76,7 @@ export class ItemActionConfirmationModal extends React.Component {
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label]: {
                 title: gettext('Postpone an event'),
                 saveText: gettext('Postpone'),
-                form: CancelAndPostponeEventForm,
+                form: PostponeEventForm,
             },
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: {
                 title: get(EVENTS, 'ITEM_ACTIONS.CONVERT_TO_RECURRING.label'),

@@ -3,38 +3,26 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../../../actions';
 import * as selectors from '../../../selectors';
-import {eventUtils, gettext} from '../../../utils';
+import {gettext} from '../../../utils';
 import {EVENTS} from '../../../constants';
-import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
-import {UpdateMethodSelection} from '../UpdateMethodSelection';
+import {EventScheduleSummary} from '../../Events';
 import {Row} from '../../UI/Preview';
 import {TextAreaInput} from '../../UI/Form';
+import {RelatedPlannings} from '../../';
 import '../style.scss';
 
-export class CancelAndPostponeEventComponent extends React.Component {
+export class PostponeEventComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            eventUpdateMethod: EventUpdateMethods[0],
             reason: '',
-            relatedEvents: [],
-            relatedPlannings: [],
             submitting: false,
         };
 
-        this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
         this.onReasonChange = this.onReasonChange.bind(this);
     }
 
     componentWillMount() {
-        const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-            EventUpdateMethods[0]);
-
-        this.setState({
-            relatedEvents: event._events,
-            relatedPlannings: event._relatedPlannings,
-        });
-
         // Enable save so that the user can action on this event.
         this.props.enableSaveInModal();
     }
@@ -45,18 +33,7 @@ export class CancelAndPostponeEventComponent extends React.Component {
 
         this.props.onSubmit({
             ...this.props.initialValues,
-            update_method: this.state.eventUpdateMethod,
             reason: this.state.reason,
-        });
-    }
-
-    onEventUpdateMethodChange(field, option) {
-        const event = eventUtils.getRelatedEventsForRecurringEvent(this.props.initialValues,
-            option);
-
-        this.setState({
-            eventUpdateMethod: option,
-            relatedEvents: event._events,
         });
     }
 
@@ -66,19 +43,8 @@ export class CancelAndPostponeEventComponent extends React.Component {
 
     render() {
         const {initialValues, dateFormat, timeFormat} = this.props;
-        const isRecurring = !!initialValues.recurrence_id;
-        const isPostpone = initialValues.lock_action === EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action;
-
-        let updateMethodLabel = isPostpone ?
-            gettext('Would you like to postpone all recurring events or just this one?') :
-            gettext('Would you like to cancel all recurring events or just this one?');
-
-        let reasonLabel = isPostpone ?
-            gettext('Reason for Event postponement:') :
-            gettext('Reason for Event cancellation:');
-
-        const numEvents = this.state.relatedEvents.length + 1;
-        const numPlannings = this.state.relatedPlannings.length;
+        let reasonLabel = gettext('Reason for Event postponement:');
+        const numPlannings = initialValues._plannings.length;
 
         return (
             <div className="ItemActionConfirmation">
@@ -101,12 +67,6 @@ export class CancelAndPostponeEventComponent extends React.Component {
                     schedule={initialValues.dates}
                     timeFormat={timeFormat}
                     dateFormat={dateFormat}
-                />
-
-                <Row
-                    enabled={isRecurring}
-                    label={gettext('No. of Events')}
-                    value={numEvents}
                     noPadding={true}
                 />
 
@@ -117,16 +77,17 @@ export class CancelAndPostponeEventComponent extends React.Component {
                     noPadding={true}
                 />
 
-                <UpdateMethodSelection
-                    value={this.state.eventUpdateMethod}
-                    onChange={this.onEventUpdateMethodChange}
-                    showMethodSelection={isRecurring}
-                    updateMethodLabel={updateMethodLabel}
-                    relatedPlannings={this.state.relatedPlannings}
-                    showSpace={false}
-                    readOnly={this.state.submitting}
-                    action={isPostpone ? 'postpone' : 'cancel'}
-                />
+                {numPlannings > 0 && (
+                    <div>
+                        <div className="sd-alert sd-alert--hollow sd-alert--alert">
+                            <strong>{gettext('This will also postpone the following planning items')}</strong>
+                            <RelatedPlannings
+                                plannings={initialValues._plannings}
+                                openPlanningItem={false}
+                                short={true} />
+                        </div>
+                    </div>
+                )}
 
                 <Row label={reasonLabel}>
                     <TextAreaInput
@@ -140,10 +101,9 @@ export class CancelAndPostponeEventComponent extends React.Component {
     }
 }
 
-CancelAndPostponeEventComponent.propTypes = {
+PostponeEventComponent.propTypes = {
     onSubmit: PropTypes.func.isRequired,
     initialValues: PropTypes.object.isRequired,
-    relatedEvents: PropTypes.array,
     relatedPlannings: PropTypes.array,
     timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,
@@ -162,24 +122,17 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event) => {
-        if (event.lock_action === EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action) {
-            return dispatch(actions.events.ui.postponeEvent(event));
-        } else {
-            return dispatch(actions.events.ui.cancelEvent(event));
-        }
-    },
+    onSubmit: (event) => dispatch(actions.events.ui.postponeEvent(event)),
     onHide: (event) => {
-        if (event.lock_action === EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action ||
-            event.lock_action === EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action) {
+        if (event.lock_action === EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action) {
             return dispatch(actions.events.api.unlock(event));
         }
     },
 });
 
-export const CancelAndPostponeEventForm = connect(
+export const PostponeEventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
     {withRef: true}
-)(CancelAndPostponeEventComponent);
+)(PostponeEventComponent);

@@ -345,7 +345,8 @@ const openCancelModal = (event, publish = false) => (
         EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label,
         EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action,
         true,
-        publish
+        publish,
+        true
     ))
 );
 
@@ -355,7 +356,9 @@ const openPostponeModal = (event, publish = false) => (
         EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label,
         EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action,
         true,
-        publish
+        publish,
+        false,
+        false
     ))
 );
 
@@ -387,12 +390,13 @@ const _openActionModal = (
     lockAction = null,
     loadPlannings = false,
     publish = false,
-    large = false
+    large = false,
+    loadEvents = true
 ) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.lock(event, lockAction))
             .then((lockedEvent) => (
-                dispatch(eventsApi.loadEventDataForAction(lockedEvent, loadPlannings, publish))
+                dispatch(eventsApi.loadEventDataForAction(lockedEvent, loadPlannings, publish, loadEvents))
                     .then((eventDetail) => (
                         dispatch(showModal({
                             modalType: MODALS.ITEM_ACTIONS_MODAL,
