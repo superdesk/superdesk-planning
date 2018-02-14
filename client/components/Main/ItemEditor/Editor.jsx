@@ -33,6 +33,7 @@ export class EditorComponent extends React.Component {
             showSubmitFailed: false,
         };
 
+        this.editorHeaderComponent = null;
         this.onChangeHandler = this.onChangeHandler.bind(this);
         this.setActiveTab = this.setActiveTab.bind(this);
         this.onSave = this.onSave.bind(this);
@@ -207,6 +208,10 @@ export class EditorComponent extends React.Component {
             showSubmitFailed: false,
         });
 
+        if (this.editorHeaderComponent) {
+            this.editorHeaderComponent.unregisterKeyBoardShortcuts();
+        }
+
         this.props.cancel(this.props.item);
     }
 
@@ -263,6 +268,7 @@ export class EditorComponent extends React.Component {
                     onLock={this.props.onLock}
                     itemActions={this.props.itemActions}
                     currentWorkspace={this.props.currentWorkspace}
+                    ref={(ref) => this.editorHeaderComponent = ref}
                 />
                 <Content flex={true}>
                     {this.state.showSubmitFailed && (

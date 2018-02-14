@@ -103,6 +103,8 @@ export const InputArray = ({
                 <Button
                     onClick={add}
                     text={addButtonText}
+                    tabIndex={0}
+                    enterKeyIsClick
                 />
             )}
         </div>

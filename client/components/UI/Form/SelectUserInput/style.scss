@@ -23,6 +23,10 @@
             width: 100%;
             text-align: left;
         }
+
+        &--active {
+            background: $sd-hover;   
+        }
     }
 
     &-item-label {

@@ -29,6 +29,7 @@ export class SelectMetaTermsInput extends React.Component {
 
     toggleOpenSelectPopup() {
         this.setState({openSelectPopup: !this.state.openSelectPopup});
+        this.addBtn.focus();
     }
 
     removeValue(index) {
@@ -72,17 +73,22 @@ export class SelectMetaTermsInput extends React.Component {
                 withButton={true}
                 readOnly={readOnly}
                 className={classNames(
+                    'dropdown-terms',
                     'select__meta-terms',
                     {'select__meta-terms--disabled': readOnly}
                 )}
             >
                 {!readOnly && (
-                    <span
+                    <button
                         className={classNames(
+                            'dropdown__toggle',
                             'sd-line-input__plus-btn',
                             {'sd-line-input__plus-btn--disabled': options.length === 0}
                         )}
                         onClick={options.length > 0 ? this.toggleOpenSelectPopup : null}
+                        ref={(ref) => {
+                            this.addBtn = ref;
+                        }}
                     />
                 )}
 

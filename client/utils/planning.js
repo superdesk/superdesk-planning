@@ -552,6 +552,7 @@ const self = {
     getPlanningByDate,
     createCoverageFromNewsItem,
     isLockedForAddToPlanning,
+    isCoverageAssigned,
 };
 
 export default self;

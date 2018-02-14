@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {GENERIC_ITEM_ACTIONS} from '../../constants';
+import {onEventCapture} from '../../utils';
 import {get} from 'lodash';
 import {closeActionsMenu} from 'superdesk-core/scripts/apps/search/helpers';
 
@@ -10,18 +11,13 @@ export class ActionsMenu extends React.Component {
         action.callback();
     }
 
-    ignoreAction(event) {
-        event.preventDefault();
-        event.stopPropagation();
-    }
-
     render() {
         const {actions} = this.props;
 
         let items = actions.map(this.renderItem.bind(this));
 
         return (<ul className="dropdown dropdown__menu more-activity-menu open">
-            <li onClick={this.ignoreAction.bind(this)}>
+            <li onClick={onEventCapture.bind(this)}>
                 <div className="dropdown__menu-label">Actions<button className="dropdown__menu-close"
                     onClick={closeActionsMenu}>
                     <i className="icon-close-small" /></button>

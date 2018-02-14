@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {ActionsMenu} from './ActionsMenu';
 import {GENERIC_ITEM_ACTIONS} from '../../constants';
+import {onEventCapture} from '../../utils';
 import './style.scss';
 import {renderToBody, closeActionsMenu} from 'superdesk-core/scripts/apps/search/helpers';
 
@@ -34,11 +35,7 @@ export class ItemActionsMenu extends React.Component {
     }
 
     closeMenu(event) {
-        if (event) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-
+        onEventCapture(event);
         closeActionsMenu();
         this.setState({isOpen: false});
     }
@@ -72,8 +69,7 @@ export class ItemActionsMenu extends React.Component {
     }
 
     renderMenu(event) {
-        event.preventDefault();
-        event.stopPropagation();
+        onEventCapture(event);
         let actions = this.props.actions;
 
         if (actions[actions.length - 1].label === GENERIC_ITEM_ACTIONS.DIVIDER.label) {

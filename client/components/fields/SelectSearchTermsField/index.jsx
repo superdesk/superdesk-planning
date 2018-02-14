@@ -4,6 +4,8 @@ import {SelectListPopup} from './SelectListPopup';
 import {differenceBy} from 'lodash';
 import './style.scss';
 import {LineInput, Label} from '../../UI/Form';
+import {KEYCODES} from '../../../constants';
+import {onEventCapture} from '../../../utils';
 
 
 export class SelectSearchTermsField extends React.Component {
@@ -106,7 +108,17 @@ export class SelectSearchTermsField extends React.Component {
                             <ul className="list-items">
                                 {value.map((v, index) => (
                                     <li key={index}>
-                                        <div className="sd-list-item sd-shadow--z2">
+                                        <div
+                                            className="sd-list-item sd-shadow--z2 Select__item" role="button"
+                                            tabIndex={0}
+                                            onKeyDown={(event) => {
+                                                if (event.keyCode === KEYCODES.ENTER &&
+                                                    !this.state.viewDetails) {
+                                                    onEventCapture(event);
+                                                    this.viewDetails(index);
+                                                }
+                                            }
+                                            } >
                                             <div className="sd-list-item__border" />
                                             <div className="sd-list-item__column sd-list-item__column--grow
                                                 sd-list-item__column--no-border">
@@ -116,11 +128,15 @@ export class SelectSearchTermsField extends React.Component {
                                             </div>
                                             {(<div className="sd-list-item__action-menu
                                                 sd-list-item__action-menu--direction-row">
-                                                <button className="dropdown__toggle" data-sd-tooltip="View Details"
+                                                <button
+                                                    tabIndex={-1}
+                                                    className="dropdown__toggle" data-sd-tooltip="View Details"
                                                     data-flow="left" onClick={this.viewDetails.bind(this, index)}>
                                                     <i className="icon-external" />
                                                 </button>
-                                                <button className="dropdown__toggle" data-sd-tooltip="Remove"
+                                                <button
+                                                    tabIndex={-1}
+                                                    className="dropdown__toggle" data-sd-tooltip="Remove"
                                                     data-flow="left" onClick={this.removeValue.bind(this, index)}>
                                                     <i className="icon-trash" />
                                                 </button>

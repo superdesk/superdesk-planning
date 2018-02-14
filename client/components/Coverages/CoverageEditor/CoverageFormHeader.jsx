@@ -4,6 +4,7 @@ import {get} from 'lodash';
 import {getCreator, getItemInArrayById, gettext} from '../../../utils';
 import {WORKSPACE} from '../../../constants';
 import {Item, Border, Column, Row as ListRow} from '../../UI/List';
+import {Button} from '../../UI';
 import {UserAvatar} from '../../';
 import {AssignmentPopup} from '../../Assignments';
 import {StateLabel} from '../../../components';
@@ -59,9 +60,12 @@ export class CoverageFormHeader extends React.Component {
                             </span>
                         </ListRow>
                         <ListRow>
-                            <a className="btn btn--primary btn--small" onClick={this.togglePopup}>
-                                {gettext('Assign')}
-                            </a>
+                            <Button
+                                text={gettext('Assign')}
+                                tabIndex={0}
+                                enterKeyIsClick
+                                className="btn btn--primary btn--small" onClick={this.togglePopup}
+                                autoFocus />
                         </ListRow>
                     </Column>
                     {this.state.popupOpen && (
@@ -129,9 +133,13 @@ export class CoverageFormHeader extends React.Component {
                 </Column>
                 {!isExistingCoverage && (
                     <Column>
-                        <a className="btn btn--hollow btn--small" onClick={this.togglePopup}>
-                            {gettext('Reassign')}
-                        </a>
+                        <Button
+                            text={gettext('Reassign')}
+                            className="btn btn--hollow btn--small"
+                            onClick={this.togglePopup}
+                            tabIndex={0}
+                            enterKeyIsClick
+                            autoFocus />
                     </Column>
                 )}
                 {this.state.popupOpen && (

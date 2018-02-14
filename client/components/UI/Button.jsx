@@ -2,6 +2,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
+import {KEYCODES} from '../../constants';
+import {onEventCapture} from '../../utils';
+
 const Button = ({
     className,
     onClick,
@@ -14,29 +17,44 @@ const Button = ({
     expanded,
     color,
     size,
-    iconOnly
-}) => (
-    <div
-        className={classNames(
-            'btn',
-            color ? `btn--${color}` : null,
-            size ? `btn--${size}` : null,
-            {
-                'btn--disabled': disabled,
-                'btn--text-only': textOnly,
-                'btn--hollow': hollow,
-                'btn--expanded': expanded,
-                'btn--icon-only': iconOnly
-            },
-            className
-        )}
-        onClick={onClick || null}
-        title={title || text}
-    >
-        {icon && <i className={icon} />}
-        {!iconOnly && text}
-    </div>
-);
+    iconOnly,
+    tabIndex,
+    enterKeyIsClick,
+    autoFocus,
+}) => {
+    const handeKeyDown = (event) => {
+        if (event.keyCode === KEYCODES.ENTER) {
+            onEventCapture(event);
+            onClick();
+        }
+    };
+
+    return (
+        <button
+            className={classNames(
+                'btn',
+                color ? `btn--${color}` : null,
+                size ? `btn--${size}` : null,
+                {
+                    'btn--disabled': disabled,
+                    'btn--text-only': textOnly,
+                    'btn--hollow': hollow,
+                    'btn--expanded': expanded,
+                    'btn--icon-only': iconOnly
+                },
+                className
+            )}
+            onClick={onClick || null}
+            title={title || text}
+            tabIndex={tabIndex}
+            onKeyDown={enterKeyIsClick ? handeKeyDown : null}
+            autoFocus={autoFocus}
+        >
+            {icon && <i className={icon} />}
+            {!iconOnly && text}
+        </button>
+    );
+};
 
 Button.propTypes = {
     className: PropTypes.string,
@@ -51,6 +69,9 @@ Button.propTypes = {
     expanded: PropTypes.bool,
     color: PropTypes.oneOf(['primary', 'success', 'warning', 'alert', 'highlight', 'sd-green']),
     size: PropTypes.oneOf(['small', 'large']),
+    tabIndex: PropTypes.number,
+    enterKeyIsClick: PropTypes.bool,
+    autoFocus: PropTypes.bool,
 };
 
 Button.defaultProps = {
@@ -58,7 +79,9 @@ Button.defaultProps = {
     textOnly: false,
     hollow: false,
     iconOnly: false,
-    expanded: false
+    expanded: false,
+    enterKeyIsClick: false,
+    autoFocus: false,
 };
 
 export default Button;

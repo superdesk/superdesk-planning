@@ -199,6 +199,12 @@ export class PlanningEditorComponent extends React.Component {
         this.dom.slugline.focus();
     }
 
+    componentDidUpdate(prevProps) {
+        if (get(prevProps, 'item._id') !== get(this.props, 'item._id')) {
+            this.dom.slugline.focus();
+        }
+    }
+
     render() {
         const {
             item,
@@ -342,7 +348,6 @@ export class PlanningEditorComponent extends React.Component {
                             value={urgency}
                             options={urgencies}
                             iconName="urgency-label"
-                            labelLeft={true}
                             defaultValue={null}
                             {...fieldProps}
                         />
@@ -370,6 +375,7 @@ export class PlanningEditorComponent extends React.Component {
                             event={event}
                             dateFormat={dateFormat}
                             timeFormat={timeFormat}
+                            tabEnabled
                         />
                     </ContentBlock>
                 )}
@@ -393,7 +399,7 @@ export class PlanningEditorComponent extends React.Component {
                     currentWorkspace={currentWorkspace}
                     readOnly={readOnly}
                     maxCoverageCount={maxCoverageCount}
-                    addOnly={!!addNewsItemToPlanning && existingPlanning}
+                    addOnly={!!addNewsItemToPlanning}
                     originalCount={get(item, 'coverages', []).length}
                     defaultValue={[]}
                     {...fieldProps}

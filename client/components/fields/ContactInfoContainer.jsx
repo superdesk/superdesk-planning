@@ -20,7 +20,7 @@ export class ContactInfoContainer extends React.Component {
 
     componentWillUnmount() {
         document.removeEventListener('click', this.handleClickOutside, true);
-        document.addEventListener('keydown', this.handleKeyBoardEvent);
+        document.removeEventListener('keydown', this.handleKeyBoardEvent);
     }
 
     handleKeyBoardEvent(event) {

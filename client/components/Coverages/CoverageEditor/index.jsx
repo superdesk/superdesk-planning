@@ -128,6 +128,7 @@ export const CoverageEditor = ({
             message={message}
             invalid={invalid}
             currentWorkspace={currentWorkspace}
+            hasAssignment={planningUtils.isCoverageAssigned(value)}
             {...props}
         />
     );
@@ -141,6 +142,7 @@ export const CoverageEditor = ({
             scrollInView={true}
             isOpen={openComponent || isEqual(value, COVERAGES.DEFAULT_VALUE(newsCoverageStatus))}
             invalid={invalid}
+            tabEnabled
         />
     );
 };

@@ -9,7 +9,7 @@ import {Row as PreviewRow} from '../../UI/Preview';
 import {CollapseBox} from '../../UI/CollapseBox';
 import {eventUtils, gettext} from '../../../utils';
 
-export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly, scrollInView}) => {
+export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly, scrollInView, tabEnabled}) => {
     const dateStr = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat, dateOnly);
 
     const eventListView = (
@@ -84,6 +84,7 @@ export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly, scrollIn
         openItemTopBar={eventInDetailTopBar}
         openItem={eventInDetail}
         scrollInView={scrollInView}
+        tabEnabled={tabEnabled}
     />);
 };
 
@@ -93,6 +94,7 @@ EventMetadata.propTypes = {
     dateFormat: PropTypes.string,
     timeFormat: PropTypes.string,
     scrollInView: PropTypes.bool,
+    tabEnabled: PropTypes.bool,
 };
 
 

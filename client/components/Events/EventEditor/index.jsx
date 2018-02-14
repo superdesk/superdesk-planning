@@ -51,6 +51,12 @@ export class EventEditorComponent extends React.Component {
         this.dom.slugline.focus();
     }
 
+    componentDidUpdate(prevProps) {
+        if (get(prevProps, 'item._id') !== get(this.props, 'item._id')) {
+            this.dom.slugline.focus();
+        }
+    }
+
     render() {
         const {
             item,
