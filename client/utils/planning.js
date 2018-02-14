@@ -40,7 +40,7 @@ const canPublishPlanning = (planning, event, session, privileges, locks) => (
 );
 
 const canUnpublishPlanning = (planning, event, session, privileges, locks) => (
-    !!privileges[PRIVILEGES.PUBLISH_PLANNING] &&
+    !!privileges[PRIVILEGES.PUBLISH_PLANNING] && !isItemSpiked(planning) &&
         !isPlanningLockRestricted(planning, session, locks) &&
         getPublishedState(planning) === PUBLISHED_STATE.USABLE
 );
@@ -56,8 +56,8 @@ const canEditPlanning = (planning, event, session, privileges, locks) => (
 
 const canUpdatePlanning = (planning, event, session, privileges, locks) => (
     canEditPlanning(planning, event, session, privileges, locks) &&
-        isItemPublic(planning) &&
-        !!privileges[PRIVILEGES.PUBLISH_PLANNING]
+        isItemPublic(planning) && !!privileges[PRIVILEGES.PUBLISH_PLANNING] &&
+        !isItemSpiked(planning)
 );
 
 const canSpikePlanning = (plan, session, privileges, locks) => (
@@ -83,24 +83,19 @@ const canDuplicatePlanning = (plan, event = null, session, privileges, locks) =>
         !isItemSpiked(event)
 );
 
-const canCancelPlanning = (planning, event = null, session, privileges, locks) => {
-    const planState = getItemWorkflowState(planning);
-    const eventState = getItemWorkflowState(event);
-
-    return !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+const canCancelPlanning = (planning, event = null, session, privileges, locks) => (
+    !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isPlanningLockRestricted(planning, session, locks) &&
-        planState === WORKFLOW_STATE.SCHEDULED &&
-        eventState !== WORKFLOW_STATE.SPIKED;
-};
+        getItemWorkflowState(planning) === WORKFLOW_STATE.SCHEDULED &&
+        getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED
+);
 
-const canCancelAllCoverage = (planning, event = null, session, privileges, locks) => {
-    const eventState = getItemWorkflowState(event);
-
-    return !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
-        !isPlanningLockRestricted(planning, session, locks) &&
-        eventState !== WORKFLOW_STATE.SPIKED &&
-        canCancelAllCoverageForPlanning(planning);
-};
+const canCancelAllCoverage = (planning, event = null, session, privileges, locks) => (
+    !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !isItemSpiked(planning) && !isPlanningLockRestricted(planning, session, locks) &&
+        getItemWorkflowState(event) !== WORKFLOW_STATE.SPIKED &&
+        canCancelAllCoverageForPlanning(planning)
+);
 
 const isCoverageCancelled = (coverage) =>
     (get(coverage, 'news_coverage_status.qcode') === 'ncostat:notint');
@@ -316,7 +311,8 @@ const getPlanningActions = (item, event, session, privileges, lockedItems, callB
         }
     });
 
-    if (eventActions.length > 1) {
+    // Don't include event actions if planning is spiked
+    if (eventActions.length > 1 && !isItemSpiked(item)) {
         actions.push(...eventActions);
     }
 

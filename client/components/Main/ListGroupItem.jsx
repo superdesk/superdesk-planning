@@ -64,6 +64,8 @@ export class ListGroupItem extends React.Component {
             selectedEventIds,
             selectedPlanningIds,
             itemActions,
+            users,
+            desks,
         } = this.props;
         const itemType = getItemType(item);
 
@@ -108,6 +110,8 @@ export class ListGroupItem extends React.Component {
 
         let planningProps = {
             ...itemProps,
+            users: users,
+            desks: desks,
             agendas: agendas,
             date: date,
             currentWorkspace: currentWorkspace,
@@ -164,6 +168,8 @@ export class ListGroupItem extends React.Component {
 ListGroupItem.propTypes = {
     item: PropTypes.object.isRequired,
     date: PropTypes.string.isRequired,
+    users: PropTypes.array,
+    desks: PropTypes.array,
     onItemClick: PropTypes.func.isRequired,
     onDoubleClick: PropTypes.func,
     editItem: PropTypes.object,
