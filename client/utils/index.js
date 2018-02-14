@@ -31,6 +31,10 @@ export {gettext, gettextCatalog};
 export {lockUtils};
 export {planningUtils};
 
+// Polyfill Promise.finally function as this was introduced in Chrome 63+
+import promiseFinally from 'promise.prototype.finally';
+promiseFinally.shim();
+
 export function createReducer(initialState, reducerMap) {
     return (state = initialState, action) => {
         const reducer = reducerMap[action.type];
