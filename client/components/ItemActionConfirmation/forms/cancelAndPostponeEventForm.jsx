@@ -67,13 +67,15 @@ export class CancelAndPostponeEventComponent extends React.Component {
     render() {
         const {initialValues, dateFormat, timeFormat} = this.props;
         const isRecurring = !!initialValues.recurrence_id;
-        let updateMethodLabel = gettext('Would you like to postpone all recurring events or just this one?');
-        let reasonLabel = gettext('Reason for Event cancellation:');
+        const isPostpone = initialValues.lock_action === EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action;
 
-        if (initialValues.lock_action === EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action) {
-            updateMethodLabel = gettext('Would you like to postpone all recurring events or just this one?');
-            reasonLabel = gettext('Reason for Event postponement:');
-        }
+        let updateMethodLabel = isPostpone ?
+            gettext('Would you like to postpone all recurring events or just this one?') :
+            gettext('Would you like to cancel all recurring events or just this one?');
+
+        let reasonLabel = isPostpone ?
+            gettext('Reason for Event postponement:') :
+            gettext('Reason for Event cancellation:');
 
         const numEvents = this.state.relatedEvents.length + 1;
         const numPlannings = this.state.relatedPlannings.length;
@@ -123,7 +125,8 @@ export class CancelAndPostponeEventComponent extends React.Component {
                     relatedPlannings={this.state.relatedPlannings}
                     showSpace={false}
                     readOnly={this.state.submitting}
-                    action="cancel" />
+                    action={isPostpone ? 'postpone' : 'cancel'}
+                />
 
                 <Row label={reasonLabel}>
                     <TextAreaInput
