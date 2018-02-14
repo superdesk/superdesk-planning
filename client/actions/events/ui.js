@@ -366,7 +366,8 @@ const openRescheduleModal = (event, publish = false) => (
         EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.lock_action,
         true,
         publish,
-        true
+        true,
+        false
     ))
 );
 
@@ -387,12 +388,13 @@ const _openActionModal = (
     lockAction = null,
     loadPlannings = false,
     publish = false,
-    large = false
+    large = false,
+    loadEvents = true
 ) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.lock(event, lockAction))
             .then((lockedEvent) => (
-                dispatch(eventsApi.loadEventDataForAction(lockedEvent, loadPlannings, publish))
+                dispatch(eventsApi.loadEventDataForAction(lockedEvent, loadPlannings, publish, loadEvents))
                     .then((eventDetail) => (
                         dispatch(showModal({
                             modalType: MODALS.ITEM_ACTIONS_MODAL,

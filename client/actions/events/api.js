@@ -377,10 +377,12 @@ const refetch = () => (
  * Action dispatcher to load all events from the series of events,
  * then load their associated planning items.
  * @param {object} event - Any event from the series of recurring events
+ * @param {boolean} loadPlannings - If true, loads associated Planning items as well
+ * @param {boolean} loadEvents - If true, also loads all Events in the series
  */
-const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true) => (
+const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true, loadEvents = true) => (
     (dispatch) => {
-        if (get(event, 'recurrence_id')) {
+        if (get(event, 'recurrence_id') && loadEvents) {
             return dispatch(self.loadEventsByRecurrenceId(
                 event.recurrence_id,
                 SPIKED_STATE.BOTH,
@@ -407,7 +409,7 @@ const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true) => (
                     ), (error) => Promise.reject(error));
             }, (error) => Promise.reject(error));
         } else {
-            if (!loadPlannings || !get(event, 'has_planning', false)) {
+            if (!loadPlannings || get(event, 'planning_ids.length', 0) < 1) {
                 return Promise.resolve({
                     events: [],
                     plannings: [],
@@ -425,9 +427,9 @@ const loadRecurringEventsAndPlanningItems = (event, loadPlannings = true) => (
     }
 );
 
-const loadEventDataForAction = (event, loadPlanning = true, publish = false) => (
+const loadEventDataForAction = (event, loadPlanning = true, publish = false, loadEvents = true) => (
     (dispatch) => (
-        dispatch(self.loadRecurringEventsAndPlanningItems(event, loadPlanning))
+        dispatch(self.loadRecurringEventsAndPlanningItems(event, loadPlanning, loadEvents))
             .then((relatedEvents) => {
                 let modifiedEvent = {
                     ...event,
