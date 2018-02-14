@@ -75,7 +75,9 @@ export class ListPanel extends React.Component {
             selectedEventIds,
             selectedPlanningIds,
             itemActions,
-            loadingIndicator
+            loadingIndicator,
+            users,
+            desks,
         } = this.props;
 
         return (
@@ -111,6 +113,8 @@ export class ListPanel extends React.Component {
                             selectedEventIds: selectedEventIds,
                             selectedPlanningIds: selectedPlanningIds,
                             itemActions: itemActions,
+                            users: users,
+                            desks: desks,
                         };
 
                         return <ListGroup key={group.date} {...listGroupProps} />;
@@ -124,6 +128,8 @@ export class ListPanel extends React.Component {
 
 ListPanel.propTypes = {
     groups: PropTypes.array,
+    users: PropTypes.array,
+    desks: PropTypes.array,
     onItemClick: PropTypes.func.isRequired,
     onDoubleClick: PropTypes.func,
     lockedItems: PropTypes.object.isRequired,

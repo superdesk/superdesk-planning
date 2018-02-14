@@ -148,7 +148,9 @@ class PlanningApp extends React.Component {
             selectAgenda,
             currentAgendaId,
             filter,
-            loadingIndicator
+            loadingIndicator,
+            users,
+            desks,
         } = this.props;
 
         const itemActions = {
@@ -204,6 +206,8 @@ class PlanningApp extends React.Component {
             filter: filter,
             loadingIndicator: loadingIndicator,
             itemActions: itemActions,
+            desks: desks,
+            users: users,
         };
 
         return (
@@ -280,6 +284,8 @@ PlanningApp.propTypes = {
     currentWorkspace: PropTypes.string,
     closeEditor: PropTypes.func,
     loadingIndicator: PropTypes.bool,
+    desks: PropTypes.array,
+    users: PropTypes.array,
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
@@ -308,6 +314,8 @@ PlanningApp.propTypes = {
 
 const mapStateToProps = (state) => ({
     groups: selectors.main.itemGroups(state),
+    users: selectors.getUsers(state),
+    desks: selectors.getDesks(state),
     editItem: selectors.forms.currentItem(state),
     editItemType: selectors.forms.currentItemType(state),
     previewId: selectors.main.previewId(state),

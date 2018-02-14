@@ -34,6 +34,8 @@ export class PlanningItem extends React.PureComponent {
             onMultiSelectClick,
             multiSelected,
             activeFilter,
+            users,
+            desks,
         } = this.props;
 
         if (!item) {
@@ -126,6 +128,8 @@ export class PlanningItem extends React.PureComponent {
                             item={item}
                             date={date}
                             timeFormat={timeFormat}
+                            users={users}
+                            desks={desks}
                         />
                     </Row>
                 </Column>
@@ -165,6 +169,8 @@ PlanningItem.propTypes = {
     onMultiSelectClick: PropTypes.func,
     multiSelected: PropTypes.bool,
     activeFilter: PropTypes.string,
+    users: PropTypes.array,
+    desks: PropTypes.array,
     [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.SPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,

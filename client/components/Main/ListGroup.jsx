@@ -23,6 +23,8 @@ export const ListGroup = ({
     selectedEventIds,
     selectedPlanningIds,
     itemActions,
+    users,
+    desks,
 }) => (
     <div className="ListGroup">
         <div className="sd-list-header">
@@ -50,6 +52,8 @@ export const ListGroup = ({
                     selectedEventIds: selectedEventIds,
                     selectedPlanningIds: selectedPlanningIds,
                     itemActions: itemActions,
+                    users: users,
+                    desks: desks,
                 };
 
                 return <ListGroupItem key={item._id} { ...listGroupItemProps } />;
@@ -61,6 +65,8 @@ export const ListGroup = ({
 ListGroup.propTypes = {
     name: PropTypes.string,
     items: PropTypes.array,
+    users: PropTypes.array,
+    desks: PropTypes.array,
     onItemClick: PropTypes.func.isRequired,
     onDoubleClick: PropTypes.func,
     editItem: PropTypes.object,

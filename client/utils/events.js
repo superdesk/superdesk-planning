@@ -189,7 +189,7 @@ const canPublishEvent = (event, session, privileges, locks) => (
 );
 
 const canUnpublishEvent = (event, session, privileges, locks) => (
-    !isNil(event) &&
+    !isNil(event) && !isItemSpiked(event) &&
         !isEventLockRestricted(event, session, locks) &&
         getPublishedState(event) === PUBLISHED_STATE.USABLE &&
         !!privileges[PRIVILEGES.PUBLISH_EVENT]
