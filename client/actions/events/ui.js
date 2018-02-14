@@ -345,7 +345,8 @@ const openCancelModal = (event, publish = false) => (
         EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label,
         EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action,
         true,
-        publish
+        publish,
+        true
     ))
 );
 
@@ -355,7 +356,9 @@ const openPostponeModal = (event, publish = false) => (
         EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.label,
         EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.lock_action,
         true,
-        publish
+        publish,
+        false,
+        false
     ))
 );
 

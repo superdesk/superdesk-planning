@@ -108,6 +108,7 @@ describe('actions.events.ui', () => {
                     'cancel',
                     true,
                     false,
+                    true
                 ]);
 
                 done();
@@ -124,6 +125,8 @@ describe('actions.events.ui', () => {
                     'postpone',
                     true,
                     false,
+                    false,
+                    false
                 ]);
 
                 done();
@@ -139,7 +142,7 @@ describe('actions.events.ui', () => {
                     'Update time',
                     'update_time',
                     false,
-                    false,
+                    false
                 ]);
 
                 done();

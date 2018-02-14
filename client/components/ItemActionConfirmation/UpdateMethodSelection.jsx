@@ -69,7 +69,7 @@ UpdateMethodSelection.defaultProps = {
 UpdateMethodSelection.propTypes = {
     field: PropTypes.string,
     value: PropTypes.object,
-    onChange: PropTypes.func.isRequired,
+    onChange: PropTypes.func,
     showMethodSelection: PropTypes.bool,
     updateMethodLabel: PropTypes.string,
     relatedPlannings: PropTypes.array,
