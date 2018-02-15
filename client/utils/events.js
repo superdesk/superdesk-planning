@@ -199,7 +199,6 @@ const canCancelEvent = (event, session, privileges, locks) => (
     !isNil(event) &&
         !isItemSpiked(event) &&
         !isItemCancelled(event) &&
-        isEventInUse(event) &&
         !isEventLockRestricted(event, session, locks) &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isItemRescheduled(event)

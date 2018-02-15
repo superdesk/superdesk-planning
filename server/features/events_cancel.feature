@@ -326,10 +326,10 @@ Feature: Events Cancel
         Then we get list with 4 items
         """
         {"_items": [
-            { "_id": "#EVENT1._id#", "state": "spiked" },
-            { "_id": "#EVENT2._id#", "state": "spiked" },
+            { "_id": "#EVENT1._id#", "state": "cancelled" },
+            { "_id": "#EVENT2._id#", "state": "cancelled" },
             { "_id": "#EVENT3._id#", "state": "cancelled" },
-            { "_id": "#EVENT4._id#", "state": "spiked" }
+            { "_id": "#EVENT4._id#", "state": "cancelled" }
         ]}
         """
 
@@ -528,4 +528,116 @@ Feature: Events Cancel
         Then we get error 400
         """
         {"_issues": {"validator exception": "403: The lock must be for the `cancel` action"}, "_status": "ERR"}
+        """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Invalid state errors for event cancellation
+        Given we have sessions "/sessions"
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "rescheduled",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "cancel",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we perform cancel on events "event1"
+        Then we get error 400
+        """
+        {"_issues": {"validator exception": "400: Event not in valid state for cancellation"}, "_status": "ERR"}
+        """
+        When we patch "/events/#events._id#"
+        """
+        {"state": "spiked"}
+        """
+        Then we get OK response
+        When we perform cancel on events "event1"
+        Then we get error 400
+        """
+        {"_issues": {"validator exception": "400: Event not in valid state for cancellation"}, "_status": "ERR"}
+        """
+        When we patch "/events/#events._id#"
+        """
+        {"state": "cancelled"}
+        """
+        Then we get OK response
+        When we perform cancel on events "event1"
+        Then we get error 400
+        """
+        {"_issues": {"validator exception": "400: Event not in valid state for cancellation"}, "_status": "ERR"}
+        """
+
+    @auth
+    @notification
+    @vocabulary
+    Scenario: Events in recurring series with invalid state for event cancellation are left alone
+        Given we have sessions "/sessions"
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2099-11-21T12:00:00.000Z",
+                "end": "2099-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 4,
+                    "endRepeatMode": "count"
+                }
+            },
+            "state": "draft"
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        Then we store "EVENT4" with 4 item
+        When we patch "/events/#EVENT1._id#"
+        """
+        {"state": "rescheduled"}
+        """
+        Then we get OK response
+        When we patch "/events/#EVENT2._id#"
+        """
+        {"state": "spiked"}
+        """
+        Then we get OK response
+        When we patch "/events/#EVENT3._id#"
+        """
+        {"state": "cancelled"}
+        """
+        Then we get OK response
+        When we post to "/events/#EVENT4._id#/lock" with success
+        """
+        {"lock_action": "cancel"}
+        """
+        When we perform cancel on events "#EVENT4._id#"
+        """
+        {"update_method": "all", "reason": "blaablaa"}
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            { "_id": "#EVENT1._id#", "state": "rescheduled" },
+            { "_id": "#EVENT2._id#", "state": "spiked" },
+            { "_id": "#EVENT3._id#", "state": "cancelled" },
+            { "_id": "#EVENT4._id#", "state": "cancelled" }
+        ]}
         """
