@@ -734,3 +734,81 @@ Feature: Events Recurring
             }}
         ]}
         """
+
+    @auth
+    @notification
+    Scenario: Update metadata of all events in recurring series will not update 'rescheduled', 'spiked, 'cancelled' events
+        When we post to "events"
+        """
+        [{
+            "name": "Friday Club",
+            "dates": {
+                "start": "2099-11-21T12:00:00.000Z",
+                "end": "2099-11-21T14:00:00.000Z",
+                "recurring_rule": {
+                    "frequency": "DAILY",
+                    "interval": 1,
+                    "count": 5,
+                    "endRepeatMode": "count"
+                }
+            }
+        }]
+        """
+        Then we get OK response
+        Then we store "EVENT1" with first item
+        Then we store "EVENT2" with 2 item
+        Then we store "EVENT3" with 3 item
+        Then we store "EVENT4" with 4 item
+        Then we store "EVENT5" with 5 item
+        When we patch "/events/#EVENT1._id#"
+        """
+        {"state": "rescheduled"}
+        """
+        Then we get OK response
+        When we patch "/events/#EVENT2._id#"
+        """
+        {"state": "spiked"}
+        """
+        Then we get OK response
+        When we patch "/events/#EVENT3._id#"
+        """
+        {"state": "cancelled"}
+        """
+        Then we get OK response
+        When we patch "/events/#EVENT4._id#"
+        """
+        {
+            "name": "Friday Club - altered",
+            "definition_short": "Something different today",
+            "update_method": "all"
+        }
+        """
+        Then we get OK response
+        When we get "/events"
+        Then we get list with 5 items
+        """
+        {"_items": [
+            {
+                "_id": "#EVENT1._id#",
+                "name": "Friday Club"
+            },
+            {
+                "_id": "#EVENT2._id#",
+                "name": "Friday Club"
+            },
+            {
+                "_id": "#EVENT3._id#",
+                "name": "Friday Club"
+            },
+            {
+                "_id": "#EVENT4._id#",
+                "name": "Friday Club - altered",
+                "definition_short": "Something different today"
+            },
+            {
+                "_id": "#EVENT5._id#",
+                "name": "Friday Club - altered",
+                "definition_short": "Something different today"
+            }
+        ]}
+        """
