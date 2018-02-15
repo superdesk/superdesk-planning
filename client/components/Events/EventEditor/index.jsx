@@ -52,7 +52,9 @@ export class EventEditorComponent extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-        if (get(prevProps, 'item._id') !== get(this.props, 'item._id')) {
+        // If item changed or it got locked for editing
+        if ((get(prevProps, 'item._id') !== get(this.props, 'item._id')) ||
+            (!get(prevProps, 'diff.lock_user') && get(this.props, 'diff.lock_user'))) {
             this.dom.slugline.focus();
         }
     }
