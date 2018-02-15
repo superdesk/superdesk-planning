@@ -63,7 +63,7 @@ class EventsCancelService(EventsBaseService):
         cancelled_items = updates.pop('_cancelled_events', [])
         item = super().update(id, updates, original)
 
-        if self.is_original_event(updates, original):
+        if self.is_original_event(original):
             user = get_user(required=True).get(config.ID_FIELD, '')
             session = get_auth().get(config.ID_FIELD, '')
 

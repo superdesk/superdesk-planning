@@ -98,10 +98,6 @@ export default createReducer(initialLockState, {
         removeLock(payload.event, cloneDeep(state), 'events')
     ),
 
-    [EVENTS.ACTIONS.SPIKE_EVENT]: (state, payload) => (
-        removeLock(payload.event, cloneDeep(state), 'events')
-    ),
-
     [EVENTS.ACTIONS.SPIKE_RECURRING_EVENTS]: (state, payload) => (
         // The recurrence_id is being sent by the notification
         // And the removeLock function checks for recurrence_id first

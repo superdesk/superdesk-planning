@@ -55,9 +55,7 @@ class EventsRescheduleService(EventsBaseService):
         # and set the original's status to `rescheduled`
         if has_plannings or 'pubstatus' in original:
             duplicated_event_id = self._duplicate_event(updates, original, events_service)
-            duplicates = original.get('duplicate_to', [])
-            duplicates.append(duplicated_event_id)
-            updates['duplicate_to'] = duplicates
+            updates['reschedule_to'] = duplicated_event_id
 
             self._mark_event_rescheduled(updates, original)
             if has_plannings:
@@ -117,13 +115,13 @@ Event Rescheduled
 
         for f in {'_id', 'guid', 'unique_name', 'unique_id', 'lock_user', 'lock_time',
                   'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus',
-                  'reason', 'duplicate_to'}:
+                  'reason', 'duplicate_to', 'duplicate_from', 'reschedule_to'}:
             new_event.pop(f, None)
 
         new_event[ITEM_STATE] = WORKFLOW_STATE.DRAFT
         new_event['guid'] = generate_guid(type=GUID_NEWSML)
         new_event['_id'] = new_event['guid']
-        new_event['duplicate_from'] = original[config.ID_FIELD]
+        new_event['reschedule_from'] = original[config.ID_FIELD]
         set_original_creator(new_event)
 
         created_event = events_service.create([new_event])[0]

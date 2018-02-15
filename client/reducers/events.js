@@ -46,21 +46,19 @@ const removeLock = (event, etag = null) => {
     }
 };
 
-export const spikeEvent = (state, payload) => {
-    const spikeState = get(payload, 'spikeState', SPIKED_STATE.NOT_SPIKED);
-    let event = state.events[payload.event._id];
+export const spikeEvent = (events, eventsInList, filteredSpikeState, payload) => {
+    if (!(payload.id in events)) return;
 
-    removeLock(event, payload.event._etag);
+    const event = events[payload.id];
+    const eventIndex = eventsInList.indexOf(payload.id);
+
     event.state = WORKFLOW_STATE.SPIKED;
-    event.revert_state = payload.event.revert_state;
+    event.revert_state = payload.revert_state;
+    event._etag = payload.etag;
 
-    const eventIndex = state.eventsInList.indexOf(event._id);
-
-    if (eventIndex > -1 && spikeState === SPIKED_STATE.NOT_SPIKED) {
-        state.eventsInList.splice(eventIndex, 1);
+    if (eventIndex > -1 && filteredSpikeState === SPIKED_STATE.NOT_SPIKED) {
+        eventsInList.splice(eventIndex, 1);
     }
-
-    return state;
 };
 
 export const unspikeEvent = (state, payload) => {
@@ -266,10 +264,30 @@ Event Postponed
     ),
 
     [EVENTS.ACTIONS.SPIKE_EVENT]: (state, payload) => {
-        if (!(get(payload, 'event._id') in state.events))
+        // If there is only 1 event and that event is not loaded
+        // then disregard this action
+        if (get(payload, 'items.length', 0) < 2 && !get(state.events, payload.item))
             return state;
 
-        return spikeEvent(cloneDeep(state), payload);
+        // Otherwise iterate over the items and mark them
+        // with their new etag and spike state
+        let events = cloneDeep(state.events);
+        let eventsInList = cloneDeep(state.eventsInList);
+
+        payload.items.forEach((event) => {
+            spikeEvent(
+                events,
+                eventsInList,
+                payload.filteredSpikeState,
+                event
+            );
+        });
+
+        return {
+            ...state,
+            events,
+            eventsInList
+        };
     },
 
     [EVENTS.ACTIONS.UNSPIKE_EVENT]: (state, payload) => {

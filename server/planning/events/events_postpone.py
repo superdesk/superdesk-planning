@@ -52,7 +52,7 @@ class EventsPostponeService(EventsBaseService):
         # Because we require the original item being actioned against to be locked
         # then we can check the lock information of original and updates to check if this
         # event was the original event.
-        if self.is_original_event(updates, original):
+        if self.is_original_event(original):
             user = get_user(required=True).get(config.ID_FIELD, '')
             session = get_auth().get(config.ID_FIELD, '')
 

@@ -15,6 +15,7 @@ from superdesk.notification import push_notification
 from superdesk.utc import utcnow
 from apps.auth import get_user_id
 from apps.archive.common import get_auth
+from flask import request
 
 from planning.common import UPDATE_SINGLE, WORKFLOW_STATE, get_max_recurrent_events
 from planning.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
@@ -33,6 +34,7 @@ class EventsBaseService(BaseService):
     """
 
     ACTION = ''
+    REQUIRE_LOCK = True
 
     def on_update(self, updates, original):
         """
@@ -93,15 +95,16 @@ class EventsBaseService(BaseService):
         # Because we require the original item being actioned against to be locked
         # then we can check the lock information of original and updates to check if this
         # event was the original event.
-        if self.is_original_event(updates, original):
-            # when the event is unlocked by the patch.
-            push_notification(
-                'events:unlock',
-                item=str(original.get(config.ID_FIELD)),
-                user=str(get_user_id()),
-                lock_session=str(get_auth().get('_id')),
-                etag=updates.get('_etag')
-            )
+        if self.is_original_event(original):
+            # Send a notification if the LOCK has been removed as a result of the update
+            if original.get('lock_user') and 'lock_user' in updates and updates.get('lock_user') is None:
+                push_notification(
+                    'events:unlock',
+                    item=str(original.get(config.ID_FIELD)),
+                    user=str(get_user_id()),
+                    lock_session=str(get_auth().get('_id')),
+                    etag=updates.get('_etag')
+                )
 
             self.push_notification(
                 self.ACTION,
@@ -126,23 +129,24 @@ class EventsBaseService(BaseService):
         if not original:
             raise SuperdeskApiError.notFoundError()
 
-        user_id = get_user_id()
-        session_id = get_auth().get(config.ID_FIELD, None)
+        if self.REQUIRE_LOCK:
+            user_id = get_user_id()
+            session_id = get_auth().get(config.ID_FIELD, None)
 
-        lock_user = original.get(LOCK_USER, None)
-        lock_session = original.get(LOCK_SESSION, None)
-        lock_action = original.get(LOCK_ACTION, None)
+            lock_user = original.get(LOCK_USER, None)
+            lock_session = original.get(LOCK_SESSION, None)
+            lock_action = original.get(LOCK_ACTION, None)
 
-        if not lock_user:
-            raise SuperdeskApiError.forbiddenError(message='The event must be locked')
-        elif str(lock_user) != str(user_id):
-            raise SuperdeskApiError.forbiddenError(message='The event is locked by another user')
-        elif str(lock_session) != str(session_id):
-            raise SuperdeskApiError.forbiddenError(message='The event is locked by you in another session')
-        elif str(lock_action) != self.ACTION:
-            raise SuperdeskApiError.forbiddenError(
-                message='The lock must be for the `{}` action'.format(self.ACTION.lower().replace('_', ' '))
-            )
+            if not lock_user:
+                raise SuperdeskApiError.forbiddenError(message='The event must be locked')
+            elif str(lock_user) != str(user_id):
+                raise SuperdeskApiError.forbiddenError(message='The event is locked by another user')
+            elif str(lock_session) != str(session_id):
+                raise SuperdeskApiError.forbiddenError(message='The event is locked by you in another session')
+            elif str(lock_action) != self.ACTION:
+                raise SuperdeskApiError.forbiddenError(
+                    message='The lock must be for the `{}` action'.format(self.ACTION.lower().replace('_', ' '))
+                )
 
     @staticmethod
     def set_planning_schedule(event):
@@ -240,5 +244,6 @@ class EventsBaseService(BaseService):
         return EventsBaseService.has_planning_items(event) or 'pubstatus' in event
 
     @staticmethod
-    def is_original_event(updates, original):
-        return original.get('lock_user') and 'lock_user' in updates and updates.get('lock_user') is None
+    def is_original_event(original):
+        # Check Flask's URL params if the ID matches the one provided here
+        return original.get(config.ID_FIELD) == request.view_args.get(config.ID_FIELD)

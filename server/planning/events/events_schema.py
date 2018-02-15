@@ -307,5 +307,8 @@ events_schema = {
         'nullable': True,
         'schema': Resource.rel('events', type='string'),
         'mapping': not_analyzed
-    }
+    },
+
+    'reschedule_from': event_type,
+    'reschedule_to': event_type,
 }  # end events_schema

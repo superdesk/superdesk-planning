@@ -36,7 +36,7 @@ Feature: Events Reschedule
         }
         """
         Then we get OK response
-        Then we store "DUPLICATE" from last duplicated item
+        Then we store "DUPLICATE" from last rescheduled item
         And we get notifications
         """
         [{
@@ -53,7 +53,7 @@ Feature: Events Reschedule
         """
         {
             "state": "draft",
-            "duplicate_from": "event1",
+            "reschedule_from": "event1",
             "lock_user": "__no_value__",
             "lock_session": "__no_value__",
             "lock_action": "__no_value__",
@@ -70,7 +70,7 @@ Feature: Events Reschedule
         """
         {
             "state": "rescheduled",
-            "duplicate_to": ["#DUPLICATE.id#"],
+            "reschedule_to": "#DUPLICATE.id#",
             "lock_user": null,
             "lock_session": null,
             "lock_action": null,
@@ -88,10 +88,10 @@ Feature: Events Reschedule
         """
         {"_items": [
             {"operation": "reschedule", "event_id": "event1", "update": {
-                "duplicate_to": ["#DUPLICATE.id#"]
+                "reschedule_to": "#DUPLICATE.id#"
             }},
             {"operation": "reschedule_from", "event_id": "#DUPLICATE.id#", "update": {
-                "duplicate_from": "event1"
+                "reschedule_from": "event1"
             }}
         ]}
         """
@@ -175,7 +175,7 @@ Feature: Events Reschedule
         }
         """
         Then we get OK response
-        Then we store "DUPLICATE" from last duplicated item
+        Then we store "DUPLICATE" from last rescheduled item
         And we get notifications
         """
         [{

@@ -65,6 +65,13 @@ def step_imp_store_last_duplicate_item(context, tag):
     setattr(context, tag, {'id': new_id})
 
 
+@then('we store "{tag}" from last rescheduled item')
+def step_imp_store_last_duplicate_item(context, tag):
+    data = get_json_data(context.response)
+    new_id = data['reschedule_to']
+    setattr(context, tag, {'id': new_id})
+
+
 @then('we get an event file reference')
 def step_impl_then_get_event_file(context):
     assert_200(context.response)

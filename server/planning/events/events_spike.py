@@ -9,8 +9,9 @@
 # at https://www.sourcefabric.org/superdesk/license
 
 from .events import EventsResource
+from .events_base_service import EventsBaseService
 from superdesk.errors import SuperdeskApiError
-from planning.common import ITEM_EXPIRY, ITEM_STATE, set_item_expiry, UPDATE_SINGLE, UPDATE_FUTURE, \
+from planning.common import ITEM_EXPIRY, ITEM_STATE, set_item_expiry, UPDATE_FUTURE, \
     WORKFLOW_STATE, remove_lock_information
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
@@ -29,69 +30,71 @@ class EventsSpikeResource(EventsResource):
     privileges = {'PATCH': 'planning_event_spike'}
 
 
-class EventsSpikeService(BaseService):
-    def update(self, id, updates, original):
-        if 'update_method' in updates:
-            update_method = updates['update_method']
-            del updates['update_method']
-        else:
-            update_method = UPDATE_SINGLE
+class EventsSpikeService(EventsBaseService):
+    ACTION = 'spiked'
+    REQUIRE_LOCK = False
 
-        if original.get('recurrence_id') and update_method != UPDATE_SINGLE:
-            item = self._spike_recurring(updates, original, update_method)
-        else:
-            item = self._spike_single_event(updates, original)
+    def update_single_event(self, updates, original):
+        self._validate(original)
+        remove_lock_information(updates)
+        self._spike_event(updates, original)
+
+    def update(self, id, updates, original):
+        spiked_items = updates.pop('_spiked_items', [])
+        item = super().update(id, updates, original)
+
+        if self.is_original_event(original):
+            user = get_user(required=True).get(config.ID_FIELD, '')
+            spiked_items.append({
+                'id': id,
+                'etag': item['_etag'],
+                'revert_state': item['revert_state']
+            })
+
+            push_notification(
+                'events:spiked',
+                item=str(original[config.ID_FIELD]),
+                user=str(user),
+                spiked_items=spiked_items
+            )
 
         return item
 
-    def _spike_event(self, updates, original):
+    @staticmethod
+    def push_notification(name, updates, original):
+        """
+        Ignore this request, as we want to handle the notification separately in update
+        """
+        pass
+
+    @staticmethod
+    def _spike_event(updates, original):
         updates['revert_state'] = original[ITEM_STATE]
         updates[ITEM_STATE] = WORKFLOW_STATE.SPIKED
         set_item_expiry(updates)
 
-        return self.backend.update(self.datasource, original[config.ID_FIELD], updates, original)
+    @staticmethod
+    def _can_spike(event, events_with_plans):
+        return \
+            'pubstatus' not in event and \
+            event[config.ID_FIELD] not in events_with_plans and \
+            'reschedule_from' not in event
 
-    def _spike_single_event(self, updates, original):
-        self._validate(original[config.ID_FIELD])
-        # Mark item as unlocked directly in order to avoid more queries and notifications
-        # coming from lockservice.
-        remove_lock_information(updates)
-        item = self._spike_event(updates, original)
-
-        user = get_user(required=True)
-        push_notification(
-            'events:spiked',
-            item=str(original[config.ID_FIELD]),
-            user=str(user.get(config.ID_FIELD)),
-            etag=item['_etag'],
-            revert_state=item['revert_state']
-        )
-
-        return item
-
-    def _spike_recurring(self, updates, original, update_method):
+    def update_recurring_events(self, updates, original, update_method):
         """Spike events in a recurring series
 
         Based on the update_method provided, spikes 'future' or 'all' events in the series.
         Historic events, i.e. events that have already occurred, will not be spiked.
         """
         # Ensure that no other Event or Planning item is currently locked
-        events_with_plans = self._validate_recurring(original[config.ID_FIELD], original['recurrence_id'])
+        events_with_plans = self._validate_recurring(original, original['recurrence_id'])
 
-        notifications = []
-
-        events_service = get_resource_service('events')
-        historic, past, future = events_service.get_recurring_timeline(original)
+        historic, past, future = self.get_recurring_timeline(original, include_postponed=False)
 
         # Mark item as unlocked directly in order to avoid more queries and notifications
         # coming from lockservice.
         remove_lock_information(updates)
-        new_item = self._spike_event(updates, original)
-        notifications.append({
-            '_id': original[config.ID_FIELD],
-            'etag': new_item['_etag'],
-            'revert_state': new_item['revert_state']
-        })
+        self._spike_event(updates, original)
 
         # Determine if the selected event is the first one, if so then
         # act as if we're changing future events
@@ -103,49 +106,47 @@ class EventsSpikeService(BaseService):
         else:
             spiked_events = past + future
 
+        notifications = []
         for event in spiked_events:
-            if 'pubstatus' in event or \
-                    event[ITEM_STATE] == WORKFLOW_STATE.SPIKED or \
-                    event[config.ID_FIELD] in events_with_plans:
+            if not self._can_spike(event, events_with_plans):
                 continue
 
-            self.on_update(updates, event)
-            item = self._spike_event({}, event)
+            new_updates = {'skip_on_update': True}
+            self._spike_event(new_updates, event)
+            item = self.patch(event[config.ID_FIELD], new_updates)
+
             notifications.append({
-                '_id': event[config.ID_FIELD],
+                'id': event[config.ID_FIELD],
                 'etag': item['_etag'],
                 'revert_state': item['revert_state']
             })
-            self.on_updated(updates, event)
 
-        user = get_user(required=True)
-        push_notification(
-            'events:spiked:recurring',
-            user=str(user.get(config.ID_FIELD)),
-            items=notifications,
-            recurrence_id=original['recurrence_id']
-        )
+        updates['_spiked_items'] = notifications
 
-        return new_item
-
-    def _validate(self, id):
+    @staticmethod
+    def _validate(event):
         # Check to see if there are any planning items that are locked
         # If yes, return error
         # Check to see if we have any related planning items for that event which is locked
         planning_service = get_resource_service('planning')
-        for planning in list(planning_service.find(where={'event_item': id})):
+        for planning in list(planning_service.find(where={'event_item': event[config.ID_FIELD]})):
             if planning.get(LOCK_USER) or planning.get(LOCK_SESSION):
                 raise SuperdeskApiError.forbiddenError(
                     message="Spike failed. One or more related planning items are locked.")
 
-    def _validate_recurring(self, original_id, recurrence_id):
+        EventsSpikeService._validate_states(event)
+
+    @staticmethod
+    def _validate_recurring(original, recurrence_id):
         events_service = get_resource_service('events')
         planning_service = get_resource_service('planning')
 
         events_with_plans = []
 
+        EventsSpikeService._validate_states(original)
+
         for event in list(events_service.find(where={'recurrence_id': recurrence_id})):
-            if event[config.ID_FIELD] == original_id:
+            if event[config.ID_FIELD] == original[config.ID_FIELD]:
                 continue
 
             if event.get(LOCK_USER) or event.get(LOCK_SESSION):
@@ -163,6 +164,40 @@ class EventsSpikeService(BaseService):
                 events_with_plans.append(planning['event_item'])
 
         return events_with_plans
+
+    @staticmethod
+    def _validate_states(event):
+        events_service = get_resource_service('events')
+
+        # Public Events cannot be spiked
+        if event.get('pubstatus'):
+            raise SuperdeskApiError.badRequestError(
+                message="Spike failed. Public Events cannot be spiked."
+            )
+
+        # Events with Planning items cannot be spiked
+        elif events_service.get_plannings_for_event(event).count() > 0:
+            raise SuperdeskApiError.badRequestError(
+                message="Spike failed. Event has an associated Planning item."
+            )
+
+        # Event was created from a 'Reschedule' action or is 'Rescheduled'
+        elif event.get('reschedule_from') or event.get(ITEM_STATE) == WORKFLOW_STATE.RESCHEDULED:
+            raise SuperdeskApiError.badRequestError(
+                message="Spike failed. Rescheduled Events cannot be spiked."
+            )
+
+        # Event has been 'Cancelled'
+        elif event.get(ITEM_STATE) == WORKFLOW_STATE.CANCELLED:
+            raise SuperdeskApiError.badRequestError(
+                message="Spike failed. Cancelled Events cannot be spiked."
+            )
+
+        # Event already spiked
+        elif event.get(ITEM_STATE) == WORKFLOW_STATE.SPIKED:
+            raise SuperdeskApiError.badRequestError(
+                message="Spike failed. Event is already spiked."
+            )
 
 
 class EventsUnspikeResource(EventsResource):

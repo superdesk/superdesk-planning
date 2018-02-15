@@ -106,42 +106,26 @@ const onEventLocked = (_e, data) => (
 const onEventSpiked = (_e, data) => (
     (dispatch, getState) => {
         if (data && data.item) {
-            // Just update the event in store with updates and etag
-            const events = selectors.getEvents(getState());
-
-            let eventInStore = get(events, data.item, {});
-
-            eventInStore = {
-                ...eventInStore,
-                _id: data.item,
-                lock_action: null,
-                lock_user: null,
-                lock_session: null,
-                lock_time: null,
-                state: WORKFLOW_STATE.SPIKED,
-                revert_state: data.revert_state,
-                _etag: data.etag,
-            };
-
             dispatch({
                 type: EVENTS.ACTIONS.SPIKE_EVENT,
                 payload: {
-                    event: eventInStore,
-                    spikeState: get(
+                    item: data.item,
+                    user: data.user,
+                    items: data.spiked_items,
+                    filteredSpikeState: get(
                         selectors.main.eventsSearch(getState()),
                         'spikeState',
                         SPIKED_STATE.NOT_SPIKED
                     )
-                },
+                }
             });
 
             dispatch(eventsPlanning.notifications.onEventSpiked(_e, data));
+
             dispatch(main.closePreviewAndEditorForItems(
-                [eventInStore],
+                [{_id: data.item}],
                 gettext('The Event was spiked')
             ));
-
-            return Promise.resolve(eventInStore);
         }
 
         return Promise.resolve();
@@ -254,35 +238,6 @@ const onEventPublishChanged = (e, data) => (
     }
 );
 
-const onRecurringEventSpiked = (e, data) => (
-    (dispatch, getState) => {
-        if (get(data, 'items')) {
-            dispatch({
-                type: EVENTS.ACTIONS.SPIKE_RECURRING_EVENTS,
-                payload: {
-                    events: data.items,
-                    recurrence_id: data.recurrence_id,
-                    spikeState: get(
-                        selectors.main.eventsSearch(getState()),
-                        'spikeState',
-                        SPIKED_STATE.NOT_SPIKED
-                    )
-                },
-            });
-
-            dispatch(eventsPlanning.notifications.onRecurringEventSpiked(e, data));
-            dispatch(main.closePreviewAndEditorForItems(
-                data.items,
-                gettext('The Event was spiked')
-            ));
-
-            return Promise.resolve(data.items);
-        }
-
-        return Promise.resolve([]);
-    }
-);
-
 /**
  * Action Event when a new Recurring Event is created
  * @param _e
@@ -360,7 +315,6 @@ const self = {
     onEventScheduleChanged,
     onEventPostponed,
     onEventPublishChanged,
-    onRecurringEventSpiked,
 };
 
 // Map of notification name and Action Event to execute
@@ -381,7 +335,6 @@ self.events = {
     'events:published:recurring': () => (self.onEventPublishChanged),
     'events:unpublished': () => (self.onEventPublishChanged),
     'events:unpublished:recurring': () => (self.onEventPublishChanged),
-    'events:spiked:recurring': () => (self.onRecurringEventSpiked),
     'events:update_time': () => (self.onEventScheduleChanged),
     'events:update_time:recurring': () => (self.onEventScheduleChanged),
 };
