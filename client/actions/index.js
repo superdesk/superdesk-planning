@@ -1,4 +1,3 @@
-export * from './events';
 export * from './modal';
 export * from './agenda';
 export * from './assignments';

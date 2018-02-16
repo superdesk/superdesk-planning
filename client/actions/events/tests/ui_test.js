@@ -1,6 +1,7 @@
 import eventsApi from '../api';
 import eventsUi from '../ui';
 import planningApi from '../../planning/api';
+import {main} from '../../';
 import {PRIVILEGES} from '../../../constants';
 import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub, expectAccessDenied} from '../../../utils/testUtils';
@@ -535,6 +536,151 @@ describe('actions.events.ui', () => {
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
 
+                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.args[0]).toEqual(['Failed!']);
+
+                    done();
+                });
+        });
+    });
+
+    describe('duplicate', () => {
+        beforeEach(() => {
+            sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(main.lockAndEdit);
+            restoreSinonStub(eventsApi.duplicate);
+        });
+
+        it('duplicate calls events.api.duplicate and notifies the user of success', (done) => {
+            sinon.stub(eventsApi, 'duplicate').callsFake((item) => Promise.resolve(item));
+            store.test(done, eventsUi.duplicate(data.events[0]))
+                .then((item) => {
+                    expect(item).toEqual(data.events[0]);
+
+                    expect(eventsApi.duplicate.callCount).toBe(1);
+                    expect(eventsApi.duplicate.args[0]).toEqual([data.events[0]]);
+
+                    expect(services.notify.error.callCount).toBe(0);
+                    expect(services.notify.success.callCount).toBe(1);
+                    expect(services.notify.success.args[0]).toEqual(['Event duplicated']);
+
+                    expect(main.lockAndEdit.callCount).toBe(1);
+                    expect(main.lockAndEdit.args[0]).toEqual([data.events[0]]);
+
+                    done();
+                });
+        });
+
+        it('on duplicate error notify the user of the failure', (done) => {
+            sinon.stub(eventsApi, 'duplicate').callsFake(() => Promise.reject(errorMessage));
+            store.test(done, eventsUi.duplicate(data.events[0]))
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+
+                    expect(services.notify.success.callCount).toBe(0);
+                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.args[0]).toEqual(['Failed!']);
+
+                    done();
+                });
+        });
+    });
+
+    describe('rescheduleEvent', () => {
+        beforeEach(() => {
+            sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
+            sinon.stub(eventsApi, 'fetchById').callsFake(() => Promise.resolve(data.events[1]));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(eventsApi.rescheduleEvent);
+            restoreSinonStub(main.lockAndEdit);
+            restoreSinonStub(eventsApi.fetchById);
+        });
+
+        it('reschedule not in use Event', (done) => {
+            restoreSinonStub(eventsApi.rescheduleEvent);
+            sinon.stub(eventsApi, 'rescheduleEvent').callsFake((item) => Promise.resolve(item));
+            store.test(done, eventsUi.rescheduleEvent(data.events[0]))
+                .then((item) => {
+                    expect(item).toEqual(data.events[0]);
+
+                    expect(eventsApi.fetchById.callCount).toBe(0);
+
+                    expect(main.lockAndEdit.callCount).toBe(1);
+                    expect(main.lockAndEdit.args[0]).toEqual([data.events[0]]);
+
+                    expect(services.notify.error.callCount).toBe(0);
+                    expect(services.notify.success.callCount).toBe(1);
+                    expect(services.notify.success.args[0]).toEqual(['Event has been rescheduled']);
+
+                    done();
+                });
+        });
+
+        it('reschedule in use Event', (done) => {
+            restoreSinonStub(eventsApi.rescheduleEvent);
+            sinon.stub(eventsApi, 'rescheduleEvent').callsFake((item) => Promise.resolve({
+                ...item,
+                reschedule_to: 'e2',
+                state: 'rescheduled'
+            }));
+            store.test(done, eventsUi.rescheduleEvent(data.events[0]))
+                .then((item) => {
+                    expect(item).toEqual(data.events[1]);
+
+                    expect(eventsApi.fetchById.callCount).toBe(1);
+                    expect(eventsApi.fetchById.args[0]).toEqual(['e2']);
+
+                    expect(main.lockAndEdit.callCount).toBe(1);
+                    expect(main.lockAndEdit.args[0]).toEqual([data.events[1]]);
+
+                    expect(services.notify.error.callCount).toBe(0);
+                    expect(services.notify.success.callCount).toBe(1);
+                    expect(services.notify.success.args[0]).toEqual(['Event has been rescheduled']);
+
+                    done();
+                });
+        });
+
+        it('on reschedule error notify the user of the failure', (done) => {
+            restoreSinonStub(eventsApi.rescheduleEvent);
+            sinon.stub(eventsApi, 'rescheduleEvent').callsFake((item) => Promise.reject(errorMessage));
+
+            store.test(done, eventsUi.rescheduleEvent(data.events[0]))
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+
+                    expect(services.notify.success.callCount).toBe(0);
+                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.args[0]).toEqual(['Failed!']);
+
+                    done();
+                });
+        });
+
+        it('on fetchById error notify the user of the failure', (done) => {
+            restoreSinonStub(eventsApi.rescheduleEvent);
+            restoreSinonStub(eventsApi.fetchById);
+            sinon.stub(eventsApi, 'rescheduleEvent').callsFake((item) => Promise.resolve({
+                ...item,
+                reschedule_to: 'e2',
+                state: 'rescheduled'
+            }));
+            sinon.stub(eventsApi, 'fetchById').callsFake((item) => Promise.reject(errorMessage));
+
+            store.test(done, eventsUi.rescheduleEvent(data.events[0]))
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+
+                    // The Event was successfully rescheduled
+                    expect(services.notify.success.callCount).toBe(1);
+                    expect(services.notify.success.args[0]).toEqual(['Event has been rescheduled']);
+
+                    // But failed to open the new item
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 

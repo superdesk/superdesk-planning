@@ -745,12 +745,9 @@ const saveAndReloadCurrentAgenda = (item) => (
 const duplicate = (plan) => (
     (dispatch, getState, {api}) => (
         api('planning_duplicate', plan).save({})
-            .then((items) => {
-                if ('_items' in items) {
-                    return Promise.resolve(items._items[0]);
-                }
-
-                return Promise.resolve(items);
+            .then((newPlan) => {
+                newPlan._type = 'planning';
+                return Promise.resolve(newPlan);
             }, (error) => (
                 Promise.reject(error)
             ))

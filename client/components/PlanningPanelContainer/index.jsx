@@ -272,7 +272,7 @@ const mapDispatchToProps = (dispatch) => ({
     ),
     handleSearch: (text) => (dispatch(actions.planning.ui.filterByKeyword(text))),
     addEventToCurrentAgenda: (event) => (dispatch(actions.addEventToCurrentAgenda(event))),
-    toggleEventsList: () => (dispatch(actions.toggleEventsList())),
+    toggleEventsList: () => { /* no-op */ },
     onFutureToggleChange: () => (dispatch(actions.planning.ui.toggleOnlyFutureFilter())),
     closeAdvancedSearch: () => (dispatch(actions.planning.ui.closeAdvancedSearch())),
     openAdvancedSearch: () => (dispatch(actions.planning.ui.openAdvancedSearch())),

@@ -401,20 +401,15 @@ const duplicate = (plan) => (
     (dispatch, getState, {notify}) => (
         dispatch(planningApi.duplicate(plan))
             .then((newPlan) => {
-                dispatch(self.scheduleRefetch())
-                    .then(() => {
-                        notify.success('Planning duplicated');
-                        return dispatch(main.openPreview(newPlan));
-                    }, (error) => (
-                        notify.error(
-                            getErrorMessage(error, 'Failed to fetch Planning items')
-                        )
-                    ));
-            }, (error) => (
+                notify.success(gettext('Planning duplicated'));
+                return dispatch(main.lockAndEdit(newPlan));
+            }, (error) => {
                 notify.error(
                     getErrorMessage(error, 'Failed to duplicate the Planning')
-                )
-            ))
+                );
+
+                return Promise.reject(error);
+            })
     )
 );
 

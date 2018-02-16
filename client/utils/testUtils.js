@@ -53,11 +53,13 @@ export const getTestActionStore = () => {
                         () => (store.spies.api._query('events_history'))
                     ),
                 },
+                events_duplicate: {},
                 planning_history: {
                     query: sinon.spy(
                         () => (store.spies.api._query('planning_history'))
                     ),
                 },
+                planning_duplicate: {},
                 assignments: {
                     query: sinon.spy(() => (store.spies.api._query('assignments'))),
                     save: sinon.spy((ori, item) => (

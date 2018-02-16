@@ -103,20 +103,20 @@ export class EventHistoryComponent extends React.Component {
                                         )}
 
                                         {historyItem.operation === 'reschedule' &&
-                                        get(historyItem, 'update.duplicate_to.length', 0) > 0 &&
+                                        get(historyItem, 'update.reschedule_to') &&
                                             <div className="history-list__link">
                                                 <a onClick={this.closeAndOpenDuplicate.bind(this,
-                                                    historyItem.update.duplicate_to.pop())}>
+                                                    historyItem.update.reschedule_to)}>
                                                     View rescheduled event
                                                 </a>
                                             </div>
                                         }
 
                                         {historyItem.operation === 'reschedule_from' &&
-                                        get(historyItem, 'update.duplicate_from') &&
+                                        get(historyItem, 'update.reschedule_from') &&
                                             <div className="history-list__link">
                                                 <a onClick={this.closeAndOpenDuplicate.bind(this,
-                                                    historyItem.update.duplicate_from)}>
+                                                    historyItem.update.reschedule_from)}>
                                                     View original event
                                                 </a>
                                             </div>

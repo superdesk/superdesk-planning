@@ -13,7 +13,7 @@ import eventsPlanning from '../eventsPlanning';
  * @param {object} data - Planning and User IDs
  */
 const onPlanningCreated = (_e, data) => (
-    (dispatch, getState) => {
+    (dispatch) => {
         if (get(data, 'item')) {
             if (get(data, 'event_item', null) !== null) {
                 dispatch(events.api.markEventHasPlannings(

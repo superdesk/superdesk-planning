@@ -4,7 +4,7 @@ import eventsApi from './api';
 import {fetchSelectedAgendaPlannings} from '../agenda';
 import main from '../main';
 import * as selectors from '../../selectors';
-import {get, last} from 'lodash';
+import {get} from 'lodash';
 import {
     checkPermission,
     getErrorMessage,
@@ -428,23 +428,47 @@ const rescheduleEvent = (event) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.rescheduleEvent(event))
             .then((updatedEvent) => {
-                const duplicatedEvent = last(get(updatedEvent, 'duplicate_to', []));
+                dispatch(hideModal());
+                notify.success(gettext('Event has been rescheduled'));
+
+                const duplicatedEvent = get(updatedEvent, 'reschedule_to');
 
                 if (isItemRescheduled(updatedEvent) && duplicatedEvent) {
-                    dispatch(main.openPreview({_id: duplicatedEvent}));
-                } else {
-                    dispatch(main.openPreview(event));
+                    return dispatch(eventsApi.fetchById(duplicatedEvent))
+                        .then(
+                            (newEvent) => dispatch(main.lockAndEdit(newEvent)),
+                            (error) => {
+                                notify.error(
+                                    getErrorMessage(error, 'Failed to load duplicated Event.')
+                                );
+
+                                return Promise.reject(error);
+                            }
+                        );
                 }
 
-                dispatch(hideModal());
-                notify.success('Event has been rescheduled');
-
-                return Promise.resolve();
+                return dispatch(main.lockAndEdit(updatedEvent));
             }, (error) => {
                 dispatch(hideModal());
 
                 notify.error(
                     getErrorMessage(error, 'Failed to reschedule the Event!')
+                );
+
+                return Promise.reject(error);
+            })
+    )
+);
+
+const duplicate = (event) => (
+    (dispatch, getState, {notify}) => (
+        dispatch(eventsApi.duplicate(event))
+            .then((newEvent) => {
+                notify.success(gettext('Event duplicated'));
+                return dispatch(main.lockAndEdit(newEvent));
+            }, (error) => {
+                notify.error(
+                    getErrorMessage(error, 'Failed to duplicate the Event.')
                 );
 
                 return Promise.reject(error);
@@ -739,7 +763,8 @@ const self = {
     loadMore,
     addToList,
     requestEvents,
-    updateEventTime
+    updateEventTime,
+    duplicate
 };
 
 export default self;
