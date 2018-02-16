@@ -17,6 +17,7 @@ from copy import deepcopy
 from .events import EventsResource, events_schema
 from .events_base_service import EventsBaseService
 from flask import current_app as app
+from superdesk.errors import SuperdeskApiError
 
 event_cancel_schema = deepcopy(events_schema)
 event_cancel_schema['reason'] = {
@@ -56,7 +57,8 @@ class EventsCancelService(EventsBaseService):
     def update_single_event(self, updates, original):
         occur_cancel_state = self._get_cancel_state()
         self._set_event_cancelled(updates, original, occur_cancel_state)
-        self._cancel_event_plannings(updates, original)
+        if self.is_event_in_use(original):
+            self._cancel_event_plannings(updates, original)
 
     def update(self, id, updates, original):
         reason = updates.pop('reason', None)
@@ -106,6 +108,9 @@ class EventsCancelService(EventsBaseService):
 
     @staticmethod
     def _set_event_cancelled(updates, original, occur_cancel_state):
+        if not EventsCancelService._validate(original):
+            raise SuperdeskApiError.badRequestError('Event not in valid state for cancellation')
+
         reason = updates.get('reason', None)
 
         definition = '''------------------------------------------------------------
@@ -126,7 +131,6 @@ Event Cancelled
 
     def update_recurring_events(self, updates, original, update_method):
         occur_cancel_state = self._get_cancel_state()
-        events_spike_service = get_resource_service('events_spike')
         historic, past, future = self.get_recurring_timeline(original, True)
 
         # Determine if the selected event is the first one, if so then
@@ -145,31 +149,37 @@ Event Cancelled
 
         for event in cancelled_events:
             new_updates = deepcopy(updates)
-
             if not self.is_event_in_use(event):
-                new_updates.pop('reason', None)
-                new_updates.pop('update_method', None)
-
-                # Spike this Event as it is not in use
-                updated_event = events_spike_service.patch(event[config.ID_FIELD], new_updates)
-                app.on_updated_events_spike(
-                    updated_event,
-                    event
-                )
-
+                self.patch_related_event_as_cancelled(new_updates, event, notifications)
             else:
-                # Cancel this Event as it is in use
+                # Cancel the planning item also as it is in use
                 self._cancel_event_plannings(new_updates, event)
-                new_updates['skip_on_update'] = True
-                updated_event = self.patch(
-                    event[config.ID_FIELD],
-                    new_updates
-                )
+                self.patch_related_event_as_cancelled(new_updates, event, notifications)
 
-                notifications.append({
-                    '_id': event.get(config.ID_FIELD),
-                    '_etag': updated_event.get('_etag')
-                })
-
-        self._cancel_event_plannings(updates, original)
+        if self.is_event_in_use(original):
+            self._cancel_event_plannings(updates, original)
         updates['_cancelled_events'] = notifications
+
+    def patch_related_event_as_cancelled(self, updates, original, notifications):
+        if not self._validate(original):
+            # Don't raise exception for related events in series - simply ignore
+            return
+
+        id = original[config.ID_FIELD]
+        updates['skip_on_update'] = True
+        updated_event = self.patch(
+            id,
+            updates
+        )
+
+        notifications.append({
+            '_id': id,
+            '_etag': updated_event.get('_etag')
+        })
+
+    @staticmethod
+    def _validate(event):
+        if event.get('state') not in ['draft', 'scheduled', 'ingested', 'killed', 'postponed']:
+            return False
+
+        return True

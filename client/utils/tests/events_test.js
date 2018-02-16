@@ -283,6 +283,7 @@ describe('EventUtils', () => {
             expectActions(itemActions, [
                 'Spike',
                 'Duplicate',
+                'Cancel',
                 'Update time',
                 'Reschedule',
                 'Mark as Postponed',
@@ -300,6 +301,7 @@ describe('EventUtils', () => {
             expectActions(itemActions, [
                 'Spike',
                 'Duplicate',
+                'Cancel',
                 'Reschedule',
             ]);
 
