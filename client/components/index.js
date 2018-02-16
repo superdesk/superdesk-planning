@@ -78,6 +78,7 @@ export {UserSearchList} from './UserSearchList';
 export {ContactInfoContainer} from './ContactInfoContainer/index';
 export {AdvancedSearch} from './AdvancedSearch';
 export {AssignmentHistory} from './AssignmentHistory';
+export {InternalNoteLabel} from './InternalNoteLabel';
 
 // This must go last, as it imports Modals from above modules
 export {ModalsContainer} from './ModalsContainer';

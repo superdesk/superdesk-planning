@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
-import {Label} from '../';
+import {Label, InternalNoteLabel} from '../';
 import {EVENTS, MAIN} from '../../constants';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {EventDateTime} from './';
@@ -22,6 +22,7 @@ export class EventItem extends React.PureComponent {
         const hasPlanning = eventUtils.eventHasPlanning(item);
         const isItemLocked = eventUtils.isEventLocked(item, lockedItems);
         const state = getItemWorkflowStateLabel(item);
+
         let borderState = false;
 
         if (isItemLocked)
@@ -66,6 +67,7 @@ export class EventItem extends React.PureComponent {
                             text={state.label}
                             iconType={state.iconType}
                         />
+                        <InternalNoteLabel item={item} />
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             {item.slugline &&
                                     <span className="sd-list-item__slugline">{item.slugline}</span>

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import {get} from 'lodash';
 
-import {Label} from '../';
+import {Label, InternalNoteLabel} from '../';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {EventDateTime} from '../Events';
 import {PlanningDateTime} from './';
@@ -100,6 +100,7 @@ export class PlanningItem extends React.PureComponent {
                             text={state.label}
                             iconType={state.iconType}
                         />
+                        <InternalNoteLabel item={item} />
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             {item.slugline &&
                                 <span className="sd-list-item__slugline">{item.slugline}</span>

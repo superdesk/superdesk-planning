@@ -8,6 +8,7 @@ import {
     ItemActionsMenu,
     Label,
     PriorityLabel,
+    InternalNoteLabel,
 } from '../index';
 import {List} from '../UI';
 import classNames from 'classnames';
@@ -111,7 +112,12 @@ export const AssignmentItem = ({
                     <StateLabel item={assignment.assigned_to} />
                     {hasContent && <Label text="Content" isHollow={true} iconType="darkBlue2" /> }
                     <span className="ListItem__headline">
-                        <i className="icon-time"/>
+                        <i className="icon-time sd-list-item__inline-icon"/>
+                        <InternalNoteLabel
+                            item={assignment}
+                            prefix="planning."
+                            marginRight={false}
+                        />
                         {get(assignment, 'planning.scheduled') ? (
                             <AbsoluteDate date={get(assignment, 'planning.scheduled').toString()} />
                         ) : (<time><span>{gettext('\'not scheduled yet\'')}</span></time>)}
