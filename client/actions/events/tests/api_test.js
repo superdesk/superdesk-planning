@@ -885,4 +885,37 @@ describe('actions.events.api', () => {
                 });
         });
     });
+
+    describe('duplicate', () => {
+        let apiSave;
+
+        beforeEach(() => {
+            services.api = sinon.spy((resource, item) => ({save: apiSave}));
+        });
+
+        it('duplicate calls `events_duplicate` endpoint', (done) => {
+            apiSave = sinon.spy((args) => Promise.resolve(data.events[0]));
+            store.test(done, eventsApi.duplicate(data.events[0]))
+                .then((item) => {
+                    expect(item).toEqual(data.events[0]);
+
+                    expect(services.api.callCount).toBe(1);
+                    expect(services.api.args[0]).toEqual(['events_duplicate', data.events[0]]);
+
+                    expect(apiSave.callCount).toBe(1);
+                    expect(apiSave.args[0]).toEqual([{}]);
+
+                    done();
+                });
+        });
+
+        it('duplicate returns Promise.reject on error', (done) => {
+            apiSave = sinon.spy((args) => Promise.reject(errorMessage));
+            store.test(done, eventsApi.duplicate(data.events[0]))
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+                    done();
+                });
+        });
+    });
 });

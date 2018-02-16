@@ -1,8 +1,7 @@
 import planningUi from '../ui';
 import planningApi from '../api';
 import assignmentApi from '../../assignments/api';
-import main from '../../main';
-import locks from '../../locks';
+import {main, locks} from '../../';
 import sinon from 'sinon';
 import {PRIVILEGES, ASSIGNMENTS, MAIN} from '../../../constants';
 import {getTestActionStore, restoreSinonStub, expectAccessDenied} from '../../../utils/testUtils';
@@ -1114,5 +1113,50 @@ describe('actions.planning.ui', () => {
                     done();
                 })
         ));
+    });
+
+    describe('duplicate', () => {
+        beforeEach(() => {
+            sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(main.lockAndEdit);
+            restoreSinonStub(planningApi.duplicate);
+        });
+
+        it('duplicate calls planning.api.duplicate and notifies the user of success', (done) => {
+            sinon.stub(planningApi, 'duplicate').callsFake((item) => Promise.resolve(item));
+            store.test(done, planningUi.duplicate(data.plannings[0]))
+                .then((item) => {
+                    expect(item).toEqual(data.plannings[0]);
+
+                    expect(planningApi.duplicate.callCount).toBe(1);
+                    expect(planningApi.duplicate.args[0]).toEqual([data.plannings[0]]);
+
+                    expect(services.notify.error.callCount).toBe(0);
+                    expect(services.notify.success.callCount).toBe(1);
+                    expect(services.notify.success.args[0]).toEqual(['Planning duplicated']);
+
+                    expect(main.lockAndEdit.callCount).toBe(1);
+                    expect(main.lockAndEdit.args[0]).toEqual([data.plannings[0]]);
+
+                    done();
+                });
+        });
+
+        it('on duplicate error notify the user of the failure', (done) => {
+            sinon.stub(planningApi, 'duplicate').callsFake(() => Promise.reject(errorMessage));
+            store.test(done, planningUi.duplicate(data.plannings[0]))
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+
+                    expect(services.notify.success.callCount).toBe(0);
+                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.args[0]).toEqual(['Failed!']);
+
+                    done();
+                });
+        });
     });
 });

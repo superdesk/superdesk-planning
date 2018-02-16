@@ -918,6 +918,18 @@ const save = (event) => (
     )
 );
 
+const duplicate = (event) => (
+    (dispatch, getState, {api}) => (
+        api('events_duplicate', event).save({})
+            .then((newEvent) => {
+                newEvent.files = event.files;
+                newEvent._type = 'events';
+
+                return Promise.resolve(newEvent);
+            }, (error) => Promise.reject(error))
+    )
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     loadEventsByRecurrenceId,
@@ -949,7 +961,8 @@ const self = {
     save,
     _saveLocation,
     getCriteria,
-    fetchById
+    fetchById,
+    duplicate
 };
 
 export default self;

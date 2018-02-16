@@ -93,8 +93,8 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    selectAll: () => dispatch(actions.selectAllTheEventList()),
-    deselect: () => dispatch(actions.deselectAllTheEventList()),
+    selectAll: () => { /* no-op */ },
+    deselect: () => { /* no-op */ },
     addEventToCurrentAgenda: (events) => dispatch(actions.askForAddEventToCurrentAgenda(events)),
     spikeEvent: (event) => dispatch(actions.events.ui.openBulkSpikeModal(event)),
     unspikeEvent: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
