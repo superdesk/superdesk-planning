@@ -125,7 +125,6 @@ export class EditPriorityComponent extends React.Component {
                         options={this.props.priorities}
                         iconName="priority-label"
                         noMargin={true}
-                        labelLeft={true}
                     />
                 </Row>
             </div>
