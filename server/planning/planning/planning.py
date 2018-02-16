@@ -16,7 +16,7 @@ import logging
 from flask import json, current_app as app
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import generate_guid, item_url
-from superdesk.metadata.item import GUID_NEWSML, metadata_schema
+from superdesk.metadata.item import GUID_NEWSML, metadata_schema, ITEM_TYPE
 from superdesk import get_resource_service
 from superdesk.resource import not_analyzed
 from superdesk.users.services import current_user_has_privilege
@@ -739,7 +739,20 @@ planning_schema = {
 
     # The previous state the item was in before for example being spiked,
     # when un-spiked it will revert to this state
-    'revert_state': metadata_schema['revert_state']
+    'revert_state': metadata_schema['revert_state'],
+
+    # Item type used by superdesk publishing
+    ITEM_TYPE: {
+        'type': 'string',
+        'mapping': not_analyzed,
+        'default': 'planning',
+    },
+
+    # Identifier used to synchronise the published planning item with an external system.
+    'unique_id': {
+        'type': 'string',
+        'mapping': not_analyzed
+    },
 }  # end planning_schema
 
 

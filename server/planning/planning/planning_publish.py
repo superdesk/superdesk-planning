@@ -13,6 +13,8 @@ from superdesk import get_resource_service
 from superdesk.resource import Resource
 from superdesk.services import BaseService
 from superdesk.notification import push_notification
+from apps.publish.enqueue import get_enqueue_service
+
 
 from eve.utils import config
 from planning.planning import PlanningResource
@@ -72,12 +74,13 @@ class PlanningPublishService(BaseService):
     def publish_planning(self, plan):
         """Publish a Planning item
 
-        Does not publish anything yet, it is just a placeholder for when
-        we implement publishing
         """
+        plan.setdefault(config.VERSION, 1)
+        plan.setdefault('item_id', plan['_id'])
         updates = {'state': self._get_publish_state(plan), 'pubstatus': plan['pubstatus']}
         get_resource_service('planning').update(plan['_id'], updates, plan)
         get_resource_service('planning_history')._save_history(plan, updates, 'publish')
+        get_enqueue_service('publish').enqueue_item(plan, 'planning')
 
     def _get_publish_state(self, plan):
         if plan.get('pubstatus') == PUBLISHED_STATE.CANCELLED:
