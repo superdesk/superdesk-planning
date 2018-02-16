@@ -20,14 +20,14 @@ from superdesk.notification import push_notification
 from apps.auth import get_user, get_user_id
 from apps.archive.common import set_original_creator, get_auth
 from superdesk.users.services import current_user_has_privilege
-from superdesk.utc import utcnow
+from .events_base_service import EventsBaseService
 from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, get_max_recurrent_events, \
     WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
-from eve.utils import config, ParsedRequest
-from flask import current_app as app, json
+from eve.utils import config
+from flask import current_app as app
 import itertools
 import copy
 import pytz
@@ -340,39 +340,8 @@ class EventsService(superdesk.Service):
         return generated_events
 
     def get_recurring_timeline(self, selected):
-        """Utility method to get all events in the series
-
-        This splits up the series of events into 3 separate arrays.
-        Historic: event.dates.start < utcnow()
-        Past: utcnow() < event.dates.start < selected.dates.start
-        Future: event.dates.start > selected.dates.start
-        """
-        historic = []
-        past = []
-        future = []
-
-        selected_start = selected.get('dates', {}).get('start', utcnow())
-
-        req = ParsedRequest()
-        req.sort = '[("dates.start", 1)]'
-        req.where = json.dumps({
-            '$and': [
-                {'recurrence_id': selected['recurrence_id']},
-                {'_id': {'$ne': selected[config.ID_FIELD]}}
-            ]
-        })
-
-        for event in list(self.get_from_mongo(req, {})):
-            end = event['dates']['end']
-            start = event['dates']['start']
-            if end < utcnow():
-                historic.append(event)
-            elif start < selected_start:
-                past.append(event)
-            elif start > selected_start:
-                future.append(event)
-
-        return historic, past, future
+        events_base_service = EventsBaseService('events', backend=superdesk.get_backend())
+        return events_base_service.get_recurring_timeline(selected, True)
 
 
 class EventsResource(superdesk.Resource):
