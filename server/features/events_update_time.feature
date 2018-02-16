@@ -574,7 +574,7 @@ Feature: Events Update Time
         }
         """
         Then we get OK response
-        Then we store "DUPLICATE" from last duplicated item
+        Then we store "DUPLICATE" from last rescheduled item
         When we post to "/events/#EVENT2._id#/lock" with success
         """
         {"lock_action": "update_time"}

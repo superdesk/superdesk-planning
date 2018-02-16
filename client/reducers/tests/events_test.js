@@ -1,4 +1,5 @@
 import events, {spikeEvent, unspikeEvent} from '../events';
+import {cloneDeep} from 'lodash';
 
 describe('events', () => {
     describe('reducers', () => {
@@ -211,27 +212,28 @@ describe('events', () => {
 
         describe('spikeEvent', () => {
             const payload = {
-                event: {
-                    _id: 'e1',
-                    _etag: 'e456',
-                    revert_state: 'draft',
-                },
-                spikeState: 'draft'
+                item: 'e1',
+                user: 'ident1',
+                items: [{
+                    id: 'e1',
+                    etag: 'e456',
+                    revert_state: 'draft'
+                }],
+                filteredSpikeState: 'draft'
             };
 
             it('marks the event as spiked', () => {
-                const result = spikeEvent(
-                    {
-                        ...initialState,
-                        events: items,
-                    },
-                    payload
+                const events = cloneDeep(items);
+
+                spikeEvent(
+                    events,
+                    initialState.eventsInList,
+                    'draft',
+                    payload.items[0]
                 );
 
-                expect(result.events.e1).toEqual({
-                    _id: 'e1',
-                    name: 'name 1',
-                    dates: {start: '2016-10-15T13:01:11+0000'},
+                expect(events.e1).toEqual({
+                    ...items.e1,
                     _etag: 'e456',
                     state: 'spiked',
                     revert_state: 'draft',
@@ -239,61 +241,106 @@ describe('events', () => {
             });
 
             it('removes spiked event from list if not viewing spiked events', () => {
-                let result = spikeEvent(
-                    {
-                        ...initialState,
-                        events: items,
-                        eventsInList: ['e1'],
-                    },
-                    payload
+                let events = cloneDeep(items);
+                let eventsInList = ['e1'];
+
+                spikeEvent(
+                    events,
+                    eventsInList,
+                    'draft',
+                    payload.items[0]
                 );
 
-                expect(result.eventsInList).toEqual([]);
+                expect(eventsInList).toEqual([]);
 
-                result = spikeEvent(
-                    {
-                        ...initialState,
-                        events: items,
-                        eventsInList: ['e1'],
-                        search: {currentSearch: {spikeState: 'both'}},
-                    },
-                    {
-                        event: {
-                            _id: 'e1',
-                            _etag: 'e456',
-                            revert_state: 'draft',
-                        },
-                        spikeState: 'both'
-                    }
+                events = cloneDeep(items);
+                eventsInList = ['e1'];
+                spikeEvent(
+                    events,
+                    eventsInList,
+                    'both',
+                    payload.items[0]
                 );
-                expect(result.eventsInList).toEqual(['e1']);
+                expect(eventsInList).toEqual(['e1']);
 
-                result = spikeEvent(
-                    {
-                        ...initialState,
-                        events: items,
-                        eventsInList: ['e1'],
-                    },
-                    {
-                        event: {
-                            _id: 'e1',
-                            _etag: 'e456',
-                            revert_state: 'draft',
-                        },
-                        spikeState: 'spiked'
-                    }
+                events = cloneDeep(items);
+                eventsInList = ['e1'];
+                spikeEvent(
+                    events,
+                    eventsInList,
+                    'spiked',
+                    payload.items[0]
                 );
-                expect(result.eventsInList).toEqual(['e1']);
+                expect(eventsInList).toEqual(['e1']);
             });
         });
 
         it('SPIKE_EVENT returns if spiked event not loaded', () => {
             const result = events(initialState, {
                 type: 'SPIKE_EVENT',
-                payload: {event: {_id: 'e6'}, spikeState: 'draft'},
+                payload: {
+                    item: 'e6',
+                    user: 'ident1',
+                    items: [{
+                        id: 'e6',
+                        etag: 'e456',
+                        revert_state: 'draft'
+                    }],
+                    filteredSpikeState: 'draft'
+                }
             });
 
             expect(result).toEqual(initialState);
+        });
+
+        it('SPIKE_EVENT spikes multiple items', () => {
+            const state = {
+                ...initialState,
+                events: cloneDeep(items)
+            };
+
+            const result = events(state, {
+                type: 'SPIKE_EVENT',
+                payload: {
+                    item: 'e1',
+                    user: 'ident1',
+                    items: [{
+                        id: 'e1',
+                        etag: 'p123',
+                        revert_state: 'draft'
+                    }, {
+                        id: 'e2',
+                        etag: 'p456',
+                        revert_state: 'rescheduled'
+                    }, {
+                        id: 'e3',
+                        etag: 'p789',
+                        revert_state: 'postponed'
+                    }],
+                    filteredSpikeState: 'draft'
+                }
+            });
+
+            expect(result.events).toEqual({
+                e1: {
+                    ...items.e1,
+                    state: 'spiked',
+                    _etag: 'p123',
+                    revert_state: 'draft'
+                },
+                e2: {
+                    ...items.e2,
+                    state: 'spiked',
+                    _etag: 'p456',
+                    revert_state: 'rescheduled'
+                },
+                e3: {
+                    ...items.e3,
+                    state: 'spiked',
+                    _etag: 'p789',
+                    revert_state: 'postponed'
+                }
+            });
         });
 
         describe('unspikeEvent', () => {
@@ -385,52 +432,6 @@ describe('events', () => {
             });
 
             expect(result).toEqual(initialState);
-        });
-
-        it('SPIKE_RECURRING_EVENTS', () => {
-            const result = events(
-                {
-                    ...initialState,
-                    events: items,
-                },
-                {
-                    type: 'SPIKE_RECURRING_EVENTS',
-                    payload: {
-                        events: [{
-                            _id: 'e1',
-                            _etag: 'e456',
-                            revert_state: 'draft',
-                        }, {
-                            _id: 'e2',
-                            _etag: 'e456',
-                            revert_state: 'draft',
-                        }, {
-                            _id: 'e4',
-                            _etag: 'e456',
-                            revert_state: 'draft',
-                        }],
-                        spikeState: 'draft'
-                    },
-                }
-            );
-
-            expect(result.events).toEqual({
-                e1: {
-                    _id: 'e1',
-                    name: 'name 1',
-                    dates: {start: '2016-10-15T13:01:11+0000'},
-                    _etag: 'e456',
-                    state: 'spiked',
-                    revert_state: 'draft',
-                },
-                e2: {
-                    ...items.e2,
-                    _etag: 'e456',
-                    state: 'spiked',
-                    revert_state: 'draft',
-                },
-                e3: items.e3,
-            });
         });
     });
 });

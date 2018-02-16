@@ -150,6 +150,7 @@ const canSpikeEvent = (event, session, privileges, locks) => {
         !!privileges[PRIVILEGES.SPIKE_EVENT] &&
         !!privileges[PRIVILEGES.EVENT_MANAGEMENT] &&
         !isEventLockRestricted(event, session, locks) &&
+        !get(event, 'reschedule_from') &&
         !isEventInUse(event);
 };
 
