@@ -63,14 +63,14 @@ export class ColouredValueInput extends React.Component {
             >
                 <Label text={label} row={row} light={row && readOnly} />
                 {readOnly ? (
-                    <div className="select-coloured-value__input">
+                    <LineInput labelLeft={labelLeft} className="select-coloured-value__input">
                         <span className={this.getIconClasses(value)}>
                             {get(value, valueKey, get(value, labelKey, noValueString || gettext('None')))}
                         </span>
                         <span>
                         &nbsp;&nbsp;{get(value, labelKey, '')}
                         </span>
-                    </div>
+                    </LineInput>
                 ) : (
                     <button type="button"
                         className="dropdown__toggle select-coloured-value__input line-input"
