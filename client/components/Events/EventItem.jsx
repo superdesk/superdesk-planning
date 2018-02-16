@@ -7,7 +7,7 @@ import {EVENTS, MAIN} from '../../constants';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {EventDateTime} from './';
 import {ItemActionsMenu} from '../index';
-import {eventUtils, getItemWorkflowStateLabel} from '../../utils';
+import {eventUtils, getItemWorkflowStateLabel, getItemActionedStateLabel, onEventCapture} from '../../utils';
 
 
 export class EventItem extends React.PureComponent {
@@ -22,6 +22,7 @@ export class EventItem extends React.PureComponent {
         const hasPlanning = eventUtils.eventHasPlanning(item);
         const isItemLocked = eventUtils.isEventLocked(item, lockedItems);
         const state = getItemWorkflowStateLabel(item);
+        const actionedState = getItemActionedStateLabel(item);
 
         let borderState = false;
 
@@ -67,6 +68,17 @@ export class EventItem extends React.PureComponent {
                             text={state.label}
                             iconType={state.iconType}
                         />
+                        {!!actionedState && <Label
+                            onClick={(e) => {
+                                onEventCapture(e);
+                                onItemClick({
+                                    _id: item.reschedule_from,
+                                    _type: 'events',
+                                });
+                            }}
+                            text={actionedState.label}
+                            iconType={actionedState.iconType}
+                        />}
                         <InternalNoteLabel item={item} />
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             {item.slugline &&

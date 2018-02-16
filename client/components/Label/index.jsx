@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {gettext} from '../../utils';
 
-export const Label = ({text, iconType, verbose, isHollow, tooltip}) => {
+export const Label = ({text, iconType, verbose, isHollow, tooltip, onClick}) => {
     const labelClasses = classNames('label',
         `label--${iconType}`,
         {'label--hollow': isHollow});
@@ -16,7 +16,7 @@ export const Label = ({text, iconType, verbose, isHollow, tooltip}) => {
     );
 
     return (
-        <span>
+        <span onClick={onClick ? onClick : null}>
             {tooltip &&
                 <span
                     data-sd-tooltip={gettext(tooltip.text)}
@@ -38,6 +38,7 @@ Label.propTypes = {
     isHollow: PropTypes.bool,
     tooltip: PropTypes.object,
     verbose: PropTypes.string,
+    onClick: PropTypes.func,
 };
 
 Label.defaultProps = {

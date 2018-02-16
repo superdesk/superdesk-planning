@@ -361,73 +361,85 @@ export const isItemRescheduled = (item) => getItemWorkflowState(item) === WORKFL
 export const isItemKilled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.KILLED;
 export const isItemPostponed = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.POSTPONED;
 
+export const getItemActionedStateLabel = (item) => {
+    // Currently will cater for 'rescheduled from' scenario.
+    // If we need to use this for 'dpulicate from' or any other, we can extend it
+
+    if (item.reschedule_from) {
+        return {
+            label: gettext('Rescheduled From'),
+            iconType: 'highlight2',
+        };
+    }
+};
+
 // eslint-disable-next-line complexity
 export const getItemWorkflowStateLabel = (item) => {
     switch (getItemWorkflowState(item)) {
     case WORKFLOW_STATE.DRAFT:
         return {
-            label: 'draft',
+            label: gettext('draft'),
             iconHollow: true,
         };
     case WORKFLOW_STATE.SPIKED:
         return {
-            label: 'spiked',
+            label: gettext('spiked'),
             iconType: 'alert',
         };
     case WORKFLOW_STATE.INGESTED:
         return {
-            label: 'ingested',
+            label: gettext('ingested'),
             iconHollow: true,
         };
     case WORKFLOW_STATE.SCHEDULED:
         return {
-            label: 'Scheduled',
+            label: gettext('Scheduled'),
             labelVerbose: 'Scheduled',
             iconType: 'success',
             tooltip: TOOLTIPS.scheduledState,
         };
     case WORKFLOW_STATE.KILLED:
         return {
-            label: 'Killed',
+            label: gettext('Killed'),
             iconType: 'warning',
             tooltip: TOOLTIPS.withheldState,
         };
     case WORKFLOW_STATE.RESCHEDULED:
         return {
-            label: 'Rescheduled',
+            label: gettext('Rescheduled'),
             iconType: 'highlight2',
         };
     case WORKFLOW_STATE.CANCELLED:
         return {
-            label: 'Cancelled',
+            label: gettext('Cancelled'),
             iconType: 'yellow2',
         };
     case WORKFLOW_STATE.POSTPONED:
         return {
-            label: 'Postponed',
+            label: gettext('Postponed'),
             iconType: 'yellow2',
 
         };
     case ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED:
         return {
-            label: 'Assigned',
+            label: gettext('Assigned'),
             iconHollow: true,
         };
     case ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS:
         return {
-            label: 'In Progress',
+            label: gettext('In Progress'),
             iconType: 'yellow2',
             iconHollow: true,
         };
     case ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED:
         return {
-            label: 'Submitted',
+            label: gettext('Submitted'),
             iconType: 'yellow2',
             iconHollow: true,
         };
     case ASSIGNMENTS.WORKFLOW_STATE.COMPLETED:
         return {
-            label: 'Completed',
+            label: gettext('Completed'),
             iconType: 'success',
         };
     }
@@ -438,14 +450,14 @@ export const getItemPublishedStateLabel = (item) => {
     case PUBLISHED_STATE.USABLE:
         return {
             label: 'P',
-            labelVerbose: 'Published',
+            labelVerbose: gettext('Published'),
             iconType: 'success',
             tooltip: TOOLTIPS.publishedState,
         };
 
     case PUBLISHED_STATE.CANCELLED:
         return {
-            label: 'Cancelled',
+            label: gettext('Cancelled'),
             iconType: 'yellow2',
         };
     }
