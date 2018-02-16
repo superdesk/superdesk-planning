@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import TextareaAutosize from 'react-textarea-autosize';
 
+import {InternalNoteLabel} from '../';
 import {TermsList} from '../UI';
 
 // eslint-disable-next-line complexity
@@ -105,6 +106,7 @@ export const AssignmentPreview = ({
                     <label className="form-label form-label--light">
                         Internal Note
                     </label>
+                    <InternalNoteLabel item={planning} showTooltip={false}/>
                     <TextareaAutosize
                         value={planning.internal_note || '-'}
                         disabled={true}

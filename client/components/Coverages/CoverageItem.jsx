@@ -5,7 +5,7 @@ import {get} from 'lodash';
 import moment from 'moment-timezone';
 
 import {Item, Column, Row, Border, ActionMenu} from '../UI/List';
-import {StateLabel} from '../../components';
+import {StateLabel, InternalNoteLabel} from '../../components';
 
 import {getCoverageIcon, getCreator, getItemInArrayById, getDateTimeString, gettext, stringUtils} from '../../utils';
 import {UserAvatar} from '../UserAvatar';
@@ -64,6 +64,7 @@ export const CoverageItem = ({
                         </span>
                     }
                     <time>
+                        <InternalNoteLabel item={coverage} prefix="planning." marginRight={true} />
                         <i className="icon-time"/>
                         {coverageDateText}
                     </time>
