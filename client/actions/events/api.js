@@ -1181,6 +1181,50 @@ const updateRepetitions = (event) => (
     )
 );
 
+const getEventContacts = (searchText, searchFields = []) => (
+    (dispatch, getState, {api}) => api('contacts')
+        .query({
+            source: {
+                query: {
+                    bool: {
+                        must: [{
+                            query_string: {
+                                default_field: 'first_name',
+                                fields: searchFields,
+                                query: searchText + '*',
+                            },
+                        }],
+                        should: [
+                            {term: {is_active: true}},
+                            {term: {public: true}},
+                        ],
+                    },
+                },
+            },
+        })
+);
+
+const fetchEventContactsByIds = (ids = []) => (
+    (dispatch, getState, {api}) => api('contacts')
+        .query({
+            source: {
+                query: {
+                    bool: {
+                        must: [{
+                            terms: {
+                                _id: ids,
+                            },
+                        }],
+                        should: [
+                            {term: {is_active: true}},
+                            {term: {public: true}},
+                        ],
+                    },
+                },
+            },
+        })
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     loadEventsByRecurrenceId,
@@ -1215,6 +1259,8 @@ const self = {
     fetchById,
     duplicate,
     updateRepetitions,
+    getEventContacts,
+    fetchEventContactsByIds,
 };
 
 export default self;

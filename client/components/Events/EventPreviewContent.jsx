@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {gettext, getCreator} from '../../utils';
 import * as selectors from '../../selectors';
-import {get} from 'lodash';
+import {get, isEqual} from 'lodash';
 import {Row} from '../UI/Preview';
 import {
     AuditInformation,
@@ -12,20 +12,59 @@ import {
 } from '../index';
 import {EventScheduleSummary} from './';
 import {ToggleBox} from '../UI';
+import {List} from '../UI';
 import {ContentBlock} from '../UI/SidePanel';
 import {LinkInput, FileInput} from '../UI/Form';
 import {ContactInfoContainer} from '../index';
 import {Location} from '../Location';
+import eventsApi from '../../actions/events/api';
 
 export class EventPreviewContentComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            filteredContacts: [],
             showContactInfo: false,
             currentContact: [],
         };
         this.viewContactDetails = this.viewContactDetails.bind(this);
         this.closeDetails = this.closeDetails.bind(this);
+        this.fetchEventContacts = this.fetchEventContacts.bind(this);
+        this.getResponseResult = this.getResponseResult.bind(this);
+    }
+
+    componentWillReceiveProps(nextProps) {
+        let field = 'event_contact_info';
+
+        if (!isEqual(nextProps.item[field], this.props.item[field])) {
+            this.fetchEventContacts(nextProps.item[field]);
+        }
+    }
+
+    componentDidMount() {
+        this.fetchEventContacts(this.props.item['event_contact_info']);
+    }
+
+    fetchEventContacts(values) {
+        setTimeout(() => {
+            this.props.fetchContacts(values)
+                .then(this.getResponseResult)
+                .then((results) => {
+                    this.setState({
+                        filteredContacts: results
+                    });
+                });
+        }, 500);
+    }
+
+    getResponseResult(data = null) {
+        let results = null;
+
+        if (get(data, '_items.length', 0) > 0) {
+            results = data._items;
+        }
+
+        return results;
     }
 
     viewContactDetails(contact) {
@@ -73,19 +112,6 @@ export class EventPreviewContentComponent extends React.Component {
             `${contact.first_name} ${contact.last_name}` : contact.organisation);
         const displayContactInfo = (contact) => (contact.first_name && contact.job_title && contact.organisation &&
                     <h5>{contact.job_title}, {contact.organisation}</h5>);
-
-        const displayContactList = (contact) => (
-            <div className="sd-list-item">
-                <span className="contact-info">
-                    <figure className={avatarClass(contact)} />
-                    <span>{displayContact(contact)} {displayContactInfo(contact)}</span>
-                </span>
-                <button data-sd-tooltip="View Details" data-flow="left"
-                    onClick={this.viewContactDetails.bind(this, contact)}>
-                    <i className="icon-external" />
-                </button>
-            </div>
-        );
 
         return (
             <ContentBlock>
@@ -144,12 +170,25 @@ export class EventPreviewContentComponent extends React.Component {
                     enabled={get(formProfile, 'editor.event_contact_info.enabled') && get(item, '_contacts.length') > 0}
                     label={gettext('Contact')}
                 >
-                    {get(item, '_contacts.length') > 0 &&
-                        get(item, '_contacts', []).map((contact, index) => (
-                            <span className="list-items" key={index}>
-                                {displayContactList(contact)}
-                            </span>
-                        ))
+                    {get(this.state, 'filteredContacts.length') > 0 &&
+                        get(this.state, 'filteredContacts', []).map((contact, index) => (
+                            <List.Item shadow={2} key={index}>
+                                <List.Column grow={true} border={false}>
+                                    <List.Row>
+                                        <span className="contact-info">
+                                            <figure className={avatarClass(contact)} />
+                                            <span>{displayContact(contact)} {displayContactInfo(contact)}</span>
+                                        </span>
+                                    </List.Row>
+                                </List.Column>
+                                <List.ActionMenu>
+                                    <span data-sd-tooltip="View Details" data-flow="left"
+                                        onClick={this.viewContactDetails.bind(this, contact)}>
+                                        <i className="icon-external" />
+                                    </span>
+                                </List.ActionMenu>
+                            </List.Item>
+                        )) || <p>-</p>
                     }
                     {this.state.showContactInfo && (
                         <ContactInfoContainer onCancel={this.closeDetails.bind(this)}
@@ -240,7 +279,8 @@ EventPreviewContentComponent.propTypes = {
     timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,
     createUploadLink: PropTypes.func,
-    streetMapUrl: PropTypes.string
+    fetchContacts: PropTypes.func,
+    streetMapUrl: PropTypes.string,
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -256,4 +296,8 @@ const mapStateToProps = (state, ownProps) => ({
     streetMapUrl: selectors.config.getStreetMapUrl(state)
 });
 
-export const EventPreviewContent = connect(mapStateToProps, null)(EventPreviewContentComponent);
+const mapDispatchToProps = (dispatch) => ({
+    fetchContacts: (ids) => dispatch(eventsApi.fetchEventContactsByIds(ids || [])),
+});
+
+export const EventPreviewContent = connect(mapStateToProps, mapDispatchToProps)(EventPreviewContentComponent);

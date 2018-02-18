@@ -35,8 +35,13 @@ export const orderedEvents = createSelector(
 export const getEventContacts = (state) => get(state, 'contacts', []);
 export const previewId = (state) => get(state, 'main.previewId', null);
 
+export const getContacts = createSelector(
+    [getEventContacts],
+    (contacts) => contacts
+);
+
 export const getEventPreviewRelatedDetails = createSelector(
-    [previewId, storedEvents, storedPlannings, agendas, getEventContacts],
+    [previewId, storedEvents, storedPlannings, agendas, getContacts],
     (itemId, events, plannings, agendas, contacts) => {
         const event = get(events, itemId) || null;
 
