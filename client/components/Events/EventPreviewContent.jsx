@@ -63,14 +63,18 @@ export class EventPreviewContentComponent extends React.Component {
         const displayContactInfo = (contact) => (contact.first_name && contact.job_title && contact.organisation &&
                     <h5>{contact.job_title}, {contact.organisation}</h5>);
 
-        const displayContactList = (contact) => (<span className="contact-info">
-            <figure className={avatarClass(contact)} />
-            <span>{displayContact(contact)} {displayContactInfo(contact)}</span>
-            <button className="btn-view-details" data-sd-tooltip="View Details" data-flow="left"
-                onClick={this.viewContactDetails.bind(this, contact)}>
-                <i className="icon-external" />
-            </button>
-        </span>);
+        const displayContactList = (contact) => (
+            <div className="sd-list-item">
+                <span className="contact-info">
+                    <figure className={avatarClass(contact)} />
+                    <span>{displayContact(contact)} {displayContactInfo(contact)}</span>
+                </span>
+                <button data-sd-tooltip="View Details" data-flow="left"
+                    onClick={this.viewContactDetails.bind(this, contact)}>
+                    <i className="icon-external" />
+                </button>
+            </div>
+        );
 
         return (
             <ContentBlock>
@@ -123,11 +127,14 @@ export class EventPreviewContentComponent extends React.Component {
                     enabled={get(formProfile, 'editor.event_contact_info.enabled') && get(item, '_contacts.length') > 0}
                     label={gettext('Contact')}
                 >
-                    {get(item, '_contacts', []).map((contact, index) => (
-                        <span key={index}>
-                            {displayContactList(contact)}
-                        </span>
-                    ))}
+                    {get(item, '_contacts.length') > 0 &&
+                        get(item, '_contacts', []).map((contact, index) => (
+                            <span className="list-items" key={index}>
+                                {displayContactList(contact)}
+                            </span>
+                        ))
+                        || <p>-</p>
+                    }
                     {this.state.showContactInfo && (
                         <ContactInfoContainer onCancel={this.closeDetails.bind(this)}
                             target="icon-external" currentContact={this.state.currentContact} />
