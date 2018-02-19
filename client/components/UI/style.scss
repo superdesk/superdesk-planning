@@ -1,4 +1,5 @@
 @import '~superdesk-core/styles/sass/variables.scss';
+@import '~superdesk-core/styles/sass/mixins.scss';
 
 time.Datetime {
     padding-left: 0 !important;
@@ -42,4 +43,12 @@ time.Datetime {
 
 .sd-collapse-box {
     @extend .sd-collapse-box--autoFocus
+}
+
+.sd-collapse-box__content-wrapper--no-max-height {
+    max-height: initial !important;
+}
+
+.sd-collapse-box__content-wraper {
+    @extend .sd-collapse-box__content-wrapper--no-max-height;
 }
