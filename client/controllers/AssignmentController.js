@@ -14,6 +14,8 @@ AssignmentController.$inject = [
     'desks',
     'sdPlanningStore',
     '$q',
+    'pageTitle',
+    'gettext'
 ];
 export function AssignmentController(
     $element,
@@ -21,8 +23,11 @@ export function AssignmentController(
     $location,
     desks,
     sdPlanningStore,
-    $q
+    $q,
+    pageTitle,
+    gettext
 ) {
+    pageTitle.setUrl(gettext('Assignments'));
     sdPlanningStore.getStore()
         .then((store) => {
             store.dispatch(actions.initStore(WORKSPACE.ASSIGNMENTS));
