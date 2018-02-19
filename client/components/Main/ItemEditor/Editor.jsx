@@ -5,7 +5,7 @@ import {get, set, isEqual, cloneDeep} from 'lodash';
 
 import {gettext, lockUtils} from '../../../utils';
 
-import {ITEM_TYPE, EVENTS, PLANNING} from '../../../constants';
+import {ITEM_TYPE, EVENTS, PLANNING, WORKSPACE} from '../../../constants';
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
 
@@ -33,6 +33,7 @@ export class EditorComponent extends React.Component {
             showSubmitFailed: false,
         };
 
+        this.inPlanning = false;
         this.editorHeaderComponent = null;
         this.onChangeHandler = this.onChangeHandler.bind(this);
         this.setActiveTab = this.setActiveTab.bind(this);
@@ -49,6 +50,10 @@ export class EditorComponent extends React.Component {
             {label: gettext('Content'), render: EditorContentTab, enabled: true},
             {label: gettext('History'), render: HistoryTab, enabled: true},
         ];
+
+        if (this.props.currentWorkspace === WORKSPACE.PLANNING) {
+            this.inPlanning = true;
+        }
     }
 
     componentDidMount() {
@@ -56,6 +61,13 @@ export class EditorComponent extends React.Component {
         // Otherwise all item changes will occur during the componentWillReceiveProps
         if (this.props.itemId && this.props.itemType) {
             this.props.loadItem(this.props.itemId, this.props.itemType);
+        }
+    }
+
+    componentWillUnmount() {
+        if (!this.inPlanning) {
+            // problem of modal within modal, so setting this before unmount
+            this.tearDownEditorState();
         }
     }
 
@@ -201,12 +213,18 @@ export class EditorComponent extends React.Component {
         }
     }
 
-    onCancel() {
+    tearDownEditorState() {
         this.setState({
             errors: {},
             submitFailed: false,
             showSubmitFailed: false,
         });
+    }
+
+    onCancel() {
+        if (this.inPlanning) {
+            this.tearDownEditorState();
+        }
 
         if (this.editorHeaderComponent) {
             this.editorHeaderComponent.unregisterKeyBoardShortcuts();

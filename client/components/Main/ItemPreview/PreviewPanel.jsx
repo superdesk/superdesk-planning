@@ -12,6 +12,7 @@ import {PreviewContentTab, PreviewHeader} from './index';
 import {Tabs} from '../../UI/Nav';
 import {Panel} from '../../UI/Preview';
 import {SidePanel, Header, Tools, Content} from '../../UI/SidePanel';
+import {WORKSPACE} from '../../../constants';
 
 export class PreviewPanelComponent extends React.Component {
     constructor(props) {
@@ -24,14 +25,17 @@ export class PreviewPanelComponent extends React.Component {
 
         this.tools = [
             {
-                icon: 'icon-pencil',
-                onClick: this.openEditPanel,
-            },
-            {
                 icon: 'icon-close-small',
                 onClick: this.closePreview,
             },
         ];
+
+        if (this.props.inPlanning) {
+            this.tools.unshift({
+                icon: 'icon-pencil',
+                onClick: this.openEditPanel,
+            });
+        }
 
         this.tabs = [
             {
@@ -119,6 +123,7 @@ PreviewPanelComponent.propTypes = {
     itemType: PropTypes.string,
     previewLoading: PropTypes.bool,
     loadPreviewItem: PropTypes.func,
+    inPlanning: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -126,6 +131,7 @@ const mapStateToProps = (state) => ({
     itemId: selectors.main.previewId(state),
     itemType: selectors.main.previewType(state),
     previewLoading: selectors.main.previewLoading(state),
+    inPlanning: selectors.getCurrentWorkspace(state) === WORKSPACE.PLANNING,
 });
 
 const mapDispatchToProps = (dispatch) => ({

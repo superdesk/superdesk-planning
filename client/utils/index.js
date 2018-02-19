@@ -355,6 +355,7 @@ export const getCoverageIcon = (type) => {
     return get(coverageIcons, type, 'icon-file');
 };
 
+export const isSameItemId = (item1, item2) => get(item1, '_id') === get(item2, '_id');
 export const getItemWorkflowState = (item) => (get(item, 'state', WORKFLOW_STATE.DRAFT));
 export const isItemCancelled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.CANCELLED;
 export const isItemRescheduled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.RESCHEDULED;
