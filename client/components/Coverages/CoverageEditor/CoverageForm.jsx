@@ -108,7 +108,7 @@ export class CoverageForm extends React.Component {
                     component={SelectInput}
                     field={`${field}.planning.g2_content_type`}
                     profileName="g2_content_type"
-                    label={gettext('Content Type')}
+                    label={gettext('Coverage Type')}
                     options={contentTypes}
                     labelField="name"
                     clearable={true}
@@ -141,6 +141,7 @@ export class CoverageForm extends React.Component {
                     profileName="slugline"
                     label={gettext('Slugline')}
                     readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.slugline}
+                    autoFocus={hasAssignment && roFields.g2_content_type}
                     {...fieldProps}
                 />
 

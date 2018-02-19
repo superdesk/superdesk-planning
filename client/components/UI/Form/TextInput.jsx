@@ -15,6 +15,7 @@ export const TextInput = ({
     type,
     inputClassName,
     refNode,
+    autoFocus,
     ...props
 }) => (
     <LineInput {...props} invalid={invalid} readOnly={readOnly}>
@@ -27,6 +28,7 @@ export const TextInput = ({
             readOnly={readOnly}
             refNode={refNode}
             className={inputClassName}
+            autoFocus={autoFocus}
         />
 
         {maxLength > 0 &&
@@ -47,6 +49,7 @@ TextInput.propTypes = {
     type: PropTypes.string,
     refNode: PropTypes.func,
     inputClassName: PropTypes.string,
+    autoFocus: PropTypes.bool,
     ...LineInputProps,
 };
 
