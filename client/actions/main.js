@@ -212,7 +212,7 @@ const closePreviewAndEditorForItems = (items, actionMessage = '') => (
   * @return {Object} - returns Promise
  */
 const filter = (ftype = null) => (
-    (dispatch, getState, {$timeout, $location}) => {
+    (dispatch, getState, {$timeout, $location, pageTitle}) => {
         let filterType = ftype;
 
         if (filterType === null) {

@@ -15,6 +15,8 @@ PlanningController.$inject = [
     '$q',
     'superdeskFlags',
     '$route',
+    'pageTitle',
+    'gettext'
 ];
 export function PlanningController(
     $element,
@@ -23,8 +25,11 @@ export function PlanningController(
     sdPlanningStore,
     $q,
     superdeskFlags,
-    $route
+    $route,
+    pageTitle,
+    gettext
 ) {
+    pageTitle.setUrl(gettext('Planning'));
     sdPlanningStore.getStore()
         .then((store) => {
             store.dispatch(actions.initStore(WORKSPACE.PLANNING));
