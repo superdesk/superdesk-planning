@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 import {get, cloneDeep, remove as _remove, some, isEqual} from 'lodash';
 import * as selectors from '../../../selectors';
 
-import {gettext, getItemInArrayById, planningUtils} from '../../../utils';
+import {gettext, getItemInArrayById, planningUtils, isSameItemId} from '../../../utils';
 
 import {ContentBlock} from '../../UI/SidePanel';
 import {
@@ -41,7 +41,8 @@ export class PlanningEditorComponent extends React.Component {
     }
 
     componentWillMount() {
-        if (!this.props.addNewsItemToPlanning || !planningUtils.isLockedForAddToPlanning(this.props.item)) {
+        if (!this.props.addNewsItemToPlanning ||
+            (get(this.props, 'item._id') && !planningUtils.isLockedForAddToPlanning(this.props.item))) {
             return;
         }
 
@@ -168,29 +169,45 @@ export class PlanningEditorComponent extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        // if the assignment associated with the planning item are modified
+        if (isSameItemId(nextProps.item, this.props.item)) {
+            if (this.props.addNewsItemToPlanning) {
+                if (planningUtils.isLockedForAddToPlanning(nextProps.diff) &&
+                    get(nextProps, 'item.coverages.length', 0) === get(nextProps, 'diff.coverages.length', 0)) {
+                    let dupItem = cloneDeep(this.props.item);
 
-        if (get(this.props, 'item._id') === get(nextProps, 'item._id')) {
-            const storedCoverages = get(nextProps, 'item.coverages') || [];
-            const diffCoverages = get(this.props, 'diff.coverages') || [];
+                    dupItem.coverages.push(planningUtils.createCoverageFromNewsItem(
+                        this.props.addNewsItemToPlanning,
+                        this.props.newsCoverageStatus,
+                        this.props.desk,
+                        this.props.user,
+                        this.props.contentTypes));
 
-            if (get(storedCoverages, 'length', 0) > 0) {
-                storedCoverages.forEach((coverage) => {
-                    if (get(coverage, 'assigned_to.state', '') !== ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED) {
-                        const index = diffCoverages.findIndex((c) => c.coverage_id === coverage.coverage_id);
+                    // reset the object to trigger a save
+                    this.props.onChangeHandler(null, dupItem);
+                }
+            } else {
+                // if the assignment associated with the planning item are modified
+                const storedCoverages = get(nextProps, 'item.coverages') || [];
+                const diffCoverages = get(this.props, 'diff.coverages') || [];
 
-                        if (index >= 0) {
-                            const diffCoverage = diffCoverages[index];
-                            const storedAssigmentState = get(coverage, 'assigned_to.state');
+                if (get(storedCoverages, 'length', 0) > 0) {
+                    storedCoverages.forEach((coverage) => {
+                        if (get(coverage, 'assigned_to.state', '') !== ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED) {
+                            const index = diffCoverages.findIndex((c) => c.coverage_id === coverage.coverage_id);
 
-                            if (diffCoverage && storedAssigmentState &&
-                                storedAssigmentState !== ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
-                                !isEqual(diffCoverage.assigned_to, coverage.assigned_to)) {
-                                this.onChange(`coverages[${index}].assigned_to`, coverage.assigned_to);
+                            if (index >= 0) {
+                                const diffCoverage = diffCoverages[index];
+                                const storedAssigmentState = get(coverage, 'assigned_to.state');
+
+                                if (diffCoverage && storedAssigmentState &&
+                                    storedAssigmentState !== ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
+                                    !isEqual(diffCoverage.assigned_to, coverage.assigned_to)) {
+                                    this.onChange(`coverages[${index}].assigned_to`, coverage.assigned_to);
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                }
             }
         }
     }
@@ -201,7 +218,7 @@ export class PlanningEditorComponent extends React.Component {
 
     componentDidUpdate(prevProps) {
         // If item changed or it got locked for editing
-        if ((get(prevProps, 'item._id') !== get(this.props, 'item._id')) ||
+        if (!isSameItemId(prevProps.item, this.props.item) ||
             (!get(prevProps, 'diff.lock_user') && get(this.props, 'diff.lock_user'))) {
             this.dom.slugline.focus();
         }

@@ -4,11 +4,14 @@ import {gettext} from '../../utils';
 import {Dropdown} from '../UI/SubNav';
 
 export const ActionsSubnavDropdown = (props) => {
-    const items = props.disableAgendaManagement ? [] :
-        [{
-            label: gettext('Manage agendas'),
-            action: props.openAgendas,
-        }];
+    if (props.disableAgendaManagement) {
+        return null;
+    }
+
+    const items = [{
+        label: gettext('Manage agendas'),
+        action: props.openAgendas,
+    }];
 
     return (
         <Dropdown
