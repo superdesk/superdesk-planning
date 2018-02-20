@@ -1,3 +1,5 @@
+import {gettext} from '../utils/gettext';
+
 export const ASSIGNMENTS = {
     ACTIONS: {
         RECEIVED_ASSIGNMENTS: 'RECEIVED_ASSIGNMENTS',
@@ -31,35 +33,40 @@ export const ASSIGNMENTS = {
         COMPLETED: 'completed',
         SUBMITTED: 'submitted',
         CANCELLED: 'cancelled',
+        REVERTED: 'reverted',
     },
     ITEM_ACTIONS: {
         REASSIGN: {
-            label: 'Reassign',
+            label: gettext('Reassign'),
             icon: 'icon-share-alt',
         },
         COMPLETE: {
-            label: 'Complete Assignment',
+            label: gettext('Complete Assignment'),
             icon: 'icon-ok',
         },
         EDIT_PRIORITY: {
-            label: 'Edit Priority',
+            label: gettext('Edit Priority'),
             icon: 'icon-chevron-up-thin',
         },
         START_WORKING: {
-            label: 'Start Working',
+            label: gettext('Start Working'),
             icon: 'icon-external',
         },
         REMOVE: {
-            label: 'Remove Assignment',
+            label: gettext('Remove Assignment'),
             icon: 'icon-trash',
         },
         PREVIEW_ARCHIVE: {
-            label: 'Open Coverage',
+            label: gettext('Open Coverage'),
             icon: 'icon-external',
         },
         CONFIRM_AVAILABILITY: {
-            label: 'Confirm Availability',
+            label: gettext('Confirm Availability'),
             icon: 'icon-ok',
+        },
+        REVERT_AVAILABILITY: {
+            label: gettext('Revert Availability'),
+            icon: 'icon-revert',
         }
     },
     DEFAULT_PRIORITY: 2,

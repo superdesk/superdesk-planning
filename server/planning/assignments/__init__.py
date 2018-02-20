@@ -15,6 +15,7 @@ from .assignments_content import AssignmentsContentResource, AssignmentsContentS
 from .assignments_link import AssignmentsLinkResource, AssignmentsLinkService
 from .assignments_unlink import AssignmentsUnlinkResource, AssignmentsUnlinkService
 from .assignments_complete import AssignmentsCompleteResource, AssignmentsCompleteService
+from .assignments_revert import AssignmentsRevertResource, AssignmentsRevertService
 from .assignments_lock import AssignmentsLockResource, AssignmentsLockService,\
     AssignmentsUnlockResource, AssignmentsUnlockService
 from .assignments_history import AssignmentsHistoryResource, AssignmentsHistoryService
@@ -53,6 +54,14 @@ def init_app(app):
         AssignmentsCompleteResource.endpoint_name,
         app=app,
         service=assignments_complete_service
+    )
+
+    assignments_revert_service = AssignmentsRevertService(AssignmentsRevertResource.endpoint_name,
+                                                          backend=superdesk.get_backend())
+    AssignmentsRevertResource(
+        AssignmentsRevertResource.endpoint_name,
+        app=app,
+        service=assignments_revert_service
     )
 
     assignments_history_service = AssignmentsHistoryService('assignments_history', backend=superdesk.get_backend())

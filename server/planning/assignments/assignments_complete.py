@@ -51,7 +51,14 @@ class AssignmentsCompleteService(BaseService):
         session = get_auth().get(config.ID_FIELD, '')
 
         updates['assigned_to'] = deepcopy(original).get('assigned_to')
+
+        # If we are confirming availability, save the revert state for revert action
+        coverage_type = original.get('planning', {}).get('g2_content_type')
+        if coverage_type != 'text':
+            updates['assigned_to']['revert_state'] = updates['assigned_to']['state']
+
         updates['assigned_to']['state'] = ASSIGNMENT_WORKFLOW_STATE.COMPLETED
+
         remove_lock_information(updates)
 
         item = self.backend.update(self.datasource, id, updates, original)

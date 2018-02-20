@@ -91,6 +91,7 @@ class AssignmentListComponent extends React.Component {
                 startWorking={this.props.startWorking}
                 priorities={this.props.priorities}
                 removeAssignment={this.props.removeAssignment}
+                revertAssignment={this.props.revertAssignment}
             />
         );
     }
@@ -160,6 +161,7 @@ AssignmentListComponent.propTypes = {
     priorities: PropTypes.array,
     removeAssignment: PropTypes.func,
     openArchivePreview: PropTypes.func,
+    revertAssignment: PropTypes.func,
 };
 
 const getAssignmentsSelectorsForListGroup = (groupKey) => {
@@ -213,6 +215,7 @@ const mapDispatchToProps = (dispatch) => ({
     onAssignmentSelectChange: (value) => dispatch(actions.assignments.ui.toggleAssignmentSelection(value)),
     reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
+    revertAssignment: (assignment) => dispatch(actions.assignments.ui.revert(assignment)),
     editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),
     startWorking: (assignment) => dispatch(actions.assignments.ui.openSelectTemplateModal(assignment)),
     removeAssignment: (assignment) => dispatch(actions.assignments.ui.showRemoveAssignmentModal(assignment)),

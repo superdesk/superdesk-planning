@@ -15,7 +15,6 @@ import {
     getCreator,
     getCoverageIcon,
     getItemInArrayById,
-    lockUtils,
 } from '../../utils';
 import {ASSIGNMENTS, WORKSPACE} from '../../constants';
 import {
@@ -50,49 +49,29 @@ class AssignmentPreviewContainerComponent extends React.Component {
             removeAssignment,
             lockedItems,
             openArchivePreview,
+            revertAssignment,
         } = this.props;
 
-        if (!inAssignments || lockUtils.isLockRestricted(assignment, session, lockedItems)) {
+        if (!inAssignments) {
             return [];
         }
 
-        const actions = [
-            {
-                ...ASSIGNMENTS.ITEM_ACTIONS.START_WORKING,
-                callback: startWorking.bind(null, assignment),
-            },
-            {
-                ...ASSIGNMENTS.ITEM_ACTIONS.REASSIGN,
-                callback: reassign.bind(null, assignment),
-            },
-            {
-                ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY,
-                callback: editAssignmentPriority.bind(null, assignment),
-            },
-            {
-                ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
-                callback: completeAssignment.bind(null, assignment),
-            },
-            {
-                ...ASSIGNMENTS.ITEM_ACTIONS.REMOVE,
-                callback: removeAssignment.bind(null, assignment),
-            },
-            {
-                ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
-                callback: openArchivePreview.bind(null, assignment),
-            },
-            {
-                ...ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY,
-                callback: completeAssignment.bind(null, assignment),
-            },
-        ];
+        const itemActionsCallBack = {
+            [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: reassign.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: editAssignmentPriority.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label]: completeAssignment.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: startWorking.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label]: removeAssignment.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label]: openArchivePreview.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.label]: completeAssignment.bind(null, assignment),
+            [ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.label]: revertAssignment.bind(null, assignment),
+        };
 
-        return assignmentUtils.getAssignmentItemActions(
-            assignment,
+        return assignmentUtils.getAssignmentActions(assignment,
             session,
             privileges,
-            actions
-        );
+            lockedItems,
+            itemActionsCallBack);
     }
 
     render() {
@@ -313,6 +292,7 @@ AssignmentPreviewContainerComponent.propTypes = {
     lockedItems: PropTypes.object,
     agendas: PropTypes.array,
     openArchivePreview: PropTypes.func,
+    revertAssignment: PropTypes.func,
 };
 
 const mapStateToProps = (state) => ({
@@ -338,6 +318,7 @@ const mapDispatchToProps = (dispatch) => ({
     startWorking: (assignment) => dispatch(actions.assignments.ui.openSelectTemplateModal(assignment)),
     reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),
     completeAssignment: (assignment) => dispatch(actions.assignments.ui.complete(assignment)),
+    revertAssignment: (assignment) => dispatch(actions.assignments.ui.revert(assignment)),
     editAssignmentPriority: (assignment) => dispatch(actions.assignments.ui.editPriority(assignment)),
     onFulFilAssignment: (assignment) => dispatch(actions.assignments.ui.onAssignmentFormSave(assignment)),
     removeAssignment: (assignment) => dispatch(actions.assignments.ui.removeAssignment(assignment)),

@@ -37,6 +37,12 @@ const canConfirmAvailability = (assignment, session, privileges) => (
     (!get(assignment, 'lock_user') || lockUtils.isItemLockedInThisSession(assignment, session))
 );
 
+const canRevertAssignment = (assignment, session, privileges) => (
+    get(assignment, 'planning.g2_content_type') !== PLANNING.G2_CONTENT_TYPE.TEXT &&
+    get(assignment, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED &&
+    (!get(assignment, 'lock_user') || lockUtils.isItemLockedInThisSession(assignment, session))
+);
+
 const isAssignmentInUse = (assignment) => (
     (includes([ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED, ASSIGNMENTS.WORKFLOW_STATE.COMPLETED,
         ASSIGNMENTS.WORKFLOW_STATE.IN_PROGRESS],
@@ -51,6 +57,85 @@ const canRemoveAssignment = (assignment, session, privileges) => (
     canEditAssignment(assignment, session, privileges) &&
         get(assignment, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
 );
+
+const getAssignmentActions = (assignment, session, privileges, lockedItems, callBacks) => {
+    if (!get(assignment, '_id') || lockUtils.isLockRestricted(assignment, session, lockedItems)) {
+        return [];
+    }
+
+    let actions = [];
+
+    Object.keys(callBacks).forEach((callBackName) => {
+        switch (callBackName) {
+        case ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label:
+            callBacks[callBackName] &&
+                    actions.push({
+                        ...ASSIGNMENTS.ITEM_ACTIONS.START_WORKING,
+                        callback: callBacks[callBackName].bind(null, assignment)
+                    });
+            break;
+
+        case ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label:
+            callBacks[callBackName] &&
+                    actions.push({
+                        ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY,
+                        callback: callBacks[callBackName].bind(null, assignment)
+                    });
+            break;
+
+        case ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label:
+            callBacks[callBackName] &&
+                    actions.push({
+                        ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
+                        callback: callBacks[callBackName].bind(null, assignment)
+                    });
+            break;
+
+        case ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label:
+            callBacks[callBackName] &&
+                    actions.push({
+                        ...ASSIGNMENTS.ITEM_ACTIONS.REASSIGN,
+                        callback: callBacks[callBackName].bind(null, assignment)
+                    });
+            break;
+
+        case ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label:
+            callBacks[callBackName] &&
+                    actions.push({
+                        ...ASSIGNMENTS.ITEM_ACTIONS.REMOVE,
+                        callback: callBacks[callBackName].bind(null, assignment)
+                    });
+            break;
+
+        case ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label:
+            callBacks[callBackName] &&
+                    actions.push({
+                        ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
+                        callback: callBacks[callBackName].bind(null, assignment)
+                    });
+            break;
+
+        case ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.label:
+            callBacks[callBackName] &&
+                    actions.push({
+                        ...ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY,
+                        callback: callBacks[callBackName].bind(null, assignment)
+                    });
+            break;
+
+
+        case ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.label:
+            callBacks[callBackName] &&
+                    actions.push({
+                        ...ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY,
+                        callback: callBacks[callBackName].bind(null, assignment)
+                    });
+            break;
+        }
+    });
+
+    return getAssignmentItemActions(assignment, session, privileges, actions);
+};
 
 const getAssignmentItemActions = (assignment, session, privileges, actions) => {
     let itemActions = [];
@@ -71,6 +156,8 @@ const getAssignmentItemActions = (assignment, session, privileges, actions) => {
             assignmentHasContent(assignment),
         [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.label]: () =>
             canConfirmAvailability(assignment, session, privileges),
+        [ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.label]: () =>
+            canRevertAssignment(assignment, session, privileges),
     };
 
     actions.forEach((action) => {
@@ -150,7 +237,7 @@ const self = {
     canEditAssignment,
     canCompleteAssignment,
     isAssignmentInEditableState,
-    getAssignmentItemActions,
+    getAssignmentActions,
     isAssignmentInUse,
     canStartWorking,
     getAssignmentsInListGroups,

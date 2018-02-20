@@ -466,6 +466,22 @@ const complete = (item) => (
     )
 );
 
+const revert = (item) => (
+    (dispatch, getState, {notify}) => (
+        dispatch(self.lockAssignment(item, 'revert'))
+            .then((lockedItem) => {
+                dispatch(assignments.api.revert(lockedItem))
+                    .then((lockedItem) => {
+                        notify.success(gettext('The assignment has been reverted.'));
+                        return Promise.resolve(lockedItem);
+                    }, (error) => {
+                        notify.error(getErrorMessage(error, gettext('Failed to revert the assignment.')));
+                        return Promise.reject(error);
+                    });
+            }, (error) => Promise.reject(error))
+    )
+);
+
 /**
  * Action for launching the modal form for fulfil assignment and add to planning
  * @param {string} action
@@ -771,6 +787,7 @@ const self = {
     save,
     onFulFilAssignment,
     complete,
+    revert,
     onAuthoringMenuClick,
     canLinkItem,
     _openActionModal,

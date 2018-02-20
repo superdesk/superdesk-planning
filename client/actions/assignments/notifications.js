@@ -254,6 +254,7 @@ self.events = {
     'assignments:unlock': () => (self.onAssignmentUnlocked),
     'assignments:updated': () => (self.onAssignmentUpdated),
     'assignments:completed': () => (self.onAssignmentUpdated),
+    'assignments:reverted': () => (self.onAssignmentUpdated),
     'assignments:removed': () => (self.onAssignmentRemoved),
 };
 
