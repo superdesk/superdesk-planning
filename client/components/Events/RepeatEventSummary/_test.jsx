@@ -76,7 +76,7 @@ describe('<RepeatEventSummary />', () => {
         expect(wrapper.find('p').text()).toBe('Every 3 days, until 1 Jul 2020');
     });
 
-    it('Shows appropriate repeat summary for a given frequency with intervals and for a number of occurances', () => {
+    it('Shows appropriate repeat summary for a given frequency with intervals and for a number of occurrences', () => {
         const recEvent = {
             ...event,
             dates: {

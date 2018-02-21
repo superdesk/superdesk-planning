@@ -72,7 +72,7 @@ export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly, scrollIn
             <PreviewRow label={gettext('Location')}>
                 <p>{get(event, 'location.name')}<br />{get(event, 'location.formatted_address')}</p>
             </PreviewRow>
-            <PreviewRow label={gettext('Occurance Status')}
+            <PreviewRow label={gettext('Occurrence Status')}
                 value={get(event, 'occur_status.name', '')} />
             <PreviewRow label={gettext('Description')}
                 value={event.definition_short || ''} />
