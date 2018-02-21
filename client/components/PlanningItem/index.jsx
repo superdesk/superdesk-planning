@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get, some} from 'lodash';
-import {ListItem, TimePlanning, DueDate, ItemActionsMenu, StateLabel, Checkbox} from '../index';
+import {ListItem, DueDate, ItemActionsMenu, StateLabel, Checkbox} from '../index';
 import {connect} from 'react-redux';
 import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import classNames from 'classnames';
@@ -156,7 +156,6 @@ const PlanningItem = ({
                     </span>
                     {event &&
                         <span className="PlanningItem__event sd-no-wrap">
-                            <TimePlanning event={event}/>
                             <i className="icon-calendar-list"/>
                         </span>
                     }

@@ -1,6 +1,7 @@
 import React from 'react';
 import {mount} from 'enzyme';
 import {Provider} from 'react-redux';
+import {cloneDeep} from 'lodash';
 
 import * as helpers from '../../tests/helpers';
 import * as selectors from '../../../selectors';
@@ -13,15 +14,37 @@ import {PanelInfo} from '../../UI';
 import {EventItem} from '../../Events';
 import {PlanningItem} from '../../Planning';
 
+
 describe('PlanningApp', () => {
     let store;
     let astore;
     let services;
+    let search = {
+        currentSearch: {
+            advancedSearch: {
+                dates: {
+                    start: '2010-10-15T15:01:11+0000',
+                    end: '2020-10-15T15:01:11+0000',
+                }
+            }
+        },
+        lastRequestParams: {
+            advancedSearch: {
+                dates: {
+                    start: '2010-10-15T15:01:11+0000',
+                    end: '2020-10-15T15:01:11+0000',
+                }
+            }
+        }
+    };
 
     beforeEach(() => {
         astore = getTestActionStore();
         services = astore.services;
         astore.initialState.main.filter = MAIN.FILTERS.COMBINED;
+        astore.initialState.main.search[MAIN.FILTERS.COMBINED] = cloneDeep(search);
+        astore.initialState.main.search[MAIN.FILTERS.EVENTS] = cloneDeep(search);
+        astore.initialState.main.search[MAIN.FILTERS.PLANNING] = cloneDeep(search);
     });
 
     const initStore = () => {
@@ -57,7 +80,6 @@ describe('PlanningApp', () => {
         expect(services.api('events').query.callCount).toBe(0);
         expect(services.api('planning').query.callCount).toBe(0);
         expect(app.list.element.find(PanelInfo).length).toBe(1);
-
         app.filters.events.click();
         waitFor(() => selectors.events.orderedEvents(store.getState()).length > 0)
             .then(() => {

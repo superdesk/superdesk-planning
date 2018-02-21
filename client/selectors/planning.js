@@ -1,8 +1,7 @@
 import {createSelector} from 'reselect';
 import {get, cloneDeep} from 'lodash';
-import {lockUtils} from '../utils';
 import {session} from './general';
-import {planningUtils} from '../utils';
+import {planningUtils, lockUtils, getSearchDateRange} from '../utils';
 import {AGENDA, SPIKED_STATE} from '../constants';
 
 
@@ -44,8 +43,14 @@ export const plansInList = createSelector(
 );
 
 export const orderedPlanningList = createSelector(
-    [currentAgenda, plansInList, storedEvents],
-    (currentAgenda, plansInList, events) => planningUtils.getPlanningByDate(plansInList, events)
+    [currentAgenda, plansInList, storedEvents, currentSearch],
+    (currentAgenda, plansInList, events, search) => {
+        const dateRange = getSearchDateRange(search);
+
+        return planningUtils.getPlanningByDate(
+            plansInList, events, dateRange.startDate, dateRange.endDate
+        );
+    }
 );
 
 export const getPlanningFilterParams = createSelector(

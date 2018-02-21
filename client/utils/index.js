@@ -556,3 +556,52 @@ export const onEventCapture = (event) => {
         event.stopPropagation();
     }
 };
+
+export const isDateInRange = (inputDate, startDate, endDate) => {
+    if (!inputDate) {
+        return false;
+    }
+
+    if (startDate && moment(inputDate).isBefore(startDate, 'seconds') ||
+        endDate && moment(inputDate).isSameOrAfter(endDate, 'seconds')) {
+        return false;
+    }
+
+    return true;
+};
+
+export const getSearchDateRange = (currentSearch) => {
+    const dates = get(currentSearch, 'advancedSearch.dates', {});
+    const dateRange = {startDate: null, endDate: null};
+
+    if (!get(dates, 'start') && !get(dates, 'end') && !get(dates, 'range')) {
+        dateRange.startDate = moment(moment().format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
+        dateRange.endDate = moment().add(999, 'years');
+    } else if (get(dates, 'range')) {
+        let range = get(dates, 'range');
+
+        if (range === 'today') {
+            dateRange.startDate = moment(moment().format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
+            dateRange.endDate = dateRange.startDate.clone().add('86399', 'seconds');
+        }
+
+        if (range === 'last24') {
+            dateRange.endDate = moment();
+            dateRange.startDate = dateRange.endDate.clone().subtract('86400', 'seconds');
+        }
+
+        if (range === 'week') {
+            dateRange.startDate = moment(moment().format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
+            dateRange.endDate = dateRange.startDate.clone().add('7', 'days');
+        }
+    } else {
+        if (get(dates, 'start')) {
+            dateRange.startDate = moment(get(dates, 'start'));
+        }
+
+        if (get(dates, 'end')) {
+            dateRange.endDate = moment(get(dates, 'end'));
+        }
+    }
+    return dateRange;
+};

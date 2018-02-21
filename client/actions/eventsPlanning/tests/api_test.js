@@ -73,15 +73,7 @@ describe('actions.eventsplanning.api', () => {
                             {
                                 '_planning_schedule.scheduled': {
                                     order: 'asc',
-                                    nested_path: '_planning_schedule',
-                                    nested_filter: {
-                                        range: {
-                                            '_planning_schedule.scheduled': {
-                                                gte: 'now/d',
-                                                time_zone: getTimeZoneOffset()
-                                            }
-                                        }
-                                    }
+                                    nested_path: '_planning_schedule'
                                 },
                             },
                         ]

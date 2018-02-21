@@ -281,14 +281,14 @@ export class AdvancedSearch extends React.Component {
                     fields.slugline, fields.anpa_category, fields.subject,
                     fields.pubstatus, fields.spikeState,
                     fields.startDateTime, fields.endDateTime,
-
+                    fields.dateFilters,
                 ],
                 [MAIN.FILTERS.EVENTS]: [
                     fields.name, fields.slugline, fields.source, fields.location,
                     fields.anpa_category, fields.subject, fields.calendars,
                     fields.pubstatus, fields.spikeState,
                     fields.startDateTime, fields.endDateTime,
-
+                    fields.dateFilters
                 ],
                 [MAIN.FILTERS.PLANNING]: [
                     fields.slugline, fields.anpa_category, fields.subject,

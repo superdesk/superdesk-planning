@@ -167,8 +167,8 @@ const getCriteria = ({
                     range[fieldName].gte = 'now-24h';
                     range[fieldName].lt = 'now';
                 } else if (rangeType === 'week') {
-                    range[fieldName].gte = 'now/w';
-                    range[fieldName].lt = 'now+1w/w';
+                    range[fieldName].gte = 'now/d';
+                    range[fieldName].lt = 'now+7d/d';
                 } else {
                     if (get(advancedSearch, 'dates.start')) {
                         range[fieldName].gte = get(advancedSearch, 'dates.start');
