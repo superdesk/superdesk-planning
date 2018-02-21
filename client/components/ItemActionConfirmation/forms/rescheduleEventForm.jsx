@@ -114,7 +114,7 @@ export class RescheduleEventComponent extends React.Component {
 
                 <Row
                     enabled={!!numPlannings}
-                    label={gettext('No. of Plannings')}
+                    label={gettext('Planning Items')}
                     value={numPlannings}
                     noPadding={true}
                 />
