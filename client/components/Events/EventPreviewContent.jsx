@@ -111,7 +111,7 @@ export class EventPreviewContentComponent extends React.Component {
                 />
                 <Row
                     enabled={get(formProfile, 'editor.occur_status.enabled')}
-                    label={gettext('Occurance Status')}
+                    label={gettext('Occurrence Status')}
                     value={get(item, 'occur_status.name', '')}
                 />
                 <EventScheduleSummary schedule={item.dates} timeFormat={timeFormat} dateFormat={dateFormat}/>
