@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {gettext, getCreator, getItemInArrayById} from '../../utils';
+import {gettext, getCreator, getItemInArrayById, getDateTimeString} from '../../utils';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {get} from 'lodash';
@@ -69,6 +69,11 @@ export class PlanningPreviewContentComponent extends React.Component {
                     label={gettext('Slugline')}
                     value={item.slugline || ''}
                     className="slugline"
+                />
+                <Row
+                    enabled={get(formProfile, 'planning.editor.planning_date.enabled')}
+                    label={gettext('Planning Date')}
+                    value={getDateTimeString(item.planning_date, dateFormat, timeFormat) || ''}
                 />
                 <Row
                     enabled={get(formProfile, 'planning.editor.description_text.enabled')}

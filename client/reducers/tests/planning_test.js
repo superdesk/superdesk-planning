@@ -1,3 +1,4 @@
+import moment from 'moment';
 import planning from '../planning';
 import actions from '../../actions/planning';
 import {PLANNING} from '../../constants';
@@ -77,17 +78,16 @@ describe('planning', () => {
                         type: 'RECEIVE_PLANNINGS',
                         payload: [{
                             _id: 'p1',
+                            planning_date: '2016-10-15T13:01:11',
                             coverages: [{_id: 'c1'}],
                         }],
                     }
                 );
 
-                expect(result.plannings).toEqual({
-                    p1: {
-                        _id: 'p1',
-                        coverages: [{_id: 'c1'}],
-                    },
-                });
+                expect(result.plannings.p1._id).toBe('p1');
+                expect(result.plannings.p1.coverages[0]._id).toBe('c1');
+                expect(result.plannings.p1.planning_date.toString()).toBe(
+                    moment('2016-10-15T13:01:11').toString());
             });
 
             it('defaults coverages to empty array', () => {
@@ -95,16 +95,17 @@ describe('planning', () => {
                     initialState,
                     {
                         type: 'RECEIVE_PLANNINGS',
-                        payload: [{_id: 'p1'}],
+                        payload: [{
+                            _id: 'p1',
+                            planning_date: '2016-10-15T13:01:11',
+                        }],
                     }
                 );
 
-                expect(result.plannings).toEqual({
-                    p1: {
-                        _id: 'p1',
-                        coverages: [],
-                    },
-                });
+                expect(result.plannings.p1._id).toBe('p1');
+                expect(result.plannings.p1.coverages.length).toBe(0);
+                expect(result.plannings.p1.planning_date.toString()).toBe(
+                    moment('2016-10-15T13:01:11').toString());
             });
 
             it('converts payload to array', () => {
@@ -112,16 +113,17 @@ describe('planning', () => {
                     initialState,
                     {
                         type: 'RECEIVE_PLANNINGS',
-                        payload: {_id: 'p1'},
+                        payload: {
+                            _id: 'p1',
+                            planning_date: '2016-10-15T13:01:11',
+                        },
                     }
                 );
 
-                expect(result.plannings).toEqual({
-                    p1: {
-                        _id: 'p1',
-                        coverages: [],
-                    },
-                });
+                expect(result.plannings.p1._id).toBe('p1');
+                expect(result.plannings.p1.coverages.length).toBe(0);
+                expect(result.plannings.p1.planning_date.toString()).toBe(
+                    moment('2016-10-15T13:01:11').toString());
             });
         });
 

@@ -70,6 +70,7 @@ describe('agenda', () => {
                 slugline: 'Slugger',
                 subject: '123',
                 anpa_category: 'abc',
+                dates: {start: '2016-10-15T13:01:11'}
             }];
 
             initialState = {
@@ -381,6 +382,7 @@ describe('agenda', () => {
                             {},
                             {
                                 event_item: events[0]._id,
+                                planning_date: events[0].dates.start,
                                 slugline: events[0].slugline,
                                 headline: events[0].name,
                                 subject: events[0].subject,
