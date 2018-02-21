@@ -35,6 +35,8 @@ class AssignmentHistoryComponent extends React.Component {
 
     render() {
         const getHistoryActionUserName = (userId) => getItemInArrayById(this.props.users, userId).display_name;
+        const allowedOperations = ['create', 'update', 'unlink', 'start_working', 'complete',
+            'content_link', 'cancelled', 'submitted', 'spike_unlink', 'revert'];
 
         return (
             <div>
@@ -43,9 +45,7 @@ class AssignmentHistoryComponent extends React.Component {
                         <li className="item" key={historyItem._id}>
                             {
                                 this.props.users &&
-                                includes(['create', 'update', 'unlink', 'start_working', 'complete',
-                                    'content_link', 'cancelled', 'submitted', 'spike_unlink'], historyItem.operation)
-                                &&
+                                includes(allowedOperations, historyItem.operation) &&
                                 <div>
                                     <strong>
                                         {historyItem.operation === 'create' && gettext('Created by ')}
@@ -58,6 +58,8 @@ class AssignmentHistoryComponent extends React.Component {
                                         {historyItem.operation === 'cancelled' && gettext('Cancelled by ')}
                                         {historyItem.operation === 'spike_unlink' &&
                                             gettext('Content Unlinked and Spiked by ')}
+                                        {historyItem.operation === 'revert' &&
+                                            gettext('Availability reverted by ')}
                                     </strong>
 
                                     <span className="user-name">{getHistoryActionUserName(historyItem.user_id)}</span>

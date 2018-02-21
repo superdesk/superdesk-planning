@@ -216,7 +216,7 @@ class AssignmentsService(superdesk.Service):
         return updates_assigned_to.get('desk') != original_assigned_to.get('desk') or \
             updates_assigned_to.get('user') != original_assigned_to.get('user')
 
-    def send_assignment_notification(self, updates, original=None):
+    def send_assignment_notification(self, updates, original=None, force=False):
         """Set the assignment information and send notification
 
         :param dict doc: Updates related to assignments
@@ -224,7 +224,7 @@ class AssignmentsService(superdesk.Service):
         if not original:
             original = {}
 
-        if not self.is_assignment_modified(updates, original):
+        if not force and not self.is_assignment_modified(updates, original):
             return
 
         assigned_to = updates.get('assigned_to', {})
@@ -697,6 +697,7 @@ assignments_schema = {
             'assigned_date_desk': {'type': 'datetime'},
             'assigned_date_user': {'type': 'datetime'},
             'state': {'type': 'string', 'mapping': not_analyzed, 'allowed': assignment_workflow_state},
+            'revert_state': {'type': 'string', 'mapping': not_analyzed, 'allowed': assignment_workflow_state},
             'coverage_provider': {
                 'type': 'dict',
                 'nullable': True,

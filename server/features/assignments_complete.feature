@@ -348,3 +348,84 @@ Feature: Assignment Complete
         { }
         """
         Then we get error 400
+
+  @auth
+  @notification
+  Scenario: Confirm availability saves revert_state in assignment document
+    Given empty "assignments"
+    When we post to "/planning"
+    """
+    [{
+        "item_class": "item class value",
+        "headline": "test headline",
+        "slugline": "test slugline"
+    }]
+    """
+    Then we get OK response
+    When we patch "/planning/#planning._id#"
+    """
+    {
+        "coverages": [{
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type":"live_video"
+            },
+            "assigned_to": {
+                "desk": "desk123",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            }
+        }]
+    }
+    """
+    Then we get OK response
+    Then we store assignment id in "firstassignment" from coverage 0
+    When we get "/assignments/#firstassignment#"
+    Then we get OK response
+    Then we get existing resource
+    """
+    {
+        "_id": "#firstassignment#",
+        "planning": {
+            "ednote": "test coverage, I want 250 words",
+            "headline": "test headline",
+            "slugline": "test slugline"
+        },
+        "assigned_to": {
+            "desk": "desk123",
+            "user": "#CONTEXT_USER_ID#",
+            "state": "assigned"
+        }
+    }
+    """
+    When we post to "/assignments/#firstassignment#/lock"
+    """
+    {"lock_action": "complete"}
+    """
+    Then we get OK response
+    When we perform complete on assignments "#firstassignment#"
+    """
+    { }
+    """
+    Then we get OK response
+    When we get "/assignments/#firstassignment#"
+    Then we get OK response
+    Then we get existing resource
+    """
+    {
+        "_id": "#firstassignment#",
+        "planning": {
+            "ednote": "test coverage, I want 250 words",
+            "headline": "test headline",
+            "slugline": "test slugline"
+        },
+        "assigned_to": {
+            "desk": "desk123",
+            "user": "#CONTEXT_USER_ID#",
+            "state": "completed",
+            "revert_state": "assigned"
+        }
+    }
+    """

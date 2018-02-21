@@ -237,6 +237,16 @@ const complete = (item) => (
     )
 );
 
+const revert = (item) => (
+    (dispatch, getState, {api}) => (
+        api.update(
+            'assignments_revert',
+            item,
+            {}
+        )
+    )
+);
+
 /**
  * Action to lock an assignment
  * @param {String} item - Assignment to be unlocked
@@ -400,6 +410,7 @@ const self = {
     link,
     createFromTemplateAndShow,
     complete,
+    revert,
     lock,
     unlock,
     queryLockedAssignments,

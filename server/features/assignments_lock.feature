@@ -14,7 +14,7 @@ Feature: Assignments Locking
             "assigned_to": {
                 "desk": "Politic Desk",
                 "user": "507f191e810c19729de870eb",
-                "state": "completed"
+                "state": "cancelled"
             }
         }]
         """

@@ -14,7 +14,7 @@ import {List} from '../UI';
 import classNames from 'classnames';
 import moment from 'moment';
 import {get} from 'lodash';
-import {getCoverageIcon, assignmentUtils, gettext, lockUtils} from '../../utils/index';
+import {getCoverageIcon, assignmentUtils, gettext} from '../../utils/index';
 import {ASSIGNMENTS} from '../../constants';
 import './style.scss';
 
@@ -36,47 +36,28 @@ export const AssignmentItem = ({
     startWorking,
     priorities,
     removeAssignment,
+    revertAssignment,
 }) => {
     const isItemLocked = get(lockedItems, 'assignments') && assignment._id in lockedItems.assignments;
+    const itemActionsCallBack = {
+        [ASSIGNMENTS.ITEM_ACTIONS.REASSIGN.label]: reassign.bind(null, assignment),
+        [ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY.label]: editAssignmentPriority.bind(null, assignment),
+        [ASSIGNMENTS.ITEM_ACTIONS.COMPLETE.label]: completeAssignment.bind(null, assignment),
+        [ASSIGNMENTS.ITEM_ACTIONS.START_WORKING.label]: startWorking.bind(null, assignment),
+        [ASSIGNMENTS.ITEM_ACTIONS.REMOVE.label]: removeAssignment.bind(null, assignment),
+        [ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE.label]: () => {
+            onDoubleClick();
+        },
+        [ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY.label]: completeAssignment.bind(null, assignment),
+        [ASSIGNMENTS.ITEM_ACTIONS.REVERT_AVAILABILITY.label]: revertAssignment.bind(null, assignment),
+    };
 
-    const actions = [
-        {
-            ...ASSIGNMENTS.ITEM_ACTIONS.REASSIGN,
-            callback: reassign.bind(null, assignment),
-        },
-        {
-            ...ASSIGNMENTS.ITEM_ACTIONS.EDIT_PRIORITY,
-            callback: editAssignmentPriority.bind(null, assignment),
-        },
-        {
-            ...ASSIGNMENTS.ITEM_ACTIONS.COMPLETE,
-            callback: completeAssignment.bind(null, assignment),
-        },
-        {
-            ...ASSIGNMENTS.ITEM_ACTIONS.START_WORKING,
-            callback: startWorking.bind(null, assignment),
-        },
-        {
-            ...ASSIGNMENTS.ITEM_ACTIONS.REMOVE,
-            callback: removeAssignment.bind(null, assignment),
-        },
-        {
-            ...ASSIGNMENTS.ITEM_ACTIONS.PREVIEW_ARCHIVE,
-            callback: onDoubleClick,
-        },
-        {
-            ...ASSIGNMENTS.ITEM_ACTIONS.CONFIRM_AVAILABILITY,
-            callback: completeAssignment.bind(null, assignment),
-        },
-    ];
-
-    const itemActions = inAssignments && !lockUtils.isLockRestricted(assignment, session, lockedItems) ?
-        assignmentUtils.getAssignmentItemActions(
-            assignment,
+    const itemActions = inAssignments ?
+        assignmentUtils.getAssignmentActions(assignment,
             session,
             privileges,
-            actions
-        ) : [];
+            lockedItems,
+            itemActionsCallBack) : [];
 
     const hasContent = assignmentUtils.assignmentHasContent(assignment);
 
@@ -164,4 +145,5 @@ AssignmentItem.propTypes = {
     startWorking: PropTypes.func,
     priorities: PropTypes.array,
     removeAssignment: PropTypes.func,
+    revertAssignment: PropTypes.func,
 };

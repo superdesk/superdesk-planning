@@ -20,12 +20,8 @@ describe('assignments', () => {
             };
             let session = {identity: {_id: 'ident1'}};
 
-            let reassign;
-            let editAssignmentPriority;
-            let completeAssignment;
-            let startWorking;
-            let removeAssignment;
-            let onDoubleClick;
+            let [reassign, revertAssignment, editAssignmentPriority,
+                startWorking, removeAssignment, onDoubleClick, completeAssignment] = Array(7).fill(() => true);
 
             const getShallowWrapper = () => (
                 shallow(<AssignmentItem
@@ -38,6 +34,7 @@ describe('assignments', () => {
                     completeAssignment={completeAssignment}
                     startWorking={startWorking}
                     removeAssignment={removeAssignment}
+                    revertAssignment={revertAssignment}
                     inAssignments={true}
                     privileges={privileges}
                     session={session}
@@ -60,6 +57,7 @@ describe('assignments', () => {
                             completeAssignment={completeAssignment}
                             startWorking={startWorking}
                             removeAssignment={removeAssignment}
+                            revertAssignment={revertAssignment}
                             privileges={privileges}
                             session={session}
                             inAssignments={true}
@@ -90,6 +88,7 @@ describe('assignments', () => {
                 startWorking = sinon.spy();
                 removeAssignment = sinon.spy();
                 onDoubleClick = sinon.spy();
+                revertAssignment = sinon.spy();
             });
 
             it('show item', () => {
@@ -147,23 +146,23 @@ describe('assignments', () => {
                 expect(reassign.callCount).toBe(0);
                 executeItemAction('Reassign');
                 expect(reassign.callCount).toBe(1);
-                expect(reassign.args[0]).toEqual([assignment]);
+                expect(reassign.args[0][0]).toEqual(assignment);
 
                 expect(editAssignmentPriority.callCount).toBe(0);
                 executeItemAction('Edit Priority');
                 expect(editAssignmentPriority.callCount).toBe(1);
-                expect(editAssignmentPriority.args[0]).toEqual([assignment]);
+                expect(editAssignmentPriority.args[0][0]).toEqual(assignment);
 
                 expect(removeAssignment.callCount).toBe(0);
                 executeItemAction('Remove Assignment');
                 expect(removeAssignment.callCount).toBe(1);
-                expect(removeAssignment.args[0]).toEqual([assignment]);
+                expect(removeAssignment.args[0][0]).toEqual(assignment);
 
                 assignment.assigned_to.state = 'in_progress';
                 expect(completeAssignment.callCount).toBe(0);
                 executeItemAction('Complete Assignment');
                 expect(completeAssignment.callCount).toBe(1);
-                expect(completeAssignment.args[0]).toEqual([assignment]);
+                expect(completeAssignment.args[0][0]).toEqual(assignment);
 
                 assignment.assigned_to = {
                     user: 'ident1',
@@ -173,13 +172,23 @@ describe('assignments', () => {
                 expect(startWorking.callCount).toBe(0);
                 executeItemAction('Start Working');
                 expect(startWorking.callCount).toBe(1);
-                expect(startWorking.args[0]).toEqual([assignment]);
+                expect(startWorking.args[0][0]).toEqual(assignment);
 
                 assignment.item_ids = ['item1'];
                 expect(onDoubleClick.callCount).toBe(0);
                 executeItemAction('Open Coverage');
                 expect(onDoubleClick.callCount).toBe(1);
                 expect(onDoubleClick.args[0]).toEqual([]);
+
+                assignment.assigned_to = {
+                    user: 'ident1',
+                    state: 'completed',
+                };
+                assignment.planning.g2_content_type = 'live_video';
+                expect(revertAssignment.callCount).toBe(0);
+                executeItemAction('Revert Availability');
+                expect(revertAssignment.callCount).toBe(1);
+                expect(revertAssignment.args[0][0]).toEqual(assignment);
             });
         });
     });

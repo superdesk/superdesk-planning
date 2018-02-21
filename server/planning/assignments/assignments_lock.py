@@ -68,7 +68,8 @@ class AssignmentsLockService(BaseService):
         # Validate workflow state
         if item.get('assigned_to').get('state') not in [ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS,
                                                         ASSIGNMENT_WORKFLOW_STATE.SUBMITTED,
-                                                        ASSIGNMENT_WORKFLOW_STATE.ASSIGNED]:
+                                                        ASSIGNMENT_WORKFLOW_STATE.ASSIGNED,
+                                                        ASSIGNMENT_WORKFLOW_STATE.COMPLETED]:
             raise SuperdeskApiError.badRequestError(message="Assignment workflow state error.")
 
         if item.get('assigned_to').get('state') == ASSIGNMENT_WORKFLOW_STATE.IN_PROGRESS:
