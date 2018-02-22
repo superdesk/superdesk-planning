@@ -33,7 +33,6 @@ export const CoverageEditor = ({
     message,
     invalid,
     openComponent,
-    item,
     ...props,
 }) => {
     // Coverage item actions
@@ -141,7 +140,7 @@ export const CoverageEditor = ({
             openItemTopBar={coverageTopBar}
             openItem={coverageForm}
             scrollInView={true}
-            isOpen={openComponent || isEqual(value, COVERAGES.DEFAULT_VALUE(newsCoverageStatus, item))}
+            isOpen={openComponent || isEqual(value, COVERAGES.DEFAULT_VALUE(newsCoverageStatus, props.diff))}
             invalid={invalid}
             tabEnabled
         />
