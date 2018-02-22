@@ -73,7 +73,8 @@ Feature: Assignments
                         "coverage_provider": {
                             "qcode": "stringer",
                             "name": "Stringer"}
-                    }
+                    },
+                    "workflow_status": "active"
                 }
             ]
         }
@@ -102,7 +103,8 @@ Feature: Assignments
                         "desk": "#desks._id#",
                         "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#",
-                        "coverage_provider": {"name": "Stringer"}
+                        "coverage_provider": {"name": "Stringer"},
+                        "state": "assigned"
                     }
                 }
             ]
@@ -122,7 +124,8 @@ Feature: Assignments
             "assigned_to": {
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
-                "coverage_provider": {"name": "Stringer"}
+                "coverage_provider": {"name": "Stringer"},
+                "state": "assigned"
             }
         }
         """
@@ -248,7 +251,8 @@ Feature: Assignments
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
-                }
+                },
+                "workflow_status": "active"
             }]
         }
         """
@@ -406,7 +410,8 @@ Feature: Assignments
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
-                }
+                },
+                "workflow_status": "active"
             }]
         }
         """
@@ -510,7 +515,8 @@ Feature: Assignments
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
-                }
+                },
+                "workflow_status": "active"
             }]
         }
         """
@@ -659,7 +665,8 @@ Feature: Assignments
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
-                }
+                },
+                "workflow_status": "active"
             }]
         }
         """
@@ -845,7 +852,8 @@ Feature: Assignments
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
                     "state": "in_progress"
-                }
+                },
+                "workflow_status": "active"
             }]
         }
         """
@@ -946,7 +954,8 @@ Feature: Assignments
                         "coverage_provider": {
                             "qcode": "stringer",
                             "name": "Stringer"}
-                    }
+                    },
+                    "workflow_status": "active"
                 }
             ]
         }
@@ -1045,7 +1054,8 @@ Feature: Assignments
                  },
                  "assigned_to":{
                     "desk":"#desks._id#"
-                 }
+                 },
+                 "workflow_status": "active"
               }
            ]
         }
@@ -1166,7 +1176,8 @@ Feature: Assignments
                  "assigned_to":{
                     "desk":"#desks._id#",
                     "user":"#firstuser#"
-                 }
+                 },
+                 "workflow_status": "active"
               }
            ]
         }
@@ -1265,7 +1276,8 @@ Feature: Assignments
                  },
                  "assigned_to":{
                     "desk":"#desks._id#"
-                 }
+                 },
+                 "workflow_status": "active"
               }
            ]
         }
@@ -1342,7 +1354,8 @@ Feature: Assignments
                  "assigned_to":{
                     "desk":"#desks._id#",
                     "user": "#firstuser#"
-                 }
+                 },
+                 "workflow_status": "active"
               }
            ]
         }

@@ -25,7 +25,7 @@ from apps.archive.common import set_original_creator, get_user, get_auth
 from copy import deepcopy
 from eve.utils import config, ParsedRequest
 from planning.common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA, get_coverage_cancellation_state,\
-    remove_lock_information
+    remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
@@ -367,17 +367,27 @@ class PlanningService(superdesk.Service):
         if not planning_id:
             raise SuperdeskApiError.badRequestError('Planning item is required to create assignments.')
 
+        # Coverage is draft if original was draft and updates is still maintaining that state
+        is_coverage_draft = updates.get('workflow_status',
+                                        original.get('workflow_status')) == WORKFLOW_STATE.DRAFT
+
         if not assigned_to.get('assignment_id') and (assigned_to.get('user') or assigned_to.get('desk')):
+            # Creating a new assignment
+            assign_state = ASSIGNMENT_WORKFLOW_STATE.DRAFT
+
+            if not is_coverage_draft:
+                # In case of article_rewrites, this will be 'in_progress' directly
+                assign_state = assigned_to.get('state') if assigned_to.get('state') != ASSIGNMENT_WORKFLOW_STATE.DRAFT\
+                    else ASSIGNMENT_WORKFLOW_STATE.ASSIGNED
             assignment = {
                 'assigned_to': {
                     'user': assigned_to.get('user'),
                     'desk': assigned_to.get('desk'),
-                    'state': assigned_to.get('state'),
+                    'state': assign_state
                 },
                 'planning_item': planning_id,
                 'coverage_item': doc.get('coverage_id'),
                 'planning': doc.get('planning'),
-                'is_active': True,
                 'priority': assigned_to.get('priority'),
             }
             if 'coverage_provider' in assigned_to:
@@ -385,6 +395,7 @@ class PlanningService(superdesk.Service):
 
             assignment_id = assignment_service.post([assignment])
             updates['assigned_to']['assignment_id'] = str(assignment_id[0])
+            updates['assigned_to']['state'] = assign_state
         elif assigned_to.get('assignment_id'):
             # update the assignment using the coverage details
 
@@ -404,9 +415,12 @@ class PlanningService(superdesk.Service):
                 updates.pop('assigned_to', None)
                 return
 
-            assignment = {
-                'planning': doc.get('planning')
-            }
+            assignment = {'planning': doc.get('planning')}
+
+            # If we made a coverage 'active' - change assignment status to active
+            if original.get('state') == WORKFLOW_STATE.DRAFT and not is_coverage_draft:
+                assigned_to['state'] = ASSIGNMENT_WORKFLOW_STATE.ACTIVE
+                assignment['assigned_to'] = assigned_to
 
             assignment_service.system_update(ObjectId(assigned_to.get('assignment_id')),
                                              assignment, original_assignment)
@@ -416,7 +430,7 @@ class PlanningService(superdesk.Service):
         (updates.get('assigned_to') or {}).pop('coverage_provider', None)
         (updates.get('assigned_to') or {}).pop('state', None)
 
-    def duplicate_coverage(self, planning_id, coverage_id, updates):
+    def duplicate_coverage_for_article_rewrite(self, planning_id, coverage_id, updates):
         planning = self.find_one(req=None, _id=planning_id)
 
         if not planning:
@@ -441,6 +455,7 @@ class PlanningService(superdesk.Service):
                 'scheduled': updates_planning.get('scheduled') or coverage_planning.get('scheduled'),
             },
             'news_coverage_status': updates.get('news_coverage_status') or coverage.get('news_coverage_status'),
+            'workflow_status': WORKFLOW_STATE.ACTIVE,
             'assigned_to': updates.get('assigned_to') or coverage.get('assigned_to')
         })
 
@@ -589,6 +604,7 @@ coverage_schema = {
             'label': {'type': 'string'}
         }
     },
+    'workflow_status': {'type': 'string'},
     'assigned_to': {
         'type': 'dict',
         'mapping': {

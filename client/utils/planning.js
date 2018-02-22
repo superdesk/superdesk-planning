@@ -523,6 +523,8 @@ const getPlanningByDate = (plansInList, events) => {
 const isLockedForAddToPlanning = (item) => get(item, 'lock_action') ===
     PLANNING.ITEM_ACTIONS.ADD_TO_PLANNING.lock_action;
 
+const isCoverageDraft = (coverage) => get(coverage, 'workflow_status') === WORKFLOW_STATE.DRAFT;
+
 // eslint-disable-next-line consistent-this
 const self = {
     canSpikePlanning,
@@ -549,6 +551,7 @@ const self = {
     createCoverageFromNewsItem,
     isLockedForAddToPlanning,
     isCoverageAssigned,
+    isCoverageDraft,
 };
 
 export default self;

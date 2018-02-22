@@ -20,7 +20,7 @@ import {ToggleBox} from '../../UI';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
 import {CoverageArrayInput} from '../../Coverages';
 import {EventMetadata} from '../../Events';
-import {ASSIGNMENTS, ITEM_TYPE, PLANNING} from '../../../constants';
+import {ITEM_TYPE, PLANNING} from '../../../constants';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
 const toggleDetails = [
@@ -192,16 +192,14 @@ export class PlanningEditorComponent extends React.Component {
 
                 if (get(storedCoverages, 'length', 0) > 0) {
                     storedCoverages.forEach((coverage) => {
-                        if (get(coverage, 'assigned_to.state', '') !== ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED) {
+                        // Push notification updates from 'assignment' workflow changes
+                        if (!planningUtils.isCoverageDraft(coverage)) {
                             const index = diffCoverages.findIndex((c) => c.coverage_id === coverage.coverage_id);
 
                             if (index >= 0) {
                                 const diffCoverage = diffCoverages[index];
-                                const storedAssigmentState = get(coverage, 'assigned_to.state');
 
-                                if (diffCoverage && storedAssigmentState &&
-                                    storedAssigmentState !== ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED &&
-                                    !isEqual(diffCoverage.assigned_to, coverage.assigned_to)) {
+                                if (diffCoverage && !isEqual(diffCoverage.assigned_to, coverage.assigned_to)) {
                                     this.onChange(`coverages[${index}].assigned_to`, coverage.assigned_to);
                                 }
                             }

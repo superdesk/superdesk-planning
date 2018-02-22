@@ -107,10 +107,12 @@ class AssignmentsService(superdesk.Service):
 
     def on_created(self, docs):
         for doc in docs:
-            self.notify('assignments:created', doc, {})
+            assignment_state = doc['assigned_to'].get('state')
+            if assignment_state != ASSIGNMENT_WORKFLOW_STATE.DRAFT:
+                self.notify('assignments:created', doc, {})
 
-            if doc['assigned_to'].get('state') != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
-                self.send_assignment_notification(doc, {})
+                if assignment_state != ASSIGNMENT_WORKFLOW_STATE.COMPLETED:
+                    self.send_assignment_notification(doc, {})
 
         # Save history
         get_resource_service('assignments_history').on_item_created(docs)
@@ -170,6 +172,9 @@ class AssignmentsService(superdesk.Service):
         remove_lock_information(updates)
 
     def notify(self, event_name, updates, original):
+        # No notifications for 'draft' assignments
+        if self.is_assignment_draft(updates, original):
+            return
 
         # We set lock information to None if any update (patch) is triggered by user action.
         # In this case, we do not send lock_user from original item.
@@ -221,6 +226,10 @@ class AssignmentsService(superdesk.Service):
 
         :param dict doc: Updates related to assignments
         """
+        # No notifications for 'draft' assignments
+        if self.is_assignment_draft(updates, original):
+            return
+
         if not original:
             original = {}
 
@@ -228,6 +237,7 @@ class AssignmentsService(superdesk.Service):
             return
 
         assigned_to = updates.get('assigned_to', {})
+
         user = get_user()
 
         # Determine the name of the desk that the assigment has been allocated to
@@ -515,7 +525,7 @@ class AssignmentsService(superdesk.Service):
                 )
 
             # Duplicate the coverage, which will generate our new assignment for us
-            updated_plan, new_coverage = planning_service.duplicate_coverage(
+            updated_plan, new_coverage = planning_service.duplicate_coverage_for_article_rewrite(
                 planning_id=delivery.get('planning_id'),
                 coverage_id=delivery.get('coverage_id'),
                 updates={
@@ -666,6 +676,10 @@ class AssignmentsService(superdesk.Service):
             coverage=doc.get('coverage_item'),
             planning_etag=updated_planning.get(config.ETAG)
         )
+
+    def is_assignment_draft(self, updates, original):
+        return updates.get('assigned_to', original.get('assigned_to')).get('state') ==\
+            ASSIGNMENT_WORKFLOW_STATE.DRAFT
 
 
 assignments_schema = {

@@ -29,10 +29,10 @@ UPDATE_FUTURE = 'future'
 UPDATE_ALL = 'all'
 UPDATE_METHODS = (UPDATE_SINGLE, UPDATE_FUTURE, UPDATE_ALL)
 
-workflow_state = ['draft', 'ingested', 'scheduled', 'killed',
+workflow_state = ['draft', 'active', 'ingested', 'scheduled', 'killed',
                   'cancelled', 'rescheduled', 'postponed', 'spiked']
 
-WORKFLOW_STATE = namedtuple('WORKFLOW_STATE', ['DRAFT', 'INGESTED', 'SCHEDULED', 'KILLED',
+WORKFLOW_STATE = namedtuple('WORKFLOW_STATE', ['DRAFT', 'ACTIVE', 'INGESTED', 'SCHEDULED', 'KILLED',
                                                'CANCELLED', 'RESCHEDULED', 'POSTPONED', 'SPIKED']
                             )(*workflow_state)
 
@@ -56,9 +56,9 @@ WORKFLOW_STATE_SCHEMA = {
     'mapping': not_analyzed
 }
 
-assignment_workflow_state = ['assigned', 'in_progress', 'completed', 'submitted', 'cancelled']
+assignment_workflow_state = ['draft', 'assigned', 'in_progress', 'completed', 'submitted', 'cancelled']
 ASSIGNMENT_WORKFLOW_STATE = namedtuple('ASSIGNMENT_WORKFLOW_STATE',
-                                       ['ASSIGNED', 'IN_PROGRESS',
+                                       ['DRAFT', 'ASSIGNED', 'IN_PROGRESS',
                                         'COMPLETED', 'SUBMITTED', 'cancelled'])(*assignment_workflow_state)
 
 
