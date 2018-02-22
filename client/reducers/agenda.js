@@ -1,4 +1,5 @@
 import {AGENDA, RESET_STORE, INIT_STORE} from '../constants';
+import {sortBy} from 'lodash';
 /**
  * Creates a new agenda if it doesn't exist, otherwise updates the existing one
  * @param {array, object} agendas - Array of current loaded Agendas
@@ -14,7 +15,9 @@ const replaceOrAddInAgendas = (agendas, agenda) => {
         agendas.splice(index, 1, agenda);
     }
 
-    return agendas;
+    return sortBy(agendas, [(a) =>
+        a.name.toLowerCase()
+    ]);
 };
 
 const initialState = {

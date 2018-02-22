@@ -1,6 +1,6 @@
 import * as selectors from '../selectors';
 import {SubmissionError} from 'redux-form';
-import {cloneDeep, pick, get} from 'lodash';
+import {cloneDeep, pick, get, sortBy} from 'lodash';
 import {PRIVILEGES, AGENDA, MODALS, ITEM_TYPE} from '../constants';
 import {checkPermission, getErrorMessage, isItemSpiked, gettext} from '../utils';
 import {planning, showModal} from './index';
@@ -105,7 +105,9 @@ const fetchAgendas = (query = {}) => (
             max_results: 200,
         })
             .then((data) => {
-                dispatch(receiveAgendas(data._items));
+                dispatch(receiveAgendas(sortBy(data._items, [(a) =>
+                    a.name.toLowerCase()
+                ])));
             }, (error) => {
                 notify.error(getErrorMessage(
                     error,

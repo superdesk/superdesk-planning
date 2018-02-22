@@ -8,7 +8,6 @@ import {SubNav, StretchBar, Button} from '../UI/SubNav';
 import {ColumnBox} from '../UI';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
-import {orderBy} from 'lodash';
 import {AgendaList, EditAgenda} from './index';
 
 /**
@@ -106,8 +105,8 @@ ManageAgendasComponent.propTypes = {
 
 const mapStateToProps = (state) => (
     {
-        enabledAgendas: orderBy(selectors.getEnabledAgendas(state), ['name'], ['asc']),
-        disabledAgendas: orderBy(selectors.getDisabledAgendas(state), ['name'], ['asc']),
+        enabledAgendas: selectors.getEnabledAgendas(state),
+        disabledAgendas: selectors.getDisabledAgendas(state),
         privileges: selectors.getPrivileges(state),
     }
 );
