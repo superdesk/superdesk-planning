@@ -39,6 +39,7 @@ export const WORKFLOW_STATE = {
     RESCHEDULED: 'rescheduled',
     POSTPONED: 'postponed',
     SPIKED: 'spiked',
+    ACTIVE: 'active',
 };
 
 export const PUBLISHED_STATE = {

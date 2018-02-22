@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {getCreator, getItemInArrayById, gettext} from '../../../utils';
+import {getCreator, getItemInArrayById, gettext, planningUtils} from '../../../utils';
 import {WORKSPACE} from '../../../constants';
 import {Item, Border, Column, Row as ListRow} from '../../UI/List';
 import {Button} from '../../UI';
@@ -33,7 +33,6 @@ export class CoverageFormHeader extends React.Component {
             currentWorkspace
         } = this.props;
 
-        const isExistingCoverage = !!get(value, 'coverage_id');
         const userAssigned = getCreator(value, 'assigned_to.user', users);
         const deskAssigned = getItemInArrayById(desks, get(value, 'assigned_to.desk'));
         const coverageProvider = get(value, 'assigned_to.coverage_provider');
@@ -131,7 +130,7 @@ export class CoverageFormHeader extends React.Component {
                         </ListRow>
                     }
                 </Column>
-                {!isExistingCoverage && (
+                {planningUtils.isCoverageDraft(value) && (
                     <Column>
                         <Button
                             text={gettext('Reassign')}

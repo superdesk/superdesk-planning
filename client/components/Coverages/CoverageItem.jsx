@@ -7,7 +7,15 @@ import moment from 'moment-timezone';
 import {Item, Column, Row, Border, ActionMenu} from '../UI/List';
 import {StateLabel, InternalNoteLabel} from '../../components';
 
-import {getCoverageIcon, getCreator, getItemInArrayById, getDateTimeString, gettext, stringUtils} from '../../utils';
+import {
+    getCoverageIcon,
+    getCreator,
+    getItemInArrayById,
+    getDateTimeString,
+    gettext,
+    stringUtils,
+    planningUtils,
+} from '../../utils';
 import {UserAvatar} from '../UserAvatar';
 
 export const CoverageItem = ({
@@ -22,10 +30,10 @@ export const CoverageItem = ({
 }) => {
     const userAssigned = getCreator(coverage, 'assigned_to.user', users);
     const deskAssigned = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
-
     const coverageDate = get(coverage, 'planning.scheduled');
     const coverageDateText = !coverageDate ? 'Not scheduled yet' :
         getDateTimeString(coverageDate, dateFormat, timeFormat);
+    const coverageInWorkflow = planningUtils.isCoverageInWorkflow(coverage);
 
     return (
         <Item noBg={true}>
@@ -58,11 +66,10 @@ export const CoverageItem = ({
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {stringUtils.capitalize(get(coverage, 'planning.g2_content_type', ''))}
                     </span>
-                    {get(coverage, 'assigned_to.state') &&
-                        <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                            <StateLabel item={get(coverage, 'assigned_to', {})}/>
-                        </span>
-                    }
+                    <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                        <StateLabel item={coverageInWorkflow ? get(coverage, 'assigned_to', {}) : coverage }
+                            fieldName={coverageInWorkflow ? 'state' : 'workflow_status'} />
+                    </span>
                     <time>
                         <InternalNoteLabel item={coverage} prefix="planning." marginRight={true} />
                         <i className="icon-time"/>

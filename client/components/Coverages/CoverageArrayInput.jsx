@@ -28,6 +28,7 @@ export const CoverageArrayInput = ({
     originalCount,
     onDuplicateCoverage,
     onCancelCoverage,
+    onAddCoverageToWorkflow,
     currentWorkspace,
     readOnly,
     message,
@@ -59,6 +60,7 @@ export const CoverageArrayInput = ({
                 keywords={keywords}
                 onDuplicateCoverage={onDuplicateCoverage}
                 onCancelCoverage={onCancelCoverage}
+                onAddCoverageToWorkflow={onAddCoverageToWorkflow}
                 readOnly={readOnly}
                 maxCount={maxCoverageCount}
                 addOnly={addOnly}
@@ -93,6 +95,7 @@ CoverageArrayInput.propTypes = {
     originalCount: PropTypes.number,
     onDuplicateCoverage: PropTypes.func,
     onCancelCoverage: PropTypes.func,
+    onAddCoverageToWorkflow: PropTypes.func,
     currentWorkspace: PropTypes.string,
     message: PropTypes.oneOfType([
         PropTypes.string,

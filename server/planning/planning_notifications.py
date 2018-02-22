@@ -17,6 +17,7 @@ from jinja2 import Template
 from apps.archive.common import get_user
 from superdesk.errors import SuperdeskApiError
 from superdesk.celery_app import celery
+from planning.common import WORKFLOW_STATE
 
 try:
     from slackclient import SlackClient
@@ -32,7 +33,8 @@ class PlanningNotifications():
     Class that wraps the mechanics of notifications from the planning module.
     """
 
-    def notify_assignment(self, target_user=None, target_desk=None, target_desk2=None, message='', **data):
+    def notify_assignment(self, coverage_status=None, target_user=None,
+                          target_desk=None, target_desk2=None, message='', **data):
         """
         Send notification to the client regarding the changes in assigment detals
 
@@ -44,6 +46,10 @@ class PlanningNotifications():
         :param data: The parameters for the message template
         :return:
         """
+        # if the coverage is in 'draft' state, no notifications
+        if coverage_status == WORKFLOW_STATE.DRAFT:
+            return
+
         if target_desk is None and target_user is not None:
             add_activity(ACTIVITY_UPDATE, can_push_notification=True, resource='assignments', msg=message,
                          notify=[target_user], **data)

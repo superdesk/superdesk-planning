@@ -70,7 +70,8 @@ Feature: Rewrite content
             "assigned_to": {
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#"
-            }
+            },
+            "workflow_status": "active"
         }]}
         """
         Then we store assignment id in "firstassignment" from coverage 0

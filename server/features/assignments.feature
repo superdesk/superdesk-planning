@@ -28,6 +28,388 @@ Feature: Assignments
         When we get "/assignments"
         Then we get list with 0 items
 
+
+    @auth
+    @notification
+    Scenario: Assignments are created in draft when coverage is in draft status
+        Given empty "assignments"
+        Given empty "assignments_history"
+        When we post to "assignments"
+        """
+        [
+          {
+            "assigned_to": {
+              "user": "1234",
+              "desk": "1234"
+            }
+          }
+        ]
+        """
+        Then we get error 405
+        When we post to "/planning"
+        """
+        [
+            {
+                "item_class": "item class value",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            }
+        ]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
+                    },
+                    "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
+                        "coverage_provider": {
+                            "qcode": "stringer",
+                            "name": "Stringer"}
+                    },
+                    "workflow_status": "draft"
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we get "/planning/#planning._id#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
+                        "assignment_id": "#firstassignment#",
+                        "coverage_provider": {"name": "Stringer"},
+                        "state": "draft"
+                    }
+                }
+            ]
+        }
+        """
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "coverage_provider": {"name": "Stringer"},
+                "state": "draft"
+            }
+        }
+        """
+        When we get "/assignments_history"
+        Then we get list with 1 items
+        """
+        {"_items": [
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "create"
+            }
+        ]}
+        """
+        And we get notifications
+        """
+        [{
+            "event": "planning:updated",
+            "extra": {"item": "#planning._id#"}
+        }]
+        """
+
+    @auth
+    @notification
+    Scenario: Assignments move from draft to assigned when coverage is made active
+        Given empty "assignments"
+        Given empty "assignments_history"
+        When we post to "assignments"
+        """
+        [
+          {
+            "assigned_to": {
+              "user": "1234",
+              "desk": "1234"
+            }
+          }
+        ]
+        """
+        Then we get error 405
+        When we post to "/planning"
+        """
+        [
+            {
+                "item_class": "item class value",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            }
+        ]
+        """
+        Then we get OK response
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "g2_content_type" : "text"
+                    },
+                    "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
+                        "coverage_provider": {
+                            "qcode": "stringer",
+                            "name": "Stringer"}
+                    },
+                    "workflow_status": "draft"
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we get "/planning/#planning._id#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
+                        "assignment_id": "#firstassignment#",
+                        "coverage_provider": {"name": "Stringer"},
+                        "state": "draft"
+                    }
+                }
+            ]
+        }
+        """
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "coverage_provider": {"name": "Stringer"},
+                "state": "draft"
+            }
+        }
+        """
+        When we get "/assignments_history"
+        Then we get list with 1 items
+        """
+        {"_items": [
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "create"
+            }
+        ]}
+        """
+        And we get notifications
+        """
+        [{
+            "event": "planning:updated",
+            "extra": {"item": "#planning._id#"}
+        }]
+        """
+        When we reset notifications
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "workflow_status": "active",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
+                        "assignment_id": "#firstassignment#",
+                        "coverage_provider": {"name": "Stringer"},
+                        "state": "draft"
+                    }
+                }
+            ]
+        }
+        """
+        Then we get OK response
+        Then we store coverage id in "firstcoverage" from coverage 0
+        Then we store assignment id in "firstassignment" from coverage 0
+        When we get "/planning/#planning._id#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#planning._id#",
+            "item_class": "item class value",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "coverages": [
+                {
+                    "coverage_id": "#firstcoverage#",
+                    "planning": {
+                        "ednote": "test coverage, I want 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline"
+                    },
+                    "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#",
+                        "assignment_id": "#firstassignment#",
+                        "coverage_provider": {"name": "Stringer"},
+                        "state": "assigned"
+                    }
+                }
+            ]
+        }
+        """
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+            "_id": "#firstassignment#",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "coverage_provider": {"name": "Stringer"},
+                "state": "assigned"
+            }
+        }
+        """
+        When we get "/assignments_history"
+        Then we get list with 1 items
+        """
+        {"_items": [
+            {
+                "assignment_id": "#firstassignment#",
+                "operation": "create"
+            }
+        ]}
+        """
+        And we get notifications
+        """
+        [{
+            "event": "planning:updated",
+            "extra": {"item": "#planning._id#"}
+        }]
+        """
+        When we reset notifications
+        When we patch "/assignments/#firstassignment#"
+        """
+        {
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "coverage_provider": {"qcode":"agencies", "name": "Agencies"}
+            }
+        }
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "assignments:updated",
+            "extra": {
+                "item": "#firstassignment#",
+                "coverage": "#firstcoverage#",
+                "planning": "#planning._id#",
+                "assignment_state": "assigned",
+                "assigned_user": "#CONTEXT_USER_ID#",
+                "assigned_desk": "#desks._id#",
+                "lock_user": null,
+                "user": "#CONTEXT_USER_ID#",
+                "original_assigned_desk": "#desks._id#",
+                "original_assigned_user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+        When we reset notifications
+        Given empty "activity"
+        When we patch "/assignments/#firstassignment#"
+        """
+        {
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "507f191e810c19729de87034",
+                "coverage_provider": {"qcode": "agencies", "name": "Agencies"}
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/activity"
+        Then we get existing resource
+        """
+        {"_items": [
+            {
+                "message": "{{coverage_type}} coverage \"{{slugline}}\" has been reassigned to you on desk ({{desk}})"
+            }
+        ]}
+        """
+
     @auth
     @notification
     Scenario: Assignments are created via coverages
@@ -73,7 +455,8 @@ Feature: Assignments
                         "coverage_provider": {
                             "qcode": "stringer",
                             "name": "Stringer"}
-                    }
+                    },
+                    "workflow_status": "active"
                 }
             ]
         }
@@ -102,7 +485,8 @@ Feature: Assignments
                         "desk": "#desks._id#",
                         "user": "#CONTEXT_USER_ID#",
                         "assignment_id": "#firstassignment#",
-                        "coverage_provider": {"name": "Stringer"}
+                        "coverage_provider": {"name": "Stringer"},
+                        "state": "assigned"
                     }
                 }
             ]
@@ -122,7 +506,8 @@ Feature: Assignments
             "assigned_to": {
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
-                "coverage_provider": {"name": "Stringer"}
+                "coverage_provider": {"name": "Stringer"},
+                "state": "assigned"
             }
         }
         """
@@ -248,7 +633,8 @@ Feature: Assignments
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
-                }
+                },
+                "workflow_status": "active"
             }]
         }
         """
@@ -406,7 +792,8 @@ Feature: Assignments
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
-                }
+                },
+                "workflow_status": "active"
             }]
         }
         """
@@ -510,7 +897,8 @@ Feature: Assignments
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
-                }
+                },
+                "workflow_status": "active"
             }]
         }
         """
@@ -659,7 +1047,8 @@ Feature: Assignments
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
-                }
+                },
+                "workflow_status": "active"
             }]
         }
         """
@@ -845,7 +1234,8 @@ Feature: Assignments
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
                     "state": "in_progress"
-                }
+                },
+                "workflow_status": "active"
             }]
         }
         """
@@ -946,7 +1336,8 @@ Feature: Assignments
                         "coverage_provider": {
                             "qcode": "stringer",
                             "name": "Stringer"}
-                    }
+                    },
+                    "workflow_status": "active"
                 }
             ]
         }
@@ -1045,7 +1436,8 @@ Feature: Assignments
                  },
                  "assigned_to":{
                     "desk":"#desks._id#"
-                 }
+                 },
+                 "workflow_status": "active"
               }
            ]
         }
@@ -1166,7 +1558,8 @@ Feature: Assignments
                  "assigned_to":{
                     "desk":"#desks._id#",
                     "user":"#firstuser#"
-                 }
+                 },
+                 "workflow_status": "active"
               }
            ]
         }
@@ -1265,7 +1658,8 @@ Feature: Assignments
                  },
                  "assigned_to":{
                     "desk":"#desks._id#"
-                 }
+                 },
+                 "workflow_status": "active"
               }
            ]
         }
@@ -1342,7 +1736,8 @@ Feature: Assignments
                  "assigned_to":{
                     "desk":"#desks._id#",
                     "user": "#firstuser#"
-                 }
+                 },
+                 "workflow_status": "active"
               }
            ]
         }

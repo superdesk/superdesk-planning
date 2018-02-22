@@ -29,6 +29,7 @@ export const CoverageEditor = ({
     keywords,
     onDuplicateCoverage,
     onCancelCoverage,
+    onAddCoverageToWorkflow,
     readOnly,
     message,
     invalid,
@@ -65,6 +66,14 @@ export const CoverageEditor = ({
                     label: gettext('Cancel coverage'),
                     icon: 'icon-close-small',
                     callback: onCancelCoverage.bind(null, value),
+                });
+            }
+
+            if (planningUtils.isCoverageDraft(value) && planningUtils.isCoverageAssigned(value)) {
+                itemActions.push({
+                    label: gettext('Add to workflow'),
+                    icon: 'icon-plus-small',
+                    callback: onAddCoverageToWorkflow.bind(null, value),
                 });
             }
         }
@@ -166,6 +175,7 @@ CoverageEditor.propTypes = {
     readOnly: PropTypes.bool,
     onDuplicateCoverage: PropTypes.func,
     onCancelCoverage: PropTypes.func,
+    onAddCoverageToWorkflow: PropTypes.func,
     currentWorkspace: PropTypes.string,
 
     message: PropTypes.oneOfType([

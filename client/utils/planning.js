@@ -98,7 +98,7 @@ const canCancelAllCoverage = (planning, event = null, session, privileges, locks
 );
 
 const isCoverageCancelled = (coverage) =>
-    (get(coverage, 'news_coverage_status.qcode') === 'ncostat:notint');
+    (get(coverage, 'workflow_status') === WORKFLOW_STATE.CANCELLED);
 
 const canCancelCoverage = (coverage) =>
     (!isCoverageCancelled(coverage) && (!get(coverage, 'assigned_to.state') ||
@@ -359,6 +359,8 @@ const canEditCoverage = (coverage) => (
 const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, desk, user, contentTypes) => {
     let newCoverage = COVERAGES.DEFAULT_VALUE(newsCoverageStatus);
 
+    newCoverage.workflow_status = WORKFLOW_STATE.ACTIVE;
+
     // Add fields from news item to the coverage
     const contentType = contentTypes.find(
         (ctype) => get(ctype, 'content item type') === addNewsItemToPlanning.type
@@ -529,6 +531,10 @@ const getPlanningByDate = (plansInList, events, startDate, endDate) => {
 const isLockedForAddToPlanning = (item) => get(item, 'lock_action') ===
     PLANNING.ITEM_ACTIONS.ADD_TO_PLANNING.lock_action;
 
+const isCoverageDraft = (coverage) => get(coverage, 'workflow_status') === WORKFLOW_STATE.DRAFT;
+const isCoverageInWorkflow = (coverage) => !isEmpty(coverage.assigned_to) &&
+    get(coverage, 'assigned_to.state') !== WORKFLOW_STATE.DRAFT;
+
 // eslint-disable-next-line consistent-this
 const self = {
     canSpikePlanning,
@@ -555,6 +561,8 @@ const self = {
     createCoverageFromNewsItem,
     isLockedForAddToPlanning,
     isCoverageAssigned,
+    isCoverageDraft,
+    isCoverageInWorkflow,
 };
 
 export default self;
