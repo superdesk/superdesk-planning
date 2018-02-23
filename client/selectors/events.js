@@ -3,12 +3,13 @@ import {get} from 'lodash';
 import {storedPlannings, currentPlanning} from './planning';
 import {agendas} from './general';
 import {currentItem} from './forms';
-import {eventUtils} from '../utils';
+import {eventUtils, getSearchDateRange} from '../utils';
 
 
 export const storedEvents = (state) => get(state, 'events.events', {});
 export const eventIdsInList = (state) => get(state, 'events.eventsInList', []);
 export const eventHistory = (state) => get(state, 'events.eventHistoryItems');
+export const currentSearch = (state) => get(state, 'main.search.EVENTS.currentSearch');
 
 /** Used for the events list */
 export const eventsInList = createSelector(
@@ -23,13 +24,17 @@ export const eventsInList = createSelector(
 * the associated events.
 */
 export const orderedEvents = createSelector(
-    [eventsInList],
-    (events) => eventUtils.getEventsByDate(events)
+    [eventsInList, currentSearch],
+    (events, search) => {
+        const dateRange = getSearchDateRange(search);
+
+        return eventUtils.getEventsByDate(events, dateRange.startDate, dateRange.endDate);
+    }
 );
 
 export const getEventContacts = (state) => get(state, 'contacts', []);
-
 export const previewId = (state) => get(state, 'main.previewId', null);
+
 export const getEventPreviewRelatedDetails = createSelector(
     [previewId, storedEvents, storedPlannings, agendas, getEventContacts],
     (itemId, events, plannings, agendas, contacts) => {

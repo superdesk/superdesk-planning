@@ -499,8 +499,8 @@ export const events = [
         slugline: 'test slugline',
         name: 'Event 1',
         dates: {
-            start: '2016-10-15T13:01:11',
-            end: '2016-10-15T14:01:11',
+            start: '2016-10-15T13:01:11+0000',
+            end: '2016-10-15T14:01:11+0000',
         },
         planning_ids: ['p2'],
         _etag: 'e123',
@@ -511,8 +511,8 @@ export const events = [
         slugline: 'test slugline 2',
         name: 'Event 2',
         dates: {
-            start: '2014-10-15T14:01:11',
-            end: '2014-10-15T15:01:11',
+            start: '2014-10-15T14:01:11+0000',
+            end: '2014-10-15T15:01:11+0000',
         },
         planning_ids: [],
     },
@@ -521,8 +521,8 @@ export const events = [
         _type: 'events',
         name: 'Event 3',
         dates: {
-            start: '2015-10-15T14:01:11',
-            end: '2015-10-15T15:01:11',
+            start: '2015-10-15T14:01:11+0000',
+            end: '2015-10-15T15:01:11+0000',
         },
     },
 ];
@@ -540,7 +540,7 @@ export const plannings = [
                 planning_item: 'p1',
                 planning: {
                     ednote: 'Text coverage',
-                    scheduled: '2016-10-15T13:01:11',
+                    scheduled: '2016-10-15T13:01:11+0000',
                     g2_content_type: 'text',
                 },
                 assigned_to: {
@@ -548,7 +548,7 @@ export const plannings = [
                     desk: 'desk1',
                     assignment_id: 'as1',
                 },
-                firstcreated: '2017-10-01T14:01:11',
+                firstcreated: '2017-10-01T14:01:11+0000',
                 news_coverage_status: {qcode: 'ncostat:int'},
             },
             {
@@ -556,7 +556,7 @@ export const plannings = [
                 planning_item: 'p1',
                 planning: {
                     ednote: 'Photo coverage',
-                    scheduled: '2016-10-15T14:01:11',
+                    scheduled: '2016-10-15T14:01:11+0000',
                     g2_content_type: 'photo',
                 },
                 assigned_to: {
@@ -564,17 +564,17 @@ export const plannings = [
                     desk: 'desk2',
                     assignment_id: 'as2',
                 },
-                firstcreated: '2017-10-02T14:01:11',
+                firstcreated: '2017-10-02T14:01:11+0000',
             },
             {
                 coverage_id: 'c3',
                 planning_item: 'p1',
                 planning: {
                     ednote: 'Video coverage',
-                    scheduled: '2016-10-15T16:01:11',
+                    scheduled: '2016-10-15T16:01:11+0000',
                     g2_content_type: 'video',
                 },
-                firstcreated: '2017-10-03T14:01:11',
+                firstcreated: '2017-10-03T14:01:11+0000',
             },
         ],
         agendas: [],
@@ -612,7 +612,7 @@ export const assignments = [
         },
         planning: {
             ednote: 'Text coverage',
-            scheduled: '2016-10-15T13:01:11',
+            scheduled: '2016-10-15T13:01:11+0000',
             g2_content_type: 'text',
         },
     },
@@ -627,7 +627,7 @@ export const assignments = [
         },
         planning: {
             ednote: 'Photo coverage',
-            scheduled: '2016-10-15T14:01:11',
+            scheduled: '2016-10-15T14:01:11+0000',
             g2_content_type: 'photo',
         },
     },
@@ -701,8 +701,8 @@ export const lockedEvents = [
         _id: 'e1',
         name: 'Event 1',
         dates: {
-            start: '2016-10-15T13:01:11',
-            end: '2016-10-15T14:01:11',
+            start: '2016-10-15T13:01:11+0000',
+            end: '2016-10-15T14:01:11+0000',
         },
         lock_action: 'edit',
         lock_user: 'ident1',
@@ -712,8 +712,8 @@ export const lockedEvents = [
         _id: 'e2',
         name: 'Event 2',
         dates: {
-            start: '2014-10-15T14:01:11',
-            end: '2014-10-15T15:01:11',
+            start: '2014-10-15T14:01:11+0000',
+            end: '2014-10-15T15:01:11+0000',
         },
         lock_action: 'edit',
         lock_user: 'ident1',

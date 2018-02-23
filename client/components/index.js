@@ -3,7 +3,6 @@ export {StateLabel} from './StateLabel/index';
 export {ListItem} from './ListItem/index';
 export {EventItem} from './EventItem/index';
 export {EventsList} from './EventsList/index';
-export {TimePlanning} from './TimePlanning';
 export {DueDate} from './DueDate';
 export {default as PlanningItem} from './PlanningItem/index';
 export {ModalWithForm} from './ModalWithForm/index';

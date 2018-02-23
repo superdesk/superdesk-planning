@@ -6,7 +6,7 @@ import {
     MAIN
 } from '../../constants';
 import {EventUpdateMethods} from '../../components/Events';
-import {get, isEqual, cloneDeep, pickBy, isNil, isEmpty, has} from 'lodash';
+import {get, isEqual, cloneDeep, pickBy, isNil, has} from 'lodash';
 import * as selectors from '../../selectors';
 import {eventUtils, getTimeZoneOffset, lockUtils, sanitizeTextForQuery, getErrorMessage} from '../../utils';
 import moment from 'moment';
@@ -175,29 +175,267 @@ const getCriteria = (
             },
         },
         {
-            condition: () => (advancedSearch.dates),
+            condition: () => (get(advancedSearch, 'dates')),
             do: () => {
-                let range = {};
+                if (get(advancedSearch, 'dates.range')) {
+                    let rangeType = get(advancedSearch, 'dates.range');
+                    let dateFilters;
 
-                if (advancedSearch.dates.start) {
-                    range['dates.start'] = {
-                        gte: advancedSearch.dates.start,
-                        time_zone: getTimeZoneOffset()
+                    if (rangeType === 'today') {
+                        dateFilters = {
+                            filters: [
+                                // start date falls today
+                                {
+                                    range: {
+                                        'dates.start': {
+                                            gte: 'now/d',
+                                            lt: 'now+24h/d',
+                                            time_zone: getTimeZoneOffset()
+                                        }
+                                    }
+                                },
+                                // end date falls today
+                                {
+                                    range: {
+                                        'dates.end': {
+                                            gte: 'now/d',
+                                            lt: 'now+24h/d',
+                                            time_zone: getTimeZoneOffset()
+                                        }
+                                    }
+                                },
+                                // today is between dates.start and dates.end
+                                {
+                                    and: {
+                                        filters: [
+                                            {
+                                                range: {
+                                                    'dates.start': {
+                                                        lt: 'now/d',
+                                                        time_zone: getTimeZoneOffset()
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                range: {
+                                                    'dates.end': {
+                                                        gt: 'now+24h/d',
+                                                        time_zone: getTimeZoneOffset()
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        };
+                    } else if (rangeType === 'last24') {
+                        dateFilters = {
+                            filters: [
+                                // start date in last 24 hours
+                                {
+                                    range: {
+                                        'dates.start': {
+                                            gte: 'now-24h',
+                                            lt: 'now',
+                                            time_zone: getTimeZoneOffset()
+                                        }
+                                    }
+                                },
+                                // end date in last 24 hours
+                                {
+                                    range: {
+                                        'dates.end': {
+                                            gte: 'now-24h',
+                                            lt: 'now',
+                                            time_zone: getTimeZoneOffset()
+                                        }
+                                    }
+                                },
+                                // last 24 hours is between dates.start and dates.end
+                                {
+                                    and: {
+                                        filters: [
+                                            {
+                                                range: {
+                                                    'dates.start': {
+                                                        lt: 'now-24h',
+                                                        time_zone: getTimeZoneOffset()
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                range: {
+                                                    'dates.end': {
+                                                        gt: 'now',
+                                                        time_zone: getTimeZoneOffset()
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        };
+                    } else if (rangeType === 'week') {
+                        dateFilters = {
+                            filters: [
+                                // start date in next 7 days
+                                {
+                                    range: {
+                                        'dates.start': {
+                                            gte: 'now/d',
+                                            lt: 'now+7d/d',
+                                            time_zone: getTimeZoneOffset()
+                                        }
+                                    }
+                                },
+                                // end date in next 7 days
+                                {
+                                    range: {
+                                        'dates.end': {
+                                            gte: 'now/d',
+                                            lt: 'now+7d/d',
+                                            time_zone: getTimeZoneOffset()
+                                        }
+                                    }
+                                },
+                                // week is between dates.start and dates.end
+                                {
+                                    and: {
+                                        filters: [
+                                            {
+                                                range: {
+                                                    'dates.start': {
+                                                        lt: 'now/d',
+                                                        time_zone: getTimeZoneOffset()
+                                                    }
+                                                }
+                                            },
+                                            {
+                                                range: {
+                                                    'dates.end': {
+                                                        gt: 'now+7d/d',
+                                                        time_zone: getTimeZoneOffset()
+                                                    }
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        };
+                    }
+
+                    filter.or = dateFilters;
+                } else if (advancedSearch.dates.start && !advancedSearch.dates.end) {
+                    filter.or = {
+                        filters: [
+                            {
+                                range: {
+                                    'dates.start': {
+                                        gte: advancedSearch.dates.start,
+                                        time_zone: getTimeZoneOffset()
+                                    }
+                                }
+                            },
+                            {
+                                range: {
+                                    'dates.end': {
+                                        gte: advancedSearch.dates.start,
+                                        time_zone: getTimeZoneOffset()
+                                    }
+                                }
+                            }
+                        ]
                     };
-                }
-
-                if (advancedSearch.dates.end) {
-                    range['dates.end'] = {
-                        lte: advancedSearch.dates.end,
-                        time_zone: getTimeZoneOffset()
+                } else if (!advancedSearch.dates.start && advancedSearch.dates.end) {
+                    filter.or = {
+                        filters: [
+                            {
+                                range: {
+                                    'dates.end': {
+                                        lte: advancedSearch.dates.end,
+                                        time_zone: getTimeZoneOffset()
+                                    }
+                                }
+                            },
+                            {
+                                range: {
+                                    'dates.start': {
+                                        lte: advancedSearch.dates.end,
+                                        time_zone: getTimeZoneOffset()
+                                    }
+                                }
+                            }
+                        ]
                     };
+                } else if (advancedSearch.dates.start && advancedSearch.dates.end) {
+                    filter.or = {
+                        filters: [
+                            {
+                                range: {
+                                    'dates.start': {
+                                        gte: advancedSearch.dates.start,
+                                        time_zone: getTimeZoneOffset()
+                                    },
+                                    'dates.end': {
+                                        lte: advancedSearch.dates.end,
+                                        time_zone: getTimeZoneOffset()
+                                    }
+                                }
+                            },
+                            {
+                                and: {
+                                    filters: [
+                                        {
+                                            range: {
+                                                'dates.start': {
+                                                    lt: advancedSearch.dates.start,
+                                                    time_zone: getTimeZoneOffset()
+                                                }
+                                            }
+                                        },
+                                        {
+                                            range: {
+                                                'dates.end': {
+                                                    gt: advancedSearch.dates.end,
+                                                    time_zone: getTimeZoneOffset()
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                or: {
+                                    filters: [
+                                        {
+                                            range: {
+                                                'dates.start': {
+                                                    gte: advancedSearch.dates.start,
+                                                    lte: advancedSearch.dates.end,
+                                                    time_zone: getTimeZoneOffset()
+                                                }
+                                            }
+                                        },
+                                        {
+                                            range: {
+                                                'dates.end': {
+                                                    gte: advancedSearch.dates.start,
+                                                    lte: advancedSearch.dates.end,
+                                                    time_zone: getTimeZoneOffset()
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        ]
+                    };
+                } else {
+                    filter.range = {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}};
                 }
-
-                if (isEmpty(range)) {
-                    range = {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}};
-                }
-
-                filter.range = range;
             },
         },
         {

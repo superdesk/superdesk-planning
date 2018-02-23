@@ -15,7 +15,8 @@ import {
     isItemRescheduled,
     isItemPostponed,
     getDateTimeString,
-    isEmptyActions
+    isEmptyActions,
+    isDateInRange
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
@@ -34,7 +35,8 @@ const isEventAllDay = (startingDate, endingDate) => {
     const start = moment(startingDate).clone();
     const end = moment(endingDate).clone();
 
-    return start.isSame(start.clone().startOf('day'), 'minute') &&
+    return start.isSame(end, 'day') &&
+        start.isSame(start.clone().startOf('day'), 'minute') &&
         end.isSame(end.clone().endOf('day'), 'minute');
 };
 
@@ -439,7 +441,7 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks) => {
 /*
  * Groups the events by date
  */
-const getEventsByDate = (events) => {
+const getEventsByDate = (events, startDate, endDate) => {
     if (!events) return [];
     // check if search exists
     // order by date
@@ -448,6 +450,22 @@ const getEventsByDate = (events) => {
 
     function addEventToDate(event, date) {
         let eventDate = date || event.dates.start;
+        let eventStart = event.dates.start;
+        let eventEnd = event.dates.end;
+
+        if (!event.dates.start.isSame(event.dates.end, 'day')) {
+            eventStart = eventDate;
+            eventEnd = event.dates.end.isSame(eventDate, 'day') ?
+                event.dates.end : moment(eventDate.format('YYYY-MM-DD'), 'YYYY-MM-DD').add(86399, 'seconds');
+        }
+
+        if (!(isDateInRange(startDate, eventStart, eventEnd) ||
+            isDateInRange(endDate, eventStart, eventEnd))) {
+            if (!isDateInRange(eventStart, startDate, endDate) &&
+                !isDateInRange(eventEnd, startDate, endDate)) {
+                return;
+            }
+        }
 
         let eventDateFormatted = eventDate.format('YYYY-MM-DD');
 
@@ -471,7 +489,7 @@ const getEventsByDate = (events) => {
 
             for (let i = 1; i <= deltaDays; i++) {
                 //  clone the date
-                const newDate = moment(event.dates.start.format('YYYY-MM-DD'), 'YYYY-MM-DD');
+                const newDate = moment(event.dates.start.format('YYYY-MM-DD'), 'YYYY-MM-DD', true);
 
                 newDate.add(i, 'days');
                 addEventToDate(event, newDate);

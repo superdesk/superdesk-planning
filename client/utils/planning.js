@@ -19,7 +19,7 @@ import {
     eventUtils,
     isItemCancelled,
     getPublishedState,
-    isEmptyActions,
+    isEmptyActions, isDateInRange,
 } from './index';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
@@ -474,7 +474,7 @@ const getCoverageReadOnlyFields = (
     }
 };
 
-const getPlanningByDate = (plansInList, events) => {
+const getPlanningByDate = (plansInList, events, startDate, endDate) => {
     if (!plansInList) return [];
 
     const days = {};
@@ -487,6 +487,10 @@ const getPlanningByDate = (plansInList, events) => {
         plan.coverages.forEach((coverage) => {
             groupDate = moment(get(coverage, 'planning.scheduled', plan._planning_date));
 
+            if (!isDateInRange(groupDate, startDate, endDate)) {
+                return;
+            }
+
             if (!get(dates, groupDate.format('YYYY-MM-DD'))) {
                 dates[groupDate.format('YYYY-MM-DD')] = groupDate;
             }
@@ -494,7 +498,9 @@ const getPlanningByDate = (plansInList, events) => {
 
         if (isEmpty(dates)) {
             groupDate = moment(plan._planning_date);
-            dates[groupDate.format('YYYY-MM-DD')] = groupDate;
+            if (isDateInRange(groupDate, startDate, endDate)) {
+                dates[groupDate.format('YYYY-MM-DD')] = groupDate;
+            }
         }
 
         for (let date in dates) {

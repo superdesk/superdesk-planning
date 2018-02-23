@@ -324,7 +324,6 @@ export const waitFor = (test, delay = 50, maxTries = 100) => (
 
         const interval = setInterval(() => {
             tries += 1;
-
             if (test()) {
                 clearInterval(interval);
                 resolve();

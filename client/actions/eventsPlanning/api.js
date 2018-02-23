@@ -59,15 +59,7 @@ const query = (
         const sortParams = {
             [sortField]: {
                 order: 'asc',
-                nested_path: '_planning_schedule',
-                nested_filter: {
-                    range: {
-                        [sortField]: {
-                            gte: 'now/d',
-                            time_zone: getTimeZoneOffset(),
-                        },
-                    },
-                },
+                nested_path: '_planning_schedule'
             },
         };
 
