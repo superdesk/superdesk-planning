@@ -6,6 +6,7 @@ import * as selectors from '../../selectors';
 import {get} from 'lodash';
 import {Datetime} from '../../components';
 
+
 // eslint-disable-next-line complexity
 export const EventPreviewComponent = ({item, formProfile, createLink}) => {
     if (!item) {
@@ -59,16 +60,16 @@ export const EventPreviewComponent = ({item, formProfile, createLink}) => {
                 <label className="form-label form-label--light">
                     Location
                 </label>
-                {formattedAddress &&
+                {(locationName || formattedAddress) &&
                     <span className="addgeolookup__input-wrapper">
                         {locationName}
-                        <span style={{
+                        {formattedAddress && <span style={{
                             fontStyle: 'italic',
                             fontSize: 'small',
                         }}>
                             <br/>
                             {formattedAddress}
-                        </span>
+                        </span>}
                     </span>
                     ||
                     <p>-</p>

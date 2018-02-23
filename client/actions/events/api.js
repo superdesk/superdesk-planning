@@ -837,7 +837,10 @@ const _saveLocation = (event) => (
                 address: location.address
             };
 
-            delete location.address.external;
+            // external address might not be there.
+            if (get(location, 'address.external')) {
+                delete location.address.external;
+            }
 
             return Promise.resolve(event);
         } else if (isNil(location.qcode)) {
