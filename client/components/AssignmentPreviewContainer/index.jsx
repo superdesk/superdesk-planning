@@ -87,7 +87,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
             priorities,
             keywords,
             formProfile,
-            agendas,
+            agendas
         } = this.props;
 
         if (!assignment) {

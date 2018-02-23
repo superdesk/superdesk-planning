@@ -13,7 +13,7 @@
 import superdesk
 from .locations import LocationsResource, LocationsService
 from .agendas import AgendasResource, AgendasService
-from .common import get_max_recurrent_events
+from .common import get_max_recurrent_events, get_street_map_url
 from apps.common.components.utils import register_component
 from .item_lock import LockService
 from .planning_notifications import PlanningNotifications
@@ -81,3 +81,4 @@ def init_app(app):
     })
 
     app.client_config['max_recurrent_events'] = get_max_recurrent_events(app)
+    app.client_config['street_map_url'] = get_street_map_url(app)

@@ -5,10 +5,11 @@ import {connect} from 'react-redux';
 import * as selectors from '../../selectors';
 import {get} from 'lodash';
 import {Datetime} from '../../components';
+import {Location} from '../Location';
 
 
 // eslint-disable-next-line complexity
-export const EventPreviewComponent = ({item, formProfile, createLink}) => {
+export const EventPreviewComponent = ({item, formProfile, createLink, streetMapUrl}) => {
     if (!item) {
         return null;
     }
@@ -62,14 +63,12 @@ export const EventPreviewComponent = ({item, formProfile, createLink}) => {
                 </label>
                 {(locationName || formattedAddress) &&
                     <span className="addgeolookup__input-wrapper">
-                        {locationName}
-                        {formattedAddress && <span style={{
-                            fontStyle: 'italic',
-                            fontSize: 'small',
-                        }}>
-                            <br/>
-                            {formattedAddress}
-                        </span>}
+                        <Location
+                            name={locationName}
+                            address={formattedAddress}
+                            mapUrl={streetMapUrl}
+                            multiLine={true}
+                        />
                     </span>
                     ||
                     <p>-</p>
@@ -154,10 +153,12 @@ EventPreviewComponent.propTypes = {
     item: PropTypes.object,
     formProfile: PropTypes.object,
     createLink: PropTypes.func,
+    streetMapUrl: PropTypes.string
 };
 
 const mapStateToProps = (state) => ({
-    createLink: (f) => (selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw')
+    createLink: (f) => (selectors.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw'),
+    streetMapUrl: selectors.config.getStreetMapUrl(state)
 });
 
 

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
-import {Label, InternalNoteLabel} from '../';
+import {Label, InternalNoteLabel, Location} from '../';
 import {EVENTS, MAIN} from '../../constants';
 import {Item, Border, ItemType, PubStatus, Column, Row, ActionMenu} from '../UI/List';
 import {EventDateTime} from './';
@@ -23,6 +23,9 @@ export class EventItem extends React.PureComponent {
         const isItemLocked = eventUtils.isEventLocked(item, lockedItems);
         const state = getItemWorkflowStateLabel(item);
         const actionedState = getItemActionedStateLabel(item);
+        const hasLocation = !!get(item, 'location.name') ||
+            !!get(item, 'location.formatted_address');
+        const showRelatedPlanningLink = activeFilter === MAIN.FILTERS.COMBINED && hasPlanning;
 
         let borderState = false;
 
@@ -92,15 +95,20 @@ export class EventItem extends React.PureComponent {
                             timeFormat={timeFormat}
                         />
                     </Row>
-                    {activeFilter === MAIN.FILTERS.COMBINED && hasPlanning && <Row>
+                    {(showRelatedPlanningLink || hasLocation) && <Row>
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
+                            {showRelatedPlanningLink &&
                             <a
-                                className="text-link"
+                                className="sd-line-input__input--related-item-link"
                                 onClick={toggleRelatedPlanning}
                             >
                                 <i className="icon-calendar" />
                                 {this.props.relatedPlanningText}
-                            </a>
+                            </a>}
+                            {hasLocation && <Location
+                                name={get(item, 'location.name')}
+                                address={get(item, 'location.formatted_address')}
+                            />}
                         </span>
                     </Row>}
                 </Column>

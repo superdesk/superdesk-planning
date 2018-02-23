@@ -605,3 +605,5 @@ export const getSearchDateRange = (currentSearch) => {
     }
     return dateRange;
 };
+
+export const getMapUrl = (url, name, address) => (`${url}${name} ${address}`);
