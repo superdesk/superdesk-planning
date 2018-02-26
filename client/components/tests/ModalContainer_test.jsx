@@ -31,7 +31,7 @@ describe('<ModalsContainer />', () => {
 
         expect(confirmationModal.length).toBe(1);
         expect(modal.text()).toContain('Are you sure you want to spike event');
-        modal.find('[type="submit"]').simulate('click');
+        modal.find('.btn--primary').simulate('click');
         expect(action.calledOnce).toBe(true);
     });
 });

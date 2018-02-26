@@ -8,4 +8,5 @@ export const KEYCODES = {
     DOWN: 40,
     S: 83,
     E: 69,
+    TAB: 9,
 };
