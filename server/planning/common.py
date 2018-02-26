@@ -140,3 +140,10 @@ def format_address(location=None):
     formatted_address.append(address.get('country'))
 
     location['formatted_address'] = " ".join([a for a in formatted_address if a]).strip()
+
+
+def get_street_map_url(current_app=None):
+    """Get the Street Map URL"""
+    if current_app is not None:
+        return current_app.config.get('STREET_MAP_URL', 'https://www.google.com.au/maps/?q=')
+    return app.config.get('STREET_MAP_URL', 'https://www.google.com.au/maps/?q=')

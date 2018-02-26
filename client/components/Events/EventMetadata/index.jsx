@@ -8,8 +8,19 @@ import {Item, Column, Row} from '../../UI/List';
 import {Row as PreviewRow} from '../../UI/Preview';
 import {CollapseBox} from '../../UI/CollapseBox';
 import {eventUtils, gettext} from '../../../utils';
+import {Location} from '../../Location';
 
-export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly, scrollInView, tabEnabled}) => {
+export const EventMetadata = (
+    {
+        event,
+        dateFormat,
+        timeFormat,
+        dateOnly,
+        scrollInView,
+        tabEnabled,
+        streetMapUrl
+    }
+) => {
     const dateStr = eventUtils.getDateStringForEvent(event, dateFormat, timeFormat, dateOnly);
 
     const eventListView = (
@@ -43,7 +54,11 @@ export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly, scrollIn
                         </Row>
                         <Row>
                             <span className="sd-overflow-ellipsis sd-list-item--element-grow">
-                                <span className="sd-list-item__location">{event.location.name}</span>
+                                <Location
+                                    name={get(event, 'location.name')}
+                                    address={get(event, 'location.formatted_address')}
+                                    mapUrl={streetMapUrl}
+                                />
                             </span>
                             <time title>{dateStr}</time>
                         </Row>
@@ -70,7 +85,13 @@ export const EventMetadata = ({event, dateFormat, timeFormat, dateOnly, scrollIn
                 dateFormat={dateFormat}
                 timeFormat={timeFormat} />
             <PreviewRow label={gettext('Location')}>
-                <p>{get(event, 'location.name')}<br />{get(event, 'location.formatted_address')}</p>
+                <div>
+                    <Location
+                        name={get(event, 'location.name')}
+                        address={get(event, 'location.formatted_address')}
+                        multiLine={true}
+                    />
+                </div>
             </PreviewRow>
             <PreviewRow label={gettext('Occurrence Status')}
                 value={get(event, 'occur_status.name', '')} />
@@ -95,6 +116,7 @@ EventMetadata.propTypes = {
     timeFormat: PropTypes.string,
     scrollInView: PropTypes.bool,
     tabEnabled: PropTypes.bool,
+    streetMapUrl: PropTypes.string
 };
 
 

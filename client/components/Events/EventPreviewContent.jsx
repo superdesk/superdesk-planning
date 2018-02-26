@@ -15,6 +15,7 @@ import {ToggleBox} from '../UI';
 import {ContentBlock} from '../UI/SidePanel';
 import {LinkInput, FileInput} from '../UI/Form';
 import {ContactInfoContainer} from '../index';
+import {Location} from '../Location';
 
 export class EventPreviewContentComponent extends React.Component {
     constructor(props) {
@@ -41,7 +42,15 @@ export class EventPreviewContentComponent extends React.Component {
     }
 
     render() {
-        const {item, users, formProfile, timeFormat, dateFormat, createUploadLink} = this.props;
+        const {
+            item,
+            users,
+            formProfile,
+            timeFormat,
+            dateFormat,
+            createUploadLink,
+            streetMapUrl
+        } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
         const creationDate = get(item, '_created');
@@ -121,8 +130,14 @@ export class EventPreviewContentComponent extends React.Component {
                     enabled={get(formProfile, 'editor.location.enabled')}
                     label={gettext('Location')}
                 >
-                    <div>{get(item, 'location.name')}</div>
-                    <div>{get(item, 'location.formatted_address')}</div>
+                    <div>
+                        <Location
+                            name={get(item, 'location.name')}
+                            address={get(item, 'location.formatted_address')}
+                            mapUrl={streetMapUrl}
+                            multiLine={true}
+                        />
+                    </div>
                 </Row>
 
                 <Row
@@ -226,6 +241,7 @@ EventPreviewContentComponent.propTypes = {
     timeFormat: PropTypes.string,
     dateFormat: PropTypes.string,
     createUploadLink: PropTypes.func,
+    streetMapUrl: PropTypes.string
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -238,6 +254,7 @@ const mapStateToProps = (state, ownProps) => ({
     dateFormat: selectors.config.getDateFormat(state),
     formProfile: selectors.forms.eventProfile(state),
     createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
+    streetMapUrl: selectors.config.getStreetMapUrl(state)
 });
 
 export const EventPreviewContent = connect(mapStateToProps, null)(EventPreviewContentComponent);

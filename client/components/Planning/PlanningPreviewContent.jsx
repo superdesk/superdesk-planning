@@ -28,6 +28,7 @@ export class PlanningPreviewContentComponent extends React.Component {
             desks,
             newsCoverageStatus,
             urgencies,
+            streetMapUrl
         } = this.props;
         const createdBy = getCreator(item, 'original_creator', users);
         const updatedBy = getCreator(item, 'version_creator', users);
@@ -128,6 +129,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                     dateFormat={dateFormat}
                     timeFormat={timeFormat}
                     dateOnly={true}
+                    streetMapUrl={streetMapUrl}
                 />}
                 {hasCoverage &&
                     (<h3 className="side-panel__heading--big">{gettext('Coverages')}</h3>)}
@@ -160,6 +162,7 @@ PlanningPreviewContentComponent.propTypes = {
     timeFormat: PropTypes.string,
     newsCoverageStatus: PropTypes.array,
     urgencies: PropTypes.array,
+    streetMapUrl: PropTypes.string
 };
 
 const mapStateToProps = (state, ownProps) => ({
@@ -176,6 +179,7 @@ const mapStateToProps = (state, ownProps) => ({
     formProfile: selectors.forms.profiles(state),
     newsCoverageStatus: selectors.getNewsCoverageStatus(state),
     urgencies: selectors.getUrgencies(state),
+    streetMapUrl: selectors.config.getStreetMapUrl(state)
 });
 
 const mapDispatchToProps = (dispatch) => ({

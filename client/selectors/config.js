@@ -12,3 +12,6 @@ export const getMaxRecurrentEvents = (state) =>
     get(state, 'deployConfig.max_recurrent_events', 200);
 
 export const getServerUrl = (state) => get(state, 'config.server.url');
+
+export const getStreetMapUrl = (state) =>
+    get(state, 'deployConfig.street_map_url', 'https://www.google.com.au/maps/?q=');

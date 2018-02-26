@@ -4,6 +4,7 @@ import {EventMetadata} from '../index';
 import moment from 'moment';
 import {createTestStore, eventUtils} from '../../../utils';
 import {Provider} from 'react-redux';
+import {Location} from '../../Location';
 
 describe('<EventMetadata />', () => {
     it('renders metadata of an event', () => {
@@ -34,11 +35,15 @@ describe('<EventMetadata />', () => {
         const metaDataTexts = content.find('p');
         const eventDateText = eventUtils.getDateStringForEvent(event, 'DD/MM/YYYY', 'HH:mm');
 
-        expect(metaDataTexts.length).toBe(5);
+        expect(metaDataTexts.length).toBe(4);
         expect(metaDataTexts.at(0).text()).toBe('name1');
         expect(metaDataTexts.at(1).text()).toBe(eventDateText);
-        expect(metaDataTexts.at(2).text()).toBe('location1address1');
-        expect(metaDataTexts.at(3).text()).toBe('Planned, occurs certainly');
-        expect(metaDataTexts.at(4).text()).toBe('definition_short 1');
+        expect(metaDataTexts.at(2).text()).toBe('Planned, occurs certainly');
+        expect(metaDataTexts.at(3).text()).toBe('definition_short 1');
+
+        const loc = content.find(Location);
+
+        expect(loc.at(0).text()).toBe('location1');
+        expect(loc.at(1).text()).toBe('location1address1');
     });
 });
