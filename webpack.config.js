@@ -19,6 +19,7 @@ module.exports = {
         alias: {
             images: path.resolve(__dirname, 'node_modules/superdesk-core/images'),
             apps: path.resolve(__dirname, 'node_modules/superdesk-core/scripts/apps'),
+            core: path.resolve(__dirname, 'node_modules/superdesk-core/scripts/core'),
         }
     },
     module: {
