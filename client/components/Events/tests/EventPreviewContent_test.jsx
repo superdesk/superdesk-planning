@@ -17,6 +17,14 @@ describe('<EventPreviewContent />', () => {
         definition_short: 'description',
         definition_long: 'long description',
         internal_note: 'internal note',
+        place: [{
+            country: 'Australia',
+            group: 'Australia',
+            name: 'ACT',
+            qcode: 'ACT',
+            state: 'Australian Capital Territory',
+            world_region: 'Oceania'
+        }],
         anpa_category: [{
             name: 'cat1',
             qcode: 'cat1'
@@ -90,10 +98,11 @@ describe('<EventPreviewContent />', () => {
         const eventDetailRows = eventDetails.find('.toggle-box__content').find('.form__row');
 
         verifyDataRow(eventDetailRows.at(0), 'Calendars', 'calender1');
-        verifyDataRow(eventDetailRows.at(1), 'Category', 'cat1');
-        verifyDataRow(eventDetailRows.at(2), 'Subject', 'sub1');
-        verifyDataRow(eventDetailRows.at(3), 'Long Description', 'long description');
-        verifyDataRow(eventDetailRows.at(4), 'Internal Note', 'internal note');
+        verifyDataRow(eventDetailRows.at(1), 'Place', 'ACT');
+        verifyDataRow(eventDetailRows.at(2), 'Category', 'cat1');
+        verifyDataRow(eventDetailRows.at(3), 'Subject', 'sub1');
+        verifyDataRow(eventDetailRows.at(4), 'Long Description', 'long description');
+        verifyDataRow(eventDetailRows.at(5), 'Internal Note', 'internal note');
 
         const files = wrapper.find('.toggle-box').at(1);
 

@@ -11,8 +11,6 @@ export const enabledAgendas = createSelector(
     (agendas) => agendas.filter((agenda) => get(agenda, 'is_enabled', true))
 );
 
-export const coverageProviders = (state) => get(state, 'vocabularies.coverage_providers', []);
-
 export const session = (state) => get(state, 'session');
 export const sessionId = (state) => get(state, 'session.sessionId');
 

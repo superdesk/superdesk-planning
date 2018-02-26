@@ -3,8 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
 export const Row = ({label, value, className, children, noPadding, enabled}) => (
-    !enabled ?
-        null :
+    enabled ?
         <div
             className={classNames(
                 'form__row',
@@ -14,7 +13,8 @@ export const Row = ({label, value, className, children, noPadding, enabled}) => 
             {label && <label className="form-label form-label--light">{label}</label>}
             {value && <p className={'sd-text__' + className}>{value}</p>}
             {children}
-        </div>
+        </div> :
+        null
 );
 
 Row.propTypes = {

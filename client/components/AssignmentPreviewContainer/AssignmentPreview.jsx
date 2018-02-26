@@ -1,10 +1,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import TextareaAutosize from 'react-textarea-autosize';
+
+import {gettext} from '../../utils';
 
 import {InternalNoteLabel} from '../';
-import {TermsList} from '../UI';
+import {Row} from '../UI/Preview';
 
 // eslint-disable-next-line complexity
 export const AssignmentPreview = ({
@@ -13,7 +14,6 @@ export const AssignmentPreview = ({
     coverageFormProfile,
     planningFormProfile,
     planningItem,
-
 }) => {
     const planning = get(assignment, 'planning', {});
 
@@ -23,96 +23,60 @@ export const AssignmentPreview = ({
             .join(', ')
         : '-';
 
+    const placeText = get(planningItem, 'place.length', 0) > 0 ?
+        planningItem.place.map((c) => c.name).join(', ') : '-';
+
+    const categoryText = get(planningItem, 'anpa_category.length', 0) > 0 ?
+        planningItem.anpa_category.map((c) => c.name).join(', ') : '-';
+
+    const subjectText = get(planningItem, 'subject.length', 0) > 0 ?
+        planningItem.subject.map((s) => s.name).join(', ') : '-';
+
     return (
         <div>
-            {get(coverageFormProfile, 'editor.slugline.enabled') &&
-                <div className="form__row">
-                    <label className="form-label form-label--light">
-                        Slugline
-                    </label>
-                    <p className="sd-text__slugline">
-                        {planning.slugline || '-'}
-                    </p>
-                </div>
-            }
-
-            {get(planningFormProfile, 'editor.anpa_category.enabled') &&
-                <div className="form__row">
-                    <label className="form-label form-label--light">
-                        Category
-                    </label>
-                    <div>
-                        {get(planningItem, 'anpa_category.length', 0) > 0 &&
-                            <TermsList terms={get(planningItem, 'anpa_category')} displayField="name"/>
-                        ||
-                            <p>-</p>
-                        }
-                    </div>
-                </div>
-            }
-
-            {get(planningFormProfile, 'editor.subject.enabled') &&
-                <div className="form__row">
-                    <label className="form-label form-label--light">
-                        Subject
-                    </label>
-                    <div>
-                        {get(planningItem, 'subject.length', 0) > 0 &&
-                            <TermsList terms={get(planningItem, 'subject')} displayField="name"/>
-                        ||
-                            <p>-</p>
-                        }
-                    </div>
-                </div>
-            }
-
-            {get(coverageFormProfile, 'editor.genre.enabled') &&
-                <div className="form__row">
-                    <div className="form__row-item">
-                        <label className="form-label form-label--light">
-                            Genre
-                        </label>
-                        <p>{get(planning, 'genre.name') || '-'}</p>
-                    </div>
-                </div>
-            }
-
-            {get(coverageFormProfile, 'editor.keyword.enabled') &&
-                <div className="form__row">
-                    <label className="form-label form-label--light">
-                        Keywords
-                    </label>
-                    <div className="terms-list">
-                        <p>{keywordString}</p>
-                    </div>
-                </div>
-            }
-
-            {get(coverageFormProfile, 'editor.ednote.enabled') &&
-                <div className="form__row">
-                    <label className="form-label form-label--light">
-                        Ed Note
-                    </label>
-                    <TextareaAutosize
-                        value={planning.ednote || '-'}
-                        disabled={true}
-                    />
-                </div>
-            }
-
-
-            {get(coverageFormProfile, 'editor.internal_note.enabled') &&
-                <div className="form__row">
-                    <label className="form-label form-label--light">
-                        Internal Note
-                    </label>
-                    <InternalNoteLabel item={planning} showTooltip={false}/>
-                    <TextareaAutosize
-                        value={planning.internal_note || '-'}
-                        disabled={true}
-                    />
-                </div>
-            }
+            <Row
+                enabled={get(coverageFormProfile, 'editor.slugline.enabled')}
+                label={gettext('Slugline')}
+                value={planning.slugline || '-'}
+                className="slugline"
+            />
+            <Row
+                enabled={get(planningFormProfile, 'editor.place.enabled')}
+                label={gettext('Place')}
+                value={placeText}
+            />
+            <Row
+                enabled={get(planningFormProfile, 'editor.anpa_category.enabled')}
+                label={gettext('Category')}
+                value={categoryText}
+            />
+            <Row
+                enabled={get(planningFormProfile, 'editor.subject.enabled')}
+                label={gettext('Subject')}
+                value={subjectText}
+            />
+            <Row
+                enabled={get(coverageFormProfile, 'editor.genre.enabled')}
+                label={gettext('Genre')}
+                value={get(planning, 'genre.name') || '-'}
+            />
+            <Row
+                enabled={get(coverageFormProfile, 'editor.keyword.enabled')}
+                label={gettext('Keywords')}
+                value={keywordString}
+            />
+            <Row
+                enabled={get(coverageFormProfile, 'editor.ednote.enabled')}
+                label={gettext('Ed Note')}
+                value={planning.ednote || '-'}
+            />
+            <Row
+                enabled={get(coverageFormProfile, 'editor.internal_note.enabled')}
+                label={gettext('Internal Note')}
+            >
+                <InternalNoteLabel item={planning} showTooltip={false}/>
+                <p>{planning.internal_note || '-'}</p>
+            </Row>
         </div>
     );
 };

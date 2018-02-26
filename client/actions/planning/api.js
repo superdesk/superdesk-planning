@@ -555,6 +555,10 @@ const loadPlanningByEventId = (eventIds, loadToStore = true) => (
             ),
         })
             .then((data) => {
+                data._items.forEach((item) => {
+                    planningUtils.convertCoveragesGenreToObject(item);
+                });
+
                 if (loadToStore) {
                     dispatch(self.receivePlannings(data._items));
                 }
@@ -572,6 +576,10 @@ const loadPlanningByRecurrenceId = (recurrenceId, loadToStore = true) => (
             ),
         })
             .then((data) => {
+                data._items.forEach((item) => {
+                    planningUtils.convertCoveragesGenreToObject(item);
+                });
+
                 if (loadToStore) {
                     dispatch(self.receivePlannings(data._items));
                 }

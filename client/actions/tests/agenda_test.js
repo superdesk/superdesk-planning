@@ -361,6 +361,14 @@ describe('agenda', () => {
         describe('addEventToCurrentAgenda', () => {
             it('addEventToCurrentAgenda executes dispatches', (done) => {
                 apiSpy.query = sinon.spy(() => (Promise.resolve({_items: plannings})));
+                events[0].place = [{
+                    country: 'Australia',
+                    group: 'Australia',
+                    name: 'ACT',
+                    qcode: 'ACT',
+                    state: 'Australian Capital Territory',
+                    world_region: 'Oceania'
+                }];
                 const action = actions.addEventToCurrentAgenda(events[0]);
 
                 return action(dispatch, getState, {
@@ -379,6 +387,14 @@ describe('agenda', () => {
                                 anpa_category: events[0].anpa_category,
                                 description_text: 'Some event',
                                 agendas: ['a2'],
+                                place: [{
+                                    country: 'Australia',
+                                    group: 'Australia',
+                                    name: 'ACT',
+                                    qcode: 'ACT',
+                                    state: 'Australian Capital Territory',
+                                    world_region: 'Oceania'
+                                }]
                             },
                         ]);
 

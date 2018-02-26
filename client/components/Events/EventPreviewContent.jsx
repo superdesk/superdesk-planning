@@ -51,6 +51,8 @@ export class EventPreviewContentComponent extends React.Component {
 
         const calendarsText = get(item, 'calendars.length', 0) === 0 ? '' :
             item.calendars.map((c) => c.name).join(', ');
+        const placeText = get(item, 'place.length', 0) === 0 ? '' :
+            item.place.map((c) => c.name).join(', ');
         const categoryText = get(item, 'anpa_category.length', 0) === 0 ? '' :
             item.anpa_category.map((c) => c.name).join(', ');
         const subjectText = get(item, 'subject.length', 0) === 0 ? '' :
@@ -149,6 +151,11 @@ export class EventPreviewContentComponent extends React.Component {
                         value={calendarsText}
                     />
 
+                    <Row
+                        enabled={get(formProfile, 'editor.place.enabled')}
+                        label={gettext('Place')}
+                        value={placeText}
+                    />
                     <Row
                         enabled={get(formProfile, 'editor.anpa_category.enabled')}
                         label={gettext('Category')}

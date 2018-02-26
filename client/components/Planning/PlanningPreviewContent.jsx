@@ -38,6 +38,8 @@ export class PlanningPreviewContentComponent extends React.Component {
 
         const agendaText = get(item, 'agendas.length', 0) === 0 ? '' :
             item.agendas.map((a) => getItemInArrayById(agendas, a).name).join(', ');
+        const placeText = get(item, 'place.length', 0) === 0 ? '' :
+            item.place.map((c) => c.name).join(', ');
         const categoryText = get(item, 'anpa_category.length', 0) === 0 ? '' :
             item.anpa_category.map((c) => c.name).join(', ');
         const subjectText = get(item, 'subject.length', 0) === 0 ? '' :
@@ -61,38 +63,49 @@ export class PlanningPreviewContentComponent extends React.Component {
                         <StateLabel item={item} verbose={true}/>
                     </div>
                 </div>
-                {get(formProfile, 'planning.editor.slugline.enabled') && <Row
+                <Row
+                    enabled={get(formProfile, 'planning.editor.slugline.enabled')}
                     label={gettext('Slugline')}
                     value={item.slugline || ''}
                     className="slugline"
-                />}
-                {get(formProfile, 'planning.editor.description_text.enabled') && <Row
+                />
+                <Row
+                    enabled={get(formProfile, 'planning.editor.description_text.enabled')}
                     label={gettext('Description')}
                     value={item.description_text || ''}
-                />}
-                {get(formProfile, 'planning.editor.internal_note.enabled') && <Row
+                />
+                <Row
+                    enabled={get(formProfile, 'planning.editor.internal_note.enabled')}
                     label={gettext('Internal Note')}
                     value={item.internal_note || ''}
-                />}
-                {get(formProfile, 'planning.editor.agendas.enabled') && <Row
+                />
+                <Row
+                    enabled={get(formProfile, 'planning.editor.agendas.enabled')}
                     label={gettext('Agenda')}
                     value={agendaText}
-                />}
+                />
                 <ToggleBox title={gettext('Details')} isOpen={false}>
-                    {get(formProfile, 'planning.editor.ednote.enabled') && <Row
+                    <Row
+                        enabled={get(formProfile, 'planning.editor.ednote.enabled')}
                         label={gettext('Ed Note')}
                         value={item.ednote || ''}
-                    />}
-                    {get(formProfile, 'planning.editor.anpa_category.enabled') && <Row
+                    />
+                    <Row
+                        enabled={get(formProfile, 'planning.editor.place.enabled')}
+                        label={gettext('Place')}
+                        value={placeText || ''}
+                    />
+                    <Row
+                        enabled={get(formProfile, 'planning.editor.anpa_category.enabled')}
                         label={gettext('Category')}
                         value={categoryText || ''}
-                    />}
-                    {get(formProfile, 'planning.editor.subject.enabled') && <Row
+                    />
+                    <Row
+                        enabled={get(formProfile, 'planning.editor.subject.enabled')}
                         label={gettext('Subject')}
                         value={subjectText || ''}
-                    />}
-                    {get(formProfile, 'planning.editor.urgency.enabled') &&
-                    <Row>
+                    />
+                    <Row enabled={get(formProfile, 'planning.editor.urgency.enabled')}>
                         <ColouredValueInput
                             value={urgency}
                             label="Urgency"
@@ -102,12 +115,13 @@ export class PlanningPreviewContentComponent extends React.Component {
                             row={true}
                             borderBottom={false}
                         />
-
-                    </Row>}
-                    {get(formProfile, 'planning.editor.flags') &&
-                        get(item, 'flags.marked_for_not_publication', false) && <Row>
-                            <span className="state-label not-for-publication">{gettext('Not for Publication')}</span>
-                        </Row>}
+                    </Row>
+                    <Row enabled={
+                        get(formProfile, 'planning.editor.flags') &&
+                        get(item, 'flags.marked_for_not_publication', false)
+                    }>
+                        <span className="state-label not-for-publication">{gettext('Not for Publication')}</span>
+                    </Row>
                 </ToggleBox>
                 {event && <h3 className="side-panel__heading--big">{gettext('Associated Event')}</h3>}
                 {event && <EventMetadata event={event}

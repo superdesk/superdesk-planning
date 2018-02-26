@@ -65,6 +65,7 @@ export class EventEditorComponent extends React.Component {
             diff,
             occurStatuses,
             calendars,
+            locators,
             categories,
             subjects,
             createUploadLink,
@@ -179,6 +180,15 @@ export class EventEditorComponent extends React.Component {
 
                         <Field
                             component={SelectMetaTermsInput}
+                            field="place"
+                            label={gettext('Place')}
+                            options={locators}
+                            defaultValue={[]}
+                            {...fieldProps}
+                        />
+
+                        <Field
+                            component={SelectMetaTermsInput}
                             field="anpa_category"
                             label={gettext('Category')}
                             options={categories}
@@ -270,6 +280,7 @@ EventEditorComponent.propTypes = {
     formProfile: PropTypes.object.isRequired,
     occurStatuses: PropTypes.array,
     calendars: PropTypes.array,
+    locators: PropTypes.array,
     categories: PropTypes.array,
     subjects: PropTypes.array,
     createUploadLink: PropTypes.func,
@@ -293,8 +304,9 @@ const mapStateToProps = (state) => ({
     formProfile: selectors.forms.eventProfile(state),
     occurStatuses: state.vocabularies.eventoccurstatus,
     calendars: selectors.getEventCalendars(state),
-    categories: state.vocabularies.categories,
-    subjects: state.subjects,
+    locators: selectors.vocabs.locators(state),
+    categories: selectors.vocabs.categories(state),
+    subjects: selectors.vocabs.subjects(state),
     createUploadLink: (f) => selectors.config.getServerUrl(state) + '/upload/' + f.filemeta.media_id + '/raw',
     iframelyKey: selectors.getIframelyKey(state),
     users: selectors.getUsers(state),

@@ -229,6 +229,7 @@ export class PlanningEditorComponent extends React.Component {
             item,
             diff,
             event,
+            locators,
             categories,
             subjects,
             users,
@@ -344,6 +345,15 @@ export class PlanningEditorComponent extends React.Component {
 
                         <Field
                             component={SelectMetaTermsInput}
+                            field="place"
+                            label={gettext('Place')}
+                            options={locators}
+                            defaultValue={[]}
+                            {...fieldProps}
+                        />
+
+                        <Field
+                            component={SelectMetaTermsInput}
                             field="anpa_category"
                             label={gettext('Category')}
                             options={categories}
@@ -434,6 +444,7 @@ PlanningEditorComponent.propTypes = {
     diff: PropTypes.object,
     event: PropTypes.object,
     onChangeHandler: PropTypes.func,
+    locators: PropTypes.array,
     categories: PropTypes.array,
     subjects: PropTypes.array,
     users: PropTypes.array,
@@ -463,8 +474,9 @@ PlanningEditorComponent.propTypes = {
 PlanningEditorComponent.defaultProps = {readOnly: false};
 
 const mapStateToProps = (state) => ({
-    categories: state.vocabularies.categories,
-    subjects: state.subjects,
+    locators: selectors.vocabs.locators(state),
+    categories: selectors.vocabs.categories(state),
+    subjects: selectors.vocabs.subjects(state),
     users: selectors.getUsers(state),
     desks: selectors.getDesks(state),
     agendas: selectors.general.agendas(state),
@@ -474,7 +486,7 @@ const mapStateToProps = (state) => ({
     newsCoverageStatus: selectors.getNewsCoverageStatus(state),
     contentTypes: selectors.getContentTypes(state),
     genres: state.genres,
-    coverageProviders: selectors.general.coverageProviders(state),
+    coverageProviders: selectors.vocabs.coverageProviders(state),
     priorities: selectors.getAssignmentPriorities(state),
     keywords: selectors.getKeywords(state),
     event: selectors.events.planningEditAssociatedEvent(state),
