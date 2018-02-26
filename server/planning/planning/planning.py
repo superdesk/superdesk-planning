@@ -753,6 +753,8 @@ planning_schema = {
         'type': 'string',
         'mapping': not_analyzed
     },
+
+    'place': metadata_schema['place'],
 }  # end planning_schema
 
 

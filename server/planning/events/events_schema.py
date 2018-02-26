@@ -311,4 +311,6 @@ events_schema = {
 
     'reschedule_from': event_type,
     'reschedule_to': event_type,
+
+    'place': metadata_schema['place'],
 }  # end events_schema

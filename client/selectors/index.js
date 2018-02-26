@@ -7,6 +7,7 @@ import * as main from './main';
 import * as locks from './locks';
 import * as eventsPlanning from './eventsplanning';
 import * as multiSelect from './multiSelect';
+import * as vocabs from './vocabs';
 
 
 export * from './planning_old';
@@ -22,4 +23,5 @@ export {
     locks,
     eventsPlanning,
     multiSelect,
+    vocabs,
 };

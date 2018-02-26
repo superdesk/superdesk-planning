@@ -23,6 +23,7 @@ class EventSchema(BaseSchema):
     The event schema is used for validation of the event edit form
     """
 
+    place = schema.ListField()
     anpa_category = schema.ListField()
     definition_long = schema.StringField()
     definition_short = schema.StringField()
@@ -57,6 +58,7 @@ class PlanningSchema(BaseSchema):
     """
 
     slugline = schema.StringField(required=True)
+    place = schema.ListField()
     anpa_category = schema.ListField()
     description_text = schema.StringField()
     ednote = schema.StringField()
@@ -95,6 +97,7 @@ DEFAULT_EDITOR = [{
     'name': 'events',
     'editor': {
         'slugline': {'enabled': True},
+        'place': {'enabled': False},
         'anpa_category': {'enabled': True},
         'definition_long': {'enabled': True},
         'definition_short': {'enabled': True},
@@ -113,6 +116,7 @@ DEFAULT_EDITOR = [{
         'name': 'planning',
         'editor': {
             'slugline': {'enabled': True},
+            'place': {'enabled': False},
             'anpa_category': {'enabled': True},
             'description_text': {'enabled': True},
             'ednote': {'enabled': True},
