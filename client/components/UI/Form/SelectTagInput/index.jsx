@@ -7,6 +7,8 @@ import {Row, LineInput, Label, Input} from '../';
 import {TermsList} from '../../';
 
 import {SelectTagPopup} from './SelectTagPopup';
+import {KEYCODES} from '../../../../constants';
+import {onEventCapture} from '../../../../utils';
 
 import './style.scss';
 
@@ -24,10 +26,17 @@ export class SelectTagInput extends React.Component {
         this.addTag = this.addTag.bind(this);
         this.removeTag = this.removeTag.bind(this);
         this.filterOptions = this.filterOptions.bind(this);
+        this.openPopUp = this.openPopUp.bind(this);
     }
 
     togglePopup() {
         this.setState({popupOpened: !this.state.popupOpened});
+    }
+
+    openPopUp() {
+        if (!this.state.popupOpened) {
+            this.setState({popupOpened: true});
+        }
     }
 
     addTag(tag) {
@@ -130,6 +139,13 @@ export class SelectTagInput extends React.Component {
                             onClick={!readOnly ? this.togglePopup : null}
                             className="select-tag__input"
                             readOnly={readOnly}
+                            onKeyDown={(event) => {
+                                if (event.keyCode === KEYCODES.ENTER ||
+                                    event.keyCode === KEYCODES.DOWN) {
+                                    onEventCapture(event);
+                                    this.openPopUp();
+                                }
+                            }}
                         />
 
                         {this.state.popupOpened && (

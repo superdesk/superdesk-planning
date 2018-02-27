@@ -17,6 +17,7 @@ import {ToggleBox} from './ToggleBox/';
 import Toggle from './Toggle';
 import SearchField from './SearchField/';
 import Button from './Button';
+import ButtonList from './ButtonList';
 
 export {
     List,
@@ -37,5 +38,6 @@ export {
     ToggleBox,
     Toggle,
     SearchField,
-    Button
+    Button,
+    ButtonList,
 };

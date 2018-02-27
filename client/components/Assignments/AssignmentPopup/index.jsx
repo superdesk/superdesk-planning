@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import {set, cloneDeep} from 'lodash';
 import {gettext} from '../../../utils';
 
-import {Button} from '../../UI';
+import {ButtonList} from '../../UI';
 import {Popup, Header, Footer, Content} from '../../UI/Popup';
 import {AssignmentEditor} from '../AssignmentEditor';
 
@@ -60,6 +60,21 @@ export class AssignmentPopup extends React.Component {
 
         const {diff} = this.state;
 
+        const buttonList = [{
+            color: 'primary',
+            className: 'pull-right',
+            onClick: this.onSubmit,
+            disabled: !this.state.valid,
+            text: gettext('Submit'),
+            enterKeyIsClick: true,
+        },
+        {
+            className: 'pull-right',
+            onClick: onClose,
+            text: gettext('Cancel'),
+            enterKeyIsClick: true,
+        }];
+
         return (
             <Popup
                 close={onClose}
@@ -84,20 +99,7 @@ export class AssignmentPopup extends React.Component {
                     />
                 </Content>
                 <Footer>
-                    <Button
-                        color="primary"
-                        className="pull-right"
-                        onClick={this.onSubmit}
-                        disabled={!this.state.valid}
-                        text={gettext('Submit')}
-                        enterKeyIsClick
-                    />
-                    <Button
-                        className="pull-right"
-                        onClick={onClose}
-                        text={gettext('Cancel')}
-                        enterKeyIsClick
-                    />
+                    <ButtonList buttonList={buttonList} captureShiftTab={false} />
                 </Footer>
                 <div ref={(node) => this.dom.popupContainer = node} />
             </Popup>

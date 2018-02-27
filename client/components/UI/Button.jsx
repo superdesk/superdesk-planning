@@ -21,11 +21,18 @@ const Button = ({
     tabIndex,
     enterKeyIsClick,
     autoFocus,
+    refNode,
+    onKeyDown,
 }) => {
     const handeKeyDown = (event) => {
         if (event.keyCode === KEYCODES.ENTER) {
             onEventCapture(event);
             onClick();
+            return;
+        }
+
+        if (onKeyDown) {
+            onKeyDown(event);
         }
     };
 
@@ -47,8 +54,9 @@ const Button = ({
             onClick={onClick || null}
             title={title || text}
             tabIndex={tabIndex}
-            onKeyDown={enterKeyIsClick ? handeKeyDown : null}
+            onKeyDown={enterKeyIsClick ? handeKeyDown : onKeyDown}
             autoFocus={autoFocus}
+            ref={refNode}
         >
             {icon && <i className={icon} />}
             {!iconOnly && text}
@@ -72,6 +80,8 @@ Button.propTypes = {
     tabIndex: PropTypes.number,
     enterKeyIsClick: PropTypes.bool,
     autoFocus: PropTypes.bool,
+    onKeyDown: PropTypes.func,
+    refNode: PropTypes.func,
 };
 
 Button.defaultProps = {

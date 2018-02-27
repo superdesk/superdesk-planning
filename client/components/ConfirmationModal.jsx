@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Modal} from './index';
-import {Button} from 'react-bootstrap';
+import {ButtonList} from './UI/index';
 
 export function ConfirmationModal({handleHide, modalProps}) {
     const action = () => (
@@ -22,6 +22,26 @@ export function ConfirmationModal({handleHide, modalProps}) {
         }
     };
 
+    let buttons = [{
+        type: 'button',
+        onClick: handleCancel,
+        text: modalProps.cancelText || 'Cancel'
+    },
+    {
+        className: 'btn--primary',
+        type: 'submit',
+        onClick: action,
+        text: modalProps.okText || 'Ok',
+    }];
+
+    if (modalProps.showIgnore) {
+        buttons.unshift({
+            type: 'reset',
+            onClick: handleIgnore,
+            text: modalProps.ignoreText || 'Ignore'
+        });
+    }
+
     return (
         <Modal show={true} onHide={handleCancel}>
             <Modal.Header>
@@ -36,11 +56,7 @@ export function ConfirmationModal({handleHide, modalProps}) {
                 </div>
             </Modal.Body>
             <Modal.Footer>
-                {modalProps.showIgnore &&
-                    <Button type="reset" onClick={handleIgnore}>{modalProps.ignoreText || 'Ignore'}</Button>
-                }
-                <Button type="button" onClick={handleCancel}>{modalProps.cancelText || 'Cancel'}</Button>
-                <Button className="btn--primary" type="submit" onClick={action}>{modalProps.okText || 'Ok'}</Button>
+                <ButtonList buttonList={buttons} />
             </Modal.Footer>
         </Modal>
     );
