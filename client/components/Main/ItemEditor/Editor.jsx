@@ -76,6 +76,7 @@ export class EditorComponent extends React.Component {
             diff: item === null ? {} : cloneDeep(item),
             dirty: false,
             submitting: false,
+            errors: {},
         });
     }
 

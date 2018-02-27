@@ -6,6 +6,7 @@ import {AssignmentItem} from '../index';
 import {ASSIGNMENTS, UI, WORKSPACE} from '../../constants';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
+import {assignmentUtils} from '../../utils';
 import './style.scss';
 
 class AssignmentListComponent extends React.Component {
@@ -65,6 +66,9 @@ class AssignmentListComponent extends React.Component {
         const {users, session, currentAssignmentId, privileges} = this.props;
         const assignedUser = users.find((user) => get(assignment, 'assigned_to.user') === user._id);
         const isCurrentUser = assignedUser && assignedUser._id === session.identity._id;
+        const onDoubleClick = assignmentUtils.assignmentHasContent(assignment) ?
+            this.props.openArchivePreview.bind(null, assignment) :
+            null;
 
         return (
             <AssignmentItem
@@ -73,7 +77,7 @@ class AssignmentListComponent extends React.Component {
                 assignment={assignment}
                 isSelected={this.props.selectedAssignments.indexOf(assignment._id) > -1}
                 onClick={this.props.preview.bind(this, assignment)}
-                onDoubleClick={this.props.openArchivePreview.bind(null, assignment)}
+                onDoubleClick={onDoubleClick}
                 onSelectChange={(value) => this.props.onAssignmentSelectChange({
                     assignment: assignment._id,
                     value: value,
@@ -103,8 +107,11 @@ class AssignmentListComponent extends React.Component {
             totalCount,
             changeAssignmentListSingleGroupView,
             assignmentListSingleGroupView,
+            inAuthoring,
         } = this.props;
-        const maxHeight = this.getListMaxHeight() + 'px';
+        const listStyle = inAuthoring ?
+            {} :
+            {maxHeight: this.getListMaxHeight() + 'px'};
 
         return (
             <div className="assignments-list">
@@ -113,7 +120,7 @@ class AssignmentListComponent extends React.Component {
                         {ASSIGNMENTS.LIST_GROUPS[groupKey].label}</a>
                     <span className="badge">{totalCount}</span>
                 </div>)}
-                <div className="assignments-list__items" style={{maxHeight: maxHeight}}
+                <div className="assignments-list__items" style={listStyle}
                     onScroll={this.handleScroll.bind(this)}
                     ref={(assignmentsList) => this.assignmentsList = assignmentsList}
                 >
@@ -162,7 +169,10 @@ AssignmentListComponent.propTypes = {
     removeAssignment: PropTypes.func,
     openArchivePreview: PropTypes.func,
     revertAssignment: PropTypes.func,
+    inAuthoring: PropTypes.bool,
 };
+
+AssignmentListComponent.defaultProps = {inAuthoring: false};
 
 const getAssignmentsSelectorsForListGroup = (groupKey) => {
     const groupLabel = ASSIGNMENTS.LIST_GROUPS[groupKey].label;

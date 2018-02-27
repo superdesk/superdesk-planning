@@ -1,6 +1,9 @@
 .FulfilAssignment {
-    height: calc(100vh - 200px);
-    p {
-        margin: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    .sd-list-item {
+        margin: 1rem;
     }
 }

@@ -1,13 +1,19 @@
 import React from 'react';
-import {connect} from 'react-redux';
-import {Button} from 'react-bootstrap';
 import PropTypes from 'prop-types';
+import {connect} from 'react-redux';
+
+import {Button} from '../UI';
+
 import {
     Modal,
     AssignmentListContainer,
 } from '../index';
+
+import {ArchiveItem} from '../Archive';
+
 import * as selectors from '../../selectors';
 import {WORKSPACE} from '../../constants';
+import {gettext} from '../../utils';
 import './style.scss';
 
 
@@ -16,6 +22,9 @@ export function FulFilAssignmentComponent({
     modalProps,
     currentWorkspace,
     actionInProgress,
+    priorities,
+    urgencies,
+    urgencyLabel,
 }) {
     const {newsItem, $scope} = modalProps;
 
@@ -38,31 +47,30 @@ export function FulFilAssignmentComponent({
                 {!actionInProgress && <a className="close" onClick={handleCancel}>
                     <i className="icon-close-small" />
                 </a>}
-                <h3>Fulfil Assignment</h3>
+                <h3>{gettext('Fulfil Assignment')}</h3>
             </Modal.Header>
 
-            <Modal.Body>
+            <Modal.Body
+                noPadding={true}
+                fullHeight={true}
+            >
                 <div className="FulfilAssignment">
-                    <div>
-                        <div className="metadata-view">
-                            <dl>
-                                <dt>Slugline:</dt>
-                                <dd>{newsItem.slugline}</dd>
-                            </dl>
-                            <dl>
-                                <dt>Headline:</dt>
-                                <dd>{newsItem.headline}</dd>
-                            </dl>
-                        </div>
-                    </div>
+                    <ArchiveItem
+                        item={newsItem}
+                        priorities={priorities}
+                        urgencies={urgencies}
+                        urgencyLabel={urgencyLabel}
+                    />
                     <AssignmentListContainer />
                 </div>
             </Modal.Body>
 
             <Modal.Footer>
-                <Button type="button"
+                <Button
+                    text={gettext('Cancel')}
                     disabled={actionInProgress}
-                    onClick={handleCancel}>Cancel</Button>
+                    onClick={handleCancel}
+                />
             </Modal.Footer>
         </Modal>
     );
@@ -76,11 +84,17 @@ FulFilAssignmentComponent.propTypes = {
     }),
     currentWorkspace: PropTypes.string,
     actionInProgress: PropTypes.boolean,
+    priorities: PropTypes.array,
+    urgencies: PropTypes.array,
+    urgencyLabel: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
     currentWorkspace: selectors.getCurrentWorkspace(state),
     actionInProgress: selectors.getModalActionInProgress(state),
+    priorities: selectors.getArchivePriorities(state),
+    urgencies: selectors.getUrgencies(state),
+    urgencyLabel: selectors.vocabs.urgencyLabel(state),
 });
 
 export const FulFilAssignmentModal = connect(

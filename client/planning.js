@@ -254,7 +254,7 @@ class PlanningApp extends React.Component {
                     />
                 </div>
                 {!addNewsItemToPlanning && <ModalsContainer />}
-                <WorkqueueContainer />
+                {!addNewsItemToPlanning && <WorkqueueContainer />}
             </section>
         );
     }

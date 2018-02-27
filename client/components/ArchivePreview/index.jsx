@@ -43,7 +43,7 @@ class ArchivePreviewComponent extends React.Component {
     }
 
     render() {
-        const {archive, users, priorities} = this.props;
+        const {archive, users, priorities, urgencies, urgencyLabel} = this.props;
 
         if (archive === null) {
             return null;
@@ -99,7 +99,11 @@ class ArchivePreviewComponent extends React.Component {
 
                             {get(archive, 'urgency') &&
                                 <div>
-                                    <UrgencyLabel item={archive}/>
+                                    <UrgencyLabel
+                                        item={archive}
+                                        urgencies={urgencies}
+                                        label={urgencyLabel}
+                                    />
                                 </div>
                             }
 
@@ -272,6 +276,8 @@ ArchivePreviewComponent.propTypes = {
     assignment: PropTypes.object,
     loadArchiveItem: PropTypes.func,
     priorities: PropTypes.array,
+    urgencies: PropTypes.array,
+    urgencyLabel: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
@@ -279,6 +285,8 @@ const mapStateToProps = (state) => ({
     archive: selectors.getCurrentAssignmentArchiveItem(state),
     users: selectors.getUsers(state),
     priorities: selectors.getArchivePriorities(state),
+    urgencies: selectors.getUrgencies(state),
+    urgencyLabel: selectors.vocabs.urgencyLabel(state),
 });
 
 const mapDispatchToProps = (dispatch) => (

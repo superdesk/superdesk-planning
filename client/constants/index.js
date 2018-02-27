@@ -78,6 +78,7 @@ export const ITEM_TYPE = {
     EVENT: 'events',
     PLANNING: 'planning',
     ASSIGNMENT: 'assignments',
+    ARCHIVE: 'archive',
     UNKNOWN: 'unknown'
 };
 
