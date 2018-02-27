@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-
 import {get} from 'lodash';
 import {getItemInArrayById, gettext, planningUtils} from '../../../utils';
 import {COVERAGES, WORKSPACE} from '../../../constants';
+
 
 import {
     TextInput,
@@ -76,6 +76,7 @@ export class CoverageForm extends React.Component {
             showErrors,
             currentWorkspace,
             hasAssignment,
+            defaultGenre,
         } = this.props;
 
         const contentTypeQcode = get(value, 'planning.g2_content_type') || null;
@@ -84,6 +85,10 @@ export class CoverageForm extends React.Component {
         const isExistingCoverage = !!value.coverage_id;
         const assignmentState = get(value, 'assigned_to.state');
         const hasExistingAssignment = !!get(value, 'assigned_to.assignment_id');
+
+        if (contentTypeQcode === 'text' && !get(value, 'planning.genre')) {
+            value.planning.genre = defaultGenre;
+        }
 
         const fieldProps = {
             item: item,
@@ -130,7 +135,7 @@ export class CoverageForm extends React.Component {
                     options={genres}
                     labelField="name"
                     clearable={true}
-                    defaultValue={null}
+                    defaultValue={defaultGenre}
                     readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.genre}
                     {...fieldProps}
                 />
@@ -226,6 +231,7 @@ CoverageForm.propTypes = {
     showErrors: PropTypes.bool,
     currentWorkspace: PropTypes.string,
     hasAssignment: PropTypes.bool,
+    defaultGenre: PropTypes.object,
 };
 
 CoverageForm.defaultProps = {

@@ -431,6 +431,7 @@ export class PlanningEditorComponent extends React.Component {
                     addOnly={!!addNewsItemToPlanning}
                     originalCount={get(item, 'coverages', []).length}
                     defaultValue={[]}
+                    defaultGenre={this.props.defaultGenre}
                     {...fieldProps}
                     formProfile={coverageProfile}
                 />
@@ -469,6 +470,7 @@ PlanningEditorComponent.propTypes = {
     dirty: PropTypes.bool,
     planningProfile: PropTypes.object,
     coverageProfile: PropTypes.object,
+    defaultGenre: PropTypes.object,
 };
 
 PlanningEditorComponent.defaultProps = {readOnly: false};
@@ -495,6 +497,7 @@ const mapStateToProps = (state) => ({
     currentWorkspace: selectors.getCurrentWorkspace(state),
     planningProfile: selectors.forms.planningProfile(state),
     coverageProfile: selectors.forms.coverageProfile(state),
+    defaultGenre: selectors.config.getDefaultGenre(state),
 });
 
 export const PlanningEditor = connect(mapStateToProps)(PlanningEditorComponent);
