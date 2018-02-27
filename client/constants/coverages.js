@@ -1,5 +1,6 @@
 import {get} from 'lodash';
 import moment from 'moment';
+import {WORKFLOW_STATE} from './index';
 
 export const COVERAGES = {
     DEFAULT_VALUE: (newsCoverageStatus, planningItem) => ({
@@ -9,6 +10,7 @@ export const COVERAGES = {
             ednote: get(planningItem, 'ednote'),
             scheduled: get(planningItem, 'planning_date', moment())
         },
-        news_coverage_status: newsCoverageStatus[0]
+        news_coverage_status: newsCoverageStatus[0],
+        workflow_status: WORKFLOW_STATE.DRAFT,
     })
 };

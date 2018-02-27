@@ -55,7 +55,8 @@ class PlanningSpikeService(BaseService):
                 assignment = assignment_service.find_one(req=None, _id=assigned_to.get('assignment_id'))
                 slugline = assignment.get('planning').get('slugline', '')
                 coverage_type = assignment.get('planning').get('g2_content_type', '')
-                PlanningNotifications().notify_assignment(target_user=assignment.get('assigned_to').get('user'),
+                PlanningNotifications().notify_assignment(coverage_status=coverage.get('workflow_status'),
+                                                          target_user=assignment.get('assigned_to').get('user'),
                                                           target_desk=assignment.get('assigned_to').get(
                                                               'desk') if not assignment.get('assigned_to').get(
                                                               'user') else None,

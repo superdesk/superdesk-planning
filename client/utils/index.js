@@ -356,7 +356,7 @@ export const getCoverageIcon = (type) => {
 };
 
 export const isSameItemId = (item1, item2) => get(item1, '_id') === get(item2, '_id');
-export const getItemWorkflowState = (item) => (get(item, 'state', WORKFLOW_STATE.DRAFT));
+export const getItemWorkflowState = (item, field = 'state') => (get(item, field, WORKFLOW_STATE.DRAFT));
 export const isItemCancelled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.CANCELLED;
 export const isItemRescheduled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.RESCHEDULED;
 export const isItemKilled = (item) => getItemWorkflowState(item) === WORKFLOW_STATE.KILLED;
@@ -375,8 +375,8 @@ export const getItemActionedStateLabel = (item) => {
 };
 
 // eslint-disable-next-line complexity
-export const getItemWorkflowStateLabel = (item) => {
-    switch (getItemWorkflowState(item)) {
+export const getItemWorkflowStateLabel = (item, field = 'state') => {
+    switch (getItemWorkflowState(item, field)) {
     case WORKFLOW_STATE.DRAFT:
         return {
             label: gettext('draft'),

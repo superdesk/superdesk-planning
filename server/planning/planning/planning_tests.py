@@ -31,8 +31,8 @@ class DuplicateCoverageTestCase(TestCase):
 
     def test_duplicate(self):
         with self.app.app_context():
-            updated_plan, new_coverage = get_resource_service('planning').\
-                duplicate_coverage('plan1', 'cov1', {
+            updated_plan, new_coverage = get_resource_service('planning'). \
+                duplicate_coverage_for_article_rewrite('plan1', 'cov1', {
                     'planning': {
                         'slugline': 'new slugline',
                         'scheduled': '2029-10-13T15:00.000Z'
@@ -59,7 +59,7 @@ class DuplicateCoverageTestCase(TestCase):
     def test_duplicate_coverage_not_found(self):
         with self.app.app_context():
             try:
-                get_resource_service('planning').duplicate_coverage('plan1', 'cov2', {})
+                get_resource_service('planning').duplicate_coverage_for_article_rewrite('plan1', 'cov2', {})
             except SuperdeskApiError as e:
                 self.assertEquals(e.status_code, 400)
                 self.assertEquals(e.message, 'Coverage does not exist')
@@ -70,7 +70,7 @@ class DuplicateCoverageTestCase(TestCase):
     def test_duplicate_planning_not_found(self):
         with self.app.app_context():
             try:
-                get_resource_service('planning').duplicate_coverage('plan2', 'cov1', {})
+                get_resource_service('planning').duplicate_coverage_for_article_rewrite('plan2', 'cov1', {})
             except SuperdeskApiError as e:
                 self.assertEquals(e.status_code, 400)
                 self.assertEquals(e.message, 'Planning does not exist')

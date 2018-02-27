@@ -204,7 +204,8 @@ Feature: Assignment link
                 "assigned_to": {
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#"
-                }
+                },
+                "workflow_status": "active"
             }]
         }
         """
@@ -243,7 +244,8 @@ Feature: Assignment link
                     },
                     "assigned_to": {
                         "assignment_id": "#firstassignment#"
-                    }
+                    },
+                    "workflow_status": "active"
                 },
                 {
                     "planning": {
@@ -254,7 +256,8 @@ Feature: Assignment link
                     "assigned_to": {
                         "desk": "#desks._id#",
                         "user": "#CONTEXT_USER_ID#"
-                    }
+                    },
+                    "workflow_status": "active"
                 }
             ]
         }
