@@ -80,11 +80,7 @@ export const validateCoverages = (dispatch, getState, field, value, profile, err
 };
 
 const validateCoverageScheduleDate = (dispatch, getState, field, value, profile, errors) => {
-    if (!profile.schema.scheduled) {
-        return;
-    }
-
-    if (profile.schema.scheduled.required && !value) {
+    if (get(profile, 'schema.scheduled.required') && !value) {
         errors[field] = gettext('Required');
         return;
     }
@@ -111,6 +107,7 @@ export const validators = {
         dates: [eventValidators.validateDates],
     },
     planning: {
+        planning_date: [formProfile],
         agendas: [formProfile],
         anpa_category: [formProfile],
         description_text: [formProfile],

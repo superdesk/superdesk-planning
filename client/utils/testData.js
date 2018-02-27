@@ -532,6 +532,7 @@ export const plannings = [
         _id: 'p1',
         _type: 'planning',
         slugline: 'Planning1',
+        planning_date: '2016-10-15T13:01:11',
         headline: 'Some Plan 1',
         state: 'draft',
         coverages: [
@@ -583,6 +584,7 @@ export const plannings = [
         _id: 'p2',
         _type: 'planning',
         slugline: 'Planning2',
+        planning_date: '2016-10-15T13:01:11',
         headline: 'Some Plan 2',
         event_item: 'e1',
         coverages: [

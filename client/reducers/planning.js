@@ -35,6 +35,7 @@ const modifyPlanningsBeingAdded = (state, payload) => {
     plannings = cloneDeep(get(state, 'plannings'));
     // add to state.plannings, use _id as key
     plans.forEach((planning) => {
+        planning.planning_date = moment(planning.planning_date);
         // Make sure that the Planning item has the coverages array
         planning.coverages = get(planning, 'coverages', []);
         modifyCoveragesForPlanning(planning);

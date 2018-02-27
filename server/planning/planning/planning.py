@@ -171,14 +171,11 @@ class PlanningService(superdesk.Service):
         :param dict doc: planning document
         """
 
-        doc['_planning_date'] = utcnow()
-
         event_id = doc.get('event_item')
         event = {}
         if event_id:
             event = get_resource_service('events').find_one(req=None, _id=event_id)
             if event:
-                doc['_planning_date'] = event.get('dates', {}).get('start')
                 if event.get('recurrence_id'):
                     doc['recurrence_id'] = event.get('recurrence_id')
 
@@ -314,8 +311,8 @@ class PlanningService(superdesk.Service):
     def set_planning_schedule(self, updates, original=None):
         """This set the list of schedule based on the coverage and planning.
 
-        Sorting currently works on two fields "_planning_date" and "scheduled" date.
-        "_planning_date" is stored on the planning and is equal to event start date for planning items
+        Sorting currently works on two fields "planning_date" and "scheduled" date.
+        "planning_date" is stored on the planning and is equal to event start date for planning items
         created from event or current date for adhoc planning item
         "scheduled" is stored on the coverage nested document and it is optional.
         Hence to sort and filter planning based on these two dates a
@@ -326,7 +323,7 @@ class PlanningService(superdesk.Service):
         """
 
         coverages = updates.get('coverages') or (original or {}).get('coverages') or []
-        planning_date = updates.get('_planning_date') or (original or {}).get('_planning_date') or utcnow()
+        planning_date = updates.get('planning_date') or (original or {}).get('planning_date') or utcnow()
 
         add_default_schedule = True
         schedule = []
@@ -720,10 +717,10 @@ planning_schema = {
             }
         }
     },
-    # date to hold the event date when planning item is created from event or _created
-    '_planning_date': {
+
+    'planning_date': {
         'type': 'datetime',
-        'nullable': True
+        "nullable": False,
     },
 
     'flags': {
@@ -777,6 +774,6 @@ class PlanningResource(superdesk.Resource):
     privileges = {'POST': 'planning_planning_management',
                   'PATCH': 'planning_planning_management',
                   'DELETE': 'planning'}
-    etag_ignore_fields = ['_planning_schedule', '_planning_date']
+    etag_ignore_fields = ['_planning_schedule']
 
     mongo_indexes = {'event_item': ([('event_item', 1)], {'background': True})}

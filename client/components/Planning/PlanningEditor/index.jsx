@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import moment from 'moment';
 import {get, cloneDeep, remove as _remove, some, isEqual} from 'lodash';
 import * as selectors from '../../../selectors';
 
@@ -14,6 +15,7 @@ import {
     ToggleInput,
     ColouredValueInput,
     Field,
+    DateTimeInput,
 } from '../../UI/Form';
 import {ToggleBox} from '../../UI';
 
@@ -37,32 +39,39 @@ export class PlanningEditorComponent extends React.Component {
         this.onChange = this.onChange.bind(this);
         this.onDuplicateCoverage = this.onDuplicateCoverage.bind(this);
         this.onCancelCoverage = this.onCancelCoverage.bind(this);
-        this.createNewPlanningFromNewsItem = this.createNewPlanningFromNewsItem.bind(this);
+        this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
     }
 
     componentWillMount() {
-        if (!this.props.addNewsItemToPlanning ||
-            (get(this.props, 'item._id') && !planningUtils.isLockedForAddToPlanning(this.props.item))) {
-            return;
-        }
-
-        // If we are creating a new planning item for 'add-to-planning'
-        if (!get(this.props, 'item._id')) {
-            const newPlanning = this.createNewPlanningFromNewsItem();
-
-            this.props.onChangeHandler(null, newPlanning);
+        if (!this.props.addNewsItemToPlanning) {
+            // Creating a new planning item from planning module
+            if (!get(this.props, 'item._id')) {
+                this.props.onChangeHandler('planning_date', moment());
+            }
         } else {
-            let dupItem = cloneDeep(this.props.item);
+            // In add-to-planning modal
+            if (get(this.props, 'item._id') && !planningUtils.isLockedForAddToPlanning(this.props.item)) {
+                return;
+            }
 
-            dupItem.coverages.push(planningUtils.createCoverageFromNewsItem(
-                this.props.addNewsItemToPlanning,
-                this.props.newsCoverageStatus,
-                this.props.desk,
-                this.props.user,
-                this.props.contentTypes));
+            // If we are creating a new planning item for 'add-to-planning'
+            if (!get(this.props, 'item._id')) {
+                const newPlanning = this.createNewPlanningFromNewsItem();
 
-            // reset the object to trigger a save
-            this.props.onChangeHandler(null, dupItem);
+                this.props.onChangeHandler(null, newPlanning);
+            } else {
+                let dupItem = cloneDeep(this.props.item);
+
+                dupItem.coverages.push(planningUtils.createCoverageFromNewsItem(
+                    this.props.addNewsItemToPlanning,
+                    this.props.newsCoverageStatus,
+                    this.props.desk,
+                    this.props.user,
+                    this.props.contentTypes));
+
+                // reset the object to trigger a save
+                this.props.onChangeHandler(null, dupItem);
+            }
         }
     }
 
@@ -224,6 +233,10 @@ export class PlanningEditorComponent extends React.Component {
         }
     }
 
+    onPlanningDateChange(field, value) {
+        this.onChange('planning_date', value);
+    }
+
     render() {
         const {
             item,
@@ -304,6 +317,18 @@ export class PlanningEditorComponent extends React.Component {
                         label={gettext('Slugline')}
                         refNode={(node) => this.dom.slugline = node}
                         {...fieldProps}
+                    />
+
+                    <Field
+                        component={DateTimeInput}
+                        field="planning_date"
+                        label={gettext('Planning Date')}
+                        timeFormat={timeFormat}
+                        dateFormat={dateFormat}
+                        defaultValue={null}
+                        row={false}
+                        {...fieldProps}
+                        onChange={this.onPlanningDateChange}
                     />
 
                     <Field

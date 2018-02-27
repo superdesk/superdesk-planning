@@ -140,7 +140,8 @@ export const CoverageEditor = ({
             openItemTopBar={coverageTopBar}
             openItem={coverageForm}
             scrollInView={true}
-            isOpen={openComponent || isEqual(value, COVERAGES.DEFAULT_VALUE(newsCoverageStatus, props.diff))}
+            isOpen={openComponent || !props.item._id ||
+                isEqual(value, COVERAGES.DEFAULT_VALUE(newsCoverageStatus, props.item))}
             invalid={invalid}
             tabEnabled
         />

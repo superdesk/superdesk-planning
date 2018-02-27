@@ -485,7 +485,7 @@ const getPlanningByDate = (plansInList, events, startDate, endDate) => {
 
         plan.event = get(events, get(plan, 'event_item'));
         plan.coverages.forEach((coverage) => {
-            groupDate = moment(get(coverage, 'planning.scheduled', plan._planning_date));
+            groupDate = moment(get(coverage, 'planning.scheduled', plan.planning_date));
 
             if (!isDateInRange(groupDate, startDate, endDate)) {
                 return;

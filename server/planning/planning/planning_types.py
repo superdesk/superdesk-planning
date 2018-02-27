@@ -14,6 +14,19 @@ import superdesk.schema as schema
 from superdesk.utils import ListCursor
 
 
+class DateTimeField(schema.SchemaField):
+    """Dict schema field."""
+
+    def __repr__(self):
+        return 'datetime'
+
+    def __init__(self, required=False, schema=None):
+        """Initialize"""
+        super().__init__()
+        self.schema['type'] = 'datetime'
+        self.schema['required'] = required
+
+
 class BaseSchema(schema.Schema):
     slugline = schema.StringField()
 
@@ -57,6 +70,7 @@ class PlanningSchema(BaseSchema):
     The planning schema used to validate the planning form
     """
 
+    planning_date = DateTimeField(required=True)
     slugline = schema.StringField(required=True)
     place = schema.ListField()
     anpa_category = schema.ListField()
@@ -115,6 +129,7 @@ DEFAULT_EDITOR = [{
     {
         'name': 'planning',
         'editor': {
+            'planning_date': {'enabled': True},
             'slugline': {'enabled': True},
             'place': {'enabled': False},
             'anpa_category': {'enabled': True},

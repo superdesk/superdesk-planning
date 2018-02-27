@@ -241,6 +241,7 @@ const _createPlanningFromEvent = (event) => (
         return dispatch(planning.api.save({
             event_item: event._id,
             slugline: event.slugline,
+            planning_date: event.dates.start,
             headline: event.name,
             place: event.place,
             subject: event.subject,
