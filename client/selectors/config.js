@@ -11,6 +11,9 @@ export const getTimeFormat = (state) =>
 export const getMaxRecurrentEvents = (state) =>
     get(state, 'deployConfig.max_recurrent_events', 200);
 
+export const getDefaultGenre = (state) =>
+    get(state, 'deployConfig.default_genre', [{}])[0];
+
 export const getServerUrl = (state) => get(state, 'config.server.url');
 
 export const getStreetMapUrl = (state) =>

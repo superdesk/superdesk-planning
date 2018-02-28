@@ -34,6 +34,7 @@ export const CoverageEditor = ({
     message,
     invalid,
     openComponent,
+    defaultGenre,
     ...props,
 }) => {
     // Coverage item actions
@@ -138,6 +139,7 @@ export const CoverageEditor = ({
             invalid={invalid}
             currentWorkspace={currentWorkspace}
             hasAssignment={planningUtils.isCoverageAssigned(value)}
+            defaultGenre={defaultGenre}
             {...props}
         />
     );
@@ -189,6 +191,7 @@ CoverageEditor.propTypes = {
     showErrors: PropTypes.bool,
     invalid: PropTypes.bool,
     openComponent: PropTypes.bool,
+    defaultGenre: PropTypes.object,
 };
 
 CoverageEditor.defaultProps = {
