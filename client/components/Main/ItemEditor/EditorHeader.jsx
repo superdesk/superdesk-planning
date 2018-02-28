@@ -67,6 +67,7 @@ export class EditorHeader extends React.Component {
             onPublish,
             onSaveAndPublish,
             onUnpublish,
+            onSaveUnpublish,
             minimize,
             submitting,
             dirty,
@@ -153,7 +154,7 @@ export class EditorHeader extends React.Component {
                         <Button
                             hollow={true}
                             disabled={submitting}
-                            onClick={onUnpublish}
+                            onClick={dirty ? onSaveUnpublish : onUnpublish}
                             text={dirty ? gettext('Save & Unpublish') : gettext('Unpublish')}
                         />
                     )}
@@ -220,6 +221,7 @@ EditorHeader.propTypes = {
     onPublish: PropTypes.func.isRequired,
     onSaveAndPublish: PropTypes.func.isRequired,
     onUnpublish: PropTypes.func.isRequired,
+    onSaveUnpublish: PropTypes.func.isRequired,
     cancel: PropTypes.func.isRequired,
     minimize: PropTypes.func.isRequired,
     submitting: PropTypes.bool.isRequired,

@@ -46,16 +46,16 @@ Feature: Events Publish
                 "pubstatus": "usable",
                 "items": [{
                     "id": "#EVENT1._id#",
-                    "etag": "#EVENT1._etag#"
+                    "etag": "__any_value__"
                 }, {
                     "id": "#EVENT2._id#",
-                    "etag": "#EVENT2._etag#"
+                    "etag": "__any_value__"
                 }, {
                     "id": "#EVENT3._id#",
-                    "etag": "#EVENT3._etag#"
+                    "etag": "__any_value__"
                 }, {
                     "id": "#EVENT4._id#",
-                    "etag": "#EVENT4._etag#"
+                    "etag": "__any_value__"
                 }]
             }
         }]
@@ -140,13 +140,13 @@ Feature: Events Publish
                 "pubstatus": "usable",
                 "items": [{
                     "id": "#EVENT2._id#",
-                    "etag": "#EVENT2._etag#"
+                    "etag": "__any_value__"
                 }, {
                     "id": "#EVENT3._id#",
-                    "etag": "#EVENT3._etag#"
+                    "etag": "__any_value__"
                 }, {
                     "id": "#EVENT4._id#",
-                    "etag": "#EVENT4._etag#"
+                    "etag": "__any_value__"
                 }]
             }
         }]

@@ -154,13 +154,12 @@ const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (event) => dispatch(actions.events.ui.saveAndPublish(
         event,
-        get(event, '_save', true)
-    )).then(() => {
-        dispatch({
-            type: EVENTS.ACTIONS.UNLOCK_EVENT,
-            payload: {event},
-        });
-    }),
+        {
+            save: get(event, '_save', true),
+            publish: false,
+            unpublish: false,
+        }
+    )),
 
     onHide: (event) => {
         if (event.lock_action === EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.lock_action) {

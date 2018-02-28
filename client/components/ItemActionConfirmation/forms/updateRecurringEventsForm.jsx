@@ -124,8 +124,11 @@ const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (event) => dispatch(actions.events.ui.saveAndPublish(
         event,
-        get(event, '_save', true),
-        get(event, '_publish', false)
+        {
+            save: get(event, '_save', true),
+            publish: get(event, '_publish', false),
+            unpublish: get(event, '_unpublish', false),
+        }
     )),
 });
 
