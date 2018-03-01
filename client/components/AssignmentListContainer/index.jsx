@@ -119,6 +119,7 @@ export class AssignmentListContainerComponent extends React.Component {
                                 loadMoreAssignments={this.props.loadMoreAssignments}
                                 changeAssignmentListSingleGroupView={changeAssignmentListSingleGroupView.bind(
                                     this, groupKey)}
+                                inAuthoring={inAuthoring}
                             />
                         </div>)) }
                     </div>
@@ -135,12 +136,16 @@ export class AssignmentListContainerComponent extends React.Component {
                             loadMoreAssignments={this.props.loadMoreAssignments}
                             changeAssignmentListSingleGroupView={changeAssignmentListSingleGroupView.bind(
                                 this, assignmentListSingleGroupView)}
+                            inAuthoring={inAuthoring}
                         />
                     </div>
                 )
 
                 }
-                <AssignmentPanelContainer previewOpened={previewOpened}/>
+                <AssignmentPanelContainer
+                    previewOpened={previewOpened}
+                    inAuthoring={inAuthoring}
+                />
             </div>
         );
     }

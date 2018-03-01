@@ -1,19 +1,26 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Modal} from '../index';
-import {default as PlanningApp} from '../../planning';
-import {Button} from 'react-bootstrap';
 import {connect} from 'react-redux';
+
+import {Modal} from '../index';
+import {Button} from '../UI';
+import {default as PlanningApp} from '../../planning';
+import {ArchiveItem} from '../Archive';
+
 import * as selectors from '../../selectors';
-import {Row} from '../UI/Preview';
+import {gettext} from '../../utils';
+
 import './style.scss';
-import {get} from 'lodash';
+
 
 export function AddToPlanningComponent({
     handleHide,
     modalProps,
     currentWorkspace,
     actionInProgress,
+    priorities,
+    urgencies,
+    urgencyLabel,
 }) {
     const {newsItem, $scope} = modalProps;
 
@@ -26,9 +33,6 @@ export function AddToPlanningComponent({
         return null;
     }
 
-    const slugline = get(newsItem, 'slugline', '');
-    const headline = get(newsItem, 'headline', '');
-
     return (
         <Modal
             show={true}
@@ -39,37 +43,30 @@ export function AddToPlanningComponent({
                 {!actionInProgress && <a className="close" onClick={handleCancel}>
                     <i className="icon-close-small" />
                 </a>}
-                <h3>Add to Planning</h3>
+                <h3>{gettext('Add to Planning')}</h3>
             </Modal.Header>
 
-            <Modal.Body>
+            <Modal.Body
+                noPadding={true}
+                fullHeight={true}
+            >
                 <div className="AddToPlanning">
-                    <div>
-                        <div className="MetadataView">
-                            <Row
-                                label={gettext('Slugline')}
-                                value={slugline}
-                                className="slugline"
-                                noPadding={true}
-                            />
-                            <Row
-                                label={gettext('Headline')}
-                                value={headline}
-                                className="strong"
-                                noPadding={true}
-                            />
-
-                        </div>
-                    </div>
+                    <ArchiveItem
+                        item={newsItem}
+                        priorities={priorities}
+                        urgencies={urgencies}
+                        urgencyLabel={urgencyLabel}
+                    />
                     <PlanningApp addNewsItemToPlanning={newsItem}/>
                 </div>
             </Modal.Body>
 
             <Modal.Footer>
                 <Button
-                    type="button"
+                    text={gettext('Cancel')}
                     disabled={actionInProgress}
-                    onClick={handleCancel}>Cancel</Button>
+                    onClick={handleCancel}
+                />
             </Modal.Footer>
         </Modal>
     );
@@ -83,11 +80,17 @@ AddToPlanningComponent.propTypes = {
     }),
     currentWorkspace: PropTypes.string,
     actionInProgress: PropTypes.boolean,
+    priorities: PropTypes.array,
+    urgencies: PropTypes.array,
+    urgencyLabel: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
     currentWorkspace: selectors.getCurrentWorkspace(state),
     actionInProgress: selectors.getModalActionInProgress(state),
+    priorities: selectors.getArchivePriorities(state),
+    urgencies: selectors.getUrgencies(state),
+    urgencyLabel: selectors.vocabs.urgencyLabel(state),
 });
 
 export const AddToPlanningModal = connect(

@@ -6,7 +6,7 @@ import {get, keyBy} from 'lodash';
 import {UrgencyLabel, Label} from '../../components';
 import {TermsList} from '../UI';
 
-export const PlanningPreview = ({urgencyLabel, item, formProfile, agendas}) => {
+export const PlanningPreview = ({urgencyLabel, item, formProfile, agendas, urgencies}) => {
     const agendaMap = keyBy(agendas, '_id');
     const agendaAssigned = (get(item, 'agendas') || []).map((agendaId) => {
         let agenda = get(agendaMap, agendaId);
@@ -84,7 +84,11 @@ export const PlanningPreview = ({urgencyLabel, item, formProfile, agendas}) => {
                         {urgencyLabel}
                     </label>
                     {get(item, 'urgency') &&
-                        <UrgencyLabel item={item} />
+                        <UrgencyLabel
+                            item={item}
+                            urgencies={urgencies}
+                            label={urgencyLabel}
+                        />
                     ||
                         <p>-</p>
                     }
@@ -106,4 +110,5 @@ PlanningPreview.propTypes = {
     item: PropTypes.object,
     formProfile: PropTypes.object,
     agendas: PropTypes.array,
+    urgencies: PropTypes.array,
 };

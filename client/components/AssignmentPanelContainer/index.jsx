@@ -38,6 +38,7 @@ export class AssignmentPanel extends React.Component {
             assignment,
             users,
             unlockAssignment,
+            inAuthoring,
         } = this.props;
 
         const hasContent = assignmentUtils.assignmentHasContent(assignment);
@@ -54,8 +55,11 @@ export class AssignmentPanel extends React.Component {
             <div className={classNames(
                 'sd-preview-panel',
                 'content-item-preview',
-                {hidden: !previewOpened},
-                {AssignmentPanelContainer: previewOpened}
+                {
+                    hidden: !previewOpened,
+                    AssignmentPanelContainer: previewOpened,
+                    'AssignmentPanelContainer--in-authoring': previewOpened && inAuthoring
+                }
             )}>
                 {previewOpened &&
                     <div className="side-panel side-panel--shadow-right">
@@ -135,7 +139,10 @@ AssignmentPanel.propTypes = {
         PropTypes.object,
     ]),
     unlockAssignment: PropTypes.func,
+    inAuthoring: PropTypes.bool,
 };
+
+AssignmentPanel.defaultProps = {inAuthoring: false};
 
 const mapStateToProps = (state) => ({
     assignment: selectors.getCurrentAssignment(state),

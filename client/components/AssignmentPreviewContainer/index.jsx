@@ -85,6 +85,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
             eventItem,
             urgencyLabel,
             priorities,
+            urgencies,
             keywords,
             formProfile,
             agendas
@@ -247,6 +248,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
                             item={planningItem}
                             formProfile={formProfile.planning}
                             agendas={agendas}
+                            urgencies={urgencies}
                         />
                     </ToggleBox>
                 </div>
@@ -286,6 +288,7 @@ AssignmentPreviewContainerComponent.propTypes = {
     eventItem: PropTypes.object,
     urgencyLabel: PropTypes.string,
     priorities: PropTypes.array,
+    urgencies: PropTypes.array,
     privileges: PropTypes.object,
     keywords: PropTypes.array,
     formProfile: PropTypes.object,
@@ -305,8 +308,9 @@ const mapStateToProps = (state) => ({
     planningItem: selectors.getCurrentAssignmentPlanningItem(state),
     eventItem: selectors.getCurrentAssignmentEventItem(state),
 
-    urgencyLabel: get(state, 'urgency.label', 'Urgency'),
     priorities: get(state, 'vocabularies.assignment_priority'),
+    urgencyLabel: selectors.vocabs.urgencyLabel(state),
+    urgencies: selectors.getUrgencies(state),
     privileges: selectors.getPrivileges(state),
     keywords: get(state, 'vocabularies.keywords', []),
     formProfile: selectors.forms.profiles(state),

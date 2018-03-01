@@ -530,6 +530,8 @@ export const getItemType = (item) => {
         return ITEM_TYPE.PLANNING;
     } else if (itemType === ITEM_TYPE.ASSIGNMENT) {
         return ITEM_TYPE.ASSIGNMENT;
+    } else if (itemType === ITEM_TYPE.ARCHIVE) {
+        return ITEM_TYPE.ARCHIVE;
     }
 
     return ITEM_TYPE.UNKNOWN;

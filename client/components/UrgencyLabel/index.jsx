@@ -1,11 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
 import classNames from 'classnames';
 import {get} from 'lodash';
-import * as selectors from '../../selectors';
 
-const UrgencyLabelComponent = ({item, urgencies, label, tooltipFlow}) => {
+export const UrgencyLabel = ({item, urgencies, label, tooltipFlow, className}) => {
     const qcode = get(item, 'urgency', null);
 
     if (!qcode) {
@@ -18,7 +16,8 @@ const UrgencyLabelComponent = ({item, urgencies, label, tooltipFlow}) => {
         <span
             className={classNames(
                 'urgency-label',
-                'urgency-label--' + qcode
+                'urgency-label--' + qcode,
+                className
             )}
             data-sd-tooltip={label + ': ' + urgency.name}
             data-flow={tooltipFlow}
@@ -28,21 +27,12 @@ const UrgencyLabelComponent = ({item, urgencies, label, tooltipFlow}) => {
     );
 };
 
-UrgencyLabelComponent.propTypes = {
+UrgencyLabel.propTypes = {
     item: PropTypes.object,
     urgencies: PropTypes.array,
     label: PropTypes.string,
     tooltipFlow: PropTypes.oneOf(['up', 'right', 'down', 'left']),
+    className: PropTypes.string,
 };
 
-UrgencyLabelComponent.defaultProps = {tooltipFlow: 'right'};
-
-const mapStateToProps = (state) => ({
-    label: get(state, 'urgency.label', 'Urgency'),
-    urgencies: selectors.getUrgencies(state),
-});
-
-export const UrgencyLabel = connect(
-    mapStateToProps,
-    null
-)(UrgencyLabelComponent);
+UrgencyLabel.defaultProps = {tooltipFlow: 'right'};
