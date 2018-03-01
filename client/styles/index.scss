@@ -1,5 +1,6 @@
 @import '~superdesk-core/styles/sass/mixins.scss';
 @import '~superdesk-core/styles/sass/variables.scss';
+@import '~superdesk-ui-framework/app/styles/variables/_colors.scss';
 
 @mixin absolute0 {
     position: absolute;
@@ -101,4 +102,13 @@
 
 .icon--gray {
   color: $grayLight;
+}
+
+.icon--yellow {
+  color: $oldGold;
+}
+
+.icn-mix__sub-icn--gray {
+  color: $grayLight !important;
+  background-color: transparent !important;
 }

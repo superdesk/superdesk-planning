@@ -619,7 +619,8 @@ Feature: Planning
                   "news_coverage_status": {
                       "name" : "coverage intended",
                       "qcode" : "ncostat:int"
-                  }
+                  },
+                  "workflow_status": "active"
               }
           ]
         }
@@ -648,7 +649,8 @@ Feature: Planning
                       "desk": "desk_123",
                       "user": "507f191e810c19729de870eb",
                       "assignment_id": "#firstassignment#"
-                  }
+                  },
+                  "workflow_status": "active"
               }
           ]
         }
@@ -666,7 +668,8 @@ Feature: Planning
           },
           "assigned_to": {
               "desk": "desk_123",
-              "user": "507f191e810c19729de870eb"
+              "user": "507f191e810c19729de870eb",
+              "state": "assigned"
           }
         }
         """
@@ -680,19 +683,42 @@ Feature: Planning
                       "ednote": "test coverage, I want 250 words",
                       "headline": "test headline",
                       "slugline": "test slugline",
-                      "scheduled": "2029-11-21T14:00:00.000Z",
                       "g2_content_type": "text",
                       "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
                   },
                   "news_coverage_status": {
                       "name" : "coverage not intended",
                       "qcode" : "ncostat:notint"
-                  }
+                  },
+                  "assigned_to": {
+                      "desk": "desk_123",
+                      "user": "507f191e810c19729de870eb",
+                      "assignment_id": "#firstassignment#"
+                  },
+                  "workflow_status": "cancelled"
               }
           ]
         }
         """
         Then we get OK response
+        When we get "/assignments/#firstassignment#"
+        Then we get OK response
+        Then we get existing resource
+        """
+        {
+          "_id": "#firstassignment#",
+          "planning": {
+              "ednote": "test coverage, I want 250 words",
+              "headline": "test headline",
+              "slugline": "test slugline"
+          },
+          "assigned_to": {
+              "desk": "desk_123",
+              "user": "507f191e810c19729de870eb",
+              "state": "cancelled"
+          }
+        }
+        """
         When we get "activity"
         Then we get list with 3 items
         """
@@ -728,7 +754,8 @@ Feature: Planning
                   "news_coverage_status": {
                       "name" : "coverage not intended",
                       "qcode" : "ncostat:notint"
-                  }
+                  },
+                  "workflow_status": "cancelled"
               }
           ]
         }
@@ -767,7 +794,8 @@ Feature: Planning
                       "name" : "coverage not intended",
                       "qcode" : "ncostat:notint"
                   },
-                  "assigned_to": { "state": "cancelled" }
+                  "assigned_to": { "state": "cancelled" },
+                  "workflow_status": "cancelled"
               }
           ]
         }

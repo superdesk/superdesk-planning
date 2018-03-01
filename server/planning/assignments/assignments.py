@@ -364,7 +364,8 @@ class AssignmentsService(superdesk.Service):
 
         :param dict doc: Updates related to assignments
         """
-        if not assignment:
+        # No notifications for 'draft' assignments
+        if not assignment or self.is_assignment_draft(assignment, {}):
             return
 
         user = get_user()
@@ -420,7 +421,7 @@ class AssignmentsService(superdesk.Service):
             get_resource_service('assignments_history').on_item_updated(updated_assignment,
                                                                         original_assignment,
                                                                         'cancelled')
-            self.send_assignment_cancellation_notification(original_assignment, event_cancellation)
+            self.send_assignment_cancellation_notification(updated_assignment, event_cancellation)
 
     def _get_empty_updates_for_assignment(self, assignment):
         updated_assignment = {'assigned_to': {}}

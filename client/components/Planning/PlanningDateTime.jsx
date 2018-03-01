@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
-import {OverlayTrigger, Tooltip} from 'react-bootstrap';
+
+
 import {get} from 'lodash';
 import moment from 'moment';
 
-import {getCoverageIcon, planningUtils, getItemInArrayById, gettext} from '../../utils/index';
+import {planningUtils} from '../../utils/index';
+import {CoverageIcon} from '../Coverages/';
 
 export const PlanningDateTime = ({item, date, timeFormat, users, desks}) => {
     const coverages = get(item, 'coverages', []);
@@ -39,36 +40,26 @@ export const PlanningDateTime = ({item, date, timeFormat, users, desks}) => {
             coveragesToDisplay.push(coverage);
         });
 
-    const getCoverageElement = (coverage, i, withoutTime = false) => {
-        const user = getItemInArrayById(users, get(coverage, 'assigned_to.user'));
-        const desk = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
-        const timeSuffix = withoutTime ? null :
-            (<span key={1}>: {moment(coverage.planning.scheduled).format(timeFormat)} </span>);
-        const assignmentStr = desk ? 'Desk: ' + desk.name : 'Unassigned';
-
-        return ([<OverlayTrigger
-            key={0}
-            placement="bottom"
-            overlay={
-                <Tooltip id={i}>
-                    {gettext(assignmentStr)}
-                    <br />
-                    {user && gettext('User: ' + user.display_name)}
-                </Tooltip>
-            }>
-            <i
-                className={classNames(
-                    getCoverageIcon(coverage.g2_content_type),
-                    coverage.iconColor,
-                    {'sd-list-item__inline-icon': withoutTime}
-                )} />
-        </OverlayTrigger>, timeSuffix]);
-    };
-
     return (
         <span className="sd-no-wrap">
-            {coveragesToDisplay.map((coverage, i) => getCoverageElement(coverage, i))}
-            {coveragesWithoutTimes.map((coverage, i) => (getCoverageElement(coverage, i, true)))}
+            {coveragesToDisplay.map((coverage, i) =>
+                <CoverageIcon
+                    key={i}
+                    users={users}
+                    desks={desks}
+                    timeFormat={timeFormat}
+                    coverage={coverage}
+                    withTooltip={true} />
+            )}
+            {coveragesWithoutTimes.map((coverage, i) =>
+                <CoverageIcon
+                    key={i}
+                    users={users}
+                    desks={desks}
+                    timeFormat={timeFormat}
+                    coverage={coverage}
+                    withTooltip={true}
+                    withoutTime={true} />)}
         </span>
     );
 };

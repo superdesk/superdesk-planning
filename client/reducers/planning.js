@@ -487,6 +487,10 @@ Coverage ${action}
         coverage.news_coverage_status = payload.coverage_state;
     }
 
+    if (action === WORKFLOW_STATE.CANCELLED) {
+        coverage.workflow_status = WORKFLOW_STATE.CANCELLED;
+    }
+
     coverage.planning.internal_note = note;
 };
 

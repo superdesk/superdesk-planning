@@ -14,7 +14,7 @@ import {List} from '../UI';
 import classNames from 'classnames';
 import moment from 'moment';
 import {get} from 'lodash';
-import {getCoverageIcon, assignmentUtils, gettext} from '../../utils/index';
+import {planningUtils, assignmentUtils, gettext} from '../../utils/index';
 import {ASSIGNMENTS} from '../../constants';
 import './style.scss';
 
@@ -75,7 +75,7 @@ export const AssignmentItem = ({
             state={isItemLocked ? 'locked' : null}
         >
             <List.Column>
-                <i className={getCoverageIcon(assignment.planning.g2_content_type)} />
+                <i className={planningUtils.getCoverageIcon(assignment.planning.g2_content_type)} />
             </List.Column>
             <List.Column grow={true} border={false}>
                 <List.Row>

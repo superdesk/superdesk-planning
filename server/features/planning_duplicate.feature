@@ -179,3 +179,98 @@ Feature: Duplicate Planning
         [{}]
         """
         Then we get OK response
+
+
+    @auth @notification
+    Scenario: Coverage workflow_status defaults to draft on duplication item
+        When we post to "planning" with success
+        """
+        [{
+            "guid": "123",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "state": "scheduled",
+            "pubstatus": "usable"
+        }]
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00.000Z",
+                        "g2_content_type": "text"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb"
+                    },
+                    "workflow_status": "active"
+                }
+            ]
+        }
+        """
+        When we post to "/planning/123/duplicate"
+        """
+        [{}]
+        """
+        Then we get OK response
+        When we get "/planning/123"
+        Then we get existing resource
+        """
+        {
+            "_id": "123",
+            "guid": "123",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "coverages": [
+                {
+                    "coverage_id": "__any_value__",
+                    "planning": {
+                        "ednote": "test coverage, 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "2029-11-21T14:00:00+0000",
+                        "g2_content_type": "text"
+                    },
+                    "assigned_to": {
+                        "desk": "Politic Desk",
+                        "user": "507f191e810c19729de870eb",
+                        "assignment_id": "__any_value__"
+                    },
+                    "workflow_status": "active"
+                }
+            ]
+        }
+        """
+        When we get "/planning/#duplicate._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#duplicate._id#",
+            "guid": "#duplicate._id#",
+            "headline": "test headline",
+            "slugline": "test slugline",
+            "state": "draft",
+            "pubstatus": "__no_value__",
+            "coverages": [
+                {
+                    "planning": {
+                        "ednote": "test coverage, 250 words",
+                        "headline": "test headline",
+                        "slugline": "test slugline",
+                        "scheduled": "__no_value__",
+                        "g2_content_type": "text"
+                    },
+                    "assigned_to": {},
+                    "workflow_status": "draft"
+                }
+            ]
+        }
+        """
