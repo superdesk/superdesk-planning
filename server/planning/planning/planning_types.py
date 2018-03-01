@@ -63,6 +63,7 @@ class EventSchema(BaseSchema):
     calendars = schema.ListField()
     files = schema.ListField()
     links = schema.ListField()
+    dates = schema.DictField()
 
 
 class PlanningSchema(BaseSchema):
@@ -123,7 +124,8 @@ DEFAULT_EDITOR = [{
         'contacts': {'enabled': True},
         'calendars': {'enabled': True},
         'files': {'enabled': True},
-        'links': {'enabled': True}
+        'links': {'enabled': True},
+        'dates': {'enabled': True},
     },
     'schema': dict(EventSchema)},
     {

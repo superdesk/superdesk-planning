@@ -76,11 +76,12 @@ export class EventScheduleInput extends React.Component {
 
     changeStartTime(value) {
         const startDate = get(this.props, 'diff.dates.start');
+        const defaultDurationOnChange = get(this.props.formProfile, 'schema.dates.defaultDurationOnChange', 1);
 
-        if ((startDate && this.state.isAllDay) || !startDate) {
+        if (((startDate && this.state.isAllDay) || !startDate) && defaultDurationOnChange > 0) {
             this.props.onChange(
                 'dates.end',
-                value.clone().add(1, 'h')
+                value.clone().add(defaultDurationOnChange, 'h')
             );
         }
 
@@ -104,11 +105,12 @@ export class EventScheduleInput extends React.Component {
 
     changeEndTime(value) {
         const endDate = get(this.props, 'diff.dates.end');
+        const defaultDurationOnChange = get(this.props.formProfile, 'schema.dates.defaultDurationOnChange', 1);
 
-        if ((endDate && this.state.isAllDay) || !endDate) {
+        if (((endDate && this.state.isAllDay) || !endDate) && defaultDurationOnChange > 0) {
             this.props.onChange(
                 'dates.start',
-                value.clone().subtract(1, 'h')
+                value.clone().subtract(defaultDurationOnChange, 'h')
             );
         }
 
@@ -299,6 +301,7 @@ EventScheduleInput.propTypes = {
     errors: PropTypes.object,
     showErrors: PropTypes.bool,
     dirty: PropTypes.bool,
+    formProfile: PropTypes.object,
 };
 
 EventScheduleInput.defaultProps = {
