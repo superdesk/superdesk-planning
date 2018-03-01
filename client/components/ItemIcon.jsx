@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {ITEM_TYPE} from '../constants';
-import {getItemType, getCoverageIcon, eventUtils, planningUtils} from '../utils';
+import {getItemType, eventUtils, planningUtils} from '../utils';
 
 export const ItemIcon = ({item, big, white, blue, showRepeating}) => {
     const getItemIcon = () => {
@@ -42,7 +42,7 @@ export const ItemIcon = ({item, big, white, blue, showRepeating}) => {
         const archiveIcon = (
             <i className={classNames(
                 'sd-list-item__item-type',
-                getCoverageIcon(item.type),
+                planningUtils.getCoverageIcon(item.type),
                 {
                     'icon--white': white,
                     'icon--blue': blue

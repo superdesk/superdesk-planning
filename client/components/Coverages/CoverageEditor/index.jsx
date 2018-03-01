@@ -73,7 +73,7 @@ export const CoverageEditor = ({
             if (planningUtils.isCoverageDraft(value) && planningUtils.isCoverageAssigned(value)) {
                 itemActions.push({
                     label: gettext('Add to workflow'),
-                    icon: 'icon-plus-small',
+                    icon: 'icon-assign',
                     callback: onAddCoverageToWorkflow.bind(null, value),
                 });
             }

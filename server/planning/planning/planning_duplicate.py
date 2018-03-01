@@ -66,6 +66,7 @@ class PlanningDuplicateService(BaseService):
             cov.pop('assigned_to', None)
             cov.get('planning', {}).pop('scheduled', None)
             cov['coverage_id'] = generate_guid(type=GUID_NEWSML)
+            cov['workflow_status'] = WORKFLOW_STATE.DRAFT
             cov['news_coverage_status'] = {'qcode': 'ncostat:int'}
 
         return new_plan

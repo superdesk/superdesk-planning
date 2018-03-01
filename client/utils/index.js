@@ -11,7 +11,6 @@ import {
     ASSIGNMENTS,
     ITEM_TYPE,
     GENERIC_ITEM_ACTIONS,
-    PLANNING,
     WORKSPACE,
 } from '../constants/index';
 import * as testData from './testData';
@@ -337,23 +336,6 @@ export const getCreator = (item, creator, users) => {
 export const getItemInArrayById = (items, id, field = '_id') => (
     id ? items.find((item) => get(item, field) === id) : null
 );
-
-/**
- * Get the name of associated icon for different coverage types
- * @param {type} coverage types
- * @returns {string} icon name
- */
-export const getCoverageIcon = (type) => {
-    const coverageIcons = {
-        [PLANNING.G2_CONTENT_TYPE.TEXT]: 'icon-text',
-        [PLANNING.G2_CONTENT_TYPE.VIDEO]: 'icon-video',
-        [PLANNING.G2_CONTENT_TYPE.LIVE_VIDEO]: 'icon-video',
-        [PLANNING.G2_CONTENT_TYPE.AUDIO]: 'icon-audio',
-        [PLANNING.G2_CONTENT_TYPE.PICTURE]: 'icon-photo',
-    };
-
-    return get(coverageIcons, type, 'icon-file');
-};
 
 export const isSameItemId = (item1, item2) => get(item1, '_id') === get(item2, '_id');
 export const getItemWorkflowState = (item, field = 'state') => (get(item, field, WORKFLOW_STATE.DRAFT));

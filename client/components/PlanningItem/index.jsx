@@ -7,7 +7,7 @@ import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import classNames from 'classnames';
 import {GENERIC_ITEM_ACTIONS, EVENTS, PLANNING, WORKSPACE} from '../../constants';
 import './style.scss';
-import {getCoverageIcon, planningUtils, isItemCancelled, isItemRescheduled} from '../../utils/index';
+import {planningUtils, isItemCancelled, isItemRescheduled} from '../../utils/index';
 import {getCurrentAgendaId} from '../../selectors';
 
 
@@ -182,7 +182,7 @@ const PlanningItem = ({
                                         {user && ('User: ' + user.display_name)}
                                     </Tooltip>
                                 }>
-                                <i className={getCoverageIcon(c.g2_content_type) + ` ${c.iconColor}`}/>
+                                <i className={planningUtils.getCoverageIcon(c.g2_content_type) + ` ${c.iconColor}`}/>
                             </OverlayTrigger>
                             &nbsp;
                         </span>);

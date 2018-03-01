@@ -68,7 +68,7 @@ const canSpikePlanning = (plan, session, privileges, locks) => (
         !!privileges[PRIVILEGES.SPIKE_PLANNING] &&
         !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isPlanningLockRestricted(plan, session, locks) &&
-        !get(plan, 'coverages', []).find((c) => isCoverageAssigned(c))
+        !get(plan, 'coverages', []).find((c) => isCoverageInWorkflow(c))
 );
 
 const canUnspikePlanning = (plan, event = null, privileges) => (
@@ -132,15 +132,8 @@ export const mapCoverageByDate = (coverages = []) => (
         let coverage = {
             ...c,
             g2_content_type: c.planning.g2_content_type || '',
-            iconColor: '',
             assigned_to: get(c, 'assigned_to'),
         };
-
-        if (get(c, 'planning.scheduled')) {
-            const isAfter = moment(get(c, 'planning.scheduled')).isAfter(moment());
-
-            coverage.iconColor = isAfter ? 'icon--green' : 'icon--red';
-        }
 
         return coverage;
     })
@@ -538,6 +531,52 @@ const isCoverageInWorkflow = (coverage) => !isEmpty(coverage.assigned_to) &&
     get(coverage, 'assigned_to.state') !== WORKFLOW_STATE.DRAFT;
 const formatAgendaName = (agenda) => agenda.is_enabled ? agenda.name : agenda.name + ` - [${gettext('Disabled')}]`;
 
+/**
+ * Get the name of associated icon for different coverage types
+ * @param {type} coverage types
+ * @returns {string} icon name
+ */
+const getCoverageIcon = (type) => {
+    const coverageIcons = {
+        [PLANNING.G2_CONTENT_TYPE.TEXT]: 'icon-text',
+        [PLANNING.G2_CONTENT_TYPE.VIDEO]: 'icon-video',
+        [PLANNING.G2_CONTENT_TYPE.LIVE_VIDEO]: 'icon-video',
+        [PLANNING.G2_CONTENT_TYPE.AUDIO]: 'icon-audio',
+        [PLANNING.G2_CONTENT_TYPE.PICTURE]: 'icon-photo',
+    };
+
+    return get(coverageIcons, type, 'icon-file');
+};
+
+const getCoverageIconColor = (coverage) => {
+    if (get(coverage, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
+        return 'icon--green';
+    } else if (isCoverageDraft(coverage) || get(coverage, 'workflow_status') === WORKFLOW_STATE.ACTIVE) {
+        return 'icon--red';
+    } else if (isCoverageCancelled(coverage)) {
+        // Cancelled
+        return 'icon--yellow';
+    }
+};
+
+const getCoverageWorkflowIcon = (coverage) => {
+    if (get(coverage, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
+        return 'icon-ok';
+    }
+
+    switch (coverage.workflow_status) {
+    case WORKFLOW_STATE.CANCELLED:
+        return 'icon-close-small';
+
+    case WORKFLOW_STATE.DRAFT:
+        return 'icon-assign';
+
+    case WORKFLOW_STATE.ACTIVE:
+        return 'icon-user';
+    }
+};
+
+
 // eslint-disable-next-line consistent-this
 const self = {
     canSpikePlanning,
@@ -567,6 +606,9 @@ const self = {
     isCoverageDraft,
     isCoverageInWorkflow,
     formatAgendaName,
+    getCoverageIcon,
+    getCoverageIconColor,
+    getCoverageWorkflowIcon,
 };
 
 export default self;

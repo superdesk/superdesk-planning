@@ -13,7 +13,7 @@ import * as actions from '../../actions';
 import {
     assignmentUtils,
     getCreator,
-    getCoverageIcon,
+    planningUtils,
     getItemInArrayById,
 } from '../../utils';
 import {ASSIGNMENTS, WORKSPACE} from '../../constants';
@@ -199,7 +199,7 @@ class AssignmentPreviewContainerComponent extends React.Component {
                                         <i
                                             className={classNames(
                                                 'AssignmentPreview__coverage-icon',
-                                                getCoverageIcon(planning.g2_content_type)
+                                                planningUtils.getCoverageIcon(planning.g2_content_type)
                                             )}
                                         />
                                     </span>

@@ -1,14 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
 import {get} from 'lodash';
-import moment from 'moment-timezone';
 
 import {Item, Column, Row, Border, ActionMenu} from '../UI/List';
 import {StateLabel, InternalNoteLabel} from '../../components';
+import {CoverageIcon} from './CoverageIcon';
 
 import {
-    getCoverageIcon,
     getCreator,
     getItemInArrayById,
     getDateTimeString,
@@ -55,14 +53,7 @@ export const CoverageItem = ({
             </Column>}
             <Column grow={true} border={false}>
                 <Row>
-                    <i className={classNames(
-                        getCoverageIcon(get(coverage, 'planning.g2_content_type')),
-                        {
-                            'icon--green': coverageDate && moment(coverageDate).isAfter(moment()),
-                            'icon--red': coverageDate && !moment(coverageDate).isAfter(moment())
-                        },
-                        'sd-list-item__inline-icon'
-                    )}/>
+                    <CoverageIcon coverage={coverage} withoutTime={true} />
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         {stringUtils.capitalize(get(coverage, 'planning.g2_content_type', ''))}
                     </span>

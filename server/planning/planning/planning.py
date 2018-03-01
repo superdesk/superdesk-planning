@@ -410,8 +410,7 @@ class PlanningService(superdesk.Service):
             if updates.get('news_coverage_status') and \
                     updates.get('news_coverage_status').get('qcode') == coverage_cancel_state.get('qcode') and \
                     original.get('news_coverage_status').get('qcode') != coverage_cancel_state.get('qcode'):
-                assignment_service.cancel_assignment(original_assignment, updates)
-                updates.pop('assigned_to', None)
+                self.cancel_coverage(updates, coverage_cancel_state, original_assignment)
                 return
 
             assignment = {}
@@ -435,6 +434,30 @@ class PlanningService(superdesk.Service):
         (updates.get('assigned_to') or {}).pop('desk', None)
         (updates.get('assigned_to') or {}).pop('coverage_provider', None)
         (updates.get('assigned_to') or {}).pop('state', None)
+
+    def cancel_coverage(self, coverage, coverage_cancel_state, assignment=None, note=None,
+                        reason=None, event_cancellation=False):
+        if reason:
+            note += 'Reason: {}\n'.format(reason)
+
+        if note:
+            if not coverage.get('planning'):
+                coverage['planning'] = {}
+            coverage['planning']['internal_note'] = (coverage['planning'].get('internal_note') or '') + '\n\n' + note
+
+        coverage['news_coverage_status'] = coverage_cancel_state
+        coverage['workflow_status'] = WORKFLOW_STATE.CANCELLED
+
+        # Cancel assignment if the coverage has an assignment
+        if coverage.get('assigned_to'):
+            assignment_service = get_resource_service('assignments')
+            if not assignment:
+                assignment = assignment_service.find_one(req=None, _id=coverage['assigned_to'].get('assignment_id'))
+
+            if assignment:
+                assignment_service.cancel_assignment(assignment, coverage, event_cancellation)
+
+            coverage.pop('assigned_to', None)
 
     def duplicate_coverage_for_article_rewrite(self, planning_id, coverage_id, updates):
         planning = self.find_one(req=None, _id=planning_id)
