@@ -102,7 +102,7 @@ class EventsPublishService(EventsBaseService):
             ids.append(event[config.ID_FIELD])
             items.append({
                 'id': event[config.ID_FIELD],
-                'etag': event['_etag']
+                'etag': updated_event['_etag']
             })
 
         event_type = 'events:published:recurring' if doc['pubstatus'] == PUBLISHED_STATE.USABLE \

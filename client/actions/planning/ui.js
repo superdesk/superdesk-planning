@@ -537,22 +537,14 @@ const unpublish = (item) => (
     )
 );
 
-const saveAndPublishPlanning = (item, save = true, publish = false) => (
+const saveAndPublishPlanning = (item, {save = true, publish = false, unpublish = false} = {}) => (
     (dispatch, getState) => {
-        if (!save) {
-            if (publish) {
-                return dispatch(planningApi.publish(item));
-            }
-
-            return Promise.resolve(item);
-        }
-
         const modalType = selectors.getCurrentModalType(getState());
 
         if (modalType === MODALS.ADD_TO_PLANNING) {
-            return dispatch(self.saveFromAuthoring(item, publish));
+            return dispatch(self.saveFromAuthoring(item, {publish, unpublish}));
         } else {
-            return dispatch(self.saveFromPlanning(item, {save, publish}));
+            return dispatch(self.saveFromPlanning(item, {save, publish, unpublish}));
         }
     }
 );
@@ -816,7 +808,7 @@ const saveFromPlanning = (plan, {save = true, publish = false, unpublish = false
     }
 );
 
-const saveFromAuthoring = (plan, publish = false) => (
+const saveFromAuthoring = (plan, {publish = false, unpublish = false} = {}) => (
     (dispatch, getState, {notify}) => {
         const {$scope, newsItem} = selectors.getCurrentModalProps(getState());
         const action = publish ?
@@ -867,7 +859,7 @@ const onPlanningFormSave = (plan, {save = true, publish = false, unpublish = fal
         const currentWorkspace = selectors.getCurrentWorkspace(getState());
 
         if (modalType === MODALS.ADD_TO_PLANNING) {
-            return dispatch(self.saveFromAuthoring(plan, publish));
+            return dispatch(self.saveFromAuthoring(plan, {publish, unpublish}));
         } else if (currentWorkspace === WORKSPACE.PLANNING) {
             return dispatch(self.saveFromPlanning(plan, {
                 save,

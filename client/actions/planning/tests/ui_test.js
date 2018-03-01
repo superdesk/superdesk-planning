@@ -924,7 +924,10 @@ describe('actions.planning.ui', () => {
             expect(planningUi.saveFromAuthoring.callCount).toBe(1);
             expect(planningUi.saveFromAuthoring.args[0]).toEqual([
                 data.plannings[0],
-                true,
+                {
+                    publish: true,
+                    unpublish: false,
+                },
             ]);
         });
     });
@@ -1019,11 +1022,11 @@ describe('actions.planning.ui', () => {
         });
 
         it('calls either save or saveAndPublish based on args', () => {
-            store.dispatch(planningUi.saveFromAuthoring(data.plannings[0], false));
+            store.dispatch(planningUi.saveFromAuthoring(data.plannings[0], {publish: false, unpublish: false}));
             expect(planningApi.save.callCount).toBe(1);
             expect(planningApi.save.args[0]).toEqual([data.plannings[0]]);
 
-            store.dispatch(planningUi.saveFromAuthoring(data.plannings[0], true));
+            store.dispatch(planningUi.saveFromAuthoring(data.plannings[0], {publish: true, unpublish: false}));
             expect(planningApi.saveAndPublish.callCount).toBe(1);
             expect(planningApi.saveAndPublish.args[0]).toEqual([data.plannings[0]]);
         });
@@ -1032,7 +1035,7 @@ describe('actions.planning.ui', () => {
             restoreSinonStub(planningApi.save);
             sinon.stub(planningApi, 'save').callsFake(() => (Promise.reject(errorMessage)));
 
-            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], false))
+            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], {publish: false, unpublish: false}))
                 .then(() => { /* no-op */ }, () => {
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
@@ -1050,7 +1053,7 @@ describe('actions.planning.ui', () => {
                 () => (Promise.reject(errorMessage))
             );
 
-            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], true))
+            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], {publish: true, unpublish: false}))
                 .then(() => { /* no-op */ }, () => {
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
@@ -1068,7 +1071,7 @@ describe('actions.planning.ui', () => {
                 () => (Promise.reject(errorMessage))
             );
 
-            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], false))
+            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], {publish: false, unpublish: false}))
                 .then(() => { /* no-op */ }, () => {
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
@@ -1081,7 +1084,7 @@ describe('actions.planning.ui', () => {
         });
 
         it('calls link and notifies user of success', (done) => (
-            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], false))
+            store.test(done, planningUi.saveFromAuthoring(data.plannings[0], {publish: false, unpublish: false}))
                 .then(() => {
                     expect(planningApi.save.callCount).toBe(1);
                     expect(planningApi.save.args[0]).toEqual([data.plannings[0]]);

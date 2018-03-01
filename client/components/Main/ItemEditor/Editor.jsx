@@ -41,6 +41,7 @@ export class EditorComponent extends React.Component {
         this.onPublish = this.onPublish.bind(this);
         this.onSaveAndPublish = this.onSaveAndPublish.bind(this);
         this.onUnpublish = this.onUnpublish.bind(this);
+        this.onSaveUnpublish = this.onSaveUnpublish.bind(this);
         this.onCancel = this.onCancel.bind(this);
         this.hideSubmitFailed = this.hideSubmitFailed.bind(this);
         this.resetForm = this.resetForm.bind(this);
@@ -146,7 +147,7 @@ export class EditorComponent extends React.Component {
         });
     }
 
-    onSave() {
+    _save({save, publish, unpublish}) {
         if (!isEqual(this.state.errors, {})) {
             this.setState({
                 submitFailed: true,
@@ -158,60 +159,29 @@ export class EditorComponent extends React.Component {
                 submitFailed: false,
                 showSubmitFailed: false,
             });
-            return this.props.onSave(this.state.diff, true, false)
+            return this.props.onSave(this.state.diff, {save, publish, unpublish})
                 .finally(() => this.setState({submitting: false}));
         }
+    }
+
+    onSave() {
+        this._save({save: true, publish: false, unpublish: false});
     }
 
     onPublish() {
-        if (!isEqual(this.state.errors, {})) {
-            this.setState({
-                submitFailed: true,
-                showSubmitFailed: true,
-            });
-        } else {
-            this.setState({
-                submitting: true,
-                submitFailed: false,
-                showSubmitFailed: false,
-            });
-            return this.props.onSave(this.state.diff, false, true)
-                .finally(() => this.setState({submitting: false}));
-        }
+        this._save({save: false, publish: true, unpublish: false});
     }
 
     onSaveAndPublish() {
-        if (!isEqual(this.state.errors, {})) {
-            this.setState({
-                submitFailed: true,
-                showSubmitFailed: true,
-            });
-        } else {
-            this.setState({
-                submitting: true,
-                submitFailed: false,
-                showSubmitFailed: false
-            });
-            return this.props.onSave(this.state.diff, true, true)
-                .finally(() => this.setState({submitting: false}));
-        }
+        this._save({save: true, publish: true, unpublish: false});
     }
 
     onUnpublish() {
-        if (!isEqual(this.state.errors, {})) {
-            this.setState({
-                submitFailed: true,
-                showSubmitFailed: true,
-            });
-        } else {
-            this.setState({
-                submitting: true,
-                submitFailed: false,
-                showSubmitFailed: false,
-            });
-            return this.props.onUnpublish(this.state.diff)
-                .finally(() => this.setState({submitting: false}));
-        }
+        this._save({save: false, publish: false, unpublish: true});
+    }
+
+    onSaveUnpublish() {
+        this._save({save: true, publish: false, unpublish: true});
     }
 
     tearDownEditorState() {
@@ -274,6 +244,7 @@ export class EditorComponent extends React.Component {
                     onPublish={this.onPublish}
                     onSaveAndPublish={this.onSaveAndPublish}
                     onUnpublish={this.onUnpublish}
+                    onSaveUnpublish={this.onSaveUnpublish}
                     cancel={this.onCancel}
                     minimize={this.props.minimize}
                     submitting={this.state.submitting}
@@ -344,6 +315,7 @@ EditorComponent.propTypes = {
     minimize: PropTypes.func.isRequired,
     onSave: PropTypes.func.isRequired,
     onUnpublish: PropTypes.func.isRequired,
+    onSaveUnpublish: PropTypes.func.isRequired,
     session: PropTypes.object,
     privileges: PropTypes.object,
     lockedItems: PropTypes.object,
@@ -376,8 +348,10 @@ const mapDispatchToProps = (dispatch) => ({
     onLock: (item) => dispatch(actions.locks.lock(item)),
     minimize: () => dispatch(actions.main.closeEditor()),
     cancel: (item) => dispatch(actions.main.unlockAndCancel(item)),
-    onSave: (item, save, publish) => dispatch(actions.main.save(item, save, publish)),
+    onSave: (item, {save = true, publish = false, unpublish = false} = {}) =>
+        dispatch(actions.main.save(item, {save, publish, unpublish})),
     onUnpublish: (item) => dispatch(actions.main.unpublish(item)),
+    onSaveUnpublish: (item) => dispatch(actions.main.onSaveUnpublish(item)),
     openCancelModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
     onValidate: (type, item, profile, errors) => dispatch(validateItem(type, item, profile, errors)),
     loadItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'edit'))

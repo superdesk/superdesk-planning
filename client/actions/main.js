@@ -99,17 +99,17 @@ const unlockAndCloseEditor = (item) => (
     }
 );
 
-const save = (item, save = true, publish = false) => (
+const save = (item, {save = true, publish = false, unpublish = false} = {}) => (
     (dispatch, getState, {notify}) => {
         const itemType = getItemType(item);
         let promise;
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            promise = dispatch(eventsUi.saveWithConfirmation(item, save, publish));
+            promise = dispatch(eventsUi.saveWithConfirmation(item, {save, publish, unpublish}));
             break;
         case ITEM_TYPE.PLANNING:
-            promise = dispatch(planningUi.saveAndPublishPlanning(item, save, publish));
+            promise = dispatch(planningUi.saveAndPublishPlanning(item, {save, publish, unpublish}));
             break;
         default:
             promise = Promise.reject(gettext('Failed to save, could not find the item type!'));

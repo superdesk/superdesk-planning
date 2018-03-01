@@ -149,8 +149,11 @@ describe('Main.ItemEditor.Editor', () => {
             expect(main.save.callCount).toBe(1);
             expect(main.save.args[0]).toEqual([
                 item,
-                false,
-                true
+                {
+                    save: false,
+                    publish: true,
+                    unpublish: false,
+                }
             ]);
 
             // Ensure the buttons are disabled when submitting the form
@@ -186,8 +189,11 @@ describe('Main.ItemEditor.Editor', () => {
             expect(main.save.callCount).toBe(1);
             expect(main.save.args[0]).toEqual([
                 item,
-                false,
-                true
+                {
+                    save: false,
+                    publish: true,
+                    unpublish: false,
+                }
             ]);
 
             // Ensure the buttons are disabled when submitting the form
