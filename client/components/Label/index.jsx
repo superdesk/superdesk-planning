@@ -3,11 +3,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {gettext} from '../../utils';
+import './style.scss';
 
 export const Label = ({text, iconType, verbose, isHollow, tooltip, onClick}) => {
     const labelClasses = classNames('label',
         `label--${iconType}`,
-        {'label--hollow': isHollow});
+        {'label--hollow': isHollow},
+        {'label--clickable': !!onClick});
 
     const label = (
         <span className={labelClasses}>

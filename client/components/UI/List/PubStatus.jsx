@@ -3,12 +3,15 @@ import PropTypes from 'prop-types';
 
 import {Column} from './Column';
 import {isItemPublic, planningUtils} from '../../../utils';
+import {TOOLTIPS} from '../../../constants';
 
 export const PubStatus = ({item}) => {
     let badge;
 
     if (isItemPublic(item)) {
-        badge = <span className="badge badge--success">P</span>;
+        badge = <span className="badge badge--success"
+            data-sd-tooltip={TOOLTIPS.publishedState}
+            data-flow="down">P</span>;
     } else if (planningUtils.isNotForPublication(item)) {
         badge = <i
             className="icon-ban-circle icon--red"
