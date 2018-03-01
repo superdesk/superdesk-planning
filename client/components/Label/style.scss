@@ -1,0 +1,9 @@
+@import '~superdesk-core/styles/sass/variables.scss';
+
+.label--clickable {
+    cursor: pointer;
+
+    &:hover {
+        background-color: $white !important;
+    }
+}
