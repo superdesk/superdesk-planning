@@ -18,6 +18,9 @@ export const AuditInformationComponent = ({
 
         user = get(createdBy, 'display_name') ? createdBy : users.find((u) => (u._id === createdBy));
         provider = ingestProviders ? ingestProviders.find((p) => (p.id === createdBy)) : null;
+        if (!user && provider) {
+            provider.display_name = 'Ingest: ' + provider.name;
+        }
 
         return user || provider;
     };

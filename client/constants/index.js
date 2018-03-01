@@ -82,8 +82,4 @@ export const ITEM_TYPE = {
     UNKNOWN: 'unknown'
 };
 
-export const EVENT_FEED_PARSERS = {
-    EVENT_FILE: 'event_file',
-    EVENT_HTTP: 'event_http',
-    EVENT_EMAIL: 'event_email',
-};
+export const CONTENT_TYPE_EVENT = 'event';
