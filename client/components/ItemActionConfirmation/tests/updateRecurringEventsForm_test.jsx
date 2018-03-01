@@ -118,7 +118,7 @@ xdescribe('<UpdateRecurringEventsForm />', () => {
 
         // Spike method defaults to single event
         expect(updateMethod.props().label)
-            .toBe('Would you like to update all recurring events or just this one?');
+            .toBe('Update all recurring events or just this one?');
         expect(updateMethod.props().input.value).toEqual({
             name: 'This event only',
             value: 'single',

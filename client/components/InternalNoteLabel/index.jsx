@@ -30,7 +30,8 @@ export const InternalNoteLabel = ({item, prefix, showTooltip, marginRight, margi
         <OverlayTrigger
             overlay={
                 <Tooltip id="internal_note_popup">
-                    <h3>{gettext('Internal Note:')}</h3>
+                    {gettext('Internal Note:')}
+                    <br/>
                     {internalNote
                         .split('\n')
                         .map((item, key) => <span key={key}>{item}<br/></span>)

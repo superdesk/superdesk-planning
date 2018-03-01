@@ -99,7 +99,7 @@ export class UpdateTimeComponent extends React.Component {
     render() {
         const {initialValues, dateFormat, timeFormat} = this.props;
         const isRecurring = !!initialValues.recurrence_id;
-        const updateMethodLabel = gettext('Would you like to update all recurring events or just this one?');
+        const updateMethodLabel = gettext('Update all recurring events or just this one?');
         const eventsInUse = this.state.relatedEvents.filter((e) => (
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
         ));

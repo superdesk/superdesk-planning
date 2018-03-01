@@ -22,6 +22,7 @@ Row.propTypes = {
     value: PropTypes.oneOfType([
         PropTypes.string,
         PropTypes.number,
+        PropTypes.node,
     ]),
     className: PropTypes.string,
     children: PropTypes.node,

@@ -4,16 +4,11 @@ import TextareaAutosize from 'react-textarea-autosize';
 
 import {get, keyBy} from 'lodash';
 import {UrgencyLabel, Label} from '../../components';
-import {TermsList} from '../UI';
+import {AgendaNameList} from '../Agendas';
 
 export const PlanningPreview = ({urgencyLabel, item, formProfile, agendas, urgencies}) => {
     const agendaMap = keyBy(agendas, '_id');
-    const agendaAssigned = (get(item, 'agendas') || []).map((agendaId) => {
-        let agenda = get(agendaMap, agendaId);
-
-        agenda.name = agenda.name + (!agenda.is_enabled ? ' - [Disabled]' : '');
-        return agenda;
-    });
+    const agendaAssigned = (get(item, 'agendas') || []).map((agendaId) => get(agendaMap, agendaId));
 
     return (
         <div>
@@ -23,7 +18,7 @@ export const PlanningPreview = ({urgencyLabel, item, formProfile, agendas, urgen
                        Agenda
                     </label>
                     {agendaAssigned.length &&
-                        <TermsList terms={agendaAssigned} displayField="name"/>
+                        <AgendaNameList agendas={agendaAssigned}/>
                     ||
                         <p>-</p>
                     }

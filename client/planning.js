@@ -129,6 +129,8 @@ class PlanningApp extends React.Component {
             groups,
             addNewsItemToPlanning,
             agendas,
+            enabledAgendas,
+            disabledAgendas,
             lockedItems,
             dateFormat,
             timeFormat,
@@ -228,7 +230,8 @@ class PlanningApp extends React.Component {
                         toggleFilterPanel={this.toggleFilterPanel}
                         activeFilter={activeFilter}
                         setFilter={filter}
-                        agendas={agendas}
+                        enabledAgendas={enabledAgendas}
+                        disabledAgendas={disabledAgendas}
                         selectAgenda={selectAgenda}
                         currentAgendaId={currentAgendaId}
                         showFilters={!addNewsItemToPlanning}
@@ -274,6 +277,8 @@ PlanningApp.propTypes = {
     timeFormat: PropTypes.string.isRequired,
     activeFilter: PropTypes.string.isRequired,
     agendas: PropTypes.array.isRequired,
+    enabledAgendas: PropTypes.array,
+    disabledAgendas: PropTypes.array,
     selectAgenda: PropTypes.func.isRequired,
     currentAgendaId: PropTypes.string.isRequired,
     session: PropTypes.object,
@@ -324,6 +329,8 @@ const mapStateToProps = (state) => ({
     timeFormat: selectors.config.getTimeFormat(state),
     activeFilter: selectors.main.activeFilter(state),
     agendas: selectors.getAgendas(state),
+    enabledAgendas: selectors.getEnabledAgendas(state),
+    disabledAgendas: selectors.getDisabledAgendas(state),
     currentAgendaId: selectors.getCurrentAgendaId(state),
     session: selectors.getSessionDetails(state),
     privileges: selectors.getPrivileges(state),

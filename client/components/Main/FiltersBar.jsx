@@ -13,7 +13,8 @@ export const FiltersBar = (props) => (
         <FiltersBox
             activeFilter={props.activeFilter}
             setFilter={props.setFilter}
-            agendas={props.agendas}
+            enabledAgendas={props.enabledAgendas}
+            disabledAgendas={props.disabledAgendas}
             selectAgenda={props.selectAgenda}
             currentAgendaId={props.currentAgendaId}
             showFilters={props.showFilters}
@@ -26,7 +27,8 @@ FiltersBar.propTypes = {
     toggleFilterPanel: PropTypes.func.isRequired,
     activeFilter: PropTypes.string,
     setFilter: PropTypes.func.isRequired,
-    agendas: PropTypes.array.isRequired,
+    enabledAgendas: PropTypes.array,
+    disabledAgendas: PropTypes.array,
     selectAgenda: PropTypes.func.isRequired,
     currentAgendaId: PropTypes.string.isRequired,
     addNewsItemToPlanning: PropTypes.object,

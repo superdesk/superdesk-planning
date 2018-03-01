@@ -19,3 +19,9 @@
         top: calc(#{$nav-height} + #{$subnav-height});
     }
 }
+
+.Agenda {
+    &--disabled {
+        color: $grayLight;
+    }
+}

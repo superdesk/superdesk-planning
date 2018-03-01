@@ -220,14 +220,11 @@ const _createPlanningFromEvent = (event) => (
     (dispatch, getState, {notify}) => {
         // Check if no agenda is selected, or the current agenda is spiked
         // And notify the end user of the error
-        const currentAgenda = selectors.getCurrentAgenda(getState());
         const currentAgendaId = selectors.getCurrentAgendaId(getState());
         let error;
 
         if (!currentAgendaId) {
             error = 'No Agenda is currently selected.';
-        } else if (currentAgenda && !currentAgenda.is_enabled) {
-            error = 'Cannot create a new planning item in a disabled Agenda!';
         } else if (isItemSpiked(event)) {
             error = 'Cannot create a Planning item from a spiked event!';
         }
@@ -247,7 +244,7 @@ const _createPlanningFromEvent = (event) => (
             subject: event.subject,
             anpa_category: event.anpa_category,
             description_text: event.definition_short,
-            agendas: currentAgenda ? [currentAgenda._id] : [],
+            agendas: [],
         }));
     }
 );

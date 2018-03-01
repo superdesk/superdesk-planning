@@ -19,7 +19,9 @@ import {
     eventUtils,
     isItemCancelled,
     getPublishedState,
-    isEmptyActions, isDateInRange,
+    isEmptyActions,
+    isDateInRange,
+    gettext,
 } from './index';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
@@ -534,6 +536,7 @@ const isLockedForAddToPlanning = (item) => get(item, 'lock_action') ===
 const isCoverageDraft = (coverage) => get(coverage, 'workflow_status') === WORKFLOW_STATE.DRAFT;
 const isCoverageInWorkflow = (coverage) => !isEmpty(coverage.assigned_to) &&
     get(coverage, 'assigned_to.state') !== WORKFLOW_STATE.DRAFT;
+const formatAgendaName = (agenda) => agenda.is_enabled ? agenda.name : agenda.name + ` - [${gettext('Disabled')}]`;
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -563,6 +566,7 @@ const self = {
     isCoverageAssigned,
     isCoverageDraft,
     isCoverageInWorkflow,
+    formatAgendaName,
 };
 
 export default self;

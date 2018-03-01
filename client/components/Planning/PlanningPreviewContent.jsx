@@ -15,6 +15,7 @@ import {ColouredValueInput} from '../UI/Form';
 import {CoveragePreview} from '../Coverages';
 import {ContentBlock} from '../UI/SidePanel';
 import {EventMetadata} from '../Events';
+import {AgendaNameList} from '../Agendas';
 
 export class PlanningPreviewContentComponent extends React.Component {
     render() {
@@ -37,8 +38,8 @@ export class PlanningPreviewContentComponent extends React.Component {
         const versionCreator = get(updatedBy, 'display_name') ? updatedBy :
             users.find((user) => user._id === updatedBy);
 
-        const agendaText = get(item, 'agendas.length', 0) === 0 ? '' :
-            item.agendas.map((a) => getItemInArrayById(agendas, a).name).join(', ');
+        const agendaList = get(item, 'agendas.length', 0) === 0 ? [] :
+            item.agendas.map((a) => getItemInArrayById(agendas, a));
         const placeText = get(item, 'place.length', 0) === 0 ? '' :
             item.place.map((c) => c.name).join(', ');
         const categoryText = get(item, 'anpa_category.length', 0) === 0 ? '' :
@@ -88,7 +89,7 @@ export class PlanningPreviewContentComponent extends React.Component {
                 <Row
                     enabled={get(formProfile, 'planning.editor.agendas.enabled')}
                     label={gettext('Agenda')}
-                    value={agendaText}
+                    value={<AgendaNameList agendas={agendaList}/>}
                 />
                 <ToggleBox title={gettext('Details')} isOpen={false}>
                     <Row
