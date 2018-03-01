@@ -12,7 +12,8 @@ import {MAIN} from '../../constants';
 export const FiltersBox = ({
     activeFilter,
     setFilter,
-    agendas,
+    enabledAgendas,
+    disabledAgendas,
     selectAgenda,
     currentAgendaId,
     showFilters,
@@ -52,7 +53,8 @@ export const FiltersBox = ({
             )}
             {(activeFilter === MAIN.FILTERS.PLANNING) && (
                 <AgendaSubnavDropdown
-                    agendas={agendas}
+                    enabledAgendas={enabledAgendas}
+                    disabledAgendas={disabledAgendas}
                     selectAgenda={selectAgenda}
                     currentAgendaId={currentAgendaId}
                 />
@@ -64,7 +66,8 @@ export const FiltersBox = ({
 FiltersBox.propTypes = {
     activeFilter: PropTypes.string,
     setFilter: PropTypes.func.isRequired,
-    agendas: PropTypes.array.isRequired,
+    enabledAgendas: PropTypes.array,
+    disabledAgendas: PropTypes.array,
     selectAgenda: PropTypes.func.isRequired,
     currentAgendaId: PropTypes.string.isRequired,
     showFilters: PropTypes.bool,

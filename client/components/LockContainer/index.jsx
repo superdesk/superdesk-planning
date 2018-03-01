@@ -64,7 +64,7 @@ export class LockContainer extends React.Component {
 }
 
 LockContainer.propTypes = {
-    lockedUser: PropTypes.object.isRequired,
+    lockedUser: PropTypes.object,
     users: PropTypes.oneOfType([
         PropTypes.array,
         PropTypes.object,

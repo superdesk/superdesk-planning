@@ -13,6 +13,8 @@ describe('components.Main.FiltersBox', () => {
     let activeFilter;
     let setFilter;
     let agendas;
+    let enabledAgendas;
+    let disabledAgendas;
     let selectAgenda;
     let currentAgendaId;
     let wrapper;
@@ -24,6 +26,8 @@ describe('components.Main.FiltersBox', () => {
             wrapper.setProps({activeFilter});
         });
         agendas = cloneDeep(testAgendas);
+        enabledAgendas = agendas.filter((a) => a.is_enabled);
+        disabledAgendas = agendas.filter((a) => !a.is_enabled);
         selectAgenda = sinon.spy((agendaId) => {
             currentAgendaId = agendaId;
             wrapper.setProps({currentAgendaId});
@@ -35,7 +39,8 @@ describe('components.Main.FiltersBox', () => {
         mount(<FiltersBox
             activeFilter={activeFilter}
             setFilter={setFilter}
-            agendas={agendas}
+            enabledAgendas={enabledAgendas}
+            disabledAgendas={disabledAgendas}
             selectAgenda={selectAgenda}
             currentAgendaId={currentAgendaId}
         />)
@@ -118,6 +123,7 @@ describe('components.Main.FiltersBox', () => {
                 label: 'TestAgenda2',
                 id: 'a2'
             }),
+            jasmine.objectContaining({divider: true}),
             jasmine.objectContaining({
                 label: 'TestAgenda3',
                 id: 'a3'

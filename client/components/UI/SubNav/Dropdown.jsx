@@ -46,6 +46,7 @@ export class Dropdown extends React.Component {
             'dropdown-toggle',
             'dropdown__toggle',
             'navbtn',
+            this.props.buttonLabelClassName,
             {
                 'sd-create-btn': isCreate,
                 'navbtn--text-only': this.props.buttonLabel,
@@ -82,7 +83,7 @@ export class Dropdown extends React.Component {
                                         {item.icon && (
                                             <i className={item.icon} />
                                         )}
-                                        {item.label}
+                                        <span className={item.className}>{item.label}</span>
                                     </button>
                                 </li>
                             );
@@ -97,13 +98,15 @@ export class Dropdown extends React.Component {
 Dropdown.propTypes = {
     icon: PropTypes.string,
     buttonLabel: PropTypes.string,
+    buttonLabelClassName: PropTypes.string,
     label: PropTypes.string.isRequired,
     items: PropTypes.arrayOf(PropTypes.shape({
         label: PropTypes.string,
         divider: PropTypes.bool,
         icon: PropTypes.string,
         action: PropTypes.func,
-    })).isRequired,
+        className: PropTypes.string
+    })),
     alignRight: PropTypes.bool,
 };
 

@@ -48,7 +48,15 @@ export class PlanningEditorComponent extends React.Component {
         if (!this.props.addNewsItemToPlanning) {
             // Creating a new planning item from planning module
             if (!get(this.props, 'item._id')) {
-                this.props.onChangeHandler('planning_date', moment());
+                let newItem = cloneDeep(get(this.props, 'diff'));
+
+                newItem.planning_date = moment();
+
+                // set the current agenda if agenda is enabled
+                if (get(this.props, 'currentAgenda.is_enabled')) {
+                    newItem.agendas = [this.props.currentAgenda._id];
+                }
+                this.props.onChangeHandler(null, newItem);
             }
         } else {
             // In add-to-planning modal
@@ -275,8 +283,12 @@ export class PlanningEditorComponent extends React.Component {
             coverageProfile,
         } = this.props;
 
-        const agendaValues = get(diff, 'agendas', [])
-            .map((agendaId) => agendas.find((a) => a._id === agendaId));
+        const agendaValues = cloneDeep(get(diff, 'agendas', [])
+            .map((agendaId) => agendas.find((a) => a._id === agendaId)));
+
+        agendaValues.forEach((agenda) => {
+            agenda.name = planningUtils.formatAgendaName(agenda);
+        });
 
         const enabledAgendas = agendas.filter((agenda) => get(agenda, 'is_enabled', true));
 
@@ -505,6 +517,7 @@ PlanningEditorComponent.propTypes = {
     planningProfile: PropTypes.object,
     coverageProfile: PropTypes.object,
     defaultGenre: PropTypes.object,
+    currentAgenda: PropTypes.object
 };
 
 PlanningEditorComponent.defaultProps = {readOnly: false};
@@ -532,6 +545,7 @@ const mapStateToProps = (state) => ({
     planningProfile: selectors.forms.planningProfile(state),
     coverageProfile: selectors.forms.coverageProfile(state),
     defaultGenre: selectors.config.getDefaultGenre(state),
+    currentAgenda: selectors.getCurrentAgenda(state)
 });
 
 export const PlanningEditor = connect(mapStateToProps)(PlanningEditorComponent);

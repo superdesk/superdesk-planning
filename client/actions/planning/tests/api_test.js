@@ -663,16 +663,31 @@ describe('actions.planning.api', () => {
                 });
         });
 
-        it('returns Promise.reject if no current Agenda is disabled', (done) => {
+        it('if current Agenda is disabled', (done) => {
             data.agendas[0].is_enabled = false;
-            errorMessage.data._message = 'Cannot create a new planning item in a disabled Agenda.';
+            const newItem = {slugline: 'Planning3'};
 
-            return store.test(
+            sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve({
+                ...newItem,
+                agendas: [],
+                _id: 'p4',
+            })));
+
+            store.test(
                 done,
-                planningApi.saveAndReloadCurrentAgenda({slugline: 'Planning3'})
+                planningApi.saveAndReloadCurrentAgenda(newItem)
             )
-                .then(() => { /* no-op */ }, (error) => {
-                    expect(error).toEqual(errorMessage);
+                .then((item) => {
+                    expect(item).toEqual({
+                        ...newItem,
+                        agendas: [],
+                        _id: 'p4',
+                    });
+
+
+                    expect(planningApi.save.callCount).toBe(1);
+                    expect(planningApi.save.args[0]).toEqual([newItem, {}]);
+
                     done();
                 });
         });

@@ -150,7 +150,6 @@ export class EventPreviewContentComponent extends React.Component {
                                 {displayContactList(contact)}
                             </span>
                         ))
-                        || <p>-</p>
                     }
                     {this.state.showContactInfo && (
                         <ContactInfoContainer onCancel={this.closeDetails.bind(this)}

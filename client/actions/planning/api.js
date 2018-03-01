@@ -725,20 +725,13 @@ const saveAndReloadCurrentAgenda = (item) => (
         })
             .then((originalItem) => {
                 if (isEqual(originalItem, {})) {
-                    const currentAgenda = selectors.getCurrentAgenda(getState());
                     const currentAgendaId = selectors.getCurrentAgendaId(getState());
                     const errorMessage = {data: {}};
 
                     if (!currentAgendaId) {
                         errorMessage.data._message = 'No Agenda is currently selected.';
                         return Promise.reject(errorMessage);
-                    } else if (currentAgenda && !currentAgenda.is_enabled) {
-                        errorMessage.data._message =
-                        'Cannot create a new planning item in a disabled Agenda.';
-                        return Promise.reject(errorMessage);
                     }
-
-                    item.agendas = currentAgenda ? [currentAgenda] : [];
                 }
 
                 return dispatch(self.save(item, originalItem))

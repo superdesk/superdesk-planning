@@ -11,6 +11,7 @@ import {ItemActionsMenu} from '../index';
 import {PLANNING, EVENTS, WORKSPACE, MAIN} from '../../constants';
 
 import {planningUtils, getItemWorkflowStateLabel, onEventCapture} from '../../utils';
+import {AgendaNameList} from '../Agendas';
 
 export class PlanningItem extends React.PureComponent {
     onAddCoverageButtonClick(event) {
@@ -52,9 +53,7 @@ export class PlanningItem extends React.PureComponent {
 
         const agendaNames = get(item, 'agendas', [])
             .map((agendaId) => agendas.find((agenda) => agenda._id === agendaId))
-            .filter((agenda) => agenda)
-            .map((agenda) => agenda.name)
-            .join(', ');
+            .filter((agenda) => agenda);
 
         const itemActionsCallBack = {
             [PLANNING.ITEM_ACTIONS.DUPLICATE.actionName]: this.props[PLANNING.ITEM_ACTIONS.DUPLICATE.actionName],
@@ -122,7 +121,7 @@ export class PlanningItem extends React.PureComponent {
                     <Row>
                         <span className="sd-list-item__text-label">agenda:</span>
                         <span className="sd-overflow-ellipsis sd-list-item__text-strong sd-list-item--element-grow">
-                            {agendaNames}
+                            <AgendaNameList agendas={agendaNames}/>
                         </span>
                         <PlanningDateTime
                             item={item}

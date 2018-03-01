@@ -388,7 +388,7 @@ describe('agenda', () => {
                                 subject: events[0].subject,
                                 anpa_category: events[0].anpa_category,
                                 description_text: 'Some event',
-                                agendas: ['a2'],
+                                agendas: [],
                                 place: [{
                                     country: 'Australia',
                                     group: 'Australia',
@@ -468,7 +468,8 @@ describe('agenda', () => {
                     });
             });
 
-            it('addEventToCurrentAgenda raises error if the agenda is disabled', (done) => {
+            it('addEventToCurrentAgenda if the agenda is disabled', (done) => {
+                apiSpy.query = sinon.spy(() => (Promise.resolve({_items: plannings})));
                 agendas[1].is_enabled = false;
                 const action = actions.addEventToCurrentAgenda(events[0]);
 
@@ -476,10 +477,8 @@ describe('agenda', () => {
                     notify,
                     $timeout,
                 })
-                    .catch(() => {
-                        expect(notify.error.args[0]).toEqual([
-                            'Cannot create a new planning item in a disabled Agenda!',
-                        ]);
+                    .then(() => {
+                        expect(apiSpy.save.callCount).toBe(1);
                         done();
                     });
             });

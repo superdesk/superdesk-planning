@@ -5,7 +5,15 @@ import {Button} from '../../UI/Nav';
 import {ITEM_TYPE, EVENTS, PLANNING, WORKSPACE} from '../../../constants';
 import {getItemType, eventUtils, planningUtils} from '../../../utils';
 
-export const EditorItemActions = ({item, session, privileges, lockedItems, currentWorkspace, itemActions}) => {
+export const EditorItemActions = ({
+    item,
+    event,
+    session,
+    privileges,
+    lockedItems,
+    currentWorkspace,
+    itemActions
+}) => {
     const itemType = getItemType(item);
 
     let itemActionsCallBack = {
@@ -63,6 +71,7 @@ export const EditorItemActions = ({item, session, privileges, lockedItems, curre
 
 EditorItemActions.propTypes = {
     item: PropTypes.object,
+    event: PropTypes.object,
     session: PropTypes.object,
     privileges: PropTypes.object,
     lockedItems: PropTypes.object,
