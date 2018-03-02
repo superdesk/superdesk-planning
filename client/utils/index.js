@@ -318,18 +318,25 @@ export const getErrorMessage = (error, defaultMessage) => {
 };
 
 /**
- * Helper function to retrieve the user object using their ID from an item field.
+ * Helper function to retrieve the user object using their ID from an item field or
+ * the id of the ingest provider if created by being ingested
  * i.e. get the User object for 'original_creator'
  * @param {object} item - The item to get the ID from
  * @param {string} creator - The field name where the ID is stored
  * @param {Array} users - The array of users, typically from the redux store
- * @return {object} The user object found, otherwise nothing is returned
+ * @return {object} The user object found or ingest provider id, otherwise nothing is returned
  */
 export const getCreator = (item, creator, users) => {
     const user = get(item, creator);
 
     if (user) {
         return user.display_name ? user : users.find((u) => u._id === user);
+    }
+
+    const ingestProvider = get(item, 'ingest_provider');
+
+    if (ingestProvider) {
+        return ingestProvider;
     }
 };
 
