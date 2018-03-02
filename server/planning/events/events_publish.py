@@ -57,16 +57,15 @@ class EventsPublishService(EventsBaseService):
         return ids
 
     @staticmethod
-    def validate_event(event):
+    def validate_published_state(new_published_state):
         try:
-            assert event.get('pubstatus') in published_state
+            assert new_published_state in published_state
         except AssertionError:
             abort(409)
 
     def _publish_single_event(self, doc, event):
-        event['pubstatus'] = doc['pubstatus']
-        self.validate_event(event)
-        updated_event = self.publish_event(event)
+        self.validate_published_state(doc['pubstatus'])
+        updated_event = self.publish_event(event, doc['pubstatus'])
 
         event_type = 'events:published' if doc['pubstatus'] == PUBLISHED_STATE.USABLE else 'events:unpublished'
         push_notification(
@@ -96,9 +95,8 @@ class EventsPublishService(EventsBaseService):
         ids = []
         items = []
         for event in published_events:
-            event['pubstatus'] = doc['pubstatus']
-            self.validate_event(event)
-            updated_event = self.publish_event(event)
+            self.validate_published_state(doc['pubstatus'])
+            updated_event = self.publish_event(event, doc['pubstatus'])
             ids.append(event[config.ID_FIELD])
             items.append({
                 'id': event[config.ID_FIELD],
@@ -118,17 +116,23 @@ class EventsPublishService(EventsBaseService):
 
         return ids
 
-    def publish_event(self, event):
+    def publish_event(self, event, new_publish_state):
         event.setdefault(config.VERSION, 1)
         event.setdefault('item_id', event['_id'])
         get_enqueue_service('publish').enqueue_item(event, 'event')
-        updates = {'state': self._get_publish_state(event), 'pubstatus': event['pubstatus']}
+        updates = {'state': self._get_publish_state(event, new_publish_state), 'pubstatus': new_publish_state}
+        event['pubstatus'] = new_publish_state
         updated_event = get_resource_service('events').update(event['_id'], updates, event)
         get_resource_service('events_history')._save_history(event, updates, 'publish')
         return updated_event
 
     @staticmethod
-    def _get_publish_state(event):
-        if event.get('pubstatus') == PUBLISHED_STATE.CANCELLED:
+    def _get_publish_state(event, new_publish_state):
+        if new_publish_state == PUBLISHED_STATE.CANCELLED:
             return WORKFLOW_STATE.KILLED
-        return WORKFLOW_STATE.SCHEDULED
+
+        if event.get('pubstatus') != PUBLISHED_STATE.USABLE:
+            # Publishing for first time, default to 'schedule' state
+            return WORKFLOW_STATE.SCHEDULED
+
+        return event.get('state')

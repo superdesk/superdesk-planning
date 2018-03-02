@@ -22,7 +22,7 @@ from apps.archive.common import set_original_creator, get_auth
 from superdesk.users.services import current_user_has_privilege
 from .events_base_service import EventsBaseService
 from planning.common import UPDATE_SINGLE, UPDATE_FUTURE, get_max_recurrent_events, \
-    WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address
+    WORKFLOW_STATE, ITEM_STATE, remove_lock_information, format_address, ITEM_ACTIONS
 from dateutil.rrule import rrule, YEARLY, MONTHLY, WEEKLY, DAILY, MO, TU, WE, TH, FR, SA, SU
 from eve.defaults import resolve_default_values
 from eve.methods.common import resolve_document_etag
@@ -244,6 +244,12 @@ class EventsService(superdesk.Service):
                 etag=updates['_etag']
             )
 
+        # Check to see if we rescheduled an event because of converting to recurring event
+        if original.get('lock_action') == ITEM_ACTIONS.CONVERT_RECURRING and\
+                not original.get('recurrence_id') and updates.get('recurrence_id') and\
+                updates['state'] == WORKFLOW_STATE.RESCHEDULED:
+            app.on_updated_events_reschedule(updates, original)
+
     def _update_single_event(self, updates, original):
         """Updates the metadata of a single event.
 
@@ -324,7 +330,6 @@ class EventsService(superdesk.Service):
             updates['dates'] = updated_event['dates']
             set_planning_schedule(updates)
             event_reschedule_service.update_single_event(updates, original)
-            app.on_updated_events_reschedule(updates, original)
         else:
             # Original event falls as a part of the series
             # Remove the first element in the list (the current event being updated)

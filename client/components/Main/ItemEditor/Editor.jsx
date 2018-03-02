@@ -5,7 +5,7 @@ import {get, set, isEqual, cloneDeep} from 'lodash';
 
 import {gettext, lockUtils} from '../../../utils';
 
-import {ITEM_TYPE, EVENTS, PLANNING, WORKSPACE} from '../../../constants';
+import {ITEM_TYPE, EVENTS, PLANNING, WORKSPACE, PUBLISHED_STATE} from '../../../constants';
 import * as selectors from '../../../selectors';
 import * as actions from '../../../actions';
 
@@ -165,7 +165,11 @@ export class EditorComponent extends React.Component {
     }
 
     onSave() {
-        this._save({save: true, publish: false, unpublish: false});
+        this._save({
+            save: true,
+            publish: get(this.props, 'item.pubstatus') === PUBLISHED_STATE.USABLE,
+            unpublish: false
+        });
     }
 
     onPublish() {

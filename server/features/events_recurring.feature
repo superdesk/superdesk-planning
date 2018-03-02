@@ -105,6 +105,7 @@ Feature: Events Recurring
         """
         {
             "name": "Weekly Friday Club",
+            "lock_action": "convert_recurring",
             "dates": {
                 "start": "2019-11-21T12:00:00.000Z",
                 "end": "2019-11-21T14:00:00.000Z",
@@ -161,10 +162,9 @@ Feature: Events Recurring
         ]}
         """
         When we get "/events_history"
-        Then we get list with 5 items
+        Then we get list with 4 items
         """
         {"_items": [
-            {"operation": "reschedule", "event_id": "__any_value__"},
             {"operation": "create", "event_id": "__any_value__"},
             {"operation": "create", "event_id": "__any_value__"},
             {"operation": "update", "event_id": "#EVENT_ID#", "update": {
@@ -188,7 +188,7 @@ Feature: Events Recurring
 
     @auth
     @notification
-    Scenario: Converting an event in use to be a recurring event will reschedule it
+    Scenario: Converting a published event to be a recurring event will reschedule and update it
         Given we have sessions "/sessions"
         Given "events"
         """
@@ -205,7 +205,7 @@ Feature: Events Recurring
             "pubstatus": "usable",
             "lock_user": "#CONTEXT_USER_ID#",
             "lock_session": "#SESSION_ID#",
-            "lock_action": "reschedule",
+            "lock_action": "convert_recurring",
             "lock_time": "#DATE#"
         }]
         """
@@ -229,10 +229,26 @@ Feature: Events Recurring
             ]
         }]
         """
+        When we post to "/products" with success
+        """
+        {
+            "name":"prod-1","codes":"abc,xyz", "product_type": "both"
+        }
+        """
+        And we post to "/subscribers" with success
+        """
+        {
+            "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
+            "products": ["#products._id#"],
+            "codes": "xyz, abc",
+            "destinations": [{"name":"events", "format": "ntb_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
+        }
+        """
         When we patch "/events/event1"
         """
         {
             "name": "Weekly Friday Club",
+            "lock_action": "convert_recurring",
             "dates": {
                 "start": "2019-11-21T12:00:00.000Z",
                 "end": "2019-11-21T14:00:00.000Z",
@@ -297,9 +313,10 @@ Feature: Events Recurring
         }
         """
         When we get "/events_history"
-        Then we get list with 6 items
+        Then we get list with 7 items
         """
         {"_items": [
+            {"operation": "publish", "event_id": "#events._id#"},
             {"operation": "planning created", "event_id": "#events._id#"},
             {"operation": "reschedule_from", "event_id": "__any_value__"},
             {"operation": "reschedule", "event_id": "#events._id#"},
@@ -308,6 +325,8 @@ Feature: Events Recurring
             {"operation": "update", "event_id": "#events._id#"}
         ]}
         """
+        When we get "publish_queue"
+        Then we get list with 1 items
 
     @auth
     Scenario: Spike single event from recurring series

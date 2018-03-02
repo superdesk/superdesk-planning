@@ -61,6 +61,13 @@ ASSIGNMENT_WORKFLOW_STATE = namedtuple('ASSIGNMENT_WORKFLOW_STATE',
                                        ['DRAFT', 'ASSIGNED', 'IN_PROGRESS',
                                         'COMPLETED', 'SUBMITTED', 'cancelled'])(*assignment_workflow_state)
 
+item_actions = ['cancel', 'postpone', 'reschedule', 'update_time', 'convert_recurring', 'planning_cancel',
+                'cancel_all_coverage', 'edit']
+ITEM_ACTIONS = namedtuple('ITEM_ACTIONS',
+                          ['CANCEL', 'POSTPONED', 'RESCHEDULE', 'UPDATE_TIME',
+                           'CONVERT_RECURRING', 'PLANNING_CANCEL', 'CANCEL_ALL_COVERAGE',
+                           'EDIT'])(*item_actions)
+
 
 def set_item_expiry(doc):
     expiry_minutes = app.settings.get('PLANNING_EXPIRY_MINUTES', None)
