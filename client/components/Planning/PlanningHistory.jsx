@@ -142,7 +142,7 @@ const mapDispatchToProps = (dispatch) => ({
     openPlanningPreview: (planningId) => (
         dispatch(actions.main.openPreview({
             _id: planningId,
-            _type: 'planning',
+            type: 'planning',
         }))
     ),
 });

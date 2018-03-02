@@ -24,8 +24,8 @@ class PopulatePlanningTypesTest(TestCase):
         self.filename = os.path.join(os.path.abspath(os.path.dirname(__file__)), "planning_types.json")
 
         self.json_data = [{
-            "_id": "events",
-            "name": "events",
+            "_id": "event",
+            "name": "event",
             "editor": {
                 "definition_long": {
                     "enabled": False

@@ -30,7 +30,7 @@ const formsReducer = createReducer(initialState, {
     [MAIN.ACTIONS.OPEN_EDITOR]: (state, payload) => ({
         ...state,
         itemId: get(payload, '_id') || null,
-        itemType: get(payload, '_type') || null,
+        itemType: get(payload, 'type') || null,
     }),
 
     [MAIN.ACTIONS.CLOSE_EDITOR]: (state) => ({
@@ -45,7 +45,7 @@ const formsReducer = createReducer(initialState, {
                 ...state,
                 autosaves: {
                     ...state.autosaves,
-                    [FORM_NAMES.EventForm]: pickBy(state.events, (event, key) => key !== payload.event._id),
+                    [FORM_NAMES.EventForm]: pickBy(state.event, (event, key) => key !== payload.event._id),
                 }
             }
     ),

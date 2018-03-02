@@ -73,11 +73,11 @@ class PlanningAppComponent extends React.Component {
     }
 
     addEvent() {
-        this.props.edit({_type: ITEM_TYPE.EVENT});
+        this.props.edit({type: ITEM_TYPE.EVENT});
     }
 
     addPlanning() {
-        const newPlanning = {_type: ITEM_TYPE.PLANNING};
+        const newPlanning = {type: ITEM_TYPE.PLANNING};
 
         if (this.props.addNewsItemToPlanning) {
             this.onItemDoubleClick(newPlanning);

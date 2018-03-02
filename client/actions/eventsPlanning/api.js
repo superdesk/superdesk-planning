@@ -81,7 +81,7 @@ const query = (
 
                 if (get(data, '_items')) {
                     data._items.forEach((item) => {
-                        if (item._type === 'events') {
+                        if (item.type === 'event') {
                             eventUtils.convertToMoment(item);
                             return;
                         }

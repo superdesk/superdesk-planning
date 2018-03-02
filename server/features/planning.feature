@@ -49,6 +49,7 @@ Feature: Planning
         """
             {"_items": [{
                 "guid": "__any_value__",
+                "type": "planning",
                 "original_creator": "__any_value__",
                 "item_class": "item class value",
                 "headline": "test headline",
@@ -135,6 +136,7 @@ Feature: Planning
         """
             {"_items": [{
                 "guid": "__any_value__",
+                "type": "planning",
                 "original_creator": "__any_value__",
                 "item_class": "item class value",
                 "headline": "test headline",

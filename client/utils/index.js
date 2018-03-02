@@ -523,7 +523,7 @@ export const getDesksForUser = (user, desksList = []) => {
 };
 
 export const getItemType = (item) => {
-    const itemType = get(item, '_type');
+    const itemType = get(item, 'type');
 
     if (itemType === ITEM_TYPE.EVENT) {
         return ITEM_TYPE.EVENT;
@@ -531,8 +531,13 @@ export const getItemType = (item) => {
         return ITEM_TYPE.PLANNING;
     } else if (itemType === ITEM_TYPE.ASSIGNMENT) {
         return ITEM_TYPE.ASSIGNMENT;
-    } else if (itemType === ITEM_TYPE.ARCHIVE) {
-        return ITEM_TYPE.ARCHIVE;
+    } else if (_.includes([
+        ITEM_TYPE.TEXT,
+        ITEM_TYPE.COMPOSITE,
+        ITEM_TYPE.GRAPHIC,
+        ITEM_TYPE.VIDEO,
+        ITEM_TYPE.PICTURE], itemType)) {
+        return itemType;
     }
 
     return ITEM_TYPE.UNKNOWN;
@@ -546,10 +551,20 @@ export const getItemTypeString = (item) => {
         return gettext('Planning Item');
     case ITEM_TYPE.ASSIGNMENT:
         return gettext('Assignment');
-    case ITEM_TYPE.ARCHIVE:
-        return gettext('News Item');
+    case ITEM_TYPE.TEXT:
+        return gettext('Text');
+    case ITEM_TYPE.PICTURE:
+        return gettext('Picture');
+    case ITEM_TYPE.VIDEO:
+        return gettext('Video');
+    case ITEM_TYPE.GRAPHIC:
+        return gettext('Graphic');
+    case ITEM_TYPE.COMPOSITE:
+        return gettext('Composite');
+    case ITEM_TYPE.AUDIO:
+        return gettext('Audio');
     default:
-        return gettext('item');
+        return gettext('Item');
     }
 };
 

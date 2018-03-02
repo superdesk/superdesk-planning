@@ -57,16 +57,16 @@ describe('lock reducers', () => {
     };
 
     const lockItems = {
-        events: {
-            e1: convertItemToLock(lockTypes.events.event, 'events'),
+        event: {
+            e1: convertItemToLock(lockTypes.events.event, 'event'),
             e3: convertItemToLock(lockTypes.planning.event, 'planning'),
         },
         planning: {p1: convertItemToLock(lockTypes.planning.planning, 'planning')},
         recurring: {
-            r1: convertItemToLock(lockTypes.events.recurring, 'events'),
+            r1: convertItemToLock(lockTypes.events.recurring, 'event'),
             r2: convertItemToLock(lockTypes.planning.recurring, 'planning'),
         },
-        assignments: {a1: convertItemToLock(lockTypes.assignment, 'assignments')},
+        assignment: {a1: convertItemToLock(lockTypes.assignment, 'assignment')},
     };
 
     const initialLocks = {
@@ -96,10 +96,10 @@ describe('lock reducers', () => {
 
     it('initialState', () => {
         expect(initialState).toEqual({
-            events: {},
+            event: {},
             planning: {},
             recurring: {},
-            assignments: {},
+            assignment: {},
         });
     });
 
@@ -119,12 +119,12 @@ describe('lock reducers', () => {
     });
 
     it('convertItemToLock', () => {
-        expect(convertItemToLock(lockTypes.events.event, 'events')).toEqual({
+        expect(convertItemToLock(lockTypes.events.event, 'event')).toEqual({
             action: 'edit',
             session: 'sess123',
             time: '2099-10-15T14:30+0000',
             user: 'user123',
-            item_type: 'events',
+            item_type: 'event',
             item_id: 'e1',
         });
     });
@@ -146,10 +146,10 @@ describe('lock reducers', () => {
         );
 
         expect(result).toEqual({
-            events: {},
+            event: {},
             planning: {p1: lockItems.planning.p1},
             recurring: {},
-            assignments: {},
+            assignment: {},
         });
 
         // Planning item with associated Event lock
@@ -161,10 +161,10 @@ describe('lock reducers', () => {
             }
         );
         expect(result).toEqual({
-            events: {e3: lockItems.events.e3},
+            event: {e3: lockItems.event.e3},
             planning: {},
             recurring: {},
-            assignments: {},
+            assignment: {},
         });
 
         // Planning item with associated series of Recurring Events lock
@@ -176,10 +176,10 @@ describe('lock reducers', () => {
             }
         );
         expect(result).toEqual({
-            events: {},
+            event: {},
             planning: {},
             recurring: {r2: lockItems.recurring.r2},
-            assignments: {},
+            assignment: {},
         });
     });
 
@@ -194,10 +194,10 @@ describe('lock reducers', () => {
         );
 
         expect(result).toEqual({
-            events: lockItems.events,
+            event: lockItems.event,
             planning: {},
             recurring: lockItems.recurring,
-            assignments: lockItems.assignments,
+            assignment: lockItems.assignment,
         });
 
         // Planning item with associated Event lock
@@ -209,10 +209,10 @@ describe('lock reducers', () => {
             }
         );
         expect(result).toEqual({
-            events: {e1: lockItems.events.e1},
+            event: {e1: lockItems.event.e1},
             planning: lockItems.planning,
             recurring: lockItems.recurring,
-            assignments: lockItems.assignments,
+            assignment: lockItems.assignment,
         });
 
         // Planning item with associated series of Recurring Events lock
@@ -224,10 +224,10 @@ describe('lock reducers', () => {
             }
         );
         expect(result).toEqual({
-            events: lockItems.events,
+            event: lockItems.event,
             planning: lockItems.planning,
             recurring: {r1: lockItems.recurring.r1},
-            assignments: lockItems.assignments,
+            assignment: lockItems.assignment,
         });
     });
 
@@ -242,10 +242,10 @@ describe('lock reducers', () => {
         );
 
         expect(result).toEqual({
-            events: {e1: lockItems.events.e1},
+            event: {e1: lockItems.event.e1},
             planning: {},
             recurring: {},
-            assignments: {},
+            assignment: {},
         });
 
         // Event item with series of Recurring Event lock
@@ -257,10 +257,10 @@ describe('lock reducers', () => {
             }
         );
         expect(result).toEqual({
-            events: {},
+            event: {},
             planning: {},
             recurring: {r1: lockItems.recurring.r1},
-            assignments: {},
+            assignment: {},
         });
     });
 
@@ -275,10 +275,10 @@ describe('lock reducers', () => {
         );
 
         expect(result).toEqual({
-            events: {e3: lockItems.events.e3},
+            event: {e3: lockItems.event.e3},
             planning: lockItems.planning,
             recurring: lockItems.recurring,
-            assignments: lockItems.assignments,
+            assignment: lockItems.assignment,
         });
 
         // Event item with series of Recurring Events lock
@@ -290,10 +290,10 @@ describe('lock reducers', () => {
             }
         );
         expect(result).toEqual({
-            events: lockItems.events,
+            event: lockItems.event,
             planning: lockItems.planning,
             recurring: {r2: lockItems.recurring.r2},
-            assignments: lockItems.assignments,
+            assignment: lockItems.assignment,
         });
     });
 
@@ -308,10 +308,10 @@ describe('lock reducers', () => {
         );
 
         expect(result).toEqual({
-            events: {e3: lockItems.events.e3},
+            event: {e3: lockItems.event.e3},
             planning: lockItems.planning,
             recurring: lockItems.recurring,
-            assignments: lockItems.assignments,
+            assignment: lockItems.assignment,
         });
 
         // Event item with series of Recurring Events lock
@@ -323,10 +323,10 @@ describe('lock reducers', () => {
             }
         );
         expect(result).toEqual({
-            events: lockItems.events,
+            event: lockItems.event,
             planning: lockItems.planning,
             recurring: {r2: lockItems.recurring.r2},
-            assignments: lockItems.assignments,
+            assignment: lockItems.assignment,
         });
     });
 
@@ -341,10 +341,10 @@ describe('lock reducers', () => {
         );
 
         expect(result).toEqual({
-            events: {},
+            event: {},
             planning: {},
             recurring: {},
-            assignments: {a1: lockItems.assignments.a1},
+            assignment: {a1: lockItems.assignment.a1},
         });
     });
 
@@ -359,10 +359,10 @@ describe('lock reducers', () => {
         );
 
         expect(result).toEqual({
-            events: lockItems.events,
+            event: lockItems.event,
             planning: lockItems.planning,
             recurring: lockItems.recurring,
-            assignments: {},
+            assignment: {},
         });
     });
 
@@ -376,10 +376,10 @@ describe('lock reducers', () => {
         );
 
         expect(result).toEqual({
-            events: lockItems.events,
+            event: lockItems.event,
             planning: {},
             recurring: lockItems.recurring,
-            assignments: lockItems.assignments,
+            assignment: lockItems.assignment,
         });
     });
 });

@@ -254,7 +254,7 @@ describe('PlanningUtils', () => {
         beforeEach(() => {
             session = {};
             locks = {
-                events: {},
+                event: {},
                 planning: {},
                 recurring: {},
             };

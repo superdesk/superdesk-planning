@@ -260,7 +260,7 @@ describe('EventUtils', () => {
         beforeEach(() => {
             session = {};
             locks = {
-                events: {},
+                event: {},
                 planning: {},
                 recurring: {},
             };

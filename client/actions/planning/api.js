@@ -747,7 +747,7 @@ const duplicate = (plan) => (
     (dispatch, getState, {api}) => (
         api('planning_duplicate', plan).save({})
             .then((newPlan) => {
-                newPlan._type = 'planning';
+                newPlan.type = 'planning';
                 return Promise.resolve(newPlan);
             }, (error) => (
                 Promise.reject(error)

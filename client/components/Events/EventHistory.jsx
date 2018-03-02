@@ -156,13 +156,13 @@ const mapDispatchToProps = (dispatch) => ({
     openPlanningClick: (planningId) => (
         dispatch(actions.main.openPreview({
             _id: planningId,
-            _type: 'planning',
+            type: 'planning',
         }))
     ),
     openEventPreview: (eventId) => {
         dispatch(actions.main.openPreview({
             _id: eventId,
-            _type: 'events',
+            type: 'event',
         }));
     }
 });

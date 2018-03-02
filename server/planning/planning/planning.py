@@ -48,9 +48,6 @@ class PlanningService(superdesk.Service):
 
             doc.pop('_planning_schedule', None)
 
-            # Ensure the _type is set so the UI can differentiate between object types
-            doc['_type'] = 'planning'
-
         if not coverages:
             return
 

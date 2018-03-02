@@ -88,9 +88,6 @@ class EventsService(superdesk.Service):
         for location in (doc.get('location') or []):
             format_address(location)
 
-        # Ensure the _type is set so the UI can differentiate between object types
-        doc['_type'] = 'events'
-
     @staticmethod
     def has_planning_items(doc):
         return EventsService.get_plannings_for_event(doc).count() > 0
@@ -167,9 +164,6 @@ class EventsService(superdesk.Service):
             event_type = 'events:created'
             event_id = str(doc.get(config.ID_FIELD))
             user_id = str(doc.get('original_creator', ''))
-
-            # Ensure the _type is set so the UI can differentiate between object types
-            doc['_type'] = 'events'
 
             if doc.get('recurrence_id'):
                 event_type = 'events:created:recurring'

@@ -84,5 +84,5 @@ export const PLANNING = {
         AUDIO: 'audio',
         PICTURE: 'picture',
     },
-    DEFAULT_VALUE: {_type: 'planning'}
+    DEFAULT_VALUE: {type: 'planning'}
 };

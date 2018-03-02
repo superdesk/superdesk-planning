@@ -67,7 +67,7 @@ class EventsPublishService(EventsBaseService):
     def validate_item(doc):
         errors = get_resource_service('planning_validator').post([{
             'validate_on_publish': True,
-            'type': 'events',
+            'type': 'event',
             'validate': doc
         }])[0]
 

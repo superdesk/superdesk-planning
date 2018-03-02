@@ -66,7 +66,7 @@ const unlock = (item) => (
         switch (currentLock.item_type) {
         case 'planning':
             return dispatch(planning.api.unlock({_id: currentLock.item_id}));
-        case 'events':
+        case 'event':
             return dispatch(events.api.unlock({_id: currentLock.item_id}));
         }
     }

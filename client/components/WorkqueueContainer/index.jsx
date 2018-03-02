@@ -18,7 +18,7 @@ export const WorkqueueComponent = ({
     autosaves,
 }) => {
     const handleClose = (item) => {
-        if (get(autosaves, `${item._type}["${item._id}"]`)) {
+        if (get(autosaves, `${item.type}["${item._id}"]`)) {
             openConfirmationModal(
                 openEditForm.bind(null, item),
                 unlockAndCloseEditor.bind(null, item)

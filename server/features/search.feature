@@ -78,8 +78,8 @@ Feature: Search Feature
         """
         {
             "_items": [
-                {"_id": "planning_123", "_type": "planning"},
-                {"_id": "event_123", "_type": "events"}
+                {"_id": "planning_123", "type": "planning"},
+                {"_id": "event_123", "type": "event"}
             ]
         }
         """
@@ -88,8 +88,8 @@ Feature: Search Feature
         """
         {
             "_items": [
-                {"_id": "planning_123", "_type": "planning"},
-                {"_id": "event_123", "_type": "events"}
+                {"_id": "planning_123", "type": "planning"},
+                {"_id": "event_123", "type": "event"}
             ]
         }
         """
@@ -98,7 +98,7 @@ Feature: Search Feature
         """
         {
             "_items": [
-                {"_id": "planning_123", "_type": "planning"}
+                {"_id": "planning_123", "type": "planning"}
             ]
         }
         """

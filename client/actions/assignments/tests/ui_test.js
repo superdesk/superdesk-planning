@@ -507,6 +507,7 @@ describe('actions.assignments.ui', () => {
         const newAssignment = {
             _id: 'as3',
             _type: 'assignments',
+            type: 'assignment',
             coverage_id: 'c2',
             planning_item: 'p1',
             assigned_to: {
@@ -523,6 +524,7 @@ describe('actions.assignments.ui', () => {
         const restrictedAssignment = {
             _id: 'as4',
             _type: 'assignments',
+            type: 'assignment',
             coverage_id: 'c2',
             planning_item: 'p1',
             assigned_to: {

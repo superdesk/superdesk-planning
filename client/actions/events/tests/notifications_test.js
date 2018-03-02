@@ -465,7 +465,7 @@ describe('actions.events.notifications', () => {
         });
 
         it('dispatches notification modal if the Event unlocked is being edited', (done) => {
-            store.initialState.locks.events = {
+            store.initialState.locks.event = {
                 e1: {
                     action: 'edit',
                     user: 'ident1',
