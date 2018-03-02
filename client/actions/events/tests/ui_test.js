@@ -168,6 +168,20 @@ describe('actions.events.ui', () => {
             })
     ));
 
+    it('openRepetitionsModal calls `_openActionModal`', (done) => (
+        store.test(done, eventsUi.openRepetitionsModal(data.events[1]))
+            .then(() => {
+                expect(eventsUi._openActionModal.callCount).toBe(1);
+                expect(eventsUi._openActionModal.args[0]).toEqual([
+                    data.events[1],
+                    'Update Repetitions',
+                    'update_repetitions',
+                ]);
+
+                done();
+            })
+    ));
+
     describe('openActionModal', () => {
         beforeEach(() => {
             restoreSinonStub(eventsUi._openActionModal);
@@ -681,6 +695,47 @@ describe('actions.events.ui', () => {
                     expect(services.notify.success.args[0]).toEqual(['Event has been rescheduled']);
 
                     // But failed to open the new item
+                    expect(services.notify.error.callCount).toBe(1);
+                    expect(services.notify.error.args[0]).toEqual(['Failed!']);
+
+                    done();
+                });
+        });
+    });
+
+    describe('updateRepetitions', () => {
+        afterEach(() => {
+            restoreSinonStub(eventsApi.updateRepetitions);
+        });
+
+        it('updateRepetitions calls events.api.updateRepetitions and notifies the user of success', (done) => {
+            sinon.stub(eventsApi, 'updateRepetitions').callsFake((item) => Promise.resolve(item));
+            store.test(done, eventsUi.updateRepetitions(data.events[0]))
+                .then((item) => {
+                    expect(item).toEqual(data.events[0]);
+
+                    expect(store.dispatch.args[1]).toEqual([{type: 'HIDE_MODAL'}]);
+
+                    expect(eventsApi.updateRepetitions.callCount).toBe(1);
+                    expect(eventsApi.updateRepetitions.args[0]).toEqual([data.events[0]]);
+
+                    expect(services.notify.error.callCount).toBe(0);
+                    expect(services.notify.success.callCount).toBe(1);
+                    expect(services.notify.success.args[0]).toEqual(['Event repetitions updated']);
+
+                    done();
+                });
+        });
+
+        it('on updateRepetitions error notify the user of the failure', (done) => {
+            sinon.stub(eventsApi, 'updateRepetitions').callsFake((item) => Promise.reject(errorMessage));
+            store.test(done, eventsUi.updateRepetitions(data.events[0]))
+                .then(null, (error) => {
+                    expect(error).toEqual(errorMessage);
+
+                    expect(store.dispatch.args[1]).toEqual([{type: 'HIDE_MODAL'}]);
+
+                    expect(services.notify.success.callCount).toBe(0);
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
 

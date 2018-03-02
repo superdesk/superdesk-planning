@@ -11,7 +11,7 @@ import {EventScheduleSummary, EventScheduleInput} from '../../Events';
 import {RelatedPlannings} from '../../';
 import {Row} from '../../UI/Preview';
 import {TextAreaInput, Field} from '../../UI/Form';
-import {set, isEqual, cloneDeep} from 'lodash';
+import {get, set, isEqual, cloneDeep} from 'lodash';
 
 export class RescheduleEventComponent extends React.Component {
     constructor(props) {
@@ -37,7 +37,7 @@ export class RescheduleEventComponent extends React.Component {
     }
 
     onDatesChange(field, val) {
-        const diff = Object.assign({}, this.state.diff);
+        const diff = cloneDeep(get(this.state, 'diff') || {});
         const initialValues = this.props.initialValues;
 
         if (field === 'dates.recurring_rule' && !val) {

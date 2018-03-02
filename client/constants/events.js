@@ -83,6 +83,12 @@ export const EVENTS = {
             actionName: 'onConvertToRecurringEvent',
             lock_action: 'convert_recurring',
         },
+        UPDATE_REPETITIONS: {
+            label: gettext('Update Repetitions'),
+            icon: 'icon-repeat',
+            actionName: 'onUpdateEventRepetitions',
+            lock_action: 'update_repetitions'
+        },
     },
     DEFAULT_VALUE: (occurStatuses) => ({
         _type: 'events',

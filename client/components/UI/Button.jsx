@@ -51,7 +51,7 @@ const Button = ({
                 },
                 className
             )}
-            onClick={onClick || null}
+            onClick={disabled ? null : onClick || null}
             title={title || text}
             tabIndex={tabIndex}
             onKeyDown={enterKeyIsClick ? handeKeyDown : onKeyDown}

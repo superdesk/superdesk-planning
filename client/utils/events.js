@@ -267,6 +267,12 @@ const canPostponeEvent = (event, session, privileges, locks) => (
         !isEventLockedForMetadataEdit(event)
 );
 
+const canUpdateEventRepetitions = (event, session, privileges, locks) => (
+    !isNil(event) &&
+        isEventRecurring(event) &&
+        canRescheduleEvent(event, session, privileges, locks)
+);
+
 const getEventItemActions = (event, session, privileges, actions, locks) => {
     let itemActions = [];
     let key = 1;
@@ -290,6 +296,8 @@ const getEventItemActions = (event, session, privileges, actions, locks) => {
             canPostponeEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: () =>
             canConvertToRecurringEvent(event, session, privileges, locks),
+        [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label]: () =>
+            canUpdateEventRepetitions(event, session, privileges, locks)
     };
 
     actions.forEach((action) => {
@@ -414,6 +422,14 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks) => {
             callBacks[callBackName] &&
                 actions.push({
                     ...EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING,
+                    callback: callBacks[callBackName].bind(null, item)
+                });
+            break;
+
+        case EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName:
+            callBacks[callBackName] &&
+                actions.push({
+                    ...EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS,
                     callback: callBacks[callBackName].bind(null, item)
                 });
             break;

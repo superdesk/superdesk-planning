@@ -1171,6 +1171,16 @@ const duplicate = (event) => (
     )
 );
 
+const updateRepetitions = (event) => (
+    (dispatch, getState, {api}) => (
+        api.update(
+            'events_update_repetitions',
+            event,
+            {dates: event.dates}
+        )
+    )
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     loadEventsByRecurrenceId,
@@ -1203,7 +1213,8 @@ const self = {
     _saveLocation,
     getCriteria,
     fetchById,
-    duplicate
+    duplicate,
+    updateRepetitions,
 };
 
 export default self;

@@ -50,3 +50,6 @@ class EventsHistoryService(HistoryService):
         elif operation == 'create' and 'ingested' == update.get('state', ''):
                 history['operation'] = 'ingested'
         self.post([history])
+
+    def on_update_repetitions(self, updates, event_id):
+        self.on_item_updated(updates, {'_id': event_id}, 'update_repetitions')

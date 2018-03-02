@@ -174,6 +174,40 @@ class EventsBaseService(BaseService):
             **data
         )
 
+    def get_series(self, query):
+        total_received = 0  # Total events yielded
+        total_events = -1  # Total event to be yielded
+
+        while True:
+            # If we have received all the events, then return here
+            if 0 < total_received >= total_events:
+                break
+
+            # Update the query with the next page
+            query["from"] = total_received
+
+            # Get the results from elastic search
+            results = self.search(query)
+
+            # If total_events has not been set, then this is the first query
+            # In which case we need to store the total hits from the search
+            if total_events < 0:
+                total_events = results.count()
+
+                # If the search doesn't contain any results, return here
+                if total_events < 1:
+                    break
+
+            # If the last query doesn't contain any results, return here
+            if not len(results.docs):
+                break
+
+            total_received += len(results.docs)
+
+            # Yield the results for iteration by the callee
+            for doc in results.docs:
+                yield doc
+
     def get_recurring_timeline(self, selected, include_postponed=False):
         """Utility method to get all events in the series
 
@@ -182,10 +216,6 @@ class EventsBaseService(BaseService):
         Past: utcnow() < event.dates.start < selected.dates.start
         Future: event.dates.start > selected.dates.start
         """
-        historic = []
-        past = []
-        future = []
-
         selected_start = selected.get('dates', {}).get('start', utcnow())
 
         query = {
@@ -215,7 +245,11 @@ class EventsBaseService(BaseService):
             'size': get_max_recurrent_events()
         }
 
-        for event in list(self.search(query)):
+        historic = []
+        past = []
+        future = []
+
+        for event in self.get_series(query):
             event['dates']['end'] = datetime.strptime(event['dates']['end'], '%Y-%m-%dT%H:%M:%S%z')
             event['dates']['start'] = datetime.strptime(event['dates']['start'], '%Y-%m-%dT%H:%M:%S%z')
             end = event['dates']['end']
@@ -247,3 +281,17 @@ class EventsBaseService(BaseService):
     def is_original_event(original):
         # Check Flask's URL params if the ID matches the one provided here
         return original.get(config.ID_FIELD) == request.view_args.get(config.ID_FIELD)
+
+    @staticmethod
+    def _set_events_planning(events):
+        planning_service = get_resource_service('planning')
+
+        planning_items = list(planning_service.get_from_mongo(
+            req=None, lookup={'event_item': {'$in': list(events.keys())}}
+        ))
+
+        for plan in planning_items:
+            event = events[plan['event_item']]
+            if '_plans' not in event:
+                event['_plans'] = []
+            event['_plans'].append(plan)

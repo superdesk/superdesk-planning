@@ -108,7 +108,7 @@ class EventsCancelService(EventsBaseService):
 
     @staticmethod
     def _set_event_cancelled(updates, original, occur_cancel_state):
-        if not EventsCancelService._validate(original):
+        if not EventsCancelService.validate_states(original):
             raise SuperdeskApiError.badRequestError('Event not in valid state for cancellation')
 
         reason = updates.get('reason', None)
@@ -161,7 +161,7 @@ Event Cancelled
         updates['_cancelled_events'] = notifications
 
     def patch_related_event_as_cancelled(self, updates, original, notifications):
-        if not self._validate(original):
+        if not self.validate_states(original):
             # Don't raise exception for related events in series - simply ignore
             return
 
@@ -178,8 +178,14 @@ Event Cancelled
         })
 
     @staticmethod
-    def _validate(event):
-        if event.get('state') not in ['draft', 'scheduled', 'ingested', 'killed', 'postponed']:
+    def validate_states(event):
+        if event.get('state') not in [
+            WORKFLOW_STATE.DRAFT,
+            WORKFLOW_STATE.SCHEDULED,
+            WORKFLOW_STATE.INGESTED,
+            WORKFLOW_STATE.KILLED,
+            WORKFLOW_STATE.POSTPONED
+        ]:
             return False
 
         return True

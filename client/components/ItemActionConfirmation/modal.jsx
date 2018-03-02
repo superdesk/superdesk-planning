@@ -12,6 +12,7 @@ import {
     CancelPlanningCoveragesForm,
     UpdateAssignmentForm,
     EditPriorityForm,
+    UpdateEventRepetitionsForm,
 } from './index';
 import {get} from 'lodash';
 import {EVENTS, PLANNING, ASSIGNMENTS} from '../../constants';
@@ -81,6 +82,11 @@ export class ItemActionConfirmationModal extends React.Component {
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.label]: {
                 title: get(EVENTS, 'ITEM_ACTIONS.CONVERT_TO_RECURRING.label'),
                 form: ConvertToRecurringEventForm,
+            },
+            [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label]: {
+                title: gettext('Update Event Repetitions'),
+                saveText: gettext('Update Repetitions'),
+                form: UpdateEventRepetitionsForm,
             },
             [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: {
                 title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_PLANNING.label'),

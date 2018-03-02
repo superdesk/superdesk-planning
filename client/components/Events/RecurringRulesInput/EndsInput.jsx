@@ -22,10 +22,10 @@ export class EndsInput extends React.Component {
 
         if (value === 'count') {
             onChange(`${fieldPrefix}endRepeatMode`, 'count');
-            onChange(`${fieldPrefix}until`, '');
+            onChange(`${fieldPrefix}until`, null);
         } else if (value === 'until') {
             onChange(`${fieldPrefix}endRepeatMode`, 'until');
-            onChange(`${fieldPrefix}count`, '');
+            onChange(`${fieldPrefix}count`, null);
         }
     }
 
@@ -34,10 +34,10 @@ export class EndsInput extends React.Component {
 
         if (field === 'count' && endRepeatMode === 'until') {
             onChange(`${fieldPrefix}endRepeatMode`, 'count');
-            onChange(`${fieldPrefix}until`, '');
+            onChange(`${fieldPrefix}until`, null);
         } else if (field === 'until' && endRepeatMode === 'count') {
             onChange(`${fieldPrefix}endRepeatMode`, 'until');
-            onChange(`${fieldPrefix}count`, '');
+            onChange(`${fieldPrefix}count`, null);
         }
 
         onChange(`${fieldPrefix}${field}`, value);

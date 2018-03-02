@@ -50,6 +50,8 @@ export class EventItem extends React.PureComponent {
                 this.props[EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
+            [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]:
+                this.props[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]
         };
         const itemActions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack);
 
@@ -143,7 +145,8 @@ EventItem.propTypes = {
     [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.RESCHEDULE_EVENT.actionName]: PropTypes.func,
-    [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: PropTypes.func
+    [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]: PropTypes.func,
+    [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]: PropTypes.func,
 };
 
 EventItem.defaultProps = {

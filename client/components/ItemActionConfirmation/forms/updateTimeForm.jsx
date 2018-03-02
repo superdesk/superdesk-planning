@@ -47,7 +47,7 @@ export class UpdateTimeComponent extends React.Component {
     }
 
     onChange(field, value) {
-        const diff = Object.assign({}, this.state.diff);
+        const diff = cloneDeep(get(this.state, 'diff') || {});
         const errors = cloneDeep(this.state.errors);
         let relatedEvents = this.state.relatedEvents;
 
