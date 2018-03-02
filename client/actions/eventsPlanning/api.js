@@ -1,8 +1,8 @@
-import {pick, get, isEmpty} from 'lodash';
+import {pick, get} from 'lodash';
 import {MAIN, SPIKED_STATE} from '../../constants';
 import eventsApi from '../events/api';
 import planningApi from '../planning/api';
-import {planningUtils, eventUtils, getTimeZoneOffset} from '../../utils';
+import {planningUtils, eventUtils} from '../../utils';
 import * as selectors from '../../selectors';
 import main from '../main';
 
@@ -62,21 +62,6 @@ const query = (
                 nested_path: '_planning_schedule'
             },
         };
-
-        let range = {};
-
-        if (get(advancedSearch, 'dates.start')) {
-            range.gte = get(advancedSearch, 'dates.start');
-        }
-
-        if (get(advancedSearch, 'dates.end')) {
-            range.lte = get(advancedSearch, 'dates.end');
-        }
-
-        if (!isEmpty(range)) {
-            range.time_zone = getTimeZoneOffset();
-            sortParams[sortField].nested_filter.range[sortField] = range;
-        }
 
         // Query the API
         return api('planning_search').query({
