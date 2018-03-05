@@ -239,6 +239,7 @@ const _createPlanningFromEvent = (event) => (
             event_item: event._id,
             slugline: event.slugline,
             planning_date: event.dates.start,
+            internal_note: event.internal_note,
             headline: event.name,
             place: event.place,
             subject: event.subject,
