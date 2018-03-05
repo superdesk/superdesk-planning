@@ -160,7 +160,10 @@ export class EditorComponent extends React.Component {
                 showSubmitFailed: false,
             });
             return this.props.onSave(this.state.diff, {save, publish, unpublish})
-                .finally(() => this.setState({submitting: false}));
+                .finally(() => this.setState({
+                    submitting: false,
+                    dirty: false,
+                }));
         }
     }
 
