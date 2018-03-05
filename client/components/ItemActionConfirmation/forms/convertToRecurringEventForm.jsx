@@ -38,7 +38,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
     }
 
     onChange(field, val) {
-        const diff = Object.assign({}, this.state.diff);
+        const diff = cloneDeep(get(this.state, 'diff') || {});
 
         if (field === 'dates.recurring_rule' && !val) {
             delete diff.dates.recurring_rule;

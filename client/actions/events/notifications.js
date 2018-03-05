@@ -337,6 +337,7 @@ self.events = {
     'events:unpublished:recurring': () => (self.onEventPublishChanged),
     'events:update_time': () => (self.onEventScheduleChanged),
     'events:update_time:recurring': () => (self.onEventScheduleChanged),
+    'events:update_repetitions:recurring': () => (self.onEventScheduleChanged),
 };
 
 export default self;

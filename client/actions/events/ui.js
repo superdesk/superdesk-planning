@@ -385,6 +385,14 @@ const convertToRecurringEvent = (event, publish) => (
     ))
 );
 
+const openRepetitionsModal = (event) => (
+    (dispatch) => dispatch(self._openActionModal(
+        event,
+        EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.label,
+        EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.lock_action
+    ))
+);
+
 const _openActionModal = (
     event,
     action,
@@ -490,6 +498,23 @@ const updateEventTime = (event) => (
                     getErrorMessage(error, 'Failed to update the Event time!')
                 );
 
+                return Promise.reject(error);
+            })
+    )
+);
+
+const updateRepetitions = (event) => (
+    (dispatch, getState, {notify}) => (
+        dispatch(eventsApi.updateRepetitions(event))
+            .then((updatedEvent) => {
+                dispatch(hideModal());
+                notify.success(gettext('Event repetitions updated'));
+                return Promise.resolve(updatedEvent);
+            }, (error) => {
+                dispatch(hideModal());
+                notify.error(
+                    getErrorMessage(error, gettext('Failed to update Event repetitions'))
+                );
                 return Promise.reject(error);
             })
     )
@@ -780,7 +805,9 @@ const self = {
     addToList,
     requestEvents,
     updateEventTime,
-    duplicate
+    duplicate,
+    updateRepetitions,
+    openRepetitionsModal,
 };
 
 export default self;

@@ -312,20 +312,6 @@ Event Rescheduled
                     updates['_deleted'] = True
 
     @staticmethod
-    def _set_events_planning(events):
-        planning_service = get_resource_service('planning')
-
-        planning_items = list(planning_service.get_from_mongo(
-            req=None, lookup={'event_item': {'$in': list(events.keys())}}
-        ))
-
-        for plan in planning_items:
-            event = events[plan['event_item']]
-            if '_plans' not in event:
-                event['_plans'] = []
-            event['_plans'].append(plan)
-
-    @staticmethod
     def set_next_occurrence(updates):
         new_dates = [date for date in islice(generate_recurring_dates(
             start=updates['dates']['start'],

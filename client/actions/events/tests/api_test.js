@@ -918,4 +918,18 @@ describe('actions.events.api', () => {
                 });
         });
     });
+
+    it('updateRepetitions', (done) => (
+        store.test(done, eventsApi.updateRepetitions(data.events[0]))
+            .then(() => {
+                expect(services.api.update.callCount).toBe(1);
+                expect(services.api.update.args[0]).toEqual([
+                    'events_update_repetitions',
+                    data.events[0],
+                    {dates: data.events[0].dates}
+                ]);
+
+                done();
+            })
+    ));
 });

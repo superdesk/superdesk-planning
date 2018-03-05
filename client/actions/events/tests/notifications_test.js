@@ -249,6 +249,17 @@ describe('actions.events.notifications', () => {
                 done();
             }, delay);
         });
+
+        it('`events:update_repetitions:recurring` calls onEventScheduleChanged', (done) => {
+            $rootScope.$broadcast('events:update_repetitions:recurring', {item: 'e1'});
+
+            setTimeout(() => {
+                expect(eventsNotifications.onEventScheduleChanged.callCount).toBe(1);
+                expect(eventsNotifications.onEventScheduleChanged.args[0][1]).toEqual({item: 'e1'});
+
+                done();
+            }, delay);
+        });
     });
 
     describe('onEventPublishChanged', () => {
