@@ -36,7 +36,12 @@ export class SearchPanelComponent extends React.Component {
     onChangeHandler(field, value) {
         const diff = cloneDeep(this.state.diff);
 
-        set(diff, field, value);
+        if (Array.isArray(value) && value.length === 0) {
+            set(diff, field, null);
+        } else {
+            set(diff, field, value);
+        }
+
         this.setState({diff: diff});
     }
 
