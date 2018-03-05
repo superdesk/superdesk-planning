@@ -489,3 +489,129 @@ Feature: Events Postpone
         """
         {"_issues": {"validator exception": "403: The lock must be for the `postpone` action"}, "_status": "ERR"}
         """
+
+    @auth
+    @notification
+    Scenario: Published event gets updated after postpone
+        Given we have sessions "/sessions"
+        Given "desks"
+        """
+        [{"_id": "desk_123", "name": "Politic Desk"}]
+        """
+        Given "assignments"
+        """
+        [{
+            "_id": "aaaaaaaaaaaaaaaaaaaaaaaa",
+            "planning": {
+                "ednote": "test coverage, I want 250 words",
+                "headline": "test headline",
+                "slugline": "test slugline",
+                "g2_content_type": "text"
+            },
+            "assigned_to": {
+                "desk": "#desks._id#",
+                "user": "#CONTEXT_USER_ID#",
+                "state": "assigned"
+            }
+        }]
+        """
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "definition_long":  "An event with exciting things",
+            "occur_status": {
+                "qcode": "eocstat:eos5",
+                "name": "Planned, occurs certainly"
+            },
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "postpone",
+            "lock_time": "#DATE#"
+        }]
+        """
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "TestPlan 1",
+            "event_item": "event1",
+            "ednote": "We're covering this Event",
+            "state": "draft",
+            "coverages": [{
+                "coverage_id": "cov1",
+                "slugline": "TestCoverage 1",
+                "planning": {
+                    "internal_note": "Cover something please!"
+                },
+                "planning_item": "plan1",
+                "news_coverage_status": {
+                    "qcode": "ncostat:int",
+                    "name": "Coverage intended"
+                },
+                "assigned_to": {
+                    "desk": "#desks._id#",
+                    "user": "#CONTEXT_USER_ID#",
+                    "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa"
+                }
+            }]
+        }]
+        """
+        When we post to "/products" with success
+        """
+        {
+            "name":"prod-1","codes":"abc,xyz", "product_type": "both"
+        }
+        """
+        And we post to "/subscribers" with success
+        """
+        {
+            "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
+            "products": ["#products._id#"],
+            "codes": "xyz, abc",
+            "destinations": [{"name":"events", "format": "ntb_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
+        }
+        """
+        When we perform postpone on events "event1"
+        """
+        {"reason": "Not happening anymore!"}
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "events:created",
+            "extra": {"item": "event1"}
+        },
+        {
+            "event": "events:postpone",
+            "extra": {"item": "event1","user": "#CONTEXT_USER_ID#"}
+        },
+        {
+            "event": "events:published",
+            "extra": {"item": "event1"}
+        }]
+        """
+        When we get "/events"
+        Then we get a list with 1 items
+        """
+        {"_items":[{
+            "_id": "event1",
+            "state": "postponed",
+            "definition_long": "An event with exciting things\n\n------------------------------------------------------------\nEvent Postponed\nReason: Not happening anymore!\n",
+            "pubstatus": "usable"
+
+        }]}
+        """
+        When we get "publish_queue"
+        Then we get list with 1 items

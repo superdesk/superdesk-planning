@@ -641,3 +641,88 @@ Feature: Events Cancel
             { "_id": "#EVENT4._id#", "state": "cancelled" }
         ]}
         """
+
+    @auth
+    @vocabulary
+    @notification
+    Scenario: Published event gets updated after cancel
+        Given we have sessions "/sessions"
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "TestEvent",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "scheduled",
+            "pubstatus": "usable",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "cancel",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we post to "/products" with success
+        """
+        {
+            "name":"prod-1","codes":"abc,xyz", "product_type": "both"
+        }
+        """
+        And we post to "/subscribers" with success
+        """
+        {
+            "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
+            "products": ["#products._id#"],
+            "codes": "xyz, abc",
+            "destinations": [{"name":"events", "format": "ntb_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
+        }
+        """
+        When we perform cancel on events "event1"
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "events:created",
+            "extra": {"item": "event1"}
+        },
+        {
+            "event": "events:unlock",
+            "extra": {
+                "item": "event1",
+                "user": "#CONTEXT_USER_ID#",
+                "lock_session": "#SESSION_ID#",
+                "etag": "__any_value__"
+            }
+        }, {
+            "event": "events:cancel",
+            "extra": {
+                "item": "event1",
+                "user": "#CONTEXT_USER_ID#",
+                "reason": ""
+            }
+        }, {
+            "event": "events:published",
+            "extra": {
+                "item": "event1"
+            }
+        }]
+        """
+        When we get "/events"
+        Then we get a list with 1 items
+        """
+        {"_items": [{
+            "_id": "event1",
+            "state": "cancelled",
+            "pubstatus": "usable",
+            "lock_user": null,
+            "lock_session": null,
+            "lock_action": null,
+            "lock_time": null
+        }]}
+        """
+        When we get "publish_queue"
+        Then we get list with 1 items

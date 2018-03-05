@@ -50,8 +50,88 @@ Feature: Cancel all coverage
 
     @auth
     @notification
+    Scenario: Published planning gets updated
+      When we post to "/products" with success
+      """
+      {
+          "name":"prod-1","codes":"abc,xyz", "product_type": "both"
+      }
+      """
+      And we post to "/subscribers" with success
+      """
+      {
+          "name":"News1","media_type":"media", "subscriber_type": "digital", "sequence_num_settings":{"min" : 1, "max" : 10}, "email": "test@test.com",
+          "products": ["#products._id#"],
+          "codes": "xyz, abc",
+          "destinations": [{"name":"events", "format": "ntb_event", "delivery_type": "File", "config":{"file_path": "/tmp"}}]
+      }
+      """
+      When we post to "planning" with success
+      """
+      [{
+          "guid": "123",
+          "headline": "test headline",
+          "slugline": "test slugline",
+          "state": "draft",
+          "lock_action": "planning_cancel",
+          "coverages": [{
+              "planning": {
+                  "ednote": "test coverage, 250 words",
+                  "headline": "test headline",
+                  "slugline": "test slugline",
+                  "scheduled": "2029-11-21T14:00:00.000Z",
+                  "g2_content_type": "text"
+              }
+          }]
+      }]
+      """
+      When we post to "/planning/publish"
+      """
+      {
+          "planning": "#planning._id#",
+          "etag": "#planning._etag#",
+          "pubstatus": "usable"
+      }
+      """
+      Then we get OK response
+      When we perform cancel on planning "123"
+      Then we get OK response
+      And we get notifications
+      """
+      [{
+          "event": "planning:published",
+          "extra": {"item": "123"}
+      },
+      {
+          "event": "planning:created",
+          "extra": {"item": "123"}
+      },
+      {
+          "event": "planning:cancelled",
+          "extra": {"item": "123","user": "#CONTEXT_USER_ID#"}
+      },
+      {
+          "event": "planning:published",
+          "extra": {"item": "123"}
+      }]
+      """
+      When we get "planning/#planning._id#"
+      Then we get existing resource
+      """
+      {
+          "guid": "123",
+          "headline": "test headline",
+          "slugline": "test slugline",
+          "state": "cancelled",
+          "pubstatus": "usable",
+          "ednote": "------------------------------------------------------------\nPlanning cancelled\n"
+      }
+      """
+
+    @auth
+    @notification
     @vocabulary
-    Scenario: Changes coverage status to `coverage not intended`
+    Scenario: Published planning gets updated on cancel all coverage
       Given "vocabularies"
       """
       [{
@@ -76,8 +156,8 @@ Feature: Cancel all coverage
           "guid": "123",
           "headline": "test headline",
           "slugline": "test slugline",
-          "state": "scheduled",
-          "pubstatus": "usable",
+          "state": "draft",
+          "lock_action": "cancel_all_coverage",
           "coverages": [
               {
                   "planning": {
@@ -96,17 +176,34 @@ Feature: Cancel all coverage
           ]
       }]
       """
+      When we post to "/planning/publish"
+      """
+      {
+          "planning": "#planning._id#",
+          "etag": "#planning._etag#",
+          "pubstatus": "usable"
+      }
+      """
+      Then we get OK response
       When we perform cancel on planning "123"
       Then we get OK response
       And we get notifications
       """
       [{
+          "event": "planning:published",
+          "extra": {"item": "123"}
+      },
+      {
           "event": "planning:created",
           "extra": {"item": "123"}
       },
       {
           "event": "planning:cancelled",
           "extra": {"item": "123","user": "#CONTEXT_USER_ID#"}
+      },
+      {
+          "event": "planning:published",
+          "extra": {"item": "123"}
       }]
       """
       When we get "planning/#planning._id#"
@@ -331,6 +428,125 @@ Feature: Cancel all coverage
       Then we get OK response
       Then we store coverage id in "firstcoverage" from coverage 0
       Then we store coverage id in "secondcoverage" from coverage 1
+      When we perform cancel on planning "123"
+      """
+      { "cancel_all_coverage": true }
+      """
+      Then we get OK response
+      And we get notifications
+      """
+      [{
+          "event": "planning:created",
+          "extra": {"item": "123"}
+      },
+      {
+          "event": "coverage:cancelled",
+          "extra": {"planning_item": "123","ids": ["#firstcoverage#", "#secondcoverage#"]}
+      }]
+      """
+      When we get "/planning/#planning._id#"
+      Then we get existing resource
+      """
+      {
+          "_id": "#planning._id#",
+          "headline": "test headline",
+          "slugline": "test slugline",
+          "state": "scheduled",
+          "pubstatus": "usable",
+          "ednote": "something happened",
+          "coverages":       [
+              {
+                  "planning": {
+                      "ednote": "test coverage, 250 words",
+                      "g2_content_type": "text",
+                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                  },
+                  "news_coverage_status": {
+                      "qcode" : "ncostat:notint"
+                  }
+              },
+              {
+                  "planning": {
+                      "ednote": "test coverage2, 250 words",
+                      "g2_content_type": "text",
+                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                  },
+                  "news_coverage_status": {
+                      "qcode" : "ncostat:notint"
+                  }
+              }
+          ]
+      }
+      """
+
+
+    @auth
+    @notification
+    Scenario: Published planning gets updated on cancel planing
+      Given "vocabularies"
+      """
+      [{
+          "_id": "newscoveragestatus",
+          "display_name": "News Coverage Status",
+          "type": "manageable",
+          "unique_field": "qcode",
+          "items": [
+              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
+                  "label": "On merit"},
+              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
+                  "label": "Not planned"},
+              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
+                  "label": "On request"}
+          ]
+      }]
+      """
+      When we post to "planning" with success
+      """
+      [{
+          "guid": "123",
+          "headline": "test headline",
+          "slugline": "test slugline",
+          "state": "draft",
+          "ednote": "something happened",
+          "coverages": [
+              {
+                  "planning": {
+                      "ednote": "test coverage, 250 words",
+                      "g2_content_type": "text"
+                  },
+                  "news_coverage_status": {
+                      "qcode": "ncostat:int",
+                      "name": "coverage intended",
+                      "label": "Planned"
+                  }
+              },
+              {
+                  "planning": {
+                      "ednote": "test coverage2, 250 words",
+                      "g2_content_type": "text"
+                  },
+                  "news_coverage_status": {
+                      "qcode": "ncostat:int",
+                      "name": "coverage intended",
+                      "label": "Planned"
+                  }
+              }
+          ]
+      }]
+      """
+      Then we get OK response
+      Then we store coverage id in "firstcoverage" from coverage 0
+      Then we store coverage id in "secondcoverage" from coverage 1
+      When we post to "/planning/publish"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+      Then we get OK response
       When we perform cancel on planning "123"
       """
       { "cancel_all_coverage": true }

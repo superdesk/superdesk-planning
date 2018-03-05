@@ -31,7 +31,6 @@ Feature: Publish
             "slugline": "event-123",
             "definition_short": "short value",
             "definition_long": "long value",
-            "pubstatus": "usable",
             "relationships":{
                 "broader": "broader value",
                 "narrower": "narrower value",
