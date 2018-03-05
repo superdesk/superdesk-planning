@@ -70,7 +70,8 @@ describe('agenda', () => {
                 slugline: 'Slugger',
                 subject: '123',
                 anpa_category: 'abc',
-                dates: {start: '2016-10-15T13:01:11'}
+                dates: {start: '2016-10-15T13:01:11'},
+                internal_note: 'internal note',
             }];
 
             initialState = {
@@ -396,7 +397,8 @@ describe('agenda', () => {
                                     qcode: 'ACT',
                                     state: 'Australian Capital Territory',
                                     world_region: 'Oceania'
-                                }]
+                                }],
+                                internal_note: 'internal note',
                             },
                         ]);
 
