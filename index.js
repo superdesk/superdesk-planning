@@ -28,13 +28,6 @@ function configurePlanning(superdesk) {
             controller: ['$scope', ($scope) => $scope.app = PlanningApp],
             privileges: { planning: 1 },
         })
-        .activity('/settings/planning', {
-            label: gettext('Planning'),
-            template: require('./client/views/settings.html'),
-            category: superdesk.MENU_SETTINGS,
-            priority: 2000,
-            privileges: { planning: 1 },
-        })
         .activity('/workspace/assignments', {
             label: gettext('Assignments'),
             priority: 100,
