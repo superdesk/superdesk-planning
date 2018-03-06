@@ -58,7 +58,6 @@ export class SpikeEventComponent extends React.Component {
     render() {
         const {initialValues, dateFormat, timeFormat} = this.props;
         const isRecurring = !!initialValues.recurrence_id;
-        const updateMethodLabel = gettext('Would you like to spike all recurring events or just this one?');
         const eventsInUse = this.state.relatedEvents.filter((e) => (
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
         ));
@@ -98,7 +97,7 @@ export class SpikeEventComponent extends React.Component {
                     value={this.state.eventUpdateMethod}
                     onChange={this.onEventUpdateMethodChange}
                     showMethodSelection={isRecurring}
-                    updateMethodLabel={updateMethodLabel}
+                    updateMethodLabel={gettext('Spike all recurring events or just this one?')}
                     showSpace={false}
                     readOnly={this.state.submitting}
                     action="spike" />

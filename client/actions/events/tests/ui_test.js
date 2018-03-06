@@ -2,7 +2,7 @@ import eventsApi from '../api';
 import eventsUi from '../ui';
 import planningApi from '../../planning/api';
 import {main} from '../../';
-import {PRIVILEGES} from '../../../constants';
+import {PRIVILEGES, MAIN} from '../../../constants';
 import sinon from 'sinon';
 import {getTestActionStore, restoreSinonStub, expectAccessDenied} from '../../../utils/testUtils';
 
@@ -277,7 +277,7 @@ describe('actions.events.ui', () => {
             sinon.stub(eventsApi, 'spike').callsFake(() => (Promise.reject(errorMessage)));
 
             return store.test(done, eventsUi.spike(data.events[0]))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     expect(services.notify.success.callCount).toBe(0);
@@ -299,8 +299,6 @@ describe('actions.events.ui', () => {
                     expect(eventsApi.unspike.callCount).toBe(1);
                     expect(eventsApi.unspike.args[0]).toEqual([data.events[0]]);
 
-                    expect(eventsUi.refetch.callCount).toBe(1);
-
                     expect(services.notify.success.callCount).toBe(1);
                     expect(services.notify.success.args[0]).toEqual(['The event(s) have been unspiked']);
 
@@ -315,7 +313,7 @@ describe('actions.events.ui', () => {
             sinon.stub(eventsApi, 'unspike').callsFake(() => (Promise.reject(errorMessage)));
 
             return store.test(done, eventsUi.unspike(data.events[0]))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     expect(services.notify.success.callCount).toBe(0);
@@ -345,6 +343,8 @@ describe('actions.events.ui', () => {
                 () => (Promise.resolve(data.events))
             );
 
+            store.initialState.main.filter = MAIN.FILTERS.EVENTS;
+
             return store.test(done, eventsUi.refetch())
                 .then((events) => {
                     expect(events).toEqual(data.events);
@@ -366,12 +366,28 @@ describe('actions.events.ui', () => {
                 () => (Promise.reject(errorMessage))
             );
 
+            store.initialState.main.filter = MAIN.FILTERS.EVENTS;
+
             return store.test(done, eventsUi.refetch())
-                .then(() => { /* no-op */ }, (error) => {
+                .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
 
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
+
+                    done();
+                });
+        });
+
+        it('doesnt refetch events if main filter is not EVENTS', (done) => {
+            restoreSinonStub(eventsUi.refetch);
+            store.initialState.main.filter = MAIN.FILTERS.COMBINED;
+
+            return store.test(done, eventsUi.refetch())
+                .then((events) => {
+                    expect(events).toEqual([]);
+
+                    expect(eventsApi.refetch.callCount).toBe(0);
 
                     done();
                 });

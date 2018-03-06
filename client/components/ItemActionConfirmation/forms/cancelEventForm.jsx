@@ -112,7 +112,7 @@ export class CancelEventComponent extends React.Component {
                     value={this.state.eventUpdateMethod}
                     onChange={this.onEventUpdateMethodChange}
                     showMethodSelection={isRecurring}
-                    updateMethodLabel={gettext('Would you like to cancel all recurring events or just this one?')}
+                    updateMethodLabel={gettext('Cancel all recurring events or just this one?')}
                     relatedPlannings={this.state.relatedPlannings}
                     showSpace={false}
                     readOnly={this.state.submitting}

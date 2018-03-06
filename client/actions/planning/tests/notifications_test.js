@@ -1,22 +1,20 @@
 import planningApi from '../api';
 import planningUi from '../ui';
 import eventsPlanningUi from '../../eventsPlanning/ui';
+import eventsApi from '../../events/api';
 import main from '../../main';
 import sinon from 'sinon';
 import {registerNotifications} from '../../../utils';
 import planningNotifications from '../notifications';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
-import {EVENTS_PLANNING, MAIN, PLANNING} from '../../../constants';
+import {MAIN, PLANNING} from '../../../constants';
 
 describe('actions.planning.notifications', () => {
     let store;
-    let services;
     let data;
-    const errorMessage = {data: {_message: 'Failed!'}};
 
     beforeEach(() => {
         store = getTestActionStore();
-        services = store.services;
         data = store.data;
         store.init();
     });
@@ -153,48 +151,41 @@ describe('actions.planning.notifications', () => {
     });
 
     describe('`planning:created`', () => {
-        let originalSetTimeout = window.setTimeout;
-
         beforeEach(() => {
-            // Mock window.setTimeout
-            jasmine.getGlobal().setTimeout = (func) => func();
-            sinon.stub(eventsPlanningUi, 'refetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(eventsApi, 'markEventHasPlannings').callsFake(() => (Promise.resolve()));
+            sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(planningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
         });
 
         afterEach(() => {
-            restoreSinonStub(planningApi.refetch);
-            restoreSinonStub(planningUi.setInList);
-            restoreSinonStub(planningNotifications.canRefetchPlanning);
-            restoreSinonStub(eventsPlanningUi.refetch);
-            // Restore window.setTimeout
-            jasmine.getGlobal().setTimeout = originalSetTimeout;
+            restoreSinonStub(eventsApi.markEventHasPlannings);
+            restoreSinonStub(planningUi.scheduleRefetch);
+            restoreSinonStub(eventsPlanningUi.scheduleRefetch);
+            restoreSinonStub(main.setUnsetLoadingIndicator);
         });
 
         it('calls refetch on create', (done) => {
-            restoreSinonStub(planningApi.refetch);
-            sinon.stub(planningApi, 'refetch').callsFake(() => (Promise.resolve([{_id: 'p1'}])));
-            sinon.stub(planningUi, 'setInList').callsFake(() => ({type: 'setInList'}));
-
-            return store.test(done, planningNotifications.onPlanningCreated({}, {item: 'p1'}))
+            store.initialState.main.filter = MAIN.FILTERS.PLANNING;
+            return store.test(done, planningNotifications.onPlanningCreated({}, {
+                item: data.plannings[1]._id,
+                event_item: data.plannings[1].event_item
+            }))
                 .then(() => {
-                    expect(planningApi.refetch.callCount).toBe(1);
-                    expect(planningUi.setInList.callCount).toBe(1);
-                    expect(eventsPlanningUi.refetch.callCount).toBe(1);
-                    done();
-                });
-        });
+                    expect(eventsApi.markEventHasPlannings.callCount).toBe(1);
+                    expect(eventsApi.markEventHasPlannings.args[0]).toEqual([
+                        data.plannings[1].event_item,
+                        data.plannings[1]._id,
+                    ]);
 
-        it('notifies user if refetch failed', (done) => {
-            restoreSinonStub(planningApi.refetch);
-            sinon.stub(planningApi, 'refetch').callsFake(
-                () => (Promise.reject(errorMessage))
-            );
+                    expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
+                    expect(main.setUnsetLoadingIndicator.args).toEqual([
+                        [true],
+                        [false]
+                    ]);
 
-            return store.test(done, planningNotifications.onPlanningCreated({}, {item: 'p5'}))
-                .then(() => { /* no-op */ }, (error) => {
-                    expect(error).toEqual(errorMessage);
-                    expect(services.notify.error.callCount).toBe(1);
-                    expect(services.notify.error.args[0]).toEqual(['Failed!']);
+                    expect(planningUi.scheduleRefetch.callCount).toBe(1);
+                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
                     done();
                 });
         });
@@ -336,178 +327,94 @@ describe('actions.planning.notifications', () => {
         });
     });
 
-    it('onPlanningSpiked dispatches `SPIKE_PLANNING` action combined view', (done) => {
-        restoreSinonStub(planningNotifications.onPlanningSpiked);
-        store.initialState.main.filter = MAIN.FILTERS.COMBINED;
-        store.test(done, planningNotifications.onPlanningSpiked({}, {
-            item: data.plannings[0]._id,
-            revert_state: 'draft',
-            etag: 'e123',
-        }))
-            .then(() => {
-                expect(store.dispatch.callCount).toBe(4);
-                expect(store.dispatch.args[0]).toEqual([{
-                    type: PLANNING.ACTIONS.SPIKE_PLANNING,
-                    payload: {
-                        plan: {
-                            ...data.plannings[0],
-                            lock_action: null,
-                            lock_user: null,
-                            lock_session: null,
-                            lock_time: null,
+    describe('onPlanningSpiked/onPlanningUnspiked', () => {
+        beforeEach(() => {
+            restoreSinonStub(planningNotifications.onPlanningSpiked);
+            sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
+            sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
+            sinon.stub(planningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(main.closePreviewAndEditorForItems);
+            restoreSinonStub(main.setUnsetLoadingIndicator);
+            restoreSinonStub(planningUi.scheduleRefetch);
+            restoreSinonStub(eventsPlanningUi.scheduleRefetch);
+        });
+
+        it('onPlanningSpiked dispatches `SPIKE_PLANNING`', (done) => (
+            store.test(done, planningNotifications.onPlanningSpiked({}, {
+                item: data.plannings[0]._id,
+                state: 'spiked',
+                revert_state: 'draft',
+                etag: 'e123',
+            }))
+                .then(() => {
+                    expect(store.dispatch.callCount).toBe(6);
+                    expect(store.dispatch.args[0]).toEqual([{
+                        type: PLANNING.ACTIONS.SPIKE_PLANNING,
+                        payload: {
+                            id: data.plannings[0]._id,
                             state: 'spiked',
                             revert_state: 'draft',
-                            _etag: 'e123',
+                            etag: 'e123',
                         },
-                        spikeState: 'draft'
-                    },
-                }]);
+                    }]);
 
-                expect(store.dispatch.args[2]).toEqual([{
-                    type: EVENTS_PLANNING.ACTIONS.SPIKE_PLANNING,
-                    payload: {
-                        id: data.plannings[0]._id,
-                        spikeState: 'draft'
-                    },
-                }]);
+                    expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
+                    expect(main.closePreviewAndEditorForItems.args[0]).toEqual([
+                        [{_id: data.plannings[0]._id}],
+                        'The Planning item was spiked',
+                    ]);
 
-                done();
-            });
-    });
+                    expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
+                    expect(main.setUnsetLoadingIndicator.args).toEqual([
+                        [true],
+                        [false]
+                    ]);
 
-    it('onPlanningSpiked dispatches `SPIKE_PLANNING` action not combined view', (done) => {
-        restoreSinonStub(planningNotifications.onPlanningSpiked);
-        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
-        store.test(done, planningNotifications.onPlanningSpiked({}, {
-            item: data.plannings[0]._id,
-            revert_state: 'draft',
-            etag: 'e123',
-        }))
-            .then(() => {
-                expect(store.dispatch.callCount).toBe(3);
-                expect(store.dispatch.args[0]).toEqual([{
-                    type: PLANNING.ACTIONS.SPIKE_PLANNING,
-                    payload: {
-                        plan: {
-                            ...data.plannings[0],
-                            lock_action: null,
-                            lock_user: null,
-                            lock_session: null,
-                            lock_time: null,
-                            state: 'spiked',
-                            revert_state: 'draft',
-                            _etag: 'e123',
-                        },
-                        spikeState: 'draft'
-                    },
-                }]);
+                    expect(planningUi.scheduleRefetch.callCount).toBe(1);
+                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
 
-                done();
-            });
-    });
+                    done();
+                })
+        ));
 
-    it('onPlanningSpiked calls for closing preview or editor', (done) => {
-        sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
-        restoreSinonStub(planningNotifications.onPlanningSpiked);
-        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
-        store.test(done, planningNotifications.onPlanningSpiked({}, {
-            item: data.plannings[0]._id,
-            revert_state: 'draft',
-            etag: 'e123',
-        }))
-            .then(() => {
-                expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
-                restoreSinonStub(main.closePreviewAndEditorForItems);
-
-                done();
-            });
-    });
-
-
-    it('onPlanningUnspiked dispatches `UNSPIKE_PLANNING` action combined view', (done) => {
-        restoreSinonStub(planningNotifications.onPlanningUnspiked);
-        store.initialState.main.filter = MAIN.FILTERS.COMBINED;
-        store.test(done, planningNotifications.onPlanningUnspiked({}, {
-            item: data.plannings[0]._id,
-            state: 'draft',
-            etag: 'e456',
-        }))
-            .then(() => {
-                expect(store.dispatch.callCount).toBe(4);
-                expect(store.dispatch.args[0]).toEqual([{
-                    type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
-                    payload: {
-                        plan: {
-                            ...data.plannings[0],
-                            lock_action: null,
-                            lock_user: null,
-                            lock_session: null,
-                            lock_time: null,
+        it('onPlanningUnspiked dispatches `UNSPIKE_PLANNING`', (done) => (
+            store.test(done, planningNotifications.onPlanningUnspiked({}, {
+                item: data.plannings[0]._id,
+                state: 'draft',
+                etag: 'e123',
+            }))
+                .then(() => {
+                    expect(store.dispatch.callCount).toBe(6);
+                    expect(store.dispatch.args[0]).toEqual([{
+                        type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
+                        payload: {
+                            id: data.plannings[0]._id,
                             state: 'draft',
-                            revert_state: null,
-                            _etag: 'e456',
+                            etag: 'e123',
                         },
-                        spikeState: 'draft'
-                    },
-                }]);
+                    }]);
 
-                expect(store.dispatch.args[2]).toEqual([{
-                    type: EVENTS_PLANNING.ACTIONS.UNSPIKE_PLANNING,
-                    payload: {
-                        id: data.plannings[0]._id,
-                        spikeState: 'draft'
-                    },
-                }]);
+                    expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
+                    expect(main.closePreviewAndEditorForItems.args[0]).toEqual([
+                        [{_id: data.plannings[0]._id}],
+                        'The Planning item was unspiked',
+                    ]);
 
-                done();
-            });
-    });
+                    expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
+                    expect(main.setUnsetLoadingIndicator.args).toEqual([
+                        [true],
+                        [false]
+                    ]);
 
-    it('onPlanningUnspiked dispatches `UNSPIKE_PLANNING` action not combined view', (done) => {
-        restoreSinonStub(planningNotifications.onPlanningUnspiked);
-        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
-        store.test(done, planningNotifications.onPlanningUnspiked({}, {
-            item: data.plannings[0]._id,
-            state: 'draft',
-            etag: 'e456',
-        }))
-            .then(() => {
-                expect(store.dispatch.callCount).toBe(3);
-                expect(store.dispatch.args[0]).toEqual([{
-                    type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
-                    payload: {
-                        plan: {
-                            ...data.plannings[0],
-                            lock_action: null,
-                            lock_user: null,
-                            lock_session: null,
-                            lock_time: null,
-                            state: 'draft',
-                            revert_state: null,
-                            _etag: 'e456',
-                        },
-                        spikeState: 'draft'
-                    },
-                }]);
+                    expect(planningUi.scheduleRefetch.callCount).toBe(1);
+                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
 
-                done();
-            });
-    });
-
-    it('onPlanningUnspiked calls for closing preview or editor', (done) => {
-        sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
-        restoreSinonStub(planningNotifications.onPlanningUnspiked);
-        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
-        store.test(done, planningNotifications.onPlanningUnspiked({}, {
-            item: data.plannings[0]._id,
-            state: 'draft',
-            etag: 'e456',
-        }))
-            .then(() => {
-                expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
-                restoreSinonStub(main.closePreviewAndEditorForItems);
-
-                done();
-            });
+                    done();
+                })
+        ));
     });
 });

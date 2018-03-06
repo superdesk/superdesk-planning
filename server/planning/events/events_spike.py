@@ -13,11 +13,12 @@ from .events_base_service import EventsBaseService
 from superdesk.errors import SuperdeskApiError
 from planning.common import ITEM_EXPIRY, ITEM_STATE, set_item_expiry, UPDATE_FUTURE, \
     WORKFLOW_STATE, remove_lock_information
-from superdesk.services import BaseService
 from superdesk.notification import push_notification
 from apps.archive.common import get_user
 from superdesk import config, get_resource_service
 from planning.item_lock import LOCK_USER, LOCK_SESSION
+
+from flask import current_app as app
 
 
 class EventsSpikeResource(EventsResource):
@@ -89,7 +90,7 @@ class EventsSpikeService(EventsBaseService):
         # Ensure that no other Event or Planning item is currently locked
         events_with_plans = self._validate_recurring(original, original['recurrence_id'])
 
-        historic, past, future = self.get_recurring_timeline(original, include_postponed=False)
+        historic, past, future = self.get_recurring_timeline(original, postponed=True, cancelled=True)
 
         # Mark item as unlocked directly in order to avoid more queries and notifications
         # coming from lockservice.
@@ -114,6 +115,7 @@ class EventsSpikeService(EventsBaseService):
             new_updates = {'skip_on_update': True}
             self._spike_event(new_updates, event)
             item = self.patch(event[config.ID_FIELD], new_updates)
+            app.on_updated_events_spike(new_updates, event)
 
             notifications.append({
                 'id': event[config.ID_FIELD],
@@ -187,12 +189,6 @@ class EventsSpikeService(EventsBaseService):
                 message="Spike failed. Rescheduled Events cannot be spiked."
             )
 
-        # Event has been 'Cancelled'
-        elif event.get(ITEM_STATE) == WORKFLOW_STATE.CANCELLED:
-            raise SuperdeskApiError.badRequestError(
-                message="Spike failed. Cancelled Events cannot be spiked."
-            )
-
         # Event already spiked
         elif event.get(ITEM_STATE) == WORKFLOW_STATE.SPIKED:
             raise SuperdeskApiError.badRequestError(
@@ -210,20 +206,76 @@ class EventsUnspikeResource(EventsResource):
     privileges = {'PATCH': 'planning_event_unspike'}
 
 
-class EventsUnspikeService(BaseService):
-    def update(self, id, updates, original):
-        user = get_user(required=True)
+class EventsUnspikeService(EventsBaseService):
+    ACTION = 'unspiked'
+    REQUIRE_LOCK = False
 
+    def update_single_event(self, updates, original):
+        self._unspike_event(updates, original)
+
+    def update_recurring_events(self, updates, original, update_method):
+        historic, past, future = self.get_recurring_timeline(original, spiked=True)
+
+        self._unspike_event(updates, original)
+
+        # Determine if the selected event is the first one, if so then
+        # act as if we're changing future events
+        if len(historic) == 0 and len(past) == 0:
+            update_method = UPDATE_FUTURE
+
+        if update_method == UPDATE_FUTURE:
+            unspiked_events = future
+        else:
+            unspiked_events = past + future
+
+        notifications = []
+        for event in unspiked_events:
+            if event.get(ITEM_STATE) != WORKFLOW_STATE.SPIKED:
+                continue
+
+            new_updates = {'skip_on_update': True}
+            self._unspike_event(new_updates, event)
+            item = self.patch(event[config.ID_FIELD], new_updates)
+            app.on_updated_events_unspike(new_updates, event)
+
+            notifications.append({
+                'id': event[config.ID_FIELD],
+                'etag': item['_etag'],
+                'state': event.get('revert_state', WORKFLOW_STATE.DRAFT)
+            })
+
+        updates['_unspiked_items'] = notifications
+
+    def update(self, id, updates, original):
+        unspiked_items = updates.pop('_unspiked_items', [])
+        item = super().update(id, updates, original)
+
+        if self.is_original_event(original):
+            user = get_user(required=True).get(config.ID_FIELD, '')
+            unspiked_items.append({
+                'id': id,
+                'etag': item['_etag'],
+                'state': item[ITEM_STATE]
+            })
+
+            push_notification(
+                'events:unspiked',
+                item=str(original[config.ID_FIELD]),
+                user=str(user),
+                unspiked_items=unspiked_items
+            )
+
+        return item
+
+    @staticmethod
+    def push_notification(name, updates, original):
+        """
+        Ignore this request, as we want to handle the notification separately in update
+        """
+        pass
+
+    @staticmethod
+    def _unspike_event(updates, original):
         updates[ITEM_STATE] = original.get('revert_state', WORKFLOW_STATE.DRAFT)
         updates['revert_state'] = None
         updates[ITEM_EXPIRY] = None
-
-        item = self.backend.update(self.datasource, id, updates, original)
-        push_notification(
-            'events:unspiked',
-            item=str(id),
-            user=str(user.get(config.ID_FIELD)),
-            etag=item['_etag'],
-            state=item[ITEM_STATE]
-        )
-        return item

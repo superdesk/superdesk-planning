@@ -82,7 +82,14 @@ const unspike = (events) => (
         let eventsToUnspike = (Array.isArray(events) ? events : [events]);
 
         return Promise.all(
-            eventsToUnspike.map((event) => api.update('events_unspike', event, {}))
+            eventsToUnspike.map((event) => {
+                event.update_method = get(event, 'update_method.value', EventUpdateMethods[0].value);
+                return api.update(
+                    'events_unspike',
+                    event,
+                    {update_method: event.update_method}
+                );
+            })
         )
             .then(
                 () => Promise.resolve(eventsToUnspike),

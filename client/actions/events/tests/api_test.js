@@ -276,7 +276,7 @@ describe('actions.events.api', () => {
                     expect(services.api.update.args[0]).toEqual([
                         'events_unspike',
                         data.events[1],
-                        {},
+                        {update_method: EventUpdateMethods[0].value},
                     ]);
 
                     done();
@@ -293,7 +293,7 @@ describe('actions.events.api', () => {
                         expect(services.api.update.args[i]).toEqual([
                             'events_unspike',
                             data.events[i],
-                            {},
+                            {update_method: EventUpdateMethods[0].value},
                         ]);
                     }
 
@@ -301,10 +301,25 @@ describe('actions.events.api', () => {
                 })
         ));
 
+        it('can send `future` for `update_method` when unspiking', (done) => {
+            data.events[1].update_method = 'future';
+            return store.test(done, eventsApi.unspike(data.events[1]))
+                .then(() => {
+                    expect(services.api.update.callCount).toBe(1);
+                    expect(services.api.update.args[0]).toEqual([
+                        'events_unspike',
+                        data.events[1],
+                        {update_method: data.events[1].update_method}
+                    ]);
+
+                    done();
+                });
+        });
+
         it('returns Promise.reject if `events_unspike` fails', (done) => {
             services.api.update = sinon.spy(() => (Promise.reject(errorMessage)));
             return store.test(done, eventsApi.unspike(data.events))
-                .then(() => { /* no-op */ }, (error) => {
+                .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
                     done();
                 });

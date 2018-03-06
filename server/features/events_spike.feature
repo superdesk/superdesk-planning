@@ -74,52 +74,6 @@ Feature: Events Spike
         """
 
     @auth
-    @notification
-    Scenario: Unspike an Event
-        Given "events"
-        """
-        [{
-            "name": "TestEvent",
-            "state": "spiked",
-            "revert_state": "draft",
-            "dates": {
-                "start": "2016-01-02",
-                "end": "2016-01-03"
-            }
-        }]
-        """
-        When we unspike events "#events._id#"
-        Then we get OK response
-        And we get notifications
-        """
-        [{
-            "event": "events:unspiked",
-            "extra": {
-                "item": "#events._id#",
-                "user": "#CONTEXT_USER_ID#"
-            }
-        }]
-        """
-        When we get "/events/#events._id#"
-        Then we get existing resource
-        """
-        {
-            "_id": "#events._id#",
-            "name": "TestEvent",
-            "state": "draft"
-        }
-        """
-        When we get "/events_history?where=event_id==%22#events._id#%22"
-        Then we get list with 1 items
-        """
-        {"_items": [{
-            "event_id": "#events._id#",
-            "operation": "unspiked",
-            "update": {"state" : "draft"}
-        }]}
-        """
-
-    @auth
     Scenario: Event can be spiked and unspiked only by user having privileges
         Given "events"
         """
@@ -447,11 +401,6 @@ Feature: Events Spike
             "state": "rescheduled"
         }, {
             "_id": "event5", "guid": "event5",
-            "name": "Cancelled Event",
-            "dates": {"start": "2099-02-12", "end": "2099-03-12"},
-            "state": "cancelled"
-        }, {
-            "_id": "event6", "guid": "event6",
             "name": "Spiked Event",
             "dates": {"start": "2099-02-12", "end": "2099-03-12"},
             "state": "spiked"
@@ -487,11 +436,6 @@ Feature: Events Spike
         {"_issues": {"validator exception": "400: Spike failed. Rescheduled Events cannot be spiked."}}
         """
         When we spike events "event5"
-        Then we get error 400
-        """
-        {"_issues": {"validator exception": "400: Spike failed. Cancelled Events cannot be spiked."}}
-        """
-        When we spike events "event6"
         Then we get error 400
         """
         {"_issues": {"validator exception": "400: Spike failed. Event is already spiked."}}

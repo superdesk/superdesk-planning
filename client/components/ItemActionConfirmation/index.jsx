@@ -1,5 +1,6 @@
 export {ItemActionConfirmationModal} from './modal';
 export {UpdateRecurringEventsForm} from './forms/updateRecurringEventsForm';
+export {UnspikeEventForm} from './forms/unspikeEventForm';
 export {SpikeEventForm} from './forms/spikeEventForm';
 export {CancelEventForm} from './forms/cancelEventForm';
 export {PostponeEventForm} from './forms/postponeEventForm';

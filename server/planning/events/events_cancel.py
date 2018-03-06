@@ -131,7 +131,7 @@ Event Cancelled
 
     def update_recurring_events(self, updates, original, update_method):
         occur_cancel_state = self._get_cancel_state()
-        historic, past, future = self.get_recurring_timeline(original, True)
+        historic, past, future = self.get_recurring_timeline(original, postponed=True)
 
         # Determine if the selected event is the first one, if so then
         # act as if we're changing future events

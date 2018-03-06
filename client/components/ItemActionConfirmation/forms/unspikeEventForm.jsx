@@ -2,15 +2,16 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../../../actions';
-import {get} from 'lodash';
+import '../style.scss';
+import {WORKFLOW_STATE} from '../../../constants';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
 import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
 import {getDateFormat, getTimeFormat} from '../../../selectors/config';
+import {get} from 'lodash';
 import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
-import '../style.scss';
 
-export class UpdateRecurringEventsComponent extends React.Component {
+export class UnspikeEventComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -30,7 +31,7 @@ export class UpdateRecurringEventsComponent extends React.Component {
             this.setState({relatedEvents: event._events});
         }
 
-        // Enable save so that the user can update just this event.
+        // Enable save so that the user can action on this event.
         this.props.enableSaveInModal();
     }
 
@@ -45,7 +46,7 @@ export class UpdateRecurringEventsComponent extends React.Component {
     }
 
     submit() {
-        // Modal closes after submit. So, reseting submitting is not required
+        // Modal closes after submit. So, resetting submitting is not required
         this.setState({submitting: true});
 
         this.props.onSubmit({
@@ -57,10 +58,9 @@ export class UpdateRecurringEventsComponent extends React.Component {
     render() {
         const {initialValues, dateFormat, timeFormat} = this.props;
         const isRecurring = !!initialValues.recurrence_id;
-        const eventsInUse = this.state.relatedEvents.filter((e) => (
-            get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
-        ));
-        const numEvents = this.state.relatedEvents.length + 1 - eventsInUse.length;
+        const numEvents = (this.state.relatedEvents.filter(
+            (event) => get(event, 'state') === WORKFLOW_STATE.SPIKED)
+        ).length + 1;
 
         return (
             <div className="MetadataView">
@@ -68,15 +68,15 @@ export class UpdateRecurringEventsComponent extends React.Component {
                     enabled={!!initialValues.slugline}
                     label={gettext('Slugline')}
                     value={initialValues.slugline || ''}
-                    noPadding={true}
                     className="slugline"
+                    noPadding={true}
                 />
 
                 <Row
                     label={gettext('Name')}
                     value={initialValues.name || ''}
-                    noPadding={true}
                     className="strong"
+                    noPadding={true}
                 />
 
                 <EventScheduleSummary
@@ -96,7 +96,7 @@ export class UpdateRecurringEventsComponent extends React.Component {
                     value={this.state.eventUpdateMethod}
                     onChange={this.onEventUpdateMethodChange}
                     showMethodSelection={isRecurring}
-                    updateMethodLabel={gettext('Update all recurring events or just this one?')}
+                    updateMethodLabel={gettext('Unspike all recurring events or just this one?')}
                     showSpace={false}
                     readOnly={this.state.submitting}
                     action="spike" />
@@ -105,14 +105,15 @@ export class UpdateRecurringEventsComponent extends React.Component {
     }
 }
 
-UpdateRecurringEventsComponent.propTypes = {
+UnspikeEventComponent.propTypes = {
     initialValues: PropTypes.object.isRequired,
-    dateFormat: PropTypes.string.isRequired,
-    timeFormat: PropTypes.string.isRequired,
+    dateFormat: PropTypes.string,
+    timeFormat: PropTypes.string,
     submitting: PropTypes.bool,
     onSubmit: PropTypes.func,
     enableSaveInModal: PropTypes.func,
 };
+
 
 const mapStateToProps = (state) => ({
     timeFormat: getTimeFormat(state),
@@ -120,20 +121,11 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event) => dispatch(actions.events.ui.saveAndPublish(
-        event,
-        {
-            save: get(event, '_save', true),
-            publish: get(event, '_publish', false),
-            unpublish: get(event, '_unpublish', false),
-        }
-    )),
+    onSubmit: (event) => (dispatch(actions.events.ui.unspike(event))),
 });
 
-export const UpdateRecurringEventsForm = connect(
+export const UnspikeEventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    {withRef: true}
-)(UpdateRecurringEventsComponent);
+    {withRef: true})(UnspikeEventComponent);

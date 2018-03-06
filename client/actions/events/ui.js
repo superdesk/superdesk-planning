@@ -1,7 +1,6 @@
 import {showModal, hideModal, locks} from '../index';
 import {PRIVILEGES, EVENTS, MODALS, SPIKED_STATE, MAIN} from '../../constants';
 import eventsApi from './api';
-import {fetchSelectedAgendaPlannings} from '../agenda';
 import main from '../main';
 import * as selectors from '../../selectors';
 import {get} from 'lodash';
@@ -211,31 +210,12 @@ const spike = (item) => (
 const unspike = (event) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.unspike(event))
-            .then((events) => (
-                Promise.all(
-                    [
-                        dispatch(self.scheduleRefetch()),
-                        dispatch(fetchSelectedAgendaPlannings()),
-                    ]
-                )
-                    .then(
-                        () => {
-                            dispatch(hideModal());
-                            dispatch(main.closePreviewAndEditorForItems(events));
-                            notify.success(gettext('The event(s) have been unspiked'));
-                            return Promise.resolve(events);
-                        },
-
-                        (error) => {
-                            notify.error(
-                                getErrorMessage(error, gettext('Failed to load events and plannings'))
-                            );
-
-                            return Promise.reject(error);
-                        }
-                    )
-
-            ), (error) => {
+            .then((events) => {
+                dispatch(hideModal());
+                notify.success(gettext('The event(s) have been unspiked'));
+                dispatch(main.closePreviewAndEditorForItems(events));
+                return Promise.resolve(events);
+            }, (error) => {
                 notify.error(
                     getErrorMessage(error, 'Failed to spike the event(s)')
                 );
@@ -249,8 +229,12 @@ const unspike = (event) => (
  * Action Dispatcher to re-fetch the current list of events.
  */
 const refetch = () => (
-    (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.refetch())
+    (dispatch, getState, {notify}) => {
+        if (!selectors.main.isEventsView(getState())) {
+            return Promise.resolve([]);
+        }
+
+        return dispatch(eventsApi.refetch())
             .then((events) => {
                 dispatch(self.setEventsList(events.map((e) => (e._id))));
                 return Promise.resolve(events);
@@ -260,8 +244,8 @@ const refetch = () => (
                 );
 
                 return Promise.reject(error);
-            })
-    )
+            });
+    }
 );
 
 
@@ -333,6 +317,16 @@ const openSpikeModal = (event, publish = false) => (
     (dispatch) => dispatch(self._openActionModal(
         event,
         EVENTS.ITEM_ACTIONS.SPIKE.label,
+        null,
+        true,
+        publish
+    ))
+);
+
+const openUnspikeModal = (event, publish = false) => (
+    (dispatch) => dispatch(self._openActionModal(
+        event,
+        EVENTS.ITEM_ACTIONS.UNSPIKE.label,
         null,
         true,
         publish
@@ -726,20 +720,6 @@ const openAdvancedSearch = () => (
  */
 const closeAdvancedSearch = () => (
     {type: EVENTS.ACTIONS.CLOSE_ADVANCED_SEARCH}
-);
-
-const openUnspikeModal = (events) => (
-    (dispatch) => {
-        let eventsToUnspike = Array.isArray(events) ? events : [events];
-
-        dispatch(showModal({
-            modalType: MODALS.CONFIRMATION,
-            modalProps: {
-                body: gettext(`Do you want to unspike these ${eventsToUnspike.length} event(s) ?`),
-                action: () => dispatch(self.unspike(eventsToUnspike)),
-            },
-        }));
-    }
 );
 
 const openEventDetails = checkPermission(

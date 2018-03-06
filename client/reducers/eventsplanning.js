@@ -1,32 +1,10 @@
-import {EVENTS_PLANNING, INIT_STORE, RESET_STORE, SPIKED_STATE} from '../constants';
+import {EVENTS_PLANNING, INIT_STORE, RESET_STORE} from '../constants';
 import {cloneDeep, get, uniq} from 'lodash';
 import {createReducer} from '../utils';
 
 const initialState = {
     eventsAndPlanningInList: [],
     relatedPlannings: {}
-};
-
-export const spike = (state, payload) => {
-    const spikeState = get(payload, 'spikeState', SPIKED_STATE.NOT_SPIKED);
-    const index = state.eventsAndPlanningInList.indexOf(payload.id);
-
-    if (index > -1 && spikeState === SPIKED_STATE.NOT_SPIKED) {
-        state.eventsAndPlanningInList.splice(index, 1);
-    }
-
-    return state;
-};
-
-export const unspike = (state, payload) => {
-    const spikeState = get(payload, 'spikeState', SPIKED_STATE.NOT_SPIKED);
-    const index = state.eventsAndPlanningInList.indexOf(payload.id);
-
-    if (index > -1 && spikeState === SPIKED_STATE.SPIKED) {
-        state.eventsAndPlanningInList.splice(index, 1);
-    }
-
-    return state;
 };
 
 
@@ -71,27 +49,6 @@ const eventsPlanningReducer = createReducer(initialState, {
             }
         };
     },
-    [EVENTS_PLANNING.ACTIONS.SPIKE_EVENT]: (state, payload) => (
-        spike(cloneDeep(state), payload)
-    ),
-    [EVENTS_PLANNING.ACTIONS.SPIKE_PLANNING]: (state, payload) => (
-        spike(cloneDeep(state), payload)
-    ),
-    [EVENTS_PLANNING.ACTIONS.SPIKE_RECURRING_EVENTS]: (state, payload) => {
-        let newState = cloneDeep(state);
-
-        payload.ids.forEach((event) => {
-            spike(newState, {id: event, spikeState: payload.spikeState});
-        });
-
-        return newState;
-    },
-    [EVENTS_PLANNING.ACTIONS.UNSPIKE_EVENT]: (state, payload) => (
-        unspike(cloneDeep(state), payload)
-    ),
-    [EVENTS_PLANNING.ACTIONS.UNSPIKE_PLANNING]: (state, payload) => (
-        unspike(cloneDeep(state), payload)
-    ),
 });
 
 export default eventsPlanningReducer;

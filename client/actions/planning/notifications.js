@@ -4,7 +4,7 @@ import {lockUtils, gettext} from '../../utils';
 import * as selectors from '../../selectors';
 import {showModal, hideModal, events} from '../index';
 import main from '../main';
-import {PLANNING, WORKFLOW_STATE, MODALS, SPIKED_STATE} from '../../constants';
+import {PLANNING, MODALS} from '../../constants';
 import eventsPlanning from '../eventsPlanning';
 
 /**
@@ -22,8 +22,10 @@ const onPlanningCreated = (_e, data) => (
                 ));
             }
 
+            dispatch(main.setUnsetLoadingIndicator(true));
             return dispatch(planning.ui.scheduleRefetch())
-                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()));
+                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
+                .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
         }
 
         return Promise.resolve();
@@ -158,43 +160,27 @@ const onPlanningPublished = (_e, data) => (
 );
 
 const onPlanningSpiked = (_e, data) => (
-    (dispatch, getState) => {
+    (dispatch) => {
         if (data && data.item) {
-            const plans = selectors.getStoredPlannings(getState());
-
-            let planningItem = get(plans, data.item, {});
-
-            planningItem = {
-                ...planningItem,
-                _id: data.item,
-                lock_action: null,
-                lock_user: null,
-                lock_session: null,
-                lock_time: null,
-                state: WORKFLOW_STATE.SPIKED,
-                revert_state: data.revert_state,
-                _etag: data.etag,
-            };
-
             dispatch({
                 type: PLANNING.ACTIONS.SPIKE_PLANNING,
                 payload: {
-                    plan: planningItem,
-                    spikeState: get(
-                        selectors.main.planningSearch(getState()),
-                        'spikeState',
-                        SPIKED_STATE.NOT_SPIKED
-                    )
-                },
+                    id: data.item,
+                    state: data.state,
+                    revert_state: data.revert_state,
+                    etag: data.etag,
+                }
             });
 
-            dispatch(eventsPlanning.notifications.onPlanningSpiked(_e, data));
             dispatch(main.closePreviewAndEditorForItems(
-                [planningItem],
+                [{_id: data.item}],
                 gettext('The Planning item was spiked')
             ));
 
-            return Promise.resolve(planningItem);
+            dispatch(main.setUnsetLoadingIndicator(true));
+            return dispatch(planning.ui.scheduleRefetch())
+                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
+                .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
         }
 
         return Promise.resolve();
@@ -202,43 +188,26 @@ const onPlanningSpiked = (_e, data) => (
 );
 
 const onPlanningUnspiked = (_e, data) => (
-    (dispatch, getState) => {
+    (dispatch) => {
         if (data && data.item) {
-            const plans = selectors.getStoredPlannings(getState());
-
-            let planningItem = get(plans, data.item, {});
-
-            planningItem = {
-                ...planningItem,
-                _id: data.item,
-                lock_action: null,
-                lock_user: null,
-                lock_session: null,
-                lock_time: null,
-                state: data.state,
-                revert_state: null,
-                _etag: data.etag,
-            };
-
             dispatch({
                 type: PLANNING.ACTIONS.UNSPIKE_PLANNING,
                 payload: {
-                    plan: planningItem,
-                    spikeState: get(
-                        selectors.main.planningSearch(getState()),
-                        'spikeState',
-                        SPIKED_STATE.NOT_SPIKED
-                    )
-                },
+                    id: data.item,
+                    state: data.state,
+                    etag: data.etag,
+                }
             });
 
-            dispatch(eventsPlanning.notifications.onPlanningUnspiked(_e, data));
             dispatch(main.closePreviewAndEditorForItems(
-                [planningItem],
+                [{_id: data.item}],
                 gettext('The Planning item was unspiked')
             ));
 
-            return Promise.resolve(planningItem);
+            dispatch(main.setUnsetLoadingIndicator(true));
+            return dispatch(planning.ui.scheduleRefetch())
+                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
+                .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
         }
 
         return Promise.resolve();

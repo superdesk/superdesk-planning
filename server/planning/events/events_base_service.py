@@ -218,7 +218,7 @@ class EventsBaseService(BaseService):
             for doc in results.docs:
                 yield doc
 
-    def get_recurring_timeline(self, selected, include_postponed=False):
+    def get_recurring_timeline(self, selected, spiked=False, rescheduled=False, cancelled=False, postponed=False):
         """Utility method to get all events in the series
 
         This splits up the series of events into 3 separate arrays.
@@ -228,6 +228,17 @@ class EventsBaseService(BaseService):
         """
         selected_start = selected.get('dates', {}).get('start', utcnow())
 
+        excluded_states = []
+
+        if not spiked:
+            excluded_states.append(WORKFLOW_STATE.SPIKED)
+        if not rescheduled:
+            excluded_states.append(WORKFLOW_STATE.RESCHEDULED)
+        if not cancelled:
+            excluded_states.append(WORKFLOW_STATE.CANCELLED)
+        if not postponed:
+            excluded_states.append(WORKFLOW_STATE.POSTPONED)
+
         query = {
             'query': {
                 'bool': {
@@ -236,18 +247,7 @@ class EventsBaseService(BaseService):
                     ],
                     'must_not': [
                         {'term': {'_id': selected[config.ID_FIELD]}},
-                        {'terms': {
-                            'state': [
-                                WORKFLOW_STATE.SPIKED,
-                                WORKFLOW_STATE.RESCHEDULED,
-                                WORKFLOW_STATE.CANCELLED
-                            ] if include_postponed else [
-                                WORKFLOW_STATE.SPIKED,
-                                WORKFLOW_STATE.RESCHEDULED,
-                                WORKFLOW_STATE.CANCELLED,
-                                WORKFLOW_STATE.POSTPONED
-                            ]
-                        }}
+                        {'terms': {'state': excluded_states}}
                     ]
                 }
             },
