@@ -131,7 +131,7 @@ def format_address(location=None):
 
     address = location.get('address') or {}
     formatted_address = []
-    if address.get('line', []) and not address.get('line')[0]:
+    if address.get('line'):
         formatted_address.append(address.get('line')[0])
 
     formatted_address.append(address.get('area'))
