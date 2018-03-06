@@ -23,6 +23,7 @@ describe('Main.ItemEditor.Editor', () => {
     let wrapper;
     let buttons;
     let onSave;
+    let onPublish;
     let delay;
 
     beforeEach(() => {
@@ -43,13 +44,29 @@ describe('Main.ItemEditor.Editor', () => {
         // button states etc during `submitting=true`
         delay = 50;
         onSave = (resolve) => resolve(item);
+        onPublish = (resolve) => {
+            item.state = WORKFLOW_STATE.SCHEDULED;
+            item.pubstatus = PUBLISHED_STATE.USABLE;
+
+            store.dispatch({
+                type: EVENTS.ACTIONS.ADD_EVENTS,
+                payload: [item]
+            });
+
+            resolve(item);
+        };
+
         sinon.stub(main, 'save').callsFake((item) => () => new Promise((resolve, reject) => setTimeout(
             () => onSave(resolve, reject)
+        ), delay));
+        sinon.stub(main, 'publish').callsFake((item) => () => new Promise((resolve, reject) => setTimeout(
+            () => onPublish(resolve, reject)
         ), delay));
     });
 
     afterEach(() => {
         restoreSinonStub(main.save);
+        restoreSinonStub(main.publish);
     });
 
     const initStore = () => {
@@ -118,19 +135,6 @@ describe('Main.ItemEditor.Editor', () => {
         it('EditorHeader button states on publishing', (done) => {
             setWrapper();
 
-            // Mock publish function
-            onSave = (resolve) => {
-                item.state = WORKFLOW_STATE.SCHEDULED;
-                item.pubstatus = PUBLISHED_STATE.USABLE;
-
-                store.dispatch({
-                    type: EVENTS.ACTIONS.ADD_EVENTS,
-                    payload: [item]
-                });
-
-                resolve(item);
-            };
-
             // Check visible button states
             expect(buttons.close.isDisabled()).toBe(false);
             expect(buttons.publish.isDisabled()).toBe(false);
@@ -146,15 +150,8 @@ describe('Main.ItemEditor.Editor', () => {
             expect(buttons.edit.isMounted).toBe(false);
 
             buttons.publish.click();
-            expect(main.save.callCount).toBe(1);
-            expect(main.save.args[0]).toEqual([
-                item,
-                {
-                    save: false,
-                    publish: true,
-                    unpublish: false,
-                }
-            ]);
+            expect(main.publish.callCount).toBe(1);
+            expect(main.publish.args[0]).toEqual([item]);
 
             // Ensure the buttons are disabled when submitting the form
             expect(buttons.close.isDisabled()).toBe(true);
@@ -183,18 +180,11 @@ describe('Main.ItemEditor.Editor', () => {
             setWrapper();
 
             // Mock publish error function
-            onSave = (resolve, reject) => reject('Failed to publish');
+            onPublish = (resolve, reject) => reject('Failed to publish');
 
             buttons.publish.click();
-            expect(main.save.callCount).toBe(1);
-            expect(main.save.args[0]).toEqual([
-                item,
-                {
-                    save: false,
-                    publish: true,
-                    unpublish: false,
-                }
-            ]);
+            expect(main.publish.callCount).toBe(1);
+            expect(main.publish.args[0]).toEqual([item]);
 
             // Ensure the buttons are disabled when submitting the form
             expect(buttons.close.isDisabled()).toBe(true);

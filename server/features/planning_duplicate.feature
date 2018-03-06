@@ -91,7 +91,7 @@ Feature: Duplicate Planning
         }
         """
         When we get "/planning_history"
-        Then we get list with 5 items
+        Then we get list with 6 items
         """
         {"_items": [
             {
@@ -103,6 +103,10 @@ Feature: Duplicate Planning
                     "state": "scheduled",
                     "pubstatus": "usable"
                 }
+            },
+            {
+                "operation": "publish",
+                "planning_id": "123"
             },
             {
                 "operation": "update",
@@ -273,4 +277,57 @@ Feature: Duplicate Planning
                 }
             ]
         }
+        """
+
+    @auth @notification @wip @newtest
+    Scenario: Duplicating a published Planning item won't republish it
+        When we post to "planning" with success
+        """
+        [{
+            "guid": "123",
+            "headline": "test headline",
+            "slugline": "test slugline"
+        }]
+        """
+        Then we get OK response
+        When we post to "/planning/publish"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we post to "/planning/123/duplicate"
+        """
+        [{}]
+        """
+        Then we get OK response
+        When we get "/planning_history"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            {
+                "operation": "create",
+                "planning_id": "123",
+                "update": {
+                    "headline": "test headline",
+                    "slugline": "test slugline"
+                }
+            },
+            {
+                "operation": "publish",
+                "planning_id": "123"
+            },
+            {
+                "operation": "duplicate",
+                "planning_id": "123",
+                "update": {"duplicate_id": "#duplicate._id#"}
+            },
+            {
+                "operation": "duplicate_from",
+                "planning_id": "#duplicate._id#"
+            }
+        ]}
         """

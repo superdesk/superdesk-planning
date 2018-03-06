@@ -1074,3 +1074,177 @@ Feature: Planning
         }]
         """
 
+
+    @auth
+    @notification
+    Scenario: Published planning gets updated on cancel planing
+      Given "vocabularies"
+      """
+      [{
+          "_id": "newscoveragestatus",
+          "display_name": "News Coverage Status",
+          "type": "manageable",
+          "unique_field": "qcode",
+          "items": [
+              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
+                  "label": "On merit"},
+              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
+                  "label": "Not planned"},
+              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
+                  "label": "On request"}
+          ]
+      }]
+      """
+      When we post to "planning" with success
+      """
+      [{
+          "guid": "123",
+          "headline": "test headline",
+          "slugline": "test slugline",
+          "state": "draft",
+          "ednote": "something happened",
+          "coverages": [
+              {
+                  "planning": {
+                      "ednote": "test coverage, 250 words",
+                      "g2_content_type": "text"
+                  },
+                  "news_coverage_status": {
+                      "qcode": "ncostat:int",
+                      "name": "coverage intended",
+                      "label": "Planned"
+                  }
+              },
+              {
+                  "planning": {
+                      "ednote": "test coverage2, 250 words",
+                      "g2_content_type": "text"
+                  },
+                  "news_coverage_status": {
+                      "qcode": "ncostat:int",
+                      "name": "coverage intended",
+                      "label": "Planned"
+                  }
+              }
+          ]
+      }]
+      """
+      Then we get OK response
+      Then we store coverage id in "firstcoverage" from coverage 0
+      Then we store coverage id in "secondcoverage" from coverage 1
+      When we post to "/planning/publish"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+      Then we get OK response
+      When we perform cancel on planning "123"
+      """
+      { "cancel_all_coverage": true }
+      """
+      Then we get OK response
+      And we get notifications
+      """
+      [{
+          "event": "planning:created",
+          "extra": {"item": "123"}
+      },
+      {
+          "event": "coverage:cancelled",
+          "extra": {"planning_item": "123","ids": ["#firstcoverage#", "#secondcoverage#"]}
+      }]
+      """
+      When we get "/planning/#planning._id#"
+      Then we get existing resource
+      """
+      {
+          "_id": "#planning._id#",
+          "headline": "test headline",
+          "slugline": "test slugline",
+          "state": "scheduled",
+          "pubstatus": "usable",
+          "ednote": "something happened",
+          "coverages":       [
+              {
+                  "planning": {
+                      "ednote": "test coverage, 250 words",
+                      "g2_content_type": "text",
+                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                  },
+                  "news_coverage_status": {
+                      "qcode" : "ncostat:notint"
+                  }
+              },
+              {
+                  "planning": {
+                      "ednote": "test coverage2, 250 words",
+                      "g2_content_type": "text",
+                      "internal_note" : "\n\n------------------------------------------------------------\nCoverage cancelled\n"
+                  },
+                  "news_coverage_status": {
+                      "qcode" : "ncostat:notint"
+                  }
+              }
+          ]
+      }
+      """
+
+    @auth
+    @notification
+    @vocabulary
+    @newtest
+    Scenario: Published planning republishes after an update
+        When we post to "/planning"
+        """
+        [{
+            "item_class": "item class value",
+            "slugline": "test slugline"
+        }]
+        """
+        Then we get OK response
+        When we post to "/planning/publish"
+        """
+        {
+            "planning": "#planning._id#",
+            "etag": "#planning._etag#",
+            "pubstatus": "usable"
+        }
+        """
+        Then we get OK response
+        When we get "/planning/#planning._id#"
+        Then we get existing resource
+        """
+        {"state": "scheduled"}
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {"slugline": "test test test"}
+        """
+        Then we get OK response
+        When we get "/planning_history"
+        Then we get a list with 4 items
+        """
+        {"_items": [
+            {
+                "planning_id":  "#planning._id#",
+                "operation": "create"
+            },
+            {
+                "planning_id":  "#planning._id#",
+                "operation": "publish"
+            },
+            {
+                "planning_id":  "#planning._id#",
+                "operation": "update",
+                "update": { "slugline": "test test test" }
+            },
+            {
+                "planning_id":  "#planning._id#",
+                "operation": "publish"
+            }
+        ]}
+    """

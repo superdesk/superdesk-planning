@@ -163,7 +163,7 @@ export class EditorHeader extends React.Component {
                         <Button
                             color="primary"
                             disabled={!dirty || submitting}
-                            onClick={onSave}
+                            onClick={onSaveAndPublish}
                             text={gettext('Update')}
                             enterKeyIsClick
                         />

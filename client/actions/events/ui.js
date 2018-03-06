@@ -520,56 +520,17 @@ const updateRepetitions = (event) => (
     )
 );
 
-const saveAndPublish = (event, {save = true, publish = false, unpublish = false} = {}) => (
-    (dispatch) => {
-        if (!save) {
-            if (publish) {
-                return dispatch(self.publishEvent(event))
-                    .then((publishedEvent) => {
-                        dispatch(hideModal());
-                        return Promise.resolve(publishedEvent);
-                    });
-            } else if (unpublish) {
-                return dispatch(self.unpublish(event))
-                    .then((updatedEvent) => {
-                        dispatch(hideModal());
-                        return Promise.resolve(updatedEvent);
-                    });
-            }
-
-            dispatch(hideModal());
-            return Promise.resolve(event);
-        }
-
-        return dispatch(eventsApi.save(event))
+const save = (event) => (
+    (dispatch) => (
+        dispatch(eventsApi.save(event))
             .then((events) => {
-                if (publish) {
-                    return dispatch(self.publishEvent({
-                        ...events[0],
-                        update_method: get(event, 'update_method')
-                    }))
-                        .then(() => {
-                            dispatch(hideModal());
-                            return Promise.resolve(events);
-                        });
-                } else if (unpublish) {
-                    return dispatch(self.unpublish({
-                        ...events[0],
-                        update_method: get(event, 'update_method')
-                    }))
-                        .then(() => {
-                            dispatch(hideModal());
-                            return Promise.resolve(events);
-                        });
-                }
-
                 dispatch(hideModal());
                 return Promise.resolve(events);
-            });
-    }
+            })
+    )
 );
 
-const saveWithConfirmation = (event, {save = true, publish = false, unpublish = false} = {}) => (
+const saveWithConfirmation = (event) => (
     (dispatch, getState, {notify}) => {
         const events = selectors.getEvents(getState());
         const originalEvent = get(events, event._id, {});
@@ -577,7 +538,7 @@ const saveWithConfirmation = (event, {save = true, publish = false, unpublish = 
 
         // If this is not from a recurring series, then simply publish this event
         if (!get(originalEvent, 'recurrence_id')) {
-            return dispatch(self.saveAndPublish(event, {save, publish, unpublish}))
+            return dispatch(self.save(event))
                 .then((result) => Promise.resolve(result),
                     (error) => {
                         notify.error(
@@ -598,9 +559,6 @@ const saveWithConfirmation = (event, {save = true, publish = false, unpublish = 
                         eventDetail: {
                             ...event,
                             _recurring: relatedEvents || [event],
-                            _publish: publish,
-                            _unpublish: unpublish,
-                            _save: save,
                             _events: [],
                             _originalEvent: originalEvent,
                         },
@@ -611,7 +569,7 @@ const saveWithConfirmation = (event, {save = true, publish = false, unpublish = 
     }
 );
 
-const publishEvent = (event) => (
+const publish = (event) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.publishEvent(event))
             .then((publishedEvent) => {
@@ -796,10 +754,10 @@ const self = {
     openPostponeModal,
     _openActionModal,
     convertToRecurringEvent,
-    saveAndPublish,
     saveWithConfirmation,
+    save,
     receiveEventHistory,
-    publishEvent,
+    publish,
     unpublish,
     loadMore,
     addToList,

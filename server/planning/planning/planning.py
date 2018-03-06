@@ -25,7 +25,7 @@ from apps.archive.common import set_original_creator, get_user, get_auth
 from copy import deepcopy
 from eve.utils import config, ParsedRequest
 from planning.common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA, get_coverage_cancellation_state,\
-    remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE
+    remove_lock_information, WORKFLOW_STATE, ASSIGNMENT_WORKFLOW_STATE, update_published_item
 from superdesk.utc import utcnow
 from itertools import chain
 from planning.planning_notifications import PlanningNotifications
@@ -199,6 +199,8 @@ class PlanningService(superdesk.Service):
         doc.update(updates)
         self.__generate_related_assignments([doc])
         updates['coverages'] = doc.get('coverages') or []
+
+        update_published_item(updates, original)
 
     def can_edit(self, item, user_id):
         # Check privileges
