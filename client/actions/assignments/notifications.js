@@ -3,7 +3,7 @@ import assignments from './index';
 import {get} from 'lodash';
 import planning from '../planning';
 import {ASSIGNMENTS, WORKSPACE} from '../../constants';
-import {lockUtils, assignmentUtils} from '../../utils';
+import {lockUtils, assignmentUtils, gettext} from '../../utils';
 import {hideModal, showModal} from '../index';
 
 /**
@@ -221,9 +221,10 @@ const onAssignmentRemoved = (_e, data) => (
     (dispatch, getState, {notify}) => {
         if (get(data, 'assignment')) {
             const currentAssignmentId = selectors.getCurrentAssignmentId(getState());
+            const currentSessionId = selectors.general.sessionId(getState());
 
-            if (data.assignment === currentAssignmentId) {
-                notify.success('The Assignment you were viewing was removed.');
+            if (data.assignment === currentAssignmentId && data.session !== currentSessionId) {
+                notify.warning(gettext('The Assignment you were viewing was removed.'));
             }
 
             dispatch({
