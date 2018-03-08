@@ -140,6 +140,15 @@
 }
 
 .contact-popup {
-    width: 425px;
-    height: 325px;
+    width: 426px;
+    height: 326px;
+    .popup__menu {
+        height: inherit;
+    }
+
+    .mgrid-view {
+        .media-box {
+            margin: 0;
+        }
+    }
 }
