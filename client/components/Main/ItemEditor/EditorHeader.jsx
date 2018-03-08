@@ -44,7 +44,7 @@ export class EditorHeader extends React.Component {
     }
 
     handleCancel() {
-        const {dirty, openCancelModal, onSave, cancel} = this.props;
+        const {dirty, openCancelModal, onSave, cancel, errors} = this.props;
 
         if (dirty) {
             openCancelModal({
@@ -52,7 +52,7 @@ export class EditorHeader extends React.Component {
                 body: 'There are some unsaved changes, do you want to save it now?',
                 okText: 'Save',
                 showIgnore: true,
-                action: () => onSave().finally(cancel),
+                action: errors ? null : () => onSave().finally(cancel),
                 ignore: cancel,
             });
         } else {
@@ -226,6 +226,7 @@ EditorHeader.propTypes = {
     minimize: PropTypes.func.isRequired,
     submitting: PropTypes.bool.isRequired,
     dirty: PropTypes.bool.isRequired,
+    errors: PropTypes.object,
     session: PropTypes.object,
     privileges: PropTypes.object,
     lockedItems: PropTypes.object,

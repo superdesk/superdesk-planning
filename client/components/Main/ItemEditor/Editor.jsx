@@ -256,6 +256,7 @@ export class EditorComponent extends React.Component {
                     minimize={this.props.minimize}
                     submitting={this.state.submitting}
                     dirty={this.state.dirty}
+                    errors={this.state.errors}
                     session={this.props.session}
                     privileges={this.props.privileges}
                     lockedItems={this.props.lockedItems}
