@@ -1,13 +1,15 @@
 import {get, isEmpty} from 'lodash';
 import {gettext} from '../utils';
 
-export const formProfile = (dispatch, getState, field, value, profile, errors) => {
+export const formProfile = (dispatch, getState, field, fieldValue, profile, errors) => {
     // If the field is not enabled or no schema defined, then simply return
     if (!get(profile, `editor.${field}.enabled`, false) || !get(profile, `schema.${field}`)) {
         return;
     }
 
     const schema = get(profile, `schema.${field}`) || {};
+
+    const value = (typeof fieldValue === 'string') ? fieldValue.trim() : fieldValue;
 
     if (!schema.required && get(value, length, 0) < 1) {
         return;
