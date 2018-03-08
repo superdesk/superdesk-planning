@@ -73,7 +73,7 @@ describe('<AssignmentListContainer />', () => {
 
         const component = wrapper.find('AssignmentListContainerComponent');
 
-        component.node.changeSearchQuery('searchText');
+        component.instance().changeSearchQuery('searchText');
         expect(actions.assignments.ui.loadAssignments.callCount).toBe(3);
     });
 
@@ -91,7 +91,7 @@ describe('<AssignmentListContainer />', () => {
 
         const component = wrapper.find('AssignmentListContainerComponent');
 
-        component.node.changeFilter('User');
+        component.instance().changeFilter('User');
         expect(actions.assignments.ui.loadAssignments.callCount).toBe(3);
     });
 
@@ -109,7 +109,7 @@ describe('<AssignmentListContainer />', () => {
 
         const component = wrapper.find('AssignmentListContainerComponent');
 
-        component.node.changeFilter(null, 'Updated');
+        component.instance().changeFilter(null, 'Updated');
         expect(actions.assignments.ui.loadAssignments.callCount).toBe(3);
     });
 
@@ -127,7 +127,7 @@ describe('<AssignmentListContainer />', () => {
 
         const component = wrapper.find('AssignmentListContainerComponent');
 
-        component.node.changeFilter(null, null, 'desc');
+        component.instance().changeFilter(null, null, 'desc');
         expect(actions.assignments.ui.loadAssignments.callCount).toBe(3);
     });
 

@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import './style.scss';
 
@@ -7,6 +6,7 @@ export class ColoredValueSelectFieldPopup extends React.Component {
     constructor(props) {
         super(props);
         this.handleClickOutside = this.handleClickOutside.bind(this);
+        this.dom = {popup: null};
     }
 
     componentDidMount() {
@@ -18,15 +18,15 @@ export class ColoredValueSelectFieldPopup extends React.Component {
     }
 
     handleClickOutside(event) {
-        const domNode = ReactDOM.findDOMNode(this);
-
-        if ((!domNode || !domNode.contains(event.target))) {
+        if ((!this.dom.popup || !this.dom.popup.contains(event.target))) {
             this.props.onCancel();
         }
     }
 
     render() {
-        return (<div className="ColoredValueSelect__popup">
+        return (<div
+            className="ColoredValueSelect__popup"
+            ref={(node) => this.dom.popup = node}>
             {this.props.title && <label>{this.props.title}</label>}
             <ul>
                 {this.props.clearable && <li>

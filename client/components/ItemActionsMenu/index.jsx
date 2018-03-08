@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {ActionsMenu} from './ActionsMenu';
@@ -14,6 +13,7 @@ export class ItemActionsMenu extends React.Component {
         this.state = {isOpen: false};
         this.handleClickOutside = this.handleClickOutside.bind(this);
         this.renderMenu = this.renderMenu.bind(this);
+        this.dom = {menu: null};
     }
 
     componentDidMount() {
@@ -25,9 +25,7 @@ export class ItemActionsMenu extends React.Component {
     }
 
     handleClickOutside(event) {
-        const domNode = ReactDOM.findDOMNode(this);
-
-        if ((!domNode || event.target.className !== 'ItemActionsMenu__action')) {
+        if ((!this.dom.menu || event.target.className !== 'ItemActionsMenu__action')) {
             if (this.state.isOpen) {
                 this.closeMenu();
             }
@@ -60,7 +58,7 @@ export class ItemActionsMenu extends React.Component {
         );
 
         return (
-            <div className={classes}>
+            <div className={classes} ref={(node) => this.dom.menu = node}>
                 <a className={buttonClasses} onClick={this.renderMenu}>
                     <i className="icon-dots-vertical" />
                 </a>
@@ -81,7 +79,7 @@ export class ItemActionsMenu extends React.Component {
             closeMenu: this.closeMenu.bind(this),
         });
 
-        let icon = ReactDOM.findDOMNode(this).getElementsByClassName('icon-dots-vertical')[0];
+        let icon = this.dom.menu.getElementsByClassName('icon-dots-vertical')[0];
 
         renderToBody(elem, icon);
 

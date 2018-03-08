@@ -1,9 +1,14 @@
+import Enzyme from 'enzyme';
+import Adapter from 'enzyme-adapter-react-16';
 import sinon from 'sinon';
 import moment from 'moment';
 import {get, map, cloneDeep} from 'lodash';
 import {PRIVILEGES} from '../constants';
 import {ItemActionsMenu} from '../components/index';
 import * as testData from './testData';
+
+// configure enzyme
+Enzyme.configure({adapter: new Adapter()});
 
 export const getTestActionStore = () => {
     let store = {

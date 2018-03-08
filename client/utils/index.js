@@ -2,7 +2,7 @@ import moment from 'moment-timezone';
 import {createStore as _createStore, applyMiddleware} from 'redux';
 import planningApp from '../reducers';
 import thunkMiddleware from 'redux-thunk';
-import createLogger from 'redux-logger';
+import {createLogger} from 'redux-logger';
 import {get, set, map, cloneDeep} from 'lodash';
 import {
     PUBLISHED_STATE,

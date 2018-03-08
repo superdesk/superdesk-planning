@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 
 import {Modal} from '../index';
 import {Button} from '../UI';
-import {default as PlanningApp} from '../../planning';
+import {PlanningApp} from '../../planning';
 import {ArchiveItem} from '../Archive';
 
 import * as selectors from '../../selectors';

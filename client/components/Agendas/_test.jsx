@@ -30,7 +30,7 @@ describe('ManageAgendas', () => {
 
             const dialog = wrapper.find('Portal');
 
-            modal = new ReactWrapper(<Provider store={store}>{dialog.node.props.children}</Provider>);
+            modal = new ReactWrapper(<Provider store={store}>{dialog.getElement()}</Provider>);
             return modal;
         };
 
@@ -110,7 +110,8 @@ describe('ManageAgendas', () => {
                 const nameField = editAgendaInstance1.find('input').first();
 
                 nameField.simulate('change', {target: {value: 'new name'}});
-                expect(editAgendaInstance1.find('.btn--primary').length).toBe(1);
+                expect(modal.find('EditAgenda').first()
+                    .find('.btn--primary').length).toBe(1);
 
                 // Name is mandatory
                 nameField.simulate('change', {target: {value: ''}});
@@ -136,7 +137,9 @@ describe('ManageAgendas', () => {
                 nameField.simulate('change', {target: {value: 'new name'}});
 
                 // Save
-                const saveButton = editAgendaInstance1.find('.btn--primary').first();
+                const saveButton = modal.find('EditAgenda').first()
+                    .find('.btn--primary')
+                    .first();
 
                 saveButton.simulate('click');
 

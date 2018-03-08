@@ -5,7 +5,7 @@ import {keyBy} from 'lodash';
 
 describe('selectors', () => {
     const dateFormat = 'YYYY-MM-DDTHH:mm:ss';
-    const state = {
+    const getState = () => ({
         events: {
             events: {
                 event1: {
@@ -36,9 +36,9 @@ describe('selectors', () => {
             eventsInList: ['event1', 'event2', 'event3'],
         },
         session: {identity: {_id: 'user1'}},
-    };
+    });
 
-    const setAdvancedSearchDates = (startDate, endate) => {
+    const setAdvancedSearchDates = (state, startDate, endate) => {
         state.main = {
             filter: 'EVENTS',
             search: {
@@ -58,7 +58,9 @@ describe('selectors', () => {
 
     describe('orderedEvents', () => {
         it('all events', () => {
-            setAdvancedSearchDates('2017-01-10T00:00:00');
+            const state = getState();
+
+            setAdvancedSearchDates(state, '2017-01-10T00:00:00');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
@@ -81,7 +83,9 @@ describe('selectors', () => {
         });
 
         it('for today 2017-01-15', () => {
-            setAdvancedSearchDates('2017-01-15T00:00:00+0000', '2017-01-15T23:59:59+0000');
+            const state = getState();
+
+            setAdvancedSearchDates(state, '2017-01-15T00:00:00+0000', '2017-01-15T23:59:59+0000');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
@@ -93,7 +97,9 @@ describe('selectors', () => {
         });
 
         it('from 2017-01-15 11:00 to 2017-01-16T14:00:00+0000', () => {
-            setAdvancedSearchDates('2017-01-15T11:00:00+0000', '2017-01-16T14:00:00+0000');
+            const state = getState();
+
+            setAdvancedSearchDates(state, '2017-01-15T11:00:00+0000', '2017-01-16T14:00:00+0000');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
@@ -110,7 +116,9 @@ describe('selectors', () => {
         });
 
         it('from 2017-01-16T06:00:00+0000 to 2017-01-16T07:00:00+0000', () => {
-            setAdvancedSearchDates('2017-01-16T06:00:00+0000', '2017-01-16T07:00:00+0000');
+            const state = getState();
+
+            setAdvancedSearchDates(state, '2017-01-16T06:00:00+0000', '2017-01-16T07:00:00+0000');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
@@ -122,7 +130,9 @@ describe('selectors', () => {
         });
 
         it('from 2017-01-16T06:00:00+0000 to 2017-01-16T10:00:00+0000', () => {
-            setAdvancedSearchDates('2017-01-16T06:00:00+0000', '2017-01-16T10:00:00+0000');
+            const state = getState();
+
+            setAdvancedSearchDates(state, '2017-01-16T06:00:00+0000', '2017-01-16T10:00:00+0000');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
@@ -135,7 +145,9 @@ describe('selectors', () => {
         });
 
         it('from 2017-01-16T13:59:59+0000 to 2017-01-17T08:00:00+0000', () => {
-            setAdvancedSearchDates('2017-01-16T13:59:59+0000', '2017-01-17T08:00:00+0000');
+            const state = getState();
+
+            setAdvancedSearchDates(state, '2017-01-16T13:59:59+0000', '2017-01-17T08:00:00+0000');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
@@ -151,7 +163,9 @@ describe('selectors', () => {
         });
 
         it('from 2017-01-17T06:00:00+0000', () => {
-            setAdvancedSearchDates('2017-01-17T06:00:00+0000');
+            const state = getState();
+
+            setAdvancedSearchDates(state, '2017-01-17T06:00:00+0000');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events)).toEqual([
@@ -163,7 +177,9 @@ describe('selectors', () => {
         });
 
         it('from 2017-01-17T14:00:01+0000', () => {
-            setAdvancedSearchDates('2017-01-17T14:00:01+0000');
+            const state = getState();
+
+            setAdvancedSearchDates(state, '2017-01-17T14:00:01+0000');
             const events = keyBy(selectors.events.orderedEvents(state), 'date');
 
             expect(Object.keys(events).length).toBe(0);

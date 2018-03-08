@@ -90,12 +90,14 @@ describe('<EventPreviewContent />', () => {
         verifyDataRow(dataRows.at(2), 'Description', 'description');
         verifyDataRow(dataRows.at(3), 'Occurrence Status', 'Planned, occurs certainly');
         verifyDataRow(dataRows.at(4), 'Date', dateString);
-        // verifyDataRow(dataRows.at(5), 'Location', dateString)
 
-        const eventDetails = wrapper.find('.toggle-box').first();
+        let eventDetails = wrapper.find('.toggle-box').first();
 
         eventDetails.find('.toggle-box__header').simulate('click');
-        const eventDetailRows = eventDetails.find('.toggle-box__content').find('.form__row');
+
+        const eventDetailRows = wrapper.find('.toggle-box').first()
+            .find('.toggle-box__content')
+            .find('.form__row');
 
         verifyDataRow(eventDetailRows.at(0), 'Calendars', 'calender1');
         verifyDataRow(eventDetailRows.at(1), 'Place', 'ACT');
@@ -104,9 +106,10 @@ describe('<EventPreviewContent />', () => {
         verifyDataRow(eventDetailRows.at(4), 'Long Description', 'long description');
         verifyDataRow(eventDetailRows.at(5), 'Internal Note', 'internal note');
 
-        const files = wrapper.find('.toggle-box').at(1);
+        let files = wrapper.find('.toggle-box').at(1);
 
         files.find('.toggle-box__header').simulate('click');
+        files = wrapper.find('.toggle-box').at(1);
 
         const file = files.find(FileInput).first();
         const fileLabel = file.find('label').first();
@@ -115,9 +118,10 @@ describe('<EventPreviewContent />', () => {
         expect(fileLabel.text()).toBe('video/ogg (1kB)');
         expect(fileValue.text()).toBe('file1.jpg');
 
-        const links = wrapper.find('.toggle-box').at(2);
+        let links = wrapper.find('.toggle-box').at(2);
 
         links.find('.toggle-box__header').simulate('click');
+        links = wrapper.find('.toggle-box').at(2);
 
         const link = links.find(LinkInput).first();
         const linkLabel = link.find('label').first();
@@ -126,9 +130,11 @@ describe('<EventPreviewContent />', () => {
         expect(linkLabel.text()).toBe('www.google.com');
         expect(linkValue.text()).toBe('https://www.google.com');
 
-        const relatedPlannings = wrapper.find('.toggle-box').at(3);
+        let relatedPlannings = wrapper.find('.toggle-box').at(3);
 
         relatedPlannings.find('.toggle-box__header').simulate('click');
+        relatedPlannings = wrapper.find('.toggle-box').at(3);
+
         const relPlan = relatedPlannings.find('span').first();
 
         expect(relPlan.text()).toBe('Planning2 created by firstname lastname in agenda TestAgenda2');

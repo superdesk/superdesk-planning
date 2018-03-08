@@ -189,9 +189,6 @@ describe('actions.planning.notifications', () => {
             sinon.stub(planningApi, 'refetch').callsFake(
                 () => (Promise.reject(errorMessage))
             );
-            sinon.stub(planningNotifications, 'canRefetchPlanning').callsFake(
-                () => (Promise.resolve(true))
-            );
 
             return store.test(done, planningNotifications.onPlanningCreated({}, {item: 'p5'}))
                 .then(() => { /* no-op */ }, (error) => {

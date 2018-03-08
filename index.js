@@ -5,7 +5,6 @@ import './client/styles/index.scss'
 import planningModule from './client'
 import * as ctrl from './client/controllers'
 import { get } from 'lodash'
-import PlanningApp from './client/planning';
 
 configurePlanning.$inject = ['superdeskProvider']
 function configurePlanning(superdesk) {
@@ -25,14 +24,6 @@ function configurePlanning(superdesk) {
             adminTools: false,
             template: require('./client/views/planning.html'),
             sideTemplateUrl: 'scripts/apps/workspace/views/workspace-sidenav.html',
-            controller: ['$scope', ($scope) => $scope.app = PlanningApp],
-            privileges: { planning: 1 },
-        })
-        .activity('/settings/planning', {
-            label: gettext('Planning'),
-            template: require('./client/views/settings.html'),
-            category: superdesk.MENU_SETTINGS,
-            priority: 2000,
             privileges: { planning: 1 },
         })
         .activity('/workspace/assignments', {

@@ -72,6 +72,6 @@ describe('<PlanningHistoryList />', () => {
         // Can display updated fields when planningHistoryItems.operation was 'update'
         expect(wrapper.find('.more-description').first()
             .map((e) => e.text()))
-            .toEqual(['Updated Fields: headline, slugline']);
+            .toEqual(['Updated Fields: headline, slugline']);
     });
 });

@@ -22,7 +22,7 @@ import * as actions from './actions';
 import * as selectors from './selectors';
 import {EVENTS, PLANNING, ITEM_TYPE} from './constants';
 
-class PlanningApp extends React.Component {
+class PlanningAppComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -265,7 +265,7 @@ class PlanningApp extends React.Component {
     }
 }
 
-PlanningApp.propTypes = {
+PlanningAppComponent.propTypes = {
     groups: PropTypes.array,
     editItem: PropTypes.object,
     editItemType: PropTypes.string,
@@ -401,4 +401,4 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         (planning) => dispatch(actions.planning.ui.openCancelAllCoverageModal(planning))
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(PlanningApp);
+export const PlanningApp = connect(mapStateToProps, mapDispatchToProps)(PlanningAppComponent);
