@@ -5,7 +5,7 @@ export default class InputArray {
         this.root = root || element;
         this.field = field;
         this.type = type;
-        this.element = element.findWhere((n) => n.props().field === this.field).first();
+        this.element = element.findWhere((n) => n.length > 0 && n.props().field === this.field).first();
         this.isMounted = this.element.exists();
 
         if (this.isMounted) {

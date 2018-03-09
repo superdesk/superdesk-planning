@@ -4,8 +4,9 @@ export default class Input {
         this.root = root || element;
         this.field = field;
         this.type = type;
+
         this.element = element.findWhere(
-            (n) => n.props().field === this.field && !('component' in n.props())
+            (n) => n.length > 0 && n.props().field === this.field && !('component' in n.props())
         ).first();
         this.isMounted = this.element.exists();
         this.input = null;

@@ -53,7 +53,6 @@ export default class SearchField extends React.Component {
                 placeholder="Search"
                 className="sd-line-input__input"
                 type="text"
-                ref="searchInput"
                 onKeyDown={(event) => {
                     if (event.keyCode === KEYCODES.ENTER) {
                         onEventCapture(event);

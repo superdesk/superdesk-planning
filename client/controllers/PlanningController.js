@@ -4,8 +4,8 @@ import {Provider} from 'react-redux';
 import {registerNotifications} from '../utils';
 import * as actions from '../actions';
 import {locks} from '../actions';
-import {PlanningApp} from '../components';
 import {WORKSPACE} from '../constants';
+import {PlanningApp} from '../planning';
 
 PlanningController.$inject = [
     '$element',
@@ -51,8 +51,6 @@ export function PlanningController(
                         store.dispatch(actions.resetStore());
                     });
 
-                    const App = $scope.vm.app || PlanningApp;
-
                     $scope.$watch(
                         () => $route.current,
                         (route) => {
@@ -63,7 +61,7 @@ export function PlanningController(
                     // render the planning application
                     ReactDOM.render(
                         <Provider store={store}>
-                            <App />
+                            <PlanningApp />
                         </Provider>,
                         $element.get(0)
                     );

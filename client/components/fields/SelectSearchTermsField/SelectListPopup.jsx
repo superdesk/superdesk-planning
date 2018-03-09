@@ -19,6 +19,7 @@ export class SelectListPopup extends React.Component {
             openFilterList: false,
         };
 
+        this.dom = {listItems: null};
         this.onKeyDown = this.onKeyDown.bind(this);
         this.closeSearchList = this.closeSearchList.bind(this);
     }
@@ -77,7 +78,7 @@ export class SelectListPopup extends React.Component {
             this.setState({activeOptionIndex: 0});
         } else if (this.state.activeOptionIndex < this.state.filteredList.length - 1) {
             this.setState({activeOptionIndex: this.state.activeOptionIndex + 1});
-            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.refs.listItems);
+            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.listItems);
         }
     }
 
@@ -88,7 +89,7 @@ export class SelectListPopup extends React.Component {
             }
         } else {
             this.setState({activeOptionIndex: this.state.activeOptionIndex - 1});
-            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.refs.listItems);
+            uiUtils.scrollListItemIfNeeded(this.state.activeOptionIndex, this.dom.listItems);
         }
     }
 
@@ -203,7 +204,7 @@ export class SelectListPopup extends React.Component {
             <SearchField onSearch={(val) => {
                 this.filterSearchResults(val);
             }} minLength={1}
-            onSearchClick={this.openSearchList.bind(this)} ref="searchField" />
+            onSearchClick={this.openSearchList.bind(this)} />
             {this.state.openFilterList &&
                 (
                     <Popup
@@ -214,7 +215,7 @@ export class SelectListPopup extends React.Component {
                         noPadding={true}
                     >
                         <div className="Select__popup__wrapper">
-                            <ul className="Select__popup__list" ref="listItems">
+                            <ul className="Select__popup__list" ref={(node) => this.dom.listItems = node}>
                                 {this.state.filteredList.map((opt, index) => (
                                     <li key={index} className={ (index === this.state.activeOptionIndex ?
                                         'Select__popup__item--active ' : '') + 'Select__popup__item'}>
@@ -260,11 +261,11 @@ export class SelectListPopup extends React.Component {
                             || <SearchField onSearch={(val) => {
                                 this.filterSearchResults(val);
                             }} minLength={1}
-                            onSearchClick={this.openSearchList.bind(this)} ref="searchField"/>
+                            onSearchClick={this.openSearchList.bind(this)}/>
                     }
                 </div>
                 {this.state.openFilterList && (<div className="Select__popup__wrapper">
-                    <ul className="dropdown-menu Select__popup__list" ref="listItems">
+                    <ul className="dropdown-menu Select__popup__list" ref={(node) => this.dom.listItems = node}>
                         {this.state.filteredList.map((opt, index) => (
                             <li key={index} className={ (index === this.state.activeOptionIndex ?
                                 'Select__popup__item--active ' : '') + 'Select__popup__item'} >

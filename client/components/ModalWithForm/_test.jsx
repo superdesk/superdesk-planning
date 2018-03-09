@@ -1,9 +1,10 @@
 import React from 'react';
 import {mount} from 'enzyme';
-import {ModalWithForm, AssignmentForm} from '../index';
+import {ModalWithForm} from '../index';
 import {createTestStore} from '../../utils';
 import {Provider} from 'react-redux';
 
+// TODO: To be revisited
 xdescribe('<ModalWithForm />', () => {
     it('open the modal', () => {
         let initialState = {users: []};
@@ -14,7 +15,7 @@ xdescribe('<ModalWithForm />', () => {
             <Provider store={store}>
                 <ModalWithForm
                     title="Title"
-                    form={AssignmentForm}
+                    form={null}
                     initialValues={{field: 'value'}}
                     show={true} />
             </Provider>

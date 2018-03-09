@@ -1,5 +1,4 @@
 import * as selectors from '../selectors';
-import {SubmissionError} from 'redux-form';
 import {cloneDeep, pick, get, sortBy} from 'lodash';
 import {PRIVILEGES, AGENDA, MODALS, ITEM_TYPE} from '../constants';
 import {checkPermission, getErrorMessage, isItemSpiked, gettext} from '../utils';
@@ -42,10 +41,6 @@ const _createOrUpdateAgenda = (newAgenda) => (
                 }
 
                 notify.error(errorMessage);
-                throw new SubmissionError({
-                    name: errorMessage,
-                    _error: error.statusText,
-                });
             });
     }
 );

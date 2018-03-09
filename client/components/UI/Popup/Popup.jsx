@@ -92,12 +92,6 @@ export default class Popup extends React.Component {
     componentWillUnmount() {
         document.removeEventListener('keydown', this.handleKeydown);
         document.removeEventListener('click', this.handleClickOutside);
-
-        // If a popupContainer was provided, make sure this container
-        // is unmounted when unmounting the Popup component
-        if (this.dom.portal.props.node) {
-            this.dom.portal.props.node.removeChild(this.dom.portal.props.node.firstChild);
-        }
     }
 
     handleClickOutside(event) {
@@ -132,7 +126,6 @@ export default class Popup extends React.Component {
 
         if (this.dom.portal) {
             this.dom.root = this.dom.portal.defaultNode || this.dom.portal.props.node;
-            this.dom.child = this.dom.portal.portal;
         } else {
             this.dom.root = this.dom.child = null;
         }
@@ -147,7 +140,7 @@ export default class Popup extends React.Component {
                     ref={this.setPortalNodes}
                     node={popupContainer && popupContainer()}
                 >
-                    <div className={className ? `popup ${className}` : 'popup'}>
+                    <div ref={(node) => this.dom.child = node} className={className ? `popup ${className}` : 'popup'}>
                         <Menu noPadding={noPadding}>
                             {children}
                         </Menu>

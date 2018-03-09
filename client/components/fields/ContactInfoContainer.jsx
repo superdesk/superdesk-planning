@@ -1,5 +1,4 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 
 import * as ContactComponents from 'superdesk-core/scripts/apps/contacts/components/index';
@@ -11,6 +10,7 @@ export class ContactInfoContainer extends React.Component {
         super(props);
         this.handleClickOutside = this.handleClickOutside.bind(this);
         this.handleKeyBoardEvent = this.handleKeyBoardEvent.bind(this);
+        this.dom = {contactInfo: null};
     }
 
     componentDidMount() {
@@ -36,9 +36,7 @@ export class ContactInfoContainer extends React.Component {
     }
 
     handleClickOutside(event) {
-        const domNode = ReactDOM.findDOMNode(this);
-
-        if ((!domNode || !domNode.contains(event.target))) {
+        if ((!this.dom.contactInfo || !this.dom.contactInfo.contains(event.target))) {
             this.handleCancel();
         }
     }
@@ -70,7 +68,7 @@ export class ContactInfoContainer extends React.Component {
             <ContactFooter item={this.props.currentContact} svc={services} />
         );
 
-        return (<div>
+        return (<div ref={(node) => this.dom.contactInfo = node}>
             {this.props.currentContact &&
                 (<div className="mgrid-view">
                     {renderContents(contents)}

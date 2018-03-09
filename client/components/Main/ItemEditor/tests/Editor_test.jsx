@@ -115,7 +115,8 @@ describe('Main.ItemEditor.Editor', () => {
     };
 
     describe('Publish', () => {
-        it('EditorHeader button states on publishing', (done) => {
+        // TODO: To be revisited
+        xit('EditorHeader button states on publishing', (done) => {
             setWrapper();
 
             // Mock publish function
@@ -179,7 +180,8 @@ describe('Main.ItemEditor.Editor', () => {
                 });
         });
 
-        it('EditorHeader button states on publishing error', (done) => {
+        // TODO: To be revisited
+        xit('EditorHeader button states on publishing error', (done) => {
             setWrapper();
 
             // Mock publish error function
