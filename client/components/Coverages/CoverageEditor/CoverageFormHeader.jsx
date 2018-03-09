@@ -37,6 +37,7 @@ export class CoverageFormHeader extends React.Component {
         const deskAssigned = getItemInArrayById(desks, get(value, 'assigned_to.desk'));
         const coverageProvider = get(value, 'assigned_to.coverage_provider');
         const assignmentState = get(value, 'assigned_to.state');
+        const cancelled = get(value, 'workflow_status') === 'cancelled';
 
         if (!deskAssigned && (!userAssigned || !coverageProvider)) {
             return (
@@ -58,14 +59,14 @@ export class CoverageFormHeader extends React.Component {
                                 </span>
                             </span>
                         </ListRow>
-                        <ListRow>
+                        {!cancelled && (<ListRow>
                             <Button
                                 text={gettext('Assign')}
                                 tabIndex={0}
                                 enterKeyIsClick
                                 className="btn btn--primary btn--small" onClick={this.togglePopup}
                                 autoFocus />
-                        </ListRow>
+                        </ListRow>)}
                     </Column>
                     {this.state.popupOpen && (
                         <AssignmentPopup
