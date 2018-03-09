@@ -119,6 +119,12 @@ export class PlanningEditorComponent extends React.Component {
         let newCoverage = cloneDeep(coverage);
 
         newCoverage.news_coverage_status = {qcode: 'ncostat:int'};
+        newCoverage.workflow_status = WORKFLOW_STATE.DRAFT;
+        if (coverage.workflow_status == WORKFLOW_STATE.CANCELLED) {
+            newCoverage.planning.internal_note = '';
+            newCoverage.planning.ednote = '';
+        }
+
         delete newCoverage.coverage_id;
         delete newCoverage.assigned_to;
 
