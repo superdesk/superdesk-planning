@@ -41,27 +41,27 @@ export const CoverageEditor = ({
     let itemActions = [];
 
     if (!readOnly) {
+        const duplicateActions = contentTypes
+            .filter((contentType) => (
+                contentType.qcode !== get(value, 'planning.g2_content_type')
+            ))
+            .map((contentType) => ({
+                label: contentType.name,
+                callback: onDuplicateCoverage.bind(null, value, contentType.qcode)
+            }));
+
+        itemActions = [{
+            label: gettext('Duplicate'),
+            icon: 'icon-copy',
+            callback: onDuplicateCoverage.bind(null, value)
+        },
+        {
+            label: gettext('Duplicate As'),
+            icon: 'icon-copy',
+            callback: duplicateActions,
+        }];
+
         if (value.coverage_id) {
-            const duplicateActions = contentTypes
-                .filter((contentType) => (
-                    contentType.qcode !== get(value, 'planning.g2_content_type')
-                ))
-                .map((contentType) => ({
-                    label: contentType.name,
-                    callback: onDuplicateCoverage.bind(null, value, contentType.qcode)
-                }));
-
-            itemActions = [{
-                label: gettext('Duplicate'),
-                icon: 'icon-copy',
-                callback: onDuplicateCoverage.bind(null, value)
-            },
-            {
-                label: gettext('Duplicate As'),
-                icon: 'icon-copy',
-                callback: duplicateActions,
-            }];
-
             if (planningUtils.canCancelCoverage(value)) {
                 itemActions.push({
                     label: gettext('Cancel coverage'),
