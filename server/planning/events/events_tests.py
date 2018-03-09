@@ -112,7 +112,7 @@ class EventLocationFormatAddress(TestCase):
         location = {
             'address': {
                 'postal_code': '2150',
-                'line': [''],
+                'line': ['The Pub'],
                 'area': 'Parramatta',
                 'locality': 'Sydney',
                 'country': 'Australia'
@@ -126,12 +126,38 @@ class EventLocationFormatAddress(TestCase):
         }
 
         format_address(location)
-        self.assertEqual(location['formatted_address'], 'Parramatta Sydney 2150 Australia')
+        self.assertEqual(location['formatted_address'], 'The Pub Parramatta Sydney 2150 Australia')
 
         location = {
             "address": {
                 "line": [""],
             },
+            "name": "Parramatta",
+            "location": {
+                "lat": -33.8139843,
+                "lon": 151.002666
+            },
+            "qcode": "urn:newsml:localhost:2017-11-28T13:21:06.571812:1ce975e9-19c2-4fad-9cd6-8cda4020e565"
+        }
+
+        format_address(location)
+        self.assertEqual(location['formatted_address'], '')
+
+        location = {
+            "address": {},
+            "name": "Parramatta",
+            "location": {
+                "lat": -33.8139843,
+                "lon": 151.002666
+            },
+            "qcode": "urn:newsml:localhost:2017-11-28T13:21:06.571812:1ce975e9-19c2-4fad-9cd6-8cda4020e565"
+        }
+
+        format_address(location)
+        self.assertEqual(location['formatted_address'], '')
+
+        location = {
+            "address": {"line": []},
             "name": "Parramatta",
             "location": {
                 "lat": -33.8139843,
