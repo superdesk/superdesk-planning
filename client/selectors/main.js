@@ -10,6 +10,10 @@ import {ITEM_TYPE} from '../constants';
 export const activeFilter = (state) => get(state, 'main.filter', MAIN.FILTERS.COMBINED);
 export const isEventsPlanningView = (state) =>
     get(state, 'main.filter', '') === MAIN.FILTERS.COMBINED;
+export const isEventsView = (state) =>
+    get(state, 'main.filter', '') === MAIN.FILTERS.EVENTS;
+export const isPlanningView = (state) =>
+    get(state, 'main.filter', '') === MAIN.FILTERS.PLANNING;
 
 export const previewId = (state) => get(state, 'main.previewId', null);
 export const previewType = (state) => get(state, 'main.previewType', null);

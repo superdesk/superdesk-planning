@@ -3,15 +3,15 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../../../actions';
 import '../style.scss';
+import {WORKFLOW_STATE} from '../../../constants';
 import {UpdateMethodSelection} from '../UpdateMethodSelection';
-import {RelatedEvents} from '../../index';
 import {EventScheduleSummary, EventUpdateMethods} from '../../Events';
 import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import {get} from 'lodash';
 import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
 
-export class SpikeEventComponent extends React.Component {
+export class UnspikeEventComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -46,7 +46,7 @@ export class SpikeEventComponent extends React.Component {
     }
 
     submit() {
-        // Modal closes after submit. So, reseting submitting is not required
+        // Modal closes after submit. So, resetting submitting is not required
         this.setState({submitting: true});
 
         this.props.onSubmit({
@@ -58,10 +58,9 @@ export class SpikeEventComponent extends React.Component {
     render() {
         const {initialValues, dateFormat, timeFormat} = this.props;
         const isRecurring = !!initialValues.recurrence_id;
-        const eventsInUse = this.state.relatedEvents.filter((e) => (
-            get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
-        ));
-        const numEvents = this.state.relatedEvents.length + 1 - eventsInUse.length;
+        const numEvents = (this.state.relatedEvents.filter(
+            (event) => get(event, 'state') === WORKFLOW_STATE.SPIKED)
+        ).length + 1;
 
         return (
             <div className="MetadataView">
@@ -97,26 +96,16 @@ export class SpikeEventComponent extends React.Component {
                     value={this.state.eventUpdateMethod}
                     onChange={this.onEventUpdateMethodChange}
                     showMethodSelection={isRecurring}
-                    updateMethodLabel={gettext('Spike all recurring events or just this one?')}
+                    updateMethodLabel={gettext('Unspike all recurring events or just this one?')}
                     showSpace={false}
                     readOnly={this.state.submitting}
                     action="spike" />
-
-                {eventsInUse.length > 0 &&
-                    <div className="sd-alert sd-alert--hollow sd-alert--alert">
-                        <strong>{gettext('The following Events are in use and will not be spiked:')}</strong>
-                        <RelatedEvents
-                            events={eventsInUse}
-                            dateFormat={dateFormat}
-                        />
-                    </div>
-                }
             </div>
         );
     }
 }
 
-SpikeEventComponent.propTypes = {
+UnspikeEventComponent.propTypes = {
     initialValues: PropTypes.object.isRequired,
     dateFormat: PropTypes.string,
     timeFormat: PropTypes.string,
@@ -132,11 +121,11 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => (dispatch(actions.events.ui.spike(event))),
+    onSubmit: (event) => (dispatch(actions.events.ui.unspike(event))),
 });
 
-export const SpikeEventForm = connect(
+export const UnspikeEventForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
-    {withRef: true})(SpikeEventComponent);
+    {withRef: true})(UnspikeEventComponent);

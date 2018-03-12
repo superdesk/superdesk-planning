@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {ModalWithForm} from '../index';
 import {
     SpikeEventForm,
+    UnspikeEventForm,
     UpdateRecurringEventsForm,
     CancelEventForm,
     PostponeEventForm,
@@ -59,6 +60,11 @@ export class ItemActionConfirmationModal extends React.Component {
                 title: gettext('Spike an event'),
                 saveText: gettext('Spike'),
                 form: SpikeEventForm,
+            },
+            [EVENTS.ITEM_ACTIONS.UNSPIKE.label]: {
+                title: gettext('Unspike an event'),
+                saveText: gettext('Unspike'),
+                form: UnspikeEventForm,
             },
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: {
                 title: gettext('Cancel an event'),

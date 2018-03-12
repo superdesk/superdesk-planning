@@ -199,12 +199,12 @@ const openConfirmationModal = ({title, body, okText, showIgnore, action, ignore}
     )
 );
 
-const closePreviewAndEditorForItems = (items, actionMessage = '') => (
+const closePreviewAndEditorForItems = (items, actionMessage = '', field = '_id') => (
     (dispatch, getState, {notify}) => {
         const previewId = selectors.main.previewId(getState());
         const editId = selectors.forms.currentItemId(getState());
 
-        if (previewId && items.find((i) => i._id === previewId)) {
+        if (previewId && items.find((i) => get(i, field) === previewId)) {
             dispatch(self.closePreview());
 
             if (actionMessage !== '') {
@@ -212,7 +212,7 @@ const closePreviewAndEditorForItems = (items, actionMessage = '') => (
             }
         }
 
-        if (editId && items.find((i) => i._id === editId)) {
+        if (editId && items.find((i) => get(i, field) === editId)) {
             dispatch(self.closeEditor());
 
             if (actionMessage !== '') {

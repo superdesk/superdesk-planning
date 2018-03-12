@@ -7,7 +7,7 @@ import {registerNotifications} from '../../../utils';
 import eventsNotifications from '../notifications';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import moment from 'moment';
-import {EVENTS, EVENTS_PLANNING, MAIN} from '../../../constants';
+import {EVENTS} from '../../../constants';
 
 describe('actions.events.notifications', () => {
     let store;
@@ -534,179 +534,115 @@ describe('actions.events.notifications', () => {
         ));
     });
 
-    it('onEventSpiked dispatches `SPIKE_EVENT` action combined view', (done) => {
-        restoreSinonStub(eventsNotifications.onEventSpiked);
-        store.initialState.main.filter = MAIN.FILTERS.COMBINED;
-        store.test(done, eventsNotifications.onEventSpiked({}, {
-            item: data.events[0]._id,
-            user: 'ident1',
-            spiked_items: [{
-                id: data.events[0]._id,
-                etag: 'e123',
-                revert_state: 'draft'
-            }]
-        }))
-            .then(() => {
-                expect(store.dispatch.callCount).toBe(4);
-                expect(store.dispatch.args[0]).toEqual([{
-                    type: EVENTS.ACTIONS.SPIKE_EVENT,
-                    payload: {
-                        item: data.events[0]._id,
-                        user: 'ident1',
-                        items: [{
+    describe('onEventSpiked/onEventUnspiked', () => {
+        beforeEach(() => {
+            restoreSinonStub(eventsNotifications.onEventSpiked);
+            sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
+            sinon.stub(main, 'setUnsetLoadingIndicator').callsFake(() => (Promise.resolve()));
+            sinon.stub(eventsUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+            sinon.stub(eventsPlanningUi, 'scheduleRefetch').callsFake(() => (Promise.resolve()));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(main.closePreviewAndEditorForItems);
+            restoreSinonStub(main.setUnsetLoadingIndicator);
+            restoreSinonStub(eventsUi.scheduleRefetch);
+            restoreSinonStub(eventsPlanningUi.scheduleRefetch);
+        });
+
+        it('onEventSpiked dispatches `SPIKE_EVENT`', (done) => (
+            store.test(done, eventsNotifications.onEventSpiked({}, {
+                item: data.events[0]._id,
+                spiked_items: [{
+                    id: data.events[0]._id,
+                    etag: 'e123',
+                    revert_state: 'draft'
+                }]
+            }))
+                .then(() => {
+                    expect(store.dispatch.callCount).toBe(6);
+                    expect(store.dispatch.args[0]).toEqual([{
+                        type: EVENTS.ACTIONS.SPIKE_EVENT,
+                        payload: {
+                            item: data.events[0]._id,
+                            items: [{
+                                id: data.events[0]._id,
+                                etag: 'e123',
+                                revert_state: 'draft'
+                            }],
+                        },
+                    }]);
+
+                    expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
+                    expect(main.closePreviewAndEditorForItems.args[0]).toEqual([
+                        [{
                             id: data.events[0]._id,
                             etag: 'e123',
                             revert_state: 'draft'
                         }],
-                        filteredSpikeState: 'draft'
-                    },
-                }]);
+                        'The Event was spiked',
+                        'id'
+                    ]);
 
-                expect(store.dispatch.args[2]).toEqual([{
-                    type: EVENTS_PLANNING.ACTIONS.SPIKE_EVENT,
-                    payload: {
-                        id: data.events[0]._id,
-                        spikeState: 'draft'
-                    },
-                }]);
+                    expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
+                    expect(main.setUnsetLoadingIndicator.args).toEqual([
+                        [true],
+                        [false]
+                    ]);
 
-                done();
-            });
-    });
+                    expect(eventsUi.scheduleRefetch.callCount).toBe(1);
+                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
 
-    it('onEventSpiked dispatches `SPIKE_EVENT` action not combined view', (done) => {
-        restoreSinonStub(eventsNotifications.onEventSpiked);
-        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
-        store.test(done, eventsNotifications.onEventSpiked({}, {
-            item: data.events[0]._id,
-            user: 'ident1',
-            spiked_items: [{
-                id: data.events[0]._id,
-                etag: 'e123',
-                revert_state: 'draft'
-            }]
-        }))
-            .then(() => {
-                expect(store.dispatch.callCount).toBe(3);
-                expect(store.dispatch.args[0]).toEqual([{
-                    type: EVENTS.ACTIONS.SPIKE_EVENT,
-                    payload: {
-                        item: data.events[0]._id,
-                        user: 'ident1',
-                        items: [{
+                    done();
+                })
+        ));
+
+        it('onEventUnspiked dispatches `UNSPIKE_EVENT`', (done) => (
+            store.test(done, eventsNotifications.onEventUnspiked({}, {
+                item: data.events[0]._id,
+                unspiked_items: [{
+                    id: data.events[0]._id,
+                    etag: 'e123',
+                    revert_state: 'draft'
+                }]
+            }))
+                .then(() => {
+                    expect(store.dispatch.callCount).toBe(6);
+                    expect(store.dispatch.args[0]).toEqual([{
+                        type: EVENTS.ACTIONS.UNSPIKE_EVENT,
+                        payload: {
+                            item: data.events[0]._id,
+                            items: [{
+                                id: data.events[0]._id,
+                                etag: 'e123',
+                                revert_state: 'draft'
+                            }],
+                        },
+                    }]);
+
+                    expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
+                    expect(main.closePreviewAndEditorForItems.args[0]).toEqual([
+                        [{
                             id: data.events[0]._id,
                             etag: 'e123',
                             revert_state: 'draft'
                         }],
-                        filteredSpikeState: 'draft'
-                    },
-                }]);
+                        'The Event was unspiked',
+                        'id'
+                    ]);
 
-                done();
-            });
-    });
+                    expect(main.setUnsetLoadingIndicator.callCount).toBe(2);
+                    expect(main.setUnsetLoadingIndicator.args).toEqual([
+                        [true],
+                        [false]
+                    ]);
 
-    it('onEventSpiked calls for closing preview or editor', (done) => {
-        sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
-        restoreSinonStub(eventsNotifications.onEventSpiked);
-        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
-        store.test(done, eventsNotifications.onEventSpiked({}, {
-            item: data.events[0]._id,
-            revert_state: 'draft',
-            etag: 'e123',
-        }))
-            .then(() => {
-                expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
-                restoreSinonStub(main.closePreviewAndEditorForItems);
-                done();
-            });
-    });
+                    expect(eventsUi.scheduleRefetch.callCount).toBe(1);
+                    expect(eventsPlanningUi.scheduleRefetch.callCount).toBe(1);
 
-    it('onEventUnspiked dispatches `UNSPIKE_EVENT` action combined view', (done) => {
-        restoreSinonStub(eventsNotifications.onEventUnspiked);
-        store.initialState.main.filter = MAIN.FILTERS.COMBINED;
-        store.test(done, eventsNotifications.onEventUnspiked({}, {
-            item: data.events[0]._id,
-            state: 'draft',
-            etag: 'e456',
-        }))
-            .then(() => {
-                expect(store.dispatch.callCount).toBe(4);
-                expect(store.dispatch.args[0]).toEqual([{
-                    type: EVENTS.ACTIONS.UNSPIKE_EVENT,
-                    payload: {
-                        event: {
-                            ...store.initialState.events.events.e1,
-                            lock_action: null,
-                            lock_user: null,
-                            lock_session: null,
-                            lock_time: null,
-                            state: 'draft',
-                            revert_state: null,
-                            _etag: 'e456',
-                        },
-                        spikeState: 'draft'
-                    },
-                }]);
-
-                expect(store.dispatch.args[2]).toEqual([{
-                    type: EVENTS_PLANNING.ACTIONS.UNSPIKE_EVENT,
-                    payload: {
-                        id: data.events[0]._id,
-                        spikeState: 'draft'
-                    },
-                }]);
-
-                done();
-            });
-    });
-
-    it('onEventUnspiked dispatches `UNSPIKE_EVENT` action not combined view', (done) => {
-        restoreSinonStub(eventsNotifications.onEventUnspiked);
-        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
-        store.test(done, eventsNotifications.onEventUnspiked({}, {
-            item: data.events[0]._id,
-            state: 'draft',
-            etag: 'e456',
-        }))
-            .then(() => {
-                expect(store.dispatch.callCount).toBe(3);
-                expect(store.dispatch.args[0]).toEqual([{
-                    type: EVENTS.ACTIONS.UNSPIKE_EVENT,
-                    payload: {
-                        event: {
-                            ...store.initialState.events.events.e1,
-                            lock_action: null,
-                            lock_user: null,
-                            lock_session: null,
-                            lock_time: null,
-                            state: 'draft',
-                            revert_state: null,
-                            _etag: 'e456',
-                        },
-                        spikeState: 'draft'
-                    },
-                }]);
-
-                done();
-            });
-    });
-
-    it('onEventUnspiked calls for closing preview or editor', (done) => {
-        sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
-        restoreSinonStub(eventsNotifications.onEventUnspiked);
-        store.initialState.main.filter = MAIN.FILTERS.EVENTS;
-        store.test(done, eventsNotifications.onEventUnspiked({}, {
-            item: data.events[0]._id,
-            state: 'draft',
-            etag: 'e456',
-        }))
-            .then(() => {
-                expect(main.closePreviewAndEditorForItems.callCount).toBe(1);
-                restoreSinonStub(main.closePreviewAndEditorForItems);
-
-                done();
-            });
+                    done();
+                })
+        ));
     });
 
     it('calls scheduleRefetch for events.ui and eventsPlanning.ui', (done) => {

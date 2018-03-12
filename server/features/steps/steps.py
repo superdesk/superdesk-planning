@@ -115,6 +115,7 @@ def step_impl_when_spike_resource(context, resource, item_id):
 
 @when('we unspike {resource} "{item_id}"')
 def step_impl_when_unspike_resource(context, resource, item_id):
+    data = context.text or {}
     resource = apply_placeholders(context, resource)
     item_id = apply_placeholders(context, item_id)
 
@@ -125,7 +126,7 @@ def step_impl_when_unspike_resource(context, resource, item_id):
     headers = if_match(context, res.get('_etag'))
 
     context.response = context.client.patch(get_prefixed_url(context.app, unspike_url),
-                                            data='{}', headers=headers)
+                                            data=json.dumps(data), headers=headers)
 
 
 @when('we perform {action} on {resource} "{item_id}"')

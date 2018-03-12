@@ -7,7 +7,6 @@ import {
     RESET_STORE,
     INIT_STORE,
     LOCKS,
-    SPIKED_STATE,
     ASSIGNMENTS,
     MAIN,
     ITEM_TYPE,
@@ -325,74 +324,34 @@ const planningReducer = createReducer(initialState, {
 
     [PLANNING.ACTIONS.SPIKE_PLANNING]: (state, payload) => {
         // If the planning is not loaded, disregard this action
-        if (!(payload.plan._id in state.plannings)) return state;
+        if (!(payload.id in state.plannings)) return state;
 
-        let plannings = cloneDeep(state.plannings);
-        const newPlan = payload.plan;
-        let plan = plannings[newPlan._id];
+        const plannings = cloneDeep(state.plannings);
+        const plan = plannings[payload.id];
 
-        delete plan.lock_action;
-        delete plan.lock_user;
-        delete plan.lock_time;
-        delete plan.lock_session;
-        plan._etag = newPlan._etag;
-        plan.state = newPlan.state;
-        plan.revert_state = newPlan.revert_state;
-
-        let currentPlanningId = get(state, 'currentPlanningId', null);
-        let editorOpened = get(state, 'editorOpened', false);
-
-        if (currentPlanningId === plan._id && editorOpened) {
-            editorOpened = false;
-            currentPlanningId = null;
-        }
-
-        // If the user is currently not showing spiked Planning items,
-        // Then remove this Plan from the list (if it exists in the list)
-        const spikeState = get(payload, 'spikeState', SPIKED_STATE.NOT_SPIKED);
-        let planningsInList = state.planningsInList;
-
-        if (planningsInList.indexOf(plan._id) > -1 && spikeState === SPIKED_STATE.NOT_SPIKED) {
-            planningsInList.splice(planningsInList.indexOf(plan._id), 1);
-        }
+        plan._etag = payload.etag;
+        plan.state = payload.state;
+        plan.revert_state = payload.revert_state;
 
         return {
             ...state,
-            planningsInList,
             plannings,
-            editorOpened,
-            currentPlanningId,
         };
     },
 
     [PLANNING.ACTIONS.UNSPIKE_PLANNING]: (state, payload) => {
         // If the planning is not loaded, disregard this action
-        if (!(payload.plan._id in state.plannings)) return state;
+        if (!(payload.id in state.plannings)) return state;
 
-        let plannings = cloneDeep(state.plannings);
-        const newPlan = payload.plan;
-        let plan = plannings[newPlan._id];
+        const plannings = cloneDeep(state.plannings);
+        const plan = plannings[payload.id];
 
-        delete plan.lock_action;
-        delete plan.lock_user;
-        delete plan.lock_time;
-        delete plan.lock_session;
-        plan._etag = newPlan._etag;
-        plan.state = newPlan.state;
-        plan.revert_state = newPlan.revert_state;
-
-        // If the user is currently showing spiked only Planning items,
-        // Then remove this Plan from the list (if it exists in the list)
-        const spikeState = get(payload, 'spikeState', SPIKED_STATE.NOT_SPIKED);
-        let planningsInList = state.planningsInList;
-
-        if (planningsInList.indexOf(plan._id) > -1 && spikeState === SPIKED_STATE.SPIKED) {
-            planningsInList.splice(planningsInList.indexOf(plan._id), 1);
-        }
+        plan._etag = payload.etag;
+        plan.state = payload.state;
+        delete plan.revert_state;
 
         return {
             ...state,
-            planningsInList,
             plannings,
         };
     },

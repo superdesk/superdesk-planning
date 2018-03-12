@@ -345,8 +345,12 @@ const loadMore = () => (
  * Refetch planning items based on the current search
  */
 const refetch = () => (
-    (dispatch, getState, {notify}) => (
-        dispatch(planningApi.refetch())
+    (dispatch, getState, {notify}) => {
+        if (!selectors.main.isPlanningView(getState())) {
+            return Promise.resolve();
+        }
+
+        return dispatch(planningApi.refetch())
             .then(
                 (items) => {
                     dispatch(self.setInList(items.map((p) => p._id)));
@@ -357,8 +361,8 @@ const refetch = () => (
                     );
                     return Promise.reject(error);
                 }
-            )
-    )
+            );
+    }
 );
 
 /**

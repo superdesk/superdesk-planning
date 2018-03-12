@@ -346,7 +346,7 @@ class EventsService(superdesk.Service):
 
     def get_recurring_timeline(self, selected):
         events_base_service = EventsBaseService('events', backend=superdesk.get_backend())
-        return events_base_service.get_recurring_timeline(selected, True)
+        return events_base_service.get_recurring_timeline(selected, postponed=True)
 
 
 class EventsResource(superdesk.Resource):

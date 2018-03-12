@@ -1,5 +1,5 @@
 import * as selectors from '../../selectors';
-import {WORKFLOW_STATE, EVENTS, MODALS, SPIKED_STATE} from '../../constants';
+import {WORKFLOW_STATE, EVENTS, MODALS} from '../../constants';
 import {showModal, hideModal} from '../index';
 import eventsApi from './api';
 import eventsUi from './ui';
@@ -104,28 +104,26 @@ const onEventLocked = (_e, data) => (
 );
 
 const onEventSpiked = (_e, data) => (
-    (dispatch, getState) => {
+    (dispatch) => {
         if (data && data.item) {
             dispatch({
                 type: EVENTS.ACTIONS.SPIKE_EVENT,
                 payload: {
                     item: data.item,
-                    user: data.user,
                     items: data.spiked_items,
-                    filteredSpikeState: get(
-                        selectors.main.eventsSearch(getState()),
-                        'spikeState',
-                        SPIKED_STATE.NOT_SPIKED
-                    )
                 }
             });
 
-            dispatch(eventsPlanning.notifications.onEventSpiked(_e, data));
-
             dispatch(main.closePreviewAndEditorForItems(
-                [{_id: data.item}],
-                gettext('The Event was spiked')
+                data.spiked_items,
+                gettext('The Event was spiked'),
+                'id'
             ));
+
+            dispatch(main.setUnsetLoadingIndicator(true));
+            return dispatch(eventsUi.scheduleRefetch())
+                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
+                .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
         }
 
         return Promise.resolve();
@@ -133,43 +131,26 @@ const onEventSpiked = (_e, data) => (
 );
 
 const onEventUnspiked = (_e, data) => (
-    (dispatch, getState) => {
+    (dispatch) => {
         if (data && data.item) {
-            const events = selectors.getEvents(getState());
-
-            let eventInStore = get(events, data.item, {});
-
-            eventInStore = {
-                ...eventInStore,
-                _id: data.item,
-                lock_action: null,
-                lock_user: null,
-                lock_session: null,
-                lock_time: null,
-                state: data.state,
-                revert_state: null,
-                _etag: data.etag,
-            };
-
             dispatch({
                 type: EVENTS.ACTIONS.UNSPIKE_EVENT,
                 payload: {
-                    event: eventInStore,
-                    spikeState: get(
-                        selectors.main.eventsSearch(getState()),
-                        'spikeState',
-                        SPIKED_STATE.NOT_SPIKED
-                    )
-                },
+                    item: data.item,
+                    items: data.unspiked_items,
+                }
             });
 
-            dispatch(eventsPlanning.notifications.onEventUnspiked(_e, data));
             dispatch(main.closePreviewAndEditorForItems(
-                [eventInStore],
-                gettext('The Event was unspiked')
+                data.unspiked_items,
+                gettext('The Event was unspiked'),
+                'id'
             ));
 
-            return Promise.resolve(eventInStore);
+            dispatch(main.setUnsetLoadingIndicator(true));
+            return dispatch(eventsUi.scheduleRefetch())
+                .then(() => dispatch(eventsPlanning.ui.scheduleRefetch()))
+                .finally(() => dispatch(main.setUnsetLoadingIndicator(false)));
         }
 
         return Promise.resolve();

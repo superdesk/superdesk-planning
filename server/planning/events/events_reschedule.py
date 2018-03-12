@@ -138,7 +138,7 @@ Event Rescheduled
         reason = updates.get('reason')
 
         events_service = get_resource_service('events')
-        historic, past, future = self.get_recurring_timeline(original, True)
+        historic, past, future = self.get_recurring_timeline(original, postponed=True)
 
         # Determine if the selected event is the first one, if so then
         # act as if we're changing future events
