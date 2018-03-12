@@ -4,10 +4,9 @@ import {Modal} from './index';
 import {ButtonList} from './UI/index';
 
 export function ConfirmationModal({handleHide, modalProps}) {
-    const action = () => (
+    const action = modalProps.action ? () => (
         Promise.resolve(modalProps.action())
-            .then(handleHide(modalProps.itemType))
-    );
+            .then(handleHide(modalProps.itemType))) : null;
     const handleCancel = () => {
         handleHide();
         if (modalProps.onCancel) {
@@ -26,13 +25,16 @@ export function ConfirmationModal({handleHide, modalProps}) {
         type: 'button',
         onClick: handleCancel,
         text: modalProps.cancelText || 'Cancel'
-    },
-    {
-        className: 'btn--primary',
-        type: 'submit',
-        onClick: action,
-        text: modalProps.okText || 'Ok',
     }];
+
+    if (action) {
+        buttons.push({
+            className: 'btn--primary',
+            type: 'submit',
+            onClick: action,
+            text: modalProps.okText || 'Ok',
+        });
+    }
 
     if (modalProps.showIgnore) {
         buttons.unshift({
