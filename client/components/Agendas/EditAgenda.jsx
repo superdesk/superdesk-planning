@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {SlideInPanel, Form, Toggle} from '../UI';
+import {gettext} from '../../utils';
 
 export class EditAgenda extends React.Component {
     constructor(props) {
@@ -11,6 +12,8 @@ export class EditAgenda extends React.Component {
             submitting: true,
             agendaEnabled: true,
             agendaName: '',
+            message: '',
+            invalid: false,
         };
 
         this.onChange = this.onChange.bind(this);
@@ -37,10 +40,13 @@ export class EditAgenda extends React.Component {
     }
 
     onChange(field, value) {
+        let newName = value.replace(/^\s+/, '');
+
         this.setState({
-            pristine: this.isPristine(value, this.state.agendaEnabled),
-            agendaName: value,
+            pristine: this.isPristine(newName, this.state.agendaEnabled),
+            agendaName: newName,
         });
+        this.setInvalid(newName);
     }
 
     onEnableChange(event) {
@@ -69,10 +75,20 @@ export class EditAgenda extends React.Component {
         }
     }
 
+    setInvalid(value) {
+        if (!this.state.pristine) {
+            if (value.length < 1) {
+                this.setState({message: gettext('Must contain at least one character'), invalid: true});
+                return;
+            }
+            this.setState({message: '', invalid: false});
+        }
+    }
+
     render() {
         let tools = [<a className="btn" key={1} onClick={this.props.onClose}>Cancel</a>];
 
-        if (!this.state.pristine && this.state.agendaName) {
+        if (!this.state.pristine && this.state.agendaName && !this.state.invalid) {
             tools.push(<a className="btn btn--primary" key={2}
                 onClick={this.onSave.bind(this)}>Save</a>);
         }
@@ -85,8 +101,11 @@ export class EditAgenda extends React.Component {
                     <Form.TextInput
                         field="name"
                         label="Name"
+                        required={true}
                         value={this.state.agendaName}
                         onChange={this.onChange}
+                        invalid={this.state.invalid}
+                        message={this.state.message}
                     />
                 </Form.Row>
 
