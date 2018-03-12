@@ -495,9 +495,7 @@ const _openActionModal = (plan,
 
 const save = (item) => (
     (dispatch, getState) => {
-        const modalType = selectors.getCurrentModalType(getState());
-
-        if (modalType === MODALS.ADD_TO_PLANNING) {
+        if (selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING) {
             return dispatch(self.saveFromAuthoring(item));
         } else {
             return dispatch(self.saveAndReloadCurrentAgenda(item));
@@ -736,7 +734,6 @@ const saveFromAuthoring = (plan) => (
                             getErrorMessage(error, 'Failed to link to the Planning item!')
                         );
                         $scope.reject();
-                        dispatch(actions.actionInProgress(false));
                         return Promise.reject(error);
                     });
             }, (error) => {
@@ -744,8 +741,11 @@ const saveFromAuthoring = (plan) => (
                     getErrorMessage(error, 'Failed to save the Planning item!')
                 );
                 $scope.reject();
-                dispatch(actions.actionInProgress(false));
                 return Promise.reject(error);
+            })
+            .finally(() => {
+                dispatch(actions.hideModal());
+                dispatch(actions.actionInProgress(false));
             });
     }
 );

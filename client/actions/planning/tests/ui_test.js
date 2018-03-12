@@ -3,7 +3,7 @@ import planningApi from '../api';
 import assignmentApi from '../../assignments/api';
 import {main, locks} from '../../';
 import sinon from 'sinon';
-import {PRIVILEGES, ASSIGNMENTS, MAIN} from '../../../constants';
+import {PRIVILEGES, ASSIGNMENTS, MAIN, WORKSPACE} from '../../../constants';
 import {getTestActionStore, restoreSinonStub, expectAccessDenied} from '../../../utils/testUtils';
 import moment from 'moment';
 
@@ -716,8 +716,8 @@ describe('actions.planning.ui', () => {
             restoreSinonStub(planningUi.saveAndReloadCurrentAgenda);
         });
 
-        it('calls saveFromAuthoring if in MODALS.ADD_TO_PLANNING', () => {
-            store.initialState.modal = {modalType: 'ADD_TO_PLANNING'};
+        it('calls saveFromAuthoring if in AUTHORING workspace', () => {
+            store.initialState.workspace.currentWorkspace = WORKSPACE.AUTHORING;
             store.dispatch(planningUi.save(data.plannings[0]));
 
             expect(planningUi.saveFromAuthoring.callCount).toBe(1);
