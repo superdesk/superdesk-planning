@@ -154,12 +154,14 @@ export function AddToPlanningController(
                                         });
                                 }
 
+
                                 // Only unlock the item if it was locked when launching this modal
                                 if (get(newsItem, 'lock_session', null) !== null &&
                                     get(newsItem, 'lock_action', 'edit') === 'add_to_planning') {
                                     lock.unlock(newsItem);
                                 }
 
+                                store.dispatch(actions.hideModal());
                                 ReactDOM.unmountComponentAtNode($element.get(0));
                             });
 
