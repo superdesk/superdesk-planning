@@ -341,7 +341,7 @@ export const getCreator = (item, creator, users) => {
 };
 
 export const getItemInArrayById = (items, id, field = '_id') => (
-    id ? items.find((item) => get(item, field) === id) : null
+    id && Array.isArray(items) ? items.find((item) => get(item, field) === id) : null
 );
 
 export const isSameItemId = (item1, item2) => get(item1, '_id') === get(item2, '_id');

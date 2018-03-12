@@ -127,8 +127,10 @@ export class PlanningItem extends React.PureComponent {
                             item={item}
                             date={date}
                             timeFormat={timeFormat}
+                            dateFormat={dateFormat}
                             users={users}
                             desks={desks}
+                            activeFilter={activeFilter}
                         />
                     </Row>
                 </Column>

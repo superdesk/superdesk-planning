@@ -6,60 +6,41 @@ import {get} from 'lodash';
 import moment from 'moment';
 
 import {planningUtils} from '../../utils/index';
+import {MAIN} from '../../constants';
 import {CoverageIcon} from '../Coverages/';
 
-export const PlanningDateTime = ({item, date, timeFormat, users, desks}) => {
+export const PlanningDateTime = ({item, date, timeFormat, dateFormat, users, desks, activeFilter}) => {
     const coverages = get(item, 'coverages', []);
-    const coveragesTypes = planningUtils.mapCoverageByDate(coverages);
+    const coverageTypes = planningUtils.mapCoverageByDate(coverages);
+    const hasAssociatedEvent = !!get(item, 'event_item');
+    const coverageToDisplay = coverageTypes.filter((coverage) => {
+        const scheduled = get(coverage, 'planning.scheduled');
 
-    let coveragesToDisplay = [];
-    let coveragesWithoutTimes = [];
-
-    coveragesTypes
-        .filter((coverage) => {
-            const scheduled = get(coverage, 'planning.scheduled');
-
-            if (scheduled && moment(scheduled).format('YYYY-MM-DD') === date) {
+        if (activeFilter === MAIN.FILTERS.COMBINED) {
+            // Display if it has an associated event or if adhoc planning has coverage on that date
+            if (hasAssociatedEvent ||
+                (scheduled && moment(scheduled).format('YYYY-MM-DD') === date)) {
                 return true;
             }
+        } else if (scheduled && moment(scheduled).format('YYYY-MM-DD') === date) {
+            // Planning-only view - display only coverage of the particular date
+            return true;
+        }
 
-            coveragesWithoutTimes.push(coverage);
-            return false;
-        })
-        .forEach((coverage) => {
-            let scheduled = get(coverage, 'planning.scheduled');
-
-            if (!scheduled) {
-                return;
-            }
-
-            if (moment(scheduled).format('YYYY-MM-DD') !== date) {
-                return;
-            }
-
-            coveragesToDisplay.push(coverage);
-        });
+        return false;
+    });
 
     return (
         <span className="sd-no-wrap">
-            {coveragesToDisplay.map((coverage, i) =>
+            {coverageToDisplay.map((coverage, i) =>
                 <CoverageIcon
                     key={i}
                     users={users}
                     desks={desks}
                     timeFormat={timeFormat}
-                    coverage={coverage}
-                    withTooltip={true} />
+                    dateFormat={dateFormat}
+                    coverage={coverage} />
             )}
-            {coveragesWithoutTimes.map((coverage, i) =>
-                <CoverageIcon
-                    key={i}
-                    users={users}
-                    desks={desks}
-                    timeFormat={timeFormat}
-                    coverage={coverage}
-                    withTooltip={true}
-                    withoutTime={true} />)}
         </span>
     );
 };
@@ -68,6 +49,8 @@ PlanningDateTime.propTypes = {
     item: PropTypes.object.isRequired,
     date: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
+    dateFormat: PropTypes.string.isRequired,
     users: PropTypes.array,
     desks: PropTypes.array,
+    activeFilter: PropTypes.string,
 };
