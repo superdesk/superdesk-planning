@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import {
     ListItem,
     UserAvatar,
@@ -61,6 +62,9 @@ export const AssignmentItem = ({
 
     const hasContent = assignmentUtils.assignmentHasContent(assignment);
 
+    const displayName = assignedUser && assignedUser.display_name ?
+        assignedUser.display_name : ' - ';
+
     return (
         <ListItem
             item={assignment}
@@ -87,21 +91,27 @@ export const AssignmentItem = ({
                     <PriorityLabel
                         item={assignment}
                         priorities={priorities}
-                        tooltipFlow="down"
+                        tooltipFlow="right"
                     />
 
                     <StateLabel item={assignment.assigned_to} />
                     {hasContent && <Label text="Content" isHollow={true} iconType="darkBlue2" /> }
                     <span className="ListItem__headline">
-                        <i className="icon-time sd-list-item__inline-icon"/>
                         <InternalNoteLabel
                             item={assignment}
                             prefix="planning."
-                            marginRight={false}
+                            marginRight={true}
+                            marginLeft={true}
                         />
-                        {get(assignment, 'planning.scheduled') ? (
-                            <AbsoluteDate date={get(assignment, 'planning.scheduled').toString()} />
-                        ) : (<time><span>{gettext('\'not scheduled yet\'')}</span></time>)}
+                        <span data-sd-tooltip={gettext('Due Date')} data-flow="right">
+                            <i className="icon-time" />
+                        </span>
+                        <span>
+                            {get(assignment, 'planning.scheduled') ?
+                                (<AbsoluteDate date={get(assignment, 'planning.scheduled').toString()} />) :
+                                (<time><span>{gettext('\'not scheduled yet\'')}</span></time>)
+                            }
+                        </span>
                     </span>
                 </List.Row>
             </List.Column>
@@ -111,14 +121,22 @@ export const AssignmentItem = ({
                 </span>
             </List.Column>
             <List.Column border={false}>
-                <span className="ListItem__headline">
-                    <UserAvatar
-                        user={assignedUser || {display_name: '*'}}
-                        large={false}
-                        withLoggedInfo={isCurrentUser}
-                        isLoggedIn={isCurrentUser}
-                    />
-                </span>
+                <OverlayTrigger placement="left"
+                    overlay={
+                        <Tooltip id="assigned_user">
+                            {gettext(`Assigned: ${displayName}`)}
+                        </Tooltip>
+                    }
+                >
+                    <span className="ListItem__headline">
+                        <UserAvatar
+                            user={assignedUser || {display_name: '*'}}
+                            large={false}
+                            withLoggedInfo={isCurrentUser}
+                            isLoggedIn={isCurrentUser}
+                        />
+                    </span>
+                </OverlayTrigger>
             </List.Column>
             <List.ActionMenu>
                 {itemActions.length > 0 && <ItemActionsMenu actions={itemActions} />}

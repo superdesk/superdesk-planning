@@ -16,4 +16,5 @@ export const TOOLTIPS = {
         2: 'Medium',
         3: 'Low',
     },
+    notForPublication: 'Not For Publication',
 };

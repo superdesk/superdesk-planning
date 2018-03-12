@@ -1,8 +1,9 @@
 import React from 'react';
+import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {ITEM_TYPE} from '../constants';
-import {getItemType, eventUtils, planningUtils} from '../utils';
+import {getItemType, eventUtils, planningUtils, gettext} from '../utils';
 
 export const ItemIcon = ({item, big, white, blue, showRepeating}) => {
     const getItemIcon = () => {
@@ -53,10 +54,12 @@ export const ItemIcon = ({item, big, white, blue, showRepeating}) => {
         const itemType = getItemType(item);
 
         let icon = eventIcon;
+        let title = 'Event';
         let multiValidator = eventUtils.isEventRecurring;
 
         if (itemType === ITEM_TYPE.PLANNING) {
             icon = planningIcon;
+            title = 'Planning';
             multiValidator = planningUtils.isPlanMultiDay;
         } else if (itemType === ITEM_TYPE.ARCHIVE) {
             icon = archiveIcon;
@@ -67,13 +70,20 @@ export const ItemIcon = ({item, big, white, blue, showRepeating}) => {
             return null;
         }
 
+        let iconElement = <span>{icon}</span>;
+
+
         if (!showRepeating || !multiValidator(item)) {
-            return big ?
+            title = gettext(title);
+
+            iconElement = big ?
                 (<span className="double-size-icn double-size-icn--light">
                     {icon}
-                </span>) : icon;
+                </span>) : iconElement;
         } else {
-            return big ?
+            title = gettext(`Recurring ${title}`);
+
+            iconElement = big ?
                 (<span className="icn-mix sd-list-item__item-type">
                     {repeatIcon}
                     <span className="double-size-icn double-size-icn--light">
@@ -85,6 +95,14 @@ export const ItemIcon = ({item, big, white, blue, showRepeating}) => {
                     {icon}
                 </span>);
         }
+
+        return (
+            <OverlayTrigger
+                overlay={<Tooltip id="icon_list_item">{title}</Tooltip>}
+            >
+                {iconElement}
+            </OverlayTrigger>
+        );
     };
 
     return getItemIcon();
