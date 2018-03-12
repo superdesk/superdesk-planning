@@ -682,7 +682,8 @@ class AssignmentsService(superdesk.Service):
             assignment=assignment_id,
             planning=doc.get('planning_item'),
             coverage=doc.get('coverage_item'),
-            planning_etag=updated_planning.get(config.ETAG)
+            planning_etag=updated_planning.get(config.ETAG),
+            session=get_auth()['_id']
         )
 
     def is_assignment_draft(self, updates, original):

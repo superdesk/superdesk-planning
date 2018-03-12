@@ -664,10 +664,7 @@ const unlockAssignment = (assignment) => (
     (dispatch, getState, {notify}) => (
         dispatch(assignments.api.unlock(assignment))
             .then(
-                (unlockedAssignment) => {
-                    notify.success(gettext('Assignment has been unlocked.'));
-                    return Promise.resolve(unlockedAssignment);
-                },
+                (unlockedAssignment) => Promise.resolve(unlockedAssignment),
                 (error) => {
                     notify.error(
                         getErrorMessage(error, gettext('Failed to unlock the Assignment'))

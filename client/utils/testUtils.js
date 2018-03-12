@@ -149,6 +149,7 @@ export const getTestActionStore = () => {
             notify: {
                 error: sinon.spy(),
                 success: sinon.spy(),
+                warning: sinon.spy(),
                 pop: sinon.spy(),
             },
             $timeout: sinon.spy((func) => func()),

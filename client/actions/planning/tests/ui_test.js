@@ -45,7 +45,6 @@ describe('actions.planning.ui', () => {
         sinon.stub(planningUi, 'refetch').callsFake(() => (Promise.resolve()));
         sinon.stub(assignmentApi, 'link').callsFake(() => (Promise.resolve()));
         sinon.stub(planningUi, 'saveFromAuthoring').callsFake(() => (Promise.resolve()));
-        sinon.stub(planningUi, 'saveFromPlanning').callsFake(() => (Promise.resolve()));
 
         sinon.stub(main, 'closePreviewAndEditorForItems').callsFake(() => (Promise.resolve()));
         sinon.stub(main, 'openEditor').callsFake((item) => (Promise.resolve(item)));
@@ -79,7 +78,6 @@ describe('actions.planning.ui', () => {
         restoreSinonStub(planningUi.refetch);
         restoreSinonStub(assignmentApi.link);
         restoreSinonStub(planningUi.saveFromAuthoring);
-        restoreSinonStub(planningUi.saveFromPlanning);
         restoreSinonStub(planningUi.loadMore);
 
         restoreSinonStub(main.closePreviewAndEditorForItems);
