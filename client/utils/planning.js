@@ -560,6 +560,10 @@ const getCoverageIconColor = (coverage) => {
 };
 
 const getCoverageWorkflowIcon = (coverage) => {
+    if (!get(coverage, 'assigned_to.desk')) {
+        return;
+    }
+
     if (get(coverage, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
         return 'icon-ok';
     }

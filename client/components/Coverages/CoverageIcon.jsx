@@ -8,6 +8,7 @@ import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 
 import {
+    getItemWorkflowStateLabel,
     getItemInArrayById,
     gettext,
     planningUtils
@@ -40,6 +41,7 @@ export const CoverageIcon = ({
         user = getItemInArrayById(users, get(coverage, 'assigned_to.user'));
         desk = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
         assignmentStr = desk ? 'Desk: ' + desk.name : 'Unassigned';
+        const state = getItemWorkflowStateLabel(get(coverage, 'assigned_to'));
 
         return (<OverlayTrigger
             placement="bottom"
@@ -48,6 +50,7 @@ export const CoverageIcon = ({
                     {gettext(assignmentStr)}
                     {user && <span><br />{gettext('User: ' + user.display_name)}</span>}
                     {!withoutTime && <span><br />Due: {moment(coverage.planning.scheduled).format(timeFormat)}</span>}
+                    {desk && <span><br />{state.label}</span>}
                 </Tooltip>
             }>
             {getIcon()}

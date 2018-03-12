@@ -368,17 +368,17 @@ export const getItemWorkflowStateLabel = (item, field = 'state') => {
     switch (getItemWorkflowState(item, field)) {
     case WORKFLOW_STATE.DRAFT:
         return {
-            label: gettext('draft'),
+            label: gettext('Draft'),
             iconHollow: true,
         };
     case WORKFLOW_STATE.SPIKED:
         return {
-            label: gettext('spiked'),
+            label: gettext('Spiked'),
             iconType: 'alert',
         };
     case WORKFLOW_STATE.INGESTED:
         return {
-            label: gettext('ingested'),
+            label: gettext('Ingested'),
             iconHollow: true,
         };
     case WORKFLOW_STATE.SCHEDULED:
