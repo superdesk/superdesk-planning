@@ -2,7 +2,16 @@ import {showModal, hideModal} from '../index';
 import planningApi from './api';
 import {locks} from '../index';
 import main from '../main';
-import {checkPermission, getErrorMessage, lockUtils, planningUtils, dispatchUtils, gettext} from '../../utils';
+
+import {
+    checkPermission,
+    getErrorMessage,
+    lockUtils,
+    planningUtils,
+    dispatchUtils,
+    gettext,
+} from '../../utils';
+
 import * as selectors from '../../selectors';
 import {PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, ASSIGNMENTS, MAIN} from '../../constants';
 import * as actions from '../index';
@@ -65,15 +74,14 @@ const unspike = (item) => (
 const saveAndReloadCurrentAgenda = (item) => (
     (dispatch, getState, {notify}) => (
         dispatch(planningApi.saveAndReloadCurrentAgenda(item))
-            .then((item) => {
-                notify.success('The Planning item has been saved.');
-                return dispatch(self.scheduleRefetch())
-                    .then(() => dispatch(planningApi.fetchById(item._id, {force: true})))
-                    .then((item) => (Promise.resolve(item)));
-            }, (error) => {
-                notify.error(getErrorMessage(error, 'Failed to save the Planning item!'));
-                return Promise.reject(error);
-            })
+            .then(
+                (item) => (
+                    dispatch(self.scheduleRefetch())
+                        .then(() => dispatch(planningApi.fetchById(item._id, {force: true})))
+                        .then((item) => (Promise.resolve(item)))
+                ),
+                (error) => Promise.reject(error)
+            )
     )
 );
 
@@ -485,40 +493,6 @@ const _openActionModal = (plan,
     )
 );
 
-/**
- * Publish an item and notify user of success or failure
- * @param {object} item - The planning item
- */
-const publish = (item) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(planningApi.publish(item))
-            .then(() => (
-                notify.success('Planning item published!')
-            ), (error) => (
-                notify.error(
-                    getErrorMessage(error, 'Failed to publish Planning item!')
-                )
-            ))
-    )
-);
-
-/**
- * Unpublish an item and notify user of success or failure
- * @param {object} item - The planning item
- */
-const unpublish = (item) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(planningApi.unpublish(item))
-            .then(() => (
-                notify.success('Planning item unpublished!')
-            ), (error) => (
-                notify.error(
-                    getErrorMessage(error, 'Failed to unpublish Planning item!')
-                )
-            ))
-    )
-);
-
 const save = (item) => (
     (dispatch, getState) => {
         const modalType = selectors.getCurrentModalType(getState());
@@ -529,44 +503,6 @@ const save = (item) => (
             return dispatch(self.saveAndReloadCurrentAgenda(item));
         }
     }
-);
-
-/**
- * Save Planning item then Publish it
- * @param {object} item - Planning item
- */
-const saveAndPublish = (item) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(planningApi.saveAndPublish(item))
-            .then((savedItem) => {
-                notify.success('Planning item published!');
-                return Promise.resolve(savedItem);
-            }, (error) => {
-                notify.error(
-                    getErrorMessage(error, 'Failed to save Planning item!')
-                );
-                return Promise.reject(error);
-            })
-    )
-);
-
-
-/**
- * Save Planning item then Unpublish it
- * @param item
- * @private
- */
-const saveAndUnpublish = (item) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(planningApi.saveAndUnpublish(item))
-            .then(() => (
-                notify.success('Planning item unpublished!')
-            ), (error) => (
-                notify.error(
-                    getErrorMessage(error, 'Failed to save Planning item!')
-                )
-            ))
-    )
 );
 
 /**
@@ -837,10 +773,6 @@ const self = {
     setInList,
     addToList,
     loadMore,
-    publish,
-    unpublish,
-    saveAndPublish,
-    saveAndUnpublish,
     refetch,
     duplicate,
     closeAdvancedSearch,

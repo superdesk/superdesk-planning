@@ -14,6 +14,7 @@ import {
     UpdateAssignmentForm,
     EditPriorityForm,
     UpdateEventRepetitionsForm,
+    PublishEventsForm,
 } from './index';
 import {get} from 'lodash';
 import {EVENTS, PLANNING, ASSIGNMENTS} from '../../constants';
@@ -93,6 +94,11 @@ export class ItemActionConfirmationModal extends React.Component {
                 title: gettext('Update Event Repetitions'),
                 saveText: gettext('Update Repetitions'),
                 form: UpdateEventRepetitionsForm,
+            },
+            [EVENTS.ITEM_ACTIONS.PUBLISH_EVENT.label]: {
+                title: gettext('Publish Event'),
+                saveText: get(propToForm, '_publish', true) ? gettext('Publish') : gettext('Unpublish'),
+                form: PublishEventsForm,
             },
             [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.label]: {
                 title: get(PLANNING, 'ITEM_ACTIONS.CANCEL_PLANNING.label'),

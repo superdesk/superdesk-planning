@@ -48,12 +48,15 @@ class PlanningPublishService(BaseService):
                 _id=doc['planning'],
                 _etag=doc['etag']
             )
-            if plan:
-                self.validate_published_state(doc['pubstatus'])
-                self.publish_planning(plan, doc['pubstatus'])
-                ids.append(doc['planning'])
-            else:
+
+            self.validate_item(plan)
+
+            if not plan:
                 abort(412)
+
+            self.validate_published_state(doc['pubstatus'])
+            self.publish_planning(plan, doc['pubstatus'])
+            ids.append(doc['planning'])
         return ids
 
     def on_created(self, docs):
@@ -70,6 +73,19 @@ class PlanningPublishService(BaseService):
             assert new_publish_state in published_state
         except AssertionError:
             abort(409)
+
+    @staticmethod
+    def validate_item(doc):
+        errors = get_resource_service('planning_validator').post([{
+            'validate_on_publish': True,
+            'type': 'planning',
+            'validate': doc
+        }])[0]
+
+        if errors:
+            # We use abort here instead of raising SuperdeskApiError.badRequestError
+            # as eve handles error responses differently between POST and PATCH methods
+            abort(400, description=errors)
 
     def publish_planning(self, plan, new_publish_state):
         """Publish a Planning item

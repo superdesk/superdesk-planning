@@ -218,8 +218,6 @@ class EventsBaseService(BaseService):
         Past: utcnow() < event.dates.start < selected.dates.start
         Future: event.dates.start > selected.dates.start
         """
-        selected_start = selected.get('dates', {}).get('start', utcnow())
-
         excluded_states = []
 
         if not spiked:
@@ -246,6 +244,12 @@ class EventsBaseService(BaseService):
             'sort': [{'dates.start': 'asc'}],
             'size': get_max_recurrent_events()
         }
+
+        selected_start = selected.get('dates', {}).get('start', utcnow())
+
+        # Make sure we are working with a datetime instance
+        if not isinstance(selected_start, datetime):
+            selected_start = datetime.strptime(selected_start, '%Y-%m-%dT%H:%M:%S%z')
 
         historic = []
         past = []

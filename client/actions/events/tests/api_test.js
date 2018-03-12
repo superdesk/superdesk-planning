@@ -790,8 +790,8 @@ describe('actions.events.api', () => {
         });
     });
 
-    it('publishEvent calls `events_publish` endpoint', (done) => (
-        store.test(done, eventsApi.publishEvent(data.events[0]))
+    it('publish calls `events_publish` endpoint', (done) => (
+        store.test(done, eventsApi.publish(data.events[0]))
             .then(() => {
                 expect(services.api.save.callCount).toBe(1);
                 expect(services.api.save.args[0]).toEqual([

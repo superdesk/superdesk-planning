@@ -43,7 +43,21 @@ class EventSchema(BaseSchema):
     internal_note = schema.StringField()
     location = schema.StringField()
     name = schema.StringField(required=True)
-    occur_status = schema.ListField()
+    occur_status = schema.DictField()
+    occur_status.schema['schema'] = {
+        "qcode": {
+            "type": "string",
+            "required": True
+        },
+        "name": {
+            "type": "string",
+            "required": False
+        },
+        "label": {
+            "type": "string",
+            "required": False
+        }
+    }
     subject = schema.ListField(required=False, mandatory_in_list={'scheme': {}}, schema={
         'type': 'dict',
         'schema': {
@@ -63,7 +77,7 @@ class EventSchema(BaseSchema):
     calendars = schema.ListField()
     files = schema.ListField()
     links = schema.ListField()
-    dates = schema.DictField()
+    dates = schema.DictField(required=True)
 
 
 class PlanningSchema(BaseSchema):
@@ -125,38 +139,42 @@ DEFAULT_EDITOR = [{
         'calendars': {'enabled': True},
         'files': {'enabled': True},
         'links': {'enabled': True},
-        'dates': {'enabled': True},
+        'dates': {
+            'enabled': True,
+            'default_duration_on_change': 1
+        },
     },
-    'schema': dict(EventSchema)},
-    {
-        'name': 'planning',
-        'editor': {
-            'planning_date': {'enabled': True},
-            'slugline': {'enabled': True},
-            'place': {'enabled': False},
-            'anpa_category': {'enabled': True},
-            'description_text': {'enabled': True},
-            'ednote': {'enabled': True},
-            'internal_note': {'enabled': True},
-            'subject': {'enabled': True},
-            'agendas': {'enabled': True},
-            'flags': {'enabled': True},
-            'urgency': {'enabled': True}
-        },
-        'schema': dict(PlanningSchema)},
-    {
-        'name': 'coverage',
-        'editor': {
-            'slugline': {'enabled': True},
-            'keyword': {'enabled': False},
-            'ednote': {'enabled': True},
-            'g2_content_type': {'enabled': True},
-            'genre': {'enabled': True},
-            'internal_note': {'enabled': True},
-            'scheduled': {'enabled': True},
-            'news_coverage_status': {'enabled': True}
-        },
-        'schema': dict(CoverageSchema)}]
+    'schema': dict(EventSchema)
+}, {
+    'name': 'planning',
+    'editor': {
+        'planning_date': {'enabled': True},
+        'slugline': {'enabled': True},
+        'place': {'enabled': False},
+        'anpa_category': {'enabled': True},
+        'description_text': {'enabled': True},
+        'ednote': {'enabled': True},
+        'internal_note': {'enabled': True},
+        'subject': {'enabled': True},
+        'agendas': {'enabled': True},
+        'flags': {'enabled': True},
+        'urgency': {'enabled': True}
+    },
+    'schema': dict(PlanningSchema)
+}, {
+    'name': 'coverage',
+    'editor': {
+        'slugline': {'enabled': True},
+        'keyword': {'enabled': False},
+        'ednote': {'enabled': True},
+        'g2_content_type': {'enabled': True},
+        'genre': {'enabled': True},
+        'internal_note': {'enabled': True},
+        'scheduled': {'enabled': True},
+        'news_coverage_status': {'enabled': True}
+    },
+    'schema': dict(CoverageSchema)
+}]
 
 logger = logging.getLogger(__name__)
 
@@ -174,6 +192,10 @@ planning_types_schema = {
         {'type': 'dict'},
     # schema controls the validation of fields at the front end.
     'schema':
+        {'type': 'dict'},
+
+    # publishSchema controls the validation of fields when publishing.
+    'publishSchema':
         {'type': 'dict'}
 }
 
@@ -185,6 +207,13 @@ class PlanningTypesService(superdesk.Service):
     Also provide a schema to allow the client to validate the values entered in the forms.
     Entries can be overridden by providing alternates in the planning_types mongo collection.
     """
+
+    def find_one(self, req, **lookup):
+        try:
+            return super().find_one(req, **lookup) or \
+                [ptype for ptype in DEFAULT_EDITOR if ptype.get('name') == lookup.get('name')][0]
+        except IndexError:
+            return None
 
     def get(self, req, lookup):
         planning_types = list(super().get(req, lookup))

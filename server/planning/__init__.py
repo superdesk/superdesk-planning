@@ -21,6 +21,7 @@ from planning.events import init_app as init_events_app
 from planning.planning import init_app as init_planning_app
 from planning.assignments import init_app as init_assignments_app
 from planning.search import init_app as init_search_app
+from planning.validate import init_app as init_validator_app
 
 import planning.commands  # noqa
 import planning.feeding_services # noqa
@@ -45,6 +46,7 @@ def init_app(app):
     init_planning_app(app)
     init_assignments_app(app)
     init_search_app(app)
+    init_validator_app(app)
 
     superdesk.privilege(
         name='planning',

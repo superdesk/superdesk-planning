@@ -773,25 +773,6 @@ const publish = (plan) => (
 );
 
 /**
- * Save a Planning item, then Publish it
- * @param {object} plan - Planning item
- */
-const saveAndPublish = (plan) => (
-    (dispatch) => (
-        dispatch(self.save(plan))
-            .then(
-                (newItem) => (
-                    dispatch(self.publish(newItem))
-                        .then(
-                            () => (Promise.resolve(newItem)),
-                            (error) => (Promise.reject(error))
-                        )
-                ), (error) => (Promise.reject(error))
-            )
-    )
-);
-
-/**
  * Set a Planning item as not Published
  * @param {string} plan - Planning item ID
  */
@@ -802,25 +783,6 @@ const unpublish = (plan) => (
             etag: plan._etag,
             pubstatus: PUBLISHED_STATE.CANCELLED,
         })
-    )
-);
-
-/**
- * Save a Planning item then Unpublish it
- * @param {object} plan - Planning item
- */
-const saveAndUnpublish = (plan) => (
-    (dispatch) => (
-        dispatch(self.save(plan))
-            .then(
-                (newItem) => (
-                    dispatch(self.unpublish(newItem))
-                        .then(
-                            () => Promise.resolve(newItem),
-                            (error) => Promise.reject(error)
-                        )
-                ), (error) => Promise.reject(error)
-            )
     )
 );
 
@@ -1002,8 +964,6 @@ const self = {
     loadPlanningByEventId,
     publish,
     unpublish,
-    saveAndPublish,
-    saveAndUnpublish,
     refetch,
     duplicate,
     markPlanningCancelled,

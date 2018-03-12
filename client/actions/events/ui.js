@@ -525,20 +525,14 @@ const save = (event) => (
 );
 
 const saveWithConfirmation = (event) => (
-    (dispatch, getState, {notify}) => {
+    (dispatch, getState) => {
         const events = selectors.getEvents(getState());
         const originalEvent = get(events, event._id, {});
         const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
 
         // If this is not from a recurring series, then simply publish this event
         if (!get(originalEvent, 'recurrence_id')) {
-            return dispatch(self.save(event))
-                .then((result) => Promise.resolve(result),
-                    (error) => {
-                        notify.error(
-                            getErrorMessage(error, 'Failed to save the Event!')
-                        );
-                    });
+            return dispatch(eventsApi.save(event));
         }
 
         return dispatch(eventsApi.query({
@@ -563,36 +557,41 @@ const saveWithConfirmation = (event) => (
     }
 );
 
-const publish = (event) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.publishEvent(event))
-            .then((publishedEvent) => {
-                notify.success('The event(s) has been published');
-                dispatch(self.closeEventDetails());
-                return Promise.resolve(publishedEvent);
-            }, (error) => {
-                notify.error(
-                    getErrorMessage(error, 'Failed to publish the Event(s)!')
-                );
+const publishWithConfirmation = (event, publish) => (
+    (dispatch, getState) => {
+        const events = selectors.getEvents(getState());
+        const originalEvent = get(events, event._id, {});
+        const maxRecurringEvents = selectors.config.getMaxRecurrentEvents(getState());
 
-                return Promise.reject(error);
-            })
-    )
-);
+        // If this is not from a recurring series, then simply publish this event
+        if (!get(originalEvent, 'recurrence_id')) {
+            return dispatch(publish ?
+                eventsApi.publish(event) :
+                eventsApi.unpublish(event)
+            );
+        }
 
-const unpublish = (event) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(eventsApi.unpublish(event))
-            .then((unpublishedEvent) => {
-                notify.success('The Event has been published');
-                return Promise.resolve(unpublishedEvent);
-            }, (error) => {
-                notify.error(
-                    getErrorMessage(error, 'Failed to unpublish the Event!')
-                );
-                return Promise.reject(error);
-            })
-    )
+        return dispatch(eventsApi.query({
+            recurrenceId: originalEvent.recurrence_id,
+            maxResults: maxRecurringEvents,
+            onlyFuture: false
+        }))
+            .then((relatedEvents) => (
+                dispatch(showModal({
+                    modalType: MODALS.ITEM_ACTIONS_MODAL,
+                    modalProps: {
+                        eventDetail: {
+                            ...event,
+                            _recurring: relatedEvents || [event],
+                            _events: [],
+                            _originalEvent: originalEvent,
+                            _publish: publish,
+                        },
+                        actionType: EVENTS.ITEM_ACTIONS.PUBLISH_EVENT.label,
+                    }
+                }))
+            ));
+    }
 );
 
 
@@ -737,8 +736,6 @@ const self = {
     saveWithConfirmation,
     save,
     receiveEventHistory,
-    publish,
-    unpublish,
     loadMore,
     addToList,
     requestEvents,
@@ -746,6 +743,7 @@ const self = {
     duplicate,
     updateRepetitions,
     openRepetitionsModal,
+    publishWithConfirmation,
 };
 
 export default self;

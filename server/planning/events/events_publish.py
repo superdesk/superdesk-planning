@@ -63,8 +63,22 @@ class EventsPublishService(EventsBaseService):
         except AssertionError:
             abort(409)
 
+    @staticmethod
+    def validate_item(doc):
+        errors = get_resource_service('planning_validator').post([{
+            'validate_on_publish': True,
+            'type': 'events',
+            'validate': doc
+        }])[0]
+
+        if errors:
+            # We use abort here instead of raising SuperdeskApiError.badRequestError
+            # as eve handles error responses differently between POST and PATCH methods
+            abort(400, description=errors)
+
     def _publish_single_event(self, doc, event):
         self.validate_published_state(doc['pubstatus'])
+        self.validate_item(event)
         updated_event = self.publish_event(event, doc['pubstatus'])
 
         event_type = 'events:published' if doc['pubstatus'] == PUBLISHED_STATE.USABLE else 'events:unpublished'
@@ -91,11 +105,16 @@ class EventsPublishService(EventsBaseService):
         else:
             published_events = historic + past + [original] + future
 
+        # First we want to validate that all events can be published
+        for event in published_events:
+            self.validate_published_state(doc['pubstatus'])
+            self.validate_item(event)
+
+        # Next we perform the actual publish
         updated_event = None
         ids = []
         items = []
         for event in published_events:
-            self.validate_published_state(doc['pubstatus'])
             updated_event = self.publish_event(event, doc['pubstatus'])
             ids.append(event[config.ID_FIELD])
             items.append({

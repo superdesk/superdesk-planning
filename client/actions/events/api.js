@@ -941,7 +941,7 @@ const postponeEvent = (event) => (
     )
 );
 
-const publishEvent = (event) => (
+const publish = (event) => (
     (dispatch, getState, {api}) => (
         api.save('events_publish', {
             event: event._id,
@@ -1211,7 +1211,7 @@ const self = {
     queryLockedEvents,
     getEvent,
     loadAssociatedPlannings,
-    publishEvent,
+    publish,
     fetchEventHistory,
     unpublish,
     _uploadFiles,

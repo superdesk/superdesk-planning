@@ -310,11 +310,23 @@ export const getErrorMessage = (error, defaultMessage) => {
         return get(error, 'data._message');
     } else if (get(error, 'data._issues.validator exception')) {
         return get(error, 'data._issues.validator exception');
+    } else if (get(error, 'data._error.message')) {
+        return error.data._error.message;
     } else if (typeof error === 'string') {
         return error;
     }
 
     return defaultMessage;
+};
+
+export const notifyError = (notify, error, defaultMessage) => {
+    const message = getErrorMessage(error, defaultMessage);
+
+    if (Array.isArray(message)) {
+        message.forEach((msg) => notify.error(msg));
+    } else {
+        notify.error(message);
+    }
 };
 
 /**
@@ -524,6 +536,21 @@ export const getItemType = (item) => {
     }
 
     return ITEM_TYPE.UNKNOWN;
+};
+
+export const getItemTypeString = (item) => {
+    switch (getItemType(item)) {
+    case ITEM_TYPE.EVENT:
+        return gettext('Event');
+    case ITEM_TYPE.PLANNING:
+        return gettext('Planning Item');
+    case ITEM_TYPE.ASSIGNMENT:
+        return gettext('Assignment');
+    case ITEM_TYPE.ARCHIVE:
+        return gettext('News Item');
+    default:
+        return gettext('item');
+    }
 };
 
 export const getDateTimeString = (date, dateFormat, timeFormat) => (

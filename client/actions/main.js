@@ -8,11 +8,13 @@ import {locks, showModal} from './';
 import {selectAgenda, fetchSelectedAgendaPlannings} from './agenda';
 import {
     getErrorMessage,
+    notifyError,
     getItemType,
     gettext,
     eventUtils,
     shouldLockItemForEdit,
     shouldUnLockItem,
+    getItemTypeString,
 } from '../utils';
 import {MODALS, WORKSPACE} from '../constants';
 import eventsPlanningUi from './eventsPlanning/ui';
@@ -99,16 +101,21 @@ const unlockAndCloseEditor = (item) => (
     }
 );
 
-const save = (item) => (
+const save = (item, withConfirmation = true) => (
     (dispatch, getState, {notify}) => {
         const itemType = getItemType(item);
         let promise;
+        let confirmation = withConfirmation;
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            promise = dispatch(eventsUi.saveWithConfirmation(item));
+            promise = dispatch(withConfirmation ?
+                eventsUi.saveWithConfirmation(item) :
+                eventsApi.save(item)
+            );
             break;
         case ITEM_TYPE.PLANNING:
+            confirmation = false;
             promise = dispatch(planningUi.save(item));
             break;
         default:
@@ -124,10 +131,18 @@ const save = (item) => (
                     return dispatch(self.lockAndEdit(savedItem));
                 }
 
+                if (!confirmation) {
+                    notify.success(
+                        gettext('The {{ itemType }} has been saved', {itemType: getItemTypeString(item)})
+                    );
+                }
+
                 return Promise.resolve(savedItem);
             }, (error) => {
-                notify.error(
-                    getErrorMessage(error, gettext('Failed to save the item'))
+                notifyError(
+                    notify,
+                    error,
+                    gettext('Failed to save the {{ itemType }}', {itemType: getItemTypeString(item)})
                 );
 
                 return Promise.reject(error);
@@ -135,39 +150,91 @@ const save = (item) => (
     }
 );
 
-const unpublish = (item) => (
+const unpublish = (item, withConfirmation = true) => (
     (dispatch, getState, {notify}) => {
         const itemType = getItemType(item);
+        let promise;
+        let confirmation = withConfirmation;
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            return dispatch(eventsUi.unpublish(item));
+            promise = dispatch(withConfirmation ?
+                eventsUi.publishWithConfirmation(item, false) :
+                eventsApi.unpublish(item)
+            );
+            break;
         case ITEM_TYPE.PLANNING:
-            return dispatch(planningUi.unpublish(item));
+            confirmation = false;
+            promise = dispatch(planningApi.unpublish(item));
+            break;
+        default:
+            promise = Promise.reject(gettext('Failed to unpublish, could not find the item type!'));
         }
 
-        const errMessage = gettext('Failed to unpublish, could not find the item type!');
-
-        notify.error(errMessage);
-        return Promise.reject(errMessage);
+        return promise
+            .then(
+                (rtn) => {
+                    if (!confirmation) {
+                        notify.success(
+                            gettext('The {{ itemType }} has been unpublished', {itemType: getItemTypeString(item)})
+                        );
+                    }
+                    return Promise.resolve(rtn);
+                },
+                (error) => {
+                    notifyError(
+                        notify,
+                        error,
+                        gettext('Failed to unpublish the {{ itemType }}', {itemType: getItemTypeString(item)})
+                    );
+                    return Promise.reject(error);
+                }
+            );
     }
 );
 
-const publish = (item) => (
+const publish = (item, withConfirmation = true) => (
     (dispatch, getState, {notify}) => {
         const itemType = getItemType(item);
+        let promise;
+        let confirmation = withConfirmation;
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            return dispatch(eventsUi.publish(item));
+            promise = dispatch(withConfirmation ?
+                eventsUi.publishWithConfirmation(item, true) :
+                eventsApi.publish(item)
+            );
+            break;
         case ITEM_TYPE.PLANNING:
-            return dispatch(planningUi.publish(item));
+            confirmation = false;
+            promise = dispatch(planningApi.publish(item));
+            break;
+        default:
+            promise = Promise.reject(gettext('Failed to publish, could not find the item type!'));
+            break;
         }
 
-        const errMessage = gettext('Failed to unpublish, could not find the item type!');
+        return promise
+            .then(
+                (rtn) => {
+                    if (!confirmation) {
+                        notify.success(
+                            gettext('The {{ itemType }} has been published', {itemType: getItemTypeString(item)})
+                        );
+                    }
 
-        notify.error(errMessage);
-        return Promise.reject(errMessage);
+                    return Promise.resolve(rtn);
+                },
+                (error) => {
+                    notifyError(
+                        notify,
+                        error,
+                        gettext('Failed to publish the {{ itemType }}', {itemType: getItemTypeString(item)})
+                    );
+                    return Promise.reject(error);
+                }
+            );
     }
 );
 

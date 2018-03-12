@@ -168,6 +168,18 @@ def get_item_publish_state(item, new_publish_state):
     return item.get('state')
 
 
+def publish_required(updates, original):
+    pub_status = None
+    # Save&Publish or Save&Unpublish
+    if updates.get('pubstatus'):
+        pub_status = updates['pubstatus']
+    elif original.get('pubstatus') == PUBLISHED_STATE.USABLE:
+        # From item actions
+        pub_status = PUBLISHED_STATE.USABLE
+
+    return pub_status is not None
+
+
 def update_published_item(updates, original):
     """Method to update(re-publish) a published item after the item is updated"""
     pub_status = None

@@ -88,6 +88,7 @@ export const EVENTS = {
             actionName: 'onUpdateEventRepetitions',
             lock_action: 'update_repetitions'
         },
+        PUBLISH_EVENT: {label: gettext('Publish')}
     },
     DEFAULT_VALUE: (occurStatuses) => ({
         _type: 'events',

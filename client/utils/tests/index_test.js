@@ -62,7 +62,7 @@ describe('Utils', () => {
             mockActionDispatcher = () => mockAction;
             mockCheck = sinon.spy(() => false);
 
-            dispatch.reset();
+            dispatch.resetHistory();
             maxRetries = 3;
             expectedRetries = (maxRetries * dispatchesPerRetry) + (dispatchesPerRetry - 2);
         });
