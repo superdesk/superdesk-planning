@@ -517,9 +517,7 @@ const unpublish = (item) => (
 
 const save = (item) => (
     (dispatch, getState) => {
-        const modalType = selectors.getCurrentModalType(getState());
-
-        if (modalType === MODALS.ADD_TO_PLANNING) {
+        if (selectors.general.currentWorkspace(getState()) === WORKSPACE.AUTHORING ) {
             return dispatch(self.saveFromAuthoring(item));
         } else {
             return dispatch(self.saveAndReloadCurrentAgenda(item));
