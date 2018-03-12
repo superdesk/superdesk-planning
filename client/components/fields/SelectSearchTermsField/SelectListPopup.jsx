@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {SearchField} from '../../UI';
-import {differenceBy} from 'lodash';
+import {differenceBy, get} from 'lodash';
 import {uiUtils, onEventCapture} from '../../../utils';
 import './style.scss';
 import {Popup} from '../../UI/Popup';
@@ -17,13 +17,13 @@ export class SelectListPopup extends React.Component {
             search: false,
             activeOptionIndex: -1,
             openFilterList: false,
+            addOption: false,
         };
 
         this.dom = {listItems: null};
         this.onKeyDown = this.onKeyDown.bind(this);
         this.closeSearchList = this.closeSearchList.bind(this);
     }
-
     onKeyDown(event) {
         if (event) {
             switch (event.keyCode) {
@@ -97,10 +97,32 @@ export class SelectListPopup extends React.Component {
         this.setState({filteredList: this.getFilteredOptionList()});
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (this.state.search && this.props.querySearch && nextProps.options != this.props.options) {
+            this.setState({
+                filteredList: nextProps.options,
+            });
+        }
+    }
+
+    onAdd(event) {
+        this.setState({
+            addOption: true,
+        });
+    }
+
+    closeAddOption() {
+        this.refs.searchField.resetSearch();
+        this.setState({
+            addOption: false
+        }, () => this.props.onCancel());
+    }
+
     onSelect(opt) {
         if (this.state.openFilterList) {
             this.props.onChange(opt);
-            this.setState({openFilterList: false});
+            this.refs.searchField.resetSearch();
+            this.closeSearchList();
         }
     }
 
@@ -162,19 +184,33 @@ export class SelectListPopup extends React.Component {
     }
 
     filterSearchResults(val) {
+        let searchResults = null;
+
         if (!val) {
             this.setState({
                 search: false,
                 filteredList: this.getFilteredOptionList(null),
+                openFilterList: false,
             });
             return;
         }
 
         const valueNoCase = val.toLowerCase();
-        let searchResults = this.props.options.filter((opt) => (
-            opt[this.props.valueKey].toLowerCase().substr(0, val.length) === valueNoCase ||
-                opt[this.props.valueKey].toLowerCase().indexOf(valueNoCase) >= 0
-        ));
+
+        if (this.props.querySearch) {
+            this.props.onQuerySearch(valueNoCase);
+            this.setState({
+                search: true,
+                openFilterList: true,
+            });
+
+            return;
+        } else {
+            searchResults = this.props.options.filter((opt) => (
+                opt[this.props.valueKey].toLowerCase().substr(0, val.length) === valueNoCase ||
+                    opt[this.props.valueKey].toLowerCase().indexOf(valueNoCase) >= 0
+            ));
+        }
 
         if (this.props.multiLevel && this.props.value) {
             searchResults = differenceBy(searchResults, this.props.value, 'value.qcode');
@@ -186,25 +222,38 @@ export class SelectListPopup extends React.Component {
         });
     }
 
-    openSearchList() {
-        if (!this.state.openFilterList) {
-            this.setState({filteredList: this.getFilteredOptionList()});
-            this.setState({openFilterList: true});
+    openSearchList(event) {
+        if (event && get(event.target, 'value.length') > 1) {
+            if (!this.state.openFilterList) {
+                this.setState({filteredList: this.getFilteredOptionList()});
+                this.setState({
+                    openFilterList: true,
+                    search: true,
+                });
+            }
         }
     }
 
     closeSearchList() {
         if (this.state.openFilterList) {
-            this.setState({openFilterList: false});
+            this.setState({
+                filteredList: null,
+                search: false,
+                openFilterList: false,
+            });
         }
     }
 
     renderSingleLevelSelect() {
         return (<div>
-            <SearchField onSearch={(val) => {
-                this.filterSearchResults(val);
-            }} minLength={1}
-            onSearchClick={this.openSearchList.bind(this)} />
+            <SearchField
+                minLength={1}
+                onSearchClick={this.openSearchList.bind(this)}
+                onSearch={(val) => this.filterSearchResults(val)}
+                ref="searchField" />
+            {this.state.addOption && (
+                this.props.onAdd(this.closeAddOption.bind(this))
+            )}
             {this.state.openFilterList &&
                 (
                     <Popup
@@ -216,17 +265,26 @@ export class SelectListPopup extends React.Component {
                     >
                         <div className="Select__popup__wrapper">
                             <ul className="Select__popup__list" ref={(node) => this.dom.listItems = node}>
-                                {this.state.filteredList.map((opt, index) => (
-                                    <li key={index} className={ (index === this.state.activeOptionIndex ?
-                                        'Select__popup__item--active ' : '') + 'Select__popup__item'}>
-                                        <button type="button" onClick={this.onSelect.bind(this,
-                                            this.state.filteredList[index])} >
-                                            <span>{ opt.label }</span>
+                                {get(this.state, 'filteredList.length', 0) > 0 &&
+                                    this.state.filteredList.map((opt, index) => (
+                                        <li key={index} className={(index === this.state.activeOptionIndex ?
+                                            'Select__popup__item--active ' : '') + 'Select__popup__item'}>
+                                            <button type="button" onClick={this.onSelect.bind(this,
+                                                this.state.filteredList[index])} >
+                                                <span>{ opt.label }</span>
+                                            </button>
+                                        </li>
+                                    ))
+                                }
+
+                                {this.props.onAdd &&
+                                    (<li tabIndex="0">
+                                        <button className="btn btn--small btn--expanded"
+                                            onClick={this.onAdd.bind(this)}>
+                                            {this.props.onAddText || <i className="icon-plus-large" />}
                                         </button>
-                                    </li>
-                                ))}
-                                {this.state.filteredList.length === 0 && <li>
-                                    <button className="btn btn--small btn--expanded">Add contact</button></li>}
+                                    </li>)
+                                }
                             </ul>
                         </div>
                     </Popup>
@@ -315,6 +373,10 @@ SelectListPopup.propTypes = {
         ]),
     })),
     target: PropTypes.string,
+    querySearch: PropTypes.bool,
+    onQuerySearch: PropTypes.func,
+    onAdd: PropTypes.func,
+    onAddText: PropTypes.string,
 };
 
 SelectListPopup.defaultProps = {valueKey: 'label'};
