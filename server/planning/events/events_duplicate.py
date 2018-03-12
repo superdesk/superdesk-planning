@@ -63,11 +63,10 @@ class EventsDuplicateService(BaseService):
         new_doc = original.copy()
 
         for f in {'_id', 'guid', 'unique_name', 'unique_id', 'lock_user', 'lock_time',
-                  'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus'}:
+                  'lock_session', 'lock_action', '_created', '_updated', '_etag', 'pubstatus',
+                  'recurrence_id', 'previous_recurrence_id', 'reschedule_from', 'reschedule_to'}:
             new_doc.pop(f, None)
         new_doc.get('dates').pop('recurring_rule', None)
-        new_doc.pop('recurrence_id', None)
-        new_doc.pop('previous_recurrence_id', None)
         new_doc[ITEM_STATE] = WORKFLOW_STATE.DRAFT
         new_doc['duplicate_from'] = original[config.ID_FIELD]
         eocstat_map = get_resource_service('vocabularies').find_one(req=None, _id='eventoccurstatus')

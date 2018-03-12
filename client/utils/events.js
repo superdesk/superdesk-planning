@@ -195,7 +195,8 @@ const canUnpublishEvent = (event, session, privileges, locks) => (
     !isNil(event) && !isItemSpiked(event) &&
         !isEventLockRestricted(event, session, locks) &&
         getPublishedState(event) === PUBLISHED_STATE.USABLE &&
-        !!privileges[PRIVILEGES.PUBLISH_EVENT]
+        !!privileges[PRIVILEGES.PUBLISH_EVENT] &&
+        !isItemRescheduled(event)
 );
 
 const canCancelEvent = (event, session, privileges, locks) => (

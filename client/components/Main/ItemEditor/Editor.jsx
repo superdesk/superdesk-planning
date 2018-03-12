@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, set, isEqual, cloneDeep} from 'lodash';
 
-import {gettext, lockUtils} from '../../../utils';
+import {gettext, lockUtils, eventUtils, planningUtils} from '../../../utils';
 
 import {ITEM_TYPE, EVENTS, PLANNING, WORKSPACE, PUBLISHED_STATE, WORKFLOW_STATE} from '../../../constants';
 import * as selectors from '../../../selectors';
@@ -271,6 +271,25 @@ export class EditorComponent extends React.Component {
         );
         const isLocked = lockUtils.getLock(this.props.item, this.props.lockedItems);
 
+        let canEdit = false;
+
+        if (this.props.itemType === ITEM_TYPE.EVENT) {
+            canEdit = eventUtils.canEditEvent(
+                this.props.item,
+                this.props.session,
+                this.props.privileges,
+                this.props.lockedItems
+            );
+        } else if (this.props.itemType === ITEM_TYPE.PLANNING) {
+            canEdit = planningUtils.canEditPlanning(
+                this.props.item,
+                null,
+                this.props.session,
+                this.props.privileges,
+                this.props.lockedItems
+            );
+        }
+
         return (
             <SidePanel shadowRight={true}>
                 {(!this.props.isLoadingItem && this.props.itemType) && (
@@ -337,7 +356,7 @@ export class EditorComponent extends React.Component {
                                 itemType={this.props.itemType}
                                 diff={this.state.diff}
                                 onChangeHandler={this.onChangeHandler}
-                                readOnly={existingItem && (!isLocked || isLockRestricted)}
+                                readOnly={existingItem && (!canEdit || !isLocked || isLockRestricted)}
                                 addNewsItemToPlanning={this.props.addNewsItemToPlanning}
                                 submitFailed={this.state.submitFailed}
                                 errors={this.state.errors}
