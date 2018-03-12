@@ -76,7 +76,7 @@ export class EventScheduleInput extends React.Component {
 
     changeStartTime(value) {
         const startDate = get(this.props, 'diff.dates.start');
-        const defaultDurationOnChange = get(this.props.formProfile, 'schema.dates.defaultDurationOnChange', 1);
+        const defaultDurationOnChange = get(this.props.formProfile, 'editor.dates.default_duration_on_change', 1);
 
         if (((startDate && this.state.isAllDay) || !startDate) && defaultDurationOnChange > 0) {
             this.props.onChange(
@@ -105,7 +105,7 @@ export class EventScheduleInput extends React.Component {
 
     changeEndTime(value) {
         const endDate = get(this.props, 'diff.dates.end');
-        const defaultDurationOnChange = get(this.props.formProfile, 'schema.dates.defaultDurationOnChange', 1);
+        const defaultDurationOnChange = get(this.props.formProfile, 'editor.dates.default_duration_on_change', 1);
 
         if (((endDate && this.state.isAllDay) || !endDate) && defaultDurationOnChange > 0) {
             this.props.onChange(

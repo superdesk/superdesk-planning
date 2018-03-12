@@ -38,10 +38,10 @@ describe('agenda', () => {
         let apiSpy;
 
         beforeEach(() => {
-            notify.error.reset();
-            notify.success.reset();
-            dispatch.reset();
-            $timeout.reset();
+            notify.error.resetHistory();
+            notify.success.resetHistory();
+            dispatch.resetHistory();
+            $timeout.resetHistory();
 
             api = () => (apiSpy);
 

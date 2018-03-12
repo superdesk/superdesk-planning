@@ -59,7 +59,6 @@ describe('actions.events.ui', () => {
         sinon.stub(eventsApi, 'unlock').callsFake((item) => (Promise.resolve(item)));
 
         sinon.stub(eventsApi, 'rescheduleEvent').callsFake(() => (Promise.resolve()));
-        sinon.stub(eventsApi, 'publishEvent').callsFake((e) => (Promise.resolve(e)));
     });
 
     afterEach(() => {
@@ -78,7 +77,6 @@ describe('actions.events.ui', () => {
         restoreSinonStub(eventsApi.lock);
         restoreSinonStub(eventsApi.unlock);
         restoreSinonStub(eventsApi.rescheduleEvent);
-        restoreSinonStub(eventsApi.publishEvent);
         restoreSinonStub(planningApi.loadPlanningByEventId);
         restoreSinonStub(planningApi.fetch);
     });
@@ -472,51 +470,6 @@ describe('actions.events.ui', () => {
             });
     });
 
-    describe('publish', () => {
-        it('publishes a single event', (done) => (
-            store.test(done, eventsUi.publish(data.events[0]))
-                .then((publishedEvent) => {
-                    expect(publishedEvent).toEqual(data.events[0]);
-
-                    expect(eventsApi.publishEvent.callCount).toBe(1);
-                    expect(eventsApi.publishEvent.args[0]).toEqual([data.events[0]]);
-
-                    expect(services.notify.success.callCount).toBe(1);
-                    expect(services.notify.success.args[0]).toEqual(['The event(s) has been published']);
-
-                    expect(eventsUi.closeEventDetails.callCount).toBe(1);
-
-                    done();
-                })
-        ));
-
-        it('publishes all events in a series of recurring events', (done) => (
-            store.test(done, eventsUi.publish({
-                ...data.events[0],
-                update_method: {value: 'all'},
-            }))
-                .then((publishedEvents) => {
-                    expect(publishedEvents).toEqual({
-                        ...data.events[0],
-                        update_method: {value: 'all'},
-                    });
-
-                    expect(eventsApi.publishEvent.callCount).toBe(1);
-                    expect(eventsApi.publishEvent.args[0]).toEqual([{
-                        ...data.events[0],
-                        update_method: {value: 'all'}
-                    }]);
-
-                    expect(services.notify.success.callCount).toBe(1);
-                    expect(services.notify.success.args[0]).toEqual(['The event(s) has been published']);
-
-                    expect(eventsUi.closeEventDetails.callCount).toBe(1);
-
-                    done();
-                })
-        ));
-    });
-
     describe('fetchEvents', () => {
         beforeEach(() => {
             sinon.stub(eventsApi, 'query').returns(Promise.resolve(data.events));
@@ -539,39 +492,6 @@ describe('actions.events.ui', () => {
                     done();
                 })
         ));
-    });
-
-    describe('unpublish', () => {
-        afterEach(() => {
-            restoreSinonStub(eventsApi.unpublish);
-        });
-
-        it('calls events.api.unpublish and notifies the user of success', (done) => {
-            sinon.stub(eventsApi, 'unpublish').returns(Promise.resolve(data.events[0]));
-            store.test(done, eventsUi.unpublish(data.events[0]))
-                .then(() => {
-                    expect(eventsApi.unpublish.callCount).toBe(1);
-                    expect(eventsApi.unpublish.args[0]).toEqual([data.events[0]]);
-
-                    expect(services.notify.error.callCount).toBe(0);
-                    expect(services.notify.success.callCount).toBe(1);
-                    expect(services.notify.success.args[0]).toEqual(['The Event has been published']);
-                    done();
-                });
-        });
-
-        it('calls events.api.unpublish and notifies the user of failure', (done) => {
-            sinon.stub(eventsApi, 'unpublish').callsFake(() => Promise.reject(errorMessage));
-            store.test(done, eventsUi.unpublish(data.events[0]))
-                .then(null, (error) => {
-                    expect(error).toEqual(errorMessage);
-
-                    expect(services.notify.error.callCount).toBe(1);
-                    expect(services.notify.error.args[0]).toEqual(['Failed!']);
-
-                    done();
-                });
-        });
     });
 
     describe('duplicate', () => {

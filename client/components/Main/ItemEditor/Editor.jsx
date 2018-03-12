@@ -172,10 +172,12 @@ export class EditorComponent extends React.Component {
             }
 
             return this.props.onSave(itemToUpdate)
-                .finally(() => this.setState({
-                    submitting: false,
-                    dirty: false,
-                }));
+                .then(
+                    () => this.setState({
+                        submitting: false,
+                        dirty: false,
+                    }),
+                    () => this.setState({submitting: false}));
         }
     }
 
@@ -190,13 +192,14 @@ export class EditorComponent extends React.Component {
             showSubmitFailed: false,
         });
 
-        this.props.onPublish(this.state.diff)
-            .finally(() => {
-                this.setState({
+        return this.props.onPublish(this.state.diff)
+            .then(
+                () => this.setState({
                     submitting: false,
                     dirty: false,
-                });
-            });
+                }),
+                () => this.setState({submitting: false})
+            );
     }
 
     onSaveAndPublish() {
@@ -210,11 +213,14 @@ export class EditorComponent extends React.Component {
             showSubmitFailed: false,
         });
 
-        this.props.onUnpublish(this.state.diff)
-            .finally(() => this.setState({
-                submitting: false,
-                dirty: false,
-            }));
+        return this.props.onUnpublish(this.state.diff)
+            .then(
+                () => this.setState({
+                    submitting: false,
+                    dirty: false,
+                }),
+                () => this.setState({submitting: false})
+            );
     }
 
     onSaveUnpublish() {

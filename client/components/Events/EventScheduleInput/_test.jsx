@@ -24,7 +24,7 @@ describe('<EventScheduleInput />', () => {
 
         onChange = sinon.spy((field, value) => set(diff, field, value));
 
-        formProfile = {schema: {dates: {defaultDurationOnChange: 1}}};
+        formProfile = {editor: {dates: {default_duration_on_change: 1}}};
     });
 
     const getShallowWrapper = () => {
@@ -70,7 +70,7 @@ describe('<EventScheduleInput />', () => {
         expect(wrapper.state().isAllDay).toBe(true);
     });
 
-    describe('defaultDurationOnChange from formProfile', () => {
+    describe('default_duration_on_change from formProfile', () => {
         it('sets the default duration', () => {
             const wrapper = getShallowWrapper();
 
@@ -81,8 +81,8 @@ describe('<EventScheduleInput />', () => {
             )).toBe(true);
         });
 
-        it('doesnt set duration if defaultDurationOnChange is 0', () => {
-            formProfile.schema.dates.defaultDurationOnChange = 0;
+        it('doesnt set duration if default_duration_on_change is 0', () => {
+            formProfile.editor.dates.default_duration_on_change = 0;
 
             const wrapper = getShallowWrapper();
 
@@ -92,7 +92,7 @@ describe('<EventScheduleInput />', () => {
         });
 
         it('defaults to 1 hour', () => {
-            delete formProfile.schema.dates.defaultDurationOnChange;
+            delete formProfile.editor.dates.default_duration_on_change;
             const wrapper = getShallowWrapper();
 
             wrapper.instance().onChange('dates.start.time', moment('2099-06-16T00:00'));

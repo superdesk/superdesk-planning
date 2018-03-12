@@ -68,8 +68,8 @@ export class Field extends React.Component {
             value={currentValue || defaultValue}
             diff={diff}
             onChange={onChange}
-            maxLength={schema.maxlength}
-            required={schema.required}
+            maxLength={schema.validate_on_publish ? 0 : schema.maxlength}
+            required={schema.validate_on_publish ? false : schema.required}
             message={currentError}
             invalid={!!currentError}
             errors={errors}

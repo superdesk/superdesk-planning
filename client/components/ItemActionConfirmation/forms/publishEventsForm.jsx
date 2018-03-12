@@ -10,7 +10,7 @@ import {eventUtils, gettext} from '../../../utils';
 import {Row} from '../../UI/Preview';
 import '../style.scss';
 
-export class UpdateRecurringEventsComponent extends React.Component {
+export class PublishEventsComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -57,6 +57,10 @@ export class UpdateRecurringEventsComponent extends React.Component {
     render() {
         const {initialValues, dateFormat, timeFormat} = this.props;
         const isRecurring = !!initialValues.recurrence_id;
+        const publishing = get(initialValues, '_publish', true);
+        const updateMethodLabel = publishing ?
+            gettext('Publish all recurring events or just this one?') :
+            gettext('Unpublish all recurring events or just this one?');
         const eventsInUse = this.state.relatedEvents.filter((e) => (
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
         ));
@@ -96,16 +100,16 @@ export class UpdateRecurringEventsComponent extends React.Component {
                     value={this.state.eventUpdateMethod}
                     onChange={this.onEventUpdateMethodChange}
                     showMethodSelection={isRecurring}
-                    updateMethodLabel={gettext('Update all recurring events or just this one?')}
+                    updateMethodLabel={updateMethodLabel}
                     showSpace={false}
                     readOnly={this.state.submitting}
-                    action="spike" />
+                    action={publishing ? gettext('publish') : gettext('unpublish')} />
             </div>
         );
     }
 }
 
-UpdateRecurringEventsComponent.propTypes = {
+PublishEventsComponent.propTypes = {
     initialValues: PropTypes.object.isRequired,
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
@@ -121,13 +125,16 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event) => dispatch(actions.main.save(event, false))
+    onSubmit: (event) => dispatch(event._publish ?
+        actions.main.publish(event, false) :
+        actions.main.unpublish(event, false)
+    )
         .finally(() => dispatch(actions.hideModal())),
 });
 
-export const UpdateRecurringEventsForm = connect(
+export const PublishEventsForm = connect(
     mapStateToProps,
     mapDispatchToProps,
     null,
     {withRef: true}
-)(UpdateRecurringEventsComponent);
+)(PublishEventsComponent);

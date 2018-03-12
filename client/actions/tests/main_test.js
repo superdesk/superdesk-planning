@@ -133,20 +133,20 @@ describe('actions.main', () => {
 
     describe('unpublish', () => {
         beforeEach(() => {
-            sinon.stub(eventsUi, 'unpublish').returns(Promise.resolve(data.events[0]));
-            sinon.stub(planningUi, 'unpublish').returns(Promise.resolve(data.plannings[0]));
+            sinon.stub(eventsApi, 'unpublish').returns(Promise.resolve(data.events[0]));
+            sinon.stub(planningApi, 'unpublish').returns(Promise.resolve(data.plannings[0]));
         });
 
         afterEach(() => {
-            restoreSinonStub(eventsUi.unpublish);
-            restoreSinonStub(planningUi.unpublish);
+            restoreSinonStub(eventsApi.unpublish);
+            restoreSinonStub(planningApi.unpublish);
         });
 
         it('calls events.ui.unpublish', (done) => (
-            store.test(done, main.unpublish(data.events[0]))
+            store.test(done, main.unpublish(data.events[0], false))
                 .then(() => {
-                    expect(eventsUi.unpublish.callCount).toBe(1);
-                    expect(eventsUi.unpublish.args[0]).toEqual([data.events[0]]);
+                    expect(eventsApi.unpublish.callCount).toBe(1);
+                    expect(eventsApi.unpublish.args[0]).toEqual([data.events[0]]);
 
                     done();
                 })
@@ -155,8 +155,8 @@ describe('actions.main', () => {
         it('calls planning.ui.unpublish', (done) => (
             store.test(done, main.unpublish(data.plannings[0]))
                 .then(() => {
-                    expect(planningUi.unpublish.callCount).toBe(1);
-                    expect(planningUi.unpublish.args[0]).toEqual([data.plannings[0]]);
+                    expect(planningApi.unpublish.callCount).toBe(1);
+                    expect(planningApi.unpublish.args[0]).toEqual([data.plannings[0]]);
 
                     done();
                 })
