@@ -53,28 +53,6 @@ const unspike = (item) => (
 );
 
 /**
- * Saves a Planning Item
- * If the item does not contain an _id, then it creates a new planning item instead
- * @param {object} item - The Planning item to save
- * @return Promise
- */
-const save = (item) => (
-    (dispatch, getState, {notify}) => (
-        dispatch(planningApi.save(item))
-            .then((item) => {
-                notify.success('The planning item has been saved.');
-                return dispatch(self.scheduleRefetch())
-                    .then(() => Promise.resolve(item));
-            }, (error) => {
-                notify.error(
-                    getErrorMessage(error, 'Failed to save the Planning item!')
-                );
-                return Promise.reject(error);
-            })
-    )
-);
-
-/**
  * Saves the supplied planning item and reload the
  * list of Agendas and their associated planning items.
  * If the planning item does not have an ._id, then add it to the
@@ -537,14 +515,14 @@ const unpublish = (item) => (
     )
 );
 
-const saveAndPublishPlanning = (item, {save = true, publish = false, unpublish = false} = {}) => (
+const save = (item) => (
     (dispatch, getState) => {
         const modalType = selectors.getCurrentModalType(getState());
 
         if (modalType === MODALS.ADD_TO_PLANNING) {
-            return dispatch(self.saveFromAuthoring(item, {publish, unpublish}));
+            return dispatch(self.saveFromAuthoring(item));
         } else {
-            return dispatch(self.saveFromPlanning(item, {save, publish, unpublish}));
+            return dispatch(self.saveAndReloadCurrentAgenda(item));
         }
     }
 );
@@ -790,33 +768,12 @@ const createCoverageFromNewsItem = (newsItem, getState) => {
     return coverage;
 };
 
-const saveFromPlanning = (plan, {save = true, publish = false, unpublish = false}) => (
-    (dispatch) => {
-        if (save) {
-            if (publish) {
-                return dispatch(self.saveAndPublish(plan));
-            } else if (unpublish) {
-                return dispatch(self.saveAndUnpublish(plan));
-            } else {
-                return dispatch(self.saveAndReloadCurrentAgenda(plan));
-            }
-        } else if (publish) {
-            return dispatch(self.publish(plan));
-        } else if (unpublish) {
-            return dispatch(self.unpublish(plan));
-        }
-    }
-);
-
-const saveFromAuthoring = (plan, {publish = false, unpublish = false} = {}) => (
+const saveFromAuthoring = (plan) => (
     (dispatch, getState, {notify}) => {
         const {$scope, newsItem} = selectors.getCurrentModalProps(getState());
-        const action = publish ?
-            planningApi.saveAndPublish(plan) :
-            planningApi.save(plan);
 
         dispatch(actions.actionInProgress(true));
-        return dispatch(action)
+        return dispatch(planningApi.save(plan))
             .then((newPlan) => {
                 const coverages = orderBy(newPlan.coverages, ['firstcreated'], ['desc']);
                 const coverage = coverages[0];
@@ -850,23 +807,6 @@ const saveFromAuthoring = (plan, {publish = false, unpublish = false} = {}) => (
                 dispatch(actions.actionInProgress(false));
                 return Promise.reject(error);
             });
-    }
-);
-
-const onPlanningFormSave = (plan, {save = true, publish = false, unpublish = false}) => (
-    (dispatch, getState) => {
-        const modalType = selectors.getCurrentModalType(getState());
-        const currentWorkspace = selectors.getCurrentWorkspace(getState());
-
-        if (modalType === MODALS.ADD_TO_PLANNING) {
-            return dispatch(self.saveFromAuthoring(plan, {publish, unpublish}));
-        } else if (currentWorkspace === WORKSPACE.PLANNING) {
-            return dispatch(self.saveFromPlanning(plan, {
-                save,
-                publish,
-                unpublish,
-            }));
-        }
     }
 );
 
@@ -914,11 +854,8 @@ const self = {
     cancelAllCoverage,
     onAddCoverageClick,
     onAddPlanningClick,
-    onPlanningFormSave,
     createCoverageFromNewsItem,
-    saveFromPlanning,
     saveFromAuthoring,
-    saveAndPublishPlanning,
     scheduleRefetch
 };
 

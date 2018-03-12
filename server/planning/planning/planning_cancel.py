@@ -15,7 +15,7 @@ from apps.archive.common import get_user, get_auth
 from eve.utils import config
 from copy import deepcopy
 from .planning import PlanningResource, planning_schema
-from planning.common import WORKFLOW_STATE, ITEM_STATE, ITEM_ACTIONS, PUBLISHED_STATE
+from planning.common import WORKFLOW_STATE, ITEM_STATE, update_published_item, ITEM_ACTIONS
 
 
 planning_cancel_schema = deepcopy(planning_schema)
@@ -129,16 +129,7 @@ Coverage cancelled
         updates[ITEM_STATE] = WORKFLOW_STATE.CANCELLED
 
     def on_updated(self, updates, original):
-        allowed_actions = [ITEM_ACTIONS.PLANNING_CANCEL, ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
-                           ITEM_ACTIONS.EDIT]
-        # If we are cancelling as a part of action on planning item (not event cancellation)
-        if original.get('lock_action') in allowed_actions and \
-                original.get('pubstatus') == PUBLISHED_STATE.USABLE:
-            # Republish the planning item
-            planning_publish_service = get_resource_service('planning_publish')
-            doc = {
-                'etag': updates.get('_etag'),
-                'planning': original.get(config.ID_FIELD),
-                'pubstatus': PUBLISHED_STATE.USABLE
-            }
-            planning_publish_service.post([doc])
+        if original.get('lock_action') in [ITEM_ACTIONS.EDIT,
+                                           ITEM_ACTIONS.PLANNING_CANCEL,
+                                           ITEM_ACTIONS.CANCEL_ALL_COVERAGE]:
+            update_published_item(updates, original)

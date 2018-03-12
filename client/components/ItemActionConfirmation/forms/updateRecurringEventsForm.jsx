@@ -122,14 +122,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = (dispatch) => ({
     /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event) => dispatch(actions.events.ui.saveAndPublish(
-        event,
-        {
-            save: get(event, '_save', true),
-            publish: get(event, '_publish', false),
-            unpublish: get(event, '_unpublish', false),
-        }
-    )),
+    onSubmit: (event) => dispatch(actions.events.ui.save(event)),
 });
 
 export const UpdateRecurringEventsForm = connect(

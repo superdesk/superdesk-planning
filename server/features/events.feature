@@ -527,3 +527,166 @@ Feature: Events
             }
         ]}
         """
+
+    @auth
+    @notification
+    Scenario: Published event modified will re-publish the event
+        When we post to "events" with success
+        """
+        [{
+            "guid": "123",
+            "unique_id": "123",
+            "name": "event 123",
+            "definition_short": "short value",
+            "dates": {
+                "start": "2016-01-02",
+                "end": "2016-01-03"
+            }
+        }]
+        """
+        When we post to "/events/publish"
+        """
+        {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
+        """
+        Then we get OK response
+        When we patch "/events/#events._id#"
+        """
+        {"name": "New Event"}
+        """
+        Then we get OK response
+        When we get "/events_history"
+        Then we get list with 4 items
+        """
+        {"_items": [
+            {
+                "operation": "create",
+                "event_id": "#events._id#"
+            },
+            {
+                "operation": "publish",
+                "event_id": "#events._id#"
+            },
+            {
+                "operation": "update",
+                "update": { "name" : "New Event"}
+            },
+            {
+                "operation": "publish",
+                "event_id": "#events._id#"
+            }
+        ]}
+        """
+
+    @auth
+    Scenario: Duplicating published event will not republish it
+        Given "vocabularies"
+        """
+        [{
+            "_id": "eventoccurstatus",
+                    "display_name": "Event Occurence Status",
+                    "type": "manageable",
+                    "unique_field": "qcode",
+                    "items": [
+                        {"is_active": true, "qcode": "eocstat:eos0", "name": "Unplanned event"},
+                        {"is_active": true, "qcode": "eocstat:eos1", "name": "Planned, occurence planned only"},
+                        {"is_active": true, "qcode": "eocstat:eos2", "name": "Planned, occurence highly uncertain"},
+                        {"is_active": true, "qcode": "eocstat:eos3", "name": "Planned, May occur"},
+                        {"is_active": true, "qcode": "eocstat:eos4", "name": "Planned, occurence highly likely"},
+                        {"is_active": true, "qcode": "eocstat:eos5", "name": "Planned, occurs certainly"},
+                        {"is_active": true, "qcode": "eocstat:eos6", "name": "Planned, then cancelled"}
+                    ]
+        }]
+        """
+        Given "contacts"
+        """
+        [{"first_name": "Albert", "last_name": "Foo"}]
+        """
+        Given empty "users"
+        When we post to "users"
+        """
+        {"username": "foo", "email": "foo@bar.com", "is_active": true, "sign_off": "abc"}
+        """
+        When we post to "/events"
+        """
+        [
+            {
+                "guid": "123",
+                "name": "event 123",
+                "slugline": "event-123",
+                "definition_short": "short value",
+                "definition_long": "long value",
+                "relationships":{
+                    "broader": "broader value",
+                    "narrower": "narrower value",
+                    "related": "related value"
+                },
+                "dates": {
+                    "start": "2016-01-02",
+                    "end": "2016-01-03"
+                },
+                "subject": [{"qcode": "test qcaode", "name": "test name"}],
+                "event_contact_info": ["#contacts._id#"]
+            }
+        ]
+        """
+        Then we get OK response
+        When we post to "/events/publish"
+        """
+        {"event": "#events._id#", "etag": "#events._etag#", "pubstatus": "usable"}
+        """
+        When we post to "/events/#events._id#/duplicate"
+        """
+        [{}]
+        """
+        Then we get OK response
+        When we get "/events/123"
+        Then we get existing resource
+        """
+        {
+            "_id": "123",
+            "name": "event 123",
+            "state": "scheduled",
+            "duplicate_to": ["#duplicate._id#"]
+        }
+        """
+        When we get "/events/#duplicate._id#"
+        Then we get existing resource
+        """
+        {
+            "_id": "#duplicate._id#",
+            "name": "event 123",
+            "state": "draft",
+            "occur_status": {"qcode": "eocstat:eos5"},
+            "duplicate_from": "123"
+        }
+        """
+        When we get "/events_history"
+        Then we get list with 6 items
+        """
+        {"_items": [
+            {
+                "operation": "create",
+                "event_id": "123"
+            },
+            {
+                "operation": "publish",
+                "update": { "state" : "scheduled", "pubstatus": "usable" }
+            },
+            {
+                "operation": "create",
+                "event_id": "#duplicate._id#"
+            },
+            {
+                "operation": "duplicate",
+                "update": { "duplicate_id" : "#duplicate._id#"}
+            },
+            {
+                "operation": "duplicate_from",
+                "update": { "duplicate_id" : "123"}
+            },
+            {
+                "operation": "update",
+                "update": { "duplicate_to": ["#duplicate._id#"] }
+            }
+        ]}
+        """

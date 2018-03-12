@@ -17,7 +17,7 @@ from apps.auth import get_user_id
 from apps.archive.common import get_auth
 from flask import request
 
-from planning.common import UPDATE_SINGLE, WORKFLOW_STATE, get_max_recurrent_events, PUBLISHED_STATE
+from planning.common import UPDATE_SINGLE, WORKFLOW_STATE, get_max_recurrent_events, update_published_item
 from planning.item_lock import LOCK_USER, LOCK_SESSION, LOCK_ACTION
 
 from eve.utils import config
@@ -112,15 +112,7 @@ class EventsBaseService(BaseService):
                 original
             )
 
-        # If the event is in published state, republish it with this update
-        if original.get('pubstatus') == PUBLISHED_STATE.USABLE:
-            events_publish_service = get_resource_service('events_publish')
-            doc = {
-                'etag': updates.get('_etag'),
-                'event': original.get(config.ID_FIELD),
-                'pubstatus': PUBLISHED_STATE.USABLE
-            }
-            events_publish_service.post([doc])
+        update_published_item(updates, original)
 
     def update_single_event(self, updates, original):
         pass

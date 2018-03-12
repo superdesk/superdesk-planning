@@ -15,6 +15,7 @@ from collections import namedtuple
 from superdesk.resource import not_analyzed
 from superdesk import get_resource_service
 from .item_lock import LOCK_SESSION, LOCK_ACTION, LOCK_TIME, LOCK_USER
+from superdesk.metadata.item import ITEM_TYPE
 from datetime import datetime, time
 import tzlocal
 import pytz
@@ -154,3 +155,36 @@ def get_street_map_url(current_app=None):
     if current_app is not None:
         return current_app.config.get('STREET_MAP_URL', 'https://www.google.com.au/maps/?q=')
     return app.config.get('STREET_MAP_URL', 'https://www.google.com.au/maps/?q=')
+
+
+def get_item_publish_state(item, new_publish_state):
+    if new_publish_state == PUBLISHED_STATE.CANCELLED:
+        return WORKFLOW_STATE.KILLED
+
+    if item.get('pubstatus') != PUBLISHED_STATE.USABLE:
+        # Publishing for first time, default to 'schedule' state
+        return WORKFLOW_STATE.SCHEDULED
+
+    return item.get('state')
+
+
+def update_published_item(updates, original):
+    """Method to update(re-publish) a published item after the item is updated"""
+    pub_status = None
+    # Save&Publish or Save&Unpublish
+    if updates.get('pubstatus'):
+        pub_status = updates['pubstatus']
+    elif original.get('pubstatus') == PUBLISHED_STATE.USABLE:
+        # From item actions
+        pub_status = PUBLISHED_STATE.USABLE
+
+    if pub_status is not None:
+        if original.get(ITEM_TYPE):
+            resource_name = 'events_publish' if original.get(ITEM_TYPE) == 'event' else 'planning_publish'
+            item_publish_service = get_resource_service(resource_name)
+            doc = {
+                'etag': updates.get('_etag'),
+                original.get(ITEM_TYPE): original.get(config.ID_FIELD),
+                'pubstatus': pub_status
+            }
+            item_publish_service.post([doc])

@@ -223,7 +223,7 @@ const onAssignmentRemoved = (_e, data) => (
             const currentAssignmentId = selectors.getCurrentAssignmentId(getState());
 
             if (data.assignment === currentAssignmentId) {
-                notify.error('The Assignment you were viewing was removed.');
+                notify.success('The Assignment you were viewing was removed.');
             }
 
             dispatch({

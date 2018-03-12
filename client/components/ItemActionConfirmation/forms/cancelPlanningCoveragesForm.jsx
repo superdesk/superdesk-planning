@@ -4,7 +4,6 @@ import {connect} from 'react-redux';
 import * as actions from '../../../actions';
 import {isItemCancelled, gettext} from '../../../utils';
 import {PLANNING} from '../../../constants';
-import {get} from 'lodash';
 import {Row} from '../../UI/Preview';
 import {TextAreaInput} from '../../UI/Form';
 import '../style.scss';
@@ -80,10 +79,6 @@ const mapDispatchToProps = (dispatch) => ({
 
         return cancelDispatch()
             .then((plan) => {
-                if (get(plan, '_publish', false)) {
-                    dispatch(actions.planning.ui.publish(plan));
-                }
-
                 if (plan.lock_action === PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.lock_action ||
                     isItemCancelled(plan)) {
                     dispatch(actions.planning.api.unlock(plan));

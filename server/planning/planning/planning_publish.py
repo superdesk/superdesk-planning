@@ -18,7 +18,7 @@ from apps.publish.enqueue import get_enqueue_service
 
 from eve.utils import config
 from planning.planning import PlanningResource
-from planning.common import WORKFLOW_STATE, PUBLISHED_STATE, published_state
+from planning.common import WORKFLOW_STATE, PUBLISHED_STATE, published_state, get_item_publish_state
 
 
 class PlanningPublishResource(PlanningResource):
@@ -77,7 +77,7 @@ class PlanningPublishService(BaseService):
         """
         plan.setdefault(config.VERSION, 1)
         plan.setdefault('item_id', plan['_id'])
-        updates = {'state': self._get_publish_state(plan, new_publish_state), 'pubstatus': new_publish_state}
+        updates = {'state': get_item_publish_state(plan, new_publish_state), 'pubstatus': new_publish_state}
         plan['pubstatus'] = new_publish_state
         get_resource_service('planning').update(plan['_id'], updates, plan)
         get_resource_service('planning_history')._save_history(plan, updates, 'publish')

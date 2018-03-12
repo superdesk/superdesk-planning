@@ -456,9 +456,9 @@ describe('actions.events.ui', () => {
             });
     });
 
-    describe('publishEvent', () => {
+    describe('publish', () => {
         it('publishes a single event', (done) => (
-            store.test(done, eventsUi.publishEvent(data.events[0]))
+            store.test(done, eventsUi.publish(data.events[0]))
                 .then((publishedEvent) => {
                     expect(publishedEvent).toEqual(data.events[0]);
 
@@ -475,7 +475,7 @@ describe('actions.events.ui', () => {
         ));
 
         it('publishes all events in a series of recurring events', (done) => (
-            store.test(done, eventsUi.publishEvent({
+            store.test(done, eventsUi.publish({
                 ...data.events[0],
                 update_method: {value: 'all'},
             }))

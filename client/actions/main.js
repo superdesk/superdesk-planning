@@ -99,17 +99,17 @@ const unlockAndCloseEditor = (item) => (
     }
 );
 
-const save = (item, {save = true, publish = false, unpublish = false} = {}) => (
+const save = (item) => (
     (dispatch, getState, {notify}) => {
         const itemType = getItemType(item);
         let promise;
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            promise = dispatch(eventsUi.saveWithConfirmation(item, {save, publish, unpublish}));
+            promise = dispatch(eventsUi.saveWithConfirmation(item));
             break;
         case ITEM_TYPE.PLANNING:
-            promise = dispatch(planningUi.saveAndPublishPlanning(item, {save, publish, unpublish}));
+            promise = dispatch(planningUi.save(item));
             break;
         default:
             promise = Promise.reject(gettext('Failed to save, could not find the item type!'));
@@ -144,6 +144,24 @@ const unpublish = (item) => (
             return dispatch(eventsUi.unpublish(item));
         case ITEM_TYPE.PLANNING:
             return dispatch(planningUi.unpublish(item));
+        }
+
+        const errMessage = gettext('Failed to unpublish, could not find the item type!');
+
+        notify.error(errMessage);
+        return Promise.reject(errMessage);
+    }
+);
+
+const publish = (item) => (
+    (dispatch, getState, {notify}) => {
+        const itemType = getItemType(item);
+
+        switch (itemType) {
+        case ITEM_TYPE.EVENT:
+            return dispatch(eventsUi.publish(item));
+        case ITEM_TYPE.PLANNING:
+            return dispatch(planningUi.publish(item));
         }
 
         const errMessage = gettext('Failed to unpublish, could not find the item type!');
@@ -584,6 +602,7 @@ const self = {
     unlockAndCancel,
     save,
     unpublish,
+    publish,
     openCancelModal,
     openEditor,
     closeEditor,

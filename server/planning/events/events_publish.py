@@ -10,7 +10,7 @@ from superdesk.notification import push_notification
 from .events import EventsResource
 from .events_base_service import EventsBaseService
 from planning.common import WORKFLOW_STATE, PUBLISHED_STATE, published_state,\
-    UPDATE_SINGLE, UPDATE_METHODS, UPDATE_FUTURE
+    UPDATE_SINGLE, UPDATE_METHODS, UPDATE_FUTURE, get_item_publish_state
 
 
 class EventsPublishResource(EventsResource):
@@ -120,7 +120,7 @@ class EventsPublishService(EventsBaseService):
         event.setdefault(config.VERSION, 1)
         event.setdefault('item_id', event['_id'])
         get_enqueue_service('publish').enqueue_item(event, 'event')
-        updates = {'state': self._get_publish_state(event, new_publish_state), 'pubstatus': new_publish_state}
+        updates = {'state': get_item_publish_state(event, new_publish_state), 'pubstatus': new_publish_state}
         event['pubstatus'] = new_publish_state
         updated_event = get_resource_service('events').update(event['_id'], updates, event)
         get_resource_service('events_history')._save_history(event, updates, 'publish')

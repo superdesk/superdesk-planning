@@ -328,8 +328,8 @@ describe('actions.assignments.notification', () => {
                 {assignment: 'as1'}
             ))
                 .then(() => {
-                    expect(store.services.notify.error.callCount).toBe(1);
-                    expect(store.services.notify.error.args[0]).toEqual(
+                    expect(store.services.notify.success.callCount).toBe(1);
+                    expect(store.services.notify.success.args[0]).toEqual(
                         ['The Assignment you were viewing was removed.']
                     );
 
