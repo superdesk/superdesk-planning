@@ -494,7 +494,7 @@ const getPlanningByDate = (plansInList, events, startDate, endDate) => {
         });
 
         if (isEmpty(dates)) {
-            groupDate = moment(plan._planning_date);
+            groupDate = moment(plan.planning_date);
             if (isDateInRange(groupDate, startDate, endDate)) {
                 dates[groupDate.format('YYYY-MM-DD')] = groupDate;
             }
