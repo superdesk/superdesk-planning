@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {set, cloneDeep} from 'lodash';
+import {set, cloneDeep, isEqual} from 'lodash';
 import {gettext} from '../../utils';
 import {Button} from '../UI';
 import {Content, Footer, Header, SidePanel, Tools} from '../UI/SidePanel';
@@ -26,7 +26,9 @@ export class SearchPanelComponent extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.activeFilter !== this.props.activeFilter) {
+        if (nextProps.activeFilter !== this.props.activeFilter ||
+            (nextProps.activeFilter === this.props.activeFilter &&
+            !isEqual(nextProps.currentSearch, this.props.currentSearch))) {
             this.setState({
                 diff: cloneDeep(nextProps.currentSearch) || {}
             });

@@ -1,6 +1,6 @@
 import {createSelector} from 'reselect';
-import {get} from 'lodash';
-import {MAIN} from '../constants';
+import {get, isEmpty, isBoolean} from 'lodash';
+import {MAIN, SPIKED_STATE} from '../constants';
 import {orderedEvents, storedEvents} from './events';
 import {orderedPlanningList, storedPlannings} from './planning';
 import {orderedEventsPlanning} from './eventsplanning';
@@ -57,10 +57,6 @@ export const currentSearch = createSelector(
     (filter, params) => get(params, `${filter}.currentSearch`, {})
 );
 
-export const eventsSearch = (state) => get(state, 'main.search.EVENTS.currentSearch', {});
-export const planningSearch = (state) => get(state, 'main.search.PLANNING.currentSearch', {});
-export const combinedSearch = (state) => get(state, 'main.search.COMBINED.currentSearch', {});
-
 export const eventsTotalItems = (state) => get(state, 'main.search.EVENTS.totalItems', 0);
 export const planningTotalItems = (state) => get(state, 'main.search.PLANNING.totalItems', 0);
 export const combinedTotalItems = (state) => get(state, 'main.search.COMBINED.totalItems', 0);
@@ -74,4 +70,36 @@ export const lastRequestParams = createSelector(
 export const fullText = createSelector(
     [activeFilter, searchParams],
     (filter, params) => get(params, `${filter}.fulltext`, '')
+);
+
+export const isViewFiltered = createSelector(
+    [activeFilter, searchParams],
+    (filter, params) => {
+        const advancedSearch = get(params, `${filter}.currentSearch.advancedSearch`, {});
+        const spikedState = get(params, `${filter}.currentSearch.spikeState`, SPIKED_STATE.NOT_SPIKED);
+        const fullText = get(params, `${filter}.fulltext`, '');
+
+        if (spikedState !== SPIKED_STATE.NOT_SPIKED || !isEmpty(fullText)) {
+            return true;
+        }
+
+        if (isEmpty(advancedSearch)) {
+            return false;
+        }
+
+        return Object.keys(advancedSearch)
+            .some((key) => {
+                if (key === 'dates') {
+                    return !isEmpty(get(advancedSearch, 'dates.start')) ||
+                        !isEmpty(get(advancedSearch, 'dates.end')) ||
+                        !isEmpty(get(advancedSearch, 'dates.range'));
+                }
+
+                if (isBoolean(get(advancedSearch, key))) {
+                    return get(advancedSearch, key);
+                }
+
+                return !isEmpty(get(advancedSearch, key));
+            });
+    }
 );

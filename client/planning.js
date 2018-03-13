@@ -153,6 +153,8 @@ class PlanningAppComponent extends React.Component {
             loadingIndicator,
             users,
             desks,
+            isViewFiltered,
+            clearSearch
         } = this.props;
 
         const itemActions = {
@@ -237,6 +239,8 @@ class PlanningAppComponent extends React.Component {
                         selectAgenda={selectAgenda}
                         currentAgendaId={currentAgendaId}
                         showFilters={!addNewsItemToPlanning}
+                        isViewFiltered={isViewFiltered}
+                        clearSearch={clearSearch}
                     />
                     <div className="sd-column-box--3">
                         <SearchPanel toggleFilterPanel={this.toggleFilterPanel} />
@@ -318,6 +322,8 @@ PlanningAppComponent.propTypes = {
     multiSelectPlanning: PropTypes.func,
     selectedEventIds: PropTypes.array,
     selectedPlanningIds: PropTypes.array,
+    isViewFiltered: PropTypes.bool,
+    clearSearch: PropTypes.func
 };
 
 const mapStateToProps = (state) => ({
@@ -342,7 +348,8 @@ const mapStateToProps = (state) => ({
     currentWorkspace: selectors.getCurrentWorkspace(state),
     selectedEventIds: selectors.multiSelect.selectedEventIds(state),
     selectedPlanningIds: selectors.multiSelect.selectedPlanningIds(state),
-    loadingIndicator: selectors.main.loadingIndicator(state)
+    loadingIndicator: selectors.main.loadingIndicator(state),
+    isViewFiltered: selectors.main.isViewFiltered(state)
 });
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
@@ -373,6 +380,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 
         return dispatch(actions.multiSelect.selectPlannings(planningId));
     },
+    clearSearch: () => dispatch(actions.main.clearSearch()),
     // Event Item actions:
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: (event) => dispatch(actions.events.ui.duplicate(event)),
     [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
