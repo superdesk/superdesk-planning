@@ -19,6 +19,10 @@ export class SearchPanelComponent extends React.Component {
     }
 
     onClear() {
+        if (!this.props.isViewFiltered) {
+            return;
+        }
+
         this.setState({
             diff: {}
         });
@@ -60,7 +64,8 @@ export class SearchPanelComponent extends React.Component {
             timeFormat,
             currentSearch,
             toggleFilterPanel,
-            search
+            search,
+            isViewFiltered
         } = this.props;
 
         const {
@@ -102,6 +107,7 @@ export class SearchPanelComponent extends React.Component {
                     <Footer className="side-panel__footer--button-box">
                         <div className="flex-grid flex-grid--boxed-small flex-grid--wrap-items flex-grid--small-2">
                             <Button
+                                disabled={!isViewFiltered}
                                 text={gettext('Clear')}
                                 hollow={true}
                                 onClick={this.onClear}
@@ -132,7 +138,8 @@ SearchPanelComponent.propTypes = {
     dateFormat: PropTypes.string.isRequired,
     timeFormat: PropTypes.string.isRequired,
     search: PropTypes.func,
-    clearSearch: PropTypes.func
+    clearSearch: PropTypes.func,
+    isViewFiltered: PropTypes.bool
 };
 
 
@@ -147,6 +154,7 @@ const mapStateToProps = (state) => ({
     ingestProviders: state.ingest.providers,
     dateFormat: selectors.config.getDateFormat(state),
     timeFormat: selectors.config.getTimeFormat(state),
+    isViewFiltered: selectors.main.isViewFiltered(state)
 });
 
 const mapDispatchToProps = (dispatch) => ({
