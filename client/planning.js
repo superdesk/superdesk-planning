@@ -383,7 +383,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     clearSearch: () => dispatch(actions.main.clearSearch()),
     // Event Item actions:
     [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]: (event) => dispatch(actions.events.ui.duplicate(event)),
-    [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: (event) => dispatch(actions.addEventToCurrentAgenda(event)),
+    [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]: (event, planningDate) =>
+        dispatch(actions.addEventToCurrentAgenda(event, planningDate)),
     [EVENTS.ITEM_ACTIONS.UNSPIKE.actionName]: (event) => dispatch(actions.events.ui.openUnspikeModal(event)),
     [EVENTS.ITEM_ACTIONS.SPIKE.actionName]: (event) => dispatch(actions.events.ui.openSpikeModal(event)),
     [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: (event) => dispatch(actions.events.ui.openCancelModal(event)),

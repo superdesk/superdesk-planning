@@ -50,7 +50,7 @@ export const PUBLISHED_STATE = {
 
 export const GENERIC_ITEM_ACTIONS = {
     DIVIDER: {label: 'Divider'},
-    LABEL: {label: 'Label'},
+    LABEL: {text: 'Label'},
 };
 
 export const SPIKED_STATE = {

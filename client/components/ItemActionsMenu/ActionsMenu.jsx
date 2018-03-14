@@ -32,6 +32,11 @@ export class ActionsMenu extends React.Component {
     renderItem(action) {
         const key = action.key ? action.key : action.label;
 
+        if (get(action, 'text')) {
+            // Header of a menu or submenu
+            return (<div className="dropdown__menu-label">{action.text}</div>);
+        }
+
         if (Array.isArray(action.callback)) {
             let items = action.callback.map(this.renderItem.bind(this));
 
