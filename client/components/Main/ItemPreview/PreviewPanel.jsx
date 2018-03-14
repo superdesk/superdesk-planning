@@ -12,7 +12,7 @@ import {PreviewContentTab, PreviewHeader} from './index';
 import {Tabs} from '../../UI/Nav';
 import {Panel} from '../../UI/Preview';
 import {SidePanel, Header, Tools, Content} from '../../UI/SidePanel';
-import {WORKSPACE} from '../../../constants';
+import {WORKSPACE, TOOLTIPS} from '../../../constants';
 
 export class PreviewPanelComponent extends React.Component {
     constructor(props) {
@@ -27,6 +27,7 @@ export class PreviewPanelComponent extends React.Component {
             {
                 icon: 'icon-close-small',
                 onClick: this.closePreview,
+                title: gettext(TOOLTIPS.close),
             },
         ];
 
@@ -70,6 +71,7 @@ export class PreviewPanelComponent extends React.Component {
                     this.tools.unshift({
                         icon: 'icon-pencil',
                         onClick: this.openEditPanel,
+                        title: gettext(TOOLTIPS.edit),
                     });
                 }
             } else if (this.tools[0].icon === 'icon-pencil') {

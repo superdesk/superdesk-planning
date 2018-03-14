@@ -1,7 +1,9 @@
 import React from 'react';
+import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {defer} from 'lodash';
+import {gettext} from '../../../utils';
 
 import {Menu, Label, Divider, Dropdown as DropMenu} from '../Dropdown';
 
@@ -53,23 +55,33 @@ export class Dropdown extends React.Component {
             }
         );
 
+        const title = isCreate ? 'Create new item' : this.props.label;
+
         return (
             <DropMenu isOpen={this.state.open} alignRight={this.props.alignRight}>
-                <button
-                    ref={(btn) => this.btn = btn}
-                    className={buttonClassName}
-                    onClick={this.toggle}>
-                    {this.props.icon && (
-                        <i className={this.props.icon} />
-                    )}
-                    {this.props.buttonLabel}
-                    {this.props.buttonLabel && (
-                        <span className="dropdown__caret" />
-                    )}
-                    {isCreate && (
-                        <span className="circle" />
-                    )}
-                </button>
+                <OverlayTrigger placement="left"
+                    overlay={
+                        <Tooltip id="create_new_btn">
+                            {gettext(title)}
+                        </Tooltip>
+                    }
+                >
+                    <button
+                        ref={(btn) => this.btn = btn}
+                        className={buttonClassName}
+                        onClick={this.toggle}>
+                        {this.props.icon && (
+                            <i className={this.props.icon} />
+                        )}
+                        {this.props.buttonLabel}
+                        {this.props.buttonLabel && (
+                            <span className="dropdown__caret" />
+                        )}
+                        {isCreate && (
+                            <span className="circle" />
+                        )}
+                    </button>
+                </OverlayTrigger>
                 <Menu isOpen={this.state.open} alignRight={false}>
                     <Label>{this.props.label}</Label>
                     <Divider />

@@ -7,7 +7,8 @@ export const ToggleFiltersButton = ({filterPanelOpen, toggleFilterPanel}) => {
     );
 
     return (
-        <button onClick={toggleFilterPanel} className={className}>
+        <button onClick={toggleFilterPanel} className={className}
+            data-sd-tooltip="Advanced filters" data-flow="right">
             <i className="icon-filter-large" />
         </button>
     );

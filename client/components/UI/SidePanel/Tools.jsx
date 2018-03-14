@@ -13,7 +13,9 @@ export const Tools = ({className, tools, useDefaultClassName, children}) => (
             <a
                 key={tool.icon}
                 className="icn-btn"
-                onClick={tool.onClick}>
+                onClick={tool.onClick}
+                data-sd-tooltip={tool.title}
+                data-flow="left">
                 <i className={tool.icon} />
             </a>
         ))}
@@ -26,7 +28,8 @@ Tools.propTypes = {
     className: PropTypes.string,
     tools: PropTypes.arrayOf(PropTypes.shape({
         icon: PropTypes.string,
-        onClick: PropTypes.func
+        onClick: PropTypes.func,
+        title: PropTypes.string,
     })).isRequired,
     useDefaultClassName: PropTypes.bool,
 };
