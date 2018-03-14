@@ -157,7 +157,7 @@ const askForAddEventToCurrentAgenda = (events) => (
  * @param {array} events - The event used to create the planning item
  * @return Promise
  */
-const _addEventToCurrentAgenda = (events) => (
+const _addEventToCurrentAgenda = (events, planningDate = null) => (
     (dispatch, getState, {notify}) => {
         const currentAgendaId = selectors.getCurrentAgendaId(getState());
 
@@ -184,7 +184,7 @@ const _addEventToCurrentAgenda = (events) => (
             promise = promise.then(() => (
                 Promise.all(
                     eventsChunk.map((event) => (
-                        dispatch(createPlanningFromEvent(event))
+                        dispatch(createPlanningFromEvent(event, planningDate))
                     ))
                 )
                     .then((data) => data.forEach((p) => plannings.push(p)))
@@ -211,7 +211,7 @@ const _addEventToCurrentAgenda = (events) => (
  * @param {object} event - The event used to create the planning item
  * @return Promise
  */
-const _createPlanningFromEvent = (event) => (
+const _createPlanningFromEvent = (event, planningDate) => (
     (dispatch, getState, {notify}) => {
         // Check if no agenda is selected, or the current agenda is spiked
         // And notify the end user of the error
@@ -233,7 +233,7 @@ const _createPlanningFromEvent = (event) => (
         return dispatch(planning.api.save({
             event_item: event._id,
             slugline: event.slugline,
-            planning_date: event.dates.start,
+            planning_date: planningDate || event._sortDate || event.dates.start,
             internal_note: event.internal_note,
             headline: event.name,
             place: event.place,

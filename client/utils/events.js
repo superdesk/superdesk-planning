@@ -16,7 +16,8 @@ import {
     isItemPostponed,
     getDateTimeString,
     isEmptyActions,
-    isDateInRange
+    isDateInRange,
+    gettext,
 } from './index';
 import moment from 'moment';
 import RRule from 'rrule';
@@ -354,7 +355,7 @@ const getDateStringForEvent = (event, dateFormat, timeFormat, dateOnly = false) 
     }
 };
 
-const getEventActions = (item, session, privileges, lockedItems, callBacks) => {
+const getEventActions = (item, session, privileges, lockedItems, callBacks, withMultiPlanningDate = false) => {
     if (!get(item, '_id')) {
         return [];
     }
@@ -437,14 +438,60 @@ const getEventActions = (item, session, privileges, lockedItems, callBacks) => {
         }
     });
 
-    callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName] &&
-        actions.push(
+    if (!withMultiPlanningDate || self.isEventSameDay(item)) {
+        callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName] && actions.push(
             GENERIC_ITEM_ACTIONS.DIVIDER,
             {
                 ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
                 callback: callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName].bind(null, item),
             }
         );
+    } else {
+        // Multi-day event with a requirement of a submeu
+        let eventCallBacks = [];
+        let pastEventCallBacks = [];
+        let eventDate = moment(item.dates.start);
+        const currentDate = moment();
+
+        for (; isDateInRange(eventDate, item.dates.start, item.dates.end);
+            eventDate.add(1, 'days')) {
+            if (eventDate.isSameOrAfter(currentDate, 'date')) {
+                eventCallBacks.push({
+                    label: '@ ' + eventDate.format('DD/MM/YYYY ') +
+                            item.dates.start.format('HH:mm'),
+                    callback: callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName].bind(null, item,
+                        moment(eventDate)),
+                });
+            } else {
+                pastEventCallBacks.push({
+                    label: '@ ' + eventDate.format('DD/MM/YYYY ') +
+                            item.dates.start.format('HH:mm'),
+                    callback: callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName].bind(null, item,
+                        moment(eventDate)),
+                });
+            }
+        }
+
+        // Combine past and other events with a divider and heading
+        if (pastEventCallBacks.length > 0) {
+            eventCallBacks = [
+                ...eventCallBacks,
+                GENERIC_ITEM_ACTIONS.DIVIDER,
+                {
+                    ...GENERIC_ITEM_ACTIONS.LABEL,
+                    text: gettext('Past Events')
+                },
+                ...pastEventCallBacks];
+        }
+
+        callBacks[EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName] && actions.push(
+            GENERIC_ITEM_ACTIONS.DIVIDER,
+            {
+                ...EVENTS.ITEM_ACTIONS.CREATE_PLANNING,
+                callback: eventCallBacks,
+            }
+        );
+    }
 
     return getEventItemActions(
         item,

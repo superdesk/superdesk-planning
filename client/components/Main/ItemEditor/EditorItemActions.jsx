@@ -30,7 +30,7 @@ export const EditorItemActions = ({
         [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
             itemActions[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
     };
-    let actions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack);
+    let actions = eventUtils.getEventActions(item, session, privileges, lockedItems, itemActionsCallBack, true);
 
     if (itemType === ITEM_TYPE.PLANNING) {
         itemActionsCallBack = {
