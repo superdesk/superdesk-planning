@@ -25,6 +25,7 @@ export class UpdateAssignmentComponent extends React.Component {
             valid: true,
         };
 
+        this.dom = {popupContainer: null};
         this.onChange = this.onChange.bind(this);
         this.setValid = this.setValid.bind(this);
     }
@@ -139,8 +140,11 @@ export class UpdateAssignmentComponent extends React.Component {
                     priorities={this.props.priorities}
                     showDesk={canEditDesk}
                     showPriority={false}
+                    popupContainer={() => this.dom.popupContainer}
                     setValid={this.setValid}
                 />
+
+                <div ref={(node) => this.dom.popupContainer = node} />
             </div>
         );
     }

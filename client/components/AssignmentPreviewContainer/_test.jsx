@@ -204,27 +204,34 @@ describe('<AssignmentPreviewContainer />', () => {
     });
 
     // Some issue with hasClass not working
-    xit('renders Planning preview', () => {
-        const wrapper = getWrapper();
-        const toggle = new helpers.toggleBox(wrapper.childAt(3));
+    it('renders Planning preview', () => {
+        const mountWrapper = getWrapper();
+        let wrapper = mountWrapper.find('.AssignmentPreview');
+        let toggle = new helpers.toggleBox(wrapper.childAt(3));
 
         expect(toggle.title()).toBe('Planning');
         expect(toggle.isOpen()).toBe(false);
         toggle.click();
+
+        wrapper = mountWrapper.find('.AssignmentPreview');
+        toggle = new helpers.toggleBox(wrapper.childAt(3));
         expect(toggle.isOpen()).toBe(true);
         expect(toggle.find(PlanningPreview).length).toBe(1);
     });
 
-    // Some issue with hasClass not working
-    xit('renders Event preview', () => {
+    it('renders Event preview', () => {
         assignment.planning_item = 'p2';
-        const wrapper = getWrapper().find('.AssignmentPreview');
-        const toggle = new helpers.toggleBox(wrapper.childAt(4));
+        const mountWrapper = getWrapper();
+        let wrapper = mountWrapper.find('.AssignmentPreview');
+        let toggle = new helpers.toggleBox(wrapper.childAt(4));
 
         expect(toggle.title()).toBe('Event');
-        expect(toggle.isOpen()).toBe(true);
-        toggle.click();
         expect(toggle.isOpen()).toBe(false);
+        toggle.click();
+
+        wrapper = mountWrapper.find('.AssignmentPreview');
+        toggle = new helpers.toggleBox(wrapper.childAt(4));
+        expect(toggle.isOpen()).toBe(true);
         expect(toggle.find(EventPreview).length).toBe(1);
     });
 });

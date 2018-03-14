@@ -13,7 +13,7 @@
     .sd-column-box__main-column__items {
         overflow: auto !important;
         width: 100%;
-        height: 100%;
+        height: calc(100vh - (#{$nav-height} + #{$subnav-height} * 2 + 30px));
     }
     .loading-indicator{
         top: calc(#{$nav-height} + #{$subnav-height});
@@ -23,5 +23,11 @@
 .Agenda {
     &--disabled {
         color: $grayLight;
+    }
+}
+
+.btn {
+    &__clear-filters {
+        margin-right: 1.0rem;
     }
 }

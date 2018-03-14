@@ -2,13 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-export const Item = ({children, noBg, noHover, shadow, activated, className, onClick}) => (
+export const Item = ({children, noBg, noHover, shadow, activated, className, onClick, margin}) => (
     <div className={classNames(
         className,
-        'ListItem',
         'sd-list-item',
         {'sd-list-item--no-bg': noBg},
         {'sd-list-item--no-hover': noHover},
+        {'sd-list-item--margin': margin},
         shadow ? `sd-shadow--z${shadow}` : null,
         {'sd-list-item--activated': activated}
     )}
@@ -26,9 +26,11 @@ Item.propTypes = {
     activated: PropTypes.bool,
     className: PropTypes.string,
     onClick: PropTypes.func,
+    margin: PropTypes.bool
 };
 
 Item.defaultProps = {
     noBg: false,
     noHover: false,
+    margin: false
 };

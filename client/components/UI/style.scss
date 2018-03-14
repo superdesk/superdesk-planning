@@ -17,6 +17,12 @@ time.Datetime {
     }
 }
 
+.sd-list-item {
+    &--margin {
+        margin: 0.8rem;
+    }
+}
+
 .terms-list {
     &--disabled {
         li {

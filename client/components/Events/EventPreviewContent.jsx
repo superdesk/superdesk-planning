@@ -172,7 +172,7 @@ export class EventPreviewContentComponent extends React.Component {
                 >
                     {get(this.state, 'filteredContacts.length') > 0 &&
                         get(this.state, 'filteredContacts', []).map((contact, index) => (
-                            <List.Item shadow={2} key={index}>
+                            <List.Item shadow={2} key={index} margin={true}>
                                 <List.Column grow={true} border={false}>
                                     <List.Row>
                                         <span className="contact-info">
@@ -188,7 +188,7 @@ export class EventPreviewContentComponent extends React.Component {
                                     </span>
                                 </List.ActionMenu>
                             </List.Item>
-                        )) || <p>-</p>
+                        ))
                     }
                     {this.state.showContactInfo && (
                         <ContactInfoContainer onCancel={this.closeDetails.bind(this)}

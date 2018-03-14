@@ -252,7 +252,6 @@ class AssignmentPreviewContainerComponent extends React.Component {
                         />
                     </ToggleBox>
                 </div>
-
                 {eventItem &&
                     <div className="AssignmentPreview__event side-panel__content-block
                     side-panel__content-block--pad-small">

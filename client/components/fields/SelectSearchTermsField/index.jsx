@@ -112,7 +112,7 @@ export class SelectSearchTermsField extends React.Component {
                             )}
                             <div>
                                 {value.map((v, index) => (
-                                    <List.Item shadow={2} key={index}
+                                    <List.Item shadow={2} key={index} margin={true}
                                         tabIndex={0}
                                         onKeyDown={(event) => {
                                             if (event.keyCode === KEYCODES.ENTER &&
