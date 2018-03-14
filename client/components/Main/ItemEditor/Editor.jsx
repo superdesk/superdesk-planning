@@ -182,7 +182,7 @@ export class EditorComponent extends React.Component {
     }
 
     onSave() {
-        this._save({publish: false, unpublish: false});
+        return this._save({publish: false, unpublish: false});
     }
 
     onPublish() {
@@ -203,7 +203,7 @@ export class EditorComponent extends React.Component {
     }
 
     onSaveAndPublish() {
-        this._save({publish: true, unpublish: false});
+        return this._save({publish: true, unpublish: false});
     }
 
     onUnpublish() {
@@ -224,7 +224,7 @@ export class EditorComponent extends React.Component {
     }
 
     onSaveUnpublish() {
-        this._save({publish: false, unpublish: true});
+        return this._save({publish: false, unpublish: true});
     }
 
     tearDownEditorState() {

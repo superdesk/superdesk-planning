@@ -17,6 +17,7 @@ export class EditPriorityComponent extends React.Component {
             submitting: false,
         };
 
+        this.dom = {popupContainer: null};
         this.onChange = this.onChange.bind(this);
     }
 
@@ -125,8 +126,11 @@ export class EditPriorityComponent extends React.Component {
                         options={this.props.priorities}
                         iconName="priority-label"
                         noMargin={true}
+                        popupContainer={() => this.dom.popupContainer}
                     />
                 </Row>
+
+                <div ref={(node) => this.dom.popupContainer = node} />
             </div>
         );
     }

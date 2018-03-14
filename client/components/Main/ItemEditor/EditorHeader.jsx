@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-
+import {isEqual} from 'lodash';
 import {ITEM_TYPE, PRIVILEGES, KEYCODES, WORKSPACE} from '../../../constants';
 import {gettext, getItemType, eventUtils, planningUtils, isItemPublic, lockUtils, onEventCapture} from '../../../utils';
 
@@ -52,7 +52,7 @@ export class EditorHeader extends React.Component {
                 body: 'There are some unsaved changes, do you want to save it now?',
                 okText: 'Save',
                 showIgnore: true,
-                action: errors ? null : () => onSave().finally(cancel),
+                action: !isEqual(errors, {}) ? null : () => onSave().finally(cancel),
                 ignore: cancel,
             });
         } else {

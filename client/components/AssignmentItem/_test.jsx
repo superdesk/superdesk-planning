@@ -108,7 +108,7 @@ describe('assignments', () => {
                 });
 
                 const wrapper = getMountedWrapper();
-                const item = wrapper.find('.ListItem').first();
+                const item = wrapper.find('.sd-list-item').first();
 
                 item.simulate('click');
             });
