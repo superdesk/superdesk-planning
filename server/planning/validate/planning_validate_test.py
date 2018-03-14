@@ -65,9 +65,10 @@ class PlanningValidateServiceTest(TestCase):
                 }
             }])[0]
 
-            self.assertEqual(len(errors), 2)
+            self.assertEqual(len(errors), 3)
             self.assertIn('NAME is a required field', errors)
             self.assertIn('CALENDARS is a required field', errors)
+            self.assertIn('DATES is a required field', errors)
 
             errors = get_resource_service('planning_validator').post([{
                 'validate_on_publish': False,
@@ -76,7 +77,8 @@ class PlanningValidateServiceTest(TestCase):
                     'name': 'Test Event',
                     'slugline': 'Test slugger',
                     'calendars': [{'qcode': 'cal1', 'name': 'Calendar 1'}],
-                    'definition_short': 'This is an Event'
+                    'definition_short': 'This is an Event',
+                    'dates': {}
                 }
             }])[0]
 

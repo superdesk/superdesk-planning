@@ -11,6 +11,7 @@
 import logging
 import superdesk
 import superdesk.schema as schema
+from copy import deepcopy
 from superdesk.utils import ListCursor
 
 
@@ -210,22 +211,48 @@ class PlanningTypesService(superdesk.Service):
 
     def find_one(self, req, **lookup):
         try:
-            return super().find_one(req, **lookup) or \
-                [ptype for ptype in DEFAULT_EDITOR if ptype.get('name') == lookup.get('name')][0]
+            planning_type = super().find_one(req, **lookup)
+
+            # lookup name from either **lookup of planning_item(if lookup has only '_id')
+            lookup_name = lookup.get('name')
+            if not lookup_name and planning_type:
+                lookup_name = planning_type.get('name')
+
+            default_planning_type = next((ptype for ptype in DEFAULT_EDITOR
+                                          if ptype.get('name') == lookup_name), None)
+            if not planning_type:
+                return default_planning_type
+
+            self.merge_planning_type(planning_type, default_planning_type)
+            return planning_type
         except IndexError:
             return None
 
     def get(self, req, lookup):
         planning_types = list(super().get(req, lookup))
+        merged_planning_types = []
 
-        # If the name does not exist in the list returned from mongo then we need to insert is from the DEFAULT_EDITOR
-        # list
-        overidden_names = [l.get('name') for l in planning_types]
-        for planning_type in DEFAULT_EDITOR:
-            if not planning_type.get('name') in overidden_names:
-                planning_types.append(planning_type)
+        for default_planning_type in DEFAULT_EDITOR:
+            planning_type = next((p for p in planning_types
+                                  if p.get('name') == default_planning_type.get('name')), None)
 
-        return ListCursor(planning_types)
+            # If nothing is defined in database for this planning_type, use default
+            if planning_type is None:
+                merged_planning_types.append(default_planning_type)
+            else:
+                self.merge_planning_type(planning_type, default_planning_type)
+                merged_planning_types.append(planning_type)
+
+        return ListCursor(merged_planning_types)
+
+    def merge_planning_type(self, planning_type, default_planning_type):
+        # Update schema fields with database schema fields
+        updated_planning_type = deepcopy(default_planning_type)
+        updated_planning_type['schema'].update(planning_type.get('schema', {}))
+        updated_planning_type['editor'].update(planning_type.get('editor', {}))
+
+        planning_type['schema'] = updated_planning_type['schema']
+        planning_type['editor'] = updated_planning_type['editor']
 
 
 class PlanningTypesResource(superdesk.Resource):
