@@ -84,8 +84,10 @@ export class SelectUserInput extends React.Component {
                     </LineInput>
                 </Row>
                 <Row>
-                    <LineInput isSelect={true} noLabel={!!value}>
+                    <LineInput isSelect={true} noLabel={!!value}
+                        onClick={this.openPopup}>
                         <Input
+                            className="sd-line-input--no-label"
                             value={this.state.searchText}
                             onChange={this.filterUserList}
                             onClick={this.openPopup}

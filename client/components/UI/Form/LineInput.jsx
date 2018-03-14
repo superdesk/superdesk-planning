@@ -18,6 +18,7 @@ export const LineInput = ({
     message,
     className,
     borderBottom,
+    onClick
 }) => (
     <div className={classNames(
         'sd-line-input',
@@ -35,7 +36,8 @@ export const LineInput = ({
             'sd-line-input--no-border-bottom': !borderBottom
         },
         className
-    )}>
+    )}
+    onClick={onClick ? onClick : undefined}>
         {children}
         {hint && <div className="sd-line-input__hint">{hint}</div>}
         {message && <div className="sd-line-input__message">{message}</div>}
@@ -56,6 +58,7 @@ export const LineInputProps = {
     hint: PropTypes.string,
     message: PropTypes.string,
     borderBottom: PropTypes.bool,
+    onClick: PropTypes.func,
 };
 
 export const LineInputDefaultProps = {

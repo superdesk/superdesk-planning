@@ -15,6 +15,7 @@ export class SelectUserPopup extends React.Component {
     constructor(props) {
         super(props);
         this.onKeyDown = this.onKeyDown.bind(this);
+        this.handleOnChange = this.handleOnChange.bind(this);
         this.state = {activeIndex: -1};
         this.dom = {itemList: null};
     }
@@ -56,13 +57,17 @@ export class SelectUserPopup extends React.Component {
         }
     }
 
+    handleOnChange(user, event) {
+        onEventCapture(event);
+        this.props.onChange(user);
+    }
+
     render() {
         const {
             onClose,
             target,
             popupContainer,
             users,
-            onChange,
         } = this.props;
 
         return (
@@ -82,7 +87,7 @@ export class SelectUserPopup extends React.Component {
                             <li key={index} className={
                                 classNames('user-search__popup-item',
                                     {'user-search__popup-item--active': index === this.state.activeIndex})}>
-                                <button type="button" onClick={onChange.bind(null, user)}>
+                                <button type="button" onClick={this.handleOnChange.bind(null, user)}>
                                     <UserAvatar user={user} />
                                     <div className="user-search__popup-item-label">{user.display_name}</div>
                                 </button>
