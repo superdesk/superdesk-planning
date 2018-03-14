@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {isEqual} from 'lodash';
 import {ITEM_TYPE, PRIVILEGES, KEYCODES, WORKSPACE} from '../../../constants';
-import {gettext, getItemType, eventUtils, planningUtils, isItemPublic, lockUtils, onEventCapture} from '../../../utils';
+import {gettext, eventUtils, planningUtils, isItemPublic, lockUtils, onEventCapture} from '../../../utils';
 
 import {Button} from '../../UI';
 import {Button as NavButton} from '../../UI/Nav';
@@ -11,6 +11,7 @@ import {StretchBar} from '../../UI/SubNav';
 
 import {LockContainer} from '../../index';
 import {EditorItemActions} from './index';
+import {Label} from '../../';
 
 export class EditorHeader extends React.Component {
     constructor(props) {
@@ -79,11 +80,11 @@ export class EditorHeader extends React.Component {
             onUnlock,
             onLock,
             currentWorkspace,
+            itemType,
         } = this.props;
 
         // Do not show the tabs if we're creating a new item
         const existingItem = !!item;
-        const itemType = getItemType(item);
         const isPublic = isItemPublic(item);
         const itemLock = lockUtils.getLock(item, lockedItems);
         const inPlanning = currentWorkspace === WORKSPACE.PLANNING;
@@ -131,7 +132,22 @@ export class EditorHeader extends React.Component {
                         />
                     </StretchBar>
                 )}
-
+                {itemType === ITEM_TYPE.EVENT && (<StretchBar right={false}>
+                    <Label
+                        text={gettext('Event')}
+                        isHollow={false}
+                        iconType={'large'}
+                    />
+                </StretchBar>
+                )}
+                {itemType === ITEM_TYPE.PLANNING && (<StretchBar right={false}>
+                    <Label
+                        text={gettext('Planning')}
+                        isHollow={false}
+                        iconType={'large'}
+                    />
+                </StretchBar>
+                )}
                 <StretchBar right={true}>
                     <Button
                         disabled={submitting}
@@ -236,4 +252,5 @@ EditorHeader.propTypes = {
     onLock: PropTypes.func,
     itemActions: PropTypes.object,
     currentWorkspace: PropTypes.string,
+    itemType: PropTypes.string
 };

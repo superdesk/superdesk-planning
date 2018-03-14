@@ -322,6 +322,7 @@ export class EditorComponent extends React.Component {
                     itemActions={this.props.itemActions}
                     currentWorkspace={this.props.currentWorkspace}
                     ref={(ref) => this.editorHeaderComponent = ref}
+                    itemType={this.props.itemType}
                 />
                 <Content flex={true}>
                     {this.state.showSubmitFailed && (
