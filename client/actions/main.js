@@ -1,5 +1,5 @@
 import {MAIN, ITEM_TYPE} from '../constants';
-import {activeFilter, previewId, lastRequestParams} from '../selectors/main';
+import {activeFilter, lastRequestParams} from '../selectors/main';
 import planningUi from './planning/ui';
 import planningApi from './planning/api';
 import eventsUi from './events/ui';
@@ -27,45 +27,42 @@ const lockAndEdit = (item) => (
     (dispatch, getState, {notify}) => {
         const currentItemId = selectors.forms.currentItemId(getState());
         const currentSession = selectors.general.session(getState());
+        const lockedItems = selectors.locks.getLockedItems(getState());
+        const shouldLockItem = shouldLockItemForEdit(item, lockedItems);
 
-        if (currentItemId === item._id && lockUtils.isItemLockedInThisSession(item, currentSession)) {
+        // If this item is already opened and we either have a lock or the item should not get locked
+        // Then simply return the item
+        if (currentItemId === item._id &&
+            (!shouldLockItem || lockUtils.isItemLockedInThisSession(item, currentSession))
+        ) {
             return Promise.resolve(item);
         }
 
         dispatch({type: MAIN.ACTIONS.EDIT_LOADING_START});
         dispatch(self.openEditor(item));
+
         // If the item being edited is currently opened in the Preview panel
         // then close the preview panel
-        if (previewId(getState()) === item._id) {
+        if (selectors.main.previewId(getState()) === item._id) {
             dispatch(self.closePreview());
         }
 
-        const state = getState();
-        const lockedItems = selectors.locks.getLockedItems(state);
-        let promise;
-
         // If it is an existing item and the item is not locked
         // then lock the item, otherwise return the existing item
-        if (shouldLockItemForEdit(item, lockedItems)) {
-            promise = dispatch(locks.lock(item));
-        } else {
-            promise = Promise.resolve(item);
-        }
+        const promise = shouldLockItem ?
+            dispatch(locks.lock(item)) :
+            Promise.resolve(item);
 
         return promise.then((lockedItem) => {
-            if (!item._id) {
-                dispatch({type: MAIN.ACTIONS.EDIT_LOADING_COMPLETE});
-            }
+            dispatch({type: MAIN.ACTIONS.EDIT_LOADING_COMPLETE});
 
             return Promise.resolve(lockedItem);
         }, (error) => {
             notify.error(
-                getErrorMessage(error, 'Failed to lock the item')
+                getErrorMessage(error, gettext('Failed to lock the item'))
             );
 
-            if (!item._id) {
-                dispatch({type: MAIN.ACTIONS.EDIT_LOADING_COMPLETE});
-            }
+            dispatch({type: MAIN.ACTIONS.EDIT_LOADING_COMPLETE});
 
             return Promise.reject(error);
         });
