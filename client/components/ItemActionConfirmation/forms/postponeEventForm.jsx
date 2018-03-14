@@ -14,10 +14,7 @@ import '../style.scss';
 export class PostponeEventComponent extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            reason: '',
-            submitting: false,
-        };
+        this.state = {reason: ''};
 
         this.onReasonChange = this.onReasonChange.bind(this);
     }
@@ -28,10 +25,7 @@ export class PostponeEventComponent extends React.Component {
     }
 
     submit() {
-        // Modal closes after submit. So, reseting submitting is not required
-        this.setState({submitting: true});
-
-        this.props.onSubmit({
+        return this.props.onSubmit({
             ...this.props.initialValues,
             reason: this.state.reason,
         });
@@ -42,7 +36,7 @@ export class PostponeEventComponent extends React.Component {
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat} = this.props;
+        const {initialValues, dateFormat, timeFormat, submitting} = this.props;
         let reasonLabel = gettext('Reason for Event postponement:');
         const numPlannings = initialValues._plannings.length;
 
@@ -93,7 +87,7 @@ export class PostponeEventComponent extends React.Component {
                     <TextAreaInput
                         value={this.state.reason}
                         onChange={this.onReasonChange}
-                        disabled={this.state.submitting}
+                        disabled={submitting}
                     />
                 </Row>
             </div>

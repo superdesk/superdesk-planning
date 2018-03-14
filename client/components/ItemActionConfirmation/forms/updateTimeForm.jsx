@@ -19,12 +19,14 @@ export class UpdateTimeComponent extends React.Component {
         super(props);
         this.state = {
             relatedEvents: [],
-            submitting: false,
             errors: {},
             diff: {},
         };
 
         this.onChange = this.onChange.bind(this);
+        this.getPopupContainer = this.getPopupContainer.bind(this);
+
+        this.dom = {popupContainer: null};
     }
 
     componentWillMount() {
@@ -91,13 +93,15 @@ export class UpdateTimeComponent extends React.Component {
     }
 
     submit() {
-        // Modal closes after submit. So, reseting submitting is not required
-        this.setState({submitting: true});
-        this.props.onSubmit(this.state.diff);
+        return this.props.onSubmit(this.state.diff);
+    }
+
+    getPopupContainer() {
+        return this.dom.popupContainer;
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat} = this.props;
+        const {initialValues, dateFormat, timeFormat, submitting} = this.props;
         const isRecurring = !!initialValues.recurrence_id;
         const eventsInUse = this.state.relatedEvents.filter((e) => (
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
@@ -111,7 +115,7 @@ export class UpdateTimeComponent extends React.Component {
             onChange: this.onChange,
             showErrors: true,
             errors: this.state.errors,
-            readOnly: this.state.submitting
+            readOnly: submitting
         };
 
         return (
@@ -159,6 +163,7 @@ export class UpdateTimeComponent extends React.Component {
                         value={get(this.state, 'diff.dates.start')}
                         timeFormat={timeFormat}
                         noMargin={true}
+                        popupContainer={this.getPopupContainer}
                         {...fieldProps}
                     />
                 </FormRow>
@@ -175,6 +180,7 @@ export class UpdateTimeComponent extends React.Component {
                         value={get(this.state, 'diff.dates.end')}
                         timeFormat={timeFormat}
                         noMargin={true}
+                        popupContainer={this.getPopupContainer}
                         {...fieldProps}
                     />
                 </FormRow>
@@ -194,6 +200,8 @@ export class UpdateTimeComponent extends React.Component {
                     action="update time"
                     {...fieldProps}
                 />
+
+                <div ref={(node) => this.dom.popupContainer = node} />
             </div>
         );
     }
@@ -208,6 +216,7 @@ UpdateTimeComponent.propTypes = {
     timeFormat: PropTypes.string.isRequired,
     onValidate: PropTypes.func,
     formProfiles: PropTypes.object,
+    submitting: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({

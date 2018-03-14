@@ -1,9 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
+import {get} from 'lodash';
+
 import * as actions from '../../../actions';
 import {isItemCancelled, gettext} from '../../../utils';
 import {PLANNING} from '../../../constants';
+
 import {Row} from '../../UI/Preview';
 import {TextAreaInput} from '../../UI/Form';
 import '../style.scss';
@@ -11,10 +14,7 @@ import '../style.scss';
 export class PlanningCovergeCancelComponent extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            reason: '',
-            submitting: false,
-        };
+        this.state = {reason: ''};
 
         this.onReasonChange = this.onReasonChange.bind(this);
     }
@@ -29,17 +29,14 @@ export class PlanningCovergeCancelComponent extends React.Component {
     }
 
     submit() {
-        // Modal closes after submit. So, resetting submitting is not required
-        this.setState({submitting: true});
-
-        this.props.onSubmit({
+        return this.props.onSubmit({
             ...this.props.initialValues,
             reason: this.state.reason,
         });
     }
 
     render() {
-        const {initialValues} = this.props;
+        const {initialValues, submitting} = this.props;
         let planning = initialValues;
         const labelText = initialValues._cancelAllCoverage ? gettext('Reason for cancelling all coverage:') :
             gettext('Reason for cancelling the planning item:');
@@ -51,7 +48,7 @@ export class PlanningCovergeCancelComponent extends React.Component {
                     <TextAreaInput
                         value={this.state.reason}
                         onChange={this.onReasonChange}
-                        disabled={this.state.submitting}
+                        disabled={submitting}
                     />
                 </Row>
             </div>
@@ -67,22 +64,24 @@ PlanningCovergeCancelComponent.propTypes = {
     // eslint-disable-next-line react/no-unused-prop-types
     onHide: PropTypes.func,
     enableSaveInModal: PropTypes.func,
+
+    submitting: PropTypes.bool,
 };
 
 const mapDispatchToProps = (dispatch) => ({
     onSubmit: (plan) => {
-        let cancelDispatch = () => (dispatch(actions.planning.ui.cancelPlanning(plan)));
+        let cancelDispatch = plan._cancelAllCoverage ?
+            actions.planning.ui.cancelAllCoverage :
+            actions.planning.ui.cancelPlanning;
 
-        if (plan._cancelAllCoverage) {
-            cancelDispatch = () => (dispatch(actions.planning.ui.cancelAllCoverage(plan)));
-        }
-
-        return cancelDispatch()
+        return dispatch(cancelDispatch(plan))
             .then((plan) => {
-                if (plan.lock_action === PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.lock_action ||
+                if (get(plan, 'lock_action') === PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.lock_action ||
                     isItemCancelled(plan)) {
-                    dispatch(actions.planning.api.unlock(plan));
+                    return dispatch(actions.planning.api.unlock(plan));
                 }
+
+                return Promise.resolve(plan);
             });
     },
 

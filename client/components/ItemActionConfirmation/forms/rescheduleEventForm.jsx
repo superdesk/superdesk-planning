@@ -6,12 +6,12 @@ import {validateItem} from '../../../validators';
 import {getDateFormat, getTimeFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
 import '../style.scss';
-import {gettext, eventUtils, getDateTimeString} from '../../../utils';
+import {gettext, eventUtils, getDateTimeString, updateFormValues} from '../../../utils';
 import {EventScheduleSummary, EventScheduleInput} from '../../Events';
 import {RelatedPlannings} from '../../';
 import {Row} from '../../UI/Preview';
 import {TextAreaInput, Field} from '../../UI/Form';
-import {get, set, isEqual, cloneDeep} from 'lodash';
+import {get, isEqual, cloneDeep} from 'lodash';
 
 export class RescheduleEventComponent extends React.Component {
     constructor(props) {
@@ -19,13 +19,15 @@ export class RescheduleEventComponent extends React.Component {
         this.state = {
             diff: null,
             reason: '',
-            submitting: false,
             errors: {},
             multiDayChanged: false,
         };
 
         this.onReasonChange = this.onReasonChange.bind(this);
         this.onDatesChange = this.onDatesChange.bind(this);
+        this.getPopupContainer = this.getPopupContainer.bind(this);
+
+        this.dom = {popupContainer: null};
     }
 
     componentWillMount() {
@@ -43,7 +45,7 @@ export class RescheduleEventComponent extends React.Component {
         if (field === 'dates.recurring_rule' && !val) {
             delete diff.dates.recurring_rule;
         } else {
-            set(diff, field, val);
+            updateFormValues(diff, field, val);
         }
 
         const errors = cloneDeep(this.state.errors);
@@ -75,21 +77,19 @@ export class RescheduleEventComponent extends React.Component {
     }
 
     submit() {
-        // Modal closes after submit. So, reseting submitting is not required
-        this.setState({submitting: true});
-
-        let updatedEvent = {
+        return this.props.onSubmit({
             ...this.props.initialValues,
             ...this.state.diff,
             reason: this.state.reason,
-        };
-
-        this.props.onSubmit(updatedEvent);
+        });
     }
 
+    getPopupContainer() {
+        return this.dom.popupContainer;
+    }
 
     render() {
-        const {initialValues, dateFormat, timeFormat, formProfiles} = this.props;
+        const {initialValues, dateFormat, timeFormat, formProfiles, submitting} = this.props;
         let reasonLabel = gettext('Reason for rescheduling this event:');
         const numPlannings = initialValues._plannings.length;
 
@@ -163,15 +163,18 @@ export class RescheduleEventComponent extends React.Component {
                     showErrors={true}
                     errors={this.state.errors}
                     formProfile={formProfiles.events}
+                    popupContainer={this.getPopupContainer}
                 />
 
                 <Row label={reasonLabel}>
                     <TextAreaInput
                         value={this.state.reason}
                         onChange={this.onReasonChange}
-                        disabled={this.state.submitting}
+                        disabled={submitting}
                     />
                 </Row>
+
+                <div ref={(node) => this.dom.popupContainer = node} />
             </div>
         );
     }
@@ -191,6 +194,8 @@ RescheduleEventComponent.propTypes = {
 
     onValidate: PropTypes.func,
     formProfiles: PropTypes.object,
+
+    submitting: PropTypes.bool,
 };
 
 
@@ -201,7 +206,6 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (event) => dispatch(actions.events.ui.rescheduleEvent(event)),
     onHide: (event) => dispatch(actions.events.api.unlock(event)),
 

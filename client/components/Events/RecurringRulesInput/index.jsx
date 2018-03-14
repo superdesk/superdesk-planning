@@ -12,7 +12,15 @@ import {EndsInput} from './EndsInput';
 
 import {gettext} from '../../../utils';
 
-export const RecurringRulesInput = ({showRepeatSummary, schedule, onChange, dateFormat, readOnly, errors}) => {
+export const RecurringRulesInput = ({
+    showRepeatSummary,
+    schedule,
+    onChange,
+    dateFormat,
+    readOnly,
+    errors,
+    popupContainer,
+}) => {
     const frequency = get(schedule, 'dates.recurring_rule.frequency');
     const endRepeatMode = get(schedule, 'dates.recurring_rule.endRepeatMode');
     const until = get(schedule, 'dates.recurring_rule.until');
@@ -62,6 +70,7 @@ export const RecurringRulesInput = ({showRepeatSummary, schedule, onChange, date
                 readOnly={readOnly}
                 errors={errors}
                 label={gettext('Ends')}
+                popupContainer={popupContainer}
             />
 
             {showRepeatSummary && (
@@ -88,6 +97,7 @@ RecurringRulesInput.propTypes = {
     dateFormat: PropTypes.string.isRequired,
     readOnly: PropTypes.bool,
     errors: PropTypes.object,
+    popupContainer: PropTypes.func,
 };
 
 RecurringRulesInput.defaultProps = {

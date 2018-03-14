@@ -21,6 +21,7 @@ export const DateTimeInput = ({
     diff,
     errors,
     showErrors,
+    popupContainer,
     ...props
 }) => (
     <Row flex={true} noPadding={!!invalid} className={{
@@ -43,6 +44,7 @@ export const DateTimeInput = ({
             dateFormat={dateFormat}
             label={label}
             required={required}
+            popupContainer={popupContainer}
         />
 
         <Field
@@ -58,6 +60,7 @@ export const DateTimeInput = ({
             showErrors={showErrors}
             noMargin={!invalid}
             timeFormat={timeFormat}
+            popupContainer={popupContainer}
         />
         {canClear && <Button
             onClick={() => onChange(field, null)}
@@ -93,6 +96,7 @@ DateTimeInput.propTypes = {
     diff: PropTypes.object,
     errors: PropTypes.object,
     showErrors: PropTypes.bool,
+    popupContainer: PropTypes.func,
 };
 
 DateTimeInput.defaultProps = {

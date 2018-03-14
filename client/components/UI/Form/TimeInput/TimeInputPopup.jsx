@@ -68,6 +68,7 @@ export class TimeInputPopup extends React.Component {
                 target={this.props.target}
                 className="time-popup"
                 noPadding={true}
+                popupContainer={this.props.popupContainer}
             >
                 <Header noBorder={true} className="time-popup__header">
                     <div className="time-popup__header-row">
@@ -135,4 +136,5 @@ TimeInputPopup.propTypes = {
     onChange: PropTypes.func.isRequired,
     close: PropTypes.func.isRequired,
     target: PropTypes.string.isRequired,
+    popupContainer: PropTypes.func,
 };

@@ -40,11 +40,6 @@ export class EventEditorComponent extends React.Component {
         super(props);
 
         this.dom = {slugline: null};
-        this.onChange = this.onChange.bind(this);
-    }
-
-    onChange(field, value) {
-        this.props.onChangeHandler(field, value);
     }
 
     componentDidMount() {
@@ -79,6 +74,7 @@ export class EventEditorComponent extends React.Component {
             dirty,
             errors,
             plannings,
+            onChangeHandler,
         } = this.props;
 
         const existingEvent = !!get(diff, '_id');
@@ -88,7 +84,7 @@ export class EventEditorComponent extends React.Component {
             item: item,
             diff: diff,
             readOnly: readOnly,
-            onChange: this.onChange,
+            onChange: onChangeHandler,
             formProfile: formProfile,
             errors: errors,
             showErrors: submitFailed,

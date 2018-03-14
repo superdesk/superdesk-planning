@@ -21,7 +21,6 @@ export class UpdateAssignmentComponent extends React.Component {
         super(props);
         this.state = {
             diff: {},
-            submitting: false,
             valid: true,
         };
 
@@ -51,10 +50,7 @@ export class UpdateAssignmentComponent extends React.Component {
     }
 
     submit() {
-        // Modal closes after submit. So, resetting submitting is not required
-        this.setState({submitting: true});
-
-        this.props.onSubmit(this.state.diff);
+        return this.props.onSubmit(this.state.diff);
     }
 
     setValid(valid) {

@@ -650,8 +650,6 @@ describe('actions.events.ui', () => {
                 .then((item) => {
                     expect(item).toEqual(data.events[0]);
 
-                    expect(store.dispatch.args[1]).toEqual([{type: 'HIDE_MODAL'}]);
-
                     expect(eventsApi.updateRepetitions.callCount).toBe(1);
                     expect(eventsApi.updateRepetitions.args[0]).toEqual([data.events[0]]);
 
@@ -668,8 +666,6 @@ describe('actions.events.ui', () => {
             store.test(done, eventsUi.updateRepetitions(data.events[0]))
                 .then(null, (error) => {
                     expect(error).toEqual(errorMessage);
-
-                    expect(store.dispatch.args[1]).toEqual([{type: 'HIDE_MODAL'}]);
 
                     expect(services.notify.success.callCount).toBe(0);
                     expect(services.notify.error.callCount).toBe(1);

@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import * as actions from '../../../actions';
 import '../style.scss';
-import {get, set, isEqual, cloneDeep} from 'lodash';
+import {get, isEqual, cloneDeep} from 'lodash';
 import {EventScheduleSummary, EventScheduleInput} from '../../Events';
 import {EVENTS} from '../../../constants';
 import {getDateFormat, getTimeFormat} from '../../../selectors/config';
@@ -11,17 +11,20 @@ import * as selectors from '../../../selectors';
 import {Row} from '../../UI/Preview';
 import {Field} from '../../UI/Form';
 import {validateItem} from '../../../validators';
+import {updateFormValues} from '../../../utils';
 
 export class ConvertToRecurringEventComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
             diff: null,
-            submitting: false,
             errors: {},
         };
 
         this.onChange = this.onChange.bind(this);
+        this.getPopupContainer = this.getPopupContainer.bind(this);
+
+        this.dom = {popupContainer: null};
     }
 
     componentWillMount() {
@@ -44,7 +47,7 @@ export class ConvertToRecurringEventComponent extends React.Component {
             delete diff.dates.recurring_rule;
             this.props.disableSaveInModal();
         } else {
-            set(diff, field, val);
+            updateFormValues(diff, field, val);
         }
 
         const errors = cloneDeep(this.state.errors);
@@ -72,15 +75,14 @@ export class ConvertToRecurringEventComponent extends React.Component {
     }
 
     submit() {
-        // Modal closes after submit. So, reseting submitting is not required
-        this.setState({submitting: true});
-
-        const updatedEvent = {
+        return this.props.onSubmit({
             ...this.props.initialValues,
             ...this.state.diff,
-        };
+        });
+    }
 
-        this.props.onSubmit(updatedEvent);
+    getPopupContainer() {
+        return this.dom.popupContainer;
     }
 
     render() {
@@ -122,7 +124,10 @@ export class ConvertToRecurringEventComponent extends React.Component {
                     showRepeatToggle={false}
                     showErrors={true}
                     errors={this.state.errors}
+                    popupContainer={this.getPopupContainer}
                 />
+
+                <div ref={(node) => this.dom.popupContainer = node} />
             </div>
         );
     }
@@ -151,8 +156,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    /** `handleSubmit` will call `onSubmit` after validation */
-    onSubmit: (event) => dispatch(actions.events.ui.save(event)),
+    onSubmit: (event) => dispatch(actions.main.save(event, false)),
 
     onHide: (event) => {
         if (event.lock_action === EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.lock_action) {

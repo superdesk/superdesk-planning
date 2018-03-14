@@ -11,8 +11,6 @@ import './style.scss';
 export class ModalWithForm extends React.Component {
     constructor(props) {
         super(props);
-
-        // This is to manage submitting state for non-Redux forms
         this.state = {submitting: false};
 
         this.submit = this.submit.bind(this);
@@ -30,7 +28,15 @@ export class ModalWithForm extends React.Component {
     submit() {
         this.setState({submitting: true});
         // Call the submit method of the form Component
-        this.getFormInstance().submit();
+        this.getFormInstance()
+            .submit()
+            .then(
+                this.props.onHide,
+                () => {
+                    this.props.enableSaveInModal();
+                    this.setState({submitting: false});
+                }
+            );
     }
 
     onHide() {
@@ -85,6 +91,7 @@ export class ModalWithForm extends React.Component {
                         initialValues={initialValues}
                         enableSaveInModal={enableSaveInModal}
                         disableSaveInModal={disableSaveInModal}
+                        submitting={this.state.submitting}
                         ref={(node) => this.dom.form = node}
                     />
                 </Modal.Body>

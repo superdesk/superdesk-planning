@@ -1,4 +1,4 @@
-import {showModal, hideModal} from '../index';
+import {showModal} from '../index';
 import planningApi from './api';
 import {locks} from '../index';
 import main from '../main';
@@ -407,17 +407,12 @@ const cancelPlanning = (plan) => (
     (dispatch, getState, {notify}) => (
         dispatch(planningApi.cancel(plan))
             .then((plan) => {
-                dispatch(hideModal());
-                notify.success('Planning Item has been cancelled');
-
+                notify.success(gettext('Planning Item has been cancelled'));
                 return Promise.resolve(plan);
             }, (error) => {
-                dispatch(hideModal());
-
                 notify.error(
-                    getErrorMessage(error, 'Failed to cancel the Planning Item!')
+                    getErrorMessage(error, gettext('Failed to cancel the Planning Item!'))
                 );
-
                 return Promise.reject(error);
             })
     )
@@ -430,15 +425,11 @@ const cancelAllCoverage = (plan) => (
 
         return dispatch(planningApi.cancelAllCoverage(plan))
             .then((plan) => {
-                dispatch(hideModal());
-                notify.success('All Coverage has been cancelled');
-
+                notify.success(gettext('All Coverage has been cancelled'));
                 return Promise.resolve(plan);
             }, (error) => {
-                dispatch(hideModal());
-
                 notify.error(
-                    getErrorMessage(error, 'Failed to cancel all coverage!')
+                    getErrorMessage(error, gettext('Failed to cancel all coverage!'))
                 );
 
                 return Promise.reject(error);

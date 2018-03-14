@@ -1,4 +1,4 @@
-import {showModal, hideModal, locks} from '../index';
+import {showModal, locks} from '../index';
 import {PRIVILEGES, EVENTS, MODALS, SPIKED_STATE, MAIN} from '../../constants';
 import eventsApi from './api';
 import main from '../main';
@@ -192,12 +192,10 @@ const spike = (item) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.spike(item))
             .then((events) => {
-                dispatch(hideModal());
                 notify.success(gettext('The event(s) have been spiked'));
                 dispatch(main.closePreviewAndEditorForItems(events));
                 return Promise.resolve(events);
             }, (error) => {
-                dispatch(hideModal());
                 notify.error(
                     getErrorMessage(error, gettext('Failed to spike the event(s)'))
                 );
@@ -211,13 +209,12 @@ const unspike = (event) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.unspike(event))
             .then((events) => {
-                dispatch(hideModal());
                 notify.success(gettext('The event(s) have been unspiked'));
                 dispatch(main.closePreviewAndEditorForItems(events));
                 return Promise.resolve(events);
             }, (error) => {
                 notify.error(
-                    getErrorMessage(error, 'Failed to spike the event(s)')
+                    getErrorMessage(error, gettext('Failed to spike the event(s)'))
                 );
 
                 return Promise.reject(error);
@@ -267,17 +264,12 @@ const cancelEvent = (event) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.cancelEvent(event))
             .then(() => {
-                dispatch(hideModal());
-                notify.success('Event has been cancelled');
-
+                notify.success(gettext('Event has been cancelled'));
                 return Promise.resolve();
             }, (error) => {
-                dispatch(hideModal());
-
                 notify.error(
-                    getErrorMessage(error, 'Failed to cancel the Event!')
+                    getErrorMessage(error, gettext('Failed to cancel the Event!'))
                 );
-
                 return Promise.reject(error);
             })
     )
@@ -287,17 +279,12 @@ const postponeEvent = (event) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.postponeEvent(event))
             .then(() => {
-                dispatch(hideModal());
-                notify.success('Event has been postponed');
-
+                notify.success(gettext('Event has been postponed'));
                 return Promise.resolve();
             }, (error) => {
-                dispatch(hideModal());
-
                 notify.error(
-                    getErrorMessage(error, 'Failed to postpone the Event!')
+                    getErrorMessage(error, gettext('Failed to postpone the Event!'))
                 );
-
                 return Promise.reject(error);
             })
     )
@@ -430,7 +417,6 @@ const rescheduleEvent = (event) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.rescheduleEvent(event))
             .then((updatedEvent) => {
-                dispatch(hideModal());
                 notify.success(gettext('Event has been rescheduled'));
 
                 const duplicatedEvent = get(updatedEvent, 'reschedule_to');
@@ -441,7 +427,7 @@ const rescheduleEvent = (event) => (
                             (newEvent) => dispatch(main.lockAndEdit(newEvent)),
                             (error) => {
                                 notify.error(
-                                    getErrorMessage(error, 'Failed to load duplicated Event.')
+                                    getErrorMessage(error, gettext('Failed to load duplicated Event.'))
                                 );
 
                                 return Promise.reject(error);
@@ -451,10 +437,8 @@ const rescheduleEvent = (event) => (
 
                 return dispatch(main.lockAndEdit(updatedEvent));
             }, (error) => {
-                dispatch(hideModal());
-
                 notify.error(
-                    getErrorMessage(error, 'Failed to reschedule the Event!')
+                    getErrorMessage(error, gettext('Failed to reschedule the Event!'))
                 );
 
                 return Promise.reject(error);
@@ -482,16 +466,12 @@ const updateEventTime = (event) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.updateEventTime(event))
             .then(() => {
-                dispatch(hideModal());
-                notify.success('Event time has been update');
+                notify.success(gettext('Event time has been update'));
                 return Promise.resolve();
             }, (error) => {
-                dispatch(hideModal());
-
                 notify.error(
-                    getErrorMessage(error, 'Failed to update the Event time!')
+                    getErrorMessage(error, gettext('Failed to update the Event time!'))
                 );
-
                 return Promise.reject(error);
             })
     )
@@ -501,11 +481,9 @@ const updateRepetitions = (event) => (
     (dispatch, getState, {notify}) => (
         dispatch(eventsApi.updateRepetitions(event))
             .then((updatedEvent) => {
-                dispatch(hideModal());
                 notify.success(gettext('Event repetitions updated'));
                 return Promise.resolve(updatedEvent);
             }, (error) => {
-                dispatch(hideModal());
                 notify.error(
                     getErrorMessage(error, gettext('Failed to update Event repetitions'))
                 );
@@ -515,13 +493,8 @@ const updateRepetitions = (event) => (
 );
 
 const save = (event) => (
-    (dispatch) => (
+    (dispatch, getState, {notify}) =>
         dispatch(eventsApi.save(event))
-            .then((events) => {
-                dispatch(hideModal());
-                return Promise.resolve(events);
-            })
-    )
 );
 
 const saveWithConfirmation = (event) => (
