@@ -88,6 +88,7 @@ Event Rescheduled
     @staticmethod
     def _reschedule_event_plannings(updates, original, plans=None, state=None):
         planning_service = get_resource_service('planning')
+        planning_cancel_service = get_resource_service('planning_cancel')
         planning_reschedule_service = get_resource_service('planning_reschedule')
         reason = updates.get('reason', None)
 
@@ -107,6 +108,7 @@ Event Rescheduled
                 updated_plan,
                 plan
             )
+            planning_cancel_service.update(plan[config.ID_FIELD], {'cancel_all_coverage': True}, plan)
 
     @staticmethod
     def _duplicate_event(updates, original, events_service):
