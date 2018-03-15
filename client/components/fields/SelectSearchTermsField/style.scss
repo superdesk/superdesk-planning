@@ -157,16 +157,6 @@
     z-index: 2100;
 }
 
-.action-bar {
-    position: unset;
-    padding: unset;
-    border: none;
-    height: auto;
-    &.show {
-        top: auto !important;
-    }
-}
-
 .profile-pic {
     width: 82px;
     height: 82px;
