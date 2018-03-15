@@ -37,7 +37,14 @@ export class LinkInput extends React.Component {
         // Find & remove "?"
         hostname = hostname.split('?')[0];
 
-        return hostname;
+        return hostname.replace('www.', '');
+    }
+
+    getAbsoulteURL(link) {
+        const hostname = this.extractHostname(link);
+        const protocol = link.indexOf('://') > -1 ? link.split('/')[0] : 'http:';
+
+        return protocol + '//www.' + hostname;
     }
 
     setTitle(link) {
@@ -46,7 +53,7 @@ export class LinkInput extends React.Component {
         }
 
         if (!this.props.iframelyKey) {
-            this.setState({title: this.extractHostname(link)});
+            this.setState({title: 'www.' + this.extractHostname(link)});
             return;
         }
 
@@ -78,7 +85,7 @@ export class LinkInput extends React.Component {
             <Row>
                 <LineInput noMargin={true}>
                     <Label text={this.state.title} />
-                    <a href={value} target="_blank">{value}</a>
+                    <a href={this.getAbsoulteURL(value)} target="_blank">{value}</a>
                 </LineInput>
             </Row>
         ) : (
@@ -98,7 +105,7 @@ export class LinkInput extends React.Component {
                         autoFocus
                     />
                     {this.state.title && (
-                        <a href={value} target="_blank">{this.state.title}</a>
+                        <a href={this.getAbsoulteURL(value)} target="_blank">{this.state.title}</a>
                     )}
                 </LineInput>
             </Row>
