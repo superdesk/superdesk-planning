@@ -33,6 +33,7 @@ const toggleDetails = [
     'subject',
     'definition_long',
     'internal_note',
+    'ednote'
 ];
 
 export class EventEditorComponent extends React.Component {
@@ -118,25 +119,27 @@ export class EventEditorComponent extends React.Component {
                         refNode={(node) => this.dom.slugline = node}
                         {...fieldProps}
                     />
+
                     <Field
                         component={TextInput}
                         field="name"
                         label={gettext('Name')}
                         {...fieldProps}
                     />
+
                     <Field
                         component={TextAreaInput}
                         field="definition_short"
                         label={gettext('Description')}
                         {...fieldProps}
                     />
+
                     <Field
                         component={SelectInput}
                         field="occur_status"
                         label={gettext('Occurrence Status')}
                         defaultValue={EVENTS.DEFAULT_VALUE(occurStatuses).occur_status}
                         options={occurStatuses}
-                        noMargin={true}
                         {...fieldProps}
                     />
 
@@ -211,10 +214,18 @@ export class EventEditorComponent extends React.Component {
                             label={gettext('Long Description')}
                             {...fieldProps}
                         />
+
                         <Field
                             component={TextAreaInput}
                             field="internal_note"
                             label={gettext('Internal Note')}
+                            {...fieldProps}
+                        />
+
+                        <Field
+                            component={TextAreaInput}
+                            field="ednote"
+                            label={gettext('Ed Note')}
                             noMargin={true}
                             {...fieldProps}
                         />

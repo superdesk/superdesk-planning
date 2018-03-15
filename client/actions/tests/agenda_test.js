@@ -371,6 +371,7 @@ describe('agenda', () => {
                     state: 'Australian Capital Territory',
                     world_region: 'Oceania'
                 }];
+                events[0].ednote = 'Editorial note about this Event';
                 const action = actions.addEventToCurrentAgenda(events[0]);
 
                 return action(dispatch, getState, {
@@ -399,6 +400,7 @@ describe('agenda', () => {
                                     world_region: 'Oceania'
                                 }],
                                 internal_note: 'internal note',
+                                ednote: 'Editorial note about this Event'
                             },
                         ]);
 

@@ -10,7 +10,7 @@ Feature: Events Reschedule
             "_id": "event1",
             "guid": "event1",
             "name": "TestEvent",
-            "definition_long": "Something happening.",
+            "ednote": "Something happening.",
             "dates": {
                 "start": "2029-11-21T12:00:00.000Z",
                 "end": "2029-11-21T14:00:00.000Z",
@@ -80,7 +80,7 @@ Feature: Events Reschedule
                 "end": "2029-11-21T14:00:00+0000",
                 "tz": "Australia/Sydney"
             },
-            "definition_long": "Something happening.\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n"
+            "ednote": "Something happening.\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n"
         }
         """
         When we get "/events_history"
@@ -302,7 +302,7 @@ Feature: Events Reschedule
                     "end": "2099-11-21T14:00:00+0000"
                 },
                 "recurrence_id": "#EVENT1.recurrence_id#",
-                "definition_long": "------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n"
+                "ednote": "------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n"
             },
             {
                 "_id": "#EVENT2._id#",
@@ -934,22 +934,22 @@ Feature: Events Reschedule
             {
                 "_id": "#EVENT1._id#",
                 "state": "postponed",
-                "definition_long": "------------------------------------------------------------\nEvent Postponed\n"
+                "ednote": "------------------------------------------------------------\nEvent Postponed\n"
             },
             {
                 "_id": "#EVENT2._id#",
                 "state": "postponed",
-                "definition_long": "------------------------------------------------------------\nEvent Postponed\n"
+                "ednote": "------------------------------------------------------------\nEvent Postponed\n"
             },
             {
                 "_id": "#EVENT3._id#",
                 "state": "postponed",
-                "definition_long": "------------------------------------------------------------\nEvent Postponed\n"
+                "ednote": "------------------------------------------------------------\nEvent Postponed\n"
             },
             {
                 "_id": "#EVENT4._id#",
                 "state": "postponed",
-                "definition_long": "------------------------------------------------------------\nEvent Postponed\n"
+                "ednote": "------------------------------------------------------------\nEvent Postponed\n"
             }
         ]}
         """
@@ -1025,7 +1025,7 @@ Feature: Events Reschedule
                     }
                 },
                 "state": "draft",
-                "definition_long": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
+                "ednote": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
             },
             {
                 "name": "Friday Club",
@@ -1042,7 +1042,7 @@ Feature: Events Reschedule
                     }
                 },
                 "state": "draft",
-                "definition_long": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
+                "ednote": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
             },
             {
                 "name": "Friday Club",
@@ -1059,7 +1059,7 @@ Feature: Events Reschedule
                     }
                 },
                 "state": "draft",
-                "definition_long": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
+                "ednote": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
             },
             {
                 "name": "Friday Club",
@@ -1076,7 +1076,7 @@ Feature: Events Reschedule
                     }
                 },
                 "state": "scheduled",
-                "definition_long": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
+                "ednote": "------------------------------------------------------------\nEvent Postponed\n\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Event back on at original date and time\n"
             }
         ]}
         """
@@ -1228,7 +1228,7 @@ Feature: Events Reschedule
             "_id": "event1",
             "guid": "event1",
             "name": "TestEvent",
-            "definition_long": "Something happening.",
+            "ednote": "Something happening.",
             "dates": {
                 "start": "2029-11-21T12:00:00.000Z",
                 "end": "2029-11-21T14:00:00.000Z",
@@ -1319,7 +1319,7 @@ Feature: Events Reschedule
                 "end": "2029-11-21T14:00:00+0000",
                 "tz": "Australia/Sydney"
             },
-            "definition_long": "Something happening.\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n"
+            "ednote": "Something happening.\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n"
         }
         """
         When we get "publish_queue"

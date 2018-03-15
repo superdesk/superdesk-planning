@@ -6,6 +6,7 @@ import * as selectors from '../../selectors';
 import {get} from 'lodash';
 import {Datetime} from '../../components';
 import {Location} from '../Location';
+import {gettext} from '../../utils';
 
 
 // eslint-disable-next-line complexity
@@ -23,7 +24,7 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
             {get(formProfile, 'editor.name.enabled') &&
                 <div className="form__row">
                     <label className="form-label form-label--light">
-                        Name
+                        {gettext('Name')}
                     </label>
                     <p>
                         {item.name || '-'}
@@ -34,7 +35,7 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
             {get(formProfile, 'editor.definition_short.enabled') &&
                 <div className="form__row">
                     <label className="form-label form-label--light">
-                        Description
+                        {gettext('Description')}
                     </label>
                     <p>
                         {item.definition_short || '-'}
@@ -45,13 +46,13 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
             <div className="form__row form__row--flex EventDates">
                 <div className="form__row-item">
                     <label className="form-label form-label--light">
-                        From
+                        {gettext('From')}
                     </label>
                     <p><Datetime date={get(item, 'dates.start')}/></p>
                 </div>
                 <div className="form__row-item">
                     <label className="form-label form-label--light">
-                        To
+                        {gettext('To')}
                     </label>
                     <p><Datetime date={get(item, 'dates.end')}/></p>
                 </div>
@@ -59,7 +60,7 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
 
             <div className="form__row">
                 <label className="form-label form-label--light">
-                    Location
+                    {gettext('Location')}
                 </label>
                 {(locationName || formattedAddress) &&
                     <span className="addgeolookup__input-wrapper">
@@ -79,7 +80,7 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
             {get(formProfile, 'editor.definition_long.enabled') &&
                 <div className="form__row">
                     <label className="form-label form-label--light">
-                        Long Description
+                        {gettext('Long Description')}
                     </label>
                     <TextareaAutosize
                         value={item.definition_long || '-'}
@@ -88,10 +89,22 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
                 </div>
             }
 
+            {get(formProfile, 'editor.ednote.enabled') &&
+                <div className="form__row">
+                    <label className="form-label form-label--light">
+                        {gettext('Ed Note')}
+                    </label>
+                    <TextareaAutosize
+                        value={item.ednote || '-'}
+                        disabled={true}
+                    />
+                </div>
+            }
+
 
             <div className="form__row">
                 <label className="form-label form-label--light">
-                    Occurrence status
+                    {gettext('Occurrence status')}
                 </label>
                 <p>
                     {get(item.occur_status, 'label') ||
@@ -103,7 +116,7 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
             {get(formProfile, 'editor.links.enabled') &&
                 <div className="form__row">
                     <label className="form-label form-label--light">
-                        Links
+                        {gettext('Links')}
                     </label>
 
                     {get(item, 'links.length', 0) &&
@@ -128,7 +141,7 @@ export const EventPreviewComponent = ({item, formProfile, createLink, streetMapU
             {get(formProfile, 'editor.files.enabled') &&
                 <div className="form__row">
                     <label className="form-label form-label--light">
-                        Attachments
+                        {gettext('Attachments')}
                     </label>
 
                     {get(item, 'files.length', 0) &&

@@ -229,6 +229,11 @@ export class EventPreviewContentComponent extends React.Component {
                         label={gettext('Internal Note')}
                         value={item.internal_note || ''}
                     />
+                    <Row
+                        enabled={get(formProfile, 'editor.ednote.enabled')}
+                        label={gettext('Ed Note')}
+                        value={item.ednote || ''}
+                    />
                 </ToggleBox>
                 {get(formProfile, 'editor.files.enabled') &&
                     <ToggleBox title={gettext('Attached Files')} isOpen={false}>

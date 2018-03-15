@@ -109,6 +109,7 @@ export const validators = {
         occur_status: [formProfile],
         slugline: [formProfile],
         dates: [eventValidators.validateDates],
+        ednote: [formProfile],
     },
     planning: {
         planning_date: [formProfile],

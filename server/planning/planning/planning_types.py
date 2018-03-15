@@ -78,6 +78,7 @@ class EventSchema(BaseSchema):
     files = schema.ListField()
     links = schema.ListField()
     dates = schema.DictField(required=True)
+    ednote = schema.StringField()
 
 
 class PlanningSchema(BaseSchema):
@@ -143,6 +144,7 @@ DEFAULT_EDITOR = [{
             'enabled': True,
             'default_duration_on_change': 1
         },
+        'ednote': {'enabled': True}
     },
     'schema': dict(EventSchema)
 }, {

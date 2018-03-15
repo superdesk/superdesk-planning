@@ -63,21 +63,22 @@ class EventsRescheduleService(EventsBaseService):
 
     @staticmethod
     def _mark_event_rescheduled(updates, original, keep_dates=False):
-        definition = '''------------------------------------------------------------
+        ednote = '''------------------------------------------------------------
 Event Rescheduled
 '''
 
         reason = updates.get('reason', None)
-        if reason is not None:
-            definition += 'Reason: {}\n'.format(reason)
 
-        if 'definition_long' in original:
-            definition = original['definition_long'] + '\n\n' + definition
+        if reason is not None:
+            ednote += 'Reason: {}\n'.format(reason)
+
+        if 'ednote' in original:
+            ednote = original['ednote'] + '\n\n' + ednote
 
         # Update the workflow state and definition of the original Event
         updates.update({
             'state': WORKFLOW_STATE.RESCHEDULED,
-            'definition_long': definition
+            'ednote': ednote
         })
 
         # We don't want to update the schedule of this current event

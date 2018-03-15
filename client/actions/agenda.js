@@ -240,6 +240,7 @@ const _createPlanningFromEvent = (event, planningDate) => (
             subject: event.subject,
             anpa_category: event.anpa_category,
             description_text: event.definition_short,
+            ednote: event.ednote,
             agendas: [],
         }));
     }
