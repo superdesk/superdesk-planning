@@ -26,6 +26,7 @@ describe('selectors', () => {
                 },
             },
             assignmentsInTodoList: [1, 2],
+            myAssignmentsTotal: 1,
             filterBy: 'All',
             searchQuery: 'test',
             orderByField: 'Updated',

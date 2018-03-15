@@ -60,6 +60,8 @@ export const getArchivePriorities = (state) => get(state, 'vocabularies.priority
 export const getUrgencies = (state) => get(state, 'vocabularies.urgency', []);
 export const getAssignmentHistory = (state) => get(state, 'assignment.assignmentHistoryItems');
 
+export const getMyAssignmentsCount = (state) => (get(state, 'assignment.myAssignmentsTotal', 0));
+
 export const getTodoAssignments = createSelector(
     [getAssignmentsInTodoList, getStoredAssignments],
     (assignmentIds, storedAssignments) => (getItemsById(assignmentIds, storedAssignments))
@@ -73,19 +75,6 @@ export const getInProgressAssignments = createSelector(
 export const getCompletedAssignments = createSelector(
     [getAssignmentsInCompletedList, getStoredAssignments],
     (assignmentIds, storedAssignments) => (getItemsById(assignmentIds, storedAssignments))
-);
-
-export const getMyAssignmentsCount = createSelector(
-    [getTodoAssignments, getCurrentUserId], // This should change!!
-    (assignments, userId) => {
-        if (assignments && userId) {
-            return assignments.reduce((previousValue, assignment) =>
-                previousValue + (
-                    get(assignment, 'assigned_to.user') === userId ? 1 : 0
-                ), 0
-            );
-        }
-    }
 );
 
 export const getCurrentAssignment = createSelector(
