@@ -51,8 +51,8 @@ class PopulatePlanningTypesTest(TestCase):
             for item in self.json_data:
                 data = service.find_one(_id=item['_id'], req=None)
                 self.assertEqual(data["_id"], item["_id"])
-                self.assertDictEqual(data["editor"], item["editor"])
-                self.assertDictEqual(data["schema"], item["schema"])
+                self.assertEqual(data["editor"]['definition_long'], item["editor"]['definition_long'])
+                self.assertDictEqual(data["schema"]['definition_long'], item["schema"]['definition_long'])
 
     def tearDown(self):
         os.remove(self.filename)
