@@ -45,3 +45,8 @@
     border-bottom: 1px dotted rgba(0, 0, 0, 0.15);
     cursor: not-allowed;
 }
+
+// Hack so that content is not rendered underneath the workqueue
+.sd-page-grid--basic .sd-content--margin-b30 {
+   margin-bottom: 30px;
+}
