@@ -15,6 +15,10 @@ time.Datetime {
             border-bottom: none !important;
         }
     }
+
+    &--is-select {
+        cursor: pointer !important;
+    }
 }
 
 .sd-list-item {
