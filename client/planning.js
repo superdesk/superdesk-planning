@@ -102,7 +102,7 @@ class PlanningAppComponent extends React.Component {
 
     render() {
         const sectionClassName = classNames(
-            'sd-content sd-page-content--slide-in',
+            'sd-content sd-content--margin-b30 sd-page-content--slide-in',
             {'sd-page-content--slide-in--open': !!this.props.editItemType}
         );
 
