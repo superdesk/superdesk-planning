@@ -313,4 +313,5 @@ events_schema = {
     'reschedule_to': event_type,
 
     'place': metadata_schema['place'],
+    'ednote': metadata_schema['ednote'],
 }  # end events_schema

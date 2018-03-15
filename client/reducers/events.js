@@ -219,19 +219,19 @@ const eventsReducer = createReducer(initialState, {
         let events = cloneDeep(state.events);
         let event = events[payload.event._id];
 
-        let definition = `------------------------------------------------------------
+        let ednote = `------------------------------------------------------------
 Event Postponed
 `;
 
         if (get(payload, 'reason', null) !== null) {
-            definition += `Reason: ${payload.reason}\n`;
+            ednote += `Reason: ${payload.reason}\n`;
         }
 
-        if (get(event, 'definition_long', null) !== null) {
-            definition = `${event.definition_long}\n\n${definition}`;
+        if (get(event, 'ednote', null) !== null) {
+            ednote = `${event.ednote}\n\n${ednote}`;
         }
 
-        event.definition_long = definition;
+        event.ednote = ednote;
         event.state = WORKFLOW_STATE.POSTPONED;
 
         removeLock(event);
@@ -338,19 +338,19 @@ const markEventCancelled = (events, eventId, etag, reason, occurStatus) => {
 
     let updatedEvent = events[eventId];
 
-    let definition = `------------------------------------------------------------
+    let ednote = `------------------------------------------------------------
 Event Cancelled
 `;
 
     if (reason !== null) {
-        definition += `Reason: ${reason}\n`;
+        ednote += `Reason: ${reason}\n`;
     }
 
-    if (get(updatedEvent, 'definition_long', null) !== null) {
-        definition = `${updatedEvent.definition_long}\n\n${definition}`;
+    if (get(updatedEvent, 'ednote', null) !== null) {
+        ednote = `${updatedEvent.ednote}\n\n${ednote}`;
     }
 
-    updatedEvent.definition_long = definition;
+    updatedEvent.ednote = ednote;
     updatedEvent.state = WORKFLOW_STATE.CANCELLED;
     updatedEvent.occur_status = occurStatus;
     updatedEvent._etag = etag;

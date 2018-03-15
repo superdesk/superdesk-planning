@@ -74,6 +74,8 @@ export const formsProfile = {
             internal_note: {enabled: true},
             location: {enabled: true},
             dates: {enabled: true},
+            place: {enabled: true},
+            ednote: {enabled: true},
         },
         schema: {
             files: {
@@ -161,6 +163,16 @@ export const formsProfile = {
                 type: 'string',
                 required: false,
                 maxlength: null,
+            },
+            place: {
+                mandatory_in_list: null,
+                schema: null,
+                type: 'list',
+                required: false,
+            },
+            ednote: {
+                type: 'string',
+                required: false,
             },
         },
     },

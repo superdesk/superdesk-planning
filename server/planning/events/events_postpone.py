@@ -94,20 +94,20 @@ class EventsPostponeService(EventsBaseService):
     def _set_event_postponed(updates, original):
         reason = updates.get('reason', None)
 
-        definition = '''------------------------------------------------------------
+        ednote = '''------------------------------------------------------------
 Event Postponed
 '''
         if reason is not None:
-            definition += 'Reason: {}\n'.format(reason)
+            ednote += 'Reason: {}\n'.format(reason)
 
-        if 'definition_long' in original:
-            definition = original['definition_long'] + '\n\n' + definition
+        if 'ednote' in original:
+            ednote = original['ednote'] + '\n\n' + ednote
 
         remove_lock_information(updates)
 
         updates.update({
             'state': WORKFLOW_STATE.POSTPONED,
-            'definition_long': definition
+            'ednote': ednote
         })
 
     def update_recurring_events(self, updates, original, update_method):

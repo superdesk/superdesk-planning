@@ -370,7 +370,7 @@ Feature: Events Cancel
                 "end": "2029-11-21T14:00:00.000Z",
                 "tz": "Australia/Sydney"
             },
-            "definition_long":  "An event with exciting things",
+            "ednote":  "An event with exciting things",
             "occur_status": {
                 "qcode": "eocstat:eos5",
                 "name": "Planned, occurs certainly"
@@ -421,7 +421,7 @@ Feature: Events Cancel
         {"_items":[{
             "_id": "event1",
             "state": "cancelled",
-            "definition_long": "An event with exciting things\n\n------------------------------------------------------------\nEvent Cancelled\nReason: Not happening anymore!\n",
+            "ednote": "An event with exciting things\n\n------------------------------------------------------------\nEvent Cancelled\nReason: Not happening anymore!\n",
             "occur_status": {"qcode": "eocstat:eos6"},
             "lock_user": null,
             "lock_session": null,
