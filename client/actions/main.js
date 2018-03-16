@@ -106,7 +106,8 @@ const save = (item, withConfirmation = true) => (
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            promise = dispatch(withConfirmation ?
+            confirmation = withConfirmation && get(item, 'recurrence_id');
+            promise = dispatch(confirmation ?
                 eventsUi.saveWithConfirmation(item) :
                 eventsApi.save(item)
             );
@@ -125,6 +126,9 @@ const save = (item, withConfirmation = true) => (
                 const savedItem = Array.isArray(savedItems) ? savedItems[0] : savedItems;
 
                 if (!get(item, '_id') && selectors.getCurrentWorkspace(getState()) !== WORKSPACE.AUTHORING) {
+                    notify.success(
+                        gettext('{{ itemType }} created', {itemType: getItemTypeString(item)})
+                    );
                     return dispatch(self.lockAndEdit(savedItem));
                 }
 
@@ -155,7 +159,8 @@ const unpublish = (item, withConfirmation = true) => (
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            promise = dispatch(withConfirmation ?
+            confirmation = withConfirmation && get(item, 'recurrence_id');
+            promise = dispatch(confirmation ?
                 eventsUi.publishWithConfirmation(item, false) :
                 eventsApi.unpublish(item)
             );
@@ -198,7 +203,8 @@ const publish = (item, withConfirmation = true) => (
 
         switch (itemType) {
         case ITEM_TYPE.EVENT:
-            promise = dispatch(withConfirmation ?
+            confirmation = withConfirmation && get(item, 'recurrence_id');
+            promise = dispatch(confirmation ?
                 eventsUi.publishWithConfirmation(item, true) :
                 eventsApi.publish(item)
             );

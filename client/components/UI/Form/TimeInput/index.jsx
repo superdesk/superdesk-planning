@@ -94,7 +94,7 @@ export class TimeInput extends React.Component {
     }
 
     render() {
-        const {placeholder, field, label, value, readOnly, ...props} = this.props;
+        const {placeholder, field, label, value, readOnly, popupContainer, ...props} = this.props;
 
         return (
             <LineInput {...props} readOnly={readOnly}>
@@ -127,6 +127,7 @@ export class TimeInput extends React.Component {
                         onChange={this.onChange}
                         close={this.toggleOpenTimePicker}
                         target="icon-time"
+                        popupContainer={popupContainer}
                     />
                 )}
             </LineInput>
@@ -152,6 +153,7 @@ TimeInput.propTypes = {
     readOnly: PropTypes.bool,
     boxed: PropTypes.bool,
     noMargin: PropTypes.bool,
+    popupContainer: PropTypes.func,
 };
 
 TimeInput.defaultProps = {

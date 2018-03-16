@@ -96,7 +96,15 @@ export class DateInput extends React.Component {
     }
 
     render() {
-        const {field, label, placeholder, value, readOnly, ...props} = this.props;
+        const {
+            field,
+            label,
+            placeholder,
+            value,
+            readOnly,
+            popupContainer,
+            ...props
+        } = this.props;
 
         return (
             <LineInput {...props} readOnly={readOnly}>
@@ -128,6 +136,7 @@ export class DateInput extends React.Component {
                         onChange={this.onChange}
                         close={this.toggleOpenDatePicker}
                         target="icon-calendar"
+                        popupContainer={popupContainer}
                     />
                 )}
             </LineInput>
@@ -154,6 +163,7 @@ DateInput.propTypes = {
     readOnly: PropTypes.bool,
     boxed: PropTypes.bool,
     noMargin: PropTypes.bool,
+    popupContainer: PropTypes.func,
 };
 
 DateInput.defaultProps = {

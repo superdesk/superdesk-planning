@@ -1,9 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, set, isEqual, cloneDeep} from 'lodash';
+import {get, isEqual, cloneDeep} from 'lodash';
 
-import {gettext, lockUtils, eventUtils, planningUtils} from '../../../utils';
+import {gettext, lockUtils, eventUtils, planningUtils, updateFormValues} from '../../../utils';
 
 import {ITEM_TYPE, EVENTS, PLANNING, WORKSPACE, PUBLISHED_STATE, WORKFLOW_STATE} from '../../../constants';
 import * as selectors from '../../../selectors';
@@ -130,7 +130,7 @@ export class EditorComponent extends React.Component {
         const errors = cloneDeep(this.state.errors);
 
         if (field) {
-            set(diff, field, value);
+            updateFormValues(diff, field, value);
         }
 
         this.props.onValidate(

@@ -21,30 +21,35 @@ export class EndsInput extends React.Component {
         const {onChange, fieldPrefix} = this.props;
 
         if (value === 'count') {
-            onChange(`${fieldPrefix}endRepeatMode`, 'count');
-            onChange(`${fieldPrefix}until`, null);
+            onChange({
+                [`${fieldPrefix}endRepeatMode`]: 'count',
+                [`${fieldPrefix}until`]: null
+            });
         } else if (value === 'until') {
-            onChange(`${fieldPrefix}endRepeatMode`, 'until');
-            onChange(`${fieldPrefix}count`, null);
+            onChange({
+                [`${fieldPrefix}endRepeatMode`]: 'until',
+                [`${fieldPrefix}count`]: null
+            });
         }
     }
 
     onChange(field, value) {
         const {onChange, endRepeatMode, fieldPrefix} = this.props;
+        const changes = {[`${fieldPrefix}${field}`]: value};
 
         if (field === 'count' && endRepeatMode === 'until') {
-            onChange(`${fieldPrefix}endRepeatMode`, 'count');
-            onChange(`${fieldPrefix}until`, null);
+            changes[`${fieldPrefix}endRepeatMode`] = 'count';
+            changes[`${fieldPrefix}until`] = null;
         } else if (field === 'until' && endRepeatMode === 'count') {
-            onChange(`${fieldPrefix}endRepeatMode`, 'until');
-            onChange(`${fieldPrefix}count`, null);
+            changes[`${fieldPrefix}endRepeatMode`] = 'until';
+            changes[`${fieldPrefix}count`] = null;
         }
 
-        onChange(`${fieldPrefix}${field}`, value);
+        onChange(changes, null);
     }
 
     render() {
-        const {label, endRepeatMode, count, until, dateFormat, readOnly, errors} = this.props;
+        const {label, endRepeatMode, count, until, dateFormat, readOnly, errors, popupContainer} = this.props;
         const invalid = !!(get(errors, 'count') || get(errors, 'until'));
 
         return (
@@ -108,6 +113,7 @@ export class EndsInput extends React.Component {
                             readOnly={readOnly}
                             invalid={!!get(errors, 'until')}
                             message={get(errors, 'until', '')}
+                            popupContainer={popupContainer}
                         />
                     </RowItem>
                     <RowItem>
@@ -140,6 +146,7 @@ EndsInput.propTypes = {
     readOnly: PropTypes.bool,
     boxed: PropTypes.bool,
     noMargin: PropTypes.bool,
+    popupContainer: PropTypes.func,
 };
 
 EndsInput.defaultProps = {

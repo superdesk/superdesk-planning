@@ -17,7 +17,6 @@ export class SpikeEventComponent extends React.Component {
         this.state = {
             eventUpdateMethod: EventUpdateMethods[0],
             relatedEvents: [],
-            submitting: false,
         };
 
         this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
@@ -46,17 +45,14 @@ export class SpikeEventComponent extends React.Component {
     }
 
     submit() {
-        // Modal closes after submit. So, reseting submitting is not required
-        this.setState({submitting: true});
-
-        this.props.onSubmit({
+        return this.props.onSubmit({
             ...this.props.initialValues,
             update_method: this.state.eventUpdateMethod,
         });
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat} = this.props;
+        const {initialValues, dateFormat, timeFormat, submitting} = this.props;
         const isRecurring = !!initialValues.recurrence_id;
         const eventsInUse = this.state.relatedEvents.filter((e) => (
             get(e, 'planning_ids.length', 0) > 0 || 'pubstatus' in e
@@ -99,7 +95,7 @@ export class SpikeEventComponent extends React.Component {
                     showMethodSelection={isRecurring}
                     updateMethodLabel={gettext('Spike all recurring events or just this one?')}
                     showSpace={false}
-                    readOnly={this.state.submitting}
+                    readOnly={submitting}
                     action="spike" />
 
                 {eventsInUse.length > 0 &&
@@ -132,7 +128,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    onSubmit: (event) => (dispatch(actions.events.ui.spike(event))),
+    onSubmit: (event) => dispatch(actions.events.ui.spike(event)),
 });
 
 export const SpikeEventForm = connect(

@@ -17,7 +17,6 @@ export class UnspikeEventComponent extends React.Component {
         this.state = {
             eventUpdateMethod: EventUpdateMethods[0],
             relatedEvents: [],
-            submitting: false,
         };
 
         this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
@@ -46,17 +45,14 @@ export class UnspikeEventComponent extends React.Component {
     }
 
     submit() {
-        // Modal closes after submit. So, resetting submitting is not required
-        this.setState({submitting: true});
-
-        this.props.onSubmit({
+        return this.props.onSubmit({
             ...this.props.initialValues,
             update_method: this.state.eventUpdateMethod,
         });
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat} = this.props;
+        const {initialValues, dateFormat, timeFormat, submitting} = this.props;
         const isRecurring = !!initialValues.recurrence_id;
         const numEvents = (this.state.relatedEvents.filter(
             (event) => get(event, 'state') === WORKFLOW_STATE.SPIKED)
@@ -98,7 +94,7 @@ export class UnspikeEventComponent extends React.Component {
                     showMethodSelection={isRecurring}
                     updateMethodLabel={gettext('Unspike all recurring events or just this one?')}
                     showSpace={false}
-                    readOnly={this.state.submitting}
+                    readOnly={submitting}
                     action="spike" />
             </div>
         );

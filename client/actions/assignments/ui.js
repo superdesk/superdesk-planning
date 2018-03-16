@@ -1,4 +1,4 @@
-import {showModal, hideModal} from '../index';
+import {showModal} from '../index';
 import assignments from './index';
 import * as selectors from '../../selectors';
 import * as actions from '../../actions';
@@ -385,18 +385,14 @@ const save = (item) => (
     (dispatch, getState, {notify}) => (
         dispatch(assignments.api.save(item))
             .then((updatedItem) => {
-                dispatch(hideModal());
-                let msg = 'Assignment priority has been updated.';
-
-                if (item.lock_action === 'reassign') {
-                    msg = 'The assignment was reassigned.';
-                }
-
-                notify.success(msg);
+                notify.success(get(item, 'lock_action') === 'reassign' ?
+                    gettext('The assignment was reassigned.') :
+                    gettext('Assignment priority has been updated.')
+                );
                 return Promise.resolve(updatedItem);
             }, (error) => {
                 notify.error(
-                    getErrorMessage(error, 'Failed to save the assignment.')
+                    getErrorMessage(error, gettext('Failed to save the assignment.'))
                 );
                 return Promise.reject(error);
             })

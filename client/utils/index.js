@@ -3,7 +3,7 @@ import {createStore as _createStore, applyMiddleware} from 'redux';
 import planningApp from '../reducers';
 import thunkMiddleware from 'redux-thunk';
 import {createLogger} from 'redux-logger';
-import {get, set, map, cloneDeep} from 'lodash';
+import {get, set, map, cloneDeep, forEach} from 'lodash';
 import {
     PUBLISHED_STATE,
     WORKFLOW_STATE,
@@ -625,3 +625,11 @@ export const getSearchDateRange = (currentSearch) => {
 };
 
 export const getMapUrl = (url, name, address) => (`${url}${name} ${address}`);
+
+export const updateFormValues = (diff, field, value) => {
+    if (typeof field === 'string') {
+        set(diff, field, value);
+    } else if (typeof field === 'object') {
+        forEach(field, (val, key) => set(diff, key, val));
+    }
+};

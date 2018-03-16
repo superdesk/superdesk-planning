@@ -4,12 +4,12 @@ import {connect} from 'react-redux';
 import * as actions from '../../../actions';
 import {getDateFormat} from '../../../selectors/config';
 import * as selectors from '../../../selectors';
-import {gettext} from '../../../utils';
+import {gettext, updateFormValues} from '../../../utils';
 import {Row} from '../../UI/Preview/';
 import {RepeatEventSummary} from '../../Events';
 import {EndsInput} from '../../Events/RecurringRulesInput/EndsInput';
 import '../style.scss';
-import {get, set, cloneDeep, isEqual} from 'lodash';
+import {get, cloneDeep, isEqual} from 'lodash';
 import {EVENTS} from '../../../constants';
 import {validateItem} from '../../../validators';
 
@@ -17,12 +17,14 @@ export class UpdateEventRepetitionsComponent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            submitting: false,
             errors: {},
             diff: {},
         };
 
         this.onChange = this.onChange.bind(this);
+        this.getPopupContainer = this.getPopupContainer.bind(this);
+
+        this.dom = {popupContainer: null};
     }
 
     componentWillMount() {
@@ -32,10 +34,10 @@ export class UpdateEventRepetitionsComponent extends React.Component {
     }
 
     onChange(field, value) {
-        const diff = cloneDeep(get(this.state, 'diff') || {});
         const errors = cloneDeep(this.state.errors);
+        const diff = cloneDeep(get(this.state, 'diff') || {});
 
-        set(diff, field, value);
+        updateFormValues(diff, field, value);
 
         this.props.onValidate(
             diff,
@@ -57,13 +59,15 @@ export class UpdateEventRepetitionsComponent extends React.Component {
     }
 
     submit() {
-        // Modal closes after submit. So, reseting submitting is not required
-        this.setState({submitting: true});
-        this.props.onSubmit(this.state.diff);
+        return this.props.onSubmit(this.state.diff);
+    }
+
+    getPopupContainer() {
+        return this.dom.popupContainer;
     }
 
     render() {
-        const {initialValues, dateFormat} = this.props;
+        const {initialValues, dateFormat, submitting} = this.props;
         const {diff} = this.state;
 
         const frequency = get(diff, 'dates.recurring_rule.frequency');
@@ -116,10 +120,13 @@ export class UpdateEventRepetitionsComponent extends React.Component {
                     endRepeatMode={endRepeatMode}
                     onChange={this.onChange}
                     dateFormat={dateFormat}
-                    readOnly={this.state.submitting}
+                    readOnly={submitting}
                     errors={get(this.state.errors, 'dates.recurring_rule')}
                     label={gettext('Ends')}
+                    popupContainer={this.getPopupContainer}
                 />
+
+                <div ref={(node) => this.dom.popupContainer = node} />
             </div>
         );
     }
@@ -133,6 +140,7 @@ UpdateEventRepetitionsComponent.propTypes = {
     dateFormat: PropTypes.string.isRequired,
     onValidate: PropTypes.func,
     formProfiles: PropTypes.object,
+    submitting: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({

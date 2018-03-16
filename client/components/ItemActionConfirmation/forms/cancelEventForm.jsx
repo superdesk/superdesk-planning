@@ -19,7 +19,6 @@ export class CancelEventComponent extends React.Component {
             reason: '',
             relatedEvents: [],
             relatedPlannings: [],
-            submitting: false,
         };
 
         this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
@@ -40,10 +39,7 @@ export class CancelEventComponent extends React.Component {
     }
 
     submit() {
-        // Modal closes after submit. So, reseting submitting is not required
-        this.setState({submitting: true});
-
-        this.props.onSubmit({
+        return this.props.onSubmit({
             ...this.props.initialValues,
             update_method: this.state.eventUpdateMethod,
             reason: this.state.reason,
@@ -65,7 +61,7 @@ export class CancelEventComponent extends React.Component {
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat} = this.props;
+        const {initialValues, dateFormat, timeFormat, submitting} = this.props;
         const isRecurring = !!initialValues.recurrence_id;
 
         const numEvents = this.state.relatedEvents.length + 1;
@@ -115,7 +111,7 @@ export class CancelEventComponent extends React.Component {
                     updateMethodLabel={gettext('Cancel all recurring events or just this one?')}
                     relatedPlannings={this.state.relatedPlannings}
                     showSpace={false}
-                    readOnly={this.state.submitting}
+                    readOnly={submitting}
                     action="cancel"
                 />
 
@@ -123,7 +119,7 @@ export class CancelEventComponent extends React.Component {
                     <TextAreaInput
                         value={this.state.reason}
                         onChange={this.onReasonChange}
-                        disabled={this.state.submitting}
+                        disabled={submitting}
                     />
                 </Row>
             </div>
@@ -152,7 +148,6 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (event) => dispatch(actions.events.ui.cancelEvent(event)),
     onHide: (event) => {
         if (event.lock_action === EVENTS.ITEM_ACTIONS.CANCEL_EVENT.lock_action) {

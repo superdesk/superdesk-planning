@@ -3,7 +3,8 @@ import {shallow} from 'enzyme';
 import {EventScheduleInput} from './index';
 import sinon from 'sinon';
 import moment from 'moment';
-import {cloneDeep, set} from 'lodash';
+import {cloneDeep} from 'lodash';
+import {updateFormValues} from '../../../utils';
 
 describe('<EventScheduleInput />', () => {
     let item;
@@ -22,7 +23,9 @@ describe('<EventScheduleInput />', () => {
         readOnly = pristine = false;
         showRepeat = showRepeatSummary = true;
 
-        onChange = sinon.spy((field, value) => set(diff, field, value));
+        onChange = sinon.spy((field, value) =>
+            updateFormValues(diff, field, value)
+        );
 
         formProfile = {editor: {dates: {default_duration_on_change: 1}}};
     });

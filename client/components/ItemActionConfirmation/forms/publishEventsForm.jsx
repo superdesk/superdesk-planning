@@ -16,7 +16,6 @@ export class PublishEventsComponent extends React.Component {
         this.state = {
             eventUpdateMethod: EventUpdateMethods[0],
             relatedEvents: [],
-            submitting: false,
         };
 
         this.onEventUpdateMethodChange = this.onEventUpdateMethodChange.bind(this);
@@ -45,17 +44,14 @@ export class PublishEventsComponent extends React.Component {
     }
 
     submit() {
-        // Modal closes after submit. So, reseting submitting is not required
-        this.setState({submitting: true});
-
-        this.props.onSubmit({
+        return this.props.onSubmit({
             ...this.props.initialValues,
             update_method: this.state.eventUpdateMethod,
         });
     }
 
     render() {
-        const {initialValues, dateFormat, timeFormat} = this.props;
+        const {initialValues, dateFormat, timeFormat, submitting} = this.props;
         const isRecurring = !!initialValues.recurrence_id;
         const publishing = get(initialValues, '_publish', true);
         const updateMethodLabel = publishing ?
@@ -102,7 +98,7 @@ export class PublishEventsComponent extends React.Component {
                     showMethodSelection={isRecurring}
                     updateMethodLabel={updateMethodLabel}
                     showSpace={false}
-                    readOnly={this.state.submitting}
+                    readOnly={submitting}
                     action={publishing ? gettext('publish') : gettext('unpublish')} />
             </div>
         );
@@ -124,12 +120,10 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-    /** `handleSubmit` will call `onSubmit` after validation */
     onSubmit: (event) => dispatch(event._publish ?
         actions.main.publish(event, false) :
         actions.main.unpublish(event, false)
-    )
-        .finally(() => dispatch(actions.hideModal())),
+    ),
 });
 
 export const PublishEventsForm = connect(
