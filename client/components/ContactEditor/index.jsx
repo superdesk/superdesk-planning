@@ -72,7 +72,8 @@ export class ContactEditor extends React.Component {
         };
 
         return (
-            <Modal large={true} show={this.state.showModal}>
+            <Modal className="contact-details-pane contact-details-pane--editor"
+                large={true} show={this.state.showModal}>
                 <Modal.Header>
                     <a className="close" onClick={this.handleCancel}>
                         <i className="icon-close-small" />
