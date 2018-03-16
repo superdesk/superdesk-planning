@@ -2,7 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 import {getItemInArrayById, gettext, planningUtils} from '../../../utils';
-import {COVERAGES, WORKSPACE} from '../../../constants';
+import {COVERAGES} from '../../../constants';
+import moment from 'moment';
 
 
 import {
@@ -18,7 +19,10 @@ export class CoverageForm extends React.Component {
     constructor(props) {
         super(props);
         this.onScheduleChanged = this.onScheduleChanged.bind(this);
-        this.dom = {contentType: null};
+        this.dom = {
+            contentType: null,
+            popupContainer: null
+        };
     }
 
     componentDidUpdate(prevProps) {
@@ -77,14 +81,12 @@ export class CoverageForm extends React.Component {
             currentWorkspace,
             hasAssignment,
             defaultGenre,
+            addNewsItemToPlanning,
         } = this.props;
 
         const contentTypeQcode = get(value, 'planning.g2_content_type') || null;
         const contentType = contentTypeQcode ? getItemInArrayById(contentTypes, contentTypeQcode, 'qcode') : null;
         const onContentTypeChange = (f, v) => onChange(f, get(v, 'qcode') || null);
-        const isExistingCoverage = !!value.coverage_id;
-        const assignmentState = get(value, 'assigned_to.state');
-        const hasExistingAssignment = !!get(value, 'assigned_to.assignment_id');
 
         if (contentTypeQcode === 'text' && !get(value, 'planning.genre')) {
             value.planning.genre = defaultGenre;
@@ -100,11 +102,11 @@ export class CoverageForm extends React.Component {
         };
 
         const roFields = planningUtils.getCoverageReadOnlyFields(
+            value,
             readOnly,
             newsCoverageStatus,
-            hasExistingAssignment,
-            isExistingCoverage,
-            assignmentState
+            currentWorkspace,
+            addNewsItemToPlanning
         );
 
         return (
@@ -121,7 +123,7 @@ export class CoverageForm extends React.Component {
                     defaultValue={null}
                     {...fieldProps}
                     onChange={onContentTypeChange}
-                    readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.g2_content_type}
+                    readOnly={roFields.g2_content_type}
                     autoFocus={hasAssignment}
                     refNode={(ref) => this.dom.contentType = ref}
                 />
@@ -136,7 +138,7 @@ export class CoverageForm extends React.Component {
                     labelField="name"
                     clearable={true}
                     defaultValue={defaultGenre}
-                    readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.genre}
+                    readOnly={roFields.genre}
                     {...fieldProps}
                 />
 
@@ -145,7 +147,7 @@ export class CoverageForm extends React.Component {
                     field={`${field}.planning.slugline`}
                     profileName="slugline"
                     label={gettext('Slugline')}
-                    readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.slugline}
+                    readOnly={roFields.slugline}
                     autoFocus={hasAssignment && roFields.g2_content_type}
                     {...fieldProps}
                 />
@@ -155,7 +157,7 @@ export class CoverageForm extends React.Component {
                     field={`${field}.planning.ednote`}
                     profileName="ednote"
                     label={gettext('Ed Note')}
-                    readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.ednote}
+                    readOnly={roFields.ednote}
                     {...fieldProps}
                 />
 
@@ -166,7 +168,7 @@ export class CoverageForm extends React.Component {
                     label={gettext('Keywords')}
                     defaultValue={[]}
                     options={keywords}
-                    readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.keyword}
+                    readOnly={roFields.keyword}
                     {...fieldProps}
                 />
 
@@ -175,7 +177,7 @@ export class CoverageForm extends React.Component {
                     field={`${field}.planning.internal_note`}
                     profileName="internal_note"
                     label={gettext('Internal Note')}
-                    readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.internal_note}
+                    readOnly={roFields.internal_note}
                     {...fieldProps}
                 />
 
@@ -201,8 +203,11 @@ export class CoverageForm extends React.Component {
                     row={false}
                     {...fieldProps}
                     onChange={this.onScheduleChanged}
-                    readOnly={currentWorkspace === WORKSPACE.AUTHORING || roFields.scheduled}
+                    readOnly={roFields.scheduled}
+                    popupContainer={() => this.dom.popupContainer}
                 />
+
+                {!!addNewsItemToPlanning && <div ref={(node) => this.dom.popupContainer = node} />}
             </div>
         );
     }
@@ -232,6 +237,7 @@ CoverageForm.propTypes = {
     currentWorkspace: PropTypes.string,
     hasAssignment: PropTypes.bool,
     defaultGenre: PropTypes.object,
+    addNewsItemToPlanning: PropTypes.object,
 };
 
 CoverageForm.defaultProps = {

@@ -7,17 +7,14 @@ import {
     checkPermission,
     getErrorMessage,
     lockUtils,
-    planningUtils,
     dispatchUtils,
     gettext,
 } from '../../utils';
 
 import * as selectors from '../../selectors';
-import {PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, ASSIGNMENTS, MAIN} from '../../constants';
+import {PLANNING, PRIVILEGES, SPIKED_STATE, WORKSPACE, MODALS, MAIN} from '../../constants';
 import * as actions from '../index';
 import {get, orderBy} from 'lodash';
-import moment from 'moment';
-import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
 /**
  * Action dispatcher that marks a Planning item as spiked
@@ -616,87 +613,6 @@ const onAddCoverageClick = (item, addNewsItemToPlanning = null) => (
     }
 );
 
-const onAddPlanningClick = () => (
-    (dispatch, getState, {notify}) => {
-        const modalType = selectors.getCurrentModalType(getState());
-
-        if (modalType !== MODALS.ADD_TO_PLANNING)
-            return Promise.resolve();
-
-        const modalProps = selectors.getCurrentModalProps(getState());
-
-        if (!get(modalProps, 'newsItem')) {
-            notify.error('No content item provided.');
-            return Promise.reject('No content item provided.');
-        }
-
-        const {newsItem} = modalProps;
-
-        // Unlock the currentPlanning if it exists
-        const currentPlanning = selectors.getCurrentPlanning(getState());
-
-        if (currentPlanning) {
-            dispatch(planningApi.unlock(currentPlanning));
-        }
-
-        const coverage = self.createCoverageFromNewsItem(newsItem, getState);
-        const newPlanning = {
-            slugline: newsItem.slugline,
-            ednote: get(newsItem, 'ednote'),
-            subject: get(newsItem, 'subject'),
-            anpa_category: get(newsItem, 'anpa_category'),
-            urgency: get(newsItem, 'urgency'),
-            description_text: stripHtmlRaw(
-                get(newsItem, 'abstract', get(newsItem, 'headline', ''))
-            ),
-            coverages: [coverage],
-        };
-
-        if (get(newsItem, 'flags.marked_for_not_publication')) {
-            newPlanning.flags = {marked_for_not_publication: true};
-        }
-
-        return dispatch(self._openEditor(newPlanning));
-    }
-);
-
-const createCoverageFromNewsItem = (newsItem, getState) => {
-    const contentTypes = selectors.getContentTypes(getState());
-    const contentType = contentTypes.find(
-        (ctype) => get(ctype, 'content item type') === newsItem.type
-    );
-    const coverage = {
-        planning: {
-            g2_content_type: get(contentType, 'qcode', PLANNING.G2_CONTENT_TYPE.TEXT),
-            slugline: get(newsItem, 'slugline', ''),
-            ednote: get(newsItem, 'ednote', ''),
-        },
-        news_coverage_status: {qcode: 'ncostat:int'},
-    };
-
-    if (get(newsItem, 'genre')) {
-        coverage.planning.genre = newsItem.genre;
-        planningUtils.convertGenreToObject(coverage);
-    }
-
-    if (get(newsItem, 'state') === 'published') {
-        coverage.planning.scheduled = newsItem._updated;
-        coverage.assigned_to = {
-            desk: newsItem.task.desk,
-            user: newsItem.task.user,
-        };
-    } else {
-        coverage.planning.scheduled = moment().endOf('day');
-        coverage.assigned_to = {
-            desk: selectors.getCurrentDeskId(getState()),
-            user: selectors.getCurrentUserId(getState()),
-        };
-    }
-
-    coverage.assigned_to.priority = ASSIGNMENTS.DEFAULT_PRIORITY;
-    return coverage;
-};
-
 const saveFromAuthoring = (plan) => (
     (dispatch, getState, {notify}) => {
         const {$scope, newsItem} = selectors.getCurrentModalProps(getState());
@@ -780,8 +696,6 @@ const self = {
     cancelPlanning,
     cancelAllCoverage,
     onAddCoverageClick,
-    onAddPlanningClick,
-    createCoverageFromNewsItem,
     saveFromAuthoring,
     scheduleRefetch
 };

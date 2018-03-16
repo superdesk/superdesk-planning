@@ -8,6 +8,8 @@ import {
     ASSIGNMENTS,
     PUBLISHED_STATE,
     COVERAGES,
+    WORKSPACE,
+    ITEM_TYPE,
 } from '../constants/index';
 import {get, isNil, uniq, sortBy, isEmpty, cloneDeep} from 'lodash';
 import {
@@ -23,6 +25,7 @@ import {
     isDateInRange,
     gettext,
 } from './index';
+import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
 const isCoverageAssigned = (coverage) => !!get(coverage, 'assigned_to.desk');
 
@@ -365,6 +368,31 @@ const canEditCoverage = (coverage) => (
     get(coverage, 'assigned_to.state') !== ASSIGNMENTS.WORKFLOW_STATE.COMPLETED
 );
 
+const createNewPlanningFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, desk, user, contentTypes) => {
+    const newCoverage = self.createCoverageFromNewsItem(addNewsItemToPlanning, newsCoverageStatus,
+        desk, user, contentTypes);
+
+    let newPlanning = {
+        type: ITEM_TYPE.PLANNING,
+        slugline: addNewsItemToPlanning.slugline,
+        planning_date: moment(),
+        ednote: get(addNewsItemToPlanning, 'ednote'),
+        subject: get(addNewsItemToPlanning, 'subject'),
+        anpa_category: get(addNewsItemToPlanning, 'anpa_category'),
+        urgency: get(addNewsItemToPlanning, 'urgency'),
+        description_text: stripHtmlRaw(
+            get(addNewsItemToPlanning, 'abstract', get(addNewsItemToPlanning, 'headline', ''))
+        ),
+        coverages: [newCoverage],
+    };
+
+    if (get(addNewsItemToPlanning, 'flags.marked_for_not_publication')) {
+        newPlanning.flags = {marked_for_not_publication: true};
+    }
+
+    return newPlanning;
+};
+
 const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, desk, user, contentTypes) => {
     let newCoverage = COVERAGES.DEFAULT_VALUE(newsCoverageStatus);
 
@@ -387,8 +415,11 @@ const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, d
     }
 
     // Add assignment to coverage
-    if (get(addNewsItemToPlanning, 'state') === 'published') {
-        newCoverage.planning.scheduled = addNewsItemToPlanning._updated;
+    if ([WORKFLOW_STATE.SCHEDULED, 'published'].includes(addNewsItemToPlanning.state)) {
+        newCoverage.planning.scheduled = addNewsItemToPlanning.state === 'published' ?
+            moment(addNewsItemToPlanning.versioncreated) :
+            moment(get(addNewsItemToPlanning, 'schedule_settings.utc_publish_schedule'));
+
         newCoverage.assigned_to = {
             desk: addNewsItemToPlanning.task.desk,
             user: addNewsItemToPlanning.task.user,
@@ -406,12 +437,27 @@ const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, d
 };
 
 const getCoverageReadOnlyFields = (
+    coverage,
     readOnly,
     newsCoverageStatus,
-    hasAssignment,
-    existingCoverage,
-    assignmentState
+    currentWorkspace,
+    addNewsItemToPlanning
 ) => {
+    if (currentWorkspace === WORKSPACE.AUTHORING) {
+        // if newsItem is published, schedule is readOnly
+        return {
+            slugline: true,
+            ednote: true,
+            keyword: true,
+            internal_note: false,
+            g2_content_type: true,
+            genre: true,
+            newsCoverageStatus: true,
+            scheduled: get(addNewsItemToPlanning, 'state') === 'published'
+        };
+    }
+
+    const hasAssignment = !!get(coverage, 'assigned_to.assignment_id');
     const isCancelled = get(newsCoverageStatus, 'qcode') ===
         PLANNING.NEWS_COVERAGE_CANCELLED_STATUS.qcode;
 
@@ -419,7 +465,7 @@ const getCoverageReadOnlyFields = (
     let state = null;
 
     if (hasAssignment) {
-        state = assignmentState;
+        state = get(coverage, 'assigned_to.state');
     } else if (isCancelled) {
         state = ASSIGNMENTS.WORKFLOW_STATE.CANCELLED;
     }
@@ -618,6 +664,7 @@ const self = {
     getPlanningActions,
     isNotForPublication,
     getPlanningByDate,
+    createNewPlanningFromNewsItem,
     createCoverageFromNewsItem,
     isLockedForAddToPlanning,
     isCoverageAssigned,

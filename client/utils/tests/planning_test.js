@@ -1,6 +1,7 @@
+import moment from 'moment';
 import planUtils from '../planning';
 import lockReducer from '../../reducers/locks';
-import {EVENTS, PLANNING} from '../../constants';
+import {EVENTS, PLANNING, ASSIGNMENTS} from '../../constants';
 import {expectActions} from '../testUtils';
 
 describe('PlanningUtils', () => {
@@ -227,6 +228,199 @@ describe('PlanningUtils', () => {
         isPlanningLockRestricted(locks.plans.recurring.currentUser.otherSession, true);
         isPlanningLockRestricted(locks.plans.recurring.otherUser, true);
         isPlanningLockRestricted(locks.plans.recurring.notLocked, false);
+    });
+
+    describe('createCoverageFromNewsItem', () => {
+        const newsCoverageStatus = [{qcode: 'ncostat:int'}];
+        const desk = 'desk1';
+        const user = 'ident1';
+        const contentTypes = [{
+            name: 'Picture',
+            qcode: 'picture',
+            'content item type': 'picture',
+        },
+        {
+            name: 'Text',
+            qcode: 'text',
+            'content item type': 'text',
+        }
+        ];
+
+        it('creates photo coverage from unpublished news item', () => {
+            const newsItem = {
+                slugline: 'slug',
+                ednote: 'edit my note',
+                type: 'picture',
+                state: 'draft',
+            };
+
+            const coverage = planUtils.createCoverageFromNewsItem(
+                newsItem, newsCoverageStatus, desk, user, contentTypes);
+
+            expect(coverage).toEqual({
+                planning: {
+                    g2_content_type: 'picture',
+                    slugline: 'slug',
+                    ednote: 'edit my note',
+                    scheduled: moment().endOf('day'),
+                },
+                news_coverage_status: {qcode: 'ncostat:int'},
+                workflow_status: 'active',
+                assigned_to: {
+                    desk: 'desk1',
+                    user: 'ident1',
+                    priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                },
+            });
+        });
+
+        it('creates text coverage from published news item with past date', () => {
+            const newsItem = {
+                slugline: 'slug',
+                ednote: 'edit my note',
+                type: 'text',
+                state: 'published',
+                versioncreated: '2017-10-15T14:01:11',
+                task: {
+                    desk: 'desk2',
+                    user: 'ident2',
+                },
+            };
+
+            const coverage = planUtils.createCoverageFromNewsItem(
+                newsItem, newsCoverageStatus, desk, user, contentTypes);
+
+            expect(coverage).toEqual({
+                planning: {
+                    g2_content_type: 'text',
+                    slugline: 'slug',
+                    ednote: 'edit my note',
+                    scheduled: moment('2017-10-15T14:01:11'),
+                },
+                news_coverage_status: {qcode: 'ncostat:int'},
+                workflow_status: 'active',
+                assigned_to: {
+                    desk: 'desk2',
+                    user: 'ident2',
+                    priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                },
+            });
+        });
+    });
+
+    describe('createNewPlanningFromNewsItem', () => {
+        const newsCoverageStatus = [{qcode: 'ncostat:int'}];
+        const desk = 'desk1';
+        const user = 'ident1';
+        const contentTypes = [{
+            name: 'Picture',
+            qcode: 'picture',
+            'content item type': 'picture',
+        },
+        {
+            name: 'Text',
+            qcode: 'text',
+            'content item type': 'text',
+        }
+        ];
+
+        it('creates photo coverage from unpublished news item', () => {
+            const newsItem = {
+                _id: 'news1',
+                slugline: 'slugger',
+                ednote: 'Edit my note!',
+                type: 'text',
+                subject: 'sub',
+                anpa_category: 'cat',
+                urgency: 3,
+                abstract: '<p>some abstractions</p>',
+                state: 'published',
+                versioncreated: '2019-10-15T10:01:11',
+                task: {
+                    desk: 'desk1',
+                    user: 'ident1',
+                    priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                },
+            };
+
+            const plan = planUtils.createNewPlanningFromNewsItem(
+                newsItem, newsCoverageStatus, desk, user, contentTypes);
+
+            expect(plan).toEqual(jasmine.objectContaining({
+                type: 'planning',
+                slugline: 'slugger',
+                ednote: 'Edit my note!',
+                subject: 'sub',
+                anpa_category: 'cat',
+                urgency: 3,
+                description_text: 'some abstractions',
+                coverages: [{
+                    planning: {
+                        g2_content_type: 'text',
+                        slugline: 'slugger',
+                        ednote: 'Edit my note!',
+                        scheduled: moment('2019-10-15T10:01:11'),
+                    },
+                    news_coverage_status: {qcode: 'ncostat:int'},
+                    workflow_status: 'active',
+                    assigned_to: {
+                        desk: 'desk1',
+                        user: 'ident1',
+                        priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                    },
+                }],
+            }));
+        });
+
+        it('perpetuate `marked_for_not_publication` flag', () => {
+            const newsItem = {
+                _id: 'news1',
+                slugline: 'slugger',
+                ednote: 'Edit my note!',
+                type: 'text',
+                subject: 'sub',
+                anpa_category: 'cat',
+                urgency: 3,
+                abstract: '<p>some abstractions</p>',
+                state: 'published',
+                versioncreated: '2019-10-15T10:01:11',
+                task: {
+                    desk: 'desk1',
+                    user: 'ident1',
+                    priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                },
+                flags: {marked_for_not_publication: true}
+            };
+
+            const plan = planUtils.createNewPlanningFromNewsItem(
+                newsItem, newsCoverageStatus, desk, user, contentTypes);
+
+            expect(plan).toEqual(jasmine.objectContaining({
+                type: 'planning',
+                slugline: 'slugger',
+                ednote: 'Edit my note!',
+                subject: 'sub',
+                anpa_category: 'cat',
+                urgency: 3,
+                description_text: 'some abstractions',
+                flags: {marked_for_not_publication: true},
+                coverages: [{
+                    planning: {
+                        g2_content_type: 'text',
+                        slugline: 'slugger',
+                        ednote: 'Edit my note!',
+                        scheduled: moment('2019-10-15T10:01:11'),
+                    },
+                    news_coverage_status: {qcode: 'ncostat:int'},
+                    workflow_status: 'active',
+                    assigned_to: {
+                        desk: 'desk1',
+                        user: 'ident1',
+                        priority: ASSIGNMENTS.DEFAULT_PRIORITY,
+                    },
+                }],
+            }));
+        });
     });
 
     describe('getPlanningItemActions', () => {

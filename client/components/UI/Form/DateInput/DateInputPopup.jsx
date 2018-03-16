@@ -149,8 +149,8 @@ export class DateInputPopup extends React.Component {
                 close={this.props.close}
                 target={this.props.target}
                 noPadding={true}
-                className="date-popup"
                 popupContainer={this.props.popupContainer}
+                className="date-popup"
             >
                 <Header noBorder={true} className="date-popup__header">
                     <div className="date-popup__header-row">
