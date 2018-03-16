@@ -16,7 +16,7 @@ class PlanningValidateServiceTest(TestCase):
     def test_validate_on_publish(self):
         with self.app.app_context():
             self.app.data.insert('planning_types', [{
-                "_id": "events", "name": "events",
+                "_id": "event", "name": "event",
                 "schema": {
                     "name": {
                         "type": "string", "required": True
@@ -35,7 +35,7 @@ class PlanningValidateServiceTest(TestCase):
 
             errors = get_resource_service('planning_validator').post([{
                 'validate_on_publish': True,
-                'type': 'events',
+                'type': 'event',
                 'validate': {
                     'name': 'Test Event',
                     'calendars': [{'qcode': 'cal1', 'name': 'Calendar 1'}]
@@ -46,7 +46,7 @@ class PlanningValidateServiceTest(TestCase):
 
             errors = get_resource_service('planning_validator').post([{
                 'validate_on_publish': True,
-                'type': 'events',
+                'type': 'event',
                 'validate': {
                     'name': 'Test Event',
                     'slugline': 'Test slugger',
@@ -58,7 +58,7 @@ class PlanningValidateServiceTest(TestCase):
 
             errors = get_resource_service('planning_validator').post([{
                 'validate_on_publish': False,
-                'type': 'events',
+                'type': 'event',
                 'validate': {
                     'slugline': 'Test Event',
                     'definition_short': 'This is an Event'
@@ -72,7 +72,7 @@ class PlanningValidateServiceTest(TestCase):
 
             errors = get_resource_service('planning_validator').post([{
                 'validate_on_publish': False,
-                'type': 'events',
+                'type': 'event',
                 'validate': {
                     'name': 'Test Event',
                     'slugline': 'Test slugger',

@@ -544,7 +544,7 @@ export const plannings = [
         _id: 'p1',
         type: 'planning',
         slugline: 'Planning1',
-        planning_date: '2016-10-15T13:01:11',
+        planning_date: '2016-10-15T13:01:11+0000',
         headline: 'Some Plan 1',
         state: 'draft',
         coverages: [

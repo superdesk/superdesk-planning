@@ -93,7 +93,7 @@ Feature: Planning Types
               "enabled": true
             }
           },
-          "name": "events",
+          "name": "event",
           "schema":
           {
             "anpa_category": {
@@ -380,7 +380,7 @@ Feature: Planning Types
               "enabled": true
             }
           },
-          "name": "events",
+          "name": "event",
           "schema":
           {
             "anpa_category": {

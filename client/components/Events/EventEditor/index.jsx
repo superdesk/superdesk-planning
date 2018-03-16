@@ -309,7 +309,7 @@ EventEditorComponent.defaultProps = {
 
 const mapStateToProps = (state) => ({
     formProfile: selectors.forms.eventProfile(state),
-    occurStatuses: state.vocabularies.eventoccurstatus,
+    occurStatuses: selectors.vocabs.eventOccurStatuses(state),
     calendars: selectors.getEventCalendars(state),
     locators: selectors.vocabs.locators(state),
     categories: selectors.vocabs.categories(state),

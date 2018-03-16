@@ -8,6 +8,11 @@ export const coverageProfile = createSelector([profiles], (p) => get(p, 'coverag
 export const eventProfile = createSelector([profiles], (p) => get(p, 'event', {}));
 export const planningProfile = createSelector([profiles], (p) => get(p, 'planning', {}));
 
+export const defaultEventDuration = createSelector(
+    [eventProfile],
+    (profile) => parseInt(get(profile, 'editor.dates.default_duration_on_change', 1), 10)
+);
+
 
 /** Autosaves **/
 export const autosaves = (state) => get(state, 'forms.autosaves', {});
@@ -18,6 +23,7 @@ export const planningAutosaves = createSelector([autosaves], (a) => get(a, 'plan
 export const currentItemId = (state) => get(state, 'forms.itemId', null);
 export const currentItemType = (state) => get(state, 'forms.itemType', null);
 export const isLoadingItem = (state) => get(state, 'forms.loadingEditItem', false);
+export const initialValues = (state) => get(state, 'forms.initialValues', null);
 
 const storedEvents = (state) => get(state, 'events.events', {});
 const storedPlannings = (state) => get(state, 'planning.plannings', {});

@@ -188,6 +188,8 @@ class PlanningAppComponent extends React.Component {
                     this.props[PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName],
             [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
                     this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
+            [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName]:
+                    this.props[PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName],
         };
 
         const listPanelProps = {
@@ -312,6 +314,7 @@ PlanningAppComponent.propTypes = {
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName]: PropTypes.func,
     closePreview: PropTypes.func.isRequired,
     showRelatedPlannings: PropTypes.func,
     relatedPlanningsInList: PropTypes.object,
@@ -407,7 +410,9 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]:
         (planning) => dispatch(actions.planning.ui.openCancelPlanningModal(planning)),
     [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
-        (planning) => dispatch(actions.planning.ui.openCancelAllCoverageModal(planning))
+        (planning) => dispatch(actions.planning.ui.openCancelAllCoverageModal(planning)),
+    [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName]:
+        (planning) => dispatch(actions.events.ui.createEventFromPlanning(planning)),
 });
 
 export const PlanningApp = connect(mapStateToProps, mapDispatchToProps)(PlanningAppComponent);

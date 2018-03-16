@@ -72,10 +72,10 @@ export class EditorComponent extends React.Component {
         }
     }
 
-    resetForm(item = null) {
+    resetForm(item = null, dirty = false) {
         this.setState({
             diff: item === null ? {} : cloneDeep(item),
-            dirty: false,
+            dirty: dirty,
             submitting: false,
             errors: {},
         });
@@ -83,9 +83,17 @@ export class EditorComponent extends React.Component {
 
     createNew(props) {
         if (props.itemType === ITEM_TYPE.EVENT) {
-            this.resetForm(EVENTS.DEFAULT_VALUE(props.occurStatuses));
+            if (isEqual(props.initialValues, {type: ITEM_TYPE.EVENT})) {
+                this.resetForm(EVENTS.DEFAULT_VALUE(props.occurStatuses));
+            } else {
+                this.resetForm(props.initialValues, true);
+            }
         } else if (props.itemType === ITEM_TYPE.PLANNING) {
-            this.resetForm(PLANNING.DEFAULT_VALUE);
+            if (isEqual(props.initialValues, {type: ITEM_TYPE.PLANNING})) {
+                this.resetForm(PLANNING.DEFAULT_VALUE);
+            } else {
+                this.resetForm(props.initialValues, true);
+            }
         } else {
             this.resetForm();
         }
@@ -244,7 +252,7 @@ export class EditorComponent extends React.Component {
             this.editorHeaderComponent.unregisterKeyBoardShortcuts();
         }
 
-        this.props.cancel(this.props.item);
+        this.props.cancel(this.props.item || this.props.initialValues);
     }
 
     setActiveTab(tab) {
@@ -396,15 +404,17 @@ EditorComponent.propTypes = {
     currentWorkspace: PropTypes.string,
     loadItem: PropTypes.func,
     isLoadingItem: PropTypes.bool,
+    initialValues: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
     item: selectors.forms.currentItem(state),
     itemId: selectors.forms.currentItemId(state),
     itemType: selectors.forms.currentItemType(state),
+    initialValues: selectors.forms.initialValues(state),
     users: selectors.getUsers(state),
     formProfiles: selectors.forms.profiles(state),
-    occurStatuses: state.vocabularies.eventoccurstatus,
+    occurStatuses: selectors.vocabs.eventOccurStatuses(state),
     isLoadingItem: selectors.forms.isLoadingItem(state),
 });
 

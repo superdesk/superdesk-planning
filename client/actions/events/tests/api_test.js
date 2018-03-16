@@ -1,11 +1,13 @@
-import eventsApi from '../api';
-import planningApi from '../../planning/api';
 import sinon from 'sinon';
-import {EventUpdateMethods} from '../../../components/Events';
+import moment from 'moment';
+
+import {getTimeZoneOffset, eventUtils} from '../../../utils';
 import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
 import {WORKFLOW_STATE, SPIKED_STATE, MAIN} from '../../../constants';
-import {getTimeZoneOffset, eventUtils} from '../../../utils';
-import moment from 'moment';
+
+import eventsApi from '../api';
+import planningApi from '../../planning/api';
+import {EventUpdateMethods} from '../../../components/Events';
 
 describe('actions.events.api', () => {
     let errorMessage;
@@ -947,4 +949,130 @@ describe('actions.events.api', () => {
                 done();
             })
     ));
+
+    describe('save', () => {
+        beforeEach(() => {
+            let apiSave = sinon.spy((args) => Promise.resolve({_items: [data.events[0]]}));
+
+            sinon.stub(eventsApi, 'fetchById').callsFake(() => Promise.resolve(data.events[0]));
+            services.api = sinon.spy((resource, item) => ({save: apiSave}));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(eventsApi.fetchById);
+            restoreSinonStub(eventsApi._uploadFiles);
+            restoreSinonStub(eventsApi._saveLocation);
+            restoreSinonStub(eventsApi._save);
+        });
+
+        it('returns Promise.reject is _uploadFiles fails', (done) => {
+            sinon.stub(eventsApi, '_uploadFiles').callsFake(() => Promise.reject('Upload Files Failed'));
+            sinon.stub(eventsApi, '_saveLocation').callsFake(() => Promise.resolve());
+            sinon.stub(eventsApi, '_save').callsFake(() => Promise.resolve());
+            store.test(done, eventsApi.save(data.events[0]))
+                .then(null, (error) => {
+                    expect(error).toEqual('Upload Files Failed');
+
+                    expect(eventsApi._uploadFiles.callCount).toBe(1);
+                    expect(eventsApi._saveLocation.callCount).toBe(1);
+                    expect(eventsApi._save.callCount).toBe(0);
+
+                    done();
+                });
+        });
+
+        it('returns Promise.reject is _saveLocation fails', (done) => {
+            sinon.stub(eventsApi, '_uploadFiles').callsFake(() => Promise.resolve());
+            sinon.stub(eventsApi, '_saveLocation').callsFake(() => Promise.reject('Save Location Failed'));
+            sinon.stub(eventsApi, '_save').callsFake(() => Promise.resolve());
+            store.test(done, eventsApi.save(data.events[0]))
+                .then(null, (error) => {
+                    expect(error).toEqual('Save Location Failed');
+
+                    expect(eventsApi._uploadFiles.callCount).toBe(1);
+                    expect(eventsApi._saveLocation.callCount).toBe(1);
+                    expect(eventsApi._save.callCount).toBe(0);
+
+                    done();
+                });
+        });
+
+        it('runs _save with files/location information', (done) => {
+            sinon.stub(eventsApi, '_uploadFiles').callsFake(() => Promise.resolve([{_id: 'file2', name: 'File 2'}]));
+            sinon.stub(eventsApi, '_saveLocation').callsFake((item) => Promise.resolve(item));
+            sinon.stub(eventsApi, '_save').callsFake((item) => Promise.resolve(item));
+
+            store.test(done, eventsApi.save({
+                ...data.events[0],
+                files: [{_id: 'file1', name: 'File 1'}]
+            }))
+                .then((item) => {
+                    expect(item).toEqual({
+                        ...data.events[0],
+                        files: ['file1', 'file2']
+                    });
+
+                    expect(eventsApi._uploadFiles.callCount).toBe(1);
+                    expect(eventsApi._saveLocation.callCount).toBe(1);
+                    expect(eventsApi._save.callCount).toBe(1);
+                    expect(eventsApi._save.args[0]).toEqual([{
+                        ...data.events[0],
+                        files: ['file1', 'file2'],
+                    }]);
+
+                    done();
+                });
+        });
+
+        it('_save calls api.save', (done) => (
+            store.test(done, eventsApi._save({
+                _id: data.events[0]._id,
+                name: 'New Name',
+                slugline: 'New Slugline',
+            }))
+                .then((item) => {
+                    expect(item).toEqual([data.events[0]]);
+
+                    expect(eventsApi.fetchById.callCount).toBe(1);
+                    expect(eventsApi.fetchById.args[0]).toEqual([
+                        data.events[0]._id,
+                        {saveToStore: false, loadPlanning: false}
+                    ]);
+
+                    expect(services.api('events').save.callCount).toBe(1);
+                    expect(services.api('events').save.args[0]).toEqual([
+                        {
+                            ...data.events[0],
+                            location: null,
+                        },
+                        {
+                            name: 'New Name',
+                            slugline: 'New Slugline',
+                            update_method: 'single'
+                        }
+                    ]);
+
+                    done();
+                })
+        ));
+
+        it('doesnt call event.api.fetchById if it is a new Event', (done) => (
+            store.test(done, eventsApi._save({name: 'New Event', slugline: 'New Slugline'}))
+                .then(() => {
+                    expect(eventsApi.fetchById.callCount).toBe(0);
+
+                    expect(services.api('events').save.callCount).toBe(1);
+                    expect(services.api('events').save.args[0]).toEqual([
+                        {location: null},
+                        {
+                            name: 'New Event',
+                            slugline: 'New Slugline',
+                            update_method: 'single'
+                        }
+                    ]);
+
+                    done();
+                })
+        ));
+    });
 });
