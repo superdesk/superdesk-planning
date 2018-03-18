@@ -105,6 +105,24 @@ Feature: Events Reschedule
         """
         [{"_id": "desk_123", "name": "Politic Desk"}]
         """
+        Given "vocabularies"
+        """
+        [{
+          "_id": "newscoveragestatus",
+          "display_name": "News Coverage Status",
+          "type": "manageable",
+          "unique_field": "qcode",
+          "items": [
+              {"is_active": true, "qcode": "ncostat:int", "name": "coverage intended", "label": "Planned"},
+              {"is_active": true, "qcode": "ncostat:notdec", "name": "coverage not decided yet",
+                  "label": "On merit"},
+              {"is_active": true, "qcode": "ncostat:notint", "name": "coverage not intended",
+                  "label": "Not planned"},
+              {"is_active": true, "qcode": "ncostat:onreq", "name": "coverage upon request",
+                  "label": "On request"}
+          ]
+        }]
+        """
         Given "assignments"
         """
         [{
@@ -160,7 +178,12 @@ Feature: Events Reschedule
                     "desk": "#desks._id#",
                     "user": "#CONTEXT_USER_ID#",
                     "assignment_id": "aaaaaaaaaaaaaaaaaaaaaaaa"
-                }
+                },
+                "news_coverage_status" : {
+                "qcode" : "ncostat:int",
+                "label" : "Planned",
+                "name" : "coverage intended"
+            }
             }]
         }]
         """
@@ -217,6 +240,25 @@ Feature: Events Reschedule
             }]
         }
         """
+        When we get "/assignments/aaaaaaaaaaaaaaaaaaaaaaaa"
+        Then we get existing resource
+        """
+        {
+            "assigned_to" : {
+                "state" : "cancelled",
+                "user" : "#CONTEXT_USER_ID#",
+                "desk" : "desk_123"
+            },
+            "planning" : {
+                "news_coverage_status" : {
+                    "label" : "Not planned",
+                    "qcode" : "ncostat:notint",
+                    "name" : "coverage not intended"
+                },
+                "internal_note" : "Please write words.\n\n------------------------------------------------------------\nCoverage cancelled\n"
+            }
+        }
+        """
         And we get notifications
         """
         [{
@@ -224,6 +266,15 @@ Feature: Events Reschedule
             "extra": {
                 "activity": {
                 "message" : "The event associated with {{coverage_type}} coverage \"{{slugline}}\" has been marked as rescheduled",
+                "user_name" : "test_user"
+                }
+            }
+        },
+        {
+            "event": "activity",
+            "extra": {
+                "activity": {
+                "message" : "Assignment {{slugline}} for desk {{desk}} has been cancelled by {{user}}",
                 "user_name" : "test_user"
                 }
             }
