@@ -109,6 +109,8 @@ export class SelectListPopup extends React.Component {
         this.setState({
             addOption: true,
         });
+
+        this.closeSearchList();
     }
 
     closeAddOption() {
