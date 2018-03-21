@@ -209,7 +209,7 @@ const mapDispatchToProps = (dispatch) => ({
     onSubmit: (event) => dispatch(actions.events.ui.rescheduleEvent(event)),
     onHide: (event) => dispatch(actions.events.api.unlock(event)),
 
-    onValidate: (item, profile, errors) => dispatch(validateItem('events', item, profile, errors, ['dates']))
+    onValidate: (item, profile, errors) => dispatch(validateItem('event', item, profile, errors, ['dates']))
 });
 
 export const RescheduleEventForm = connect(

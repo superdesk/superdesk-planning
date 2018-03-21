@@ -16,7 +16,7 @@ from copy import deepcopy
 from bson import ObjectId
 from superdesk.errors import SuperdeskApiError
 from superdesk.metadata.utils import item_url
-from superdesk.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE
+from superdesk.metadata.item import metadata_schema, ITEM_STATE, CONTENT_STATE, ITEM_TYPE
 from superdesk.resource import not_analyzed
 from superdesk.notification import push_notification
 from apps.archive.common import get_user, get_auth
@@ -101,6 +101,13 @@ class AssignmentsService(superdesk.Service):
         if items:
             doc['item_ids'] = [str(item.get(config.ID_FIELD)) for item in items]
 
+        self.set_type(doc, doc)
+
+    @staticmethod
+    def set_type(updates, original):
+        if not original.get(ITEM_TYPE):
+            updates[ITEM_TYPE] = 'assignment'
+
     def on_create(self, docs):
         for doc in docs:
             self.set_assignment(doc)
@@ -123,6 +130,8 @@ class AssignmentsService(superdesk.Service):
         """Set the assignment information"""
         if not original:
             original = {}
+
+        self.set_type(updates, original)
 
         if not updates.get('assigned_to'):
             if updates.get('priority'):
@@ -701,6 +710,13 @@ assignments_schema = {
     'version_creator': metadata_schema['version_creator'],
     'firstcreated': metadata_schema['firstcreated'],
     'versioncreated': metadata_schema['versioncreated'],
+
+    # Item type used by superdesk publishing
+    ITEM_TYPE: {
+        'type': 'string',
+        'mapping': not_analyzed,
+        'default': 'assignment',
+    },
 
     # Assignment details
     'priority': metadata_schema['priority'],

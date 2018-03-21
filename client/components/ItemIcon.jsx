@@ -61,7 +61,7 @@ export const ItemIcon = ({item, big, white, blue, showRepeating}) => {
             icon = planningIcon;
             title = 'Planning';
             multiValidator = planningUtils.isPlanMultiDay;
-        } else if (itemType === ITEM_TYPE.ARCHIVE) {
+        } else if (itemType !== ITEM_TYPE.EVENT) {
             icon = archiveIcon;
             multiValidator = () => false;
         }

@@ -33,7 +33,7 @@ export const EventMetadata = (
                     <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                         <span className="sd-list-item__text-strong">{event.name}</span>
                     </span>
-                    <time title>{dateStr}</time>
+                    <time>{dateStr}</time>
                 </Row>
             </Column>
         </Item>
@@ -60,7 +60,7 @@ export const EventMetadata = (
                                     mapUrl={streetMapUrl}
                                 />
                             </span>
-                            <time title>{dateStr}</time>
+                            <time>{dateStr}</time>
                         </Row>
                     </div>
                 ) : (
@@ -68,7 +68,7 @@ export const EventMetadata = (
                         <span className="sd-overflow-ellipsis sd-list-item--element-grow">
                             <span className="sd-list-item__text-strong">{event.name}</span>
                         </span>
-                        <time title>{dateStr}</time>
+                        <time>{dateStr}</time>
                     </Row>
                 )}
             </Column>

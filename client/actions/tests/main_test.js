@@ -32,7 +32,7 @@ describe('actions.main', () => {
         expect(services.$location.search.callCount).toBe(1);
         expect(services.$location.search.args[0]).toEqual([
             'edit',
-            JSON.stringify({id: 'e1', type: 'events'})
+            JSON.stringify({id: 'e1', type: 'event'})
         ]);
     });
 
@@ -221,7 +221,7 @@ describe('actions.main', () => {
         it('closes the preview panel if item being edited is open for preview', (done) => {
             store.init();
             store.initialState.main.previewId = data.events[1]._id;
-            store.initialState.main.previewType = data.events[1]._type;
+            store.initialState.main.previewType = data.events[1].type;
             store.test(done, main.lockAndEdit(data.events[1]))
                 .then((item) => {
                     expect(item).toEqual(data.events[1]);
@@ -398,7 +398,7 @@ describe('actions.main', () => {
         });
 
         it('loads an Event for preview', (done) => (
-            store.test(done, main.loadItem('e1', 'events', 'preview'))
+            store.test(done, main.loadItem('e1', 'event', 'preview'))
                 .then((item) => {
                     expect(item).toEqual(data.events[0]);
 
@@ -415,7 +415,7 @@ describe('actions.main', () => {
         ));
 
         it('loads an Event for editing', (done) => (
-            store.test(done, main.loadItem('e1', 'events', 'edit'))
+            store.test(done, main.loadItem('e1', 'event', 'edit'))
                 .then((item) => {
                     expect(item).toEqual(data.events[0]);
 
@@ -466,7 +466,7 @@ describe('actions.main', () => {
         ));
 
         it('fails if unknown action type supplied', (done) => (
-            store.test(done, main.loadItem('e1', 'events', 'dummy'))
+            store.test(done, main.loadItem('e1', 'event', 'dummy'))
                 .then(null, (error) => {
                     expect(error).toBe('Unknown action "dummy"');
                     expect(store.dispatch.callCount).toBe(0);
@@ -507,36 +507,36 @@ describe('actions.main', () => {
 
         it('loads the preview item from the URL', () => {
             store.init();
-            services.$location.search('preview', JSON.stringify({id: 'e1', type: 'events'}));
+            services.$location.search('preview', JSON.stringify({id: 'e1', type: 'event'}));
             store.test(null, main.openFromURLOrRedux('preview'));
             expect(main.openPreview.callCount).toBe(1);
-            expect(main.openPreview.args[0]).toEqual([{_id: 'e1', _type: 'events'}]);
+            expect(main.openPreview.args[0]).toEqual([{_id: 'e1', type: 'event'}]);
         });
 
         it('loads the preview item from the Redux store', () => {
             store.init();
             store.initialState.main.previewId = 'e1';
-            store.initialState.main.previewType = 'events';
+            store.initialState.main.previewType = 'event';
             store.test(null, main.openFromURLOrRedux('preview'));
             expect(main.openPreview.callCount).toBe(1);
-            expect(main.openPreview.args[0]).toEqual([{_id: 'e1', _type: 'events'}]);
+            expect(main.openPreview.args[0]).toEqual([{_id: 'e1', type: 'event'}]);
         });
 
         it('loads the edit item from the URL', () => {
             store.init();
-            services.$location.search('edit', JSON.stringify({id: 'e1', type: 'events'}));
+            services.$location.search('edit', JSON.stringify({id: 'e1', type: 'event'}));
             store.test(null, main.openFromURLOrRedux('edit'));
             expect(main.openEditor.callCount).toBe(1);
-            expect(main.openEditor.args[0]).toEqual([{_id: 'e1', _type: 'events'}]);
+            expect(main.openEditor.args[0]).toEqual([{_id: 'e1', type: 'event'}]);
         });
 
         it('loads the edit item from the Redux store', () => {
             store.init();
             store.initialState.forms.itemId = 'e1';
-            store.initialState.forms.itemType = 'events';
+            store.initialState.forms.itemType = 'event';
             store.test(null, main.openFromURLOrRedux('edit'));
             expect(main.openEditor.callCount).toBe(1);
-            expect(main.openEditor.args[0]).toEqual([{_id: 'e1', _type: 'events'}]);
+            expect(main.openEditor.args[0]).toEqual([{_id: 'e1', type: 'event'}]);
         });
     });
 });

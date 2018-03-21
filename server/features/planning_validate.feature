@@ -3,7 +3,7 @@ Feature: Planning Validate
         Given the "planning_types"
         """
         [{
-            "_id": "events", "name": "events",
+            "_id": "event", "name": "event",
             "schema": {
                 "slugline": {
                     "type": "string",

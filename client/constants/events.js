@@ -91,7 +91,7 @@ export const EVENTS = {
         PUBLISH_EVENT: {label: gettext('Publish')}
     },
     DEFAULT_VALUE: (occurStatuses) => ({
-        _type: 'events',
+        type: 'event',
         occur_status: occurStatuses[5], // eocstat:eos5: Planned, occurs certainly
         dates: {}
     })

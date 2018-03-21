@@ -16,7 +16,7 @@ describe('utils.locks', () => {
         it('returns null if item is null', () => {
             expect(lockUtils.getLock(null, lockedItems)).toBe(null);
             expect(lockUtils.getLock({}, lockedItems)).toBe(null);
-            expect(lockUtils.getLock({_type: 'test'}, lockedItems)).toBe(null);
+            expect(lockUtils.getLock({type: 'test'}, lockedItems)).toBe(null);
         });
 
         it('returns event locks', () => {
@@ -26,7 +26,7 @@ describe('utils.locks', () => {
             expect(lockUtils.getLock(item, lockedItems)).toBe(null);
 
             // Single Event locked
-            lockedItems.events[item._id] = item;
+            lockedItems.event[item._id] = item;
             expect(lockUtils.getLock(item, lockedItems)).toEqual(item);
 
             // Recurring Event locked
@@ -47,7 +47,7 @@ describe('utils.locks', () => {
 
             // Associated Single Event locked
             item = cloneDeep(testData.plannings[1]);
-            lockedItems.events[testData.events[0]._id] = testData.events[0];
+            lockedItems.event[testData.events[0]._id] = testData.events[0];
             expect(lockUtils.getLock(item, lockedItems)).toEqual(testData.events[0]);
 
             // Associated Recurring Event locked
@@ -63,7 +63,7 @@ describe('utils.locks', () => {
             expect(lockUtils.getLock(item, lockedItems)).toBe(null);
 
             // Assignment locked
-            lockedItems.assignments[item._id] = item;
+            lockedItems.assignment[item._id] = item;
             expect(lockUtils.getLock(item, lockedItems)).toBe(item);
         });
     });
@@ -71,7 +71,7 @@ describe('utils.locks', () => {
     it('getLockedUser', () => {
         let item = cloneDeep(testData.events[0]);
 
-        lockedItems.events[item._id] = {
+        lockedItems.event[item._id] = {
             user: testData.users[0]._id,
             session: testData.sessions[0]._id,
         };
@@ -88,7 +88,7 @@ describe('utils.locks', () => {
         expect(lockUtils.getLockedUser(item, lockedItems, testData.users)).toEqual(testData.users[0]);
 
         // Returns null if the user was not found
-        lockedItems.events[item._id].user = 'ident3';
+        lockedItems.event[item._id].user = 'ident3';
         expect(lockUtils.getLockedUser(item, lockedItems, testData.users)).toBe(null);
     });
 
@@ -137,18 +137,18 @@ describe('utils.locks', () => {
         });
 
         it('tests event and planning lock restriction', () => {
-            expect(lockUtils.isLockRestricted({_type: 'events'}, testData.sessions[0], testData.locks)).toBe(true);
+            expect(lockUtils.isLockRestricted({type: 'event'}, testData.sessions[0], testData.locks)).toBe(true);
             expect(eventUtils.isEventLockRestricted.callCount).toBe(1);
             expect(eventUtils.isEventLockRestricted.args[0]).toEqual([
-                {_type: 'events'},
+                {type: 'event'},
                 testData.sessions[0],
                 testData.locks
             ]);
 
-            expect(lockUtils.isLockRestricted({_type: 'planning'}, testData.sessions[0], testData.locks)).toBe(true);
+            expect(lockUtils.isLockRestricted({type: 'planning'}, testData.sessions[0], testData.locks)).toBe(true);
             expect(planningUtils.isPlanningLockRestricted.callCount).toBe(1);
             expect(planningUtils.isPlanningLockRestricted.args[0]).toEqual([
-                {_type: 'planning'},
+                {type: 'planning'},
                 testData.sessions[0],
                 testData.locks
             ]);

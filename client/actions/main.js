@@ -117,7 +117,9 @@ const save = (item, withConfirmation = true) => (
             promise = dispatch(planningUi.save(item));
             break;
         default:
-            promise = Promise.reject(gettext('Failed to save, could not find the item type!'));
+            promise = Promise.reject(
+                gettext('Failed to save, could not find the item {{itemType}}!', {itemType: itemType})
+            );
             break;
         }
 
@@ -510,7 +512,7 @@ const openEditor = (item) => (
         });
 
         // Update the URL
-        $timeout(() => $location.search('edit', JSON.stringify({id: item._id, type: item._type})));
+        $timeout(() => $location.search('edit', JSON.stringify({id: item._id, type: item.type})));
     }
 );
 
@@ -543,12 +545,12 @@ const openPreview = (item) => (
             type: MAIN.ACTIONS.SET_PREVIEW_ITEM,
             payload: {
                 itemId: item._id,
-                itemType: item._type
+                itemType: item.type
             }
         });
 
         // Update the URL
-        $timeout(() => $location.search('preview', JSON.stringify({id: item._id, type: item._type})));
+        $timeout(() => $location.search('preview', JSON.stringify({id: item._id, type: item.type})));
     }
 );
 
@@ -651,12 +653,12 @@ const openFromURLOrRedux = (action) => (
             if (action === MAIN.PREVIEW) {
                 dispatch(self.openPreview({
                     _id: item.id,
-                    _type: item.type
+                    type: item.type
                 }));
             } else if (action === MAIN.EDIT) {
                 dispatch(self.openEditor({
                     _id: item.id,
-                    _type: item.type
+                    type: item.type
                 }));
             }
         } else {

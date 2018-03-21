@@ -59,7 +59,7 @@ describe('<EventPreviewContent />', () => {
     astore.initialState.planning.plannings.p2.original_creator =
         astore.initialState.users[0];
     astore.initialState.main.previewId = 'e1';
-    astore.initialState.main.previewType = 'events';
+    astore.initialState.main.previewType = 'event';
 
     const getWrapper = () => {
         const store = createTestStore({initialState: astore.initialState});

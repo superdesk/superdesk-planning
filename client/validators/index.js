@@ -95,7 +95,7 @@ const validateCoverageScheduleDate = (dispatch, getState, field, value, profile,
 };
 
 export const validators = {
-    events: {
+    event: {
         anpa_category: [formProfile],
         calendars: [formProfile],
         definition_long: [formProfile],

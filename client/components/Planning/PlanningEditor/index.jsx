@@ -95,7 +95,7 @@ export class PlanningEditorComponent extends React.Component {
             this.props.contentTypes);
 
         let newPlanning = {
-            _type: ITEM_TYPE.PLANNING,
+            type: ITEM_TYPE.PLANNING,
             slugline: addNewsItemToPlanning.slugline,
             planning_date: moment(),
             ednote: get(addNewsItemToPlanning, 'ednote'),

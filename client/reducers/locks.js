@@ -3,10 +3,10 @@ import {RESET_STORE, INIT_STORE, LOCKS, PLANNING, EVENTS, ASSIGNMENTS} from '../
 import {cloneDeep, get} from 'lodash';
 
 const initialLockState = {
-    events: {},
+    event: {},
     planning: {},
     recurring: {},
-    assignments: {},
+    assignment: {},
 };
 
 export const convertItemToLock = (item, itemType) => ({
@@ -22,7 +22,7 @@ const removeLock = (item, state, itemType) => {
     if (get(item, 'recurrence_id')) {
         delete state.recurring[item.recurrence_id];
     } else if (get(item, 'event_item')) {
-        delete state.events[item.event_item];
+        delete state.event[item.event_item];
     } else {
         delete state[itemType][item._id];
     }
@@ -36,7 +36,7 @@ const addLock = (item, state, itemType) => {
     if (get(item, 'recurrence_id')) {
         state.recurring[item.recurrence_id] = lock;
     } else if (get(item, 'event_item')) {
-        state.events[item.event_item] = lock;
+        state.event[item.event_item] = lock;
     } else {
         state[itemType][item._id] = lock;
     }
@@ -53,10 +53,10 @@ export default createReducer(initialLockState, {
         removeLock(payload.plan, cloneDeep(state), 'planning'),
 
     [EVENTS.ACTIONS.UNLOCK_EVENT]: (state, payload) =>
-        removeLock(payload.event, cloneDeep(state), 'events'),
+        removeLock(payload.event, cloneDeep(state), 'event'),
 
     [EVENTS.ACTIONS.LOCK_EVENT]: (state, payload) => (
-        addLock(payload.event, cloneDeep(state), 'events')
+        addLock(payload.event, cloneDeep(state), 'event')
     ),
 
     [PLANNING.ACTIONS.LOCK_PLANNING]: (state, payload) => (
@@ -64,23 +64,23 @@ export default createReducer(initialLockState, {
     ),
 
     [ASSIGNMENTS.ACTIONS.LOCK_ASSIGNMENT]: (state, payload) => (
-        addLock(payload.assignment, cloneDeep(state), 'assignments')
+        addLock(payload.assignment, cloneDeep(state), 'assignment')
     ),
 
     [ASSIGNMENTS.ACTIONS.UNLOCK_ASSIGNMENT]: (state, payload) => (
-        removeLock(payload.assignment, cloneDeep(state), 'assignments')
+        removeLock(payload.assignment, cloneDeep(state), 'assignment')
     ),
 
     [LOCKS.ACTIONS.RECEIVE]: (state, payload) => {
         const locks = {
-            events: {},
+            event: {},
             planning: {},
             recurring: {},
-            assignments: {},
+            assignment: {},
         };
 
         if (payload.events) {
-            payload.events.forEach((event) => addLock(event, locks, 'events'));
+            payload.events.forEach((event) => addLock(event, locks, 'event'));
         }
 
         if (payload.plans) {
@@ -88,14 +88,14 @@ export default createReducer(initialLockState, {
         }
 
         if (payload.assignments) {
-            payload.assignments.forEach((assignment) => addLock(assignment, locks, 'assignments'));
+            payload.assignments.forEach((assignment) => addLock(assignment, locks, 'assignment'));
         }
 
         return locks;
     },
 
     [EVENTS.ACTIONS.MARK_EVENT_POSTPONED]: (state, payload) => (
-        removeLock(payload.event, cloneDeep(state), 'events')
+        removeLock(payload.event, cloneDeep(state), 'event')
     ),
 
     [ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT]: (state, payload) => (

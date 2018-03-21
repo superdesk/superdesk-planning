@@ -27,8 +27,8 @@ const getLock = (item, lockedItems) => {
     case ITEM_TYPE.PLANNING:
         return self.getPlanningLock(item, lockedItems);
     default:
-        if (item._id in lockedItems.assignments) {
-            return lockedItems.assignments[item._id];
+        if (item._id in lockedItems.assignment) {
+            return lockedItems.assignment[item._id];
         }
 
         break;
@@ -40,8 +40,8 @@ const getLock = (item, lockedItems) => {
 const getEventLock = (item, lockedItems) => {
     if (get(item, 'recurrence_id') in lockedItems.recurring) {
         return lockedItems.recurring[item.recurrence_id];
-    } else if (item._id in lockedItems.events) {
-        return lockedItems.events[item._id];
+    } else if (item._id in lockedItems.event) {
+        return lockedItems.event[item._id];
     }
 
     return null;
@@ -52,8 +52,8 @@ const getPlanningLock = (item, lockedItems) => {
         return lockedItems.planning[item._id];
     } else if (get(item, 'recurrence_id') in lockedItems.recurring) {
         return lockedItems.recurring[item.recurrence_id];
-    } else if (get(item, 'event_item') in lockedItems.events) {
-        return lockedItems.events[item.event_item];
+    } else if (get(item, 'event_item') in lockedItems.event) {
+        return lockedItems.event[item.event_item];
     }
 
     return null;

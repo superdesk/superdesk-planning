@@ -263,7 +263,7 @@ describe('actions.assignments.notification', () => {
             sinon.stub(assignmentsApi, 'fetchAssignmentById').callsFake(() => (
                 Promise.resolve(store.initialState.assignment.assignments.as1)));
 
-            store.initialState.locks.assignments = {as1: {user: 'ident1'}};
+            store.initialState.locks.assignment = {as1: {user: 'ident1'}};
             store.initialState.workspace.currentDeskId = 'desk1';
             let payload = {
                 item: 'as1',

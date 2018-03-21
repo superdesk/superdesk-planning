@@ -20,7 +20,7 @@ describe('<EventMetadata />', () => {
             },
             name: 'name1',
             occur_status: {name: 'Planned, occurs certainly'},
-            _type: 'events',
+            type: 'event',
         };
         let store = createTestStore();
         const wrapper = mount(

@@ -114,7 +114,7 @@ const canCancelAllCoverageForPlanning = (planning) => (
 const isPlanningLocked = (plan, locks) =>
     !isNil(plan) && (
         plan._id in locks.planning ||
-        get(plan, 'event_item') in locks.events ||
+        get(plan, 'event_item') in locks.event ||
         get(plan, 'recurrence_id') in locks.recurring
     );
 

@@ -57,6 +57,36 @@
         &--active {
             background: $sd-hover;
         }
+
+        .spinner {
+            width: 10px;
+            height: 10px;
+            text-align: center;
+            right: 9px;
+            top: 6px;
+            display: inline-block;
+            -webkit-animation: rotate 2.0s infinite linear;
+            animation: rotate 2.0s infinite linear;
+
+            .dot1, .dot2 {
+                width: 60%;
+                height: 60%;
+                display: block;
+                top: 0;
+                background-color: #000;
+                border-radius: 100%;
+
+                -webkit-animation: bounce 2.0s infinite ease-in-out;
+                animation: bounce 2.0s infinite ease-in-out;
+            }
+
+            .dot2 {
+                top: auto;
+                bottom: 0px;
+                -webkit-animation-delay: -1.0s;
+                animation-delay: -1.0s;
+            }
+        }
     }
     &__input--nominatim {
         width: 75%;

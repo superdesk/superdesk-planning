@@ -224,7 +224,7 @@ const canEditDesk = (assignment) => {
 
 const isAssignmentLocked = (assignment, locks) =>
     !isNil(assignment) && (
-        assignment._id in locks.assignments
+        assignment._id in locks.assignment
     );
 
 const isAssignmentLockRestricted = (assignment, session, locks) =>

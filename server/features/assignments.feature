@@ -117,6 +117,7 @@ Feature: Assignments
         """
         {
             "_id": "#firstassignment#",
+            "type": "assignment",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",
@@ -236,6 +237,7 @@ Feature: Assignments
         """
         {
             "_id": "#firstassignment#",
+            "type": "assignment",
             "planning": {
                 "ednote": "test coverage, I want 250 words",
                 "headline": "test headline",

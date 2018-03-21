@@ -49,7 +49,7 @@ const eventHasPlanning = (event) => get(event, 'planning_ids', []).length > 0;
 
 const isEventLocked = (event, locks) =>
     !isNil(event) && (
-        event._id in locks.events ||
+        event._id in locks.event ||
         get(event, 'recurrence_id') in locks.recurring
     );
 

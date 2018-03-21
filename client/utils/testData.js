@@ -59,7 +59,7 @@ export const desks = [
 ];
 
 export const formsProfile = {
-    events: {
+    event: {
         editor: {
             files: {enabled: true},
             subject: {enabled: true},
@@ -444,10 +444,10 @@ export const urgency = {
 export const deployConfig = {max_recurrent_events: 200};
 
 export const locks = {
-    events: {},
+    event: {},
     planning: {},
     recurring: {},
-    assignments: {},
+    assignment: {},
 };
 
 export const eventsInitialState = {
@@ -507,7 +507,7 @@ export const form = {};
 export const events = [
     {
         _id: 'e1',
-        _type: 'events',
+        type: 'event',
         slugline: 'test slugline',
         name: 'Event 1',
         dates: {
@@ -519,7 +519,7 @@ export const events = [
     },
     {
         _id: 'e2',
-        _type: 'events',
+        type: 'event',
         slugline: 'test slugline 2',
         name: 'Event 2',
         dates: {
@@ -530,7 +530,7 @@ export const events = [
     },
     {
         _id: 'e3',
-        _type: 'events',
+        type: 'event',
         name: 'Event 3',
         dates: {
             start: '2015-10-15T14:01:11+0000',
@@ -542,7 +542,7 @@ export const events = [
 export const plannings = [
     {
         _id: 'p1',
-        _type: 'planning',
+        type: 'planning',
         slugline: 'Planning1',
         planning_date: '2016-10-15T13:01:11',
         headline: 'Some Plan 1',
@@ -594,7 +594,7 @@ export const plannings = [
     },
     {
         _id: 'p2',
-        _type: 'planning',
+        type: 'planning',
         slugline: 'Planning2',
         planning_date: '2016-10-15T13:01:11',
         headline: 'Some Plan 2',
@@ -617,7 +617,7 @@ export const plannings = [
 export const assignments = [
     {
         _id: 'as1',
-        _type: 'assignments',
+        type: 'assignment',
         coverage_id: 'c1',
         planning_item: 'p1',
         assigned_to: {
@@ -632,7 +632,7 @@ export const assignments = [
     },
     {
         _id: 'as2',
-        _type: 'assignments',
+        type: 'assignment',
         coverage_id: 'c2',
         planning_item: 'p1',
         assigned_to: {

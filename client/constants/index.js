@@ -59,10 +59,6 @@ export const SPIKED_STATE = {
     BOTH: 'both',
 };
 
-export const ADVANCED_SEARCH_CONTEXT = {
-    EVENT: 'event',
-    PLANNING: 'planning',
-};
 export const RESET_STORE = 'RESET_STORE';
 export const INIT_STORE = 'INIT_STORE';
 export const FORM_NAMES = {
@@ -76,12 +72,18 @@ export const FORM_NAMES = {
     EventForm: 'events',
 };
 
+/*
+ * Types of content
+ */
 export const ITEM_TYPE = {
-    EVENT: 'events',
+    EVENT: 'event',
     PLANNING: 'planning',
-    ASSIGNMENT: 'assignments',
-    ARCHIVE: 'archive',
+    ASSIGNMENT: 'assignment',
+    TEXT: 'text',
+    PICTURE: 'picture',
+    VIDEO: 'video',
+    AUDIO: 'audio',
+    GRAPHIC: 'graphic',
+    COMPOSITE: 'composite',
     UNKNOWN: 'unknown'
 };
-
-export const CONTENT_TYPE_EVENT = 'event';

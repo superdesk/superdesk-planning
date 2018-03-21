@@ -171,8 +171,7 @@ export const getEventsWithMoreInfo = createSelector(
     [getEvents, getStoredPlannings, getEventsIdsToShowInList],
     (events, storedPlannings, eventsIdsToBeShown) => (
         eventsIdsToBeShown.map((eventId) => ({
-            ...events[eventId],
-            _type: 'events', // _type can disappear in the obejct, like in a POST response
+            ...events[eventId]
         }))
     )
 );

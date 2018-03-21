@@ -45,6 +45,7 @@ class EventsDuplicateService(BaseService):
         for doc in docs:
             new_event = self._duplicate_doc(parent_event)
             new_ids = events_service.post([new_event])
+            doc.update(new_event)
             history_service.on_item_created([new_event])
             new_event_ids = new_ids
             for new_id in new_ids:

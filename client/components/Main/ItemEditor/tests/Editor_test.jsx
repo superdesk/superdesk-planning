@@ -77,7 +77,7 @@ describe('Main.ItemEditor.Editor', () => {
         });
 
         if (item.lock_user) {
-            item._type === ITEM_TYPE.EVENT ?
+            item.type === ITEM_TYPE.EVENT ?
                 store.dispatch({
                     type: EVENTS.ACTIONS.LOCK_EVENT,
                     payload: {event: item}

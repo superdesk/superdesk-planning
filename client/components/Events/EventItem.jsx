@@ -78,7 +78,7 @@ export class EventItem extends React.PureComponent {
                                 onEventCapture(e);
                                 onItemClick({
                                     _id: item.reschedule_from,
-                                    _type: 'events',
+                                    type: 'event',
                                 });
                             }}
                             text={actionedState.label}

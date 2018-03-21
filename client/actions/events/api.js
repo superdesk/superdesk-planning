@@ -683,7 +683,7 @@ const loadEventDataForAction = (event, loadPlanning = true, publish = false, loa
                         start: moment(event.dates.start),
                         end: moment(event.dates.end),
                     },
-                    _type: 'events',
+                    type: 'event',
                     _recurring: relatedEvents.events,
                     _publish: publish,
                     _events: [],
@@ -1171,8 +1171,6 @@ const duplicate = (event) => (
         api('events_duplicate', event).save({})
             .then((newEvent) => {
                 newEvent.files = event.files;
-                newEvent._type = 'events';
-
                 return Promise.resolve(newEvent);
             }, (error) => Promise.reject(error))
     )

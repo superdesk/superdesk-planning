@@ -8,10 +8,10 @@ import {currentUserId} from './general';
 import {lockUtils} from '../utils';
 
 export const getLockedItems = (state) => get(state, 'locks', {
-    events: {},
+    event: {},
     planning: {},
     recurring: {},
-    assignments: {},
+    assignment: {},
 });
 
 /** Returns the list of currently locked planning items */

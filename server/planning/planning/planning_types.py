@@ -125,7 +125,7 @@ class CoverageSchema(BaseSchema):
 
 
 DEFAULT_EDITOR = [{
-    'name': 'events',
+    'name': 'event',
     'editor': {
         'slugline': {'enabled': True},
         'place': {'enabled': False},

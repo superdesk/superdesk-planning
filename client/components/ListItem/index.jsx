@@ -40,7 +40,7 @@ export class ListItem extends React.Component {
     handleDragStart(e) {
         e.dataTransfer.effectAllowed = 'copy';
         e.dataTransfer.setData(
-            `application/superdesk.item.${this.props.item._type}`,
+            `application/superdesk.item.${this.props.item.type}`,
             JSON.stringify(this.props.item)
         );
     }

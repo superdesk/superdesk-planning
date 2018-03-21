@@ -67,6 +67,7 @@ Feature: Events
             {"_items": [{
                 "guid": "__any_value__",
                 "original_creator": "__any_value__",
+                "type": "event",
                 "name": "event 123",
                 "slugline": "event-123",
                 "definition_short": "short value",
@@ -377,6 +378,7 @@ Feature: Events
         {
             "_id": "123",
             "name": "event 123",
+            "type": "event",
             "state": "scheduled",
             "duplicate_to": ["#duplicate._id#"]
         }
@@ -388,6 +390,7 @@ Feature: Events
             "_id": "#duplicate._id#",
             "name": "event 123",
             "state": "draft",
+            "type": "event",
             "occur_status": {"qcode": "eocstat:eos5"},
             "duplicate_from": "123"
         }
