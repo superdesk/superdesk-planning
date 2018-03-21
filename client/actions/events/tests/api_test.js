@@ -513,6 +513,81 @@ describe('actions.events.api', () => {
                         done();
                     })
             ));
+
+            it('by workflow state', (done) => (
+                store.test(done, eventsApi.query({
+                    advancedSearch: {
+                        state: [{
+                            qcode: 'postponed',
+                            name: 'postponed',
+                        }, {
+                            qcode: 'rescheduled',
+                            name: 'rescheduled',
+                        }]
+                    }
+                }))
+                    .then(() => {
+                        expect(services.api('events').query.callCount).toBe(1);
+                        expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
+                            page: 1,
+                            max_results: 25,
+                            sort: '[("dates.start",1)]',
+                            embedded: {files: 1},
+                            source: JSON.stringify({
+                                query: {
+                                    bool: {
+                                        must: [
+                                            {terms: {state: ['postponed', 'rescheduled']}}
+                                        ],
+                                        must_not: [
+                                            {term: {state: WORKFLOW_STATE.SPIKED}},
+                                        ],
+                                    },
+                                },
+                                filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
+                            }),
+                        })]);
+
+                        done();
+                    })
+            ));
+
+            it('by workflow state including spiked items', (done) => (
+                store.test(done, eventsApi.query({
+                    spikeState: SPIKED_STATE.BOTH,
+                    advancedSearch: {
+                        state: [{
+                            qcode: 'postponed',
+                            name: 'postponed',
+                        }, {
+                            qcode: 'rescheduled',
+                            name: 'rescheduled',
+                        }]
+                    }
+                }))
+                    .then(() => {
+                        expect(services.api('events').query.callCount).toBe(1);
+                        expect(services.api('events').query.args[0]).toEqual([jasmine.objectContaining({
+                            page: 1,
+                            max_results: 25,
+                            sort: '[("dates.start",1)]',
+                            embedded: {files: 1},
+                            source: JSON.stringify({
+                                query: {
+                                    bool: {
+                                        must: [
+                                            {terms: {state: ['postponed', 'rescheduled', 'spiked']}}
+                                        ],
+                                        must_not: [],
+                                    },
+                                },
+                                filter: {range: {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}}},
+                            }),
+                        })]);
+
+                        done();
+                    })
+            ));
         });
     });
 

@@ -248,6 +248,94 @@ describe('actions.planning.api', () => {
                 })
         ));
 
+        it('by workflow-state in advancedSearch', (done) => (
+            store.test(done, planningApi.query({
+                agendas: ['a1', 'a2'],
+                spikeState: SPIKED_STATE.NOT_SPIKED,
+                advancedSearch: {
+                    state: [{
+                        qcode: 'draft',
+                        name: 'draft'
+                    }, {
+                        qcode: 'postponed',
+                        name: 'postponed'
+                    }]}
+            }))
+                .then(() => {
+                    expect(services.api('planning').query.callCount).toBe(1);
+                    const source = JSON.parse(services.api('planning').query.args[0][0].source);
+
+                    expect(source.filter).toEqual(
+                        {
+                            nested: {
+                                path: '_planning_schedule',
+                                filter: {
+                                    range: {
+                                        '_planning_schedule.scheduled': {
+                                            gte: 'now/d',
+                                            time_zone: getTimeZoneOffset(),
+                                        },
+                                    },
+                                },
+                            }
+                        }
+                    );
+
+                    expect(source.query.bool.must).toEqual([
+                        {terms: {agendas: ['a1', 'a2']}},
+                        {terms: {state: ['draft', 'postponed']}},
+                    ]);
+
+                    expect(source.query.bool.must_not).toEqual([{term: {state: 'spiked'}}]);
+
+                    done();
+                })
+        ));
+
+        it('by workflow-state in advancedSearch including spiked', (done) => (
+            store.test(done, planningApi.query({
+                agendas: ['a1', 'a2'],
+                spikeState: SPIKED_STATE.BOTH,
+                advancedSearch: {
+                    state: [{
+                        qcode: 'draft',
+                        name: 'draft'
+                    }, {
+                        qcode: 'postponed',
+                        name: 'postponed'
+                    }]}
+            }))
+                .then(() => {
+                    expect(services.api('planning').query.callCount).toBe(1);
+                    const source = JSON.parse(services.api('planning').query.args[0][0].source);
+
+                    expect(source.filter).toEqual(
+                        {
+                            nested: {
+                                path: '_planning_schedule',
+                                filter: {
+                                    range: {
+                                        '_planning_schedule.scheduled': {
+                                            gte: 'now/d',
+                                            time_zone: getTimeZoneOffset(),
+                                        },
+                                    },
+                                },
+                            }
+                        }
+                    );
+
+                    expect(source.query.bool.must).toEqual([
+                        {terms: {agendas: ['a1', 'a2']}},
+                        {terms: {state: ['draft', 'postponed', 'spiked']}},
+                    ]);
+
+                    expect(source.query.bool.must_not).toEqual([]);
+
+                    done();
+                })
+        ));
+
         it('refetch', (done) => {
             sinon.stub(planningApi, 'query').callsFake(() => (Promise.resolve(['item'])));
             store.initialState.main.filter = MAIN.FILTERS.PLANNING;

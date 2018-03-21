@@ -396,7 +396,7 @@ const createNewPlanningFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus
 const createCoverageFromNewsItem = (addNewsItemToPlanning, newsCoverageStatus, desk, user, contentTypes) => {
     let newCoverage = COVERAGES.DEFAULT_VALUE(newsCoverageStatus);
 
-    newCoverage.workflow_status = WORKFLOW_STATE.ACTIVE;
+    newCoverage.workflow_status = COVERAGES.WORKFLOW_STATE.ACTIVE;
 
     // Add fields from news item to the coverage
     const contentType = contentTypes.find(
@@ -611,7 +611,7 @@ const getCoverageIcon = (type) => {
 const getCoverageIconColor = (coverage) => {
     if (get(coverage, 'assigned_to.state') === ASSIGNMENTS.WORKFLOW_STATE.COMPLETED) {
         return 'icon--green';
-    } else if (isCoverageDraft(coverage) || get(coverage, 'workflow_status') === WORKFLOW_STATE.ACTIVE) {
+    } else if (isCoverageDraft(coverage) || get(coverage, 'workflow_status') === COVERAGES.WORKFLOW_STATE.ACTIVE) {
         return 'icon--red';
     } else if (isCoverageCancelled(coverage)) {
         // Cancelled
@@ -635,7 +635,7 @@ const getCoverageWorkflowIcon = (coverage) => {
     case WORKFLOW_STATE.DRAFT:
         return 'icon-assign';
 
-    case WORKFLOW_STATE.ACTIVE:
+    case COVERAGES.WORKFLOW_STATE.ACTIVE:
         return 'icon-user';
     }
 };

@@ -12,5 +12,6 @@ export const COVERAGES = {
         },
         news_coverage_status: newsCoverageStatus[0],
         workflow_status: WORKFLOW_STATE.DRAFT,
-    })
+    }),
+    WORKFLOW_STATE: {ACTIVE: 'active'},
 };

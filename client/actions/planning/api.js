@@ -5,13 +5,13 @@ import {
     getTimeZoneOffset,
     sanitizeTextForQuery,
     lockUtils,
+    appendStatesQueryForAdvancedSearch,
 } from '../../utils';
 import planningUtils from '../../utils/planning';
 import {
     PLANNING,
     PUBLISHED_STATE,
     SPIKED_STATE,
-    WORKFLOW_STATE,
     MODALS, MAIN,
 } from '../../constants';
 import main from '../main';
@@ -99,18 +99,6 @@ const getCriteria = ({
                         constant_score: {filter: {exists: {field: 'agendas'}}}
                     });
                 }
-            },
-        },
-        {
-            condition: () => (spikeState === SPIKED_STATE.SPIKED),
-            do: () => {
-                must.push({term: {state: WORKFLOW_STATE.SPIKED}});
-            },
-        },
-        {
-            condition: () => (spikeState === SPIKED_STATE.NOT_SPIKED || !spikeState),
-            do: () => {
-                mustNot.push({term: {state: WORKFLOW_STATE.SPIKED}});
             },
         },
         {
@@ -277,6 +265,9 @@ const getCriteria = ({
             action.do();
         }
     });
+
+    // Handle 'state' and 'spiked' requirements
+    appendStatesQueryForAdvancedSearch(advancedSearch, spikeState, mustNot, must);
 
     query.bool = {
         must: must,

@@ -1,14 +1,20 @@
 import {
     EVENTS,
     SPIKED_STATE,
-    WORKFLOW_STATE,
     PUBLISHED_STATE,
     MAIN
 } from '../../constants';
 import {EventUpdateMethods} from '../../components/Events';
 import {get, isEqual, cloneDeep, pickBy, isNil, has} from 'lodash';
 import * as selectors from '../../selectors';
-import {eventUtils, getTimeZoneOffset, lockUtils, sanitizeTextForQuery, getErrorMessage} from '../../utils';
+import {
+    eventUtils,
+    getTimeZoneOffset,
+    lockUtils,
+    sanitizeTextForQuery,
+    getErrorMessage,
+    appendStatesQueryForAdvancedSearch,
+} from '../../utils';
 import moment from 'moment';
 
 import planningApi from '../planning/api';
@@ -477,18 +483,8 @@ const getCriteria = (
         filter.range = {'dates.end': {gte: 'now/d', time_zone: getTimeZoneOffset()}};
     }
 
-    if (!advancedSearch.published) {
-        switch (spikeState) {
-        case SPIKED_STATE.SPIKED:
-            must.push({term: {state: WORKFLOW_STATE.SPIKED}});
-            break;
-        case SPIKED_STATE.BOTH:
-            break;
-        case SPIKED_STATE.NOT_SPIKED:
-        default:
-            mustNot.push({term: {state: WORKFLOW_STATE.SPIKED}});
-        }
-    }
+    // Handle 'state' and 'spiked' requirements
+    appendStatesQueryForAdvancedSearch(advancedSearch, spikeState, mustNot, must);
 
     query.bool = {
         must: must,

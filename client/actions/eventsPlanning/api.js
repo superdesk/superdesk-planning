@@ -28,7 +28,7 @@ const query = (
             spikeState: spikeState,
             adHocPlanning: true, // only adhoc planning items,
             advancedSearch: pick(advancedSearch,
-                ['anpa_category', 'subject', 'slugline', 'published', 'spikeState', 'dates'])
+                ['anpa_category', 'subject', 'slugline', 'published', 'spikeState', 'state', 'dates'])
         };
 
         const planningCriteria = planningApi.getCriteria(search);
