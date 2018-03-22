@@ -55,6 +55,7 @@ export function UnlinkAssignmentController(
                                 (lockedItem) => Promise.resolve({
                                     newsItem: lockedItem,
                                     assignment: assignment,
+                                    isLocked: true
                                 }),
                                 (error) => {
                                     notify.error(
@@ -65,9 +66,11 @@ export function UnlinkAssignmentController(
                             );
                     }
 
+                    // item already locked by the user.
                     return Promise.resolve({
-                        newsItem,
-                        assignment,
+                        newsItem: newsItem,
+                        assignment: assignment,
+                        isLocked: false
                     });
                 }, (error) => {
                     notify.error(
@@ -82,16 +85,27 @@ export function UnlinkAssignmentController(
             return Promise.reject(error);
         })
         .then(
-            ({newsItem, assignment}) => (
+            ({newsItem, assignment, isLocked}) => (
                 api('assignments_unlink').save({}, {
                     assignment_id: assignment._id,
                     item_id: newsItem._id,
                 })
                     .then(() => {
                         notify.success('Item unlinked from coverage.');
+                        // update the scope item.
+                        data.item.assignment_id = null;
+
+                        if (!isLocked) {
+                            // item is already by the user.
+                            return Promise.resolve();
+                        }
+
                         return lock.unlock(newsItem)
                             .then(
-                                () => Promise.resolve(),
+                                () =>
+                                    // reset the assignment id
+                                    Promise.resolve()
+                                ,
                                 (error) => {
                                     notify.error(
                                         getErrorMessage(error, 'Failed to unlock the item.')

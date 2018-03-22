@@ -161,6 +161,8 @@ export function AddToPlanningController(
                                     lock.unlock(newsItem);
                                 }
 
+                                // update the scope item.
+                                item.assignment_id = newsItem.assignment_id;
                                 store.dispatch(actions.hideModal());
                                 ReactDOM.unmountComponentAtNode($element.get(0));
                             });

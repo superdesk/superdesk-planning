@@ -64,14 +64,15 @@ describe('UnlinkAssignmentController', () => {
             });
     }));
 
-    it('unlinks the item from the assignment', inject((notify, gettext, api, lock) => (
-        UnlinkAssignmentController(scopeData, notify, gettext, api, lock)
+    it('unlinks the item from the assignment', inject((notify, gettext, api, lock) => {
+        expect(scopeData.item.assignment_id).toBe('as1');
+        return UnlinkAssignmentController(scopeData, notify, gettext, api, lock)
             .then(() => {
                 expect(api('archive').getById.callCount).toBe(1);
                 expect(api('archive').getById.args[0]).toEqual([data.archive[0]._id]);
 
                 expect(api('assignments').getById.callCount).toBe(1);
-                expect(api('assignments').getById.args[0]).toEqual([data.archive[0].assignment_id]);
+                expect(api('assignments').getById.args[0]).toEqual(['as1']);
 
                 expect(lock.lock.callCount).toBe(1);
                 expect(lock.lock.args[0]).toEqual([
@@ -84,18 +85,19 @@ describe('UnlinkAssignmentController', () => {
                 expect(api('assignments_unlink').save.args[0]).toEqual([
                     {},
                     {
-                        assignment_id: data.archive[0].assignment_id,
+                        assignment_id: 'as1',
                         item_id: data.archive[0]._id,
                     },
                 ]);
 
+                expect(scopeData.item.assignment_id).toBe(null);
                 expect(notify.success.callCount).toBe(1);
                 expect(notify.success.args[0]).toEqual(['Item unlinked from coverage.']);
 
                 expect(lock.unlock.callCount).toBe(1);
                 expect(lock.unlock.args[0]).toEqual([data.archive[0]]);
-            })
-    )));
+            });
+    }));
 
     it('notifies user if failed to obtain item lock', inject((notify, gettext, api, lock) => {
         lock.lock = sinon.stub().returns(Promise.reject({}));
@@ -124,6 +126,35 @@ describe('UnlinkAssignmentController', () => {
             .then(() => { /* no-op */ }, () => {
                 expect(notify.error.callCount).toBe(1);
                 expect(notify.error.args[0]).toEqual(['Failed to unlock the item.']);
+            });
+    }));
+
+    it('lock/unlock is not called if the user acts on the locked item', inject((notify, gettext, api, lock) => {
+        expect(scopeData.item.assignment_id).toBe('as1');
+        lock.isLockedInCurrentSession = sinon.stub().returns(true);
+        return UnlinkAssignmentController(scopeData, notify, gettext, api, lock)
+            .then(() => {
+                expect(api('archive').getById.callCount).toBe(1);
+                expect(api('archive').getById.args[0]).toEqual([data.archive[0]._id]);
+
+                expect(api('assignments').getById.callCount).toBe(1);
+                expect(api('assignments').getById.args[0]).toEqual(['as1']);
+
+                expect(lock.lock.callCount).toBe(0);
+                expect(api('assignments_unlink').save.callCount).toBe(1);
+                expect(api('assignments_unlink').save.args[0]).toEqual([
+                    {},
+                    {
+                        assignment_id: 'as1',
+                        item_id: data.archive[0]._id,
+                    },
+                ]);
+
+                expect(scopeData.item.assignment_id).toBe(null);
+                expect(notify.success.callCount).toBe(1);
+                expect(notify.success.args[0]).toEqual(['Item unlinked from coverage.']);
+
+                expect(lock.unlock.callCount).toBe(0);
             });
     }));
 });

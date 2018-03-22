@@ -66,6 +66,7 @@ class AssignmentsLinkService(Service):
                 'planning_id': assignment['planning_item'],
                 'coverage_id': assignment['coverage_item']
             }])
+            item['assignment_id'] = assignment[config.ID_FIELD]
 
             # Save assignment history
             assignment_history_service = get_resource_service('assignments_history')
