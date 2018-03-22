@@ -22,8 +22,7 @@ import {ToggleBox} from '../../UI';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
 import {CoverageArrayInput} from '../../Coverages';
 import {EventMetadata} from '../../Events';
-import {ITEM_TYPE, PLANNING, WORKFLOW_STATE, ASSIGNMENTS} from '../../../constants';
-import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
+import {PLANNING, WORKFLOW_STATE, ASSIGNMENTS} from '../../../constants';
 
 const toggleDetails = [
     'ednote',
@@ -41,7 +40,6 @@ export class PlanningEditorComponent extends React.Component {
         this.onCancelCoverage = this.onCancelCoverage.bind(this);
         this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
         this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
-        this.createNewPlanningFromNewsItem = this.createNewPlanningFromNewsItem.bind(this);
     }
 
     componentWillMount() {
@@ -66,7 +64,12 @@ export class PlanningEditorComponent extends React.Component {
 
             // If we are creating a new planning item for 'add-to-planning'
             if (!get(this.props, 'item._id')) {
-                const newPlanning = this.createNewPlanningFromNewsItem();
+                const newPlanning = planningUtils.createNewPlanningFromNewsItem(
+                    this.props.addNewsItemToPlanning,
+                    this.props.newsCoverageStatus,
+                    this.props.desk,
+                    this.props.user,
+                    this.props.contentTypes);
 
                 this.props.onChangeHandler(null, newPlanning);
             } else {
@@ -83,36 +86,6 @@ export class PlanningEditorComponent extends React.Component {
                 this.props.onChangeHandler(null, dupItem);
             }
         }
-    }
-
-    createNewPlanningFromNewsItem() {
-        const {addNewsItemToPlanning} = this.props;
-        const newCoverage = planningUtils.createCoverageFromNewsItem(
-            this.props.addNewsItemToPlanning,
-            this.props.newsCoverageStatus,
-            this.props.desk,
-            this.props.user,
-            this.props.contentTypes);
-
-        let newPlanning = {
-            type: ITEM_TYPE.PLANNING,
-            slugline: addNewsItemToPlanning.slugline,
-            planning_date: moment(),
-            ednote: get(addNewsItemToPlanning, 'ednote'),
-            subject: get(addNewsItemToPlanning, 'subject'),
-            anpa_category: get(addNewsItemToPlanning, 'anpa_category'),
-            urgency: get(addNewsItemToPlanning, 'urgency'),
-            description_text: stripHtmlRaw(
-                get(addNewsItemToPlanning, 'abstract', get(addNewsItemToPlanning, 'headline', ''))
-            ),
-            coverages: [newCoverage],
-        };
-
-        if (get(addNewsItemToPlanning, 'flags.marked_for_not_publication')) {
-            newPlanning.flags = {marked_for_not_publication: true};
-        }
-
-        return newPlanning;
     }
 
     onDuplicateCoverage(coverage, duplicateAs) {
@@ -180,14 +153,7 @@ export class PlanningEditorComponent extends React.Component {
             valueToUpdate = get(value, 'qcode', null);
         }
 
-        if (field === 'coverages' && this.props.addNewsItemToPlanning) {
-            valueToUpdate[value.length - 1] = planningUtils.createCoverageFromNewsItem(
-                this.props.addNewsItemToPlanning,
-                this.props.newsCoverageStatus,
-                this.props.desk,
-                this.props.user,
-                this.props.contentTypes);
-        } else if (field.match(/coverages\[/)) {
+        if (field.match(/coverages\[/)) {
             // If there is an assignment and coverage status not planned,
             // change it to 'planned'
             if (get(value, 'news_coverage_status.qcode') !== this.props.newsCoverageStatus[0].qcode &&
@@ -482,6 +448,7 @@ export class PlanningEditorComponent extends React.Component {
                     readOnly={readOnly}
                     maxCoverageCount={maxCoverageCount}
                     addOnly={!!addNewsItemToPlanning}
+                    addNewsItemToPlanning={addNewsItemToPlanning}
                     originalCount={get(item, 'coverages', []).length}
                     defaultValue={[]}
                     defaultGenre={this.props.defaultGenre}
