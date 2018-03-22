@@ -42,7 +42,7 @@ export const getCurrentAgenda = createSelector(
 
 export const getCurrentModalType = (state) => get(state, 'modal.modalType', null);
 export const getCurrentModalProps = (state) => get(state, 'modal.modalProps', {});
-export const getModalActionInProgress = (state) => get(state, 'modal.actionInProgress', false);
+export const getModalActionInProgress = (state) => !!get(state, 'modal.actionInProgress', false);
 export const planningEditorOpened = (state) => get(state, 'planning.editorOpened', false);
 export const planningEditorReadOnly = (state) => get(state, 'planning.readOnly', true);
 

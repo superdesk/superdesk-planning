@@ -9,7 +9,7 @@ import {createTestStore} from '../../../utils';
 import {getTestActionStore, waitFor} from '../../../utils/testUtils';
 import {MAIN} from '../../../constants';
 
-import {PlanningApp} from '../../../planning';
+import {PlanningApp} from '../../../apps';
 import {PanelInfo} from '../../UI';
 import {EventItem} from '../../Events';
 import {PlanningItem} from '../../Planning';

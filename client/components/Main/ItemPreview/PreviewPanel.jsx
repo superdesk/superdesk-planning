@@ -10,7 +10,6 @@ import * as actions from '../../../actions';
 import {HistoryTab} from '../index';
 import {PreviewContentTab, PreviewHeader} from './index';
 import {Tabs} from '../../UI/Nav';
-import {Panel} from '../../UI/Preview';
 import {SidePanel, Header, Tools, Content} from '../../UI/SidePanel';
 import {WORKSPACE, TOOLTIPS} from '../../../constants';
 
@@ -20,13 +19,12 @@ export class PreviewPanelComponent extends React.Component {
         this.state = {tab: 0};
 
         this.openEditPanel = this.openEditPanel.bind(this);
-        this.closePreview = this.closePreview.bind(this);
         this.setActiveTab = this.setActiveTab.bind(this);
 
         this.tools = [
             {
                 icon: 'icon-close-small',
-                onClick: this.closePreview,
+                onClick: this.props.closePreview,
                 title: gettext(TOOLTIPS.close),
             },
         ];
@@ -84,10 +82,6 @@ export class PreviewPanelComponent extends React.Component {
         this.props.edit(this.props.item);
     }
 
-    closePreview() {
-        this.props.closePreview();
-    }
-
     setActiveTab(tab) {
         this.setState({tab});
     }
@@ -97,57 +91,57 @@ export class PreviewPanelComponent extends React.Component {
         const RenderTab = currentTab.render;
 
         return (
-            <Panel>
-                <SidePanel shadowRight={true}>
-                    <Header>
-                        <Tools tools={this.tools}/>
-                        <Tabs
-                            tabs={this.tabs}
-                            active={this.state.tab}
-                            setActive={this.setActiveTab}
-                        />
-                    </Header>
-                    {!this.props.previewLoading && this.props.item && (
-                        <Content>
-                            {currentTab.label !== 'History' &&
-                            <PreviewHeader item={this.props.item}/>
-                            }
-                            <RenderTab item={this.props.item}/>
-                        </Content>
-                    )}
-                </SidePanel>
-            </Panel>
+            <SidePanel shadowRight={true}>
+                <Header>
+                    <Tools tools={this.tools}/>
+                    <Tabs
+                        tabs={this.tabs}
+                        active={this.state.tab}
+                        setActive={this.setActiveTab}
+                    />
+                </Header>
+                {!this.props.previewLoading && this.props.item && (
+                    <Content>
+                        {currentTab.label !== 'History' &&
+                        <PreviewHeader item={this.props.item}/>
+                        }
+                        <RenderTab item={this.props.item}/>
+                    </Content>
+                )}
+            </SidePanel>
         );
     }
 }
 
-PreviewPanelComponent
-    .propTypes = {
-        item: PropTypes.object,
-        edit: PropTypes.func.isRequired,
-        closePreview: PropTypes.func.isRequired,
-        initialLoad: PropTypes.bool,
+PreviewPanelComponent.propTypes = {
+    item: PropTypes.object,
+    itemId: PropTypes.string,
+    itemType: PropTypes.string,
+    previewLoading: PropTypes.bool,
+    inPlanning: PropTypes.bool,
+    loadPreviewItem: PropTypes.func,
+    edit: PropTypes.func.isRequired,
+    closePreview: PropTypes.func,
+    initialLoad: PropTypes.bool,
+};
 
-        itemId: PropTypes.string,
-        itemType: PropTypes.string,
-        previewLoading: PropTypes.bool,
-        loadPreviewItem: PropTypes.func,
-        inPlanning: PropTypes.bool,
-    };
+PreviewPanelComponent.defaultProps = {initialLoad: false};
 
-const
-    mapStateToProps = (state) => ({
-        item: selectors.main.getPreviewItem(state),
-        itemId: selectors.main.previewId(state),
-        itemType: selectors.main.previewType(state),
-        previewLoading: selectors.main.previewLoading(state),
-        inPlanning: selectors.getCurrentWorkspace(state) === WORKSPACE.PLANNING,
-    });
+const mapStateToProps = (state) => ({
+    item: selectors.main.getPreviewItem(state),
+    itemId: selectors.main.previewId(state),
+    itemType: selectors.main.previewType(state),
+    previewLoading: selectors.main.previewLoading(state),
+    inPlanning: selectors.getCurrentWorkspace(state) === WORKSPACE.PLANNING,
+});
 
-const
-    mapDispatchToProps = (dispatch) => ({
-        loadPreviewItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'preview'))
-    });
+const mapDispatchToProps = (dispatch) => ({
+    loadPreviewItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'preview')),
+    edit: (item) => dispatch(actions.main.lockAndEdit(item)),
+    closePreview: () => dispatch(actions.main.closePreview()),
+});
 
-export const
-    PreviewPanel = connect(mapStateToProps, mapDispatchToProps)(PreviewPanelComponent);
+export const PreviewPanel = connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(PreviewPanelComponent);

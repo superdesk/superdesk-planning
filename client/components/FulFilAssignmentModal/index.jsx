@@ -83,7 +83,7 @@ FulFilAssignmentComponent.propTypes = {
         $scope: PropTypes.object,
     }),
     currentWorkspace: PropTypes.string,
-    actionInProgress: PropTypes.boolean,
+    actionInProgress: PropTypes.bool,
     priorities: PropTypes.array,
     urgencies: PropTypes.array,
     urgencyLabel: PropTypes.string,

@@ -34,9 +34,9 @@ export const currentItem = createSelector(
         if (itemId === null || isLoading) {
             return null;
         } else if (itemType === ITEM_TYPE.EVENT) {
-            return get(events, itemId);
+            return get(events, itemId) || null;
         } else if (itemType === ITEM_TYPE.PLANNING) {
-            return get(plannings, itemId);
+            return get(plannings, itemId) || null;
         }
 
         return null;

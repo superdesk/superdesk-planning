@@ -1,10 +1,6 @@
+@import '~superdesk-ui-framework/app/styles/_variables.scss';
+
 /* ui fixes for planning redesign - should be avoided */
-
-.Planning2 {
-    height: 100%;
-    background-color: #f8f8f8 !important;
-}
-
 .sd-searchbar {
     .sd-searchbar__icon {
         margin-bottom: 0;
@@ -22,7 +18,7 @@
 }
 
 .sd-page-grid--basic {
-    background-color: #f8f8f8;
+    background-color: $sd-background;
 }
 
 .side-panel__content {
@@ -48,5 +44,18 @@
 
 // Hack so that content is not rendered underneath the workqueue
 .sd-page-grid--basic .sd-content--margin-b30 {
-   margin-bottom: 30px;
+    margin-bottom: 30px;
+}
+
+// styles related to infinite scroll for list panel component
+.sd-column-box__main-column__listpanel {
+    overflow: hidden;
+    .sd-column-box__main-column__items {
+        overflow: auto !important;
+        width: 100%;
+        height: calc(100vh - (#{$nav-height} + #{$subnav-height} * 2 + 30px));
+    }
+    .loading-indicator{
+        top: calc(#{$nav-height} + #{$subnav-height});
+    }
 }

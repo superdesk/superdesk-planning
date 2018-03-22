@@ -95,32 +95,30 @@ export class SearchPanelComponent extends React.Component {
         };
 
         return (
-            <div className="sd-filters-panel">
-                <SidePanel shadowLeft={true} transparent={true}>
-                    <Header className={'side-panel__header--border-b'}>
-                        <Tools tools={tools}/>
-                        <h3 className="side-panel__heading">{gettext('Advanced filters')}</h3>
-                    </Header>
-                    <Content>
-                        <AdvancedSearch {...advancedSearchProps}/>
-                    </Content>
-                    <Footer className="side-panel__footer--button-box">
-                        <div className="flex-grid flex-grid--boxed-small flex-grid--wrap-items flex-grid--small-2">
-                            <Button
-                                disabled={!isViewFiltered}
-                                text={gettext('Clear')}
-                                hollow={true}
-                                onClick={this.onClear}
-                            />
-                            <Button
-                                text={gettext('Search')}
-                                onClick={() => search(diff)}
-                                color={'primary'}
-                            />
-                        </div>
-                    </Footer>
-                </SidePanel>
-            </div>
+            <SidePanel shadowLeft={true} transparent={true}>
+                <Header className="side-panel__header--border-b">
+                    <Tools tools={tools}/>
+                    <h3 className="side-panel__heading">{gettext('Advanced filters')}</h3>
+                </Header>
+                <Content>
+                    <AdvancedSearch {...advancedSearchProps}/>
+                </Content>
+                <Footer className="side-panel__footer--button-box">
+                    <div className="flex-grid flex-grid--boxed-small flex-grid--wrap-items flex-grid--small-2">
+                        <Button
+                            disabled={!isViewFiltered}
+                            text={gettext('Clear')}
+                            hollow={true}
+                            onClick={this.onClear}
+                        />
+                        <Button
+                            text={gettext('Search')}
+                            onClick={() => search(diff)}
+                            color={'primary'}
+                        />
+                    </div>
+                </Footer>
+            </SidePanel>
         );
     }
 }

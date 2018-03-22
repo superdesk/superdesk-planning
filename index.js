@@ -9,15 +9,6 @@ import { get } from 'lodash'
 configurePlanning.$inject = ['superdeskProvider']
 function configurePlanning(superdesk) {
     superdesk
-        .activity('/planning_old', {
-            label: gettext('Planning'),
-            description: gettext('Planning'),
-            priority: 100,
-            adminTools: false,
-            template: require('./client/views/planning.html'),
-            sideTemplateUrl: 'scripts/apps/workspace/views/workspace-sidenav.html',
-            privileges: { planning: 1 },
-        })
         .activity('/planning', {
             label: gettext('Planning'),
             description: gettext('Planning'),
