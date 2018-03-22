@@ -677,8 +677,16 @@ const save = (item, original = undefined) => (
                 // As assignments are created and require a Planning ID
                 // const coverages = cloneDeep(item.coverages)
                 // item.coverages = []
+                let modifiedUpdates = cloneDeep(updates);
+
+                if (updates.pubstatus === PUBLISHED_STATE.USABLE) {
+                    // We are create&publishing from add-to-planning
+                    delete modifiedUpdates.pubstatus;
+                    delete modifiedUpdates.state;
+                }
+
                 return api('planning').save({}, {
-                    ...updates,
+                    ...modifiedUpdates,
                     coverages: [],
                 })
                     .then(
