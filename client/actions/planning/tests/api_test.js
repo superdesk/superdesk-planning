@@ -22,7 +22,7 @@ describe('actions.planning.api', () => {
         services = store.services;
         data = store.data;
 
-        sinon.stub(planningApi, 'save').callsFake(() => (Promise.resolve()));
+        sinon.stub(planningApi, 'save').callsFake((item) => (Promise.resolve(item)));
         sinon.stub(planningApi, 'fetch').callsFake(() => (Promise.resolve([])));
         sinon.stub(planningApi, 'query').callsFake(() => (Promise.resolve()));
         sinon.stub(planningApi, 'receivePlannings').callsFake(() => (Promise.resolve()));

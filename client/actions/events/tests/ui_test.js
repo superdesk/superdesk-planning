@@ -4,6 +4,7 @@ import planningApi from '../../planning/api';
 import {main} from '../../';
 import {PRIVILEGES, MAIN} from '../../../constants';
 import sinon from 'sinon';
+import moment from 'moment';
 import {getTestActionStore, restoreSinonStub, expectAccessDenied} from '../../../utils/testUtils';
 
 describe('actions.events.ui', () => {
@@ -670,6 +671,56 @@ describe('actions.events.ui', () => {
                     expect(services.notify.success.callCount).toBe(0);
                     expect(services.notify.error.callCount).toBe(1);
                     expect(services.notify.error.args[0]).toEqual(['Failed!']);
+
+                    done();
+                });
+        });
+    });
+
+    describe('createEventFromPlanning', () => {
+        beforeEach(() => {
+            sinon.stub(planningApi, 'lock').callsFake((item) => Promise.resolve(item));
+            sinon.stub(main, 'lockAndEdit').callsFake((item) => Promise.resolve(item));
+        });
+
+        afterEach(() => {
+            restoreSinonStub(planningApi.lock);
+            restoreSinonStub(main.lockAndEdit);
+        });
+
+        it('locks the Planning item and opens the Event Editor', (done) => {
+            const plan = data.plannings[0];
+
+            store.test(done, eventsUi.createEventFromPlanning(plan))
+                .then(() => {
+                    expect(planningApi.lock.callCount).toBe(1);
+                    expect(planningApi.lock.args[0]).toEqual([plan, 'add_as_event']);
+
+                    expect(main.lockAndEdit.callCount).toBe(1);
+                    const args = main.lockAndEdit.args[0][0];
+
+                    expect(args).toEqual(jasmine.objectContaining({
+                        type: 'event',
+
+                        slugline: plan.slugline,
+                        name: plan.slugline,
+                        subject: plan.subject,
+                        anpa_category: plan.anpa_category,
+                        definition_short: plan.description_text,
+                        calendars: [],
+                        internal_note: plan.internal_note,
+                        place: plan.place,
+                        occur_status: {
+                            label: 'Unplanned',
+                            qcode: 'eocstat:eos0',
+                            name: 'Unplanned event'
+                        },
+                        _planning_item: plan._id
+                    }));
+
+                    expect(moment(args.dates.start).isSame(moment('2016-10-15T13:01:11+0000'))).toBeTruthy();
+                    expect(moment(args.dates.end).isSame(moment('2016-10-15T14:01:11+0000'))).toBeTruthy();
+                    expect(args.dates.tz).toBe(moment.tz.guess());
 
                     done();
                 });

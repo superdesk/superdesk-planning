@@ -7,6 +7,7 @@ const initialState = {
     autosaves: {},
     itemId: null,
     itemType: null,
+    initialValues: null,
     loadingEditItem: false,
 };
 
@@ -31,12 +32,14 @@ const formsReducer = createReducer(initialState, {
         ...state,
         itemId: get(payload, '_id') || null,
         itemType: get(payload, 'type') || null,
+        initialValues: payload,
     }),
 
     [MAIN.ACTIONS.CLOSE_EDITOR]: (state) => ({
         ...state,
         itemId: null,
         itemType: null,
+        initialValues: null,
     }),
 
     [EVENTS.ACTIONS.UNLOCK_EVENT]: (state, payload) => (

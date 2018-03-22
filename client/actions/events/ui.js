@@ -1,9 +1,10 @@
-import {showModal, locks} from '../index';
-import {PRIVILEGES, EVENTS, MODALS, SPIKED_STATE, MAIN} from '../../constants';
+import {showModal, locks, main} from '../index';
+import {PRIVILEGES, EVENTS, MODALS, SPIKED_STATE, MAIN, ITEM_TYPE} from '../../constants';
 import eventsApi from './api';
-import main from '../main';
+import planningApi from '../planning/api';
 import * as selectors from '../../selectors';
 import {get} from 'lodash';
+import moment from 'moment-timezone';
 import {
     checkPermission,
     getErrorMessage,
@@ -12,6 +13,7 @@ import {
     isItemRescheduled,
     dispatchUtils,
     gettext,
+    getItemInArrayById,
 } from '../../utils';
 
 /**
@@ -675,6 +677,46 @@ const receiveEventHistory = (eventHistoryItems) => ({
     payload: eventHistoryItems,
 });
 
+/**
+ * Action to create a new Event from an existing Planning item
+ * @param {object} plan - The Planning item to creat the Event from
+ */
+const createEventFromPlanning = (plan) => (
+    (dispatch, getState) => {
+        const defaultDurationOnChange = selectors.forms.defaultEventDuration(getState());
+        const occurStatuses = selectors.vocabs.eventOccurStatuses(getState());
+        const unplannedStatus = getItemInArrayById(occurStatuses, 'eocstat:eos0', 'qcode') || {
+            label: 'Unplanned event',
+            qcode: 'eocstat:eos0',
+            name: 'Unplanned event'
+        };
+
+        return dispatch(planningApi.lock(plan, 'add_as_event'))
+            .then(() =>
+                dispatch(main.lockAndEdit({
+                    type: ITEM_TYPE.EVENT,
+                    dates: {
+                        start: moment(plan.planning_date).clone(),
+                        end: moment(plan.planning_date)
+                            .clone()
+                            .add(defaultDurationOnChange, 'h'),
+                        tz: moment.tz.guess()
+                    },
+                    slugline: plan.slugline,
+                    name: plan.slugline,
+                    subject: plan.subject,
+                    anpa_category: plan.anpa_category,
+                    definition_short: plan.description_text,
+                    calendars: [],
+                    internal_note: plan.internal_note,
+                    place: plan.place,
+                    occur_status: unplannedStatus,
+                    _planning_item: plan._id
+                }))
+            );
+    }
+);
+
 // eslint-disable-next-line consistent-this
 const self = {
     fetchEvents,
@@ -717,6 +759,7 @@ const self = {
     updateRepetitions,
     openRepetitionsModal,
     publishWithConfirmation,
+    createEventFromPlanning,
 };
 
 export default self;

@@ -99,6 +99,11 @@ const canCancelAllCoverage = (planning, event = null, session, privileges, locks
         canCancelAllCoverageForPlanning(planning)
 );
 
+const canAddAsEvent = (planning, event = null, session, privileges, locks) => (
+    isPlanAdHoc(planning) &&
+        !isPlanningLocked(planning, locks)
+);
+
 const isCoverageCancelled = (coverage) =>
     (get(coverage, 'workflow_status') === WORKFLOW_STATE.CANCELLED);
 
@@ -174,6 +179,8 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
             canCancelPlanning(plan, event, session, privileges, locks),
         [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.label]: () =>
             canCancelAllCoverage(plan, event, session, privileges, locks),
+        [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.label]: () =>
+            canAddAsEvent(plan, event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
             !isPlanAdHoc(plan) && eventUtils.canCancelEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: () =>
@@ -265,6 +272,13 @@ const getPlanningActions = (item, event, session, privileges, lockedItems, callB
         case PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName:
             actions.push({
                 ...PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE,
+                callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName:
+            actions.push({
+                ...PLANNING.ITEM_ACTIONS.ADD_AS_EVENT,
                 callback: callBacks[callBackName].bind(null, item)
             });
             break;

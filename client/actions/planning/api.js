@@ -641,9 +641,8 @@ const getPlanning = (planId, saveToStore = true) => (
  */
 const save = (item, original = undefined) => (
     (dispatch, getState, {api}) => {
-        // remove all properties starting with _,
-        // otherwise it will fail for "unknown field" with `_type`
-        let updates = pickBy(cloneDeep(item), (v, k) => (k === '_id' || !k.startsWith('_')));
+        // remove all properties starting with _ or lock_,
+        let updates = pickBy(cloneDeep(item), (v, k) => (!k.startsWith('_') && !k.startsWith('lock_')));
 
         // remove nested original creator
         delete updates.original_creator;
@@ -666,8 +665,8 @@ const save = (item, original = undefined) => (
         return new Promise((resolve, reject) => {
             if (original !== undefined && !isEqual(original, {})) {
                 return resolve(original);
-            } else if (get(updates, '_id')) {
-                return dispatch(self.fetchById(updates._id))
+            } else if (get(item, '_id')) {
+                return dispatch(self.fetchById(item._id))
                     .then(
                         (planning) => resolve(planning),
                         (error) => reject(error)

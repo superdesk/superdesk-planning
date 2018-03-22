@@ -126,7 +126,7 @@ class EventsService(superdesk.Service):
             # generates an unique id
             if 'guid' not in event:
                 event['guid'] = generate_guid(type=GUID_NEWSML)
-            event['_id'] = event['guid']
+            event[config.ID_FIELD] = event['guid']
             # set the author
             set_original_creator(event)
 
@@ -148,6 +148,10 @@ class EventsService(superdesk.Service):
             if event['state'] == 'ingested':
                 events_history = get_resource_service('events_history')
                 events_history.on_item_created([event])
+
+            if '_planning_item' in event:
+                self._link_to_planning(event)
+                del event['_planning_item']
 
         if generated_events:
             docs.extend(generated_events)
@@ -355,6 +359,42 @@ class EventsService(superdesk.Service):
     def get_recurring_timeline(self, selected):
         events_base_service = EventsBaseService('events', backend=superdesk.get_backend())
         return events_base_service.get_recurring_timeline(selected, postponed=True)
+
+    @staticmethod
+    def _link_to_planning(event):
+        """
+        Links an Event to an existing Planning Item
+
+        Also removed the lock information of the Planning Item and
+        notifies any connected clients of the unlock.
+        """
+        planning_service = get_resource_service('planning')
+
+        plan_id = event['_planning_item']
+        plan = planning_service.find_one(req=None, _id=plan_id)
+        event_id = event[config.ID_FIELD]
+
+        unlock_plan = plan.get('lock_user') and plan.get('lock_action') == 'add_as_event'
+
+        updates = {'event_item': event_id}
+        if unlock_plan:
+            remove_lock_information(updates)
+
+        updated_plan = planning_service.patch(
+            plan_id,
+            updates
+        )
+        app.on_updated_planning(updates, {'_id': plan_id})
+
+        # Only send out this notification if the Planning Item was originally locked
+        if unlock_plan:
+            push_notification(
+                'planning:unlock',
+                item=str(plan_id),
+                user=str(get_user_id()),
+                lock_session=str(get_auth().get('_id')),
+                etag=updated_plan['_etag']
+            )
 
 
 class EventsResource(superdesk.Resource):

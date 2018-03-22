@@ -79,7 +79,10 @@ const unlockAndCancel = (item) => (
             selectors.getSessionDetails(state),
             selectors.general.currentWorkspace(state))) {
             dispatch(locks.unlock(item));
+        } else if (get(item, '_planning_item')) {
+            dispatch(planningApi.unlock({_id: item._planning_item}));
         }
+
         dispatch(self.closeEditor());
         return Promise.resolve();
     }
@@ -502,7 +505,7 @@ const setUnsetLoadingIndicator = (value = false) => ({
 
 /**
  * Action to open the editor and update the URL
- * @param {object} item - The item to open. Must have _id and _type attributes
+ * @param {object} item - The item to open. Must have _id and type attributes
  */
 const openEditor = (item) => (
     (dispatch, getState, {$timeout, $location}) => {
@@ -530,7 +533,7 @@ const closeEditor = () => (
 
 /**
  * Action to open the preview panel and update the URL
- * @param {object} item - The item to open. Must have _id and _type attributes
+ * @param {object} item - The item to open. Must have _id and type attributes
  */
 const openPreview = (item) => (
     (dispatch, getState, {$timeout, $location}) => {

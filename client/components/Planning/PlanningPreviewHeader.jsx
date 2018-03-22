@@ -34,6 +34,8 @@ export class PlanningPreviewHeaderComponent extends React.Component {
                 this.props[PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName],
             [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
                 this.props[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
+            [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName]:
+                this.props[PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: this.props[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
                     this.props[EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName],
@@ -83,6 +85,7 @@ PlanningPreviewHeaderComponent.propTypes = {
     [PLANNING.ITEM_ACTIONS.UNSPIKE.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName]: PropTypes.func,
     [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]: PropTypes.func,
+    [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]: PropTypes.func,
     [EVENTS.ITEM_ACTIONS.UPDATE_TIME.actionName]: PropTypes.func,
@@ -113,6 +116,8 @@ const mapDispatchToProps = (dispatch) => ({
         (planning) => dispatch(actions.planning.ui.openCancelPlanningModal(planning)),
     [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
         (planning) => dispatch(actions.planning.ui.openCancelAllCoverageModal(planning)),
+    [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName]:
+        (planning) => dispatch(actions.events.ui.createEventFromPlanning(planning)),
     [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
         (event) => dispatch(actions.events.ui.openCancelModal(event)),
     [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:

@@ -129,6 +129,8 @@ export class ListGroupItem extends React.Component {
                 itemActions[PLANNING.ITEM_ACTIONS.CANCEL_PLANNING.actionName],
             [PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName]:
                 itemActions[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
+            [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName]:
+                itemActions[PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
@@ -140,7 +142,7 @@ export class ListGroupItem extends React.Component {
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
             [EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]:
-                itemActions[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName]
+                itemActions[EVENTS.ITEM_ACTIONS.UPDATE_REPETITIONS.actionName],
         };
 
         switch (itemType) {

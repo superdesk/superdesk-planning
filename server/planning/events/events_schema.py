@@ -18,6 +18,9 @@ from planning.common import WORKFLOW_STATE_SCHEMA, PUBLISHED_STATE_SCHEMA, UPDAT
 event_type = deepcopy(Resource.rel('events', type='string'))
 event_type['mapping'] = not_analyzed
 
+planning_type = deepcopy(Resource.rel('planning', type='string'))
+planning_type['mapping'] = not_analyzed
+
 events_schema = {
     # Identifiers
     '_id': metadata_schema['_id'],
@@ -314,4 +317,8 @@ events_schema = {
 
     'place': metadata_schema['place'],
     'ednote': metadata_schema['ednote'],
+
+    # This is used if an Event is created from a Planning Item
+    # So that we can link the Planning item to this Event upon creation
+    '_planning_item': planning_type
 }  # end events_schema

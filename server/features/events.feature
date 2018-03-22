@@ -693,3 +693,97 @@ Feature: Events
             }
         ]}
         """
+
+    @auth
+    @notification
+    Scenario: Links the new Event to a Planning Item
+        Given we have sessions "/sessions"
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "TestEvent",
+            "state": "draft",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "add_as_event",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we reset notifications
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "_planning_item": "plan1",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        When we get "/planning/plan1"
+        Then we get existing resource
+        """
+        {
+            "event_item": "#events._id#",
+            "lock_user": null,
+            "lock_session": null,
+            "lock_action": null,
+            "lock_time": null
+        }
+        """
+        And we get notifications
+        """
+        [{
+            "event": "planning:unlock",
+            "extra": {
+                "item": "plan1",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }, {
+            "event": "planning:updated",
+            "extra": {"item": "plan1"}
+        }, {
+            "event": "events:created",
+            "extra": {"item": "#events._id#"}
+        }]
+        """
+
+    @auth
+    Scenario: Fails to link a new Event to a Planning Item if another use holds the Planning lock
+        Given we have sessions "/sessions"
+        Given "planning"
+        """
+        [{
+            "_id": "plan1",
+            "guid": "plan1",
+            "slugline": "TestEvent",
+            "state": "draft",
+            "lock_user": "ident2",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "add_as_event",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we post to "events"
+        """
+        {
+            "name": "TestEvent",
+            "slugline": "TestEvent",
+            "_planning_item": "plan1",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get error 403
+        """
+        {"_message": "The item was locked by another user"}
+        """

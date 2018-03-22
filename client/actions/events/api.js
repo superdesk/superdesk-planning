@@ -1101,46 +1101,49 @@ const _saveLocation = (event) => (
     }
 );
 
-const _save = (newEvent) => (
-    (dispatch, getState, {api}) => {
-        // remove links if it contains only null values
-        if (newEvent.links && newEvent.links.length > 0) {
-            newEvent.links = newEvent.links.filter((l) => (l));
-            if (!newEvent.links.length) {
-                delete newEvent.links;
+const _save = (eventUpdates) => (
+    (dispatch, getState, {api}) => (
+        !get(eventUpdates, '_id') ?
+            Promise.resolve({}) :
+            dispatch(self.fetchById(eventUpdates._id, {saveToStore: false, loadPlanning: false}))
+    )
+        .then((originalEvent) => {
+            // clone the original because `save` will modify it
+            const original = cloneDeep(originalEvent);
+
+            // clone the updates as we're going to modify it
+            let updates = cloneDeep(eventUpdates);
+
+            // remove links if it contains only null values
+            if (updates.links && updates.links.length > 0) {
+                updates.links = updates.links.filter((l) => (l));
+                if (!updates.links.length) {
+                    delete updates.links;
+                }
             }
-        }
-        // retrieve original
-        let original = selectors.getEvents(getState())[newEvent._id];
-        // clone the original because `save` will modify it
 
-        original = cloneDeep(original) || {};
-        let clonedEvent = cloneDeep(newEvent) || {};
+            // save the timezone. This is useful for recurring events
+            if (updates.dates) {
+                updates.dates.tz = moment.tz.guess();
+            }
 
-        // save the timezone. This is useful for recurring events
-        if (clonedEvent.dates) {
-            clonedEvent.dates.tz = moment.tz.guess();
-        }
+            original.location = original.location ? [original.location] : null;
+            updates.location = updates.location ? [updates.location] : null;
 
-        original.location = original.location ? [original.location] : null;
-        clonedEvent.location = clonedEvent.location ? [clonedEvent.location] : null;
+            // remove all properties starting with _
+            // and updates that are the same as original
+            updates = pickBy(updates, (v, k) => (
+                (k === '_planning_item' || !k.startsWith('_')) &&
+                !isEqual(updates[k], original[k])
+            ));
 
-        // remove all properties starting with _,
-        // otherwise it will fail for "unknown field" with `_type`
-        clonedEvent = pickBy(clonedEvent, (v, k) => (
-            !k.startsWith('_') &&
-            !isEqual(clonedEvent[k], original[k])
-        ));
+            updates.update_method = get(updates, 'update_method.value', EventUpdateMethods[0].value);
 
-        clonedEvent.update_method = get(clonedEvent, 'update_method.value', EventUpdateMethods[0].value);
-
-        // send the event on the backend
-        return api('events').save(original, clonedEvent)
-        // return a list of events (can have several because of reccurence)
-            .then((data) => (
-                Promise.resolve(data._items || [data])
-            ), (error) => Promise.reject(error));
-    }
+            return api('events').save(original, updates);
+        })
+        .then((data) => (
+            Promise.resolve(get(data, '_items') || [data])
+        ), (error) => Promise.reject(error))
 );
 
 const save = (event) => (
