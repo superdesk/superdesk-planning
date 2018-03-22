@@ -5,7 +5,7 @@ import {registerNotifications} from '../utils';
 import * as actions from '../actions';
 import {locks} from '../actions';
 import {WORKSPACE} from '../constants';
-import {PlanningApp} from '../planning';
+import {PlanningApp} from '../apps';
 
 PlanningController.$inject = [
     '$element',

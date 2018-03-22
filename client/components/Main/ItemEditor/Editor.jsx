@@ -4,6 +4,7 @@ import {connect} from 'react-redux';
 import {get, isEqual, cloneDeep} from 'lodash';
 
 import {gettext, lockUtils, eventUtils, planningUtils, updateFormValues} from '../../../utils';
+import actionUtils from '../../../utils/actions';
 
 import {ITEM_TYPE, EVENTS, PLANNING, WORKSPACE, PUBLISHED_STATE, WORKFLOW_STATE} from '../../../constants';
 import * as selectors from '../../../selectors';
@@ -120,7 +121,7 @@ export class EditorComponent extends React.Component {
         } else if (nextProps.item !== null && this.props.item === null) {
             // This happens when the Editor has finished loading an existing item
             this.resetForm(nextProps.item);
-        } else if (this.props.itemType === null && nextProps.itemType !== null) {
+        } else if (isEqual(this.state.diff, {}) && nextProps.itemType !== null) {
             // This happens when creating a new item (when the editor is not currently open)
             this.createNew(nextProps);
         } else if (!isEqual(get(nextProps, 'item'), get(this.props, 'item'))) {
@@ -416,6 +417,10 @@ const mapStateToProps = (state) => ({
     formProfiles: selectors.forms.profiles(state),
     occurStatuses: selectors.vocabs.eventOccurStatuses(state),
     isLoadingItem: selectors.forms.isLoadingItem(state),
+    session: selectors.getSessionDetails(state),
+    privileges: selectors.getPrivileges(state),
+    lockedItems: selectors.locks.getLockedItems(state),
+    currentWorkspace: selectors.getCurrentWorkspace(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({
@@ -429,7 +434,8 @@ const mapDispatchToProps = (dispatch) => ({
     onSaveUnpublish: (item) => dispatch(actions.main.onSaveUnpublish(item)),
     openCancelModal: (props) => dispatch(actions.main.openConfirmationModal(props)),
     onValidate: (type, item, profile, errors) => dispatch(validateItem(type, item, profile, errors)),
-    loadItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'edit'))
+    loadItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'edit')),
+    itemActions: actionUtils.getActionDispatches(dispatch),
 });
 
 export const Editor = connect(mapStateToProps, mapDispatchToProps)(EditorComponent);

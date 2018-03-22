@@ -6,20 +6,6 @@
     }
 }
 
-// styles related to infinite scroll for list panel component
-// 30px is for the workqueue
-.sd-column-box__main-column__listpanel {
-    overflow: hidden;
-    .sd-column-box__main-column__items {
-        overflow: auto !important;
-        width: 100%;
-        height: calc(100vh - (#{$nav-height} + #{$subnav-height} * 2 + 30px));
-    }
-    .loading-indicator{
-        top: calc(#{$nav-height} + #{$subnav-height});
-    }
-}
-
 .Agenda {
     &--disabled {
         color: $grayLight;

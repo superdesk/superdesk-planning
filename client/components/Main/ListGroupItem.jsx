@@ -9,8 +9,6 @@ import {ITEM_TYPE, EVENTS, PLANNING, MAIN} from '../../constants';
 import {getItemType, eventUtils} from '../../utils';
 
 
-import '../../planning.scss';
-
 export class ListGroupItem extends React.Component {
     constructor(props) {
         super(props);

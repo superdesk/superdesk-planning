@@ -4,7 +4,7 @@ import {connect} from 'react-redux';
 
 import {Modal} from '../index';
 import {Button} from '../UI';
-import {PlanningApp} from '../../planning';
+import {PlanningApp} from '../../apps';
 import {ArchiveItem} from '../Archive';
 
 import * as selectors from '../../selectors';
@@ -57,7 +57,13 @@ export function AddToPlanningComponent({
                         urgencies={urgencies}
                         urgencyLabel={urgencyLabel}
                     />
-                    <PlanningApp addNewsItemToPlanning={newsItem}/>
+
+                    <PlanningApp
+                        showModals={false}
+                        showWorkqueue={false}
+                        marginBottom={false}
+                        addNewsItemToPlanning={newsItem}
+                    />
                 </div>
             </Modal.Body>
 
@@ -79,7 +85,7 @@ AddToPlanningComponent.propTypes = {
         $scope: PropTypes.object,
     }),
     currentWorkspace: PropTypes.string,
-    actionInProgress: PropTypes.boolean,
+    actionInProgress: PropTypes.bool,
     priorities: PropTypes.array,
     urgencies: PropTypes.array,
     urgencyLabel: PropTypes.string,

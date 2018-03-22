@@ -1,4 +1,4 @@
-import PlanningApp from '../../../../planning';
+import {PlanningApp} from '../../../../apps';
 import {
     SubNavBar,
     FiltersBox,

@@ -81,7 +81,7 @@ export class ListPanel extends React.Component {
         } = this.props;
 
         return (
-            <div className="sd-column-box__main-column sd-column-box__main-column__listpanel">
+            <div>
                 {loadingIndicator &&
                 <div className="loading-indicator">{gettext('Loading')}</div>}
                 {!loadingIndicator && groups.length <= 0 &&

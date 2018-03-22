@@ -426,7 +426,7 @@ const loadMore = (filterType) => (
  * @param {Object} currentSearch - Search params from advanced search
  * @return {Object} - returns Promise
  */
-const search = (fulltext, currentSearch) => (
+const search = (fulltext, currentSearch = undefined) => (
     (dispatch, getState, {notify}) => {
         let filterType = activeFilter(getState());
 

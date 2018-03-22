@@ -580,7 +580,7 @@ function deselectAll() {
     return {type: PLANNING.ACTIONS.DESELECT_ALL};
 }
 
-const onAddCoverageClick = (item, addNewsItemToPlanning = null) => (
+const onAddCoverageClick = (item) => (
     (dispatch, getState, {notify}) => {
         const state = getState();
         const lockedItems = selectors.locks.getLockedItems(state);
