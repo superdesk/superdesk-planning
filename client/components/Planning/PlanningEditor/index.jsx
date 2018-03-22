@@ -399,14 +399,14 @@ export class PlanningEditorComponent extends React.Component {
                             {...fieldProps}
                         />
 
-                        <Field
+                        {!get(item, 'pubstatus') && <Field
                             component={ToggleInput}
                             field="flags.marked_for_not_publication"
                             label={gettext('Not for Publication')}
                             labelLeft={true}
                             defaultValue={false}
                             {...fieldProps}
-                        />
+                        />}
                     </ToggleBox>
                 </ContentBlock>
 
