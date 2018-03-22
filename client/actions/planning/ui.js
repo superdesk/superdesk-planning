@@ -615,18 +615,18 @@ const onAddCoverageClick = (item, addNewsItemToPlanning = null) => (
 
 const saveFromAuthoring = (plan) => (
     (dispatch, getState, {notify}) => {
-        const {$scope, newsItem} = selectors.getCurrentModalProps(getState());
-
         dispatch(actions.actionInProgress(true));
+        let resolved = true;
+
         return dispatch(planningApi.save(plan))
             .then((newPlan) => {
+                const {newsItem} = selectors.general.modalProps(getState());
                 const coverages = orderBy(newPlan.coverages, ['firstcreated'], ['desc']);
                 const coverage = coverages[0];
 
                 return dispatch(actions.assignments.api.link(coverage.assigned_to, newsItem))
                     .then(() => {
                         notify.success('Content linked to the planning item.');
-                        $scope.resolve();
                         dispatch(actions.actionInProgress(false));
 
                         // If a new planning item was created, close editor
@@ -640,17 +640,28 @@ const saveFromAuthoring = (plan) => (
                         notify.error(
                             getErrorMessage(error, 'Failed to link to the Planning item!')
                         );
-                        $scope.reject();
+                        resolved = false;
                         return Promise.reject(error);
                     });
             }, (error) => {
+                resolved = false;
                 notify.error(
                     getErrorMessage(error, 'Failed to save the Planning item!')
                 );
-                $scope.reject();
+
                 return Promise.reject(error);
             })
             .finally(() => {
+                // resolving scope here because if there is a confirmation modal
+                // while saving the planning item, scope won't be available
+                const {$scope} = selectors.general.modalProps(getState());
+
+                if (resolved) {
+                    $scope.resolve();
+                } else {
+                    $scope.reject();
+                }
+
                 dispatch(actions.hideModal());
                 dispatch(actions.actionInProgress(false));
             });
