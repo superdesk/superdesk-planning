@@ -205,6 +205,17 @@ export class EditorHeader extends React.Component {
                         />
                     )}
 
+                    {!existingItem && !inPlanning &&
+                        itemType === ITEM_TYPE.PLANNING && (
+                        <Button
+                            color="primary"
+                            disabled={!dirty || submitting}
+                            onClick={onSaveAndPublish}
+                            text={gettext('Create and publish')}
+                            enterKeyIsClick
+                        />
+                    )}
+
                     {existingItem && !isLockedInContext && canEdit && (
                         <Button
                             color="primary"
