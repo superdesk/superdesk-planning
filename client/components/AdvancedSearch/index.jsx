@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
-import {gettext} from '../../utils';
+import {gettext, getWorkFlowStateAsOptions} from '../../utils';
 import {ContentBlock} from '../UI/SidePanel';
 import {MAIN, SPIKED_STATE} from '../../constants';
 import {
@@ -25,8 +25,16 @@ export class AdvancedSearch extends React.Component {
     }
 
     componentWillReceiveProps(nextProps) {
+        let spikeStateExcludeSpike = false;
+
         if (get(nextProps, 'diff.advancedSearch.published') &&
-        !get(this.props, 'diff.advancedSearch.published')) {
+            !get(this.props, 'diff.advancedSearch.published')) {
+            this.props.onChange('spikeState', SPIKED_STATE.NOT_SPIKED);
+            spikeStateExcludeSpike = true;
+        }
+
+        if (get(nextProps, 'diff.advancedSearch.state.length', 0) > 0 &&
+            get(nextProps, 'diff.spikeState') === SPIKED_STATE.SPIKED && !spikeStateExcludeSpike) {
             this.props.onChange('spikeState', SPIKED_STATE.NOT_SPIKED);
         }
     }
@@ -97,6 +105,25 @@ export class AdvancedSearch extends React.Component {
             onChange
         } = this.props;
 
+        // Change spikeState options based on workflow-state selection in the from
+        let spikedStateOptions = [
+            {
+                label: gettext('Exclude spike'),
+                value: SPIKED_STATE.NOT_SPIKED,
+            },
+            {
+                label: gettext('Include spike'),
+                value: SPIKED_STATE.BOTH,
+            }
+        ];
+
+        if (get(diff, 'advancedSearch.state.length', 0) === 0) {
+            spikedStateOptions.push({
+                label: gettext('Spiked only'),
+                value: SPIKED_STATE.SPIKED,
+            });
+        }
+
         const renderSearchForm = () => {
             // form fields definitions
             const fields = {
@@ -124,6 +151,15 @@ export class AdvancedSearch extends React.Component {
                         disableSearch: true
                     },
                     component: GeoLookupInput
+                },
+                state: {
+                    props: {
+                        field: 'advancedSearch.state',
+                        label: gettext('Workflow State'),
+                        value: get(diff, 'advancedSearch.state', []),
+                        options: getWorkFlowStateAsOptions(activeFilter)
+                    },
+                    component: SelectMetaTermsInput
                 },
                 anpa_category: {
                     props: {
@@ -231,20 +267,8 @@ export class AdvancedSearch extends React.Component {
                         field: 'spikeState',
                         label: gettext('Spike State'),
                         value: get(diff, 'spikeState', SPIKED_STATE.NOT_SPIKED),
-                        options: [
-                            {
-                                label: gettext('Exclude spike'),
-                                value: SPIKED_STATE.NOT_SPIKED,
-                            },
-                            {
-                                label: gettext('Include spike'),
-                                value: SPIKED_STATE.BOTH,
-                            },
-                            {
-                                label: gettext('Spiked only'),
-                                value: SPIKED_STATE.SPIKED,
-                            }
-                        ]
+                        readOnly: get(diff, 'advancedSearch.published', false) === true,
+                        options: spikedStateOptions,
                     },
                     component: RadioButtonInput,
                 },
@@ -278,20 +302,20 @@ export class AdvancedSearch extends React.Component {
             // form definition
             const searchForm = {
                 [MAIN.FILTERS.COMBINED]: [
-                    fields.slugline, fields.anpa_category, fields.subject,
+                    fields.slugline, fields.state, fields.anpa_category, fields.subject,
                     fields.pubstatus, fields.spikeState,
                     fields.startDateTime, fields.endDateTime,
                     fields.dateFilters,
                 ],
                 [MAIN.FILTERS.EVENTS]: [
-                    fields.name, fields.slugline, fields.source, fields.location,
+                    fields.name, fields.slugline, fields.source, fields.location, fields.state,
                     fields.anpa_category, fields.subject, fields.calendars,
                     fields.pubstatus, fields.spikeState,
                     fields.startDateTime, fields.endDateTime,
                     fields.dateFilters
                 ],
                 [MAIN.FILTERS.PLANNING]: [
-                    fields.slugline, fields.anpa_category, fields.subject,
+                    fields.slugline, fields.state, fields.anpa_category, fields.subject,
                     fields.contentType, fields.urgency, fields.noCoverage,
                     fields.pubstatus, fields.spikeState,
                     fields.startDateTime, fields.endDateTime, fields.dateFilters

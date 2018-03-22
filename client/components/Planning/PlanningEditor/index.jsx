@@ -22,7 +22,7 @@ import {ToggleBox} from '../../UI';
 import {PlanningEditorHeader} from './PlanningEditorHeader';
 import {CoverageArrayInput} from '../../Coverages';
 import {EventMetadata} from '../../Events';
-import {PLANNING, WORKFLOW_STATE, ASSIGNMENTS} from '../../../constants';
+import {PLANNING, WORKFLOW_STATE, ASSIGNMENTS, COVERAGES} from '../../../constants';
 
 const toggleDetails = [
     'ednote',
@@ -138,7 +138,7 @@ export class PlanningEditorComponent extends React.Component {
     onAddCoverageToWorkflow(coverage) {
         const index = this.props.item.coverages.findIndex((c) => c.coverage_id === coverage.coverage_id);
 
-        this.onChange('coverages[' + index + '].workflow_status', WORKFLOW_STATE.ACTIVE);
+        this.onChange('coverages[' + index + '].workflow_status', COVERAGES.WORKFLOW_STATE.ACTIVE);
         this.onChange('coverages[' + index + '].assigned_to.state', ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED);
     }
 

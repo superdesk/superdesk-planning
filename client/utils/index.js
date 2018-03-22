@@ -12,6 +12,8 @@ import {
     ITEM_TYPE,
     GENERIC_ITEM_ACTIONS,
     WORKSPACE,
+    MAIN,
+    SPIKED_STATE,
 } from '../constants/index';
 import * as testData from './testData';
 import {gettext, gettextCatalog} from './gettext';
@@ -646,5 +648,49 @@ export const updateFormValues = (diff, field, value) => {
         set(diff, field, value);
     } else if (typeof field === 'object') {
         forEach(field, (val, key) => set(diff, key, val));
+    }
+};
+
+export const getWorkFlowStateAsOptions = (activeFilter = null) => {
+    let workflowStateOptions = [];
+
+    Object.keys(WORKFLOW_STATE).forEach((key) => {
+        if (key === 'SPIKED' || key === 'INGESTED' &&
+            [MAIN.FILTERS.COMBINED, MAIN.FILTERS.PLANNING].includes(activeFilter)) {
+            return;
+        }
+
+        workflowStateOptions.push({
+            qcode: WORKFLOW_STATE[key],
+            name: WORKFLOW_STATE[key]
+        });
+    });
+
+    return workflowStateOptions;
+};
+
+export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState, mustNotTerms, mustTerms) => {
+    let states = (advancedSearch.state || []).map((s) => s.qcode);
+
+    switch (spikeState) {
+    case SPIKED_STATE.NOT_SPIKED:
+        mustNotTerms.push({term: {state: WORKFLOW_STATE.SPIKED}});
+        break;
+
+    case SPIKED_STATE.SPIKED:
+        mustTerms.push({term: {state: WORKFLOW_STATE.SPIKED}});
+        break;
+
+    case SPIKED_STATE.BOTH:
+    default:
+        // Push spiked state only if other states are selected
+        // Else, it will be fetched anyway
+        if (states.length > 0) {
+            states.push(WORKFLOW_STATE.SPIKED);
+        }
+    }
+
+    if (spikeState !== SPIKED_STATE.SPIKED && states.length > 0) {
+        mustTerms.push({terms: {state: states}});
     }
 };
