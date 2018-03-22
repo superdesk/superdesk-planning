@@ -688,6 +688,7 @@ class AssignmentsService(superdesk.Service):
         # has been removed
         push_notification(
             'assignments:removed',
+            item=archive_item[config.ID_FIELD] if archive_item else None,
             assignment=assignment_id,
             planning=doc.get('planning_item'),
             coverage=doc.get('coverage_item'),
