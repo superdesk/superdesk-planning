@@ -16,7 +16,9 @@ TEMPLATE = '''
 {% if item.get('event', {}).get('location') %}
 <p>Location: {{ item.event.location[0].name }}.</p>
 {% endif %}
+{% if item.get('ednote', '') != '' %}
 <p>Editorial note: {{ item.ednote }}</p>
+{% endif %}
 {% if item.coverages %}
 <p>Planned coverage: {{ item.coverages | join(', ') }}
 {% endif %}
@@ -56,7 +58,8 @@ def generate_body(ids):
         labels = {}
     for item in items:
         item['coverages'] = [labels.get(coverage.get('planning').get('g2_content_type'),
-                                        coverage.get('planning').get('g2_content_type'))
+                                        coverage.get('planning').get('g2_content_type')) +
+                             (' (cancelled)' if coverage.get('workflow_status', '') == 'cancelled' else '')
                              for coverage in item.get('coverages', [])
                              if (coverage.get('planning') or {}).get('g2_content_type')]
     return render_template_string(template, items=items)
