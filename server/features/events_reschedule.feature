@@ -1375,3 +1375,81 @@ Feature: Events Reschedule
         """
         When we get "publish_queue"
         Then we get list with 1 items
+
+    @auth
+    @notification
+    Scenario: Postponed event can be `rescheduled`
+        Given we have sessions "/sessions"
+        Given "events"
+        """
+        [{
+            "_id": "event1",
+            "guid": "event1",
+            "name": "TestEvent",
+            "ednote": "Something happening.",
+            "dates": {
+                "start": "2029-11-21T12:00:00.000Z",
+                "end": "2029-11-21T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            },
+            "state": "postponed",
+            "lock_user": "#CONTEXT_USER_ID#",
+            "lock_session": "#SESSION_ID#",
+            "lock_action": "reschedule",
+            "lock_time": "#DATE#"
+        }]
+        """
+        When we perform reschedule on events "event1"
+        """
+        {
+            "reason": "Changed to the next day!",
+            "dates": {
+                "start": "2029-11-22T12:00:00.000Z",
+                "end": "2029-11-22T14:00:00.000Z",
+                "tz": "Australia/Sydney"
+            }
+        }
+        """
+        Then we get OK response
+        And we get notifications
+        """
+        [{
+            "event": "events:reschedule",
+            "extra": {
+                "item": "event1",
+                "user": "#CONTEXT_USER_ID#"
+            }
+        }]
+        """
+        When we get "/events/event1"
+        Then we get existing resource
+        """
+        {
+            "state": "draft",
+            "lock_user": null,
+            "lock_session": null,
+            "lock_action": null,
+            "lock_time": null,
+            "dates": {
+                "start": "2029-11-22T12:00:00+0000",
+                "end": "2029-11-22T14:00:00+0000",
+                "tz": "Australia/Sydney"
+            },
+            "ednote": "Something happening.\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n"
+        }
+        """
+        When we get "/events_history"
+        Then we get list with 1 items
+        """
+        {"_items": [
+            {
+                "event_id": "event1",
+                "operation": "reschedule",
+                "update": {
+                  "ednote": "Something happening.\n\n------------------------------------------------------------\nEvent Rescheduled\nReason: Changed to the next day!\n",
+                  "reason": "Changed to the next day!",
+                  "state": "draft"
+                }
+            }
+        ]}
+        """

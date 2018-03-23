@@ -51,13 +51,19 @@ class EventsRescheduleService(EventsBaseService):
 
         remove_lock_information(updates)
 
-        # If the Event is in use, then we will duplicate the original
-        # and set the original's status to `rescheduled`
-        if has_plannings or 'pubstatus' in original:
-            duplicated_event_id = self._duplicate_event(updates, original, events_service)
-            updates['reschedule_to'] = duplicated_event_id
+        event_in_use = has_plannings or 'pubstatus' in original
+        if event_in_use or original.get('state') == WORKFLOW_STATE.POSTPONED:
+            if event_in_use:
+                # If the Event is in use, then we will duplicate the original
+                # and set the original's status to `rescheduled`
+                duplicated_event_id = self._duplicate_event(updates, original, events_service)
+                updates['reschedule_to'] = duplicated_event_id
 
-            self._mark_event_rescheduled(updates, original)
+            self._mark_event_rescheduled(updates, original, not event_in_use)
+
+            if not event_in_use:
+                updates['state'] = WORKFLOW_STATE.DRAFT
+
             if has_plannings:
                 self._reschedule_event_plannings(updates, original)
 
