@@ -15,11 +15,13 @@ from superdesk.errors import ParserError
 from superdesk.io.feed_parsers import FileFeedParser
 from superdesk.metadata.utils import generate_guid
 from superdesk.metadata.item import ITEM_TYPE, CONTENT_TYPE, GUID_FIELD, GUID_NEWSML, FORMAT, FORMATS, CONTENT_STATE
-from superdesk.utc import utcnow
+from superdesk.utc import utcnow, local_to_utc
+from eve.utils import config
 from icalendar import vRecur, vCalAddress, vGeo
 from icalendar.parser import tzid_from_dt
 from superdesk import get_resource_service
 import pytz
+from icalendar import Calendar
 
 utc = pytz.UTC
 logger = logging.getLogger(__name__)
@@ -37,7 +39,7 @@ class IcsTwoFeedParser(FileFeedParser):
     label = 'iCalendar v2.0'
 
     def can_parse(self, cal):
-        return True
+        return isinstance(cal, Calendar)
 
     def parse(self, cal, provider=None):
 
@@ -47,7 +49,7 @@ class IcsTwoFeedParser(FileFeedParser):
             for component in cal.walk():
                 if component.name == "VEVENT":
                     item = {
-                        ITEM_TYPE: CONTENT_TYPE.TEXT,
+                        ITEM_TYPE: CONTENT_TYPE.EVENT,
                         GUID_FIELD: generate_guid(type=GUID_NEWSML),
                         FORMAT: FORMATS.PRESERVED
                     }
@@ -55,7 +57,7 @@ class IcsTwoFeedParser(FileFeedParser):
                     item['definition_short'] = component.get('summary')
                     item['definition_long'] = component.get('description')
                     item['original_source'] = component.get('uid')
-                    item['state'] = CONTENT_STATE.PROGRESS
+                    item['state'] = CONTENT_STATE.INGESTED
                     item['pubstatus'] = None
                     eocstat_map = get_resource_service('vocabularies').find_one(req=None, _id='eventoccurstatus')
                     if eocstat_map:
@@ -69,41 +71,47 @@ class IcsTwoFeedParser(FileFeedParser):
                     dates_start = dtstart if isinstance(dtstart, datetime.datetime) \
                         else datetime.datetime.combine(dtstart, datetime.datetime.min.time())
                     if not dates_start.tzinfo:
-                        dates_start = utc.localize(dates_start)
+                        dates_start = local_to_utc(config.DEFAULT_TIMEZONE, dates_start)
                     try:
                         dtend = component.get('dtend').dt
-                        dates_end = dtend if isinstance(dtend, datetime.datetime) \
-                            else datetime.datetime.combine(dtend, datetime.datetime.min.time())
+                        if isinstance(dtend, datetime.datetime):
+                            dates_end = dtend
+                        else:  # Date only is non inclusive
+                            dates_end = \
+                                (datetime.datetime.combine(dtend, datetime.datetime.max.time()) -
+                                 datetime.timedelta(days=1)).replace(microsecond=0)
                         if not dates_end.tzinfo:
-                            dates_end = utc.localize(dates_end)
+                            dates_end = local_to_utc(config.DEFAULT_TIMEZONE, dates_end)
                     except AttributeError as e:
                         dates_end = None
                     item['dates'] = {
                         'start': dates_start,
                         'end': dates_end,
-                        'tz': '',
-                        'recurring_rule': {}
+                        'tz': ''
                     }
                     # parse ics RRULE to fit eventsML recurring_rule
                     r_rule = component.get('rrule')
                     if isinstance(r_rule, vRecur):
                         r_rule_dict = vRecur.from_ical(r_rule)
                         if 'FREQ' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['frequency'] = ''.join(r_rule_dict.get('FREQ'))
+                            item['dates'].setdefault('recurring_rule', {})['frequency'] = ''.join(
+                                r_rule_dict.get('FREQ'))
                         if 'INTERVAL' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['interval'] = r_rule_dict.get('INTERVAL')[0]
+                            item['dates'].setdefault('recurring_rule', {})['interval'] = r_rule_dict.get('INTERVAL')[0]
                         if 'UNTIL' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['until'] = r_rule_dict.get('UNTIL')[0]
+                            item['dates'].setdefault('recurring_rule', {})['until'] = r_rule_dict.get('UNTIL')[0]
                         if 'COUNT' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['count'] = r_rule_dict.get('COUNT')
+                            item['dates'].setdefault('recurring_rule', {})['count'] = r_rule_dict.get('COUNT')
                         if 'BYMONTH' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['bymonth'] = ' '.join(r_rule_dict.get('BYMONTH'))
+                            item['dates'].setdefault('recurring_rule', {})['bymonth'] = ' '.join(
+                                r_rule_dict.get('BYMONTH'))
                         if 'BYDAY' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['byday'] = ' '.join(r_rule_dict.get('BYDAY'))
+                            item['dates'].setdefault('recurring_rule', {})['byday'] = ' '.join(r_rule_dict.get('BYDAY'))
                         if 'BYHOUR' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['byhour'] = ' '.join(r_rule_dict.get('BYHOUR'))
+                            item['dates'].setdefault('recurring_rule', {})['byhour'] = ' '.join(
+                                r_rule_dict.get('BYHOUR'))
                         if 'BYMIN' in r_rule_dict.keys():
-                            item['dates']['recurring_rule']['bymin'] = ' '.join(r_rule_dict.get('BYMIN'))
+                            item['dates'].setdefault('recurring_rule', {})['bymin'] = ' '.join(r_rule_dict.get('BYMIN'))
 
                     # set timezone info if date is a datetime
                     if isinstance(component.get('dtstart').dt, datetime.datetime):

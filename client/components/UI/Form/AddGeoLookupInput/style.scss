@@ -1,0 +1,103 @@
+@import '~superdesk-core/styles/sass/mixins.scss';
+@import '~superdesk-core/styles/sass/variables.scss';
+
+.geolookup {
+    display: none !important;
+}
+
+.addgeolookup {
+    width: 100%;
+    padding-top: 3px;
+
+    &__popup {
+        max-height: 200px;
+    }
+
+    &__suggestItemLabel {
+        font-size: 10px;
+        font-weight: 400;
+        padding: 1px 3px;
+    }
+
+    &__suggests {
+        overflow: auto;
+        margin-right: 10px; // override default ul
+        list-style: none;
+        &--hidden {
+            max-height: 0;
+            overflow: hidden;
+            border-width: 0;
+        }
+        max-height: 200px;
+    }
+    &__item {
+        font-weight: normal;
+        line-height: $baseLineHeight;
+        white-space: nowrap;
+        width: 100%;
+        position: relative;
+        color: $dropdownLinkColor;
+        background: none;
+        padding: .6rem 1.6rem;
+        margin-bottom: .2rem;
+        text-decoration: none;
+        text-align: left;
+        &:hover, &:focus {
+            background: $dropdownLinkBackgroundHover;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        &:active {
+            background: darken($dropdownLinkBackgroundHover, 10%);
+        }
+        &.disabled:hover, &[disabled]:hover {
+            background: none;
+            cursor: default;
+        }
+        &--active {
+            background: $sd-hover;
+        }
+
+        .spinner {
+            width: 10px;
+            height: 10px;
+            text-align: center;
+            right: 9px;
+            top: 6px;
+            display: inline-block;
+            -webkit-animation: rotate 2.0s infinite linear;
+            animation: rotate 2.0s infinite linear;
+
+            .dot1, .dot2 {
+                width: 60%;
+                height: 60%;
+                display: block;
+                top: 0;
+                background-color: #000;
+                border-radius: 100%;
+
+                -webkit-animation: bounce 2.0s infinite ease-in-out;
+                animation: bounce 2.0s infinite ease-in-out;
+            }
+
+            .dot2 {
+                top: auto;
+                bottom: 0px;
+                -webkit-animation-delay: -1.0s;
+                animation-delay: -1.0s;
+            }
+        }
+    }
+    &__input--nominatim {
+        width: 75%;
+        margin-right: 5px !important;
+    }
+    &__button {
+        margin-left: 25px !important;
+    }
+}
+
+.sd-line-input__input--address {
+    font-style: italic;
+    font-size: small;
+}

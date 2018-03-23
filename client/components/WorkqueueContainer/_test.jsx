@@ -1,9 +1,9 @@
-import { createTestStore } from '../../utils'
-import { mount } from 'enzyme'
-import { WorkqueueContainer, WorkqueueList } from '../../components'
-import React from 'react'
-import { Provider } from 'react-redux'
-import * as selectors from '../../selectors'
+import {createTestStore} from '../../utils';
+import {mount} from 'enzyme';
+import {WorkqueueContainer} from '../../components';
+import React from 'react';
+import {Provider} from 'react-redux';
+import * as selectors from '../../selectors';
 
 describe('<WorkqueueContainer />', () => {
     const initialState = {
@@ -11,9 +11,9 @@ describe('<WorkqueueContainer />', () => {
             events: {
                 event1: {
                     _id: 'e1',
-                    dates: { start: '2016-10-15T13:01:11+0000' },
+                    dates: {start: '2016-10-15T13:01:11+0000'},
                     definition_short: 'definition_short 1',
-                    location: [{ name: 'location1' }],
+                    location: [{name: 'location1'}],
                     name: 'name1',
                     lock_action: 'edit',
                     lock_user: 'user123',
@@ -21,19 +21,19 @@ describe('<WorkqueueContainer />', () => {
                 },
                 event2: {
                     _id: 'e2',
-                    dates: { start: '2016-10-15T13:01:11+0000' },
+                    dates: {start: '2016-10-15T13:01:11+0000'},
                     definition_short: 'definition_short 2',
-                    location: [{ name: 'location2' }],
+                    location: [{name: 'location2'}],
                     name: 'name2',
                 },
             },
             eventsInList: ['e1', 'e2'],
-            search: { currentSearch: {} },
+            search: {currentSearch: {}},
             readOnly: true,
         },
         planning: {
             plannings: {
-                planning1:  {
+                planning1: {
                     _id: 'p1',
                     slugline: 'Planning1',
                     headline: 'Some Plan 1',
@@ -76,28 +76,28 @@ describe('<WorkqueueContainer />', () => {
             planning_event_management: 1,
             planning_planning_management: 1,
         },
-        users: [{ _id: 'user123' }],
+        users: [{_id: 'user123'}],
         session: {
-            identity: { _id: 'user123' },
+            identity: {_id: 'user123'},
             sessionId: 'session123',
         },
-    }
-    const store = createTestStore({ initialState })
+    };
+    const store = createTestStore({initialState});
 
     const wrapper = mount(
         <Provider store={store}>
             <WorkqueueContainer />
         </Provider>
-    )
+    );
 
     it('displays WorkqueueList', () => {
-        expect(wrapper).toBeDefined()
-        expect(wrapper.find(WorkqueueList).length).toBe(1)
-    })
+        expect(wrapper).toBeDefined();
+        expect(wrapper.find(WorkqueueContainer).length).toBe(1);
+    });
 
     it('contains locked events and planning items for workqueue items', () => {
-        expect(selectors.getLockedEvents(store.getState()))
-        .toEqual([store.getState().events.events['event1']])
-        expect(selectors.getLockedPlannings(store.getState()).length).toBe(2)
-    })
-})
+        expect(selectors.locks.getLockedEvents(store.getState()))
+            .toEqual([store.getState().events.events['event1']]);
+        expect(selectors.locks.getLockedPlannings(store.getState()).length).toBe(2);
+    });
+});

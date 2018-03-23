@@ -12,4 +12,4 @@ coverage==4.3.4
 deepdiff==3.3.0
 coveralls
 mock
--e git://github.com/superdesk/superdesk-core.git@f986cfee4#egg=Superdesk_Core
+-e git://github.com/superdesk/superdesk-core.git@80826bdf#egg=Superdesk_Core

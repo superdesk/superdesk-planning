@@ -1,0 +1,64 @@
+@import '~superdesk-core/styles/sass/variables.scss';
+@import '~superdesk-core/styles/sass/mixins.scss';
+
+time.Datetime {
+    padding-left: 0 !important;
+}
+
+.form__row--no-padding {
+	padding: 0;
+}
+
+.sd-line-input {
+    &--no-border-bottom {
+        .sd-line-input__input {
+            border-bottom: none !important;
+        }
+    }
+
+    &--is-select {
+        cursor: pointer !important;
+    }
+}
+
+.sd-list-item {
+    &--margin {
+        margin: 0.8rem;
+    }
+}
+
+.terms-list {
+    &--disabled {
+        li {
+            cursor: not-allowed !important;
+            &:hover {
+                color: $black;
+                background-color: rgba(0,0,0,0.05);
+            }
+        }
+    }
+}
+
+.sd-collapse-box--invalid {
+    .sd-collapse-box__header {
+        border: 1px solid $red;
+    }
+}
+
+.sd-collapse-box--autoFocus {
+    &:focus {
+        background-color: #f4f4f4;
+    }
+}
+
+.sd-collapse-box {
+    @extend .sd-collapse-box--autoFocus
+}
+
+.sd-collapse-box__content-wrapper--no-max-height {
+    max-height: initial !important;
+}
+
+.sd-collapse-box__content-wraper {
+    @extend .sd-collapse-box__content-wrapper--no-max-height;
+}

@@ -1,3 +1,5 @@
+import {gettext} from '../utils/gettext';
+
 export const PLANNING = {
     ACTIONS: {
         SPIKE_PLANNING: 'SPIKE_PLANNING',
@@ -22,6 +24,14 @@ export const PLANNING = {
         SET_ADVANCED_SEARCH: 'SET_ADVANCED_SEARCH',
         CLEAR_ADVANCED_SEARCH: 'CLEAR_ADVANCED_SEARCH',
         MARK_PLANNING_CANCELLED: 'MARK_PLANNING_CANCELLED',
+        MARK_COVERAGE_CANCELLED: 'MARK_COVERAGE_CANCELLED',
+        MARK_PLANNING_POSTPONED: 'MARK_PLANNING_POSTPONED',
+        TOGGLE_SELECTED: 'TOGGLE_SELECTED',
+        SELECT_ALL: 'SELECT_ALL',
+        DESELECT_ALL: 'DESELECT_ALL',
+        LOCK_PLANNING: 'LOCK_PLANNING',
+        UNLOCK_PLANNING: 'UNLOCK_PLANNING',
+        ADD_COVERAGE_FROM_NEWS_ITEM: 'ADD_COVERAGE_FROM_NEWS_ITEM',
     },
     // Number of ids to look for by single request
     // because url length must stay short
@@ -32,4 +42,52 @@ export const PLANNING = {
         PAST: 'PAST',
         NOT_SCHEDULED: 'NOT_SCHEDULED',
     },
-}
+    ITEM_ACTIONS: {
+        SPIKE: {
+            label: gettext('Spike'),
+            icon: 'icon-trash',
+            actionName: 'onSpikePlanning'
+        },
+        UNSPIKE: {
+            label: gettext('Unspike'),
+            icon: 'icon-unspike',
+            actionName: 'onUnspikePlanning'
+        },
+        DUPLICATE: {
+            label: gettext('Duplicate'),
+            icon: 'icon-copy',
+            actionName: 'onDuplicatePlanning',
+        },
+        CANCEL_PLANNING: {
+            label: gettext('Cancel planning'),
+            icon: 'icon-close-small',
+            actionName: 'onCancelPlanning',
+            lock_action: 'planning_cancel',
+        },
+        CANCEL_ALL_COVERAGE: {
+            label: gettext('Cancel all coverage'),
+            icon: 'icon-close-small',
+            actionName: 'onCancelAllCoverage',
+            lock_action: 'cancel_all_coverage',
+        },
+        ADD_TO_PLANNING: {lock_action: 'add_to_planning'},
+        ADD_AS_EVENT: {
+            label: gettext('Add As Event'),
+            icon: 'icon-calendar',
+            actionName: 'onAddAsEvent',
+        }
+    },
+    NEWS_COVERAGE_CANCELLED_STATUS: {
+        qcode: 'ncostat:notint',
+        name: 'coverage not intended',
+        label: 'Not planned',
+    },
+    G2_CONTENT_TYPE: {
+        TEXT: 'text',
+        VIDEO: 'video',
+        LIVE_VIDEO: 'live_video',
+        AUDIO: 'audio',
+        PICTURE: 'picture',
+    },
+    DEFAULT_VALUE: {type: 'planning'}
+};

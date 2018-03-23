@@ -1,25 +1,19 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { AbsoluteDate } from '../../components'
-import { includes } from 'lodash'
-import './style.scss'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {AbsoluteDate} from '../../components';
+import {includes} from 'lodash';
+import './style.scss';
 
 export class PlanningHistoryList extends React.Component {
-    constructor(props) {
-        super(props)
-    }
-
     closeAndOpenDuplicate(duplicateId) {
-        this.props.closePlanningHistory()
-        this.props.openPlanningPreview(duplicateId)
+        this.props.closePlanningHistory();
+        this.props.openPlanningPreview(duplicateId);
     }
 
     render() {
-        const { planningHistoryItems, users } = this.props
+        const {planningHistoryItems, users} = this.props;
 
-        const displayUser = (recievedUserId) => {
-            return users.find((u) => (u._id === recievedUserId)).display_name
-        }
+        const displayUser = (recievedUserId) => users.find((u) => (u._id === recievedUserId)).display_name;
 
         return (
             <div>
@@ -30,7 +24,8 @@ export class PlanningHistoryList extends React.Component {
                                 users &&
                                 includes(['create', 'update', 'spiked', 'unspiked', 'coverage created',
                                     'coverage updated', 'coverage deleted', 'publish', 'duplicate',
-                                    'duplicate_from', 'cancel', 'reschedule'], historyItem.operation)
+                                    'duplicate_from', 'cancel', 'reschedule',
+                                    'postpone'], historyItem.operation)
                                 &&
                                 <div>
                                     <strong>
@@ -45,6 +40,7 @@ export class PlanningHistoryList extends React.Component {
                                         {historyItem.operation === 'duplicate' && 'Duplicated by '}
                                         {historyItem.operation === 'cancel' && 'Cancelled by '}
                                         {historyItem.operation === 'reschedule' && 'Rescheduled by '}
+                                        {historyItem.operation === 'postpone' && 'Postponed by '}
 
                                         {historyItem.operation === 'publish' &&
                                             historyItem.update.state === 'published' &&
@@ -62,8 +58,9 @@ export class PlanningHistoryList extends React.Component {
                                         {historyItem.operation === 'update' &&
                                             <div className="more-description">
                                                 Updated Fields:
-                                                {   // List updated fields as comma separated
-                                                    <span>&nbsp;{Object.keys(historyItem.update).map((field) => field).join(', ')}</span>
+                                                { // List updated fields as comma separated
+                                                    <span>&nbsp;{Object.keys(historyItem.update).map((field) => field)
+                                                        .join(', ')}</span>
                                                 }
                                             </div>
                                         }
@@ -94,7 +91,7 @@ export class PlanningHistoryList extends React.Component {
                     ))}
                 </ul>
             </div>
-        )
+        );
     }
 }
 
@@ -106,4 +103,4 @@ PlanningHistoryList.propTypes = {
     ]),
     closePlanningHistory: PropTypes.func,
     openPlanningPreview: PropTypes.func,
-}
+};

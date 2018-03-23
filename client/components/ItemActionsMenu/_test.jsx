@@ -1,26 +1,32 @@
-import React from 'react'
-import { mount } from 'enzyme'
-import { ItemActionsMenu } from '../index'
-import sinon from 'sinon'
+import React from 'react';
+import {mount, shallow} from 'enzyme';
+import {ItemActionsMenu} from '../index';
+import sinon from 'sinon';
+import * as helpers from '../tests/helpers';
 
 describe('<ItemActionsMenu />', () => {
-    it('render', () => {
-        const callback = sinon.spy()
-        const wrapper = mount(
-            <ItemActionsMenu actions={[{
-                label: 'label',
-                callback,
-            }]}/>
-        )
-        wrapper.find('.dropdown__toggle').simulate('click')
-        wrapper.find('.dropdown__menu li button').at(1).simulate('click')
-        expect(callback.callCount).toBe(1)
-    })
+    const callback = sinon.spy();
+    const actions = [{
+        label: 'label',
+        callback: callback,
+    }];
 
-    it('doesnt render without actions ', () => {
+    it('render', () => {
         const wrapper = mount(
-            <ItemActionsMenu actions={[]}/>
-        )
-        expect(wrapper.find('.dropdown__toggle').length).toBe(0)
-    })
-})
+            <ItemActionsMenu actions={actions}/>
+        );
+        const menu = new helpers.actionMenu(wrapper);
+
+        expect(menu.actionLabels()).toContain('label');
+        menu.invokeAction('label');
+        expect(callback.callCount).toBe(1);
+    });
+
+    // TODO: To be revisited
+    xit('no visibility when action popup is already open', () => {
+        let wrapper = shallow(<ItemActionsMenu actions={actions}/>);
+
+        wrapper.instance().setState({isOpen: true});
+        expect(wrapper.find('.ItemActionsMenu__hidden').length).toBe(1);
+    });
+});

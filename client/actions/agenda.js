@@ -1,10 +1,16 @@
-import { hideModal } from './modal'
-import * as selectors from '../selectors'
-import { SubmissionError } from 'redux-form'
-import { cloneDeep, pick } from 'lodash'
-import { PRIVILEGES, AGENDA } from '../constants'
-import { checkPermission, getErrorMessage, isItemSpiked } from '../utils'
-import { planning, showModal } from './index'
+import * as selectors from '../selectors';
+import {cloneDeep, pick, get, sortBy} from 'lodash';
+import {PRIVILEGES, AGENDA, MODALS, ITEM_TYPE} from '../constants';
+import {checkPermission, getErrorMessage, isItemSpiked, gettext} from '../utils';
+import {planning, showModal} from './index';
+
+const openAgenda = () => (
+    (dispatch) => (
+        dispatch(showModal({
+            modalType: MODALS.MANAGE_AGENDAS,
+        }))
+    )
+);
 
 /**
  * Creates or updates an Agenda
@@ -13,35 +19,31 @@ import { planning, showModal } from './index'
  * @return Promise
  */
 const _createOrUpdateAgenda = (newAgenda) => (
-    (dispatch, getState, { api, notify }) => {
-        let originalAgenda = {}
-        const agendas = selectors.getAgendas(getState())
-        let diff = pick(newAgenda, ['name', 'is_enabled'])
+    (dispatch, getState, {api, notify}) => {
+        let originalAgenda = {};
+        const agendas = selectors.getAgendas(getState());
+        let diff = pick(newAgenda, ['name', 'is_enabled']);
 
         if (newAgenda._id) {
-            originalAgenda = agendas.find((agenda) => agenda._id === newAgenda._id)
-            originalAgenda = cloneDeep(originalAgenda || {})
+            originalAgenda = agendas.find((agenda) => agenda._id === newAgenda._id);
+            originalAgenda = cloneDeep(originalAgenda || {});
         }
 
         return api('agenda').save(originalAgenda, diff)
-        .then((agenda) => {
-            notify.success('The agenda has been created/updated.')
-            dispatch(hideModal())
-            dispatch(addOrReplaceAgenda(agenda))
-        }, (error) => {
-            let errorMessage = getErrorMessage(
-                error,
-                'There was a problem, Agenda is not created/updated.'
-            )
+            .then((agenda) => {
+                notify.success('The agenda has been created/updated.');
+                dispatch(addOrReplaceAgenda(agenda));
+            }, (error) => {
+                let errorMessage = getErrorMessage(error);
 
-            notify.error(errorMessage)
-            throw new SubmissionError({
-                name: errorMessage,
-                _error: error.statusText,
-            })
-        })
+                if (!errorMessage && get(error, 'data._issues.name.unique') === 1) {
+                    errorMessage = 'An agenda with this name already exists';
+                }
+
+                notify.error(errorMessage);
+            });
     }
-)
+);
 
 /**
  * Action for adding or updating an Agenda in the redux store
@@ -51,7 +53,7 @@ const _createOrUpdateAgenda = (newAgenda) => (
 const addOrReplaceAgenda = (agenda) => ({
     type: AGENDA.ACTIONS.ADD_OR_REPLACE_AGENDA,
     payload: agenda,
-})
+});
 
 /**
  * Action for storing the list of Agenda's in the redux store
@@ -61,7 +63,7 @@ const addOrReplaceAgenda = (agenda) => ({
 const receiveAgendas = (agendas) => ({
     type: AGENDA.ACTIONS.RECEIVE_AGENDAS,
     payload: agendas,
-})
+});
 
 /**
  * Action dispatcher that changes the selected Agenda to the one provided.
@@ -70,43 +72,45 @@ const receiveAgendas = (agendas) => ({
  * @param {string} agendaId - The ID of the Agenda
  * @return arrow function
  */
-const selectAgenda = (agendaId) => (
-    (dispatch, getState, { $timeout, $location }) => {
+const selectAgenda = (agendaId, params = {}) => (
+    (dispatch, getState, {$timeout, $location}) => {
         // save in store selected agenda
         dispatch({
             type: AGENDA.ACTIONS.SELECT_AGENDA,
             payload: agendaId,
-        })
+        });
 
         // update the url (deep linking)
-        $timeout(() => ($location.search('agenda', agendaId)))
+        $timeout(() => ($location.search('agenda', agendaId)));
         // reload the plannings list
-        return dispatch(fetchSelectedAgendaPlannings())
+        return dispatch(fetchSelectedAgendaPlannings(params));
     }
-)
+);
 
 /**
  * Action dispatcher that fetches all Agendas using performFetchRequest
  * @return arrow function
  */
-const fetchAgendas = (query={}) => (
-    (dispatch, getState, { api, notify }) => {
-        dispatch({ type: AGENDA.ACTIONS.REQUEST_AGENDAS })
+const fetchAgendas = (query = {}) => (
+    (dispatch, getState, {api, notify}) => {
+        dispatch({type: AGENDA.ACTIONS.REQUEST_AGENDAS});
         return api('agenda').query({
             source: query.source,
             where: query.where,
             max_results: 200,
         })
-        .then((data) => {
-            dispatch(receiveAgendas(data._items))
-        }, (error) => {
-            notify.error(getErrorMessage(
-                error,
-                'There was a problem, agendas could not be fetched'
-            ))
-        })
+            .then((data) => {
+                dispatch(receiveAgendas(sortBy(data._items, [(a) =>
+                    a.name.toLowerCase()
+                ])));
+            }, (error) => {
+                notify.error(getErrorMessage(
+                    error,
+                    'There was a problem, agendas could not be fetched'
+                ));
+            });
     }
-)
+);
 
 /**
  * Action Dispatcher that fetches an Agenda by ID
@@ -114,16 +118,16 @@ const fetchAgendas = (query={}) => (
  * @param {string} _id - The ID of the Agenda to fetch
  */
 const fetchAgendaById = (_id) => (
-    (dispatch, getState, { api, notify }) => (
+    (dispatch, getState, {api, notify}) => (
         api('agenda').getById(_id)
-        .then((agenda) => {
-            dispatch(addOrReplaceAgenda(agenda))
-            return Promise.resolve(agenda)
-        }, (error) => {
-            notify.error(getErrorMessage(error, 'Failed to fetch an Agenda!'))
-        })
+            .then((agenda) => {
+                dispatch(addOrReplaceAgenda(agenda));
+                return Promise.resolve(agenda);
+            }, (error) => {
+                notify.error(getErrorMessage(error, 'Failed to fetch an Agenda!'));
+            })
     )
-)
+);
 
 /**
  * Action factory that ask for creating a planning item from the supplied event,
@@ -132,29 +136,20 @@ const fetchAgendaById = (_id) => (
  */
 const askForAddEventToCurrentAgenda = (events) => (
     (dispatch, getState) => {
-        const currentAgendaId = selectors.getCurrentAgendaId(getState())
-        if (currentAgendaId) {
-            const message = events.length === 1 ?
-                'Do you want to add this event to the current agenda'
-                : `Do you want to add these ${events.length} events to the current agenda ?`
-            return dispatch(showModal({
-                modalType: 'CONFIRMATION',
-                modalProps: {
-                    body: message,
-                    action: () => dispatch(addEventToCurrentAgenda(events)),
-                },
-            }))
-        } else {
-            dispatch(showModal({
-                modalType: 'CONFIRMATION',
-                modalProps: {
-                    body: 'You have to select an agenda first',
-                    action: () => {},
-                },
-            }))
-        }
+        const message = events.length === 1 ?
+            gettext('Do you want to add this event to the planning list ?') :
+            gettext(`Do you want to add these ${events.length} events to the planning list ?`);
+
+        return dispatch(showModal({
+            modalType: MODALS.CONFIRMATION,
+            modalProps: {
+                body: message,
+                action: () => dispatch(addEventToCurrentAgenda(events)),
+                itemType: ITEM_TYPE.EVENT,
+            },
+        }));
     }
-)
+);
 
 /**
  * Action dispatcher that creates a planning item from the supplied event,
@@ -162,122 +157,139 @@ const askForAddEventToCurrentAgenda = (events) => (
  * @param {array} events - The event used to create the planning item
  * @return Promise
  */
-const _addEventToCurrentAgenda = (events) => (
-    (dispatch, getState, { notify }) => {
-        const currentAgendaId = selectors.getCurrentAgendaId(getState())
+const _addEventToCurrentAgenda = (events, planningDate = null) => (
+    (dispatch, getState, {notify}) => {
+        const currentAgendaId = selectors.getCurrentAgendaId(getState());
+
         if (!currentAgendaId) {
-            let errorMsg = 'You have to select an agenda first'
-            notify.error(errorMsg)
-            return Promise.reject(errorMsg)
+            let errorMsg = 'You have to select an agenda first';
+
+            notify.error(errorMsg);
+            return Promise.reject(errorMsg);
         }
+
+        let eventsList = events;
 
         if (!Array.isArray(events)) {
-            events = [events]
+            eventsList = [events];
         }
 
-        const chunkSize = 5
-        let promise = Promise.resolve()
-        let plannings = []
+        const chunkSize = 5;
+        let promise = Promise.resolve();
+        let plannings = [];
 
-        for (let i = 0; i < Math.ceil(events.length / chunkSize); i++) {
-            let eventsChunk = events.slice(i * chunkSize, (i + 1) * chunkSize)
+        for (let i = 0; i < Math.ceil(eventsList.length / chunkSize); i++) {
+            let eventsChunk = eventsList.slice(i * chunkSize, (i + 1) * chunkSize);
+
             promise = promise.then(() => (
                 Promise.all(
                     eventsChunk.map((event) => (
-                        dispatch(createPlanningFromEvent(event))
+                        dispatch(createPlanningFromEvent(event, planningDate))
                     ))
                 )
-                .then((data) => data.forEach((p) => plannings.push(p)))
-                .then(() => {
-                    notify.pop()
-                    notify.success(`created ${plannings.length}/${events.length} plannings`)
-                })
-            ))
+                    .then((data) => data.forEach((p) => plannings.push(p)))
+                    .then(() => {
+                        notify.pop();
+                        notify.success(
+                            gettext(`created ${plannings.length}/${eventsList.length} planning item(s)`)
+                        );
+                    })
+            ));
         }
         // reload the plannings of the current calendar
         return promise
-        .then(() => {
-            notify.pop()
-            notify.success(`created ${events.length} plannings !`)
-        })
-        .then(() => dispatch(fetchSelectedAgendaPlannings()))
+            .then(() => {
+                notify.pop();
+                notify.success(gettext(`created ${eventsList.length} planning item.`));
+            })
+            .then(() => dispatch(fetchSelectedAgendaPlannings()));
     }
-)
+);
 
 /**
  * Action dispatcher that creates a planning item from the supplied event,
  * @param {object} event - The event used to create the planning item
  * @return Promise
  */
-const _createPlanningFromEvent = (event) => (
-    (dispatch, getState, { notify }) => {
+const _createPlanningFromEvent = (event, planningDate) => (
+    (dispatch, getState, {notify}) => {
         // Check if no agenda is selected, or the current agenda is spiked
         // And notify the end user of the error
-        const currentAgenda = selectors.getCurrentAgenda(getState())
-        const currentAgendaId = selectors.getCurrentAgendaId(getState())
-        let error
+        const currentAgendaId = selectors.getCurrentAgendaId(getState());
+        let error;
 
         if (!currentAgendaId) {
-            error = 'No Agenda is currently selected.'
-        } else if (currentAgenda && !currentAgenda.is_enabled) {
-            error = 'Cannot create a new planning item in a disabled Agenda!'
+            error = 'No Agenda is currently selected.';
         } else if (isItemSpiked(event)) {
-            error = 'Cannot create a Planning item from a spiked event!'
+            error = 'Cannot create a Planning item from a spiked event!';
         }
 
         if (error) {
-            notify.error(error)
-            return Promise.reject(error)
+            notify.error(error);
+            return Promise.reject(error);
         }
 
         // planning inherits some fields from the given event
         return dispatch(planning.api.save({
             event_item: event._id,
             slugline: event.slugline,
+            planning_date: planningDate || event._sortDate || event.dates.start,
+            internal_note: event.internal_note,
             headline: event.name,
+            place: event.place,
             subject: event.subject,
             anpa_category: event.anpa_category,
             description_text: event.definition_short,
-            agendas: currentAgenda ? [currentAgenda._id] : [],
-        }))
+            ednote: event.ednote,
+            agendas: [],
+        }));
     }
-)
+);
 
 /**
  * Action dispatcher that fetches all planning items for the
  * currently selected agenda
  * @return arrow function
  */
-const fetchSelectedAgendaPlannings = () => (
-    (dispatch, getState) => {
-        const agendaId = selectors.getCurrentAgendaId(getState())
+const fetchSelectedAgendaPlannings = (params = {}) => (
+    (dispatch, getState, {$location, $timeout}) => {
+        const agendaId = selectors.getCurrentAgendaId(getState());
+
         if (!agendaId) {
-            dispatch(planning.ui.clearList())
-            return Promise.resolve()
+            dispatch(planning.ui.clearList());
+            return Promise.resolve();
         }
 
-        const params = selectors.getPlanningFilterParams(getState())
-        return dispatch(planning.ui.fetchToList(params))
+        const filters = {
+            ...selectors.planning.getPlanningFilterParams(getState()),
+            ...params
+        };
+
+        return dispatch(planning.ui.fetchToList(filters))
+            .then((result) => {
+                $timeout(() => $location.search('searchParams', JSON.stringify(params)));
+                return result;
+            });
     }
-)
+);
 
 /**
  * Action dispatcher that deletes agenda
  * @return promise
  */
 const _deleteAgenda = (agenda) => (
-    (dispatch, getState, { api, notify }) => (
+    (dispatch, getState, {api, notify}) => (
         api('agenda').remove(agenda)
-        .then(() => {
-            notify.success('The agenda has been deleted.')
-        }, (error) => {
-            notify.error(getErrorMessage(
-                error,
-                'There was a problem, agenda could not be deleted.'
-            ))
-        })
+            .then(() => {
+                notify.success('The agenda has been deleted.');
+            }, (error) => {
+                notify.error(getErrorMessage(
+                    error,
+                    'There was a problem, agenda could not be deleted.'
+                ));
+            })
     )
-)
+);
 
 // Action Privileges
 /**
@@ -289,7 +301,7 @@ const createOrUpdateAgenda = checkPermission(
     _createOrUpdateAgenda,
     PRIVILEGES.AGENDA_MANAGEMENT,
     'Unauthorised to create or update an agenda!'
-)
+);
 
 /**
  * Action Dispatcher for creating a Planning Item from an Event
@@ -301,19 +313,19 @@ const addEventToCurrentAgenda = checkPermission(
     _addEventToCurrentAgenda,
     PRIVILEGES.PLANNING_MANAGEMENT,
     'Unauthorised to create a new planning item!'
-)
+);
 
 const createPlanningFromEvent = checkPermission(
     _createPlanningFromEvent,
     PRIVILEGES.PLANNING_MANAGEMENT,
     'Unauthorised to create a new planning item!'
-)
+);
 
 const deleteAgenda = checkPermission(
     _deleteAgenda,
     PRIVILEGES.AGENDA_MANAGEMENT,
     'Unauthorised to delete an agenda!'
-)
+);
 
 // WebSocket Notifications
 /**
@@ -324,25 +336,24 @@ const deleteAgenda = checkPermission(
 const onAgendaCreatedOrUpdated = (_e, data) => (
     (dispatch) => {
         if (data && data.item) {
-            return dispatch(fetchAgendaById(data.item))
+            return dispatch(fetchAgendaById(data.item));
         }
-
     }
-)
+);
 
 /**
  * Action Event when a Agenda is deleted
  */
 const onAgendaDeleted = () => (
     (dispatch) => dispatch(fetchAgendas())
-)
+);
 
 // Map of notification name and Action Event to execute
 const agendaNotifications = {
     'agenda:created': () => (onAgendaCreatedOrUpdated),
     'agenda:updated': () => (onAgendaCreatedOrUpdated),
     'agenda:deleted': () => (onAgendaDeleted),
-}
+};
 
 export {
     createOrUpdateAgenda,
@@ -354,4 +365,5 @@ export {
     fetchSelectedAgendaPlannings,
     agendaNotifications,
     deleteAgenda,
-}
+    openAgenda,
+};

@@ -1,0 +1,43 @@
+
+.MetadataView {
+    .spacing {
+        min-height: 75px;
+    }
+
+    .sd-alert {
+        overflow-y: scroll;
+    }
+
+    .timepicker--custom {
+        position: relative !important;
+    }
+
+    .timepickerPopup {
+        @extend .timepicker--custom;
+    }
+    padding: 12px;
+
+    &__metadata {
+        &__dataRow {
+            display: table;
+        }
+
+        border-bottom: none;
+
+        time {
+            color: #333;
+            font-weight: normal;
+        }
+    }
+
+    .sd-line-input--label-left--noMaxWdth {
+        max-width: none;
+        min-width: 15rem;
+    }
+}
+
+.update-assignment {
+    &__form {
+        padding-top: 2rem;
+    }
+}

@@ -1,0 +1,19 @@
+.AssignmentPanelContainer {
+    position: absolute;
+    right: 0;
+    top: 96px;
+    bottom: 0;
+    width: 560px !important;
+
+    &__lock-user {
+        flex-grow: unset !important;
+
+        button {
+            padding-right: 0;
+        }
+    }
+
+    &--in-authoring {
+        top: 58px;
+    }
+}

@@ -1,38 +1,42 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { OverlayTrigger } from 'react-bootstrap'
-import classNames from 'classnames'
-import { get } from 'lodash'
-import { getItemStateUiLabel } from '../../utils'
+/* eslint-disable react/no-multi-comp */
+import React from 'react';
+import PropTypes from 'prop-types';
+import {get} from 'lodash';
+import {Label} from '../../components';
+import {getItemWorkflowStateLabel, getItemPublishedStateLabel} from '../../utils';
 
-const StateLabel = ({ item, verbose }) => {
-    const state = getItemStateUiLabel(item)
+export const StateLabel = ({item, verbose, withPubStatus, className, fieldName}) => {
+    const state = getItemWorkflowStateLabel(item, fieldName);
+    const pubState = withPubStatus ? getItemPublishedStateLabel(item) : null;
+
     if (!state) {
-        return null
+        return null;
     }
 
-    const labelClasses = classNames('label',
-        `label--${state.iconType}`,
-        { 'label--hollow': state.iconHollow })
-    const label = (
-        <span className={labelClasses}>
-            {verbose ? get(state, 'labelVerbose', state.label) : state.label}
+    const getStateLabel = (state) => <Label
+        text={state.label}
+        iconType={state.iconType}
+        verbose={verbose ? get(state, 'labelVerbose') : null}
+        tooltip={!verbose && state.tooltip ? {text: state.tooltip} : null}
+    />;
+
+    return (
+        <span className={className}>
+            <div>{getStateLabel(state)}</div>
+            <div>{withPubStatus && pubState && getStateLabel(pubState)}</div>
         </span>
-    )
-    if (state.tooltip) {
-        return (
-            <OverlayTrigger placement="bottom" overlay={state.tooltip}>
-                {label}
-            </OverlayTrigger>
-        )
-    } else {
-        return label
-    }
-}
+    );
+};
 
 StateLabel.propTypes = {
     item: PropTypes.object,
     verbose: PropTypes.bool,
-}
+    withPubStatus: PropTypes.bool,
+    className: PropTypes.string,
+    fieldName: PropTypes.string,
+};
 
-export default StateLabel
+StateLabel.defaultProps = {
+    withPubStatus: true,
+    fieldName: 'state',
+};

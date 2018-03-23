@@ -1,0 +1,61 @@
+@import '~superdesk-ui-framework/app/styles/_variables.scss';
+
+/* ui fixes for planning redesign - should be avoided */
+.sd-searchbar {
+    .sd-searchbar__icon {
+        margin-bottom: 0;
+    }
+
+    .sd-searchbar__input {
+        height: 4.8rem;
+        margin: 0;
+
+        &:focus {
+            border: none;
+            box-shadow: none;
+        }
+    }
+}
+
+.sd-page-grid--basic {
+    background-color: $sd-background;
+}
+
+.side-panel__content {
+    overflow-wrap: break-word;
+
+    .side-panel__content-block {
+        input, p, textarea {
+            margin: 0;
+        }
+    }
+}
+
+.sd-page-content--slide-in--open .sd-page-content__content-block--main {
+    width: calc(100vw - 60.8rem) !important;
+}
+
+// Make <div class="sd-line-input__input" /> the same as an input element when
+// sd-line-input--disabled modifier is used
+.sd-line-input.sd-line-input--disabled div.sd-line-input__input {
+    border-bottom: 1px dotted rgba(0, 0, 0, 0.15);
+    cursor: not-allowed;
+}
+
+// Hack so that content is not rendered underneath the workqueue
+.sd-page-grid--basic .sd-content--margin-b30 {
+    margin-bottom: 30px;
+}
+
+// styles related to infinite scroll for list panel component
+.sd-column-box__main-column__listpanel {
+    overflow: hidden;
+    .sd-column-box__main-column__items {
+        overflow: auto !important;
+        width: 100%;
+        height: calc(100vh - (#{$nav-height} + #{$subnav-height} * 2 + 30px));
+    }
+    .loading-indicator{
+        top: calc(#{$nav-height} + #{$subnav-height});
+    }
+}

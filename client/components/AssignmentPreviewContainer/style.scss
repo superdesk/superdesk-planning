@@ -1,0 +1,105 @@
+@import '~superdesk-core/styles/sass/variables.scss';
+
+.AssignmentPreview {
+    .priority-label {
+        margin-right: 2rem;
+        vertical-align: middle;
+    }
+
+    .side-panel__top-tools {
+        min-height: 52px;
+    }
+
+    &__coverage-icon {
+        opacity: 0.6;
+        vertical-align: middle;
+        margin-right: 2rem;
+    }
+
+    .sd-list-item {
+        time {
+            color: $sd-text;
+            font-weight: 500;
+            padding: 0;
+        }
+    }
+
+    .addgeolookup {
+        display: table;
+        &__input-wrapper {
+            display: table-cell;
+            width: 100%;
+            padding: 5px 10px 0 0;
+        }
+        &__suggests-wrapper {
+            display: table-row;
+        }
+    }
+
+    textarea {
+        border: 0;
+        background-color: white !important;
+        resize: none;
+        cursor: text !important;
+        margin: 0;
+        padding: 0;
+    }
+
+    .TimeAndAuthor {
+        margin: 0;
+    }
+
+    .toggle-box {
+        margin-bottom: 0;
+    }
+
+    .sd-list-item__row {
+        &--no-margin {
+            margin: 0px !important;
+        }
+        &--margin-top {
+            margin: 1rem 0 0 0;
+        }
+    }
+
+    .sd-list-item__column {
+        &--justify-top {
+            justify-content: flex-start;
+        }
+        &--no-padding {
+            padding: 0px !important;
+        }
+    }
+    .avatar {
+        background: #67afa1;
+    }
+
+    .EventDates {
+        .form__row-item {
+            time {
+                color: $grayDark;
+                font-weight: 400;
+            }
+        }
+    }
+}
+
+// used by the assignment tab in superdesk item preview
+.AssignmentPreviewTab {
+    display: flex;
+    padding: 0px 0px !important;
+    flex-direction: column;
+    flex-grow: 1;
+    .side-panel__content-block--flex {
+        display: flex;
+    }
+    .side-panel__content-block--pad-small {
+        padding: 1.0rem 2rem 0.6rem;
+    }
+    .side-panel__top-tools {
+        background-color: $grayLighter;
+        display: flex;
+        padding: 1.2rem 1rem 1.2rem 2rem;
+        align-items: center;
+    }
+}

@@ -1,15 +1,27 @@
-export { PRIVILEGES } from './privileges'
-export { PLANNING } from './planning'
-export { AGENDA } from './agenda'
-export { ASSIGNMENTS } from './assignments'
+export {PRIVILEGES} from './privileges';
+export {PLANNING} from './planning';
+export {AGENDA} from './agenda';
+export {ASSIGNMENTS} from './assignments';
+export {TOOLTIPS} from './tooltips';
+export {LOCKS} from './locks';
+export {WORKSPACE} from './workspace';
+export {MODALS} from './modals';
+export {UI} from './ui';
+export {AUTOSAVE} from './autosave';
+export {MAIN} from './main';
+export {KEYCODES} from './keycodes';
+export {EVENTS_PLANNING} from './eventsplanning';
+export {COVERAGES} from './coverages';
+export {MULTISELECT} from './multiselect';
+export {CONTACTS} from './contacts';
 
-export const LIST_ITEM_1_LINE_HEIGHT = 38
-export const LIST_ITEM_2_LINES_HEIGHT = 56
-export const EVENT_LIST_DAY_HEADER_HEIGHT = 43
-export const PLANNING_LIST_ITEM_MARGIN_HEIGHT = 20
-export { EVENTS } from './events'
+export const LIST_ITEM_1_LINE_HEIGHT = 38;
+export const LIST_ITEM_2_LINES_HEIGHT = 56;
+export const EVENT_LIST_DAY_HEADER_HEIGHT = 43;
+export const PLANNING_LIST_ITEM_MARGIN_HEIGHT = 20;
+export {EVENTS} from './events';
 
-export const WS_NOTIFICATION = 'WS_NOTIFICATION'
+export const WS_NOTIFICATION = 'WS_NOTIFICATION';
 
 export const DATE_FORMATS = {
     COMPARE_FORMAT: 'YYYY-M-D',
@@ -17,62 +29,60 @@ export const DATE_FORMATS = {
     DISPLAY_CDATE_FORMAT: 'D. MMMM HH:mm',
     DISPLAY_DAY_FORMAT: 'dddd, ',
     DISPLAY_TODAY_FORMAT: '[Today], ',
-}
+};
 
 export const WORKFLOW_STATE = {
-    IN_PROGRESS: 'in_progress',
+    DRAFT: 'draft',
     INGESTED: 'ingested',
-    PUBLISHED: 'published',
+    SCHEDULED: 'scheduled',
     KILLED: 'killed',
     CANCELLED: 'cancelled',
     RESCHEDULED: 'rescheduled',
     POSTPONED: 'postponed',
-    SPIKED: 'spiked',
-}
+    SPIKED: 'spiked'
+};
 
 export const PUBLISHED_STATE = {
     USABLE: 'usable',
     CANCELLED: 'cancelled',
-}
+};
 
 export const GENERIC_ITEM_ACTIONS = {
-    SPIKE: {
-        label: 'Spike',
-        icon: 'icon-trash',
-    },
-    UNSPIKE: {
-        label: 'Unspike',
-        icon: 'icon-unspike',
-    },
-    DUPLICATE: {
-        label: 'Duplicate',
-        icon: 'icon-copy',
-    },
-    HISTORY: {
-        label: 'View History',
-        icon: 'icon-time',
-    },
-    DIVIDER: { label: 'Divider' },
-    LABEL: { label: 'Label' },
-}
+    DIVIDER: {label: 'Divider'},
+    LABEL: {text: 'Label'},
+};
 
 export const SPIKED_STATE = {
     SPIKED: WORKFLOW_STATE.SPIKED,
-    NOT_SPIKED: WORKFLOW_STATE.IN_PROGRESS,
+    NOT_SPIKED: WORKFLOW_STATE.DRAFT,
     BOTH: 'both',
-}
+};
 
-export const ADVANCED_SEARCH_CONTEXT = {
+export const RESET_STORE = 'RESET_STORE';
+export const INIT_STORE = 'INIT_STORE';
+export const FORM_NAMES = {
+    UpdateRecurringEventsForm: 'updateEventConfirmation',
+    RescheduleForm: 'rescheduleEvent',
+    ConvertEventToRecurringForm: 'convertEventToRecurring',
+    ReassignAssignmentForm: 'reassignAssignmentForm',
+    EditAssignmentPriorityForm: 'editAssignmentPriorityForm',
+    UpdateAssignmentForm: 'updateAssignmentForm',
+    PlanningForm: 'planning',
+    EventForm: 'events',
+};
+
+/*
+ * Types of content
+ */
+export const ITEM_TYPE = {
     EVENT: 'event',
     PLANNING: 'planning',
-}
-export const RESET_STORE = 'RESET_STORE'
-export const INIT_STORE = 'INIT_STORE'
-export const FORM_NAMES = {
-    SpikeEventForm: 'spikeEvent',
-    CancelEventForm: 'cancelEvent',
-    UpdateTimeForm: 'updateTime',
-    UpdateRecurringEventsForm: 'updateEventConfirmation',
-    CreateEditAgendaForm: 'createEditAgenda',
-}
-
+    ASSIGNMENT: 'assignment',
+    TEXT: 'text',
+    PICTURE: 'picture',
+    VIDEO: 'video',
+    AUDIO: 'audio',
+    GRAPHIC: 'graphic',
+    COMPOSITE: 'composite',
+    UNKNOWN: 'unknown'
+};

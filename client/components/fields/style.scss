@@ -1,3 +1,5 @@
+@import '~superdesk-ui-framework/app/styles/_tooltips.scss';
+
 .Link__Item {
 	background-color: transparent;
 	outline: none;
@@ -5,6 +7,10 @@
 
 .Link__remove {
 	float: right;
+}
+
+.sd-text__link {
+	margin-bottom: 0px;
 }
 
 .error-block {
@@ -26,4 +32,24 @@
 	&:hover {
 		cursor: default;
 	}
+}
+
+[data-sd-tooltip] {
+	z-index: 1000 !important;
+	opacity: 1 !important;
+}
+
+
+.Planning {
+    .sd-list-item__column {
+      overflow: visible !important;
+    }
+
+    .sd-list-item__row {
+      overflow: visible !important;
+    }
+
+    .tooltipVisibleElement {
+      overflow: visible !important;
+    }
 }

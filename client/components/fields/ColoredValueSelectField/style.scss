@@ -1,23 +1,29 @@
 @import '~superdesk-core/styles/sass/mixins.scss';
 @import '~superdesk-core/styles/sass/variables.scss';
 
-.ColoredValueSelect__popup {
-	position: relative;
-    z-index: 2000;
-    background: #fff;
-    padding: 10px 10px 10px 10px;
-    @include box-shadow(0 0 5px 0 rgba(0,0,0,0.45));
-    @include border-radius(3px);
-    max-width: 200px;
-    @include border-box();
+.ColoredValueSelect {
+    &__input {
+        padding-top: 10px;
+    }
 
-    button {
-    	padding: .6rem 1.6rem;
-    	width: 100%;
-    	text-align: left;
+    &__popup {
+        position: relative;
+        z-index: 2000;
+        background: #fff;
+        padding: 10px 10px 10px 10px;
+        @include box-shadow(0 0 5px 0 rgba(0,0,0,0.45));
+        @include border-radius(3px);
+        max-width: 200px;
+        @include border-box();
 
-    	&:hover {
-			background: $sd-hover;	
-		}
+        button {
+            padding: .6rem 1.6rem;
+            width: 100%;
+            text-align: left;
+
+            &:hover {
+                background: $sd-hover;  
+            }
+        }
     }
 }

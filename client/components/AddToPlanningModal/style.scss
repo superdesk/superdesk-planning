@@ -1,0 +1,9 @@
+.AddToPlanning {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+
+    .sd-list-item {
+        margin: 1rem;
+    }
+}

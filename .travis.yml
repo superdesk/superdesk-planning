@@ -15,14 +15,15 @@ addons:
     sources:
     - mongodb-3.0-precise
     - elasticsearch-2.x
+    - google-chrome
     packages:
     - mongodb-org-server
     - elasticsearch
+    - google-chrome-stable
 
 cache:
-  directories:
-    - $HOME/.cache/pip
-    - $HOME/.npm
+    - pip
+    - npm
 
 before_install:
     - sudo apt-get purge elasticsearch
@@ -36,9 +37,6 @@ install:
     - npm install --python=python2.7
     - cd server && pip install -r requirements.txt && cd ..
     - gem install coveralls-lcov
-before_script:
-    - export DISPLAY=:99.0
-    - sh -e /etc/init.d/xvfb start
 script:
     - make test
 after_success:

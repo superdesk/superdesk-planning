@@ -1,5 +1,6 @@
 @import '~superdesk-core/styles/sass/mixins.scss';
 @import '~superdesk-core/styles/sass/variables.scss';
+@import '~superdesk-ui-framework/app/styles/variables/_colors.scss';
 
 @mixin absolute0 {
     position: absolute;
@@ -8,86 +9,32 @@
     right: 0;
     bottom: 0;
 }
-.Planning {
+
+.AssignmentsApp {
     @include absolute0;
     top: $nav-height;
-    bottom: 30px;
-    .navbtn { // fix the (+) button. Needed because it's not a dropdown
-        overflow: hidden;
-        padding: 0;
-        button {border: 0;}
+
+    p {
+        margin: 0;
     }
-    .subnav {
-        .subnav__button-stack--square-buttons { margin: 0; }
-        .navbtn { // back button
-            border-right: 1px solid rgba(0, 0, 0, 0.1);
-            border-left: 0;
-            line-height: 4.8rem;
-            button { background-color: transparent; }
-            .backlink {
-                padding: 0 10px 0 14px;
-                margin-top: -2px;
-                &--rotated {
-                    transform: rotate(180deg);
-                }
-            }
-            &--right {
-                border-right: 0;
-                border-left: 1px solid rgba(0, 0, 0, 0.1);
-                margin-right: -10px;
-                margin-left: 12px;
-            }
-        }
-        align-items: center;
-    }
-
-    .subnav {
-        position: relative;
-        top: initial;
-        flex-shrink: 0;
-    }
-    .ui-resizable { position: absolute; }
-
-    .spinner {
-      width: 10px;
-      height: 10px;
-      text-align: center;
-      right: 9px;
-      top: 6px;
-      display: inline-block;
-
-      -webkit-animation: rotate 2.0s infinite linear;
-      animation: rotate 2.0s infinite linear;
-
-      .dot1, .dot2 {
-          width: 60%;
-          height: 60%;
-          display: block;
-          top: 0;
-          background-color: #000;
-          border-radius: 100%;
-
-          -webkit-animation: bounce 2.0s infinite ease-in-out;
-          animation: bounce 2.0s infinite ease-in-out;
-        }
-
-        .dot2 {
-          top: auto;
-          bottom: 0px;
-          -webkit-animation-delay: -1.0s;
-          animation-delay: -1.0s;
-        }
-    }
-
-    .opened-articles ul > li {
-        padding: 0 25px 0 5px;
-        .item-label {
-            margin-left: 3px;
-        }
-    }
-
 }
 
-// a vertical align on this class ensure an aligned icon with text.
-// It's isolated to this plugin to avoid unwanted effect on the rest of the app
-.Planning, .EventForm { .icon-desk-attach { vertical-align: middle; } }
+.opened-articles ul > li {
+    padding: 0 25px 0 5px;
+    .item-label {
+        margin-left: 3px;
+    }
+}
+
+.icon--gray {
+  color: $grayLight;
+}
+
+.icon--yellow {
+  color: $oldGold;
+}
+
+.icn-mix__sub-icn--gray {
+  color: $grayLight !important;
+  background-color: transparent !important;
+}

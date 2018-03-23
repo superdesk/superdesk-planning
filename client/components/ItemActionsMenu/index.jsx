@@ -1,157 +1,96 @@
-import React from 'react'
-import ReactDOM from 'react-dom'
-import PropTypes from 'prop-types'
-import classNames from 'classnames'
-import { get } from 'lodash'
-import { GENERIC_ITEM_ACTIONS } from '../../constants'
-import './style.scss'
+import React from 'react';
+import PropTypes from 'prop-types';
+import classNames from 'classnames';
+import {ActionsMenu} from './ActionsMenu';
+import {GENERIC_ITEM_ACTIONS} from '../../constants';
+import {onEventCapture} from '../../utils';
+import './style.scss';
+import {renderToBody, closeActionsMenu} from 'superdesk-core/scripts/apps/search/helpers';
 
 export class ItemActionsMenu extends React.Component {
-
     constructor(props) {
-        super(props)
-        this.state = { isOpen: false }
-        this.handleClickOutside = this.handleClickOutside.bind(this)
+        super(props);
+        this.state = {isOpen: false};
+        this.handleClickOutside = this.handleClickOutside.bind(this);
+        this.renderMenu = this.renderMenu.bind(this);
+        this.dom = {menu: null};
     }
 
     componentDidMount() {
-        document.addEventListener('click', this.handleClickOutside, true)
+        document.addEventListener('click', this.handleClickOutside, true);
     }
 
     componentWillUnmount() {
-        document.removeEventListener('click', this.handleClickOutside, true)
+        document.removeEventListener('click', this.handleClickOutside, true);
     }
 
     handleClickOutside(event) {
-        const domNode = ReactDOM.findDOMNode(this)
-
-        if ((!domNode || !domNode.contains(event.target))) {
-            this.setState({ isOpen: false })
+        if ((!this.dom.menu || event.target.className !== 'ItemActionsMenu__action')) {
+            if (this.state.isOpen) {
+                this.closeMenu();
+            }
         }
-    }
-
-    toggleMenu(event) {
-        event.preventDefault()
-        event.stopPropagation()
-        this.setState({ isOpen: !this.state.isOpen })
     }
 
     closeMenu(event) {
-        event.preventDefault()
-        event.stopPropagation()
-        this.setState({ isOpen: false })
+        onEventCapture(event);
+        closeActionsMenu();
+        this.setState({isOpen: false});
     }
 
-    triggerAction(action, event) {
-        this.closeMenu(event)
-        action.callback()
-    }
-
-    ignoreAction(event) {
-        event.preventDefault()
-        event.stopPropagation()
-    }
-
-    isEmptyActions() {
-        if (get(this.props, 'actions.length', 0) < 1) {
-            return true
-        } else {
-            // Do we have only dividers ?
-            return this.props.actions.filter((action) =>
-                action.label !== GENERIC_ITEM_ACTIONS.DIVIDER.label).length <= 0
-        }
-    }
 
     render() {
-        if (this.isEmptyActions()) {
-            return null
-        }
-
-        const toggleMenu = this.toggleMenu.bind(this)
-        const menu = this.state.isOpen ? this.renderMenu(this.props.actions) : null
         const classes = classNames(
+            this.props.className,
             'dropdown',
             'ItemActionsMenu',
             'pull-right',
-            { open: this.state.isOpen }
-        )
+            {open: this.state.isOpen}
+        );
+
+        const isEmptyActions = this.props.actions.length === 0;
 
         const buttonClasses = classNames(
             'dropdown__toggle',
-            { [this.props.buttonClass]: this.props.buttonClass }
-        )
+            {[this.props.buttonClass]: this.props.buttonClass},
+            {ItemActionsMenu__hidden: isEmptyActions || this.state.isOpen},
+            {ItemActionsMenu__visible: !isEmptyActions && !this.state.isOpen}
+        );
 
         return (
-            <div className={classes}>
-                <button className={buttonClasses} onClick={toggleMenu}>
+            <div className={classes} ref={(node) => this.dom.menu = node}>
+                <a className={buttonClasses} onClick={this.renderMenu}>
                     <i className="icon-dots-vertical" />
-                </button>
-                {menu}
+                </a>
             </div>
-        )
+        );
     }
 
-    renderMenu(actions) {
-        let items = actions.map(this.renderItem.bind(this))
+    renderMenu(event) {
+        onEventCapture(event);
+        let actions = this.props.actions;
 
-        return (
-            <ul className="dropdown__menu">
-                <li onClick={this.ignoreAction.bind(this)}>
-                    <div className="dropdown__menu-label">Actions<button className='dropdown__menu-close'
-                        onClick={this.toggleMenu.bind(this)}>
-                        <i className='icon-close-small' /></button>
-                    </div>
-                </li>
-                <li className="dropdown__menu-divider" />
-                {items}
-            </ul>
-        )
-    }
-
-    renderItem(action) {
-        const key = action.key ? action.key : action.label
-
-        if (Array.isArray(action.callback)) {
-            let items = action.callback.map(this.renderItem.bind(this))
-
-            if (!items.length) {
-                items = <li><button onClick={this.closeMenu.bind(this)}>There are no actions available.</button></li>
-            }
-
-            const submenuDirection = get(action, 'direction', 'left')
-
-            return (
-                <li key={'submenu-' + key}>
-                    <div className="dropdown">
-                        <button className="dropdown__toggle" onClick={this.closeMenu.bind(this)}>
-                            {action.icon && (<i className={action.icon}/>)}
-                            {action.label}
-                        </button>
-                        <ul className={'dropdown__menu dropdown__menu--submenu-' + submenuDirection}>
-                            {items}
-                        </ul>
-                    </div>
-                </li>
-            )
+        if (actions[actions.length - 1].label === GENERIC_ITEM_ACTIONS.DIVIDER.label) {
+            actions.pop();
         }
 
-        if (action.label === GENERIC_ITEM_ACTIONS.DIVIDER.label) {
-            return <li key={key} className="dropdown__menu-divider" />
-        }
+        let elem = React.createElement(ActionsMenu, {
+            actions: actions,
+            closeMenu: this.closeMenu.bind(this),
+        });
 
-        const trigger = this.triggerAction.bind(this, action)
-        return (
-            <li key={key}>
-                <button onClick={trigger}>
-                    {action.icon && (<i className={action.icon}/>)}
-                    {action.label}
-                </button>
-            </li>
-        )
+        let icon = this.dom.menu.getElementsByClassName('icon-dots-vertical')[0];
+
+        renderToBody(elem, icon);
+
+        this.setState({isOpen: true});
     }
 }
 
 ItemActionsMenu.propTypes = {
     actions: PropTypes.array.isRequired,
+    className: PropTypes.string,
     buttonClass: PropTypes.string,
-}
+};
+
+ItemActionsMenu.defaultProps = {actions: []};

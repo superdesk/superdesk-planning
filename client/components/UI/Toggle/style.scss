@@ -1,0 +1,18 @@
+@import '~superdesk-core/styles/sass/mixins.scss';
+@import '~superdesk-core/styles/sass/variables.scss';
+
+.sd-toggle {
+    &--disabled {
+        cursor: not-allowed;
+    }
+
+    &--checked {
+        background: #b0b0b0;
+    }
+
+    &:focus {
+        @include box-shadow(0 0 5px 0 rgba(0,0,0,0.45));
+        @include border-radius(3px);
+        @include border-box();
+    }
+}

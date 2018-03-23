@@ -1,14 +1,15 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { isBoolean, get } from 'lodash'
-import { Toggle } from '../index'
-import './style.scss'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {isBoolean, get} from 'lodash';
+import {Toggle} from '../UI';
+import './style.scss';
 
-export const ToggleField = ({ input, label, readOnly, defaultValue=false, meta: { touched, error, warning } }) => {
+export const ToggleField = ({input, label, readOnly, defaultValue = false, meta: {touched, error, warning}}) => {
+    // eslint-disable-next-line no-param-reassign
     input = {
         ...input,
         value: isBoolean(get(input, 'value')) ? get(input, 'value') : defaultValue,
-    }
+    };
 
     return (
         <div className="field">
@@ -17,7 +18,7 @@ export const ToggleField = ({ input, label, readOnly, defaultValue=false, meta: 
                     {...input}
                     onChange={
                         () => {
-                            input.onChange(!input.value)
+                            input.onChange(!input.value);
                         }
                     }
                     readOnly={readOnly}/> {label}
@@ -25,8 +26,8 @@ export const ToggleField = ({ input, label, readOnly, defaultValue=false, meta: 
                     (warning && <span className="help-block">{warning}</span>))}
             </label>
         </div>
-    )
-}
+    );
+};
 
 ToggleField.propTypes = {
     input: PropTypes.object.isRequired,
@@ -34,6 +35,6 @@ ToggleField.propTypes = {
     meta: PropTypes.object,
     readOnly: PropTypes.bool,
     defaultValue: PropTypes.bool,
-}
+};
 
-ToggleField.defaultProps = { defaultValue: false }
+ToggleField.defaultProps = {defaultValue: false};

@@ -7,9 +7,32 @@ $ASSIGNMENT_LIST_CONTAINER_ZINDEX: 6;
     flex-direction: column;
 }
 
+.Assignments-list-container__groups {
+    top: 96px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: scroll;
+    transition: all 0.3s;
+    box-sizing: border-box;
+    padding: 0px 18px 18px !important;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    margin: 9px 0px 0px 0px;
+
+    &--edit-view {
+        margin-right: 550px;
+    }
+}
+
 .Assignments-list-container__header {
     z-index: $ASSIGNMENT_LIST_CONTAINER_ZINDEX + 1;
     flex-shrink: 0;
+
+    &__backButton {
+        border-right: 1px solid #e0e0e0;
+    }
 }
 
 .Assignments-list-container__selection {
@@ -18,11 +41,14 @@ $ASSIGNMENT_LIST_CONTAINER_ZINDEX: 6;
 }
 .Assignments-list-container__body {
     display: flex;
-    margin-top: 48px;
     margin-left: 20px;
     margin-right: 0px;
     flex-grow: 1;
     overflow: hidden;
+
+    &--edit-in-authoring {
+        margin-right: 560px;
+    }
 }
 .Assignments-list-container__search {
     display: flex;

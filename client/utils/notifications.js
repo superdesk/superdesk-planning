@@ -1,6 +1,6 @@
-import { WS_NOTIFICATION } from '../constants'
-import * as actions from '../actions'
-import { forEach } from 'lodash'
+import {WS_NOTIFICATION} from '../constants';
+import * as actions from '../actions';
+import {forEach} from 'lodash';
 
 /**
  * Registers WebSocket Notifications to Redux Actions
@@ -16,10 +16,10 @@ export const registerNotifications = ($scope, store) => {
                     event,
                     data,
                 },
-            })
-            store.dispatch(func()(_e, data))
-        })
-    })
-}
+            });
+            store.dispatch(func()(_e, data));
+        });
+    });
+};
 
-export default registerNotifications
+export default registerNotifications;

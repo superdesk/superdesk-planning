@@ -1,26 +1,25 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import React from 'react';
+import PropTypes from 'prop-types';
 
 export default class OrderBar extends React.Component {
-
     onChangeOrder() {
-        const { orderByField, orderDirection,  onChange } = this.props
+        const {orderByField, orderDirection, onChange} = this.props;
 
-        onChange(orderByField, orderDirection === 'Asc' ? 'Desc': 'Asc')
+        onChange(orderByField, orderDirection === 'Asc' ? 'Desc' : 'Asc');
     }
 
     onChangeField(event) {
-        const { orderDirection, onChange } = this.props
+        const {orderDirection, onChange} = this.props;
 
-        onChange(event.target.value, orderDirection)
+        onChange(event.target.value, orderDirection);
     }
 
     render() {
-        const { orderByField, orderDirection, fields } = this.props
+        const {orderByField, orderDirection, fields} = this.props;
 
         return (
             <div className="sortbar-container">
-                 <div className="sortbar">
+                <div className="sortbar">
                     <div>
                         <select onChange={this.onChangeField.bind(this)} value={orderByField}>
                             { fields.map((field) => (<option key={field} value={field}>{field}</option>)) }
@@ -32,7 +31,7 @@ export default class OrderBar extends React.Component {
                     </button>
                 </div>
             </div>
-        )
+        );
     }
 }
 
@@ -41,6 +40,6 @@ OrderBar.propTypes = {
     orderDirection: PropTypes.string,
     fields: PropTypes.array,
     onChange: PropTypes.func,
-}
+};
 
-OrderBar.defaultProps = { order: 'Asc' }
+OrderBar.defaultProps = {order: 'Asc'};

@@ -1,7 +1,7 @@
-import React from 'react'
-import { shallow } from 'enzyme'
-import { PlanningHistoryList } from '../index'
-import sinon from 'sinon'
+import React from 'react';
+import {shallow} from 'enzyme';
+import {PlanningHistoryList} from '../index';
+import sinon from 'sinon';
 
 describe('<PlanningHistoryList />', () => {
     let planningHistoryItems = [
@@ -34,7 +34,7 @@ describe('<PlanningHistoryList />', () => {
             operation: 'spiked',
             user_id: 'admin2',
         },
-    ]
+    ];
 
     let users = [{
         user_id: 'admin1',
@@ -43,35 +43,35 @@ describe('<PlanningHistoryList />', () => {
     {
         user_id: 'admin2',
         display_name: 'fname2 lname2',
-    }]
+    }];
 
-    users.find = sinon.spy(() => (Promise.resolve()))
+    users.find = sinon.spy(() => (Promise.resolve()));
 
     const getShallowWrapper = () => (
         shallow(<PlanningHistoryList planningHistoryItems={planningHistoryItems} users={users} />)
-    )
+    );
 
     it('renders planning history', () => {
-        let wrapper = getShallowWrapper()
+        let wrapper = getShallowWrapper();
 
-        expect(wrapper).toBeDefined()
+        expect(wrapper).toBeDefined();
 
         // Can display all available planningHistoryItems
-        expect(wrapper.find('.item').length).toEqual(3)
+        expect(wrapper.find('.item').length).toEqual(3);
 
         // Can display corresponding all 3 history actions in order
         expect(wrapper.find('strong').map((e) => e.text()))
-        .toEqual([
-            'Created by ',
-            'Updated by ',
-            'Spiked by ',
-        ])
+            .toEqual([
+                'Created by ',
+                'Updated by ',
+                'Spiked by ',
+            ]);
 
-        expect(users.find.calledThrice).toBe(true)
+        expect(users.find.calledThrice).toBe(true);
 
         // Can display updated fields when planningHistoryItems.operation was 'update'
-        expect(wrapper.find('.more-description').first().map((e) => e.text()))
-        .toEqual(['Updated Fields: headline, slugline'])
-
-    })
-})
+        expect(wrapper.find('.more-description').first()
+            .map((e) => e.text()))
+            .toEqual(['Updated Fields: headline, slugline']);
+    });
+});

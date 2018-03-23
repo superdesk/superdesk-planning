@@ -18,29 +18,45 @@ from superdesk.utc import utcnow
 from superdesk.lock import lock, unlock
 from eve.utils import config
 from superdesk import get_resource_service, get_resource_privileges
-from flask import current_app as app
+from apps.common.components.base_component import BaseComponent
 
 
 LOCK_USER = 'lock_user'
 LOCK_SESSION = 'lock_session'
+LOCK_ACTION = 'lock_action'
+LOCK_TIME = 'lock_time'
 logger = logging.getLogger(__name__)
 
 
-class LockService:
-    def __init__(self):
+class LockService(BaseComponent):
+    def __init__(self, app):
+        """Initialize planning lock component.
+
+        :param app: superdesk app
+        """
         self.app = app
         self.app.on_session_end += self.on_session_end
 
-    def lock(self, item, user_id, session_id, action, resource, lock_id_field=None):
+    @classmethod
+    def name(cls):
+        return 'planning_item_lock'
+
+    def lock(self, item, user_id, session_id, action, resource):
         if not item:
             raise SuperdeskApiError.notFoundError()
 
         item_service = get_resource_service(resource)
         item_id = item.get(config.ID_FIELD)
 
-        # lock_id will have a specific value (recurrence_id) for recurring events
-        if not lock_id_field:
-            lock_id_field = config.ID_FIELD
+        # lock_id will be:
+        # 1 - Recurrence Id for items part of recurring series (event or planning)
+        # 2 - event_item for planning with associated event
+        # 3 - item's _id for all other cases
+        lock_id_field = config.ID_FIELD
+        if item.get('recurrence_id'):
+            lock_id_field = 'recurrence_id'
+        elif item.get('type') != 'event' and item.get('event_item'):
+            lock_id_field = 'event_item'
 
         # set the lock_id it per item
         lock_id = "item_lock {}".format(item.get(lock_id_field))
@@ -119,13 +135,15 @@ class LockService:
 
     def unlock_session(self, user_id, session_id):
         self.unlock_session_for_resource(user_id, session_id, 'planning')
+        self.unlock_session_for_resource(user_id, session_id, 'events')
+        self.unlock_session_for_resource(user_id, session_id, 'assignments')
 
     def unlock_session_for_resource(self, user_id, session_id, resource):
         item_service = get_resource_service(resource)
         items = item_service.find(where={'lock_session': session_id})
 
         for item in items:
-            self.unlock(item.get(config.ID_FIELD), user_id, session_id, resource)
+            self.unlock(item, user_id, session_id, resource)
 
     def can_lock(self, item, user_id, session_id, resource):
         """
@@ -165,3 +183,36 @@ class LockService:
 
     def on_session_end(self, user_id, session_id):
         self.unlock_session(user_id, session_id)
+
+    def validate_relationship_locks(self, item, resource_name):
+        if not item:
+            raise SuperdeskApiError.notFoundError()
+
+        all_items = get_resource_service(resource_name).get_all_items_in_relationship(item)
+        for related_item in all_items:
+            if related_item[config.ID_FIELD] != item[config.ID_FIELD]:
+                if related_item.get(LOCK_USER) and related_item.get(LOCK_SESSION):
+                    # Frame appropriate error message string
+
+                    same_resource_conflict = False
+                    item_name = 'planning item'
+                    associated_name = 'event'
+                    series_str = ''
+                    if resource_name == 'events':
+                        item_name = 'event'
+                        associated_name = 'planning item'
+                        if related_item.get('type') == 'event':
+                            same_resource_conflict = True
+                    else:
+                        if related_item.get('type') != 'event':
+                            same_resource_conflict = True
+
+                    if item.get('recurrence_id'):
+                        series_str = 'in this recurring series '
+
+                    if same_resource_conflict:
+                        message = 'Another {} {}is already locked.'.format(item_name, series_str)
+                    else:
+                        message = 'An associated {} {}is already locked.'.format(associated_name, series_str)
+
+                    raise SuperdeskApiError.forbiddenError(message=message)

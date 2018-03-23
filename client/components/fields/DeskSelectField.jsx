@@ -1,30 +1,35 @@
-import React from 'react'
-import { SelectField } from './SelectField'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {SelectField} from './SelectField';
 
 export const DeskSelectField = (props) => {
     const ownProps = {
         ...props,
         options: props.desks.map((desk) => (
             {
-                key: desk.name,
+                key: desk._id,
                 label: desk.name,
                 value: desk,
             }
         )),
 
         getOptionFromValue: (value, options) => value && options.find(
-            option => option.key === value.name
+            (option) => option.key === value || option.key === value._id
         ),
 
-        meta: { },
-
+        meta: props.meta,
         clearable: true,
-    }
-    return (<SelectField {...ownProps}/>)
-}
+    };
+
+    return (<SelectField {...ownProps}/>);
+};
 
 DeskSelectField.propTypes = {
-    desks: React.PropTypes.array.isRequired,
+    meta: PropTypes.object,
+    desks: PropTypes.array.isRequired,
     // eslint-disable-next-line react/no-unused-prop-types
-    input: React.PropTypes.object.isRequired,
-}
+    input: PropTypes.object.isRequired,
+    autoFocus: PropTypes.bool,
+};
+
+DeskSelectField.defaultProps = {meta: {}};

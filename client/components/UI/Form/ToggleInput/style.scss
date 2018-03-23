@@ -1,0 +1,9 @@
+@import '~superdesk-core/styles/sass/mixins.scss';
+@import '~superdesk-core/styles/sass/variables.scss';
+
+.sd-line-input__toggle {
+    .sd-line-input__label {
+        margin-top: 4px;
+        max-width: none;
+    }
+}

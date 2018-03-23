@@ -1,5 +1,5 @@
-import { SelectMetaTermsField } from './SelectMetaTermsField/'
-import { connect } from 'react-redux'
+import {SelectMetaTermsInput} from '../UI/Form';
+import {connect} from 'react-redux';
 
 const mapStateToProps = (state, ownProps) => ({
     multi: true,
@@ -15,6 +15,6 @@ const mapStateToProps = (state, ownProps) => ({
             value: cat,
         }
     )),
-})
+});
 
-export const CategoryField = connect(mapStateToProps)(SelectMetaTermsField)
+export const CategoryField = connect(mapStateToProps)(SelectMetaTermsInput);

@@ -1,24 +1,17 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import { AbsoluteDate } from '../../components'
-import { includes, get } from 'lodash'
-import './style.scss'
+import React from 'react';
+import PropTypes from 'prop-types';
+import {AbsoluteDate} from '../../components';
+import {includes, get} from 'lodash';
+import './style.scss';
 
 export class EventHistoryList extends React.Component {
-    constructor(props) {
-        super(props)
-    }
-
     closeAndOpenDuplicate(duplicateId) {
-        this.props.closeEventHistory()
-        this.props.openEventPreview(duplicateId)
+        this.props.closeEventHistory();
+        this.props.openEventPreview(duplicateId);
     }
 
     render() {
-
-        const displayUser = (recievedUserId) => {
-            return this.props.users.find((u) => (u._id === recievedUserId)).display_name
-        }
+        const displayUser = (recievedUserId) => this.props.users.find((u) => (u._id === recievedUserId)).display_name;
 
         return (
             <div>
@@ -30,7 +23,7 @@ export class EventHistoryList extends React.Component {
                                 includes(['create', 'update', 'spiked', 'unspiked',
                                     'planning created', 'duplicate', 'duplicate_from',
                                     'publish', 'unpublish', 'cancel', 'reschedule',
-                                    'reschedule_from'], historyItem.operation)
+                                    'reschedule_from', 'postpone', 'ingested'], historyItem.operation)
                                 &&
                                 <div>
                                     <strong>
@@ -46,6 +39,8 @@ export class EventHistoryList extends React.Component {
                                         {historyItem.operation === 'cancel' && 'Cancelled by '}
                                         {historyItem.operation === 'reschedule' && 'Rescheduled by '}
                                         {historyItem.operation === 'reschedule_from' && 'Rescheduled by '}
+                                        {historyItem.operation === 'postpone' && 'Postponed by '}
+                                        {historyItem.operation === 'ingested' && 'Ingested '}
                                     </strong>
 
                                     <span className="user-name">{displayUser(historyItem.user_id)}</span>
@@ -54,14 +49,16 @@ export class EventHistoryList extends React.Component {
                                         {historyItem.operation === 'update' &&
                                             <div className="more-description">
                                                 Updated Fields:
-                                                {   // List updated fields as comma separated
-                                                    <span>&nbsp;{Object.keys(historyItem.update).map((field) => field).join(', ')}</span>
+                                                { // List updated fields as comma separated
+                                                    <span>&nbsp;{Object.keys(historyItem.update).map((field) => field)
+                                                        .join(', ')}</span>
                                                 }
                                             </div>
                                         }
                                         {historyItem.operation === 'planning created' && (
                                             <div className="history-list__link">
-                                                <a onClick={this.props.openPlanningClick.bind(null, historyItem.update.planning_id)}>
+                                                <a onClick={this.props.openPlanningClick.bind(
+                                                    null, historyItem.update.planning_id)}>
                                                     View planning item
                                                 </a>
                                             </div>)
@@ -77,27 +74,27 @@ export class EventHistoryList extends React.Component {
                                         {historyItem.operation === 'duplicate_from' && (
                                             <div className="history-list__link">
                                                 <a onClick={this.closeAndOpenDuplicate.bind(this,
-                                                    historyItem.update.duplicate_id)}>
+                                                    historyItem.update.duplicate_from)}>
                                                     View original event
                                                 </a>
                                             </div>
                                         )}
 
                                         {historyItem.operation === 'reschedule' &&
-                                        get(historyItem, 'update.duplicate_to.length', 0) > 0 &&
+                                        get(historyItem, 'update.reschedule_to') &&
                                             <div className="history-list__link">
                                                 <a onClick={this.closeAndOpenDuplicate.bind(this,
-                                                    historyItem.update.duplicate_to.pop())}>
+                                                    historyItem.update.reschedule_to)}>
                                                     View rescheduled event
                                                 </a>
                                             </div>
                                         }
 
                                         {historyItem.operation === 'reschedule_from' &&
-                                        get(historyItem, 'update.duplicate_from') &&
+                                        get(historyItem, 'update.reschedule_from') &&
                                             <div className="history-list__link">
                                                 <a onClick={this.closeAndOpenDuplicate.bind(this,
-                                                    historyItem.update.duplicate_from)}>
+                                                    historyItem.update.reschedule_from)}>
                                                     View original event
                                                 </a>
                                             </div>
@@ -109,8 +106,7 @@ export class EventHistoryList extends React.Component {
                     ))}
                 </ul>
             </div>
-        )
-
+        );
     }
 }
 
@@ -123,4 +119,4 @@ EventHistoryList.propTypes = {
     openPlanningClick: PropTypes.func,
     openEventPreview: PropTypes.func,
     closeEventHistory: PropTypes.func,
-}
+};

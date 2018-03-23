@@ -90,8 +90,7 @@ locations_schema = {
     # the field where we store the formatted address, which can have variations (street number vs number street)
     # for the same address
     'name': {
-        'type': 'string',
-        'unique': True,
+        'type': 'string'
     },
     'type': {
         'type': 'string',
@@ -124,7 +123,13 @@ locations_schema = {
             'area': {'type': 'string'},
             'country': {'type': 'string'},
             'postal_code': {'type': 'string'},
-            'external': {'type': 'dict'}
+            'external': {
+                'type': 'dict',
+                'mapping': {
+                    'type': 'object',
+                    'enabled': False
+                }
+            }
         },
     },
     'access': {

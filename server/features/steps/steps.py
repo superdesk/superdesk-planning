@@ -8,10 +8,14 @@
 # AUTHORS and LICENSE files distributed with this source code, or
 # at https://www.sourcefabric.org/superdesk/license
 
+from superdesk.tests.publish_steps import * # noqa
 from superdesk.tests.steps import (then, when, step_impl_then_get_existing, get_json_data,
                                    assert_200, unique_headers, get_prefixed_url,
-                                   if_match, assert_404, apply_placeholders, get_res)
+                                   if_match, assert_404, apply_placeholders, get_res, set_placeholder,
+                                   DATETIME_FORMAT, json_match)
 from flask import json
+from planning.common import get_local_end_of_day
+from wooper.assertions import assert_equal
 
 
 @then('we get a list with {total_count} items')
@@ -61,6 +65,13 @@ def step_imp_store_last_duplicate_item(context, tag):
     setattr(context, tag, {'id': new_id})
 
 
+@then('we store "{tag}" from last rescheduled item')
+def step_imp_store_last_duplicate_item(context, tag):
+    data = get_json_data(context.response)
+    new_id = data['reschedule_to']
+    setattr(context, tag, {'id': new_id})
+
+
 @then('we get an event file reference')
 def step_impl_then_get_event_file(context):
     assert_200(context.response)
@@ -104,6 +115,7 @@ def step_impl_when_spike_resource(context, resource, item_id):
 
 @when('we unspike {resource} "{item_id}"')
 def step_impl_when_unspike_resource(context, resource, item_id):
+    data = context.text or {}
     resource = apply_placeholders(context, resource)
     item_id = apply_placeholders(context, item_id)
 
@@ -114,7 +126,7 @@ def step_impl_when_unspike_resource(context, resource, item_id):
     headers = if_match(context, res.get('_etag'))
 
     context.response = context.client.patch(get_prefixed_url(context.app, unspike_url),
-                                            data='{}', headers=headers)
+                                            data=json.dumps(data), headers=headers)
 
 
 @when('we perform {action} on {resource} "{item_id}"')
@@ -131,3 +143,69 @@ def step_imp_when_action_resource(context, action, resource, item_id):
 
     context.response = context.client.patch(get_prefixed_url(context.app, action_url),
                                             data=json.dumps(data), headers=headers)
+
+
+@then('we get text in "{field}"')
+def then_we_get_text_in_response_field(context, field):
+    response = get_json_data(context.response)[field]
+    assert context.text in response, response
+
+
+@then('we store assignment id in "{tag}" from coverage {index}')
+def then_we_store_assignment_id(context, tag, index):
+    index = int(index)
+    response = get_json_data(context.response)
+    assert len(response.get('coverages')), 'Coverage are not defined.'
+    coverage = response.get('coverages')[index]
+    assignment_id = coverage.get('assigned_to', {}).get('assignment_id')
+    set_placeholder(context, tag, assignment_id)
+
+
+@then('we store coverage id in "{tag}" from coverage {index}')
+def then_we_store_assignment_id(context, tag, index):
+    index = int(index)
+    response = get_json_data(context.response)
+    assert len(response.get('coverages')), 'Coverage are not defined.'
+    coverage = response.get('coverages')[index]
+    coverage_id = coverage.get('coverage_id')
+    set_placeholder(context, tag, coverage_id)
+
+
+@then('the assignment not created for coverage {index}')
+def then_we_store_assignment_id(context, index):
+    index = int(index)
+    response = get_json_data(context.response)
+    assert len(response.get('coverages')), 'Coverage are not defined.'
+    coverage = response.get('coverages')[index]
+    assert not coverage.get('assigned_to', {}).get('assignment_id'), 'Coverage has an assignment'
+
+
+@then('assignment {index} is scheduled for end of today')
+def then_assignment_scheduled_for_end_of_day(context, index):
+    index = int(index)
+    response = get_json_data(context.response)
+    assert len(response.get('coverages')), 'Coverages are not defined'
+    coverage = response.get('coverages')[index]
+    eod = get_local_end_of_day().strftime(DATETIME_FORMAT)
+    assert coverage['planning']['scheduled'] == eod, 'Coverage is not schedule to end of day'
+
+
+@then('we get array of {field} by {fid}')
+def then_we_get_array_of_by(context, field, fid):
+    response = get_json_data(context.response)
+    assert field in response, '{} field not defined'.format(field)
+    assert len(response.get(field)), '{} field not defined'.format(field)
+    context_data = json.loads(apply_placeholders(context, context.text))
+
+    for row in response[field]:
+        if row[fid] not in context_data.keys():
+            continue
+
+        assert_equal(
+            json_match(
+                context_data[row[fid]],
+                row
+            ),
+            True,
+            msg=str(row) + '\n != \n' + str(context_data[row[fid]])
+        )

@@ -1,84 +1,90 @@
-import React from 'react'
-import PropTypes from 'prop-types'
-import classNames from 'classnames'
-import { get } from 'lodash'
+import React from 'react';
+import PropTypes from 'prop-types';
+import classNames from 'classnames';
+import {get} from 'lodash';
+import {onEventCapture} from '../../utils';
 
 export class SelectField extends React.Component {
     constructor(props) {
-        super(props)
+        super(props);
 
-        this.state = { selected: undefined }
+        this.state = {selected: undefined};
 
-        this.onChange = this.onChange.bind(this)
+        this.onChange = this.onChange.bind(this);
     }
 
-    setValueFromState(selected=null) {
-        const { options, input } = this.props
+    setValueFromState(selected = null) {
+        const {options, input} = this.props;
+
+        let selectedOption = selected;
 
         if (selected === null) {
-            selected = this.state.selected
+            selectedOption = this.state.selected;
         }
 
-        let value = ''
-        if (selected) {
-            value = options.find((option) => option.key === selected).value
+        let value = '';
+
+        if (selectedOption) {
+            value = options.find((option) => option.key === selectedOption).value;
         }
 
-        input.onChange(value)
+        input.onChange(value);
     }
 
-    setStateFromValue(value=null) {
-        const { getOptionFromValue, options } = this.props
+    setStateFromValue(value = null) {
+        const {getOptionFromValue, options} = this.props;
+
+        let val = value;
 
         if (value === null) {
-            value = this.props.input.value
+            val = this.props.input.value;
         }
 
-        const option = getOptionFromValue(value, options) || {
+        const option = getOptionFromValue(val, options) || {
             key: '',
             label: '',
             value: '',
-        }
-        this.setState({ selected: get(option, 'key', null) })
+        };
+
+        this.setState({selected: get(option, 'key', null)});
     }
 
     componentDidMount() {
         // after first render, set value of the form input
-        this.setStateFromValue()
+        this.setStateFromValue();
     }
 
     /** Update the state when the props change */
     componentWillReceiveProps(nextProps) {
-        this.setStateFromValue(nextProps.input.value)
+        this.setStateFromValue(nextProps.input.value);
     }
 
     onChange(event) {
-        event.stopPropagation()
-        event.preventDefault()
+        onEventCapture(event);
 
-        this.setValueFromState(event.target.value)
+        this.setValueFromState(event.target.value);
     }
 
     render() {
-        const { touched, error, warning } = this.props.meta
-        const { labelLeft, required, readOnly, label, options, clearable } = this.props
+        const {touched, error, warning} = this.props.meta;
+        const {labelLeft, required, readOnly, label, options, clearable, autoFocus} = this.props;
 
-        const showMessage = touched && (error || warning)
+        const showMessage = touched && (error || warning);
         const divClass = classNames(
             'sd-line-input',
             'sd-line-input--is-select',
-            { 'sd-line-input--label-left': labelLeft },
-            { 'sd-line-input--invalid': showMessage },
-            { 'sd-line-input--no-margin': !showMessage },
-            { 'sd-line-input--required': required }
-        )
+            {'sd-line-input--label-left': labelLeft},
+            {'sd-line-input--invalid': showMessage},
+            {'sd-line-input--no-margin': !showMessage},
+            {'sd-line-input--required': required}
+        );
 
         const inputClass = classNames(
             'sd-line-input__select',
-            { 'sd-line-input--disabled': readOnly }
-        )
+            {'sd-line-input--disabled': readOnly}
+        );
 
-        const { selected } = this.state
+        const {selected} = this.state;
 
         return (
             <div className={divClass}>
@@ -93,6 +99,7 @@ export class SelectField extends React.Component {
                     className={inputClass}
                     disabled={readOnly}
                     onChange={this.onChange}
+                    autoFocus={autoFocus}
                 >
                     {clearable && <option value=""/>}
                     {options.map((opt) => (
@@ -105,11 +112,11 @@ export class SelectField extends React.Component {
                     ))}
                 </select>
                 {touched && (
-                    (error && <div className='sd-line-input__message'>{error}</div>) ||
-                    (warning && <div className='sd-line-input__message'>{warning}</div>)
+                    (error && <div className="sd-line-input__message">{error}</div>) ||
+                    (warning && <div className="sd-line-input__message">{warning}</div>)
                 )}
             </div>
-        )
+        );
     }
 }
 
@@ -130,14 +137,17 @@ SelectField.propTypes = {
     })),
     getOptionFromValue: PropTypes.func,
     clearable: PropTypes.bool,
-}
+    autoFocus: PropTypes.bool,
+};
 
 SelectField.defaultProps = {
     readOnly: false,
     required: false,
     labelLeft: false,
     getOptionFromValue: (value, options) => options.find(
-        option => option.value === value
+        (option) => option.value === value
     ),
     clearable: false,
-}
+    autoFocus: false,
+    meta: {},
+};
