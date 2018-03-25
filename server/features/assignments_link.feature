@@ -74,7 +74,7 @@ Feature: Assignment link
         Then we get OK response
         Then we get notifications
         """
-        [{"event": "content:update"}]
+        [{"event": "content:update"}, {"event": "content:link"}]
         """
         When we get "/archive/#archive._id#"
         Then we get existing resource

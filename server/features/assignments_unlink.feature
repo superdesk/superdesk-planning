@@ -86,7 +86,7 @@ Feature: Assignment Unlink
         """
         Then we get notifications
         """
-        [{"event": "content:update"}]
+        [{"event": "content:update"}, {"event": "content:link"}]
         """
         When we get "assignments/#assignmentId#"
         Then we get existing resource
@@ -114,7 +114,7 @@ Feature: Assignment Unlink
         """
         Then we get notifications
         """
-        [{"event": "content:update"}]
+        [{"event": "content:update"}, {"event": "content:unlink"}]
         """
         Then we get OK response
         When we get "/activity"
