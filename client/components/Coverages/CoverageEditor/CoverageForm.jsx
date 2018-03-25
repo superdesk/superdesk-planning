@@ -82,6 +82,7 @@ export class CoverageForm extends React.Component {
             hasAssignment,
             defaultGenre,
             addNewsItemToPlanning,
+            popupContainer,
         } = this.props;
 
         const contentTypeQcode = get(value, 'planning.g2_content_type') || null;
@@ -204,10 +205,8 @@ export class CoverageForm extends React.Component {
                     {...fieldProps}
                     onChange={this.onScheduleChanged}
                     readOnly={roFields.scheduled}
-                    popupContainer={() => this.dom.popupContainer}
+                    popupContainer={popupContainer}
                 />
-
-                {!!addNewsItemToPlanning && <div ref={(node) => this.dom.popupContainer = node} />}
             </div>
         );
     }
@@ -238,6 +237,7 @@ CoverageForm.propTypes = {
     hasAssignment: PropTypes.bool,
     defaultGenre: PropTypes.object,
     addNewsItemToPlanning: PropTypes.object,
+    popupContainer: PropTypes.func,
 };
 
 CoverageForm.defaultProps = {

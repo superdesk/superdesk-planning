@@ -92,7 +92,7 @@ const validateCoverageScheduleDate = (dispatch, getState, field, value, profile,
     }
 
     let validateSchedule = true;
-    const {newsItem} = selectors.getCurrentModalProps(getState());
+    const {newsItem} = selectors.general.modalProps(getState());
 
     if (selectors.getCurrentWorkspace(getState()) === WORKSPACE.AUTHORING && newsItem) {
         if ([WORKFLOW_STATE.SCHEDULED, 'published'].includes(newsItem.state)) {

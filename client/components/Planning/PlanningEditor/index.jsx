@@ -40,6 +40,8 @@ export class PlanningEditorComponent extends React.Component {
         this.onCancelCoverage = this.onCancelCoverage.bind(this);
         this.onPlanningDateChange = this.onPlanningDateChange.bind(this);
         this.onAddCoverageToWorkflow = this.onAddCoverageToWorkflow.bind(this);
+
+        this.dom = {popupContainer: null};
     }
 
     componentWillMount() {
@@ -49,11 +51,8 @@ export class PlanningEditorComponent extends React.Component {
                 let newItem = cloneDeep(get(this.props, 'diff'));
 
                 newItem.planning_date = moment();
+                this.fillCurrentAgenda(newItem);
 
-                // set the current agenda if agenda is enabled
-                if (get(this.props, 'currentAgenda.is_enabled')) {
-                    newItem.agendas = [this.props.currentAgenda._id];
-                }
                 this.props.onChangeHandler(null, newItem);
             }
         } else {
@@ -64,13 +63,14 @@ export class PlanningEditorComponent extends React.Component {
 
             // If we are creating a new planning item for 'add-to-planning'
             if (!get(this.props, 'item._id')) {
-                const newPlanning = planningUtils.createNewPlanningFromNewsItem(
+                let newPlanning = planningUtils.createNewPlanningFromNewsItem(
                     this.props.addNewsItemToPlanning,
                     this.props.newsCoverageStatus,
                     this.props.desk,
                     this.props.user,
                     this.props.contentTypes);
 
+                this.fillCurrentAgenda(newPlanning);
                 this.props.onChangeHandler(null, newPlanning);
             } else {
                 let dupItem = cloneDeep(this.props.item);
@@ -85,6 +85,13 @@ export class PlanningEditorComponent extends React.Component {
                 // reset the object to trigger a save
                 this.props.onChangeHandler(null, dupItem);
             }
+        }
+    }
+
+    fillCurrentAgenda(item) {
+        // set the current agenda if agenda is enabled
+        if (get(this.props, 'currentAgenda.is_enabled')) {
+            item.agendas = [this.props.currentAgenda._id];
         }
     }
 
@@ -454,7 +461,10 @@ export class PlanningEditorComponent extends React.Component {
                     defaultGenre={this.props.defaultGenre}
                     {...fieldProps}
                     formProfile={coverageProfile}
+                    popupContainer={() => this.dom.popupContainer}
                 />
+
+                {!!addNewsItemToPlanning && <div ref={(node) => this.dom.popupContainer = node} />}
             </div>
         );
     }
