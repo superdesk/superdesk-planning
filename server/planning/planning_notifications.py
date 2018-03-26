@@ -18,7 +18,7 @@ from apps.archive.common import get_user
 from superdesk.errors import SuperdeskApiError
 from superdesk.celery_app import celery
 from planning.common import WORKFLOW_STATE
-from email import send_email
+from superdesk.emails import send_email
 
 try:
     from slackclient import SlackClient
