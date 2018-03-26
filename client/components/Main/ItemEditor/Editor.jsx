@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import {get, isEqual, cloneDeep} from 'lodash';
+import {get, isEqual, cloneDeep, omit} from 'lodash';
 
 import {gettext, lockUtils, eventUtils, planningUtils, updateFormValues} from '../../../utils';
 import actionUtils from '../../../utils/actions';
@@ -84,13 +84,13 @@ export class EditorComponent extends React.Component {
 
     createNew(props) {
         if (props.itemType === ITEM_TYPE.EVENT) {
-            if (isEqual(props.initialValues, {type: ITEM_TYPE.EVENT})) {
+            if (isEqual(omit(props.initialValues, '_tempId'), {type: ITEM_TYPE.EVENT})) {
                 this.resetForm(EVENTS.DEFAULT_VALUE(props.occurStatuses));
             } else {
                 this.resetForm(props.initialValues, true);
             }
         } else if (props.itemType === ITEM_TYPE.PLANNING) {
-            if (isEqual(props.initialValues, {type: ITEM_TYPE.PLANNING})) {
+            if (isEqual(omit(props.initialValues, '_tempId'), {type: ITEM_TYPE.PLANNING})) {
                 this.resetForm(PLANNING.DEFAULT_VALUE);
             } else {
                 this.resetForm(props.initialValues, true);
@@ -110,6 +110,11 @@ export class EditorComponent extends React.Component {
                 }, 0);
             } else if (nextProps.item === null) {
                 // This happens when the items have changed
+                // If we were editing a non-exising item, remove from store's autosave
+                if (get(this.props, 'initialValues._tempId')) {
+                    this.props.removeNewAutosaveItems();
+                }
+
                 // Using setTimeout allows the Editor to clear before displaying the new item
                 setTimeout(() => {
                     this.props.loadItem(nextProps.itemId, nextProps.itemType);
@@ -121,12 +126,17 @@ export class EditorComponent extends React.Component {
         } else if (nextProps.item !== null && this.props.item === null) {
             // This happens when the Editor has finished loading an existing item
             this.resetForm(nextProps.item);
-        } else if (isEqual(this.state.diff, {}) && nextProps.itemType !== null) {
+        } else if (isEqual(this.state.diff, {}) && get(nextProps, 'initialValues._tempId')) {
             // This happens when creating a new item (when the editor is not currently open)
             this.createNew(nextProps);
         } else if (!isEqual(get(nextProps, 'item'), get(this.props, 'item'))) {
             // This happens when the item attributes have changed
             this.resetForm(get(nextProps, 'item') || {});
+        } else if (get(this.props, 'initialValues._tempId') && get(nextProps, 'initialValues._tempId') &&
+            get(this.props, 'initialValues._tempId') !== get(nextProps, 'initialValues._tempId')) {
+            // This happens when creating a new item when the editor currently open with a new item
+            this.props.removeNewAutosaveItems();
+            this.createNew(nextProps);
         }
 
         this.tabs[1].enabled = !!nextProps.itemId;
@@ -304,7 +314,8 @@ export class EditorComponent extends React.Component {
                 {(!this.props.isLoadingItem && this.props.itemType) && (
                     <Autosave
                         formName={this.props.itemType}
-                        initialValues={cloneDeep(this.props.item)}
+                        initialValues={this.props.item ? cloneDeep(this.props.item) :
+                            cloneDeep(this.props.initialValues)}
                         currentValues={cloneDeep(this.state.diff)}
                         change={this.onChangeHandler}
                     />
@@ -404,6 +415,7 @@ EditorComponent.propTypes = {
     itemActions: PropTypes.object,
     currentWorkspace: PropTypes.string,
     loadItem: PropTypes.func,
+    removeNewAutosaveItems: PropTypes.func,
     isLoadingItem: PropTypes.bool,
     initialValues: PropTypes.object,
 };
@@ -436,6 +448,7 @@ const mapDispatchToProps = (dispatch) => ({
     onValidate: (type, item, profile, errors) => dispatch(validateItem(type, item, profile, errors)),
     loadItem: (itemId, itemType) => dispatch(actions.main.loadItem(itemId, itemType, 'edit')),
     itemActions: actionUtils.getActionDispatches(dispatch),
+    removeNewAutosaveItems: () => dispatch(actions.autosave.removeNewItems()),
 });
 
 export const Editor = connect(mapStateToProps, mapDispatchToProps)(EditorComponent);
