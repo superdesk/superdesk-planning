@@ -15,14 +15,27 @@ const onAssignmentCreated = (_e, data) => (
     (dispatch, getState) => {
         const currentDesk = selectors.getCurrentDeskId(getState());
 
-        if (currentDesk &&
+        let querySearchSettings = selectors.getAssignmentSearch(getState());
+
+        // Updates my assignment count
+        dispatch(
+            assignments.ui.queryAndGetMyAssignments(
+                [
+                    ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
+                    ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED
+                ]
+            )
+        );
+
+        if (querySearchSettings.deskId === null || currentDesk &&
             (currentDesk === data.assigned_desk || currentDesk === data.original_assigned_desk)) {
-            return dispatch(assignments.ui.reloadAssignments([data.assignment_state]));
+            dispatch(assignments.ui.reloadAssignments([data.assignment_state]));
         }
 
         return Promise.resolve();
     }
 );
+
 
 /**
  * WS Action when a Assignment item is updated
@@ -32,6 +45,8 @@ const onAssignmentCreated = (_e, data) => (
 const onAssignmentUpdated = (_e, data) => (
     (dispatch, getState) => {
         const currentDesk = selectors.getCurrentDeskId(getState());
+        let querySearchSettings = selectors.getAssignmentSearch(getState());
+
         const planningItem = _getPlanningItemOnAssignmentUpdate(data,
             selectors.getStoredPlannings(getState()));
 
@@ -43,12 +58,23 @@ const onAssignmentUpdated = (_e, data) => (
             return;
         }
 
-        if (currentDesk === data.assigned_desk || currentDesk === data.original_assigned_desk) {
+        // Updates my assignments count
+        dispatch(
+            assignments.ui.queryAndGetMyAssignments(
+                [
+                    ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
+                    ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED
+                ]
+            )
+        );
+
+        if (querySearchSettings.deskId === null ||
+                currentDesk === data.assigned_desk || currentDesk === data.original_assigned_desk) {
             dispatch(assignments.ui.reloadAssignments([data.assignment_state]));
 
             dispatch(assignments.api.fetchAssignmentById(data.item))
                 .then((assignmentInStore) => {
-                // If assignmend moved from one state to another, check if group changed
+                // If assignment moved from one state to another, check if group changed
                 // And trigger reload
                     if (assignmentInStore.assigned_to.state !== data.assignment_state) {
                         const originalGroup = assignmentUtils.getAssignmentGroupByStates(
@@ -231,6 +257,16 @@ const onAssignmentRemoved = (_e, data) => (
                 type: ASSIGNMENTS.ACTIONS.REMOVE_ASSIGNMENT,
                 payload: data,
             });
+
+            // Updates my assignment count
+            dispatch(
+                assignments.ui.queryAndGetMyAssignments(
+                    [
+                        ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED,
+                        ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED
+                    ]
+                )
+            );
 
             return Promise.resolve();
         }
