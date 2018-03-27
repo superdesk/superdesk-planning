@@ -22,7 +22,7 @@ export const CoverageIcon = ({
 }) => {
     const user = getItemInArrayById(users, get(coverage, 'assigned_to.user'));
     const desk = getItemInArrayById(desks, get(coverage, 'assigned_to.desk'));
-    const assignmentStr = desk ? 'Desk: ' + desk.name : 'Unassigned';
+    const assignmentStr = desk ? gettext('Desk: ') + desk.name : gettext('Status: Unassigned');
     const scheduledStr = get(coverage, 'planning.scheduled') ?
         moment(coverage.planning.scheduled).format(dateFormat + ' ' + timeFormat) : null;
     const state = getItemWorkflowStateLabel(get(coverage, 'assigned_to'));
@@ -31,10 +31,10 @@ export const CoverageIcon = ({
         placement="bottom"
         overlay={
             <Tooltip id={coverage.coverage_id}>
-                {gettext(assignmentStr)}
-                {user && <span><br />{gettext('User: ' + user.display_name)}</span>}
-                {scheduledStr && <span><br />Due: {scheduledStr}</span>}
-                {desk && <span><br />{state.label}</span>}
+                {desk && <span>{gettext('Status: ') + state.label}<br /></span>}
+                {assignmentStr}
+                {user && <span><br />{gettext('User: ') + user.display_name}</span>}
+                {scheduledStr && <span><br />{gettext('Due: ') + scheduledStr}</span>}
             </Tooltip>
         }>
         <span className="sd-list-item__inline-icon icn-mix sd-list-item__item-type">
