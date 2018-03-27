@@ -445,7 +445,8 @@ const onAssignmentFormSave = (item) => (
  */
 const onFulFilAssignment = (assignment) => (
     (dispatch, getState, {notify}) => {
-        const {$scope, newsItem} = selectors.general.modalProps(getState());
+        const newsItem = get(selectors.general.modalProps(getState()), 'newsItem', null);
+        const $scope = get(selectors.general.modalProps(getState()), '$scope', null);
         const currentWorkSpace = selectors.getCurrentWorkspace(getState());
 
         if (currentWorkSpace !== WORKSPACE.AUTHORING || !$scope || !newsItem) {

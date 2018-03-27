@@ -41,7 +41,8 @@ Feature: Assignments Delete
                 "desk": "#desks._id#",
                 "user": "#CONTEXT_USER_ID#",
                 "state": "assigned"
-            }
+            },
+            "workflow_status": "active"
         }]}
         """
         Then we get OK response
@@ -88,7 +89,8 @@ Feature: Assignments Delete
                 "assigned_to": {
                     "desk": "__no_value__",
                     "user": "__no_value__"
-                }
+                },
+                "workflow_status": "draft"
             }]
         }
         """
