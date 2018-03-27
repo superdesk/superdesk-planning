@@ -9,6 +9,7 @@ import {
     lockUtils,
     dispatchUtils,
     gettext,
+    planningUtils,
 } from '../../utils';
 
 import * as selectors from '../../selectors';
@@ -306,11 +307,13 @@ const addToList = (ids) => ({
  * @param {object} params - Parameters used when querying for planning items
  */
 const fetchToList = (params) => (
-    (dispatch) => {
+    (dispatch, getState) => {
+        const currentWorkspace = selectors.general.currentWorkspace(getState());
+
         dispatch(self.requestPlannings(params));
         return dispatch(planningApi.fetch(params))
             .then((items) => (dispatch(self.setInList(
-                items.map((p) => p._id)
+                planningUtils.filterPlanningListForAddToPlanning(currentWorkspace, items).map((p) => p._id)
             ))));
     }
 );
@@ -355,10 +358,13 @@ const refetch = () => (
             return Promise.resolve();
         }
 
+        const currentWorkspace = selectors.general.currentWorkspace(getState());
+
         return dispatch(planningApi.refetch())
             .then(
                 (items) => {
-                    dispatch(self.setInList(items.map((p) => p._id)));
+                    dispatch(self.setInList(
+                        planningUtils.filterPlanningListForAddToPlanning(currentWorkspace, items).map((p) => p._id)));
                     return Promise.resolve(items);
                 }, (error) => {
                     notify.error(

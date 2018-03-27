@@ -12,6 +12,7 @@ import {PLANNING, EVENTS, WORKSPACE, MAIN} from '../../constants';
 
 import {planningUtils, getItemWorkflowStateLabel, onEventCapture} from '../../utils';
 import {AgendaNameList} from '../Agendas';
+import {OverlayTrigger, Tooltip} from 'react-bootstrap';
 
 export class PlanningItem extends React.PureComponent {
     onAddCoverageButtonClick(event) {
@@ -80,7 +81,8 @@ export class PlanningItem extends React.PureComponent {
             planningUtils.getPlanningActions(item, event, session, privileges, lockedItems, itemActionsCallBack) :
             [];
 
-        const showAddCoverage = currentWorkspace === WORKSPACE.AUTHORING && !isItemLocked;
+        const showAddCoverage = currentWorkspace === WORKSPACE.AUTHORING && !isItemLocked &&
+            planningUtils.canEditPlanning(item, event, session, privileges, lockedItems);
 
         return (
             <Item shadow={1} activated={multiSelected} onClick={() => onItemClick(item)}>
@@ -94,7 +96,7 @@ export class PlanningItem extends React.PureComponent {
                 <PubStatus item={item} />
                 <Column
                     grow={true}
-                    border={false}
+                    border={!showAddCoverage}
                 >
                     <Row>
                         <Label
@@ -136,12 +138,15 @@ export class PlanningItem extends React.PureComponent {
                         />
                     </Row>
                 </Column>
-                <ActionMenu>
-                    {get(itemActions, 'length', 0) > 0 && <ItemActionsMenu
-                        className="side-panel__top-tools-right"
-                        actions={itemActions} />}
-                    {showAddCoverage &&
-                        <a data-sd-tooltip="Add as coverage" data-flow="left">
+                {showAddCoverage &&
+                    <Column border={false}>
+                        <OverlayTrigger placement="left"
+                            overlay={
+                                <Tooltip id={get(item, '_id')}>
+                                    {gettext('Add as coverage')}
+                                </Tooltip>
+                            }
+                        >
                             <button
                                 className="navbtn dropdown sd-create-btn"
                                 onClick={this.onAddCoverageButtonClick.bind(this)}
@@ -149,8 +154,13 @@ export class PlanningItem extends React.PureComponent {
                                 <i className="icon-plus-large" />
                                 <span className="circle" />
                             </button>
-                        </a>
-                    }
+                        </OverlayTrigger>
+                    </Column>
+                }
+                <ActionMenu>
+                    {get(itemActions, 'length', 0) > 0 && <ItemActionsMenu
+                        className="side-panel__top-tools-right"
+                        actions={itemActions} />}
                 </ActionMenu>
             </Item>
         );

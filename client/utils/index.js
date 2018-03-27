@@ -651,12 +651,17 @@ export const updateFormValues = (diff, field, value) => {
     }
 };
 
-export const getWorkFlowStateAsOptions = (activeFilter = null) => {
+export const getWorkFlowStateAsOptions = (inPlanning, activeFilter = null) => {
     let workflowStateOptions = [];
 
     Object.keys(WORKFLOW_STATE).forEach((key) => {
         if (key === 'SPIKED' || key === 'INGESTED' &&
             [MAIN.FILTERS.COMBINED, MAIN.FILTERS.PLANNING].includes(activeFilter)) {
+            return;
+        }
+
+        // If we are not in planning - exclude states which you can't add a coverage to
+        if (!inPlanning && ['RESCHEDULED', 'CANCELLED'].includes(key)) {
             return;
         }
 

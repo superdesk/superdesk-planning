@@ -5,7 +5,7 @@ import moment from 'moment';
 
 import * as actions from '../../actions';
 import * as selectors from '../../selectors';
-import {ITEM_TYPE, TEMP_ID_PREFIX} from '../../constants';
+import {ITEM_TYPE, TEMP_ID_PREFIX, WORKSPACE} from '../../constants';
 
 import {SubNavBar, FiltersBar} from '../../components/Main';
 
@@ -24,7 +24,8 @@ export const PlanningSubNavComponent = ({
     selectAgenda,
     currentAgendaId,
     isViewFiltered,
-    clearSearch
+    clearSearch,
+    inPlanning
 }) => (
     <div>
         <SubNavBar
@@ -34,8 +35,7 @@ export const PlanningSubNavComponent = ({
             value={fullText}
             search={search}
             activeFilter={activeFilter}
-            createPlanningOnly={false}
-            disableAgendaManagement={false}
+            createPlanningOnly={!inPlanning}
         />
         <FiltersBar
             filterPanelOpen={filtersOpen}
@@ -46,7 +46,7 @@ export const PlanningSubNavComponent = ({
             disabledAgendas={disabledAgendas}
             selectAgenda={selectAgenda}
             currentAgendaId={currentAgendaId}
-            showFilters={true}
+            showFilters={inPlanning}
             isViewFiltered={isViewFiltered}
             clearSearch={clearSearch}
         />
@@ -68,6 +68,7 @@ PlanningSubNavComponent.propTypes = {
     selectAgenda: PropTypes.func.isRequired,
     currentAgendaId: PropTypes.string.isRequired,
     isViewFiltered: PropTypes.bool,
+    inPlanning: PropTypes.bool,
     clearSearch: PropTypes.func,
 };
 
@@ -78,6 +79,7 @@ const mapStateToProps = (state) => ({
     disabledAgendas: selectors.getDisabledAgendas(state),
     currentAgendaId: selectors.getCurrentAgendaId(state),
     isViewFiltered: selectors.main.isViewFiltered(state),
+    inPlanning: selectors.general.currentWorkspace(state) === WORKSPACE.PLANNING
 });
 
 const mapDispatchToProps = (dispatch) => ({
