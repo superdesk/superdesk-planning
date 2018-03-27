@@ -81,7 +81,7 @@ class PlanningNotifications():
                 'target_desk': target_desk,
                 'target_desk2': target_desk2,
                 'message': _get_email_message_string(message, data)}
-        self._notify_email.apply_async(args)
+        self._notify_email.apply_async(kwargs=args)
 
     def user_update(self, updates, original):
         """
