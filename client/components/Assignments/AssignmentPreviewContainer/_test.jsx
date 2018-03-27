@@ -1,17 +1,19 @@
 import React from 'react';
 import {mount} from 'enzyme';
 import {Provider} from 'react-redux';
-import {LockContainer} from '../';
-import {AssignmentPreviewContainer} from './';
-import {getTestActionStore, restoreSinonStub} from '../../utils/testUtils';
-import {createTestStore} from '../../utils';
 import sinon from 'sinon';
+
+import {getTestActionStore, restoreSinonStub} from '../../../utils/testUtils';
+import {createTestStore} from '../../../utils';
+import * as actions from '../../../actions';
+import * as helpers from '../../tests/helpers';
+
+import {LockContainer} from '../../';
+import {AssignmentPreviewContainer} from './';
 import {AssignmentPreview} from './AssignmentPreview';
+import {AssignmentPreviewHeader} from './AssignmentPreviewHeader';
 import {EventPreview} from './EventPreview';
 import {PlanningPreview} from './PlanningPreview';
-
-import * as actions from '../../actions';
-import * as helpers from '../tests/helpers';
 
 describe('<AssignmentPreviewContainer />', () => {
     let store;
@@ -49,27 +51,25 @@ describe('<AssignmentPreviewContainer />', () => {
         assignment.assigned_to.state = 'assigned';
         let wrapper = getWrapper().find('.AssignmentPreview');
 
-        expect(wrapper.children().length).toBe(5);
+        expect(wrapper.children().length).toBe(4);
 
         expect(wrapper.hasClass('AssignmentPreview')).toBe(true);
 
-        expect(wrapper.childAt(0).hasClass('AssignmentPreview__audit')).toBe(true);
-        expect(wrapper.childAt(1).hasClass('AssignmentPreview__toolbar')).toBe(true);
-        expect(wrapper.childAt(2).hasClass('AssignmentPreview__coverage')).toBe(true);
-        expect(wrapper.childAt(3).hasClass('AssignmentPreview__planning')).toBe(true);
-        expect(wrapper.childAt(4).hasClass('AssignmentPreview__event')).toBe(true);
+        expect(wrapper.childAt(0).type()).toEqual(AssignmentPreviewHeader);
+        expect(wrapper.childAt(1).hasClass('AssignmentPreview__coverage')).toBe(true);
+        expect(wrapper.childAt(2).hasClass('AssignmentPreview__planning')).toBe(true);
+        expect(wrapper.childAt(3).hasClass('AssignmentPreview__event')).toBe(true);
 
         astore.initialState.workspace.currentWorkspace = 'AUTHORING';
         wrapper = getWrapper().find('.AssignmentPreview');
-        expect(wrapper.children().length).toBe(6);
+        expect(wrapper.children().length).toBe(5);
 
         expect(wrapper.hasClass('AssignmentPreview')).toBe(true);
-        expect(wrapper.childAt(0).hasClass('AssignmentPreview__audit')).toBe(true);
-        expect(wrapper.childAt(1).hasClass('AssignmentPreview__toolbar')).toBe(true);
-        expect(wrapper.childAt(2).hasClass('AssignmentPreview__fulfil')).toBe(true);
-        expect(wrapper.childAt(3).hasClass('AssignmentPreview__coverage')).toBe(true);
-        expect(wrapper.childAt(4).hasClass('AssignmentPreview__planning')).toBe(true);
-        expect(wrapper.childAt(5).hasClass('AssignmentPreview__event')).toBe(true);
+        expect(wrapper.childAt(0).type()).toEqual(AssignmentPreviewHeader);
+        expect(wrapper.childAt(1).hasClass('AssignmentPreview__fulfil')).toBe(true);
+        expect(wrapper.childAt(2).hasClass('AssignmentPreview__coverage')).toBe(true);
+        expect(wrapper.childAt(3).hasClass('AssignmentPreview__planning')).toBe(true);
+        expect(wrapper.childAt(4).hasClass('AssignmentPreview__event')).toBe(true);
     });
 
     describe('top toolbar', () => {
@@ -99,16 +99,18 @@ describe('<AssignmentPreviewContainer />', () => {
             const audit = wrapper.find('.AssignmentPreview__audit');
 
             // Renders Content Type icon
+            // Cannot test data-sd-tooltip="Type: text"
+            // Our gettext mock simply returns the string
             expect(topTools.contains(
-                <span data-sd-tooltip="Type: text" data-flow="down">
-                    <i className="AssignmentPreview__coverage-icon icon-text" />
+                <span data-sd-tooltip="Type: {{type}}" data-flow="down">
+                    <i className="sd-list-item__inline-icon icon-text" />
                 </span>
             )).toBe(true);
 
             // Renders Assignment Priority
             expect(topTools.contains(
                 <span
-                    className="priority-label priority-label--1"
+                    className="priority-label priority-label--1 sd-list-item__inline-icon"
                     data-sd-tooltip="Priority: High"
                     data-flow="down"
                 >
@@ -203,18 +205,17 @@ describe('<AssignmentPreviewContainer />', () => {
         expect(wrapper.find(LockContainer).length).toBe(0);
     });
 
-    // Some issue with hasClass not working
     it('renders Planning preview', () => {
         const mountWrapper = getWrapper();
         let wrapper = mountWrapper.find('.AssignmentPreview');
-        let toggle = new helpers.toggleBox(wrapper.childAt(3));
+        let toggle = new helpers.toggleBox(wrapper.childAt(2));
 
         expect(toggle.title()).toBe('Planning');
         expect(toggle.isOpen()).toBe(false);
         toggle.click();
 
         wrapper = mountWrapper.find('.AssignmentPreview');
-        toggle = new helpers.toggleBox(wrapper.childAt(3));
+        toggle = new helpers.toggleBox(wrapper.childAt(2));
         expect(toggle.isOpen()).toBe(true);
         expect(toggle.find(PlanningPreview).length).toBe(1);
     });
@@ -223,14 +224,14 @@ describe('<AssignmentPreviewContainer />', () => {
         assignment.planning_item = 'p2';
         const mountWrapper = getWrapper();
         let wrapper = mountWrapper.find('.AssignmentPreview');
-        let toggle = new helpers.toggleBox(wrapper.childAt(4));
+        let toggle = new helpers.toggleBox(wrapper.childAt(3));
 
         expect(toggle.title()).toBe('Event');
         expect(toggle.isOpen()).toBe(false);
         toggle.click();
 
         wrapper = mountWrapper.find('.AssignmentPreview');
-        toggle = new helpers.toggleBox(wrapper.childAt(4));
+        toggle = new helpers.toggleBox(wrapper.childAt(3));
         expect(toggle.isOpen()).toBe(true);
         expect(toggle.find(EventPreview).length).toBe(1);
     });

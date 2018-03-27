@@ -88,3 +88,7 @@ export const ITEM_TYPE = {
 };
 
 export const TEMP_ID_PREFIX = 'tempId-';
+
+// The delay in ms for use with single and double click detection
+export const CLICK_DELAY = 250;
+

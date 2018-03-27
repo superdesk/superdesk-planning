@@ -28,4 +28,8 @@
     .toggle-box__header {
         @extend .toggle-box__header--focus;
     }
+
+    &--no-margin {
+        margin: 0 !important;
+    }
 }

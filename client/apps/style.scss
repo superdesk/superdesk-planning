@@ -59,3 +59,61 @@
         top: calc(#{$nav-height} + #{$subnav-height});
     }
 }
+
+// Checkbox with badge
+.element-with-badge {
+    + .element-with-badge, + .sd-check__wrapper {
+        margin-left: 1.2rem;
+        vertical-align: top;
+    }
+}
+
+.sd-check__wrapper + .element-with-badge {
+    margin-left: 1.2rem;
+    vertical-align: top;
+}
+
+.open-preview .sd-preview-panel--width-560px {
+    width: 560px !important;
+}
+
+// Show the hand cursor when hovering Assignment Group titles
+.sd-list-header__name {
+    &--cursorPointer {
+        cursor: pointer;
+    }
+}
+
+// Fixes for Assignment Group List
+.sd-list-item-group {
+    &--vertical-scroll {
+        overflow-y: auto;
+    }
+
+    &__empty-msg {
+        line-height: 4rem;
+        text-align: center;
+        color: $grayLight;
+    }
+}
+
+// Allows a badge in Assignment SubNav title
+.subnav__page-title {
+    .badge {
+        vertical-align: top;
+        margin-top: 4px;
+        margin-left: 1rem;
+    }
+}
+
+// Fix for showing Assignment page and Authoring editor side by side
+.sd-page-content--split {
+    width: unset;
+}
+
+// Fix for placing the LockContainer in the Tab section of Assignment Preview
+.nav-tabs {
+    &--no-grow {
+        flex-grow: 0 !important;
+    }
+}

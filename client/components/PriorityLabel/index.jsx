@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {get} from 'lodash';
 
-export const PriorityLabel = ({item, priorities, tooltipFlow, className}) => {
+export const PriorityLabel = ({item, priorities, tooltipFlow, inline, className}) => {
     const qcode = get(item, 'priority', null);
 
     if (!qcode) {
@@ -17,6 +17,7 @@ export const PriorityLabel = ({item, priorities, tooltipFlow, className}) => {
             className={classNames(
                 'priority-label',
                 'priority-label--' + qcode,
+                {'sd-list-item__inline-icon': inline},
                 className
             )}
             data-sd-tooltip={`Priority: ${priority.name}`}
@@ -31,7 +32,11 @@ PriorityLabel.propTypes = {
     item: PropTypes.object,
     priorities: PropTypes.array,
     tooltipFlow: PropTypes.oneOf(['up', 'right', 'down', 'left']),
+    inline: PropTypes.bool,
     className: PropTypes.string,
 };
 
-PriorityLabel.defaultProps = {tooltipFlow: 'right'};
+PriorityLabel.defaultProps = {
+    tooltipFlow: 'right',
+    inline: false,
+};

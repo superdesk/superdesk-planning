@@ -4,11 +4,8 @@ import {connect} from 'react-redux';
 
 import {Button} from '../UI';
 
-import {
-    Modal,
-    AssignmentListContainer,
-} from '../index';
-
+import {Modal} from '../index';
+import {AssignmentsApp} from '../../apps';
 import {ArchiveItem} from '../Archive';
 
 import * as selectors from '../../selectors';
@@ -61,7 +58,11 @@ export function FulFilAssignmentComponent({
                         urgencies={urgencies}
                         urgencyLabel={urgencyLabel}
                     />
-                    <AssignmentListContainer />
+                    <AssignmentsApp
+                        showModals={false}
+                        showWorkqueue={false}
+                        marginBottom={false}
+                    />
                 </div>
             </Modal.Body>
 

@@ -41,7 +41,7 @@ export class EventPreviewHeaderComponent extends React.PureComponent {
         const unlockPrivilege = !!privileges[PRIVILEGES.PLANNING_UNLOCK];
 
         return (
-            <Tools useDefaultClassName={false} className="side-panel__top-tools">
+            <Tools topTools={true}>
                 <ItemIcon item={item} />
                 {lockRestricted &&
                     <LockContainer

@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom';
 import {Provider} from 'react-redux';
 import {registerNotifications} from '../utils';
 import * as actions from '../actions';
-import {AssignmentPreviewContainer} from '../components';
+import {AssignmentPreviewContainer} from '../components/Assignments';
+import {SidePanel} from '../components/UI/SidePanel';
 import {WORKSPACE} from '../constants';
 
 AssignmentPreviewController.$inject = [
@@ -67,9 +68,9 @@ export function AssignmentPreviewController(
 
                                 ReactDOM.render(
                                     <Provider store={store}>
-                                        <div className="content-container AssignmentPreviewTab">
+                                        <SidePanel shadowRight={true} className="content-container no-padding">
                                             <AssignmentPreviewContainer />
-                                        </div>
+                                        </SidePanel>
                                     </Provider>,
                                     $element.get(0)
                                 );

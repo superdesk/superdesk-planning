@@ -1,6 +1,6 @@
 import {get, includes, isNil} from 'lodash';
 import {ASSIGNMENTS, PRIVILEGES, PLANNING} from '../constants';
-import {lockUtils} from './index';
+import {lockUtils, getCreator, getItemInArrayById} from './index';
 
 const canEditAssignment = (assignment, session, privileges) => (
     !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
@@ -231,6 +231,50 @@ const isAssignmentLockRestricted = (assignment, session, locks) =>
     isAssignmentLocked(assignment, locks) &&
         !lockUtils.isItemLockedInThisSession(assignment, session);
 
+const getAssignmentInfo = (assignment, users, desks) => {
+    const assignedTo = get(assignment, 'assigned_to');
+    const createdBy = getCreator(assignment, 'original_creator', users);
+    const updatedBy = getCreator(assignment, 'version_creator', users);
+    const creationDate = get(assignment, '_created');
+    const updatedDate = get(assignment, '_updated');
+    const versionCreator = get(updatedBy, 'display_name') ? updatedBy :
+        users.find((user) => user._id === updatedBy);
+
+    const assignedUser = getItemInArrayById(users, get(assignedTo, 'user'));
+    const assignedDesk = getItemInArrayById(desks, get(assignedTo, 'desk'));
+    const deskAssignor = getItemInArrayById(users, get(assignedTo, 'assignor_desk'));
+    const userAssignor = getItemInArrayById(users, get(assignedTo, 'assignor_user'));
+    const deskAssignorName = get(deskAssignor, 'display_name') ||
+        get(deskAssignor, 'name') || '-';
+    const userAssignorName = get(userAssignor, 'display_name') ||
+        get(userAssignor, 'name') || '-';
+    const assignedDateDesk = get(assignedTo, 'assigned_date_desk');
+    const assignedDateUser = get(assignedTo, 'assigned_date_user');
+
+    const assignedUserName = get(assignedUser, 'display_name') ||
+        get(assignedUser, 'name') ||
+        '-';
+    const assignedDeskName = get(assignedDesk, 'name') || '-';
+
+    return {
+        assignedTo,
+        createdBy,
+        updatedBy,
+        creationDate,
+        updatedDate,
+        versionCreator,
+        assignedUser,
+        assignedDesk,
+        deskAssignor,
+        userAssignor,
+        deskAssignorName,
+        userAssignorName,
+        assignedDateDesk,
+        assignedDateUser,
+        assignedUserName,
+        assignedDeskName
+    };
+};
 
 // eslint-disable-next-line consistent-this
 const self = {
@@ -246,6 +290,7 @@ const self = {
     canEditDesk,
     assignmentHasContent,
     isAssignmentLockRestricted,
+    getAssignmentInfo,
 };
 
 export default self;

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import moment from 'moment';
 import {ListGroupItem} from './';
+import {Group, Header} from '../UI/List';
 
 export const ListGroup = ({
     name,
@@ -27,38 +28,35 @@ export const ListGroup = ({
     desks,
 }) => (
     <div className="ListGroup">
-        <div className="sd-list-header">
-            <span className="sd-list-header__name">{moment(name).format('dddd LL')}</span>
-        </div>
-        <div className="sd-list-item-group sd-list-item-group--space-between-items">
-            {items.map((item) => {
-                const listGroupItemProps = {
-                    date: name,
-                    item: item,
-                    onItemClick: onItemClick,
-                    onDoubleClick: onDoubleClick,
-                    onAddCoverageClick: onAddCoverageClick.bind(null, item),
-                    lockedItems: lockedItems,
-                    dateFormat: dateFormat,
-                    timeFormat: timeFormat,
-                    agendas: agendas,
-                    session: session,
-                    privileges: privileges,
-                    activeFilter: activeFilter,
-                    showRelatedPlannings: showRelatedPlannings,
-                    relatedPlanningsInList: relatedPlanningsInList,
-                    currentWorkspace: currentWorkspace,
-                    onMultiSelectClick: onMultiSelectClick,
-                    selectedEventIds: selectedEventIds,
-                    selectedPlanningIds: selectedPlanningIds,
-                    itemActions: itemActions,
-                    users: users,
-                    desks: desks,
-                };
-
-                return <ListGroupItem key={item._id} { ...listGroupItemProps } />;
-            })}
-        </div>
+        <Header title={moment(name).format('dddd LL')} />
+        <Group spaceBetween={true}>
+            {items.map((item) => (
+                <ListGroupItem
+                    key={item._id}
+                    date={name}
+                    item={item}
+                    onItemClick={onItemClick}
+                    onDoubleClick={onDoubleClick}
+                    onAddCoverageClick={onAddCoverageClick.bind(null, item)}
+                    lockedItems={lockedItems}
+                    dateFormat={dateFormat}
+                    timeFormat={timeFormat}
+                    agendas={agendas}
+                    session={session}
+                    privileges={privileges}
+                    activeFilter={activeFilter}
+                    showRelatedPlannings={showRelatedPlannings}
+                    relatedPlanningsInList={relatedPlanningsInList}
+                    currentWorkspace={currentWorkspace}
+                    onMultiSelectClick={onMultiSelectClick}
+                    selectedEventIds={selectedEventIds}
+                    selectedPlanningIds={selectedPlanningIds}
+                    itemActions={itemActions}
+                    users={users}
+                    desks={desks}
+                />
+            ))}
+        </Group>
     </div>
 );
 

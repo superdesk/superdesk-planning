@@ -2,10 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
 
-import {gettext} from '../../utils';
+import {gettext, stringUtils} from '../../../utils';
 
-import {InternalNoteLabel} from '../';
-import {Row} from '../UI/Preview';
+import {InternalNoteLabel} from '../../';
+import {Row} from '../../UI/Preview';
 
 // eslint-disable-next-line complexity
 export const AssignmentPreview = ({
@@ -68,14 +68,15 @@ export const AssignmentPreview = ({
             <Row
                 enabled={get(coverageFormProfile, 'editor.ednote.enabled')}
                 label={gettext('Ed Note')}
-                value={planning.ednote || '-'}
+                value={stringUtils.convertNewlineToBreak(planning.ednote || '-')}
             />
             <Row
                 enabled={get(coverageFormProfile, 'editor.internal_note.enabled')}
                 label={gettext('Internal Note')}
+                noPadding={true}
             >
                 <InternalNoteLabel item={planning} showTooltip={false}/>
-                <p>{planning.internal_note || '-'}</p>
+                <p>{stringUtils.convertNewlineToBreak(planning.internal_note || '-')}</p>
             </Row>
         </div>
     );

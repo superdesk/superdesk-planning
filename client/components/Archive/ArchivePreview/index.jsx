@@ -4,10 +4,10 @@ import {connect} from 'react-redux';
 import {get, map} from 'lodash';
 import classNames from 'classnames';
 
-import {AuditInformation, HtmlPreview, StateLabel, ItemRendition, PriorityLabel, UrgencyLabel} from '../';
-import {getCreator} from '../../utils';
-import * as actions from '../../actions';
-import * as selectors from '../../selectors';
+import {AuditInformation, HtmlPreview, StateLabel, ItemRendition, PriorityLabel, UrgencyLabel} from '../../';
+import {getCreator} from '../../../utils';
+import * as actions from '../../../actions';
+import * as selectors from '../../../selectors';
 
 import './style.scss';
 
