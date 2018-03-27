@@ -76,6 +76,12 @@ export const PLANNING = {
             label: gettext('Add As Event'),
             icon: 'icon-calendar',
             actionName: 'onAddAsEvent',
+        },
+        EDIT_PLANNING: {
+            label: gettext('Edit'),
+            icon: 'icon-pencil',
+            actionName: 'onEditPlanning',
+            lock_action: 'edit'
         }
     },
     NEWS_COVERAGE_CANCELLED_STATUS: {

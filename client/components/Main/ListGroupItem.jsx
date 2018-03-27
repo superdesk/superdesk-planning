@@ -86,6 +86,8 @@ export class ListGroupItem extends React.Component {
         let eventProps = {
             ...itemProps,
             multiSelected: indexOf(selectedEventIds, item._id) !== -1,
+            [EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName]:
+                itemActions[EVENTS.ITEM_ACTIONS.EDIT_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.DUPLICATE.actionName],
             [EVENTS.ITEM_ACTIONS.CREATE_PLANNING.actionName]:
@@ -129,6 +131,8 @@ export class ListGroupItem extends React.Component {
                 itemActions[PLANNING.ITEM_ACTIONS.CANCEL_ALL_COVERAGE.actionName],
             [PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName]:
                 itemActions[PLANNING.ITEM_ACTIONS.ADD_AS_EVENT.actionName],
+            [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName]:
+                itemActions[PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName],
             [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName]:
                 itemActions[EVENTS.ITEM_ACTIONS.CANCEL_EVENT.actionName],
             [EVENTS.ITEM_ACTIONS.POSTPONE_EVENT.actionName]:
