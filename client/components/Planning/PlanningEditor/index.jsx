@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
-import moment from 'moment';
 import {get, cloneDeep, remove as _remove, some, isEqual} from 'lodash';
 import * as selectors from '../../../selectors';
 
@@ -50,9 +49,7 @@ export class PlanningEditorComponent extends React.Component {
             if (!get(this.props, 'item._id')) {
                 let newItem = cloneDeep(get(this.props, 'diff'));
 
-                newItem.planning_date = moment();
                 this.fillCurrentAgenda(newItem);
-
                 this.props.onChangeHandler(null, newItem);
             }
         } else {

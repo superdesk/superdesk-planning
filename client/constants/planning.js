@@ -1,3 +1,4 @@
+import moment from 'moment';
 import {gettext} from '../utils/gettext';
 
 export const PLANNING = {
@@ -89,5 +90,8 @@ export const PLANNING = {
         AUDIO: 'audio',
         PICTURE: 'picture',
     },
-    DEFAULT_VALUE: {type: 'planning'}
+    DEFAULT_VALUE: {
+        type: 'planning',
+        planning_date: moment(),
+    }
 };
