@@ -14,6 +14,7 @@ from apps.content import push_content_notification
 from planning.item_lock import LOCK_USER, LOCK_SESSION
 from apps.archive.common import get_user, get_auth
 from planning.planning_notifications import PlanningNotifications
+from superdesk.notification import push_notification
 
 
 class AssignmentsUnlinkService(Service):
@@ -65,6 +66,11 @@ class AssignmentsUnlinkService(Service):
                                                       omit_user=True)
 
             push_content_notification(items)
+            push_notification(
+                'content:unlink',
+                item=str(item[config.ID_FIELD]),
+                assignment=str(assignment[config.ID_FIELD])
+            )
 
         if spike:
             get_resource_service('assignments_history').on_item_updated(updates, assignment, 'spike_unlink')

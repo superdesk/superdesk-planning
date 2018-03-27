@@ -35,6 +35,9 @@ export class AssignmentListContainerComponent extends React.Component {
             loadAssignments(filterBy, searchQuery, orderByField, orderDirection,
                 ASSIGNMENTS.LIST_GROUPS[groupKey].states, filterByType, filterByPriority);
         });
+
+        // Retrieve 'Assigned to me' count based on recent search.
+        this.props.fetchMyAssignmentsCount();
     }
 
     changeFilter(filterBy, orderByField, orderDirection) {
@@ -61,6 +64,10 @@ export class AssignmentListContainerComponent extends React.Component {
 
         loadAssignments(filterBy, searchQuery, orderByField, orderDirection, filterByState,
             filterByType, filterByPriority);
+    }
+
+    componentWillMount() {
+        this.props.fetchMyAssignmentsCount();
     }
 
     getTotalCountForListGroup(groupKey) {
@@ -156,6 +163,7 @@ AssignmentListContainerComponent.propTypes = {
     searchQuery: PropTypes.string,
     orderByField: PropTypes.string,
     orderDirection: PropTypes.string,
+    fetchMyAssignmentsCount: PropTypes.func,
     myAssignmentsCount: PropTypes.number,
     previewOpened: PropTypes.bool,
     loadAssignments: PropTypes.func.isRequired,
@@ -193,6 +201,11 @@ const mapDispatchToProps = (dispatch) => ({
             filterBy, searchQuery, orderByField, orderDirection, filterByState,
             filterByType, filterByPriority
         )),
+    fetchMyAssignmentsCount: () => dispatch(
+        actions.assignments.ui.queryAndGetMyAssignments(
+            [ASSIGNMENTS.WORKFLOW_STATE.ASSIGNED, ASSIGNMENTS.WORKFLOW_STATE.SUBMITTED]
+        )
+    ),
     loadMoreAssignments: (states) => dispatch(actions.assignments.ui.loadMoreAssignments(states)),
     preview: (assignment) => dispatch(actions.assignments.ui.preview(assignment)),
     reassign: (assignment) => dispatch(actions.assignments.ui.reassign(assignment)),

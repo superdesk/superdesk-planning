@@ -64,7 +64,7 @@ export class SelectMetaTermsInput extends React.Component {
     }
 
     render() {
-        const {value, label, labelKey, searchKey, valueKey, readOnly, ...props} = this.props;
+        const {value, label, labelKey, searchKey, valueKey, popupContainer, readOnly, ...props} = this.props;
         const options = this.removeValuesFromOptions();
 
         return (
@@ -119,6 +119,7 @@ export class SelectMetaTermsInput extends React.Component {
                         labelKey={labelKey}
                         valueKey={valueKey}
                         searchKey={searchKey}
+                        popupContainer={popupContainer}
                     />
                 }
             </LineInput>
@@ -144,6 +145,7 @@ SelectMetaTermsInput.propTypes = {
     onChange: PropTypes.func,
     required: PropTypes.bool,
     field: PropTypes.string,
+    popupContainer: PropTypes.func,
 };
 
 SelectMetaTermsInput.defaultProps = {

@@ -1,4 +1,4 @@
-import {uniq, keyBy, get, cloneDeep, filter, pickBy} from 'lodash';
+import {uniq, keyBy, get, cloneDeep, filter, pickBy, includes} from 'lodash';
 import {ASSIGNMENTS, RESET_STORE, INIT_STORE} from '../constants';
 import moment from 'moment';
 import {createReducer} from '../utils';
@@ -8,11 +8,15 @@ const initialState = {
     filterBy: 'All',
     previewOpened: false,
     assignmentsInInProgressList: [],
+    inProgressListTotal: 0,
     assignmentsInTodoList: [],
+    todoListTotal: 0,
     assignmentsInCompletedList: [],
+    completedListTotal: 0,
     assignmentListSingleGroupView: null,
     currentAssignmentId: null,
     archive: {},
+    myAssignmentsTotal: 0,
 };
 
 const modifyAssignmentBeingAdded = (payload) => {
@@ -53,6 +57,13 @@ const assignmentReducer = createReducer(initialState, {
         }
     ),
 
+    [ASSIGNMENTS.ACTIONS.MY_ASSIGNMENTS_TOTAL]: (state, payload) => (
+        {
+            ...state,
+            myAssignmentsTotal: payload,
+        }
+    ),
+
     [ASSIGNMENTS.ACTIONS.SET_IN_PROGRESS_LIST]: (state, payload) => (
         {
             ...state,
@@ -75,6 +86,7 @@ const assignmentReducer = createReducer(initialState, {
         {
             ...state,
             assignmentsInTodoList: uniq([...state.assignmentsInTodoList, ...payload]),
+            todoListTotal: state.todoListTotal + 1,
         }
     ),
 
@@ -82,6 +94,7 @@ const assignmentReducer = createReducer(initialState, {
         {
             ...state,
             assignmentsInInProgressList: uniq([...state.assignmentsInInProgressList, ...payload]),
+            inProgressListTotal: state.inProgressListTotal + 1,
         }
     ),
 
@@ -89,6 +102,7 @@ const assignmentReducer = createReducer(initialState, {
         {
             ...state,
             assignmentsInCompletedList: uniq([...state.assignmentsInCompletedList, ...payload]),
+            completedListTotal: state.completedListTotal + 1,
         }
     ),
 
@@ -188,12 +202,18 @@ const assignmentReducer = createReducer(initialState, {
                 assignmentsInInProgressList: filter(
                     state.assignmentsInInProgressList, (aid) => aid !== payload.assignment
                 ),
+                inProgressListTotal: includes(state.assignmentsInInProgressList, payload.assignment) ?
+                    state.inProgressListTotal - 1 : state.inProgressListTotal,
                 assignmentsInTodoList: filter(
                     state.assignmentsInTodoList, (aid) => aid !== payload.assignment
                 ),
+                todoListTotal: includes(state.assignmentsInTodoList, payload.assignment) ?
+                    state.todoListTotal - 1 : state.todoListTotal,
                 assignmentsInCompletedList: filter(
                     state.assignmentsInCompletedList, (aid) => aid !== payload.assignment
                 ),
+                completedListTotal: includes(state.assignmentsInCompletedList, payload.assignment) ?
+                    state.completedListTotal - 1 : state.completedListTotal,
                 previewOpened: state.currentAssignmentId === payload.assignment ?
                     false : state.previewOpened,
                 currentAssignmentId: state.currentAssignmentId === payload.assignment ?

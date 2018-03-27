@@ -30,11 +30,15 @@ describe('assignment', () => {
             filterBy: 'All',
             previewOpened: false,
             assignmentsInInProgressList: [],
+            inProgressListTotal: 0,
             assignmentsInTodoList: [],
+            todoListTotal: 0,
             assignmentsInCompletedList: [],
+            completedListTotal: 0,
             assignmentListSingleGroupView: null,
             currentAssignmentId: null,
             archive: {},
+            myAssignmentsTotal: 0,
         };
 
         beforeEach(() => {
@@ -114,11 +118,15 @@ describe('assignment', () => {
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentsInInProgressList: [],
+                inProgressListTotal: 0,
                 assignmentsInTodoList: [],
+                todoListTotal: 0,
                 assignmentsInCompletedList: [],
+                completedListTotal: 0,
                 assignmentListSingleGroupView: null,
                 currentAssignmentId: null,
                 archive: {},
+                myAssignmentsTotal: 0,
             });
         });
     });
@@ -131,10 +139,14 @@ describe('assignment', () => {
             previewOpened: false,
             currentAssignmentId: null,
             assignmentsInInProgressList: [],
+            inProgressListTotal: 0,
             assignmentsInTodoList: [],
+            todoListTotal: 0,
             assignmentsInCompletedList: [],
+            completedListTotal: 0,
             assignmentListSingleGroupView: null,
             archive: {},
+            myAssignmentsTotal: 0,
         };
 
         beforeEach(() => {
@@ -156,11 +168,15 @@ describe('assignment', () => {
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentsInInProgressList: [],
+                inProgressListTotal: 0,
                 assignmentsInTodoList: [],
+                todoListTotal: 0,
                 assignmentsInCompletedList: [],
+                completedListTotal: 0,
                 assignmentListSingleGroupView: null,
                 currentAssignmentId: null,
                 archive: {},
+                myAssignmentsTotal: 0,
             });
         });
 
@@ -175,11 +191,15 @@ describe('assignment', () => {
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentsInInProgressList: [],
+                inProgressListTotal: 0,
                 assignmentsInTodoList: [],
+                todoListTotal: 0,
                 assignmentsInCompletedList: [],
+                completedListTotal: 0,
                 assignmentListSingleGroupView: null,
                 currentAssignmentId: null,
                 archive: {},
+                myAssignmentsTotal: 0,
             });
         });
     });
@@ -189,8 +209,11 @@ describe('assignment', () => {
         let stateTest = {
             assignments: {},
             assignmentsInInProgressList: [],
+            inProgressListTotal: 0,
             assignmentsInTodoList: [],
+            todoListTotal: 0,
             assignmentsInCompletedList: [],
+            completedListTotal: 0,
             assignmentListSingleGroupView: null,
             currentAssignmentId: null,
             filterBy: 'All',
@@ -199,6 +222,7 @@ describe('assignment', () => {
             orderDirection: 'Desc',
             previewOpened: false,
             archive: {},
+            myAssignmentsTotal: 0,
         };
 
         beforeEach(() => {
@@ -218,8 +242,11 @@ describe('assignment', () => {
             expect(result).toEqual({
                 assignments: {},
                 assignmentsInInProgressList: [],
+                inProgressListTotal: 0,
                 assignmentsInTodoList: [],
+                todoListTotal: 0,
                 assignmentsInCompletedList: [],
+                completedListTotal: 0,
                 assignmentListSingleGroupView: null,
                 currentAssignmentId: null,
                 filterBy: 'User',
@@ -228,6 +255,7 @@ describe('assignment', () => {
                 orderDirection: 'Asc',
                 previewOpened: false,
                 archive: {},
+                myAssignmentsTotal: 0,
             });
         });
     });
@@ -260,11 +288,15 @@ describe('assignment', () => {
             filterBy: 'All',
             previewOpened: false,
             assignmentsInInProgressList: [],
+            inProgressListTotal: 0,
             assignmentsInTodoList: [],
+            todoListTotal: 0,
             assignmentsInCompletedList: [],
+            completedListTotal: 0,
             assignmentListSingleGroupView: null,
             currentAssignmentId: null,
             archive: {},
+            myAssignmentsTotal: 0,
         };
 
         beforeEach(() => {
@@ -287,8 +319,10 @@ describe('assignment', () => {
             expect(result).toEqual({
                 assignments: stateTest.assignments,
                 assignmentsInInProgressList: [],
+                inProgressListTotal: 0,
                 assignmentsInTodoList: ['1', '2'],
                 assignmentsInCompletedList: [],
+                completedListTotal: 0,
                 todoListTotal: 4,
                 todoListLastLoadedPage: 1,
                 currentAssignmentId: null,
@@ -296,6 +330,7 @@ describe('assignment', () => {
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
                 archive: {},
+                myAssignmentsTotal: 0,
             });
         });
 
@@ -312,7 +347,9 @@ describe('assignment', () => {
                 assignments: stateTest.assignments,
                 assignmentsInInProgressList: ['1', '2'],
                 assignmentsInTodoList: [],
+                todoListTotal: 0,
                 assignmentsInCompletedList: [],
+                completedListTotal: 0,
                 inProgressListTotal: 4,
                 inProgressListLastLoadedPage: 1,
                 currentAssignmentId: null,
@@ -320,6 +357,7 @@ describe('assignment', () => {
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
                 archive: {},
+                myAssignmentsTotal: 0,
             });
         });
 
@@ -335,7 +373,9 @@ describe('assignment', () => {
             expect(result).toEqual({
                 assignments: stateTest.assignments,
                 assignmentsInInProgressList: [],
+                inProgressListTotal: 0,
                 assignmentsInTodoList: [],
+                todoListTotal: 0,
                 assignmentsInCompletedList: ['1', '2'],
                 completedListTotal: 4,
                 completedListLastLoadedPage: 1,
@@ -344,6 +384,7 @@ describe('assignment', () => {
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
                 archive: {},
+                myAssignmentsTotal: 0,
             });
         });
 
@@ -362,6 +403,7 @@ describe('assignment', () => {
                 },
             };
             initialState.assignmentsInTodoList = ['1', '2'];
+            initialState.todoListTotal = 2;
 
             const result = assignment(initialState, {
                 type: 'ADD_TO_TODO_LIST',
@@ -371,13 +413,17 @@ describe('assignment', () => {
             expect(result).toEqual({
                 assignments: initialState.assignments,
                 assignmentsInInProgressList: [],
+                inProgressListTotal: 0,
                 assignmentsInTodoList: ['1', '2', '3'],
+                todoListTotal: 3,
                 assignmentsInCompletedList: [],
+                completedListTotal: 0,
                 currentAssignmentId: null,
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
                 archive: {},
+                myAssignmentsTotal: 0,
             });
         });
 
@@ -396,6 +442,7 @@ describe('assignment', () => {
                 },
             };
             initialState.assignmentsInInProgressList = ['1', '2'];
+            initialState.inProgressListTotal = 2;
 
             const result = assignment(initialState, {
                 type: 'ADD_TO_IN_PROGRESS_LIST',
@@ -405,13 +452,17 @@ describe('assignment', () => {
             expect(result).toEqual({
                 assignments: initialState.assignments,
                 assignmentsInInProgressList: ['1', '2', '3'],
+                inProgressListTotal: 3,
                 assignmentsInTodoList: [],
+                todoListTotal: 0,
                 assignmentsInCompletedList: [],
+                completedListTotal: 0,
                 currentAssignmentId: null,
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
                 archive: {},
+                myAssignmentsTotal: 0,
             });
         });
 
@@ -430,6 +481,7 @@ describe('assignment', () => {
                 },
             };
             initialState.assignmentsInCompletedList = ['1', '2'];
+            initialState.completedListTotal = 2;
 
             const result = assignment(initialState, {
                 type: 'ADD_TO_COMPLETED_LIST',
@@ -439,13 +491,17 @@ describe('assignment', () => {
             expect(result).toEqual({
                 assignments: initialState.assignments,
                 assignmentsInInProgressList: [],
+                inProgressListTotal: 0,
                 assignmentsInTodoList: [],
+                todoListTotal: 0,
                 assignmentsInCompletedList: ['1', '2', '3'],
+                completedListTotal: 3,
                 currentAssignmentId: null,
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentListSingleGroupView: null,
                 archive: {},
+                myAssignmentsTotal: 0,
             });
         });
 
@@ -458,13 +514,17 @@ describe('assignment', () => {
             expect(result).toEqual({
                 assignments: stateTest.assignments,
                 assignmentsInInProgressList: [],
+                inProgressListTotal: 0,
                 assignmentsInTodoList: [],
+                todoListTotal: 0,
                 assignmentsInCompletedList: [],
+                completedListTotal: 0,
                 currentAssignmentId: null,
                 filterBy: 'All',
                 previewOpened: false,
                 assignmentListSingleGroupView: 'TODO',
                 archive: {},
+                myAssignmentsTotal: 0,
             });
         });
     });
@@ -489,10 +549,14 @@ describe('assignment', () => {
             filterBy: 'All',
             currentAssignmentId: null,
             assignmentsInInProgressList: [],
+            inProgressListTotal: 0,
             assignmentsInTodoList: [],
+            todoListTotal: 0,
             assignmentsInCompletedList: [],
+            completedListTotal: 0,
             assignmentListSingleGroupView: null,
             archive: {},
+            myAssignmentsTotal: 0,
         };
 
         beforeEach(() => {
@@ -516,10 +580,14 @@ describe('assignment', () => {
                 readOnly: true,
                 filterBy: 'All',
                 assignmentsInInProgressList: [],
+                inProgressListTotal: 0,
                 assignmentsInTodoList: [],
+                todoListTotal: 0,
                 assignmentsInCompletedList: [],
+                completedListTotal: 0,
                 assignmentListSingleGroupView: null,
                 archive: {},
+                myAssignmentsTotal: 0,
             });
         });
 
@@ -533,10 +601,14 @@ describe('assignment', () => {
                 filterBy: 'All',
                 readOnly: true,
                 assignmentsInInProgressList: [],
+                inProgressListTotal: 0,
                 assignmentsInTodoList: [],
+                todoListTotal: 0,
                 assignmentsInCompletedList: [],
+                completedListTotal: 0,
                 assignmentListSingleGroupView: null,
                 archive: {},
+                myAssignmentsTotal: 0,
             });
         });
 
@@ -553,10 +625,14 @@ describe('assignment', () => {
                 readOnly: false,
                 filterBy: 'All',
                 assignmentsInInProgressList: [],
+                inProgressListTotal: 0,
                 assignmentsInTodoList: [],
+                todoListTotal: 0,
                 assignmentsInCompletedList: [],
+                completedListTotal: 0,
                 assignmentListSingleGroupView: null,
                 archive: {},
+                myAssignmentsTotal: 0,
             });
         });
 
@@ -581,6 +657,7 @@ describe('assignment', () => {
                         ...initialState,
                         assignments: {a1: {_id: 'a1'}},
                         assignmentsInInProgressList: ['a1'],
+                        inProgressListTotal: 1,
                     },
                     {
                         type: 'REMOVE_ASSIGNMENT',
@@ -596,6 +673,7 @@ describe('assignment', () => {
                         ...initialState,
                         assignments: {a1: {_id: 'a1'}},
                         assignmentsInTodoList: ['a1'],
+                        todoListTotal: 1,
                     },
                     {
                         type: 'REMOVE_ASSIGNMENT',
@@ -610,6 +688,7 @@ describe('assignment', () => {
                         ...initialState,
                         assignments: {a1: {_id: 'a1'}},
                         assignmentsInCompletedList: ['a1'],
+                        completedListTotal: 1,
                     },
                     {
                         type: 'REMOVE_ASSIGNMENT',
@@ -626,6 +705,7 @@ describe('assignment', () => {
                         ...initialState,
                         assignments: {a1: {_id: 'a1'}},
                         assignmentsInInProgressList: ['a1'],
+                        inProgressListTotal: 1,
                         previewOpened: true,
                         currentAssignmentId: 'a1',
                     },
@@ -646,6 +726,7 @@ describe('assignment', () => {
                             a2: {_id: 'a2'},
                         },
                         assignmentsInInProgressList: ['a1', 'a2'],
+                        inProgressListTotal: 2,
                         previewOpened: true,
                         currentAssignmentId: 'a2',
                     },
@@ -659,6 +740,7 @@ describe('assignment', () => {
                     ...initialState,
                     assignments: {a2: {_id: 'a2'}},
                     assignmentsInInProgressList: ['a2'],
+                    inProgressListTotal: 1,
                     previewOpened: true,
                     currentAssignmentId: 'a2',
                 });

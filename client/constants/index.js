@@ -68,7 +68,7 @@ export const FORM_NAMES = {
     EditAssignmentPriorityForm: 'editAssignmentPriorityForm',
     UpdateAssignmentForm: 'updateAssignmentForm',
     PlanningForm: 'planning',
-    EventForm: 'events',
+    EventForm: 'event',
 };
 
 /*
@@ -86,3 +86,5 @@ export const ITEM_TYPE = {
     COMPOSITE: 'composite',
     UNKNOWN: 'unknown'
 };
+
+export const TEMP_ID_PREFIX = 'tempId-';

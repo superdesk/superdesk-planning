@@ -4,7 +4,7 @@ import * as selectors from '../../selectors';
 import * as actions from '../../actions';
 import {ASSIGNMENTS, MODALS, WORKSPACE} from '../../constants';
 import {getErrorMessage, assignmentUtils, gettext} from '../../utils';
-import {get} from 'lodash';
+import {get, cloneDeep} from 'lodash';
 
 /**
  * Action dispatcher to load the list of assignments for current list settings.
@@ -29,6 +29,22 @@ const loadAssignments = (
     );
     return dispatch(queryAndSetAssignmentListGroups(filterByState));
 };
+
+const queryAndGetMyAssignments = (filterByState) => (
+    (dispatch, getState) => {
+        let querySearchSettings = cloneDeep(selectors.getAssignmentSearch(getState()));
+
+        querySearchSettings.states = filterByState;
+
+        querySearchSettings.deskId = null;
+        querySearchSettings.userId = selectors.getCurrentUserId(getState());
+
+        return dispatch(assignments.api.query(querySearchSettings))
+            .then((data) => {
+                dispatch(self.setMyAssignmentsTotal(get(data, '_meta.total')));
+            });
+    }
+);
 
 /**
  * Action dispatcher to load first page of the list of assignments for current list settings.
@@ -100,7 +116,7 @@ const updatePreviewItemOnRouteUpdate = () => (
 
 const queryAndSetAssignmentListGroups = (filterByState, page = 1) => (
     (dispatch, getState) => {
-        let querySearchSettings = selectors.getAssignmentSearch(getState());
+        let querySearchSettings = cloneDeep(selectors.getAssignmentSearch(getState()));
         const listGroupForStates = assignmentUtils.getAssignmentGroupByStates(filterByState);
 
         querySearchSettings.states = listGroupForStates.states;
@@ -121,6 +137,7 @@ const queryAndSetAssignmentListGroups = (filterByState, page = 1) => (
             });
     }
 );
+
 
 /**
  * Action dispatcher to load the next page of assignments.
@@ -244,6 +261,13 @@ const setAssignmentListGroup = (assignments, totalNoOfItems, group) => (
         }
         return Promise.resolve();
     }
+);
+
+const setMyAssignmentsTotal = (total) => (
+    (dispatch) => dispatch({
+        type: ASSIGNMENTS.ACTIONS.MY_ASSIGNMENTS_TOTAL,
+        payload: total,
+    })
 );
 
 /**
@@ -421,7 +445,8 @@ const onAssignmentFormSave = (item) => (
  */
 const onFulFilAssignment = (assignment) => (
     (dispatch, getState, {notify}) => {
-        const {$scope, newsItem} = selectors.getCurrentModalProps(getState());
+        const newsItem = get(selectors.general.modalProps(getState()), 'newsItem', null);
+        const $scope = get(selectors.general.modalProps(getState()), '$scope', null);
         const currentWorkSpace = selectors.getCurrentWorkspace(getState());
 
         if (currentWorkSpace !== WORKSPACE.AUTHORING || !$scope || !newsItem) {
@@ -762,6 +787,7 @@ const removeAssignment = (assignment) => (
 // eslint-disable-next-line consistent-this
 const self = {
     loadAssignments,
+    queryAndGetMyAssignments,
     queryAndSetAssignmentListGroups,
     changeListSettings,
     reloadAssignments,
@@ -798,6 +824,7 @@ const self = {
     unlockPlanning,
     unlockAssignmentAndPlanning,
     openArchivePreview,
+    setMyAssignmentsTotal,
 };
 
 export default self;

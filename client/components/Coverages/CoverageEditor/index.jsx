@@ -40,7 +40,7 @@ export const CoverageEditor = ({
     // Coverage item actions
     let itemActions = [];
 
-    if (!readOnly) {
+    if (!readOnly && currentWorkspace === WORKSPACE.PLANNING) {
         const duplicateActions = contentTypes
             .filter((contentType) => (
                 contentType.qcode !== get(value, 'planning.g2_content_type')
@@ -79,8 +79,7 @@ export const CoverageEditor = ({
             }
         }
 
-        if (currentWorkspace === WORKSPACE.PLANNING &&
-            !get(value, 'assigned_to.assignment_id')) {
+        if (!get(value, 'assigned_to.assignment_id')) {
             itemActions.push({
                 label: gettext('Remove coverage'),
                 icon: 'icon-trash',

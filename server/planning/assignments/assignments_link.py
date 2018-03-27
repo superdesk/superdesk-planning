@@ -13,6 +13,7 @@ from eve.utils import config
 from planning.common import ASSIGNMENT_WORKFLOW_STATE
 from apps.archive.common import get_user, is_assigned_to_a_desk
 from apps.content import push_content_notification
+from superdesk.notification import push_notification
 
 
 class AssignmentsLinkService(Service):
@@ -79,6 +80,11 @@ class AssignmentsLinkService(Service):
             items.append(item)
 
         push_content_notification(items)
+        push_notification(
+            'content:link',
+            item=str(item[config.ID_FIELD]),
+            assignment=str(assignment[config.ID_FIELD])
+        )
         return ids
 
     def _validate(self, doc):

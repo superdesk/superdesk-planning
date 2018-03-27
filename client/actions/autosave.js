@@ -16,6 +16,12 @@ const save = (formName, diff) => ({
 });
 
 /**
+ * Action to remove autosave entries of non-existing items being created
+ * @param {string} formName - The same name given to redux-form
+ */
+const removeNewItems = (formName, tempId) => ({type: AUTOSAVE.ACTIONS.REMOVE});
+
+/**
  * Action to load the dirty values for a form from the store
  * @param {string} formName - The same name given to redux-form
  * @param {string} itemId - The item ID to retrieve the dirty values for
@@ -31,6 +37,7 @@ const load = (formName, itemId) => (
 
 // eslint-disable-next-line consistent-this
 const self = {
+    removeNewItems,
     save,
     load,
 };

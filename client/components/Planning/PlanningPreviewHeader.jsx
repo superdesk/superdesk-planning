@@ -46,8 +46,8 @@ export class PlanningPreviewHeaderComponent extends React.Component {
             [EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName]:
                 this.props[EVENTS.ITEM_ACTIONS.CONVERT_TO_RECURRING.actionName],
         };
-        const itemActions = planningUtils.getPlanningActions(item, event, session, privileges,
-            lockedItems, itemActionsCallBack);
+        const itemActions = inPlanning ? planningUtils.getPlanningActions(item, event, session, privileges,
+            lockedItems, itemActionsCallBack) : null;
 
         return (
             <Tools useDefaultClassName={false} className="side-panel__top-tools">
