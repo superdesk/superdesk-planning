@@ -35,7 +35,7 @@ class PlanningNotifications():
     """
 
     def notify_assignment(self, coverage_status=None, target_user=None,
-                          target_desk=None, target_desk2=None, message='', **data):
+                          target_desk=None, target_desk2=None, message='', meta_message='', **data):
         """
         Send notification to the client regarding the changes in assigment detals
 
@@ -44,6 +44,7 @@ class PlanningNotifications():
         :param target_desk: Target the users of this desk
         :param target_desk2: Target the union of the users of this desk and the target_desk
         :param message: The message text template
+        :param meta_message: The template message with additional information
         :param data: The parameters for the message template
         :return:
         """
@@ -77,10 +78,7 @@ class PlanningNotifications():
             self._notify_slack.apply_async(kwargs=args)
 
         # send email notification to user
-        args = {'target_user': target_user,
-                'target_desk': target_desk,
-                'target_desk2': target_desk2,
-                'message': _get_email_message_string(message, data)}
+        args = {'target_user': target_user, 'message': _get_email_message_string(message, meta_message, data)}
         self._notify_email.apply_async(kwargs=args)
 
     def user_update(self, updates, original):
@@ -124,7 +122,7 @@ class PlanningNotifications():
             _send_to_slack_desk_channel(sc, target_desk2, message)
 
     @celery.task(bind=True)
-    def _notify_email(self, token, target_user, target_desk, target_desk2, message):
+    def _notify_email(self, target_user, message):
         _send_user_email(target_user, message)
 
 
@@ -167,19 +165,19 @@ def _get_slack_message_string(message, data):
     return template.render(data) + ' by ' + user.get('display_name', 'Unknown')
 
 
-def _get_email_message_string(message, data):
+def _get_email_message_string(message, meta_message, data):
     """
     Render the message to a string, the user that instigated the message is appended to the message
 
     :param message:
+    :param meta_message:
     :param data:
     :return: The message with the data applied
     """
-    user = get_user()
-    template = Template(message)
-    if data.get('omit_user', False):
-        return template.render(data)
-    return template.render(data) + ' by ' + user.get('display_name', 'Unknown')
+    template_string = Template(message).render(data)
+    template_meta_string = Template(meta_message).render(data)
+
+    return template_string + '<br><br>' + template_meta_string
 
 
 def _send_user_email(user_id, message):
@@ -207,7 +205,7 @@ def _send_user_email(user_id, message):
 
     admins = app.config['ADMINS']
 
-    send_email(subject='Superdesk assignments',
+    send_email(subject='Superdesk assignment',
                sender=admins[0],
                recipients=[user_email],
                text_body=message,
