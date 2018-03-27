@@ -514,6 +514,7 @@ class PlanningService(superdesk.Service):
                 )
 
             coverage_item['assigned_to'] = None
+            coverage_item['workflow_status'] = WORKFLOW_STATE.DRAFT
 
             updates = {'coverages': coverages}
             if unlock_planning:

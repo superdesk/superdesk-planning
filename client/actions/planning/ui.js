@@ -620,7 +620,7 @@ const saveFromAuthoring = (plan) => (
 
         return dispatch(planningApi.save(plan))
             .then((newPlan) => {
-                const {newsItem} = selectors.general.modalProps(getState());
+                const newsItem = get(selectors.general.modalProps(getState()), 'newsItem', null);
                 const coverages = orderBy(newPlan.coverages, ['firstcreated'], ['desc']);
                 const coverage = coverages[0];
 
@@ -654,12 +654,14 @@ const saveFromAuthoring = (plan) => (
             .finally(() => {
                 // resolving scope here because if there is a confirmation modal
                 // while saving the planning item, scope won't be available
-                const {$scope} = selectors.general.modalProps(getState());
+                const $scope = get(selectors.general.modalProps(getState()), '$scope', null);
 
-                if (resolved) {
-                    $scope.resolve();
-                } else {
-                    $scope.reject();
+                if ($scope) {
+                    if (resolved) {
+                        $scope.resolve();
+                    } else {
+                        $scope.reject();
+                    }
                 }
 
                 dispatch(actions.hideModal());
