@@ -4,7 +4,7 @@ import {Provider} from 'react-redux';
 import {get} from 'lodash';
 import {registerNotifications} from '../utils';
 import * as actions from '../actions';
-import {AssignmentsApp} from '../components';
+import {AssignmentsApp} from '../apps';
 import {WORKSPACE} from '../constants';
 
 AssignmentController.$inject = [

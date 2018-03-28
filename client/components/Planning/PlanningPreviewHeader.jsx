@@ -50,7 +50,7 @@ export class PlanningPreviewHeaderComponent extends React.Component {
             lockedItems, itemActionsCallBack) : null;
 
         return (
-            <Tools useDefaultClassName={false} className="side-panel__top-tools">
+            <Tools topTools={true}>
                 <ItemIcon item={item} />
                 {(!lockedInThisSession || !inPlanning) && lockedUser &&
                     <LockContainer

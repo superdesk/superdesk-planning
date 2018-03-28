@@ -29,12 +29,15 @@ export class PageContent extends React.Component {
             previewOpen,
             showModals,
             showWorkqueue,
+            widePreviewPanel,
+            splitView,
         } = this.props;
 
         const sectionClassName = classNames(
             'sd-content',
-            'sd-page-content--slide-in',
             {
+                'sd-page-content--slide-in': !splitView,
+                'sd-page-content--split': splitView,
                 'sd-content--margin-b30': marginBottom,
                 'sd-page-content--slide-in--open': editorOpen,
             }
@@ -47,6 +50,11 @@ export class PageContent extends React.Component {
                 'open-filters': this.state.filtersOpen,
                 'open-preview': previewOpen,
             }
+        );
+
+        const previewClassName = classNames(
+            'sd-preview-panel',
+            {'sd-preview-panel--width-560px': widePreviewPanel}
         );
 
         const editorClassName = classNames(
@@ -85,7 +93,7 @@ export class PageContent extends React.Component {
                         )}
 
                         {PreviewPanel && (
-                            <div className="sd-preview-panel">
+                            <div className={previewClassName}>
                                 <PreviewPanel />
                             </div>
                         )}
@@ -114,8 +122,10 @@ PageContent.propTypes = {
     FilterPanel: PropTypes.func,
     ListPanel: PropTypes.func,
     PreviewPanel: PropTypes.func,
+    widePreviewPanel: PropTypes.bool,
     showModals: PropTypes.bool,
     showWorkqueue: PropTypes.bool,
+    splitView: PropTypes.bool,
 };
 
 PageContent.defaultProps = {
@@ -123,5 +133,7 @@ PageContent.defaultProps = {
     editorOpen: false,
     previewOpen: false,
     showModals: true,
-    showWorkqueue: true
+    showWorkqueue: true,
+    widePreviewPanel: false,
+    splitView: false,
 };

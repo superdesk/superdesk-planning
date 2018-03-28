@@ -1,6 +1,5 @@
 export {InputField} from './InputField';
 export {CategoryField} from './CategoryField';
-export {InputTextAreaField} from './InputTextAreaField';
 export {SpikeStateField} from './SpikeStateField';
 export {SubjectField} from './SubjectField';
 export {SelectField} from './SelectField';

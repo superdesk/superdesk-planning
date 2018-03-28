@@ -3,16 +3,16 @@ import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 
 import {get, cloneDeep, isEqual} from 'lodash';
-import {getItemInArrayById, getUsersForDesk, getDesksForUser, gettext} from '../../../utils';
-import {validateItem} from '../../../validators';
+import {getItemInArrayById, getUsersForDesk, getDesksForUser, gettext} from '../../utils';
+import {validateItem} from '../../validators';
+import {ASSIGNMENTS} from '../../constants';
 
 import {
     Row,
     SelectInput,
     ColouredValueInput,
     SelectUserInput,
-} from '../../UI/Form';
-import {ASSIGNMENTS} from '../../../constants';
+} from '../UI/Form';
 
 export class AssignmentEditorComponent extends React.Component {
     constructor(props) {

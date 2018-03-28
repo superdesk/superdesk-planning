@@ -51,7 +51,7 @@ export const getAssignmentsCompletedListCount = (state) => (get(state,
 export const getAssignmentListSingleGroupView = (state) => get(state,
     'assignment.assignmentListSingleGroupView', null);
 
-export const getPreviewAssignmentOpened = (state) => get(state, 'assignment.previewOpened');
+export const getPreviewAssignmentOpened = (state) => !!get(state, 'assignment.previewOpened');
 export const getCurrentAssignmentId = (state) => get(state, 'assignment.currentAssignmentId');
 export const getReadOnlyAssignment = (state) => get(state, 'assignment.readOnly');
 export const getFulFilledItem = (state) => get(state, 'assignment.fulfilledItem', {});

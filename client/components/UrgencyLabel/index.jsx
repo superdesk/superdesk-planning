@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import {get} from 'lodash';
 
-export const UrgencyLabel = ({item, urgencies, label, tooltipFlow, className}) => {
+export const UrgencyLabel = ({item, urgencies, label, tooltipFlow, className, inline}) => {
     const qcode = get(item, 'urgency', null);
 
     if (!qcode) {
@@ -17,6 +17,7 @@ export const UrgencyLabel = ({item, urgencies, label, tooltipFlow, className}) =
             className={classNames(
                 'urgency-label',
                 'urgency-label--' + qcode,
+                {'sd-list-item__inline-icon': inline},
                 className
             )}
             data-sd-tooltip={label + ': ' + urgency.name}
@@ -33,6 +34,10 @@ UrgencyLabel.propTypes = {
     label: PropTypes.string,
     tooltipFlow: PropTypes.oneOf(['up', 'right', 'down', 'left']),
     className: PropTypes.string,
+    inline: PropTypes.bool,
 };
 
-UrgencyLabel.defaultProps = {tooltipFlow: 'right'};
+UrgencyLabel.defaultProps = {
+    tooltipFlow: 'right',
+    inline: false,
+};

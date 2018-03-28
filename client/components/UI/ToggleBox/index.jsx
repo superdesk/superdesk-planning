@@ -53,6 +53,7 @@ export class ToggleBox extends React.Component {
             children,
             hideUsingCSS,
             invalid,
+            noMargin,
         } = this.props;
 
         return (
@@ -63,6 +64,7 @@ export class ToggleBox extends React.Component {
                     {
                         hidden: !this.state.isOpen,
                         'toggle-box--invalid': invalid,
+                        'toggle-box--no-margin': noMargin,
                     }
                 )}
                 ref={(node) => this.dom.node = node}
@@ -105,6 +107,7 @@ ToggleBox.propTypes = {
     scrollInView: PropTypes.bool,
     hideUsingCSS: PropTypes.bool,
     invalid: PropTypes.bool,
+    noMargin: PropTypes.bool,
 };
 
 ToggleBox.defaultProps = {
@@ -112,4 +115,5 @@ ToggleBox.defaultProps = {
     scrollInView: false,
     hideUsingCSS: false,
     invalid: false,
+    noMargin: false,
 };

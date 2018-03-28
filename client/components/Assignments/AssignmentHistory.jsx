@@ -2,10 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {connect} from 'react-redux';
 import {get, includes, isEqual} from 'lodash';
-import {AbsoluteDate} from './index';
-import {getItemInArrayById, gettext} from '../utils';
-import * as actions from '../actions';
-import * as selectors from '../selectors';
+
+import {getItemInArrayById, gettext} from '../../utils';
+import * as actions from '../../actions';
+import * as selectors from '../../selectors';
+
+import {AbsoluteDate} from '../';
+import {ContentBlock} from '../UI/SidePanel';
 
 class AssignmentHistoryComponent extends React.Component {
     componentWillMount() {
@@ -39,7 +42,7 @@ class AssignmentHistoryComponent extends React.Component {
             'content_link', 'cancelled', 'submitted', 'spike_unlink', 'revert'];
 
         return (
-            <div>
+            <ContentBlock>
                 <ul className="history-list">
                     {this.props.assignmentHistoryItems.map((historyItem) => (
                         <li className="item" key={historyItem._id}>
@@ -80,7 +83,7 @@ class AssignmentHistoryComponent extends React.Component {
                         </li>
                     ))}
                 </ul>
-            </div>
+            </ContentBlock>
         );
     }
 }

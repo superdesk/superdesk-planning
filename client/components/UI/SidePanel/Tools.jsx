@@ -2,10 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-export const Tools = ({className, tools, useDefaultClassName, children}) => (
+export const Tools = ({className, tools, children, topTools}) => (
     <div
         className={classNames(
-            {'side-panel__tools': useDefaultClassName},
+            {
+                'side-panel__tools': !topTools,
+                'side-panel__top-tools': topTools,
+            },
             className
         )}
     >
@@ -31,10 +34,10 @@ Tools.propTypes = {
         onClick: PropTypes.func,
         title: PropTypes.string,
     })).isRequired,
-    useDefaultClassName: PropTypes.bool,
+    topTools: PropTypes.bool,
 };
 
 Tools.defaultProps = {
-    useDefaultClassName: true,
     tools: [],
+    topTools: false,
 };

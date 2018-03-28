@@ -2,12 +2,16 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 
-export const Row = ({label, value, className, children, noPadding, enabled}) => (
+export const Row = ({label, value, className, children, noPadding, enabled, flex, rowItem}) => (
     enabled ?
         <div
             className={classNames(
-                'form__row',
-                {'form__row--no-padding': noPadding}
+                {
+                    form__row: !rowItem,
+                    'form__row-item': rowItem,
+                    'form__row--no-padding': noPadding,
+                    'form__row--flex': flex,
+                }
             )}
         >
             {label && <label className="form-label form-label--light">{label}</label>}
@@ -28,9 +32,13 @@ Row.propTypes = {
     children: PropTypes.node,
     noPadding: PropTypes.bool,
     enabled: PropTypes.bool,
+    flex: PropTypes.bool,
+    rowItem: PropTypes.bool,
 };
 
 Row.defaultProps = {
     noPadding: false,
     enabled: true,
+    flex: false,
+    rowItem: false,
 };

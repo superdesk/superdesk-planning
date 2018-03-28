@@ -5,7 +5,7 @@ import {debounce, indexOf} from 'lodash';
 import {EventItem, EventItemWithPlanning} from '../Events';
 import {PlanningItem} from '../Planning';
 
-import {ITEM_TYPE, EVENTS, PLANNING, MAIN} from '../../constants';
+import {ITEM_TYPE, EVENTS, PLANNING, MAIN, CLICK_DELAY} from '../../constants';
 import {getItemType, eventUtils} from '../../utils';
 
 
@@ -13,6 +13,8 @@ export class ListGroupItem extends React.Component {
     constructor(props) {
         super(props);
         this.state = {clickedOnce: undefined};
+        this._delayedClick = undefined;
+
         this.handleSingleAndDoubleClick = this.handleSingleAndDoubleClick.bind(this);
         this.onSingleClick = this.onSingleClick.bind(this);
     }
@@ -30,7 +32,7 @@ export class ListGroupItem extends React.Component {
 
     handleSingleAndDoubleClick(item) {
         if (!this._delayedClick) {
-            this._delayedClick = debounce(this.onSingleClick, 250);
+            this._delayedClick = debounce(this.onSingleClick, CLICK_DELAY);
         }
 
         if (this.state.clickedOnce) {

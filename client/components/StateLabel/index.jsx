@@ -2,10 +2,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {get} from 'lodash';
+import classNames from 'classnames';
 import {Label} from '../../components';
 import {getItemWorkflowStateLabel, getItemPublishedStateLabel} from '../../utils';
 
-export const StateLabel = ({item, verbose, withPubStatus, className, fieldName}) => {
+export const StateLabel = ({item, verbose, withPubStatus, className, fieldName, inline}) => {
     const state = getItemWorkflowStateLabel(item, fieldName);
     const pubState = withPubStatus ? getItemPublishedStateLabel(item) : null;
 
@@ -21,7 +22,10 @@ export const StateLabel = ({item, verbose, withPubStatus, className, fieldName})
     />;
 
     return (
-        <span className={className}>
+        <span className={classNames(
+            {'sd-list-item__inline-icon': inline},
+            className
+        )}>
             <div>{getStateLabel(state)}</div>
             <div>{withPubStatus && pubState && getStateLabel(pubState)}</div>
         </span>
@@ -34,9 +38,11 @@ StateLabel.propTypes = {
     withPubStatus: PropTypes.bool,
     className: PropTypes.string,
     fieldName: PropTypes.string,
+    inline: PropTypes.bool,
 };
 
 StateLabel.defaultProps = {
     withPubStatus: true,
     fieldName: 'state',
+    inline: false,
 };

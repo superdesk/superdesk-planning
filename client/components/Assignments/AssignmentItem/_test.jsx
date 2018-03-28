@@ -2,10 +2,10 @@ import React from 'react';
 import {shallow, mount} from 'enzyme';
 import {AssignmentItem} from './index';
 import sinon from 'sinon';
-import {createTestStore} from '../../utils';
-import {List} from '../UI';
+import {createTestStore} from '../../../utils';
+import {List} from '../../UI';
 import {Provider} from 'react-redux';
-import * as helpers from '../tests/helpers';
+import * as helpers from '../../tests/helpers';
 import {cloneDeep} from 'lodash';
 
 describe('assignments', () => {
@@ -67,7 +67,7 @@ describe('assignments', () => {
             };
 
             beforeEach(() => {
-                lockedItems = {assignments: {as1: 'lock_information'}};
+                lockedItems = {assignment: {as1: 'lock_information'}};
                 assignment = {
                     _id: 'as1',
                     _created: '2017-07-13T13:55:41+0000',
@@ -117,7 +117,7 @@ describe('assignments', () => {
                 lockedItems = null;
                 const wrapper = getMountedWrapper();
 
-                expect(wrapper.find(List.Border).props().state).toEqual(null);
+                expect(wrapper.find(List.Border).props().state).toEqual(false);
             });
 
             it('shows red border if assignment is locked', () => {
@@ -178,7 +178,7 @@ describe('assignments', () => {
                 expect(onDoubleClick.callCount).toBe(0);
                 executeItemAction('Open Coverage');
                 expect(onDoubleClick.callCount).toBe(1);
-                expect(onDoubleClick.args[0]).toEqual([]);
+                expect(onDoubleClick.args[0]).toEqual([assignment]);
 
                 assignment.assigned_to = {
                     user: 'ident1',

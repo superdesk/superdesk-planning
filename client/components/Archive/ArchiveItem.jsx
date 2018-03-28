@@ -8,6 +8,7 @@ export const ArchiveItem = ({item, priorities, urgencies, urgencyLabel}) => (
     <Item
         shadow={2}
         noHover={true}
+        className="archive-item"
     >
         <Border state="locked"/>
         <ItemType
@@ -21,7 +22,7 @@ export const ArchiveItem = ({item, priorities, urgencies, urgencyLabel}) => (
                     label={urgencyLabel}
                     urgencies={urgencies}
                     tooltipFlow="down"
-                    className="sd-list-item__inline-icon"
+                    inline={true}
                 />
                 <PriorityLabel
                     item={item}
