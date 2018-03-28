@@ -569,7 +569,6 @@ Feature: Planning
     @auth
     @notification
     @vocabulary
-    @test
     Scenario: Cancelling coverage also cancels related assignment
         Given "desks"
         """
@@ -1250,3 +1249,62 @@ Feature: Planning
             }
         ]}
     """
+        
+    @auth
+    Scenario: Assigning disabled agenda throws an error
+        When we post to "agenda" with "agenda1" and success
+        """
+        [{"name": "Disabled Agenda", "is_enabled": false}]
+        """
+        When we post to "planning" with success
+        """
+        [{
+          "guid": "123",
+          "headline": "test headline",
+          "slugline": "test slugline",
+          "state": "scheduled",
+          "pubstatus": "usable",
+          "coverages": [
+              {
+                  "coverage_id": "cov_123",
+                  "planning": {
+                      "ednote": "test coverage, 250 words",
+                      "headline": "test headline",
+                      "slugline": "test slugline",
+                      "scheduled": "2029-11-21T14:00:00.000Z",
+                      "g2_content_type": "text",
+                      "internal_note": "Harmless"
+                  },
+                  "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
+                  }
+              }
+          ]
+        }]
+        """
+        When we patch "/planning/#planning._id#"
+        """
+        {
+          "agendas": ["#agenda1#"],
+          "coverages": [
+              {
+                  "coverage_id": "cov_123",
+                  "planning": {
+                      "internal_note" : "Mostly harmless",
+                      "g2_content_type": "text",
+                      "slugline": "test slugline",
+                      "scheduled": "2029-11-21T14:00:00.000Z"
+                  },
+                  "assigned_to": {
+                        "desk": "#desks._id#",
+                        "user": "#CONTEXT_USER_ID#"
+                  }
+              }
+          ]
+        }
+        """
+        Then we get error 400
+        """
+        {"_issues": { "validator exception": "403: Agenda 'Disabled Agenda' is not enabled" }}
+        """

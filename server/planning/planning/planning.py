@@ -150,17 +150,31 @@ class PlanningService(superdesk.Service):
 
     def on_update(self, updates, original):
         user = get_user()
-        lock_user = original.get('lock_user', None)
-        str_user_id = str(user.get(config.ID_FIELD)) if user else None
-
-        if lock_user and str(lock_user) != str_user_id:
-            raise SuperdeskApiError.forbiddenError('The item was locked by another user')
+        self._validate_on_update(updates, original, user)
 
         if user and user.get(config.ID_FIELD):
             updates['version_creator'] = user[config.ID_FIELD]
 
         self._set_coverage(updates, original)
         self.set_planning_schedule(updates, original)
+
+    def _validate_on_update(self, updates, original, user):
+        lock_user = original.get('lock_user', None)
+        str_user_id = str(user.get(config.ID_FIELD)) if user else None
+
+        if lock_user and str(lock_user) != str_user_id:
+            raise SuperdeskApiError.forbiddenError('The item was locked by another user')
+
+        # Validate if agendas being added are enabled agendas
+        new_agendas = [agenda for agenda in updates.get('agendas', [])
+                       if agenda not in original.get('agendas', [])]
+        agenda_service = get_resource_service('agenda')
+        for agenda_id in new_agendas:
+            agenda = agenda_service.find_one(req=None, _id=str(agenda_id))
+            if not agenda:
+                raise SuperdeskApiError.forbiddenError('Agenda \'{}\' does not exist'.format(agenda.get('name')))
+            if not agenda.get('is_enabled', False):
+                raise SuperdeskApiError.forbiddenError('Agenda \'{}\' is not enabled'.format(agenda.get('name')))
 
     def _set_planning_event_info(self, doc):
         """Set the planning event date

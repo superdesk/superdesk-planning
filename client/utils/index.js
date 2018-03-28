@@ -28,6 +28,7 @@ export {default as eventUtils} from './events';
 export {default as uiUtils} from './ui';
 export {default as assignmentUtils} from './assignments';
 export {default as stringUtils} from './strings';
+export {default as actionUtils} from './actions';
 export {gettext, gettextCatalog};
 export {lockUtils};
 export {planningUtils};
@@ -696,3 +697,5 @@ export const appendStatesQueryForAdvancedSearch = (advancedSearch, spikeState, m
 };
 
 export const getUserPreferences = (user, preferenceKey) => get(user, `user_preferences.${preferenceKey}`, null);
+
+export const getEnabledAgendas = (agendas) => (agendas || []).filter((agenda) => get(agenda, 'is_enabled', true));

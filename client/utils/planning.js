@@ -24,6 +24,7 @@ import {
     isEmptyActions,
     isDateInRange,
     gettext,
+    getEnabledAgendas,
 } from './index';
 import {stripHtmlRaw} from 'superdesk-core/scripts/apps/authoring/authoring/helpers';
 
@@ -53,6 +54,15 @@ const canUnpublishPlanning = (planning, event, session, privileges, locks) => (
 const canEditPlanning = (planning, event, session, privileges, locks) => (
     !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
         !isPlanningLockRestricted(planning, session, locks) &&
+        !isItemSpiked(planning) &&
+        !isItemSpiked(event) &&
+        !isItemCancelled(planning) &&
+        !isItemRescheduled(planning)
+);
+
+const canAssignAgenda = (planning, event, privileges, locks) => (
+    !!privileges[PRIVILEGES.PLANNING_MANAGEMENT] &&
+        !isPlanningLocked(planning, locks) &&
         !isItemSpiked(planning) &&
         !isItemSpiked(event) &&
         !isItemCancelled(planning) &&
@@ -186,6 +196,8 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
             canAddAsEvent(plan, event, session, privileges, locks),
         [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.label]: () =>
             canEditPlanning(plan, event, session, privileges, locks),
+        [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.label]: () =>
+            canAssignAgenda(plan, event, privileges, locks),
         [EVENTS.ITEM_ACTIONS.CANCEL_EVENT.label]: () =>
             !isPlanAdHoc(plan) && eventUtils.canCancelEvent(event, session, privileges, locks),
         [EVENTS.ITEM_ACTIONS.UPDATE_TIME.label]: () =>
@@ -236,11 +248,20 @@ export const getPlanningItemActions = (plan, event = null, session, privileges, 
     return itemActions;
 };
 
-const getPlanningActions = (item, event, session, privileges, lockedItems, callBacks) => {
+const getPlanningActions = ({
+    item,
+    event,
+    session,
+    privileges,
+    lockedItems,
+    agendas,
+    callBacks}) => {
     if (!get(item, '_id')) {
         return [];
     }
 
+    let enabledAgendas;
+    let agendaCallBacks = [];
     let actions = [];
     let eventActions = [GENERIC_ITEM_ACTIONS.DIVIDER];
 
@@ -292,6 +313,22 @@ const getPlanningActions = (item, event, session, privileges, lockedItems, callB
             actions.push({
                 ...PLANNING.ITEM_ACTIONS.EDIT_PLANNING,
                 callback: callBacks[callBackName].bind(null, item)
+            });
+            break;
+
+        case PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName:
+            enabledAgendas = getEnabledAgendas(agendas);
+            enabledAgendas.forEach((agenda) => {
+                agendaCallBacks.push({
+                    label: agenda.name,
+                    inactive: get(item, 'agendas', []).includes(agenda._id),
+                    callback: callBacks[callBackName].bind(null, item, agenda)
+                });
+            });
+
+            agendaCallBacks.length > 0 && actions.push({
+                ...PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA,
+                callback: agendaCallBacks
             });
             break;
 

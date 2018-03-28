@@ -3,7 +3,11 @@ import {forEach, get} from 'lodash';
 import * as actions from '../actions';
 import {EVENTS, PLANNING} from '../constants';
 
-const getActionDispatches = (dispatch) => {
+const getActionDispatches = ({
+    dispatch,
+    eventOnly,
+    planningOnly
+}) => {
     const dispatches = {
         // Event Actions
         [EVENTS.ITEM_ACTIONS.DUPLICATE.actionName]:
@@ -44,6 +48,8 @@ const getActionDispatches = (dispatch) => {
             actions.events.ui.createEventFromPlanning,
         [PLANNING.ITEM_ACTIONS.EDIT_PLANNING.actionName]:
             actions.main.lockAndEdit,
+        [PLANNING.ITEM_ACTIONS.ASSIGN_TO_AGENDA.actionName]:
+            actions.planning.ui.assignToAgenda,
     };
     const props = {};
     const addAction = (action) => {
@@ -53,8 +59,13 @@ const getActionDispatches = (dispatch) => {
             props[action.actionName] = (...args) => dispatch(func(...args));
     };
 
-    forEach(EVENTS.ITEM_ACTIONS, addAction);
-    forEach(PLANNING.ITEM_ACTIONS, addAction);
+    if (!planningOnly) {
+        forEach(EVENTS.ITEM_ACTIONS, addAction);
+    }
+
+    if (!eventOnly) {
+        forEach(PLANNING.ITEM_ACTIONS, addAction);
+    }
 
     return props;
 };

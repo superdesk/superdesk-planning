@@ -384,6 +384,30 @@ const scheduleRefetch = () => (
     )
 );
 
+/**
+ * Action dispatcher that attempts to assign an agenda to a Planning item
+ * @param {object} item - The Planning item to asssign the agenda
+ * @param {object} item - Agenda to be assigned
+ * @return Promise
+ */
+const assignToAgenda = (item, agenda) => (
+    (dispatch, getState, {notify}) => (
+        dispatch(locks.lock(item))
+            .then((lockedItem) => {
+                lockedItem.agendas = [...get(lockedItem, 'agendas', []), agenda._id];
+                return dispatch(self.saveAndUnlockPlanning(lockedItem)).then(() => {
+                    notify.success(gettext('Agenda assigned to the planning item.'));
+                    return Promise.resolve();
+                });
+            }, (error) => {
+                notify.error(
+                    getErrorMessage(error, gettext('Could not obtain lock on the planning item.'))
+                );
+                return Promise.reject(error);
+            })
+    )
+);
+
 const duplicate = (plan) => (
     (dispatch, getState, {notify}) => (
         dispatch(planningApi.duplicate(plan))
@@ -489,6 +513,26 @@ const save = (item) => (
             return dispatch(self.saveAndReloadCurrentAgenda(item));
         }
     }
+);
+
+/**
+ * Action dispatcher that attempts to save and unlock a Planning item
+ * @param {object} item - The Planning item to save and unlock
+ * @return Promise
+ */
+const saveAndUnlockPlanning = (item) => (
+    (dispatch, getState, {notify}) => (
+        dispatch(self.save(item))
+            .then((savedItem) => dispatch(locks.unlock(savedItem))
+                .then(() => Promise.resolve(savedItem))
+                .catch(() => {
+                    notify.error(gettext('Could not unlock the planning item.'));
+                    return Promise.resolve(savedItem);
+                }), (error) => {
+                notify.error(gettext('Could not save the planning item.'));
+                return Promise.resolve(item);
+            })
+    )
 );
 
 /**
@@ -710,7 +754,9 @@ const self = {
     cancelAllCoverage,
     onAddCoverageClick,
     saveFromAuthoring,
-    scheduleRefetch
+    scheduleRefetch,
+    assignToAgenda,
+    saveAndUnlockPlanning
 };
 
 export default self;

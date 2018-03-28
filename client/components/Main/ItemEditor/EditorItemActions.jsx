@@ -54,8 +54,13 @@ export const EditorItemActions = ({
         };
 
         actions = currentWorkspace === WORKSPACE.PLANNING ?
-            planningUtils.getPlanningActions(item, event, session, privileges, lockedItems, itemActionsCallBack) :
-            [];
+            planningUtils.getPlanningActions({
+                item: item,
+                event: event,
+                session: session,
+                privileges: privileges,
+                lockedItems: lockedItems,
+                callBacks: itemActionsCallBack}) : [];
     }
 
     if (actions.length === 0) {
