@@ -47,7 +47,7 @@ export function FulFilAssignmentComponent({
                 {!actionInProgress && <a className="close" onClick={handleCancel}>
                     <i className="icon-close-small" />
                 </a>}
-                <h3>{gettext('Fulfil Assignment')}</h3>
+                <h3>{gettext('Select an Assignment')}</h3>
             </Modal.Header>
 
             <Modal.Body
