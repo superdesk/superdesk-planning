@@ -16,6 +16,7 @@ export class SelectSearchTermsField extends React.Component {
             multiLevel: false,
             openSelectPopup: true,
             viewDetails: false,
+            editDetails: false,
             viewIndex: null
         };
         this.removeValue = this.removeValue.bind(this);
@@ -49,10 +50,18 @@ export class SelectSearchTermsField extends React.Component {
         });
     }
 
+    editDetails(index) {
+        this.setState({
+            editDetails: true,
+            viewIndex: index
+        });
+    }
+
     // Set to close details
     closeDetails() {
         this.setState({
-            viewDetails: false
+            viewDetails: false,
+            editDetails: false,
         });
     }
 
@@ -110,30 +119,50 @@ export class SelectSearchTermsField extends React.Component {
                             {this.state.viewDetails && (
                                 this.props.value[this.state.viewIndex].onViewDetails(this.closeDetails.bind(this))
                             )}
+                            {this.state.editDetails && (
+                                this.props.value[this.state.viewIndex].onEditDetails(this.closeDetails.bind(this))
+                            )}
                             <div>
                                 {value.map((v, index) => (
                                     <List.Item shadow={2} key={index} margin={true}
-                                        tabIndex={0}
-                                        onKeyDown={(event) => {
-                                            if (event.keyCode === KEYCODES.ENTER &&
-                                                !this.state.viewDetails) {
-                                                onEventCapture(event);
-                                                this.viewDetails(index);
-                                            }
-                                        }
-                                        } >
+                                    >
                                         <List.Column grow={true} border={false}>
                                             <List.Row>
                                                 { v.label }
                                             </List.Row>
                                         </List.Column>
+
                                         <List.ActionMenu>
+                                            {this.props.onAdd &&
+                                                (<span className="icn-btn" data-sd-tooltip="Edit"
+                                                    data-flow="up" onClick={this.editDetails.bind(this, index)}
+                                                    tabIndex={0}
+                                                    onKeyDown={(event) => {
+                                                        if (event.keyCode === KEYCODES.ENTER &&
+                                                            !this.state.editDetails) {
+                                                            onEventCapture(event);
+                                                            this.editDetails(index);
+                                                        }
+                                                    }
+                                                    }>
+                                                    <i className="icon-pencil" />
+                                                </span>)
+                                            }
                                             <span data-sd-tooltip="View Details"
-                                                data-flow="left" onClick={this.viewDetails.bind(this, index)}>
+                                                data-flow="up" onClick={this.viewDetails.bind(this, index)}
+                                                tabIndex={0}
+                                                onKeyDown={(event) => {
+                                                    if (event.keyCode === KEYCODES.ENTER &&
+                                                        !this.state.viewDetails) {
+                                                        onEventCapture(event);
+                                                        this.viewDetails(index);
+                                                    }
+                                                }
+                                                }>
                                                 <i className="icon-external" />
                                             </span>
                                             <span className="icn-btn" data-sd-tooltip="Remove"
-                                                data-flow="left" onClick={this.removeValue.bind(this, index)}>
+                                                data-flow="up" onClick={this.removeValue.bind(this, index)}>
                                                 <i className="icon-trash" />
                                             </span>
                                         </List.ActionMenu>
@@ -172,6 +201,7 @@ SelectSearchTermsField.propTypes = {
                 PropTypes.string,
             ]),
             onViewDetails: PropTypes.func,
+            onEditDetails: PropTypes.func,
         }),
     ]),
     label: PropTypes.string,
